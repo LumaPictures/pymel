@@ -1,0 +1,412 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>confirmDialog command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/confirmDialog.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>confirmDialog</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;confirmDialog.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>confirmDialog([<a href="#flagbackgroundColor">backgroundColor</a>=<i>[float, float, float]</i>], [<a href="#flagbutton">button</a>=<i>string</i>], [<a href="#flagcancelButton">cancelButton</a>=<i>string</i>], [<a href="#flagdefaultButton">defaultButton</a>=<i>string</i>], [<a href="#flagdismissString">dismissString</a>=<i>string</i>], [<a href="#flagmessage">message</a>=<i>string</i>], [<a href="#flagmessageAlign">messageAlign</a>=<i>string</i>], [<a href="#flagparent">parent</a>=<i>string</i>], [<a href="#flagtitle">title</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>confirmDialog is undoable, queryable, and editable.</p>
+      
+The confirmDialog command creates a modal dialog with a message to the
+user and a variable number of buttons to dismiss the dialog.  The
+dialog is dismissed when the user presses any button or chooses the
+close item from the window menu.  In the case where a button is
+pressed then the name of the button selected is returned.  If the
+dialog is dismissed via the close item then the string returned is
+specified by the <I>-ds/dismissString</I> flag.
+
+The default behaviour when no arguments are specified is to create an
+empty single button dialog.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagbackgroundColor">backgroundColor</a>, <a href="#flagbutton">button</a>, <a href="#flagcancelButton">cancelButton</a>, <a href="#flagdefaultButton">defaultButton</a>, <a href="#flagdismissString">dismissString</a>, <a href="#flagmessage">message</a>, <a href="#flagmessageAlign">messageAlign</a>, <a href="#flagparent">parent</a>, <a href="#flagtitle">title</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtitle">
+	      <code><b>title</b>(<b>t</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The dialog title.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmessage">
+	      <code><b>message</b>(<b>m</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The message text appearing in the dialog.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmessageAlign">
+	      <code><b>messageAlign</b>(<b>ma</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Align the message <I>left</I>, <I>center</I>, or <I>right</I>.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbutton">
+	      <code><b>button</b>(<b>b</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/multiuse.gif" alt="multiuse" title="multiuse" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Create a button with the given string as it's text.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdefaultButton">
+	      <code><b>defaultButton</b>(<b>db</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The default button is activated by pressing the enter key.
+Note that this flag does not create a button, it simply indicates
+which button created via the <I>-b/button</I> flag shall respond
+to the enter key.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcancelButton">
+	      <code><b>cancelButton</b>(<b>cb</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The cancel button is activated by pressing the escape key.
+Note that this flag does not create a button, it simply indicates
+which button created via the <I>-b/button</I> flag shall respond
+to the escape key.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdismissString">
+	      <code><b>dismissString</b>(<b>ds</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The string returned when the user selects the 'Close' item
+from the Window Manager menu.  If this flag is not set then the
+string &quot;dismiss&quot; is returned.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagparent">
+	      <code><b>parent</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the parent window for the dialog.  The dialog will
+be centered on this window and raise and lower with it's parent.
+By default, the dialog is not parented to a particular window and
+is simply centered on the screen.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbackgroundColor">
+	      <code><b>backgroundColor</b>(<b>bgc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The background color of the dialog. The arguments correspond
+to the red, green, and blue color components. Each component ranges
+in value from 0.0 to 1.0. (Windows only flag)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>A string indicating how the dialog was dismissed.  If a button is</i> 
+pressed then the label of the button is returned.  If the dialog is
+closed then the value for the flag <I>-ds/dismissString</I> is
+returned.
+
+      <br/>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# Create an empty single button dialog.
+#
+# +-+----------------+
+# |-| Confirm Dialog |
+# +------------------+
+# |                  |
+# +------------------+
+# | +--------------+ |
+# | |   Confirm    | |
+# | +--------------+ |
+# +------------------+
+#
+cmds.confirmDialog()
+
+# Create a basic Yes/No dialog.
+#
+# +-+----------------+
+# |-|    Confirm     |
+# +------------------+
+# |  Are you sure?   |
+# +------------------+
+# | +-----+  +-----+ |
+# | | Yes |  | No  | |
+# | +-----+  +-----+ |
+# +------------------+
+#
+cmds.confirmDialog( title='Confirm', message='Are you sure?', button=['Yes','No'], defaultButton='Yes', cancelButton='No', dismissString='No' )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

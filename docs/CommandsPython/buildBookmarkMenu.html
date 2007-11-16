@@ -1,0 +1,173 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>buildBookmarkMenu command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/buildBookmarkMenu.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>buildBookmarkMenu</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;buildBookmarkMenu.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>buildBookmarkMenu(
+menuName
+    , [<a href="#flageditor">editor</a>=<i>string</i>], [<a href="#flagtype">type</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>buildBookmarkMenu is undoable, queryable, and editable.</p>
+      
+This command handles building the &quot;dynamic&quot; Bookmark
+menu, to show all bookmarks (&quot;sets&quot;) of a specified
+type (&quot;sets -text&quot;)
+
+menuName is the string returned by the &quot;menu&quot; command.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flageditor">editor</a>, <a href="#flagtype">type</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtype">
+	      <code><b>type</b>(<b>typ</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Type of bookmark (sets -text) to display
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flageditor">
+	      <code><b>editor</b>(<b>ed</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Name of the editor which this menu belongs to
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>none</i>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# Update the bookmarkMenu to show animation (bookmarkAnimCurves)
+# bookmarks
+#
+cmds.menu( 'bookmarkMenu' )
+cmds.buildBookmarkMenu( 'bookmarkMenu', type='bookmarkAnimCurves' )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

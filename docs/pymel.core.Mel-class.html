@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pymel.core.Mel</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pymel-module.html">Package&nbsp;pymel</a> ::
+        <a href="pymel.core-module.html">Module&nbsp;core</a> ::
+        Class&nbsp;Mel
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pymel.core.Mel-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Mel</h1><span class="codelink"><a href="pymel.core-pysrc.html#Mel">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+object --+
+         |
+        <strong class="uidshort">Mel</strong>
+</pre>
+
+<hr />
+<p>This class is a necessity for calling mel scripts from python. It 
+  allows you to call your scripts in a cleaner fashion, by automatically 
+  formatting your python arguments into a string which is executed via 
+  maya.mel.eval().  An instance of this class is already created for you 
+  when importing pymel and is called mel.</p>
+  default:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> maya.mel <span class="py-keyword">as</span> mel
+<span class="py-prompt">&gt;&gt;&gt; </span>mel.eval( <span class="py-string">'myScript(&quot;firstArg&quot;, 2, 3.0, {&quot;one&quot;, &quot;two&quot;, &quot;three&quot;})'</span>)</pre>
+  pymel:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">from</span> pymel <span class="py-keyword">import</span> *
+<span class="py-prompt">&gt;&gt;&gt; </span>mel.myScript(<span class="py-string">&quot;firstArg&quot;</span>, 2, 3.0, [<span class="py-string">'one'</span>, <span class="py-string">'two'</span>, <span class="py-string">'three'</span>])</pre>
+  <p>the advantages of this method are more readily apparent in a more 
+  complicated example:</p>
+  default:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">import</span> cmds <span class="py-keyword">as</span> cmds
+<span class="py-prompt">&gt;&gt;&gt; </span>node = <span class="py-string">&quot;lambert1&quot;</span>
+<span class="py-prompt">&gt;&gt;&gt; </span>color = cmds.getAttr( node + <span class="py-string">&quot;.color&quot;</span> )[0]
+<span class="py-prompt">&gt;&gt;&gt; </span>mel.eval(<span class="py-string">'myScript(&quot;%s&quot;,{%s,%s,%s})'</span> % (cmds.nodeType(node), color[0], color[1], color[2])</pre>
+  pymel:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">from</span> pymel <span class="py-keyword">import</span> *
+<span class="py-prompt">&gt;&gt;&gt; </span>node = Node(<span class="py-string">&quot;lambert&quot;</span>)
+<span class="py-prompt">&gt;&gt;&gt; </span>mel.myScript( node.type(), node.color.get() )</pre>
+  from this you can see how pymel.mel allows you to pass any python 
+  object directly to your mel script as if it were a python script, with no
+  need for formatting arguments.<br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__getattr__"></a><span class="summary-sig-name">__getattr__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">command</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.core-pysrc.html#Mel.__getattr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.core.Mel-class.html#mprint" class="summary-sig-name">mprint</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>)</span><br />
+      mel print command in case the python print command doesn't cut 
+      it.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.core-pysrc.html#Mel.mprint">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="source"></a><span class="summary-sig-name">source</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">script</span>)</span><br />
+      use this to source mel scripts from within mel</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.core-pysrc.html#Mel.source">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="eval"></a><span class="summary-sig-name">eval</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">command</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.core-pysrc.html#Mel.eval">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__init__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__repr__</code>,
+      <code>__setattr__</code>,
+      <code>__str__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="mprint"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">mprint</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.core-pysrc.html#Mel.mprint">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  mel print command in case the python print command doesn't cut it. i 
+  have noticed that python print does not appear in certain output, such as
+  the rush render-queue manager.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Wed Nov 14 16:07:46 2007
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

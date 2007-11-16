@@ -1,0 +1,1061 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>hyperShade command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/hyperShade.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>hyperShade</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;hyperShade.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hKeywords">Keywords</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>hyperShade([<a href="#flagassign">assign</a>=<i>string</i>], [<a href="#flagclearWorkArea">clearWorkArea</a>=<i>boolean</i>], [<a href="#flagcollapse">collapse</a>=<i>string</i>], [<a href="#flagcreateNode">createNode</a>=<i>string</i>], [<a href="#flagdependGraphArea">dependGraphArea</a>=<i>boolean</i>], [<a href="#flagdownStream">downStream</a>=<i>boolean</i>], [<a href="#flagduplicate">duplicate</a>=<i>boolean</i>], [<a href="#flagfixRenderSize">fixRenderSize</a>=<i>boolean</i>], [<a href="#flagincremental">incremental</a>=<i>boolean</i>], [<a href="#flaglistDownstreamShaderNodes">listDownstreamShaderNodes</a>=<i>select</i>], [<a href="#flaglistUpstreamNodes">listUpstreamNodes</a>=<i>select</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagnetworks">networks</a>=<i>boolean</i>], [<a href="#flagnoSGShapes">noSGShapes</a>=<i>boolean</i>], [<a href="#flagnoShapes">noShapes</a>=<i>boolean</i>], [<a href="#flagnoTransforms">noTransforms</a>=<i>boolean</i>], [<a href="#flagobjects">objects</a>=<i>string</i>], [<a href="#flagrenderCreateAndDrop">renderCreateAndDrop</a>=<i>string</i>], [<a href="#flagreset">reset</a>=<i>boolean</i>], [<a href="#flagresetGraph">resetGraph</a>=<i>boolean</i>], [<a href="#flagresetSwatch">resetSwatch</a>=<i>boolean</i>], [<a href="#flagsetAllowsRegraphing">setAllowsRegraphing</a>=<i>boolean</i>], [<a href="#flagsetWorkArea">setWorkArea</a>=<i>string</i>], [<a href="#flagshaderNetwork">shaderNetwork</a>=<i>string</i>], [<a href="#flagshaderNetworks">shaderNetworks</a>=<i>boolean</i>], [<a href="#flagshaderNetworksSelectMaterialNodes">shaderNetworksSelectMaterialNodes</a>=<i>boolean</i>], [<a href="#flagsnapShot">snapShot</a>=<i>boolean</i>], [<a href="#flaguncollapse">uncollapse</a>=<i>string</i>], [<a href="#flagupStream">upStream</a>=<i>boolean</i>], [<a href="#flaguserDefinedLayout">userDefinedLayout</a>=<i>boolean</i>], [<a href="#flagworkAreaAddCmd">workAreaAddCmd</a>=<i>string</i>], [<a href="#flagworkAreaDeleteCmd">workAreaDeleteCmd</a>=<i>string</i>], [<a href="#flagworkAreaSelectCmd">workAreaSelectCmd</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>hyperShade is undoable, <b>NOT queryable</b>, and <b>NOT editable</b>.</p>
+      
+Commands for shader editing in the hypergraph
+	
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagassign">assign</a>, <a href="#flagclearWorkArea">clearWorkArea</a>, <a href="#flagcollapse">collapse</a>, <a href="#flagcreateNode">createNode</a>, <a href="#flagdependGraphArea">dependGraphArea</a>, <a href="#flagdownStream">downStream</a>, <a href="#flagduplicate">duplicate</a>, <a href="#flagfixRenderSize">fixRenderSize</a>, <a href="#flagincremental">incremental</a>, <a href="#flaglistDownstreamShaderNodes">listDownstreamShaderNodes</a>, <a href="#flaglistUpstreamNodes">listUpstreamNodes</a>, <a href="#flagname">name</a>, <a href="#flagnetworks">networks</a>, <a href="#flagnoSGShapes">noSGShapes</a>, <a href="#flagnoShapes">noShapes</a>, <a href="#flagnoTransforms">noTransforms</a>, <a href="#flagobjects">objects</a>, <a href="#flagrenderCreateAndDrop">renderCreateAndDrop</a>, <a href="#flagreset">reset</a>, <a href="#flagresetGraph">resetGraph</a>, <a href="#flagresetSwatch">resetSwatch</a>, <a href="#flagsetAllowsRegraphing">setAllowsRegraphing</a>, <a href="#flagsetWorkArea">setWorkArea</a>, <a href="#flagshaderNetwork">shaderNetwork</a>, <a href="#flagshaderNetworks">shaderNetworks</a>, <a href="#flagshaderNetworksSelectMaterialNodes">shaderNetworksSelectMaterialNodes</a>, <a href="#flagsnapShot">snapShot</a>, <a href="#flaguncollapse">uncollapse</a>, <a href="#flagupStream">upStream</a>, <a href="#flaguserDefinedLayout">userDefinedLayout</a>, <a href="#flagworkAreaAddCmd">workAreaAddCmd</a>, <a href="#flagworkAreaDeleteCmd">workAreaDeleteCmd</a>, <a href="#flagworkAreaSelectCmd">workAreaSelectCmd</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsetAllowsRegraphing">
+	      <code><b>setAllowsRegraphing</b>(<b>sar</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+For internal use only.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagassign">
+	      <code><b>assign</b>(<b>a</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Assign the specified shader node to renderable objects on the active list.
+The node can either be a shading group or the shader node attached to the
+shading group.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagclearWorkArea">
+	      <code><b>clearWorkArea</b>(<b>cwa</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Push the current work area on to the stack and create a clear work area
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsetWorkArea">
+	      <code><b>setWorkArea</b>(<b>swa</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the work area to the existing named work ard
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdependGraphArea">
+	      <code><b>dependGraphArea</b>(<b>dg</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+When setting a work area, and the work area doesn't already exist this
+flag inicates a new graph should be created that is either a depend graph
+or a folder view.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcollapse">
+	      <code><b>collapse</b>(<b>clp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Hide the upstream nodes from the specified node.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguncollapse">
+	      <code><b>uncollapse</b>(<b>ucl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Unhide the upstream nodes from the specified node.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagduplicate">
+	      <code><b>duplicate</b>(<b>dup</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Duplicate upstream nodes.  If the node is a shader make sure duplicate
+include the shading group if there is one
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfixRenderSize">
+	      <code><b>fixRenderSize</b>(<b>fix</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If set to true dont rerender swatches when they change size as the user
+zooms
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagreset">
+	      <code><b>reset</b>(<b>rst</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Reset the Hypershade panel to its initial state.  In particular delete all
+the work areas.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagresetGraph">
+	      <code><b>resetGraph</b>(<b>rsg</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Reset the current graph.  Typicly called prior to rebuilding a folder in
+a Hypershade view.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagresetSwatch">
+	      <code><b>resetSwatch</b>(<b>rss</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+For all selected nodes remove user defined swatches if the node has one
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Name for the work area created by this command
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagincremental">
+	      <code><b>incremental</b>(<b>inc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Enable or disable incremental layout when making new nodes or connections
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagupStream">
+	      <code><b>upStream</b>(<b>ups</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Show nodes upstream from the specified node
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdownStream">
+	      <code><b>downStream</b>(<b>ds</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Show nodes downstream from the specified node
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsnapShot">
+	      <code><b>snapShot</b>(<b>snp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Put hypergraph in snapshot mode.  This is only for testing
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagobjects">
+	      <code><b>objects</b>(<b>o</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Select the objects which are attached to the specified shader node.
+The shader node can be either the shading group or the shader attached
+to the shading group.  When this flag's argument is the empty string,
+we will use the currently selected shder node as the input.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcreateNode">
+	      <code><b>createNode</b>(<b>rcn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Create a node of the specified type.  This is called when a new rendering
+node is created using drag and drop from the image browser or from the
+RMB context sensitve menu on nodes in the Visor Create folders.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrenderCreateAndDrop">
+	      <code><b>renderCreateAndDrop</b>(<b>rcd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Create a render node of the specified type and put user into drag and
+drop mode to place or connect it.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnetworks">
+	      <code><b>networks</b>(<b>net</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Do an incremental layout on all of the nodes in the current selection
+list and that are in the current work area.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagshaderNetwork">
+	      <code><b>shaderNetwork</b>(<b>sn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Show the shader network for the specified material node.  If the materials
+shading group has a displacement or volume map these will be shown.  If not
+then the shading group wont be shown.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagshaderNetworks">
+	      <code><b>shaderNetworks</b>(<b>sns</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Show the shader network for all the objects on the selection list that
+have shaders.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagshaderNetworksSelectMaterialNodes">
+	      <code><b>shaderNetworksSelectMaterialNodes</b>(<b>smn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Select the material nodes in the shader network for all the
+objects on the selection list that have shaders.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagworkAreaAddCmd">
+	      <code><b>workAreaAddCmd</b>(<b>waa</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the MEL procedure called when a new work area is added to HyperShade
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagworkAreaDeleteCmd">
+	      <code><b>workAreaDeleteCmd</b>(<b>wad</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the MEL procedure called when a work area is deleted in HyperShade
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagworkAreaSelectCmd">
+	      <code><b>workAreaSelectCmd</b>(<b>was</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the MEL procedure called when a work area is selected in HyperShade
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguserDefinedLayout">
+	      <code><b>userDefinedLayout</b>(<b>udl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Enable or disable remembrance of user defined layouts.  Default is disabled
+until this functionality is better tested.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnoShapes">
+	      <code><b>noShapes</b>(<b>ns</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Display no shapes when graphing networks.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnoSGShapes">
+	      <code><b>noSGShapes</b>(<b>nsg</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Display only shapes that are connected to nodes in the
+network other than a shading group.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnoTransforms">
+	      <code><b>noTransforms</b>(<b>nt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Display no transforms when graphing networks.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglistUpstreamNodes">
+	      <code><b>listUpstreamNodes</b>(<b>lun</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>select</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+List all the upstream render nodes from the specified nodes.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglistDownstreamShaderNodes">
+	      <code><b>listDownstreamShaderNodes</b>(<b>lds</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>select</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+List all the downstream shader nodes from the specified nodes.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>[string]</i> 
+
+			<br/>
+      <h2><a name="hKeywords">Keywords</a></h2>render, hypergraph, shader, hypershade
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.sphere()
+cmds.cone()
+myBlinn = cmds.shadingNode('blinn', asShader=True)
+cmds.select( 'nurbsSphere1' )
+cmds.hyperShade( myBlinn, assign=True )
+cmds.select( cl=True )
+cmds.hyperShade( objects=myBlinn )
+blinn = cmds.createNode('blinn')
+cmds.select( 'lambert1', blinn )
+cmds.hyperShade( objects='' )
+	</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

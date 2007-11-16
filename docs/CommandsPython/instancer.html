@@ -1,0 +1,573 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>instancer command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/instancer.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>instancer</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;instancer.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hKeywords">Keywords</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>instancer([<a href="#flagaddObject">addObject</a>=<i>boolean</i>], [<a href="#flagcycle">cycle</a>=<i>string</i>], [<a href="#flagcycleStep">cycleStep</a>=<i>double</i>], [<a href="#flagcycleStepUnits">cycleStepUnits</a>=<i>string</i>], [<a href="#flagindex">index</a>=<i>int</i>], [<a href="#flaglevelOfDetail">levelOfDetail</a>=<i>string</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagobject">object</a>=<i>string</i>], [<a href="#flagobjectPosition">objectPosition</a>=<i>string</i>], [<a href="#flagobjectRotation">objectRotation</a>=<i>string</i>], [<a href="#flagobjectScale">objectScale</a>=<i>string</i>], [<a href="#flagpointDataSource">pointDataSource</a>=<i>boolean</i>], [<a href="#flagremoveObject">removeObject</a>=<i>boolean</i>], [<a href="#flagrotationOrder">rotationOrder</a>=<i>string</i>], [<a href="#flagrotationUnits">rotationUnits</a>=<i>string</i>], [<a href="#flagvalueName">valueName</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>instancer is undoable, queryable, and editable.</p>
+      
+This command is used to create a instancer node and set the proper
+attributes in the node.
+	
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagaddObject">addObject</a>, <a href="#flagcycle">cycle</a>, <a href="#flagcycleStep">cycleStep</a>, <a href="#flagcycleStepUnits">cycleStepUnits</a>, <a href="#flagindex">index</a>, <a href="#flaglevelOfDetail">levelOfDetail</a>, <a href="#flagname">name</a>, <a href="#flagobject">object</a>, <a href="#flagobjectPosition">objectPosition</a>, <a href="#flagobjectRotation">objectRotation</a>, <a href="#flagobjectScale">objectScale</a>, <a href="#flagpointDataSource">pointDataSource</a>, <a href="#flagremoveObject">removeObject</a>, <a href="#flagrotationOrder">rotationOrder</a>, <a href="#flagrotationUnits">rotationUnits</a>, <a href="#flagvalueName">valueName</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag sets or queries the name of the instancer node.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagobject">
+	      <code><b>object</b>(<b>obj</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/multiuse.gif" alt="multiuse" title="multiuse" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag indicates which objects will be add/removed from the list of instanced
+objects.  The flag is used in conjuction with the -add and -remove flags.  If
+neither of these flags is specified on the command line then -add is assumed.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagobjectPosition">
+	      <code><b>objectPosition</b>(<b>op</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag queries the given objects position.  This object can be any instanced object or
+sub-object.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagobjectRotation">
+	      <code><b>objectRotation</b>(<b>objectRotation</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag queries the given objects rotation.  This object can be any instanced object or
+sub-object.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagobjectScale">
+	      <code><b>objectScale</b>(<b>os</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag queries the given objects scale.  This object can be any instanced object or
+sub-object.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaddObject">
+	      <code><b>addObject</b>(<b>a</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag indicates that objects specified by the -object flag will be added to
+the instancer node as instanced objects.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveObject">
+	      <code><b>removeObject</b>(<b>rm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag indicates that objects specified by the -object flag will be
+removed from the instancer node as instanced objects.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcycle">
+	      <code><b>cycle</b>(<b>c</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag sets or queries the cycle attribute for the instancer node.
+The options are &quot;none&quot; or &quot;sequential&quot;.  The default is &quot;none&quot;.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcycleStep">
+	      <code><b>cycleStep</b>(<b>cs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag sets or queries the cycle step attribute for the instancer node.  This attribute
+indicates the size of the step in frames or seconds (see cycleStepUnit).
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcycleStepUnits">
+	      <code><b>cycleStepUnits</b>(<b>csu</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag sets or queries the cycle step unit attribute for the instancer
+node.  The options are &quot;frames&quot; or &quot;seconds&quot;.  The default is &quot;frames&quot;.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagindex">
+	      <code><b>index</b>(<b>i</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to query the name of the ith instanced object.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglevelOfDetail">
+	      <code><b>levelOfDetail</b>(<b>lod</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag sets or queries the level of detail of the instanced objects.  The
+options are &quot;geometry&quot;, &quot;boundingBox&quot;, &quot;boundingBoxes&quot;.  The default is
+&quot;geometry&quot;.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrotationOrder">
+	      <code><b>rotationOrder</b>(<b>ro</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag specifies the rotation order associated with the rotation flag.  The
+options are XYZ, XZY, YXZ, YZX, ZXY, or ZYX.  By default the attribute is XYZ.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrotationUnits">
+	      <code><b>rotationUnits</b>(<b>ru</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag specifies the rotation units associated with the rotation flag.  The
+options are degrees or radians.  By default the attribute is degrees.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagvalueName">
+	      <code><b>valueName</b>(<b>vn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to query the value(s) of the array associated with the given
+name.  If the -index flag is used in conjuction with this flag then the ith
+value will be returned.  Otherwise, the entire array will be returned.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpointDataSource">
+	      <code><b>pointDataSource</b>(<b>pds</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to query the source node supply the data for the input points.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>[string]</i> 
+
+			<br/>
+      <h2><a name="hKeywords">Keywords</a></h2>instancer
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.polySphere(n='myShape')
+cmds.instancer( name='myInstancerNode', a=True, object='myShape' )
+	</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

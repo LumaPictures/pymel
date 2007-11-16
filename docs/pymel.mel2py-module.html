@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pymel.mel2py</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pymel-module.html">Package&nbsp;pymel</a> ::
+        Module&nbsp;mel2py
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pymel.mel2py-module.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== MODULE DESCRIPTION ==================== -->
+<h1 class="epydoc">Module mel2py</h1><span class="codelink"><a href="pymel.mel2py-pysrc.html">source&nbsp;code</a></span><br /><br />
+<h1 class="heading">Mel To Python Translator</h1>
+    Convert mel scripts into python scripts
+  <h1 class="heading">Known Limitations</h1>
+    <h2 class="heading">array index assignment</h2>
+      in mel, you can directly assign the value of any element in an 
+      array, and all intermediate elements will be automatically filled. 
+      this is not the case in python: if the list index is out of range you
+      will raise an IndexError. i've added fixes for several common array 
+      assignments:
+<pre class="literalblock">
+
+</pre>
+      <h3 class="heading">append new element</h3>
+        MEL
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>$strArray[`size $strArray`] = <span class="py-string">&quot;foo&quot;</span>;</pre>
+        Python
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>strArray.append(<span class="py-string">&quot;foo&quot;</span>)</pre>
+      <h3 class="heading">assignment relative to end of array</h3>
+        MEL
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>$strArray[`size $strArray`-3] = <span class="py-string">&quot;foo&quot;</span>;</pre>
+        Python
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>strArray[-3] = <span class="py-string">&quot;foo&quot;</span></pre>
+        However, since the translator does not track values of 
+        variables, it does not know if any given index is out of range or 
+        not. so, the following would raise an 'list assignment index out of
+        range' error when converted to python and would need to be manually
+        fixed:
+<pre class="literalblock">
+       string $strArray[];
+       for ($i=0; $i&lt;5; $i++)
+               $strArray[$i] = &quot;foo&quot;
+</pre>
+    <h2 class="heading">for(init; condition; update)</h2>
+      the closest equivalent to this in python is something akin to:
+<pre class="literalblock">
+       for i in range(start, end)
+</pre>
+      in order for this type of for loop to be translated it must meet 
+      several requirements:
+      <ol start="1">
+        <li>
+          <p>the inititalization, conidition, and update expressions must 
+          not be empty.</p>
+          not translatable:
+<pre class="literalblock">
+       for(; ; $i++)
+</pre>
+        </li>
+        <li>
+          <p>there can be only one conditional expression.</p>
+          not translatable:
+<pre class="literalblock">
+       for($i=0; $i&lt;10, $j&lt;20; $i++)
+</pre>
+        </li>
+        <li>
+          <p>the variable which is being updated and tested in the 
+          condition (aka, the iterator) must exist alone on one side of the
+          conditional expression. this one is easy enough to fix, just do 
+          some algebra:</p>
+          not translatable:
+<pre class="literalblock">
+       for($i=0; ($i-2)&lt;10, $i++)
+</pre>
+          translatable:
+<pre class="literalblock">
+       for($i=0; $i&lt;(10+2), $i++)
+</pre>
+        </li>
+        <li>
+          <p>the iterator can appear only once in the update 
+          expression:</p>
+          not translatable:
+<pre class="literalblock">
+       for($i=0; $i&lt;10, $i++, $i+=2)
+</pre>
+        </li>
+      </ol>
+  <h1 class="heading">Inconveniences</h1>
+    <h2 class="heading">switch statements</h2>
+      alas, switch statements are not supported by python. the 
+      translator will convert them into an if/elif/else statement.
+    <h2 class="heading">global variables</h2>
+      <p>Global variables are not shared between mel and python.  two 
+      functions have been added to pymel for this purpose: <a 
+      href="pymel.core-module.html#getMelGlobal" 
+      class="link">getMelGlobal</a> and <a 
+      href="pymel.core-module.html#setMelGlobal" 
+      class="link">setMelGlobal</a>. by default, the translator will 
+      convert mel global variables into python global variables AND 
+      intialize them to the value of their corresponding mel global 
+      variable using getMelGlobal(). if your python global variable does 
+      not need to be shared with other mel scripts, you can remove the get-
+      and setMelGlobals lines (for how to filter global variables, see 
+      below). however, if it does need to be shared, it is very important 
+      that you manually add setMelGlobal() to update the variable in the 
+      mel environment before calling any mel procedures that will use the 
+      global variable.</p>
+      In order to hone the accuracy of the translation of global 
+      variables, you will find two dictionary parameters below -- <code 
+      class="link">global_var_include_regex</code> and <code 
+      class="link">global_var_exclude_regex</code> -- which you can use to 
+      set a regular expression string to tell the translator which global 
+      variables to share with the mel environment (i.e. which will use the 
+      get and set methods described above) and which to not.  for instance,
+      in my case, it is desirable for all of maya's global variables to be 
+      initialized from their mel value but for our in-house variables not 
+      to be, since the latter are often used to pass values within a single
+      script. see below for the actual regular expressions used to 
+      accomplish this.
+    <h2 class="heading">Command Callbacks</h2>
+      one common point of confusion is command callbacks with ui 
+      elements. There are several different ways to handle command 
+      callbacks on user interface widgets:
+      <h3 class="heading">Function Name as String</h3>
+        maya will try to execute this as a python command, but unless 
+        you know the namespace it will be imported into, the function will 
+        not be recognized. notice how the namespace must be hardwired into 
+        the command:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>button( c=<span class="py-string">&quot;myCommand&quot;</span> )</pre>
+        or
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>button( c=<span class="py-string">&quot;myModule.myCommand&quot;</span> )</pre>
+        this method is not recommended.
+      <h3 class="heading">Function Object</h3>
+        When using this method, you pass an actual function object 
+        (without the parentheses). The callback function has to be defined 
+        before it is referenced by the command flag.  also, keep in mind 
+        many ui widgets such as radioButtonGrp pass args to the function 
+        (to mimic the &quot;myCommand #1&quot; functionality in mel), which
+        your function must accommodate. The tricky part is that different 
+        ui elements pass differing numbers of args to their callbacks, and 
+        some pass none at all. This is why it is best for your command to 
+        use the *args syntax to accept any quantity of args, and then deal 
+        with them in the function.
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">myCommand</span>( *args ): <span class="py-keyword">print</span> args <span class="py-comment"># this definition must come first</span></pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>button( c=myCommand )</pre>
+      <h3 class="heading">Lambda Functions</h3>
+        In my experience this is the best way to handle most command 
+        callbacks.  You can choose exactly which args you want to pass 
+        along to your function and order of definition does not matter.
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>button( c= <span class="py-keyword">lambda</span> *args: myCommand(args[0]) )</pre>
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">def</span> <span class="py-defname">myCommand</span>( arg ): <span class="py-keyword">print</span> <span class="py-string">&quot;running&quot;</span>, arg</pre>
+    <h2 class="heading">comments</h2>
+      rules on where comments may be placed is more strict in python, so
+      expect your comments to be shifted around a bit after 
+      translation.
+    <h2 class="heading">formatting</h2>
+      the formatting of your original script will be lost. i apologize 
+      for this, and perhaps i'll be able to carry over some custom 
+      formatting in future versions, but python is much more strict about 
+      formatting than mel, so the conversion is infinitely simpler when the
+      formatting is completely discarded and reconstructed based on 
+      pythonic rules.
+  <h1 class="heading">Solutions and Caveats</h1>
+    <h2 class="heading">catch and catchQuiet</h2>
+      there is no direct equivalent in python to the catch command and 
+      it does not exist in maya.cmds so i wrote two python commands of the 
+      same name and put them into pymel. these are provided primarily for 
+      compatibility with automatically translated scripts. try/except 
+      statements should be used instead of catch or catchQuiet if coding 
+      from scratch.
+    <h2 class="heading">for( $elem in $list )</h2>
+      this variety of for loop has a direct syntactical equivalent in 
+      python.  the only catch here is that maya.cmds functions which are 
+      supposed to return lists, return None when there are no matches. life
+      would be much simpler if they returned empty lists instead.  the 
+      solution currently lies in pymel, where i have begun correcting all 
+      of these command to return proper results.  i've started with the 
+      obvious ones, but there are many more that i need to fix.  you'll 
+      know you hit the problem when you get this error: 'TypeError: 
+      iteration over non-sequence'. just email me with commands that are 
+      giving you problems and i'll fix them as quickly as i can.<br /><br />
+
+<!-- ==================== FUNCTIONS ==================== -->
+<a name="section-Functions"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Functions</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Functions"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.mel2py-module.html#mel2py" class="summary-sig-name">mel2py</a>(<span class="summary-sig-arg">melfile</span>,
+        <span class="summary-sig-arg">outputDir</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">verbosity</span>=<span class="summary-sig-default">0</span>)</span><br />
+      Convert a mel script into a python script.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.mel2py-pysrc.html#mel2py">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="mel2pyBatch"></a><span class="summary-sig-name">mel2pyBatch</span>(<span class="summary-sig-arg">processDir</span>,
+        <span class="summary-sig-arg">outputDir</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">verbosity</span>=<span class="summary-sig-default">0</span>)</span><br />
+      batch convert an entire directory</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.mel2py-pysrc.html#mel2pyBatch">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== VARIABLES ==================== -->
+<a name="section-Variables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Variables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pymel.mel2py-module.html#custom_proc_remap" class="summary-name">custom_proc_remap</a> = <code title="{'firstElem': lambda args, t: '%s[0]' %(args [0]), 'firstFloatElem': l\
+ambda args, t: '%s[0]' %(args [0]), 'firstElem': lambda args, t: '%s[0\
+]' %(args [0]), 'stringArrayAppend': lambda args, t: '%s + %s' %(args \
+[0], args [1]), 'stringInArray': lambda args, t: '%s in %s' %(args [0]\
+, args [1]), 'stringInStringArray': lambda args, t: '%s in %s' %(args \
+[0], args [1]), 'stringArrayPrefix': lambda args, t: '[ %s + x for x i\
+n %s ]' %(args [0], args [1]), 'stringArraySuffix': lambda args, t: '[\
+ x + %s for x in %s ]' %(args [0], args [1]), 'addPad': lambda args, t\
+...">{'firstElem': lambda args, t: '%s[0]' %(ar<code class="variable-ellipsis">...</code></code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="e"></a><span class="summary-name">e</span> = <code title="2.71828182846">2.71828182846</code>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a name="pi"></a><span class="summary-name">pi</span> = <code title="3.14159265359">3.14159265359</code>
+    </td>
+  </tr>
+</table>
+<!-- ==================== FUNCTION DETAILS ==================== -->
+<a name="section-FunctionDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Function Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-FunctionDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="mel2py"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">mel2py</span>(<span class="sig-arg">melfile</span>,
+        <span class="sig-arg">outputDir</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">verbosity</span>=<span class="sig-default">0</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.mel2py-pysrc.html#mel2py">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <p>Convert a mel script into a python script.</p>
+  <p>if no output directory is specified, the python script will be written
+  to the same directory as the input mel file.</p>
+  if only the name of the mel file is     passed, mel2py will attempt to
+  determine the location of the file using the 'whatIs' mel command, which 
+  relies on the script already being 'known' by maya.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== VARIABLES DETAILS ==================== -->
+<a name="section-VariablesDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Variables Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-VariablesDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="custom_proc_remap"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">custom_proc_remap</h3>
+  
+  <dl class="fields">
+  </dl>
+  <dl class="fields">
+    <dt>Value:</dt>
+      <dd><table><tr><td><pre class="variable">
+{'firstElem': lambda args, t: '%s[0]' %(args [0]), 'firstFloatElem': l<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ambda args, t: '%s[0]' %(args [0]), 'firstElem': lambda args, t: '%s[0<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+]' %(args [0]), 'stringArrayAppend': lambda args, t: '%s + %s' %(args <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+[0], args [1]), 'stringInArray': lambda args, t: '%s in %s' %(args [0]<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+, args [1]), 'stringInStringArray': lambda args, t: '%s in %s' %(args <span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+[0], args [1]), 'stringArrayPrefix': lambda args, t: '[ %s + x for x i<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+n %s ]' %(args [0], args [1]), 'stringArraySuffix': lambda args, t: '[<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+ x + %s for x in %s ]' %(args [0], args [1]), 'addPad': lambda args, t<span class="variable-linewrap"><img src="crarr.png" alt="\" /></span>
+<code class="variable-ellipsis">...</code>
+</pre></td></tr></table>
+</dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Wed Nov 14 16:07:40 2007
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

@@ -1,0 +1,614 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>nonLinear command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/nonLinear.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>nonLinear</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;nonLinear.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>nonLinear(
+[list of objects to deform]
+    , [<a href="#flagafter">after</a>=<i>boolean</i>], [<a href="#flagautoParent">autoParent</a>=<i>boolean</i>], [<a href="#flagbefore">before</a>=<i>boolean</i>], [<a href="#flagcommonParent">commonParent</a>=<i>boolean</i>], [<a href="#flagcurvature">curvature</a>=<i>boolean</i>], [<a href="#flagdefaultScale">defaultScale</a>=<i>boolean</i>], [<a href="#flagdeformerTool">deformerTool</a>=<i>boolean</i>], [<a href="#flagexclusive">exclusive</a>=<i>boolean</i>], [<a href="#flagfrontOfChain">frontOfChain</a>=<i>boolean</i>], [<a href="#flaggeometry">geometry</a>=<i>string</i>], [<a href="#flagignoreSelected">ignoreSelected</a>=<i>boolean</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagprune">prune</a>=<i>boolean</i>], [<a href="#flagremove">remove</a>=<i>boolean</i>], [<a href="#flagsplit">split</a>=<i>boolean</i>], [<a href="#flagtype">type</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>nonLinear is undoable, queryable, and editable.</p>
+      
+This command creates a functional deformer of the specified type that
+will deform the selected objects.  The deformer consists of
+three nodes: The deformer driver that gets connected to the
+history of the selected objects, the deformer handle transform
+that controls position and orientation of the axis of the deformation
+and the deformer handle that maintains the deformation parameters.
+The type of the deformer handle shape created depends on the
+specified type of the deformer.  The deformer handle
+will be positioned at the center of the selected objects' bounding
+box and oriented to match the orientation of the leading object
+in the selection list.  The deformer handle transform will be
+selected when the command is completed.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagafter">after</a>, <a href="#flagautoParent">autoParent</a>, <a href="#flagbefore">before</a>, <a href="#flagcommonParent">commonParent</a>, <a href="#flagcurvature">curvature</a>, <a href="#flagdefaultScale">defaultScale</a>, <a href="#flagdeformerTool">deformerTool</a>, <a href="#flagexclusive">exclusive</a>, <a href="#flagfrontOfChain">frontOfChain</a>, <a href="#flaggeometry">geometry</a>, <a href="#flagignoreSelected">ignoreSelected</a>, <a href="#flagname">name</a>, <a href="#flagprune">prune</a>, <a href="#flagremove">remove</a>, <a href="#flagsplit">split</a>, <a href="#flagtype">type</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Used to specify the name of the node being created
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaggeometry">
+	      <code><b>geometry</b>(<b>g</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The specified object will be added to the list of
+objects being deformed by this deformer object, unless
+the -rm flag is also specified. When queried, this flag
+returns string string string ...
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremove">
+	      <code><b>remove</b>(<b>rm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies that objects listed after the -g flag should
+be removed from this deformer.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbefore">
+	      <code><b>before</b>(<b>bf</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If the default behavior for insertion/appending into/onto
+the existing chain is not what you want then you can use
+this flag to force the command to stick the deformer
+node before the selected node in the chain even if
+a new geometry shape has to be created in order to do so
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagafter">
+	      <code><b>after</b>(<b>af</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If the default behavior for insertion/appending into/onto
+the existing chain is not what you want then you can use
+this flag to force the command to stick the deformer
+node after the selected node in the chain even if
+a new geometry shape has to be created in order to do so
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsplit">
+	      <code><b>split</b>(<b>sp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Branches off a new chain in the dependency graph instead
+of inserting/appending the deformer into/onto an
+existing chain.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfrontOfChain">
+	      <code><b>frontOfChain</b>(<b>foc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This command is used to specify that the new deformer
+node should be placed ahead (upstream) of existing deformer
+and skin nodes in the shape's history (but not ahead of
+existing tweak nodes). The input to the
+deformer will be the upstream shape rather than the visible
+downstream shape, so the behavior of this flag is the most
+intuitive if the downstream deformers are in their reset
+(hasNoEffect) position when the new deformer is added.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagignoreSelected">
+	      <code><b>ignoreSelected</b>(<b>ignoreSelected</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Tells the command to not deform objects on the
+current selection list
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdeformerTool">
+	      <code><b>deformerTool</b>(<b>dt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns the name of the deformer tool objects (if any)
+as string string ...
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagprune">
+	      <code><b>prune</b>(<b>pr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Removes any points not being deformed by the deformer in
+its current configuration from the deformer set.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagexclusive">
+	      <code><b>exclusive</b>(<b>ex</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts the deformation set in a deform partition.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtype">
+	      <code><b>type</b>(<b>typ</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the type of deformation. The current valid
+deformation types are:  bend, twist, squash, flare,
+sine and wave
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcommonParent">
+	      <code><b>commonParent</b>(<b>cp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Creates a new transform and parents the selected object
+and the deformer handle under it.  This flag is valid only
+when a single object is selected.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagautoParent">
+	      <code><b>autoParent</b>(<b>ap</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Parents the deformer handle under the selected object's
+transform. This flag is valid only when a single object
+is selected.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdefaultScale">
+	      <code><b>defaultScale</b>(<b>ds</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets the scale of the deformation handle to 1.  By default
+the deformation handle is scaled to the match the largest
+dimension of the selected objects' bounding box.
+[deformerFlags]
+The attributes of the deformer handle shape
+can be set upon creation, edited and queried as normal flags
+using either the long or the short attribute name.  e.g.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcurvature">
+	      <code><b>curvature</b>(<b>cur</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This is a valid flag for the bend deformer.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>[string[]] (deformer driver name, deformer handle transform name)</i>
+      
+      <h2><a name="hRelated">Related</a></h2><a href="reorderDeformers.html">reorderDeformers</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# To create a bend deformer with curvature 0.5
+#
+cmds.nonLinear( type='bend', curvature=0.5 )
+
+# To edit the curvature of the bend deformer
+#
+cmds.nonLinear( 'bend1', e=True, curvature=0.2 )
+
+# To query the curvature of the bend deformer
+#
+cmds.nonLinear( 'bend1', query=True, curvature=True )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

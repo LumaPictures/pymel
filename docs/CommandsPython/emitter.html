@@ -1,0 +1,979 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>emitter command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/emitter.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>emitter</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;emitter.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>emitter(
+[obj [obj..]]
+    , [<a href="#flagalongAxis">alongAxis</a>=<i>float</i>], [<a href="#flagaroundAxis">aroundAxis</a>=<i>float</i>], [<a href="#flagawayFromAxis">awayFromAxis</a>=<i>float</i>], [<a href="#flagawayFromCenter">awayFromCenter</a>=<i>float</i>], [<a href="#flagcycleEmission">cycleEmission</a>=<i>string</i>], [<a href="#flagcycleInterval">cycleInterval</a>=<i>int</i>], [<a href="#flagdirectionX">directionX</a>=<i>float</i>], [<a href="#flagdirectionY">directionY</a>=<i>float</i>], [<a href="#flagdirectionZ">directionZ</a>=<i>float</i>], [<a href="#flagdirectionalSpeed">directionalSpeed</a>=<i>float</i>], [<a href="#flagmaxDistance">maxDistance</a>=<i>float</i>], [<a href="#flagminDistance">minDistance</a>=<i>float</i>], [<a href="#flagneedParentUV">needParentUV</a>=<i>boolean</i>], [<a href="#flagnormalSpeed">normalSpeed</a>=<i>float</i>], [<a href="#flagposition">position</a>=<i>[float, float, float]</i>], [<a href="#flagrandomDirection">randomDirection</a>=<i>float</i>], [<a href="#flagrate">rate</a>=<i>float</i>], [<a href="#flagscaleRateByObjectSize">scaleRateByObjectSize</a>=<i>boolean</i>], [<a href="#flagscaleSpeedBySize">scaleSpeedBySize</a>=<i>boolean</i>], [<a href="#flagspeed">speed</a>=<i>float</i>], [<a href="#flagspeedRandom">speedRandom</a>=<i>float</i>], [<a href="#flagspread">spread</a>=<i>float</i>], [<a href="#flagtangentSpeed">tangentSpeed</a>=<i>float</i>], [<a href="#flagtorusSectionRadius">torusSectionRadius</a>=<i>float</i>], [<a href="#flagtype">type</a>=<i>string</i>], [<a href="#flagvolumeOffset">volumeOffset</a>=<i>[float, float, float]</i>], [<a href="#flagvolumeShape">volumeShape</a>=<i>string</i>], [<a href="#flagvolumeSweep">volumeSweep</a>=<i>float</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>emitter is undoable, queryable, and editable.</p>
+      
+Creates an emitter object. If object names are provided or if objects are
+selected, applies the emitter to the named/selected object(s)in the
+scene.  Particles will then be emitted from each. If no objects are
+named or selected, or if the -pos option is specified, creates a
+positional emitter.
+
+If an emitter was created, the command returns the name of the object
+owning the emitter, and the name of emitter shape. If an emitter was
+queried, the command returns the results of the query.
+
+Keyframeable attributes of the emitter node: rate, directionX,
+directionY, directionZ, minDistance, maxDistance, spread.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagalongAxis">alongAxis</a>, <a href="#flagaroundAxis">aroundAxis</a>, <a href="#flagawayFromAxis">awayFromAxis</a>, <a href="#flagawayFromCenter">awayFromCenter</a>, <a href="#flagcycleEmission">cycleEmission</a>, <a href="#flagcycleInterval">cycleInterval</a>, <a href="#flagdirectionX">directionX</a>, <a href="#flagdirectionY">directionY</a>, <a href="#flagdirectionZ">directionZ</a>, <a href="#flagdirectionalSpeed">directionalSpeed</a>, <a href="#flagmaxDistance">maxDistance</a>, <a href="#flagminDistance">minDistance</a>, <a href="#flagneedParentUV">needParentUV</a>, <a href="#flagnormalSpeed">normalSpeed</a>, <a href="#flagposition">position</a>, <a href="#flagrandomDirection">randomDirection</a>, <a href="#flagrate">rate</a>, <a href="#flagscaleRateByObjectSize">scaleRateByObjectSize</a>, <a href="#flagscaleSpeedBySize">scaleSpeedBySize</a>, <a href="#flagspeed">speed</a>, <a href="#flagspeedRandom">speedRandom</a>, <a href="#flagspread">spread</a>, <a href="#flagtangentSpeed">tangentSpeed</a>, <a href="#flagtorusSectionRadius">torusSectionRadius</a>, <a href="#flagtype">type</a>, <a href="#flagvolumeOffset">volumeOffset</a>, <a href="#flagvolumeShape">volumeShape</a>, <a href="#flagvolumeSweep">volumeSweep</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtype">
+	      <code><b>type</b>(<b>typ</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Type of emitter. The choices are omni | dir | direction | surf |
+surface | curve | curv. The default is omni.
+The full definition of these types are: omnidirectional point emitter,
+directional point emitter, surface emitter, or curve emitter.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionX">
+	      <code><b>directionX</b>(<b>dx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+x-component of emission direction.
+Used for directional emitters, and for volume emitters with
+directionalSpeed.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionY">
+	      <code><b>directionY</b>(<b>dy</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+y-component of emission direction.
+Used for directional emitters, and for volume emitters with
+directionalSpeed.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionZ">
+	      <code><b>directionZ</b>(<b>dz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+z-component of emission direction.
+Used for directional emitters, and for volume emitters with
+directionalSpeed.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagminDistance">
+	      <code><b>minDistance</b>(<b>mnd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Minimum distance at which emission starts.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmaxDistance">
+	      <code><b>maxDistance</b>(<b>mxd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Maximum distance at which emission ends.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagposition">
+	      <code><b>position</b>(<b>pos</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Positional emitter at world space location (x,y,z).
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrate">
+	      <code><b>rate</b>(<b>r</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Rate at which particles emitted (can be non-integer).
+For point emission this is rate per point per unit time.
+For surface emission it is rate per square unit of area per unit time.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspread">
+	      <code><b>spread</b>(<b>sp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Random spread (0-1), as a fraction of 90 degrees,
+along specified direction.   Directional emitters only.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspeedRandom">
+	      <code><b>speedRandom</b>(<b>srn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Identifies a range of random variation for the speed of
+each generated particle.  If set to a non-zero value, speed
+becomes the mean value of the generated particles, whose speeds
+vary by a random amount up to plus or minus speedRandom/2.
+For example, speed 5 and speedRandom 2 will make the speeds
+vary between 4 and 6.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcycleEmission">
+	      <code><b>cycleEmission</b>(<b>cye</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Possible values are &quot;none&quot; and &quot;frame.&quot;
+Cycling emission restarts the random number stream after
+a specified interval.  This can either be a number of frames
+or a number of emitted particles.  In each case the number
+is specified by the cycleInterval attribute. Setting cycleEmission to
+&quot;frame&quot; and cycleInterval to 1 will then re-start the random stream every
+frame. Setting cycleInterval to values greater than 1 can be used
+to generate cycles for games work.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcycleInterval">
+	      <code><b>cycleInterval</b>(<b>cyi</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the number of frames or particles between restarts of
+the random number stream.  See cycleEmission.  Has no effect if
+cycleEmission is set to None.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspeed">
+	      <code><b>speed</b>(<b>spd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Speed multiple.  Multiplies the velocity of the
+emitted particles by this amount. Does not apply to volume
+emitters.  For that emitter type, use directionalSpeed.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnormalSpeed">
+	      <code><b>normalSpeed</b>(<b>nsp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Normal speed multiple for point emission. For each emitted
+particle, multiplies the component of the velocity normal
+to the surface or curve by this amount. Surface and curve
+emitters only.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtangentSpeed">
+	      <code><b>tangentSpeed</b>(<b>tsp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Tangent speed multiple for point emission.
+For each emitted particle, multiplies the component of the velocity
+tangent to the surface  or curve by this amount.
+Surface and curve emitters only.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagvolumeShape">
+	      <code><b>volumeShape</b>(<b>vsh</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Volume shape of the emitter.  Sets/edits/queries the
+field's volume shape attribute.  If set to any value other
+than &quot;none&quot;, determines a 3-D volume within which
+particles are generated.
+Values are: &quot;cube,&quot; &quot;sphere,&quot; &quot;cylinder,&quot; &quot;cone,&quot; &quot;torus.&quot;
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagvolumeOffset">
+	      <code><b>volumeOffset</b>(<b>vof</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Volume offset of the emitter.  Volume offset translates
+the emission volume by the specified amount from the actual
+emitter location.  This is in the emitter's local space.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagvolumeSweep">
+	      <code><b>volumeSweep</b>(<b>vsw</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Volume sweep of the emitter.  Applies only to sphere, cone,
+cylinder, and torus.  Similar effect to the sweep attribute
+in modelling.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtorusSectionRadius">
+	      <code><b>torusSectionRadius</b>(<b>tsr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Section radius for a torus volume.  Applies only to torus.
+Similar to the section radius in the torus modelling primitive.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagawayFromCenter">
+	      <code><b>awayFromCenter</b>(<b>afc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Initial velocity multiplier in the direction away from
+the center point of a cube or sphere volume emitter. Used only with
+the cube and sphere volume emitters.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagawayFromAxis">
+	      <code><b>awayFromAxis</b>(<b>afx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Initial velocity multiplier in the direction away
+from the central axis of the volume.  See the diagrams
+in the documentation.  Used only with the cylinder, cone,
+and torus volume emitters.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaroundAxis">
+	      <code><b>aroundAxis</b>(<b>arx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Initial velocity multiplier in the direction around
+the central axis of the volume.  See the diagrams
+in the documentation.  Applies only to volume emitters.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagalongAxis">
+	      <code><b>alongAxis</b>(<b>alx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Initial velocity multiplier in the direction along
+the central axis of the volume.  See the diagrams in
+the documentation.  Applies only to volume emitters.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrandomDirection">
+	      <code><b>randomDirection</b>(<b>rnd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Magnitude of a random component of the speed
+from volume emission.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionalSpeed">
+	      <code><b>directionalSpeed</b>(<b>drs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+For volume emitters only, adds a component of speed in the
+direction specified by the directionX, Y, and Z attributes.
+Applies only to volume emitters. Does not apply to other types
+of emitters.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagscaleSpeedBySize">
+	      <code><b>scaleSpeedBySize</b>(<b>ssz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Indicates whether the scale of a volume emitter
+affects its velocity.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagneedParentUV">
+	      <code><b>needParentUV</b>(<b>nuv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If aNeedParentUV is true, compute parentUV value from
+each triangle or each line segment, then send out to the
+target particle object. You also need to add parentU and
+parentV attributes to the particle object to store these values.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagscaleRateByObjectSize">
+	      <code><b>scaleRateByObjectSize</b>(<b>sro</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Applies to curve and surface emitters, only.
+If true, number of particles is determined by object size
+(area or length) times rate value.  If false, object size
+is ignored and the rate value is used without modification.
+The former is the way Maya behaved prior to version 3.0.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string</i>
+      
+      <h2><a name="hRelated">Related</a></h2><a href="addDynamic.html">addDynamic</a>, <a href="addPP.html">addPP</a>, <a href="particle.html">particle</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.particle( p=((-1, 5, 2), (2, 2, 2), (3, 3, 3)), n='particles' )
+cmds.emitter( 'particles', r=300, mnd=1.5, mxd=2.5, n='emitter' )
+cmds.particle( n='emitted' )
+cmds.connectDynamic( 'emitted', em='emitter' )
+
+# Creates a particle emitter.
+
+cmds.emitter( dx=1, dy=0, dz=0, sp=0.33, pos=(1, 1, 1), n='myEmitter' )
+cmds.particle( n='emittedParticles' )
+cmds.connectDynamic( 'emittedParticles', em='myEmitter' )
+
+# Creates a point emitter.
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

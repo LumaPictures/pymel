@@ -1,0 +1,886 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>sphere command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/sphere.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>sphere</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;sphere.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>sphere([<a href="#flagabsoluteSweepDifference">absoluteSweepDifference</a>=<i>angle</i>], [<a href="#flagaxis">axis</a>=<i>[float, float, float]</i>], [<a href="#flagaxisX">axisX</a>=<i>linear</i>], [<a href="#flagaxisY">axisY</a>=<i>linear</i>], [<a href="#flagaxisZ">axisZ</a>=<i>linear</i>], [<a href="#flagconstructionHistory">constructionHistory</a>=<i>boolean</i>], [<a href="#flagcurveOnSurface">curveOnSurface</a>=<i>boolean</i>], [<a href="#flagdegree">degree</a>=<i>int</i>], [<a href="#flagendSweep">endSweep</a>=<i>angle</i>], [<a href="#flagheightRatio">heightRatio</a>=<i>float</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagobject">object</a>=<i>boolean</i>], [<a href="#flagpivot">pivot</a>=<i>[float, float, float]</i>], [<a href="#flagpivotX">pivotX</a>=<i>linear</i>], [<a href="#flagpivotY">pivotY</a>=<i>linear</i>], [<a href="#flagpivotZ">pivotZ</a>=<i>linear</i>], [<a href="#flagpolygon">polygon</a>=<i>int</i>], [<a href="#flagradius">radius</a>=<i>linear</i>], [<a href="#flagrange">range</a>=<i>boolean</i>], [<a href="#flagrebuild">rebuild</a>=<i>boolean</i>], [<a href="#flagreplaceOriginal">replaceOriginal</a>=<i>boolean</i>], [<a href="#flagsections">sections</a>=<i>int</i>], [<a href="#flagspans">spans</a>=<i>int</i>], [<a href="#flagstartSweep">startSweep</a>=<i>angle</i>], [<a href="#flagtolerance">tolerance</a>=<i>linear</i>], [<a href="#flaguseTolerance">useTolerance</a>=<i>boolean</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>sphere is undoable, queryable, and editable.</p>
+      
+The sphere command creates a new sphere. The number of spans
+in the in each direction of the sphere is determined by the
+useTolerance attribute. If -ut is true then the -tolerance
+attribute will be used. If -ut is false then the -sections
+attribute will be used.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagabsoluteSweepDifference">absoluteSweepDifference</a>, <a href="#flagaxis">axis</a>, <a href="#flagaxisX">axisX</a>, <a href="#flagaxisY">axisY</a>, <a href="#flagaxisZ">axisZ</a>, <a href="#flagconstructionHistory">constructionHistory</a>, <a href="#flagcurveOnSurface">curveOnSurface</a>, <a href="#flagdegree">degree</a>, <a href="#flagendSweep">endSweep</a>, <a href="#flagheightRatio">heightRatio</a>, <a href="#flagname">name</a>, <a href="#flagobject">object</a>, <a href="#flagpivot">pivot</a>, <a href="#flagpivotX">pivotX</a>, <a href="#flagpivotY">pivotY</a>, <a href="#flagpivotZ">pivotZ</a>, <a href="#flagpolygon">polygon</a>, <a href="#flagradius">radius</a>, <a href="#flagrange">range</a>, <a href="#flagrebuild">rebuild</a>, <a href="#flagreplaceOriginal">replaceOriginal</a>, <a href="#flagsections">sections</a>, <a href="#flagspans">spans</a>, <a href="#flagstartSweep">startSweep</a>, <a href="#flagtolerance">tolerance</a>, <a href="#flaguseTolerance">useTolerance</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpivot">
+	      <code><b>pivot</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The primitive's pivot point
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpivotX">
+	      <code><b>pivotX</b>(<b>px</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+X of the pivot
+<br/><i>Default:</i> 0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpivotY">
+	      <code><b>pivotY</b>(<b>py</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Y of the pivot
+<br/><i>Default:</i> 0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpivotZ">
+	      <code><b>pivotZ</b>(<b>pz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Z of the pivot
+<br/><i>Default:</i> 0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaxis">
+	      <code><b>axis</b>(<b>ax</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The primitive's axis
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaxisX">
+	      <code><b>axisX</b>(<b>axx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+X of the axis
+<br/><i>Default:</i> 1
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaxisY">
+	      <code><b>axisY</b>(<b>axy</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Y of the axis
+<br/><i>Default:</i> 0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaxisZ">
+	      <code><b>axisZ</b>(<b>axz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Z of the axis
+<br/><i>Default:</i> 0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagradius">
+	      <code><b>radius</b>(<b>r</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The radius of the object
+<br/><i>Default:</i> 1.0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstartSweep">
+	      <code><b>startSweep</b>(<b>ssw</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>angle</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The angle at which to start the surface of revolution
+<br/><i>Default:</i> 0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagendSweep">
+	      <code><b>endSweep</b>(<b>esw</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>angle</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The angle at which to end the surface of revolution.
+Default is 2Pi radians, or 360 degrees.
+<br/><i>Default:</i> 6.2831853
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseTolerance">
+	      <code><b>useTolerance</b>(<b>ut</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Use the specified tolerance to determine resolution.
+Otherwise number of sections will be used.
+<br/><i>Default:</i> false
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdegree">
+	      <code><b>degree</b>(<b>d</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The degree of the resulting surface:
+1 - linear,
+3 - cubic
+<br/><i>Default:</i> 3
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsections">
+	      <code><b>sections</b>(<b>s</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The number of sections determines the resolution of the surface in the sweep direction.
+Used only if useTolerance is false.
+<br/><i>Default:</i> 8
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspans">
+	      <code><b>spans</b>(<b>nsp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The number of spans determines the resolution of the surface in the opposite direction.
+<br/><i>Default:</i> 1
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtolerance">
+	      <code><b>tolerance</b>(<b>tol</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The tolerance with which to build the surface.
+Used only if useTolerance is true
+<br/><i>Default:</i> 0.01
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagheightRatio">
+	      <code><b>heightRatio</b>(<b>hr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Ratio of &quot;height&quot; to &quot;width&quot;
+<br/><i>Default:</i> 2.0
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagabsoluteSweepDifference">
+	      <code><b>absoluteSweepDifference</b>(<b>asd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>angle</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The difference of endSweep - startSweep
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Name the resulting object
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagconstructionHistory">
+	      <code><b>constructionHistory</b>(<b>ch</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn the construction history on or off (not available in all commands)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagobject">
+	      <code><b>object</b>(<b>o</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Create the result, or just the dependency node (not available in all commands)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagreplaceOriginal">
+	      <code><b>replaceOriginal</b>(<b>rpo</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Create &quot;in place&quot; (i.e., replace) (not available in all commands)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcurveOnSurface">
+	      <code><b>curveOnSurface</b>(<b>cos</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If possible, create 2D curve as a result (not available in all commands)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpolygon">
+	      <code><b>polygon</b>(<b>po</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The value of this argument controls the type of the object
+created by this operation (not available in all commands)
+<ul>
+<li> 0: nurbs surface</li>
+<li> 1: polygon (use nurbsToPolygonsPref to set the parameters for the conversion)</li>
+<li> 2: subdivision surface (use nurbsToSubdivPref to set the parameters for the conversion)</li>
+<li> 3: Bezier surface</li>
+<li> 4: subdivision surface solid (use nurbsToSubdivPref to set the
+parameters for the conversion)</li>
+</ul>
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrange">
+	      <code><b>range</b>(<b>rn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Force a curve range on complete input curve (not available in all commands)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrebuild">
+	      <code><b>rebuild</b>(<b>rb</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Rebuild the input curve(s) before using them in the operation.  Use nurbsCurveRebuildPref to set the parameters for the conversion. (not available in all commands)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>[string[]] (object name and node name)</i> 
+
+TdnPrimitive.incl
+TdnRevolvedPrimitive.incl
+TdnSphere.incl
+ModelSlice:TbaseModellingCmd.cpp
+
+      <br/>
+      
+      <h2><a name="hRelated">Related</a></h2><a href="cone.html">cone</a>, <a href="cylinder.html">cylinder</a>, <a href="nurbsCube.html">nurbsCube</a>, <a href="nurbsPlane.html">nurbsPlane</a>, <a href="torus.html">torus</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# Create sphere with radius 10
+cmds.sphere( r=10 )
+
+# Create half sphere
+cmds.sphere( ssw=0, esw=180 )
+
+# Use tolerance to determine how many spans the new sphere has
+cmds.sphere( ut=True, tol=0.01 )
+
+# Use sections to determine how many spans the new sphere has
+cmds.sphere( ut=False, s=8 )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

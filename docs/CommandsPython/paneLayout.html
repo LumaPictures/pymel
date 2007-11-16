@@ -1,0 +1,1239 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>paneLayout command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/paneLayout.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>paneLayout</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;paneLayout.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>paneLayout(
+[paneLayoutName]
+    , [<a href="#flagactiveFrameThickness">activeFrameThickness</a>=<i>int</i>], [<a href="#flagactivePane">activePane</a>=<i>string</i>], [<a href="#flagactivePaneIndex">activePaneIndex</a>=<i>int</i>], [<a href="#flagannotation">annotation</a>=<i>string</i>], [<a href="#flagbackgroundColor">backgroundColor</a>=<i>[float, float, float]</i>], [<a href="#flagchildArray">childArray</a>=<i>boolean</i>], [<a href="#flagconfiguration">configuration</a>=<i>string</i>], [<a href="#flagdefineTemplate">defineTemplate</a>=<i>string</i>], [<a href="#flagdocTag">docTag</a>=<i>boolean</i>], [<a href="#flagdragCallback">dragCallback</a>=<i>string</i>], [<a href="#flagdropCallback">dropCallback</a>=<i>string</i>], [<a href="#flagedit">edit</a>=<i>boolean</i>], [<a href="#flagenable">enable</a>=<i>boolean</i>], [<a href="#flagexists">exists</a>=<i>boolean</i>], [<a href="#flagheight">height</a>=<i>int</i>], [<a href="#flagisObscured">isObscured</a>=<i>boolean</i>], [<a href="#flagmanage">manage</a>=<i>boolean</i>], [<a href="#flagnumberOfChildren">numberOfChildren</a>=<i>boolean</i>], [<a href="#flagnumberOfPopupMenus">numberOfPopupMenus</a>=<i>boolean</i>], [<a href="#flagnumberOfVisiblePanes">numberOfVisiblePanes</a>=<i>boolean</i>], [<a href="#flagpane1">pane1</a>=<i>boolean</i>], [<a href="#flagpane2">pane2</a>=<i>boolean</i>], [<a href="#flagpane3">pane3</a>=<i>boolean</i>], [<a href="#flagpane4">pane4</a>=<i>boolean</i>], [<a href="#flagpaneSize">paneSize</a>=<i>[int, int, int]</i>], [<a href="#flagpaneUnderPointer">paneUnderPointer</a>=<i>boolean</i>], [<a href="#flagparent">parent</a>=<i>string</i>], [<a href="#flagpopupMenuArray">popupMenuArray</a>=<i>boolean</i>], [<a href="#flagpreventOverride">preventOverride</a>=<i>boolean</i>], [<a href="#flagquery">query</a>=<i>boolean</i>], [<a href="#flagseparatorMovedCommand">separatorMovedCommand</a>=<i>string</i>], [<a href="#flagseparatorThickness">separatorThickness</a>=<i>int</i>], [<a href="#flagsetPane">setPane</a>=<i>[string, int]</i>], [<a href="#flaguseTemplate">useTemplate</a>=<i>string</i>], [<a href="#flagvisible">visible</a>=<i>boolean</i>], [<a href="#flagwidth">width</a>=<i>int</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>paneLayout is undoable, queryable, and editable.</p>
+      
+This command creates a pane layout.  A pane layout may have any
+number of children but at any one time only certain children may be
+visible, as determined by the current layout configuration.  For
+example a horizontally split pane shows only two children, one on top
+of the other and a visible separator between the two.  The separator
+may be moved to vary the size of each pane.  Various other pane
+configurations are available and all display a moveable separator
+that define the size of each pane in the layout.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagactiveFrameThickness">activeFrameThickness</a>, <a href="#flagactivePane">activePane</a>, <a href="#flagactivePaneIndex">activePaneIndex</a>, <a href="#flagannotation">annotation</a>, <a href="#flagbackgroundColor">backgroundColor</a>, <a href="#flagchildArray">childArray</a>, <a href="#flagconfiguration">configuration</a>, <a href="#flagdefineTemplate">defineTemplate</a>, <a href="#flagdocTag">docTag</a>, <a href="#flagdragCallback">dragCallback</a>, <a href="#flagdropCallback">dropCallback</a>, <a href="#flagedit">edit</a>, <a href="#flagenable">enable</a>, <a href="#flagexists">exists</a>, <a href="#flagheight">height</a>, <a href="#flagisObscured">isObscured</a>, <a href="#flagmanage">manage</a>, <a href="#flagnumberOfChildren">numberOfChildren</a>, <a href="#flagnumberOfPopupMenus">numberOfPopupMenus</a>, <a href="#flagnumberOfVisiblePanes">numberOfVisiblePanes</a>, <a href="#flagpane1">pane1</a>, <a href="#flagpane2">pane2</a>, <a href="#flagpane3">pane3</a>, <a href="#flagpane4">pane4</a>, <a href="#flagpaneSize">paneSize</a>, <a href="#flagpaneUnderPointer">paneUnderPointer</a>, <a href="#flagparent">parent</a>, <a href="#flagpopupMenuArray">popupMenuArray</a>, <a href="#flagpreventOverride">preventOverride</a>, <a href="#flagquery">query</a>, <a href="#flagseparatorMovedCommand">separatorMovedCommand</a>, <a href="#flagseparatorThickness">separatorThickness</a>, <a href="#flagsetPane">setPane</a>, <a href="#flaguseTemplate">useTemplate</a>, <a href="#flagvisible">visible</a>, <a href="#flagwidth">width</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagquery">
+	      <code><b>query</b>(<b>q</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts the command in query mode so that it will return the
+value of the specified flag.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagedit">
+	      <code><b>edit</b>(<b>e</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts the command in edit mode so that it will
+change the values of the specified flags
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagexists">
+	      <code><b>exists</b>(<b>ex</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns true|false depending upon whether the
+specified object exists.  Other flags are ignored.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdefineTemplate">
+	      <code><b>defineTemplate</b>(<b>dt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts a command in a mode where any other flags and args are
+parsed and added to the command template specified in the argument.
+They will be used as default arguments in any subsequent
+invocations of the command when templateName is set as the
+current template.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseTemplate">
+	      <code><b>useTemplate</b>(<b>ut</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Will force the command to use a command template other than
+the current one.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagparent">
+	      <code><b>parent</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The parent layout for this control.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagenable">
+	      <code><b>enable</b>(<b>en</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The enable state of the control.  By default, this flag is
+set to true and the control is enabled.  Specify false and the control
+will appear dimmed or greyed-out indicating it is disabled.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwidth">
+	      <code><b>width</b>(<b>w</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The width of the control.  The control will attempt to
+be this size if it is not overruled by parent layout conditions.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagheight">
+	      <code><b>height</b>(<b>h</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The height of the control.  The control will attempt to
+be this size if it is not overruled by parent layout conditions.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagvisible">
+	      <code><b>visible</b>(<b>vis</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The visible state of the control.  A control is created
+visible by default.  Note that a control's actual appearance is
+also dependent on the visible state of its parent layout(s).
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagisObscured">
+	      <code><b>isObscured</b>(<b>io</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return whether the control can actually be seen by the user.
+The control will be obscured if its state is invisible, if it is
+blocked (entirely or partially) by some other control, if it or a
+parent layout is unmanaged, or if the control's window is
+invisible or iconified.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmanage">
+	      <code><b>manage</b>(<b>m</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Manage state of the control.  An unmanaged control is
+not visible, nor does it take up any screen real estate.  All
+controls are created managed by default.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnumberOfPopupMenus">
+	      <code><b>numberOfPopupMenus</b>(<b>npm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return the number of popup menus attached to this control.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpopupMenuArray">
+	      <code><b>popupMenuArray</b>(<b>pma</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return the names of all the popup menus attached to this
+control.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpreventOverride">
+	      <code><b>preventOverride</b>(<b>po</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If true, this flag disallows overriding the control's
+attribute via the control's right mouse button menu.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagannotation">
+	      <code><b>annotation</b>(<b>ann</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Annotate the control with an extra string value.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbackgroundColor">
+	      <code><b>backgroundColor</b>(<b>bgc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The background color of the control. The arguments correspond
+to the red, green, and blue color components. Each component ranges
+in value from 0.0 to 1.0. (Windows only flag)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdocTag">
+	      <code><b>docTag</b>(<b>dt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Add a documentation flag to the control.  The documentation flag
+has a directory structure like hierarchy.
+Eg. -dt render/multiLister/createNode/material
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdragCallback">
+	      <code><b>dragCallback</b>(<b>dgc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Adds a callback that is called when the middle mouse button
+is pressed.  The MEL version of the callback is of the form:
+<p/>
+global proc string[] callbackName(string $dragControl, int $x, int $y, int $mods)
+<p/>
+The proc returns a string array that is transferred to the drop site.
+By convention the first string in the array describes the user settable
+message type.  Controls that are application defined drag sources may
+ignore the callback. $mods allows testing for the key modifiers CTL and
+SHIFT. Possible values are 0 == No modifiers, 1 == SHIFT, 2 == CTL,
+3 == CTL + SHIFT.
+<p/>
+In Python, it is similar, but there are two ways to specify the callback.  The
+recommended way is to pass a Python function object as the argument.  In that
+case, the Python callback should have the form:
+<p/>
+def callbackName( dragControl, x, y, modifiers ):
+<p/>
+The values of these arguments are the same as those for the MEL version above.
+<p/>
+The other way to specify the callback in Python is to specify a string to be
+executed.  In that case, the string will have the values substituted into it
+via the standard Python format operator.  The format values are passed in a
+dictionary with the keys &quot;dragControl&quot;, &quot;x&quot;, &quot;y&quot;, &quot;modifiers&quot;.  The
+&quot;dragControl&quot; value is a string and the other values are integers (eg the
+callback string could be &quot;print '%(dragControl)s %(x)d %(y)d %(modifiers)d'&quot;)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdropCallback">
+	      <code><b>dropCallback</b>(<b>dpc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Adds a callback that is called when a drag and drop
+operation is released above the drop site.  The MEL version of the callback is
+of the form:
+<p/>
+global proc callbackName(string $dragControl, string $dropControl, string $msgs[], int $x, int $y, int $type)
+<p/>
+The proc receives a string array that is transferred from the drag source.
+The first string in the msgs array describes the user defined message type.
+Controls that are application defined drop sites may ignore the
+callback. $type can have values of 1 == Move, 2 == Copy, 3 == Link.
+<p/>
+In Python, it is similar, but there are two ways to specify the callback.  The
+recommended way is to pass a Python function object as the argument.  In that
+case, the Python callback should have the form:
+<p/>
+def pythonDropTest( dragControl, dropControl, messages, x, y, dragType ):
+<p/>
+The values of these arguments are the same as those for the MEL version above.
+<p/>
+The other way to specify the callback in Python is to specify a string to be
+executed.  In that case, the string will have the values substituted into it
+via the standard Python format operator.  The format values are passed in a
+dictionary with the keys &quot;dragControl&quot;, &quot;dropControl&quot;, &quot;messages&quot;, &quot;x&quot;, &quot;y&quot;,
+&quot;type&quot;.  The &quot;dragControl&quot; value is a string and the other values are integers
+(eg the callback string could be
+&quot;print '%(dragControl)s %(dropControl)s %(messages)r %(x)d %(y)d %(type)d'&quot;)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnumberOfChildren">
+	      <code><b>numberOfChildren</b>(<b>nch</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns in an int the number of immediate children of the layout.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagchildArray">
+	      <code><b>childArray</b>(<b>ca</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns a string array of the names of the layout's
+immediate children.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagconfiguration">
+	      <code><b>configuration</b>(<b>cn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the layout configuration for the panes.  Valid values
+are:
+&quot;single&quot;, &quot;horizontal2&quot;, &quot;vertical2&quot;, &quot;horizontal3&quot;, &quot;vertical3&quot;,
+&quot;top3&quot;, &quot;left3&quot;, &quot;bottom3&quot;, &quot;right3&quot;, &quot;horizontal4&quot;, &quot;vertical4&quot;,
+&quot;top4&quot;, &quot;left4&quot;, &quot;bottom4&quot;, &quot;right4&quot;, &quot;quad&quot;
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsetPane">
+	      <code><b>setPane</b>(<b>sp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[string, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag allows you to put a child of this layout in a
+particular pane.  The first argument is the full or short name of
+the control.  The second argument is an integer value ranging from
+1 to 4.  Panes for any particular configuration are numbered
+clockwise beginning with the pane in the top left corner of the
+layout.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagactivePane">
+	      <code><b>activePane</b>(<b>ap</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The active pane has a colored border surrounding it.  Only
+one pane may be active at any one time.  Using either of the
+flags <I>-ap/activePane</I>    or <I>-api/activePaneIndex</I> will
+automatically deactivate the previously active pane.  The argument
+is the full or short name of the child control.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagactivePaneIndex">
+	      <code><b>activePaneIndex</b>(<b>api</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The active pane index.  The active pane has a
+colored border surrounding it.  Only one pane may be active
+at any one time.  Using either of the flags <I>-ap/activePane</I>
+or <I>-api/activePaneIndex</I> will automatically deactivate the
+previously active pane.  The argument is an integer
+value ranging from 1 to 4.  Panes for any particular configuration
+are numbered clockwise beginning with the pane in the top left
+corner of the layout.  If any other index is specified then the
+current active pane is deactivated.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagactiveFrameThickness">
+	      <code><b>activeFrameThickness</b>(<b>aft</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The thickness of the frame drawn around the active frame.
+Specify an integer value greater than or equal to 0.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagseparatorThickness">
+	      <code><b>separatorThickness</b>(<b>st</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The thickness of the separators between the panes.
+Specify an integer value greater than 0. This flag has no effect
+on Windows systems.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpaneSize">
+	      <code><b>paneSize</b>(<b>ps</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[int, int, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The size of a pane in the current pane layout
+configuration.  The first argument specifies the pane index and
+is an integer value ranging from 1 to 4.  Panes for any particular
+configuration are numbered clockwise beginning with the pane in
+the top left corner of the layout.  The width and height of the
+pane are specified by the last two arguments.  Both are
+integer values and they indicate the percentage of the total
+pane layout size rather that the number of pixels.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpane1">
+	      <code><b>pane1</b>(<b>p1</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpane2">
+	      <code><b>pane2</b>(<b>p2</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpane3">
+	      <code><b>pane3</b>(<b>p3</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpane4">
+	      <code><b>pane4</b>(<b>p4</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return the name of the control in the respective pane.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpaneUnderPointer">
+	      <code><b>paneUnderPointer</b>(<b>pup</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return the name of the child occupying the
+pane that the pointer is currently over.  An empty string is
+returned if the pointer is not over a pane.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnumberOfVisiblePanes">
+	      <code><b>numberOfVisiblePanes</b>(<b>nvp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return the number of panes visible for the present
+configuration.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagseparatorMovedCommand">
+	      <code><b>separatorMovedCommand</b>(<b>smc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This command executed when the pane separators are moved.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>Full path name to the control.</i>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.window()
+cmds.paneLayout( configuration='quad' )
+cmds.button()
+cmds.textScrollList( append=['one', 'two', 'three'] )
+cmds.scrollField()
+cmds.scrollLayout()
+cmds.columnLayout()
+cmds.button()
+cmds.button()
+cmds.button()
+cmds.showWindow()
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

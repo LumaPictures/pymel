@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pymel.examples.texturePathUI_pymel</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pymel-module.html">Package&nbsp;pymel</a> ::
+        <a href="pymel.examples-module.html">Package&nbsp;examples</a> ::
+        Module&nbsp;texturePathUI_pymel
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pymel.examples.texturePathUI_pymel-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="pymel.examples.texturePathUI_pymel-module.html">Module pymel.examples.texturePathUI_pymel</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># script created by pymel.melparse.mel2py from mel file:</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment"></tt><tt class="py-comment"># /Volumes/luma/_globalSoft/mel/published/luma5.0/luma/texture/texturePathUI.mel</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"># this is the UI after it has been modified to use some of pymel's special ui features.</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"></tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-0" class="py-name" targets="Package pymel=pymel-module.html"><a title="pymel" class="py-name" href="#" onclick="return doclink('link-0', 'pymel', 'link-0');">pymel</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module os=os-module.html"><a title="os" class="py-name" href="#" onclick="return doclink('link-1', 'os', 'link-1');">os</a></tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-string">"""/////////////////////////////////////////////////////////////////////////////</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-string">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-string">        Find &amp; Replace Texture Paths</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-string">~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-string">Developed by    :       Chad Dombrova</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-string">Production              :       Luma Pictures, Inc.  www.luma-pictures.com</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-string">Related Project :       All</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-string">Description :</tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-string">Script for doing find and replace operations on texture paths.</tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-string">Usage :</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-string">Enter text to search for.  After results are displayed you may select certain paths</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-string">to perform replace on (shift select to do multiple) or check the 'all' button to operate</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-string">on all found paths.</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-string">Version History :</tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-string">- 1.3   Added case sensitivity to replace; Added Windows Slash Support (thanks Hays)</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-string">- 1.2   Added Enter Command for both Find and Replace functions</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-string">- 1.1   Fixed Number of Matches off by one</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-string">                Fixed Error on double click when AE is already open</tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-string">- 1.0</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-string">To Do :</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"><tt class="py-string">- Either move replaced paths to another pane, or add a symbol, change color, or change font so</tt> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-string">        that they are not confused with paths that have not been operated on</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-string">- Progress Bar</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-string">- Update List doesn't seem to work correctly</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-string">- Status Bar showing the node associated with the found text</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-string">/////////////////////////////////////////////////////////////////////////////"""</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"><tt class="py-comment"># subsutition with case sensitivity controls</tt> </tt>
+<a name="substituter"></a><div id="substituter-def"><a name="L43"></a><tt class="py-lineno"> 43</tt> <a class="py-toggle" href="#" id="substituter-toggle" onclick="return toggle('substituter');">-</a><tt class="py-line"><tt class="py-comment"></tt><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#substituter">substituter</a><tt class="py-op">(</tt><tt class="py-param">ignoreCase</tt><tt class="py-op">,</tt><tt class="py-param">match</tt><tt class="py-op">,</tt><tt class="py-param">input_</tt><tt class="py-op">,</tt><tt class="py-param">replace</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="substituter-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="substituter-expanded"><a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">ignoreCase</tt><tt class="py-op">:</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line">                <tt class="py-name">inputStr</tt><tt class="py-op">=</tt><tt class="py-name">input_</tt><tt class="py-op">.</tt><tt class="py-name">lower</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line">                <tt class="py-name">matchStr</tt><tt class="py-op">=</tt><tt class="py-name">match</tt><tt class="py-op">.</tt><tt class="py-name">lower</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt id="link-2" class="py-name" targets="Variable pymel.__init__1.mel=pymel.__init__1-module.html#mel,Variable pymel.core.mel=pymel.core-module.html#mel"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-2', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">gmatch</tt><tt class="py-op">(</tt><tt class="py-name">inputStr</tt><tt class="py-op">,</tt> <tt class="py-op">(</tt><tt class="py-string">"*"</tt> <tt class="py-op">+</tt> <tt class="py-name">matchStr</tt> <tt class="py-op">+</tt> <tt class="py-string">"*"</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line">                        <tt class="py-name">inputLen</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">inputStr</tt><tt class="py-op">)</tt> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line">                        <tt class="py-name">matchLen</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">matchStr</tt><tt class="py-op">)</tt> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line">                        <tt id="link-3" class="py-name" targets="Variable pymel.examples.example1.i=pymel.examples.example1-module.html#i"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-3', 'i', 'link-3');">i</a></tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line">                        <tt class="py-keyword">for</tt> <tt id="link-4" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-4', 'i', 'link-3');">i</a></tt> <tt class="py-keyword">in</tt> <tt id="link-5" class="py-name" targets="Method pymel.__init__1.Attribute.range()=pymel.__init__1.Attribute-class.html#range"><a title="pymel.__init__1.Attribute.range" class="py-name" href="#" onclick="return doclink('link-5', 'range', 'link-5');">range</a></tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt><tt class="py-op">(</tt><tt class="py-name">inputLen</tt> <tt class="py-op">+</tt> <tt class="py-number">1</tt> <tt class="py-op">-</tt> <tt class="py-name">matchLen</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line">                                <tt class="py-name">tmpStr</tt> <tt class="py-op">=</tt> <tt class="py-name">inputStr</tt><tt class="py-op">[</tt><tt id="link-6" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-6', 'i', 'link-3');">i</a></tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt id="link-7" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-7', 'i', 'link-3');">i</a></tt> <tt class="py-op">+</tt> <tt class="py-name">matchLen</tt> <tt class="py-op">-</tt> <tt class="py-number">1</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line">                                <tt class="py-comment">#                               print $tmpStr; print "\n";</tt> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"><tt class="py-comment"></tt>                                <tt class="py-keyword">if</tt> <tt id="link-8" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-8', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">gmatch</tt><tt class="py-op">(</tt><tt class="py-name">tmpStr</tt><tt class="py-op">,</tt> <tt class="py-name">matchStr</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line">                                        <tt class="py-keyword">break</tt> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line">                                         </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">                                 </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">                        <tt class="py-name">returnStr</tt> <tt class="py-op">=</tt> <tt class="py-string">''</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">                        <tt class="py-comment">#                       print $i; print "\n";</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line"><tt class="py-comment"></tt>                        <tt class="py-keyword">if</tt> <tt id="link-9" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-9', 'i', 'link-3');">i</a></tt><tt class="py-op">&gt;</tt><tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line">                                <tt class="py-name">returnStr</tt><tt class="py-op">=</tt><tt class="py-name">input_</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">:</tt><tt id="link-10" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-10', 'i', 'link-3');">i</a></tt> <tt class="py-op">-</tt> <tt class="py-number">1</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line">                                <tt class="py-comment">#                       print $returnStr; print "\n";</tt> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"><tt class="py-comment"></tt>                                 </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line">                        <tt class="py-name">returnStr</tt><tt class="py-op">+=</tt><tt class="py-name">replace</tt> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line">                        <tt class="py-keyword">if</tt> <tt id="link-11" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-11', 'i', 'link-3');">i</a></tt> <tt class="py-op">+</tt> <tt class="py-name">matchLen</tt><tt class="py-op">&lt;</tt><tt class="py-name">inputLen</tt><tt class="py-op">:</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line">                                <tt class="py-name">returnStr</tt><tt class="py-op">+=</tt><tt class="py-name">input_</tt><tt class="py-op">[</tt><tt id="link-12" class="py-name"><a title="pymel.examples.example1.i" class="py-name" href="#" onclick="return doclink('link-12', 'i', 'link-3');">i</a></tt> <tt class="py-op">+</tt> <tt class="py-name">matchLen</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">:</tt><tt class="py-name">inputLen</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line">                                <tt class="py-comment"># add on the remaining string, if it exists</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-comment"></tt>                                 </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line">                        <tt class="py-keyword">return</tt> <tt class="py-name">returnStr</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line">                         </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line">                 </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line">                        <tt class="py-keyword">return</tt> <tt id="link-13" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-13', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">substitute</tt><tt class="py-op">(</tt><tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">input_</tt><tt class="py-op">,</tt> <tt class="py-name">replace</tt><tt class="py-op">)</tt> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line">                         </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line">                 </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line">         </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt> <tt id="link-14" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-14', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">substitute</tt><tt class="py-op">(</tt><tt class="py-name">match</tt><tt class="py-op">,</tt> <tt class="py-name">input_</tt><tt class="py-op">,</tt> <tt class="py-name">replace</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line">                 </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line">         </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"> </tt>
+<a name="texturePathUI"></a><div id="texturePathUI-def"><a name="L82"></a><tt class="py-lineno"> 82</tt> <a class="py-toggle" href="#" id="texturePathUI-toggle" onclick="return toggle('texturePathUI');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#texturePathUI">texturePathUI</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="texturePathUI-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="texturePathUI-expanded"><a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line">        <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line">                <tt class="py-name">deleteUI</tt><tt class="py-op">(</tt><tt class="py-string">"textureFindWindow"</tt><tt class="py-op">,</tt> <tt id="link-15" class="py-name" targets="Class pymel.__init__1.window=pymel.__init__1.window-class.html,Class pymel.ui.window=pymel.ui.window-class.html"><a title="pymel.__init__1.window
+pymel.ui.window" class="py-name" href="#" onclick="return doclink('link-15', 'window', 'link-15');">window</a></tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line">        <tt class="py-keyword">except</tt><tt class="py-op">:</tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line">                <tt class="py-keyword">pass</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line">                         </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line">        <tt class="py-name">win</tt> <tt class="py-op">=</tt> <tt id="link-16" class="py-name"><a title="pymel.__init__1.window
+pymel.ui.window" class="py-name" href="#" onclick="return doclink('link-16', 'window', 'link-15');">window</a></tt><tt class="py-op">(</tt><tt class="py-string">"textureFindWindow"</tt><tt class="py-op">)</tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line">        <tt class="py-name">win</tt><tt class="py-op">.</tt><tt class="py-name">setTitle</tt><tt class="py-op">(</tt><tt class="py-string">"Find &amp; Replace Texture Paths"</tt><tt class="py-op">)</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line">         </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">        <tt class="py-name">form</tt> <tt class="py-op">=</tt> <tt id="link-17" class="py-name" targets="Class pymel.__init__1.formLayout=pymel.__init__1.formLayout-class.html,Class pymel.ui.formLayout=pymel.ui.formLayout-class.html"><a title="pymel.__init__1.formLayout
+pymel.ui.formLayout" class="py-name" href="#" onclick="return doclink('link-17', 'formLayout', 'link-17');">formLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line">        <tt class="py-name">column</tt> <tt class="py-op">=</tt> <tt id="link-18" class="py-name" targets="Class pymel.columnLayout=pymel.columnLayout-class.html"><a title="pymel.columnLayout" class="py-name" href="#" onclick="return doclink('link-18', 'columnLayout', 'link-18');">columnLayout</a></tt><tt class="py-op">(</tt><tt class="py-name">adj</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt><tt class="py-name">rowSpacing</tt> <tt class="py-op">=</tt> <tt class="py-number">4</tt><tt class="py-op">)</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line">        <tt id="link-19" class="py-name" targets="Class pymel.rowLayout=pymel.rowLayout-class.html"><a title="pymel.rowLayout" class="py-name" href="#" onclick="return doclink('link-19', 'rowLayout', 'link-19');">rowLayout</a></tt><tt class="py-op">(</tt><tt class="py-name">adj</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line">                <tt class="py-name">nc</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line">                <tt class="py-name">cw</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">60</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line">                <tt class="py-name">cat</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">"both"</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line">                 </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line">        <tt id="link-20" class="py-name" targets="Method pymel.path.path.text()=pymel.path.path-class.html#text,Class pymel.text=pymel.text-class.html"><a title="pymel.path.path.text
+pymel.text" class="py-name" href="#" onclick="return doclink('link-20', 'text', 'link-20');">text</a></tt><tt class="py-op">(</tt><tt class="py-name">l</tt><tt class="py-op">=</tt><tt class="py-string">"Find:"</tt><tt class="py-op">)</tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line">        <tt id="link-21" class="py-name" targets="Class pymel.textField=pymel.textField-class.html"><a title="pymel.textField" class="py-name" href="#" onclick="return doclink('link-21', 'textField', 'link-21');">textField</a></tt><tt class="py-op">(</tt><tt class="py-string">'findField'</tt><tt class="py-op">,</tt><tt class="py-name">ec</tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-22" class="py-name" targets="Function pymel.examples.texturePathUI.lm_Find()=pymel.examples.texturePathUI-module.html#lm_Find,Function pymel.examples.texturePathUI_pymel.lm_Find()=pymel.examples.texturePathUI_pymel-module.html#lm_Find"><a title="pymel.examples.texturePathUI.lm_Find
+pymel.examples.texturePathUI_pymel.lm_Find" class="py-name" href="#" onclick="return doclink('link-22', 'lm_Find', 'link-22');">lm_Find</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">)</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line">        <tt id="link-23" class="py-name" targets="Method pymel.__init__1.Dag.setParent()=pymel.__init__1.Dag-class.html#setParent,Method pymel.core.Dag.setParent()=pymel.core.Dag-class.html#setParent"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-23', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line">         </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line">        <tt id="link-24" class="py-name"><a title="pymel.rowLayout" class="py-name" href="#" onclick="return doclink('link-24', 'rowLayout', 'link-19');">rowLayout</a></tt><tt class="py-op">(</tt><tt class="py-name">adj</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line">                <tt class="py-name">nc</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line">                <tt class="py-name">cw</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">60</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line">                <tt class="py-name">cat</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-string">"both"</tt><tt class="py-op">,</tt> <tt class="py-number">2</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line">        <tt id="link-25" class="py-name"><a title="pymel.path.path.text
+pymel.text" class="py-name" href="#" onclick="return doclink('link-25', 'text', 'link-20');">text</a></tt><tt class="py-op">(</tt><tt class="py-name">l</tt><tt class="py-op">=</tt><tt class="py-string">"Replace:"</tt><tt class="py-op">)</tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line">        <tt id="link-26" class="py-name"><a title="pymel.textField" class="py-name" href="#" onclick="return doclink('link-26', 'textField', 'link-21');">textField</a></tt><tt class="py-op">(</tt><tt class="py-string">'replaceField'</tt><tt class="py-op">,</tt><tt class="py-name">ec</tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-27" class="py-name" targets="Function pymel.examples.texturePathUI.lm_Replace()=pymel.examples.texturePathUI-module.html#lm_Replace,Function pymel.examples.texturePathUI_pymel.lm_Replace()=pymel.examples.texturePathUI_pymel-module.html#lm_Replace"><a title="pymel.examples.texturePathUI.lm_Replace
+pymel.examples.texturePathUI_pymel.lm_Replace" class="py-name" href="#" onclick="return doclink('link-27', 'lm_Replace', 'link-27');">lm_Replace</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">)</tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line">        <tt id="link-28" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-28', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line">        <tt id="link-29" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-29', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line">         </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line">        <tt id="link-30" class="py-name" targets="Method pymel.vector.MMat.row()=pymel.vector.MMat-class.html#row"><a title="pymel.vector.MMat.row" class="py-name" href="#" onclick="return doclink('link-30', 'row', 'link-30');">row</a></tt> <tt class="py-op">=</tt> <tt id="link-31" class="py-name"><a title="pymel.rowLayout" class="py-name" href="#" onclick="return doclink('link-31', 'rowLayout', 'link-19');">rowLayout</a></tt><tt class="py-op">(</tt><tt class="py-name">numberOfColumns</tt> <tt class="py-op">=</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt><tt class="py-name">cw5</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">60</tt><tt class="py-op">,</tt> <tt class="py-number">72</tt><tt class="py-op">,</tt> <tt class="py-number">72</tt><tt class="py-op">,</tt> <tt class="py-number">150</tt><tt class="py-op">,</tt> <tt class="py-number">80</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line">        <tt id="link-32" class="py-name"><a title="pymel.columnLayout" class="py-name" href="#" onclick="return doclink('link-32', 'columnLayout', 'link-18');">columnLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line">        <tt id="link-33" class="py-name" targets="Class pymel.button=pymel.button-class.html"><a title="pymel.button" class="py-name" href="#" onclick="return doclink('link-33', 'button', 'link-33');">button</a></tt><tt class="py-op">(</tt><tt class="py-name">align</tt><tt class="py-op">=</tt><tt class="py-string">"center"</tt><tt class="py-op">,</tt><tt id="link-34" class="py-name" targets="Variable pymel.examples.example1.c=pymel.examples.example1-module.html#c"><a title="pymel.examples.example1.c" class="py-name" href="#" onclick="return doclink('link-34', 'c', 'link-34');">c</a></tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-35" class="py-name"><a title="pymel.examples.texturePathUI.lm_Find
+pymel.examples.texturePathUI_pymel.lm_Find" class="py-name" href="#" onclick="return doclink('link-35', 'lm_Find', 'link-22');">lm_Find</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">label</tt><tt class="py-op">=</tt><tt class="py-string">"Find"</tt><tt class="py-op">)</tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line">        <tt id="link-36" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-36', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line">         </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line">        <tt id="link-37" class="py-name"><a title="pymel.columnLayout" class="py-name" href="#" onclick="return doclink('link-37', 'columnLayout', 'link-18');">columnLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line">        <tt id="link-38" class="py-name"><a title="pymel.button" class="py-name" href="#" onclick="return doclink('link-38', 'button', 'link-33');">button</a></tt><tt class="py-op">(</tt><tt class="py-name">align</tt><tt class="py-op">=</tt><tt class="py-string">"center"</tt><tt class="py-op">,</tt><tt id="link-39" class="py-name"><a title="pymel.examples.example1.c" class="py-name" href="#" onclick="return doclink('link-39', 'c', 'link-34');">c</a></tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-40" class="py-name"><a title="pymel.examples.texturePathUI.lm_Replace
+pymel.examples.texturePathUI_pymel.lm_Replace" class="py-name" href="#" onclick="return doclink('link-40', 'lm_Replace', 'link-27');">lm_Replace</a></tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">label</tt><tt class="py-op">=</tt><tt class="py-string">"Replace"</tt><tt class="py-op">)</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line">        <tt class="py-comment"># rename off</tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt id="link-41" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-41', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line">         </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line">        <tt id="link-42" class="py-name"><a title="pymel.columnLayout" class="py-name" href="#" onclick="return doclink('link-42', 'columnLayout', 'link-18');">columnLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line">        <tt id="link-43" class="py-name"><a title="pymel.button" class="py-name" href="#" onclick="return doclink('link-43', 'button', 'link-33');">button</a></tt><tt class="py-op">(</tt><tt class="py-name">align</tt><tt class="py-op">=</tt><tt class="py-string">"center"</tt><tt class="py-op">,</tt><tt id="link-44" class="py-name"><a title="pymel.examples.example1.c" class="py-name" href="#" onclick="return doclink('link-44', 'c', 'link-34');">c</a></tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-45" class="py-name"><a title="pymel.examples.texturePathUI.lm_Replace
+pymel.examples.texturePathUI_pymel.lm_Replace" class="py-name" href="#" onclick="return doclink('link-45', 'lm_Replace', 'link-27');">lm_Replace</a></tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">)</tt><tt class="py-op">,</tt><tt class="py-name">label</tt><tt class="py-op">=</tt><tt class="py-string">"Rename"</tt><tt class="py-op">)</tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line">        <tt class="py-comment"># rename on</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt id="link-46" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-46', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line">         </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line">        <tt id="link-47" class="py-name"><a title="pymel.columnLayout" class="py-name" href="#" onclick="return doclink('link-47', 'columnLayout', 'link-18');">columnLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line">        <tt id="link-48" class="py-name" targets="Class pymel.radioButtonGrp=pymel.radioButtonGrp-class.html"><a title="pymel.radioButtonGrp" class="py-name" href="#" onclick="return doclink('link-48', 'radioButtonGrp', 'link-48');">radioButtonGrp</a></tt><tt class="py-op">(</tt><tt class="py-string">'allCheckBox'</tt><tt class="py-op">,</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line">                <tt class="py-name">nrb</tt><tt class="py-op">=</tt><tt class="py-number">2</tt><tt class="py-op">,</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line">                <tt class="py-name">cw2</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-number">80</tt><tt class="py-op">,</tt> <tt class="py-number">60</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line">                <tt class="py-name">la2</tt><tt class="py-op">=</tt><tt class="py-op">(</tt><tt class="py-string">"selected"</tt><tt class="py-op">,</tt> <tt class="py-string">"all"</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line">                <tt class="py-name">sl</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line">        <tt id="link-49" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-49', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line">         </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line">        <tt id="link-50" class="py-name"><a title="pymel.columnLayout" class="py-name" href="#" onclick="return doclink('link-50', 'columnLayout', 'link-18');">columnLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line">        <tt id="link-51" class="py-name" targets="Class pymel.checkBox=pymel.checkBox-class.html"><a title="pymel.checkBox" class="py-name" href="#" onclick="return doclink('link-51', 'checkBox', 'link-51');">checkBox</a></tt><tt class="py-op">(</tt><tt class="py-string">'caseSensativeBox'</tt><tt class="py-op">,</tt><tt class="py-name">l</tt><tt class="py-op">=</tt><tt class="py-string">"ignore case"</tt><tt class="py-op">,</tt><tt class="py-name">v</tt><tt class="py-op">=</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line">        <tt id="link-52" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-52', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line">        <tt id="link-53" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-53', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line">         </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line">        <tt class="py-name">row2</tt> <tt class="py-op">=</tt> <tt id="link-54" class="py-name"><a title="pymel.rowLayout" class="py-name" href="#" onclick="return doclink('link-54', 'rowLayout', 'link-19');">rowLayout</a></tt><tt class="py-op">(</tt><tt class="py-name">nc</tt> <tt class="py-op">=</tt> <tt class="py-number">2</tt><tt class="py-op">,</tt><tt class="py-name">cw</tt> <tt class="py-op">=</tt> <tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt> <tt class="py-number">60</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line">        <tt id="link-55" class="py-name"><a title="pymel.path.path.text
+pymel.text" class="py-name" href="#" onclick="return doclink('link-55', 'text', 'link-20');">text</a></tt><tt class="py-op">(</tt><tt class="py-name">l</tt><tt class="py-op">=</tt><tt class="py-string">"matches: "</tt><tt class="py-op">)</tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line">        <tt id="link-56" class="py-name"><a title="pymel.path.path.text
+pymel.text" class="py-name" href="#" onclick="return doclink('link-56', 'text', 'link-20');">text</a></tt><tt class="py-op">(</tt><tt class="py-string">'numMatchesText'</tt><tt class="py-op">,</tt><tt class="py-name">align</tt><tt class="py-op">=</tt><tt class="py-string">"left"</tt><tt class="py-op">,</tt><tt class="py-name">l</tt><tt class="py-op">=</tt><tt class="py-string">" "</tt><tt class="py-op">)</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line">        <tt id="link-57" class="py-name"><a title="pymel.__init__1.Dag.setParent
+pymel.core.Dag.setParent" class="py-name" href="#" onclick="return doclink('link-57', 'setParent', 'link-23');">setParent</a></tt><tt class="py-op">(</tt><tt class="py-string">'..'</tt><tt class="py-op">)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line">         </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line">        <tt class="py-name">pane</tt> <tt class="py-op">=</tt> <tt id="link-58" class="py-name" targets="Class pymel.paneLayout=pymel.paneLayout-class.html"><a title="pymel.paneLayout" class="py-name" href="#" onclick="return doclink('link-58', 'paneLayout', 'link-58');">paneLayout</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line">        <tt id="link-59" class="py-name" targets="Class pymel.__init__1.textScrollList=pymel.__init__1.textScrollList-class.html,Class pymel.ui.textScrollList=pymel.ui.textScrollList-class.html"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-59', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">,</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line">                <tt class="py-name">allowMultiSelection</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line">                <tt class="py-name">dcc</tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-60" class="py-name" targets="Function pymel.examples.texturePathUI.lm_DoubleClickCommand()=pymel.examples.texturePathUI-module.html#lm_DoubleClickCommand,Function pymel.examples.texturePathUI_pymel.lm_DoubleClickCommand()=pymel.examples.texturePathUI_pymel-module.html#lm_DoubleClickCommand"><a title="pymel.examples.texturePathUI.lm_DoubleClickCommand
+pymel.examples.texturePathUI_pymel.lm_DoubleClickCommand" class="py-name" href="#" onclick="return doclink('link-60', 'lm_DoubleClickCommand', 'link-60');">lm_DoubleClickCommand</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">,</tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line">                <tt class="py-name">dkc</tt><tt class="py-op">=</tt><tt class="py-keyword">lambda</tt> <tt class="py-op">*</tt><tt class="py-name">args</tt><tt class="py-op">:</tt> <tt id="link-61" class="py-name" targets="Function pymel.examples.texturePathUI.lm_DeleteKeyCommand()=pymel.examples.texturePathUI-module.html#lm_DeleteKeyCommand,Function pymel.examples.texturePathUI_pymel.lm_DeleteKeyCommand()=pymel.examples.texturePathUI_pymel-module.html#lm_DeleteKeyCommand"><a title="pymel.examples.texturePathUI.lm_DeleteKeyCommand
+pymel.examples.texturePathUI_pymel.lm_DeleteKeyCommand" class="py-name" href="#" onclick="return doclink('link-61', 'lm_DeleteKeyCommand', 'link-61');">lm_DeleteKeyCommand</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line">                 </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name" targets="Method pymel.__init__1.formLayout.attachControl()=pymel.__init__1.formLayout-class.html#attachControl,Method pymel.ui.formLayout.attachControl()=pymel.ui.formLayout-class.html#attachControl"><a title="pymel.__init__1.formLayout.attachControl
+pymel.ui.formLayout.attachControl" class="py-name" href="#" onclick="return doclink('link-62', 'attachControl', 'link-62');">attachControl</a></tt>      <tt class="py-op">(</tt><tt id="link-63" class="py-name"><a title="pymel.vector.MMat.row" class="py-name" href="#" onclick="return doclink('link-63', 'row', 'link-30');">row</a></tt><tt class="py-op">,</tt> <tt class="py-string">"top"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt> <tt class="py-name">column</tt><tt class="py-op">)</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-64" class="py-name" targets="Method pymel.__init__1.formLayout.attachForm()=pymel.__init__1.formLayout-class.html#attachForm,Method pymel.ui.formLayout.attachForm()=pymel.ui.formLayout-class.html#attachForm"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-64', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt id="link-65" class="py-name"><a title="pymel.vector.MMat.row" class="py-name" href="#" onclick="return doclink('link-65', 'row', 'link-30');">row</a></tt><tt class="py-op">,</tt> <tt class="py-string">"left"</tt><tt class="py-op">,</tt> <tt class="py-number">20</tt><tt class="py-op">)</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-66" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-66', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt id="link-67" class="py-name"><a title="pymel.vector.MMat.row" class="py-name" href="#" onclick="return doclink('link-67', 'row', 'link-30');">row</a></tt><tt class="py-op">,</tt> <tt class="py-string">"right"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line">         </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-68" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-68', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">row2</tt><tt class="py-op">,</tt> <tt class="py-string">"left"</tt><tt class="py-op">,</tt> <tt class="py-number">20</tt><tt class="py-op">)</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-69" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-69', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">row2</tt><tt class="py-op">,</tt> <tt class="py-string">"right"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-70" class="py-name"><a title="pymel.__init__1.formLayout.attachControl
+pymel.ui.formLayout.attachControl" class="py-name" href="#" onclick="return doclink('link-70', 'attachControl', 'link-62');">attachControl</a></tt>      <tt class="py-op">(</tt><tt class="py-name">row2</tt><tt class="py-op">,</tt> <tt class="py-string">"top"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt> <tt id="link-71" class="py-name"><a title="pymel.vector.MMat.row" class="py-name" href="#" onclick="return doclink('link-71', 'row', 'link-30');">row</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line">         </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name"><a title="pymel.__init__1.formLayout.attachControl
+pymel.ui.formLayout.attachControl" class="py-name" href="#" onclick="return doclink('link-72', 'attachControl', 'link-62');">attachControl</a></tt>      <tt class="py-op">(</tt><tt class="py-name">pane</tt><tt class="py-op">,</tt> <tt class="py-string">"top"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">,</tt> <tt class="py-name">row2</tt><tt class="py-op">)</tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line">                 </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-73" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-73', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">column</tt><tt class="py-op">,</tt> <tt class="py-string">"top"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-74" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-74', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">column</tt><tt class="py-op">,</tt> <tt class="py-string">"left"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-75" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-75', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">column</tt><tt class="py-op">,</tt> <tt class="py-string">"right"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-76', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">pane</tt><tt class="py-op">,</tt> <tt class="py-string">"left"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-77" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-77', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">pane</tt><tt class="py-op">,</tt> <tt class="py-string">"right"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line">        <tt class="py-name">form</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="pymel.__init__1.formLayout.attachForm
+pymel.ui.formLayout.attachForm" class="py-name" href="#" onclick="return doclink('link-78', 'attachForm', 'link-64');">attachForm</a></tt>         <tt class="py-op">(</tt><tt class="py-name">pane</tt><tt class="py-op">,</tt> <tt class="py-string">"bottom"</tt><tt class="py-op">,</tt> <tt class="py-number">5</tt><tt class="py-op">)</tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line">         </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line">        <tt class="py-name">win</tt><tt class="py-op">.</tt><tt id="link-79" class="py-name" targets="Method pymel.__init__1.Transform.show()=pymel.__init__1.Transform-class.html#show,Method pymel.__init__1.window.show()=pymel.__init__1.window-class.html#show,Method pymel.core.Transform.show()=pymel.core.Transform-class.html#show,Method pymel.ui.window.show()=pymel.ui.window-class.html#show"><a title="pymel.__init__1.Transform.show
+pymel.__init__1.window.show
+pymel.core.Transform.show
+pymel.ui.window.show" class="py-name" href="#" onclick="return doclink('link-79', 'show', 'link-79');">show</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line">         </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line"> </tt>
+<a name="lm_Replace"></a><div id="lm_Replace-def"><a name="L173"></a><tt class="py-lineno">173</tt> <a class="py-toggle" href="#" id="lm_Replace-toggle" onclick="return toggle('lm_Replace');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#lm_Replace">lm_Replace</a><tt class="py-op">(</tt><tt class="py-param">rename</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="lm_Replace-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="lm_Replace-expanded"><a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt class="py-name">foundTexNodeArray</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line">        <tt class="py-name">findPath</tt> <tt class="py-op">=</tt> <tt id="link-80" class="py-name"><a title="pymel.textField" class="py-name" href="#" onclick="return doclink('link-80', 'textField', 'link-21');">textField</a></tt><tt class="py-op">(</tt><tt class="py-string">'findField'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-81" class="py-name" targets="Method pymel.Character.getText()=pymel.Character-class.html#getText"><a title="pymel.Character.getText" class="py-name" href="#" onclick="return doclink('link-81', 'getText', 'link-81');">getText</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line">         </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line">        <tt class="py-name">findPath</tt> <tt class="py-op">=</tt> <tt id="link-82" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-82', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">fromNativePath</tt><tt class="py-op">(</tt><tt class="py-name">findPath</tt><tt class="py-op">)</tt> </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line">        <tt class="py-comment"># Added Windows Slash Support - by Hays Clark</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">findPath</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line">                <tt class="py-name">confirmDialog</tt><tt class="py-op">(</tt><tt class="py-name">b</tt><tt class="py-op">=</tt><tt class="py-string">"OK"</tt><tt class="py-op">,</tt><tt class="py-name">m</tt><tt class="py-op">=</tt><tt class="py-string">"You Must Enter Text to Find"</tt><tt class="py-op">,</tt><tt class="py-name">t</tt><tt class="py-op">=</tt><tt class="py-string">"Warning"</tt><tt class="py-op">)</tt> </tt>
+<a name="L181"></a><tt class="py-lineno">181</tt>  <tt class="py-line">                <tt class="py-keyword">return</tt>  </tt>
+<a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line">                 </tt>
+<a name="L183"></a><tt class="py-lineno">183</tt>  <tt class="py-line">        <tt class="py-name">replacePath</tt> <tt class="py-op">=</tt> <tt id="link-83" class="py-name"><a title="pymel.textField" class="py-name" href="#" onclick="return doclink('link-83', 'textField', 'link-21');">textField</a></tt><tt class="py-op">(</tt><tt class="py-string">'replaceField'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="pymel.Character.getText" class="py-name" href="#" onclick="return doclink('link-84', 'getText', 'link-81');">getText</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">         </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line">        <tt class="py-comment"># Added Windows Slash Support - by Hays Clark</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">replacePath</tt> <tt class="py-op">=</tt> <tt id="link-85" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-85', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">fromNativePath</tt><tt class="py-op">(</tt><tt class="py-name">replacePath</tt><tt class="py-op">)</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line">        <tt class="py-name">ignoreCase</tt> <tt class="py-op">=</tt> <tt id="link-86" class="py-name"><a title="pymel.checkBox" class="py-name" href="#" onclick="return doclink('link-86', 'checkBox', 'link-51');">checkBox</a></tt><tt class="py-op">(</tt><tt class="py-string">'caseSensativeBox'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">getValue</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line">         </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line">        <tt class="py-comment"># Get File Paths //</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">selList</tt> <tt class="py-op">=</tt> <tt id="link-87" class="py-name"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-87', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">)</tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line">        <tt class="py-name">filePathArray</tt> <tt class="py-op">=</tt> <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">getAllItems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line">         </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line">        <tt class="py-comment"># Get Indices of Selected Items //</tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">indexArray</tt> <tt class="py-op">=</tt> <tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line">        <tt class="py-comment"># do all</tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">if</tt> <tt id="link-88" class="py-name"><a title="pymel.radioButtonGrp" class="py-name" href="#" onclick="return doclink('link-88', 'radioButtonGrp', 'link-48');">radioButtonGrp</a></tt><tt class="py-op">(</tt><tt class="py-string">'allCheckBox'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">getSelect</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> <tt class="py-op">-</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line">                <tt class="py-name">indexArray</tt> <tt class="py-op">=</tt> <tt id="link-89" class="py-name"><a title="pymel.__init__1.Attribute.range" class="py-name" href="#" onclick="return doclink('link-89', 'range', 'link-5');">range</a></tt><tt class="py-op">(</tt><tt class="py-number">1</tt><tt class="py-op">,</tt><tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">getNumberOfItems</tt><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">+</tt><tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line">                <tt class="py-name">indexArray</tt><tt class="py-op">=</tt><tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">getSelectIndexedItem</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line">                <tt class="py-comment"># Do the Operation</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"><tt class="py-comment"></tt>                 </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">index</tt> <tt class="py-keyword">in</tt> <tt class="py-name">indexArray</tt><tt class="py-op">:</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line">                <tt class="py-name">oldFilePath</tt> <tt class="py-op">=</tt> <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">[</tt><tt class="py-name">index</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">ftn</tt><tt class="py-op">.</tt><tt id="link-90" class="py-name" targets="Method pymel.__init__1.Attribute.get()=pymel.__init__1.Attribute-class.html#get,Method pymel.env'.OptionVarDict.get()=pymel.env%27.OptionVarDict-class.html#get"><a title="pymel.__init__1.Attribute.get
+pymel.env'.OptionVarDict.get" class="py-name" href="#" onclick="return doclink('link-90', 'get', 'link-90');">get</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line">                <tt class="py-comment"># string $filePath = $filePathArray[$index-1];</tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"><tt class="py-comment"></tt>                <tt class="py-name">filePath</tt> <tt class="py-op">=</tt> <tt id="link-91" class="py-name" targets="Function pymel.examples.texturePathUI.substituter()=pymel.examples.texturePathUI-module.html#substituter,Function pymel.examples.texturePathUI_pymel.substituter()=pymel.examples.texturePathUI_pymel-module.html#substituter"><a title="pymel.examples.texturePathUI.substituter
+pymel.examples.texturePathUI_pymel.substituter" class="py-name" href="#" onclick="return doclink('link-91', 'substituter', 'link-91');">substituter</a></tt><tt class="py-op">(</tt><tt class="py-name">ignoreCase</tt><tt class="py-op">,</tt> <tt class="py-name">findPath</tt><tt class="py-op">,</tt> <tt class="py-name">oldFilePath</tt><tt class="py-op">,</tt> <tt class="py-name">replacePath</tt><tt class="py-op">)</tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt id="link-92" class="py-name" targets="Method pymel.__init__1.MNode.rename()=pymel.__init__1.MNode-class.html#rename,Function pymel.__init__1.rename()=pymel.__init__1-module.html#rename,Function pymel.core.rename()=pymel.core-module.html#rename,Method pymel.path.path.rename()=pymel.path.path-class.html#rename"><a title="pymel.__init__1.MNode.rename
+pymel.__init__1.rename
+pymel.core.rename
+pymel.path.path.rename" class="py-name" href="#" onclick="return doclink('link-92', 'rename', 'link-92');">rename</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line">                        <tt class="py-keyword">if</tt> <tt class="py-name">MFile</tt><tt class="py-op">(</tt><tt class="py-name">oldFilePath</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-93" class="py-name" targets="Method pymel.path.path.access()=pymel.path.path-class.html#access"><a title="pymel.path.path.access" class="py-name" href="#" onclick="return doclink('link-93', 'access', 'link-93');">access</a></tt><tt class="py-op">(</tt><tt id="link-94" class="py-name"><a title="os" class="py-name" href="#" onclick="return doclink('link-94', 'os', 'link-1');">os</a></tt><tt class="py-op">.</tt><tt id="link-95" class="py-name" targets="Variable os.W_OK=os-module.html#W_OK"><a title="os.W_OK" class="py-name" href="#" onclick="return doclink('link-95', 'W_OK', 'link-95');">W_OK</a></tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line">                                <tt class="py-name">sysFile</tt><tt class="py-op">(</tt><tt class="py-name">oldFilePath</tt><tt class="py-op">,</tt><tt class="py-name">ren</tt><tt class="py-op">=</tt><tt class="py-name">filePath</tt><tt class="py-op">)</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line">                                <tt class="py-comment"># sysFile requires the new name to come first</tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line"><tt class="py-comment"></tt>                                <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">[</tt><tt class="py-name">index</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">ftn</tt><tt class="py-op">.</tt><tt id="link-96" class="py-name" targets="Method pymel.__init__1.Attribute.set()=pymel.__init__1.Attribute-class.html#set"><a title="pymel.__init__1.Attribute.set" class="py-name" href="#" onclick="return doclink('link-96', 'set', 'link-96');">set</a></tt><tt class="py-op">(</tt><tt class="py-name">filePath</tt><tt class="py-op">)</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line">                                 </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line">                         </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line">                        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line">                                <tt id="link-97" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-97', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-name">oldFilePath</tt> <tt class="py-op">+</tt> <tt class="py-string">" does not exist or is not writable. Skipping file rename.\n"</tt><tt class="py-op">)</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">                                <tt class="py-name">filePath</tt><tt class="py-op">=</tt><tt class="py-name">oldFilePath</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line">                                                 </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">                        <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">[</tt><tt class="py-name">index</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt class="py-name">ftn</tt><tt class="py-op">.</tt><tt id="link-98" class="py-name"><a title="pymel.__init__1.Attribute.set" class="py-name" href="#" onclick="return doclink('link-98', 'set', 'link-96');">set</a></tt><tt class="py-op">(</tt><tt class="py-name">filePath</tt><tt class="py-op">)</tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line">                        <tt class="py-comment"># Replace old Path with New Path, converting from 1-based to 0-based index //</tt> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line"><tt class="py-comment"></tt>                         </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">                <tt class="py-name">filePathArray</tt><tt class="py-op">[</tt><tt class="py-name">index</tt><tt class="py-op">-</tt><tt class="py-number">1</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">filePath</tt> </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line">                 </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">        <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">removeAll</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">         </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line">        <tt class="py-comment"># Clear List //</tt> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-comment"># Rebuild List //</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt id="link-99" class="py-name" targets="Method pymel.__init__1.textScrollList.extend()=pymel.__init__1.textScrollList-class.html#extend,Method pymel.ui.textScrollList.extend()=pymel.ui.textScrollList-class.html#extend"><a title="pymel.__init__1.textScrollList.extend
+pymel.ui.textScrollList.extend" class="py-name" href="#" onclick="return doclink('link-99', 'extend', 'link-99');">extend</a></tt><tt class="py-op">(</tt><tt class="py-name">filePathArray</tt><tt class="py-op">)</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">         </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">        <tt class="py-comment"># Reselect the Items that were changed //       </tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt id="link-100" class="py-name" targets="Method pymel.__init__1.textScrollList.selectIndexedItems()=pymel.__init__1.textScrollList-class.html#selectIndexedItems,Method pymel.ui.textScrollList.selectIndexedItems()=pymel.ui.textScrollList-class.html#selectIndexedItems"><a title="pymel.__init__1.textScrollList.selectIndexedItems
+pymel.ui.textScrollList.selectIndexedItems" class="py-name" href="#" onclick="return doclink('link-100', 'selectIndexedItems', 'link-100');">selectIndexedItems</a></tt><tt class="py-op">(</tt><tt class="py-name">indexArray</tt><tt class="py-op">)</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">                 </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt>  </tt>
+</div><a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">         </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line"> </tt>
+<a name="lm_Find"></a><div id="lm_Find-def"><a name="L236"></a><tt class="py-lineno">236</tt> <a class="py-toggle" href="#" id="lm_Find-toggle" onclick="return toggle('lm_Find');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#lm_Find">lm_Find</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="lm_Find-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="lm_Find-expanded"><a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line">        <tt class="py-name">selList</tt> <tt class="py-op">=</tt> <tt id="link-101" class="py-name"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-101', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">)</tt> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">        <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">removeAll</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">         </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">        <tt class="py-comment"># Initialize and Clear Array in which to store Matches //</tt> </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-keyword">global</tt> <tt class="py-name">foundTexNodeArray</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">        <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">=</tt><tt class="py-op">[</tt><tt class="py-op">]</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">        <tt class="py-name">findPath</tt> <tt class="py-op">=</tt> <tt id="link-102" class="py-name"><a title="pymel.textField" class="py-name" href="#" onclick="return doclink('link-102', 'textField', 'link-21');">textField</a></tt><tt class="py-op">(</tt><tt class="py-string">'findField'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-103" class="py-name"><a title="pymel.Character.getText" class="py-name" href="#" onclick="return doclink('link-103', 'getText', 'link-81');">getText</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line"> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">        <tt class="py-comment">#  determine if it is a case sensative search //</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line"><tt class="py-comment"></tt>        <tt class="py-name">ignoreCase</tt> <tt class="py-op">=</tt> <tt id="link-104" class="py-name"><a title="pymel.checkBox" class="py-name" href="#" onclick="return doclink('link-104', 'checkBox', 'link-51');">checkBox</a></tt><tt class="py-op">(</tt><tt class="py-string">'caseSensativeBox'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">getValue</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">ignoreCase</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">                <tt class="py-name">findPath</tt><tt class="py-op">=</tt><tt class="py-name">findPath</tt><tt class="py-op">.</tt><tt class="py-name">lower</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">                 </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">        <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-number">0</tt><tt class="py-op">)</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line">        <tt class="py-keyword">for</tt> <tt class="py-name">elem</tt> <tt class="py-keyword">in</tt> <tt id="link-105" class="py-name" targets="Function pymel.__init__1.ls()=pymel.__init__1-module.html#ls,Function pymel.core.ls()=pymel.core-module.html#ls"><a title="pymel.__init__1.ls
+pymel.core.ls" class="py-name" href="#" onclick="return doclink('link-105', 'ls', 'link-105');">ls</a></tt><tt class="py-op">(</tt><tt class="py-name">typ</tt><tt class="py-op">=</tt><tt class="py-string">"file"</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">                <tt class="py-name">filePath</tt> <tt class="py-op">=</tt> <tt class="py-name">elem</tt><tt class="py-op">.</tt><tt class="py-name">ftn</tt><tt class="py-op">.</tt><tt id="link-106" class="py-name"><a title="pymel.__init__1.Attribute.get
+pymel.env'.OptionVarDict.get" class="py-name" href="#" onclick="return doclink('link-106', 'get', 'link-90');">get</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">ignoreCase</tt> <tt class="py-op">==</tt> <tt class="py-number">1</tt><tt class="py-op">:</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">                        <tt class="py-name">filePath2</tt><tt class="py-op">=</tt><tt class="py-name">filePath</tt><tt class="py-op">.</tt><tt class="py-name">lower</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">                                 </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line">                        <tt class="py-name">filePath2</tt><tt class="py-op">=</tt><tt class="py-name">filePath</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">                         </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">findPath</tt> <tt class="py-keyword">in</tt> <tt class="py-name">filePath2</tt><tt class="py-op">:</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line">                        <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">filePath</tt><tt class="py-op">)</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">                        <tt class="py-comment"># Update Scroll List with Path //</tt> </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line"><tt class="py-comment"></tt>                        <tt class="py-comment"># Store Corresponding File Node //</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line"><tt class="py-comment"></tt>                        <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">elem</tt><tt class="py-op">)</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">                         </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line">                 </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line">        <tt class="py-name">numMatch</tt> <tt class="py-op">=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">foundTexNodeArray</tt><tt class="py-op">)</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">numMatch</tt><tt class="py-op">&gt;</tt><tt class="py-number">0</tt><tt class="py-op">:</tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">                <tt class="py-name">numMatch</tt><tt class="py-op">-=</tt><tt class="py-number">1</tt> </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line">                 </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">        <tt id="link-107" class="py-name"><a title="pymel.path.path.text
+pymel.text" class="py-name" href="#" onclick="return doclink('link-107', 'text', 'link-20');">text</a></tt><tt class="py-op">(</tt><tt class="py-string">'numMatchesText'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">setLabel</tt><tt class="py-op">(</tt><tt class="py-name">numMatch</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line">         </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line"> </tt>
+<a name="lm_DoubleClickCommand"></a><div id="lm_DoubleClickCommand-def"><a name="L273"></a><tt class="py-lineno">273</tt> <a class="py-toggle" href="#" id="lm_DoubleClickCommand-toggle" onclick="return toggle('lm_DoubleClickCommand');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#lm_DoubleClickCommand">lm_DoubleClickCommand</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="lm_DoubleClickCommand-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="lm_DoubleClickCommand-expanded"><a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line">        <tt class="py-keyword">global</tt> <tt class="py-name">foundTexNodeArray</tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line">        <tt class="py-name">index</tt> <tt class="py-op">=</tt> <tt id="link-108" class="py-name"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-108', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">,</tt><tt class="py-name">q</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt><tt class="py-op">,</tt><tt class="py-name">sii</tt> <tt class="py-op">=</tt> <tt class="py-number">1</tt><tt class="py-op">)</tt> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line">        <tt class="py-name">foundTexNodeArray</tt><tt class="py-op">[</tt><tt class="py-name">index</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">.</tt><tt id="link-109" class="py-name" targets="Method pymel.__init__1._BaseObj.select()=pymel.__init__1._BaseObj-class.html#select,Method pymel.core._BaseObj.select()=pymel.core._BaseObj-class.html#select"><a title="pymel.__init__1._BaseObj.select
+pymel.core._BaseObj.select" class="py-name" href="#" onclick="return doclink('link-109', 'select', 'link-109');">select</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">        <tt id="link-110" class="py-name"><a title="pymel.__init__1.mel
+pymel.core.mel" class="py-name" href="#" onclick="return doclink('link-110', 'mel', 'link-2');">mel</a></tt><tt class="py-op">.</tt><tt class="py-name">showEditor</tt><tt class="py-op">(</tt><tt class="py-name">foundTexNodeArray</tt><tt class="py-op">[</tt><tt class="py-name">index</tt><tt class="py-op">[</tt><tt class="py-number">0</tt><tt class="py-op">]</tt><tt class="py-op">]</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">         </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line"> </tt>
+<a name="lm_DeleteKeyCommand"></a><div id="lm_DeleteKeyCommand-def"><a name="L280"></a><tt class="py-lineno">280</tt> <a class="py-toggle" href="#" id="lm_DeleteKeyCommand-toggle" onclick="return toggle('lm_DeleteKeyCommand');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#lm_DeleteKeyCommand">lm_DeleteKeyCommand</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="lm_DeleteKeyCommand-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="lm_DeleteKeyCommand-expanded"><a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">        <tt class="py-name">selList</tt> <tt class="py-op">=</tt> <tt id="link-111" class="py-name"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-111', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">)</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">        <tt class="py-name">indexArray</tt> <tt class="py-op">=</tt> <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">getSelectIndexedItem</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">        <tt class="py-name">selList</tt><tt class="py-op">.</tt><tt class="py-name">removeIndexedItem</tt><tt class="py-op">(</tt><tt class="py-name">indexArray</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line"> </tt>
+<a name="lm_SelectAll"></a><div id="lm_SelectAll-def"><a name="L285"></a><tt class="py-lineno">285</tt> <a class="py-toggle" href="#" id="lm_SelectAll-toggle" onclick="return toggle('lm_SelectAll');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#lm_SelectAll">lm_SelectAll</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="lm_SelectAll-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="lm_SelectAll-expanded"><a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">        <tt id="link-112" class="py-name"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-112', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt id="link-113" class="py-name" targets="Method pymel.__init__1.MReference.selectAll()=pymel.__init__1.MReference-class.html#selectAll,Method pymel.__init__1.textScrollList.selectAll()=pymel.__init__1.textScrollList-class.html#selectAll,Method pymel.core.MReference.selectAll()=pymel.core.MReference-class.html#selectAll,Method pymel.ui.textScrollList.selectAll()=pymel.ui.textScrollList-class.html#selectAll"><a title="pymel.__init__1.MReference.selectAll
+pymel.__init__1.textScrollList.selectAll
+pymel.core.MReference.selectAll
+pymel.ui.textScrollList.selectAll" class="py-name" href="#" onclick="return doclink('link-113', 'selectAll', 'link-113');">selectAll</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt>              </tt>
+</div><a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">         </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line"> </tt>
+<a name="lm_DeselectAll"></a><div id="lm_DeselectAll-def"><a name="L289"></a><tt class="py-lineno">289</tt> <a class="py-toggle" href="#" id="lm_DeselectAll-toggle" onclick="return toggle('lm_DeselectAll');">-</a><tt class="py-line"><tt class="py-keyword">def</tt> <a class="py-def-name" href="pymel.examples.texturePathUI_pymel-module.html#lm_DeselectAll">lm_DeselectAll</a><tt class="py-op">(</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="lm_DeselectAll-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="lm_DeselectAll-expanded"><a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">        <tt id="link-114" class="py-name"><a title="pymel.__init__1.textScrollList
+pymel.ui.textScrollList" class="py-name" href="#" onclick="return doclink('link-114', 'textScrollList', 'link-59');">textScrollList</a></tt><tt class="py-op">(</tt><tt class="py-string">'selectionList'</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">deselectAll</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+</div><a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line">         </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line"> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line"><tt id="link-115" class="py-name" targets="Module pymel.examples.texturePathUI=pymel.examples.texturePathUI-module.html,Function pymel.examples.texturePathUI.texturePathUI()=pymel.examples.texturePathUI-module.html#texturePathUI,Function pymel.examples.texturePathUI_pymel.texturePathUI()=pymel.examples.texturePathUI_pymel-module.html#texturePathUI"><a title="pymel.examples.texturePathUI
+pymel.examples.texturePathUI.texturePathUI
+pymel.examples.texturePathUI_pymel.texturePathUI" class="py-name" href="#" onclick="return doclink('link-115', 'texturePathUI', 'link-115');">texturePathUI</a></tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sun Oct 14 10:39:42 2007
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

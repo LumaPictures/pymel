@@ -1,0 +1,3308 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>modelEditor command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/modelEditor.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>modelEditor</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;modelEditor.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>modelEditor(
+[editorName]
+    , [<a href="#flagactiveOnly">activeOnly</a>=<i>int</i>], [<a href="#flagactiveView">activeView</a>=<i>boolean</i>], [<a href="#flagaddObjects">addObjects</a>=<i>string</i>], [<a href="#flagaddSelected">addSelected</a>=<i>boolean</i>], [<a href="#flagallObjects">allObjects</a>=<i>int</i>], [<a href="#flagbackfaceCulling">backfaceCulling</a>=<i>boolean</i>], [<a href="#flagbufferMode">bufferMode</a>=<i>string</i>], [<a href="#flagbumpResolution">bumpResolution</a>=<i>[int, int]</i>], [<a href="#flagcamera">camera</a>=<i>boolean</i>], [<a href="#flagcameraName">cameraName</a>=<i>boolean</i>], [<a href="#flagcameras">cameras</a>=<i>int</i>], [<a href="#flagcolorMap">colorMap</a>=<i>string</i>], [<a href="#flagcolorResolution">colorResolution</a>=<i>[int, int]</i>], [<a href="#flagcontrol">control</a>=<i>boolean</i>], [<a href="#flagcontrolVertices">controlVertices</a>=<i>int</i>], [<a href="#flagcullingOverride">cullingOverride</a>=<i>string</i>], [<a href="#flagdefault">default</a>=<i>boolean</i>], [<a href="#flagdefineTemplate">defineTemplate</a>=<i>string</i>], [<a href="#flagdeformers">deformers</a>=<i>int</i>], [<a href="#flagdimensions">dimensions</a>=<i>int</i>], [<a href="#flagdisplayAppearance">displayAppearance</a>=<i>string</i>], [<a href="#flagdisplayLights">displayLights</a>=<i>string</i>], [<a href="#flagdisplayTextures">displayTextures</a>=<i>boolean</i>], [<a href="#flagdocTag">docTag</a>=<i>string</i>], [<a href="#flagdynamicConstraints">dynamicConstraints</a>=<i>int</i>], [<a href="#flagdynamics">dynamics</a>=<i>int</i>], [<a href="#flagedit">edit</a>=<i>boolean</i>], [<a href="#flagexists">exists</a>=<i>boolean</i>], [<a href="#flagfilter">filter</a>=<i>string</i>], [<a href="#flagfluids">fluids</a>=<i>int</i>], [<a href="#flagfogColor">fogColor</a>=<i>boolean</i>], [<a href="#flagfogDensity">fogDensity</a>=<i>float</i>], [<a href="#flagfogEnd">fogEnd</a>=<i>boolean</i>], [<a href="#flagfogMode">fogMode</a>=<i>string</i>], [<a href="#flagfogSource">fogSource</a>=<i>string</i>], [<a href="#flagfogStart">fogStart</a>=<i>boolean</i>], [<a href="#flagfogging">fogging</a>=<i>boolean</i>], [<a href="#flagfollicles">follicles</a>=<i>int</i>], [<a href="#flagforceMainConnection">forceMainConnection</a>=<i>string</i>], [<a href="#flaggrid">grid</a>=<i>int</i>], [<a href="#flaghairSystems">hairSystems</a>=<i>int</i>], [<a href="#flaghandles">handles</a>=<i>int</i>], [<a href="#flagheadsUpDisplay">headsUpDisplay</a>=<i>boolean</i>], [<a href="#flaghighlightConnection">highlightConnection</a>=<i>string</i>], [<a href="#flaghulls">hulls</a>=<i>int</i>], [<a href="#flagikHandles">ikHandles</a>=<i>int</i>], [<a href="#flaginteractive">interactive</a>=<i>boolean</i>], [<a href="#flagjoints">joints</a>=<i>int</i>], [<a href="#flaglights">lights</a>=<i>int</i>], [<a href="#flaglocators">locators</a>=<i>int</i>], [<a href="#flaglockMainConnection">lockMainConnection</a>=<i>boolean</i>], [<a href="#flaglowQualityLighting">lowQualityLighting</a>=<i>boolean</i>], [<a href="#flagmainListConnection">mainListConnection</a>=<i>string</i>], [<a href="#flagmanipulators">manipulators</a>=<i>int</i>], [<a href="#flagmaxConstantTransparency">maxConstantTransparency</a>=<i>float</i>], [<a href="#flagmaxTextureResolution">maxTextureResolution</a>=<i>boolean</i>], [<a href="#flagnCloths">nCloths</a>=<i>int</i>], [<a href="#flagnRigids">nRigids</a>=<i>int</i>], [<a href="#flagnoUndo">noUndo</a>=<i>boolean</i>], [<a href="#flagnurbsCurves">nurbsCurves</a>=<i>int</i>], [<a href="#flagnurbsSurfaces">nurbsSurfaces</a>=<i>int</i>], [<a href="#flagocclusionCulling">occlusionCulling</a>=<i>boolean</i>], [<a href="#flagpanel">panel</a>=<i>string</i>], [<a href="#flagparent">parent</a>=<i>string</i>], [<a href="#flagpivots">pivots</a>=<i>int</i>], [<a href="#flagplanes">planes</a>=<i>int</i>], [<a href="#flagpolymeshes">polymeshes</a>=<i>int</i>], [<a href="#flagquery">query</a>=<i>boolean</i>], [<a href="#flagremoveSelected">removeSelected</a>=<i>boolean</i>], [<a href="#flagrendererList">rendererList</a>=<i>boolean</i>], [<a href="#flagrendererListUI">rendererListUI</a>=<i>boolean</i>], [<a href="#flagrendererName">rendererName</a>=<i>string</i>], [<a href="#flagselectionConnection">selectionConnection</a>=<i>string</i>], [<a href="#flagselectionHiliteDisplay">selectionHiliteDisplay</a>=<i>boolean</i>], [<a href="#flagsetSelected">setSelected</a>=<i>boolean</i>], [<a href="#flagshadows">shadows</a>=<i>int</i>], [<a href="#flagsmoothWireframe">smoothWireframe</a>=<i>boolean</i>], [<a href="#flagsortTransparent">sortTransparent</a>=<i>boolean</i>], [<a href="#flagstateString">stateString</a>=<i>boolean</i>], [<a href="#flagstrokes">strokes</a>=<i>int</i>], [<a href="#flagsubdivSurfaces">subdivSurfaces</a>=<i>int</i>], [<a href="#flagtextureAnisotropic">textureAnisotropic</a>=<i>boolean</i>], [<a href="#flagtextureDisplay">textureDisplay</a>=<i>string</i>], [<a href="#flagtextureHighlight">textureHighlight</a>=<i>boolean</i>], [<a href="#flagtextureMaxSize">textureMaxSize</a>=<i>int</i>], [<a href="#flagtextureMemoryUsed">textureMemoryUsed</a>=<i>boolean</i>], [<a href="#flagtextureSampling">textureSampling</a>=<i>int</i>], [<a href="#flagtextures">textures</a>=<i>int</i>], [<a href="#flagtranspInShadows">transpInShadows</a>=<i>boolean</i>], [<a href="#flagtransparencyAlgorithm">transparencyAlgorithm</a>=<i>string</i>], [<a href="#flagtwoSidedLighting">twoSidedLighting</a>=<i>int</i>], [<a href="#flagunParent">unParent</a>=<i>boolean</i>], [<a href="#flagunlockMainConnection">unlockMainConnection</a>=<i>boolean</i>], [<a href="#flagupdateColorMode">updateColorMode</a>=<i>boolean</i>], [<a href="#flagupdateMainConnection">updateMainConnection</a>=<i>boolean</i>], [<a href="#flaguseBaseRenderer">useBaseRenderer</a>=<i>boolean</i>], [<a href="#flaguseColorIndex">useColorIndex</a>=<i>boolean</i>], [<a href="#flaguseDefaultMaterial">useDefaultMaterial</a>=<i>boolean</i>], [<a href="#flaguseInteractiveMode">useInteractiveMode</a>=<i>int</i>], [<a href="#flaguseRGBImagePlane">useRGBImagePlane</a>=<i>boolean</i>], [<a href="#flaguseTemplate">useTemplate</a>=<i>string</i>], [<a href="#flagviewObjects">viewObjects</a>=<i>boolean</i>], [<a href="#flagviewSelected">viewSelected</a>=<i>boolean</i>], [<a href="#flagwireframeBackingStore">wireframeBackingStore</a>=<i>boolean</i>], [<a href="#flagwireframeOnShaded">wireframeOnShaded</a>=<i>boolean</i>], [<a href="#flagxray">xray</a>=<i>boolean</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>modelEditor is undoable, queryable, and editable.</p>
+      
+Create, edit or query a model editor.
+
+Note that some of the flags of this command may have different settings
+for normal mode and for interactive/playback mode.  For example, a
+modelEditor can be set to use shaded mode normally, but to use wireframe
+during playback for greater speed.  Some flags also support having
+defaults set so that new model editors will be created with those settings.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagactiveOnly">activeOnly</a>, <a href="#flagactiveView">activeView</a>, <a href="#flagaddObjects">addObjects</a>, <a href="#flagaddSelected">addSelected</a>, <a href="#flagallObjects">allObjects</a>, <a href="#flagbackfaceCulling">backfaceCulling</a>, <a href="#flagbufferMode">bufferMode</a>, <a href="#flagbumpResolution">bumpResolution</a>, <a href="#flagcamera">camera</a>, <a href="#flagcameraName">cameraName</a>, <a href="#flagcameras">cameras</a>, <a href="#flagcolorMap">colorMap</a>, <a href="#flagcolorResolution">colorResolution</a>, <a href="#flagcontrol">control</a>, <a href="#flagcontrolVertices">controlVertices</a>, <a href="#flagcullingOverride">cullingOverride</a>, <a href="#flagdefault">default</a>, <a href="#flagdefineTemplate">defineTemplate</a>, <a href="#flagdeformers">deformers</a>, <a href="#flagdimensions">dimensions</a>, <a href="#flagdisplayAppearance">displayAppearance</a>, <a href="#flagdisplayLights">displayLights</a>, <a href="#flagdisplayTextures">displayTextures</a>, <a href="#flagdocTag">docTag</a>, <a href="#flagdynamicConstraints">dynamicConstraints</a>, <a href="#flagdynamics">dynamics</a>, <a href="#flagedit">edit</a>, <a href="#flagexists">exists</a>, <a href="#flagfilter">filter</a>, <a href="#flagfluids">fluids</a>, <a href="#flagfogColor">fogColor</a>, <a href="#flagfogDensity">fogDensity</a>, <a href="#flagfogEnd">fogEnd</a>, <a href="#flagfogMode">fogMode</a>, <a href="#flagfogSource">fogSource</a>, <a href="#flagfogStart">fogStart</a>, <a href="#flagfogging">fogging</a>, <a href="#flagfollicles">follicles</a>, <a href="#flagforceMainConnection">forceMainConnection</a>, <a href="#flaggrid">grid</a>, <a href="#flaghairSystems">hairSystems</a>, <a href="#flaghandles">handles</a>, <a href="#flagheadsUpDisplay">headsUpDisplay</a>, <a href="#flaghighlightConnection">highlightConnection</a>, <a href="#flaghulls">hulls</a>, <a href="#flagikHandles">ikHandles</a>, <a href="#flaginteractive">interactive</a>, <a href="#flagjoints">joints</a>, <a href="#flaglights">lights</a>, <a href="#flaglocators">locators</a>, <a href="#flaglockMainConnection">lockMainConnection</a>, <a href="#flaglowQualityLighting">lowQualityLighting</a>, <a href="#flagmainListConnection">mainListConnection</a>, <a href="#flagmanipulators">manipulators</a>, <a href="#flagmaxConstantTransparency">maxConstantTransparency</a>, <a href="#flagmaxTextureResolution">maxTextureResolution</a>, <a href="#flagnCloths">nCloths</a>, <a href="#flagnRigids">nRigids</a>, <a href="#flagnoUndo">noUndo</a>, <a href="#flagnurbsCurves">nurbsCurves</a>, <a href="#flagnurbsSurfaces">nurbsSurfaces</a>, <a href="#flagocclusionCulling">occlusionCulling</a>, <a href="#flagpanel">panel</a>, <a href="#flagparent">parent</a>, <a href="#flagpivots">pivots</a>, <a href="#flagplanes">planes</a>, <a href="#flagpolymeshes">polymeshes</a>, <a href="#flagquery">query</a>, <a href="#flagremoveSelected">removeSelected</a>, <a href="#flagrendererList">rendererList</a>, <a href="#flagrendererListUI">rendererListUI</a>, <a href="#flagrendererName">rendererName</a>, <a href="#flagselectionConnection">selectionConnection</a>, <a href="#flagselectionHiliteDisplay">selectionHiliteDisplay</a>, <a href="#flagsetSelected">setSelected</a>, <a href="#flagshadows">shadows</a>, <a href="#flagsmoothWireframe">smoothWireframe</a>, <a href="#flagsortTransparent">sortTransparent</a>, <a href="#flagstateString">stateString</a>, <a href="#flagstrokes">strokes</a>, <a href="#flagsubdivSurfaces">subdivSurfaces</a>, <a href="#flagtextureAnisotropic">textureAnisotropic</a>, <a href="#flagtextureDisplay">textureDisplay</a>, <a href="#flagtextureHighlight">textureHighlight</a>, <a href="#flagtextureMaxSize">textureMaxSize</a>, <a href="#flagtextureMemoryUsed">textureMemoryUsed</a>, <a href="#flagtextureSampling">textureSampling</a>, <a href="#flagtextures">textures</a>, <a href="#flagtranspInShadows">transpInShadows</a>, <a href="#flagtransparencyAlgorithm">transparencyAlgorithm</a>, <a href="#flagtwoSidedLighting">twoSidedLighting</a>, <a href="#flagunParent">unParent</a>, <a href="#flagunlockMainConnection">unlockMainConnection</a>, <a href="#flagupdateColorMode">updateColorMode</a>, <a href="#flagupdateMainConnection">updateMainConnection</a>, <a href="#flaguseBaseRenderer">useBaseRenderer</a>, <a href="#flaguseColorIndex">useColorIndex</a>, <a href="#flaguseDefaultMaterial">useDefaultMaterial</a>, <a href="#flaguseInteractiveMode">useInteractiveMode</a>, <a href="#flaguseRGBImagePlane">useRGBImagePlane</a>, <a href="#flaguseTemplate">useTemplate</a>, <a href="#flagviewObjects">viewObjects</a>, <a href="#flagviewSelected">viewSelected</a>, <a href="#flagwireframeBackingStore">wireframeBackingStore</a>, <a href="#flagwireframeOnShaded">wireframeOnShaded</a>, <a href="#flagxray">xray</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagquery">
+	      <code><b>query</b>(<b>q</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts the command in query mode so that it will return the
+value of the specified flag.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagedit">
+	      <code><b>edit</b>(<b>e</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts the command in edit mode so that it will
+change the values of the specified flags
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagexists">
+	      <code><b>exists</b>(<b>ex</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns true|false depending upon whether the
+specified object exists.  Other flags are ignored.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdefineTemplate">
+	      <code><b>defineTemplate</b>(<b>dt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Puts a command in a mode where any other flags and args are
+parsed and added to the command template specified in the argument.
+They will be used as default arguments in any subsequent
+invocations of the command when templateName is set as the
+current template.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseTemplate">
+	      <code><b>useTemplate</b>(<b>ut</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Will force the command to use a command template other than
+the current one.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpanel">
+	      <code><b>panel</b>(<b>pnl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the panel that the editor belongs to.  By default if
+an editor is created in the create callback of a scripted panel it
+will belong to that panel.  If an editor doesn't belong to a panel
+it will be deleted when the window that it is in is deleted.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagparent">
+	      <code><b>parent</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the parent layout for this editor. This flag will only
+have an effect if the editor is currently un-parented.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagunParent">
+	      <code><b>unParent</b>(<b>up</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies that the editor should be removed from its layout.
+This cannot be used with query.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcontrol">
+	      <code><b>control</b>(<b>ctl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Query only. Returns the top level control for this editor.
+Usually used for getting a parent to attach popup menus.
+CAUTION: editors may not have controls at times.  This
+flag can return &quot;NONE&quot; if no control is present.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmainListConnection">
+	      <code><b>mainListConnection</b>(<b>mlc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the name of a selectionConnection object which the
+editor will use as its source of content.  The editor will
+only display items contained in the selectionConnection object.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagforceMainConnection">
+	      <code><b>forceMainConnection</b>(<b>fmc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the name of a selectionConnection object which the
+editor will use as its source of content.  The editor will only
+display items contained in the selectionConnection object. This is
+a variant of the -mainListConnection flag in that it will force a
+change even when the connection is locked. This flag is used to
+reduce the overhead when using the -unlockMainConnection
+, -mainListConnection, -lockMainConnection flags in immediate
+succession.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagselectionConnection">
+	      <code><b>selectionConnection</b>(<b>slc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the name of a selectionConnection object which the
+editor will synchronize with its own selection list.  As the user
+selects things in this editor, they will be selected in the
+selectionConnection object.  If someone else changes the object,
+the editor will update to show the change.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghighlightConnection">
+	      <code><b>highlightConnection</b>(<b>hlc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the name of a selectionConnection object which
+the editor will synchronize with its highlight list.  Not all
+editors have a highlight list.  For those who do, it is sort
+of a secondary selection list.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfilter">
+	      <code><b>filter</b>(<b>f</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the name of a filter to be placed on this editor.
+This filters the information coming onto the main list
+of the editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglockMainConnection">
+	      <code><b>lockMainConnection</b>(<b>lck</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Locks the current list of objects within the mainConnection,
+so that only those objects are displayed within the editor.
+Further changes to the original mainConnection are ignored.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstateString">
+	      <code><b>stateString</b>(<b>sts</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Query only flag.  Returns the MEL command that will edit an
+editor to match the current editor state. The returned command string
+uses the string variable $editorName in place of a specific name.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagunlockMainConnection">
+	      <code><b>unlockMainConnection</b>(<b>ulk</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Unlocks the mainConnection, effectively restoring the original
+mainConnection (if it is still available), and dynamic updates.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagupdateMainConnection">
+	      <code><b>updateMainConnection</b>(<b>upd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Causes a locked mainConnection to be updated from the orginal
+mainConnection, but preserves the lock state.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdocTag">
+	      <code><b>docTag</b>(<b>dtg</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Attaches a tag to the maya editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcamera">
+	      <code><b>camera</b>(<b>cam</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Change or query the name of the camera in model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcameraName">
+	      <code><b>cameraName</b>(<b>cn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the name of the panel's camera transform and shape. The
+shape name is computed by appending the string &quot;Shape&quot; to the
+transform name. This flag may not be queried.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdisplayLights">
+	      <code><b>displayLights</b>(<b>dl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets the lighting for shaded mode.  Possible values are
+&quot;selected&quot;, &quot;active&quot;, &quot;all&quot;, &quot;default&quot;, &quot;none&quot;.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbufferMode">
+	      <code><b>bufferMode</b>(<b>bm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets the graphic buffer mode.  Possible values are &quot;single&quot; or
+&quot;double&quot;.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagactiveOnly">
+	      <code><b>activeOnly</b>(<b>ao</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether only active objects should appear shaded in
+shaded display.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaginteractive">
+	      <code><b>interactive</b>(<b>i</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Causes this command to modify the interactive refresh settings of
+the view.  In this way it is possible to change the behavior of the
+model editor during playback for improved performance.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdefault">
+	      <code><b>default</b>(<b>d</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Causes this command to modify the default value of this setting.
+Newly created model editors will inherit the values.  This flag may
+be used with the -interactive to set default interactive settings.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtwoSidedLighting">
+	      <code><b>twoSidedLighting</b>(<b>tsl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turns on or off two sided lighting.  This may be used with
+the -default flag.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdisplayAppearance">
+	      <code><b>displayAppearance</b>(<b>da</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets the display appearance of the model panel.  Possible
+values are &quot;wireframe&quot;, &quot;points&quot;, &quot;boundingBox&quot;, &quot;smoothShaded&quot;,
+&quot;flatShaded&quot;.  This flag may be used with the -interactive
+and -default flags.  Note that only &quot;wireframe&quot;, &quot;points&quot;, and
+&quot;boundingBox&quot; are valid for the interactive mode.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwireframeOnShaded">
+	      <code><b>wireframeOnShaded</b>(<b>wos</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether the model panel will draw the wireframe on
+all shaded objects (if true) or only for active objects (if false).
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagheadsUpDisplay">
+	      <code><b>headsUpDisplay</b>(<b>hud</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether the model panel will draw any enabled heads up
+display	elements in this window (if true).  Currently this requires
+the HUD elements to be globally enabled.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagselectionHiliteDisplay">
+	      <code><b>selectionHiliteDisplay</b>(<b>sel</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether the model panel will draw any selection hiliting
+on the objects in this window.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseDefaultMaterial">
+	      <code><b>useDefaultMaterial</b>(<b>udm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether the model panel will draw all the shaded surfaces
+using the default material as opposed to using the material(s) currently
+assigned to the surfaces.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseColorIndex">
+	      <code><b>useColorIndex</b>(<b>uci</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether the model panel will attempt to use color index
+mode when possible.  Color index mode can provide a performance
+increase for point, bounding box, and wireframe display modes.
+This may be used with the -default flag.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwireframeBackingStore">
+	      <code><b>wireframeBackingStore</b>(<b>wbs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether a backing store is used to optimization the drawing
+of active objects. This mode can provide a performance increase in
+wireframe mode for certain scenes.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseRGBImagePlane">
+	      <code><b>useRGBImagePlane</b>(<b>ip</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets whether the model panel will be forced into RGB mode
+when there is an image plane attached to the panel's camera.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagupdateColorMode">
+	      <code><b>updateColorMode</b>(<b>ucm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Using this flag tells the model panel to check which color
+mode it should be in, and to switch accordingly.  This flag may
+be used to update a model panel after a camera image plane has
+been added or removed.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcolorMap">
+	      <code><b>colorMap</b>(<b>cm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Queries the color map style for the model panel.  Possible
+values are &quot;colorIndex&quot; and &quot;rgb&quot;.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbackfaceCulling">
+	      <code><b>backfaceCulling</b>(<b>bfc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turns on or off backface culling for the whole view.  This
+setting overrides the culling settings of individual objects.  All
+objects draw in the view will be backface culled.  When backface
+culling is turned on, surfaces becomes invisible in areas where the
+normal is pointing away from the camera.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagxray">
+	      <code><b>xray</b>(<b>xr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turns on or off Xray mode.  This may be used with the -default
+flag.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmaxConstantTransparency">
+	      <code><b>maxConstantTransparency</b>(<b>mct</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets the maximum constant transparency.  Setting this value remaps
+constant transparency values from the range [0.0, 1.0] to the range
+[0.0, maxConstantTransparency].  All transparency values are shifted linearly to
+the new range, so a fully transparency object (transparency 1.0) would
+appear with a transparency of maxConstantTransparency in the viewport,
+allowing highly transparent objects to be made visible.  This flag only
+affects constant (non-textured) transparent objects.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdisplayTextures">
+	      <code><b>displayTextures</b>(<b>dtx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turns on or off display of textures in shaded mode
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsmoothWireframe">
+	      <code><b>smoothWireframe</b>(<b>swf</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turns on or off smoothing of wireframe lines and points
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextureMaxSize">
+	      <code><b>textureMaxSize</b>(<b>tms</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set maximum texture size for hardware texturing.  The integer
+value must be a power of 2.  Recommended values are 128 or 256.  If
+the value specified is larger than the OpenGL maximim textures size
+for the graphics hardware it will be clamped to the OpenGL size.  If
+many large textures are used in a scene reducing this value improves
+performance.  On Impact texture memory is pinned in RAM so using
+large textures can cause reliability and performance problems. Again
+reducing this value will help. Software rendering does not use this
+value.
+This flag is obsolete as of Maya 6.5. The
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmaxTextureResolution">
+	      <code><b>maxTextureResolution</b>(<b>mtr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+argument on the displayPref command should be used instead
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextureMemoryUsed">
+	      <code><b>textureMemoryUsed</b>(<b>tmu</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns the total number of bytes used by all texture maps.  This
+is typicly width*height*channels for all texture objects in the scene
+If the texture is mip mapped all mip map levels are included in the
+total though not never more than two level will be in use at one time
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextureAnisotropic">
+	      <code><b>textureAnisotropic</b>(<b>ta</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to perform anisotropic texture filtering.
+Will work only if the anisotropic texture filtering extension
+is supported in OpenGL on the graphics system.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextureSampling">
+	      <code><b>textureSampling</b>(<b>ts</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the type of sampling to be used for texture
+display. The argument can be either:
+1 : means to perform point sample
+2 : means to perform bilinear interpolation (default)
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextureDisplay">
+	      <code><b>textureDisplay</b>(<b>td</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the type of blending to use for textures.
+The blend is performed between the destination fragment
+and the texture fragment. The source is usually the
+material color. Argument options are:
+&quot;modulate&quot; : multiply the destination and texture fragment
+&quot;decal&quot; : overwrite the destination with the texture fragment
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextureHighlight">
+	      <code><b>textureHighlight</b>(<b>th</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to show specular hilighting
+when the display is in shaded textured mode.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogging">
+	      <code><b>fogging</b>(<b>fg</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether hardware fogging is enabled or not.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogSource">
+	      <code><b>fogSource</b>(<b>fsc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the type of fog algorithm to use. If the argument
+is &quot;fragment&quot; (default) then fog is computed per pixel. If
+the argument is &quot;coordinate&quot; then if the geometry has
+specified vertex fog coordinates, and the OpenGL extension
+for vertex fog is supported by the graphics system, then
+fog is computed per vertex.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogMode">
+	      <code><b>fogMode</b>(<b>fmd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This determines the drop-off mode for fog. The possibilities are:
+&quot;linear&quot; : linear drop-off
+&quot;exponent&quot; : exponential drop-off
+&quot;exponent2&quot; : squared exponential drop-off
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogDensity">
+	      <code><b>fogDensity</b>(<b>fdn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Determines the density of hardware fogging.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogEnd">
+	      <code><b>fogEnd</b>(<b>fen</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The end location of hardware fogging.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogStart">
+	      <code><b>fogStart</b>(<b>fst</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The start location of hardware fogging.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfogColor">
+	      <code><b>fogColor</b>(<b>fcl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The color used for hardware fogging.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagshadows">
+	      <code><b>shadows</b>(<b>sdw</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of hardware shadows in shaded mode.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrendererName">
+	      <code><b>rendererName</b>(<b>rnm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set or get the renderer used for the 3d modeling viewport. The default options for setting are:
+&quot;base_OpenGL_Renderer&quot; : The default OpenGL based renderer.
+&quot;hwRender_OpenGL_Renderer&quot; : The high quality hardware renderer.
+The default is &quot;base_OpenGL_Renderer&quot;. The high quality renderer
+is only supported on certain hardware configurations. See the hardware
+qualification charts for more details.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrendererList">
+	      <code><b>rendererList</b>(<b>rls</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Query for a list of the internal names for renderers are available for usage with the
+3d modeling viewport. The default list contains at least &quot;base_OpenGL_Renderer&quot;,
+and &quot;hwRender_OpenGL_Renderer&quot;, if supported. See rendererName for more details
+on these renderers. Any plugin viewport renderers will also appear in this list.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrendererListUI">
+	      <code><b>rendererListUI</b>(<b>rlu</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Query for a list of the UI names renderers are available for usage with the
+3d modeling viewport. The default list contains at the UI name for&quot;base_OpenGL_Renderer&quot;,
+and possibly the UI name for &quot;hwRender_OpenGL_Renderer&quot; if it is support.
+Any plugin viewport renderer's UI names will also appear in this list. This list
+and the list returned from rendererList have a 1:1 correpsondance.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcolorResolution">
+	      <code><b>colorResolution</b>(<b>crz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[int, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the resolution for &quot;baked&quot; color textures when using the
+hardware renderer. The default value is 256, 256 respectively.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbumpResolution">
+	      <code><b>bumpResolution</b>(<b>brz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[int, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the resolution for &quot;baked&quot; bump map textures when using the
+hardware renderer. The default value is 512, 512 respectively.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtransparencyAlgorithm">
+	      <code><b>transparencyAlgorithm</b>(<b>tal</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set the transparency algorithm.
+The options are:
+1) &quot;frontAndBackCull&quot; : Two pass front and back culling technique.
+2) &quot;perPolygonSort&quot; : Draw transparent polygons in back-to-front order technique.
+transparency.
+Options 1) and 2) are supported by the hardware renderer. Options 1) is
+supported by the interactive modeling viewports.
+The default value is &quot;frontAndBackCull&quot;.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtranspInShadows">
+	      <code><b>transpInShadows</b>(<b>tis</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to enable display of transparency in shadows when
+using the hardware renderer. The default value is false.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcullingOverride">
+	      <code><b>cullingOverride</b>(<b>cov</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to override the culling attributes on objects when using
+the hardware renderer. The options are:
+&quot;none&quot; : Use the culling object attributes per object.
+&quot;doubleSided&quot; : Force all objects to be double sided.
+&quot;singleSided&quot;: Force all objects to be single sided.
+The default value is &quot;none&quot;.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglowQualityLighting">
+	      <code><b>lowQualityLighting</b>(<b>lql</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to use &quot;low quality lighting&quot; when using the
+hardware renderer. The default value is false.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagocclusionCulling">
+	      <code><b>occlusionCulling</b>(<b>ocl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to enable occlusion culling testing when using
+the hardware renderer. The default value is false.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseBaseRenderer">
+	      <code><b>useBaseRenderer</b>(<b>ubr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set whether to use the &quot;base&quot; renderer when using
+the hardware renderer and in &quot;interactive display mode&quot; (-useInteractiveMode)
+The default value is false.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnurbsCurves">
+	      <code><b>nurbsCurves</b>(<b>nc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of nurbs curves for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnurbsSurfaces">
+	      <code><b>nurbsSurfaces</b>(<b>ns</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of nurbs surfaces for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpolymeshes">
+	      <code><b>polymeshes</b>(<b>pm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of polygon meshes for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsubdivSurfaces">
+	      <code><b>subdivSurfaces</b>(<b>sds</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of subdivision surfaces for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagplanes">
+	      <code><b>planes</b>(<b>pl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of sketch planes for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglights">
+	      <code><b>lights</b>(<b>lt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of lights for the view of the
+model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcameras">
+	      <code><b>cameras</b>(<b>ca</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of cameras for the view of the
+model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcontrolVertices">
+	      <code><b>controlVertices</b>(<b>cv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of NURBS CVs for the view of the
+model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaggrid">
+	      <code><b>grid</b>(<b>gr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of the grid for the view of the
+model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghulls">
+	      <code><b>hulls</b>(<b>hu</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of NURBS hulls for the view of the
+model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagjoints">
+	      <code><b>joints</b>(<b>j</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of joints for the view of the
+model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagikHandles">
+	      <code><b>ikHandles</b>(<b>ikh</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of ik handles and end effectors
+for the view of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdeformers">
+	      <code><b>deformers</b>(<b>df</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of deformer objects for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdynamics">
+	      <code><b>dynamics</b>(<b>dy</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of dynamics objects for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfluids">
+	      <code><b>fluids</b>(<b>fl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of fluids for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghairSystems">
+	      <code><b>hairSystems</b>(<b>hs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of hairSystems for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfollicles">
+	      <code><b>follicles</b>(<b>fo</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of follicles for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnCloths">
+	      <code><b>nCloths</b>(<b>ncl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of nCloths for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnRigids">
+	      <code><b>nRigids</b>(<b>nr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of nRigids for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdynamicConstraints">
+	      <code><b>dynamicConstraints</b>(<b>dc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of dynamicConstraints for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglocators">
+	      <code><b>locators</b>(<b>lc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of locator objects for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmanipulators">
+	      <code><b>manipulators</b>(<b>mlocators</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of manipulator objects for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdimensions">
+	      <code><b>dimensions</b>(<b>dim</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of dimension objects for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghandles">
+	      <code><b>handles</b>(<b>ha</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of select handles for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpivots">
+	      <code><b>pivots</b>(<b>pv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of transform pivots for the view
+of the model editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtextures">
+	      <code><b>textures</b>(<b>tx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of texture objects for the view
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstrokes">
+	      <code><b>strokes</b>(<b>str</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of Paint Effects strokes for the view
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagallObjects">
+	      <code><b>allObjects</b>(<b>alo</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turn on/off the display of all objects for the view of
+the model editor. This excludes NURBS, CVs, hulls, grids and
+manipulators.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseInteractiveMode">
+	      <code><b>useInteractiveMode</b>(<b>ui</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Turns on or off the use of the special interaction settings
+during playback.  This flag may be used with the -default flag.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagactiveView">
+	      <code><b>activeView</b>(<b>av</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets this model editor to be the active view.  Returns true
+if successful.  On query this flag will return whether the view is
+the active view.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsortTransparent">
+	      <code><b>sortTransparent</b>(<b>st</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag turns on/off sorting of transparent objects during
+shaded mode refresh. Normally, objects are sorted according to their
+origin in camera space but when this flag is turned off they will be
+drawn according to their (depth-first traversal) order in the scene
+graph. This is a global flag that affects all model editors.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagviewSelected">
+	      <code><b>viewSelected</b>(<b>vs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag turns on/off viewing of selected objects. When the
+flag is set to true, the currently active objects are captured and
+used as the list of objects to view.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsetSelected">
+	      <code><b>setSelected</b>(<b>ss</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag causes the currently active objects to be the
+only objects visible in the view (if viewSelected is true).
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaddSelected">
+	      <code><b>addSelected</b>(<b>addSelected</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag causes the currently active objects to be added
+to the list of objects visible in the view (if viewSelected is true).
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveSelected">
+	      <code><b>removeSelected</b>(<b>rs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag causes the currently active objects to be removed
+from the list of objects visible in the view (if viewSelected is true).
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaddObjects">
+	      <code><b>addObjects</b>(<b>aob</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag causes the objects contained within the selection
+connection to be added to the list of objects visible in the view
+(if viewSelected is true).
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagviewObjects">
+	      <code><b>viewObjects</b>(<b>vo</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns the name (if any) of the objectSet which contains the
+list of objects visible in the view if viewSelected is true and the
+list of objects being displayed does <b>not</b> come from the
+active list.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnoUndo">
+	      <code><b>noUndo</b>(<b>nud</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag prevents some viewport operations (such as isolate
+select) from being added to the undo queue.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string: the name of the editor on creation.</i>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+#    Create a window with a model editor and some buttons that
+#    change the editor's display of objects in the scene.
+#
+window = cmds.window('window')
+form = cmds.formLayout()
+editor = cmds.modelEditor()
+column = cmds.columnLayout('true')
+
+#    Create some buttons that will alter the display appearance of
+#    objects in the model editor, eg. wireframe vs. shaded mode.
+#
+cmds.button(label='Wireframe', command= &quot;cmds.modelEditor(editor, edit=True, displayAppearance='wireframe')&quot;)
+cmds.button(label='Points', command= &quot;cmds.modelEditor(editor, edit=True, displayAppearance='points')&quot;)
+cmds.button(label='Bounding Box', command= &quot;cmds.modelEditor(editor, edit=True, displayAppearance='boundingBox')&quot;)
+cmds.button(label='Smooth Shaded', command= &quot;cmds.modelEditor(editor, edit=True, displayAppearance='smoothShaded')&quot;)
+cmds.button(label='Flat Shaded', command= &quot;cmds.modelEditor(editor, edit=True, displayAppearance='flatShaded')&quot;)
+
+#    Set up the window layout attachments.
+#
+cmds.formLayout( form, edit=True, attachForm=[(column, 'top', 0), (column, 'left', 0), (editor, 'top', 0), (editor, 'bottom', 0), (editor, 'right', 0)], attachNone=[(column, 'bottom'), (column, 'right')], attachControl=(editor, 'left', 0, column))
+
+#    Create a camera for the editor.  This particular camera will
+#    have a close up perspective view of the centre of the ground plane.
+#
+camera= cmds.camera(centerOfInterest=2.450351,
+			position = (1.535314, 1.135712, 1.535314),
+			rotation = (-27.612504, 45, 0),
+			worldUp = (-0.1290301, 0.3488592, -0.1290301))
+
+#    Attach the camera to the model editor.
+#
+cmds.modelEditor( editor, edit=True, camera=camera[0] )
+
+#    Put an object in the scene.
+#
+cmds.cone()
+
+cmds.showWindow( window )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

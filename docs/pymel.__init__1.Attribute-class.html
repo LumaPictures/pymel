@@ -1,0 +1,1540 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pymel.__init__1.Attribute</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pymel-module.html">Package&nbsp;pymel</a> ::
+        <a href="pymel.__init__1-module.html">Module&nbsp;__init__1</a> ::
+        Class&nbsp;Attribute
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pymel.__init__1.Attribute-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Attribute</h1><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+object --+            
+         |            
+basestring --+        
+             |        
+           str --+    
+                 |    
+          <a href="pymel.__init__1._BaseObj-class.html">_BaseObj</a> --+
+                     |
+                    <strong class="uidshort">Attribute</strong>
+</pre>
+
+<hr />
+the safest way to access an attribute is prefix that attribute's name 
+  with an underscore.  this helps prevent clashes with any class methods 
+  with the same name.      you can also get directly to the attribute 
+  without using the underscore, but you should be familiar with pymel 
+  because if you try to access an attribute that has the same as a class 
+  method of your node, you will raise an error. for example:
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>sphere = polySphere()[0]
+<span class="py-prompt">&gt;&gt;&gt; </span>sphere.translate.set(1,2,3) <span class="py-comment"># this conflicts with a method inherited from the base string class</span>
+<span class="py-output">AttributeError: 'function' object has no attribute 'set'</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>sphere._translate.set(1,2,3) <span class="py-comment"># this succeeds</span></pre>
+  <p>this happens because rotate is a method of the sphere's transform 
+  class. use this feature at your own risk!</p>
+  modifying attributes follows a fairly simple pattern.  'setAttr' 
+  becomes 'set', 'getAttr' becomes 'get', 'connectAttr' becomes 'connect' 
+  and so on.  there are also handy operators for connect, disconnect, and 
+  isConnected.
+<pre class="py-doctest">
+<span class="py-prompt">&gt;&gt;&gt; </span>sphere = polySphere()[0]
+<span class="py-prompt">&gt;&gt;&gt; </span>cube = polyCube()[0]                
+<span class="py-prompt">&gt;&gt;&gt; </span>sphere.tx &gt;&gt; cube.tx        <span class="py-comment"># connect</span>
+<span class="py-prompt">&gt;&gt;&gt; </span><span class="py-keyword">if</span> sphere.tx &gt;&gt;= cube.tx:
+<span class="py-more">... </span>    <span class="py-keyword">print</span> <span class="py-string">&quot;is connected!&quot;</span>
+<span class="py-output">is connected!</span>
+<span class="py-output"></span><span class="py-prompt">&gt;&gt;&gt; </span>sphere.tx &lt;&gt; cube.tx        <span class="py-comment"># disconnect</span></pre><br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#__repr__" class="summary-sig-name">__repr__</a>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__repr__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">attrName</span>)</span><br />
+      x.__init__(...) initializes x; see x.__class__.__doc__ for 
+      signature</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#__getitem__" class="summary-sig-name">__getitem__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">item</span>)</span><br />
+      x[y]</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__getitem__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="node"></a><span class="summary-sig-name">node</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      plugNode</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.node">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="nodeName"></a><span class="summary-sig-name">nodeName</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      plugNode</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.nodeName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="plug"></a><span class="summary-sig-name">plug</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      plugAttr</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.plug">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#set" class="summary-sig-name">set</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      setAttr
+No need to set type='string', this will automatically be set when passing string arguments.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.set">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#get" class="summary-sig-name">get</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      getAttr maya returns vector results as a tuple wrapped in a 
+      list.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.get">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isConnected"></a><span class="summary-sig-name">isConnected</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isConnected">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__irshift__"></a><span class="summary-sig-name">__irshift__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      operator for 'isConnected' sphere.tx &gt;&gt;= box.tx</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__irshift__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="connect"></a><span class="summary-sig-name">connect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      connectAttr</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.connect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__rshift__"></a><span class="summary-sig-name">__rshift__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      operator for 'connectAttr' sphere.tx &gt;&gt; box.tx</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__rshift__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="disconnect"></a><span class="summary-sig-name">disconnect</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">destination</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      disconnectAttr If no destination is passed, all inputs and outputs
+      will be disconnected from the attribute</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.disconnect">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#__ne__" class="summary-sig-name">__ne__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">other</span>)</span><br />
+      operator for 'disconnectAttr' sphere.tx &lt;&gt; box.tx</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__ne__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="inputs"></a><span class="summary-sig-name">inputs</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      listConnections -source 1 -destination 0</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.inputs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="outputs"></a><span class="summary-sig-name">outputs</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      listConnections -source 0 -destination 1</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.outputs">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#insertInput" class="summary-sig-name">insertInput</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">node</span>,
+        <span class="summary-sig-arg">nodeOutAttr</span>,
+        <span class="summary-sig-arg">nodeInAttr</span>)</span><br />
+      connect the passed node.outAttr to this attribute and reconnect
+any pre-existing connection into node.inAttr.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.insertInput">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="alias"></a><span class="summary-sig-name">alias</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.alias">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="add"></a><span class="summary-sig-name">add</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.add">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="delete"></a><span class="summary-sig-name">delete</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.delete">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="remove"></a><span class="summary-sig-name">remove</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span><br />
+      removeMultiInstance -b 1</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.remove">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="move"></a><span class="summary-sig-name">move</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.move">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="scale"></a><span class="summary-sig-name">scale</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.scale">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="rotate"></a><span class="summary-sig-name">rotate</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">*args</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.rotate">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isDirty"></a><span class="summary-sig-name">isDirty</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isDirty">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="affects"></a><span class="summary-sig-name">affects</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.affects">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="affected"></a><span class="summary-sig-name">affected</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.affected">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="type"></a><span class="summary-sig-name">type</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -type</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.type">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isKeyable"></a><span class="summary-sig-name">isKeyable</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -keyable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isKeyable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="size"></a><span class="summary-sig-name">size</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -size</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.size">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isLocked"></a><span class="summary-sig-name">isLocked</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -lock</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isLocked">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isSettable"></a><span class="summary-sig-name">isSettable</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -settable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isSettable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isCaching"></a><span class="summary-sig-name">isCaching</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -caching</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isCaching">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isInChannelBox"></a><span class="summary-sig-name">isInChannelBox</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      getAttr -channelBox</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isInChannelBox">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setKeyable"></a><span class="summary-sig-name">setKeyable</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span><br />
+      setAttr -keyable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.setKeyable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setLocked"></a><span class="summary-sig-name">setLocked</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span><br />
+      setAttr -locked</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.setLocked">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="lock"></a><span class="summary-sig-name">lock</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      setAttr -locked 1</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.lock">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="unlock"></a><span class="summary-sig-name">unlock</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      setAttr -locked 0</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.unlock">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setCaching"></a><span class="summary-sig-name">setCaching</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span><br />
+      setAttr -caching</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.setCaching">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="showInChannelBox"></a><span class="summary-sig-name">showInChannelBox</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">state</span>)</span><br />
+      setAttr -channelBox</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.showInChannelBox">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isHidden"></a><span class="summary-sig-name">isHidden</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -hidden</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isHidden">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isConnectable"></a><span class="summary-sig-name">isConnectable</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -connectable</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isConnectable">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isMulti"></a><span class="summary-sig-name">isMulti</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -multi</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.isMulti">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="exists"></a><span class="summary-sig-name">exists</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -exists</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.exists">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="longName"></a><span class="summary-sig-name">longName</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -longName</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.longName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="shortName"></a><span class="summary-sig-name">shortName</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -shortName</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.shortName">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="softMin"></a><span class="summary-sig-name">softMin</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -softMin Raises an AttributeError if softMin does 
+      not exist.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.softMin">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="softMax"></a><span class="summary-sig-name">softMax</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -softMax Raises an AttributeError if softMax does 
+      not exist.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.softMax">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="min"></a><span class="summary-sig-name">min</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -min Raises an AttributeError if min does not 
+      exist.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.min">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="max"></a><span class="summary-sig-name">max</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -max Raises an AttributeError if max does not 
+      exist.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.max">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#softRange" class="summary-sig-name">softRange</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -softRange returns a two-element list containing 
+      softMin and softMax.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.softRange">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.Attribute-class.html#range" class="summary-sig-name">range</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -range returns a two-element list containing min 
+      and max.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.range">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getChildren"></a><span class="summary-sig-name">getChildren</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -listChildren</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.getChildren">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getSiblings"></a><span class="summary-sig-name">getSiblings</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -listSiblings</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.getSiblings">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getParent"></a><span class="summary-sig-name">getParent</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      attributeQuery -listParent</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.getParent">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="info"></a><span class="summary-sig-name">info</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">**kwargs</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.info">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.__init__1._BaseObj-class.html">_BaseObj</a></code></b>:
+      <code><a href="pymel.__init__1._BaseObj-class.html#__getattr__">__getattr__</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#attr">attr</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#connections">connections</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#deselect">deselect</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#extractNum">extractNum</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#future">future</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#history">history</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#listConnections">listConnections</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#listFuture">listFuture</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#listHistory">listHistory</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#nextNum">nextNum</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#nodeType">nodeType</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#objExists">objExists</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#select">select</a></code>,
+      <code><a href="pymel.__init__1._BaseObj-class.html#stripNum">stripNum</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>str</code></b>:
+      <code>__add__</code>,
+      <code>__contains__</code>,
+      <code>__eq__</code>,
+      <code>__ge__</code>,
+      <code>__getattribute__</code>,
+      <code>__getnewargs__</code>,
+      <code>__getslice__</code>,
+      <code>__gt__</code>,
+      <code>__hash__</code>,
+      <code>__le__</code>,
+      <code>__len__</code>,
+      <code>__lt__</code>,
+      <code>__mod__</code>,
+      <code>__mul__</code>,
+      <code>__new__</code>,
+      <code>__rmod__</code>,
+      <code>__rmul__</code>,
+      <code>__str__</code>,
+      <code>capitalize</code>,
+      <code>center</code>,
+      <code>count</code>,
+      <code>decode</code>,
+      <code>encode</code>,
+      <code>endswith</code>,
+      <code>expandtabs</code>,
+      <code>find</code>,
+      <code>index</code>,
+      <code>isalnum</code>,
+      <code>isalpha</code>,
+      <code>isdigit</code>,
+      <code>islower</code>,
+      <code>isspace</code>,
+      <code>istitle</code>,
+      <code>isupper</code>,
+      <code>join</code>,
+      <code>ljust</code>,
+      <code>lower</code>,
+      <code>lstrip</code>,
+      <code>replace</code>,
+      <code>rfind</code>,
+      <code>rindex</code>,
+      <code>rjust</code>,
+      <code>rsplit</code>,
+      <code>rstrip</code>,
+      <code>split</code>,
+      <code>splitlines</code>,
+      <code>startswith</code>,
+      <code>strip</code>,
+      <code>swapcase</code>,
+      <code>title</code>,
+      <code>translate</code>,
+      <code>upper</code>,
+      <code>zfill</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.__init__1._BaseObj-class.html">_BaseObj</a></code></b> (private):
+      <code><a href="pymel.__init__1._BaseObj-class.html#_numPartReg">_numPartReg</a></code>
+      </p></div>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__repr__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__repr__</span>(<span class="sig-arg">self</span>)</span>
+    <br /><em class="fname">(Representation operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__repr__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="pymel.__init__1._BaseObj-class.html#__repr__">_BaseObj.__repr__</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">attrName</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  x.__init__(...) initializes x; see x.__class__.__doc__ for 
+  signature
+  <dl class="fields">
+    <dt>Overrides:
+      object.__init__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="__getitem__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__getitem__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">item</span>)</span>
+    <br /><em class="fname">(Indexing operator)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__getitem__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  x[y]
+  <dl class="fields">
+    <dt>Overrides:
+      str.__getitem__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="set"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">set</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">*args</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.set">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+setAttr
+No need to set type='string', this will automatically be set when passing string arguments.
+Also, adds suport for passing a list as the second argument.
+
+if you have a string arg that you want to be a float or int, be sure to cast it first
+
+        val = &quot;20&quot;                      
+        myAttr.set( int(val) )
+        
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="get"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">get</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">**kwargs</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.get">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  getAttr maya returns vector results as a tuple wrapped in a list. so, 
+  we'll upack the list for simplicity.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__ne__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__ne__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">other</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.__ne__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  operator for 'disconnectAttr' sphere.tx &lt;&gt; box.tx
+  <dl class="fields">
+    <dt>Overrides:
+      str.__ne__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="insertInput"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">insertInput</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">node</span>,
+        <span class="sig-arg">nodeOutAttr</span>,
+        <span class="sig-arg">nodeInAttr</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.insertInput">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  <pre class="literalblock">
+connect the passed node.outAttr to this attribute and reconnect
+any pre-existing connection into node.inAttr.  if there is no
+pre-existing connection, this method works just like connectAttr. 
+
+for example, for two nodes with the connection:
+        a.out--&gt;b.in
+        
+running this command:
+        b.insertInput( 'c', 'out', 'in' )
+        
+causes the new connection order (assuming 'c' is a node with 'in' and 'out' attributes):                
+        a.out--&gt;c.in
+        c.out--&gt;b.in
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="softRange"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">softRange</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.softRange">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  attributeQuery -softRange returns a two-element list containing 
+  softMin and softMax. if the attribute does not have a softMin or softMax 
+  the corresponding element will be set to None.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="range"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">range</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#Attribute.range">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  attributeQuery -range returns a two-element list containing min and 
+  max. if the attribute does not have a softMin or softMax the 
+  corresponding element will be set to None.
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sun Oct 14 10:39:30 2007
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

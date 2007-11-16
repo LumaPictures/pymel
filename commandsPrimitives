@@ -1,0 +1,16 @@
+polyCone Poly
+polyCube Poly
+polyCylinder Poly
+polyHelix Poly
+polyPipe Poly
+polyPlane Poly
+polyPrism Poly
+polyPyramid Poly
+polyTorus Poly
+polySphere Poly
+torus Nurbs
+cone Nurbs
+cylinder Nurbs
+curve Nurbs
+sphere Nurbs
+circle Nurbs

@@ -1,0 +1,401 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>jointCluster command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/jointCluster.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>jointCluster</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;jointCluster.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>jointCluster(
+[jointName]
+    , [<a href="#flagaboveBound">aboveBound</a>=<i>double</i>], [<a href="#flagaboveCluster">aboveCluster</a>=<i>boolean</i>], [<a href="#flagaboveDropoffType">aboveDropoffType</a>=<i>linear|exponential|sine|none</i>], [<a href="#flagaboveValue">aboveValue</a>=<i>double</i>], [<a href="#flagbelowBound">belowBound</a>=<i>double</i>], [<a href="#flagbelowCluster">belowCluster</a>=<i>boolean</i>], [<a href="#flagbelowDropoffType">belowDropoffType</a>=<i>linear|exponential|sine|none</i>], [<a href="#flagbelowValue">belowValue</a>=<i>double</i>], [<a href="#flagjoint">joint</a>=<i>DAGobject</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>jointCluster is undoable, queryable, and editable.</p>
+      
+The joint cluster command adds high-level controls to
+manage the cluster percentage values on a bound skin
+around a joint. JointClusters are one way
+to create smooth bending behaviour on skin when joints
+rotate.
+<pre>
+
+.                a &lt;---- aboveBound
+.    ____________a_________
+.                a         \
+.     Joint1     a       Joint2
+.   _____________a_______    \
+.                a       \    \     b  &lt;--- belowBound
+.                a        \    \  b
+.                          \    b
+.                           \ b  \
+.                           b\    \
+.                         b   \ Joint3
+
+</pre>
+CVs/vertices between Joint1 and aaaaa (aboveBound) receive only
+translation/rotation/scale from Joint1. CVs vertices between aaaa and
+bbbb transition between translation/rotatation/scale from Joint1 and
+Joint2. CV2 beyand bbbbb (below bound) receive only translation/
+rotation scale from Joint3.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagaboveBound">aboveBound</a>, <a href="#flagaboveCluster">aboveCluster</a>, <a href="#flagaboveDropoffType">aboveDropoffType</a>, <a href="#flagaboveValue">aboveValue</a>, <a href="#flagbelowBound">belowBound</a>, <a href="#flagbelowCluster">belowCluster</a>, <a href="#flagbelowDropoffType">belowDropoffType</a>, <a href="#flagbelowValue">belowValue</a>, <a href="#flagjoint">joint</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaboveBound">
+	      <code><b>aboveBound</b>(<b>ab</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the where the drop-off begins in the
+direction of the bone above the joint. A value of 100 indicates
+the entire length of the bone. The default value is 10.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbelowBound">
+	      <code><b>belowBound</b>(<b>bb</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies where the drop-off ends in the
+direction of the bone below the joint. A value of 100 indicates
+the entire length of the bone. The default value is 10.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaboveValue">
+	      <code><b>aboveValue</b>(<b>av</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the drop-off percentage of the joint cluster in the
+direction of the bone above the cluster. A value of 100 indicates
+the entire length of the bone. The default value is 50.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbelowValue">
+	      <code><b>belowValue</b>(<b>bv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the drop-off percentage of the joint cluster in the
+direction of the joint below the cluster. A value of 100 indicates
+the entire length of the bone. The default value is 50.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagjoint">
+	      <code><b>joint</b>(<b>j</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>DAGobject</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the joint that the cluster should act about.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaboveDropoffType">
+	      <code><b>aboveDropoffType</b>(<b>adt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear|exponential|sine|none</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the type of percentage drop-off in the direction
+of the bone above this joint.
+Default is linear.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbelowDropoffType">
+	      <code><b>belowDropoffType</b>(<b>bdt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>linear|exponential|sine|none</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies the type of type of percentage drop-off in the direction
+of the bone below this joint.
+Default is linear.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaboveCluster">
+	      <code><b>aboveCluster</b>(<b>ac</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns the name of the cluster associated with the bone
+above this joint.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbelowCluster">
+	      <code><b>belowCluster</b>(<b>bc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns the name of the cluster associated with this joint.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>[string] naming the new jointCluster node</i>
+      
+      <h2><a name="hRelated">Related</a></h2><a href="connectJoint.html">connectJoint</a>, <a href="ikHandle.html">ikHandle</a>, <a href="ikHandleDisplayScale.html">ikHandleDisplayScale</a>, <a href="ikSolver.html">ikSolver</a>, <a href="ikSystem.html">ikSystem</a>, <a href="ikSystemInfo.html">ikSystemInfo</a>, <a href="insertJoint.html">insertJoint</a>, <a href="joint.html">joint</a>, <a href="jointDisplayScale.html">jointDisplayScale</a>, <a href="jointLattice.html">jointLattice</a>, <a href="mirrorJoint.html">mirrorJoint</a>, <a href="removeJoint.html">removeJoint</a>, <a href="removeJoint.html">removeJoint</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# To add a joint cluster to a rigidly bound skin.
+# Note the skin should be at bind pose when the cluster is added.
+#
+cmds.jointCluster( j='joint2', ab=20, bb=20 )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

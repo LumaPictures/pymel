@@ -1,0 +1,307 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>colorEditor command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/colorEditor.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>colorEditor</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;colorEditor.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>colorEditor([<a href="#flagalpha">alpha</a>=<i>float</i>], [<a href="#flaghsvValue">hsvValue</a>=<i>[float, float, float]</i>], [<a href="#flagparent">parent</a>=<i>string</i>], [<a href="#flagresult">result</a>=<i>boolean</i>], [<a href="#flagrgbValue">rgbValue</a>=<i>[float, float, float]</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>colorEditor is undoable, queryable, and editable.</p>
+      
+The <i>colorEditor</i> command displays a modal dialog that may be used
+to specify colors in RGB or HSV. The default behaviour
+when no arguments are specified is to provide an initial color of
+white (rgb 1.0 1.0 1.0).
+<p/>
+The command will return the user's color component values along with a
+boolean to indicate whether the dialog was dismissed by pressing
+the &quot;OK&quot; button.  As an alternative to responding to
+the <i>colorEditor</i> command's return string you can now query
+the <i>-rgb/rgbValue</i>, <i>-hsv/hsvValue</i>, and <i>-r/result</i>
+flags to get the same information.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagalpha">alpha</a>, <a href="#flaghsvValue">hsvValue</a>, <a href="#flagparent">parent</a>, <a href="#flagresult">result</a>, <a href="#flagrgbValue">rgbValue</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrgbValue">
+	      <code><b>rgbValue</b>(<b>rgb</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Three float values corresponding to the red, green, and blue
+color components, all of which range from 0.0 to 1.0.  Use this
+flag to specify the initial color of the Color Editor, or query
+this flag to determine the color set in the editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghsvValue">
+	      <code><b>hsvValue</b>(<b>hsv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Three float values corresponding to the hue, saturation, and
+value color components, where the hue value ranges from 0.0 to 360.0
+and the saturation and value components range from 0.0 to 1.0.  Use
+this flag to specify the initial color of the Color Editor, or query
+this flag to determine the color set in the editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagalpha">
+	      <code><b>alpha</b>(<b>a</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Alpha value ranging from 0.0 to 1.0.  Use this flag
+to specify the initial alpha value of the Color Editor, or query
+this flag to determine the alpha value set in the editor.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagparent">
+	      <code><b>parent</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the parent window for the dialog.  The dialog will
+be centered on this window and raise and lower with it's parent.
+By default, the dialog is not parented to a particular window and
+is simply centered on the screen.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagresult">
+	      <code><b>result</b>(<b>r</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This query only flag returns true if the dialog's &quot;OK&quot; button
+was pressed, false otherwise.  If you query this flag immediately
+after showing the Color Editor then it will return the same value
+as the boolean value returned in the <i>colorEditor</i> command's
+return string.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string</i> 
+The string format is &quot;float float float boolean&quot;. The first three
+float values correspond to the color components. If you specify the
+the <i>-rgb/rgbValue</i> flag then the values returned will be RGB values.
+Similarly, if you specify the <i>-hsv/hsvValue</i> flag then the values
+returned will be HSV values.  If neither flag is specified then the
+default is to return RGB values.
+<p/>
+The final argument is 1 if the dialog's &quot;OK&quot; button was pressed,
+and 0 if the &quot;Cancel&quot; button was pressed.
+
+      <br/>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+#    Example 1.
+#
+cmds.colorEditor()
+if cmds.colorEditor(query=True, result=True):
+	values = cmds.colorEditor(query=True, rgb=True)
+	print 'RGB = ' + str(values)
+	values = cmds.colorEditor(query=True, hsv=True)
+	print 'HSV = ' + str(values)
+	alpha = cmds.colorEditor(query=True, alpha=True)
+	print 'Alpha = ' + str(alpha)
+else:
+	print 'Editor was dismissed'
+
+#    Example 2.
+#
+result = cmds.colorEditor()
+buffer = result.split()
+if '1' == buffer[3]:
+	values = cmds.colorEditor(query=True, rgb=True)
+	print 'RGB = ' + str(values)
+	alpha = cmds.colorEditor(query=True, alpha=True)
+	print 'Alpha = ' + str(alpha)
+else:
+	print 'Editor was dismissed'
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

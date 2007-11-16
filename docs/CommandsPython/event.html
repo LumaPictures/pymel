@@ -1,0 +1,547 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>event command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/event.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>event</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;event.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>event(
+[objectName]
+    , [<a href="#flagcount">count</a>=<i>int</i>], [<a href="#flagdelete">delete</a>=<i>boolean</i>], [<a href="#flagdieAtCollision">dieAtCollision</a>=<i>boolean</i>], [<a href="#flagemit">emit</a>=<i>int</i>], [<a href="#flaglist">list</a>=<i>boolean</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagproc">proc</a>=<i>boolean</i>], [<a href="#flagrandom">random</a>=<i>boolean</i>], [<a href="#flagrename">rename</a>=<i>string</i>], [<a href="#flagselect">select</a>=<i>boolean</i>], [<a href="#flagsplit">split</a>=<i>int</i>], [<a href="#flagspread">spread</a>=<i>float</i>], [<a href="#flagtarget">target</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>event is undoable, queryable, and editable.</p>
+      
+The event command assigns collision events to a particle object.
+Collision events are stored in multi-attributes in the particle shape.
+The event command returns the event name.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagcount">count</a>, <a href="#flagdelete">delete</a>, <a href="#flagdieAtCollision">dieAtCollision</a>, <a href="#flagemit">emit</a>, <a href="#flaglist">list</a>, <a href="#flagname">name</a>, <a href="#flagproc">proc</a>, <a href="#flagrandom">random</a>, <a href="#flagrename">rename</a>, <a href="#flagselect">select</a>, <a href="#flagsplit">split</a>, <a href="#flagspread">spread</a>, <a href="#flagtarget">target</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcount">
+	      <code><b>count</b>(<b>ct</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Collision number (for each particle) to which this event
+applies. Zero (the default) indicates that it applies to all
+collisions.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsplit">
+	      <code><b>split</b>(<b>spl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Colliding particle splits into specified number of
+new particles. These new particles become part of the assigned
+target object. If no target has been assigned, they become part of
+the same object.  The new particles inherit the current age of
+the particle that split.  They use the velocity inheritance
+parameter of the target object.  If you set both emit and split,
+the event will do both: first emit new particles, then split
+the original one. This is a change from earlier versions where emit
+and split were mutually exclusive.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdieAtCollision">
+	      <code><b>dieAtCollision</b>(<b>die</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Particle dies at the collision specified by &quot;count.&quot;
+If no count value is given, die at first collision.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagemit">
+	      <code><b>emit</b>(<b>em</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Emit n additional particles into the assigned target object.
+The original (colliding) particle survives as well, and remains
+in its original object.  The new particles have age zero and mass
+equal to the emitting particle. They use the velocity inheritance
+parameter of the target object.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrandom">
+	      <code><b>random</b>(<b>r</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Used with -split and -emit flags.  If -random is set true
+and -split or -emit is set to n, then a random number of particles
+uniformly distributed between 1 and n will be created at the event.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspread">
+	      <code><b>spread</b>(<b>sp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Particles created at collision will spread out a random amount
+from the rebound direction of the colliding particle.  The spread is
+specified as a fraction (0-1) of 90 degrees.  If spread is set at 0
+(the default) all the new particles created may coincide.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtarget">
+	      <code><b>target</b>(<b>t</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Target object for emitting or split particles. New particles
+created through the -emit or -split flags join this object.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdelete">
+	      <code><b>delete</b>(<b>d</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Delete the specified event.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Assign a name to an event you are creating, or identify an
+event you wish to edit, query, or delete. See examples.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrename">
+	      <code><b>rename</b>(<b>re</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Assign a new name to an event you are editing. See examples.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglist">
+	      <code><b>list</b>(<b>ls</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+List all events for the chosen shape, like this:
+event1Name event2Name ...
+If no shape identified, list all events for all shapes, like this:
+shape1Name event1Name shape2Name event2Name...
+Returns a string array.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagselect">
+	      <code><b>select</b>(<b>s</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is obsolete.  See the -name flag.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagproc">
+	      <code><b>proc</b>(<b>pr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify a MEL proc to be called each time the event occurs.
+This must be a global proc with arguments as follows:
+global proc procName( string obj, int id, string objHit );
+Arguments passed in are the name of the particle object, the
+id of the particle which collided, and the name of the object
+collided with.  You can use particle -id -q to get values of
+the particle's attributes.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string for creation; string array for list.</i>
+      
+      <h2><a name="hRelated">Related</a></h2><a href="collision.html">collision</a>, <a href="particle.html">particle</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.event( em=2, t='newCloud' )
+# At every collision, emit two new particles into the object
+# newCloud. The original colliding particles will survive and
+# remain in their original object. This event will be
+# assigned to the currently selected object.
+
+cmds.event( em=2 )
+# At every collision, emit two new particles into the same object.
+
+cmds.event( count=1, em=2 )
+# At the first collision for each particle, emit two new particles
+# into the same object.
+# Subsequent collisions for that same particle will not cause any
+# additional particles to be emitted. However, the new particles will
+# each emit two new ones at their first collision, since they also
+# belong to the object for which this event has been assigned.
+
+cmds.event( die=1, count=2 )
+# All particles in the selected object will die at their second
+# collision.
+
+cmds.event( 'myCloud', name='foo', count=1, q=1 )
+# Return the current value of the count parameter for the event &quot;foo&quot;
+# assigned to particle shape myCloud.  The order of the flags is
+# important.  Thef lag you are querying (in this case, -count) must
+# come before the -q.  The -name flag and the particle object name must
+# come after.
+
+cmds.event( 'myCloud', d=True, name='foo' )
+# Delete the event &quot;foo&quot; assigned to particle shape myCloud.
+
+cmds.event( 'myCloud', e=True, name='foo', emit=2 )
+# Edit the &quot;emit&quot; value of the event &quot;foo&quot; assigned to
+# particle shape myCloud.
+
+cmds.event( 'myCloud', proc='myProc' )
+# Call the MEL proc &quot;myProc(name, id, name) each time a particle
+# of myCloud collides with anything.
+
+cmds.event( name='oldName', e=1, rename='newName' )
+# For the selected particle shape, rename the event &quot;oldName&quot; to &quot;newName.&quot;
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

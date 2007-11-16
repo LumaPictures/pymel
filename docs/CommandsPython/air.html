@@ -1,0 +1,709 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>air command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/air.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>air</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;air.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>air(
+[obj[obj]..]
+    , [<a href="#flagattenuation">attenuation</a>=<i>float</i>], [<a href="#flagdirectionX">directionX</a>=<i>float</i>], [<a href="#flagdirectionY">directionY</a>=<i>float</i>], [<a href="#flagdirectionZ">directionZ</a>=<i>float</i>], [<a href="#flagenableSpread">enableSpread</a>=<i>boolean</i>], [<a href="#flagfanSetup">fanSetup</a>=<i>boolean</i>], [<a href="#flaginheritRotation">inheritRotation</a>=<i>boolean</i>], [<a href="#flaginheritVelocity">inheritVelocity</a>=<i>float</i>], [<a href="#flagmagnitude">magnitude</a>=<i>float</i>], [<a href="#flagmaxDistance">maxDistance</a>=<i>float</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagperVertex">perVertex</a>=<i>boolean</i>], [<a href="#flagposition">position</a>=<i>[float, float, float]</i>], [<a href="#flagspeed">speed</a>=<i>float</i>], [<a href="#flagspread">spread</a>=<i>float</i>], [<a href="#flagvelocityComponentOnly">velocityComponentOnly</a>=<i>boolean</i>], [<a href="#flagwakeSetup">wakeSetup</a>=<i>boolean</i>], [<a href="#flagwindSetup">windSetup</a>=<i>boolean</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>air is undoable, queryable, and editable.</p>
+      
+The air field simulates the effects of moving air. The affected objects
+will be accelerated or decelerated so that their velocities match that
+of the air.
+
+With the '-vco true' flag thrown, only accelerations are applied.
+By parenting an air field to a moving part of an object (ie. a foot of a
+character) and using '-i 1 -m 0 -s .5 -vco true' flags, one can simulate
+the movement of air around the
+foot as it moves, since the TOTAL velocity vector of the field would be
+only based on the
+movement of the foot. This can be done while the character walks through
+leaves or dust on the ground.
+
+
+For each listed object, the command creates a new field.
+The transform is the associated dependency node.
+Use connectDynamic to cause the field to affect a dynamic object.
+
+If fields are created,  this command returns the field names. If
+a field was queried, the results of the query are returned. If a field
+was edited, the field name is returned.
+
+If the -pos flag is specified, a field is created at the position specified.
+If not, if object names are provided or the active selection list is
+non-empty, the command creates a field for every object in the list and
+calls addDynamic to add it to the object; otherwise the command defaults
+to -pos 0 0 0.
+
+Setting the -pos flag with objects named on the command line is an error.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagattenuation">attenuation</a>, <a href="#flagdirectionX">directionX</a>, <a href="#flagdirectionY">directionY</a>, <a href="#flagdirectionZ">directionZ</a>, <a href="#flagenableSpread">enableSpread</a>, <a href="#flagfanSetup">fanSetup</a>, <a href="#flaginheritRotation">inheritRotation</a>, <a href="#flaginheritVelocity">inheritVelocity</a>, <a href="#flagmagnitude">magnitude</a>, <a href="#flagmaxDistance">maxDistance</a>, <a href="#flagname">name</a>, <a href="#flagperVertex">perVertex</a>, <a href="#flagposition">position</a>, <a href="#flagspeed">speed</a>, <a href="#flagspread">spread</a>, <a href="#flagvelocityComponentOnly">velocityComponentOnly</a>, <a href="#flagwakeSetup">wakeSetup</a>, <a href="#flagwindSetup">windSetup</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagposition">
+	      <code><b>position</b>(<b>pos</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Position in space where you want to place a field.
+The field then emanates from this position in space rather
+than from an object. Note that you can both use -pos
+(creating a field at a position) and also provide object names.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmagnitude">
+	      <code><b>magnitude</b>(<b>m</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The speed along the direction vector that the air is moving.
+Use this in conjunction with the -dx -dy -dz flags.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagattenuation">
+	      <code><b>attenuation</b>(<b>att</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Attentuation rate of field
+The air field attenuates so as to taper the field's
+magnitude to zero when the maximum distance is reached.
+Thus, attenuation has no effect unless useMaxDistance is
+true and a positive maximum distance has been set.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmaxDistance">
+	      <code><b>maxDistance</b>(<b>mxd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Maximum distance at which field is exerted.
+-1 indicates that the field has no maximum distance.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+name of field
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagperVertex">
+	      <code><b>perVertex</b>(<b>pv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Per-vertex application. If this flag is set true, then each
+individual point (CV, particle, vertex,etc.) of the chosen object
+exerts an identical copy of the force field. If this flag is set to
+false, then the force is exerted only from the geometric center of
+the set of points.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionX">
+	      <code><b>directionX</b>(<b>dx</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionY">
+	      <code><b>directionY</b>(<b>dy</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdirectionZ">
+	      <code><b>directionZ</b>(<b>dz</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Direction that the air will try to match the affected
+particles' velocity to. NOTE: This is not the velocity; this is only
+the direction. Use the -s flag to set the speed.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspeed">
+	      <code><b>speed</b>(<b>s</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+How fast the affected objects' speed reaches the speed (based on the -mag, -dx, -dy, -dz flags) of the air field.
+This value gets clamped internally to be between 0.0 and 1.0.  A value of 0.0 will make the air field have no effect.
+A value of 1.0 will try to match the air field's speed much quicker, but not necessarily immediately.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaginheritVelocity">
+	      <code><b>inheritVelocity</b>(<b>iv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Amount (from 0 to 1) of the field-owner's velocity added to the
+vector determined by the direction and speed flags. The combination
+of these two vectors makes
+up the TOTAL velocity vector for the air field. This allows the air
+to be determined directly by the motion of the owning object.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagvelocityComponentOnly">
+	      <code><b>velocityComponentOnly</b>(<b>vco</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If this is 'false', the air will accelerate or decelerate
+the affected objects so that their velocities will eventually match
+the TOTAL velocity vector of the air field. If this is 'true',
+only ACCELERTION is applied to the affected objects so that their
+velocity component along the TOTAL velocity vector matches or is
+greater in magnitude than the TOTAL velocity vector. This will not
+slow objects down to match velocities, only speed them up
+to match components. This is most useful when using the -iv flag
+with a value &gt;0.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaginheritRotation">
+	      <code><b>inheritRotation</b>(<b>iro</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If this is set to 'true', then the direction vector
+described with -dx, -dy, and -dz will be considered local to the owning object. Therefore, if the
+owning object's transform undergoes any rotation (by itself or one of its parents), the direction
+vector of the air field will undergo that same rotation.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagspread">
+	      <code><b>spread</b>(<b>sp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This represents the angle from the direction vector within which
+objects will be affected. The values are in the range of 0 to 1.
+A value of 0 will result in an effect only
+exactly in front of the air field along the direction vector. A
+value of 1 will result in any object in front of the owning object, 90
+degrees in all direction from the direction vector.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagenableSpread">
+	      <code><b>enableSpread</b>(<b>es</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This tells the system whether or not to use the spread
+angle given by '-sp'. If this is 'false' then all connected objectswithin the maximum distance will
+be affected. Also, if this is set to 'false', all affected objects are forced to match their velocities
+along the direction vector. If this is set to 'true' and spread is used, then the direction of the force
+is along the direction from the field to the object.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwindSetup">
+	      <code><b>windSetup</b>(<b>wns</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This will set some of the values above in a way that
+approximates the effects of a basic wind. This allows the user to then change certain values as
+he/she wishes on the same command line. First the preset values get set, and then any other flags
+that were passed get taken into account. These are the values that get set to approximate 'wind':
+inheritVelocity 0.0
+inheritRotation true
+componentOnly false
+enableSpread false
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagfanSetup">
+	      <code><b>fanSetup</b>(<b>fs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Similar to 'windSetup' except that the effects of a fan or
+a person blowing air are approximated. The user can pass the same
+flags on the command line to adjust them from the defaults. These are
+the values that get set to approximate a 'fan':
+inheritVelocity 1.0
+inheritRotation true
+componentOnly false
+enableSpread true
+spread .5 (45 degrees from center )
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwakeSetup">
+	      <code><b>wakeSetup</b>(<b>wks</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Like the 'windSetup' and 'fanSetup', 'wakeSetup'
+sets certain values in the field to approximate the movement of air
+near a moving object, such as  a character's foot or hand.
+The values that are set are:
+inheritVelocity 1.0
+inheritRotation false
+componentOnly true
+enableSpread false
+speed 0.0
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string</i>
+      
+      <h2><a name="hRelated">Related</a></h2><a href="addDynamic.html">addDynamic</a>, <a href="connectDynamic.html">connectDynamic</a>, <a href="particle.html">particle</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.air( name='particle1', m=5.0, mxd=2.0 )
+# Creates an air field with magnitude 5.0 and maximum distance 2.0,
+# and adds it to the list
+# of fields particle1 owns.
+
+cmds.air( wakeSetup=True )
+# Creates an air field with no no velocity in and of itself (magnitude = 0).
+# All of the air's
+# velocity is derived from the motion of the objects that own the field.
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

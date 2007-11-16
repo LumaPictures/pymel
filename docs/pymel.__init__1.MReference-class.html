@@ -1,0 +1,819 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>pymel.__init__1.MReference</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="pymel-module.html">Package&nbsp;pymel</a> ::
+        <a href="pymel.__init__1-module.html">Module&nbsp;__init__1</a> ::
+        Class&nbsp;MReference
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="pymel.__init__1.MReference-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class MReference</h1><span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference">source&nbsp;code</a></span><br /><br />
+<pre class="base-tree">
+object --+                
+         |                
+basestring --+            
+             |            
+           str --+        
+                 |        
+         <a href="pymel.path.path-class.html">path.path</a> --+    
+                     |    
+                 <a href="pymel.__init__1.MPath-class.html">MPath</a> --+
+                         |
+                        <strong class="uidshort">MReference</strong>
+</pre>
+
+<hr />
+<p>A class for manipulating references which inherits MPath and path.  
+  you can create an instance by supplying the path to a reference file, its
+  namespace, or its reference node to the appropriate keyword. The 
+  namespace and reference node of the reference can be retreived via the 
+  namespace and refNode properties. The namespace property can also be used
+  to change the namespace of the reference.</p>
+  <p>Use listRefences command to return a list of references as instances 
+  of the MReference class.</p>
+  It is important to note that instances of this class will have their 
+  copy number stripped off and stored in an internal variable upon 
+  creation.  This is to maintain compatibility with the numerous methods 
+  inherited from the path class which requires a real file path. When 
+  calling built-in methods of MReference, the path will automatically be 
+  suffixed with the copy number before being passed to maya commands, thus 
+  ensuring the proper results in maya as well.<br /><br />
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="withCopyNumber"></a><span class="summary-sig-name">withCopyNumber</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.withCopyNumber">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="importContents"></a><span class="summary-sig-name">importContents</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      file -importReference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.importContents">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.MReference-class.html#remove" class="summary-sig-name">remove</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      file -removeReference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.remove">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="unload"></a><span class="summary-sig-name">unload</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      file -unloadReference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.unload">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="clean"></a><span class="summary-sig-name">clean</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      file -cleanReference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.clean">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="lock"></a><span class="summary-sig-name">lock</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      file -lockReference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.lock">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isDeferred"></a><span class="summary-sig-name">isDeferred</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      file -q -deferReference</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.isDeferred">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="isLoaded"></a><span class="summary-sig-name">isLoaded</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.isLoaded">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="nodes"></a><span class="summary-sig-name">nodes</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      referenceQuery -nodes</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.nodes">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="copyNumberList"></a><span class="summary-sig-name">copyNumberList</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.copyNumberList">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="selectAll"></a><span class="summary-sig-name">selectAll</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.selectAll">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_getNamespace"></a><span class="summary-sig-name">_getNamespace</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference._getNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_setNamespace"></a><span class="summary-sig-name">_setNamespace</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">namespace</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference._setNamespace">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr class="private">
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="_getRefNode"></a><span class="summary-sig-name">_getRefNode</span>(<span class="summary-sig-arg">self</span>)</span></td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference._getRefNode">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.__init__1.MPath-class.html">MPath</a></code></b>:
+      <code><a href="pymel.__init__1.MPath-class.html#__repr__">__repr__</a></code>,
+      <code><a href="pymel.__init__1.MPath-class.html#type">type</a></code>,
+      <code><a href="pymel.__init__1.MPath-class.html#writable">writable</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.path.path-class.html">path.path</a></code></b>:
+      <code><a href="pymel.path.path-class.html#__add__">__add__</a></code>,
+      <code><a href="pymel.path.path-class.html#__div__">__div__</a></code>,
+      <code><a href="pymel.path.path-class.html#__radd__">__radd__</a></code>,
+      <code><a href="pymel.path.path-class.html#__truediv__">__truediv__</a></code>,
+      <code><a href="pymel.path.path-class.html#abspath">abspath</a></code>,
+      <code><a href="pymel.path.path-class.html#access">access</a></code>,
+      <code><a href="pymel.path.path-class.html#basename">basename</a></code>,
+      <code><a href="pymel.path.path-class.html#bytes">bytes</a></code>,
+      <code><a href="pymel.path.path-class.html#chmod">chmod</a></code>,
+      <code><a href="pymel.path.path-class.html#chown">chown</a></code>,
+      <code><a href="pymel.path.path-class.html#chroot">chroot</a></code>,
+      <code><a href="pymel.path.path-class.html#copy">copy</a></code>,
+      <code><a href="pymel.path.path-class.html#copy2">copy2</a></code>,
+      <code><a href="pymel.path.path-class.html#copyfile">copyfile</a></code>,
+      <code><a href="pymel.path.path-class.html#copymode">copymode</a></code>,
+      <code><a href="pymel.path.path-class.html#copystat">copystat</a></code>,
+      <code><a href="pymel.path.path-class.html#copytree">copytree</a></code>,
+      <code><a href="pymel.path.path-class.html#dirname">dirname</a></code>,
+      <code><a href="pymel.path.path-class.html#dirs">dirs</a></code>,
+      <code><a href="pymel.path.path-class.html#exists">exists</a></code>,
+      <code><a href="pymel.path.path-class.html#expand">expand</a></code>,
+      <code><a href="pymel.path.path-class.html#expanduser">expanduser</a></code>,
+      <code><a href="pymel.path.path-class.html#expandvars">expandvars</a></code>,
+      <code><a href="pymel.path.path-class.html#files">files</a></code>,
+      <code><a href="pymel.path.path-class.html#fnmatch">fnmatch</a></code>,
+      <code><a href="pymel.path.path-class.html#get_owner">get_owner</a></code>,
+      <code><a href="pymel.path.path-class.html#getatime">getatime</a></code>,
+      <code><a href="pymel.path.path-class.html#getctime">getctime</a></code>,
+      <code><a href="pymel.path.path-class.html#getmtime">getmtime</a></code>,
+      <code><a href="pymel.path.path-class.html#getsize">getsize</a></code>,
+      <code><a href="pymel.path.path-class.html#glob">glob</a></code>,
+      <code><a href="pymel.path.path-class.html#isabs">isabs</a></code>,
+      <code><a href="pymel.path.path-class.html#isdir">isdir</a></code>,
+      <code><a href="pymel.path.path-class.html#isfile">isfile</a></code>,
+      <code><a href="pymel.path.path-class.html#islink">islink</a></code>,
+      <code><a href="pymel.path.path-class.html#ismount">ismount</a></code>,
+      <code><a href="pymel.path.path-class.html#joinpath">joinpath</a></code>,
+      <code><a href="pymel.path.path-class.html#lines">lines</a></code>,
+      <code><a href="pymel.path.path-class.html#link">link</a></code>,
+      <code><a href="pymel.path.path-class.html#listdir">listdir</a></code>,
+      <code><a href="pymel.path.path-class.html#lstat">lstat</a></code>,
+      <code><a href="pymel.path.path-class.html#makedirs">makedirs</a></code>,
+      <code><a href="pymel.path.path-class.html#mkdir">mkdir</a></code>,
+      <code><a href="pymel.path.path-class.html#move">move</a></code>,
+      <code><a href="pymel.path.path-class.html#normcase">normcase</a></code>,
+      <code><a href="pymel.path.path-class.html#normpath">normpath</a></code>,
+      <code><a href="pymel.path.path-class.html#open">open</a></code>,
+      <code><a href="pymel.path.path-class.html#pathconf">pathconf</a></code>,
+      <code><a href="pymel.path.path-class.html#read_md5">read_md5</a></code>,
+      <code><a href="pymel.path.path-class.html#readlink">readlink</a></code>,
+      <code><a href="pymel.path.path-class.html#readlinkabs">readlinkabs</a></code>,
+      <code><a href="pymel.path.path-class.html#realpath">realpath</a></code>,
+      <code><a href="pymel.path.path-class.html#relpath">relpath</a></code>,
+      <code><a href="pymel.path.path-class.html#relpathto">relpathto</a></code>,
+      <code><a href="pymel.path.path-class.html#removedirs">removedirs</a></code>,
+      <code><a href="pymel.path.path-class.html#rename">rename</a></code>,
+      <code><a href="pymel.path.path-class.html#renames">renames</a></code>,
+      <code><a href="pymel.path.path-class.html#rmdir">rmdir</a></code>,
+      <code><a href="pymel.path.path-class.html#rmtree">rmtree</a></code>,
+      <code><a href="pymel.path.path-class.html#samefile">samefile</a></code>,
+      <code><a href="pymel.path.path-class.html#splitall">splitall</a></code>,
+      <code><a href="pymel.path.path-class.html#splitdrive">splitdrive</a></code>,
+      <code><a href="pymel.path.path-class.html#splitext">splitext</a></code>,
+      <code><a href="pymel.path.path-class.html#splitpath">splitpath</a></code>,
+      <code><a href="pymel.path.path-class.html#splitunc">splitunc</a></code>,
+      <code><a href="pymel.path.path-class.html#startfile">startfile</a></code>,
+      <code><a href="pymel.path.path-class.html#stat">stat</a></code>,
+      <code><a href="pymel.path.path-class.html#statvfs">statvfs</a></code>,
+      <code><a href="pymel.path.path-class.html#stripext">stripext</a></code>,
+      <code><a href="pymel.path.path-class.html#symlink">symlink</a></code>,
+      <code><a href="pymel.path.path-class.html#text">text</a></code>,
+      <code><a href="pymel.path.path-class.html#touch">touch</a></code>,
+      <code><a href="pymel.path.path-class.html#unlink">unlink</a></code>,
+      <code><a href="pymel.path.path-class.html#utime">utime</a></code>,
+      <code><a href="pymel.path.path-class.html#walk">walk</a></code>,
+      <code><a href="pymel.path.path-class.html#walkdirs">walkdirs</a></code>,
+      <code><a href="pymel.path.path-class.html#walkfiles">walkfiles</a></code>,
+      <code><a href="pymel.path.path-class.html#write_bytes">write_bytes</a></code>,
+      <code><a href="pymel.path.path-class.html#write_lines">write_lines</a></code>,
+      <code><a href="pymel.path.path-class.html#write_text">write_text</a></code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.path.path-class.html">path.path</a></code></b> (private):
+      <code><a href="pymel.path.path-class.html#_get_drive">_get_drive</a></code>,
+      <code><a href="pymel.path.path-class.html#_get_ext">_get_ext</a></code>,
+      <code><a href="pymel.path.path-class.html#_get_namebase">_get_namebase</a></code>,
+      <code><a href="pymel.path.path-class.html#_get_uncshare">_get_uncshare</a></code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>str</code></b>:
+      <code>__contains__</code>,
+      <code>__eq__</code>,
+      <code>__ge__</code>,
+      <code>__getattribute__</code>,
+      <code>__getitem__</code>,
+      <code>__getnewargs__</code>,
+      <code>__getslice__</code>,
+      <code>__gt__</code>,
+      <code>__hash__</code>,
+      <code>__le__</code>,
+      <code>__len__</code>,
+      <code>__lt__</code>,
+      <code>__mod__</code>,
+      <code>__mul__</code>,
+      <code>__ne__</code>,
+      <code>__rmod__</code>,
+      <code>__rmul__</code>,
+      <code>__str__</code>,
+      <code>capitalize</code>,
+      <code>center</code>,
+      <code>count</code>,
+      <code>decode</code>,
+      <code>encode</code>,
+      <code>endswith</code>,
+      <code>expandtabs</code>,
+      <code>find</code>,
+      <code>index</code>,
+      <code>isalnum</code>,
+      <code>isalpha</code>,
+      <code>isdigit</code>,
+      <code>islower</code>,
+      <code>isspace</code>,
+      <code>istitle</code>,
+      <code>isupper</code>,
+      <code>join</code>,
+      <code>ljust</code>,
+      <code>lower</code>,
+      <code>lstrip</code>,
+      <code>replace</code>,
+      <code>rfind</code>,
+      <code>rindex</code>,
+      <code>rjust</code>,
+      <code>rsplit</code>,
+      <code>rstrip</code>,
+      <code>split</code>,
+      <code>splitlines</code>,
+      <code>startswith</code>,
+      <code>strip</code>,
+      <code>swapcase</code>,
+      <code>title</code>,
+      <code>translate</code>,
+      <code>upper</code>,
+      <code>zfill</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__init__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS METHODS ==================== -->
+<a name="section-ClassMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.path.path-class.html">path.path</a></code></b>:
+      <code><a href="pymel.path.path-class.html#getcwd">getcwd</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== STATIC METHODS ==================== -->
+<a name="section-StaticMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Static Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-StaticMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="pymel.__init__1.MReference-class.html#__new__" class="summary-sig-name">__new__</a>(<span class="summary-sig-arg">cls</span>,
+        <span class="summary-sig-arg">path</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">namespace</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">refnode</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Returns:
+a new object with type S, a subtype of T</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.__new__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS VARIABLES ==================== -->
+<a name="section-ClassVariables"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Class Variables</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-ClassVariables"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.path.path-class.html">path.path</a></code></b>:
+      <code><a href="pymel.path.path-class.html#uncshare">uncshare</a></code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pymel.__init__1.MReference-class.html#namespace" class="summary-name">namespace</a>
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+        <a href="pymel.__init__1.MReference-class.html#refNode" class="summary-name">refNode</a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code><a href="pymel.path.path-class.html">path.path</a></code></b>:
+      <code><a href="pymel.path.path-class.html#atime">atime</a></code>,
+      <code><a href="pymel.path.path-class.html#ctime">ctime</a></code>,
+      <code><a href="pymel.path.path-class.html#drive">drive</a></code>,
+      <code><a href="pymel.path.path-class.html#ext">ext</a></code>,
+      <code><a href="pymel.path.path-class.html#mtime">mtime</a></code>,
+      <code><a href="pymel.path.path-class.html#name">name</a></code>,
+      <code><a href="pymel.path.path-class.html#namebase">namebase</a></code>,
+      <code><a href="pymel.path.path-class.html#owner">owner</a></code>,
+      <code><a href="pymel.path.path-class.html#parent">parent</a></code>,
+      <code><a href="pymel.path.path-class.html#size">size</a></code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__new__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__new__</span>(<span class="sig-arg">cls</span>,
+        <span class="sig-arg">path</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">namespace</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">refnode</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">Static Method</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.__new__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  
+  <dl class="fields">
+    <dt>Returns:</dt>
+        <dd><pre class="literalblock">
+a new object with type S, a subtype of T
+
+</pre></dd>
+    <dt>Overrides:
+      str.__new__
+        <dd><em class="note">(inherited documentation)</em></dd>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="remove"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">remove</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="pymel.__init__1-pysrc.html#MReference.remove">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </table>
+  
+  file -removeReference
+  <dl class="fields">
+    <dt>Overrides:
+      <a href="pymel.path.path-class.html#remove">path.path.remove</a>
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== PROPERTY DETAILS ==================== -->
+<a name="section-PropertyDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Property Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-PropertyDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="namespace"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">namespace</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pymel.__init__1.MReference-class.html#_getNamespace" class="summary-sig-name">pymel.__init__1.MReference._getNamespace</a>(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+    <dt>Set Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pymel.__init__1.MReference-class.html#_setNamespace" class="summary-sig-name">pymel.__init__1.MReference._setNamespace</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">namespace</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<a name="refNode"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <h3 class="epydoc">refNode</h3>
+  
+  <dl class="fields">
+    <dt>Get Method:</dt>
+    <dd class="value"><span class="summary-sig"><a href="pymel.__init__1.MReference-class.html#_getRefNode" class="summary-sig-name">pymel.__init__1.MReference._getRefNode</a>(<span class="summary-sig-arg">self</span>)</span>
+    </dd>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="pymel-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Project homepage -->
+      <th class="navbar" align="right" width="100%">
+        <table border="0" cellpadding="0" cellspacing="0">
+          <tr><th class="navbar" align="center"
+            >Pymel</th>
+          </tr></table></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0beta1 on Sun Oct 14 10:39:31 2007
+    </td>
+    <td align="right" class="footer">
+      <a href="http://epydoc.sourceforge.net">http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie()
+  // -->
+</script>
+  
+</body>
+</html>

@@ -1,0 +1,1390 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>clipSchedule command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/clipSchedule.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>clipSchedule</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;clipSchedule.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hKeywords">Keywords</a>. <a href="#hRelated">Related</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>clipSchedule([<a href="#flagabsolute">absolute</a>=<i>boolean</i>], [<a href="#flagabsoluteRotations">absoluteRotations</a>=<i>boolean</i>], [<a href="#flagallAbsolute">allAbsolute</a>=<i>boolean</i>], [<a href="#flagallRelative">allRelative</a>=<i>boolean</i>], [<a href="#flagblend">blend</a>=<i>[uint, uint]</i>], [<a href="#flagblendNode">blendNode</a>=<i>[uint, uint]</i>], [<a href="#flagblendUsingNode">blendUsingNode</a>=<i>string</i>], [<a href="#flagcharacter">character</a>=<i>boolean</i>], [<a href="#flagclipIndex">clipIndex</a>=<i>uint</i>], [<a href="#flagcycle">cycle</a>=<i>double</i>], [<a href="#flagdefaultAbsolute">defaultAbsolute</a>=<i>boolean</i>], [<a href="#flagenable">enable</a>=<i>boolean</i>], [<a href="#flaggroup">group</a>=<i>boolean</i>], [<a href="#flaggroupIndex">groupIndex</a>=<i>uint</i>], [<a href="#flaggroupName">groupName</a>=<i>string</i>], [<a href="#flaghold">hold</a>=<i>time</i>], [<a href="#flaginsertTrack">insertTrack</a>=<i>uint</i>], [<a href="#flaginstance">instance</a>=<i>string</i>], [<a href="#flaglistCurves">listCurves</a>=<i>boolean</i>], [<a href="#flaglistPairs">listPairs</a>=<i>boolean</i>], [<a href="#flaglock">lock</a>=<i>boolean</i>], [<a href="#flagmute">mute</a>=<i>boolean</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagpostCycle">postCycle</a>=<i>double</i>], [<a href="#flagpreCycle">preCycle</a>=<i>double</i>], [<a href="#flagremove">remove</a>=<i>boolean</i>], [<a href="#flagremoveBlend">removeBlend</a>=<i>[uint, uint]</i>], [<a href="#flagremoveEmptyTracks">removeEmptyTracks</a>=<i>boolean</i>], [<a href="#flagremoveTrack">removeTrack</a>=<i>uint</i>], [<a href="#flagrotationsAbsolute">rotationsAbsolute</a>=<i>boolean</i>], [<a href="#flagscale">scale</a>=<i>double</i>], [<a href="#flagshift">shift</a>=<i>int</i>], [<a href="#flagshiftIndex">shiftIndex</a>=<i>uint</i>], [<a href="#flagsolo">solo</a>=<i>boolean</i>], [<a href="#flagsourceClipName">sourceClipName</a>=<i>boolean</i>], [<a href="#flagsourceEnd">sourceEnd</a>=<i>time</i>], [<a href="#flagsourceStart">sourceStart</a>=<i>time</i>], [<a href="#flagstart">start</a>=<i>time</i>], [<a href="#flagtrack">track</a>=<i>uint</i>], [<a href="#flagweight">weight</a>=<i>double</i>], [<a href="#flagweightStyle">weightStyle</a>=<i>uint</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>clipSchedule is undoable, queryable, and editable.</p>
+      
+This command is used to create, edit and query clips and blends in the Trax editor. It operates on the clipScheduler node attached to the character. In query mode, if no flags are specified, returns an array of strings in this form:
+ (clipName,clipIndex,clipStart,clipSourceStart,clipSourceEnd,clipScale,clipPreCycle,clipPostCycle,clipHold)
+	
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagabsolute">absolute</a>, <a href="#flagabsoluteRotations">absoluteRotations</a>, <a href="#flagallAbsolute">allAbsolute</a>, <a href="#flagallRelative">allRelative</a>, <a href="#flagblend">blend</a>, <a href="#flagblendNode">blendNode</a>, <a href="#flagblendUsingNode">blendUsingNode</a>, <a href="#flagcharacter">character</a>, <a href="#flagclipIndex">clipIndex</a>, <a href="#flagcycle">cycle</a>, <a href="#flagdefaultAbsolute">defaultAbsolute</a>, <a href="#flagenable">enable</a>, <a href="#flaggroup">group</a>, <a href="#flaggroupIndex">groupIndex</a>, <a href="#flaggroupName">groupName</a>, <a href="#flaghold">hold</a>, <a href="#flaginsertTrack">insertTrack</a>, <a href="#flaginstance">instance</a>, <a href="#flaglistCurves">listCurves</a>, <a href="#flaglistPairs">listPairs</a>, <a href="#flaglock">lock</a>, <a href="#flagmute">mute</a>, <a href="#flagname">name</a>, <a href="#flagpostCycle">postCycle</a>, <a href="#flagpreCycle">preCycle</a>, <a href="#flagremove">remove</a>, <a href="#flagremoveBlend">removeBlend</a>, <a href="#flagremoveEmptyTracks">removeEmptyTracks</a>, <a href="#flagremoveTrack">removeTrack</a>, <a href="#flagrotationsAbsolute">rotationsAbsolute</a>, <a href="#flagscale">scale</a>, <a href="#flagshift">shift</a>, <a href="#flagshiftIndex">shiftIndex</a>, <a href="#flagsolo">solo</a>, <a href="#flagsourceClipName">sourceClipName</a>, <a href="#flagsourceEnd">sourceEnd</a>, <a href="#flagsourceStart">sourceStart</a>, <a href="#flagstart">start</a>, <a href="#flagtrack">track</a>, <a href="#flagweight">weight</a>, <a href="#flagweightStyle">weightStyle</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagclipIndex">
+	      <code><b>clipIndex</b>(<b>ci</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the index of the clip to schedule. In query mode, returns
+an array of strings in this form:
+(clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle)
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstart">
+	      <code><b>start</b>(<b>s</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>time</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the placement of the start of the clip
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsourceStart">
+	      <code><b>sourceStart</b>(<b>ss</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>time</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify where to start in the source clip's animation curves
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsourceEnd">
+	      <code><b>sourceEnd</b>(<b>se</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>time</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify where to end in the source clip's animation curves
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpreCycle">
+	      <code><b>preCycle</b>(<b>prc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the number of times to repeat the clip before its normal start.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpostCycle">
+	      <code><b>postCycle</b>(<b>poc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the number of times to repeat the clip after its normal end.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghold">
+	      <code><b>hold</b>(<b>ph</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>time</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify how long to hold the last value of the clip after its normal or cycled end.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagscale">
+	      <code><b>scale</b>(<b>sc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the amount to scale the clip. Values must be greater than 0.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagabsolute">
+	      <code><b>absolute</b>(<b>abs</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is now deprecated.  Use aa/allAbsolute, ar/allRelative, ra/rotationsAbsolute, or da/defaultAbsolute instead. This flag controls whether the clip follows its keyframe values or whether they are offset by a value to maintain a smooth path.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagabsoluteRotations">
+	      <code><b>absoluteRotations</b>(<b>abr</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is now deprecated.  Use aa/allAbsolute, ar/allRelative, ra/rotationsAbsolute, or da/defaultAbsolute instead.  If true, this overrides the abs/absolute flag so that rotation channels are always calculated with absolute offsets. This allows you to have absolute offsets on rotations and relative offsets on all other channels.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagallAbsolute">
+	      <code><b>allAbsolute</b>(<b>aa</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set all channels to be calculated with absolute offsets.  This flag cannot be used in conjunction with the ar/allRelative, ra/rotationsAbsolute or da/defaultAbsolute flags.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagallRelative">
+	      <code><b>allRelative</b>(<b>ar</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set all channels to be calculated with relative offsets.  This flag cannot be used in conjunction with the aa/allAbsolute, ra/rotationsAbsolute or da/defaultAbsolute flags.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrotationsAbsolute">
+	      <code><b>rotationsAbsolute</b>(<b>ra</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Set all channels except rotations to be calculated with relative offsets.  Rotation channels will be calculated with absolute offsets.  This flag cannot be used in conjunction with the aa/allAbsolute, ar/allRelative or da/defaultAbsolute flags.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdefaultAbsolute">
+	      <code><b>defaultAbsolute</b>(<b>da</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Sets all top-level channels except rotations in the clip to relative, and the remaining channels to absolute. This is the default during clip creation if no offset flag is specified.  This flag cannot be used in conjunction with the aa/allAbsolute, ar/allRelative, or ra/rotationsAbsolute flags.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaginstance">
+	      <code><b>instance</b>(<b>instance</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Create an instanced copy of the named clip. An instanced clip is one that is linked to an original clip. Thus, changes to the animation curve of the original curve will also modify all instanced clips. The name of the instanced clip is returned
+as a string.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremove">
+	      <code><b>remove</b>(<b>rm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to remove a clip from the timeline. It must be used in conjunction with the ci/clipIndex flag. The specified clip will be removed from the timeline, but will still exist in the library and any instanced clips will remain in the timeline. To permanently remove a clip from the scene, the clip command should be used instead.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagenable">
+	      <code><b>enable</b>(<b>en</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to enable or disable a clip. It must be used in conjunction with the ci/clipIndex flag. The specified clip will be enabled or disabled.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagblend">
+	      <code><b>blend</b>(<b>b</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[uint, uint]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to blend two clips, whose indices are provided as flag arguments.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagblendUsingNode">
+	      <code><b>blendUsingNode</b>(<b>bun</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used if you want to blend using an existing blend node. It is used in conjunction with the blend flag. The blend flag specifies the clip indices for the blend. The name of an existing animBlend node should be supplied supplied as an argument for the blendUsingNode flag.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagblendNode">
+	      <code><b>blendNode</b>(<b>bn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[uint, uint]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This query only flag list all of the blend nodes associated with the blend defined by the two clip indices. This flag returns a string array.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveBlend">
+	      <code><b>removeBlend</b>(<b>rb</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[uint, uint]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to remove an existing blend between two clips, whose indices are provided as flag arguments.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcharacter">
+	      <code><b>character</b>(<b>ch</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to query which characters this scheduler controls. It returns an array of strings.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglistCurves">
+	      <code><b>listCurves</b>(<b>lc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to list the animation curves associated with a clip. It should be used in conjunction with the clipIndex flag, which specifies the clip of interest.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to query the name of the clip node associated with the specified clip index, or to specify the name of the instanced clip during instancing.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsourceClipName">
+	      <code><b>sourceClipName</b>(<b>scn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to query the name of the source clip node associated with the specified clip index.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagweight">
+	      <code><b>weight</b>(<b>w</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used in to set or query the weight of the clip associated with the specified clip index.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagweightStyle">
+	      <code><b>weightStyle</b>(<b>ws</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to set or query the weightStyle attribute of the clip associated with the specified clip index.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglock">
+	      <code><b>lock</b>(<b>l</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag specifies whether clips on a track are to be locked or not.
+Must be used in conjuction with the track flag.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagsolo">
+	      <code><b>solo</b>(<b>so</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag specifies whether clips on a track are to be soloed or not.
+Must be used in conjuction with the track flag.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmute">
+	      <code><b>mute</b>(<b>m</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag specifies whether clips on a track are to be muted or not.
+Must be used in conjuction with the track flag.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtrack">
+	      <code><b>track</b>(<b>t</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the track to operate on. For example, which track to place
+a clip on, which track to mute/lock/solo.  In query mode, it may be used
+in conjuction with the clipIndex flag to return the track number of a clip,
+where track 1 is the first track of the character.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaginsertTrack">
+	      <code><b>insertTrack</b>(<b>it</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to insert a new empty track at the track index
+specified.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveTrack">
+	      <code><b>removeTrack</b>(<b>rt</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to remove the track with the specified index.  The
+track must have no clips on it before it can be removed.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveEmptyTracks">
+	      <code><b>removeEmptyTracks</b>(<b>ret</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to remove all tracks that have no clips.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagshiftIndex">
+	      <code><b>shiftIndex</b>(<b>shi</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/multiuse.gif" alt="multiuse" title="multiuse" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag allows multiple clips to be shifted by a certain number of tracks
+and works in conjunction with the shiftAmount flag.  The flag specifies the
+index of the clip to shift.  This flag can be used multiple times on the command
+line to specify a number of clips to shift.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagshift">
+	      <code><b>shift</b>(<b>sh</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag allows multiple clips to be shifted by a certain number of tracks
+and works in conjunction with the shiftIndex flag.  The flag specifies the
+number of tracks to shift the associated clips.  Positive values shift the
+clips down an negative values shift the clips up.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglistPairs">
+	      <code><b>listPairs</b>(<b>lp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This query only flag returns a string array containing the channels
+in a character that are used by a clip and the names of the animation
+curves that drive the channels. Each string in the string array consists
+of the name of a channel, a space, and the name of the animation curve
+animating that channel. This flag must be used with the ci/clipIndex flag.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcycle">
+	      <code><b>cycle</b>(<b>c</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>double</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is now obsolete. Use the postCycle flag instead.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaggroup">
+	      <code><b>group</b>(<b>grp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to add (true) or remove (false) a list of clips (specified with groupIndex) into a group.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaggroupName">
+	      <code><b>groupName</b>(<b>gn</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is used to specify the group that should be added to.  If no group
+by that name exists and new group is created with that name.  By default if
+this is not specified a new group will be created.
+			<p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaggroupIndex">
+	      <code><b>groupIndex</b>(<b>gri</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>uint</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/multiuse.gif" alt="multiuse" title="multiuse" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag specifies a multiple number of clips to be added or removed from a group.
+			
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>[string]</i> 
+clip name
+			<br/>
+      <h2><a name="hKeywords">Keywords</a></h2>character, clip, animation
+      <h2><a name="hRelated">Related</a></h2><a href="bakeClip.html">bakeClip</a>, <a href="character.html">character</a>, <a href="characterMap.html">characterMap</a>, <a href="characterOutlineEditor.html">characterOutlineEditor</a>, <a href="clip.html">clip</a>, <a href="clipEditor.html">clipEditor</a>
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# First, create a character to hold the clips. The character will be
+# a 3-bone skeleton named &quot;arm&quot;.
+#
+cmds.select( d=True )
+cmds.joint( p=(0, 0, 0) )
+cmds.joint( p=(0, 4, 0)  )
+cmds.joint( 'joint1', e=True, zso=True, oj='xyz' )
+cmds.joint( p=(0, 8, -1) )
+cmds.joint( 'joint2', e=True, zso=True, oj='xyz' )
+cmds.joint( p=(0, 9, -2) )
+cmds.joint( 'joint3', e=True, zso=True, oj='xyz' )
+cmds.select( 'joint1', 'joint2', 'joint3', r=True )
+cmds.character( name='arm' )
+# Create some animation for the character. For this example the animation will
+# be quite trivial.
+#
+cmds.select( 'joint3', r=True )
+cmds.currentTime( 0 )
+cmds.setKeyframe( 'joint3.rx' )
+cmds.currentTime( 10 )
+cmds.setKeyframe( 'joint3.rx', v=90 )
+cmds.currentTime( 20 )
+cmds.setKeyframe( 'joint3.rx', v=0 )
+# Create a clip for the current animation named &quot;handWave&quot;
+#
+cmds.clip( 'arm', startTime=0, endTime=20, name='handWave' )
+# Query the name of the clipScheduler for this character
+#
+cmds.character( 'arm', query=True, sc=True )
+# Result: armScheduler1
+# Create a 2nd animation for the character.
+#
+cmds.select( 'joint2', r=True )
+cmds.currentTime( 0 )
+cmds.setKeyframe( 'arm' )
+cmds.currentTime( 10 )
+cmds.setKeyframe( 'joint2.rx', v=45 )
+cmds.setKeyframe( 'joint2.ry', v=-20 )
+cmds.currentTime( 20 )
+cmds.setKeyframe( 'joint2.rx', v=0 )
+cmds.setKeyframe( 'joint2.ry', v=20 )
+# Create a clip for the current animation named &quot;elbowWave&quot;
+#
+cmds.clip( 'arm', startTime=0, endTime=20, name='elbowWave' )
+# Instance handeWave at time 10
+#
+cmds.clipSchedule( 'armScheduler1', instance='handWave', s=10 )
+# Query the clip index of the latest instance of handWave. Each instance
+# of a clip received a unique clipIndex. The clip index is used to
+# edit and query data for existing clips.
+#
+cmds.clipSchedule( 'armScheduler1', name='handWave1', query=True, ci=True )
+# Query whether the clip associated with index 2 is enabled or not
+#
+cmds.clipSchedule( 'armScheduler1', ci=2, query=True, enable=True )
+# Query the name of the clip associated with index 2
+#
+cmds.clipSchedule( 'armScheduler1', ci=2, query=True, n=True )
+# Query the weight of the clip associated with index 2
+#
+cmds.clipSchedule( 'armScheduler1', ci=2, query=True, weight=True )
+# Modify the elbowWave clip to start at frame 10 instead of frame 0
+#
+cmds.clipSchedule( 'armScheduler1', start=10, ci=1 )
+# Trim the start of the elbowWave clip to
+# use the animation starting at frame 5 instead 0
+#
+cmds.clipSchedule( 'armScheduler1', sourceStart=5, ci=1 )
+# Trim the end of the elbowWave clip to
+# use the animation up to frame 15 instead 20
+#
+cmds.clipSchedule( 'armScheduler1', sourceEnd=15, ci=1 )
+# Modify the handWave clip to have two cycles instead of 1
+#
+cmds.clipSchedule( 'armScheduler1', postCycle=1, ci=0 )
+# list the animation curves associated with a particular clip
+#
+cmds.clipSchedule( 'armScheduler1', ci=2, listCurves=True )
+# Move a particular clip to a particular track
+#
+cmds.clipSchedule( 'armScheduler1', track=2, ci=0 )
+# Add a blend between clips 1 and 2
+#
+cmds.clipSchedule( 'armScheduler1', b=(1, 2) )
+# Query the name of the blendNode between clips 1 and 2
+#
+cmds.clipSchedule( 'armScheduler1', q=True, bn=(1, 2) )
+# Lock the first track and then query its state
+#
+cmds.clipSchedule( 'armScheduler1', track=1, e=True, lock=1 )
+cmds.clipSchedule( 'armScheduler1', track=1, query=True, lock=True )
+# Query the existing clips in the scheduler.
+# In query mode, returns an array of strings in this form:
+# (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle,hold)
+#
+# In this case there are three scheduled clips:
+#  2 instances of &quot;handWave&quot; and 1 of &quot;elbowWave&quot;. The clip indices for &quot;handWave&quot; are 0
+#  and 3. The clip index for &quot;elbowWave&quot; is 2. Note that the clip indices can be sparse
+#  since a clip maintains its index as long as it is in the schedule (the TraX editor).
+#
+cmds.clipSchedule( 'armScheduler1', query=True )
+# Result: handWave,0,0.000000,0.000000,20.000000,1.000000,0.00000,2.00000 elbowWave,1,0.000000,5.000000,15.000000,1.000000,0.00000,1.00000 handWave,2,10.000000,0.000000,20.000000,1.000000,0.00000,1.00000
+#
+# Shift clips 1 and 2 up 3 tracks
+#
+cmds.clipSchedule( 'armScheduler1', sh=-3, shi=1, shi=2 )
+# Print out which anim curves animate which channels for the
+# clip with an index of 2.
+#
+out = cmds.clipSchedule('armScheduler1' ,ci=2, query=True, lp=True)
+for pair in out:
+   print pair
+	</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

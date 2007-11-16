@@ -1,0 +1,63 @@
+camera Camera_
+character Dag
+clip Dag
+clipSchedule Dag
+air Dag
+drag Dag
+emitter Dag
+particle Particle_
+turbulence Dag
+effector Dag
+volumeAxis Dag
+uniform Dag
+gravity Dag
+instancer Dag
+event Dag
+aimConstraint Constraint_
+scaleConstraint Constraint_
+orientConstraint Constraint_
+parentConstraint Constraint_
+geometryConstraint Constraint_
+tangentConstraint Constraint_
+normalConstraint Constraint_
+pointConstraint Constraint_
+pointCurveConstraint Constraint_
+poleVectorConstraint Constraint_
+deformer Dag
+cluster Dag
+lattice Dag
+nonLinear Dag
+skinCluster Dag
+wire Dag
+spring Dag
+joint Transform
+jointCluster Dag
+jointLattice Dag
+constrain Dag
+createNode
+shadingNode
+spaceLocator Dag
+vortex Dag
+spotLight Dag
+pointLight Dag
+ambientLight Dag
+directionalLight Dag
+polyCone Node
+polyCube Node
+polyCylinder Node
+polyHelix Node
+polyPipe Node
+polyPlane Node
+polyPrism Node
+polyPyramid Node
+polyTorus Node
+polySphere Node
+torus Node makeNurbTorus
+cone Node makeNurbCone
+cylinder Node makeNurbCylinder
+curve Node makeNurbCurve
+sphere Node makeNurbSphere
+circle Node makeNurbCircle
+nurbsPlane Node makeNurbPlane
+nurbsSquare Node makeNurbSquare
+nurbsCube Node makeNurbCube

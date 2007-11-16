@@ -1,0 +1,565 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>menuSet command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/menuSet.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>menuSet</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;menuSet.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>menuSet(
+[object]
+    , [<a href="#flagaddMenu">addMenu</a>=<i>string</i>], [<a href="#flagallMenuSets">allMenuSets</a>=<i>boolean</i>], [<a href="#flagcurrentMenuSet">currentMenuSet</a>=<i>string</i>], [<a href="#flagexists">exists</a>=<i>string</i>], [<a href="#flaghotBoxVisible">hotBoxVisible</a>=<i>boolean</i>], [<a href="#flaginsertMenu">insertMenu</a>=<i>[string, int]</i>], [<a href="#flaglabel">label</a>=<i>string</i>], [<a href="#flagmenuArray">menuArray</a>=<i>string</i>], [<a href="#flagmoveMenu">moveMenu</a>=<i>[string, int]</i>], [<a href="#flagmoveMenuSet">moveMenuSet</a>=<i>[string, int]</i>], [<a href="#flagnumberOfMenuSets">numberOfMenuSets</a>=<i>boolean</i>], [<a href="#flagnumberOfMenus">numberOfMenus</a>=<i>boolean</i>], [<a href="#flagpermanent">permanent</a>=<i>boolean</i>], [<a href="#flagremoveMenu">removeMenu</a>=<i>string</i>], [<a href="#flagremoveMenuSet">removeMenuSet</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>menuSet is undoable, queryable, and editable.</p>
+      
+Create a menu set which is used to logically order menus for display
+in the main menu bar.  Such menu sets can be edited and reordered
+dynamically.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagaddMenu">addMenu</a>, <a href="#flagallMenuSets">allMenuSets</a>, <a href="#flagcurrentMenuSet">currentMenuSet</a>, <a href="#flagexists">exists</a>, <a href="#flaghotBoxVisible">hotBoxVisible</a>, <a href="#flaginsertMenu">insertMenu</a>, <a href="#flaglabel">label</a>, <a href="#flagmenuArray">menuArray</a>, <a href="#flagmoveMenu">moveMenu</a>, <a href="#flagmoveMenuSet">moveMenuSet</a>, <a href="#flagnumberOfMenuSets">numberOfMenuSets</a>, <a href="#flagnumberOfMenus">numberOfMenus</a>, <a href="#flagpermanent">permanent</a>, <a href="#flagremoveMenu">removeMenu</a>, <a href="#flagremoveMenuSet">removeMenuSet</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagexists">
+	      <code><b>exists</b>(<b>ex</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns whether the specified menu set exists.  This query flag supports string arguments.
+ie. menuSet -q -exists animationMenuSet;
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglabel">
+	      <code><b>label</b>(<b>l</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The label of the current menu set.  Query returns string.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaddMenu">
+	      <code><b>addMenu</b>(<b>am</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Appends a menu onto the end of the current menu set.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaginsertMenu">
+	      <code><b>insertMenu</b>(<b>im</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[string, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Inserts a menu into a specified index in the current menu set.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmoveMenu">
+	      <code><b>moveMenu</b>(<b>mm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[string, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Moves a specified menu from the current menu set to a new position.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveMenu">
+	      <code><b>removeMenu</b>(<b>rm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Removes a specified menu from the current menu set.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnumberOfMenus">
+	      <code><b>numberOfMenus</b>(<b>nm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The mumber of menus in the current menu set.  Query returns int.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmenuArray">
+	      <code><b>menuArray</b>(<b>ma</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+An array of menu names (strings) in the current menu set.  Query returns string array.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcurrentMenuSet">
+	      <code><b>currentMenuSet</b>(<b>cms</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The currently active menu set under which all operations affect (append, insert, remove, etc.).  Query returns string.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmoveMenuSet">
+	      <code><b>moveMenuSet</b>(<b>mms</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[string, int]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Moves a specified menu set to another index.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagremoveMenuSet">
+	      <code><b>removeMenuSet</b>(<b>rms</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Removes the specified menu set object from the list of all menu sets.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnumberOfMenuSets">
+	      <code><b>numberOfMenuSets</b>(<b>nms</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Number of menuSets in total.  Query returns int.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagallMenuSets">
+	      <code><b>allMenuSets</b>(<b>ams</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Returns an array of the all the menu set object names in use.  Query returns string array.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaghotBoxVisible">
+	      <code><b>hotBoxVisible</b>(<b>hbv</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Whether this menu set should be displayed in the hotbox as well as in the main menubar.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagpermanent">
+	      <code><b>permanent</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Whether this menu set can be removed.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string</i> 
+Name of resulting menu set.  (If there are no menu sets left, an empty string is returned)
+
+      <br/>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# creating a new menu set;
+cmds.menuSet( 'newMenuSetObjName', label='newMenuSet Label' )
+
+# using commands on a current menu set
+# first find the menu set if you don't know the name of it
+animMS = maya.mel.eval('findMenuSetFromLabel(&quot;Animation&quot;)')
+
+# menu sets can be queried like normal commands
+animMenus = cmds.menuSet(animMS, query=True, menuArray=True)
+
+# but editing the set requires either setting the current menu set...
+# (notice that the menu set comamnds following specify no specific menu set)
+cmds.menuSet( currentMenuSet=animMS )
+cmds.menuSet( removeMenu=animMenus[0] )
+# : (other commands which pertain to the animation menu set)
+
+# .. or temporarily setting the menu set to work on (does not affect current menu set)
+# (notice that every command following specifies the specific set to apply operations to)
+polyMS = maya.mel.eval('findMenuSetFromLabel(&quot;Polygons&quot;)')
+polyMenus = cmds.menuSet(polyMS, query=True, menuArray=True)
+cmds.menuSet( modelMS, removeMenu=polyMenus[0], insertMenu=(polyMenus[1], 0) )
+
+# .. where the following commands still affect the animation menu set
+animMenus = cmds.menuSet(query=True, menuArray=True)
+
+# if you need to find a specific menu...
+deformMenu = maya.mel.eval( ('findMenuFromMenuSet(\&quot;' + animMS + '\&quot;, &quot;Deform&quot;)') )
+
+# moving a menu from one spot to another
+# (ie. moving the Deform Menu to the front of the list)
+cmds.menuSet( moveMenu=(deformMenu, 0) )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

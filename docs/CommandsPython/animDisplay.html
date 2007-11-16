@@ -1,0 +1,221 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>animDisplay command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/animDisplay.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>animDisplay</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;animDisplay.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>animDisplay([<a href="#flagmodelUpdate">modelUpdate</a>=<i>none|interactive|delayed</i>], [<a href="#flagtimeCode">timeCode</a>=<i>boolean</i>], [<a href="#flagtimeCodeOffset">timeCodeOffset</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>animDisplay is undoable, queryable, and editable.</p>
+      
+This command changes certain display options used by
+animation windows.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagmodelUpdate">modelUpdate</a>, <a href="#flagtimeCode">timeCode</a>, <a href="#flagtimeCodeOffset">timeCodeOffset</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtimeCode">
+	      <code><b>timeCode</b>(<b>tc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Controls whether the animation windows (time
+slider, graph editor and dope sheet) use time codes in their
+displays.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtimeCodeOffset">
+	      <code><b>timeCodeOffset</b>(<b>tco</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Amount of time by which to offset the time code
+display in the UI.  An offset of one second would display
+a time code of &quot;00:00:01:00&quot; at frame 0.
+Query returns string in time code format.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmodelUpdate">
+	      <code><b>modelUpdate</b>(<b>upd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>none|interactive|delayed</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Controls how changes to animCurves are propagated through the
+dependency graph.  If modelUpdate is &quot;none&quot; then changing an
+animCurve will not cause the model to be updated (change currentTime
+in order to update the model).  If modelUpdate is &quot;interactive&quot; (which
+is the default setting), then as interactive changes are being made
+to the animCurve, the model will be updated.  If modelUpdate is
+delayed, then the model is updated once the final change to an
+animCurve has been made.  With modelUpdate set to
+either &quot;interactive&quot; or &quot;delayed&quot;, changes
+to animCurves made via commands will also cause the
+model to be updated.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>none</i>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+# If the current time unit were ntsc (30 frames per
+# second) frame 50 would be displayed as &quot;00:00:01:20&quot;.
+#
+cmds.animDisplay( timeCode=True )
+
+# Set the time code offset to be equivalent to
+# &quot;02:01:25:12&quot;.
+#
+cmds.animDisplay( timeCodeOffset=&quot;02:01:25:12&quot; )
+
+# Set the display option so that interactive operations
+# in the graph editor or dope sheet will cause the
+# model views to be updated simultaneously
+#
+cmds.animDisplay( modelUpdate=&quot;interactive&quot; )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

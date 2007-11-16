@@ -1,0 +1,83 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>dynRelEdPanel command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/dynRelEdPanel.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>dynRelEdPanel</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;dynRelEdPanel.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>dynRelEdPanel() </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>dynRelEdPanel is undoable, queryable, and editable.</p>
+      
+This command creates a Dynamics Relationship Editor panel.
+A relationship editor panel has a dynamics relationship editor
+(see the command dynRelEditor).  It displays the Dynamics
+relationships of the selected objects.
+As the active list changes, the information
+displayed in the Relationship Editor changes.
+
+  
+
+      
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <i>None</i>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.dynRelEdPanel( 'myDynRelEdPanel' )
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

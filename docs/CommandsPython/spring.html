@@ -1,0 +1,858 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>spring command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/spring.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>spring</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;spring.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>spring(
+objects
+    , [<a href="#flagaddSprings">addSprings</a>=<i>boolean</i>], [<a href="#flagallPoints">allPoints</a>=<i>boolean</i>], [<a href="#flagcount">count</a>=<i>boolean</i>], [<a href="#flagdamping">damping</a>=<i>float</i>], [<a href="#flagdampingPS">dampingPS</a>=<i>float</i>], [<a href="#flagendForceWeight">endForceWeight</a>=<i>float</i>], [<a href="#flagexclusive">exclusive</a>=<i>boolean</i>], [<a href="#flaglength">length</a>=<i>float</i>], [<a href="#flagmaxDistance">maxDistance</a>=<i>float</i>], [<a href="#flagminDistance">minDistance</a>=<i>float</i>], [<a href="#flagminMax">minMax</a>=<i>boolean</i>], [<a href="#flagname">name</a>=<i>string</i>], [<a href="#flagnoDuplicate">noDuplicate</a>=<i>boolean</i>], [<a href="#flagrestLength">restLength</a>=<i>boolean</i>], [<a href="#flagrestLengthPS">restLengthPS</a>=<i>float</i>], [<a href="#flagstartForceWeight">startForceWeight</a>=<i>float</i>], [<a href="#flagstiffness">stiffness</a>=<i>float</i>], [<a href="#flagstiffnessPS">stiffnessPS</a>=<i>float</i>], [<a href="#flaguseDampingPS">useDampingPS</a>=<i>boolean</i>], [<a href="#flaguseRestLengthPS">useRestLengthPS</a>=<i>boolean</i>], [<a href="#flaguseStiffnessPS">useStiffnessPS</a>=<i>boolean</i>], [<a href="#flagwalkLength">walkLength</a>=<i>int</i>], [<a href="#flagwireframe">wireframe</a>=<i>boolean</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>spring is undoable, queryable, and editable.</p>
+      
+The spring command can do any of the following:<p/>
+* create a new spring object (shape plus transform).  The shape
+contains springs between the points (particles, cvs, etc.)
+of the objects selected or listed on the command line.<p/>
+* create new springs and add them to an existing spring object<p/>
+* edit or query certain attributes of an existing spring object<p/>
+
+One &quot;spring object&quot; may have hundreds or even thousands of individual springs.
+Certain attributes of the spring object specify exactly where the springs
+are attached to which other objects.<p/>
+
+Springs may be attached to the following: particles, vertices of soft
+bodies, CVs or edit points of curves or surfaces, vertices of polygonal
+objects, and points of lattices. In the case where one endpoint of a
+spring is non-dynamic (a CV, edit point, etc.), the spring does not affect
+its motion, but the motion of the point affects the spring. A spring will
+be created only if at least one of the endpoints is dynamic: for example,
+a spring will never be created between two CVs. A single spring object can
+hold springs which are incident to any number of other objects.<p/>
+
+The spring has creation-only flags and editable flags.  Creation-only flags
+(minDistance, maxDistance, add, exclusive, all, wireframe, walklength,
+checkExisting) can be used only when creating new springs (including adding
+springs to existing spring object).  Editable flags modify attributes of an
+existing spring object.<p/>
+
+If a spring object is created, this command returns the names of
+the shape and transform.  If a spring object is queried, the command returns
+the results of the query.<p/>
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagaddSprings">addSprings</a>, <a href="#flagallPoints">allPoints</a>, <a href="#flagcount">count</a>, <a href="#flagdamping">damping</a>, <a href="#flagdampingPS">dampingPS</a>, <a href="#flagendForceWeight">endForceWeight</a>, <a href="#flagexclusive">exclusive</a>, <a href="#flaglength">length</a>, <a href="#flagmaxDistance">maxDistance</a>, <a href="#flagminDistance">minDistance</a>, <a href="#flagminMax">minMax</a>, <a href="#flagname">name</a>, <a href="#flagnoDuplicate">noDuplicate</a>, <a href="#flagrestLength">restLength</a>, <a href="#flagrestLengthPS">restLengthPS</a>, <a href="#flagstartForceWeight">startForceWeight</a>, <a href="#flagstiffness">stiffness</a>, <a href="#flagstiffnessPS">stiffnessPS</a>, <a href="#flaguseDampingPS">useDampingPS</a>, <a href="#flaguseRestLengthPS">useRestLengthPS</a>, <a href="#flaguseStiffnessPS">useStiffnessPS</a>, <a href="#flagwalkLength">walkLength</a>, <a href="#flagwireframe">wireframe</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagname">
+	      <code><b>name</b>(<b>n</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Name of spring object.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagminMax">
+	      <code><b>minMax</b>(<b>mm</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If True, sets the mode of the spring application to Min/Max.
+This will add springs between all points from the specified point groups
+that are between the minimum and maximum distance values set with min and max.
+(Default is False.)
+Note: This gets automatically set if either the min or max flags are used.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwireframe">
+	      <code><b>wireframe</b>(<b>wf</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If True, sets the mode of the spring application to Wireframe.
+This is valid only for springs created on a soft body.
+It will add springs along all edges connecting the adjacent points
+(vertices or CV's) of curves and surfaces.
+(Default is False.)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagwalkLength">
+	      <code><b>walkLength</b>(<b>wl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>int</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+This flag is valid only when doing wireframe creation.
+It will create springs between pairs of points connected by the specified
+number of edges.  For example, if walk length is 2, each pair of points
+separated by no more than 2 edges will get a spring.  Walk length measures
+the distance between pairs of vertices just like the number of blocks measures
+the distance between two intersections in a city.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagallPoints">
+	      <code><b>allPoints</b>(<b>all</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If True, sets the mode of spring application to All.  This will add
+springs between all points selected.
+(Default is False.)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagaddSprings">
+	      <code><b>addSprings</b>(<b>add</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If specified, springs will be added to the existing selected set of springs.
+(Default is to create a new spring object.)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagexclusive">
+	      <code><b>exclusive</b>(<b>exc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+If true, tells the command to create springs only between pairs of
+points which are not in the same object.
+(Default is False.)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagminDistance">
+	      <code><b>minDistance</b>(<b>mnd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Minimum distance between two points that a spring would be considered.
+(Default = 0.0. See Defaults for more information on this flag's default.)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagmaxDistance">
+	      <code><b>maxDistance</b>(<b>mxd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Maximum distance between two points that a spring would be
+considered.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstiffness">
+	      <code><b>stiffness</b>(<b>s</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Stiffness of the springs created in the spring object. (Default = 1.0 )
+-damp float
+Vestigial form of &quot;damping.&quot;  Please use &quot;damping&quot; instead.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdamping">
+	      <code><b>damping</b>(<b>d</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Damping factor for the springs created in the spring object.
+(Default = 0.2 )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaglength">
+	      <code><b>length</b>(<b>l</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Vestigial form of &quot;restLength.&quot; Please use &quot;restLength&quot; instead.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrestLength">
+	      <code><b>restLength</b>(<b>rl</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Per-object rest length for the new springs. Springs can use either
+their per-object or per-spring rest length.  See the -lPS and -ulp flags.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstiffnessPS">
+	      <code><b>stiffnessPS</b>(<b>sPS</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Stiffness of the springs created in the spring object. This will
+initialize all the entries in stiffnessPS to the specified value.
+In both the flag and the attribute name, &quot;PS&quot; stands for &quot;per-spring.&quot;
+(Default = 1.0 )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdampingPS">
+	      <code><b>dampingPS</b>(<b>dPS</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Damping factor for the springs created in the spring object. This will
+initialize all the entries in dampingPS to the specified value.
+In both the flag and the attribute name, &quot;PS&quot; stands for &quot;per-spring.&quot;
+(Default = 0.2 )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagrestLengthPS">
+	      <code><b>restLengthPS</b>(<b>rPS</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Per-spring rest length for the new springs. This will
+initialize all the entries in restLengthPS to the specified value.
+If this flag is not thrown, each rest length will be initialized to
+the distance between the two  points at the time the spring is created
+(i.e., the initial length of the spring).   When playing back, springs
+can use either their per-spring or per-object rest length.  See the
+-rl and -urp flags.
+In both the flag and the attribute name, &quot;PS&quot; stands for &quot;per-spring.&quot;
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseStiffnessPS">
+	      <code><b>useStiffnessPS</b>(<b>usp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies whether to use stiffnessPS (per spring stiffness).
+If set to false, the per object stiffness attribute value will be used.
+This flag simply sets the useStiffnessPS attribute of the spring shape.
+In both the flag and the attribute name, &quot;PS&quot; stands for &quot;per-spring.&quot;
+(Default = false )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseDampingPS">
+	      <code><b>useDampingPS</b>(<b>udp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies whether to use dampingPS (per spring damping).
+If set to false, the per object damping attribute value will be used.
+This flag simply sets the useDampingPS attribute of the spring shape.
+In both the flag and the attribute name, &quot;PS&quot; stands for &quot;per-spring.&quot;
+(Default = false )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguseRestLengthPS">
+	      <code><b>useRestLengthPS</b>(<b>urp</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specifies whether to use restLengthPS (per spring restLength).
+If set to false, the per object restLength attribute value will be used.
+This flag simply sets the useRestLengthPS attribute of the spring shape.
+In both the flag and the attribute name, &quot;PS&quot; stands for &quot;per-spring.&quot;
+(Default = false )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagstartForceWeight">
+	      <code><b>startForceWeight</b>(<b>sfw</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Amount of the force of the spring that gets applied to the point from
+which the spring starts. Valid range is from 0.0 to 1.0. (Default = 1.0 )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagendForceWeight">
+	      <code><b>endForceWeight</b>(<b>efw</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>float</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/><img src="../gfx/edit.gif" alt="edit" title="edit" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Amount of the force of the spring that gets applied to the point to which
+the spring ends. Valid range is from 0.0 to 1.0. (Default = 1.0 )
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagcount">
+	      <code><b>count</b>(<b>ct</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/query.gif" alt="query" title="query" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Return the number of springs in the shape.  Query-only.
+We maintain this flag only for compatibility with earlier versions
+of Maya.  To get the count of springs, it is much faster and simpler
+to use the spring shape's count attribute: getAttr &lt;shapeName&gt;.count.
+      <p><i>In query mode, this flag needs a value.</i></p>
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagnoDuplicate">
+	      <code><b>noDuplicate</b>(<b>nd</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>boolean</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Check for existing springs and don't add a new spring between
+two points already connected by a spring in the same object.
+Only the object the command is working on is checked.  This flag
+is relevant only when using -add. (Default = false)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string</i>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+cmds.spring( 'particle1', s=1.5, d=.3, mnd=0, mxd=5, n='spring1' )
+# Creates a spring object named spring1 with a strength of 1.5 and a
+# damping factor of 0.3 containing a spring between every pair of points in
+# particle1 that are within 0.0 and 5.0 units apart (except those already
+# connected by a spring).
+
+cmds.spring( 'particle1', 'spring1', add=True, mnd=0, mxd=5 )
+# Creates between every pair of points in particle1 that are within 0.0
+# and 5.0 units apart (except those already connected by a spring), and adds
+# them to the existing spring object spring1.
+
+cmds.spring( 'particle1', 'spring1', add=True, mnd=0, mxd=5, ce='false' )
+# Same as the previous example, but will not check for existing springs
+# in order to avoid duplication, and will create a new spring even between
+# pairs of particles which already have one.
+
+cmds.spring( 'particle1', 'particle2', exclusive=1, all=1 )
+# Creates a spring between every pair of particles such that one
+# particle is in particle1 and the other is in particle2.  Does not create
+# any springs between pairs in the same object.  Does not create springs
+# between particles already connected by a spring.
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+

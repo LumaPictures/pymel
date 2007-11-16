@@ -1,0 +1,296 @@
+<html>
+    <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>layoutDialog command</title>
+      <meta name="section" content="Commands"/>
+      <meta name="module" content="MEL and expressions"/>
+      <script src="../style/tech.js">.</script>
+      <script src="../style/document.js">.</script>
+      <link rel="StyleSheet" href="../style/tech.css" type="text/css" media="all"/>
+    </head>
+    <body class="command"  onLoad="highLightSearch();">
+      <div id="banner">
+		<table width="100%"><tr>
+			<td><font size="-1"><b>command</b> (Python)</font></td>
+			<td align="right"><font size="-1"><i><a href="../Commands/layoutDialog.html">MEL version</a></i></font></td>
+		  </tr></table>
+		<h1>layoutDialog</h1>
+      </div>
+      <p class="toolbar" align="right">
+		<script>toolbar(&quot;layoutDialog.html&quot;);</script>
+      </p>
+      <p>Go to: <a href="#hSynopsis">Synopsis</a>. <a href="#hFlags">Flags</a>. <a href="#hReturn">Return value</a>. <a href="#hExamples">Python examples</a>. </p>
+
+      <h2><a name="hSynopsis">Synopsis</a></h2>
+      <p id="synopsis"> <code>layoutDialog([<a href="#flagbackgroundColor">backgroundColor</a>=<i>[float, float, float]</i>], [<a href="#flagdismiss">dismiss</a>=<i>string</i>], [<a href="#flagparent">parent</a>=<i>string</i>], [<a href="#flagtitle">title</a>=<i>string</i>], [<a href="#flaguiScript">uiScript</a>=<i>string</i>]) </code> <br/><br/><FONT size="-1"><i>Note: Strings representing object names and arguments must be separated by commas. This is not depicted in the synopsis.</FONT></i></p>
+      <p>layoutDialog is undoable, queryable, and editable.</p>
+      
+The layoutDialog command creates a modal dialog containing a formLayout
+with 100 divisions. The formLayout can be populated with arbitrary UI
+elements through use of the '-ui/-uiScript' flag.
+
+<p/>NOTE:<br/>
+A layoutDialog is not a window and certain UI elements will not function
+properly within it. In particular menuBars and panels containing menuBars
+should not be used with the layoutDialog.
+
+  
+
+      
+    <h2><a name="hFlags">Flags</a></h2>
+      <a href="#flagbackgroundColor">backgroundColor</a>, <a href="#flagdismiss">dismiss</a>, <a href="#flagparent">parent</a>, <a href="#flagtitle">title</a>, <a href="#flaguiScript">uiScript</a>
+      <table width="100%">
+		<tr>
+		  <th bgcolor="#CCCCCC">Long name (short name)</th>
+		  <th bgcolor="#CCCCCC">[<i>argument types</i>]</th>
+		  <th bgcolor="#CCCCCC">Properties</th>
+		</tr>
+		
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagtitle">
+	      <code><b>title</b>(<b>t</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The dialog title.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagdismiss">
+	      <code><b>dismiss</b>(<b>dis</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Dismiss the current layoutDialog. The specified string will
+be set as the result of the initial layoutDialog command.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagparent">
+	      <code><b>parent</b>(<b>p</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+Specify the parent window for the dialog.  The dialog will
+be centered on this window and raise and lower with it's parent.
+By default, the dialog is not parented to a particular window and
+is simply centered on the screen.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flagbackgroundColor">
+	      <code><b>backgroundColor</b>(<b>bgc</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>[float, float, float]</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The background color of the dialog. The arguments correspond
+to the red, green, and blue color components. Each component ranges
+in value from 0.0 to 1.0. (Windows only flag)
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+
+	<tr bgcolor="#EEEEEE">
+	  <td valign="top">
+	    <a name="flaguiScript">
+	      <code><b>uiScript</b>(<b>ui</b>)</code></a>
+	  </td>
+	  <td valign="top">
+	    <code><i>string</i></code>
+	  </td>
+	  <td valign="top">
+<img src="../gfx/create.gif" alt="create" title="create" width="13" height="16" hspace="2" vspace="2"/>
+	  </td>
+	</tr>
+	<tr>
+	  <td colspan="3">
+	    <table width="100%">
+	      <tr>
+		<td width="5%"/>
+		  <td>
+
+The specified MEL procedure name will be invoked to build the
+UI of the layoutDialog. This flag is required when creating
+a layoutDialog.
+The top-level control of a layoutDialog is a formLayout with
+100 divisions. It can be accessed by calling 'setParent -q' at
+the beginning of the specified MEL procedure.
+      
+		  </td>
+	      </tr>
+	    </table>
+	  </td>
+	</tr>
+
+      </table>
+      <hr />
+		<table border="0" cellspacing="1" cellpadding="4" bgcolor="#EEEEEE">
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/create.gif"/>
+				Flag can appear in Create mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/edit.gif"/>
+				Flag can appear in Edit mode of command
+			</td>
+		  </tr>
+		  <tr>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/query.gif"/>
+				Flag can appear in Query mode of command
+			</td>
+			<td valign="top"><img hspace="2" height="16" width="14" src="../gfx/multiuse.gif"/>
+				Flag can have multiple arguments, passed either as a tuple or a list.
+			</td>
+		  </tr>
+		</table>
+
+
+      <h2><a name="hReturn">Return value</a></h2>
+      <br/><i>string</i> 
+The string specified by the -dismiss flag, or &quot;dismiss&quot; if the dialog
+was closed.
+      <br/>
+      
+      
+
+<h2><a name="hExamples">Python examples</a></h2><pre>import maya.cmds as cmds
+
+def checkboxPrompt():
+	# Get the dialog's formLayout.
+	#
+	form = cmds.setParent(q=True)
+
+	# layoutDialog's are not resizable, so hard code a size here,
+	# to make sure all UI elements are visible.
+	#
+	cmds.formLayout(form, e=True, width=300)
+
+	t = cmds.text(l='What do you want to do?')
+
+	b1 = cmds.button(l='Abort', c='cmds.layoutDialog( dismiss=&quot;Abort&quot; )' )
+	b2 = cmds.button(l='Skip', c='cmds.layoutDialog( dismiss=&quot;Skip&quot; )' )
+	b3 = cmds.button(l='Continue', c='cmds.layoutDialog( dismiss &quot;Continue&quot; )' )
+
+	cb1 = cmds.checkBox(label='Remember my choice')
+
+	spacer = 5
+	top = 5
+	edge = 5
+
+	cmds.formLayout(form, edit=True,
+					attachForm=[(t, 'top', top), (t, 'left', edge), (t, 'right', edge), (b1, 'left', edge), (b3, 'right', edge), (cb1, 'left', edge), (cb1, 'bottom', spacer)],
+					attachNone=[(t, 'bottom'), (b1, 'bottom'), (b2, 'bottom'), (b3, 'bottom'), (cb1, 'right')],
+					attachControl=[(b1, 'top', spacer, t), (b2, 'top', spacer, t), (b3, 'top', spacer, t), (cb1, 'top', spacer, b1)],
+					attachPosition=[(b1, 'right', spacer, 33), (b2, 'left', spacer, 33), (b2, 'right', spacer, 66), (b3, 'left', spacer, 66)])
+
+print cmds.layoutDialog(ui='checkboxPrompt')
+
+  </pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+  </html>
+  
+
