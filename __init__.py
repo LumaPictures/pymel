@@ -301,7 +301,7 @@ added and removed an iterator for multi-attributes to the Attribute class (this 
 added the item method for getting the item number of a multi attribute
 added attrInfo method
 modified listAttr() method to return Attribute classes
--0.6.5-
+-0.7-
 added lsThruFilter, shadingNode, and corrected createNode so that it does not generate a class since it has no edit flags
 changed Dag.getParent to Dag.firstParent, and changed Dag.getParent2 to Dag.getParent
 added Component class for verts, edges, faces, etc
@@ -326,6 +326,8 @@ renamed helpers module to util to avoid confusion with the new helpDoc module
 	- addAttr: allow python types to be passed to set -at type?
 	- add sequence handling methods to MPath
 """
+
+__version__ = 0.7
 
 # bring all commands into this namespace
 # eventually, we will use a technique like used in factories.ctxCommands to 
