@@ -237,8 +237,8 @@ def rotate(obj, *args, **kwargs):
 		
 def connectAttr( source, destination, **kwargs ):
 	"""
-	Maya Bug Fix: 
-		- even with the 'force' flag enabled, the command will raise an error if the connection already exists. 
+Maya Bug Fix: 
+	- even with the 'force' flag enabled, the command would raise an error if the connection already existed. 
 	
 	"""
 	if kwargs.get('force', False) or kwargs.get('f', False):	
@@ -251,8 +251,8 @@ def connectAttr( source, destination, **kwargs ):
 
 def disconnectAttr( source, destination=None, **kwargs ):
 	"""
-	Modifications:
-		- If no destination is passed, all inputs and outputs will be disconnected from the attribute
+Modifications:
+	- If no destination is passed, all inputs and outputs will be disconnected from the attribute
 	"""
 	source = Attribute(source)
 	if destination:
@@ -266,14 +266,14 @@ def disconnectAttr( source, destination=None, **kwargs ):
 		
 def getAttr( attr, **kwargs ):
 	"""
-	Maya Bug Fix:
-		- maya pointlessly returns vector results as a tuple wrapped in 
-			a list ( ex.  '[(1,2,3)]' ). This command unpacks the vector for you.
-	Modifications:
-		- casts double3 datatypes to MVec
-		- casts matrix datatypes to MMat
-		- when getting a multi-attr, maya would raise an error, but pymel will return a list of
-		 	values for the multi-attr
+Maya Bug Fix:
+	- maya pointlessly returned vector results as a tuple wrapped in 
+		a list ( ex.  '[(1,2,3)]' ). This command unpacks the vector for you.
+Modifications:
+	- casts double3 datatypes to MVec
+	- casts matrix datatypes to MMat
+	- when getting a multi-attr, maya would raise an error, but pymel will return a list of
+	 	values for the multi-attr
 	"""
 	def listToMat( l ):
 		return [ 	[	l[0], l[1], l[2], l[3]	],
@@ -306,22 +306,22 @@ def getAttr( attr, **kwargs ):
 # getting and setting					
 def setAttr( attr, *args, **kwargs):
 	"""
-	Modifications:
-		- No need to set type, this will automatically be determined
-	 	- Adds support for passing a list or tuple as the second argument for datatypes such as double3.
-		- When setting stringArray datatype, you no longer need to prefix the list with the number of elements - just pass a list or tuple as with other arrays
-		- Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
-			- attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
-			- currently does not support compound attributes
-			- currently supported python-to-maya mappings:
-			
-				- float 	S{->} double
-				- int		S{->} long
-				- str		S{->} string
-				- bool		S{->} bool
-				- [float] 	S{->} doubleArray
-				- [int]		S{->} Int32Array
-				- [str]		S{->} stringArray
+Modifications:
+	- No need to set type, this will automatically be determined
+ 	- Adds support for passing a list or tuple as the second argument for datatypes such as double3.
+	- When setting stringArray datatype, you no longer need to prefix the list with the number of elements - just pass a list or tuple as with other arrays
+	- Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
+		- attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
+		- currently does not support compound attributes
+		- currently supported python-to-maya mappings:
+		
+			- float 	S{->} double
+			- int		S{->} long
+			- str		S{->} string
+			- bool		S{->} bool
+			- [float] 	S{->} doubleArray
+			- [int]		S{->} Int32Array
+			- [str]		S{->} stringArray
 	"""
 	
 	if len(args) == 1:
@@ -406,9 +406,9 @@ def setAttr( attr, *args, **kwargs):
 					
 def currentTime( *args, **kwargs ):
 	"""
-	Modifications:
-		- if no args are provided, it returns the current time::
-			cmds.currentTime(q=1)
+Modifications:
+	- if no args are provided, the command returns the current time -- the equivalent of::
+		cmds.currentTime(q=1)
 	"""
 	
 	if not args and not kwargs:
@@ -418,8 +418,8 @@ def currentTime( *args, **kwargs ):
 
 def group( *args, **kwargs ):
 	"""
-	Modifications
-		- if no objects are provided for grouping, the empty flag is automatically set
+Modifications
+	- if no objects are provided for grouping, the empty flag is automatically set
 	"""
 	if not args and not cmds.ls(sl=1):
 		kwargs['empty'] = True
@@ -432,10 +432,10 @@ def group( *args, **kwargs ):
 		
 def listConnections(*args, **kwargs):
 	"""
-	Modifications:
-		- returns an empty list when the result is None
-		- When 'connections' is enabled, the attribute pairs are returned in a 2D-array::
-			[['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']] 
+Modifications:
+	- returns an empty list when the result is None
+	- When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
+		[['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']] 
 	"""
 
 		
@@ -451,9 +451,9 @@ def listConnections(*args, **kwargs):
 
 def listHistory( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns an empty list when the result is None
-		- added a much needed 'type' filter
+Modifications:
+	- returns an empty list when the result is None
+	- added a much needed 'type' filter
 	"""
 	
 	if 'type' in kwargs:
@@ -464,9 +464,9 @@ def listHistory( *args, **kwargs ):
 		
 def listFuture( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns an empty list when the result is None
-		- added a much needed 'type' filter
+Modifications:
+	- returns an empty list when the result is None
+	- added a much needed 'type' filter
 	"""
 	kwargs['future'] = True
 	if 'type' in kwargs:
@@ -477,9 +477,9 @@ def listFuture( *args, **kwargs ):
 		
 def listRelatives( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns an empty list when the result is None
-		- returns wrapped classes
+Modifications:
+	- returns an empty list when the result is None
+	- returns wrapped classes
 	"""
 	if longNames:
 		kwargs['fullPath'] = True
@@ -489,8 +489,8 @@ def listRelatives( *args, **kwargs ):
 
 def ls( *args, **kwargs ):
 	"""
-	Modifications:
-		- Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
+Modifications:
+	- Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
 	"""
 	if longNames:
 		kwargs['long'] = True
@@ -509,9 +509,9 @@ def ls( *args, **kwargs ):
 
 def lsThroughFilter( *args, **kwargs):
 	"""
-	Modifications:
-		- returns an empty list when the result is None
-		- returns wrapped classes
+Modifications:
+	- returns an empty list when the result is None
+	- returns wrapped classes
 	"""
 	return map(PyNode, util.listForNone(cmds.lsThroughFilter(*args, **kwargs)))
 
@@ -519,33 +519,33 @@ def lsThroughFilter( *args, **kwargs):
 	#	yield PyNode(i)
 def listTransforms( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns wrapped classes
+Modifications:
+	- returns wrapped classes
 	"""
 	return listRelatives(  ls(*args, **kwargs), p=1, path=1 )
 
 
 def duplicate( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns wrapped classes
+Modifications:
+	- returns wrapped classes
 	"""
 	return map(PyNode, cmds.duplicate( *args, **kwargs ) )
 
 	
 def instance( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns wrapped classes
+Modifications:
+	- returns wrapped classes
 	"""
 	return map(PyNode, cmds.instance( *args, **kwargs ) )	
 
 '''		
 def attributeInfo( *args, **kwargs ):
 	"""
-	Modifications:
-		- returns an empty list when the result is None
-		- returns wrapped classes
+Modifications:
+	- returns an empty list when the result is None
+	- returns wrapped classes
 	"""
 	
 	return map(PyNode, util.listForNone(cmds.attributeInfo(*args, **kwargs)))
@@ -553,8 +553,8 @@ def attributeInfo( *args, **kwargs ):
 
 def rename( obj, newname, **kwargs):
 	"""
-	Modifications:
-		- if the full path to an object is passed as the new name, the shortname of the object will automatically be used
+Modifications:
+	- if the full path to an object is passed as the new name, the shortname of the object will automatically be used
 	"""
 	
 	if isinstance( newname, Dag ):
@@ -606,8 +606,9 @@ def sets( *elements, **kwargs):
 
 def joint(*args, **kwargs):
 	"""
-	Maya Bug Fix:
-		- when queried, limitSwitch*, stiffness*, and angle* flags return lists of values instead of single values
+Maya Bug Fix:
+	- when queried, limitSwitch*, stiffness*, and angle* flags returned lists of values instead 
+		of single values. Values are now properly unpacked
 	"""
 	
 	res = cmds.joint(*args, **kwargs)
@@ -634,8 +635,8 @@ def joint(*args, **kwargs):
 
 def aimConstraint(*args, **kwargs):
 	"""
-	Maya Bug Fix:
-		- when queried, upVector, worldUpVector, and aimVector return the name of the aimConstraint instead of the desired values
+Maya Bug Fix:
+	- when queried, upVector, worldUpVector, and aimVector returned the name of the aimConstraint instead of the desired values
 	"""
 	if 'query' in kwargs or 'q' in kwargs:
 		
@@ -659,8 +660,8 @@ def aimConstraint(*args, **kwargs):
 
 def normalConstraint(*args, **kwargs):
 	"""
-	Maya Bug Fix:
-		- when queried, upVector, worldUpVector, and aimVector return the name of the aimConstraint instead of the desired values
+Maya Bug Fix:
+	- when queried, upVector, worldUpVector, and aimVector return the name of the aimConstraint instead of the desired values
 	"""
 	if 'query' in kwargs or 'q' in kwargs:
 		
@@ -684,8 +685,8 @@ def normalConstraint(*args, **kwargs):
 	
 def spaceLocator(**kwargs):
 	"""
-	Maya Bug Fix:
-		- returns a locator instead of a list with a single locator
+Modifications:
+	- returns a locator instead of a list with a single locator
 	"""
 	return Transform(cmds.spaceLocator(**kwargs)[0])
 
