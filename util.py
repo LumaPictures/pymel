@@ -12,23 +12,6 @@ def pythonToMel(arg):
 	elif util.isIterable(arg):
 		return '{%s}' % ','.join( map( pythonToMel, arg) ) 
 	return unicode(arg)
-	
-def mayaCommandHelpFile( command, version ):
-	return '/Applications/Autodesk/maya%s/docs/Maya%s/en_US/CommandsPython/%s.html' % (version, version, command)
-	
-def release():
-	import pymel.examples.example1
-	import pymel.examples.example2
-	
-	baseDir = moduleDir()
-	for d in baseDir.dirs():
-		for f in d.files('*.pyc') + baseDir.files('*.pyc'):
-			print "removing", f
-			f.remove()
-		for f in d.files('._*') + baseDir.files('._*'):
-			print "removing", f
-			f.remove()
-			
 			
 def capitalize(s):
 	return s[0].upper() + s[1:]
@@ -73,4 +56,50 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 def moduleDir():
 	return path( sys.modules[__name__].__file__ ).parent
 
-				
+
+def toZip( directory, zipFile ):
+	"""Sample for storing directory to a ZipFile"""
+	import zipfile
+
+	zipFile = path(zipFile)
+	if zipFile.exists(): zipFile.remove()
+	
+	z = zipfile.ZipFile(
+		zipFile, 'w', compression=zipfile.ZIP_DEFLATED
+	)
+	if not directory.endswith(os.sep):
+		directory += os.sep
+		
+	directory = path(directory)
+	
+	for subdir in directory.dirs('[a-z]*') + [directory]: 
+		for fname in subdir.files('[a-z]*'):
+			archiveName = fname.replace( directory, '' )
+			print "adding ", archiveName
+			z.write( fname, archiveName, zipfile.ZIP_DEFLATED )
+	z.close()
+	return zipFile
+
+def release( username=None, password = None):
+	import pymel.examples.example1
+	import pymel.examples.example2
+	import googlecode
+	
+	baseDir = moduleDir()
+	for d in baseDir.dirs():
+		for f in d.files('*.pyc') + baseDir.files('*.pyc'):
+			print "removing", f
+			f.remove()
+		for f in d.files('.*') + baseDir.files('.*'):
+			print "removing", f
+			f.remove()
+	
+	ver = str(pymel.__version__)
+	zipFile = baseDir.parent / 'pymel-%s.zip' % ver
+	print "zipping up %s into %s" % (baseDir, zipFile)
+	toZip( 	baseDir, zipFile )
+	
+	if username and password:
+		print "uploading to googlecode"
+		googlecode.upload(zipFile, 'pymel', username, password, 'pymel ' + str(pymel.__version__), 'Featured')
+		print "done"
