@@ -307,6 +307,8 @@ changed Dag.getParent to Dag.firstParent, and changed Dag.getParent2 to Dag.getP
 added Component class for verts, edges, faces, etc
 reorganized the help/documentation functions into their own module
 renamed helpers module to util to avoid confusion with the new helpDoc module
+added documentation for all commands
+
 
  TODO: 
 	- provide on option for creation command factory so that commands that always return a single object do not return a list
