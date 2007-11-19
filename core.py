@@ -1,13 +1,12 @@
 
 
-import sys, os
+import sys, os, re
 try:
 	import maya.cmds as cmds
 	import maya.mel as mm
 	import maya.OpenMaya as OpenMaya
 	#from maya.cmds import *
 	#from maya.cmds import file as file_
-	import re
 	# cleanup commands that conflict with built-in functions
 
 	#del(eval)
@@ -18,7 +17,7 @@ try:
 	#from maya.cmds import playbackOptions, nodeType, select
 
 except ImportError:
-	print "pymel can only be used from within maya"
+	pass
 
 
 _thisModule = __import__(__name__)

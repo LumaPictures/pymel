@@ -55,7 +55,9 @@ to pass along to your function and order of definition does not matter.
 """
 
 
-import maya.cmds as cmds
+try:
+	import maya.cmds as cmds
+except ImportError: pass
 import pymel
 
 

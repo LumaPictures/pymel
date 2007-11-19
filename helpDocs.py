@@ -1,6 +1,8 @@
 import path, util, pymel, sys, os, inspect, pickle
 from HTMLParser import HTMLParser
-import maya.cmds as cmds
+try:
+	import maya.cmds as cmds
+except ImportError: pass
 
 #---------------------------------------------------------------
 #		Doc Parser
@@ -117,7 +119,11 @@ def _getCmdFlags( command, mayaVersion='8.5' ):
 
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
-	ver = cmds.about(version=True) #@UndefinedVariable
+	try:
+		ver = cmds.about(version=True) #@UndefinedVariable
+	except NameError:
+		return {}
+		
 	newPath = util.moduleDir() / 'mayaCmdsList'+ver+'.bin'
 	cmdlist = []
 	try :

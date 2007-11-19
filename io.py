@@ -21,7 +21,10 @@ some of the new commands were changed slightly from their flag name to avoid nam
 also note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 """
 
-import maya.cmds as cmds
+try:
+	import maya.cmds as cmds
+except ImportError: pass
+
 import path, sys
 import pymel.core, util
 

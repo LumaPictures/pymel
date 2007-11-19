@@ -3,8 +3,9 @@ import pymel
 import pymel.ctx
 import pymel.core
 import pymel.ui
-import maya.cmds as cmds
-#import maya.cmds
+try:
+	import maya.cmds as cmds
+except ImportError: pass
 import util, helpDocs
 
 "This module is used by pymel to automatically generate many of its functions and classes"
@@ -149,7 +150,10 @@ def createClasses( cmdFile, moduleName='pymel', returnGeneratedClass=True, runTe
 		try:
 			func = getattr(pymel.core, funcName)
 		except AttributeError:
-			func = getattr(cmds,funcName)
+			try:
+				func = getattr(cmds,funcName)
+			except NameError:
+				return {}
 		
 		# create a new class based on this function and wrap the function  			
 		try:						
@@ -200,8 +204,11 @@ def ctxCommands():
 	for funcName in file:
 		buf = funcName.split()
 		funcName = buf[0]	
-		
-		module.__dict__[funcName] = functionFactory( cmds.__dict__[funcName], None, moduleName )
+		try:
+			func = getattr(cmds,funcName)
+		except NameError:
+			return
+		module.__dict__[funcName] = functionFactory( func, None, moduleName )
 
 
 #del maya.cmds

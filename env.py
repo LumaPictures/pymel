@@ -4,8 +4,11 @@
 from factories import *
 from getpass import getuser
 from socket import gethostname
-import maya.cmds as cmds
-from maya.cmds import playbackOptions
+try:
+	import maya.cmds as cmds
+	from maya.cmds import playbackOptions
+except ImportError: pass
+
 import os
 
 
