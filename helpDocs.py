@@ -116,54 +116,95 @@ def _getCmdFlags( command, mayaVersion='8.5' ):
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
+def buildPymelCmdsList():
 
+	moduleDir = util.moduleDir()
+	cmdDict = {}
+	
+	for cmdFile in ['commandsCreation','commandsUI','commandsCtx']:
+		cmdsListFile =  moduleDir / cmdFile
+	
+		file = cmdsListFile.open( 'r' )		
+		for funcName in file:
+			buf = funcName.split()
+		
+			# get the function object
+			
+				
+			# create a new class based on this function and wrap the function  			
+			try:						
+				baseClsName = buf[1]
+		
+				# alternate node name
+				# use this when the name of the command and name of the node created differ
+				# this is the name that PyNode will look for when casting node types to classes
+				try:
+					nodeName = buf[2]
+				except:
+					nodeName = buf[0]
+			except:
+				baseClsName = None
+			
+			cmdDict[ buf[0] ] = (baseClsName, nodeName)
+	return cmdDict
+					
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
 	try:
-		ver = cmds.about(version=True) #@UndefinedVariable
-	except NameError:
+		ver = cmds.about(version=True).split()[0] #@UndefinedVariable
+	except (AttributeError, NameError):
 		return {}
 		
 	newPath = util.moduleDir() / 'mayaCmdsList'+ver+'.bin'
-	cmdlist = []
+	cmdlist = {}
 	try :
 		file = newPath.open(mode='rb')
 		try :
 			cmdlist = pickle.load(file)
 		except :
-			print "AMcommands was unable to load the list of Maya commands from '"+file.name+"'"
+			print "Unable to load the list of Maya commands from '"+file.name+"'"
 		
 		file.close()
 	except :
 		print "Unable to open '"+newPath+"' for reading the list of Maya commands"
-	if not len(cmdlist) :
+		
+	if not len(cmdlist) :		
+		pymelCmdsList = buildPymelCmdsList()
+		
 		print "Rebuilding the list of Maya commands..."
 		cmdlist = dict(inspect.getmembers(cmds, callable))
 		for k in cmdlist.keys() :
-			args = {}
+			
 			try :
 				args = _getCmdFlags(k, ver)
 				# print 'cmd: '+k+': '
 				# print args
 			except :
-				pass
+				args = {}
 				# remove docstring			 
 				#for arg in args.keys() :
 				#   if args[arg].has_key('docstring') :
-				#	  args[arg].pop('docstring')						
-			cmdlist[k] = args
+				#	  args[arg].pop('docstring')
+
+			# func, args, baseClassName, nodeName
+			try:
+				cmdlist[k] = (args,) + pymelCmdsList[k]
+			except KeyError:
+				cmdlist[k] = (args,None,None)
+
 		try :
 			file = newPath.open(mode='wb')
 			try :
 				pickle.dump(cmdlist, file, 2)
 				print "done"
-			except :
+			except:
 				print "Unable to write the list of Maya commands to '"+file.name+"'"
 			file.close()
 		except :
 			print "Unable to open '"+newPath+"' for writing"
 	return cmdlist
 
+'''
 def writeCommandHelp(runTest=False):
 	files = ['commandsCreation', 'commandsCtx', 'commandsUI', 'commandsEnhanced']
 	baseDir = util.moduleDir()
@@ -285,7 +326,7 @@ def writeCommandHelp(runTest=False):
 	commandHelpFile.write_text( str( commandHelp ) )
 	
 	print "done"
-
+'''
 	
 #---------------------------------------------------------------
 		
@@ -296,10 +337,18 @@ def makeDocs( mayaVersion='8.5' ):
 	import epydoc.cli
 	
 	pymeldir = util.moduleDir()
+	
+	# generate epydocs
 	os.chdir( pymeldir )
 	sys.argv = [pymeldir, '--debug',  '--config=%s' % os.path.join( pymeldir, 'epydoc.cfg') ]
 	epydoc.cli.cli(useLogger=False)
-		
+	
+	return
+	
+	#---------------------------------------------------------------
+	
+	
+	# copy over maya doc pages and link to them from the epydoc pages	
 	docdir = pymeldir / 'docs'
 	
 	try:

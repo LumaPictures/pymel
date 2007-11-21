@@ -2475,7 +2475,22 @@ class Curve(Dag):
 	
 	pass
 
-
+class Subdiv(Dag):
+	def getTweakedVerts(self, **kwargs):
+		return cmds.querySubdiv( action=1, **kwargs )
+		
+	def getSharpenedVerts(self, **kwargs):
+		return cmds.querySubdiv( action=2, **kwargs )
+		
+	def getSharpenedEdges(self, **kwargs):
+		return cmds.querySubdiv( action=3, **kwargs )
+		
+	def getEdges(self, **kwargs):
+		return cmds.querySubdiv( action=4, **kwargs )
+				
+	def cleanTopology(self):
+		cmds.subdCleanTopology(self)
+	
 class Particle_(Dag):
 	
 	class PointArray(object):

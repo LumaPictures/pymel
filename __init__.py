@@ -335,6 +335,7 @@ __version__ = 0.7
 # eventually, we will use a technique like used in factories.ctxCommands to 
 # exclude certain (seldom-used) commands from the main namespace, and relegate them to
 # their own module
+'''
 try:
 	from maya.cmds import *
 	# cleanup commands that conflict with built-in functions
@@ -344,8 +345,9 @@ try:
 	del(help)
 	del(quit)
 
-except ImportError:
+except (ImportError,NameError):
 	print "pymel can only be used from within maya"
+'''
 	
 from core import *
 
@@ -365,9 +367,10 @@ from ui import *
 #import ui
 
 import pymel.factories
-pymel.factories.createClasses('commandsCreation', 'pymel', returnGeneratedClass=False)
-pymel.factories.createClasses('commandsUI', 'pymel', returnGeneratedClass=True)
-pymel.factories.ctxCommands()
+#pymel.factories.createClasses('commandsCreation', 'pymel', usePyNode=True)
+#pymel.factories.createClasses('commandsUI', 'pymel', usePyNode=False)
+#pymel.factories.createClasses('commandsCtx', 'pymel.ctx', usePyNode=False)
+pymel.factories.createPymelObjects()
 
 
 
