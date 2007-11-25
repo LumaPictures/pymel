@@ -34,8 +34,6 @@ joint Transform
 jointCluster Dag
 jointLattice Dag
 constrain Dag
-createNode
-shadingNode
 spaceLocator Dag
 vortex Dag
 spotLight Dag

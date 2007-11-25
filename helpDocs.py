@@ -116,47 +116,53 @@ def _getCmdFlags( command, mayaVersion='8.5' ):
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
-def buildPymelCmdsList():
 
+
+def buildPymelCmdsList():
 	moduleDir = util.moduleDir()
-	cmdDict = {}
-	
-	for cmdFile in ['commandsCreation','commandsUI','commandsCtx']:
+	cmdDict = {}		
+
+	for cmdFile, usePyNode in [	
+						( 'commandsCreation', True ),
+						( 'commandsUI', False )
+					]:
 		cmdsListFile =  moduleDir / cmdFile
-	
+		
 		file = cmdsListFile.open( 'r' )		
 		for funcName in file:
 			buf = funcName.split()
-		
-			# get the function object
 			
-				
-			# create a new class based on this function and wrap the function  			
-			try:						
+			funcName = buf[0]
+								
+			try:					
 				baseClsName = buf[1]
-		
-				# alternate node name
-				# use this when the name of the command and name of the node created differ
-				# this is the name that PyNode will look for when casting node types to classes
+									
 				try:
 					nodeName = buf[2]
 				except:
-					nodeName = buf[0]
+					# no nodenNme means exclude from returnMap
+					nodeName = None
 			except:
 				baseClsName = None
-			
-			cmdDict[ buf[0] ] = (baseClsName, nodeName)
+				nodeName = None
+				
+			# usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
+			# baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
+			# nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
+			cmdDict[ funcName ] = (usePyNode, baseClsName, nodeName)
 	return cmdDict
-					
+
+				
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
 	try:
+		# split removes extra version info which should not affect the list of commands ( x64, Service Pack 1, etc )
 		ver = cmds.about(version=True).split()[0] #@UndefinedVariable
 	except (AttributeError, NameError):
-		return {}
+		return []
 		
 	newPath = util.moduleDir() / 'mayaCmdsList'+ver+'.bin'
-	cmdlist = {}
+	cmdlist = []
 	try :
 		file = newPath.open(mode='rb')
 		try :
@@ -168,30 +174,34 @@ def buildMayaCmdsArgList() :
 	except :
 		print "Unable to open '"+newPath+"' for reading the list of Maya commands"
 		
-	if not len(cmdlist) :		
+	if not len(cmdlist) or not isinstance(cmdlist,list):		
 		pymelCmdsList = buildPymelCmdsList()
 		
 		print "Rebuilding the list of Maya commands..."
-		cmdlist = dict(inspect.getmembers(cmds, callable))
-		for k in cmdlist.keys() :
-			
+				
+		cmdlist = inspect.getmembers(cmds, callable)
+		for i, data in enumerate(cmdlist) :	
+			k = data[0]
 			try :
 				args = _getCmdFlags(k, ver)
-				# print 'cmd: '+k+': '
-				# print args
 			except :
 				args = {}
-				# remove docstring			 
-				#for arg in args.keys() :
-				#   if args[arg].has_key('docstring') :
-				#	  args[arg].pop('docstring')
 
-			# func, args, baseClassName, nodeName
+			# func, args, (usePyNode, baseClsName, nodeName)
+			# args = dictionary of command flags and their data
+			# usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
+			# baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
+			# nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
 			try:
-				cmdlist[k] = (args,) + pymelCmdsList[k]
+				cmdlist[i] = (k, args, pymelCmdsList[k] )		
 			except KeyError:
-				cmdlist[k] = (args,None,None)
+				# context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
+				if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+		 			cmdlist[i] = (k, args, (False, None, None) )
+				else:
+					cmdlist[i] = (k, args, () )
 
+				
 		try :
 			file = newPath.open(mode='wb')
 			try :
@@ -383,7 +393,7 @@ def makeDocs( mayaVersion='8.5' ):
 	
 	
 
-commandHelp = buildMayaCmdsArgList()
+#commandHelp = buildMayaCmdsArgList()
 
 '''
 try:	

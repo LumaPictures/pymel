@@ -1,4 +1,4 @@
-import sys, path
+import sys, path, types
 import pymel
 import pymel.ctx
 import pymel.core
@@ -14,6 +14,24 @@ import util, helpDocs
 # Function Factory
 #-----------------------
 
+def addDocs(inObj, newObj, flagDocs):
+	try:
+		docstring = 'Flags:\n'
+		for flag in sorted(flagDocs.keys()):
+			docs = flagDocs[flag]
+
+			docstring += '%s (%s)\n' % (flag, docs['shortname'])
+			if docs['modes']:
+				docstring += '    [%s]\n' % (', '.join(docs['modes']))
+			docstring += '    %s\n' %  docs['docstring']
+	
+		if inObj.__doc__:
+			docstring = inObj.__doc__ + '\n' + docstring
+		newObj.__doc__ = docstring
+			
+	except KeyError:
+		print "could not find help docs for", inObj
+		
 def functionFactory( inFunc, returnFunc, moduleName='pymel', flagDocs=None ):
 	"""create a new function, apply the given returnFunc to the results (if any), 
 	and add to the module given by 'moduleName'.  Use pre-parsed command documentation
@@ -33,26 +51,11 @@ def functionFactory( inFunc, returnFunc, moduleName='pymel', flagDocs=None ):
 					except: pass
 			return res
 	else:
-		def newFunc(*args, **kwargs): return apply(inFunc, *args, **kwargs)
+		def newFunc(*args, **kwargs): return apply(inFunc, args, kwargs)
 	
+	addDocs( inFunc, newFunc, flagDocs )
 	newFunc.__name__ = inFunc.__name__
-	try:
-		flagDocs
-		docstring = 'Flags:\n'
-		for flag in sorted(flagDocs.keys()):
-			docs = flagDocs[flag]
 
-			docstring += '%s (%s)\n' % (flag, docs['shortname'])
-			if docs['modes']:
-				docstring += '    [%s]\n' % (', '.join(docs['modes']))
-			docstring += '    %s\n' %  docs['docstring']
-		
-			if inFunc.__doc__:
-				docstring = inFunc.__doc__ + '\n' + docstring
-			newFunc.__doc__ = docstring
-			
-	except KeyError:
-		print "could not find help docs for", newFunc.__name__
 	newFunc.__module__ = moduleName
 	return newFunc
 
@@ -99,9 +102,11 @@ def _makeEditFlagCmd( cls, name, inFunc, flag, docstring='' ):
 
 def classFactory( inFunc, clsName, moduleName='pymel', baseCls=object, flagDocs=None ):
 	
+	# use existing class
 	if baseCls.__name__.endswith('_'):
 		cls = baseCls
 		cls.__name__ = clsName
+	# create a new class
 	else:
 		cls = type( clsName, (baseCls,), {} )
 	#cmdFile = path.path( util.moduleDir() / 'commands' / inFunc.__name__ )
@@ -137,16 +142,20 @@ def createPymelObjects():
 	
 	moduleName = 'pymel'
 	module = __import__(moduleName)
-	usePyNode = True
 	returnMap = {}
-	for funcName, v in helpDocs.commandHelp.items():
+	#for funcName, v in helpDocs.commandHelp.items():
+	#for funcName, v in helpDocs.buildMayaCmdsArgList().items():
+	for funcName, args, classData in helpDocs.buildMayaCmdsArgList():
 		
 		if funcName in ['eval',	'file', 'filter', 'help', 'quit']:
 			continue
 	
-		args, baseClsName, nodeName = v
-		#print funcName, func
-		
+		# func, args, (usePyNode, baseClsName, nodeName)
+		# args = dictionary of command flags and their data
+		# usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
+		# baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
+		# nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
+			
 		try:
 			func = getattr(pymel.core, funcName)
 		except AttributeError:
@@ -157,115 +166,51 @@ def createPymelObjects():
 			except AttributeError:
 				print "could not find maya command:", funcName
 		
-		if baseClsName is not None:
+		try:
+			usePyNode, baseClsName, nodeName = classData
+		#if baseClsName is not None:
 			try:
 				baseCls = getattr(module, baseClsName)
-			except AttributeError:
-				print "could not find %s.%s" % (moduleName, baseClsName)
+			except (AttributeError, TypeError):
+				#print "could not find %s.%s" % (moduleName, baseClsName)
 				baseCls = unicode
+			#except TypeError, msg:
+			#	print "%s: %s.%s: %s" % (funcName, moduleName, baseClsName, msg)
 			
+			# create the new class
 			clsName = util.capitalize( funcName )
 			cls = classFactory( func, clsName, moduleName, baseCls, args)
 					
 			module.__dict__[clsName] = cls
 			
 			if usePyNode:
-				module.__dict__[funcName] = functionFactory( func, pymel.core.PyNode, moduleName, args )
-			else:				
-				module.__dict__[funcName] = functionFactory( func, cls, moduleName, args )
-					
-			returnMap[nodeName] = cls
-			
-		# do not create a new class, just create a wrapped function
-		else:
-			if usePyNode:
+				#print funcName, "PyNode wrapping"
 				module.__dict__[funcName] = functionFactory( func, pymel.core.PyNode, moduleName, args )
 			else:
+				#print funcName, "wrapping to return newly generated class"		
+				module.__dict__[funcName] = functionFactory( func, cls, moduleName, args )
+			
+			if nodeName:		
+				returnMap[nodeName] = cls
+			
+		# do not create a new class
+		except ValueError:
+
+			# create a wrapped function
+			if type(func) == types.BuiltinFunctionType:
+				#if usePyNode:
+				#	module.__dict__[funcName] = functionFactory( func, pymel.core.PyNode, moduleName, args )
+				#else:
+				#print funcName, "lightly wrapping builtin function"
 				module.__dict__[funcName] = functionFactory( func, None, moduleName, args )
-				
+					
+			# add documentation string to existing function	
+			elif type(func) == types.FunctionType:
+				#print funcName, "adding Docs to core function"
+				addDocs( func, func, args )
+					
 	pymel.core.returnMap.update(returnMap)
 	return returnMap
-					
-def createClasses( cmdFile, moduleName='pymel', usePyNode=False, runTest=False ):
-	cmdsList =  util.moduleDir() / cmdFile
-	
-	module = __import__(moduleName)
-	
-	file = cmdsList.open( 'r' )
-	returnMap = {}
-	for funcName in file:
-		buf = funcName.split()
-		
-		# get the function object
-		funcName = buf[0]
-		
-		# if the function has already been overloaded in pymel.core, use this one instead of the one in maya.cmds
-		try:
-			func = getattr(pymel.core, funcName)
-		except AttributeError:
-			try:
-				func = getattr(cmds,funcName)
-			except NameError:
-				return {}
-		
-		# create a new class based on this function and wrap the function  			
-		try:						
-			baseClsName = buf[1]
-			# base Class
-			try:
-				baseCls = getattr(module, baseClsName)
-			except AttributeError:
-				print "could not find %s.%s" % (moduleName, baseClsName)
-				baseCls = unicode
-		
-			# alternate node name
-			# use this when the name of the command and name of the node created differ
-			# this is the name that PyNode will look for when casting node types to classes
-			try:
-				nodeName = buf[2]
-			except IndexError: 
-				nodeName = funcName
-		
-			
-			clsName = util.capitalize( funcName )
-			cls = classFactory( func, clsName, moduleName, baseCls)
-					
-			module.__dict__[clsName] = cls
-			
-			if usePyNode:
-				module.__dict__[funcName] = functionFactory( func, pymel.core.PyNode, moduleName )
-			else:				
-				module.__dict__[funcName] = functionFactory( func, cls, moduleName )
-					
-			returnMap[nodeName] = cls
-			
-		# do not create a new class, just create a wrapped function
-		except IndexError:
-			if usePyNode:
-				module.__dict__[funcName] = functionFactory( func, pymel.core.PyNode, moduleName )
-			else:
-				module.__dict__[funcName] = functionFactory( func, None, moduleName )
-		
-	pymel.core.returnMap.update(returnMap)
-	return returnMap	
-
-'''	
-def ctxCommands():
-	moduleName = 'pymel.ctx'
-	commands = util.moduleDir() / 'commandsCtx'
-	file = commands.open( 'r' )
-	module = __import__(moduleName)
-	for funcName in file:
-		buf = funcName.split()
-		funcName = buf[0]	
-		try:
-			func = getattr(cmds,funcName)
-			module.__dict__[funcName] = functionFactory( func, None, moduleName )
-		except NameError:
-			return
-		except AttributeError:
-			pass
-'''		
 
 
 #del maya.cmds

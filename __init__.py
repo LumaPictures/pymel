@@ -5,9 +5,6 @@
  
 """
 
-
-
-
 Pymel
 =====
 
@@ -308,7 +305,7 @@ added Component class for verts, edges, faces, etc
 reorganized the help/documentation functions into their own module
 renamed helpers module to util to avoid confusion with the new helpDoc module
 added documentation for all commands
-
+added Workspace class
 
  TODO: 
 	- provide on option for creation command factory so that commands that always return a single object do not return a list

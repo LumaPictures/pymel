@@ -112,8 +112,8 @@ def pythonToMel(arg):
 	return unicode(arg)
 	
 class Mel(object):
-	"""This class is a necessity for calling mel scripts from python. It allows you to call your 
-	scripts in a cleaner fashion, by automatically formatting your python arguments into a string 
+	"""This class is a necessity for calling mel scripts from python. It allows scripts to be called
+	in a cleaner fashion, by automatically formatting python arguments into a string 
 	which is executed via maya.mel.eval().  An instance of this class is already created for you 
 	when importing pymel and is called mel.  
 	
@@ -169,15 +169,117 @@ class Mel(object):
 		
 mel = Mel()
 
+
 #-----------------------------------------------
 #  Scene Class
 #-----------------------------------------------
 
-class MScene(object):
+class WorkspaceEntryDict(object):
+	def __init__(self, entryType):
+		self.entryType = entryType
+	def __getitem__(self, item):
+		res = cmds.workspace( item, **{'q' : 1, self.entryType + 'Entry' : 1 } )
+		if not res:
+			raise KeyError, item
+		return res
+	def __setitem__(self, item, value):
+		return cmds.workspace( item, **{'q' : 1, self.entryType: [item, value] } )
+	def __contains__(self, key):
+		return key in self.keys()
+	def items(self):	
+		entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
+		res = []
+		for i in range( 0, len(entries), 2):
+			res.append( (entries[i], entries[i+1] ) )
+		return res
+	def keys(self):	
+		return cmds.workspace( **{'q' : 1, self.entryType + 'List': 1 } )
+	def values(self):	
+		entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
+		res = []
+		for i in range( 0, len(entries), 2):
+			res.append( entries[i+1] )
+		return res
+	def get(self, item, default=None):
+		try:
+			return self.__getitem__(item)
+		except KeyError:
+			return default
+	has_key = __contains__
+		
+	
+class Workspace(util.Singleton):
+	"""
+	This class is designed to lend more readability to the often confusing workspace command.
+	The four types of workspace entries (objectType, fileRule, renderType, and variable) each
+	have a corresponding dictiony for setting and accessing these mappings.
+	
+		>>> from pymel import *
+		>>> workspace.renderTypes['audio']
+		>>> workspace.renderTypes.keys()
+		>>> workspace.renderTypes.items()
+		>>> 'DXF' in workspace.fileRules
+		>>> workspace.fileRules['DXF']
+		>>> workspace.fileRules['super']
+		>>> workspace.fileRules.get( 'super')
+	"""
+	
+ 	objectTypes = WorkspaceEntryDict( 'objectType' )
+ 	fileRules 	= WorkspaceEntryDict( 'fileRule' )
+	renderTypes = WorkspaceEntryDict( 'renderType' )
+	variables 	= WorkspaceEntryDict( 'variable' )
+	
+	def __init__(self):
+	 	self.objectTypes = WorkspaceEntryDict( 'objectType' )
+	 	self.fileRules 	= WorkspaceEntryDict( 'fileRule' )
+		self.renderTypes = WorkspaceEntryDict( 'renderType' )
+		self.variables 	= WorkspaceEntryDict( 'variable' )
+	
+	@classmethod
+	def open(self, workspace):
+		return cmds.workspace( workspace, openWorkspace=1 )
+	@classmethod
+	def save(self):
+		return cmds.workspace( saveWorkspace=1 )
+	@classmethod
+	def update(self):
+		return cmds.workspace( update=1 )
+	@classmethod
+	def new(self, workspace):
+		return cmds.workspace( workspace, newWorkspace=1 )		
+	@classmethod
+	def getName(self):
+		return cmds.workspace( q=1, act=1 )
+	@classmethod
+	def getPath(self):
+		return MPath(cmds.workspace( q=1, fn=1 ))
+		
+	@classmethod
+	def chdir(self, newdir):
+		return cmds.workspace( dir=newdir )
+	@classmethod
+	def getcwd(self):
+		return MPath(cmds.workspace( q=1, dir=1 ))
+	@classmethod
+	def mkdir(self, newdir):
+		return cmds.workspace( cr=newdir )
+		
+	def __call__(self, *args, **kwargs):
+		"""provides backward compatibility with cmds.workspace by allowing an instance
+		of this class to be called as if it were a function"""
+		return cmds.workspace( *args, **kwargs )
+
+workspace = Workspace()
+		
+#-----------------------------------------------
+#  Scene Class
+#-----------------------------------------------
+
+class Scene(util.Singleton):
 	def __getattr__(self, obj):
 		return PyNode( obj )
 
-SCENE = MScene()
+SCENE = Scene()
 
 
 #-----------------------------------------------
@@ -560,8 +662,13 @@ Modifications:
 		newname = newname.shortName()
 		
 	return PyNode( cmds.rename( obj, newname, **kwargs ) )
-				
+	
+def createNode( *args, **kwargs):
+	return PyNode( cmds.createNode( *args, **kwargs ) )
 			
+def shadingNode( *args, **kwargs):
+	return PyNode( cmds.shadingNode( *args, **kwargs ) )
+				
 def sets( *elements, **kwargs):
 	"""The first argument must be a list of objects, a Set instance, or the name of a set."""
 	try:
