@@ -119,26 +119,26 @@ def moduleDir():
 # returns True if Maya is available, False either
 def mayaInit () :
     result = False
-    if not os.environ.has_key('MAYA_ENV_VERSION') :
-        print "Maya environement variables not (yet) set"        
-        # envMaya.setMayaEnv ()
-        # print "Maya environement variables reset"
-
-    # test that Maya actually is loaded
-    if sys.modules.has_key('maya.cmds') :
-        result = True
-    else :
+    # test that Maya actually is loaded and that commands have been initialized
+    try :
+        from maya.cmds import about        
+        version = eval("about(version=True)");
+        if version > 0 :
+            result = True
+    except :
+        if not sys.modules.has_key('maya.standalone') :
+            try :
+                import maya.standalone #@UnresolvedImport
+                maya.standalone.initialize(name="python")
+            except :
+                pass
         try :
-            import maya.cmds as cmds #@UnresolvedImport
-            result = sys.modules.has_key('maya.cmds')
+            from maya.cmds import about    
+            reload(maya.cmds) #@UnresolvedImpor
+            version = eval("about(version=True)")
+            result = version > 0
         except :
-            if not sys.modules.has_key('maya.standalone') :
-                try :
-                    import maya.standalone #@UnresolvedImport
-                    maya.standalone.initialize(name="python")
-                    result = True
-                except :
-                    result = False
+            result = False
 
     return result
 
