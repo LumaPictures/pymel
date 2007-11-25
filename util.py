@@ -115,6 +115,32 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 def moduleDir():
 	return path( sys.modules[__name__].__file__ ).parent
 
+# Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
+# returns True if Maya is available, False either
+def mayaInit () :
+    result = False
+    if not os.environ.has_key('MAYA_ENV_VERSION') :
+        print "Maya environement variables not (yet) set"        
+        # envMaya.setMayaEnv ()
+        # print "Maya environement variables reset"
+
+    # test that Maya actually is loaded
+    if sys.modules.has_key('maya.cmds') :
+        result = True
+    else :
+        try :
+            import maya.cmds as cmds #@UnresolvedImport
+            result = sys.modules.has_key('maya.cmds')
+        except :
+            if not sys.modules.has_key('maya.standalone') :
+                try :
+                    import maya.standalone #@UnresolvedImport
+                    maya.standalone.initialize(name="python")
+                    result = True
+                except :
+                    result = False
+
+    return result
 
 def toZip( directory, zipFile ):
 	"""Sample for storing directory to a ZipFile"""
