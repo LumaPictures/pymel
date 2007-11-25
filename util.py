@@ -24,6 +24,58 @@ def convertListArgs( args ):
 		return tuple(args[0])
 	return args	
 
+# Completely flatten a multi-list argument so that in can be passed as
+# a list of arguments to a command.
+# TODO : flatten hierarchy trees the same way, depth first or breadth first           
+def expandListArgs( *args, **kwargs ) :
+    """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
+    elements that will be inserted at its place in the returned arguments. A depth limit can be specified.
+        ex: expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
+        Result: ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
+        Result: ('a', 'b', 'c', 'd', 'e', 'f', 'g') """
+    
+    cargs = tuple()
+    l = kwargs.get('limit', None)
+    try :
+        l -= 1
+    except :
+        pass
+    cont = (l is None or l>=0)
+    for arg in args :
+        if isIterable(arg) and cont :
+            nargs = tuple(arg)
+            nkw = {'limit':l}
+            cargs += expandListArgs( *nargs, **nkw )
+        else :
+            cargs += (arg,)
+    return cargs
+
+# Same behavior as expandListArg but implemented as an Python iterator, for huge lists
+# it would be more memory efficient            
+def iterateListArgs( *args, **kwargs ) :
+    """ Iterates through all arguments list: recursively replaces any iterable argument in *args by a tuple of its
+    elements that will be inserted at its place in the returned arguments. A depth limit can be specified.
+        ex: expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
+        Result: ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
+        Result: ('a', 'b', 'c', 'd', 'e', 'f', 'g') """
+    
+    l = kwargs.get('limit', None)
+    try :
+        l -= 1
+    except :
+        pass
+    cont = (l is None or l>=0)
+    for arg in args :
+        if isIterable(arg) and cont :
+            nargs = tuple(arg)
+            nkw = {'limit':l}
+            for a in iterateListArgs( *nargs, **nkw ) :
+                yield a
+        else :
+            yield arg
+
 def listForNone( res ):
 	if res is None:
 		return []
