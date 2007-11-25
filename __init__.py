@@ -363,11 +363,18 @@ from env import *
 from ui import *
 #import ui
 
-import pymel.factories
+from trees import *
+
+# Olivier : Can have trouble loading a module by its absolute path since we are in pymel ?
+try :
+	import factories
+	factories.createPymelObjects()
+except :
+	import pymel.factories
 #pymel.factories.createClasses('commandsCreation', 'pymel', usePyNode=True)
 #pymel.factories.createClasses('commandsUI', 'pymel', usePyNode=False)
 #pymel.factories.createClasses('commandsCtx', 'pymel.ctx', usePyNode=False)
-pymel.factories.createPymelObjects()
+	pymel.factories.createPymelObjects()
 
 
 
