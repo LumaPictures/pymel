@@ -216,12 +216,31 @@ class Workspace(util.Singleton):
 	
 		>>> from pymel import *
 		>>> workspace.renderTypes['audio']
+		sound
 		>>> workspace.renderTypes.keys()
-		>>> workspace.renderTypes.items()
+		[u'3dPaintTextures', u'audio', u'clips', u'depth', u'images', u'iprImages', u'lights', u'mentalRay', u'particles', u'renderScenes', u'sourceImages', u'textures']
 		>>> 'DXF' in workspace.fileRules
+		True
 		>>> workspace.fileRules['DXF']
-		>>> workspace.fileRules['super']
-		>>> workspace.fileRules.get( 'super')
+		data
+		>>> workspace.fileRules['super'] = 'data'
+		>>> workspace.fileRules.get( 'foo', 'data' )
+		data
+		
+	the workspace dir can be confusing because it works by maintaining a current working directory that is persistent
+	between calls to the command.  In other words, it works much like the unix 'cd' command, or python's 'os.chdir'.
+	In order to clarify this distinction, the names of these flags have been changed in their class method counterparts
+	to resemble similar commands from the os module:
+	
+		-edit -dir		-->  chdir()
+		-query -dir		-->  getcwd()
+		-create			-->  mkdir()
+	
+	All paths are returned as an MPath class, which makes it easy to alter or join them on the fly.
+	
+		>>> workspace.path / workspace.fileRules['DXF']
+		/Users/chad/Documents/maya/projects/default/path
+		
 	"""
 	
  	objectTypes = WorkspaceEntryDict( 'objectType' )
@@ -250,10 +269,13 @@ class Workspace(util.Singleton):
 	@classmethod
 	def getName(self):
 		return cmds.workspace( q=1, act=1 )
+	name = property( getName )
+
 	@classmethod
 	def getPath(self):
 		return MPath(cmds.workspace( q=1, fn=1 ))
-		
+	path = property( getPath )
+	
 	@classmethod
 	def chdir(self, newdir):
 		return cmds.workspace( dir=newdir )
@@ -536,16 +558,44 @@ def listConnections(*args, **kwargs):
 Modifications:
 	- returns an empty list when the result is None
 	- When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
-		[['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']] 
+		[['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
+	- added sourceFirst keyword arg. when sourceFirst is true and connections is also true, 
+		the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
+		this puts the pairs in the order that disconnectAttr and connectAttr expect.
 	"""
-
-		
-	if kwargs.get('connections', False) or kwargs.get('c', False):	
+	def makePairs(l):
 		res = []
-		l = util.listForNone(cmds.listConnections( *args,  **kwargs ))
+		if l is None:
+			return res
+			
 		for i in range(0, len(l),2):
 			res.append( ( PyNode(l[i]), PyNode(l[i+1]) )  )
 		return res
+		
+	if kwargs.get('connections', kwargs.get('c', False) ) :	
+		
+				
+		if kwargs.pop('sourceFirst',False):
+			source = kwargs.get('source', kwargs.get('s', True ) )
+			dest = kwargs.get('destination', kwargs.get('d', True ) )
+
+			if source:				
+				if not dest:
+					return [ (s, d) for d, s in makePairs( cmds.listConnections( *args,  **kwargs ) ) ]
+				else:
+					res = []
+					kwargs.pop('destination', None)
+					kwargs['d'] = False					
+					res = [ (s, d) for d, s in makePairs(cmds.listConnections( *args,  **kwargs )) ]					
+
+					kwargs.pop('source', None)
+					kwargs['s'] = False
+					kwargs['d'] = True
+					return makePairs(cmds.listConnections( *args,  **kwargs )) + res
+					
+			# if dest passes through to normal method 
+			
+		return makePairs( cmds.listConnections( *args,  **kwargs ) )
 
 	else:
 		return map(PyNode, util.listForNone(cmds.listConnections( *args,  **kwargs )) )

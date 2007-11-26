@@ -306,23 +306,36 @@ reorganized the help/documentation functions into their own module
 renamed helpers module to util to avoid confusion with the new helpDoc module
 added documentation for all commands
 added Workspace class
-
+added Subdiv class
+added sourceFirst keyword arg for listConnections. when sourceFirst is true and connections is also true, 
+	the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
+	this puts the pairs in the order that disconnectAttr and connectAttr expect.
+	
  TODO: 
+	Factory:
 	- provide on option for creation command factory so that commands that always return a single object do not return a list
-	- for listConnections, always list in source-destination order?
 	- __init__ func for factory classes.  
 		- provide an alternate method of creation, which creates the named object if it does not exist.
 		- always returns a single object, not a list
-	- finish adding help to all of maya commands
-	- fix maya's directionalLight cmd - does not return the correct name of created light 
-			( ex. 'directionalLightShape1', even when name arg used )
+
+	To Debate:
+	- filter out self from listHistory command?
+	- remove 'M' from MVec, MMat, MReference, and MPath?
+	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
 	- new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
 		- this is particularly useful for colors
-	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
-	- filter out self from listHistory command?
-	- remove 'M' from MVec, MMat, MReference, and MPath?
-	- addAttr: allow python types to be passed to set -at type?
+	
+	- create Vector constants.  Red, White, Up, Down, etc
+	- add component classes for nurbs and subdiv
+	- fix maya's directionalLight cmd - does not return the correct name of created light 
+			( ex. 'directionalLightShape1', even when name arg used )
+	- addAttr: allow python types to be passed to set -at type
+			str 	--> string
+			float 	--> double
+			int		--> long
+			bool	--> bool
+			MVec	--> double3
 	- add sequence handling methods to MPath
 """
 
