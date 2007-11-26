@@ -1012,8 +1012,8 @@ class _BaseObj(unicode):
 	def __repr__(self):
 		return u"%s('%s')" % (self.__class__.__name__, self)
 
-	def __unicode__(self):
-		return u"%s" % self
+	#def __unicode__(self):
+	#	return u"%s" % self
 
 	def __getattr__(self, attr):
 		if attr.startswith('_'):

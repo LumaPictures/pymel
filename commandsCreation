@@ -34,7 +34,7 @@ joint Transform
 jointCluster Dag
 jointLattice Dag
 constrain Dag
-spaceLocator Dag
+spaceLocator Dag locator
 vortex Dag
 spotLight Dag
 pointLight Dag

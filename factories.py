@@ -182,7 +182,7 @@ def createPymelObjects():
 			cls = classFactory( func, clsName, moduleName, baseCls, args)
 					
 			module.__dict__[clsName] = cls
-			
+
 			if usePyNode:
 				#print funcName, "PyNode wrapping"
 				module.__dict__[funcName] = functionFactory( func, pymel.core.PyNode, moduleName, args )

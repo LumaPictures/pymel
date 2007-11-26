@@ -1,4 +1,4 @@
-import path, util, pymel, sys, os, inspect, pickle
+import path, util, sys, os, inspect, pickle
 from HTMLParser import HTMLParser
 try:
 	import maya.cmds as cmds
@@ -140,8 +140,8 @@ def buildPymelCmdsList():
 				try:
 					nodeName = buf[2]
 				except:
-					# no nodenNme means exclude from returnMap
-					nodeName = None
+					# no nodenName means exclude from returnMap
+					nodeName = funcName
 			except:
 				baseClsName = None
 				nodeName = None
@@ -173,7 +173,7 @@ def buildMayaCmdsArgList() :
 		file.close()
 	except :
 		print "Unable to open '"+newPath+"' for reading the list of Maya commands"
-		
+	
 	if not len(cmdlist) or not isinstance(cmdlist,list):		
 		pymelCmdsList = buildPymelCmdsList()
 		
@@ -196,7 +196,7 @@ def buildMayaCmdsArgList() :
 				cmdlist[i] = (k, args, pymelCmdsList[k] )		
 			except KeyError:
 				# context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
-				if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+				if k.startswith('ctx') or k.endswith('Ctx') or k.endswith('Context'):
 		 			cmdlist[i] = (k, args, (False, None, None) )
 				else:
 					cmdlist[i] = (k, args, () )
