@@ -960,7 +960,10 @@ class MReference(MPath):
 
 class _BaseObj(unicode):
 	def __repr__(self):
-		return "%s('%s')" % (self.__class__.__name__, self)
+		return u"%s('%s')" % (self.__class__.__name__, self)
+
+	def __unicode__(self):
+		return u"%s" % self
 
 	def __getattr__(self, attr):
 		if attr.startswith('_'):
@@ -2790,7 +2793,7 @@ class Set(Node):
 	
 	def intersection_update(self, elements):
 		self.clear()
-		sets( s.intersections(elements), add=self )
+		sets( self.intersections(elements), add=self )
 			
 	def issubset(self, s):
 		return sets( self, isMember=s)
