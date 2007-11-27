@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>mel2py.py</string>
+	<string>core.py</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -19,7 +19,7 @@
 					<key>filename</key>
 					<string>factories.py</string>
 					<key>lastUsed</key>
-					<date>2007-11-06T17:29:43Z</date>
+					<date>2007-11-26T21:32:16Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
@@ -57,9 +57,9 @@
 				</dict>
 				<dict>
 					<key>filename</key>
-					<string>helpers.py</string>
+					<string>helpDocs.py</string>
 					<key>lastUsed</key>
-					<date>2007-11-06T18:12:04Z</date>
+					<date>2007-11-26T21:38:24Z</date>
 				</dict>
 			</array>
 			<key>expanded</key>
@@ -74,9 +74,7 @@
 					<key>filename</key>
 					<string>mel2py.py</string>
 					<key>lastUsed</key>
-					<date>2007-11-06T20:15:39Z</date>
-					<key>selected</key>
-					<true/>
+					<date>2007-11-26T20:31:50Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
@@ -151,7 +149,9 @@
 			<key>filename</key>
 			<string>core.py</string>
 			<key>lastUsed</key>
-			<date>2007-11-06T20:15:36Z</date>
+			<date>2007-11-26T21:38:24Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
@@ -235,14 +235,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>3</integer>
+				<integer>2</integer>
 				<key>line</key>
-				<integer>1772</integer>
+				<integer>1015</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>1741</integer>
+			<integer>987</integer>
 		</dict>
 		<key>env.py</key>
 		<dict>
@@ -335,7 +335,7 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>29</integer>
+				<integer>24</integer>
 				<key>line</key>
 				<integer>7</integer>
 			</dict>
@@ -344,7 +344,7 @@
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
+			<integer>113</integer>
 			<key>selectFrom</key>
 			<dict>
 				<key>column</key>
@@ -355,40 +355,24 @@
 			<key>selectTo</key>
 			<dict>
 				<key>column</key>
-				<integer>29</integer>
+				<integer>24</integer>
 				<key>line</key>
 				<integer>7</integer>
 			</dict>
 		</dict>
-		<key>helpers.py</key>
+		<key>helpDocs.py</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
 				<integer>1</integer>
 				<key>line</key>
-				<integer>24</integer>
+				<integer>175</integer>
 			</dict>
-			<key>columnSelection</key>
-			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
-			<key>selectFrom</key>
-			<dict>
-				<key>column</key>
-				<integer>53</integer>
-				<key>line</key>
-				<integer>24</integer>
-			</dict>
-			<key>selectTo</key>
-			<dict>
-				<key>column</key>
-				<integer>1</integer>
-				<key>line</key>
-				<integer>24</integer>
-			</dict>
+			<integer>169</integer>
 		</dict>
 		<key>mayaDocsParser.py</key>
 		<dict>
@@ -541,9 +525,9 @@
 		<string>core.py</string>
 		<string>examples/example1.py</string>
 		<string>examples/example2.py</string>
-		<string>helpers.py</string>
 		<string>examples/pipeGen.py</string>
 		<string>factories.py</string>
+		<string>helpDocs.py</string>
 		<string>melparse.py</string>
 		<string>env.py</string>
 		<string>mel2py.py</string>
@@ -553,6 +537,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{2107, -68}, {1162, 1015}}</string>
+	<string>{{1785, 94}, {1162, 1015}}</string>
 </dict>
 </plist>

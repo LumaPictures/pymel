@@ -340,24 +340,6 @@ added sourceFirst keyword arg for listConnections. when sourceFirst is true and 
 """
 
 __version__ = 0.7
-
-# bring all commands into this namespace
-# eventually, we will use a technique like used in factories.ctxCommands to 
-# exclude certain (seldom-used) commands from the main namespace, and relegate them to
-# their own module
-'''
-try:
-	from maya.cmds import *
-	# cleanup commands that conflict with built-in functions
-	del(eval)
-	del(file)
-	del(filter)
-	del(help)
-	del(quit)
-
-except (ImportError,NameError):
-	print "pymel can only be used from within maya"
-'''
 	
 from core import *
 
