@@ -4,10 +4,19 @@ from path import *
 #from maya.cmds import encodeString
 
 # Singleton classes can be derived from this class
-class Singleton(object):
+# You can derive from other classes as long as Singleton comes first (and class doesn't override __new__
+# >>> class uniqueImmutableDict(Singleton, dict) :
+# >>> 	def __init__(self, value) :
+# >>>		# will only be initialied once
+# >>>		if not len(self):
+# >>>			super(uniqueDict, self).update(value)
+# >>>    	else :
+# >>>    		raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
+# >>>   # You'll want to override or get rid of dict herited set item methods
+class Singleton(object) :
 	def __new__(cls, *p, **k):
 		if not '_the_instance' in cls.__dict__:
-			cls._the_instance = object.__new__(cls)
+			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
 		
 #-----------------------------------------------
@@ -16,7 +25,7 @@ class Singleton(object):
 def pythonToMel(arg):
 	if isinstance(arg,basestring):
 		return '"%s"' % cmds.encodeString(arg)
-	elif util.isIterable(arg):
+	elif isIterable(arg):
 		return '{%s}' % ','.join( map( pythonToMel, arg) ) 
 	return unicode(arg)
 			
@@ -27,7 +36,7 @@ def isIterable( obj ):
 	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
 def convertListArgs( args ):
-	if len(args) == 1 and _isIterable(args[0]):
+	if len(args) == 1 and isIterable(args[0]):
 		return tuple(args[0])
 	return args	
 
