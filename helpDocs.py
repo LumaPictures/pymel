@@ -356,8 +356,9 @@ def makeDocs( mayaVersion='8.5' ):
 	return
 	
 	#---------------------------------------------------------------
-	
-	
+	# skipping all this for now
+	#---------------------------------------------------------------
+	'''
 	# copy over maya doc pages and link to them from the epydoc pages	
 	docdir = pymeldir / 'docs'
 	
@@ -390,15 +391,4 @@ def makeDocs( mayaVersion='8.5' ):
 	f = open( os.path.join(pymeldir, 'docs', htmlFile), 'w' ) 
 	f.writelines(lines)
 	f.close()
-	
-	
-
-#commandHelp = buildMayaCmdsArgList()
-
-'''
-try:	
-	commandHelp = eval( commandHelpFile.text() )
-	commandHelp = buildMayaCmdsArgList()
-except:
-	print "could not file dictionary of command help information at", commandHelpFile
-'''
+	'''

@@ -310,6 +310,9 @@ added Subdiv class
 added sourceFirst keyword arg for listConnections. when sourceFirst is true and connections is also true, 
 	the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
 	this puts the pairs in the order that disconnectAttr and connectAttr expect.
+fixed setAttr force flag to work for instances of builtin types as well, such as MPath
+added getSibling to Dag class
+fixed Attribute.exists() to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
 	
  TODO: 
 	Factory:
@@ -326,6 +329,8 @@ added sourceFirst keyword arg for listConnections. when sourceFirst is true and 
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
 		- this is particularly useful for colors
 	
+	
+	For Next Release:
 	- create Vector constants.  Red, White, Up, Down, etc
 	- add component classes for nurbs and subdiv
 	- fix maya's directionalLight cmd - does not return the correct name of created light 
@@ -336,6 +341,8 @@ added sourceFirst keyword arg for listConnections. when sourceFirst is true and 
 			int		--> long
 			bool	--> bool
 			MVec	--> double3
+	
+	For Future Release:
 	- add sequence handling methods to MPath
 """
 

@@ -14,7 +14,7 @@ import util, helpDocs
 # Function Factory
 #-----------------------
 
-def addDocs(inObj, newObj, flagDocs):
+def _addDocs(inObj, newObj, flagDocs):
 	try:
 		docstring = 'Flags:\n'
 		for flag in sorted(flagDocs.keys()):
@@ -53,7 +53,7 @@ def functionFactory( inFunc, returnFunc, moduleName='pymel', flagDocs=None ):
 	else:
 		def newFunc(*args, **kwargs): return apply(inFunc, args, kwargs)
 	
-	addDocs( inFunc, newFunc, flagDocs )
+	_addDocs( inFunc, newFunc, flagDocs )
 	newFunc.__name__ = inFunc.__name__
 
 	newFunc.__module__ = moduleName
@@ -150,6 +150,8 @@ def createPymelObjects():
 		if funcName in ['eval',	'file', 'filter', 'help', 'quit']:
 			continue
 	
+
+			
 		# func, args, (usePyNode, baseClsName, nodeName)
 		# args = dictionary of command flags and their data
 		# usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
@@ -158,17 +160,22 @@ def createPymelObjects():
 			
 		try:
 			func = getattr(pymel.core, funcName)
+			
 		except AttributeError:
 			try:
 				func = getattr(cmds,funcName)
+				
+				# if the function is not a builtin, add it to the pymel module.
+				# docstrings will be added below
+				if type(func) == types.FunctionType:
+					module.__dict__[funcName] = func
 			except NameError:
 				return {}
 			except AttributeError:
 				print "could not find maya command:", funcName
-		
+				
 		try:
 			usePyNode, baseClsName, nodeName = classData
-		#if baseClsName is not None:
 			try:
 				baseCls = getattr(module, baseClsName)
 			except (AttributeError, TypeError):
@@ -207,7 +214,7 @@ def createPymelObjects():
 			# add documentation string to existing function	
 			elif type(func) == types.FunctionType:
 				#print funcName, "adding Docs to core function"
-				addDocs( func, func, args )
+				_addDocs( func, func, args )
 					
 	pymel.core.returnMap.update(returnMap)
 	return returnMap

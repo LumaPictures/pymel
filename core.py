@@ -36,23 +36,6 @@ except ImportError:
 	import path
 	pathClass = path.path
 
-"""
-# failed automatic method
-import inspect
-
-this_module = __import__(__name__)
-builtin_module = __import__('__main__').__builtins__
-
-filter_objs= set( dir(builtin_module) )
-filter_objs.intersection_update( dir( this_module )  )
-filter_objs.difference_update( ['__name__', '__doc__'] )
-
-for x in filter_objs: 
-	func = getattr( this_module, x)
-	print x, type(func)
-	#del( func )
-"""
-
 "controls wheter functions that return dag nodes use the long name by default"
 longNames = False
 
@@ -457,13 +440,7 @@ Modifications:
 			if force:
 				attr = Attribute(attr)
 				try:
-					'''
-					datatype = {
-					 	str 	: 'stringArray',
-					 	int 	: 'Int32Array',
-						float : 'doubleArray'
-					}[ type(args[0][0]) ]
-					'''
+
 					if isinstance( args[0][0], basestring ):
 						datatype = 'stringArray'
 					elif isinstance( args[0][0], int ):
@@ -491,13 +468,13 @@ Modifications:
 				if not datatype:
 					#print "Getting datatype", attr
 					datatype = cmds.addAttr( attr, q=1, dataType=1)
-
+				
 				# set datatype for arrays
 				# we could do this for all, but i'm uncertain that it needs to be 
 				# done and it might cause more problems
 				if datatype.endswith('Array'):
 					kwargs['type'] = datatype
-
+			
 			# string arrays need the first arg to be the length of the array being set
 			if kwargs.get('type',None) == 'stringArray':
 				args = tuple( [len(args[0])] + args[0] )
@@ -506,19 +483,19 @@ Modifications:
 		
 		else:
 			if force:
-				attr = Attribute(attr)
-				try:
-					datatype = {
-					 	str 	: 'string',
-					 	int 	: 'long',
-						float 	: 'double',
-						bool	: 'bool'
-					}[ type(args[0]) ]
-					if not attr.exists():
-						attr.add( at=datatype ) 
-				except KeyError:
-					"pymel.setAttr: %s is not a supported type" % type(args[0])
-				
+				attr = Attribute(attr)					
+				if not attr.exists():
+					if isinstance( args[0], basestring ):
+						attr.add( dt='string' ) 
+					elif isinstance( args[0], int ):
+						attr.add( at='long' ) 
+					elif isinstance( args[0], float ):
+						attr.add( at='double' ) 
+					elif isinstance( args[0], bool ):
+						attr.add( at='bool' ) 
+					else:
+						raise TypeError, "pymel.setAttr: %s is not a supported type" % type(args[0])
+									
 			if isinstance(args[0],basestring):
 				kwargs['type'] = 'string'
 				kwargs.pop('t', None )
@@ -655,8 +632,27 @@ Modifications:
 		
 		# faster way?
 		return map( PyNode, filter( lambda x: x not in roNodes, allNodes ) )
+	
+	# this has been removed because the method below
+	# is 3x faster because it gets the node type along with the node list
+	# unfortunately, it's still about 2x slower than cmds.ls
+	#return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+	
+	if kwargs.get( 'showType', kwargs.get('st', False) ):
+		tmp = util.listForNone(cmds.ls(*args, **kwargs))
+		res = []
+		for i in range(0,len(tmp),2):
+			res.append( PyNode( tmp[i], tmp[i+1] ) )
+			res.append( tmp[i+1] )
+		return res	
 		
-	return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+
+	kwargs['showType'] = True
+	tmp = util.listForNone(cmds.ls(*args, **kwargs))
+	res = []
+	for i in range(0,len(tmp),2):
+		res.append( PyNode( tmp[i], tmp[i+1] ) )
+	return res
 
 def lsThroughFilter( *args, **kwargs):
 	"""
@@ -673,8 +669,9 @@ def listTransforms( *args, **kwargs ):
 Modifications:
 	- returns wrapped classes
 	"""
-	return listRelatives(  ls(*args, **kwargs), p=1, path=1 )
 
+	res = cmds.listRelatives(  cmds.ls(*args, **kwargs), p=1, path=1 )
+	return map( PyNode, res, ['transform']*len(res) )
 
 def duplicate( *args, **kwargs ):
 	"""
@@ -1537,8 +1534,11 @@ class Attribute(_BaseObj):
 	
 	def exists(self):
 		"attributeQuery -exists"
-		return cmds.attributeQuery(self.plug(), node=self.node(), exists=True)	
-		
+		try:
+			return cmds.attributeQuery(self.plug(), node=self.node(), exists=True)	
+		except TypeError:
+			return False
+			
 	def longName(self):
 		"attributeQuery -longName"
 		return cmds.attributeQuery(self.plug(), node=self.node(), longName=True)
@@ -2217,7 +2217,14 @@ class Dag(Node):
 		kwargs.pop('c',None)
 
 		return map( PyNode, listRelatives( self, **kwargs) )
-	
+		
+	def getSiblings(self, **kwargs ):
+		#pass
+		try:
+			return [ x for x in self.getParent().getChildren() if x != self]
+		except:
+			return []
+				
 	def listRelatives(self, **kwargs ):
 		return map( PyNode, listRelatives( self, **kwargs) )
 		
@@ -2287,7 +2294,7 @@ class Transform(Dag):
 						return childAttr
 				except AttributeError:
 					return childAttr
-			except TypeError:
+			except (AttributeError,TypeError):
 				pass
 					
 		return at
@@ -2877,9 +2884,11 @@ class Set(Node):
 #-----------------------------------------------
 #  Commands for Creating pymel Objects
 #-----------------------------------------------
-def PyNode(strObj, defaultCls=Node):
+def PyNode(strObj, type=None):
 	"""Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
 	for your object."""
+	
+	
 	try:
 		if '.' in strObj:
 			return Attribute(strObj)
@@ -2892,7 +2901,7 @@ def PyNode(strObj, defaultCls=Node):
 	#if cmds.ls( strObj, dag=True):
 	#		return Dag(strObj)
 	try:	
-		return PyDag(strObj)
+		return PyDag(strObj,type)
 	except: pass
 	
 	if cmds.ls( strObj, sets=True):
@@ -2930,12 +2939,14 @@ returnMap = {
 }
 #returnMap.update( creationReturnMap )
 	
-def PyDag( strObj ):
+def PyDag( strObj, type=None ):
 	"""Casts a string to a pymel dag class. Use this function if you are unsure which dag class is the right one to use
 	for your object."""
 	#print returnMap
-
-	try: return returnMap[ cmds.nodeType( strObj ) ](strObj)
+	if type is None:
+		type = cmds.nodeType( strObj )
+		
+	try: return returnMap[ type ](strObj)
 	except KeyError:
 		if cmds.ls( strObj, dag=True):
 			return Dag(strObj)
