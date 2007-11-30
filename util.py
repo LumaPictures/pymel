@@ -46,10 +46,11 @@ def convertListArgs( args ):
 def expandListArgs( *args, **kwargs ) :
     """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
     elements that will be inserted at its place in the returned arguments. A depth limit can be specified.
-        ex: expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
-        Result: ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
-        expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
-        Result: ('a', 'b', 'c', 'd', 'e', 'f', 'g') """
+        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
+        >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
+        >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
+        Note that on a pymel tree it's the equivalent of doing a preorder traversal : [k for k in iter(theTree)]"""
     
     cargs = tuple()
     l = kwargs.get('limit', None)
@@ -72,10 +73,11 @@ def expandListArgs( *args, **kwargs ) :
 def iterateListArgs( *args, **kwargs ) :
     """ Iterates through all arguments list: recursively replaces any iterable argument in *args by a tuple of its
     elements that will be inserted at its place in the returned arguments. A depth limit can be specified.
-        ex: expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
-        Result: ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
-        expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
-        Result: ('a', 'b', 'c', 'd', 'e', 'f', 'g') """
+        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
+        >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
+        >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
+        Note that on a pymel tree it's the equivalent the default preorder traversal iterator: iter(theTree)"""
     
     l = kwargs.get('limit', None)
     try :
@@ -143,7 +145,7 @@ def mayaInit () :
                 pass
         try :
             from maya.cmds import about    
-            reload(maya.cmds) #@UnresolvedImpor
+            reload(maya.cmds) #@UnresolvedImport
             version = eval("about(version=True)")
             result = version > 0
         except :
