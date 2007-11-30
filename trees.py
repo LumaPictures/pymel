@@ -547,7 +547,7 @@ class BaseTree(object):
                 return u"(%s)" % repr(self.cargo)
             else:
                 temp = [subtree.__unicode__() for subtree in self.childs]
-                return u"(%s, %s)" % (unicode(self.cargo), u", ".join(temp))
+                return u"(%s, %s)" % (self.cargo, u", ".join(temp))
         else:
             return u"()"
 
@@ -672,7 +672,7 @@ class Tree(BaseTree):
     >>> print theTree == theOtherTree
     To build a tree of sequences:
     >>> seqTree = Tree((1, 2, 3), Tree((4, 5, 6)), Tree((7, 8, 9)))
-    >>> seqOtherTree = Tree( (1,2,3), ((4, 5, 6),), ((7, 8, 9),) )
+    >>> seqOtherTree = Tree( (1,2,3), ((4, 5, 6),), ((7, 8, 9),), )
     >>> seqTree == seqOtherTree
     >>> [k for k in seqTree]
     >>> [(1, 2, 3), (4, 5, 6), (7, 8, 9)]
@@ -682,6 +682,8 @@ class Tree(BaseTree):
         """The initializer."""
         if args:
             # modified to allow initialisation from nested lists or tuples
+            if len(args)==1 and util.isIterable(args[0]) :
+                arg = tuple(args[0])
             self.__head = [args[0]]
             for arg in args[1:] :
                 if not isinstance(arg, BaseTree) :
@@ -790,6 +792,8 @@ class FrozenTree(BaseTree):
         """The initializer"""
         if args:
             # modified to allow initialisation from a nested list call on *args with args = theList            
+            if len(args)==1 and util.isIterable(args[0]) :
+                arg = tuple(args[0])
             self.__head = (args[0],)
             for arg in args[1:] :
                 if not isinstance(arg, BaseTree) :
@@ -863,7 +867,7 @@ def applyOnCargo (inFunc) :
 # Checks all elements of a list against eah other with a 'paternity test' :
 # Will build a tree from a list and a "isChild" comparison fonction
 # such as isChild(c, p) returns true if c is a direct child of p
-def treeFromChildLink (isExactChildFn, value):
+def treeFromChildLink (isExactChildFn, *args):
     """
     This function will build a tree from the provided sequence and a comparison function in the form:
         cmp(a,b): returns True if a is a direct child of b, False else
@@ -878,17 +882,17 @@ def treeFromChildLink (isExactChildFn, value):
     >>>     return s1.startswith(s2) 
     >>> forest = treeFromChildLink (isChild, lst)    
     """
-    deq = deque(map(Tree,value))
+    deq = deque(map(Tree, args))
     lst = []
-    #it = 0
+    it = 0
     while deq:
-        #it+=1
-        #print "iteration %i deq= %s, lst= %s"% (it, deq, lst)
+        it+=1
+        # print "iteration %i deq= %s, lst= %s"% (it, deq, lst)
         c = deq.popleft()
         hasParent = False        
         for p in list(deq)+lst :
             for pr in filterIter(ftools.partial(applyOnCargo(isExactChildFn), c), p.subtree()) :
-                #print "%s is child of %s" % (c, pr)                        
+                # print "%s is child of %s" % (c, pr)                        
                 if not hasParent :
                     pr.graft(c)
                     hasParent = True
@@ -897,8 +901,10 @@ def treeFromChildLink (isExactChildFn, value):
                     raise ValueError, "A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: '%s'" % isExactChildFn.__name__
         # If it's a root we move it to final list
         if not hasParent :
+            # print "%s has not parent, it goes to the list as root" % str(c)
             lst.append(c)
-                
+    
+    # print "final list %s" % str(lst)
     if len(lst) == 1 :
         return lst[0]
     else :
