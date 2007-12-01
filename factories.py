@@ -31,12 +31,54 @@ def _addDocs(inObj, newObj, flagDocs):
 			
 	except KeyError:
 		print "could not find help docs for", inObj
+
+def _getCommandFlags(flagDocs):
+	commandFlags = []
+	for flag, data in flagDocs.items():
+		if 'command' in flag.lower():
+			commandFlags += [flag, data['shortname']]
+	return commandFlags
 		
 def functionFactory( inFunc, returnFunc, moduleName='pymel', flagDocs=None ):
 	"""create a new function, apply the given returnFunc to the results (if any), 
 	and add to the module given by 'moduleName'.  Use pre-parsed command documentation
 	to add to __doc__ strings for the command."""
-	if returnFunc:
+	
+	
+	commandFlags = _getCommandFlags(flagDocs)
+	if commandFlags:
+		#print inFunc.__name__, commandFlags		
+		def newFunc( *args, **kwargs):
+			# wrap ui callback commands to ensure that the booleans True and False are returned instead of strings u'true', and u'false'
+			for key in commandFlags:
+				try:
+					cb = kwargs[ key ]
+					if hasattr(cb, '__call__'):
+						def callback(*args):
+							newargs = []
+							for arg in args:
+								if arg == 'false': arg = False
+								elif arg == 'true': arg = True
+								newargs.append(arg)
+							newargs = tuple(newargs)
+							return cb( *newargs )
+						kwargs[ key ] = callback
+				except KeyError: pass
+				
+			res = apply( inFunc, args, kwargs )
+			if 'query' not in kwargs and 'q' not in kwargs: # and 'edit' not in kwargs and 'e' not in kwargs:
+				if isinstance(res, list):				
+					try:
+						res = map( returnFunc, res )
+					except: pass
+				
+				elif res:
+					try:
+						res = returnFunc( res )
+					except: pass
+			return res
+	
+	elif returnFunc:
 		def newFunc( *args, **kwargs):
 			res = apply( inFunc, args, kwargs )
 			if 'query' not in kwargs and 'q' not in kwargs: # and 'edit' not in kwargs and 'e' not in kwargs:
@@ -44,7 +86,7 @@ def functionFactory( inFunc, returnFunc, moduleName='pymel', flagDocs=None ):
 					try:
 						res = map( returnFunc, res )
 					except: pass
-
+				
 				elif res:
 					try:
 						res = returnFunc( res )
@@ -111,7 +153,10 @@ def classFactory( inFunc, clsName, moduleName='pymel', baseCls=object, flagDocs=
 		cls = type( clsName, (baseCls,), {} )
 	#cmdFile = path.path( util.moduleDir() / 'commands' / inFunc.__name__ )
 	try:
-		for flag, flagInfo in flagDocs.items():			
+		for flag, flagInfo in flagDocs.items():
+			#if 'command' in flag.lower():
+			#	print inFunc.__name__, flag
+				 		
 			if flag in ['query', 'edit']:
 				continue
 			modes = flagInfo['modes']

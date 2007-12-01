@@ -638,6 +638,10 @@ Modifications:
 	# unfortunately, it's still about 2x slower than cmds.ls
 	#return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
 	
+	if kwargs.get( 'readOnly', kwargs.get('ro', False) ):
+		# when readOnly is provided showType is ignored
+		return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+		
 	if kwargs.get( 'showType', kwargs.get('st', False) ):
 		tmp = util.listForNone(cmds.ls(*args, **kwargs))
 		res = []
@@ -646,14 +650,49 @@ Modifications:
 			res.append( tmp[i+1] )
 		return res	
 		
-
 	kwargs['showType'] = True
 	tmp = util.listForNone(cmds.ls(*args, **kwargs))
 	res = []
 	for i in range(0,len(tmp),2):
 		res.append( PyNode( tmp[i], tmp[i+1] ) )
+	
 	return res
-
+	
+	'''
+	showType = kwargs.get( 'showType', kwargs.get('st', False) )
+	kwargs['showType'] = True
+	kwargs.pop('st',None)	
+	res = []
+	if kwargs.get( 'readOnly', kwargs.get('ro', False) ):
+		
+		ro = cmds.ls(*args, **kwargs) # showType flag will be ignored
+		
+		# this was unbelievably slow
+		
+		kwargs.pop('readOnly',None)
+		kwargs.pop('ro',None)
+		all = cmds.ls(*args, **kwargs)
+		for node in ro:
+			try:	
+				idx = all.index(node)
+				all.pop(idx)
+				typ = all.pop(idx+1)
+				res.append( PyNode( node, typ ) ) 
+				if showType:
+					res.append( typ )
+			except ValueError: pass
+		return res
+	else:
+		tmp = util.listForNone(cmds.ls(*args, **kwargs))
+		for i in range(0,len(tmp),2):
+			typ = tmp[i+1]
+			res.append( PyNode( tmp[i],  ) )	
+			if showType:
+				res.append( typ )
+		
+		return res
+	'''
+	
 def lsThroughFilter( *args, **kwargs):
 	"""
 Modifications:
@@ -930,10 +969,10 @@ class MReference(MPath):
 		if path:
 			return create(path)
 		if namespace:
-			for path in listReferences():
+			for path in map( MReference, cmds.file( q=1, reference=1) ):
 				 if path.namespace == namespace:
 					return create(path)
-			raise ValueError, "Namespace does not match any found in scene"
+			raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
 		if refnode:
 			path = cmds.referenceQuery( refnode, filename=1 )
 			return create(path)
@@ -1024,7 +1063,50 @@ class _BaseObj(unicode):
 		if attr.startswith('_'):
 			return setAttr( '%s.%s' % (self, attr[1:]), val )			
 		return setAttr( '%s.%s' % (self, attr), val )
-					
+
+	def stripNamespace(self, levels=0):
+		"""Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
+		The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
+		The default is 0 which will remove all namespaces."""
+		
+		nodes = []
+		for x in self.split('|'):
+			y = x.split('.')
+			z = y[0].split(':')
+			if levels:
+				y[0] = ':'.join( z[min(len(z)-1,levels):] )
+	
+			else:
+				y[0] = z[-1]
+			nodes.append( '.'.join( y ) )
+		return self.__class__( '|'.join( nodes) )
+
+	def swapNamespace(self, prefix):
+		"""Returns a new instance of the object with its current namespace replaced with the provided one.  
+		The calling instance is unaffected."""	
+		return Node.addPrefix( self.stripNamespace(), prefix+':' )
+			
+	def namespaceList(self):
+		"""Useful for cascading references.  Returns all of the namespaces of the calling object as a list"""
+		return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
+			
+	def namespace(self):
+		"""Returns the namespace of the object with trailing colon included"""
+		return ':'.join(self.namespaceList()) + ':'
+		
+	def addPrefix(self, prefix):
+		'addPrefixToName'
+		name = self
+		leadingSlash = False
+		if name.startswith('|'):
+			name = name[1:]
+			leadingSlash = True
+		name = self.__class__( '|'.join( map( lambda x: prefix+x, name.split('|') ) ) )
+		if leadingSlash:
+			name = '|' + name
+		return self.__class__( name )
+				
+						
 	def attr(self, attr):
 		"""access to attribute of a node. returns an instance of the Attribute class for the 
 		given attribute."""
@@ -1748,35 +1830,7 @@ class Node( _BaseObj ):
 		"""for compatibility with Attribute class"""
 		return self
 		
-	def stripNamespace(self):
-		"""Returns a new instance of the object with its namespace removed.  The calling instance is unaffected."""
-		return self.__class__( '|'.join( map( lambda x: x.split(':')[-1], self.split('|') ) )  )
 
-	def swapNamespace(self, prefix):
-		"""Returns a new instance of the object with its current namespace replaced with the provided one.  
-		The calling instance is unaffected."""	
-		return Node.addPrefix( self.stripNamespace(), prefix+':' )
-			
-	def namespaceList(self):
-		"""Useful for cascading references.  Returns all of the namespaces of the calling object as a list""" 
-		return self.split('|')[-1].split(':')[:-1]
-			
-	def namespace(self):
-		"""Returns the namespace of the object with trailing colon included"""
-		return ':'.join(self.namespaceList()) + ':'
-		
-	def addPrefix(self, prefix):
-		'addPrefixToName'
-		name = self
-		leadingSlash = False
-		if name.startswith('|'):
-			name = name[1:]
-			leadingSlash = True
-		name = self.__class__( '|'.join( map( lambda x: prefix+x, name.split('|') ) ) )
-		if leadingSlash:
-			name = '|' + name
-		return self.__class__( name )
-				
 	#--------------------------
 	#	Modification
 	#--------------------------
@@ -2216,7 +2270,7 @@ class Dag(Node):
 		kwargs['children'] = True
 		kwargs.pop('c',None)
 
-		return map( PyNode, listRelatives( self, **kwargs) )
+		return listRelatives( self, **kwargs)
 		
 	def getSiblings(self, **kwargs ):
 		#pass
@@ -2226,7 +2280,7 @@ class Dag(Node):
 			return []
 				
 	def listRelatives(self, **kwargs ):
-		return map( PyNode, listRelatives( self, **kwargs) )
+		return listRelatives( self, **kwargs)
 		
 	def longName(self):
 		'longNameOf'
@@ -2321,8 +2375,7 @@ class Transform(Dag):
 	def getShape( self, **kwargs ):
 		kwargs['shapes'] = True
 		try:
-			return PyDag( self.getChildren( **kwargs )[0] )
-			
+			return self.getChildren( **kwargs )[0]			
 		except:
 			pass
 				
@@ -2450,11 +2503,31 @@ class Transform(Dag):
 		return MVec( cmds.xform( self, **kwargs ) )
 								
 	def getMatrix( self, **kwargs ):
-		"""xform -scale"""
+		"""xform -matrix"""
 	
 		kwargs['matrix'] = True
 		kwargs['query'] = True
 		return MMat( cmds.xform( self, **kwargs ) )
+			
+	def getBoundingBox(self, invisible=False):
+		"""xform -boundingBox and xform-boundingBoxInvisible
+		
+		returns a tuple with two MVecs: ( bbmin, bbmax )
+		"""
+		kwargs = {'query' : True }	
+		if invisible:
+			kwargs['boundingBoxInvisible'] = True
+		else:
+			kwargs['boundingBox'] = True
+					
+		res = cmds.xform( self, **kwargs )
+		return ( MVec(res[:3]), MVec(res[3:]) )
+	
+	def getBoundingBoxMin(self, invisible=False):
+		return self.getBoundingBox(invisible)[0]
+		
+	def getBoundingBoxMax(self, invisible=False):
+		return self.getBoundingBox(invisible)[1]	
 			
 	def centerPivots(self):
 		"""xform -centerPivots"""
@@ -2466,6 +2539,7 @@ class Transform(Dag):
 		kwargs['centerPivots'] = True
 		cmds.xform( self, **kwargs )		
 
+	
 #class Joint(Transform):
 #	pass
 
@@ -2888,7 +2962,7 @@ def PyNode(strObj, type=None):
 	"""Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
 	for your object."""
 	
-	
+
 	try:
 		if '.' in strObj:
 			return Attribute(strObj)

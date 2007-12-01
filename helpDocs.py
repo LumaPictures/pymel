@@ -1,4 +1,4 @@
-import path, util, sys, os, inspect, pickle
+import path, util, sys, os, inspect, pickle,re
 from HTMLParser import HTMLParser
 try:
 	import maya.cmds as cmds
@@ -156,8 +156,12 @@ def buildPymelCmdsList():
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
 	try:
-		# split removes extra version info which should not affect the list of commands ( x64, Service Pack 1, etc )
-		ver = cmds.about(version=True).split()[0] #@UndefinedVariable
+		# removes extra version info which should not affect the list of commands ( x64, Service Pack 1, P04 )
+		try:
+			ver = re.match( "([\d.]+)", cmds.about( version=1 )).group(1)#@UndefinedVariable
+		except AttributeError:
+			ver = cmds.about(version=True).split()[0] 
+		
 	except (AttributeError, NameError):
 		return []
 		

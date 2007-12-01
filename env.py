@@ -62,11 +62,10 @@ class OptionVarDict(Singleton):
 	def __setitem__(self,key,val):
 		if isinstance( val, basestring):
 			return cmds.optionVar( stringValue=[key,val] )
-		if isinstance( val, int):
-			return cmds.optionVar( intValue=[key,val] )
+		if isinstance( val, int) or isinstance( val, bool):
+			return cmds.optionVar( intValue=[key,int(val)] )
 		if isinstance( val, float):
 			return cmds.optionVar( floatValue=[key,val] )
-
 		if isinstance( val, list ):
 			if len(val) == 0:
 				return cmds.optionVar( clearArray=key )

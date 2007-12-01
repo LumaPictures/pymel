@@ -253,15 +253,16 @@ added Matrix class and revamped vector module
 added Transform class with xform methods, and which delegates to child attributes when necessary
 added MScene class for quick wrapping of pre-existing objects
 added Attribute.remove() method for multi instance attributes
-menus were missing from the pymel ui classes. added these in. 
+added menu commands to the pymel ui classes
 added rwaExport example
 -0.3-	
-added duplicate and instance
-added listTransforms
+added duplicate command
+added instance command
+added listTransforms command
 added Particle class
-added hide and show methods for Transform class
-setAttr command now handles stringArray datatypes more intelligently, and auto-sets datatype for arrays
-added force arg to setAttr command
+added Transform.hide() and Transform.show()
+enhanced setAttr to handle stringArray datatypes more intelligently, and auto-set datatype for arrays
+added force arg to setAttr which causes non-existent attrs to be added before they are set
 -0.4-		
 added a handful of classes which are automatically generated from pre-processed maya docs
 better documentaion, added docstring to many functions derived from the mel help command
@@ -269,37 +270,35 @@ reorganized attribute limits: getMin, getMax, getSoftMin, getSoftMax, getRange, 
 -0.5.0-
 added __eq__ and __ne__ methods for Dag class, which ensure that we compare the longnames of the node. (aka 'isSameObject' macro )
 all node classes now inherit from unicode instead of str. this benefits our friends overseas and is generally more maya-compatible.
-fixed a major inf. loop bug that was happening in Maya2008 when accessing attributes - related to str vs. unicode  (thanks John)
+fixed bug which caused an infinite loop in Maya2008 when accessing attributes - related to str vs. unicode  (thanks John)
 began merging pymel and maya docs to create a more thorough, hybrid solution.
-Huge Addition!: attributes can now be set with the equal sign (=) in addition to using the set() method
+added assignment operator for attributes: they can now be set with the equal sign (=) in addition to using the set() method
 listReferences now returns a dictionary of { namespace : reference }
 -0.5.1-
-changed ui commands over to work more like the creation commands, with command-class pairs
+changed ui commands to work more like the creation commands, with command-class pairs
 more documentation
 improved example code
 -0.6.0-
-changed setAttr command so that when using the force flag with pymel Node classes, the type is detected properly
-MEL2PY
+fixed setAttr force flag so that when using the force flag with pymel Node classes, the type is detected properly
 fixed a bug in mel2py introduced in 0.5.0 when i changed from str to unicode
 mel2py now supports block quotes which are terminated by the end of file instead of with '*/'
+mel2py now supports on and off keywords
 fixed a bug in mel2py when casting expressions to a different datatype  ex.  $var = string(5-2)
-added on and off keywords
-fixed translation of commands like optionVar where the query flag expects a value other than a boolean
-fixed translation of reversed for loops
-ENV
+fixed mel2py's translation of commands like optionVar where the query flag expects a value other than a boolean
+fixed mel2py's translation of reversed for loops
 fixed a bug in isIterable/convertListArgs which was incorrectly detecting Node classes as arrays (thanks Olivier)
 fixed a bug in Env class where maxTime property was incorrectly created as minTime
 converted Env class and OptionVarDict class to singleton classes
-ATTRIBUTES
 fixed a bug with cascading nodes (transform->shape->history) when getting attributes that don't exist
-fixed bug in setAttr pertaining to stringArrays
+fixed a bug in setAttr pertaining to stringArrays
 fixed a bug in disconnectAttr
 added and removed an iterator for multi-attributes to the Attribute class (this could confuse isIterable. need to think this over)
-added the item method for getting the item number of a multi attribute
-added attrInfo method
+added Attribute.item() for getting the item number of a multi attribute
+added Attribute.attrInfo()
 modified listAttr() method to return Attribute classes
 -0.7-
-added lsThruFilter, shadingNode, and corrected createNode so that it does not generate a class since it has no edit flags
+added commands lsThruFilter, shadingNode
+fixed createNode so that it does not generate a class since it has no edit flags
 changed Dag.getParent to Dag.firstParent, and changed Dag.getParent2 to Dag.getParent
 added Component class for verts, edges, faces, etc
 reorganized the help/documentation functions into their own module
@@ -307,12 +306,18 @@ renamed helpers module to util to avoid confusion with the new helpDoc module
 added documentation for all commands
 added Workspace class
 added Subdiv class
-added sourceFirst keyword arg for listConnections. when sourceFirst is true and connections is also true, 
+added sourceFirst keyword arg for listConnections. when sourceFirst is true and connections is also true,
 	the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
 	this puts the pairs in the order that disconnectAttr and connectAttr expect.
 fixed setAttr force flag to work for instances of builtin types as well, such as MPath
-added getSibling to Dag class
+added getSiblings to Dag class
 fixed Attribute.exists() to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
+fixed a bug in Dag.namespaceList
+added a levels keyword to Dag.stripNamespace
+fixed a severe design oversight in all ui callback commands. 
+	the callbacks were being passed u'true' and u'false' instead of python booleans. (this makes me doubt autodesk more than ever)
+added Transform.getBoundingBox()
+fixed a bug in Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
 	
  TODO: 
 	Factory:
@@ -333,6 +338,7 @@ fixed Attribute.exists() to not raise an error when the node does not exist, ins
 	For Next Release:
 	- create Vector constants.  Red, White, Up, Down, etc
 	- add component classes for nurbs and subdiv
+	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
 	- fix maya's directionalLight cmd - does not return the correct name of created light 
 			( ex. 'directionalLightShape1', even when name arg used )
 	- addAttr: allow python types to be passed to set -at type

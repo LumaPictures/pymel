@@ -153,6 +153,13 @@ def mayaInit () :
 
     return result
 
+def timer( command='pass', number=10, setup='import pymel' ):
+	import timeit
+	t = timeit.Timer(command, setup)
+	time = t.timeit(number=number)
+	print "command took %.2f sec to execute" % time
+	return time
+	
 def toZip( directory, zipFile ):
 	"""Sample for storing directory to a ZipFile"""
 	import zipfile
