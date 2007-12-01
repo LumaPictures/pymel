@@ -1,15 +1,15 @@
 """
     An exemple of use of the Tree library, returns the arguments, or the current selection
     if nothing is provided :
-    Open maya file 
-    select('FBX_Hips', hierarchy=True)
-lst = ls(selection=True)
-print lst
-tree = asHierarchy (*lst)
-print tree
-print repr(tree)
-lst
-[k for k in tree]
+    Open maya file skel.ma then :
+    >>> select('FBX_Hips', hierarchy=True)
+    >>> lst = ls(selection=True)
+    >>> print lst
+    >>> tree = asHierarchy (*lst)
+    >>> print tree
+    >>> print repr(tree)
+    >>> lst
+    >>> [k for k in tree]
 """
 
 def isExactChildFn(c, p) :
