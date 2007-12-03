@@ -18,7 +18,36 @@ class Singleton(object) :
 		if not '_the_instance' in cls.__dict__:
 			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
-		
+
+class psuedoUnicode(object):
+	"""to reduce the chance of clashes between methods and attributes, _BaseObj could inherit this class, which
+	behaves exactly like a unicode and yet has none of its public methods."""
+	
+	def __init__( self, name ):
+		self.__name = unicode(name)
+	def __unicode__( self ):
+		return self.__name
+	def __repr__(self):
+		return "%s('%s')" % (self.__class__.__name__, self)
+	def __str__( self ):
+		return unicode.__str__(self.__name)
+	def __hash__(self):
+		return unicode.__hash__( self.__name )
+	def __lt__(self, other):
+		return unicode.__lt__(self.__name, other)		
+	def __le__(self, other):
+		return unicode.__le__(self.__name, other)	
+	def __eq__(self, other):
+		return unicode.__eq__(self.__name, other)	
+	def __ne__(self, other):
+		return unicode.__ne__(self.__name, other)	
+	def __gt__(self, other):
+		return unicode.__gt__(self.__name, other)	
+	def __ge__(self, other):
+		return unicode.__ge__(self.__name, other)
+	def __nonzero__(self):
+		return unicode.__nonzero__(self.__name)
+
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------

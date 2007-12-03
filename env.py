@@ -37,18 +37,21 @@ class OptionVarList(list):
 
 class OptionVarDict(Singleton):
 	""" 
-	A singleton dictionary-like class for modifying optionVars:
+	A singleton dictionary-like class for accessing and modifying optionVars:
 	 
 		>>> from pymel import *
 		>>> env.optionVars['test'] = 'dooder'
-		>>> print optionVars['test'] 
+		>>> print env.optionVars['test'] 
 		u'dooder'
-		>>> env.optionVars['test'] = [1,24,7]
-		>>> print env.optionVars['test']
-		[1,24,7]
-		>>> env.optionVars['test'].append( 9 )
-		>>> print env.optionVar['test'] 
+		
+		>>> if 'numbers' not in env.optionVars:
+		>>> 	env.optionVars['numbers'] = [1,24,7]
+		>>> env.optionVars['numbers'].append( 9 )
+		>>> numArray = env.optionVar.pop('numbers') 
+		>>> print numArray
 		[1,24,7,9]
+		>>> env.optionVar.has_key('numbers') # previous pop removed the key
+		False
 	"""
 
 	def __contains__(self, key):

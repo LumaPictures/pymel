@@ -828,7 +828,7 @@ Maya Bug Fix:
 def aimConstraint(*args, **kwargs):
 	"""
 Maya Bug Fix:
-	- when queried, upVector, worldUpVector, and aimVector returned the name of the aimConstraint instead of the desired values
+	- when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
 	"""
 	if 'query' in kwargs or 'q' in kwargs:
 		
@@ -853,7 +853,7 @@ Maya Bug Fix:
 def normalConstraint(*args, **kwargs):
 	"""
 Maya Bug Fix:
-	- when queried, upVector, worldUpVector, and aimVector return the name of the aimConstraint instead of the desired values
+	- when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
 	"""
 	if 'query' in kwargs or 'q' in kwargs:
 		
@@ -1318,13 +1318,16 @@ class Attribute(_BaseObj):
 	
 	Accessing Attributes
 	--------------------
-	Most of the time, you will access instances of the Attribute class via one of the Node classes. 
+	Most of the time, you will access instances of the Attribute class via one of the Node classes. This example demonstrates
+	that the Attribute class like the L{Node} classes are based on a unicode string, and so when printed will 
 	
 		>>> s = polySphere()[0]
-		>>> print s.visibility, type( s.visibility )
-		pSphere1.visibility <class 'pymel.core.Attribute'>
-		>>> print s.v      # shortnames also work	
-		pSphere1.v
+		>>> if s.visibility.isKeyable() and not s.visibility.isLocked():
+		>>> 	s.visibility = True
+		>>> 	s.visibility.lock()
+		
+		>>> print s.v.type()      # shortnames also work	
+		bool
 	
 	Note that when the attribute is created there is currently no check for whether or not the attribute exists, just as there is 
 	no check when creating instances of Node classes. This is both for speed and also because it can be useful to get a string
@@ -1332,11 +1335,14 @@ class Attribute(_BaseObj):
 
 	Getting Attribute Values
 	------------------------
-	Once you've got your attribute, you can do all sorts of things with it.  Let's start with the basics. To 
-	get an attribute, you use the L{'get'<Attribute.get>} method.
+	To get an attribute, you use the L{'get'<Attribute.get>} method. Keep in mind that, where applicable, the values returned will 
+	be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as L{MVec}.
 	
-		>>> s.rotate.get()
-		# Result: [0.0, 0.0, 0.0] #
+		>>> rot = s.rotate.get()
+		>>> print rot
+		[0.0, 0.0, 0.0]
+		>>> print type(rot) # rotation is returned as a vector class
+		<class 'pymel.vector.MVec'>
 
 	Setting Attributes Values
 	-------------------------
@@ -1345,24 +1351,9 @@ class Attribute(_BaseObj):
 		>>> s.rotate.set([4,5,6])   # you can pass triples as a list
 		>>> s.rotate.set(4,5,6)     # or not	
 		>>> s.rotate = [4,5,6]      # my personal favorite
-	
-	Avoiding Clashes with Class Methods
-	-----------------------------------	
-	the safest way to access an attribute is prefix that attribute's name with an underscore or use the L{attr<_BaseObj.attr>} method.  
-	this helps prevent clashes with any class methods with the same name. you can also get directly to the attribute without using
-	the underscore,but you should be aware that if you try to access an attribute that has the same name as a class method of your 
-	node, you will raise an error. for example:
-	
-		>>> s.translate.set(1,2,3) # this conflicts with a method inherited from the base string class
-		AttributeError: 'function' object has no attribute 'set'
-		>>> s._translate.set(1,2,3) # this succeeds
-		>>> s.attr('translate').isLocked()  # this also succeeds
-	
-	The last method can be used for when you need to determine the name of the attribute at runtime.
 
 	Connecting Attributes
 	---------------------
-	
 	Since the Attribute class inherits the builtin string, you can just pass the Attribute to the L{connect} method. The string formatting
 	is handled for you.
 				
@@ -1373,6 +1364,38 @@ class Attribute(_BaseObj):
 		>>> c = polyCube()[0]		
 		>>> s.tx >> c.tx	# connect
 		>>> s.tx <> c.tx	# disconnect
+			
+	Avoiding Clashes between Attributes and Class Methods
+	-----------------------------------------------------
+	All of the examples so far have shown the shorthand syntax for accessing an attribute. The shorthand syntax has the most readability, 
+	but it has the drawaback that if the attribute that you wish to acess has the same name as one of the class methods of the node
+	then an error will be raised. There are two alternatives which will avoid this pitfall.
+	
+	Underscore Prefix
+	~~~~~~~~~~~~~~~~~
+	The first way to avoid clashes is to prefix that attribute's name with an underscore.  In the following example the underscrore 
+	prefix is used to avoid a clash with the translate method of the basestring, which is the superclass of all pymel node types.  
+	Be aware that attributes prefixed and suffixed with a double underscore, such as __init__, have a special meaning in python and
+	should generally be avoided. (however, if you find the need to use them, see the next section on the attr method).
+	
+		>>> s.translate.set(1,2,3) # this conflicts with a method inherited from the basestring class
+		AttributeError: 'function' object has no attribute 'set'
+		>>> s._translate.set(1,2,3) # this succeeds
+		>>> s.addAttr('_myAttr')
+		>>> s.__myAttr = .5 # attributes that begin with an underscore must use an extra underscore when using shorthand syntax
+		
+	attr Method
+	~~~~~~~~~~~
+	The attr method is the safest way the access an attribute, and can even be used to access attributes that conflict with 
+	python's own special methods, and which would fail using both shorthand and underscore syntax. This method is passed a string which
+	is the name of the attribute to be accessed. This gives it the added advantage of being capable of recieving attributes which 
+	are determine at runtime: 
+	
+		>>> s.addAttr('__init__')
+		>>> s.attr('__init__').set( .5 )
+		>>> s.attr('translate').isLocked()  # this succeeds
+		>>> atName = 'translateX'
+		>>> s.attr( atName ).isLocked()
 	
 	"""
 	attrItemReg = re.compile( '.*\[(\d+)\]$')
@@ -2353,7 +2376,26 @@ class Transform(Dag):
 					
 		return at
 	
-	
+	def __setattr__(self, attr,val):
+		if attr.startswith('_'):
+			attr = attr[1:]
+						
+		at = Attribute( '%s.%s' % (self, attr) )
+		
+		# if the attribute does not exist on this node try the shape node
+		if not at.exists():
+			try:
+				childAttr = getattr( self.getShape(), attr )
+				try:
+					if childAttr.exists():
+						return childAttr.set(val)
+				except AttributeError:
+					return childAttr.set(val)
+			except (AttributeError,TypeError):
+				pass
+					
+		return at.set(val)
+			
 	"""	
 	def move( self, *args, **kwargs ):
 		return move( self, *args, **kwargs )
@@ -2659,7 +2701,34 @@ class Poly(Dag):
 				raise AttributeError, "Attribute does not exist: %s" % at
 			"""
 		return at
+
+	def __setattr__(self, attr, val):
+		if attr.startswith('_'):
+			attr = attr[1:]
+						
+		at = Attribute( '%s.%s' % (self, attr) )
+		
+		# if the attribute does not exist on this node try the history
+		if not at.exists():
+			try:
+				childAttr = getattr( self.inMesh.inputs()[0], attr )
 			
+				try:
+					if childAttr.exists():
+						return childAttr.set(val)
+				except AttributeError:
+					return childAttr.set(val)
+			
+			except IndexError:
+				pass
+			"""
+			try:	
+				return getattr( self.inMesh.inputs()[0], attr)
+			except IndexError:
+				raise AttributeError, "Attribute does not exist: %s" % at
+			"""
+		return at.set(val)
+					
 	def polyEvaluate(self, **kwargs):
 		return cmds.polyEvaluate(self, **kwargs)
 	

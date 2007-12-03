@@ -19,7 +19,7 @@ ToDo:
 #Import generators.
 from __future__ import generators
 #Pymel add
-import functools as ftools
+#import functools as ftools
 from collections import *
 import util
 

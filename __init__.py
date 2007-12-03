@@ -135,13 +135,11 @@ created, its node type, and its class type
 
 	>>> # make the light red, the old school way
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
-	>>> # make the light red, the pymel way
-	>>> l.setRgb( [1,0,0] )
-
-	>>> # get the shadow samples, the old school way
 	>>> directionalLight( l, query=1, shadowSamples=1 ) 
-	1
-	>>> # get the number of shadow samples, the pymel way
+	1	
+	
+	>>> # the pymel way
+	>>> l.setRgb( [1,0,0] )
 	>>> print l.getShadowSamples()   
 	1
 
