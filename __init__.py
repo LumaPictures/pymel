@@ -351,7 +351,11 @@ fixed a bug in Transform: getShape() getChildren() and listRelatives() were erro
 """
 
 __version__ = 0.7
-	
+
+#check for the presence of an initilized Maya
+import util
+assert util.mayaInit() 
+
 from core import *
 
 #import io
