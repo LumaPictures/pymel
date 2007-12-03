@@ -1,6 +1,9 @@
 
 import sys, os, os.path
-from path import *
+from exceptions import *
+import envparse
+
+
 #from maya.cmds import encodeString
 
 # Singleton classes can be derived from this class
@@ -155,32 +158,166 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 def moduleDir():
 	return path( sys.modules[__name__].__file__ ).parent
 
+# A source commande that will search for the Python script "file" in the specified path
+# (using the system path if none is provided) path and tries to call execfile() on it
+def source (file, searchPath=None, recurse=False) :
+    """Looks for a python script in the specified path (uses system path if no path is specified)
+        and executes it if it's found """
+    filepath = os.path(file)
+    filename = filepath.basename()
+    if searchPath is None :
+        searchPath=sys.path
+    if not util.isIterable(searchPath) :
+        searchPath = list((searchPath,))
+    itpath = iter(searchPath)
+    #print "looking for file as: "+filepath
+    while not filepath.exists() :
+        try :
+            p = os.path(itpath.next()).realpath().abspath()
+            filepath = filepath.joinpath(p, filename)
+            #print 'looking for file as: '+filepath
+            if recurse and not filepath.exists() :
+                itsub = os.walk(p)
+                while not filepath.exists() :
+                    try :
+                        root, dirs, files = itsub.next()
+                        itdirs = iter(dirs)
+                        while not filepath.exists() :
+                            try :
+                                filepath = filepath.joinpath(Path(root), os.path(itdirs.next()), filename)
+                                #print 'looking for file as: '+filepath
+                            except :
+                                pass
+                    except :
+                        pass
+        except :
+            raise ValueError, "File '"+filename+"' not found in path"
+            # In case the raise exception is replaced by a warning don't forget to return here
+            return
+    # print "Executing: "+filepath
+    return execfile(filepath)
+
+# parse the Maya.env file and set the environement variablas and python path accordingly
+def parseMayaenv(envLocation=None, version=None) :
+	""" parse the Maya.env file and set the environement variablas and python path accordingly.
+		You can specify a location for the Maya.env file or the Maya version"""
+	name = 'Maya.env'
+	if os.name == 'nt' :
+		maya = 'maya.exe'
+		sep = ';'
+	else :
+		maya = 'maya.bin'
+		sep = ':'
+	envPath = None
+	if envLocation :
+		envPath = envLocation
+		if not os.path.isfile(envPath) :
+			envPath = os.path.join(envPath, name)
+			
+	# no Maya.env specified, we look for it in MAYA_APP_DIR
+	if not envPath or not envPath.isfile() :
+		if not os.environ.has_key('MAYA_APP_DIR') :
+			home = os.environ.get('HOME', None)
+			if not home :
+				warnings.warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env", ExecutionWarning)
+				return False
+			else :
+				maya_app_dir = os.path.join(home, 'maya')
+		else :
+			maya_app_dir = os.environ['MAYA_APP_DIR']
+		# try to find which version of Maya should be initialized
+		if not version :
+			# try to query version, will only work if reparsing env from a working Maya
+			try :
+				from maya.cmds import about        
+				version = eval("about(version=True)");
+			except :
+				# get version from MAYA_LOCATION then
+				if os.environ.has_key('MAYA_LOCATION') :
+					version = os.path.basename(os.environ['MAYA_LOCATION']).lstrip('may')		
+				else :
+					# if run from Maya provided mayapy / python interpreter, can guess version
+					startPath = os.path.dirname(sys.executable)
+					if os.path.isfile(os.path.join(startPath, maya)) :
+						version = os.path.basename(startPath)
+					else :
+						print "Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir
+		# look first for Maya.env in 'version' subdir of MAYA_APP_DIR, then directly in MAYA_APP_DIR
+		if version and os.path.isfile(os.path.join(maya_app_dir, version, name)) :
+			envPath = os.path.join(maya_app_dir, version, name)
+		else :
+			envPath = os.path.join(maya_app_dir, name)
+
+	# finally if we have a possible Maya.env, parse it
+	if os.path.isfile(envPath) :
+		try :
+			envFile = open(envPath)
+		except :
+			warnings.warn ("Unable to open Maya.env file %s" % envPath, ExecutionWarning)
+			return False
+		success = False
+		try :
+			envTxt = envFile.read()
+			envVars = envparse.parse(envTxt)
+			# update env vars
+			for v in envVars :
+				os.environ[v] = envVars[v]
+			# add to syspath
+			if os.environ.has_key('PYTHONPATH') :
+				plist = os.environ['PYTHONPATH'].split(sep)
+				for p in plist :
+					if not p in sys.path :
+						sys.path.append(p)
+			success = True
+		finally :
+			envFile.close()
+			return success
+	else :
+		if version :
+			warnings.warn("Found no suitable Maya.env file for Maya version %s" % version, ExecutionWarning)
+		else :
+			warnings.warn("Found no suitable Maya.env file", ExecutionWarning)
+		return False
+				
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
-def mayaInit () :
-    result = False
-    # test that Maya actually is loaded and that commands have been initialized
-    try :
-        from maya.cmds import about        
-        version = eval("about(version=True)");
-        if version > 0 :
-            result = True
-    except :
-        if not sys.modules.has_key('maya.standalone') :
-            try :
-                import maya.standalone #@UnresolvedImport
-                maya.standalone.initialize(name="python")
-            except :
-                pass
-        try :
-            from maya.cmds import about    
-            reload(maya.cmds) #@UnresolvedImport
-            version = eval("about(version=True)")
-            result = version > 0
-        except :
-            result = False
+def mayaInit(forversion=None) :
+	""" Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
+	it is possible to pass the desired Maya version number to define which Maya to initialize """
 
-    return result
+	# test that Maya actually is loaded and that commands have been initialized,for the requested version		
+	try :
+		from maya.cmds import about        
+		version = eval("about(version=True)");
+	except :
+		version = None
+
+	if forversion :
+		if version == forversion :
+			return True
+		else :
+			warnings.warn ("Maya is already initialized as version %s, initializing it for a different version %s" % (version, forversion), ExecutionWarning)
+	elif version :
+			return True
+				
+	# reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
+	envVersion = os.environ.get('MAYA_ENV_VERSION', None)
+	if (forversion and envVersion!=forversion) or not envVersion :
+		if not parseMayaenv(version=forversion) :
+			warnings.warn ("Could not read or parse Maya.env file", ExecutionWarning)
+	if not sys.modules.has_key('maya.standalone') or version != forversion:
+		try :
+			import maya.standalone #@UnresolvedImport
+			maya.standalone.initialize(name="python")
+		except :
+			pass
+	try :
+		from maya.cmds import about    
+		reload(maya.cmds) #@UnresolvedImport
+		version = eval("about(version=True)")
+		return (forversion and version==forversion) or version
+	except :
+		return False
 
 def timer( command='pass', number=10, setup='import pymel' ):
 	import timeit
@@ -213,6 +350,7 @@ def toZip( directory, zipFile ):
 	return zipFile
 
 def release( username=None, password = None):
+	import ply.lex as lex
 	import pymel.examples.example1
 	import pymel.examples.example2
 	import googlecode
