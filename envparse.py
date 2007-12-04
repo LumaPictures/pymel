@@ -1,7 +1,7 @@
 import sys, os
 import ply
 import ply.lex as lex
-import warnings
+from exceptions import *
 
 # lexer and parser for the Maya.env file
 
@@ -32,7 +32,8 @@ class EnvLex :
     # Ignore starting spaces only
     t_INITIAL_ignore = '^[ \t]+'
     t_left_ignore = '[ \t]+'
-    t_right_ignore = '[ \t]+$'
+    t_right_ignore = '[ \t]+'
+    # careful, there seems to be a nasty bug where ply.lex takes $ as its literal value instead of in the 'end of line' meaning ?
     t_end_ignore = '[ \t]+$'
     t_cancel_ignore = '[^\n]+'
     # Valid l-values are env var names, must come first in line (INITIAL sate)
@@ -59,14 +60,14 @@ class EnvLex :
     # More than one equal sign per line would be an error
     def t_right_ASSIGN(self, t):
         r'[ \t]*=[ \t]*'
-        warnings.warn ( "Double '=' at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (self.lexer.lineno), UserWarning)
+        warnings.warn ( "Double '=' at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (self.lexer.lineno), ExecutionWarning)
         # skip whole line
         self.lexer.begin('cancel')
         while self.lexer.lexpos<self.lexer.lexlen and self.lexer.lexdata[self.lexer.lexpos] != '\n' :
             self.lexer.skip(1)          
     def t_end_ASSIGN(self, t):
         r'[ \t]*=[ \t]*'
-        warnings.warn ( "More than one '=' at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (self.lexer.lineno), UserWarning)
+        warnings.warn ( "More than one '=' at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (self.lexer.lineno), ExecutionWarning)
         # skip whole line
         self.lexer.begin('cancel')
         while self.lexer.lexpos<self.lexer.lexlen and self.lexer.lexdata[self.lexer.lexpos] != '\n' :
@@ -75,7 +76,7 @@ class EnvLex :
     def t_end_VALUE(self, t):
         r'[^=^\n^#]+'
         # one and only one VALUE on right side of ASSIGN
-        warnings.warn ( "More than one value at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (self.lexer.lineno), UserWarning)
+        warnings.warn ( "More than one value at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (self.lexer.lineno), ExecutionWarning)
         # skip whole line
         self.lexer.begin('cancel')
         while self.lexer.lexpos<self.lexer.lexlen and self.lexer.lexdata[self.lexer.lexpos] != '\n' :
@@ -104,20 +105,20 @@ class EnvLex :
         return t
     # Error handling rules
     def t_ANY_error(self, t):
-        warnings.warn ( "Illegal character '%s' at line %i, ignored" % (t.value[0], self.lexer.lineno), UserWarning)        
+        warnings.warn ( "Illegal character '%s' at line %i, ignored" % (t.value[0], self.lexer.lineno), ExecutionWarning)        
         self.lexer.skip(1)
     def t_INITIAL_error(self, t):
-        warnings.warn ( "Invalid VAR name '%s' at line %i, line ignored" % (t.value[0], self.lexer.lineno), UserWarning)
+        warnings.warn ( "Invalid VAR name '%s' at line %i, line ignored" % (t.value[0], self.lexer.lineno), ExecutionWarning)
         # skip whole line
         while self.lexer.lexpos<self.lexer.lexlen and self.lexer.lexdata[self.lexer.lexpos] != '\n' :
             self.lexer.skip(1)      
     def t_left_error(self, t):
-        warnings.warn ( "Illegal value '%s' at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (t.value[0], self.lexer.lineno), UserWarning)
+        warnings.warn ( "Illegal value '%s' at line %i, format for a Maya.env line is <VAR> = <value>, line ignored" % (t.value[0], self.lexer.lineno), ExecutionWarning)
         # skip whole line
         while self.lexer.lexpos<self.lexer.lexlen and self.lexer.lexdata[self.lexer.lexpos] != '\n' :
             self.lexer.skip(1)        
     def t_right_error(self, t):
-        warnings.warn ( "Illegal value '%s' at line %i, line ignored" % (t.value[0], self.lexer.lineno), UserWarning)
+        warnings.warn ( "Illegal value '%s' at line %i, line ignored" % (t.value[0], self.lexer.lineno), ExecutionWarning)
         # skip whole line
         while self.lexer.lexpos<self.lexer.lexlen and self.lexer.lexdata[self.lexer.lexpos] != '\n' :
             self.lexer.skip(1)
@@ -145,7 +146,7 @@ class ValueLex :
         self.os = osname
         self.symbols = symbols
         self.line = 0
-        self.warn = ValueLex.Warn()
+        self.warn = ValueLex.Warn()      
     def build(self, **kwargs):
         self.lexer = lex.lex(object=self,**kwargs)
     
@@ -157,32 +158,32 @@ class ValueLex :
         'VALUE'
     )
     # ignore ending space
-    t_ignore = '[ \t]+$'
+    t_ignore = '^[ \t]+'
     
     def t_SEP(self, t):
         r':;'
         if t.value==';' and self.os != 'nt' :
             # t.value = ':'
             if not self.warn.SEP :
-                warnings.warn ( "Line %i: the ';' separator should only be used on nt os, on linux or osx use ':' rather" % self.lexer.lineno, UserWarning)
+                warnings.warn ( "Line %i: the ';' separator should only be used on nt os, on linux or osx use ':' rather" % self.lexer.lineno, ExecutionWarning)
                 self.warn.SEP = True
         return t   
     # Valid l-values are env var names, must come first in line (INITIAL sate)
     def t_RVAR1(self, t) :
-        r'\$[^\\^\/^\:^\*^\"^\<^\>^\|^=^ ^\t^\n^#]+'
+        r'\$[^\\^/^:^*^"^<^>^|^=^ ^\t^\n^#^$]+'
         if self.os == 'nt' :
             if not self.warn.VAR :
-                warnings.warn ( "Line %i: $VAR should be used on linux or osx, \%VAR\% on nt" % self.lexer.lineno, UserWarning)
+                warnings.warn ( "Line %i: $VAR should be used on linux or osx, \%VAR\% on nt" % self.lexer.lineno, ExecutionWarning)
                 self.warn.VAR = True
         v = t.value.lstrip('$')         
         if self.symbols.has_key(v) :
             t.value = self.symbols[v]
         return t
     def t_RVAR2(self, t) :
-        r'\%[^\\^\/^\:^\*^\"^\<^\>^\|^=^ ^\t^\n^#]+\%'
+        r'\%[^\\^/^:^*^"^<^>^|^=^ ^\t^\n^#]+\%'
         if self.os != 'nt' :
             if not self.warn.VAR :
-                warnings.warn ( "Line %i: $VAR should be used on linux or osx, \%VAR\% on nt" % self.lexer.lineno, UserWarning)
+                warnings.warn ( "Line %i: $VAR should be used on linux or osx, \%VAR\% on nt" % self.lexer.lineno, ExecutionWarning)
                 self.warn.VAR = True         
         v = t.value.strip('%')         
         if self.symbols.has_key(v) :
@@ -191,19 +192,21 @@ class ValueLex :
     # Assignation sign, ignore spaces around it
     def t_PATHSEP(self, t) :
         r'\/|\\'
-        if self.os != 'nt' :
+        if self.os != 'nt' and t.value == '\\':
             if not self.warn.PATH :
-                warnings.warn ( "Line %i: the '\\' path separator should only be used on nt os, on linux or osx use '/' rather" % self.lexer.lineno, UserWarning)
+                warnings.warn ( "Line %i: the '\\' path separator should only be used on nt, on linux or osx use '/' rather" % self.lexer.lineno, ExecutionWarning)
                 self.warn.PATH = True
         return t               
     # we just return the rest as-is
-    # TODO: warnings if it's a path and path doen'st exist ?        
+    # TODO: warnings if it's a path and path doen'st exist ?
+    # Would need to differentiate % or $ wether we are on nt or not but py.lex
+    # handles definitions strangely, like they are static / source time evaluated
     def t_VALUE(self, t):
-        r'[^=^\n^#]+'
-        return t
+            r'[^=^\n^#^%^$]+'
+            return t           
        
     def t_error(self, t):
-        warnings.warn ( "Illegal character '%s' at line %i, ignored" % (t.value[0], self.lexer.lineno), UserWarning)        
+        warnings.warn ( "Illegal character '%s' at line %i, ignored" % (t.value[0], self.lexer.lineno), ExecutionWarning)        
         self.lexer.skip(1)
         
     # Test it
@@ -216,7 +219,8 @@ class ValueLex :
     
 # Do the 2 level parse of a Maya.env format text and return a symbol table of the declared env vars
 def parse(text, environ=os.environ, osname=os.name):
-    symbols = environ
+    symbols = environ.copy()
+    newsymbols = {}
     # first level lexer
     envLex = EnvLex()
     envLex.build()
@@ -248,18 +252,17 @@ def parse(text, environ=os.environ, osname=os.name):
                     # where it will add the content o Maya.env to the predefined var
                     # for PATH, MAYA_PLUGIN_PATH and LD_LIBRARY_PATH on linux it seems to add his own stuff, disreguarding
                     # Maya.env if the the variable was pre-existant. If you notice (or want) different behaviors you can 
-                    # change it here                    
+                    # change it here   
+                    newvalue = None
+                    action = 'Ignore'                 
                     if symbols.has_key(var) :
                         if var=='MAYA_SCRIPT_PATH' :
                             newvalue = self.symbols[var]+sep
-                            print u"Value will be added to pre-existing value of %s: %s" % (var, unicode(value))                              
-                        else :
-                            newvalue = None
-                            print u"%s was already set, ignoring line: %s" % (var, unicode(tok.value))  
+                            action = 'Add'
                     else :
                         newvalue = ''
+                        action = 'Set' 
                     if newvalue is not None :
-                        print "Setting %s" % var
                         # only display warning for a better feedback there,
                         # as even if it makes no sense we can in all cases affect the value to the env var                    
                         valueLex.symbols = symbols
@@ -271,13 +274,19 @@ def parse(text, environ=os.environ, osname=os.name):
                             vtok = valueLex.lexer.token()
                             if vtok is not None :                               
                                 newvalue += vtok.value
-                        print u"%s set to %s" % (var, unicode(newvalue))
                         symbols[var] = newvalue
+                        newsymbols[var] = newvalue
+                    if action == 'Set' :
+                        print u"%s set to value %s" % (var, unicode(newvalue))
+                    elif action == 'Add' :
+                        print u"%s was already set, appending value: %s" % (var, unicode(newvalue))
+                    elif action == 'Ignore' :
+                        print u"%s was already set, ignoring line: %s" % (var, unicode(tok.value))
                 var = value = None
             elif tok.type=='CANCEL' :
-                print "Line was ignored due to parsing errors: %s" % tok.value
+                print "Line was ignored due to parsing errors: %s" % unicode(tok.value)
                 var = value = None           
             else :
                 pass
         
-    return symbols
+    return newsymbols
