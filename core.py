@@ -5,16 +5,6 @@ try:
 	import maya.cmds as cmds
 	import maya.mel as mm
 	import maya.OpenMaya as OpenMaya
-	#from maya.cmds import *
-	#from maya.cmds import file as file_
-	# cleanup commands that conflict with built-in functions
-
-	#del(eval)
-	#del(file)
-	#del(filter)
-	#del(help)
-	#del(quit)
-	#from maya.cmds import playbackOptions, nodeType, select
 
 except ImportError:
 	pass
@@ -126,7 +116,7 @@ class Mel(object):
 	"""
 			
 	def __getattr__(self, command):
-		if command.startswith('__'):
+		if command.startswith('__') and command.endswith('__'):
 			return self.__dict__[command]
 		def _call(*args):
 		
@@ -605,13 +595,27 @@ Modifications:
 		
 def listRelatives( *args, **kwargs ):
 	"""
+Maya Bug Fix
+	- allDescendents and shapes flags did not work in combination
+	
 Modifications:
 	- returns an empty list when the result is None
 	- returns wrapped classes
 	"""
+	
+	if kwargs.get( 'allDescendents', kwargs.get('ad', False) ) and kwargs.pop( 'shapes', kwargs.pop('s', False) ):		
+		kwargs['fullPath'] = True
+		kwargs.pop('f', None)
+
+		res = cmds.listRelatives( *args, **kwargs)
+		if res is None:
+			return
+		return ls( res, shapes=1)
+
 	if longNames:
 		kwargs['fullPath'] = True
 		kwargs.pop('f', None)
+				
 	return map(PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
 
 
@@ -1052,8 +1056,8 @@ class _BaseObj(unicode):
 	#	return u"%s" % self
 
 	def __getattr__(self, attr):
-		if attr.startswith('_'):
-			return Attribute( '%s.%s' % (self, attr[1:]) )
+		if attr.startswith('__') and attr.endswith('__'):
+			return super(_BaseObj, self).__getattr__(attr)
 			
 		return Attribute( '%s.%s' % (self, attr) )
 		
@@ -1215,16 +1219,18 @@ class ComponentArray(object):
 
 		else:
 			return self.returnClass( self._node, item )
-			
-	def node(self):
+
+
+	def plugNode(self):
 		'plugNode'
 		return PyNode( str(self).split('.')[0])
-		
-	def plug(self):
+				
+	def plugAttr(self):
 		"""plugAttr"""
 		return '.'.join(str(self).split('.')[1:])
 
-		
+	node = plugNode
+	
 class FaceArray(ComponentArray):
 	def __init__(self, name):
 		ComponentArray.__init__(self, name)
@@ -1437,13 +1443,15 @@ class Attribute(_BaseObj):
 			return attr
 	'''		
 							
-	def node(self):
+	def plugNode(self):
 		'plugNode'
-		return PyNode(self.split('.')[0])
-		
-	def plug(self):
+		return PyNode( str(self).split('.')[0])
+				
+	def plugAttr(self):
 		"""plugAttr"""
-		return '.'.join(self.split('.')[1:])
+		return '.'.join(str(self).split('.')[1:])
+
+	node = plugNode
 	
 	def item(self):
 		try: 
@@ -1535,7 +1543,7 @@ class Attribute(_BaseObj):
 		return cmds.aliasAttr( self, **kwargs )	
 							
 	def add( self, **kwargs):	
-		kwargs['longName'] = self.plug()
+		kwargs['longName'] = self.plugAttr()
 		kwargs.pop('ln', None )
 		return cmds.addAttr( self.node(), **kwargs )	
 					
@@ -1564,11 +1572,11 @@ class Attribute(_BaseObj):
 		
 	def affects( self, **kwargs ):
 		return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-			cmds.affects( self.plug(), self.node()  ) )
+			cmds.affects( self.plugAttr(), self.node()  ) )
 
 	def affected( self, **kwargs ):
 		return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-			cmds.affects( self.plug(), self.node(), by=True  ))
+			cmds.affects( self.plugAttr(), self.node(), by=True  ))
 				
 	# getAttr info methods
 	def type(self):
@@ -1627,54 +1635,54 @@ class Attribute(_BaseObj):
 	# attributeQuery info methods
 	def isHidden(self):
 		"attributeQuery -hidden"
-		return cmds.attributeQuery(self.plug(), node=self.node(), hidden=True)
+		return cmds.attributeQuery(self.plugAttr(), node=self.node(), hidden=True)
 		
 	def isConnectable(self):
 		"attributeQuery -connectable"
-		return cmds.attributeQuery(self.plug(), node=self.node(), connectable=True)	
+		return cmds.attributeQuery(self.plugAttr(), node=self.node(), connectable=True)	
 
 	def isMulti(self):
 		"attributeQuery -multi"
-		return cmds.attributeQuery(self.plug(), node=self.node(), multi=True)	
+		return cmds.attributeQuery(self.plugAttr(), node=self.node(), multi=True)	
 	
 	def exists(self):
 		"attributeQuery -exists"
 		try:
-			return cmds.attributeQuery(self.plug(), node=self.node(), exists=True)	
+			return cmds.attributeQuery(self.plugAttr(), node=self.node(), exists=True)	
 		except TypeError:
 			return False
 			
 	def longName(self):
 		"attributeQuery -longName"
-		return cmds.attributeQuery(self.plug(), node=self.node(), longName=True)
+		return cmds.attributeQuery(self.plugAttr(), node=self.node(), longName=True)
 		
 	def shortName(self):
 		"attributeQuery -shortName"
-		return cmds.attributeQuery(self.plug(), node=self.node(), shortName=True)
+		return cmds.attributeQuery(self.plugAttr(), node=self.node(), shortName=True)
 			
 	def getSoftMin(self):
 		"""attributeQuery -softMin
 			Returns None if softMin does not exist."""
-		if cmds.attributeQuery(self.plug(), node=self.node(), softMinExists=True):
-			return cmds.attributeQuery(self.plug(), node=self.node(), softMin=True)[0]	
+		if cmds.attributeQuery(self.plugAttr(), node=self.node(), softMinExists=True):
+			return cmds.attributeQuery(self.plugAttr(), node=self.node(), softMin=True)[0]	
 			
 	def getSoftMax(self):
 		"""attributeQuery -softMax
 			Returns None if softMax does not exist."""
-		if cmds.attributeQuery(self.plug(), node=self.node(), softMaxExists=True):
-			return cmds.attributeQuery(self.plug(), node=self.node(), softMax=True)[0]
+		if cmds.attributeQuery(self.plugAttr(), node=self.node(), softMaxExists=True):
+			return cmds.attributeQuery(self.plugAttr(), node=self.node(), softMax=True)[0]
 	
 	def getMin(self):
 		"""attributeQuery -min
 			Returns None if min does not exist."""
-		if cmds.attributeQuery(self.plug(), node=self.node(), minExists=True):
-			return cmds.attributeQuery(self.plug(), node=self.node(), min=True)[0]
+		if cmds.attributeQuery(self.plugAttr(), node=self.node(), minExists=True):
+			return cmds.attributeQuery(self.plugAttr(), node=self.node(), min=True)[0]
 			
 	def getMax(self):
 		"""attributeQuery -max
 			Returns None if max does not exist."""
-		if cmds.attributeQuery(self.plug(), node=self.node(), maxExists=True):
-			return cmds.attributeQuery(self.plug(), node=self.node(), max=True)[0]
+		if cmds.attributeQuery(self.plugAttr(), node=self.node(), maxExists=True):
+			return cmds.attributeQuery(self.plugAttr(), node=self.node(), max=True)[0]
 	
 	def getSoftRange(self):
 		"""attributeQuery -softRange
@@ -1751,7 +1759,7 @@ class Attribute(_BaseObj):
 
 		#now tokenize $objectAttr in order to get it's individual parts
 		obj = self.node()
-		attr = self.plug()
+		attr = self.plugAttr()
 
 		# re-create the attribute with the new min/max
 		kwargs = {}
@@ -1807,14 +1815,14 @@ class Attribute(_BaseObj):
 
 	def getChildren(self):
 		"""attributeQuery -listChildren"""
-		res = cmds.attributeQuery(self.plug(), node=self.node(), listChildren=True)
+		res = cmds.attributeQuery(self.plugAttr(), node=self.node(), listChildren=True)
 		if res is None:
 			return []
 		return res
 
 	def getSiblings(self):
 		"""attributeQuery -listSiblings"""
-		res = cmds.attributeQuery(self.plug(), node=self.node(), listSiblings=True)
+		res = cmds.attributeQuery(self.plugAttr(), node=self.node(), listSiblings=True)
 		if res is None:
 			return []
 		return res
@@ -1825,7 +1833,7 @@ class Attribute(_BaseObj):
 		if self.count('.') > 1:
 			return Attribute('.'.join(self.split('.')[:-1]))
 		try:
-			return cmds.attributeQuery(self.plug(), node=self.node(), listParent=True)[0]
+			return cmds.attributeQuery(self.plugAttr(), node=self.node(), listParent=True)[0]
 		except TypeError:
 			return None
 	
@@ -2275,19 +2283,24 @@ class Dag(Node):
 			return Dag( '|'.join( self.split('|')[:-1] ) )
 	
 	def getParent(self, **kwargs):
-		"""unlike the getParent command which determines the parent via string formatting, this 
+		"""unlike the firstParent command which determines the parent via string formatting, this 
 		command uses the listRelatives command"""
 		
 		kwargs['parent'] = True
 		kwargs.pop('p',None)
-		if longNames:
-			kwargs['fullPath'] = True
-			kwargs.pop('p',None)
+		#if longNames:
+		kwargs['fullPath'] = True
+		kwargs.pop('p',None)
 		
 		try:
-			return Dag( cmds.listRelatives( self, **kwargs)[0] )
+			res = cmds.listRelatives( self, **kwargs)[0]
 		except TypeError:
-			pass
+			return None
+			 
+		res = Transform( res )
+		if not longNames:
+			return res.shortName()
+		return res
 					
 	def getChildren(self, **kwargs ):
 		kwargs['children'] = True
@@ -2314,9 +2327,16 @@ class Dag(Node):
 			
 	def shortName( self ):
 		'shortNameOf'
+		try:
+			return self.__class__( cmds.ls( self )[0] )
+		except:
+			return self
+
+	def nodeName( self ):
+		'basename'
 		return self.__class__( self.split('|')[-1] )
 
-
+		
 	#--------------------------
 	#	Dag Path Modification
 	#--------------------------	
@@ -2357,8 +2377,8 @@ class Dag(Node):
 class Transform(Dag):
 	
 	def __getattr__(self, attr):
-		if attr.startswith('_'):
-			attr = attr[1:]
+		if attr.startswith('__') and attr.endswith('__'):
+			return super(_BaseObj, self).__getattr__(attr)
 						
 		at = Attribute( '%s.%s' % (self, attr) )
 		
@@ -2676,8 +2696,8 @@ class Poly(Dag):
 	verts = property(_getVertexArray)
 			
 	def __getattr__(self, attr):
-		if attr.startswith('_'):
-			attr = attr[1:]
+		if attr.startswith('__') and attr.endswith('__'):
+			return super(_BaseObj, self).__getattr__(attr)
 						
 		at = Attribute( '%s.%s' % (self, attr) )
 		

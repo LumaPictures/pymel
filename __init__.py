@@ -312,10 +312,21 @@ added getSiblings to Dag class
 fixed Attribute.exists() to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
 fixed a bug in Dag.namespaceList
 added a levels keyword to Dag.stripNamespace
-fixed a severe design oversight in all ui callback commands. 
+Maya Bug Fix: severe design oversight in all ui callback commands. 
 	the callbacks were being passed u'true' and u'false' instead of python booleans. (this makes me doubt autodesk more than ever)
 added Transform.getBoundingBox()
 fixed a bug in Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
+added cascading to setattr
+added Attribute.plugNode, same as Attribute.node
+changed Attribute.plug to Attribute.plugAttr
+changed behavior of shortName to behave like the mel script shortNameOf
+changed Node.node to Node.nodeName
+Maya Bug Fix: listRelatives: allDescendents and shapes flags did not work in combination
+Fixed __unicode__ issue, removed underscore syntax
+Added mayaInit for using pymel via an external interpreter
+
+Maya Bug Fix
+	- allDescendents and shapes flags did not work in combination
 	
  TODO: 
 	Factory:

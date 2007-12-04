@@ -129,12 +129,10 @@ class MVec(list):
 		screen.y = linmap( ((ratio-1)/-2), (1+(ratio-1)/2), screen.y )
 		
 		return screen	
-
-
 	
 	def objectToWorld(self, object):
-		#print "objectToWorld", type(pymel.Node(object).worldMatrix.get())
-		return self * pymel.Node(object).worldMatrix.get()
+		worldMatrix = pymel.Node(object).worldMatrix.get()
+		return self * worldMatrix
 	
 	def objectToCamera(self, object, camera=None):
 		return self.objectToWorld(object).worldToCamera( camera )
