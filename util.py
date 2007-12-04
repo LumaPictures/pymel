@@ -261,9 +261,11 @@ def parseMayaenv(envLocation=None, version=None) :
 			envVars = envparse.parse(envTxt)
 			# update env vars
 			for v in envVars :
+				#print "%s was set or modified" % v
 				os.environ[v] = envVars[v]
 			# add to syspath
-			if os.environ.has_key('PYTHONPATH') :
+			if envVars.has_key('PYTHONPATH') :
+				#print "sys.path will be updated"
 				plist = os.environ['PYTHONPATH'].split(sep)
 				for p in plist :
 					if not p in sys.path :
@@ -274,9 +276,9 @@ def parseMayaenv(envLocation=None, version=None) :
 			return success
 	else :
 		if version :
-			warnings.warn("Found no suitable Maya.env file for Maya version %s" % version, ExecutionWarning)
+			print"Found no suitable Maya.env file for Maya version %s" % version
 		else :
-			warnings.warn("Found no suitable Maya.env file", ExecutionWarning)
+			print"Found no suitable Maya.env file"
 		return False
 				
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
@@ -296,7 +298,7 @@ def mayaInit(forversion=None) :
 		if version == forversion :
 			return True
 		else :
-			warnings.warn ("Maya is already initialized as version %s, initializing it for a different version %s" % (version, forversion), ExecutionWarning)
+			print "Maya is already initialized as version %s, initializing it for a different version %s" % (version, forversion)
 	elif version :
 			return True
 				
@@ -304,7 +306,7 @@ def mayaInit(forversion=None) :
 	envVersion = os.environ.get('MAYA_ENV_VERSION', None)
 	if (forversion and envVersion!=forversion) or not envVersion :
 		if not parseMayaenv(version=forversion) :
-			warnings.warn ("Could not read or parse Maya.env file", ExecutionWarning)
+			print "Could not read or parse Maya.env file"
 	if not sys.modules.has_key('maya.standalone') or version != forversion:
 		try :
 			import maya.standalone #@UnresolvedImport
