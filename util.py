@@ -1,5 +1,5 @@
 
-import sys, os, os.path
+import sys, os, os.path, re
 from exceptions import *
 from path import path
 import envparse
@@ -234,9 +234,9 @@ def parseMayaenv(envLocation=None, version=None) :
 				version = eval("about(version=True)");
 			except :
 				# get version from MAYA_LOCATION then
-				if os.environ.has_key('MAYA_LOCATION') :
-					version = os.path.basename(os.environ['MAYA_LOCATION']).lstrip('may')		
-				else :
+				try :
+					version = re.search( 'maya([\d.]+)', os.environ['MAYA_LOCATION']).group(1)		
+				except :
 					# if run from Maya provided mayapy / python interpreter, can guess version
 					startPath = os.path.dirname(sys.executable)
 					if os.path.isfile(os.path.join(startPath, maya)) :
@@ -305,6 +305,7 @@ def mayaInit(forversion=None) :
 				
 	# reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
 	envVersion = os.environ.get('MAYA_ENV_VERSION', None)
+	
 	if (forversion and envVersion!=forversion) or not envVersion :
 		if not parseMayaenv(version=forversion) :
 			print "Could not read or parse Maya.env file"
