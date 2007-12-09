@@ -533,21 +533,21 @@ class BaseTree(object):
     def __str__(self):
         if self:
             if self.isatom():
-                return "(%s)" % str(self.cargo)
+                return "('%s')" % str(self.cargo)
             else:
                 temp = [subtree.__str__() for subtree in self.childs]
-                return "(%s, %s)" % (repr(self.cargo), ", ".join(temp))
+                return "('%s', %s)" % (str(self.cargo), ", ".join(temp))
         else:
             return "()"
 
-    #The simplest print possible.
+    #The simplest print possible as unicode.
     def __unicode__(self):
         if self:
             if self.isatom():
-                return u"(%s)" % str(self.cargo)
+                return u"('%s')" % unicode(self.cargo)
             else:
                 temp = [subtree.__unicode__() for subtree in self.childs]
-                return u"(%s, %s)" % (self.cargo, u", ".join(temp))
+                return u"('%s', %s)" % (unicode(self.cargo), u", ".join(temp))
         else:
             return u"()"
 
@@ -683,7 +683,7 @@ class Tree(BaseTree):
         if args:
             # modified to allow initialisation from nested lists or tuples
             if len(args)==1 and util.isIterable(args[0]) :
-                arg = tuple(args[0])
+                args = tuple(args[0])
             self.__head = [args[0]]
             for arg in args[1:] :
                 if not isinstance(arg, BaseTree) :
@@ -882,7 +882,7 @@ def treeFromChildLink (isExactChildFn, *args):
     >>>     return s1.startswith(s2) 
     >>> forest = treeFromChildLink (isChild, lst)    
     """
-    deq = deque(map(Tree, args))
+    deq = deque(Tree(arg) for arg in args)
     lst = []
     it = 0
     while deq:
