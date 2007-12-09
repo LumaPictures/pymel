@@ -19,7 +19,7 @@ ToDo:
 #Import generators.
 from __future__ import generators
 #Pymel add
-#import functools as ftools
+import functools as ftools
 from collections import *
 import util
 
@@ -533,7 +533,7 @@ class BaseTree(object):
     def __str__(self):
         if self:
             if self.isatom():
-                return "(%s)" % repr(self.cargo)
+                return "(%s)" % str(self.cargo)
             else:
                 temp = [subtree.__str__() for subtree in self.childs]
                 return "(%s, %s)" % (repr(self.cargo), ", ".join(temp))
@@ -544,7 +544,7 @@ class BaseTree(object):
     def __unicode__(self):
         if self:
             if self.isatom():
-                return u"(%s)" % repr(self.cargo)
+                return u"(%s)" % str(self.cargo)
             else:
                 temp = [subtree.__unicode__() for subtree in self.childs]
                 return u"(%s, %s)" % (self.cargo, u", ".join(temp))
