@@ -29,8 +29,13 @@ def isExactChildFn(c, p) :
 def asHierarchy (*args) :
     """returns a Tree containing the PyMel objects representing Maya nodes that were passed
         as argument, or the current seleciton if no arguments are provided,
-        in a way that mimics the Maya scene hierarchy existing on these nodes."""
-
+        in a way that mimics the Maya scene hierarchy existing on these nodes.
+        Note that:
+        >>> sel=ls(selection=True)
+        >>> skel=asHierarchy (sel)
+        >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
+        >>> True """
+        
     if len(args) == 0 :
         nargs = ls( selection=True)
     else :
