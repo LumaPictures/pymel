@@ -165,4 +165,7 @@ def renameFile( *args, **kwargs ):
 def saveAs(filepath, **kwargs):
 	cmds.file( rename=filepath )
 	kwargs['save']=True
+	try:
+		kwargs['type'] = _getTypeFromExtension(filepath)
+	except KeyError: pass
 	return pymel.core.MPath(cmds.file(**kwargs) )

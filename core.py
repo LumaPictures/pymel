@@ -265,7 +265,62 @@ class Workspace(util.Singleton):
 		return cmds.workspace( *args, **kwargs )
 
 workspace = Workspace()
+
+
+class FileInfo( util.Singleton ):
+	def __contains__(self, item):
+		return item in self.keys()
 		
+	def __getitem__(self, item):
+		return dict(self.items())[item]
+		
+	def __setitem__(self, item, value):
+		cmds.fileInfo( item, value )
+	
+	def __call__(self, *args, **kwargs):
+		if kwargs.get('query', kwargs.get('q', False) ):
+			return self.items()
+		else:
+			cmds.FileInfo( *args, **kwargs )
+			
+	def items(self):
+		res = cmds.fileInfo( query=1)
+		newRes = []
+		for i in range( 0, len(res), 2):
+			newRes.append( (res[i], res[i+1]) )
+		return newRes
+		
+	def keys(self):
+		res = cmds.fileInfo( query=1)
+		newRes = []
+		for i in range( 0, len(res), 2):
+			newRes.append(  res[i] )
+		return newRes
+			
+	def values(self):
+		res = cmds.fileInfo( query=1)
+		newRes = []
+		for i in range( 0, len(res), 2):
+			newRes.append( res[i+1] )
+		return newRes
+	
+	def pop(self, *args):
+		if len(args) > 2:
+			raise TypeError, 'pop expected at most 2 arguments, got %d' % len(args)
+		elif len(args) < 1:
+			raise TypeError, 'pop expected at least 1 arguments, got %d' % len(args)
+		
+		if args[0] not in self.keys():
+			try:
+				return args[1]
+			except IndexError:
+				raise KeyError, args[0]
+					
+		cmds.fileInfo( rm=args[0])
+	
+	has_key = __contains__	
+fileInfo = FileInfo()
+	
 #-----------------------------------------------
 #  Scene Class
 #-----------------------------------------------
@@ -493,7 +548,33 @@ Modifications:
 			
 	#print args, kwargs
 	cmds.setAttr( attr, *args, **kwargs)
-					
+
+def addAttr( *args, **kwargs ):
+	"""
+Modifications:
+	- addAttr: allow python types to be passed to set -at type
+			str		--> string
+			float 	--> double
+			int		--> long
+			bool	--> bool
+			MVec	--> double3
+"""
+	at = kwargs.pop('attributeType', kwargs.pop('at', None ))
+	if at is not None:
+		if at in [str, unicode]:
+			kwargs['dt'] = 'string'
+		else:
+			try: 
+				kwargs['at'] = {
+					float: 'double',
+					int: 'long',
+					bool: 'bool',
+					MVec: 'double3'
+				}[at]
+			except KeyError:
+				kwargs['at'] = at
+	return cmds.addAttr( *args, **kwargs )
+		
 def currentTime( *args, **kwargs ):
 	"""
 Modifications:
@@ -878,7 +959,59 @@ Maya Bug Fix:
 			res = PyNode( res[0] )
 		except: pass
 	return res
-	
+
+def pointLight(*args,**kwargs):
+	"""
+Maya Bug Fix:
+	- name flag was ignored
+	"""	
+	name = kwargs.pop('name', kwargs.pop('n', False ) )
+	if name:
+		tmp = cmds.pointLight(*args, **kwargs)
+		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'pointLight' )
+	else:
+		return PyNode( cmds.pointLight(*args, **kwargs), 'pointLight'  )
+
+def spotLight(*args,**kwargs):
+	"""
+Maya Bug Fix:
+	- name flag was ignored
+	"""	
+	name = kwargs.pop('name', kwargs.pop('n', False ) )
+	if name:
+		tmp = cmds.pointLight(*args, **kwargs)
+		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'spotLight' )
+	else:
+		return PyNode( cmds.pointLight(*args, **kwargs), 'spotLight'  )
+
+def directionalLight(*args,**kwargs):
+	"""
+Maya Bug Fix:
+	- name flag was ignored
+	"""	
+	name = kwargs.pop('name', kwargs.pop('n', False ) )
+	if name:
+		tmp = cmds.pointLight(*args, **kwargs)
+		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'directionalLight' )
+	else:
+		return PyNode( cmds.pointLight(*args, **kwargs), 'directionalLight'  )
+
+def ambientLight(*args,**kwargs):
+	"""
+Maya Bug Fix:
+	- name flag was ignored
+	"""	
+	name = kwargs.pop('name', kwargs.pop('n', False ) )
+	if name:
+		tmp = cmds.pointLight(*args, **kwargs)
+		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'ambientLight' )
+	else:
+		return PyNode( cmds.pointLight(*args, **kwargs), 'ambientLight'  )
+								
 def spaceLocator(**kwargs):
 	"""
 Modifications:
@@ -886,7 +1019,54 @@ Modifications:
 	"""
 	return Transform(cmds.spaceLocator(**kwargs)[0])
 
-		
+def instancer(*args, **kwargs):
+	"""
+Maya Bug Fix:
+	- name of newly created instancer was not returned
+	"""	
+	if kwargs.get('query', kwargs.get('q',False)):
+		return cmds.instancer(*args, **kwargs)
+	if kwargs.get('edit', kwargs.get('e',False)):
+		cmds.instancer(*args, **kwargs)
+		return PyNode( *args[0] )
+	else:
+		instancers = cmds.ls(type='instancer')
+		cmds.instancer(*args, **kwargs)
+		return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0] )
+
+	
+
+
+scriptTableCmds = {}
+
+def scriptTable(*args, **kwargs):
+	"""
+Maya Bug Fix:
+	- fixed getCellCmd to work with python functions, previously only worked with mel callbacks
+		IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
+	"""
+	cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',False) )
+	if cb:
+		if hasattr(cb, '__call__'):		
+			uiName = cmds.scriptTable( *args, **kwargs )
+			procName = 'getCellMel%d' % len(scriptTableCmds.keys())
+			procCmd = "global proc string %s( int $row, int $column ){return python(\"pymel.scriptTableCmds['%s'](\" + $row + \",\" + $column + \")\");}" %  (procName,uiName) 
+			#print procCmd
+			mm.eval( procCmd )			
+			scriptTableCmds[uiName] = cb
+			
+			# create a scriptJob to clean up the dictionary of functions
+			popCmd = "python(\"scriptTableCmds.pop('%s',None)\")" % uiName 
+			#print popCmd
+			cmds.scriptJob( uiDeleted=(uiName, "python(\"pymel.scriptTableCmds.pop('%s',None)\")" % uiName ) )
+
+			return cmds.scriptTable( uiName, e=1, getCellCmd=procName )
+		else:
+			kwargs['getCellCmd'] = cb	
+	
+	cmds.scriptTable( *args, **kwargs )
+
+	
 #--------------------------
 # New Commands
 #--------------------------
@@ -1400,8 +1580,7 @@ class Attribute(_BaseObj):
 		>>> s.addAttr('__init__')
 		>>> s.attr('__init__').set( .5 )
 		>>> s.attr('translate').isLocked()  # this succeeds
-		>>> atName = 'translateX'
-		>>> s.attr( atName ).isLocked()
+		>>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()
 	
 	"""
 	attrItemReg = re.compile( '.*\[(\d+)\]$')
@@ -2658,7 +2837,23 @@ class Camera_(Dag):
 		
 	def listBookmarks(self):
 		return self.bookmarks.inputs()
+	
+	def dolly(self, **kwargs):
+	 	return cmds.dolly(self, **kwargs)
+	
+	def roll(self, **kwargs):
+	 	return cmds.roll(self, **kwargs)
 
+	def orbit(self, **kwargs):
+	 	return cmds.orbit(self, **kwargs)
+
+	def track(self, **kwargs):
+	 	return cmds.track(self, **kwargs)
+
+	def tumble(self, **kwargs):
+	 	return cmds.tumble(self, **kwargs)
+	
+	
 class Constraint_(Dag):
 	def setWeight( self, weight, *targetObjects ):
 		inFunc = getattr( cmds, self.type() )

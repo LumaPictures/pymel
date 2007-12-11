@@ -66,7 +66,7 @@ def functionFactory( inFunc, returnFunc, moduleName='pymel', flagDocs=None ):
 				except KeyError: pass
 				
 			res = apply( inFunc, args, kwargs )
-			if 'query' not in kwargs and 'q' not in kwargs: # and 'edit' not in kwargs and 'e' not in kwargs:
+			if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
 				if isinstance(res, list):				
 					try:
 						res = map( returnFunc, res )
@@ -264,6 +264,109 @@ def createPymelObjects():
 	pymel.core.returnMap.update(returnMap)
 	return returnMap
 
+def testCreationCommands():
+	baseDir = util.moduleDir()
+	cmdList = helpDocs.buildPymelCmdsList()
+	
+	file = (baseDir / 'commandsCreation').open( 'r' )
+	
+	for funcName in file:
+				
+		funcName = funcName.split(' ')[0]	
+		
+		if funcName in [ 'character', 'lattice' ]:
+			continue
+		print funcName
+		
+		try:
+			func = getattr(pymel.core, funcName)
+		except AttributeError:
+			func = getattr(cmds,funcName)
+			
+		try:
+			cmds.select(cl=1)
+			
+			if funcName.endswith( 'onstraint'):
+				s = cmds.polySphere()[0]
+				c = cmds.polyCube()[0]
+				obj = func(s,c)
+			else:
+				obj = func()
+				if obj is None:
+					raise ValueError, "Returned object is None"
+			
+		except (TypeError,RuntimeError, ValueError), msg:
+			print "ERROR: failed creation:", msg
 
-#del maya.cmds
+		else:
+			#(func, args, data) = cmdList[funcName]	
+			#(usePyNode, baseClsName, nodeName)
+			args = helpDocs.getCmdFlags(funcName, '2008')
+
+			if isinstance(obj, list):
+				obj = obj[0]
+
+			for flag, flagInfo in args.items():			
+				if flag in ['query', 'edit']:
+					continue
+				modes = flagInfo['modes']
+			
+				cmd = "%s('%s', query=True, %s=True)" % (func.__name__, obj,  flag)
+				try:
+					if 'query' in modes:
+					
+						val = func( obj, **{'query':True, flag:True} )
+						#print val
+				except TypeError, msg:							
+					#if str(msg).startswith( 'Invalid flag' ):
+					#	commandHelp[funcName].pop(flag,None)
+					#else:
+					print cmd
+					print "\t", msg
+				except RuntimeError, msg:
+					print cmd
+					print "\t", msg	
+			
+				cmd =  "%s('%s', edit=True, %s=%s)" % (func.__name__, obj,  flag, val)
+				try:
+					if 'edit' in modes:
+						if val is None:
+							argMap = { 
+								'boolean'	 	: True,
+								'int'			: 0,
+								'float'			: 0.0,
+								'linear'		: 0.0,
+								'double'		: 0.0,
+								'angle'			: 0,
+								'string' :		'persp'
+							}
+							
+							argtype = flagInfo['argtype']
+							if '[' in argtype:
+								val = []
+								for typ in argtype.strip('[]').split(','):
+									val.append( argMap[typ.strip()] )
+							else:
+								val = argMap[argtype]					
+					
+						func( obj, **{'edit':True, flag:val} )
+
+						#print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
+				except TypeError, msg:														
+					#if str(msg).startswith( 'Invalid flag' ):
+					#	commandHelp[funcName].pop(flag,None)
+					#else:
+					print cmd
+					print "\t", msg 
+				except RuntimeError, msg:
+					print cmd
+					print "\t", msg	
+				except KeyError:
+					print "UNKNOWN ARG:", flagInfo['argtype']
+				val = None		
+						
+	file.close()
+	
+	print "done"
+
 		

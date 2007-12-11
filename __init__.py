@@ -73,8 +73,10 @@ Using Node Classes
 
 	In order to use the object-oriented design of pymel, you must ensure that the objects that you are working 
 	with are instances of pymel classes. To make this easier, this module contains wrapped version 
-	of the more common commands for creating and getting lists of objects which cast their results to the appropriate 
+	of the more common commands for creating and getting lists of objects. These modified commands cast their results to the appropriate 
 	class type. See L{ls}, L{listRelatives}, L{listTransforms}, L{selected}, and L{listHistory}.  
+	
+	Commands that list objects return pymel classes:
 	
 		>>> s = ls(type='transform')[0]
 		>>> print type(t)
@@ -133,12 +135,12 @@ created, its node type, and its class type
 	>>> print l, l.type(), type(l)	
 	directionalLightShape1 directionalLight <class 'pymel.DirectionalLight'>
 
-	>>> # make the light red, the old school way
+	>>> # make the light red and get shadow samples, the old school way
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
 	>>> directionalLight( l, query=1, shadowSamples=1 ) 
 	1	
 	
-	>>> # the pymel way
+	>>> # now, the pymel way
 	>>> l.setRgb( [1,0,0] )
 	>>> print l.getShadowSamples()   
 	1
@@ -148,8 +150,8 @@ Immutability
 
 All node classes are subclasses of python's built-in unicode string type, which allow them to be easily printed, passed to 
 commands and used as keys in dictionaries. However, since strings are immutable, when calling 
-commands like L{rename}, the calling instance will point to an invalid object after the rename, so you 
-need to assign the result of the command to a new instance. For example:
+commands like L{rename}, the calling instance will point to an invalid object after the rename, so if you plan
+to operate on this new instance, be sure to assign the result to a variable. For example:
 
 	>>> orig = polySphere()[0]
 	>>> new = orig.rename('crazySphere')
@@ -169,19 +171,22 @@ pymel achieves this effect by chaining function lookups.  If a called method doe
 request will be passed to appropriate class of the transform's shape node, if it exists.
 The chaining goes one further for object primitives, such as spheres, cones, etc.  For example:
 	
-	>>> # create a sphere and return its transform
+	create a sphere and return its transform
 	>>> trans = polySphere()[0]
 	>>> print type(trans)
 	<class 'pymel.core.Transform'>
-	>>> # get the transform's shape
+	
+	get the transform's shape
 	>>> shape = trans.getShape()
 	>>> print type( shape )
 	<class 'pymel.core.Poly'>
-	>>> # get the shape's history
+	
+	get the shape's history
 	>>> hist = shape.history()[1]
 	>>> type( hist )
 	<class 'pymel.PolySphere'>
-	>>> # get the radius of the sphere 
+	
+	get the radius of the sphere 
 	>>> hist.getRadius()
 	1.0 
 	>>> # chained lookup allows the PolySphere.getRadus method to work on the Transform class  
@@ -313,7 +318,7 @@ fixed Attribute.exists() to not raise an error when the node does not exist, ins
 fixed a bug in Dag.namespaceList
 added a levels keyword to Dag.stripNamespace
 Maya Bug Fix: severe design oversight in all ui callback commands. 
-	the callbacks were being passed u'true' and u'false' instead of python booleans. (this makes me doubt autodesk more than ever)
+	the callbacks were being passed u'true' and u'false' instead of python booleans. (why, autodesk? why?!)
 added Transform.getBoundingBox()
 fixed a bug in Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
 added cascading to setattr
@@ -324,10 +329,19 @@ changed Node.node to Node.nodeName
 Maya Bug Fix: listRelatives: allDescendents and shapes flags did not work in combination
 Fixed __unicode__ issue, removed underscore syntax
 Added mayaInit for using pymel via an external interpreter
+Maya Bug Fix: pointLight, directionalLight, ambientLight, spotLight did not return the correct name of created light 
+Maya Bug Fix: instancer node was not returning name of created shape
+added Camera.dolly, Camera.track, Camera.tumble, Camera.orbit
+enhanced addAttr to allow python types to be passed to set -at type
+			str 	--> string
+			float 	--> double
+			int		--> long
+			bool	--> bool
+			MVec	--> double3
+added FileInfo class for accessing per-file data as a dictionary
+Maya Bug Fix: fixed getCellCmd to work with python functions, previously only worked with mel callbacks
 
-Maya Bug Fix
-	- allDescendents and shapes flags did not work in combination
-	
+
  TODO: 
 	Factory:
 	- provide on option for creation command factory so that commands that always return a single object do not return a list
@@ -348,14 +362,6 @@ Maya Bug Fix
 	- create Vector constants.  Red, White, Up, Down, etc
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
-	- fix maya's directionalLight cmd - does not return the correct name of created light 
-			( ex. 'directionalLightShape1', even when name arg used )
-	- addAttr: allow python types to be passed to set -at type
-			str 	--> string
-			float 	--> double
-			int		--> long
-			bool	--> bool
-			MVec	--> double3
 	
 	For Future Release:
 	- add sequence handling methods to MPath

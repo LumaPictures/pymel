@@ -103,7 +103,7 @@ def _mayaCommandHelpFile( command, version ):
 	return docLocation / 'docs/Maya%s/en_US/CommandsPython/%s.html' % (version, command)
 
 
-def _getCmdFlags( command, mayaVersion='8.5' ):
+def getCmdFlags( command, mayaVersion='8.5' ):
 	f = open( _mayaCommandHelpFile( command, mayaVersion ) )	
 	parser = cmdDocParser()
 	parser.feed( f.read() )
@@ -187,7 +187,7 @@ def buildMayaCmdsArgList() :
 		for i, data in enumerate(cmdlist) :	
 			k = data[0]
 			try :
-				args = _getCmdFlags(k, ver)
+				args = getCmdFlags(k, ver)
 			except :
 				args = {}
 
@@ -218,129 +218,8 @@ def buildMayaCmdsArgList() :
 			print "Unable to open '"+newPath+"' for writing"
 	return cmdlist
 
-'''
-def writeCommandHelp(runTest=False):
-	files = ['commandsCreation', 'commandsCtx', 'commandsUI', 'commandsEnhanced']
-	baseDir = util.moduleDir()
-	
-	print "writing out doc dictionaries"
-	
-	commandHelp = {}
-	for f in files:
-		file = (baseDir / f).open( 'r' )
-		
-		for funcName in file:
-			funcName = funcName.split()[0].strip()
 
-			#---------------------------
-			# 	Write Docs
-			#---------------------------
-						
-			#commandHelp[funcName] = {'help' : pymel.mel.help(funcName) }
-				
-			#if f in ['commandsCreation','commandsUI']:
-			#	commandHelp[funcName]['flagDocs' ] = _getCmdFlags(funcName)
-			
-			commandHelp[funcName] = _getCmdFlags(funcName)
-			
-			#---------------------------
-			# 	Test
-			#---------------------------
-			if f=='commandsCreation' and runTest:
-				if funcName in [ 'character', 'lattice' ]:
-					continue
-				print funcName
-				
-				try:
-					func = getattr(pymel.core, funcName)
-				except AttributeError:
-					func = getattr(cmds,funcName)
-				try:
-					cmds.select(cl=1)
-					
-					if funcName.endswith( 'onstraint'):
-						s = cmds.polySphere()[0]
-						c = cmds.polyCube()[0]
-						obj = func(s,c)
-					else:
-						obj = func()
-					
-					
-					
-				except RuntimeError, msg:
-					print "ERROR: failed creation:", msg
-				except TypeError, msg:
-					print "ERROR: failed creation:", msg
-				else:
-					if isinstance(obj, list):
-						obj = obj[0]
 
-					for flag, flagInfo in commandHelp[funcName].items():			
-						if flag in ['query', 'edit']:
-							continue
-						modes = flagInfo['modes']
-					
-						cmd = "%s('%s', query=True, %s=True)" % (func.__name__, obj,  flag)
-						try:
-							if 'query' in modes:
-							
-								val = func( obj, **{'query':True, flag:True} )
-								#print val
-						except TypeError, msg:							
-							if str(msg).startswith( 'Invalid flag' ):
-								commandHelp[funcName].pop(flag,None)
-							else:
-								print cmd
-								print "TypeError:", msg
-						except RuntimeError, msg:
-							print cmd
-							print "RuntimeError:", msg	
-					
-						cmd =  "%s('%s', edit=True, %s=%s)" % (func.__name__, obj,  flag, val)
-						try:
-							if 'edit' in modes:
-								if val is None:
-									argMap = { 
-										'boolean'	 	: True,
-										'int'			: 0,
-										'float'			: 0.0,
-										'linear'		: 0.0,
-										'double'		: 0.0,
-										'angle'			: 0,
-										'string' :		'persp'
-									}
-									
-									argtype = flagInfo['argtype']
-									if '[' in argtype:
-										val = []
-										for typ in argtype.strip('[]').split(','):
-											val.append( argMap[typ.strip()] )
-									else:
-										val = argMap[argtype]					
-							
-								func( obj, **{'edit':True, flag:val} )
-
-								#print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
-						except TypeError, msg:														
-							if str(msg).startswith( 'Invalid flag' ):
-								commandHelp[funcName].pop(flag,None)
-							else:
-								print cmd
-								print "TypeError:", msg 
-						except RuntimeError, msg:
-							print cmd
-							print "RuntimeError:", msg	
-						except KeyError:
-							print "UNKNOWN ARG:", flagInfo['argtype']
-						val = None
-			
-						
-		file.close()
-
-	commandHelpFile.write_text( str( commandHelp ) )
-	
-	print "done"
-'''
 	
 #---------------------------------------------------------------
 		
