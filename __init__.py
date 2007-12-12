@@ -240,8 +240,7 @@ file, place it in your scipts directory and add this line::
 
 	python("from pymel import *");
 
-Note, that if you are running a linux/unix variant, including osx, and you have your PYTHONPATH set in a shell resource file, 
-this value will override your Maya.env value if you launch maya from the terminal.
+Note, that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
  
 """
 
@@ -351,7 +350,7 @@ Maya Bug Fix: fixed getCellCmd to work with python functions, previously only wo
 
 	To Debate:
 	- filter out self from listHistory command?
-	- remove 'M' from MVec, MMat, MReference, and MPath?
+
 	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
 	- new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
@@ -359,12 +358,18 @@ Maya Bug Fix: fixed getCellCmd to work with python functions, previously only wo
 	
 	
 	For Next Release:
-	- create Vector constants.  Red, White, Up, Down, etc
+	- sort out listReferences, getReferences
+	- remove 'M' from MVec, MMat, MReference, and MPath
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
 	
 	For Future Release:
+	- pymel preferences for breaking or maintaining backward compatibility:
+		- longNames
+		- twoDimensionalArrays (ex. ls(showType=1), fileInfo(q=1) )
 	- add sequence handling methods to MPath
+	- create Vector constants.  Red, White, Up, Down, etc
+	- develop a way to add docs to selective objects based on cached info
 """
 
 __version__ = 0.7

@@ -268,6 +268,27 @@ workspace = Workspace()
 
 
 class FileInfo( util.Singleton ):
+	"""
+	store and get custom data specific to this file:
+	
+		>>> fileInfo['lastUser'] = env.user()
+		
+	if the python structures have valid __repr__ functions, you can
+	store them and reuse them later:
+	
+		>>> fileInfo['cameras'] = str( ls( cameras=1) )
+		>>> camList = eval(fileInfo['cameras'])
+		>>> camList[0]
+		# Result: frontShape #
+		>>> list[0].getFocalLength()  # it's still a valid pymel class
+		# Result: 35.0 #
+	
+	for backward compatibility it retains it's original syntax as well:
+		
+		>>> fileInfo( 'myKey', 'myData' )
+		
+	"""
+	
 	def __contains__(self, item):
 		return item in self.keys()
 		
@@ -892,7 +913,7 @@ Maya Bug Fix:
 	
 	#if kwargs.pop('query',False) or kwargs.pop('q',False):
 
-	if 'query' in kwargs or 'q' in kwargs:
+	if kwargs.get('query', kwargs.get( 'q', False)):
 		args = [
 		'limitSwitchX', 'lsx',
 		'limitSwitchY', 'lsy',
@@ -965,60 +986,81 @@ def pointLight(*args,**kwargs):
 Maya Bug Fix:
 	- name flag was ignored
 	"""	
-	name = kwargs.pop('name', kwargs.pop('n', False ) )
-	if name:
-		tmp = cmds.pointLight(*args, **kwargs)
-		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'pointLight' )
-	else:
-		return PyNode( cmds.pointLight(*args, **kwargs), 'pointLight'  )
+	if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
+		return cmds.pointLight(*args, **kwargs)
+	
+	else:	
+		name = kwargs.pop('name', kwargs.pop('n', False ) )
+		if name:
+			tmp = cmds.pointLight(*args, **kwargs)
+			tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+			return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'pointLight' )
+	
+	return PyNode( cmds.pointLight(*args, **kwargs), 'pointLight'  )
 
 def spotLight(*args,**kwargs):
 	"""
 Maya Bug Fix:
 	- name flag was ignored
 	"""	
-	name = kwargs.pop('name', kwargs.pop('n', False ) )
-	if name:
-		tmp = cmds.pointLight(*args, **kwargs)
-		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'spotLight' )
-	else:
-		return PyNode( cmds.pointLight(*args, **kwargs), 'spotLight'  )
+	if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
+		return cmds.spotLight(*args, **kwargs)
+	
+	else:	
+		name = kwargs.pop('name', kwargs.pop('n', False ) )
+		if name:
+			tmp = cmds.spotLight(*args, **kwargs)
+			tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+			return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'spotLight' )
+	
+	return PyNode( cmds.spotLight(*args, **kwargs), 'spotLight'  )
 
 def directionalLight(*args,**kwargs):
 	"""
 Maya Bug Fix:
 	- name flag was ignored
 	"""	
-	name = kwargs.pop('name', kwargs.pop('n', False ) )
-	if name:
-		tmp = cmds.pointLight(*args, **kwargs)
-		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'directionalLight' )
-	else:
-		return PyNode( cmds.pointLight(*args, **kwargs), 'directionalLight'  )
+	
+	if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
+		return cmds.directionalLight(*args, **kwargs)
+	
+	else:	
+		name = kwargs.pop('name', kwargs.pop('n', False ) )
+		if name:
+			tmp = cmds.directionalLight(*args, **kwargs)
+			tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+			return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'directionalLight' )
+	
+	return PyNode( cmds.directionalLight(*args, **kwargs), 'directionalLight'  )
 
 def ambientLight(*args,**kwargs):
 	"""
 Maya Bug Fix:
 	- name flag was ignored
 	"""	
-	name = kwargs.pop('name', kwargs.pop('n', False ) )
-	if name:
-		tmp = cmds.pointLight(*args, **kwargs)
-		tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-		return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'ambientLight' )
-	else:
-		return PyNode( cmds.pointLight(*args, **kwargs), 'ambientLight'  )
+	if kwargs.get('query', kwargs.get('q', False)) or kwargs.get('edit', kwargs.get('e', False)):
+		return cmds.ambientLight(*args, **kwargs)
+	
+	else:	
+		name = kwargs.pop('name', kwargs.pop('n', False ) )
+		if name:
+			tmp = cmds.ambientLight(*args, **kwargs)
+			tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
+			return PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'ambientLight' )
+	
+	return PyNode( cmds.ambientLight(*args, **kwargs), 'ambientLight'  )
 								
-def spaceLocator(**kwargs):
+def spaceLocator(*args, **kwargs):
 	"""
 Modifications:
 	- returns a locator instead of a list with a single locator
 	"""
-	return Transform(cmds.spaceLocator(**kwargs)[0])
-
+	res = cmds.spaceLocator(**kwargs)
+	try:
+		return Transform(res[0])
+	except:
+		return res
+	
 def instancer(*args, **kwargs):
 	"""
 Maya Bug Fix:
@@ -1028,11 +1070,11 @@ Maya Bug Fix:
 		return cmds.instancer(*args, **kwargs)
 	if kwargs.get('edit', kwargs.get('e',False)):
 		cmds.instancer(*args, **kwargs)
-		return PyNode( *args[0] )
+		return PyNode( args[0], 'instancer' )
 	else:
 		instancers = cmds.ls(type='instancer')
 		cmds.instancer(*args, **kwargs)
-		return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0] )
+		return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
 	
 
@@ -1249,9 +1291,11 @@ class _BaseObj(unicode):
 		return setAttr( '%s.%s' % (self, attr), val )
 
 	def stripNamespace(self, levels=0):
-		"""Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
+		"""
+		Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
 		The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
-		The default is 0 which will remove all namespaces."""
+		The default is 0 which will remove all namespaces.
+		"""
 		
 		nodes = []
 		for x in self.split('|'):
@@ -2863,7 +2907,16 @@ class Constraint_(Dag):
 		constraintObj = self.constraintParentInverseMatrix.inputs()[0]	
 		targetObjects = list(targetObjects) + [constraintObj]
 		return inFunc(  *targetObjects, **{'edit':True, 'weight':weight} )
-
+		
+	def getWeight( self, *targetObjects ):
+		inFunc = getattr( cmds, self.type() )
+		if not targetObjects:
+			targetObjects = self.getTargetList() 
+		
+		constraintObj = self.constraintParentInverseMatrix.inputs()[0]	
+		targetObjects = list(targetObjects) + [constraintObj]
+		return inFunc(  *targetObjects, **{'query':True, 'weight':True} )
+		
 class Poly(Dag):
 	"""
 	Cycle through faces and select those that point up in world space
