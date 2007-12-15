@@ -87,7 +87,7 @@ ReservedMayaTypes({ 'base':'kBase', 'object':'kNamedObject', 'node':'kDependency
                  'pluginNode':'kPluginDependNode', 'pluginDeformer':'kPluginDeformerNode', 'unknown':'kUnknown', 'unknownDag':'kUnknownDag', \
                  'unknownTransform':'kUnknownTransform', 'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' })
 
-# Reserved Maya types and API types that need a special treatment (abstract types)
+# child:parent lookup of the Maya API classes hierarchy (based on the existing MFn classe hierarchy)
 class MayaAPITypesHierarchy(dict) :
     __metaclass__ =  metaStatic
 
@@ -241,11 +241,12 @@ class MayaAPITypesToPyNode(dict) :
 
 # build a PyNode to API type relation or PyNode to Maya node types relation ?
 def buildPyNodeToAPI () :
+    # Check if a pymel class is Node or a subclass of Node
     def _PyNodeClass (x) :
         try :
-            return issubclass(x, Node)
+            return issubclass(x, pymel.core._BaseObj)
         except :
-            return False
+            return False    
     listPyNodes = dict(inspect.getmembers(pymel, _PyNodeClass))
     PyNodeDict = {}
     PyNodeInverseDict = {}
@@ -262,7 +263,29 @@ def buildPyNodeToAPI () :
     MayaAPITypesToPyNode (PyNodeInverseDict)
 
 buildPyNodeToAPI()
-            
+
+# child:parent lookup of the pymel classes that derive from Node
+class PyNodeTypesHierarchy(dict) :
+    __metaclass__ =  metaStatic
+
+# Build a dictionnary of api types and parents to represent the MFn class hierarchy
+def buildPyNodeTypesHierarchy () :    
+    PyNodeTree = inspect.getclasstree([k for k in PyNodeToMayaAPITypes().keys()])
+    PyNodeDict = {}
+    for x in util.expandArgs(PyNodeTree, type='list') :
+        try :
+            ct = x[0]
+            pt = x[1][0]
+            if issubclass(ct, pymel.core._BaseObj) and issubclass(pt, pymel.core._BaseObj) :
+                PyNodeDict[ct] = pt
+        except :
+            pass
+
+    return PyNodeDict 
+
+# Initialize the API tree
+PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+        
 # Public names to MObjects function
 def nameToMObject( *args ):
     """ Get the API MObjects given names of existing nodes """ 
@@ -309,6 +332,8 @@ def mayaType (nodeOrType, **kwargs) :
         >>> 'constraint'
         >>> mayaType ('kVortex', pymel=True)
         >>> <class 'pymel.Vortex'>
+        >>> mayaType ('Vortex', inheritedPymel=True)
+        >>> [<class 'pymel.Vortex'>, <class 'pymel.core.Dag'>, <class 'pymel.core.Node'>, <class 'pymel.core._BaseObj'>]        
         >>> mayaType ('aimConstraint', apiType=True, inheritedAPI=True)
         >>> {'inheritedAPI': ['kConstraint'], 'apiType': 'kAimConstraint'}
         >>> mayaType (pymel.Transform)
@@ -323,6 +348,7 @@ def mayaType (nodeOrType, **kwargs) :
     isPluginObject = None
     inherited = []
     apiInherited = []
+    pymelInherited = []
 
     result = {}
     do_type, do_apiInt, do_apiStr, do_plugin, do_pymel, do_inherited, do_apiInherited = False, False, False, False, False, False, False
@@ -336,7 +362,8 @@ def mayaType (nodeOrType, **kwargs) :
         do_pymel = kwargs.get('pymel', False)
         do_inherited = kwargs.get('inherited', False)
         do_apiInherited = kwargs.get('inheritedAPI', False)
-    
+        do_pymelInherited = kwargs.get('inheritedPymel', False)
+                   
     # check what was passed as argument
     if (objExists(nodeOrType)) :      # @UndefinedVariable
         # Existing object, easy to find out
@@ -393,11 +420,18 @@ def mayaType (nodeOrType, **kwargs) :
             pyNodeType = MayaAPITypesToPyNode().get(apiTypeStr, None)                
         if do_inherited or do_apiInherited :
             k = apiTypeStr
+            apiInherited.append(k)      # starting class
             while k is not 'kBase' and MayaAPITypesHierarchy().has_key(k) :
                 k = MayaAPITypesHierarchy()[k]
                 apiInherited.append(k)
             if do_inherited :
                 inherited = [MayaAPIToTypes()[k].keys() for k in apiInherited] 
+        if do_pymelInherited :
+            k = pyNodeType
+            pymelInherited.append(k)      # starting class
+            while k is not 'pymel.core._BaseObj' and PyNodeTypesHierarchy().has_key(k) :
+                k = PyNodeTypesHierarchy()[k]
+                pymelInherited.append(k)            
             
     # format result
     if do_type :
@@ -414,7 +448,9 @@ def mayaType (nodeOrType, **kwargs) :
         result['inherited'] = inherited
     if do_apiInherited :
         result['inheritedAPI'] = apiInherited          
-         
+    if do_pymelInherited :
+        result['inheritedPymel'] = pymelInherited    
+                
     if len(result) == 1 :
         return result[result.keys()[0]] 
     else :        
