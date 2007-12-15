@@ -1,6 +1,7 @@
 
 import sys, os, os.path, re, platform
 from exceptions import *
+from collections import *
 from path import path
 import envparse
 
@@ -109,64 +110,190 @@ def convertListArgs( args ):
 		return tuple(args[0])
 	return args	
 
-# Completely flatten a multi-list argument so that in can be passed as
-# a list of arguments to a command.
-# TODO : flatten hierarchy trees the same way, depth first or breadth first           
-def expandListArgs( *args, **kwargs ) :
+# Flatten a multi-list argument so that in can be passed as
+# a list of arguments to a command.          
+def expandArgs( *args, **kwargs ) :
     """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
-    elements that will be inserted at its place in the returned arguments. A depth limit can be specified.
-        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
+    elements that will be inserted at its place in the returned arguments.
+    Keyword arguments :
+    depth :  will specify the nested depth limit after which iterables are returned as they are
+    type : for type='list' will only expand lists, by default type='all' expands any iterable sequence
+    order : By default will return elements depth first, from root to leaves)
+            with postorder=True will return elements depth first, from leaves to roots
+            with breadth=True will return elements breadth first, roots, then first depth level, etc.
+    For a nested list represent trees   a____b____c
+                                        |    |____d
+                                        e____f
+                                        |____g
+    preorder(default) :
+        >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1 )
         >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
-        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
+        >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] )
         >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
-        Note that on a pymel tree it's the equivalent of doing a preorder traversal : [k for k in iter(theTree)]"""
+    postorder :
     
-    cargs = tuple()
-    l = kwargs.get('limit', None)
-    try :
-        l -= 1
-    except :
-        pass
-    cont = (l is None or l>=0)
-    for arg in args :
-        if isIterable(arg) and cont :
-            nargs = tuple(arg)
-            nkw = {'limit':l}
-            cargs += expandListArgs( *nargs, **nkw )
-        else :
-            cargs += (arg,)
-    return cargs
+    breadth :
+        >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True)
+        >>> ('a', 'e', 'b', ['c', 'd'], 'f', 'g') # 
+        >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], breadth=True)
+        >>> ('a', 'e', 'b', 'f', 'g', 'c', 'd') # 
+        
+     Note that with default depth (unlimited) and order (preorder), if passed a pymel Tree
+     result will be the equivalent of doing a preorder traversal : [k for k in iter(theTree)] """
 
-# Same behavior as expandListArg but implemented as an Python iterator, for huge lists
-# it would be more memory efficient            
-def iterateListArgs( *args, **kwargs ) :
-    """ Iterates through all arguments list: recursively replaces any iterable argument in *args by a tuple of its
-    elements that will be inserted at its place in the returned arguments. A depth limit can be specified.
-        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'], limit=2 )
-        >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
-        >>> expandListArgs( ['a', ['b', ['c', 'd']]], 'e', ['f', 'g'] )
-        >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
-        Note that on a pymel tree it's the equivalent the default preorder traversal iterator: iter(theTree)"""
+    tpe = kwargs.get('type', 'all')
+    limit = kwargs.get('limit', sys.getrecursionlimit())
+    postorder = kwargs.get('postorder', False)
+    breadth = kwargs.get('breadth', False)
+    if tpe=='list' or tpe==list :
+        def _expandArgsTest(arg): return type(arg)==list
+    elif tpe=='all' :
+        def _expandArgsTest(arg): return isIterable(arg)
+    else :
+        raise ValueError, "unknown expand type=%s" % str(tpe)
+       
+    if postorder :
+        return postorderArgs (limit, _expandArgsTest, *args)
+    elif breadth :
+        return breadthArgs (limit, _expandArgsTest, *args)
+    else :
+        return preorderArgs (limit, _expandArgsTest, *args)
+             
+def preorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
+    """ iterator doing a preorder expansion of args """
+    stack = [(x,0) for x in args]
+    result = deque()
+    while stack :
+        arg, level = stack.pop()
+        if testFn(arg) and level<limit :
+            stack += [(x,level+1) for x in arg]
+        else :
+            result.appendleft(arg)
     
-    l = kwargs.get('limit', None)
-    try :
-        l -= 1
-    except :
-        pass
-    cont = (l is None or l>=0)
-    for arg in args :
-        if isIterable(arg) and cont :
-            nargs = tuple(arg)
-            nkw = {'limit':l}
-            for a in iterateListArgs( *nargs, **nkw ) :
-                yield a
+    return tuple(result)
+
+def postorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
+    """ iterator doing a postorder expansion of args """
+    stack = [(x,0) for x in args]
+    result = deque()
+    while stack :
+        arg, level = stack.pop()
+        if testFn(arg) and level<limit :
+            stack = [(x,level+1) for x in reversed(list(arg))] + stack
+        else :
+            result.appendleft(arg)
+
+    return tuple(result)
+    
+def breadthArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
+    """ iterator doing a breadth first expansion of args """
+    deq = deque((x,0) for x in args)
+    result = []
+    while deq :
+        arg, level = deq.popleft()
+        if testFn(arg) and level<limit :
+            for a in arg :
+                deq.append ((a, level+1))
+        else :
+            result.append(arg)
+
+    return tuple(result)
+      
+# Same behavior as expandListArg but implemented as an Python iterator, the recursieve approach
+# will be more memory efficient, but slower         
+def iterateArgs( *args, **kwargs ) :
+    """ Iterates through all arguments list: recursively replaces any iterable argument in *args by a tuple of its
+    elements that will be inserted at its place in the returned arguments.
+    Keyword arguments :
+    depth :  will specify the nested depth limit after which iterables are returned as they are
+    type : for type='list' will only expand lists, by default type='all' expands any iterable sequence
+    order : By default will return elements depth first, from root to leaves)
+            with postorder=True will return elements depth first, from leaves to roots
+            with breadth=True will return elements breadth first, roots, then first depth level, etc.
+    For a nested list represent trees   a____b____c
+                                        |    |____d
+                                        e____f
+                                        |____g
+    preorder(default) :
+        >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1 ))
+        >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] ))
+        >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
+    postorder :
+    
+    breadth :
+        >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True))
+        >>> ('a', 'e', 'b', ['c', 'd'], 'f', 'g') # 
+        >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], breadth=True))
+        >>> ('a', 'e', 'b', 'f', 'g', 'c', 'd') #         
+     Note that with default depth (-1 for unlimited) and order (preorder), if passed a pymel Tree
+     result will be the equivalent of using a preorder iterator : iter(theTree) """
+    
+    tpe = kwargs.get('type', 'all')
+    limit = kwargs.get('limit', sys.getrecursionlimit())
+    postorder = kwargs.get('postorder', False)
+    breadth = kwargs.get('breadth', False)
+    if tpe=='list' or tpe==list :
+        def _iterateArgsTest(arg): return type(arg)==list
+    elif tpe=='all' :
+        def _iterateArgsTest(arg): return isIterable(arg)
+    else :
+        raise ValueError, "unknown expand type=%s" % str(tpe)
+           
+    if postorder :
+        for arg in postorderIterArgs (limit, _iterateArgsTest, *args) :
+            yield arg
+    elif breadth :
+        for arg in breadthIterArgs (limit, _iterateArgsTest, *args) :
+            yield arg
+    else :
+        for arg in preorderIterArgs (limit, _iterateArgsTest, *args) :
+            yield arg
+             
+def preorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
+    """ iterator doing a preorder expansion of args """
+    if limit :
+        for arg in args :
+            if testFn(arg) :
+                for a in preorderIterArgs (limit-1, testFn, *arg) :
+                    yield a
+            else :
+                yield arg
+    else :
+        yield args
+
+def postorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
+    """ iterator doing a postorder expansion of args """
+    if limit :
+        for arg in args :
+            if testFn(arg) :
+                for a in postorderIterArgs (limit-1, testFn, *arg) :
+                    yield a
+        for arg in args :
+            if not testFn(arg) :
+                yield arg
+    else :
+        for arg in args :
+            yield arg
+    
+def breadthIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
+    """ iterator doing a breadth first expansion of args """
+    deq = deque((x,0) for x in args)
+    while deq :
+        arg, level = deq.popleft()
+        if testFn(arg) and level<limit :
+            for a in arg :
+                deq.append ((a, level+1))
         else :
             yield arg
 
+    for arg, level in deq :
+        yield arg
+        
 def listForNone( res ):
-	if res is None:
-		return []
-	return res
+    if res is None:
+        return []
+    return res
 
 def cacheProperty(getter, attr_name, fdel=None, doc=None):
 	"""a property type for getattr functions that only need to be called once per instance.
@@ -273,7 +400,7 @@ def parseMayaenv(envLocation=None, version=None) :
 			except :
 				# get version from MAYA_LOCATION then
 				try :
-					version = re.search( 'maya([\d.]+)', os.environ['MAYA_LOCATION']).group(1)		
+					version = re.search( 'maya([\d.]+([\-]x[\d.]+)?)', os.environ['MAYA_LOCATION']).group(1)		
 				except :
 					# if run from Maya provided mayapy / python interpreter, can guess version
 					startPath = os.path.dirname(sys.executable)
