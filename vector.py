@@ -13,7 +13,7 @@ import pymel
 
 
 
-class MVec(list):
+class Vector(list):
 	"""
 		A list based vector class
 	"""
@@ -24,50 +24,50 @@ class MVec(list):
 	def __getslice__(self, i, j):
 		try:
 			# use the list __getslice__ method and convert
-			# result to MVec
-			return MVec(super(MVec, self).__getslice__(i,j))
+			# result to Vector
+			return Vector(super(Vector, self).__getslice__(i,j))
 		except:
-			raise TypeError, 'MVec::FAILURE in __getslice__'
+			raise TypeError, 'Vector::FAILURE in __getslice__'
 		
 	def __add__(self, other):
 		try:
-			return MVec(map(lambda x,y: x+y, self, other))
+			return Vector(map(lambda x,y: x+y, self, other))
 		except:
-			return MVec(map( lambda x: x+other, self))
+			return Vector(map( lambda x: x+other, self))
 		
 	def __neg__(self):
-		return MVec(map(lambda x: -x, self))
+		return Vector(map(lambda x: -x, self))
 	
 	def __sub__(self, other):
 		try:
-			return MVec(map(lambda x,y: x-y, self, other))
+			return Vector(map(lambda x,y: x-y, self, other))
 		except:
-			return MVec(map( lambda x: x-other, self))
+			return Vector(map( lambda x: x-other, self))
 
 	def __mul__(self, other):
 		"""
 		Element by element multiplication
 		"""		
 		#print "vec mul ", self, other, type(other)
-		#if isinstance(other, MMat):
-		#if hasattr(other,'__class__') and other.__class__ is MMat:		
-		#if type(other) == MMat:
+		#if isinstance(other, Matrix):
+		#if hasattr(other,'__class__') and other.__class__ is Matrix:		
+		#if type(other) == Matrix:
 		
 		if isinstance(other, list):
 			#print "LEN OTHER", len(other)
 			if isinstance( other[0], list ):
-				#return MMat( map( lambda x: [x], self ) ) * other
+				#return Matrix( map( lambda x: [x], self ) ) * other
 				dif = other.ncols()-self.size()
 				#print "VEC x MAT"
-				res = MMat( [list(self) + [1]*dif ]) * other 
+				res = Matrix( [list(self) + [1]*dif ]) * other 
 				return res[0][0:self.size()]
 			else:
 				#print "VEC x VEC"
-				return MVec(map(lambda x,y: x*y, self,other))
+				return Vector(map(lambda x,y: x*y, self,other))
 
 		#print "VEC x CONST"
 		# other is a const
-		return MVec(map(lambda x: x*other, self))
+		return Vector(map(lambda x: x*other, self))
 
 
 	def __rmul__(self, other):
@@ -80,19 +80,19 @@ class MVec(list):
 		Element by element division.
 		"""
 		try:
-			return MVec(map(lambda x,y: x/y, self, other))
+			return Vector(map(lambda x,y: x/y, self, other))
 		except:
-			return MVec(map(lambda x: x/other, self))
+			return Vector(map(lambda x: x/other, self))
 
 	def __rdiv__(self, other):
 		"""
 		The same as __div__
 		"""
 		try:
-			return MVec(map(lambda x,y: x/y, other, self))
+			return Vector(map(lambda x,y: x/y, other, self))
 		except:
 			# other is a const
-			return MVec(map(lambda x: other/x, self))
+			return Vector(map(lambda x: other/x, self))
 
 	def size(self): return len(self)
 
@@ -150,15 +150,15 @@ class MVec(list):
 
 
 	def conjugate(self):
-		return MVec(map(lambda x: x.conjugate(), self))
+		return Vector(map(lambda x: x.conjugate(), self))
 
 	def ReIm(self):
 		"""
 		Return the real and imaginary parts
 		"""
 		return [
-			MVec(map(lambda x: x.real, self)),
-			MVec(map(lambda x: x.imag, self)),
+			Vector(map(lambda x: x.real, self)),
+			Vector(map(lambda x: x.imag, self)),
 			]
 
 	def AbsArg(self):
@@ -166,8 +166,8 @@ class MVec(list):
 		Return modulus and phase parts
 		"""
 		return [
-			MVec(map(lambda x: abs(x), self)),
-			MVec(map(lambda x: atan2(x.imag,x.real), self)),
+			Vector(map(lambda x: abs(x), self)),
+			Vector(map(lambda x: atan2(x.imag,x.real), self)),
 			]
 
 	def setToZeros(self):
@@ -178,13 +178,13 @@ class MVec(list):
 
 	def setToRandom(self, lmin=0.0, lmax=1.0):
 		import whrandom
-		new = MVec([])
+		new = Vector([])
 		gen = whrandom.whrandom()
 		self[:] = map( lambda x: (lmax-lmin)*gen.random() + lmin, range(self.size()) )
 		
 	def norm(self):
 		"""
-		Computes the norm of MVec a.
+		Computes the norm of Vector a.
 		"""
 		return sqrt(abs(dot(self,self)))
 
@@ -206,13 +206,13 @@ class MVec(list):
 	z = property( lambda self: self.__getitem__(2) ,  lambda self, val: self.__setitem__(2,val) )
 
 
-class MMat(list):
+class Matrix(list):
 	"""
-		A list based MVec class
+		A list based Vector class
 	"""
 	def __init__(self, rowColList = [[0]*4]*4 ):
 		for i in range( 0, len(rowColList )):
-			rowColList[i] = MVec( rowColList[i] )
+			rowColList[i] = Vector( rowColList[i] )
 		
 		list.__init__(self, rowColList)
 	
@@ -224,18 +224,18 @@ class MMat(list):
 		
 	def __add__(self, other):
 		try:
-			return MMat(map(lambda x,y: x+y, self, other))
+			return Matrix(map(lambda x,y: x+y, self, other))
 		except:
-			return MMat(map( lambda x: x+other, self))
+			return Matrix(map( lambda x: x+other, self))
 		
 	def __neg__(self):
-		return MMat(map(lambda x: -x, self))
+		return Matrix(map(lambda x: -x, self))
 	
 	def __sub__(self, other):
 		try:
-			return MMat(map(lambda x,y: x-y, self, other))
+			return Matrix(map(lambda x,y: x-y, self, other))
 		except:
-			return MMat(map( lambda x: x-other, self))
+			return Matrix(map( lambda x: x-other, self))
 
 
 	def __mul__(self, other):
@@ -243,7 +243,7 @@ class MMat(list):
 		Element by element multiplication
 		"""
 		temp = other.transpose()
-		return MMat( [ [ dot(row,col) for col in temp ] for row in self ] )
+		return Matrix( [ [ dot(row,col) for col in temp ] for row in self ] )
 
 	def __rmul__(self, other):
 		return (self*other)
@@ -253,26 +253,26 @@ class MMat(list):
 		Element by element division.
 		"""
 		try:
-			return MVec(map(lambda x,y: x/y, self, other))
+			return Vector(map(lambda x,y: x/y, self, other))
 		except:
-			return MVec(map(lambda x: x/other, self))
+			return Vector(map(lambda x: x/other, self))
 
 	def __rdiv__(self, other):
 		"""
 		The same as __div__
 		"""
 		try:
-			return MVec(map(lambda x,y: x/y, other, self))
+			return Vector(map(lambda x,y: x/y, other, self))
 		except:
 			# other is a const
-			return MVec(map(lambda x: other/x, self))
+			return Vector(map(lambda x: other/x, self))
 	
 	def row(self, row):
 		return self[row]
 		
 	def col(self, col):
 		import operator
-		return MVec(map(operator.itemgetter(col),self))
+		return Vector(map(operator.itemgetter(col),self))
 	
 	def nrows(self):
 		len(self)
@@ -281,7 +281,7 @@ class MMat(list):
 		return len(self.transpose())
 	
 	def transpose(self):
-		return MMat( apply( map, [None]+self ) )
+		return Matrix( apply( map, [None]+self ) )
 		
 	
 
@@ -297,7 +297,7 @@ def dot(a, b):
 	try:
 		return reduce(lambda x, y: x+y, a*b, 0.)
 	except:
-		raise TypeError, 'MVec::FAILURE in dot'
+		raise TypeError, 'Vector::FAILURE in dot'
 
 
 

@@ -229,8 +229,12 @@ def createPymelObjects():
 			#except TypeError, msg:
 			#	print "%s: %s.%s: %s" % (funcName, moduleName, baseClsName, msg)
 			
-			# create the new class
-			clsName = util.capitalize( funcName )
+			# create the new class, name it after the returned node, if given, so that there is symmetry between nodeName, nodeType, apiType
+			if nodeName:				
+				clsName = util.capitalize( nodeName )
+			else:
+				clsName = util.capitalize( funcName )
+				
 			cls = classFactory( func, clsName, moduleName, baseCls, args)
 					
 			module.__dict__[clsName] = cls
@@ -304,6 +308,7 @@ def testCreationCommands():
 			args = helpDocs.getCmdFlags(funcName, '2008')
 
 			if isinstance(obj, list):
+				print "returns list"
 				obj = obj[0]
 
 			for flag, flagInfo in args.items():			
@@ -326,7 +331,7 @@ def testCreationCommands():
 				except RuntimeError, msg:
 					print cmd
 					print "\t", msg	
-			
+				
 				cmd =  "%s('%s', edit=True, %s=%s)" % (func.__name__, obj,  flag, val)
 				try:
 					if 'edit' in modes:

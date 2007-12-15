@@ -32,7 +32,7 @@ def _getTypeFromExtension( path ):
 	return {
 		'.ma' : 'mayaAscii',
 		'.mb' :	'mayaBinary'
-	}[pymel.core.MPath(path).ext]
+	}[pymel.core.Path(path).ext]
 
 
 
@@ -52,8 +52,8 @@ def listNamespaces():
 
 def listReferences(type='list'):
 	"""file -q -reference
-	By default returns a list of reference files as MReference classes. The optional type argument can be passed a 'dict'
-	(or dict object) to return the references as a dictionary with namespaces as keys and MReferences as values.
+	By default returns a list of reference files as Reference classes. The optional type argument can be passed a 'dict'
+	(or dict object) to return the references as a dictionary with namespaces as keys and References as values.
 	
 	Untested: multiple references with no namespace...
 	"""
@@ -63,19 +63,19 @@ def listReferences(type='list'):
 		res = {}
 		try:
 			for x in cmds.file( q=1, reference=1):
-				res[cmds.file( x, q=1, namespace=1)] = pymel.core.MReference(x)
+				res[cmds.file( x, q=1, namespace=1)] = pymel.core.Reference(x)
 		except: pass
 		return res
 	
 	# list
-	return map( pymel.core.MReference,cmds.file( q=1, reference=1) )
+	return map( pymel.core.Reference,cmds.file( q=1, reference=1) )
 
 def getReferences(reference=None, recursive=False):
 	res = {}	
 	if reference is None:
 		try:
 			for x in cmds.file( q=1, reference=1):
-				ref = pymel.core.MReference(x)
+				ref = pymel.core.Reference(x)
 				res[cmds.file( x, q=1, namespace=1)] = ref
 				if recursive:
 					res.update( ref.subReferences() )
@@ -83,19 +83,19 @@ def getReferences(reference=None, recursive=False):
 	else:
 		try:
 			for x in cmds.file( self, q=1, reference=1):
-				res[cmds.file( x, q=1, namespace=1)] = pymel.core.MReference(x)
+				res[cmds.file( x, q=1, namespace=1)] = pymel.core.Reference(x)
 		except: pass
 	return res	
 	
 def createReference( *args, **kwargs ):
 	"""file -reference"""
 	kwargs['reference'] = True
-	return pymel.core.MReference(cmds.file(*args, **kwargs))
+	return pymel.core.Reference(cmds.file(*args, **kwargs))
 
 def loadReference( file, refNode, **kwargs ):
 	"""file -loadReference"""
 	kwargs['loadReference'] = refNode
-	return pymel.core.MReference(cmds.file(file, **kwargs))
+	return pymel.core.Reference(cmds.file(file, **kwargs))
 		
 def exportAll( *args, **kwargs ):
 	"""file -exportAll"""
@@ -104,17 +104,17 @@ def exportAll( *args, **kwargs ):
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
 	
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 
 def exportAnim( *args, **kwargs ):
 	"""file -exportAnim"""
 	kwargs['exportAnim'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 
 def exportAnimFromReference( *args, **kwargs ):
 	"""file -exportAnimFromReference"""
 	kwargs['exportAnimFromReference'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 
 def exportAsReference( *args, **kwargs ):
 	"""file -exportAsReference"""
@@ -122,7 +122,7 @@ def exportAsReference( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
-	return pymel.core.MReference(cmds.file(*args, **kwargs))
+	return pymel.core.Reference(cmds.file(*args, **kwargs))
 
 def exportSelected( *args, **kwargs ):
 	"""file -exportSelected"""
@@ -130,37 +130,37 @@ def exportSelected( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 	
 def exportSelectedAnim( *args, **kwargs ):
 	"""file -exportSelectedAnim"""
 	kwargs['exportSelectedAnim'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 	
 def exportSelectedAnimFromReference( *args, **kwargs ):
 	"""file -exportSelectedAnimFromReference"""
 	kwargs['exportSelectedAnimFromReference'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 
 def importFile( *args, **kwargs ):
 	"""file -import"""
 	kwargs['import'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 
 def newFile( *args, **kwargs ):
 	"""file -newFile"""
 	kwargs['newFile'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 
 def openFile( *args, **kwargs ):
 	"""file -open"""
 	kwargs['open'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))	
+	return pymel.core.Path(cmds.file(*args, **kwargs))	
 
 def renameFile( *args, **kwargs ):
 	"""file -rename"""
 	kwargs['rename'] = True
-	return pymel.core.MPath(cmds.file(*args, **kwargs))
+	return pymel.core.Path(cmds.file(*args, **kwargs))
 	
 def saveAs(filepath, **kwargs):
 	cmds.file( rename=filepath )
@@ -168,4 +168,4 @@ def saveAs(filepath, **kwargs):
 	try:
 		kwargs['type'] = _getTypeFromExtension(filepath)
 	except KeyError: pass
-	return pymel.core.MPath(cmds.file(**kwargs) )
+	return pymel.core.Path(cmds.file(**kwargs) )

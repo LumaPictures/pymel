@@ -1,6 +1,6 @@
 # redefine format warning to avoid getting garbage at end of line when raised directly from MAya console
 # and define a UserWarning class that does only print it's message (no line or module info)
-import warnings
+import warnings, os.path
 
 def formatwarning(message, category, filename, lineno):
     """Redefined format warning for maya."""

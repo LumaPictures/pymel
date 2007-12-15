@@ -135,7 +135,7 @@ class Env(Singleton):
 	def getConstructionHistory(self):
 		return cmds.constructionHistory( q=True, tgl=True )	
 	def sceneName(self):
-		return MPath(cmds.file( q=1, sn=1))
+		return Path(cmds.file( q=1, sn=1))
 
 	def setUpAxis( axis, rotateView=False ):
 		"""This flag specifies the axis as the world up direction. The valid axis are either "y" or "z"."""

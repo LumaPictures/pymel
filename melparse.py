@@ -106,30 +106,30 @@ proc_remap = {
 		#'fread'				: lambda x, t: '%s.seek(0)' % (x[0]),
 		
 		'filetest'				: lambda x, t: (  (  t.parser.used_modules.add('os'),  # add os module for access()
-												{ 	'-r' : "MPath(%(path)s).access(os.R_OK)",
-													'-l' : "MPath(%(path)s).islink()",
-													'-w' : "MPath(%(path)s).access(os.W_OK)",
-													'-x' : "MPath(%(path)s).access(os.X_OK)",
-													'-f' : "MPath(%(path)s).isfile()",
-													'-d' : "MPath(%(path)s).isdir()",
-													'-h' : "MPath(%(path)s).islink()",
-													'-f' : "MPath(%(path)s).exists() and path.path('%(path)s').getsize()",
-													'-L' : "MPath(%(path)s).islink()",
+												{ 	'-r' : "Path(%(path)s).access(os.R_OK)",
+													'-l' : "Path(%(path)s).islink()",
+													'-w' : "Path(%(path)s).access(os.W_OK)",
+													'-x' : "Path(%(path)s).access(os.X_OK)",
+													'-f' : "Path(%(path)s).isfile()",
+													'-d' : "Path(%(path)s).isdir()",
+													'-h' : "Path(%(path)s).islink()",
+													'-f' : "Path(%(path)s).exists() and path.path('%(path)s').getsize()",
+													'-L' : "Path(%(path)s).islink()",
 													}[ x[0] ] % { 'path' :x[1] }) 	
 												)[1], 
 												
-		'sysFile'				: lambda x, t: { 	'-delete'	: "MPath(%(path)s).remove()",
-													'-del'		: "MPath(%(path)s).remove()",
-													'-rename'	: "MPath(%(path)s).move(%(param)s)",
-													'-ren'		: "MPath(%(path)s).move(%(param)s)",
-													'-move'		: "MPath(%(path)s).move(%(param)s)",
-													'-mov'		: "MPath(%(path)s).move(%(param)s)",
-													'-copy'		: "MPath(%(path)s).copy(%(param)s)",
-													'-cp'		: "MPath(%(path)s).copy(%(param)s)",
-													'-makeDir'	: "MPath(%(path)s).mkdir()",
-													'-md' 		: "MPath(%(path)s).mkdir()",
-													'-removeEmptyDir' : "MPath(%(path)s).removedirs()",
-													'-red' 		: "MPath(%(path)s).removedirs()"
+		'sysFile'				: lambda x, t: { 	'-delete'	: "Path(%(path)s).remove()",
+													'-del'		: "Path(%(path)s).remove()",
+													'-rename'	: "Path(%(path)s).move(%(param)s)",
+													'-ren'		: "Path(%(path)s).move(%(param)s)",
+													'-move'		: "Path(%(path)s).move(%(param)s)",
+													'-mov'		: "Path(%(path)s).move(%(param)s)",
+													'-copy'		: "Path(%(path)s).copy(%(param)s)",
+													'-cp'		: "Path(%(path)s).copy(%(param)s)",
+													'-makeDir'	: "Path(%(path)s).mkdir()",
+													'-md' 		: "Path(%(path)s).mkdir()",
+													'-removeEmptyDir' : "Path(%(path)s).removedirs()",
+													'-red' 		: "Path(%(path)s).removedirs()"
 													}[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }	
 }
 
@@ -396,7 +396,7 @@ def p_declaration_statement(t):
 					'string': "''",
 					'int':	'0',
 					'float': '0.0',
-					'vector': 'MVec()'
+					'vector': 'Vector()'
 				}[  typ  ]
 				
 			# global variable -- overwrite init	
@@ -1280,7 +1280,7 @@ def p_postfix_expression_3(t):
 	# vector
 	
 	#t[0] = assemble(t, 'p_postfix_expression')
-	t[0] = 'MVec([%s])' % ','.join(t[2])	
+	t[0] = 'Vector([%s])' % ','.join(t[2])	
 
 # primary-expression:
 def p_primary_expression(t):

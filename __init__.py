@@ -52,7 +52,7 @@ pymel adds methods for operating on the type of object that the string represent
 	# Result: monkeyShape #
 
 The same goes for other objects when using pymel.  When getting a triple attribute like translate or rotate, maya.cmds.getAttr
-will return a list with three floats.  Pymel nodes, on the other hand, return a 3-element L{vector<MVec>} which inherits from the list class,
+will return a list with three floats.  Pymel nodes, on the other hand, return a 3-element L{vector<Vector>} which inherits from the list class,
 so that it has all the power of a list, and is backward compatible with any functions that expect to receive lists, but which
 also has the ability to do vector and matrix math functions. 
 
@@ -311,7 +311,7 @@ added Subdiv class
 added sourceFirst keyword arg for listConnections. when sourceFirst is true and connections is also true,
 	the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
 	this puts the pairs in the order that disconnectAttr and connectAttr expect.
-fixed setAttr force flag to work for instances of builtin types as well, such as MPath
+fixed setAttr force flag to work for instances of builtin types as well, such as Path
 added getSiblings to Dag class
 fixed Attribute.exists() to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
 fixed a bug in Dag.namespaceList
@@ -336,7 +336,7 @@ enhanced addAttr to allow python types to be passed to set -at type
 			float 	--> double
 			int		--> long
 			bool	--> bool
-			MVec	--> double3
+			Vector	--> double3
 added FileInfo class for accessing per-file data as a dictionary
 Maya Bug Fix: fixed getCellCmd to work with python functions, previously only worked with mel callbacks
 
@@ -350,7 +350,6 @@ Maya Bug Fix: fixed getCellCmd to work with python functions, previously only wo
 
 	To Debate:
 	- filter out self from listHistory command?
-
 	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
 	- new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
@@ -359,7 +358,7 @@ Maya Bug Fix: fixed getCellCmd to work with python functions, previously only wo
 	
 	For Next Release:
 	- sort out listReferences, getReferences
-	- remove 'M' from MVec, MMat, MReference, and MPath
+	- remove 'M' from Vector, Matrix, Reference, and Path
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
 	
@@ -367,7 +366,7 @@ Maya Bug Fix: fixed getCellCmd to work with python functions, previously only wo
 	- pymel preferences for breaking or maintaining backward compatibility:
 		- longNames
 		- twoDimensionalArrays (ex. ls(showType=1), fileInfo(q=1) )
-	- add sequence handling methods to MPath
+	- add sequence handling methods to Path
 	- create Vector constants.  Red, White, Up, Down, etc
 	- develop a way to add docs to selective objects based on cached info
 """

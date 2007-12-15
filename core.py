@@ -209,7 +209,7 @@ class Workspace(util.Singleton):
 		-query -dir		-->  getcwd()
 		-create			-->  mkdir()
 	
-	All paths are returned as an MPath class, which makes it easy to alter or join them on the fly.
+	All paths are returned as an Path class, which makes it easy to alter or join them on the fly.
 	
 		>>> workspace.path / workspace.fileRules['DXF']
 		/Users/chad/Documents/maya/projects/default/path
@@ -246,7 +246,7 @@ class Workspace(util.Singleton):
 
 	@classmethod
 	def getPath(self):
-		return MPath(cmds.workspace( q=1, fn=1 ))
+		return Path(cmds.workspace( q=1, fn=1 ))
 	path = property( getPath )
 	
 	@classmethod
@@ -254,7 +254,7 @@ class Workspace(util.Singleton):
 		return cmds.workspace( dir=newdir )
 	@classmethod
 	def getcwd(self):
-		return MPath(cmds.workspace( q=1, dir=1 ))
+		return Path(cmds.workspace( q=1, dir=1 ))
 	@classmethod
 	def mkdir(self, newdir):
 		return cmds.workspace( cr=newdir )
@@ -442,8 +442,8 @@ Maya Bug Fix:
 	- maya pointlessly returned vector results as a tuple wrapped in 
 		a list ( ex.  '[(1,2,3)]' ). This command unpacks the vector for you.
 Modifications:
-	- casts double3 datatypes to MVec
-	- casts matrix datatypes to MMat
+	- casts double3 datatypes to Vector
+	- casts matrix datatypes to Matrix
 	- when getting a multi-attr, maya would raise an error, but pymel will return a list of
 	 	values for the multi-attr
 	"""
@@ -460,9 +460,9 @@ Modifications:
 			if isinstance(res[0], tuple):
 				res = res[0]
 				if cmds.getAttr( attr, type=1) == 'double3':
-					return MVec(list(res))
+					return Vector(list(res))
 			elif cmds.getAttr( attr, type=1) == 'matrix':
-				return MMat(listToMat(res))
+				return Matrix(listToMat(res))
 			
 		return res
 	
@@ -578,7 +578,7 @@ Modifications:
 			float 	--> double
 			int		--> long
 			bool	--> bool
-			MVec	--> double3
+			Vector	--> double3
 """
 	at = kwargs.pop('attributeType', kwargs.pop('at', None ))
 	if at is not None:
@@ -590,7 +590,7 @@ Modifications:
 					float: 'double',
 					int: 'long',
 					bool: 'bool',
-					MVec: 'double3'
+					Vector: 'double3'
 				}[at]
 			except KeyError:
 				kwargs['at'] = at
@@ -945,7 +945,7 @@ Maya Bug Fix:
 		
 		for attr in attrs:
 			if attr in kwargs:
-				return MVec( getAttr(args[0] + "." + attr ) )
+				return Vector( getAttr(args[0] + "." + attr ) )
 				
 			
 	res = cmds.aimConstraint(*args, **kwargs)
@@ -970,7 +970,7 @@ Maya Bug Fix:
 		
 		for attr in attrs:
 			if attr in kwargs:
-				return MVec( getAttr(args[0] + "." + attr ) )
+				return Vector( getAttr(args[0] + "." + attr ) )
 				
 			
 	res = cmds.normalConstraint(*args, **kwargs)
@@ -1114,8 +1114,8 @@ Maya Bug Fix:
 #--------------------------
 
 def sceneName():
-	#return MPath(cmds.file( q=1, sn=1))
-	return MPath( OpenMaya.MFileIO.currentFile() )
+	#return Path(cmds.file( q=1, sn=1))
+	return Path( OpenMaya.MFileIO.currentFile() )
 def getCurrentTime():
 	"""get the current time as a float"""
 	return cmds.currentTime(q=1)
@@ -1151,7 +1151,7 @@ def createSurfaceShader( shadertype, name=None ):
 #  File Classes
 #-----------------------------------------------
 	
-class MPath(pathClass):
+class Path(pathClass):
 	"""A basic Maya file class. it gets most of its power from the path class written by Jason Orendorff.
 	see path.py for more documentation."""
 	def __repr__(self):
@@ -1161,18 +1161,18 @@ class MPath(pathClass):
 	def type(self):
 		return cmds.file( self, q=1, type=1 )
 		
-class MReference(MPath):
-	"""A class for manipulating references which inherits MPath and path.  you can create an 
+class Reference(Path):
+	"""A class for manipulating references which inherits Path and path.  you can create an 
 	instance by supplying the path to a reference file, its namespace, or its reference node to the 
 	appropriate keyword. The namespace and reference node of the reference can be retreived via 
 	the namespace and refNode properties. The namespace property can also be used to change the namespace
 	of the reference. 
 	
-	Use listRefences command to return a list of references as instances of the MReference class.
+	Use listRefences command to return a list of references as instances of the Reference class.
 	
 	It is important to note that instances of this class will have their copy number stripped off
 	and stored in an internal variable upon creation.  This is to maintain compatibility with the numerous methods
-	inherited from the path class which requires a real file path. When calling built-in methods of MReference, 
+	inherited from the path class which requires a real file path. When calling built-in methods of Reference, 
 	the path will automatically be suffixed with the copy number before being passed to maya commands, thus ensuring 
 	the proper results in maya as well. 
 	 """
@@ -1188,14 +1188,14 @@ class MReference(MPath):
 					return (path, None)
 					
 			path, copyNumber = splitCopyNumber(path)
-			self = MPath.__new__(cls, path)
+			self = Path.__new__(cls, path)
 			self._copyNumber = copyNumber
 			return self
 			
 		if path:
 			return create(path)
 		if namespace:
-			for path in map( MReference, cmds.file( q=1, reference=1) ):
+			for path in map( Reference, cmds.file( q=1, reference=1) ):
 				 if path.namespace == namespace:
 					return create(path)
 			raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
@@ -1209,7 +1209,7 @@ class MReference(MPath):
 		res = {}
 		try:
 			for x in cmds.file( self, q=1, reference=1):
-				res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.core.MReference(x)
+				res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.core.Reference(x)
 		except: pass
 		return res	
 		
@@ -1220,7 +1220,7 @@ class MReference(MPath):
 	def withCopyNumber(self):
 		"""return this path with the copy number at the end"""
 		if self._copyNumber is not None:
-			return MPath( '%s{%d}' % (self, self._copyNumber) )
+			return Path( '%s{%d}' % (self, self._copyNumber) )
 		return self
 			
 	def importContents(self):
@@ -1505,7 +1505,7 @@ class Face(Component):
 		return '%s.f[%s]' % (self._node, self._item)
 
 	def _getFaceNormal(self):
-		return MVec( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))		
+		return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))		
 	normal = property(_getFaceNormal)
 	
 	def _getEdges(self):
@@ -1566,13 +1566,13 @@ class Attribute(_BaseObj):
 	Getting Attribute Values
 	------------------------
 	To get an attribute, you use the L{'get'<Attribute.get>} method. Keep in mind that, where applicable, the values returned will 
-	be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as L{MVec}.
+	be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as L{Vector}.
 	
 		>>> rot = s.rotate.get()
 		>>> print rot
 		[0.0, 0.0, 0.0]
 		>>> print type(rot) # rotation is returned as a vector class
-		<class 'pymel.vector.MVec'>
+		<class 'pymel.vector.Vector'>
 
 	Setting Attributes Values
 	-------------------------
@@ -1784,7 +1784,7 @@ class Attribute(_BaseObj):
 		"""xform -translation"""
 		kwargs['translation'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 		
 	#----------------------
 	# Info Methods
@@ -2171,7 +2171,7 @@ class Node( _BaseObj ):
 		"""referenceQuery -file
 		Return the reference file to which this object belongs.  None if object is not referenced"""
 		try:
-			return MReference( cmds.referenceQuery( self, f=1) )
+			return Reference( cmds.referenceQuery( self, f=1) )
 		except:
 			None
 			
@@ -2420,7 +2420,7 @@ class MNode( object ):
 	def referenceFile(self):
 		"Return the reference file to which this object belongs.  None if object is not referenced"
 		try:
-			return MReference( cmds.referenceQuery( self, f=1) )
+			return Reference( cmds.referenceQuery( self, f=1) )
 		except:
 			None
 		
@@ -2728,7 +2728,7 @@ class Transform(Dag):
 								
 	def setMatrix( self, val, **kwargs ):
 		"""xform -scale"""
-		if isinstance(val, MMat):
+		if isinstance(val, Matrix):
 			val = val.toList()
 	
 		kwargs['matrix'] = val
@@ -2741,58 +2741,58 @@ class Transform(Dag):
 		"""xform -scale"""
 		kwargs['scale'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 			
 	def getRotation( self, **kwargs ):
 		"""xform -rotation"""
 		kwargs['rotation'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 
 	def getTranslation( self, **kwargs ):
 		"""xform -translation"""
 		kwargs['translation'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 
 
 	def getScalePivot( self, **kwargs ):
 		"""xform -scalePivot"""
 		kwargs['scalePivot'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 		
 	def getRotatePivot( self, **kwargs ):
 		"""xform -rotatePivot"""
 		kwargs['rotatePivot'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 		
 	def getPivots( self, **kwargs ):
 		"""xform -pivots"""
 		kwargs['pivots'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 
 	def getRotateAxis( self, **kwargs ):
 		"""xform -rotateAxis"""
 		kwargs['rotateAxis'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 		
 								
 	def getShearing( self, **kwargs ):
 		"""xform -shear"""
 		kwargs['shear'] = True
 		kwargs['query'] = True
-		return MVec( cmds.xform( self, **kwargs ) )
+		return Vector( cmds.xform( self, **kwargs ) )
 								
 	def getMatrix( self, **kwargs ):
 		"""xform -matrix"""
 	
 		kwargs['matrix'] = True
 		kwargs['query'] = True
-		return MMat( cmds.xform( self, **kwargs ) )
+		return Matrix( cmds.xform( self, **kwargs ) )
 			
 	def getBoundingBox(self, invisible=False):
 		"""xform -boundingBox and xform-boundingBoxInvisible
@@ -2806,7 +2806,7 @@ class Transform(Dag):
 			kwargs['boundingBox'] = True
 					
 		res = cmds.xform( self, **kwargs )
-		return ( MVec(res[:3]), MVec(res[3:]) )
+		return ( Vector(res[:3]), Vector(res[3:]) )
 	
 	def getBoundingBoxMin(self, invisible=False):
 		return self.getBoundingBox(invisible)[0]

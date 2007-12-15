@@ -1,5 +1,5 @@
 
-import sys, os, os.path, re
+import sys, os, os.path, re, platform
 from exceptions import *
 from path import path
 import envparse
@@ -23,7 +23,7 @@ class Singleton(object) :
 			cls._the_instance = super(Singleton, cls).__new__(cls)
 		return cls._the_instance
 
-class psuedoUnicode(object):
+class PsuedoUnicode(object):
 	"""to reduce the chance of clashes between methods and attributes, _BaseObj could inherit this class, which
 	behaves exactly like a unicode and yet has none of its public methods."""
 	
@@ -51,6 +51,42 @@ class psuedoUnicode(object):
 		return unicode.__ge__(self.__name, other)
 	def __nonzero__(self):
 		return unicode.__nonzero__(self.__name)
+
+class metaUni(type) :
+	def __new__(cls, classname, bases, classdict):
+		# Class is a Singleton and a Dictionnary, Singleton must come first so that it's __new__
+		# method takes precedence
+
+		def __getattribute__(self, name):		  
+			remove = ('translate',)
+			if name in remove :
+				raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+
+			else :
+				return unicode.__getattribute__(self, name)
+
+			  
+		# Now add methods of the defined class, as long as it doesn't try to redefine
+		# __new__, __init__, __getattribute__ or __setitem__
+		newdict = { '__slots__':[], '__dflts__':{},	 '__getattribute__':__getattribute__}
+
+		# Note: could have defned the __new__ method like it is done in Singleton but it's as eas to derive from it
+		for k in classdict :
+			if k.startswith('__') and k.endswith('__') :
+				# special methods, copy to newdict unless they conflict with pre-defined methods
+				if k in newdict :
+					warnings.warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
+				else :
+					newdict[k] = classdict[k]
+			else :
+				# class variables
+				newdict['__slots__'].append(k)
+				newdict['__dflts__'][k] = classdict[k]
+		
+		return super(metaUni, cls).__new__(cls, classname, bases, newdict)
+
+# a unicode without the translate method
+BaseStr = metaUni('BaseStr', (unicode,), {})
 
 #-----------------------------------------------
 #  Pymel Internals
@@ -203,12 +239,14 @@ def parseMayaenv(envLocation=None, version=None) :
 	""" parse the Maya.env file and set the environement variablas and python path accordingly.
 		You can specify a location for the Maya.env file or the Maya version"""
 	name = 'Maya.env'
+	
 	if os.name == 'nt' :
 		maya = 'maya.exe'
 		sep = ';'
 	else :
 		maya = 'maya.bin'
 		sep = ':'
+		
 	envPath = None
 	if envLocation :
 		envPath = envLocation
@@ -281,7 +319,17 @@ def parseMayaenv(envLocation=None, version=None) :
 		else :
 			print"Found no suitable Maya.env file"
 		return False
-				
+
+def _addEnv( env, value ):
+	if os.name == 'nt' :
+		sep = ';'
+	else :
+		sep = ':'
+	if env not in os.environ:
+		os.environ[env] = value
+	else:
+		os.environ[env] = sep.join( os.environ[env].split(sep) + [value] )
+					
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
 def mayaInit(forversion=None) :
@@ -309,12 +357,31 @@ def mayaInit(forversion=None) :
 	if (forversion and envVersion!=forversion) or not envVersion :
 		if not parseMayaenv(version=forversion) :
 			print "Could not read or parse Maya.env file"
+	
+	# add necessary environment variables and paths for importing maya.cmds, a la mayapy
+	# currently just for osx
+	if platform.system() == 'Darwin' :
+		frameworks = os.path.join( os.environ['MAYA_LOCATION'], 'Frameworks' )	
+		_addEnv( 'DYLD_FRAMEWORK_PATH', frameworks )
+		
+		# this *must* be set prior to launching python
+		#_addEnv( 'DYLD_LIBRARY_PATH', os.path.join( os.environ['MAYA_LOCATION'], 'MacOS' ) )
+		# in lieu of setting PYTHONHOME like mayapy which must be set before the interpretter is launched, we can add the maya site-packages to sys.path
+		try:
+			pydir = os.path.join(frameworks, 'Python.framework/Versions/Current')
+			mayapyver = os.path.split( os.path.realpath(pydir) )[-1]
+			#print os.path.join( pydir, 'lib/python%s/site-packages' % mayapyver )
+			sys.path.append(  os.path.join( pydir, 'lib/python%s/site-packages' % mayapyver ) )
+		except:
+			pass	
+		
 	if not sys.modules.has_key('maya.standalone') or version != forversion:
 		try :
 			import maya.standalone #@UnresolvedImport
 			maya.standalone.initialize(name="python")
 		except :
 			pass
+
 	try :
 		from maya.cmds import about    
 		reload(maya.cmds) #@UnresolvedImport

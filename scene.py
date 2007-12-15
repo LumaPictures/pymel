@@ -4,12 +4,12 @@
 
 
 import maya.cmds
-from core import MPath
+from core import Path
 	
 class Scene(object):
 	
 	def getName(self):
-		return MPath(maya.cmds.file( q=1, sn=1))
+		return Path(maya.cmds.file( q=1, sn=1))
 	
 	def getTime(self):
 		"""get the current time as a float"""
