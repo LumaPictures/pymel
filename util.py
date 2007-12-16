@@ -1,5 +1,5 @@
 
-import sys, os, os.path, re, platform
+import sys, codecs, os, os.path, re, platform
 from exceptions import *
 from collections import *
 from path import path
@@ -516,6 +516,30 @@ def mayaInit(forversion=None) :
 		return (forversion and version==forversion) or version
 	except :
 		return False
+
+# Fix for non US encodings in Maya
+def encodeFix():
+	if mayaInit() :
+		from maya.cmds import about
+		
+		mayaEncode = about(cs=True)
+		pyEncode = sys.getdefaultencoding()     # Encoding tel que defini par sitecustomize
+		if mayaEncode != pyEncode :             # s'il faut redefinir l'encoding
+		    #reload (sys)                       # attention reset aussi sys.stdout et sys.stderr
+		    #sys.setdefaultencoding(newEncode) 
+		    #del sys.setdefaultencoding
+		    #print "# Encoding changed from '"+pyEncode+'" to "'+newEncode+"' #"
+		    if not about(b=True) :              # si pas en batch, donc en mode UI, redefinir stdout et stderr avec encoding Maya
+		        import maya.utils    
+		        try :
+		            import maya.app.baseUI
+		            # Replace sys.stdin with a GUI version that will request input from the user
+		            sys.stdin = codecs.getreader(mayaEncode)(maya.app.baseUI.StandardInput())
+		            # Replace sys.stdout and sys.stderr with versions that can output to Maya's GUI
+		            sys.stdout = codecs.getwriter(mayaEncode)(maya.utils.Output())
+		            sys.stderr = codecs.getwriter(mayaEncode)(maya.utils.Output( error=1 ))
+		        except ImportError :
+		            print "Unable to import maya.app.baseUI"    
 
 def timer( command='pass', number=10, setup='import pymel' ):
 	import timeit
