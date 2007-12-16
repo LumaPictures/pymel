@@ -40,28 +40,28 @@ class testCase_typeChecking(unittest.TestCase):
         
     def test01_isDagOnObjects(self):
         # excepted result
-        expect = util.expandListArgs(self.expected['isDag'])
+        expect = util.expandArgs(self.expected['isDag'])
         # tests
         objTest = isDag(self.objects)
         self.assertEqual(objTest, expect)
         
     def test02_isDagOnMayaTypes(self):
-        expect = util.expandListArgs(self.expected['isDag'])         
+        expect = util.expandArgs(self.expected['isDag'])         
         mayatypeTest = isDag(map(nodeType, self.objects)) #@UndefinedVariable
         self.assertEqual(mayatypeTest, expect)
         
     def test03_isDagOnPymelTypes(self):
-        expect = util.expandListArgs(self.expected['isDag'])         
+        expect = util.expandArgs(self.expected['isDag'])         
         pymeltypeTest = isDag(map(type, self.objects))
         self.assertEqual(pymeltypeTest, expect)
         
     def test04_isDagOnNames(self):
-        expect = util.expandListArgs(self.expected['isDag'])      
+        expect = util.expandArgs(self.expected['isDag'])      
         nameTest = isDag(map(str, self.objects))
         self.assertEqual(nameTest, expect)
         
     def test05_isDagOnPymelTypesNames(self):        
-        expect = util.expandListArgs(self.expected['isDag']) 
+        expect = util.expandArgs(self.expected['isDag']) 
         pymeltypenameTest = isDag(map(lambda x:unicode(type(x).__name__), self.objects))
         self.assertEqual(pymeltypenameTest, expect)
         
