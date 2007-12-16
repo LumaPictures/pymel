@@ -68,7 +68,7 @@ class metaStatic(type) :
 class MayaAPITypesInt(dict) :
     __metaclass__ =  metaStatic
 
-# Dictionnary of Maya API types to their MFn::Types enum
+# Dictionnary of Maya API types to their MFn::Types enum,
 MayaAPITypesInt(dict(inspect.getmembers(OpenMaya.MFn, lambda x:type(x) is int)))
 
 class MayaIntAPITypes(dict) :
@@ -78,64 +78,42 @@ class MayaIntAPITypes(dict) :
 MayaIntAPITypes(dict((MayaAPITypesInt()[k], k) for k in MayaAPITypesInt().keys()))
 
 # Reserved Maya types and API types that need a special treatment (abstract types)
+# TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
 class ReservedMayaTypes(dict) :
     __metaclass__ =  metaStatic
-    
-ReservedMayaTypes({ 'base':'kBase', 'object':'kNamedObject', 'node':'kDependencyNode', 'dag':'kDagNode', 'deformer':'kGeometryFilt', \
-                 'weightedDeformer':'kWeightGeometryFilt', 'constraint':'kConstraint', 'field':'kField', 'geometry':'kGeometric', 'shape':'kShape', \
-                 'surface': 'kSurface', 'revolvedPrimitive':'kRevolvedPrimitive', 'curve':'kCurve', 'animCurve': 'kAnimCurve', 'resultCurve':'kResultCurve', \
-                 'pluginNode':'kPluginDependNode', 'pluginDeformer':'kPluginDeformerNode', 'unknown':'kUnknown', 'unknownDag':'kUnknownDag', \
-                 'unknownTransform':'kUnknownTransform', 'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' })
 
-# child:parent lookup of the Maya API classes hierarchy (based on the existing MFn classe hierarchy)
-class MayaAPITypesHierarchy(dict) :
+ReservedMayaTypes({ 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
+                'constraint':'kConstraint', 'field':'kField', \
+                'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', \
+                'dimensionShape':'kDimension', \
+                'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator', \
+                'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier', \
+                'curveInfo':'kCurveInfo', 'curveFromSurface':'kCurveFromSurface', \
+                'surfaceShape': 'kSurface', 'revolvedPrimitive':'kRevolvedPrimitive', 'plane':'kPlane', 'curveShape':'kCurve', \
+                'animCurve': 'kAnimCurve', 'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase', 'filter':'kFilter',
+                'blend':'kBlend', 'ikSolver':'kIkSolver', \
+                'light':'kLight', 'nonAmbientLightShapeNode':'kNonAmbientLight', 'nonExtendedLightShapeNode':'kNonExtendedLight', \
+                'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 'textureEnv':'kTextureEnv', \
+                'plugin':'kPlugin', 'pluginNode':'kPluginDependNode', 'pluginLocator':'kPluginLocatorNode', 'pluginData':'kPluginData', \
+                'pluginDeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
+                'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
+                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' })      # creating these 2 crash Maya      
+
+# Inverse lookup
+class ReservedAPITypes(dict) :
     __metaclass__ =  metaStatic
 
-# Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def buildAPITypesHierarchy () :
-    def _MFnType(x) :
-        if x == OpenMaya.MFnBase :
-            return 1
-        else :
-            try :
-                return x().type()
-            except :
-                return 0
-    MFn = inspect.getmembers(OpenMaya, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-    try : MFn += inspect.getmembers(OpenMayaAnim, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-    except : pass
-    try : MFn += inspect.getmembers(OpenMayaCloth, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-    except : pass
-    try : MFn += inspect.getmembers(OpenMayaFX, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-    except : pass
-    try : MFn += inspect.getmembers(OpenMayaMPx, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-    except : pass
-    if not cmds.about(batch=True) :
-        try : MFn += inspect.getmembers(OpenMayaUI, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-        except : pass
-    try : MFn += inspect.getmembers(OpenMayaRender, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
-    except : pass
-    MFn = dict(MFn)
-    MFnTree = inspect.getclasstree([MFn[k] for k in MFn.keys()])
-    MFnDict = {}
-    for x in util.expandArgs(MFnTree, type='list') :
-        try :
-            ct = _MFnType(x[0])
-            pt = _MFnType(x[1][0])
-            if ct and pt :
-                MFnDict[MayaIntAPITypes()[ct]] = MayaIntAPITypes()[pt]
-        except :
-            pass
-    # Fixes
-    # types derived of kConstraint are not correctly addedas there is no MFn function on them
-    for k in MayaAPITypesInt().keys() :
-        if ('Constraint' in k and k is not 'kConstraint') or (k == 'kLookAt') :
-            MFnDict[k] = 'kConstraint'
-    return MFnDict 
+ReservedAPITypes(dict( (ReservedMayaTypes()[k], k) for k in ReservedMayaTypes().keys()))
 
-# Initialize the API tree
-MayaAPITypesHierarchy(buildAPITypesHierarchy())
-
+# some handy aliases / shortcuts easier to remember and use thatn actual Maya type name
+class ShortMayaTypes(dict) :
+    __metaclass__ =  metaStatic
+    
+ShortMayaTypes({'all':'base', 'valid':'base', 'any':'base', 'node':'dependNode', 'dag':'dagNode', \
+                'deformer':'geometryFilter', 'weightedDeformer':'weightGeometryFilter', 'geometry':'geometryShape', \
+                'surface':'surfaceShape', 'revolved':'revolvedPrimitive', 'deformable':'deformableShape', \
+                'curve':'curveShape' })                
+                   
 # Lookup of Maya types to their API counterpart, not a read only (static) dict as these can change (if you load a plugin)
 class MayaTypesToAPI(Singleton, dict) :
     """ Dictionnary of currently existing Maya types as keys with their corresponding API type as values """
@@ -222,14 +200,155 @@ def updateMayaTypesList() :
             if not api :
                 api = _getAPIType(k)
             MayaTypesToAPI()[k] = api
+            # can have more than one Maya type associated with an API type (yeah..)
+            # we mark one as "default" if it's a member of the reserved type by associating it with a True value in dict
+            defType = ReservedMayaTypes().has_key(k)
             if not MayaAPIToTypes().has_key(api) :
-                MayaAPIToTypes()[api] = dict( ((k, None),) )
+                MayaAPIToTypes()[api] = dict( ((k, defType),) )
             else :
-                MayaAPIToTypes()[api][k] = None   
+                MayaAPIToTypes()[api][k] = defType   
 
             
 # initial update  
 updateMayaTypesList()
+
+# Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
+# TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
+
+# Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
+# to query inheritage, as of 2008 types and API types seem a bit out of sync as API types
+# didn't follow latest Maya types additions...
+class ReservedAPIHierarchy(dict) :
+    __metaclass__ =  metaStatic
+    
+ReservedAPIHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
+                    'kConstraint':'kTransform', 'kField':'kTransform', \
+                    'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape',  \
+                    'kDimension':'kShape', \
+                    'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
+                    'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
+                    'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
+                    'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
+                    'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
+                    'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
+                    'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
+                    'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
+                    'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
+                    'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
+                    'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
+                    'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' })         
+
+# check if a an API type herits from another
+# it can't b e done for "virtual" types (in ReservedAPITypes)
+def _hasFn (apiType, parentType=None) :
+    """ Get the Maya API type from the name of a Maya type """
+    if parentType is None :
+        parentType = 'kBase'
+    # Reserved we can't determine it as we can't create the node, all we can do is check if it's
+    # in the ReservedAPIHierarchy
+    if ReservedAPITypes().has_key(apiType) :
+        return ReservedAPIHierarchy().get(apiType, None) == parentType
+    # need a maya type to create a node of the apiType
+    if MayaAPIToTypes().has_key(apiType) :
+        mayaType = MayaAPIToTypes()[apiType].keys()[0]
+    else :
+        return False
+    # Need the MFn::Types enum for the parentType
+    if MayaAPITypesInt().has_key(parentType) :
+        typeInt = MayaAPITypesInt()[parentType]
+    else :
+        return False
+    # we create a dummy object of this type in a dgModifier
+    # as the dgModifier.doIt() method is never called, the object
+    # is never actually created in the scene
+    result = False
+    node = OpenMaya.MObject() 
+    dagMod = OpenMaya.MDagModifier()
+    dgMod = OpenMaya.MDGModifier()          
+    try :
+        parent = dagMod.createNode ( 'transform', OpenMaya.MObject())
+        node = dagMod.createNode ( mayaType, parent )
+    except :
+        try :
+            node = dgMod.createNode ( mayaType )
+        except :
+            pass
+    finally :
+        try :
+            result = node.hasFn(typeInt)
+        except :
+            pass
+                          
+    return result
+
+# child:parent lookup of the Maya API classes hierarchy (based on the existing MFn classe hierarchy)
+class MayaAPITypesHierarchy(dict) :
+    __metaclass__ =  metaStatic
+
+# Build a dictionnary of api types and parents to represent the MFn class hierarchy
+def buildAPITypesHierarchy () :
+    def _MFnType(x) :
+        if x == OpenMaya.MFnBase :
+            return 1
+        else :
+            try :
+                return x().type()
+            except :
+                return 0
+    MFn = inspect.getmembers(OpenMaya, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+    try : MFn += inspect.getmembers(OpenMayaAnim, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+    except : pass
+    try : MFn += inspect.getmembers(OpenMayaCloth, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+    except : pass
+    try : MFn += inspect.getmembers(OpenMayaFX, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+    except : pass
+    try : MFn += inspect.getmembers(OpenMayaMPx, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+    except : pass
+    if not cmds.about(batch=True) :
+        try : MFn += inspect.getmembers(OpenMayaUI, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+        except : pass
+    try : MFn += inspect.getmembers(OpenMayaRender, lambda x: inspect.isclass(x) and issubclass(x, OpenMaya.MFnBase))
+    except : pass
+    MFn = dict(MFn)
+    MFnTree = inspect.getclasstree([MFn[k] for k in MFn.keys()])
+    MFnDict = {}
+    for x in util.expandArgs(MFnTree, type='list') :
+        try :
+            ct = _MFnType(x[0])
+            pt = _MFnType(x[1][0])
+            if ct and pt :
+                MFnDict[MayaIntAPITypes()[ct]] = MayaIntAPITypes()[pt]
+        except :
+            pass
+    # Fixes for types that don't have a MFn by faking a node creation and testing it
+    for k in MayaAPITypesInt().keys() :
+        if k not in MFnDict.keys() :
+            parents = []
+            for p in MayaAPITypesInt().keys() :
+                if p != k and _hasFn(k, p) :
+                    parents.append(p)
+            # problem is the MObject.hasFn method returns True for all ancestors, not only first one
+            if len(parents) > 1 :
+                for p in parents :
+                    isFirst = True
+                    for q in parents :
+                        if q != p and _hasFn(q, p) :
+                            isFirst = False
+                            break
+                        if not isFirst :
+                            break
+                    if isFirst :
+                        MFnDict[k] = p
+                        break
+            elif len(parents) :
+                MFnDict[k] = parents[0]            
+                    
+    return MFnDict 
+
+# Initialize the API tree
+MayaAPITypesHierarchy(buildAPITypesHierarchy())
+
+# TODO : to represent pluging registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
 # Need to build a similar dict of Pymel types to their corresponding API types
 class PyNodeToMayaAPITypes(dict) :
@@ -257,7 +376,15 @@ def buildPyNodeToAPI () :
         APITypeName = 'k'+PyNodeTypeName
         if MayaAPIToTypes().has_key(APITypeName) :
             PyNodeDict[PyNodeType] = APITypeName
-            PyNodeInverseDict[APITypeName] = PyNodeType            
+            PyNodeInverseDict[APITypeName] = PyNodeType
+    # Would be good to limit special treatmements
+    PyNodeDict[pymel.core._BaseObj] = 'kBase'
+    PyNodeInverseDict['kBase'] = pymel.core._BaseObj
+    PyNodeDict[Node] = 'kDependencyNode'
+    PyNodeInverseDict['kDependencyNode'] = Node
+    PyNodeDict[Dag] = 'kDagNode'
+    PyNodeInverseDict['kDagNode'] = Dag   
+                      
     # Initialize the static classes to hold these
     PyNodeToMayaAPITypes (PyNodeDict)
     MayaAPITypesToPyNode (PyNodeInverseDict)
@@ -325,6 +452,8 @@ def mayaType (nodeOrType, **kwargs) :
         >>> 'kVortex'
         >>> mayaType ('vortexField', apiType=True, inheritedAPI=True)
         >>> {'inheritedAPI': ['kField', 'kDagNode', 'kDependencyNode', 'kBase'], 'apiType': 'kVortex'}
+        >>> mayaType ('polyAppend', inherited=True)
+        >>> [u'polyAppend', 'polyModifier', 'dependNode', 'base']
         >>> mayaType ('kField')
         >>> 'field'
         >>> mayaType ('kConstraint', pymel=True)
@@ -369,16 +498,17 @@ def mayaType (nodeOrType, **kwargs) :
         # Existing object, easy to find out
         mayaType = nodeType(nodeOrType)      # @UndefinedVariable
         apiTypeStr = nodeType(nodeOrType, apiType=True)     # @UndefinedVariable
-#    elif ReservedMayaTypes().has_key(nodeOrType) :
-#        # It's an abstract "reserved" type
-#        mayaType = nodeOrType        
-#        apiTypeStr = ReservedMayaTypes()[nodeOrType]    
+        if do_inherited :
+            inherited = nodeType(nodeOrType, inherited=True) 
     elif type(nodeOrType) == int :
         # MFn.Types enum int
         apiTypeStr = MayaIntAPITypes()[nodeOrType] 
     elif MayaAPITypesInt().has_key(nodeOrType) :
         # API type
         apiTypeStr = nodeOrType
+    elif ShortMayaTypes().has_key(nodeOrType) :
+        # shortcut for a maya type
+        mayaType = ShortMayaTypes()[nodeOrType]
     elif MayaTypesToAPI().has_key(nodeOrType) :
         # Maya type
         mayaType = nodeOrType
@@ -424,8 +554,20 @@ def mayaType (nodeOrType, **kwargs) :
             while k is not 'kBase' and MayaAPITypesHierarchy().has_key(k) :
                 k = MayaAPITypesHierarchy()[k]
                 apiInherited.append(k)
-            if do_inherited :
-                inherited = [MayaAPIToTypes()[k].keys() for k in apiInherited] 
+            if do_inherited and not inherited :
+                # problem, there can be more than one maya type for an API type, we take the "default" one is one is marked so
+                # else we just take first (until we an get a separate maya type tree, it's not 100% satisfactory)
+                for k in apiInherited :
+                    mTypes = MayaAPIToTypes()[k].keys()
+                    defType = None
+                    if len(mTypes) > 1 :
+                        for t in mTypes :
+                            if MayaAPIToTypes()[k][t] :
+                                defType = t
+                                break
+                    if defType is None and mTypes :
+                        defType = mTypes[0]
+                    inherited.append(defType)       
         if do_pymelInherited :
             k = pyNodeType
             pymelInherited.append(k)      # starting class
@@ -461,43 +603,76 @@ def mayaType (nodeOrType, **kwargs) :
 # arguments an be maya actual objects, or maya type names, or pymel 'PyNode' objects or types.
 # If no arguments are provided, the current selection is used.
 def isAType (*args, **kwargs) :
-    """checks if given Maya objects or type names, or AMtypes objects or class names are of the given type or derive from it"""
+    """ checks if given Maya objects or type names, or AMtypes objects or pymel class names are of the given type or derive from it,
+    it will accept pymel types (classes) or pymel type names (class.__name__)
+    >>> isAType(Transform, type='kDagNode')
+    >>> True
+    >>> isAType(Transform, type='dag')
+    >>> True
+    >>> isAType ('kVortex', type='dag')
+    >>> True
+    >>> isAType ('kVortex', type='kField')
+    >>> True
+    >>> isAType ('vortexField', type='field')
+    >>> True
+    >>> isAType (Vortex, type=Field)
+    >>> Traceback (most recent call last):
+    >>> File "<stdin>", line 1, in <module>
+    >>> NameError: name 'Field' is not defined
+    >>> isAType ('Vortex', type='Field')
+    >>> False
+    >>> isAType ('Vortex', type='Dag')
+    >>> True
+    >>> isAType (Vortex, type=Dag)
+    >>> True
+    Note that the most reliable source now is API types, there are sometimes more than one maya type corresponding to an API type, and in that
+    case, heritage only considers the first in the list (though mayaType will return all of them), and pymel types are not 100% identical to
+    Maya API types in name and structure (though close)
+    """
     result = []
-    type = kwargs.get('type', None)
-    if type is None :
-        type = 'kBase'
+    checkType = kwargs.get('type', None)
+    # None defaults to checking if the type exists / is valid
+    if checkType is None :
+        checkType = 'kBase'
+    # if a shortcut is used, get the real maya type name instead
+    if ShortMayaTypes().has_key(checkType) :
+        checkType = ShortMayaTypes()[checkType]
+    # consider pymel, maya or api type, or try to determine type of 'type' argument
+    check_pymel, check_maya, check_api = False, False, False
+    typeInfo = mayaType(checkType, type=True, apiType=True, pymel=True)
+    maType = typeInfo['type']
+    apiType = typeInfo['apiType']
+    pyNodeType = typeInfo['pymel']
+    # only check on explicit kind of type given (maya, API or pymel)
+    if checkType == pyNodeType :
+        check_pymel = True
+    elif checkType == maType :
+        check_maya = True          
+    elif checkType == apiType :
+        check_api = True
     else :
-        checkType = Node
-        if objExists(type) :  # it's a Maya object name @UndefinedVariable
-            checkType = nodeType(type) # it's a Maya object name @UndefinedVariable
-        else :
-            checkType = util.capitalize(type)            # a Maya type name, is it defined ?
-    checkType = Dag
+        check_pymel = pyNodeType is not None
+        check_maya = maType is not None
+        check_api = apiType is not None
+    # no recognizable type to checks objects against   
+    if not check_pymel and not check_maya and not check_api :
+        return
     # print args
     if len(args) == 0 :
         args = ls( selection=True)
-    for nodeOrType in util.iterateListArgs(*args) :
-        # print 'examining: '+nodeOrType
-        # if hasattr(nodeOrType,'isDag')
-        t = type(nodeOrType)
-        if (t== unicode) or (t==str) :                        # it's a Maya object or Type name (string)
-            if (objExists(nodeOrType)) :                      # a Maya object name @UndefinedVariable
-                result.append(objectType(nodeOrType, isAType=checkType)) # @UndefinedVariable
-            else :
-                c = util.capitalize(nodeOrType)            # a Maya type name, is it defined ?
-                if (hasattr(pymel, c)) :
-                    t = getattr (pymel, c)
-                    if (type(t)==type) :
-                        result.append(issubclass(t,Dag))
-                    else :
-                        result.append(False)
-                else :
-                    result.append(False)
-        elif t==type :                        # a Python type for a pymel class
-            result.append(issubclass(nodeOrType,Dag))
-        else :                                # a pymel object
-            result.append(isinstance(nodeOrType, Dag)    )
-
+    for arg in util.iterateArgs(*args) :
+        test = False
+        # special case, for an existing object checked vs a maya type, there is the objectType cmd
+        if (objExists(arg)) and check_maya :
+            test = test or bool(objectType(arg, isAType=maType))
+        if check_pymel :
+            test = test or pyNodeType in mayaType(arg, inheritedPymel=True)
+        if check_maya :
+            test = test or maType in mayaType(arg, inherited=True)
+        if check_api :
+            test = test or apiType in mayaType(arg, inheritedAPI=True)
+        result.append(test)
+                    
     if len(result) == 0 :
         # return False
         pass
@@ -512,9 +687,23 @@ def isAType (*args, **kwargs) :
 # If no arguments are provided, the current selection is used.
 
 def isDag (*args) :
-    """checks if given Maya objects or type names, or AMtypes objects or class names are DAG objects or DAG sub-types"""
-    kwargs = {'type':Dag}
+    """checks if given Maya objects or type names, or AMtypes objects or class names are DAG objects or DAG sub-types
+    >>> isDag('locator')
+    >>> True
+    >>> polySphere()
+    >>> [Transform('pSphere1'), PolySphere('polySphere1')]  
+    >>> isDag ('pSphereShape1')
+    >>> True
+    >>> isDag('time1')
+    >>> False
+    >>> isDag(Transform)
+    >>> True
+    >>> isDag(Wire)
+    >>> False
+    """
+    kwargs = {'type':'dagNode'}
     return isAType (*args, **kwargs)
+
 
 """
     An exemple of use of the Tree library, returns the arguments, or the current selection
