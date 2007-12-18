@@ -1,4 +1,4 @@
-import sys, inspect, warnings
+import sys, inspect, warnings, timeit, time
 # based on pymel
 from pymel import *
 import maya.OpenMayaAnim as OpenMayaAnim
@@ -32,7 +32,9 @@ class metaStatic(type) :
                 # Can only init once
                 if not self:
                     # Use the ancestor class dict method to init self
-                    base.update(self, value)
+                    # base.update(self, value)
+                    # self = base(value)
+                    base.__init__(self, value)
                 else :
                     raise TypeError, "'"+classname+"' object does not support redefinition"
         # delete the setItem methods of dict we don't want (read only dictionary)
@@ -79,12 +81,13 @@ MayaIntAPITypes(dict((MayaAPITypesInt()[k], k) for k in MayaAPITypesInt().keys()
 
 # Reserved Maya types and API types that need a special treatment (abstract types)
 # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
+# stragely createNode ('cluster') works but dgMod.createNode('cluser') doesn't
 class ReservedMayaTypes(dict) :
     __metaclass__ =  metaStatic
 
 ReservedMayaTypes({ 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
                 'constraint':'kConstraint', 'field':'kField', \
-                'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', \
+                'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter', \
                 'dimensionShape':'kDimension', \
                 'abstractBaseCreate':'kCreate', 'polyCreator':'kPolyCreator', \
                 'polyModifier':'kMidModifier', 'subdModifier':'kSubdModifier', \
@@ -182,6 +185,7 @@ def addToMayaTypesList(typeName) :
 # Initialises/updates MayaTypes for a faster later access
 def updateMayaTypesList() :
     """ updates the cached MayaTypes lists """
+    start = time.time()
     # use dict of empty keys just for faster random access
     typeList = dict( ReservedMayaTypes().items() + [(k, None) for k in cmds.ls(nodeTypes=True)] )
     # remove types that no longuer exist
@@ -194,7 +198,7 @@ def updateMayaTypesList() :
             MayaTypesToAPI().pop(k)
     # add new types
     for k in typeList.keys() :
-        if not MayaTypesToAPI().has_key(k) :
+         if not MayaTypesToAPI().has_key(k) :
             # this will happen for initial building and when a pluging is loaded that registers new types
             api = typeList[k]
             if not api :
@@ -207,10 +211,14 @@ def updateMayaTypesList() :
                 MayaAPIToTypes()[api] = dict( ((k, defType),) )
             else :
                 MayaAPIToTypes()[api][k] = defType   
+    elapsed = time.time() - start
+    print "Updated Maya types list in %.2f sec" % elapsed
 
             
 # initial update  
 updateMayaTypesList()
+
+
 
 # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
 # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
@@ -223,7 +231,7 @@ class ReservedAPIHierarchy(dict) :
     
 ReservedAPIHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
                     'kConstraint':'kTransform', 'kField':'kTransform', \
-                    'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape',  \
+                    'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
                     'kDimension':'kShape', \
                     'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
                     'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
@@ -238,33 +246,24 @@ ReservedAPIHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject',
                     'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
                     'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' })         
 
-# check if a an API type herits from another
-# it can't b e done for "virtual" types (in ReservedAPITypes)
-def _hasFn (apiType, parentType=None) :
-    """ Get the Maya API type from the name of a Maya type """
-    if parentType is None :
-        parentType = 'kBase'
-    # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-    # in the ReservedAPIHierarchy
-    if ReservedAPITypes().has_key(apiType) :
-        return ReservedAPIHierarchy().get(apiType, None) == parentType
-    # need a maya type to create a node of the apiType
-    if MayaAPIToTypes().has_key(apiType) :
-        mayaType = MayaAPIToTypes()[apiType].keys()[0]
+def _getMObject(nodeType, dagMod, dgMod) :
+    """ Returns a queryable MObject form a give apiType """
+    
+    if type(dagMod) is not OpenMaya.MDagModifier or type(dgMod) is not OpenMaya.MDGModifier :
+        raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
+    # cant create these nodes, some would crahs MAya also
+    if ReservedAPITypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
+        return None   
+    node = OpenMaya.MObject()
+    if MayaAPIToTypes().has_key(nodeType) :
+        mayaType = MayaAPIToTypes()[nodeType].keys()[0]
+        apiType = nodeType
+    elif MayaTypesToAPI().has_key(nodeType) :
+        mayaType = nodeType
+        apiType = MayaTypesToAPI()[nodeType]
     else :
-        return False
-    # Need the MFn::Types enum for the parentType
-    if MayaAPITypesInt().has_key(parentType) :
-        typeInt = MayaAPITypesInt()[parentType]
-    else :
-        return False
-    # we create a dummy object of this type in a dgModifier
-    # as the dgModifier.doIt() method is never called, the object
-    # is never actually created in the scene
-    result = False
-    node = OpenMaya.MObject() 
-    dagMod = OpenMaya.MDagModifier()
-    dgMod = OpenMaya.MDGModifier()          
+        return None    
+      
     try :
         parent = dagMod.createNode ( 'transform', OpenMaya.MObject())
         node = dagMod.createNode ( mayaType, parent )
@@ -273,12 +272,139 @@ def _hasFn (apiType, parentType=None) :
             node = dgMod.createNode ( mayaType )
         except :
             pass
-    finally :
-        try :
-            result = node.hasFn(typeInt)
-        except :
-            pass
-                          
+    if not node.isNull() :
+        return node
+    else :
+        return None
+
+
+# check if a an API type herits from another
+# it can't b e done for "virtual" types (in ReservedAPITypes)
+def _hasFn (apiType, dagMod, dgMod, parentType=None) :
+    """ Get the Maya API type from the name of a Maya type """
+    if parentType is None :
+        parentType = 'kBase'
+    # Reserved we can't determine it as we can't create the node, all we can do is check if it's
+    # in the ReservedAPIHierarchy
+    if ReservedAPITypes().has_key(apiType) :
+        return ReservedAPIHierarchy().get(apiType, None) == parentType
+    # Need the MFn::Types enum for the parentType
+    if MayaAPITypesInt().has_key(parentType) :
+        typeInt = MayaAPITypesInt()[parentType]
+    else :
+        return False
+    # print "need creation for %s" % apiType
+    # we create a dummy object of this type in a dgModifier
+    # as the dgModifier.doIt() method is never called, the object
+    # is never actually created in the scene
+    node = _getMObject(apiType, dagMod, dgMod, parentType) 
+    if node :
+        return node.hasFn(typeInt)
+    else :
+        return False
+ 
+
+# Filter the given API type list to retain those that are parent of apiType
+# can pass a list of types to check for being possible parents of apiType
+# or a dictionnary of types:node to speed up testing
+def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
+    """ Checks the given API type list, or API type:MObject dictionnary to return the first parent of apiType """
+    if not kwargs :
+        if not args :
+            args = ('kBase', )
+        kwargs = dict( (args[k], None) for k in args )
+    else :
+        for k in args :
+            if not kwargs.has_key(k) :
+                kwargs[k] = None
+    # Reserved we can't determine it as we can't create the node, all we can do is check if it's
+    # in the ReservedAPIHierarchy
+    if ReservedAPITypes().has_key(apiType) :
+        p = ReservedAPIHierarchy().get(apiType, None)
+        if p is not None :
+            for t in kwargs.keys() :
+                if p == t :
+                    return t
+        return None
+    # we create a dummy object of this type in a dgModifier
+    # as the dgModifier.doIt() method is never called, the object
+    # is never actually created in the scene
+    result = None           
+    node = kwargs.get(apiType, None)        
+    if not node or node.isNull() :
+        # print "need creation for %s" % apiType
+        node= _getMObject(apiType, dagMod, dgMod)
+
+    if node :
+        if not kwargs.get(apiType, None) :
+            kwargs[apiType] = node          # update it if we had to create
+        parents = []
+        for t in kwargs.keys() :
+            # Need the MFn::Types enum for the parentType
+            if t != apiType :
+                if MayaAPITypesInt().has_key(t) :
+                    ti = MayaAPITypesInt()[t]
+                    if node.hasFn(ti) :
+                        parents.append(t)
+        # problem is the MObject.hasFn method returns True for all ancestors, not only first one
+        if len(parents) :
+            if len(parents) > 1 :
+                for p in parents :
+                    if MayaAPITypesInt().has_key(p) :
+                        ip = MayaAPITypesInt()[p]
+                        isFirst = True
+                        for q in parents :
+                            if q != p :
+                                stored = kwargs.get(q, None)
+                                if not stored :
+                                    if ReservedAPITypes().has_key(q) :
+                                        isFirst = not ReservedAPIHierarchy().get(q, None) == p
+                                    else :                                    
+                                        stored = _getMObject(q, dagMod, dgMod)
+                                        if not kwargs.get(q, None) :
+                                            kwargs[q] = stored          # update it if we had to create                                        
+                                if stored :
+                                    isFirst = not stored.hasFn(ip)
+                            if not isFirst :
+                                break
+                        if isFirst :
+                            result = p
+                            break
+            else :
+                result = parents[0]
+                                 
+    return result
+
+# pre-build a type:MObject lookup for all provided types, be careful that these MObject
+# can be used only as long as dagMod and dgMod are not deleted
+def _createNodes(dagMod, dgMod, *args) :
+    result = {}
+    for k in args :
+        mayaType = apiType = None
+        if MayaAPIToTypes().has_key(k) :
+            mayaType = MayaAPIToTypes()[k].keys()[0]
+            apiType = k
+        elif MayaTypesToAPI().has_key(k) :
+            mayaType = k
+            apiType = MayaTypesToAPI()[k]
+        else :
+            continue
+        if ReservedAPITypes().has_key(apiType) or ReservedMayaTypes().has_key(mayaType) :
+            result[apiType] = None
+        else :
+            node = OpenMaya.MObject()          
+            try :
+                parent = dagMod.createNode ( 'transform', OpenMaya.MObject())
+                node = dagMod.createNode ( mayaType, parent )
+            except :
+                try :
+                    node = dgMod.createNode ( mayaType )
+                except :
+                    pass
+            if not node.isNull() :
+                result[apiType] = node
+            else :
+                result[apiType] = None
     return result
 
 # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn classe hierarchy)
@@ -320,33 +446,42 @@ def buildAPITypesHierarchy () :
                 MFnDict[MayaIntAPITypes()[ct]] = MayaIntAPITypes()[pt]
         except :
             pass
+        
+    # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
+    # Make it faster by pre-creating the nodes used to test
+    dagMod = OpenMaya.MDagModifier()
+    dgMod = OpenMaya.MDGModifier()      
+    nodeDict = _createNodes(dagMod, dgMod, *MayaAPITypesInt().keys())
+    # for k in nodeDict.keys() :
+        # print "Cached %s : %s" % (k, nodeDict[k])
+    # Fix? some MFn results are not coherent with the hierarchy presented int he docs :
+    MFnDict.pop('kWire')
+    MFnDict.pop('kBlendShape')
+    MFnDict.pop('kFFD')
     for k in MayaAPITypesInt().keys() :
         if k not in MFnDict.keys() :
-            parents = []
-            for p in MayaAPITypesInt().keys() :
-                if p != k and _hasFn(k, p) :
-                    parents.append(p)
-            # problem is the MObject.hasFn method returns True for all ancestors, not only first one
-            if len(parents) > 1 :
-                for p in parents :
-                    isFirst = True
-                    for q in parents :
-                        if q != p and _hasFn(q, p) :
-                            isFirst = False
-                            break
-                        if not isFirst :
-                            break
-                    if isFirst :
-                        MFnDict[k] = p
-                        break
-            elif len(parents) :
-                MFnDict[k] = parents[0]            
-                    
+            #print "%s not in MFnDict, looking for parents" % k
+            #startParent = time.time()
+            p = _parentFn(k, dagMod, dgMod, **nodeDict)
+            #endParent = time.time()
+            if p :
+                #print "Found parent: %s in %.2f sec" % (p, endParent-startParent)
+                MFnDict[k] = p
+            else :
+                #print "Found none in %.2f sec" % (endParent-startParent)     
+                pass         
+                                       
+    # print MFnDict.keys()                
     return MFnDict 
 
 # Initialize the API tree
+# MayaAPITypesHierarchy(buildAPITypesHierarchy())
+# initial update  
+start = time.time()
 MayaAPITypesHierarchy(buildAPITypesHierarchy())
+elapsed = time.time() - start
+print "Initialized Maya API types hierarchy tree in %.2f sec" % elapsed
 
 # TODO : to represent pluging registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
@@ -384,12 +519,20 @@ def buildPyNodeToAPI () :
     PyNodeInverseDict['kDependencyNode'] = Node
     PyNodeDict[Dag] = 'kDagNode'
     PyNodeInverseDict['kDagNode'] = Dag   
-                      
+    PyNodeDict[Poly] = 'kMesh'
+    PyNodeInverseDict['kMesh'] = Poly  
+                          
     # Initialize the static classes to hold these
     PyNodeToMayaAPITypes (PyNodeDict)
     MayaAPITypesToPyNode (PyNodeInverseDict)
 
+# Initialize Pymel classes to API types lookup
+#buildPyNodeToAPI()
+start = time.time()
 buildPyNodeToAPI()
+elapsed = time.time() - start
+print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
+
 
 # child:parent lookup of the pymel classes that derive from Node
 class PyNodeTypesHierarchy(dict) :
@@ -410,8 +553,12 @@ def buildPyNodeTypesHierarchy () :
 
     return PyNodeDict 
 
-# Initialize the API tree
+# Initialize the Pymel class tree
+# PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+start = time.time()
 PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+elapsed = time.time() - start
+print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
         
 # Public names to MObjects function
 def nameToMObject( *args ):
@@ -523,11 +670,16 @@ def mayaType (nodeOrType, **kwargs) :
     elif isinstance(nodeOrType, basestring) : 
         # check if it could be a PyMel type name
         if (hasattr(pymel, nodeOrType)) :
-            pyNodeType = getattr (pymel, nodeOrType)
-            apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
+            pyAttr = getattr (pymel, nodeOrType)
+            if inspect.isclass(pyAttr) :
+                if issubclass(pyAttr, pymel.core._BaseObj) :
+                    pyNodeType = pyAttr
+                    apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
         # check if it could be a not yet cached Maya type
-        elif addToMayaTypesList(nodeOrType) :
-            mayaType = nodeOrType
+        if not apiTypeStr and not mayaType :
+            if addToMayaTypesList(nodeOrType) :
+                mayaType = nodeOrType
+                apiTypeStr = MayaTypesToAPI()[mayaType]
             
     # minimum is to know Maya or API type
     if mayaType or apiTypeStr :
