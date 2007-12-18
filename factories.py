@@ -218,7 +218,7 @@ def createPymelObjects():
 				return {}
 			except AttributeError:
 				print "could not find maya command:", funcName
-				
+				continue
 		try:
 			usePyNode, baseClsName, nodeName = classData
 			try:

@@ -12,7 +12,6 @@ except ImportError:
 
 _thisModule = __import__(__name__)
 
-import mayaDocsParser
 #import factories
 from vector import *
 import util
@@ -203,14 +202,19 @@ class Workspace(util.Singleton):
 	the workspace dir can be confusing because it works by maintaining a current working directory that is persistent
 	between calls to the command.  In other words, it works much like the unix 'cd' command, or python's 'os.chdir'.
 	In order to clarify this distinction, the names of these flags have been changed in their class method counterparts
-	to resemble similar commands from the os module:
+	to resemble similar commands from the os module::
 	
-		-edit -dir		-->  chdir()
-		-query -dir		-->  getcwd()
-		-create			-->  mkdir()
+	old way (still exists for backward compatibility)
+		>>> workspace(edit=1, dir='mydir')
+		>>> workspace(query=1, dir=1)
+		>>> workspace(create='mydir')
 	
-	All paths are returned as an Path class, which makes it easy to alter or join them on the fly.
+	new way	
+		>>> workspace.chdir('mydir')
+		>>> workspace.getcwd()	
+		>>> workspace.mkdir('mydir')
 	
+	All paths are returned as an Path class, which makes it easy to alter or join them on the fly.	
 		>>> workspace.path / workspace.fileRules['DXF']
 		/Users/chad/Documents/maya/projects/default/path
 		
@@ -360,7 +364,7 @@ SCENE = Scene()
 def select(*args, **kwargs):
 	"""
 Modifications:
-	passing an empty list no longer causes an error. instead, the selection is simply cleared
+	- passing an empty list no longer causes an error. instead, the selection is simply cleared
 	
 	"""
 	
@@ -374,34 +378,39 @@ Modifications:
 #select.__doc__ = mel.help('select') + select.__doc__
 
 def move(obj, *args, **kwargs):
-	"""allows any iterable object to be passed as first argument
-		ex. move("pSphere1", [0,1,2])
-		instead of:
-			move("pSphere1", 0,1,2)
+	"""
+Modifications:
+	- allows any iterable object to be passed as first argument::
+		move("pSphere1", [0,1,2])
 		
-		NOTE: this command also reorders the argument order to be more intuitive, with the object first"""
+NOTE: this command also reorders the argument order to be more intuitive, with the object first
+	"""
 	if len(args) == 1 and util.isIterable(args[0]):
 		args = tuple(args[0])
 	args = args + (obj,)
 	return cmds.move(*args, **kwargs)
 
 def scale(obj, *args, **kwargs):
-	"""allows any iterable object to be passed as first argument
-		ex.  scale("pSphere1", [0,1,2])
+	"""
+Modifications:
+	- allows any iterable object to be passed as first argument::
+		scale("pSphere1", [0,1,2])
 		
-		NOTE: this command also reorders the argument order to be more intuitive, with the object first
-		"""
+NOTE: this command also reorders the argument order to be more intuitive, with the object first
+	"""
 	if len(args) == 1 and util.isIterable(args[0]):
 		args = tuple(args[0])
 	args = args + (obj,)
 	return cmds.scale(*args, **kwargs)
 	
 def rotate(obj, *args, **kwargs):
-	"""allows any iterable object to be passed as first argument
-		ex.  rotate("pSphere1", [0,1,2])
+	"""
+Modifications:
+	- allows any iterable object to be passed as first argument::
+		rotate("pSphere1", [0,1,2])
 		
-		NOTE: this command also reorders the argument order to be more intuitive, with the object first
-		"""
+NOTE: this command also reorders the argument order to be more intuitive, with the object first
+	"""
 	if len(args) == 1 and util.isIterable(args[0]):
 		args = tuple(args[0])
 	args = args + (obj,)
@@ -1599,33 +1608,19 @@ class Attribute(_BaseObj):
 	-----------------------------------------------------
 	All of the examples so far have shown the shorthand syntax for accessing an attribute. The shorthand syntax has the most readability, 
 	but it has the drawaback that if the attribute that you wish to acess has the same name as one of the class methods of the node
-	then an error will be raised. There are two alternatives which will avoid this pitfall.
-	
-	Underscore Prefix
-	~~~~~~~~~~~~~~~~~
-	The first way to avoid clashes is to prefix that attribute's name with an underscore.  In the following example the underscrore 
-	prefix is used to avoid a clash with the translate method of the basestring, which is the superclass of all pymel node types.  
-	Be aware that attributes prefixed and suffixed with a double underscore, such as __init__, have a special meaning in python and
-	should generally be avoided. (however, if you find the need to use them, see the next section on the attr method).
-	
-		>>> s.translate.set(1,2,3) # this conflicts with a method inherited from the basestring class
-		AttributeError: 'function' object has no attribute 'set'
-		>>> s._translate.set(1,2,3) # this succeeds
-		>>> s.addAttr('_myAttr')
-		>>> s.__myAttr = .5 # attributes that begin with an underscore must use an extra underscore when using shorthand syntax
-		
+	then an error will be raised. There is an alternatives which will avoid this pitfall.
+			
 	attr Method
 	~~~~~~~~~~~
 	The attr method is the safest way the access an attribute, and can even be used to access attributes that conflict with 
-	python's own special methods, and which would fail using both shorthand and underscore syntax. This method is passed a string which
+	python's own special methods, and which would fail using shorthand syntax. This method is passed a string which
 	is the name of the attribute to be accessed. This gives it the added advantage of being capable of recieving attributes which 
 	are determine at runtime: 
 	
 		>>> s.addAttr('__init__')
 		>>> s.attr('__init__').set( .5 )
 		>>> s.attr('translate').isLocked()  # this succeeds
-		>>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()
-	
+		>>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()	
 	"""
 	attrItemReg = re.compile( '.*\[(\d+)\]$')
 	
@@ -2117,15 +2112,6 @@ class Node( _BaseObj ):
 	
 	duplicate = duplicate
 	
-	"""	
-	def rename(self, newname, **kwargs):
-		"Rename the object. Returns the newly renamed object"
-		return rename( self, newname, **kwargs)
-	
-	def duplicate(self, **kwargs):
-		"Duplicate the object. Returns the newly renamed object"
-		return map(self.__class__, cmds.duplicate(self, **kwargs) )
-	"""
 	#--------------------------
 	#	Presets
 	#--------------------------

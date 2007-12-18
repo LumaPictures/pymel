@@ -101,7 +101,10 @@ def pythonToMel(arg):
 			
 def capitalize(s):
 	return s[0].upper() + s[1:]
-					
+
+def uncapitalize(s):
+	return s[0].upper() + s[1:]
+						
 def isIterable( obj ):
 	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 

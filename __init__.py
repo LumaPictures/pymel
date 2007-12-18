@@ -135,15 +135,27 @@ created, its node type, and its class type
 	>>> print l, l.type(), type(l)	
 	directionalLightShape1 directionalLight <class 'pymel.DirectionalLight'>
 
-	>>> # make the light red and get shadow samples, the old school way
+make the light red and get shadow samples, the old school way
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
 	>>> directionalLight( l, query=1, shadowSamples=1 ) 
 	1	
 	
-	>>> # now, the pymel way
+now, the pymel way
 	>>> l.setRgb( [1,0,0] )
 	>>> print l.getShadowSamples()   
 	1
+
+
+Some fun with cameras
+
+	>>> camTrans, cam = camera()
+	>>> cam.setFocalLength(100)
+	>>> cam.getFov()
+	# Result: 20.4079476169
+	>>> cam.dolly( distance = -3 )
+	>>> cam.track(left=10)
+	>>> cam.addBookmark('new')
+
 
 Immutability
 ------------
@@ -171,22 +183,22 @@ pymel achieves this effect by chaining function lookups.  If a called method doe
 request will be passed to appropriate class of the transform's shape node, if it exists.
 The chaining goes one further for object primitives, such as spheres, cones, etc.  For example:
 	
-	create a sphere and return its transform
+create a sphere and return its transform
 	>>> trans = polySphere()[0]
 	>>> print type(trans)
 	<class 'pymel.core.Transform'>
 	
-	get the transform's shape
+get the transform's shape
 	>>> shape = trans.getShape()
 	>>> print type( shape )
 	<class 'pymel.core.Poly'>
 	
-	get the shape's history
+get the shape's history
 	>>> hist = shape.history()[1]
 	>>> type( hist )
 	<class 'pymel.PolySphere'>
 	
-	get the radius of the sphere 
+get the radius of the sphere 
 	>>> hist.getRadius()
 	1.0 
 	>>> # chained lookup allows the PolySphere.getRadus method to work on the Transform class  
@@ -339,7 +351,7 @@ enhanced addAttr to allow python types to be passed to set -at type
 			Vector	--> double3
 added FileInfo class for accessing per-file data as a dictionary
 Maya Bug Fix: fixed getCellCmd to work with python functions, previously only worked with mel callbacks
-
+removed 'M' from Vector, Matrix, Reference, and Path
 
  TODO: 
 	Factory:
@@ -358,9 +370,10 @@ Maya Bug Fix: fixed getCellCmd to work with python functions, previously only wo
 	
 	For Next Release:
 	- sort out listReferences, getReferences
-	- remove 'M' from Vector, Matrix, Reference, and Path
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
+	- correctly separate examples flag info when parsing docs
+	- format docstrings to be epydoc friendly
 	
 	For Future Release:
 	- pymel preferences for breaking or maintaining backward compatibility:
@@ -394,7 +407,7 @@ from env import *
 from ui import *
 #import ui
 
-from trees import *
+#from trees import *
 
 # Olivier : Can have trouble loading a module by its absolute path since we are in pymel ?
 try :
