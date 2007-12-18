@@ -131,7 +131,10 @@ def expandArgs( *args, **kwargs ) :
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] )
         >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
     postorder :
-    
+        >>> util.expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1)
+        >>> ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
+        >>> util.expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True)
+        >>> ('c', 'd', 'b', 'a', 'f', 'g', 'e')        
     breadth :
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True)
         >>> ('a', 'e', 'b', ['c', 'd'], 'f', 'g') # 
@@ -174,16 +177,27 @@ def preorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
 
 def postorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a postorder expansion of args """
-    stack = [(x,0) for x in args]
-    result = deque()
-    while stack :
-        arg, level = stack.pop()
-        if testFn(arg) and level<limit :
-            stack = [(x,level+1) for x in reversed(list(arg))] + stack
-        else :
-            result.appendleft(arg)
-
-    return tuple(result)
+    if len(args) == 1:
+        return (args[0],)
+    else:
+        deq = deque((x,0) for x in args)
+        stack = []
+        result = []
+        while deq :
+            arg, level = deq.popleft()
+            if testFn(arg) and level<limit :
+                deq = deque( [(x, level+1) for x in arg] + list(deq))
+            else :
+                if stack :
+                	while stack and level <= stack[-1][1] :
+                		result.append(stack.pop()[0])
+                	stack.append((arg, level))
+                else :
+                    stack.append((arg, level))
+        while stack :
+            result.append(stack.pop()[0])
+	
+        return tuple(result)
     
 def breadthArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a breadth first expansion of args """
@@ -220,7 +234,10 @@ def iterateArgs( *args, **kwargs ) :
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] ))
         >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
     postorder :
-    
+        >>> tuple(k for k in util.iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1 ))
+        >>> ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
+        >>> tuple(k for k in util.iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True))
+        >>> ('c', 'd', 'b', 'a', 'f', 'g', 'e')    
     breadth :
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True))
         >>> ('a', 'e', 'b', ['c', 'd'], 'f', 'g') # 
@@ -260,18 +277,23 @@ def preorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
             else :
                 yield arg
     else :
-        yield args
+        for arg in args :
+        	yield arg
 
 def postorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a postorder expansion of args """
     if limit :
+    	last = None
         for arg in args :
             if testFn(arg) :
-                for a in postorderIterArgs (limit-1, testFn, *arg) :
+            	for a in postorderIterArgs (limit-1, testFn, *arg) :
                     yield a
-        for arg in args :
-            if not testFn(arg) :
-                yield arg
+            else :
+            	if last :
+            		yield last
+            	last = arg
+        if last :
+        	yield last
     else :
         for arg in args :
             yield arg
@@ -279,6 +301,7 @@ def postorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) 
 def breadthIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a breadth first expansion of args """
     deq = deque((x,0) for x in args)
+    result = []
     while deq :
         arg, level = deq.popleft()
         if testFn(arg) and level<limit :
@@ -286,9 +309,6 @@ def breadthIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
                 deq.append ((a, level+1))
         else :
             yield arg
-
-    for arg, level in deq :
-        yield arg
         
 def listForNone( res ):
     if res is None:
