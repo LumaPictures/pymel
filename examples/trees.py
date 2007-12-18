@@ -22,11 +22,11 @@ from __future__ import generators
 # removed as it's 2.5 only
 # import functools as ftools
 from collections import *
-import util
+from pymel import *
 
 __version__ = 1.2
 __author__ = "G. Rodrigues"
-s
+
 
 #Auxiliary class to tackle default args.
 class _undef_arg(object):
