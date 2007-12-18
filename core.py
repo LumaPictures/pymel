@@ -2554,8 +2554,7 @@ class Dag(Node):
 		'parent'
 		return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
 				
-	def instance( self, **kwargs ):
-		return self.__class__( cmds.instance(self, **kwargs) )
+	instance = instance
 
 	#--------------------------
 	#	Shading
