@@ -3,14 +3,16 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>core.py</string>
+	<string>trees.py</string>
 	<key>documents</key>
 	<array>
 		<dict>
 			<key>filename</key>
 			<string>__init__.py</string>
 			<key>lastUsed</key>
-			<date>2007-11-06T20:10:01Z</date>
+			<date>2007-12-18T21:11:21Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>children</key>
@@ -19,53 +21,71 @@
 					<key>filename</key>
 					<string>factories.py</string>
 					<key>lastUsed</key>
-					<date>2007-11-26T21:32:16Z</date>
+					<date>2007-12-18T21:13:01Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>epydoc.cfg</string>
 					<key>lastUsed</key>
-					<date>2007-09-28T23:08:40Z</date>
-				</dict>
-				<dict>
-					<key>filename</key>
-					<string>mayaDocsParser.py</string>
-					<key>lastUsed</key>
-					<date>2007-11-05T18:32:01Z</date>
+					<date>2007-12-18T20:31:09Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>commandsCreation</string>
 					<key>lastUsed</key>
 					<date>2007-09-28T22:24:31Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>pluginFactory.py</string>
 					<key>lastUsed</key>
 					<date>2007-09-28T22:20:49Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>commandsCtx</string>
 					<key>lastUsed</key>
 					<date>2007-09-28T22:11:52Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>commandsUI</string>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>helpDocs.py</string>
 					<key>lastUsed</key>
 					<date>2007-11-26T21:38:24Z</date>
+					<key>selected</key>
+					<true/>
+				</dict>
+				<dict>
+					<key>filename</key>
+					<string>util.py</string>
+					<key>lastUsed</key>
+					<date>2007-12-18T21:13:36Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 			</array>
 			<key>expanded</key>
 			<true/>
 			<key>name</key>
 			<string>misc</string>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>children</key>
@@ -86,19 +106,13 @@
 					<key>filename</key>
 					<string>mellex.py</string>
 					<key>lastUsed</key>
-					<date>2007-11-06T18:30:18Z</date>
-				</dict>
-				<dict>
-					<key>filename</key>
-					<string>parsetab.py</string>
-					<key>lastUsed</key>
-					<date>2007-09-21T23:04:44Z</date>
+					<date>2007-12-18T17:16:10Z</date>
 				</dict>
 			</array>
-			<key>expanded</key>
-			<true/>
 			<key>name</key>
 			<string>translator</string>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>children</key>
@@ -108,48 +122,70 @@
 					<string>examples/pipeGen.py</string>
 					<key>lastUsed</key>
 					<date>2007-10-22T21:38:56Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>examples/example1.py</string>
 					<key>lastUsed</key>
 					<date>2007-10-22T22:47:15Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>examples/example2.py</string>
 					<key>lastUsed</key>
 					<date>2007-10-22T21:26:46Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>examples/wraExport.py</string>
 					<key>lastUsed</key>
 					<date>2007-09-29T01:58:52Z</date>
+					<key>selected</key>
+					<true/>
+				</dict>
+				<dict>
+					<key>filename</key>
+					<string>examples/dagTools.py</string>
+					<key>lastUsed</key>
+					<date>2007-12-18T19:29:00Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 			</array>
 			<key>expanded</key>
 			<true/>
 			<key>name</key>
 			<string>examples</string>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>path.py</string>
 			<key>lastUsed</key>
 			<date>2007-11-02T02:25:52Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>vector.py</string>
 			<key>lastUsed</key>
 			<date>2007-09-15T02:01:04Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>core.py</string>
 			<key>lastUsed</key>
-			<date>2007-11-26T21:38:24Z</date>
+			<date>2007-12-18T20:27:34Z</date>
 			<key>selected</key>
 			<true/>
 		</dict>
@@ -158,30 +194,48 @@
 			<string>ui.py</string>
 			<key>lastUsed</key>
 			<date>2007-10-22T16:10:13Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>env.py</string>
 			<key>lastUsed</key>
 			<date>2007-11-06T19:30:59Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>scene.py</string>
 			<key>lastUsed</key>
 			<date>2007-09-24T21:16:24Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>io.py</string>
 			<key>lastUsed</key>
 			<date>2007-09-29T01:58:52Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>ctx.py</string>
 			<key>lastUsed</key>
 			<date>2007-09-29T01:58:52Z</date>
+			<key>selected</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>filename</key>
+			<string>trees.py</string>
+			<key>lastUsed</key>
+			<date>2007-12-18T21:13:36Z</date>
+			<key>selected</key>
+			<true/>
 		</dict>
 	</array>
 	<key>fileHierarchyDrawerWidth</key>
@@ -193,14 +247,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>29</integer>
+				<integer>64</integer>
 				<key>line</key>
-				<integer>282</integer>
+				<integer>351</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>275</integer>
+			<integer>331</integer>
 		</dict>
 		<key>commandsCreation</key>
 		<dict>
@@ -235,14 +289,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>2</integer>
+				<integer>70</integer>
 				<key>line</key>
-				<integer>1015</integer>
+				<integer>1622</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>987</integer>
+			<integer>1472</integer>
 		</dict>
 		<key>env.py</key>
 		<dict>
@@ -279,14 +333,28 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>70</integer>
+				<integer>41</integer>
 				<key>line</key>
-				<integer>8</integer>
+				<integer>9</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
+		</dict>
+		<key>examples/dagTools.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>17</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>17</integer>
 		</dict>
 		<key>examples/example1.py</key>
 		<dict>
@@ -335,30 +403,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>24</integer>
+				<integer>6</integer>
 				<key>line</key>
-				<integer>7</integer>
+				<integer>205</integer>
 			</dict>
-			<key>columnSelection</key>
-			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>113</integer>
-			<key>selectFrom</key>
-			<dict>
-				<key>column</key>
-				<integer>20</integer>
-				<key>line</key>
-				<integer>7</integer>
-			</dict>
-			<key>selectTo</key>
-			<dict>
-				<key>column</key>
-				<integer>24</integer>
-				<key>line</key>
-				<integer>7</integer>
-			</dict>
+			<integer>190</integer>
 		</dict>
 		<key>helpDocs.py</key>
 		<dict>
@@ -373,20 +425,6 @@
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>169</integer>
-		</dict>
-		<key>mayaDocsParser.py</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>27</integer>
-				<key>line</key>
-				<integer>86</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>45</integer>
 		</dict>
 		<key>mel2py.py</key>
 		<dict>
@@ -407,9 +445,9 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>16</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>11</integer>
+				<integer>15</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -429,20 +467,6 @@
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>799</integer>
-		</dict>
-		<key>parsetab.py</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>0</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
 		</dict>
 		<key>path.py</key>
 		<dict>
@@ -502,6 +526,20 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>trees.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>30</integer>
+				<key>line</key>
+				<integer>30</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+		</dict>
 		<key>ui.py</key>
 		<dict>
 			<key>caret</key>
@@ -516,13 +554,31 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
+		<key>util.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>41</integer>
+				<key>line</key>
+				<integer>351</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>322</integer>
+		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
 		<string>__init__.py</string>
+		<string>util.py</string>
+		<string>examples/dagTools.py</string>
+		<string>trees.py</string>
 		<string>ui.py</string>
 		<string>scene.py</string>
 		<string>core.py</string>
+		<string>epydoc.cfg</string>
 		<string>examples/example1.py</string>
 		<string>examples/example2.py</string>
 		<string>examples/pipeGen.py</string>
@@ -532,11 +588,10 @@
 		<string>env.py</string>
 		<string>mel2py.py</string>
 		<string>mellex.py</string>
-		<string>mayaDocsParser.py</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{1785, 94}, {1162, 1015}}</string>
+	<string>{{1698, 132}, {1162, 1015}}</string>
 </dict>
 </plist>
