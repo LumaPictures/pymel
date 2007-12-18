@@ -1,6 +1,7 @@
 import sys, inspect, warnings, timeit, time
 # based on pymel
 from pymel import *
+from trees import *
 import maya.OpenMayaAnim as OpenMayaAnim
 try: import maya.OpenMayaCloth as OpenMayaCloth
 except: pass
@@ -890,6 +891,10 @@ def asHierarchy (*args) :
         as argument, or the current seleciton if no arguments are provided,
         in a way that mimics the Maya scene hierarchy existing on these nodes.
         Note that:
+        >>> cmds.file ("~/pymel/examples/skel.ma", f=True, typ="mayaAscii",o=True)
+        >>> File read in 0 seconds.
+        >>> u'~/pymel/examples/skel.ma'
+        >>> select ('FBX_Hips', replace=True, hierarchy=True)
         >>> sel=ls(selection=True)
         >>> skel=asHierarchy (sel)
         >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
@@ -898,7 +903,7 @@ def asHierarchy (*args) :
     if len(args) == 0 :
         nargs = ls( selection=True)
     else :
-        args = util.expandListArgs (*args)
+        args = util.expandArgs (*args)
         nargs = map(PyNode, args)
     # print "Arguments: %s"+str(nargs)
     result = treeFromChildLink (isExactChildFn, *nargs)
