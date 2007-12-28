@@ -897,6 +897,10 @@ def asHierarchy (*args) :
         >>> select ('FBX_Hips', replace=True, hierarchy=True)
         >>> sel=ls(selection=True)
         >>> skel=asHierarchy (sel)
+        >>> skel.find('FBX_Head')
+        >>> Tree(Joint('FBX_Head'), Tree(Joint('FBX_LeftEye')), Tree(Joint('FBX_RightEye')))
+        >>> skel.parent('FBX_Head')
+        >>> Joint('FBX_Neck1')      
         >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
         >>> True """
         
@@ -909,4 +913,5 @@ def asHierarchy (*args) :
     result = treeFromChildLink (isExactChildFn, *nargs)
     # print "Result: %s"+str(result)
     return result
+
 
