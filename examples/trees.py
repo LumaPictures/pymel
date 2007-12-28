@@ -48,10 +48,10 @@ class BaseTree(object):
         try:
             self.childs.next()
         except StopIteration:
-            return 1
+            return True
         except AttributeError:
-            return 1
-        return 0
+            return True
+        return False
 
     #The simplest print possible.
     def __str__(self):
@@ -127,6 +127,31 @@ class BaseTree(object):
                 for tree in subtree.postsubtree():
                     yield tree
             yield self
+
+    def find(self, cargo):
+        """Returns the subtree which root cargo is elem, if found"""
+        result = None
+        for t in self.subtree() :
+            if t.cargo == cargo :
+                result = t
+                break
+        return result
+
+    def parent(self, elem):
+        if self :
+            if isinstance (elem, BaseTree) :
+                for sub in self.childs :
+                    if sub == elem :
+                        return self
+                    else :
+                        return sub.parent(elem)
+            else :
+                for sub in self.childs :
+                    if sub.cargo == elem :
+                        return self.cargo
+                    else :
+                        return sub.parent(elem)
+                
 
     #The in protocol.
     # Modified to test inclusion of subtrees 
@@ -388,6 +413,77 @@ def applyOnCargo (inFunc) :
     newFunc.__name__ = inFunc.__name__+'OnCargo'
     return newFunc
 
+# Tree of unique elements, built on a dictionnary
+class IndexedTree(dict) :
+    """ Generealized Tree """
+    def __init__(self, value):
+        if value :
+            pass
+        else :
+            self = {}
+    
+    # x.__cmp__(y) <==> cmp(x,y) works as for dict
+    
+    def __contains__(self, key):
+        return cmds.optionVar( exists=key )
+            
+    def __getitem__(self,key):
+        val = cmds.optionVar( q=key )
+        if isinstance(val, list):
+            val = OptionVarList( val, key )
+        return val
+    def __setitem__(self,key,val):
+        if isinstance( val, basestring):
+            return cmds.optionVar( stringValue=[key,val] )
+        if isinstance( val, int) or isinstance( val, bool):
+            return cmds.optionVar( intValue=[key,int(val)] )
+        if isinstance( val, float):
+            return cmds.optionVar( floatValue=[key,val] )
+        if isinstance( val, list ):
+            if len(val) == 0:
+                return cmds.optionVar( clearArray=key )
+            if isinstance( val[0], basestring):
+                cmds.optionVar( stringValue=[key,val[0]] ) # force to this datatype
+                for elem in val[1:]:
+                    if not isinstance( elem, basestring):
+                        raise TypeError, 'all elements in list must be of the same datatype'
+                    cmds.optionVar( stringValueAppend=[key,elem] )
+                return
+            if isinstance( val[0], int):
+                cmds.optionVar(  intValue=[key,val[0]] ) # force to this datatype
+                for elem in val[1:]:
+                    if not isinstance( elem, int):
+                        raise TypeError,  'all elements in list must be of the same datatype'
+                    print 'appending int', key, elem
+                    cmds.optionVar( intValueAppend=[key,elem] )
+                return
+            if isinstance( val[0], float):
+                cmds.optionVar( floatValue=[key,val[0]] ) # force to this datatype
+                for elem in val[1:]:
+                    if not isinstance( elem, foat):
+                        raise TypeError, 'all elements in list must be of the same datatype'
+                    cmds.optionVar( floatValueAppend=[key,elem] )
+                return
+
+        raise TypeError, 'unsupported datatype: strings, ints, float, lists, and their subclasses are supported'            
+
+    def keys(self):
+        return cmds.optionVar( list=True )
+
+    def get(self, key, default=None):
+        if self.has_key(key):
+            return self[key]
+        else:
+            return default
+        
+    def has_key(self, key):
+        return cmds.optionVar( exists=key )
+
+    def pop(self, key):
+        val = cmds.optionVar( q=key )
+        cmds.optionVar( remove=key )
+        return val
+
 # Checks all elements of a list against eah other with a 'paternity test' :
 # Will build a tree from a list and a "isChild" comparison fonction
 # such as isChild(c, p) returns true if c is a direct child of p
@@ -433,3 +529,4 @@ def treeFromChildLink (isExactChildFn, *args):
         return lst[0]
     else :
         return tuple(lst)
+    
