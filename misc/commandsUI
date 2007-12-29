@@ -43,10 +43,10 @@ textField
 textFieldButtonGrp
 textFieldGrp
 text
-textScrollList TextScrollList_
+textScrollList
 toolButton
 toolCollection
-window Window_
+window
 blendShapeEditor
 blendShapePanel
 buildBookmarkMenu
@@ -56,7 +56,7 @@ checkBox
 checkBoxGrp
 confirmDialog
 fontDialog
-formLayout FormLayout_
+formLayout
 menu
 menuBarLayout
 menuEditor
