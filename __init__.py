@@ -64,7 +64,7 @@ The pymel module reorganizes many of the most commonly used mel commands into a 
 you to write much more concise and readable python code. It also helps keep all of the commands organized, so that
 functions are paired only with the types of objects that can use them.
 
-All node classes inherit from the L{Node} class. 
+All node classes inherit from the L{DependNode} class. 
 	
 Understanding the L{Attribute} class is essential to using pymel to its fullest extent.
 	
@@ -80,13 +80,13 @@ Using Node Classes
 	
 		>>> s = ls(type='transform')[0]
 		>>> print type(t)
-		<class 'pymel.core.Transform'> #
+		<class 'pymel.node.Transform'> #
 		
 	Most commands that create objects are wrapped as well (see below):
 	
 		>>> t = polySphere()[0]
 		>>> print t, type(t)
-		pSphere2, <class 'pymel.core.Transform'> #
+		pSphere2, <class 'pymel.node.Transform'> #
 		
 	In many cases, you won't be creating the object directly in your code, but will want to gain access to the object by name. Pymel
 	provides two new ways of doing this.
@@ -98,7 +98,7 @@ Using Node Classes
 	
 		>>> s = PyNode('perspShape') # convert to a pymel class
 		>>> print s, type(s)
-		perspShape, <class 'pymel.Camera'> # 
+		perspShape, <class 'pymel.node.Camera'> # 
 
 
 
@@ -116,16 +116,45 @@ Using Node Classes
 		# Result: 1.0 #
 
 
+Node Class Hierarchy
+--------------------
 
-Object Commands and their Classes
----------------------------------
+Pymel uses data parsed from the maya documentation to reconstruct the maya node type hierarchy by creating
+a class is for every node type in the tree.  The name of the class is the node type captitalized.  Wherever possible,
+pymel will return objects as instances of these classes. This allows you to use builtin python functions to inspect
+and compare your objects.  For example:
 
-Mel contains a number of commands which are used to create, edit, and query specific object types in maya.  
-Typically, the names of these commands correspond with the node type on which they operate.  some examples of these
-commands are aimConstraint, camera, directionalLight, and polySphere ( see commandsCreation in the pymel directory
-for a complete list). Pymel creates a class for each of these commands -- the class name is simply the command capitalized.
-Once nodes have been cast to their appropriate type (usually handled automatically) the commands operations can
-be performed in an object oriented way.
+	>>> dl = directionalLight()
+	>>> type(dl)
+	<class 'pymel.node.DirectionalLight'>
+	>>> isinstance( dl, DirectionalLight)
+	True
+	>>> isinstance( dl, Light)
+	True
+	>>> isinstance( dl, Shape)
+	True
+	>>> isinstance( dl, DagNode)
+ 	True
+
+Most of these classes contain no methods of their own and exist only as place-holders in the hierarchy.
+However, there are certain key classes which provide important methods to all their sub-classes. Currently, These are
+L{DependNode}, L{DagNode}, L{Transform}, L{Constraint}, and L{ObjectSet}.
+
+
+
+Node Commands and their Class Counterparts
+------------------------------------------
+
+In addition to the many classes that make up the node hierarchy, there are also 'Command Classes', which are leaf-level
+node classes that have methods specific to their node type. As you are probably aware, Mel contains a number of commands
+which are used to create, edit, and query specific object types in maya.  Typically, the names of these commands correspond
+with the node type on which they operate and, when using pymel, the class which they return (see above). Some examples of these command-class
+pairs are L{aimConstraint} / L{AimConstraint}, L{camera} / L{Camera}, and L{directionalLight} / L{DirectionalLight}. 
+However, there are some exceptions to this rule.  For example, L{spaceLocator} creates a L{Locator} and L{vortex} creates a
+L{VortexField}. 
+ 
+Once nodes have been cast to their appropriate class type (usually handled automatically), you can query and edit it in
+an object oriented way.
 
 this example demonstrates some basic principles. note the relationship between the name of the object
 created, its node type, and its class type
@@ -133,20 +162,22 @@ created, its node type, and its class type
 	>>> l = directionalLight()
 	>>> # print the name of the object, its maya object type, and the class type
 	>>> print l, l.type(), type(l)	
-	directionalLightShape1 directionalLight <class 'pymel.DirectionalLight'>
+	directionalLightShape1 directionalLight <class 'pymel.node.DirectionalLight'>
 
-make the light red and get shadow samples, the old school way
+make the light red and get shadow samples, the old way, using the command
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
 	>>> directionalLight( l, query=1, shadowSamples=1 ) 
 	1	
 	
-now, the pymel way
+now, the object-oriented, pymel way
 	>>> l.setRgb( [1,0,0] )
 	>>> print l.getShadowSamples()   
 	1
 
 
-Some fun with cameras
+In the above example, the DirectionalLight class can be understood as an object-oriented reorganization of the directionalLight command,
+where you 'get' queries and you 'set' edits.  Some classes have functionality that goes beyond their command counterpart. The L{Camera} class,
+for instance, also contains the abilities of the L{track}, L{orbit}, L{dolly}, and L{cameraView} commands:
 
 	>>> camTrans, cam = camera()
 	>>> cam.setFocalLength(100)
@@ -186,17 +217,17 @@ The chaining goes one further for object primitives, such as spheres, cones, etc
 create a sphere and return its transform
 	>>> trans = polySphere()[0]
 	>>> print type(trans)
-	<class 'pymel.core.Transform'>
+	<class 'pymel.node.Transform'>
 	
 get the transform's shape
 	>>> shape = trans.getShape()
 	>>> print type( shape )
-	<class 'pymel.core.Poly'>
+	<class 'pymel.node.Mesh'>
 	
 get the shape's history
 	>>> hist = shape.history()[1]
 	>>> type( hist )
-	<class 'pymel.PolySphere'>
+	<class 'pymel.node.PolySphere'>
 	
 get the radius of the sphere 
 	>>> hist.getRadius()
@@ -231,10 +262,11 @@ maya commands.
 
 Also, see L{pymel.io} for more information on how the file command is implemented in pymel.
 
-Even though pymel has a handful of modules, they are all imported directly into the main namespace, except for the ctx module.
-In the future, I will try to establish a way for the user to easily customize which modules are directly imported and
-which should remain in their own namespace for organizational reasons.
-
+Even though pymel has a handful of modules, they are all imported directly into the main namespace. The sub-modules are provided
+for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user can edit the import commands
+in this file (__init__.py) to customize which modules are directly imported and which should remain in their own namespace 
+for organizational reasons.
+ 
 
 Setup
 =====
@@ -311,12 +343,9 @@ added Attribute.item() for getting the item number of a multi attribute
 added Attribute.attrInfo()
 modified listAttr() method to return Attribute classes
 -0.7-
-added commands lsThruFilter, shadingNode
-fixed createNode so that it does not generate a class since it has no edit flags
+added wrapped commands: lsThruFilter, shadingNode, createNode
 changed Dag.getParent to Dag.firstParent, and changed Dag.getParent2 to Dag.getParent
 added Component class for verts, edges, faces, etc
-reorganized the help/documentation functions into their own module
-renamed helpers module to util to avoid confusion with the new helpDoc module
 added documentation for all commands
 added Workspace class
 added Subdiv class
@@ -332,7 +361,7 @@ Maya Bug Fix: severe design oversight in all ui callback commands.
 	the callbacks were being passed u'true' and u'false' instead of python booleans. (why, autodesk? why?!)
 added Transform.getBoundingBox()
 fixed a bug in Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
-added cascading to setattr
+added chained-lookup to setattr
 added Attribute.plugNode, same as Attribute.node
 changed Attribute.plug to Attribute.plugAttr
 changed behavior of shortName to behave like the mel script shortNameOf
@@ -350,8 +379,14 @@ enhanced addAttr to allow python types to be passed to set -at type
 			bool	--> bool
 			Vector	--> double3
 added FileInfo class for accessing per-file data as a dictionary
-Maya Bug Fix: fixed getCellCmd to work with python functions, previously only worked with mel callbacks
+Maya Bug Fix: fixed getCellCmd flag of scriptTable to work with python functions, previously only worked with mel callbacks
 removed 'M' from Vector, Matrix, Reference, and Path
+changed sets command so that the operating set is always the first arg
+added PyUI
+fixed bug in createSurfaceShader
+changed lsUI to return wrapped UI classes
+added a class for every node type in the node hierarchy.
+greatly improved documentation
 
  TODO: 
 	Factory:
@@ -363,17 +398,16 @@ removed 'M' from Vector, Matrix, Reference, and Path
 	To Debate:
 	- filter out self from listHistory command?
 	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
+		- remove commands that have been subsumed under a class? ex. dolly, track, orbit have all been added to Camera
 	- new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
 		- this is particularly useful for colors
-	
 	
 	For Next Release:
 	- sort out listReferences, getReferences
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
 	- correctly separate examples flag info when parsing docs
-	- format docstrings to be epydoc friendly
 	
 	For Future Release:
 	- pymel preferences for breaking or maintaining backward compatibility:
@@ -390,36 +424,10 @@ __version__ = 0.7
 import util
 assert util.mayaInit() 
 
-from core import *
 
-#import io
+from node import *
+from ctx import *
 from io import *
-
-#import scene
-#from scene import *
-
-#import env
-from env import *
-
-#import ui
-# if importing into main namespace, be sure to change the __module__ property in ui.py
-
 from ui import *
-#import ui
-
-#from trees import *
-
-# Olivier : Can have trouble loading a module by its absolute path since we are in pymel ?
-try :
-	import factories
-	factories.createPymelObjects()
-except :
-	import pymel.factories
-#pymel.factories.createClasses('commandsCreation', 'pymel', usePyNode=True)
-#pymel.factories.createClasses('commandsUI', 'pymel', usePyNode=False)
-#pymel.factories.createClasses('commandsCtx', 'pymel.ctx', usePyNode=False)
-	pymel.factories.createPymelObjects()
-
-
 
 	

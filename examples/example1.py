@@ -102,7 +102,7 @@ def pymelPython():
 		
 		# get and set some attributes
 		x.rotate =  [1,1,1]	
-		trans = x._translate.get()
+		trans = x.attr('translate').get()
 		trans *= x.scale.get()           # vector math
 		x._translate = trans              # ability to pass list/vector args
 		mel.myMelScript( x.type(), trans) # automatic handling of mel commands

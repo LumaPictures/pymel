@@ -55,8 +55,6 @@ class PsuedoUnicode(object):
 
 class metaUni(type) :
 	def __new__(cls, classname, bases, classdict):
-		# Class is a Singleton and a Dictionnary, Singleton must come first so that it's __new__
-		# method takes precedence
 
 		def __getattribute__(self, name):		  
 			remove = ('translate',)
@@ -87,7 +85,7 @@ class metaUni(type) :
 		return super(metaUni, cls).__new__(cls, classname, bases, newdict)
 
 # a unicode without the translate method
-BaseStr = metaUni('BaseStr', (unicode,), {})
+#BaseStr = metaUni('BaseStr', (unicode,), {})
 
 #-----------------------------------------------
 #  Pymel Internals
@@ -103,7 +101,7 @@ def capitalize(s):
 	return s[0].upper() + s[1:]
 
 def uncapitalize(s):
-	return s[0].upper() + s[1:]
+	return s[0].lower() + s[1:]
 						
 def isIterable( obj ):
 	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
