@@ -103,6 +103,19 @@ class BaseTree(object):
                     yield elem
             yield self.cargo
 
+    def breadth(self):
+        """breadth first traversal of a tree."""
+        if self:
+            yield self.cargo        
+            deq = deque(x for x in self.childs)
+            while deq :
+                arg = deq.popleft()
+                if not arg.isatom() :
+                    for a in arg.childs :
+                        deq.append (a)
+                else :
+                    yield arg.cargo
+
     #The "inplace" iterators.
     def subtree(self):
         """Preorder iterator over the subtrees.
@@ -128,6 +141,19 @@ class BaseTree(object):
                     yield tree
             yield self
 
+    def breadthsubtree(self):
+        """breadth first traversal of a tree."""
+        if self:
+            yield self        
+            deq = deque(x for x in self.childs)
+            while deq :
+                arg = deq.popleft()
+                if not arg.isatom() :
+                    for a in arg.childs :
+                        deq.append (a)
+                else :
+                    yield arg
+
     def find(self, cargo):
         """Returns the subtree which root cargo is elem, if found"""
         result = None
@@ -137,21 +163,32 @@ class BaseTree(object):
                 break
         return result
 
-    def parent(self, elem):
-        if self :
-            if isinstance (elem, BaseTree) :
-                for sub in self.childs :
-                    if sub == elem :
-                        return self
-                    else :
-                        return sub.parent(elem)
-            else :
-                for sub in self.childs :
-                    if sub.cargo == elem :
-                        return self.cargo
-                    else :
-                        return sub.parent(elem)
-                
+    def _parentElement(self, elem):
+        for sub in self.childs :
+            if sub.cargo == elem :
+                return self.cargo
+        # if nothing found check childs
+        for sub in self.childs :
+            found = sub._parentElement(elem)
+            if found :
+                return found
+             
+    def _parentSubtree(self, subt):
+        for sub in self.childs :
+            if sub == subt :
+                return self
+        # if nothing found check childs
+        for sub in self.childs :
+            found = sub._parentSubtree(subt)
+            if found :
+                return found
+                                
+    def parent(self, elem) :
+        """ Returns the parent element or subtree of a given element or subtree """
+        if isinstance (elem, BaseTree) :
+            return self._parentSubtree(elem)
+        else :
+            return self._parentElement(elem)     
 
     #The in protocol.
     # Modified to test inclusion of subtrees 
