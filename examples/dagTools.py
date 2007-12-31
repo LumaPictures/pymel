@@ -914,4 +914,35 @@ def asHierarchy (*args) :
     # print "Result: %s"+str(result)
     return result
 
+def asIndexedHierarchy (*args) :
+    """returns a Tree containing the PyMel objects representing Maya nodes that were passed
+        as argument, or the current seleciton if no arguments are provided,
+        in a way that mimics the Maya scene hierarchy existing on these nodes.
+        Note that:
+        >>> cmds.file ("~/pymel/examples/skel.ma", f=True, typ="mayaAscii",o=True)
+        >>> File read in 0 seconds.
+        >>> u'~/pymel/examples/skel.ma'
+        >>> select ('FBX_Hips', replace=True, hierarchy=True)
+        >>> sel=ls(selection=True)
+        >>> skel=asHierarchy (sel)
+        >>> skel.find('FBX_Head')
+        >>> Tree(Joint('FBX_Head'), Tree(Joint('FBX_LeftEye')), Tree(Joint('FBX_RightEye')))
+        >>> skel.parent('FBX_Head')
+        >>> Joint('FBX_Neck1')      
+        >>> util.expandArgs( skel ) == tuple(sel) and sel == [k for k in skel]
+        >>> True """
+        
+    if len(args) == 0 :
+        nargs = ls( selection=True)
+    else :
+        args = util.expandArgs (*args)
+        nargs = map(PyNode, args)
+    # print "Arguments: %s"+str(nargs)
+    result = indexedTreeFromChildLink (isExactChildFn, *nargs)
+    # print "Result: %s"+str(result)
+    return result
 
+#cmds.file ("~/Eclipse/pymel/examples/skel.ma", f=True, typ="mayaAscii",o=True)
+#select ('FBX_Hips', replace=True, hierarchy=True)
+#sel=ls(selection=True)
+#ihTree = asIndexedHierarchy (sel)
