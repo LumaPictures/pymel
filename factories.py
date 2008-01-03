@@ -220,7 +220,7 @@ def _getNodeHierarchy( version='8.5' ):
 	parser = NodeHierarchyDocParser()
 	parser.feed( f.read() )
 	f.close()
-	return Tree(parser.tree)
+	return parser.tree
 	
 #-----------------------------------------------
 #  Command Help Documentation
@@ -340,7 +340,7 @@ def buildMayaCmdsArgList() :
 		except :
 			print "Unable to open '"+newPath+"' for writing"
 
-
+	nodeHierarchy = IndexedTree(nodeHierarchy)
 	return (cmdlist,nodeHierarchy,uiClassList)
 					
 #---------------------------------------------------------------
@@ -557,9 +557,7 @@ class metaNode(type) :
 		except KeyError: # on cmdlist[nodeType]
 			pass
 			
-		#try:
 		return super(metaNode, cls).__new__(cls, classname, bases, classdict)
-		
 				
 def makeDocs( mayaVersion='8.5' ):
 	"internal use only"

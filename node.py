@@ -16,7 +16,7 @@ except ImportError:
 from vector import *
 from core import *
 import util, factories
-import networkx
+#import networkx
 
 #-----------------------------------------------
 #  Enhanced Node Commands
@@ -2012,11 +2012,16 @@ class ObjectSet(Entity):
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 #for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
-for nodeType in factories.nodeHierarchy:
+print factories.nodeHierarchy
+for treeElem in factories.nodeHierarchy:
+	#print treeElem
+	nodeType = treeElem.key
+	#print nodeType
 	if nodeType == 'dependNode': continue
-	className = util.capitalize(nodeType)
-	if not hasattr( _thisModule, className ):
-		superNodeType = factories.nodeHierarchy.parent( nodeType )
+	classname = util.capitalize(nodeType)
+	if not hasattr( _thisModule, classname ):
+		#superNodeType = factories.nodeHierarchy.parent( nodeType )
+		superNodeType = treeElem.parent
 		if superNodeType is None:
 			print "could not find parent node", nodeType
 			continue
@@ -2025,9 +2030,14 @@ for nodeType in factories.nodeHierarchy:
 		except AttributeError:
 			print "could not find parent class", nodeType
 			continue
-		cls = factories.metaNode(className, (base,), {})
-		cls.__module__ = __name__
-		setattr( _thisModule, className, cls )
+		
+		try:
+			cls = factories.metaNode(classname, (base,), {})
+		except TypeError, msg:
+			print "%s(%s): %s" % (classname, superNodeType, msg )
+		else:	
+			cls.__module__ = __name__
+			setattr( _thisModule, classname, cls )
 	#else:
 	#	print "already created", className
 
