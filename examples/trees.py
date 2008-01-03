@@ -24,11 +24,14 @@ from __future__ import generators
 from collections import *
 from weakref import *
 from copy import *
-from pymel import *
 
 __version__ = 1.2
 __author__ = "G. Rodrigues"
 
+#Utility
+
+def isSequence(x):
+    return type(x) is list or type(x) is tuple
 
 #Auxiliary class to tackle default args.
 class _undef_arg(object):
@@ -298,12 +301,12 @@ class Tree(BaseTree):
         """The initializer."""
         if args:
             # modified to allow initialisation from nested lists or tuples
-            if len(args)==1 and util.isIterable(args[0]) :
+            if len(args)==1 and isSequence(args[0]) :
                 args = tuple(args[0])
             self.__head = [args[0]]
             for arg in args[1:] :
                 if not isinstance(arg, BaseTree) :
-                    if util.isIterable(arg) :
+                    if isSequence(arg) :
                         self.__head.append(Tree(*arg))
                     else :
                         self.__head.append(Tree(arg))
@@ -408,12 +411,12 @@ class FrozenTree(BaseTree):
         """The initializer"""
         if args:
             # modified to allow initialisation from a nested list call on *args with args = theList            
-            if len(args)==1 and util.isIterable(args[0]) :
+            if len(args)==1 and isSequence(args[0]) :
                 arg = tuple(args[0])
             self.__head = (args[0],)
             for arg in args[1:] :
                 if not isinstance(arg, BaseTree) :
-                    if util.isIterable(arg) :
+                    if isSequence(arg) :
                         self.__head = self.__head + (FrozenTree(*arg),)
                     else :
                         self.__head = self.__head + (FrozenTree(arg),)
@@ -851,7 +854,7 @@ class IndexedTree(dict) :
         """The initializer"""
         if args:
             # modified to allow initialisation from a nested list call on *args with args = theList            
-            if len(args)==1 and util.isIterable(args[0]) :
+            if len(args)==1 and isSequence(args[0]) :
                 args = tuple(args[0])
             # create the dummy 'None' element as top root
             self[None] = None
@@ -862,7 +865,7 @@ class IndexedTree(dict) :
                     if isinstance(arg, IndexedTree) :
                         self.graft(arg)
                         last = arg.lastroot()
-                    elif util.isIterable(arg) :
+                    elif isSequence(arg) :
                         self.graft(IndexedTree(*arg), last, None)    
                         # last not changing it is grafted under it not after                    
                     else :
