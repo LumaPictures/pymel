@@ -735,9 +735,17 @@ class TreeElement(object) :
 
     # define __iter__ as __iter_below ?
     def below(self):
-        for e in self.subtree().preorder() :
-            yield e
+        for c in self.childs() :
+            yield c
+            for e in c.below() :
+                yield e
     #below = property(__iter_below, None, None, """ Preorder iterator on all elements in tree below the element """)
+
+    def preorder(self):
+        yield self
+        for c in self.childs() :
+            for e in c.preorder() :
+                yield e
     
     def postorder(self):
          for e in self.subtree().postorder() :
@@ -1006,7 +1014,7 @@ class IndexedTree(dict) :
             yield e
   
     def preorderElements (self) :
-        """ iterator doing a preorder expansion of args """
+        """ iterator doing a preorder expansion of the tree elements """
         deq = deque(reversed( [(root,0) for root in self.roots()] ) )
         result = deque()
         while deq :
@@ -1022,12 +1030,8 @@ class IndexedTree(dict) :
         """The standard preorder traversal iterator."""
         if self:
             for root in self.roots():
-                yield root
-                for child in root.childs() :
-                    subtree = child.subtree()
-                    for elem in subtree.preorder() :
-                        yield elem
-    # pre = property(__iter_preorder, None, None, """ Preorder iterator on the elements of the tree """)
+                for c in root.preorder() :
+                    yield c
 
     def postorder(self):
         """Postorder traversal of a tree."""
