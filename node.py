@@ -2014,14 +2014,15 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 #for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
 print factories.nodeHierarchy
 for treeElem in factories.nodeHierarchy:
-	#print treeElem
+	#print "treeElem: ", treeElem
 	nodeType = treeElem.key
-	#print nodeType
+	#print "nodeType: ", nodeType
 	if nodeType == 'dependNode': continue
 	classname = util.capitalize(nodeType)
 	if not hasattr( _thisModule, classname ):
 		#superNodeType = factories.nodeHierarchy.parent( nodeType )
-		superNodeType = treeElem.parent
+		superNodeType = treeElem.parent.key
+		#print "superNodeType: ", superNodeType, type(superNodeType)
 		if superNodeType is None:
 			print "could not find parent node", nodeType
 			continue
