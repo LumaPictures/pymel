@@ -280,6 +280,7 @@ def buildMayaCmdsArgList() :
 		file = newPath.open(mode='rb')
 		try :
 			cmdlist,nodeHierarchy,uiClassList = pickle.load(file)
+			nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		except :
 			print "Unable to load the list of Maya commands from '"+file.name+"'"
 		
@@ -292,19 +293,21 @@ def buildMayaCmdsArgList() :
 		print "Rebuilding the list of Maya commands..."
 		
 		nodeHierarchy = _getNodeHierarchy(ver)
+		nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		uiClassList = _getUICommands()
 		cmdlist = dict( inspect.getmembers(cmds, callable) )
 		for funcName in cmdlist :	
 
 			description, args = getCmdInfo(funcName, ver)
 			
+			# determine to which module this function belongs
 			if funcName in ['eval',	'file', 'filter', 'help', 'quit']:
 				module = None
 			elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
 				module = 'ctx'
 			elif funcName in uiClassList:
 				module = 'ui'
-			elif funcName in nodeHierarchy or funcName in nodeTypeToCommandMap.values():
+			elif funcName in nodeHierarchyTree or funcName in nodeTypeToCommandMap.values():
 				module = 'node'
 			else:
 				module = 'core'
@@ -340,8 +343,8 @@ def buildMayaCmdsArgList() :
 		except :
 			print "Unable to open '"+newPath+"' for writing"
 
-	nodeHierarchy = IndexedTree(nodeHierarchy)
-	return (cmdlist,nodeHierarchy,uiClassList)
+	
+	return (cmdlist,nodeHierarchyTree,uiClassList)
 					
 #---------------------------------------------------------------
 

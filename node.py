@@ -2012,7 +2012,7 @@ class ObjectSet(Entity):
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 #for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
-print factories.nodeHierarchy
+#print factories.nodeHierarchy
 for treeElem in factories.nodeHierarchy:
 	#print "treeElem: ", treeElem
 	nodeType = treeElem.key
