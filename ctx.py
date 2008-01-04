@@ -8,5 +8,8 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 for funcName, data in factories.cmdlist.items():
 	if data['type'] == 'ctx':
 		func = factories.functionFactory( funcName, None )
-		func.__module__ = __name__
-		setattr( _thisModule, funcName, func )
+		if func:
+			func.__module__ = __name__
+			setattr( _thisModule, funcName, func )
+		else:
+			print "could not create ctx function", funcName

@@ -2046,21 +2046,22 @@ for treeElem in factories.nodeHierarchy:
 #-----------------------------------------------
 #  Commands for Creating pymel Objects
 #-----------------------------------------------
-def PyNode(strObj, type=None):
+def PyNode(strObj, nodeType=None):
 	"""Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
 	for your object."""
 
 	try:
-		if not type:
-			type = cmds.nodeType(strObj)
-		return getattr(_thisModule, util.capitalize(type) )(strObj)
-	except AttributeError:
-		try:
-			if '.' in strObj:
-				return Attribute(strObj)
-		except TypeError:
-			raise 'PyNode: expected a string or unicode object, got %s' % type(strObj)
-		return DependNode(strObj)
+		if not nodeType:
+			nodeType = cmds.nodeType(strObj)
+		return getattr(_thisModule, util.capitalize(nodeType) )(strObj)
+	except (AttributeError, TypeError): pass
+	
+	try:
+		if '.' in strObj:
+			return Attribute(strObj)
+	except TypeError:
+		raise 'PyNode: expected a string or unicode object, got %s' % type(strObj)
+	return DependNode(strObj)
 
 for funcName, data in factories.cmdlist.items():
 	if data['type'] == 'node':

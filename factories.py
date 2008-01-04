@@ -6,9 +6,6 @@ try:
 	import maya.cmds as cmds
 except ImportError: pass
 
-moduleName = 'pymel'
-module = __import__(moduleName, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
-
 #---------------------------------------------------------------
 #		Doc Parser
 #---------------------------------------------------------------
