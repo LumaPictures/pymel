@@ -3,14 +3,14 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>node.py</string>
+	<string>factories.py</string>
 	<key>documents</key>
 	<array>
 		<dict>
 			<key>filename</key>
 			<string>__init__.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-04T02:07:58Z</date>
+			<date>2008-01-04T19:54:51Z</date>
 		</dict>
 		<dict>
 			<key>children</key>
@@ -19,13 +19,13 @@
 					<key>filename</key>
 					<string>factories.py</string>
 					<key>lastUsed</key>
-					<date>2008-01-04T01:42:05Z</date>
+					<date>2008-01-04T19:57:28Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>util.py</string>
 					<key>lastUsed</key>
-					<date>2007-12-27T05:48:52Z</date>
+					<date>2008-01-04T17:44:15Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
@@ -127,7 +127,7 @@
 			<key>filename</key>
 			<string>ui.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-04T01:38:03Z</date>
+			<date>2008-01-04T19:50:07Z</date>
 		</dict>
 		<dict>
 			<key>filename</key>
@@ -151,15 +151,13 @@
 			<key>filename</key>
 			<string>node.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-04T02:07:58Z</date>
-			<key>selected</key>
-			<true/>
+			<date>2008-01-04T19:57:28Z</date>
 		</dict>
 		<dict>
 			<key>filename</key>
-			<string>examples/trees.py</string>
-			<key>lastUsed</key>
-			<date>2007-12-29T18:08:49Z</date>
+			<string>trees.py</string>
+			<key>selected</key>
+			<true/>
 		</dict>
 	</array>
 	<key>fileHierarchyDrawerWidth</key>
@@ -171,14 +169,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>31</integer>
+				<integer>147</integer>
 				<key>line</key>
-				<integer>364</integer>
+				<integer>42</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>333</integer>
+			<integer>40</integer>
 		</dict>
 		<key>core.py</key>
 		<dict>
@@ -236,33 +234,19 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>examples/trees.py</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>0</integer>
-				<key>line</key>
-				<integer>569</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>22</integer>
-		</dict>
 		<key>factories.py</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>24</integer>
+				<integer>5</integer>
 				<key>line</key>
-				<integer>396</integer>
+				<integer>1</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>380</integer>
+			<integer>0</integer>
 		</dict>
 		<key>io.py</key>
 		<dict>
@@ -283,14 +267,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>3</integer>
+				<integer>18</integer>
 				<key>line</key>
-				<integer>716</integer>
+				<integer>2020</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>688</integer>
+			<integer>2002</integer>
 		</dict>
 		<key>path.py</key>
 		<dict>
@@ -341,21 +325,21 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>13</integer>
+				<integer>30</integer>
 				<key>line</key>
-				<integer>74</integer>
+				<integer>66</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>0</integer>
+			<integer>62</integer>
 		</dict>
 		<key>util.py</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>45</integer>
+				<integer>2</integer>
 				<key>line</key>
 				<integer>87</integer>
 			</dict>
@@ -368,14 +352,14 @@
 			<key>selectFrom</key>
 			<dict>
 				<key>column</key>
-				<integer>1</integer>
+				<integer>45</integer>
 				<key>line</key>
 				<integer>87</integer>
 			</dict>
 			<key>selectTo</key>
 			<dict>
 				<key>column</key>
-				<integer>45</integer>
+				<integer>2</integer>
 				<key>line</key>
 				<integer>87</integer>
 			</dict>
@@ -392,13 +376,12 @@
 		<string>factories.py</string>
 		<string>core.py</string>
 		<string>io.py</string>
-		<string>examples/trees.py</string>
 		<string>node.py</string>
 		<string>util.py</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{344, 44}, {1162, 878}}</string>
+	<string>{{1079, 137}, {1162, 878}}</string>
 </dict>
 </plist>
