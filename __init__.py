@@ -14,6 +14,80 @@ does not take advantage of python's strengths -- particulary, a flexible, object
 builds on the cmds module by organizing many of its commands into a class hierarchy, and by
 customizing them to operate in a more succinct and intuitive way.
 
+What's New in Version 0.7
+=========================
+If you are upgrading from a previous version of pymel, there are some big changes that you need to be aware of. 
+This version introduces new modules and name-changes that add further organization and refinement, but at the cost
+of backward compatibility with older code. Following the release of this version these sorts of changes should occur
+much less frequently. 
+
+Most of the changes are self-explanatory, except perhaps the removal of the underscore syntax for accessing attributes.
+For more information on ways to access attributes from node classes, see the L{Attribute} class.
+
+Non-Backward Compatible Changes
+-------------------------------
+	- Removed underscore shorthand syntax for accessing attributes	
+	- Renamed Classes:
+		- MVec S{->} L{Vector}
+		- MMat S{->} L{Matrix}
+		- MPath S{->} L{Path}
+		- MReference S{->} L{Reference}
+		- Node S{->} L{DependNode}
+		- Dag S{->} L{DagNode}
+		- Set S{->} L{ObjectSet}
+	- Changed and Renamed Functions:
+		- renamed Attribute.plug to L{Attribute.plugAttr}
+		- renamed DependNode.node to L{DependNode.nodeName}
+		- changed L{sets} command so that the operating set is always the first arg		
+		- changed L{DagNode.shortName} to behave like the mel script shortNameOf
+		- changed L{Attribute.exists} to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
+		
+	- Module reorganization:
+		- moved all function and classes which create or represent a node type to the L{node} module
+		- moved all functions and classes which create or represent a ui element to the L{ui} module
+
+Other Additions and Changes
+---------------------------
+
+	- Added wrapped commands: L{lsThroughFilter}, L{shadingNode}, L{createNode}, L{lsUI}	
+	- Added documentation for all commands and classes
+	
+	- New Classes
+		- Added an auto-generated class for every node type in the node hierarchy
+		- Other New Classes:
+			- L{Workspace}
+			- L{Subdiv}
+			- L{FileInfo}
+			- L{FaceArray}, L{EdgeArray}, L{VertexArray}, L{Face}, L{Edge}, L{Vertex}
+				
+	- Maya Bug Fixes
+		- severe design oversight in all ui callback commands. the callbacks were being passed u'true' and u'false' instead of python booleans.
+		- listRelatives: allDescendents and shapes flags did not work in combination
+		- pointLight, directionalLight, ambientLight, spotLight did not return the correct name of created light 
+		- instancer node was not returning name of created shape
+		- fixed getCellCmd flag of scriptTable to work with python functions, previously only worked with mel callbacks
+
+	- Pymel Bug Fixes:
+		- _BaseObj.__unicode__ was causing errors in maya 2008
+		- Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
+		- DagNode.__eq__ was not comparing DAG nodes properly
+		- createSurfaceShader was not working properly
+		- fixed a bug in DagNode.namespaceList
+		
+	- Other Improvments		
+		- changed Dag.getParent to Dag.firstParent, and changed Dag.getParent2 to Dag.getParent			
+		- added sourceFirst keyword arg for listConnections.
+		- fixed setAttr force flag to work for instances of builtin types as well, such as Path
+		- added getSiblings to Dag class		
+		- added a levels keyword to DagNode.stripNamespace		
+		- added Transform.getBoundingBox()		
+		- added chained-lookup to setattr
+		- added Attribute.plugNode, same as Attribute.node
+		- added mayaInit for using pymel via an external interpreter
+		- added Camera.dolly, Camera.track, Camera.tumble, Camera.orbit
+		- enhanced addAttr to allow python types to be passed to set -at type
+
+	
 
 Getting Started
 ===============
@@ -79,7 +153,7 @@ Using Node Classes
 	Commands that list objects return pymel classes:
 	
 		>>> s = ls(type='transform')[0]
-		>>> print type(t)
+		>>> print type(s)
 		<class 'pymel.node.Transform'> #
 		
 	Most commands that create objects are wrapped as well (see below):
@@ -148,8 +222,8 @@ Node Commands and their Class Counterparts
 In addition to the many classes that make up the node hierarchy, there are also 'Command Classes', which are leaf-level
 node classes that have methods specific to their node type. As you are probably aware, Mel contains a number of commands
 which are used to create, edit, and query specific object types in maya.  Typically, the names of these commands correspond
-with the node type on which they operate and, when using pymel, the class which they return (see above). Some examples of these command-class
-pairs are L{aimConstraint} / L{AimConstraint}, L{camera} / L{Camera}, and L{directionalLight} / L{DirectionalLight}. 
+with the node type on which they operate. Similarly, when using pymel, the function usually matches the class which it returns (see above).
+Some examples of these command-class pairs are L{aimConstraint} / L{AimConstraint}, L{camera} / L{Camera}, and L{directionalLight} / L{DirectionalLight}. 
 However, there are some exceptions to this rule.  For example, L{spaceLocator} creates a L{Locator} and L{vortex} creates a
 L{VortexField}. 
  
@@ -164,7 +238,7 @@ created, its node type, and its class type
 	>>> print l, l.type(), type(l)	
 	directionalLightShape1 directionalLight <class 'pymel.node.DirectionalLight'>
 
-make the light red and get shadow samples, the old way, using the command
+make the light red and get shadow samples, the old way
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
 	>>> directionalLight( l, query=1, shadowSamples=1 ) 
 	1	
@@ -197,6 +271,8 @@ commands like L{rename}, the calling instance will point to an invalid object af
 to operate on this new instance, be sure to assign the result to a variable. For example:
 
 	>>> orig = polySphere()[0]
+	>>> print orig.exists()
+	1
 	>>> new = orig.rename('crazySphere')
 	>>> print orig.exists(), new.exists()
 	0 1
@@ -264,7 +340,7 @@ Also, see L{pymel.io} for more information on how the file command is implemente
 
 Even though pymel has a handful of modules, they are all imported directly into the main namespace. The sub-modules are provided
 for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user can edit the import commands
-in this file (__init__.py) to customize which modules are directly imported and which should remain in their own namespace 
+in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
 for organizational reasons.
  
 
