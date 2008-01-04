@@ -468,7 +468,7 @@ class Attribute(_BaseObj):
 	
 	Accessing Attributes
 	--------------------
-	Most of the time, you will access instances of the Attribute class via one of the DependNode classes. This example demonstrates
+	Most of the time, you will access instances of the Attribute class via L{DependNode} or one of its subclasses. This example demonstrates
 	that the Attribute class like the L{DependNode} classes are based on a unicode string, and so when printed will 
 	
 		>>> s = polySphere()[0]
@@ -480,8 +480,8 @@ class Attribute(_BaseObj):
 		bool
 	
 	Note that when the attribute is created there is currently no check for whether or not the attribute exists, just as there is 
-	no check when creating instances of DependNode classes. This is both for speed and also because it can be useful to get a string
-	representation of an attribute before it exists. 
+	no check when creating instances of DependNode classes. This is both for speed and also because it can be useful to get a virtual
+	representation of an object or attribute before it exists. 
 
 	Getting Attribute Values
 	------------------------
@@ -530,7 +530,6 @@ class Attribute(_BaseObj):
 	
 		>>> s.addAttr('__init__')
 		>>> s.attr('__init__').set( .5 )
-		>>> s.attr('translate').isLocked()  # this succeeds
 		>>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()	
 	"""
 	attrItemReg = re.compile( '.*\[(\d+)\]$')
@@ -599,14 +598,14 @@ class Attribute(_BaseObj):
 					
 	isConnected = isConnected
 	
-	'''			
-	def __irshift__(self, other):
-		"""operator for 'isConnected'
-			sphere.tx >>= box.tx
-		""" 
-		print self, other, cmds.isConnected(self, other)
-		return cmds.isConnected(self, other)
-	'''	
+			
+	#def __irshift__(self, other):
+	#	"""operator for 'isConnected'
+	#		sphere.tx >>= box.tx
+	#	""" 
+	#	print self, other, cmds.isConnected(self, other)
+	#	return cmds.isConnected(self, other)
+	
 
 	connect = connectAttr
 		
@@ -1444,6 +1443,12 @@ class Transform(DagNode):
 		args = (self,) + args
 		cmds.align(self, *args, **kwargs)
 	"""
+	# workaround for conflict with translate method on basestring
+	def _getTranslate(self):
+		return self.__getattr__("translate")
+	def _setTranslate(self, val):
+		return self.__setattr__("translate", val)		
+	translate = property( _getTranslate , _setTranslate )
 	
 	def hide(self):
 		self.visibility.set(0)
@@ -2035,7 +2040,8 @@ for treeElem in factories.nodeHierarchy:
 		try:
 			cls = factories.metaNode(classname, (base,), {})
 		except TypeError, msg:
-			print "%s(%s): %s" % (classname, superNodeType, msg )
+			#print "%s(%s): %s" % (classname, superNodeType, msg )
+			pass
 		else:	
 			cls.__module__ = __name__
 			setattr( _thisModule, classname, cls )

@@ -37,7 +37,7 @@ Non-Backward Compatible Changes
 		- Set S{->} L{ObjectSet}
 	- Changed and Renamed Functions:
 		- renamed Attribute.plug to L{Attribute.plugAttr}
-		- renamed DependNode.node to L{DependNode.nodeName}
+		- renamed DagNode.node to L{DagNode.nodeName}
 		- changed L{sets} command so that the operating set is always the first arg		
 		- changed L{DagNode.shortName} to behave like the mel script shortNameOf
 		- changed L{Attribute.exists} to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
@@ -65,28 +65,28 @@ Other Additions and Changes
 		- listRelatives: allDescendents and shapes flags did not work in combination
 		- pointLight, directionalLight, ambientLight, spotLight did not return the correct name of created light 
 		- instancer node was not returning name of created shape
-		- fixed getCellCmd flag of scriptTable to work with python functions, previously only worked with mel callbacks
+		- fixed scriptTable getCellCmd flag to work with python functions, previously only worked with mel callbacks
 
 	- Pymel Bug Fixes:
 		- _BaseObj.__unicode__ was causing errors in maya 2008
 		- Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
-		- DagNode.__eq__ was not comparing DAG nodes properly
+		- L{DagNode.__eq__} was not comparing DAG nodes properly
 		- createSurfaceShader was not working properly
 		- fixed a bug in DagNode.namespaceList
-		
+		- fixed setAttr force flag to work for subclasses of basestring, such as Path, _BaseObj, etc
+				
 	- Other Improvments		
-		- changed Dag.getParent to Dag.firstParent, and changed Dag.getParent2 to Dag.getParent			
-		- added sourceFirst keyword arg for listConnections.
-		- fixed setAttr force flag to work for instances of builtin types as well, such as Path
-		- added getSiblings to Dag class		
-		- added a levels keyword to DagNode.stripNamespace		
-		- added Transform.getBoundingBox()		
-		- added chained-lookup to setattr
-		- added Attribute.plugNode, same as Attribute.node
+		- changed DagNode.getParent to L{DagNode.firstParent}, and changed DagNode.getParent2 to L{DagNode.getParent}			
+		- added sourceFirst keyword arg for L{listConnections}, L{_BaseObj.connections}, L{_BaseObj.inputs}, L{_BaseObj.outputs}.
+		- added L{DagNode.getSiblings} 		
+		- added a levels keyword to L{DagNode.stripNamespace}		
+		- added L{Transform.getBoundingBox}	
+		- added chained-lookup to L{_BaseObj.__setattr__}
+		- added L{Attribute.plugNode}, same as Attribute.node
 		- added mayaInit for using pymel via an external interpreter
-		- added Camera.dolly, Camera.track, Camera.tumble, Camera.orbit
-		- enhanced addAttr to allow python types to be passed to set -at type
-
+		- added L{Camera.dolly}, L{Camera.track}, L{Camera.tumble}, L{Camera.orbit}
+		- enhanced L{addAttr}, L{Attribute.add}, and L{DependNode.addAttr} to allow python types to be passed to set -at type
+		- added L{Transform.translate} property to overcome conflict with basestring.translate method
 	
 
 Getting Started
@@ -346,10 +346,14 @@ for organizational reasons.
 
 Setup
 =====
+The simplest way to setup pymel is to place the pymel folder in your scripts directory 
 
-if you have not done so already, it is a good idea to setup a directory for your published python scripts so that
-they will be accessible from within maya.  you do this by setting the PYTHONPATH environment variable in Maya.env.  
-if you want to use your current maya scripts directory simply add this to your Maya.env::
+on win: My Documents/maya/8.5/scripts
+on mac: ~/Library/Preferences/Autodesk/maya/8.5/scripts
+on linux: ~/maya/maya/8.5/scripts
+	
+alternately, if you have not done so already, it is a good idea to setup a separate directory for your python scripts so that
+they will be accessible from within maya.  you can do this by setting the PYTHONPATH environment variable in Maya.env::  
 
 	PYTHONPATH = $MAYA_SCRIPT_PATH
 
@@ -463,6 +467,7 @@ fixed bug in createSurfaceShader
 changed lsUI to return wrapped UI classes
 added a class for every node type in the node hierarchy.
 greatly improved documentation
+added translate property to Transform class to overcome conflict with basestring.translate method
 
  TODO: 
 	Factory:
