@@ -4,13 +4,13 @@
 -->
 </style>
 
-<p style="margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px">Pymel makes python  within Maya  the way it should be-- flexible, concise, and object-oriented. Pymel builds on the maya.cmds module by organizing many of its commands into a class hierarchy, and by customizing them to operate in a more succinct and intuitive way.<br />
+<p style="margin-top: 0px; margin-right: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px">Pymel makes python  within Maya  the way it should be-- readable, concise, and object-oriented. Pymel builds on the maya.cmds module by organizing many of its commands into a class hierarchy, and by customizing them to operate in a more succinct and intuitive way.<br />
 </p>
 <p style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px">Compatible with both maya8.5 and maya2008<br />
 </p>
 <h2>Project Goals</h2>
 <li>Create an open-source python module for maya that is intuitive to mel users and python users alike</li>
-<li>Fix bugs and design limitations in maya.cmds</li>
+<li>Fix bugs and design limitations in maya.cmds and maya.mel</li>
 <li>Keep code concise and readable</li>
 <li>Add organization through class hierarchy and sub-modules<br />
 </li>
@@ -21,41 +21,51 @@
 <p style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px; padding-top: 0px; padding-right: 0px; padding-bottom: 0px; padding-left: 0px"><br />
 </p>
 <h2>Powerful new classes</h2>
-<p><strong>Node classes</strong>&nbsp;for  every node type</p>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">camTrans, cam = camera()</font><font face="courier new,courier,monospace"><br />
+<ul>
+<li><strong>Node classes</strong>&nbsp;for  every node type<br />
+  <br />
+<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">camTrans, cam = camera()</font><font face="courier new,courier,monospace"><br />
   cam.setFocalLength(100) <br />
   cam.getFov()<br />
   # Result: 20.4079476169<br />
   cam.dolly( distance = -3 )<br />
   cam.track(left=10)<br />
   cam.addBookmark('new')</font><font face="courier new,courier,monospace"><br />
-</font></div>
-<p>An&nbsp;<strong>Attribute class</strong>&nbsp;organizes all the attribute commands in one place</p>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">if s.visibility.isKeyable() and not s.visibility.isLocked():<br />
+  isinstance( cam, Shape )<br />
+  # True<br />
+</font></div></li><br />
+<li>An&nbsp;<strong>Attribute class</strong>&nbsp;organizes all the attribute commands in one place<br /><br />
+<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">if s.visibility.isKeyable() and not s.visibility.isLocked():<br />
   &nbsp;&nbsp;&nbsp; s.visibility = True<br>
   &nbsp;&nbsp;&nbsp; s.visibility.lock()<br>
-&nbsp;&nbsp;&nbsp; print s.visibility.type()</font></div>
+&nbsp;&nbsp;&nbsp; print s.visibility.type()</font></div></li><br />
 
-  <p>Manipulate&nbsp;<strong>file paths</strong>&nbsp;with ease </p>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">#backup all mb files in the current scene's directory<br>
+  <li>Manipulate&nbsp;<strong>file paths</strong>&nbsp;with ease<br /> 
+    <br />
+  <div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">#backup all mb files in the current scene's directory<br>
   basedir = sceneName().parent<br>
   backupDir = basedir / &quot;backup&quot; #slash op joins paths<br>
   backupDir.mkdir()<br>
   for file in basedir.files( '*.mb' ):<br>
   &nbsp;&nbsp;&nbsp; print &quot;backing up: &quot;, file.name<br>
   &nbsp;&nbsp;&nbsp; file.copy( backupDir / (file.namebase + &quot;.old&quot;) )<br>
-</font></div>
-<p>Work with shape components, perform&nbsp;<strong>vector math</strong>, convert between spaces, and easily set object attributes with the results</p>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">#select all faces that point up in world space<br />
+</font></div></li><br />
+<li>Work with shape components, perform&nbsp;<strong>vector math</strong>, convert between spaces, and easily set object attributes with the results<br /> 
+  <br />
+<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">#select all faces that point up in world space<br />
   s = polySphere()[0]<br />
   for face in s.faces:<br />
   &nbsp;&nbsp;&nbsp; if face.normal.objectToWorld(s).y &gt; 0.0:<br />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; select( face, add=1)</font></div>
-<p>Manage&nbsp;<strong>optionVars as a python dictionary</strong></p>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">if 'numbers' not in optionVar:</font><font face="courier new,courier,monospace"><br />
-  &nbsp;&nbsp;&nbsp; optionVar['numbers'] = [1,24,47]<br />
-  optionVar['numbers'].append(9)<br />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; select( face, add=1)</font></div><br /></li>
+  
+<li>Manage&nbsp;<strong>optionVars as a python dictionary</strong> <br />
+  <br />
+  <div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">if 'numbers' not in optionVar:</font><font face="courier new,courier,monospace"><br />
+    &nbsp;&nbsp;&nbsp; optionVar['numbers'] = [1,24,47]<br />
+    optionVar['numbers'].append(9)<br />
   numArray = optionVar.pop('numbers')</font></div>
+</li>
+</ul>
 <h2>Do More with Less Code</h2>
 <p>If you've tried working with the default maya.cmds and maya.mel modules, you know that they add a lot of awkward syntax that can slow you down. Pymel streamlines this syntax in many ways.</p>
 <ul>
@@ -72,21 +82,22 @@
   <li><strong> Customized operators</strong>&nbsp;for succinct scripting<br />
     <br />
     <div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">for source, dest in s.connections( connections=1, sourceFirst=1):<br />
-      &nbsp;&nbsp;&nbsp; source &lt;&gt; dest<br />
+      &nbsp;&nbsp;&nbsp; source &lt;&gt; dest # disconnection operator<br />
     </font></div>
     <br />
   </li>
 </ul>
 <ul><li><strong>Call Mel procedures as if they were python commands</strong>:&nbsp;no more annoying string formatting<br />
   <br />
-    <div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 4px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">values = ['one', 'two', 'three', 'four'<br />
+    <div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 4px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="courier new,courier,monospace">values = ['one', 'two', 'three', 'four']<br />
+      <br />
       # default<br />
       maya.mel.eval( 'stringArrayRemoveDuplicates( {&quot;'+'&quot;,&quot;'.join(values)+'&quot;})')<br />
       <br />
       # pymel<br />
       mel.stringArrayRemoveDuplicates( values )<br />
     </font></div>
-      <font face="courier new,courier,monospace"><br />
+<font face="courier new,courier,monospace"><br />
           </font></li>
 </ul>
 <ul><li><strong>Enhanced Commands </strong>with&nbsp;intelligent defaults and new flags<br />
@@ -101,14 +112,14 @@
 <h2><br /> 
 Code Comparison</h2>
 <p>When you put it all together, it's easy to see that using pymel results in code that is cleaner and more readable than both default python and mel.</p>
-<table width="530" border="0" cellpadding="5" cellspacing="5" bgcolor="#5E7D92">
+<table width="570" border="0" cellpadding="5" cellspacing="5" bgcolor="#5E7D92">
   <tr>
     <th height="28" scope="col"><div align="left" class="style1">
       <div align="center">MEL</div>
     </div></th>
   </tr>
 </table>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><br />
+<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><br />
 <font face="courier new,courier,monospace">string $objs[] = `ls -type transform`;<br />
 for ($x in $objs) {<br />
 &nbsp;&nbsp;&nbsp; print (longNameOf($x)); print &quot;n&quot;;&nbsp;&nbsp;&nbsp;&nbsp;<br />
@@ -147,14 +158,14 @@ for ($x in $objs) {<br />
 }<br />
 </font></div><br />
 <br />
-<table width="530" border="0" cellpadding="5" cellspacing="5" bgcolor="#5E7D92">
+<table width="570" border="0" cellpadding="5" cellspacing="5" bgcolor="#5E7D92">
   <tr>
     <th scope="col"><div align="left" class="style1">
       <div align="center">Default Python</div>
     </div></th>
   </tr>
 </table>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><br />
+<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><br />
 <font face="courier new,courier,monospace">import maya.cmds as cmds<br />
 import maya.mel as mm<br />
 objs = cmds.ls( type= 'transform')&nbsp;<br />
@@ -195,14 +206,14 @@ if objs is not None:&nbsp;&nbsp;&nbsp;&nbsp; # returns None when it finds no mat
 &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; mm.eval('myMelScript(&quot;%s&quot;,{%s,%s,%s})' % (cmds.nodeType(x), trans[0], trans[1], trans[2]) )</font><font face="courier new,courier,monospace"><br />
 </font></div><br />
 <br />
-<table width="530" border="0" cellpadding="5" cellspacing="5" bgcolor="#5E7D92">
+<table width="570" border="0" cellpadding="5" cellspacing="5" bgcolor="#5E7D92">
   <tr>
     <th scope="col"><div align="left" class="style1">
       <div align="center">Pymel</div>
     </div></th>
   </tr>
 </table>
-<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 500px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 10px; padding-right: 10px; padding-bottom: 20px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="verdana,arial,helvetica,sans-serif"><br />
+<div class="codebox" style="background-image: initial; background-repeat: initial; background-attachment: initial; -webkit-background-clip: initial; -webkit-background-origin: initial; background-color: #e4efff; border-top-style: dashed; border-right-style: dashed; border-bottom-style: dashed; border-left-style: dashed; color: #385a72; margin-left: 5px; font-size: 12px; width: 540px; height: auto; overflow-x: auto; overflow-y: visible; padding-top: 5px; padding-right: 10px; padding-bottom: 5px; padding-left: 10px; border-width: 1px; border-color: #aabbcc"><font face="verdana,arial,helvetica,sans-serif"><br />
 </font><font face="courier new,courier,monospace">from pymel import *&nbsp;&nbsp; # safe to import into main namespace<br />
 for x in ls( type='transform'):<br />
 &nbsp;&nbsp;&nbsp; print x.longName()&nbsp;&nbsp; # object oriented design<br />

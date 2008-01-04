@@ -1,5 +1,5 @@
 import path, util, sys, os, inspect, pickle, re, types
-from examples.trees import *
+from trees import *
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 try:
