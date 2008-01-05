@@ -11,7 +11,7 @@ g = group( s, c, n='newGroup' )
 
 print "The children of %s are %s" % (g, g.getChildren())
 #print g.getChildren()[0].getShape()
-print "difference =", c._translate.get() - s._translate.get()  # basic vector operation
+print "difference =", c.translate.get() - s.translate.get()  # basic vector operation
 
 s2 = s.duplicate()[0]
 
