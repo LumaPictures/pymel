@@ -584,9 +584,9 @@ def toZip( directory, zipFile ):
 	directory = path(directory)
 	
 	for subdir in directory.dirs('[a-z]*') + [directory]: 
+		print "adding ", subdir
 		for fname in subdir.files('[a-z]*'):
-			archiveName = fname.replace( directory, '' )
-			print "adding ", archiveName
+			archiveName = fname.replace( directory, '' )			
 			z.write( fname, archiveName, zipfile.ZIP_DEFLATED )
 	z.close()
 	return zipFile
