@@ -2016,38 +2016,39 @@ class ObjectSet(Entity):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-#for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
-#print factories.nodeHierarchy
-for treeElem in factories.nodeHierarchy:
-	#print "treeElem: ", treeElem
-	nodeType = treeElem.key
-	#print "nodeType: ", nodeType
-	if nodeType == 'dependNode': continue
-	classname = util.capitalize(nodeType)
-	if not hasattr( _thisModule, classname ):
-		#superNodeType = factories.nodeHierarchy.parent( nodeType )
-		superNodeType = treeElem.parent.key
-		#print "superNodeType: ", superNodeType, type(superNodeType)
-		if superNodeType is None:
-			print "could not find parent node", nodeType
-			continue
-		try:
-			base = getattr( _thisModule, util.capitalize(superNodeType) )
-		except AttributeError:
-			print "could not find parent class", nodeType
-			continue
+def _createClasses():
+	#for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
+	#print factories.nodeHierarchy
+	for treeElem in factories.nodeHierarchy:
+		#print "treeElem: ", treeElem
+		nodeType = treeElem.key
+		#print "nodeType: ", nodeType
+		if nodeType == 'dependNode': continue
+		classname = util.capitalize(nodeType)
+		if not hasattr( _thisModule, classname ):
+			#superNodeType = factories.nodeHierarchy.parent( nodeType )
+			superNodeType = treeElem.parent.key
+			#print "superNodeType: ", superNodeType, type(superNodeType)
+			if superNodeType is None:
+				print "could not find parent node", nodeType
+				continue
+			try:
+				base = getattr( _thisModule, util.capitalize(superNodeType) )
+			except AttributeError:
+				print "could not find parent class", nodeType
+				continue
 		
-		try:
-			cls = factories.metaNode(classname, (base,), {})
-		except TypeError, msg:
-			#print "%s(%s): %s" % (classname, superNodeType, msg )
-			pass
-		else:	
-			cls.__module__ = __name__
-			setattr( _thisModule, classname, cls )
-	#else:
-	#	print "already created", className
-
+			try:
+				cls = factories.metaNode(classname, (base,), {})
+			except TypeError, msg:
+				#print "%s(%s): %s" % (classname, superNodeType, msg )
+				pass
+			else:	
+				cls.__module__ = __name__
+				setattr( _thisModule, classname, cls )
+		#else:
+		#	print "already created", classname
+_createClasses()
 
 #-----------------------------------------------
 #  Commands for Creating pymel Objects
@@ -2069,11 +2070,14 @@ def PyNode(strObj, nodeType=None):
 		raise 'PyNode: expected a string or unicode object, got %s' % type(strObj)
 	return DependNode(strObj)
 
-for funcName, data in factories.cmdlist.items():
-	if data['type'] == 'node':
-		func = factories.functionFactory( funcName, PyNode )
-		func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
-		if func:
-			func.__module__ = __name__
-			setattr( _thisModule, funcName, func )
+def _createFunctions():
+	for funcName, data in factories.cmdlist.items():
+		if data['type'] == 'node':
+			func = factories.functionFactory( funcName, PyNode )
+			func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
+			if func:
+				func.__module__ = __name__
+				setattr( _thisModule, funcName, func )
+_createFunctions()
 
+#factories.createFunctions( _thisModule, PyNode )

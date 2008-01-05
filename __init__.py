@@ -336,9 +336,9 @@ All the functions in maya.cmds are in the pymel namespace, except the conflictin
 help, and quit). The conflicting commands can be found in the pymel.cmds namespace, along with all of the unaltered
 maya commands.  
 
-Also, see L{pymel.io} for more information on how the file command is implemented in pymel.
+See L{pymel.io} for more information on how the file command is implemented in pymel.
 
-Even though pymel has a handful of modules, they are all imported directly into the main namespace. The sub-modules are provided
+Even though pymel has a handful of modules, all but L{pymel.runtime} are imported directly into the main namespace. The sub-modules are provided
 for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user can edit the import commands
 in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
 for organizational reasons.
@@ -510,5 +510,5 @@ from node import *
 from ctx import *
 from io import *
 from ui import *
-
+import runtime
 	

@@ -652,8 +652,7 @@ Modifications:
 	- Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
 		- attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
 		- currently does not support compound attributes
-		- currently supported python-to-maya mappings:
-		
+		- currently supported python-to-maya mappings:		
 			- float 	S{->} double
 			- int		S{->} long
 			- str		S{->} string
@@ -1295,12 +1294,13 @@ class Reference(Path):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-for funcName, data in factories.cmdlist.items():
-	if data['type'] == 'core':
-		func = factories.functionFactory( funcName, None )
-		if func:
-			func.__module__ = __name__
-			setattr( _thisModule, funcName, func )
+def _createFunctions():
+	for funcName, data in factories.cmdlist.items():
+		if data['type'] == 'core': 
+			func = factories.functionFactory( funcName, None )
+			if func:
+				func.__module__ = __name__
+				setattr( _thisModule, funcName, func )
+_createFunctions()
 
-
-
+#factories.createFunctions( _thisModule, None )

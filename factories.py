@@ -4,6 +4,7 @@ from trees import *
 from HTMLParser import HTMLParser
 try:
 	import maya.cmds as cmds
+	import maya.mel as mm
 except ImportError: pass
 
 #---------------------------------------------------------------
@@ -43,7 +44,7 @@ class CommandDocParser(HTMLParser):
 			data = data.replace( 'Flag can appear in Edit mode of command', '' )
 			data = data.replace( 'Flag can appear in Query mode of command', '' )
 			data = data.replace( '\r\n', ' ' ).lstrip()
-			
+			data = data.strip('{}\t')
 			self.flags[self.currFlag]['docstring'] += data
 		self.iData += 1
 		
@@ -102,7 +103,10 @@ class CommandDocParser(HTMLParser):
 					else:
 						self.startFlag(data)
 		elif self.active == 'command':
-			self.description += data.replace( '\r\n', ' ' ).lstrip()
+			data = data.replace( '\r\n', ' ' ).lstrip()
+			data = data.strip('{}')
+			if '{' not in data and '}' not in data:				
+				self.description += data
 			#print data
 			#self.active = False
 
@@ -292,9 +296,15 @@ def buildMayaCmdsArgList() :
 		nodeHierarchy = _getNodeHierarchy(ver)
 		nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		uiClassList = _getUICommands()
-		cmdlist = dict( inspect.getmembers(cmds, callable) )
-		for funcName in cmdlist :	
+		tmpCmdlist = dict( inspect.getmembers(cmds, callable) )
+		cmdlist = {}
+		for funcName in tmpCmdlist :	
 
+			# in version 2008, maya.cmds contains capitalized versions of many commands, which will conflict with our classes 
+			#if funcName[0].isupper() and util.uncapitalize(funcName) in tmpCmdlist:
+			#	#print "skipping", funcName
+			#	continue
+			
 			description, args = getCmdInfo(funcName, ver)
 			
 			# determine to which module this function belongs
@@ -306,6 +316,8 @@ def buildMayaCmdsArgList() :
 				module = 'ui'
 			elif funcName in nodeHierarchyTree or funcName in nodeTypeToCommandMap.values():
 				module = 'node'
+			elif mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
+				module = 'runtime'
 			else:
 				module = 'core'
 				
@@ -357,16 +369,17 @@ def _addDocs(inObj, newObj, cmdInfo ):
 	try:
 		docstring = cmdInfo['description'] + '\n\n'
 		flagDocs = cmdInfo['flags']
-		docstring += 'Flags:\n'
-		for flag in sorted(flagDocs.keys()):
-			docs = flagDocs[flag]
+		if flagDocs:
+			docstring += 'Flags:\n'
+			for flag in sorted(flagDocs.keys()):
+				docs = flagDocs[flag]
 
-			label = '    - %s (%s)' % (flag, docs['shortname'])
-			docstring += label + '\n'
-			#docstring += '~'*len(label) + '\n'
-			if docs['modes']:
-				docstring += '        - %s\n' % (', '.join(docs['modes']))
-			docstring += '        - %s\n' %  docs['docstring']
+				label = '    - %s (%s)' % (flag, docs['shortname'])
+				docstring += label + '\n'
+				#docstring += '~'*len(label) + '\n'
+				if docs['modes']:
+					docstring += '        - %s\n' % (', '.join(docs['modes']))
+				docstring += '        - %s\n' %  docs['docstring']
 	
 		if inObj.__doc__:
 			docstring = inObj.__doc__ + '\n' + docstring
@@ -498,8 +511,17 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
 		f.__doc__ = docstring
 	return f
 
-
-		
+def createFunctions( module, returnFunc ):
+	print module.__name__
+	for funcName, data in cmdlist.items():
+		if data['type'] == module.__name__:
+			func = functionFactory( funcName, returnFunc )
+			if module.__name__ == 'node':
+				func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
+			if func:
+				func.__module__ = module.__name__
+				setattr( module, funcName, func )
+	
 class metaNode(type) :
 	"""
 	A metaclass for creating classes based on node type.  If no bases are passed, the superclass is determined

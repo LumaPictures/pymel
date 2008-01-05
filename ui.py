@@ -171,21 +171,23 @@ class TextScrollList(UI):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-for className in factories.uiClassList:
-	if not hasattr( _thisModule, className ):
-		cls = factories.metaNode(className, (UI,), {})
-		cls.__module__ = __name__
-		setattr( _thisModule, className, cls )
-	else:
-		cls = getattr( _thisModule, className )
+def _createClassesAndFunctions():
+	for classname in factories.uiClassList:
+		if not hasattr( _thisModule, classname ):
+			cls = factories.metaNode(classname, (UI,), {})
+			cls.__module__ = __name__
+			setattr( _thisModule, classname, cls )
+		else:
+			cls = getattr( _thisModule, classname )
 	
-	funcName = util.uncapitalize( className )
-	func = factories.functionFactory( funcName, cls )
-	if func:
-		func.__module__ = __name__
-		setattr( _thisModule, funcName, func )
-	else:
-		print "ui command not created", funcName
+		funcName = util.uncapitalize( classname )
+		func = factories.functionFactory( funcName, cls )
+		if func:
+			func.__module__ = __name__
+			setattr( _thisModule, funcName, func )
+		else:
+			print "ui command not created", funcName
+_createClassesAndFunctions()
 
 def PyUI(strObj, type=None):
 	try:
