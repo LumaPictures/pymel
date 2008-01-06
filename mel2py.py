@@ -251,9 +251,23 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 			melfile = path.path( pymel.mel.whatIs( melfile ).split()[-1] )
 		except:
 			pass
-			
 	data = melfile.bytes()
+	print "converting mel script", melfile
+	converted = mel2pyStr( data, melfile.namebase, verbosity )
+	header = "%s from mel file:\n# %s\n\nfrom pymel import *\n" % (tag, melfile) 
+	converted = header + converted
+	
+	if outputDir is None:
+		outputDir = melfile.parent
 
+	pyfile = path.path(outputDir + os.sep + melfile.namebase + '.py')	
+	print "writing converted python script: %s" % pyfile
+	global global_procs
+	#print global_procs
+	pyfile.write_bytes(converted)
+	
+def mel2pyStr( data, currentModule=None, verbosity=0 ):		
+	
 	if verbosity == 2:		
 		lex.input(data)
 		while 1:
@@ -263,7 +277,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 
 	def parse():
 		#try:
-		parser.curr_module = melfile.namebase
+		parser.curr_module = currentModule
 		parser.local_procs = []
 		parser.used_modules = set([])
 		parser.global_vars = set([])
@@ -284,30 +298,21 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 
-		
-	print "converting mel script", melfile
 	
-	(x, used_modules) = parse()
+	(converted, used_modules) = parse()
 	
-	header = "%s from mel file:\n# %s\n\nfrom pymel import *\n" % (tag, melfile)
+	header = ''
 	if len( used_modules):
 		header += "import %s" % ','.join(list(used_modules))
+		header += '\n'
 		
-
-	header += '\n\n' 
-	x = header + x
+	converted = header + converted
 	if verbosity:
 		print '\n\n'
-		print x
+		print converted
 
-	if outputDir is None:
-		outputDir = melfile.parent
-
-	pyfile = path.path(outputDir + os.sep + melfile.namebase + '.py')	
-	print "writing converted python script: %s" % pyfile
-	global global_procs
-	#print global_procs
-	pyfile.write_bytes(x)
+	return converted
+	
 #	else:
 #		print melfile, "parser returned no results"
 	#raise ValueError, '%s: %s' % (melfile, "parser returned no results")
