@@ -1,7 +1,6 @@
 import sys, inspect, warnings, timeit, time
 # based on pymel
 from pymel import *
-from trees import *
 import maya.OpenMayaAnim as OpenMayaAnim
 try: import maya.OpenMayaCloth as OpenMayaCloth
 except: pass
