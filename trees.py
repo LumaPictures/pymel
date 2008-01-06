@@ -2179,11 +2179,6 @@ def treeFromChildLink (isExactChildFn, *args):
     else :
         return tuple(lst)
 
-lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'a', 'b', 'bb', 'ab', 'bab', 'bba']
-def isChild(s1, s2) :
-    return s1.startswith(s2) and len(s1)==len(s2)+1
-a = treeFromChildLink (isChild, *lst)
-print a[0].formatted()
 
 #    >>> for tree in forest :
 #    >>>     print tree
