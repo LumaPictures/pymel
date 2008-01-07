@@ -1396,6 +1396,11 @@ def getAllCommandFlags():
 def scriptModule( procedure ):
 	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
 	
+	# if curr_module is set to None that means we are doing a string conversion, and not a file conversion
+	# we don't need to find out the current or future python module.  just use pymel.mel
+	if parser.curr_module is None:
+		return
+	
 	global currentFiles
 	global proc_module
 	
