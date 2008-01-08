@@ -19,57 +19,91 @@ from maya.cmds import encodeString
 kPluginCmdName = "pymelScrollFieldReporter"
 
 '''
--saveSelection(-sv)	string	
--saveSelectionToShelf(-svs)		
--selectAll(-sla)		
--select(-sl)	int int	
+# pass to scrollField
 -clear(-clr)		
--text(-t)	string	
--textLength(-tl)		
+-text(-t)	string
+
+# can possibly be implemented
+-saveSelection(-sv)	string	
+-saveSelectionToShelf(-svs)	
+-textLength(-tl)	
+
+# difficult or impossible to implement
+-selectAll(-sla)		
+-select(-sl)	int int		
 -cutSelection(-ct)		
 -copySelection(-cp)		
 -pasteSelection(-pst)		
 -hasFocus(-hf)	
 -receiveFocusCommand(-rfc)	string
+
 '''
 
+kClear = ('clear', 'clr')
+kText = ('text', 't')
+kCmdReporter = ( 'cmdReporter', 'cr')
+
+kMel = 'mel'
+kPython = 'python'
+
 filterFlags = {
-	# global
-	'echoAllCommands': ( 'eac', OpenMaya.MSyntax.kBoolean),	
-	'lineNumbers': ( 'ln', OpenMaya.MSyntax.kBoolean),
- 	'stackTrace': ( 'st', OpenMaya.MSyntax.kBoolean),
 	# filters
-	'convertToPython' : ( 'ctp', OpenMaya.MSyntax.kBoolean),
-	'filterSourceType' : ( 'fst', OpenMaya.MSyntax.kString),
-	'suppressPrintouts': ( 'spo', OpenMaya.MSyntax.kBoolean),
-	'suppressInfo': ( 'si', OpenMaya.MSyntax.kBoolean),
-	'suppressWarnings': ( 'sw', OpenMaya.MSyntax.kBoolean),	
-	'suppressErrors': ( 'se', OpenMaya.MSyntax.kBoolean),
-	'suppressResults': ( 'sr', OpenMaya.MSyntax.kBoolean),	
-	'suppressStackTrace': ( 'sst', OpenMaya.MSyntax.kBoolean)
+	'convertToPython' 	: ( 'ctp', OpenMaya.MSyntax.kBoolean, False),
+	'filterSourceType' 	: ( 'fst', OpenMaya.MSyntax.kString, ''),
+	'suppressPrintouts'	: ( 'spo', OpenMaya.MSyntax.kBoolean, False),
+	'suppressInfo'		: ( 'si', OpenMaya.MSyntax.kBoolean, False),
+	'suppressWarnings'	: ( 'sw', OpenMaya.MSyntax.kBoolean, False),	
+	'suppressErrors'	: ( 'se', OpenMaya.MSyntax.kBoolean, False),
+	'suppressResults'	: ( 'sr', OpenMaya.MSyntax.kBoolean, False),	
+	'suppressStackTrace': ( 'sst', OpenMaya.MSyntax.kBoolean, False)
+}
+
+globalFilterFlags = {
+	# global
+	'echoAllCommands'	: ( 'eac', OpenMaya.MSyntax.kBoolean, False),	
+	'lineNumbers'		: ( 'ln', OpenMaya.MSyntax.kBoolean, False),
+ 	'stackTrace'		: ( 'st', OpenMaya.MSyntax.kBoolean, False)
 }
 
 filterFlagNames = ['', 'suppressPrintouts','suppressInfo', 'suppressWarnings', 'suppressErrors', 'suppressResults', 'suppressStackTrace' ]
 
 messageId = 0
 messageIdSet = False
-reporters = {}
-output = ''
 sourceType = None # 'mel' or 'python'
 
-kMel = 'mel'
-kPython = 'python'
+
 
 callbackState = True
 
 class Reporter(object):
+	cmdReporter = None
+	
+	globalFilters = {
+			'echoAllCommands'	: False,	
+			'lineNumbers'		: False,
+		 	'stackTrace'		: False,
+	}
 	def __init__(self, *args, **kwargs):
 		if not args:
 			self.name = kPluginCmdName
 		else:
 			self.name = args[0]
 		
-		self.flags = kwargs
+		# set defaults
+		self.filters = {
+			# filters
+			'convertToPython' 	: False,
+			'filterSourceType' 	: '',
+			'suppressPrintouts'	: False,
+			'suppressInfo'		: False,
+			'suppressWarnings'	: False,	
+			'suppressErrors'	: False,
+			'suppressResults'	: False,	
+			'suppressStackTrace':  False
+		}
+		
+		self.filters.update( kwargs )
+		
 		self.history = []	
 		cmd = 'scrollField -wordWrap false -editable false "%s"' % self.name
 		self.name = self.executeCommandResult( cmd )
@@ -88,14 +122,14 @@ class Reporter(object):
 		return result
 				
 	def lineFilter( self, messageType, sourceType, nativeMsg, convertedMsg ):
-		filterSourceType = self.flags.get('filterSourceType', '' )
+		filterSourceType = self.filters['filterSourceType']
 
 		#outputFile = open( '/var/tmp/commandOutput', 'a')
-		#outputFile.write( '%s %s %s %s\n' % (nativeMsg, messageType, filterFlagNames[messageType], self.flags)  )
+		#outputFile.write( '%s %s %s %s\n' % (nativeMsg, messageType, filterFlagNames[messageType], self.filters)  )
 		#outputFile.close()
 				
-		if (not filterSourceType or filterSourceType == sourceType) and not self.flags.get( filterFlagNames[messageType], False ): 
-			if self.flags.get( 'convertToPython', False) and convertedMsg is not None:
+		if (not filterSourceType or filterSourceType == sourceType) and not self.filters.get( filterFlagNames[messageType], False ): 
+			if self.filters['convertToPython']and convertedMsg is not None:
 				return convertedMsg
 			return nativeMsg
 		
@@ -123,10 +157,69 @@ class Reporter(object):
 			self.executeCommand( cmd )
 		
 	def setFilters( self, **filters ):			
-		self.flags.update( filters )	
+		self.filters.update( filters )	
 		self.refreshHistory()
-			
 
+	def setGlobalFilters( self, **filters ):
+		global cmdReporter
+		
+		flags = ''
+		for key, value in filters.items():
+			if value: value = 1
+			else: value = 0
+			flags += '-%s %s ' % (key, value)
+		
+		cmd = 'cmdScrollFieldReporter -e %s "%s";' % ( flags, Reporter.cmdReporter )
+		
+		outputFile = open( '/var/tmp/commandOutput', 'a')
+		outputFile.write( cmd + '\n' )
+		outputFile.close()
+		
+		self.executeCommand( cmd )
+
+		Reporter.globalFilters.update( filters )
+		
+	def getGlobalFilter(self, filter ):
+		return Reporter.globalFilters[filter]
+		
+		
+		cmd = 'cmdScrollFieldReporter -q -%s "%s";' % ( filter, Reporter.cmdReporter )
+
+		outputFile = open( '/var/tmp/commandOutput', 'a')
+		outputFile.write( cmd + '\n' )
+		outputFile.close()
+
+		#result = self.executeCommandResult( cmd )
+		result = OpenMaya.MGlobal.executeCommandStringResult( cmd, False, False )
+		
+		outputFile = open( '/var/tmp/commandOutput', 'a')
+		outputFile.write( "results: " + res + '\n' )
+		outputFile.close()
+		
+		return result
+	
+	def addCmdReporter( self, cmdReporter ):
+		Reporter.cmdReporter = cmdReporter
+		
+	def clear(self):
+		cmd = 'scrollField -e -clear "%s";' % ( self.name )
+		self.executeCommand( cmd )
+
+	def text(self, text):
+		cmd = 'scrollField -e -text "%s" "%s";' % ( text, self.name )
+		self.executeCommand( cmd )
+		
+class ReporterDict(dict):
+	def __getitem__(self, lookupName):
+		lookupBuf = lookupName.split('|')
+		for key, val in self.items():
+			keyBuf = key.split('|')
+			if keyBuf[-1*len(lookupBuf):] == lookupBuf:
+				return val
+		raise KeyError #, str(lookupName)
+		
+reporters = ReporterDict({})
+#reporters = {}
 
 def removeCallback(id):
 	try:
@@ -136,9 +229,9 @@ def removeCallback(id):
 		raise
 
 def cmdCallback( nativeMsg, messageType, data ):
-	outputFile = open( '/var/tmp/commandOutput', 'a')
-	outputFile.write( '%s %s\n' % (nativeMsg, messageType)  )
-	outputFile.close()
+	#outputFile = open( '/var/tmp/commandOutput', 'a')
+	#outputFile.write( '%s %s\n' % (nativeMsg, messageType)  )
+	#outputFile.close()
 	
 	global callbackState
 	if not callbackState:
@@ -223,23 +316,63 @@ class scriptedCommand(OpenMayaMPx.MPxCommand):
 		global messageId
 	
 		argData = OpenMaya.MArgDatabase(self.syntax(), args)
-		name = argData.commandArgumentString(0)
-		flags = {}
-		for key,data in filterFlags.items():
-			if argData.isFlagSet( key ):
-				if data[1] == OpenMaya.MSyntax.kBoolean:
-					flags[key] = argData.flagArgumentBool( key, 0 )
-				elif data[1] == OpenMaya.MSyntax.kString:
-					flags[key] = argData.flagArgumentString( key, 0 )
-		
+		try:
+			name = argData.commandArgumentString(0)
+		except:
+			name = kPluginCmdName
+			
+
+		# QUERY
 		if argData.isQuery():
-			self.setResult( reporters[name].flags.get( flags.keys()[0], False ) )
-		elif argData.isEdit():
-			reporters[name].setFilters( **flags )			
+			reporter = reporters[name]	
+			for key,data in filterFlags.items():
+				if argData.isFlagSet( key ):		
+					self.setResult( reporter.filters[ key ] )
+					return
+
+			for key,data in globalFilterFlags.items():
+				if argData.isFlagSet( key ):
+					self.setResult( reporter.getGlobalFilter( key ) )
+					return
+			
+			if argData.isFlagSet( kCmdReporter[0] ):
+				self.setResult( reporter.cmdReporter )
+					
 		else:
-			reporter = Reporter( name, **flags )
-			#reporters[reporter.name] = reporter
-			reporters[name] = reporter
+			filters = {}
+			for key,data in filterFlags.items():
+				if argData.isFlagSet( key ):
+					if data[1] == OpenMaya.MSyntax.kBoolean:
+						filters[key] = argData.flagArgumentBool( key, 0 )
+					elif data[1] == OpenMaya.MSyntax.kString:
+						filters[key] = argData.flagArgumentString( key, 0 )
+
+			globalFilters = {}
+			for key,data in globalFilterFlags.items():
+				if argData.isFlagSet( key ):
+					if data[1] == OpenMaya.MSyntax.kBoolean:
+						globalFilters[key] = argData.flagArgumentBool( key, 0 )
+								
+			# EDIT
+			if argData.isEdit():
+				reporter = reporters[name]
+				if filters:
+					reporter.setFilters( **filters )
+				if globalFilters:
+					reporter.setGlobalFilters( **globalFilters )
+				
+				if argData.isFlagSet( kClear[0] ):
+					reporter.clear()
+				elif argData.isFlagSet( kText[0] ):
+					reporter.text( argData.flagArgumentString( kText[0], 0 ) )
+				elif argData.isFlagSet( kCmdReporter[0] ):
+					reporter.addCmdReporter( argData.flagArgumentString( kCmdReporter[0], 0 ) )
+			# CREATE
+			else:
+				reporter = Reporter( name, **filters )
+				reporters[reporter.name] = reporter
+				#reporters[name] = reporter
+			self.setResult( reporter.name )
 			
 		if ( messageIdSet ):
 			pass
@@ -265,6 +398,13 @@ def syntaxCreator():
 	for flag, data in filterFlags.items():
 		syntax.addFlag( data[0], flag, data[1] )
 
+	for flag, data in globalFilterFlags.items():
+		syntax.addFlag( data[0], flag, data[1] )
+
+	syntax.addFlag( kClear[1], kClear[0] )
+	syntax.addFlag( kText[1], kText[0], OpenMaya.MSyntax.kString )
+	syntax.addFlag( kCmdReporter[1], kCmdReporter[0], OpenMaya.MSyntax.kString )
+	
 	return syntax
 
 # Initialize the script plug-in
