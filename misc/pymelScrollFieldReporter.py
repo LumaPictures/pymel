@@ -69,7 +69,7 @@ filterFlagNames = ['', 'suppressPrintouts','suppressInfo', 'suppressWarnings', '
 
 messageId = 0
 messageIdSet = False
-sourceType = None # 'mel' or 'python'
+sourceType = kMel # 'mel' or 'python'
 
 
 
@@ -128,7 +128,7 @@ class Reporter(object):
 		#outputFile.write( '%s %s %s %s\n' % (nativeMsg, messageType, filterFlagNames[messageType], self.filters)  )
 		#outputFile.close()
 				
-		if (not filterSourceType or filterSourceType == sourceType) and not self.filters.get( filterFlagNames[messageType], False ): 
+		if (not filterSourceType or filterSourceType != sourceType) and not self.filters.get( filterFlagNames[messageType], False ): 
 			if self.filters['convertToPython']and convertedMsg is not None:
 				return convertedMsg
 			return nativeMsg
@@ -148,7 +148,7 @@ class Reporter(object):
 		output = self.lineFilter( *line )
 	
 		if output is not None:
-			cmd = 'scrollField -e -insertText \"%s\" "%s";' % ( output, self.name )
+			cmd = 'scrollField -e -insertionPosition 0 -insertText \"%s\" "%s";' % ( output, self.name )
 		
 			#outputFile = open( '/var/tmp/commandOutput', 'a')
 			#outputFile.write( cmd + '\n' )
@@ -171,9 +171,9 @@ class Reporter(object):
 		
 		cmd = 'cmdScrollFieldReporter -e %s "%s";' % ( flags, Reporter.cmdReporter )
 		
-		outputFile = open( '/var/tmp/commandOutput', 'a')
-		outputFile.write( cmd + '\n' )
-		outputFile.close()
+		#outputFile = open( '/var/tmp/commandOutput', 'a')
+		#outputFile.write( cmd + '\n' )
+		#outputFile.close()
 		
 		self.executeCommand( cmd )
 
@@ -185,16 +185,16 @@ class Reporter(object):
 		
 		cmd = 'cmdScrollFieldReporter -q -%s "%s";' % ( filter, Reporter.cmdReporter )
 
-		outputFile = open( '/var/tmp/commandOutput', 'a')
-		outputFile.write( cmd + '\n' )
-		outputFile.close()
+		#outputFile = open( '/var/tmp/commandOutput', 'a')
+		#outputFile.write( cmd + '\n' )
+		#outputFile.close()
 
 		#result = self.executeCommandResult( cmd )
 		result = OpenMaya.MGlobal.executeCommandStringResult( cmd, False, False )
 		
-		outputFile = open( '/var/tmp/commandOutput', 'a')
-		outputFile.write( "results: " + res + '\n' )
-		outputFile.close()
+		#outputFile = open( '/var/tmp/commandOutput', 'a')
+		#outputFile.write( "results: " + res + '\n' )
+		#outputFile.close()
 		
 		return result
 	
@@ -229,9 +229,9 @@ def removeCallback(id):
 		raise
 
 def cmdCallback( nativeMsg, messageType, data ):
-	#outputFile = open( '/var/tmp/commandOutput', 'a')
-	#outputFile.write( '%s %s\n' % (nativeMsg, messageType)  )
-	#outputFile.close()
+	outputFile = open( '/var/tmp/commandOutput', 'a')
+	outputFile.write( '------\n%s %s\n' % (nativeMsg, messageType)  )
+	outputFile.close()
 	
 	global callbackState
 	if not callbackState:
@@ -245,9 +245,17 @@ def cmdCallback( nativeMsg, messageType, data ):
 			sourceType = kMel
 			try:
 				convertedMsg = mel2pyStr( nativeMsg )
-			except: pass
+			except Exception, msg:
+				#outputFile = open( '/var/tmp/commandOutput', 'a')
+				#outputFile.write( "failed to convert:" + nativeMsg + '\n%s' % msg )
+				#outputFile.close()
+				pass
 		else:
 			sourceType = kPython
+	elif messageType == OpenMaya.MCommandMessage.kDisplay and nativeMsg.rfind(';') == len(nativeMsg)-2:
+		try:
+			convertedMsg = mel2pyStr( nativeMsg )
+		except:pass
 	else:
 		try:
 			nativeMsg = '%s: %s' % ( {
@@ -266,12 +274,11 @@ def cmdCallback( nativeMsg, messageType, data ):
 				
 		except KeyError:
 			pass
-			'''
-			outputFile = open( '/var/tmp/commandOutput', 'a')
-			outputFile.write( '%s %s %s\n' % (nativeMsg, messageType, sourceType)  )
-			outputFile.close()
-			return
-			'''
+	
+	#outputFile = open( '/var/tmp/commandOutput', 'a', "utf-8")
+	#outputFile.write( '------\n%s %s %s\n' % (nativeMsg, messageType, sourceType)  )
+	#outputFile.close()
+					
 	nativeMsg = encodeString( nativeMsg )
 	if convertedMsg is not None:
 		convertedMsg = encodeString( convertedMsg )

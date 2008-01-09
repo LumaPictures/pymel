@@ -267,7 +267,8 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	pyfile.write_bytes(converted)
 	
 def mel2pyStr( data, currentModule=None, verbosity=0 ):		
-	
+	#data = unicode( data, errors='ignore' )
+	data = data.encode( 'utf-8', 'ignore')
 	if verbosity == 2:		
 		lex.input(data)
 		while 1:
@@ -291,6 +292,7 @@ def mel2pyStr( data, currentModule=None, verbosity=0 ):
 			'global_var_include_regex':	'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
 			#'global_var_exclude_regex':	'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
 		}
+		
 		script = parser.parse(data)
 		return (script, parser.used_modules)
 		#except IndexError, msg:

@@ -796,6 +796,7 @@ global proc buildScriptEditorHistoryMenu(string $parentMenu, string $prefix)
 				//-annotation (uiRes("m_scriptEditorPanel.kSuppressResultsAnnot"))
 				-c "handleScriptEditorAction \"convertHistoryToPython\""
 				($prefix + $historyFilterConvertToPythonSuffix);
+	// end chad
 	
 	setParent -m ..;
 	menuItem -divider on;
@@ -1127,6 +1128,7 @@ global proc loadCommandReporterOptionVars(string $reporter)
 							-suppressWarnings `optionVar -q ($optionVarKey + "SuppressWarnings")`
 							-suppressErrors `optionVar -q ($optionVarKey + "SuppressErrors")`
 							-suppressStackTrace `optionVar -q ($optionVarKey + "SuppressStackTrace")`
+							-convertToPython `optionVar -q ($optionVarKey + "ConvertToPython")`// CHAD
 							-filterSourceType `optionVar -q commandReporterSourceTypeFilter`
 							$reporter;
 }
@@ -1151,6 +1153,7 @@ global proc saveCommandReporterOptionVars(string $reporter)
 	optionVar -iv ($optionVarKey + "SuppressWarnings") `pymelScrollFieldReporter -q -suppressWarnings $reporter`;
 	optionVar -iv ($optionVarKey + "SuppressErrors") `pymelScrollFieldReporter -q -suppressErrors $reporter`;
 	optionVar -iv ($optionVarKey + "SuppressStackTrace") `pymelScrollFieldReporter -q -suppressStackTrace $reporter`;
+	optionVar -iv ($optionVarKey + "ConvertToPython") `pymelScrollFieldReporter -q -convertToPython $reporter`; // CHAD
 }
 
 global proc verifyCommandPopupMenus() 
