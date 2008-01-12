@@ -18,11 +18,11 @@ try:
 except ImportError:
 	print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
 	
-class token(str):
-	def __new__(cls, val, type, globalVar=False):
+class Token(str):
+	def __new__(cls, val, type, lineno=None):
 		self=str.__new__(cls,val)		
 		self.type = type
-		self.globalVar = globalVar
+		self.lineno = lineno
 		return self
 
 
@@ -154,52 +154,51 @@ reserved.update( ['and', 'assert', 'break', 'class', 'continue',
 def vprint(t, *args):
 	if t.parser.verbose:
 		print args
-	
-def assemble(t, funcname, separator='', matchFormatting=False):	
+
+def toList(t):
+	tokens = []		
+	for i in range(1, len(t)):
+		if i is not None:	
+			tokens.append(t[i])
+	return tokens
+			
+def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):	
 	
 	#print "STARTING", lineno
-	
 	res = ''
-			 
+		 
 	if len(t) > 1:
+		
+		if tokens is None:
+			tokens = toList(t)
+		
 		type = None
-		tokens = []
-		for i in range(1, len(t)):
-			if i is not None:				
-				tokens.append(t[i])
+		
+		for i, tok in enumerate( tokens ) :
+			if i == 0:
+				res += tok		
+			else:
 				try:
-					if t[i].type:
-						type = t[i].type
-						#print 'assembled', funcname, p[i], type 
-				except: pass
-		"""
-		tokens = [p[1]]
-		lineno = p.lineno(1)
-		#if t.parser.verbose:
-		#	print p[1], lineno
-		for i in range(2, len(p)):
-			if p[i] is not None:				
-				if matchFormatting and p.lineno(i) != lineno:
-					if t.parser.verbose:
-						print "split lines", p[i], p.lineno(i)
-					#p[i] = '\n' + p[i]
-					#tokens.append( '\n' + p[i])
-					tokens.append( p[i] + '\n\t' )
-					lineno = p.lineno(i)
-				else:
-					tokens.append(p[i])
-					try:
-						if p[i].type:
-							type = p[i].type
-							print 'assembled', funcname, p[i], type 
-					except: pass
-		"""
-		res = token( separator.join(tokens), type )
-	
-	#res = separator.join(p[1:])
+					if tokens[i-1].lineno != tok.lineno:
+						res +=  separator + '\n' + entabLines( tok )
+					else:
+						res += separator + tok
+				except:
+					res += separator + tok
+			
+			try:
+				if tok.type:
+					type = tok.type
+					#print 'assembled', funcname, p[i], type 
+			except: pass
 
-	if t.parser.verbose == 2:
-		print funcname, res
+		#res = Token( separator.join(tokens), type, t.lexer.lineno )
+		res = Token( res, type, t.lexer.lineno )
+	#res = separator.join(p[1:])
+	#
+	
+	if t.parser.verbose == 1:
+		print funcname, res, t.lexer.lineno
 	#elif t.parser.verbose == 1:
 	#	print 'assembled', funcname
 	
@@ -978,6 +977,7 @@ def p_expression_list_opt(t):
 	'''expression_list_opt : expression_list
 				  | empty'''
 	#t[0] = assemble(t, 'p_expression_list_opt')
+		
 	if isinstance(t[1],list):
 		t[0] = t[1]
 	else:
@@ -989,6 +989,7 @@ def p_expression_list(t):
 	#t[0] = assemble(t, 'p_expression')
 	if len(t) == 2:
 		t[0] = [t[1]]
+		#print 'expression_list', t[1], t[1].lineno
 	else:
 		t[0] = t[1] + [t[3]]
 
@@ -1114,9 +1115,9 @@ def p_additive_expression(t):
 	if len(t) == 4 and t[2] == '+':
 		#print t[1], t[1].type, t[3], t[3].type
 		if t[1].type == 'string' and t[3].type != 'string':
-			t[0] = token( '%s + str(%s)' % (t[1], t[3]) , 'string' )
+			t[0] = Token( '%s + str(%s)' % (t[1], t[3]) , 'string' )
 		if t[3].type == 'string' and t[1].type != 'string':
-			t[0] = token( 'str(%s) + %s' % (t[1], t[3]), 'string' )
+			t[0] = Token( 'str(%s) + %s' % (t[1], t[3]), 'string' )
 		
 	#	if t[1].endswith('"'):
 	#		t[0] = t[1][:-1] + '%s" % ' + t[3]
@@ -1248,6 +1249,7 @@ def p_postfix_expression(t):
 	# $var++
 	
 	t[0] = assemble(t, 'p_postfix_expression')
+
 	# ++ and -- must be converted to += and -=
 	if len(t) == 3:
 		t[0] = t[1] + t[2][0] + '=1'
@@ -1272,7 +1274,8 @@ def p_postfix_expression_2(t):
 	# array
 	
 	#t[0] = assemble(t, 'p_postfix_expression')
-	t[0] = '[%s]' % ','.join(t[2])
+	#t[0] = '[%s]' % ','.join(t[2])
+	t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ',', t[2])
 		
 def p_postfix_expression_3(t):
 	'''postfix_expression : LSHIFT expression_list RSHIFT'''
@@ -1290,25 +1293,26 @@ def p_primary_expression(t):
 	
 def p_primary_expression1(t):
 	'''primary_expression :	 ICONST'''
-	t[0] = token(t[1], 'int')
+	t[0] = Token(t[1], 'int', t.lexer.lineno)
 	if t.parser.verbose == 2:
 		print "p_primary_expression", t[0]
 	
 def p_primary_expression2(t):
 	'''primary_expression :	 SCONST'''
-	t[0] = token(t[1], 'string')
+	t[0] = Token(t[1], 'string', t.lexer.lineno)
 	if t.parser.verbose == 2:
 		print "p_primary_expression", t[0]
-	
+		
+		
 def p_primary_expression3(t):
 	'''primary_expression :	 FCONST'''
-	t[0] = token(t[1], 'float')
+	t[0] = Token(t[1], 'float', t.lexer.lineno)
 	if t.parser.verbose == 2:
 		print "p_primary_expression", t[0]
 	
 def p_primary_expression4(t):
 	'''primary_expression :	 variable'''	
-	t[0] = token(t[1], t.parser.type_map.get(t[1], None) )
+	t[0] = Token(t[1], t.parser.type_map.get(t[1], None), t.lexer.lineno )
 	if t.parser.verbose == 2:
 		print "p_primary_expression", t[0]
 	
@@ -1482,7 +1486,6 @@ def command_format(command, args, t):
 		currFlag = None
 		for token in args:				
 			flagmatch = flagReg.match( token )
-			#if token.startswith('-'):
 			
 			#----- Flag -----
 			if flagmatch:
@@ -1491,7 +1494,8 @@ def command_format(command, args, t):
 
 				(numArgs, commandFlag) = flags[ token ]
 				
-				token = token[1:]
+				# remove dash (-) before flag
+				token = Token( token[1:], token.type, token.lineno )
 				#print 'new flag', token, numArgs
 							
 				if numArgs == 0 or queryMode:
@@ -1550,31 +1554,41 @@ def command_format(command, args, t):
 		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
 		if command in ['file','filter','help','quit']: # + uiCommands:
 			command = 'cmds.' + command
+		
+		# eval command is the same as using maya.mel.eval
 		if command == 'eval':
 			command = 'mm.' + command
 		
+		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
 		if command == 'python':
 			args = map( lambda x: x.strip('"'), args[0].split(' + ') )
 			print args
 			return ''.join(args)
 		
-	
+		# cycle through our kwargs and format them
 		for flag, value in kwargs.items():
 			if value is None:
 				value = '1'
+				
+			# multi-use flag
+			#	mel: 	ls -type "transform" -type "camera"
+			#	python:	ls( type=["transform","camera"] )
 			if isinstance( value, list):
-				sep = ','
-				if len(value) > t.parser.format_options['kwargs_newline_threshhold']:
-					sep = ',\n\t'
-				pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
+				#sep = ','
+				#if len(value) > t.parser.format_options['kwargs_newline_threshhold']:
+				#	sep = ',\n\t'
+				#pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
+				value = assemble(t,'multiuse_flag', ', ', value)
+				pargs.append( Token( '%s=[%s]' % (flag, value), None, flag.lineno  ) )
 			else:
-				pargs.append( '%s=%s' % (flag, value) )
+				pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
 		
-		sep = ','
-		if len(pargs) > t.parser.format_options['args_newline_threshhold']:
-			sep = ',\n\t'
+		#sep = ','
+		#if len(pargs) > t.parser.format_options['args_newline_threshhold']:
+		#	sep = ',\n\t'		
+		#res =  '%s(%s)' % (command, sep.join( pargs ) )
+		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs ) )
 		
-		res =  '%s(%s)' % (command, sep.join( pargs ) )
 		return res
 		
 	except KeyError, key:
@@ -1626,7 +1640,7 @@ def p_command_input(t):
 
 def p_command_input_2(t):
 	'''command_input : ID'''
-	t[0] = "'%s'" % t[1]
+	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 
 def p_command_statement_input_list(t):
 	'''command_statement_input_list : command_statement_input
@@ -1648,18 +1662,17 @@ def p_command_statement_input(t):
 
 def p_command_statement_input_2(t):
 	'''command_statement_input : ID'''
-	t[0] = "'%s'" % t[1]
+	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 	
 def p_flag(t):
 	'''command_flag : MINUS ID'''
-	t[0] = assemble(t, 'p_flag')
 	
-
-	t[0] = t[1] + { 	'import': 'i',
-		 		 			'del'	: 'delete' 
+	flag = t[1] + { 	'import': 'i',
+		 		 		'del'	: 'delete' 
 					}.get( t[2], t[2] )
-		
-
+					
+	#t[0] = assemble(t, 'p_flag', '', [flag]  )	
+	t[0] = Token( flag, 'flag', t.lexer.lineno )
 		
 
 # Other

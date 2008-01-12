@@ -31,7 +31,7 @@ Non-Backward Compatible Changes
 		- MVec S{->} L{Vector}
 		- MMat S{->} L{Matrix}
 		- MPath S{->} L{Path}
-		- MReference S{->} L{Reference}
+		- MReference S{->} L{FileReference}
 		- Node S{->} L{DependNode}
 		- Dag S{->} L{DagNode}
 		- Set S{->} L{ObjectSet}
@@ -342,7 +342,7 @@ Even though pymel has a handful of modules, all but L{pymel.runtime} are importe
 for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user can edit the import commands
 in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
 for organizational reasons.
- 
+
 
 Setup
 =====
@@ -460,7 +460,7 @@ enhanced addAttr to allow python types to be passed to set -at type
 			Vector	--> double3
 added FileInfo class for accessing per-file data as a dictionary
 Maya Bug Fix: fixed getCellCmd flag of scriptTable to work with python functions, previously only worked with mel callbacks
-removed 'M' from Vector, Matrix, Reference, and Path
+removed 'M' from Vector, Matrix, FileReference, and Path
 changed sets command so that the operating set is always the first arg
 added PyUI
 fixed bug in createSurfaceShader
@@ -468,6 +468,14 @@ changed lsUI to return wrapped UI classes
 added a class for every node type in the node hierarchy.
 greatly improved documentation
 added translate property to Transform class to overcome conflict with basestring.translate method
+-0.7.2-
+fixed bug in PyNode that was failing to cast Attributes to Nodes
+fixed a bug in createSurfaceShader which was failing to return the correctly renamed shadingGroup
+fixed a bug in mel2py with paths that use whitespace
+renamed Reference to FileReference
+added listAnimatable
+added mel2pyStr for converting a string representing mel code into python
+improved mel2py formatting - now attempts to match lists and commands that span multiple lines
 
  TODO: 
 	Factory:
@@ -479,16 +487,19 @@ added translate property to Transform class to overcome conflict with basestring
 	To Debate:
 	- filter out self from listHistory command?
 	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
-		- remove commands that have been subsumed under a class? ex. dolly, track, orbit have all been added to Camera
+	- remove commands that have been subsumed under a class? ex. dolly, track, orbit have all been added to Camera	
 	- new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
 		- this is particularly useful for colors
 	
 	For Next Release:
-	- sort out listReferences, getReferences
+	- create a feature-rich listReferences command, with flags for recursionDepth, regular expression match, return type ( list, dict, tree )  (API?)
+	- merge Reference from node-hierarchy and FileReference 
+	- re-write primary list commands using API
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
 	- correctly separate examples flag info when parsing docs
+	- ensure that all commands, including custom commands, are brought into the main namespace, not just cached ones (excepting those we *wish* to filter)
 	
 	For Future Release:
 	- pymel preferences for breaking or maintaining backward compatibility:

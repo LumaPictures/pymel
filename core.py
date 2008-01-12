@@ -246,12 +246,10 @@ class Workspace(util.Singleton):
 	@classmethod
 	def getName(self):
 		return cmds.workspace( q=1, act=1 )
-	name = property( getName )
 
 	@classmethod
 	def getPath(self):
 		return Path(cmds.workspace( q=1, fn=1 ))
-	path = property( getPath )
 	
 	@classmethod
 	def chdir(self, newdir):
@@ -262,7 +260,10 @@ class Workspace(util.Singleton):
 	@classmethod
 	def mkdir(self, newdir):
 		return cmds.workspace( cr=newdir )
-		
+
+	name = property( lambda x: cmds.workspace( q=1, act=1 ) )		
+	path = property( lambda x: Path(cmds.workspace( q=1, fn=1 ) ) )
+			
 	def __call__(self, *args, **kwargs):
 		"""provides backward compatibility with cmds.workspace by allowing an instance
 		of this class to be called as if it were a function"""
@@ -519,6 +520,9 @@ SCENE = Scene()
 #  Enhanced Commands
 #-----------------------------------------------
 
+#-----------------------
+#  Object Manipulation
+#-----------------------
 def select(*args, **kwargs):
 	"""
 Modifications:
@@ -573,6 +577,12 @@ NOTE: this command also reorders the argument order to be more intuitive, with t
 		args = tuple(args[0])
 	args = args + (obj,)
 	return cmds.rotate(*args, **kwargs)
+
+
+
+#-----------------------
+#  Attributes
+#-----------------------
 		
 def connectAttr( source, destination, **kwargs ):
 	"""
@@ -761,32 +771,10 @@ Modifications:
 			except KeyError:
 				kwargs['at'] = at
 	return cmds.addAttr( *args, **kwargs )
-		
-def currentTime( *args, **kwargs ):
-	"""
-Modifications:
-	- if no args are provided, the command returns the current time -- the equivalent of::
-		cmds.currentTime(q=1)
-	"""
-	
-	if not args and not kwargs:
-		return cmds.currentTime(q=1)
-	else:
-		return cmds.currentTime(*args, **kwargs)
 
-def group( *args, **kwargs ):
-	"""
-Modifications
-	- if no objects are provided for grouping, the empty flag is automatically set
-	"""
-	if not args and not cmds.ls(sl=1):
-		kwargs['empty'] = True
-	return node.Transform( cmds.group(*args, **kwargs) )
-	#except RuntimeError, msg:
-	#	print msg
-	#	if msg == 'Not enough objects or values.':
-	#		kwargs['empty'] = True
-	#		return node.Transform( cmds.group(**kwargs) )
+#-----------------------
+#  List Functions
+#-----------------------
 		
 def listConnections(*args, **kwargs):
 	"""
@@ -985,6 +973,31 @@ Modifications:
 	res = cmds.listRelatives(  cmds.ls(*args, **kwargs), p=1, path=1 )
 	return map( node.PyNode, res, ['transform']*len(res) )
 
+def listAnimatable( *args, **kwargs ):
+	"""
+Modifications:
+	- returns wrapped classes
+	"""
+	return map( node.Attribute, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
+	
+#-----------------------
+#  Objects
+#-----------------------
+
+def group( *args, **kwargs ):
+	"""
+Modifications
+	- if no objects are provided for grouping, the empty flag is automatically set
+	"""
+	if not args and not cmds.ls(sl=1):
+		kwargs['empty'] = True
+	return node.Transform( cmds.group(*args, **kwargs) )
+	#except RuntimeError, msg:
+	#	print msg
+	#	if msg == 'Not enough objects or values.':
+	#		kwargs['empty'] = True
+	#		return node.Transform( cmds.group(**kwargs) )
+
 def duplicate( *args, **kwargs ):
 	"""
 Modifications:
@@ -1115,7 +1128,19 @@ Modifications
 	#print "creation"
 	return ObjectSet(cmds.sets( *elements, **kwargs ))
 	'''
+
+def currentTime( *args, **kwargs ):
+	"""
+Modifications:
+	- if no args are provided, the command returns the current time -- the equivalent of::
+		cmds.currentTime(q=1)
+	"""
 	
+	if not args and not kwargs:
+		return cmds.currentTime(q=1)
+	else:
+		return cmds.currentTime(*args, **kwargs)
+			
 def getClassifiction( *args ):
 	"""
 Modifications:
@@ -1171,7 +1196,7 @@ def createSurfaceShader( shadertype, name=None ):
 	sg = newShader.shadingGroups()[0]
 	if name:
 		newShader = newShader.rename(name)		
-		sg.rename( name + 'SG')
+		sg = sg.rename( name + 'SG')
 	return newShader, sg
 
 #-----------------------------------------------
@@ -1188,18 +1213,18 @@ class Path(pathClass):
 	def type(self):
 		return cmds.file( self, q=1, type=1 )
 		
-class Reference(Path):
+class FileReference(Path):
 	"""A class for manipulating references which inherits Path and path.  you can create an 
 	instance by supplying the path to a reference file, its namespace, or its reference node to the 
 	appropriate keyword. The namespace and reference node of the reference can be retreived via 
 	the namespace and refNode properties. The namespace property can also be used to change the namespace
 	of the reference. 
 	
-	Use listRefences command to return a list of references as instances of the Reference class.
+	Use listRefences command to return a list of references as instances of the FileReference class.
 	
 	It is important to note that instances of this class will have their copy number stripped off
 	and stored in an internal variable upon creation.  This is to maintain compatibility with the numerous methods
-	inherited from the path class which requires a real file path. When calling built-in methods of Reference, 
+	inherited from the path class which requires a real file path. When calling built-in methods of FileReference, 
 	the path will automatically be suffixed with the copy number before being passed to maya commands, thus ensuring 
 	the proper results in maya as well. 
 	 """
@@ -1222,7 +1247,7 @@ class Reference(Path):
 		if path:
 			return create(path)
 		if namespace:
-			for path in map( Reference, cmds.file( q=1, reference=1) ):
+			for path in map( FileReference, cmds.file( q=1, reference=1) ):
 				 if path.namespace == namespace:
 					return create(path)
 			raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
@@ -1236,7 +1261,7 @@ class Reference(Path):
 		res = {}
 		try:
 			for x in cmds.file( self, q=1, reference=1):
-				res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.core.Reference(x)
+				res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.core.FileReference(x)
 		except: pass
 		return res	
 		

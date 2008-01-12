@@ -248,7 +248,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	if not melfile.exists():
 		try:
 			import pymel
-			melfile = path.path( pymel.mel.whatIs( melfile ).split()[-1] )
+			melfile = path.path( pymel.mel.whatIs( melfile ).split(': ')[-1] )
 		except:
 			pass
 	data = melfile.bytes()
@@ -269,7 +269,8 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 def mel2pyStr( data, currentModule=None, verbosity=0 ):		
 	#data = unicode( data, errors='ignore' )
 	data = data.encode( 'utf-8', 'ignore')
-	if verbosity == 2:		
+	data = data.replace( '\r', '\n' )
+	if verbosity == 2:	
 		lex.input(data)
 		while 1:
 			tok = lex.token()

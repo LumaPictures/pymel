@@ -71,7 +71,7 @@ messageId = 0
 messageIdSet = False
 sourceType = kMel # 'mel' or 'python'
 
-
+allHistory = []
 
 callbackState = True
 
@@ -104,9 +104,11 @@ class Reporter(object):
 		
 		self.filters.update( kwargs )
 		
-		self.history = []	
+		global allHistory
+		self.history = allHistory			
 		cmd = 'scrollField -wordWrap false -editable false "%s"' % self.name
 		self.name = self.executeCommandResult( cmd )
+		self.refreshHistory()
 
 	def executeCommand( self, cmd ):
 		global callbackState
@@ -227,7 +229,20 @@ def removeCallback(id):
 	except:
 		sys.stderr.write( "Failed to remove callback\n" )
 		raise
+		
+def createCallback(stringData):
+	# global declares module level variables that will be assigned
+	global messageIdSet
 
+	try:
+		id = OpenMaya.MCommandMessage.addCommandOutputCallback( cmdCallback, stringData )
+	except:
+		sys.stderr.write( "Failed to install callback\n" )
+		messageIdSet = False
+	else:
+		messageIdSet = True
+	return id
+		
 def cmdCallback( nativeMsg, messageType, data ):
 	outputFile = open( '/var/tmp/commandOutput', 'a')
 	outputFile.write( '------\n%s %s\n' % (nativeMsg, messageType)  )
@@ -238,6 +253,7 @@ def cmdCallback( nativeMsg, messageType, data ):
 		return
 		
 	global sourceType
+	global allHistory
 	
 	convertedMsg = None
 	if messageType == OpenMaya.MCommandMessage.kHistory:
@@ -288,7 +304,8 @@ def cmdCallback( nativeMsg, messageType, data ):
 	for reporter in reporters.values():
 		reporter.appendHistory( line )
 
-
+	allHistory.append( line )
+	
 	return
 			
 	#global output
@@ -306,18 +323,7 @@ class scriptedCommand(OpenMayaMPx.MPxCommand):
 	def __init__(self):
 		OpenMayaMPx.MPxCommand.__init__(self)
 		
-	def createCallback(self, stringData):
-		# global declares module level variables that will be assigned
-		global messageIdSet
-	
-		try:
-			id = OpenMaya.MCommandMessage.addCommandOutputCallback( cmdCallback, stringData )
-		except:
-			sys.stderr.write( "Failed to install callback\n" )
-			messageIdSet = False
-		else:
-			messageIdSet = True
-		return id
+
 	
 	def doIt(self, args):
 		global messageId
@@ -381,12 +387,7 @@ class scriptedCommand(OpenMayaMPx.MPxCommand):
 				#reporters[name] = reporter
 			self.setResult( reporter.name )
 			
-		if ( messageIdSet ):
-			pass
-			#print "Message callaback already installed"
-		else:
-			#print "Installing callback message"
-			messageId = self.createCallback( '' )
+
 						
 		#result = OpenMaya.MGlobal.executeCommandStringResult( cmd, False, False )
 		#self.setResult( result )
@@ -419,6 +420,14 @@ def initializePlugin(mobject):
 	mplugin = OpenMayaMPx.MFnPlugin(mobject)
 	try:
 		mplugin.registerCommand( kPluginCmdName, cmdCreator, syntaxCreator )
+		
+		global messageIdSet
+		if ( messageIdSet ):
+			print "Message callaback already installed"
+		else:
+			#print "Installing callback message"
+			messageId = createCallback( '' )
+			
 	except:
 		sys.stderr.write( "Failed to register command: %s\n" % kPluginCmdName )
 		raise

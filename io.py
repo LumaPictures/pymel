@@ -55,7 +55,7 @@ def listNamespaces():
 
 def listReferences(type='list'):
 	"""file -q -reference
-	By default returns a list of reference files as Reference classes. The optional type argument can be passed a 'dict'
+	By default returns a list of reference files as FileReference classes. The optional type argument can be passed a 'dict'
 	(or dict object) to return the references as a dictionary with namespaces as keys and References as values.
 	
 	Untested: multiple references with no namespace...
@@ -66,19 +66,19 @@ def listReferences(type='list'):
 		res = {}
 		try:
 			for x in cmds.file( q=1, reference=1):
-				res[cmds.file( x, q=1, namespace=1)] = core.Reference(x)
+				res[cmds.file( x, q=1, namespace=1)] = core.FileReference(x)
 		except: pass
 		return res
 	
 	# list
-	return map( core.Reference,cmds.file( q=1, reference=1) )
+	return map( core.FileReference,cmds.file( q=1, reference=1) )
 
 def getReferences(reference=None, recursive=False):
 	res = {}	
 	if reference is None:
 		try:
 			for x in cmds.file( q=1, reference=1):
-				ref = core.Reference(x)
+				ref = core.FileReference(x)
 				res[cmds.file( x, q=1, namespace=1)] = ref
 				if recursive:
 					res.update( ref.subReferences() )
@@ -86,19 +86,19 @@ def getReferences(reference=None, recursive=False):
 	else:
 		try:
 			for x in cmds.file( self, q=1, reference=1):
-				res[cmds.file( x, q=1, namespace=1)] = core.Reference(x)
+				res[cmds.file( x, q=1, namespace=1)] = core.FileReference(x)
 		except: pass
 	return res	
 	
 def createReference( *args, **kwargs ):
 	"""file -reference"""
 	kwargs['reference'] = True
-	return core.Reference(cmds.file(*args, **kwargs))
+	return core.FileReference(cmds.file(*args, **kwargs))
 
 def loadReference( file, refNode, **kwargs ):
 	"""file -loadReference"""
 	kwargs['loadReference'] = refNode
-	return core.Reference(cmds.file(file, **kwargs))
+	return core.FileReference(cmds.file(file, **kwargs))
 		
 def exportAll( *args, **kwargs ):
 	"""file -exportAll"""
@@ -125,7 +125,7 @@ def exportAsReference( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
-	return core.Reference(cmds.file(*args, **kwargs))
+	return core.FileReference(cmds.file(*args, **kwargs))
 
 def exportSelected( *args, **kwargs ):
 	"""file -exportSelected"""

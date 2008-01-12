@@ -49,9 +49,10 @@ tokens = reserved + (
 	'CAPTURE',
 
 	# Comments
-	'COMMENT', 'COMMENT_BLOCK',
+	#'COMMENT', 'COMMENT_BLOCK',
+	
 	# Ellipsis (...)
-	'ELLIPSIS',
+	#'ELLIPSIS',
 	)
 
 # Completely ignored characters
@@ -122,7 +123,7 @@ reserved_map = { }
 for r in reserved:
 	reserved_map[r.lower()] = r
 	
-print reserved_map
+#print reserved_map
 
 id_state = None
 suspend_depth = 0

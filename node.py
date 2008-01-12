@@ -589,7 +589,7 @@ class Attribute(_BaseObj):
 	# getting and setting					
 	set = setAttr			
 	get = getAttr
-		
+	setKey = setKeyframe	
 	
 	
 	#----------------------
@@ -1004,14 +1004,6 @@ class DependNode( _BaseObj ):
 		kwargs['lock'] = False
 		kwargs.pop('l',None)
 		return cmds.lockNode( self, **kwargs)
-		
-	def listAttr( self, **kwargs):
-		"listAttr"
-		return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.listAttr(self, **kwargs)))
-
-	def attrInfo( self, **kwargs):
-		"attributeInfo"
-		return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.attributeInfo(self, **kwargs)))
 			
 	def cast( self, swapNode, **kwargs):
 		"""nodeCast"""
@@ -1066,7 +1058,7 @@ class DependNode( _BaseObj ):
 		"""referenceQuery -file
 		Return the reference file to which this object belongs.  None if object is not referenced"""
 		try:
-			return Reference( cmds.referenceQuery( self, f=1) )
+			return FileReference( cmds.referenceQuery( self, f=1) )
 		except:
 			None
 			
@@ -1146,8 +1138,17 @@ class DependNode( _BaseObj ):
 			for destination in self.outputs( plugs=True ):
 				cmds.disconnectAttr( "%s.%s" % (self, source), destination, **kwargs )
 					
+	listAnimatable = listAnimatable
 
+	def listAttr( self, **kwargs):
+		"listAttr"
+		return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.listAttr(self, **kwargs)))
 
+	def attrInfo( self, **kwargs):
+		"attributeInfo"
+		return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.attributeInfo(self, **kwargs)))
+		
+	
 	_numPartReg = '([a-zA-Z|]+[a-zA-Z0-9_|]*[a-zA-Z]+)([0-9]+)$'
 	def stripNum(self):
 		"""Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
@@ -2056,18 +2057,21 @@ _createClasses()
 def PyNode(strObj, nodeType=None):
 	"""Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
 	for your object."""
-
-	try:
-		if not nodeType:
-			nodeType = cmds.nodeType(strObj)
-		return getattr(_thisModule, util.capitalize(nodeType) )(strObj)
-	except (AttributeError, TypeError): pass
 	
 	try:
 		if '.' in strObj:
 			return Attribute(strObj)
 	except TypeError:
 		raise 'PyNode: expected a string or unicode object, got %s' % type(strObj)
+	except: pass
+		
+	try:
+		if not nodeType:
+			nodeType = cmds.nodeType(strObj)
+		return getattr(_thisModule, util.capitalize(nodeType) )(strObj)
+	except (AttributeError, TypeError): pass
+	
+
 	return DependNode(strObj)
 
 def _createFunctions():

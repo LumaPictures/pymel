@@ -60,7 +60,7 @@ for r in allRefs:
 	print r.namespace, r.refNode, r.withCopyNumber()
 
 
-# the namespace property of the Reference class can be used to set the namespace as well as to get it.
+# the namespace property of the FileReference class can be used to set the namespace as well as to get it.
 allRefs[2].namespace = 'super'
 
 

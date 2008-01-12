@@ -606,8 +606,8 @@ def release( username=None, password = None):
 			print "removing", f
 			f.remove()
 	
-	ver = str(pymel.__version__)
-	zipFile = baseDir.parent / 'pymel-%s.zip' % ver
+	#zipFile = baseDir.parent / 'pymel-%s.zip' % str(pymel.__version__)
+	zipFile = baseDir.parent / 'pymel.zip'
 	print "zipping up %s into %s" % (baseDir, zipFile)
 	toZip( 	baseDir, zipFile )
 	
