@@ -73,7 +73,7 @@ sourceType = kMel # 'mel' or 'python'
 
 allHistory = []
 
-callbackState = True
+callbackState = 'normal'
 
 class Reporter(object):
 	cmdReporter = None
@@ -112,15 +112,18 @@ class Reporter(object):
 
 	def executeCommand( self, cmd ):
 		global callbackState
-		callbackState = False
+		if Reporter.globalFilters['echoAllCommands']:
+			callbackState = 'ignoreCommand'	
 		OpenMaya.MGlobal.executeCommand( cmd, False, False )
-		callbackState = True
+		#callbackState = True
 
 	def executeCommandResult( self, cmd ):
+		
 		global callbackState
-		callbackState = False
+		if Reporter.globalFilters['echoAllCommands']:
+			callbackState = 'ignoreCommand'		
 		result = OpenMaya.MGlobal.executeCommandStringResult( cmd, False, False )
-		callbackState = True
+		#callbackState = True
 		return result
 				
 	def lineFilter( self, messageType, sourceType, nativeMsg, convertedMsg ):
@@ -244,14 +247,20 @@ def createCallback(stringData):
 	return id
 		
 def cmdCallback( nativeMsg, messageType, data ):
+	global callbackState
+	
 	outputFile = open( '/var/tmp/commandOutput', 'a')
-	outputFile.write( '------\n%s %s\n' % (nativeMsg, messageType)  )
+	outputFile.write( '------\n%s %s %s\n' % (nativeMsg, messageType, callbackState)  )
 	outputFile.close()
 	
-	global callbackState
-	if not callbackState:
+	
+	if callbackState == 'ignoreCommand':
+		callbackState = 'ignoreResult'
 		return
-		
+	elif callbackState == 'ignoreResult':
+		callbackState = 'normal'
+		return
+	
 	global sourceType
 	global allHistory
 	

@@ -1,12 +1,8 @@
 # script created by pymel.melparse.mel2py from mel file:
-# /Volumes/luma/_globalSoft/mel/published/luma5.0/luma/texture/texturePathUI.mel
-
-# this is the mel script fresh off the translator, with just a few fixes
-# check texturePathUI_pymel to see how to better organize your UI's using pymel.
+# /Users/chad/Documents/dev/python/_published/pymel/examples/texturePathUI.mel
 
 from pymel import *
 import os
-
 """/////////////////////////////////////////////////////////////////////////////
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Find & Replace Texture Paths
@@ -41,11 +37,11 @@ To Do :
 
 /////////////////////////////////////////////////////////////////////////////"""
 # subsutition with case sensitivity controls
-def substituter(ignoreCase,match,input_,replace):
+def substituter(ignoreCase, match, input_, replace):
 	if ignoreCase:
 		inputStr=input_.lower()
 		matchStr=match.lower()
-		if mel.gmatch(inputStr, ("*" + matchStr + "*")):
+		if mel.gmatch(inputStr, ("*" + str(matchStr) + "*")):
 			inputLen = len(inputStr)
 			matchLen = len(matchStr)
 			i = 0
@@ -87,46 +83,37 @@ def texturePathUI():
 		
 	window(textureFindWindow,title="Find & Replace Texture Paths")
 	form = formLayout()
-	column = columnLayout(adj = 1,rowSpacing = 4)
-	rowLayout(adj=2,
-		nc=2,
-		cw=(1, 60),
-		cat=(1, "both", 2))
+	column = columnLayout(adj=1,rowSpacing=4)
+	rowLayout(adj=2,nc=2,cw=(1, 60),cat=(1, "both", 2))
 	text(l="Find:")
-	textField('findField',ec=lambda *args: lm_Find() )
+	textField('findField',ec=lambda *args: mm.eval('lm_Find'))
 	setParent('..')
-	rowLayout(adj=2,
-		nc=2,
-		cw=(1, 60),
-		cat=(1, "both", 2))
+	rowLayout(adj=2,nc=2,cw=(1, 60),cat=(1, "both", 2))
 	text(l="Replace:")
-	textField('replaceField',ec=lambda *args: lm_Replace() )
+	textField('replaceField',ec=lambda *args: mm.eval('lm_Replace'))
 	setParent('..')
 	setParent('..')
-	row = rowLayout(numberOfColumns = 5,cw5 = (60, 72, 72, 150, 80))
+	row = rowLayout(numberOfColumns=5,
+		cw5=(60, 72, 72, 150, 80))
 	columnLayout()
-	button(align="center",c=lambda *args: lm_Find(),label="Find")
+	button(align="center",c=lambda *args: mm.eval("lm_Find"),label="Find")
 	setParent('..')
 	columnLayout()
-	button(align="center",c=lambda *args: lm_Replace(0),label="Replace")
+	button(align="center",c=lambda *args: mm.eval("lm_Replace 0"),label="Replace")
 	# rename off
 	setParent('..')
 	columnLayout()
-	button(align="center",c=lambda *args: lm_Replace(1),label="Rename")
+	button(align="center",c=lambda *args: mm.eval("lm_Replace 1"),label="Rename")
 	# rename on
 	setParent('..')
 	columnLayout()
-	radioButtonGrp('allCheckBox',
-		nrb=2,
-		cw2=(80, 60),
-		la2=("selected", "all"),
-		sl=1)
+	radioButtonGrp('allCheckBox',nrb=2,cw2=(80, 60),la2=("selected", "all"),w=140,sl=1)
 	setParent('..')
 	columnLayout()
 	checkBox('caseSensativeBox',l="ignore case",v=1)
 	setParent('..')
 	setParent('..')
-	row2 = rowLayout(nc = 2,cw = (1, 60))
+	row2 = rowLayout(nc=2,cw=(1, 60))
 	text(l="matches: ")
 	text('numMatchesText',align="left",l=" ")
 	setParent('..')
@@ -134,41 +121,30 @@ def texturePathUI():
 	'''-configuration "vertical2"'''
 	textScrollList('selectionList',
 		allowMultiSelection=True,
-		dcc=lambda *args: lm_DoubleClickCommand(),
-		dkc=lambda *args: lm_DeleteKeyCommand())
+		dcc=lambda *args: mm.eval('lm_DoubleClickCommand'),
+		dkc=lambda *args: mm.eval('lm_DeleteKeyCommand'))
 	formLayout(form,
 		edit=1,
-		attachControl=[(row, "top", 5, column),
-			(row2, "top", 5, row),
-			(pane, "top", 5, row2)],
-		attachForm=[(column, "top", 5),
-			(column, "left", 5),
-			(column, "right", 5),
-			(row, "left", 20),
-			(row, "right", 5),
-			(row2, "left", 20),
-			(row2, "right", 5),
-			(pane, "left", 5),
-			(pane, "right", 5),
-			(pane, "bottom", 5)])
+		attachControl=[(row, "top", 5, column), (row2, "top", 5, row), (pane, "top", 5, row2)],
+		attachForm=[(column, "top", 5), (column, "left", 5), (column, "right", 5), (row, "left", 20), (row, "right", 5), (row2, "left", 20), (row2, "right", 5), (pane, "left", 5), (pane, "right", 5), (pane, "bottom", 5)])
 	showWindow()
 	
 
 def lm_Replace(rename):
 	global foundTexNodeArray
-	findPath = textField('findField',q = 1,text = 1)
+	findPath = textField('findField',q=1,text=1)
 	findPath=mel.fromNativePath(findPath)
 	# Added Windows Slash Support - by Hays Clark
 	if not len(findPath):
 		confirmDialog(b="OK",m="You Must Enter Text to Find",t="Warning")
 		return 
 		
-	replacePath = textField('replaceField',q = 1,text = 1)
+	replacePath = textField('replaceField',q=1,text=1)
 	replacePath=mel.fromNativePath(replacePath)
 	# Added Windows Slash Support - by Hays Clark
-	ignoreCase = checkBox('caseSensativeBox',q = 1,v = 1)
+	ignoreCase = checkBox('caseSensativeBox',q=1,v=1)
 	# Get File Paths //
-	filePathArray = textScrollList('selectionList',q = 1,allItems = 1)
+	filePathArray = textScrollList('selectionList',q=1,allItems=1)
 	# Get Indices of Selected Items //
 	indexArray = []
 	# do all
@@ -184,14 +160,14 @@ def lm_Replace(rename):
 		# Do the Operation
 		
 	for index in indexArray:
-		oldFilePath = getAttr(foundTexNodeArray[index] + ".ftn")
+		oldFilePath = getAttr(str(foundTexNodeArray[index]) + ".ftn")
 		# string $filePath = $filePathArray[$index-1];
 		filePath = substituter(ignoreCase, findPath, oldFilePath, replacePath)
 		if rename:
-			if MFile(oldFilePath).access(os.W_OK):
-				sysFile(oldFilePath,ren=filePath)
+			if Path(oldFilePath).access(os.W_OK):
+				Path(oldFilePath).move(filePath)
 				# sysFile requires the new name to come first
-				setAttr((foundTexNodeArray[index] + ".ftn"),filePath,type="string")
+				setAttr((str(foundTexNodeArray[index]) + ".ftn"),filePath,type="string")
 				
 			
 			else:
@@ -199,11 +175,8 @@ def lm_Replace(rename):
 				filePath=oldFilePath
 				
 			
-		
-		else:
-			setAttr((foundTexNodeArray[index] + ".ftn"),filePath,type="string")
-			# Replace old Path with New Path, converting from 1-based to 0-based index //
-			
+		setAttr((str(foundTexNodeArray[index]) + ".ftn"),filePath,type="string")
+		# Replace old Path with New Path, converting from 1-based to 0-based index //
 		filePathArray[index - 1]=filePath
 		
 	textScrollList('selectionList',removeAll=1,e=1)
@@ -224,16 +197,16 @@ def lm_Find():
 	# Initialize and Clear Array in which to store Matches //
 	global foundTexNodeArray
 	foundTexNodeArray=[]
-	findPath = textField('findField',q = 1,text = 1)
+	findPath = textField('findField',q=1,text=1)
 	texnode=(ls(typ="file"))
 	#  determine if it is a case sensative search //
-	ignoreCase = checkBox('caseSensativeBox',q = 1,v = 1)
+	ignoreCase = checkBox('caseSensativeBox',q=1,v=1)
 	if ignoreCase == 1:
 		findPath=findPath.lower()
 		
 	i = 1
 	for elem in texnode:
-		filePath = (getAttr(elem + ".ftn"))
+		filePath = (getAttr(str(elem) + ".ftn"))
 		if ignoreCase == 1:
 			filePath2=filePath.lower()
 			
@@ -253,28 +226,25 @@ def lm_Find():
 	if numMatch>0:
 		numMatch-=1
 		
-	text('numMatchesText',
-		align="left",
-		e=1,
-		l=numMatch)
+	text('numMatchesText',align="left",e=1,l=numMatch)
 	
 
 def lm_DoubleClickCommand():
 	global foundTexNodeArray
-	index = textScrollList('selectionList',q = 1,sii = 1)
+	index = textScrollList('selectionList',q=1,sii=1)
 	select(foundTexNodeArray[index[0]])
 	mel.showEditor(foundTexNodeArray[index[0]])
 	
 
 def lm_DeleteKeyCommand():
-	indexArray = textScrollList('selectionList',q = 1,sii = 1)
+	indexArray = textScrollList('selectionList',q=1,sii=1)
 	for index in indexArray:
 		textScrollList('selectionList',e=1,rii=index)
 		
 	
 
 def lm_SelectAll():
-	numberOfItems = textScrollList('selectionList',q = 1,numberOfItems = 1)
+	numberOfItems = textScrollList('selectionList',q=1,numberOfItems=1)
 	i = 1
 	for i in range(i,numberOfItems+1):
 		textScrollList('selectionList',sii=i,e=1)

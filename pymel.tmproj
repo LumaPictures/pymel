@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>runtime.py</string>
+	<string>melparse.py</string>
 	<key>documents</key>
 	<array>
 		<dict>
 			<key>filename</key>
 			<string>__init__.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-05T02:04:18Z</date>
+			<date>2008-01-12T19:13:21Z</date>
 		</dict>
 		<dict>
 			<key>children</key>
@@ -19,13 +19,13 @@
 					<key>filename</key>
 					<string>factories.py</string>
 					<key>lastUsed</key>
-					<date>2008-01-04T22:41:30Z</date>
+					<date>2008-01-06T02:36:27Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>util.py</string>
 					<key>lastUsed</key>
-					<date>2008-01-04T17:44:15Z</date>
+					<date>2008-01-06T00:47:02Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
@@ -52,19 +52,33 @@
 					<key>filename</key>
 					<string>mel2py.py</string>
 					<key>lastUsed</key>
-					<date>2007-12-24T17:43:16Z</date>
+					<date>2008-01-07T09:21:25Z</date>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>melparse.py</string>
 					<key>lastUsed</key>
-					<date>2007-12-24T17:43:26Z</date>
+					<date>2008-01-12T19:28:25Z</date>
+					<key>selected</key>
+					<true/>
 				</dict>
 				<dict>
 					<key>filename</key>
 					<string>mellex.py</string>
 					<key>lastUsed</key>
-					<date>2007-12-17T05:18:33Z</date>
+					<date>2008-01-09T07:02:09Z</date>
+				</dict>
+				<dict>
+					<key>filename</key>
+					<string>misc/pymelScrollFieldReporter.py</string>
+					<key>lastUsed</key>
+					<date>2008-01-12T19:28:25Z</date>
+				</dict>
+				<dict>
+					<key>filename</key>
+					<string>misc/scriptEditorPanel.mel</string>
+					<key>lastUsed</key>
+					<date>2008-01-09T07:02:26Z</date>
 				</dict>
 			</array>
 			<key>expanded</key>
@@ -121,7 +135,7 @@
 			<key>filename</key>
 			<string>core.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-05T02:01:13Z</date>
+			<date>2008-01-06T02:45:27Z</date>
 		</dict>
 		<dict>
 			<key>filename</key>
@@ -151,25 +165,23 @@
 			<key>filename</key>
 			<string>node.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-05T01:53:35Z</date>
+			<date>2008-01-06T03:25:33Z</date>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>trees.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-05T02:04:44Z</date>
+			<date>2008-01-06T03:04:20Z</date>
 		</dict>
 		<dict>
 			<key>filename</key>
 			<string>runtime.py</string>
 			<key>lastUsed</key>
-			<date>2008-01-05T02:08:56Z</date>
-			<key>selected</key>
-			<true/>
+			<date>2008-01-07T17:05:50Z</date>
 		</dict>
 	</array>
 	<key>fileHierarchyDrawerWidth</key>
-	<integer>186</integer>
+	<integer>264</integer>
 	<key>metaData</key>
 	<dict>
 		<key>__init__.py</key>
@@ -177,28 +189,44 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>11</integer>
 				<key>line</key>
-				<integer>339</integer>
+				<integer>164</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>355</integer>
+			<integer>142</integer>
 		</dict>
 		<key>core.py</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>20</integer>
+				<integer>0</integer>
 				<key>line</key>
-				<integer>1271</integer>
+				<integer>78</integer>
 			</dict>
+			<key>columnSelection</key>
+			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>1260</integer>
+			<integer>59</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>20</integer>
+				<key>line</key>
+				<integer>83</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>78</integer>
+			</dict>
 		</dict>
 		<key>ctx.py</key>
 		<dict>
@@ -261,14 +289,14 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>27</integer>
+				<integer>3</integer>
 				<key>line</key>
-				<integer>298</integer>
+				<integer>306</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>272</integer>
+			<integer>284</integer>
 		</dict>
 		<key>io.py</key>
 		<dict>
@@ -283,6 +311,92 @@
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
+		</dict>
+		<key>mel2py.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>23</integer>
+				<key>line</key>
+				<integer>279</integer>
+			</dict>
+			<key>columnSelection</key>
+			<false/>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>263</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>2</integer>
+				<key>line</key>
+				<integer>279</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>23</integer>
+				<key>line</key>
+				<integer>279</integer>
+			</dict>
+		</dict>
+		<key>mellex.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>8</integer>
+				<key>line</key>
+				<integer>216</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>28</integer>
+		</dict>
+		<key>melparse.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>986</integer>
+		</dict>
+		<key>misc/pymelScrollFieldReporter.py</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>18</integer>
+				<key>line</key>
+				<integer>251</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>233</integer>
+		</dict>
+		<key>misc/scriptEditorPanel.mel</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>4</integer>
+				<key>line</key>
+				<integer>799</integer>
+			</dict>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>773</integer>
 		</dict>
 		<key>node.py</key>
 		<dict>
@@ -333,7 +447,7 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>22</integer>
+				<integer>10</integer>
 				<key>line</key>
 				<integer>17</integer>
 			</dict>
@@ -363,7 +477,7 @@
 				<key>column</key>
 				<integer>19</integer>
 				<key>line</key>
-				<integer>14</integer>
+				<integer>18</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
@@ -389,36 +503,41 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>2</integer>
+				<integer>44</integer>
 				<key>line</key>
-				<integer>87</integer>
+				<integer>96</integer>
 			</dict>
 			<key>columnSelection</key>
 			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>50</integer>
+			<integer>69</integer>
 			<key>selectFrom</key>
 			<dict>
 				<key>column</key>
-				<integer>45</integer>
+				<integer>33</integer>
 				<key>line</key>
-				<integer>87</integer>
+				<integer>96</integer>
 			</dict>
 			<key>selectTo</key>
 			<dict>
 				<key>column</key>
-				<integer>2</integer>
+				<integer>44</integer>
 				<key>line</key>
-				<integer>87</integer>
+				<integer>96</integer>
 			</dict>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
 		<string>__init__.py</string>
+		<string>mel2py.py</string>
+		<string>melparse.py</string>
+		<string>mellex.py</string>
 		<string>trees.py</string>
+		<string>misc/pymelScrollFieldReporter.py</string>
+		<string>misc/scriptEditorPanel.mel</string>
 		<string>epydoc.cfg</string>
 		<string>runtime.py</string>
 		<string>scene.py</string>
@@ -435,6 +554,6 @@
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{408, 127}, {1326, 865}}</string>
+	<string>{{360, 0}, {1080, 878}}</string>
 </dict>
 </plist>

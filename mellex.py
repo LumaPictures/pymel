@@ -49,7 +49,7 @@ tokens = reserved + (
 	'CAPTURE',
 
 	# Comments
-	#'COMMENT', 'COMMENT_BLOCK',
+	'COMMENT', 'COMMENT_BLOCK',
 	
 	# Ellipsis (...)
 	#'ELLIPSIS',
@@ -186,7 +186,8 @@ def t_VAR(t):
 	return t
 
 def t_ID(t):
-	r'[A-Za-z_][\w_\.:]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
+	# |path|myPrfx_1:myNode_1.myAttr_1[0]   |    words  |  ..
+	r'[A-Za-z_|][\w_\.:|]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
 	t.type = reserved_map.get(t.value,"ID")
 	return t
 

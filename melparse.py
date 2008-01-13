@@ -172,28 +172,29 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 		if tokens is None:
 			tokens = toList(t)
 		
-		type = None
+		tokType = None
 		
 		for i, tok in enumerate( tokens ) :
 			if i == 0:
 				res += tok		
 			else:
-				try:
-					if tokens[i-1].lineno != tok.lineno:
+
+				try:			
+					if matchFormatting and tokens[i-1].lineno != tok.lineno:
 						res +=  separator + '\n' + entabLines( tok )
 					else:
 						res += separator + tok
-				except:
+				except AttributeError:
+					#print tokens[i-1], type(tokens[i-1]), tok, type(tok)
 					res += separator + tok
-			
 			try:
 				if tok.type:
-					type = tok.type
+					tokType = tok.type
 					#print 'assembled', funcname, p[i], type 
 			except: pass
 
 		#res = Token( separator.join(tokens), type, t.lexer.lineno )
-		res = Token( res, type, t.lexer.lineno )
+		res = Token( res, tokType, t.lexer.lineno )
 	#res = separator.join(p[1:])
 	#
 	
@@ -1005,12 +1006,16 @@ def p_assignment_expression(t):
 	if len(t) == 4:
 		#print t[1], t[2], t[3]
 		
-		# remove array brackets
+		# remove array brackets:  string[]
 		if t[2] and t[1].endswith('[]'):
 			t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
 		
-		# fill in the append string
-		elif t[2] == '=' and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
+		# fill in the append string:  
+		#	start:		$foo[size($foo)] = $bar
+		#	stage1:		foo[len(foo)] = bar 
+		#	stage2:		foo.append(%s) = bar
+		#	stage3:		foo.append(bar)
+		elif t[2] == ' = ' and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
 			t[0] = t[1] % t[3]
 		
 
@@ -1275,7 +1280,7 @@ def p_postfix_expression_2(t):
 	
 	#t[0] = assemble(t, 'p_postfix_expression')
 	#t[0] = '[%s]' % ','.join(t[2])
-	t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ',', t[2])
+	t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ',', t[2], matchFormatting=True)
 		
 def p_postfix_expression_3(t):
 	'''postfix_expression : LSHIFT expression_list RSHIFT'''
@@ -1578,7 +1583,7 @@ def command_format(command, args, t):
 				#if len(value) > t.parser.format_options['kwargs_newline_threshhold']:
 				#	sep = ',\n\t'
 				#pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
-				value = assemble(t,'multiuse_flag', ', ', value)
+				value = assemble(t,'multiuse_flag', ', ', value, matchFormatting=True)
 				pargs.append( Token( '%s=[%s]' % (flag, value), None, flag.lineno  ) )
 			else:
 				pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
@@ -1587,7 +1592,7 @@ def command_format(command, args, t):
 		#if len(pargs) > t.parser.format_options['args_newline_threshhold']:
 		#	sep = ',\n\t'		
 		#res =  '%s(%s)' % (command, sep.join( pargs ) )
-		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs ) )
+		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs, matchFormatting=True ) )
 		
 		return res
 		

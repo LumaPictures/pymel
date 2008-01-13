@@ -25,7 +25,7 @@ except ImportError:
 	import path
 	pathClass = path.path
 
-"controls wheter functions that return dag nodes use the long name by default"
+"controls whether functions that return dag nodes use the long name by default"
 longNames = False
 
 
@@ -976,6 +976,7 @@ Modifications:
 def listAnimatable( *args, **kwargs ):
 	"""
 Modifications:
+	- returns an empty list when the result is None
 	- returns wrapped classes
 	"""
 	return map( node.Attribute, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
