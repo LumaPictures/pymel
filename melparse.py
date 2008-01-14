@@ -105,32 +105,64 @@ proc_remap = {
 		#'feof'					: lambda x, t: '%s.seek(0)' % (x[0]),
 		#'fread'				: lambda x, t: '%s.seek(0)' % (x[0]),
 		
-		'filetest'				: lambda x, t: (  (  t.parser.used_modules.add('os'),  # add os module for access()
-												{ 	'-r' : "Path(%(path)s).access(os.R_OK)",
-													'-l' : "Path(%(path)s).islink()",
-													'-w' : "Path(%(path)s).access(os.W_OK)",
-													'-x' : "Path(%(path)s).access(os.X_OK)",
-													'-f' : "Path(%(path)s).isfile()",
-													'-d' : "Path(%(path)s).isdir()",
-													'-h' : "Path(%(path)s).islink()",
-													'-f' : "Path(%(path)s).exists() and path.path('%(path)s').getsize()",
-													'-L' : "Path(%(path)s).islink()",
-													}[ x[0] ] % { 'path' :x[1] }) 	
+		
+		#'filetest'				: lambda x, t: (  (  t.parser.used_modules.add('os'),  # add os module for access()
+		#										{ 	'-r' : "Path(%(path)s).access(os.R_OK)",
+		#											'-l' : "Path(%(path)s).islink()",
+		#											'-w' : "Path(%(path)s).access(os.W_OK)",
+		#											'-x' : "Path(%(path)s).access(os.X_OK)",
+		#											'-f' : "Path(%(path)s).isfile()",
+		#											'-d' : "Path(%(path)s).isdir()",
+		#											'-h' : "Path(%(path)s).islink()",
+		#											'-f' : "Path(%(path)s).exists() and Path(%(path)s).getsize()",
+		#											'-L' : "Path(%(path)s).islink()",
+		#											}[ x[0] ] % { 'path' :x[1] }) 	
+		#										)[1], 
+		
+		'filetest'				: lambda x, t: (  (  t.parser.used_modules.update( ['os', 'os.path'] ),  # add os module for access()
+												{ 	'-r' : "os.access( %(path)s, os.R_OK)",
+													'-l' : "os.path.islink( %(path)s )",
+													'-w' : "os.access( %(path)s, os.W_OK)",
+													'-x' : "os.access( %(path)s, os.X_OK)",
+													'-f' : "os.path.isfile( %(path)s )",
+													'-d' : "os.path.isdir( %(path)s )",
+													'-h' : "os.path.islink( %(path)s )",
+													'-f' : "os.path.exists( %(path)s ) and os.path.getsize( %(path)s )", 
+													'-L' : "os.path.islink( %(path)s )",
+													}[ x[0] ] % { 'path' :x[1] } )	
 												)[1], 
+								
+		#'sysFile'				: lambda x, t: { 	'-delete'	: "Path(%(path)s).remove()",
+		#											'-del'		: "Path(%(path)s).remove()",
+		#											'-rename'	: "Path(%(path)s).move(%(param)s)",
+		#											'-ren'		: "Path(%(path)s).move(%(param)s)",
+		#											'-move'		: "Path(%(path)s).move(%(param)s)",
+		#											'-mov'		: "Path(%(path)s).move(%(param)s)",
+		#											'-copy'		: "Path(%(path)s).copy(%(param)s)",
+		#											'-cp'		: "Path(%(path)s).copy(%(param)s)",
+		#											'-makeDir'	: "Path(%(path)s).mkdir()",
+		#											'-md' 		: "Path(%(path)s).mkdir()",
+		#											'-removeEmptyDir' : "Path(%(path)s).removedirs()",
+		#											'-red' 		: "Path(%(path)s).removedirs()"
+		#											}[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }
 												
-		'sysFile'				: lambda x, t: { 	'-delete'	: "Path(%(path)s).remove()",
-													'-del'		: "Path(%(path)s).remove()",
-													'-rename'	: "Path(%(path)s).move(%(param)s)",
-													'-ren'		: "Path(%(path)s).move(%(param)s)",
-													'-move'		: "Path(%(path)s).move(%(param)s)",
-													'-mov'		: "Path(%(path)s).move(%(param)s)",
-													'-copy'		: "Path(%(path)s).copy(%(param)s)",
-													'-cp'		: "Path(%(path)s).copy(%(param)s)",
-													'-makeDir'	: "Path(%(path)s).mkdir()",
-													'-md' 		: "Path(%(path)s).mkdir()",
-													'-removeEmptyDir' : "Path(%(path)s).removedirs()",
-													'-red' 		: "Path(%(path)s).removedirs()"
-													}[ x[0] ] % { 'path' :x[-1], 'param':x[-2] }	
+
+												
+		'sysFile'				: lambda x, t: (  ( t.parser.used_modules.update( ['os', 'shutil'] ),
+												{	'-delete'	: "os.remove( %(path)s )",
+													'-del'		: "os.remove( %(path)s )",
+													'-rename'	: "os.rename( %(path)s, %(param)s )",
+													'-ren'		: "os.rename( %(path)s, %(param)s )",
+													'-move'		: "os.rename( %(path)s, %(param)s )",
+													'-mov'		: "os.rename( %(path)s, %(param)s )",
+													'-copy'		: "shutil.copy( %(path)s, %(param)s )",
+													'-cp'		: "shutil.copy( %(path)s, %(param)s )",
+													'-makeDir'	: "os.mkdir( %(path)s )",
+													'-md' 		: "os.mkdir( %(path)s ) ",
+													'-removeEmptyDir' : "os.rmdir( %(path)s )",
+													'-red' 		: "os.rmdir( %(path)s )",
+													}[ x[0] ] % { 'path' :x[-1], 'param':x[-2] } )
+												)[1]
 }
 
 global_procs = {}
@@ -291,10 +323,10 @@ def p_function_definition(t):
 	
 	t.parser.local_procs.append(t[3])
 	if t[1].startswith('global'):
-		if t.parser.curr_module in global_procs:
-			global_procs[t.parser.curr_module].add(t[3])
+		if t.parser.root_module in global_procs:
+			global_procs[t.parser.root_module].add(t[3])
 		else:
-			global_procs[t.parser.curr_module] = set([t[3]])
+			global_procs[t.parser.root_module] = set([t[3]])
 		
 	t[0] = "def %s(%s):\n%s\n" % (t[3], t[5], entabLines(t[8]) )
 	addHeldComments(t, 'func')
@@ -364,8 +396,8 @@ def p_declaration_statement(t):
 		# case the python global variable will suffice.  in other cases, we may want to retrieve a
 		# global set by maya.
 		
-		incl_reg = t.parser.format_options.get('global_var_include_regex','.*')		# if nothing set, match all
-		excl_reg = t.parser.format_options.get('global_var_exclude_regex','$')		# if nothing set, match none
+		incl_reg = t.parser.global_var_include_regex	# if nothing set, match all
+		excl_reg = t.parser.global_var_exclude_regex		# if nothing set, match none
 		if re.match(incl_reg, var) and not re.match(excl_reg, var):	
 			return True
 		else:
@@ -1405,9 +1437,9 @@ def getAllCommandFlags():
 def scriptModule( procedure ):
 	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
 	
-	# if curr_module is set to None that means we are doing a string conversion, and not a file conversion
+	# if root_module is set to None that means we are doing a string conversion, and not a file conversion
 	# we don't need to find out the current or future python module.  just use pymel.mel
-	if parser.curr_module is None:
+	if parser.root_module in [ None, '__main__']:
 		return
 	
 	global currentFiles
@@ -1686,7 +1718,8 @@ def p_empty(t):
 	t[0] = assemble(t, 'p_empty')
 
 def _error(t):
-	print "Error parsing script, attempting to read forward and restart parser"
+	if t.parser.verbose:
+		print "Error parsing script, attempting to read forward and restart parser"
 	while 1:
 		tok = yacc.token()             # Get the next token
 		if not tok or tok.type == 'RBRACE': break
@@ -1695,7 +1728,7 @@ def _error(t):
 def p_error(t):
 	if t is None:
 		raise ValueError, 'script has no contents'
-	
+
 	if t.type == 'COMMENT':
 		#print "Removing Comment", t.value
 		# Just discard the token and tell the parser it's okay.		
@@ -1717,7 +1750,8 @@ def p_error(t):
 		yacc.errok()	
 		
 	else:
-		print "Error parsing script at %s, attempting to read forward and restart parser" % t.value
+		#if t.parser.verbose:
+		#	print "Error parsing script at %s, attempting to read forward and restart parser" % t.value
 		while 1:
 			tok = yacc.token()             # Get the next token
 			if not tok or tok.type == 'RBRACE': break
@@ -1730,6 +1764,60 @@ import profile
 
 parser = yacc.yacc(method='''LALR''')
 
+class MelParser(object):
+	
+	def __init__(self, rootModule = '__main__', verbosity=0 ):
+		parser.root_module = rootModule
+		parser.local_procs = []
+		parser.used_modules = set([])
+		parser.global_vars = set([])
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		parser.verbose = verbosity
+		parser.type_map = {}
+		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
+		#parser.global_var_include_regex = '.*'
+		parser.global_var_exclude_regex = '$'
+		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+		
+	def parse(self, data):
+		data = data.encode( 'utf-8', 'ignore')
+		data = data.replace( '\r', '\n' )
+		'''
+		if verbosity == 2:	
+			lex.input(data)
+			while 1:
+				tok = lex.token()
+				if not tok: break      # No more input
+				print tok
+		'''	
+		try:
+			converted = parser.parse(data)
+		except ValueError:
+			if parser.comment_queue:
+				converted = '\n'.join(parser.comment_queue)
+			else:
+				raise ValueError
+		#except IndexError, msg:
+		#	raise ValueError, '%s: %s' % (melfile, msg)
+		#except AttributeError:
+		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
+
+	
+		(converted, parser.used_modules) = parse()
+		
+		header = ''
+		if len( parser.used_modules):
+			header += "import %s" % ','.join(list(parser.used_modules))
+			header += '\n'
+			
+		converted = header + converted
+		if verbosity:
+			print '\n\n'
+			print converted
+	
+		return converted
+	
 #profile.run("yacc.yacc(method='''LALR''')")
 
 

@@ -65,7 +65,13 @@ globalFilterFlags = {
  	'stackTrace'		: ( 'st', OpenMaya.MSyntax.kBoolean, False)
 }
 
-filterFlagNames = ['', 'suppressPrintouts','suppressInfo', 'suppressWarnings', 'suppressErrors', 'suppressResults', 'suppressStackTrace' ]
+filterFlagNames = ['', 
+				'suppressPrintouts',	#1
+				'suppressInfo', 		#2
+				'suppressWarnings', 	#3
+				'suppressErrors', 		#4
+				'suppressResults', 		#5
+				'suppressStackTrace' ]	#6
 
 messageId = 0
 messageIdSet = False
@@ -74,6 +80,7 @@ sourceType = kMel # 'mel' or 'python'
 allHistory = []
 
 callbackState = 'normal'
+
 
 class Reporter(object):
 	cmdReporter = None
@@ -110,20 +117,23 @@ class Reporter(object):
 		self.name = self.executeCommandResult( cmd )
 		self.refreshHistory()
 
+	def executeCommandOnIdle( self, cmd ):
+		global callbackState
+		if Reporter.globalFilters['echoAllCommands']:
+			callbackState = 'ignoreCommand'	
+		OpenMaya.MGlobal.executeCommandOnIdle( cmd, False )
+		
 	def executeCommand( self, cmd ):
 		global callbackState
 		if Reporter.globalFilters['echoAllCommands']:
 			callbackState = 'ignoreCommand'	
 		OpenMaya.MGlobal.executeCommand( cmd, False, False )
-		#callbackState = True
 
-	def executeCommandResult( self, cmd ):
-		
+	def executeCommandResult( self, cmd ):	
 		global callbackState
 		if Reporter.globalFilters['echoAllCommands']:
 			callbackState = 'ignoreCommand'		
 		result = OpenMaya.MGlobal.executeCommandStringResult( cmd, False, False )
-		#callbackState = True
 		return result
 				
 	def lineFilter( self, messageType, sourceType, nativeMsg, convertedMsg ):
@@ -147,19 +157,24 @@ class Reporter(object):
 		
 		cmd = 'scrollField -e -text \"%s\" "%s";' % ( output, self.name )
 		self.executeCommand( cmd )
-		
+	
 	def appendHistory(self, line ):
 		self.history.append( line )
 		output = self.lineFilter( *line )
 	
 		if output is not None:
+			global callbackState
+			
 			cmd = 'scrollField -e -insertionPosition 0 -insertText \"%s\" "%s";' % ( output, self.name )
-		
-			#outputFile = open( '/var/tmp/commandOutput', 'a')
-			#outputFile.write( cmd + '\n' )
-			#outputFile.close()
-		
-			self.executeCommand( cmd )
+			
+			# f the line is a syntax error, we have to use OnIdle or maya will crash
+			#if line[0] == OpenMaya.MCommandMessage.kError and line[1] == kMel and 'Syntax error' in line[2] : #line[2].endswith( 'Syntax error //\n'):
+			if callbackState == 'syntax_error' :
+				self.executeCommandOnIdle( cmd )			
+			else:
+				self.executeCommand( cmd )
+				
+			return
 		
 	def setFilters( self, **filters ):			
 		self.filters.update( filters )	
@@ -250,7 +265,7 @@ def cmdCallback( nativeMsg, messageType, data ):
 	global callbackState
 	
 	outputFile = open( '/var/tmp/commandOutput', 'a')
-	outputFile.write( '------\n%s %s %s\n' % (nativeMsg, messageType, callbackState)  )
+	outputFile.write( '============\n%s\n%s %s, length %s \n' % (nativeMsg, messageType, callbackState, len(nativeMsg))  )
 	outputFile.close()
 	
 	
@@ -264,23 +279,35 @@ def cmdCallback( nativeMsg, messageType, data ):
 	global sourceType
 	global allHistory
 	
+	syntaxError = False
 	convertedMsg = None
+	
+	# Command History
 	if messageType == OpenMaya.MCommandMessage.kHistory:
-		if nativeMsg.rfind(';') == len(nativeMsg)-2:
+		callbackState = 'normal'
+		#if nativeMsg.rfind(';') == len(nativeMsg)-2 : # and len(nativeMsg) >= 2:
+		if nativeMsg.endswith(';\n') : # and len(nativeMsg) >= 2:
 			sourceType = kMel
 			try:
 				convertedMsg = mel2pyStr( nativeMsg )
 			except Exception, msg:
+				syntaxError = True
 				#outputFile = open( '/var/tmp/commandOutput', 'a')
-				#outputFile.write( "failed to convert:" + nativeMsg + '\n%s' % msg )
+				#outputFile.write( "~~~~~~~~~\nfailed to convert history: %s\n" % msg )
 				#outputFile.close()
 				pass
 		else:
 			sourceType = kPython
-	elif messageType == OpenMaya.MCommandMessage.kDisplay and nativeMsg.rfind(';') == len(nativeMsg)-2:
+			
+	# Display - unaltered strings, such as that printed by the print command
+	elif messageType == OpenMaya.MCommandMessage.kDisplay and ( nativeMsg.endswith(';\n') or nativeMsg.startswith( '//' ) ):
 		try:
 			convertedMsg = mel2pyStr( nativeMsg )
-		except:pass
+		except Exception, msg:
+			#outputFile = open( '/var/tmp/commandOutput', 'a')
+			#outputFile.write( "~~~~~~~~~\nfailed to convert display: %s\n" % msg )
+			#outputFile.close()
+			pass
 	else:
 		try:
 			nativeMsg = '%s: %s' % ( {
@@ -307,16 +334,27 @@ def cmdCallback( nativeMsg, messageType, data ):
 	nativeMsg = encodeString( nativeMsg )
 	if convertedMsg is not None:
 		convertedMsg = encodeString( convertedMsg )
+	
+	outputFile = open( '/var/tmp/commandOutput', 'a')
+	outputFile.write( '---------\n%s %s\n' % ( convertedMsg, sourceType ) )
+	outputFile.close()
 		
 	line = [ messageType, sourceType, nativeMsg, convertedMsg ]
+	
+	allHistory.append( line )
+	
+	#if messageType == OpenMaya.MCommandMessage.kError : # and 'Syntax error' in nativeMsg:
+	#	return
 	
 	for reporter in reporters.values():
 		reporter.appendHistory( line )
 
-	allHistory.append( line )
+	if syntaxError:
+		callbackState = 'syntax_error'
 	
-	return
-			
+	#elif callbackState == 'syntax_error' and 'Syntax error' in nativeMsg:
+	#	callbackState = 'normal'
+	
 	#global output
 	#output += encodeString( message )
 	

@@ -128,32 +128,6 @@ for r in reserved:
 id_state = None
 suspend_depth = 0
 
-
-def delimStart():
-	global id_state
-	global suspend_depth
-	if id_state == 'command':
-		print "t_LPAREN: setting state to suspend 1"
-		id_state = 'suspend'
-		suspend_depth = 1
-	elif id_state == 'suspend':	
-		suspend_depth += 1
-		print "t_LPAREN: setting suspend depth to", suspend_depth
-
-def delimStop():
-	global id_state
-	global suspend_depth
-	if id_state == 'suspend':	
-		suspend_depth -= 1
-		if suspend_depth == 0:
-			print "t_RPAREN: setting state from suspend to command"
-			id_state = 'command'
-		#else:
-		#	print "t_RPAREN: setting suspend depth to", suspend_depth
-	# an rparen in command mode at depth 0 means an iteration loop.  end command mode
-	elif id_state == 'command' and suspend_depth == 0:
-		print "t_RPAREN: setting state from command to None"
-		id_state = None
 			
 def t_LPAREN(t):
 	r'\('
@@ -218,10 +192,16 @@ def t_COMMENT(t):
 	r'//.*'
 	#t.lineno += t.value.count('\n')
 	return t
+
+#def t_INVALID(t):
+#	r'[.~\|\'"]'
+#	# these symbols cannot be used on their own, 
+#	# without this entry, they would simply be ignored rather than raising an error
+#	return t
 	
-def t_error(t):
-	print "Illegal character %s" % repr(t.value[0])
-	t.lexer.skip(1)
+#def t_error(t):
+#	#print "Illegal character %s" % repr(t.value[0])
+#	t.lexer.skip(1)
 	
 #lexer = lex.lex(optimize=1)
 lexer = lex.lex()

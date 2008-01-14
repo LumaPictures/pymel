@@ -287,14 +287,19 @@ def mel2pyStr( data, currentModule=None, verbosity=0 ):
 		parser.comment_queue_hold = []
 		parser.verbose = verbosity
 		parser.type_map = {}
-		parser.format_options = {
-			'args_newline_threshhold' : 3,
-			'kwargs_newline_threshhold' : 3,
-			'global_var_include_regex':	'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
-			#'global_var_exclude_regex':	'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
-		}
-		
-		script = parser.parse(data)
+		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
+		#parser.global_var_include_regex = '.*'
+		parser.global_var_exclude_regex = '$'
+		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+
+		try:
+			script = parser.parse(data)
+		except ValueError:
+			if parser.comment_queue:
+				script = '\n'.join(parser.comment_queue)
+			else:
+				raise ValueError
+			
 		return (script, parser.used_modules)
 		#except IndexError, msg:
 		#	raise ValueError, '%s: %s' % (melfile, msg)
@@ -315,6 +320,10 @@ def mel2pyStr( data, currentModule=None, verbosity=0 ):
 		print converted
 
 	return converted
+
+def mel2pyStr2( data, currentModule=None, verbosity=0 ):	
+	parser = MelParser(currentModule, verbosity)
+	return parser.parse( data )
 	
 #	else:
 #		print melfile, "parser returned no results"
