@@ -471,11 +471,16 @@ added translate property to Transform class to overcome conflict with basestring
 -0.7.2-
 fixed bug in PyNode that was failing to cast Attributes to Nodes
 fixed a bug in createSurfaceShader which was failing to return the correctly renamed shadingGroup
-fixed a bug in mel2py with paths that use whitespace
-renamed Reference to FileReference
+fixed a bug in mel2py when attempting to resolve path of a mel script that uses whitespace
+fixed several minor bugs in mel2py and added many formatting improvements
+renamed Reference to FileReference to avoid conflict with node.Reference
 added listAnimatable
 added mel2pyStr for converting a string representing mel code into python
 improved mel2py formatting - now attempts to match lists and commands that span multiple lines
+fixed a bug in Transform.zeroTransformPivots (thx koreno)
+fixed a bug in Transform.centerPivots (thx koreno)
+all commands, including custom commands, are now brought into the main namespace (excepting those we *wish* to filter)
+fixed bugs in Attribute.getParent, Attribute.getChildren, Attribute.getSiblings, where results were not being returned as Attribute classes
 
  TODO: 
 	Factory:
@@ -494,12 +499,11 @@ improved mel2py formatting - now attempts to match lists and commands that span 
 	
 	For Next Release:
 	- create a feature-rich listReferences command, with flags for recursionDepth, regular expression match, return type ( list, dict, tree )  (API?)
-	- merge Reference from node-hierarchy and FileReference 
+	- create links between Reference (from node-hierarchy) and FileReference 
 	- re-write primary list commands using API
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
 	- correctly separate examples flag info when parsing docs
-	- ensure that all commands, including custom commands, are brought into the main namespace, not just cached ones (excepting those we *wish* to filter)
 	
 	For Future Release:
 	- pymel preferences for breaking or maintaining backward compatibility:
@@ -510,7 +514,7 @@ improved mel2py formatting - now attempts to match lists and commands that span 
 	- develop a way to add docs to selective objects based on cached info
 """
 
-__version__ = 0.7
+__version__ = '0.7.5'
 
 #check for the presence of an initilized Maya
 import util
