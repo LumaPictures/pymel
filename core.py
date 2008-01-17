@@ -1069,13 +1069,23 @@ Modifications
 	'clear', 'cl',
 	'flatten', 'fl'
 	]
+	
 	args = (objectSet,)
-	for flag, value in kwargs.items():
+	
+	# 	this:
+	#		sets('myShadingGroup', forceElement=1)
+	#	must be converted to:
+	#		sets(forceElement='myShadingGroup')
+		
+	for flag, value in kwargs.items():	
 		if flag in setSetFlags:
+			# move arg over to kwarg
 			if util.isIterable(value):
 				args = tuple(value)
-			else:
+			elif isinstance( value, basestring ):
 				args = (value,)
+			else:
+				args = ()
 			kwargs[flag] = objectSet
 			break
 		elif flag in setFlags:
@@ -1129,7 +1139,15 @@ Modifications
 	#print "creation"
 	return ObjectSet(cmds.sets( *elements, **kwargs ))
 	'''
-
+'''
+def delete(*args, **kwargs):
+	"""
+Modifications:
+	- if this is passed an empty list, tuple or other iterable object as the only argument, the command will no longer error
+	"""
+	if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
+		return
+'''	
 def currentTime( *args, **kwargs ):
 	"""
 Modifications:
@@ -1321,12 +1339,13 @@ class FileReference(Path):
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 def _createFunctions():
-	for funcName, data in factories.cmdlist.items():
-		if data['type'] == 'core': 
-			func = factories.functionFactory( funcName, None )
-			if func:
-				func.__module__ = __name__
-				setattr( _thisModule, funcName, func )
+	for funcName in factories.moduleCmds['core']:
+		func = factories.functionFactory( funcName, None )
+		if func:
+			func.__module__ = __name__
+			setattr( _thisModule, funcName, func )
+	for funcName in factories.getUncachedCmds():
+		setattr( _thisModule, funcName, getattr( cmds, funcName) )
 _createFunctions()
 
 #factories.createFunctions( _thisModule, None )

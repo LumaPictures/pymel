@@ -481,6 +481,7 @@ fixed a bug in Transform.zeroTransformPivots (thx koreno)
 fixed a bug in Transform.centerPivots (thx koreno)
 all commands, including custom commands, are now brought into the main namespace (excepting those we *wish* to filter)
 fixed bugs in Attribute.getParent, Attribute.getChildren, Attribute.getSiblings, where results were not being returned as Attribute classes
+fixed bug in Constraint.getWeight, Constraint.setWeight, and all constraint nodes that inherit from it.
 
  TODO: 
 	Factory:

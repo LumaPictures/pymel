@@ -172,7 +172,8 @@ class TextScrollList(UI):
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 def _createClassesAndFunctions():
-	for classname in factories.uiClassList:
+	for funcName in factories.moduleCmds['ui']:
+		classname = util.capitalize(funcName)
 		if not hasattr( _thisModule, classname ):
 			cls = factories.metaNode(classname, (UI,), {})
 			cls.__module__ = __name__
@@ -180,8 +181,8 @@ def _createClassesAndFunctions():
 		else:
 			cls = getattr( _thisModule, classname )
 	
-		funcName = util.uncapitalize( classname )
-		func = factories.functionFactory( funcName, cls )
+		#funcName = util.uncapitalize( classname )
+		func = factories.functionFactory( funcName, cls, _thisModule )
 		if func:
 			func.__module__ = __name__
 			setattr( _thisModule, funcName, func )

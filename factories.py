@@ -2,6 +2,7 @@ import path, util, sys, os, inspect, pickle, re, types
 from trees import *
 #from networkx.tree import *
 from HTMLParser import HTMLParser
+from operator import itemgetter
 try:
 	import maya.cmds as cmds
 	import maya.mel as mm
@@ -280,7 +281,7 @@ def buildMayaCmdsArgList() :
 	try :
 		file = newPath.open(mode='rb')
 		try :
-			cmdlist,nodeHierarchy,uiClassList = pickle.load(file)
+			cmdlist,nodeHierarchy,moduleCmds = pickle.load(file)
 			nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		except :
 			print "Unable to load the list of Maya commands from '"+file.name+"'"
@@ -296,9 +297,10 @@ def buildMayaCmdsArgList() :
 		nodeHierarchy = _getNodeHierarchy(ver)
 		nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		uiClassList = _getUICommands()
-		tmpCmdlist = dict( inspect.getmembers(cmds, callable) )
+		tmpCmdlist = inspect.getmembers(cmds, callable)
 		cmdlist = {}
-		for funcName in tmpCmdlist :	
+		moduleCmds = util.defaultdict(list)
+		for funcName, data in tmpCmdlist :	
 
 			# in version 2008, maya.cmds contains capitalized versions of many commands, which will conflict with our classes 
 			#if funcName[0].isupper() and util.uncapitalize(funcName) in tmpCmdlist:
@@ -320,7 +322,10 @@ def buildMayaCmdsArgList() :
 				module = 'runtime'
 			else:
 				module = 'core'
-				
+			
+			if module:
+				moduleCmds[module].append(funcName)
+			
 			cmdlist[funcName] = { 'type': module, 'flags': args, 'description' : description }
 			
 			'''
@@ -339,12 +344,12 @@ def buildMayaCmdsArgList() :
 					cmdlist[funcName] = (funcName, args, () )
 			'''
 		
-		uiClassList = map( util.capitalize, uiClassList )
+		#uiClassList = map( util.capitalize, uiClassList )
 				
 		try :
 			file = newPath.open(mode='wb')
 			try :
-				pickle.dump( (cmdlist,nodeHierarchy,uiClassList),  file, 2)
+				pickle.dump( (cmdlist,nodeHierarchy,moduleCmds),  file, 2)
 				print "done"
 			except:
 				print "Unable to write the list of Maya commands to '"+file.name+"'"
@@ -353,13 +358,17 @@ def buildMayaCmdsArgList() :
 			print "Unable to open '"+newPath+"' for writing"
 
 	
-	return (cmdlist,nodeHierarchyTree,uiClassList)
-					
+	return (cmdlist,nodeHierarchyTree,moduleCmds)
+
+
+				
 #---------------------------------------------------------------
-
-
 		
-cmdlist, nodeHierarchy, uiClassList = buildMayaCmdsArgList()
+cmdlist, nodeHierarchy, moduleCmds = buildMayaCmdsArgList()
+
+
+def getUncachedCmds():
+	return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
 
 #-----------------------
 # Function Factory
@@ -397,21 +406,26 @@ def _getCommandFlags(flagDocs):
 
 _thisModule = __import__('pymel.core', globals(), locals(), [''])		
 	
-def functionFactory( funcName, returnFunc ):
+def functionFactory( funcName, returnFunc, module=None ):
 	"""create a new function, apply the given returnFunc to the results (if any), 
 	and add to the module given by 'moduleName'.  Use pre-parsed command documentation
 	to add to __doc__ strings for the command."""
 	
+	if module is None:
+		module = _thisModule
 	try:
-		inFunc = getattr(_thisModule, funcName)			
+		inFunc = getattr(module, funcName)			
 	except AttributeError:
 		try:
 			inFunc = getattr(cmds,funcName)
 		except AttributeError:
 			return
 
-	cmdInfo = cmdlist[funcName]
-
+	try:
+		cmdInfo = cmdlist[funcName]
+	except KeyError:
+		return
+		
 	# if the function is not a builtin and there's no return command to map, just add docs
 	if type(inFunc) == types.FunctionType and returnFunc is None:
 		_addDocs( inFunc, inFunc, cmdInfo )
@@ -420,6 +434,10 @@ def functionFactory( funcName, returnFunc ):
 	elif type(inFunc) == types.BuiltinFunctionType or ( type(inFunc) == types.FunctionType and returnFunc ):					
 	
 		commandFlags = _getCommandFlags(cmdInfo['flags'])
+		
+		#----------------------------		
+		# UI commands with callbacks
+		#----------------------------
 		if commandFlags:
 			#print inFunc.__name__, commandFlags		
 			def newFunc( *args, **kwargs):
@@ -451,7 +469,10 @@ def functionFactory( funcName, returnFunc ):
 							res = returnFunc( res )
 						except: pass
 				return res
-	
+			
+		#------------------------------------------------------------		
+		# commands whose creation/edit results need post-processing
+		#------------------------------------------------------------
 		elif returnFunc:
 			def newFunc( *args, **kwargs):
 				res = apply( inFunc, args, kwargs )
@@ -466,6 +487,9 @@ def functionFactory( funcName, returnFunc ):
 							res = returnFunc( res )
 						except: pass
 				return res
+		#-----------
+		# Others
+		#-----------
 		else:
 			def newFunc(*args, **kwargs): return apply(inFunc, args, kwargs)
 	
@@ -476,14 +500,14 @@ def functionFactory( funcName, returnFunc ):
 	#else:
 	#	print "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
 			
-def makeCreateFlagCmd( inFunc, flag, docstring='' ):
+def _makeCreateFlagCmd( inFunc, flag, docstring='' ):
 	def f(self): return inFunc( self,  **{'edit':True, flag:True} )
 	f.__name__ = flag
 	if docstring:
 		f.__doc__ = docstring
 	return f
 
-def makeQueryFlagCmd( name, inFunc, flag, docstring='' ):
+def _makeQueryFlagCmd( name, inFunc, flag, docstring='' ):
 	#name = 'get' + flag[0].upper() + flag[1:]
 	def f(self, **kwargs):
 		kwargs['query']=True
@@ -495,7 +519,7 @@ def makeQueryFlagCmd( name, inFunc, flag, docstring='' ):
 		f.__doc__ = docstring
 	return f
 
-def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
+def _makeEditFlagCmd( name, inFunc, flag, docstring='' ):
 	#name = 'set' + flag[0].upper() + flag[1:]	
 	def f(self, val, **kwargs): 
 		kwargs['edit']=True
@@ -521,14 +545,15 @@ def createFunctions( module, returnFunc ):
 			if func:
 				func.__module__ = module.__name__
 				setattr( module, funcName, func )
-	
+
+# overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
+overrideMethods = {}
+overrideMethods['Constraint'] = ('getWeight', 'setWeight')
+
 class metaNode(type) :
 	"""
-	A metaclass for creating classes based on node type.  If no bases are passed, the superclass is determined
-	from the node hierarchy parsed from the maya docs.  All non-existent superclasses will be created prior to
-	creating the new class.  Methods will be added to the new classes based on info parsed from the docs on
-	their command counterparts.
-
+	A metaclass for creating classes based on node type.  Methods will be added to the new classes 
+	based on info parsed from the docs on their command counterparts.
 	"""
 
 	
@@ -556,31 +581,35 @@ class metaNode(type) :
 				if flag in ['query', 'edit']:
 					continue
 				modes = flagInfo['modes']
+				
+				# query command
 				if 'query' in modes:
 					methodName = 'get' + util.capitalize(flag)
 					if methodName not in classdict:
-						classdict[methodName] = makeQueryFlagCmd( methodName, func, 
+						if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+							classdict[methodName] = _makeQueryFlagCmd( methodName, func, 
 								flag, flagInfo['docstring'] )
-
-				# edit command: if there is a corresponding query we use the 'set' prefix. 		
-				if 'edit' in modes and 'query' in modes:
-					methodName = 'set' + util.capitalize(flag)
-					if methodName not in classdict:
-						classdict[methodName] = makeEditFlagCmd( methodName, func, 
-								flag, flagInfo['docstring'] )
+						#else: print "%s: skipping %s" % ( classname, methodName )
 				
-				# edit command: if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+				# edit command: 
 				elif 'edit' in modes:
-					methodName = flag
+					# if there is a corresponding query we use the 'set' prefix. 
+					if 'query' in modes:
+						methodName = 'set' + util.capitalize(flag)
+					#if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+					else:
+						methodName = flag
+						
 					if methodName not in classdict:
-						classdict[methodName] = makeEditFlagCmd( methodName, func,
+						if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+							classdict[methodName] = _makeEditFlagCmd( methodName, func,
 						 		flag, flagInfo['docstring'] )
 					
 		except KeyError: # on cmdlist[nodeType]
 			pass
 			
 		return super(metaNode, cls).__new__(cls, classname, bases, classdict)
-				
+
 def makeDocs( mayaVersion='8.5' ):
 	"internal use only"
 	

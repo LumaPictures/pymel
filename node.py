@@ -51,13 +51,75 @@ Maya Bug Fix:
 		res = PyNode(res)
 	return res
 
+def _constraint( func ):
+
+	def constraint(*args, **kwargs):
+		"""
+Maya Bug Fix:
+	- when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
+Modifications:
+	- added new syntax for querying the weight of a target object, by passing the constraint first::
+		aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
+		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
+		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
+		"""
+		if kwargs.get( 'query', kwargs.get('q', False) ) :
+			attrs = [
+			'upVector', 'u',
+			'worldUpVector', 'wu',
+			'aimVector', 'a' ]
+			
+			for attr in attrs:
+				if attr in kwargs:
+					return Vector( getAttr(args[0] + "." + attr ) )
+					
+			
+		if len(args)==1:
+			
+			try:		
+				# this will cause a KeyError if neither flag has been set. this quickly gets us out of if section if
+				# we're not concerned with weights
+				targetObjects = kwargs.get( 'weight', kwargs['w'] ) 
+				constraint = args[0]
+				if 'constraint' in cmds.nodeType( constraint, inherited=1 ):
+					print constraint
+					if not util.isIterable( targetObjects ):
+						targetObjects = [targetObjects]
+					elif not targetObjects:
+						targetObjects = func( constraint, q=1, targetList=1 )
+	
+					constraintObj = cmds.listConnections( constraint + '.constraintParentInverseMatrix', s=1, d=0 )[0]	
+					args = targetObjects + [constraintObj]
+					kwargs.pop('w',None)
+					kwargs['weight'] = True
+			except: pass
+				
+		res = func(*args, **kwargs)
+		return res
+	
+	constraint.__name__ = func.__name__
+	return constraint
+
+#aimConstraint = _constraint( cmds.aimConstraint )
+#geometryConstraint = _constraint( cmds.geometryConstraint )
+#normalConstraint = _constraint( cmds.normalConstraint )
+#orientConstraint = _constraint( cmds.orientConstraint )
+#pointConstraint = _constraint( cmds.pointConstraint )
+#scaleConstraint = _constraint( cmds.scaleConstraint )
+
+
 def aimConstraint(*args, **kwargs):
 	"""
 Maya Bug Fix:
 	- when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
+Modifications:
+	- added new syntax for querying the weight of a target object, by passing the constraint first::
+		aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
+		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
+		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
 	"""
-	if 'query' in kwargs or 'q' in kwargs:
-		
+	
+	if kwargs.get( 'query', kwargs.get('q', False) ) :
 		attrs = [
 		'upVector', 'u',
 		'worldUpVector', 'wu',
@@ -67,14 +129,30 @@ Maya Bug Fix:
 			if attr in kwargs:
 				return Vector( getAttr(args[0] + "." + attr ) )
 				
+		
+	if len(args)==1:
+		
+		try:		
+			# this will cause a KeyError if neither flag has been set. this quickly gets us out of if section if
+			# we're not concerned with weights
+			targetObjects = kwargs.get( 'weight', kwargs['w'] ) 
+			constraint = args[0]
+			if 'constraint' in cmds.nodeType( constraint, inherited=1 ):
+				print constraint
+				if not util.isIterable( targetObjects ):
+					targetObjects = [targetObjects]
+				elif not targetObjects:
+					targetObjects = cmds.aimConstraint( constraint, q=1, targetList=1 )
+
+				constraintObj = cmds.listConnections( constraint + '.constraintParentInverseMatrix', s=1, d=0 )[0]	
+				args = targetObjects + [constraintObj]
+				kwargs.pop('w',None)
+				kwargs['weight'] = True
+		except: pass
 			
 	res = cmds.aimConstraint(*args, **kwargs)
-	
-	if res and 'query' not in kwargs and 'q' not in kwargs:
-		try:
-			res = PyNode( res[0] )
-		except: pass
 	return res
+
 
 def normalConstraint(*args, **kwargs):
 	"""
@@ -94,12 +172,8 @@ Maya Bug Fix:
 				
 			
 	res = cmds.normalConstraint(*args, **kwargs)
-	
-	if res and 'query' not in kwargs and 'q' not in kwargs:
-		try:
-			res = PyNode( res[0] )
-		except: pass
 	return res
+
 
 def pointLight(*args,**kwargs):
 	"""
@@ -581,6 +655,10 @@ class Attribute(_BaseObj):
 
 	node = plugNode
 	
+	def nodeName( self ):
+		'basename'
+		return self.split('|')[-1]
+	
 	def item(self):
 		try: 
 			return int(Attribute.attrItemReg.match(self).group(1))
@@ -942,17 +1020,19 @@ class Attribute(_BaseObj):
 
 	def getChildren(self):
 		"""attributeQuery -listChildren"""
-		res = cmds.attributeQuery(self.plugAttr(), node=self.node(), listChildren=True)
-		if res is None:
-			return []
-		return res
+		return map( 
+			lambda x: Attribute( self.node() + '.' + x ), 
+			util.listForNone( cmds.attributeQuery(self.plugAttr(), node=self.node(), listChildren=True) )
+				)
+
 
 	def getSiblings(self):
 		"""attributeQuery -listSiblings"""
-		res = cmds.attributeQuery(self.plugAttr(), node=self.node(), listSiblings=True)
-		if res is None:
-			return []
-		return res
+		return map( 
+			lambda x: Attribute( self.node() + '.' + x ), 
+			util.listForNone( cmds.attributeQuery(self.plugAttr(), node=self.node(), listSiblings=True) )
+				)
+
 		
 	def getParent(self):
 		"""attributeQuery -listParent"""	
@@ -960,7 +1040,7 @@ class Attribute(_BaseObj):
 		if self.count('.') > 1:
 			return Attribute('.'.join(self.split('.')[:-1]))
 		try:
-			return cmds.attributeQuery(self.plugAttr(), node=self.node(), listParent=True)[0]
+			return Attribute( self.node() + '.' + cmds.attributeQuery(self.plugAttr(), node=self.node(), listParent=True)[0] )
 		except TypeError:
 			return None
 	
@@ -1277,7 +1357,7 @@ class DagNode(Entity):
 
 	def nodeName( self ):
 		'basename'
-		return self.__class__( self.split('|')[-1] )
+		return self.split('|')[-1]
 
 		
 	#--------------------------
@@ -1614,14 +1694,14 @@ class Transform(DagNode):
 	def getBoundingBoxMax(self, invisible=False):
 		return self.getBoundingBox(invisible)[1]	
 			
-	def centerPivots(self):
+	def centerPivots(self, **kwargs):
 		"""xform -centerPivots"""
 		kwargs['centerPivots'] = True
 		cmds.xform( self, **kwargs )
 		
-	def zeroTransformPivots(self):
+	def zeroTransformPivots(self, **kwargs):
 		"""xform -zeroTransformPivots"""
-		kwargs['centerPivots'] = True
+		kwargs['zeroTransformPivots'] = True
 		cmds.xform( self, **kwargs )		
 	
 	
@@ -1632,8 +1712,8 @@ class Constraint(Transform):
 			targetObjects = self.getTargetList() 
 		
 		constraintObj = self.constraintParentInverseMatrix.inputs()[0]	
-		targetObjects = list(targetObjects) + [constraintObj]
-		return inFunc(  *targetObjects, **{'edit':True, 'weight':weight} )
+		args = list(targetObjects) + [constraintObj]
+		return inFunc(  *args, **{'edit':True, 'weight':weight} )
 		
 	def getWeight( self, *targetObjects ):
 		inFunc = getattr( cmds, self.type() )
@@ -1641,8 +1721,8 @@ class Constraint(Transform):
 			targetObjects = self.getTargetList() 
 		
 		constraintObj = self.constraintParentInverseMatrix.inputs()[0]	
-		targetObjects = list(targetObjects) + [constraintObj]
-		return inFunc(  *targetObjects, **{'query':True, 'weight':True} )
+		args = list(targetObjects) + [constraintObj]
+		return inFunc(  *args, **{'query':True, 'weight':True} )
 
 class GeometryShape(DagNode): pass
 class DeformableShape(GeometryShape): pass
@@ -2074,14 +2154,126 @@ def PyNode(strObj, nodeType=None):
 
 	return DependNode(strObj)
 
-def _createFunctions():
-	for funcName, data in factories.cmdlist.items():
-		if data['type'] == 'node':
-			func = factories.functionFactory( funcName, PyNode )
-			func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
-			if func:
-				func.__module__ = __name__
-				setattr( _thisModule, funcName, func )
-_createFunctions()
 
+def testNodeCmds(verbose=False):
+
+	emptyFunctions = []
+	
+	for funcName in factories.moduleCmds['node']:
+		print funcName.center( 50, '=')
+		
+		if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
+			print "skipping"
+			continue
+		
+		
+		
+		try:
+			func = getattr(_thisModule, funcName)
+		except AttributeError:
+			continue
+			
+		try:
+			cmds.select(cl=1)
+			
+			if funcName.endswith( 'onstraint'):
+				s = cmds.polySphere()[0]
+				c = cmds.polyCube()[0]
+				obj = func(s,c)
+			else:
+				obj = func()
+				if obj is None:
+					emptyFunctions.append( funcName )
+					raise ValueError, "Returned object is None"
+			
+		except (TypeError,RuntimeError, ValueError), msg:
+			print "ERROR: failed creation:", msg
+
+		else:
+			#(func, args, data) = cmdList[funcName]	
+			#(usePyNode, baseClsName, nodeName)
+			args = factories.cmdlist[funcName]['flags']
+
+			if isinstance(obj, list):
+				print "returns list"
+				obj = obj[-1]
+
+			for flag, flagInfo in args.items():			
+				if flag in ['query', 'edit']:
+					continue
+				modes = flagInfo['modes']
+			
+				# QUERY
+				val = None
+				if 'query' in modes:
+					cmd = "%s('%s', query=True, %s=True)" % (func.__name__, obj,  flag)
+					try:
+						val = func( obj, **{'query':True, flag:True} )
+						#print val
+						if verbose:
+							print cmd
+							print "\tsucceeded: %s" % val
+					except TypeError, msg:							
+						if str(msg).startswith( 'Invalid flag' ):
+							factories.cmdlist[funcName]['flags'].pop(flag,None)
+						#else:
+						print cmd
+						print "\t", msg
+						val = None
+					except RuntimeError, msg:
+						print cmd
+						print "\t", msg	
+						val = None
+						
+				# EDIT
+				if 'edit' in modes:
+					try:	
+						if val is None:
+							argMap = { 
+								'boolean'	 	: True,
+								'int'			: 0,
+								'float'			: 0.0,
+								'linear'		: 0.0,
+								'double'		: 0.0,
+								'angle'			: 0,
+								'string' :		'persp'
+							}
+							
+							argtype = flagInfo['argtype']
+							if '[' in argtype:
+								val = []
+								for typ in argtype.strip('[]').split(','):
+									val.append( argMap[typ.strip()] )
+							else:
+								val = argMap[argtype]	
+												
+						cmd =  "%s('%s', edit=True, %s=%s)" % (func.__name__, obj,  flag, val)
+						val = func( obj, **{'edit':True, flag:val} )
+						if verbose:
+							print cmd
+							print "\tsucceeded: %s" % val
+						#print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
+					except TypeError, msg:														
+						if str(msg).startswith( 'Invalid flag' ):
+							factories.cmdlist[funcName]['flags'].pop(flag,None)
+						#else:
+						print cmd
+						print "\t", msg 
+					except RuntimeError, msg:
+						print cmd
+						print "\t", msg	
+					except KeyError:
+						print "UNKNOWN ARG:", flagInfo['argtype']	
+	
+	print "done"
+	print emptyFunctions
+
+def _createFunctions():
+	for funcName in factories.moduleCmds['node']:
+		func = factories.functionFactory( funcName, PyNode, _thisModule )
+		func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
+		if func:
+			func.__module__ = __name__
+			setattr( _thisModule, funcName, func )
+_createFunctions()
 #factories.createFunctions( _thisModule, PyNode )
