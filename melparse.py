@@ -24,7 +24,8 @@ class Token(str):
 		self.type = type
 		self.lineno = lineno
 		return self
-
+	def __getslice__(self, start, end):
+		return Token( str.__getslice__(self, start, end), self.type, self.lineno )
 
 def substring(x, t):
 	"""convert:
@@ -78,7 +79,7 @@ proc_remap = {
 		'tolower'				: lambda x, t: '%s.lower()' 		% (x[0]),
 		'toupper'				: lambda x, t: '%s.upper()' 		% (x[0]),
 		'substring'				: substring,
-
+		'substitute'			: lambda x, t: '%s.replace(%s,%s)' 		% (x[1],x[0],x[2]),
 		# misc. keywords
 		'size' 					: lambda x, t: 'len(%s)' 			% (', '.join(x)),				
 		'print'					: lambda x, t: 'print %s' 			% (x[0]),
@@ -572,10 +573,10 @@ def p_statement(t):
 
 	
 # labeled-statement:
-def REMOVED_labeled_statement_1(t):
-	'''labeled_statement : ID COLON statement'''
-	# N/A ?
-	t[0] = assemble(t, 'p_labeled_statement_1')
+#def REMOVED_labeled_statement_1(t):
+#	'''labeled_statement : ID COLON statement'''
+#	# N/A ?
+#	t[0] = assemble(t, 'p_labeled_statement_1')
 
 
 
@@ -588,16 +589,16 @@ def p_labeled_statement_list(t):
 	else:
 		t[0] = t[1] + [t[2]]
 		
-def REMOVED_labeled_statement_2(t):
-	'''labeled_statement : CASE constant_expression COLON statement_list_opt'''
-	#t[0] = assemble(t, 'p_labeled_statement_2')
-	t[0] = ['case %s == ' + t[2] + ':\n'] + t[4]
+#def REMOVED_labeled_statement_2(t):
+#	'''labeled_statement : CASE constant_expression COLON statement_list_opt'''
+#	#t[0] = assemble(t, 'p_labeled_statement_2')
+#	t[0] = ['case %s == ' + t[2] + ':\n'] + t[4]
 
-def REMOVED_labeled_statement_3(t):
-	'''labeled_statement : DEFAULT COLON statement_list'''
-	#t[0] = assemble(t, 'p_labeled_statement_3')
-	
-	t[0] = ['else:\n'] + t[3] 
+#def REMOVED_labeled_statement_3(t):
+#	'''labeled_statement : DEFAULT COLON statement_list'''
+#	#t[0] = assemble(t, 'p_labeled_statement_3')
+#	
+#	t[0] = ['else:\n'] + t[3] 
 		
 def p_labeled_statement_2(t):
 	'''labeled_statement : CASE constant_expression COLON statement_list_opt'''
@@ -779,42 +780,44 @@ def p_selection_statement_3(t):
 	#print t[0]
 
 	addHeldComments(t, 'switch')
-	
-def REMOVED_selection_statement_3(t):
-	'''selection_statement : SWITCH LPAREN expression RPAREN add_comment LBRACE labeled_statement_list RBRACE'''
-	#t[0] = assemble(t, 'p_selection_statement_3')
-		
-	cases = t[7]  # a 2d list: a list of cases, each with a list of lines
-	#cases[1:-1]:
-	t[0] = ''
-	#print cases
-	for i in range(1,len(cases)):
-		# if previous block fell through
-		if cases[i-1][2]:
-			func_name = 'switch_%s_%s()' % (t[3], i+1)
-			if cases[i][0] is None:
-				func_name = 'switch_%s_default()' % (t[3])
-				
-			t[0] += 'def %s:\n%s' % (func_name, entabLines(cases[i][1])) 
-			cases[i][1] = func_name + '\n'
-			
-	for i, (condition, x, x) in enumerate(cases):
-		if condition:
-			if i == 0:
-				t[0] += 'if %s == %s:\n' % (t[3], condition)
-			else:
-				t[0] += 'elif %s == %s:\n' % (t[3], condition)
-		else:
-			t[0] += 'else:\n'
-			
-		for (x, block, fallthrough) in cases[i:]:	
-			t[0] += entabLines(block)
-			if not fallthrough:
-				break
-				
-	print t[0]
 
-	addHeldComments(t, 'switch')
+
+#def REMOVED_selection_statement_3(t):
+#	'''selection_statement : SWITCH LPAREN expression RPAREN add_comment LBRACE labeled_statement_list RBRACE'''
+#	#t[0] = assemble(t, 'p_selection_statement_3')
+#		
+#	cases = t[7]  # a 2d list: a list of cases, each with a list of lines
+#	#cases[1:-1]:
+#	t[0] = ''
+#	#print cases
+#	for i in range(1,len(cases)):
+#		# if previous block fell through
+#		if cases[i-1][2]:
+#			func_name = 'switch_%s_%s()' % (t[3], i+1)
+#			if cases[i][0] is None:
+#				func_name = 'switch_%s_default()' % (t[3])
+#				
+#			t[0] += 'def %s:\n%s' % (func_name, entabLines(cases[i][1])) 
+#			cases[i][1] = func_name + '\n'
+#			
+#	for i, (condition, x, x) in enumerate(cases):
+#		if condition:
+#			if i == 0:
+#				t[0] += 'if %s == %s:\n' % (t[3], condition)
+#			else:
+#				t[0] += 'elif %s == %s:\n' % (t[3], condition)
+#		else:
+#			t[0] += 'else:\n'
+#			
+#		for (x, block, fallthrough) in cases[i:]:	
+#			t[0] += entabLines(block)
+#			if not fallthrough:
+#				break
+#				
+#	print t[0]
+#
+#	addHeldComments(t, 'switch')
+
 		
 # iteration_statement:
 def p_iteration_statement_1(t):
@@ -1532,7 +1535,7 @@ def command_format(command, args, t):
 				(numArgs, commandFlag) = flags[ token ]
 				
 				# remove dash (-) before flag
-				token = Token( token[1:], token.type, token.lineno )
+				token = token[1:]
 				#print 'new flag', token, numArgs
 							
 				if numArgs == 0 or queryMode:
@@ -1766,7 +1769,7 @@ parser = yacc.yacc(method='''LALR''')
 
 class MelParser(object):
 	
-	def __init__(self, rootModule = '__main__', verbosity=0 ):
+	def __init__(self, rootModule = None, verbosity=0 ):
 		parser.root_module = rootModule
 		parser.local_procs = []
 		parser.used_modules = set([])
@@ -1802,9 +1805,6 @@ class MelParser(object):
 		#	raise ValueError, '%s: %s' % (melfile, msg)
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
-
-	
-		(converted, parser.used_modules) = parse()
 		
 		header = ''
 		if len( parser.used_modules):
@@ -1812,7 +1812,7 @@ class MelParser(object):
 			header += '\n'
 			
 		converted = header + converted
-		if verbosity:
+		if parser.verbose:
 			print '\n\n'
 			print converted
 	

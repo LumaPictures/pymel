@@ -2616,7 +2616,8 @@ addScriptEditorPanel (string $whichPanel)
 
 	{
 		// build the panels first
-		$gCommandLayout = `paneLayout -configuration "horizontal3"`;
+		$gCommandLayout = `paneLayout -configuration "horizontal2"`;
+		//Œ$gCommandLayout = `paneLayout -configuration "horizontal3"`;
 			$gCommandReporter = `pymelScrollFieldReporter`;
 			//pymelScrollFieldReporter -e -receiveFocusCommand ("setLastFocusedCommandReporter " + $gCommandReporter) $gCommandReporter;	
 				$gCommandPopupMenus[size($gCommandPopupMenus)] = `popupMenu -markingMenu true -postMenuCommand "verifyCommandPopupMenus"`;

@@ -266,7 +266,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	#print global_procs
 	pyfile.write_bytes(converted)
 	
-def mel2pyStr( data, currentModule=None, verbosity=0 ):		
+def mel2pyStrOLD( data, currentModule=None, verbosity=0 ):		
 	#data = unicode( data, errors='ignore' )
 	data = data.encode( 'utf-8', 'ignore')
 	data = data.replace( '\r', '\n' )
@@ -279,7 +279,7 @@ def mel2pyStr( data, currentModule=None, verbosity=0 ):
 
 	def parse():
 		#try:
-		parser.curr_module = currentModule
+		parser.root_module = currentModule
 		parser.local_procs = []
 		parser.used_modules = set([])
 		parser.global_vars = set([])
@@ -321,9 +321,9 @@ def mel2pyStr( data, currentModule=None, verbosity=0 ):
 
 	return converted
 
-def mel2pyStr2( data, currentModule=None, verbosity=0 ):	
-	parser = MelParser(currentModule, verbosity)
-	return parser.parse( data )
+def mel2pyStr( data, currentModule=None, verbosity=0 ):	
+	mparser = MelParser(currentModule, verbosity)
+	return mparser.parse( data )
 	
 #	else:
 #		print melfile, "parser returned no results"

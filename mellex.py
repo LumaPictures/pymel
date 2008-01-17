@@ -160,8 +160,12 @@ def t_VAR(t):
 	return t
 
 def t_ID(t):
-	# |path|myPrfx_1:myNode_1.myAttr_1[0]   |    words  |  ..
-	r'[A-Za-z_|][\w_\.:|]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
+	# Starts with a letter or a pipe
+	#
+	#
+	# |path|myPrfx_1:myNode_1.myAttr_1[0].subAttr   or  ..
+	r'[A-Za-z_|](?:[\w_\.:|]|(?:\[\d+\]))*|\.\.'
+	#r'[A-Za-z_|][\w_\.:|]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
 	t.type = reserved_map.get(t.value,"ID")
 	return t
 
@@ -175,6 +179,7 @@ t_FCONST = r'((\d+)?(\.\d+)(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?'
 
 # String literal
 t_SCONST = r'\"([^\\\n]|(\\.))*?\"'
+#t_SCONST = '\"([^\n]|\r)*\"'
 
 # Comments
 def t_COMMENT_BLOCK(t):

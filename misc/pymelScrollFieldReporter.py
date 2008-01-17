@@ -110,9 +110,9 @@ class Reporter(object):
 		}
 		
 		self.filters.update( kwargs )
-		
+		self.bufferLength = 0
 		global allHistory
-		self.history = allHistory			
+		self.history = allHistory[:]		
 		cmd = 'scrollField -wordWrap false -editable false "%s"' % self.name
 		self.name = self.executeCommandResult( cmd )
 		self.refreshHistory()
@@ -144,7 +144,7 @@ class Reporter(object):
 		#outputFile.close()
 				
 		if (not filterSourceType or filterSourceType != sourceType) and not self.filters.get( filterFlagNames[messageType], False ): 
-			if self.filters['convertToPython']and convertedMsg is not None:
+			if self.filters['convertToPython'] and convertedMsg is not None:
 				return convertedMsg
 			return nativeMsg
 		
@@ -169,7 +169,7 @@ class Reporter(object):
 			
 			# f the line is a syntax error, we have to use OnIdle or maya will crash
 			#if line[0] == OpenMaya.MCommandMessage.kError and line[1] == kMel and 'Syntax error' in line[2] : #line[2].endswith( 'Syntax error //\n'):
-			if callbackState == 'syntax_error' :
+			if callbackState == 'syntax_error' or ( line[0] == OpenMaya.MCommandMessage.kWarning and line[1] == kMel ):
 				self.executeCommandOnIdle( cmd )			
 			else:
 				self.executeCommand( cmd )
@@ -222,8 +222,10 @@ class Reporter(object):
 		Reporter.cmdReporter = cmdReporter
 		
 	def clear(self):
+		self.history = []
 		cmd = 'scrollField -e -clear "%s";' % ( self.name )
 		self.executeCommand( cmd )
+		
 
 	def text(self, text):
 		cmd = 'scrollField -e -text "%s" "%s";' % ( text, self.name )
@@ -326,10 +328,6 @@ def cmdCallback( nativeMsg, messageType, data ):
 				
 		except KeyError:
 			pass
-	
-	#outputFile = open( '/var/tmp/commandOutput', 'a', "utf-8")
-	#outputFile.write( '------\n%s %s %s\n' % (nativeMsg, messageType, sourceType)  )
-	#outputFile.close()
 					
 	nativeMsg = encodeString( nativeMsg )
 	if convertedMsg is not None:
