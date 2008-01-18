@@ -832,7 +832,79 @@ def p_iteration_statement_1(t):
 def p_iteration_statement_2(t):
 	'''iteration_statement : FOR LPAREN expression_list_opt SEMI expression_list_opt SEMI expression_list_opt RPAREN add_comment statement '''
 	#t[0] = assemble(t, 'p_iteration_statement_2')
-		
+
+	"""	
+	=============================================
+	RANGE : specific case, where only 1 cond.
+	=============================================
+	init   >=1
+	cond   = 1
+	update >=1
+	
+	other requirements:
+	1) the iterator must exist alone on one
+	side of the	conditional expression.
+	2) the iterator can appear only once in the 
+	update expression	
+	---------------------------------------------
+	solution:
+		add extra inits before beginning of loop
+		add extra updates to end of each loop
+	---------------------------------------------
+	
+	int $i;
+	for( $i=0, int j=0; $i<10; $i++, $j++) print $i;
+	
+	
+	
+	i = 0
+	j = 0
+	for i in range(0,10):
+		print i
+		j+=1
+	
+	=============================================
+	WHILE : all others
+	=============================================
+	init   >=0
+	cond   >=0
+	update >=0
+	---------------------------------------------
+	solution: 
+		use a while statement
+		add any inits before beginning of loop
+		add any conditions to beginning of each loop
+		add any updates to end of each loop
+	---------------------------------------------
+	
+	int $i=0;
+	for(; ; ) 
+	{
+		print $i;
+		if ($i > 10)
+			break;
+		$i++;
+	}
+	
+	int $i;
+	for(; ; $i++) {
+		print $i;
+		if ($i > 10)
+			break;
+	}
+	
+	
+	
+	i=0
+	while 1:
+		print i
+		if i > 10:
+			break
+		i++
+
+
+	"""
+	
 	#------------------------------------------------------------------
 	# for( init_expr; cond_expr; update_expr
 	#------------------------------------------------------------------
@@ -1183,44 +1255,47 @@ def p_cast_expression(t):
 						| unary_command_expression
 						| type_specifier LPAREN expression RPAREN
 						| LPAREN type_specifier RPAREN cast_expression'''
-	t[0] = assemble(t, 'p_cast_expression')
-	if len(t) == 5 and t[1] == 'string':
-		t[0] = 'str(%s)' % t[3]
-	elif len(t) == 5 and t[1] == '(':
+		
+	# (int)myvar
+	if len(t) == 5 and t[1] == '(':
 		if t[2] == 'string':
 			t[0] = 'str(%s)' % ( t[4] )
 		else:
 			t[0] = '%s(%s)' % (t[2], t[4] )
-			
+		# skip assemble
+		return
+	
+	# int( x+3 )
+	if len(t) == 5 and t[1] == 'string':
+		t[1] = 'str'
+	
+	t[0] = assemble(t, 'p_cast_expression')	
+	
+	
 # unary-expression			
 def p_unary_expression(t):
 	'''unary_expression : postfix_expression
 						| unary_operator cast_expression'''
+	
+	if len(t)>2 and t[1] == '!':
+			t[1] = 'not '		
 	t[0] = assemble(t, 'p_unary_expression')
-	if len(t)>2:
-		if t[1] == '!':
-			t[0] = 'not ' + t[2]
-		else:
-			t[0] = t[1] + ' ' + t[2]
 		
 def p_unary_expression_2(t):
 	'''unary_expression : PLUSPLUS unary_expression
 						| MINUSMINUS unary_expression'''
 	# ++$var --> var+=1
-	t[0] = assemble(t, 'p_unary_expression')
-	t[0] = t[2] + t[1][0] + '=1'
+	t[0] = assemble(t, 'p_unary_expression', '', [t[2], t[1][0] + '=1'] )
 
 
 # unary-command-expression:
 def p_unary_command_expression(t):
 	'''unary_command_expression : procedure_expression
 								| unary_operator procedure_expression'''
+	
+	if len(t)>2 and t[1] == '!':
+			t[1] = 'not '			
 	t[0] = assemble(t, 'p_unary_expression')
-	if len(t)>2:
-		if t[1] == '!':
-			t[0] = 'not ' + t[2]
-		else:
-			t[0] = t[1] + ' ' + t[2]
 			
 # unary-operator
 def p_unary_operator(t):
@@ -1273,7 +1348,7 @@ def p_procedure_expression_list(t):
 # command expression
 def p_command_expression(t):
 	'''command_expression : CAPTURE command CAPTURE'''
-	t[0] = assemble(t, 'p_command_expression')
+	#t[0] = assemble(t, 'p_command_expression')
 	t[0] = t[2]
 					
 # postfix-expression:
@@ -1290,15 +1365,9 @@ def p_postfix_expression(t):
 	# myProc( arg1, $var)
 	# myProc()
 	# $var++
-	
-	t[0] = assemble(t, 'p_postfix_expression')
-
-	# ++ and -- must be converted to += and -=
-	if len(t) == 3:
-		t[0] = t[1] + t[2][0] + '=1'
 		
 	# element
-	elif len(t)==5:
+	if len(t)==5:
 		if not t[3]:
 			t[0] = t[1]
 		elif t[3] == 'len(%s)' % t[1]:
@@ -1310,7 +1379,15 @@ def p_postfix_expression(t):
 				t[0] = '%s[%s]' % (t[1], ''.join(lenSubtractReg.split( t[3] )) )  
 			except:
 				t[0] = '%s[%s]' % (t[1], t[3])
+		# skip assemble
+		return
+	
+	# ++ and -- must be converted to += and -=
+	if len(t) == 3:
+		 t[2] = t[2][0] + '=1'
 
+	t[0] = assemble(t, 'p_postfix_expression')
+		
 def p_postfix_expression_2(t):
 	'''postfix_expression : LBRACE expression_list_opt RBRACE'''
 							
@@ -1373,18 +1450,15 @@ def p_primary_expression4(t):
 
 	
 # types	
-	
-def p_boolean(t):
-	'''boolean : TRUE
-			   | FALSE'''
-	t[0] = t[1].capitalize()
 
-def p_boolean2(t):
-	'''boolean : ON'''
+def p_boolean_true(t):
+	'''boolean : ON
+				| TRUE '''
 	t[0] = 'True'
 	
-def p_boolean3(t):
-	'''boolean : OFF'''
+def p_boolean_false(t):
+	'''boolean : OFF
+				| FALSE '''
 	t[0] = 'False'
 		
 def p_variable(t):
@@ -1605,7 +1679,6 @@ def command_format(command, args, t):
 		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
 		if command == 'python':
 			args = map( lambda x: x.strip('"'), args[0].split(' + ') )
-			print args
 			return ''.join(args)
 		
 		# cycle through our kwargs and format them
@@ -1770,66 +1843,6 @@ import profile
 
 parser = yacc.yacc(method='''LALR''')
 
-class MelParser(object):
-	
-	def __init__(self, rootModule = None, verbosity=0 ):
-		parser.root_module = rootModule
-		parser.local_procs = []
-		parser.used_modules = set([])
-		parser.used_modules_hold = set([])
-		parser.global_vars = set([])
-		parser.comment_queue = []
-		parser.comment_queue_hold = []
-		parser.verbose = verbosity
-		parser.type_map = {}
-		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
-		#parser.global_var_include_regex = '.*'
-		parser.global_var_exclude_regex = '$'
-		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
-		
-	def parse(self, data):
-		data = data.encode( 'utf-8', 'ignore')
-		data = data.replace( '\r', '\n' )
-		'''
-		if verbosity == 2:	
-			lex.input(data)
-			while 1:
-				tok = lex.token()
-				if not tok: break      # No more input
-				print tok
-		'''	
-		
-		parser.comment_queue = []
-		parser.comment_queue_hold = []
-		
-		try:
-			converted = parser.parse(data)
-		except ValueError:
-			if parser.comment_queue:
-				converted = '\n'.join(parser.comment_queue)				
-			else:
-				raise ValueError
-			
-		#except IndexError, msg:
-		#	raise ValueError, '%s: %s' % (melfile, msg)
-		#except AttributeError:
-		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
-		
-		new_modules = parser.used_modules.difference( parser.used_modules_hold )
-		parser.used_modules_hold.update( parser.used_modules )
-		
-		header = ''
-		if len( new_modules ):
-			header += "import %s" % ','.join(list(new_modules))
-			header += '\n'
-			
-		converted = header + converted
-		#if parser.verbose:
-		#	print '\n\n'
-		#	print converted
-	
-			
-		return converted
 	
 #profile.run("yacc.yacc(method='''LALR''')")
 

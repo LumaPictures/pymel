@@ -12,37 +12,37 @@ Known Limitations
 array index assignment
 ----------------------	
 
-in mel, you can directly assign the value of any element in an array, and all intermediate elements will be 
-automatically filled. this is not the case in python: if the list index is out of range you will raise an 
-IndexError. i've added fixes for several common array assignments::
+In mel, you can directly assign the value of any element in an array, and all intermediate elements will be 
+automatically filled. This is not the case in python: if the list index is out of range an IndexError will be 
+raised. I've added fixes for several common array assignment conventions:
 
 append new element
 ~~~~~~~~~~~~~~~~~~
 
-MEL
-	>>> $strArray[`size $strArray`] = "foo";
+MEL::
+	$strArray[`size $strArray`] = "foo";
 	
-Python	
-	>>> strArray.append("foo")
+Python::
+	strArray.append("foo")
 
 assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MEL
+MEL::
 	>>> $strArray[`size $strArray`-3] = "foo";
 	
-Python	
-	>>> strArray[-3] = "foo"
+Python::	
+	strArray[-3] = "foo"
 
 However, since the translator does not track values of variables, it does not know if any given index is out of
-range or not. so, the following would raise an 'list assignment index out of range' error when converted to
+range or not. so, the following would raise a 'list assignment index out of range' error when converted to
 python and would need to be manually fixed::
 
 	string $strArray[];
 	for ($i=0; $i<5; $i++)
 		$strArray[$i] = "foo"
 	
-					
+				
 for(init; condition; update)
 ----------------------------
 
@@ -74,7 +74,7 @@ for(init; condition; update)
 		4. the iterator can appear only once in the update expression:
 			
 			not translatable::
-			  	for($i=0; $i<10, $i++, $i+=2)
+			  	for($i=0; $i<10; $i++, $i+=2)
 
 Inconveniences
 ==============
@@ -226,16 +226,98 @@ custom_proc_remap = {
 # do not change the following line !!!
 proc_remap.update(custom_proc_remap)
 
+class MelParser(object):
+	"""The MelParser class around which all other mel2py functions are based."""
+	def __init__(self, rootModule = None, verbosity=0 ):
+		parser.root_module = rootModule
+		parser.local_procs = []
+		parser.used_modules = set([])
+		parser.used_modules_hold = set([])
+		parser.global_vars = set([])
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		parser.verbose = verbosity
+		parser.type_map = {}
+		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
+		#parser.global_var_include_regex = '.*'
+		parser.global_var_exclude_regex = '$'
+		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+		
+	def parse(self, data):
+		data = data.encode( 'utf-8', 'ignore')
+		data = data.replace( '\r', '\n' )
+		'''
+		if verbosity == 2:	
+			lex.input(data)
+			while 1:
+				tok = lex.token()
+				if not tok: break      # No more input
+				print tok
+		'''	
+		
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		
+		try:
+			converted = parser.parse(data)
+		except ValueError:
+			if parser.comment_queue:
+				converted = '\n'.join(parser.comment_queue)				
+			else:
+				raise ValueError
+			
+		#except IndexError, msg:
+		#	raise ValueError, '%s: %s' % (melfile, msg)
+		#except AttributeError:
+		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
+		
+		new_modules = parser.used_modules.difference( parser.used_modules_hold )
+		parser.used_modules_hold.update( parser.used_modules )
+		
+		header = ''
+		if len( new_modules ):
+			header += "import %s" % ','.join(list(new_modules))
+			header += '\n'
+			
+		converted = header + converted
+		#if parser.verbose:
+		#	print '\n\n'
+		#	print converted
+	
+			
+		return converted
 
+def mel2pyStr( data, currentModule=None, verbosity=0 ):
+	"""
+	convert a string representing mel code into a string representing python code
+	
+		>>> import pymel.mel2py as mel2py
+		>>> print mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;')
+		paneLayout('test',configuration="top3",e=1)
+		
+	Note that when converting single lines, the lines must end in a semi-colon, otherwise it is techincally
+	invalid syntax.
+	
+	The currentModule argument is the name of the module that the hypothetical code is executing in. In most cases you will
+	leave it at its default, the __main__ namespace.
+	
+	"""
+	
+	
+	mparser = MelParser(currentModule, verbosity)
+	return mparser.parse( data )
 
 def mel2py( melfile, outputDir=None, verbosity=0 ):
 	"""
 	Convert a mel script into a python script. 
 	
+		>>> import pymel.mel2py
+		>>> pymel.mel2py.mel2py( 'scriptEditor.mel', '~/Documents' )
+		
 	if no output directory is specified, the python script will be written to the same directory as the input mel file. 
 	
 	if only the name of the mel file is	passed, mel2py will attempt to determine the location of the file using the 'whatIs' mel command,
-	which relies on the script already being 'known' by maya.
+	which relies on the script already being sourced by maya.
 	"""
 	
 	global currentFiles
@@ -266,76 +348,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	#print global_procs
 	pyfile.write_bytes(converted)
 	
-def mel2pyStrOLD( data, currentModule=None, verbosity=0 ):		
-	#data = unicode( data, errors='ignore' )
-	data = data.encode( 'utf-8', 'ignore')
-	data = data.replace( '\r', '\n' )
-	if verbosity == 2:	
-		lex.input(data)
-		while 1:
-			tok = lex.token()
-			if not tok: break      # No more input
-			print tok
 
-	def parse():
-		#try:
-		parser.root_module = currentModule
-		parser.local_procs = []
-		parser.used_modules = set([])
-		parser.global_vars = set([])
-		parser.comment_queue = []
-		parser.comment_queue_hold = []
-		parser.verbose = verbosity
-		parser.type_map = {}
-		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
-		#parser.global_var_include_regex = '.*'
-		parser.global_var_exclude_regex = '$'
-		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
-
-		try:
-			script = parser.parse(data)
-		except ValueError:
-			if parser.comment_queue:
-				script = '\n'.join(parser.comment_queue)
-			else:
-				raise ValueError
-			
-		return (script, parser.used_modules)
-		#except IndexError, msg:
-		#	raise ValueError, '%s: %s' % (melfile, msg)
-		#except AttributeError:
-		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
-
-	
-	(converted, used_modules) = parse()
-	
-	header = ''
-	if len( used_modules):
-		header += "import %s" % ','.join(list(used_modules))
-		header += '\n'
-		
-	converted = header + converted
-	if verbosity:
-		print '\n\n'
-		print converted
-
-	return converted
-
-def mel2pyStr( data, currentModule=None, verbosity=0 ):	
-	mparser = MelParser(currentModule, verbosity)
-	return mparser.parse( data )
-	
-#	else:
-#		print melfile, "parser returned no results"
-	#raise ValueError, '%s: %s' % (melfile, "parser returned no results")
-
-
-#except:
-#	'Error parsing script: please contact chad at chadd@luma-pictures.com'
-#	return
-	
-
-	
 def mel2pyBatch( processDir, outputDir=None, verbosity=0 ):
 	"""batch convert an entire directory"""
 	processDir = path.path(processDir)
