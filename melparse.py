@@ -61,6 +61,9 @@ def substring(x, t):
 	end = makeSlice(x[0], x[2])
 	
 	return '%s[%s:%s]' % (x[0], start, end )
+
+# commands which should not be brought into main namespace
+filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
 			
 # dictionary of functions used to remap procedures to python commands
 proc_remap = { 
@@ -1592,7 +1595,7 @@ def command_format(command, args, t):
 		
 		# functions that clash with python keywords and ui functions must use the cmds namespace
 		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
-		if command in ['file','filter','help','quit']: # + uiCommands:
+		if command in filteredCmds: # + uiCommands:
 			command = 'cmds.' + command
 		
 		# eval command is the same as using maya.mel.eval
@@ -1773,6 +1776,7 @@ class MelParser(object):
 		parser.root_module = rootModule
 		parser.local_procs = []
 		parser.used_modules = set([])
+		parser.used_modules_hold = set([])
 		parser.global_vars = set([])
 		parser.comment_queue = []
 		parser.comment_queue_hold = []
@@ -1794,28 +1798,37 @@ class MelParser(object):
 				if not tok: break      # No more input
 				print tok
 		'''	
+		
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		
 		try:
 			converted = parser.parse(data)
 		except ValueError:
 			if parser.comment_queue:
-				converted = '\n'.join(parser.comment_queue)
+				converted = '\n'.join(parser.comment_queue)				
 			else:
 				raise ValueError
+			
 		#except IndexError, msg:
 		#	raise ValueError, '%s: %s' % (melfile, msg)
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 		
+		new_modules = parser.used_modules.difference( parser.used_modules_hold )
+		parser.used_modules_hold.update( parser.used_modules )
+		
 		header = ''
-		if len( parser.used_modules):
-			header += "import %s" % ','.join(list(parser.used_modules))
+		if len( new_modules ):
+			header += "import %s" % ','.join(list(new_modules))
 			header += '\n'
 			
 		converted = header + converted
-		if parser.verbose:
-			print '\n\n'
-			print converted
+		#if parser.verbose:
+		#	print '\n\n'
+		#	print converted
 	
+			
 		return converted
 	
 #profile.run("yacc.yacc(method='''LALR''')")

@@ -12,9 +12,10 @@ showWindow;
 import sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
-from pymel.mel2py import mel2pyStr
+import pymel.mel2py
 from maya.cmds import encodeString
 
+mparser = pymel.mel2py.MelParser()
 
 kPluginCmdName = "pymelScrollFieldReporter"
 
@@ -291,7 +292,8 @@ def cmdCallback( nativeMsg, messageType, data ):
 		if nativeMsg.endswith(';\n') : # and len(nativeMsg) >= 2:
 			sourceType = kMel
 			try:
-				convertedMsg = mel2pyStr( nativeMsg )
+				#convertedMsg = pymel.mel2py.mel2pyStr( nativeMsg )
+				convertedMsg = mparser.parse( nativeMsg )			
 			except Exception, msg:
 				syntaxError = True
 				#outputFile = open( '/var/tmp/commandOutput', 'a')
@@ -304,7 +306,8 @@ def cmdCallback( nativeMsg, messageType, data ):
 	# Display - unaltered strings, such as that printed by the print command
 	elif messageType == OpenMaya.MCommandMessage.kDisplay and ( nativeMsg.endswith(';\n') or nativeMsg.startswith( '//' ) ):
 		try:
-			convertedMsg = mel2pyStr( nativeMsg )
+			#convertedMsg = pymel.mel2py.mel2pyStr( nativeMsg )
+			convertedMsg = mparser.parse( nativeMsg )
 		except Exception, msg:
 			#outputFile = open( '/var/tmp/commandOutput', 'a')
 			#outputFile.write( "~~~~~~~~~\nfailed to convert display: %s\n" % msg )
@@ -312,13 +315,13 @@ def cmdCallback( nativeMsg, messageType, data ):
 			pass
 	else:
 		try:
-			nativeMsg = '%s: %s' % ( {
+			nativeMsg = {
 					#OpenMaya.MCommandMessage.kDisplay: 'Output',
-					OpenMaya.MCommandMessage.kInfo: 'Info',
-					OpenMaya.MCommandMessage.kWarning: 'Warning',
-					OpenMaya.MCommandMessage.kError: 'Error',				
-					OpenMaya.MCommandMessage.kResult: 'Result'
-				}[ messageType ], nativeMsg )
+					OpenMaya.MCommandMessage.kInfo: '',
+					OpenMaya.MCommandMessage.kWarning: 'Warning: ',
+					OpenMaya.MCommandMessage.kError: 'Error: ',				
+					OpenMaya.MCommandMessage.kResult: 'Result: '
+				}[ messageType ] + nativeMsg 
 				
 			if sourceType == kMel:
 				convertedMsg = '# %s #\n' % nativeMsg 
