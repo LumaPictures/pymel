@@ -1,6 +1,7 @@
 import sys, inspect, warnings, timeit, time
 # based on pymel
 from pymel import *
+from pymel.util import Singleton
 import maya.OpenMayaAnim as OpenMayaAnim
 try: import maya.OpenMayaCloth as OpenMayaCloth
 except: pass
@@ -218,8 +219,19 @@ def updateMayaTypesList() :
 # initial update  
 updateMayaTypesList()
 
+# lookup tables for a direct conversion between Maya type and API types to their MFn::Types enum
+class MayaTypesToAPITypeInt(Singleton, dict) :
+    """ Direct lookup from Maya types to API MFn::Types enums """
 
+# Dictionnary of Maya API types to their MFn::Types enum
+MayaTypesToAPITypeInt((k, MayaAPITypesInt()[MayaTypesToAPI()[k]]) for k in MayaTypesToAPI().keys())
+  
+class APITypeIntToMayaTypes(Singleton, dict) :
+    """ Direct lookup from API MFn::Types enums to Maya types """
 
+# Dictionnary of Maya API types to their MFn::Types enum
+APITypeIntToMayaTypes((MayaTypesToAPITypeInt()[k], k) for k in MayaTypesToAPITypeInt().keys())  
+  
 # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
 # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
 
@@ -407,7 +419,7 @@ def _createNodes(dagMod, dgMod, *args) :
                 result[apiType] = None
     return result
 
-# child:parent lookup of the Maya API classes hierarchy (based on the existing MFn classe hierarchy)
+# child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
 class MayaAPITypesHierarchy(dict) :
     __metaclass__ =  metaStatic
 
@@ -495,7 +507,7 @@ class MayaAPITypesToPyNode(dict) :
 
 # build a PyNode to API type relation or PyNode to Maya node types relation ?
 def buildPyNodeToAPI () :
-    # Check if a pymel class is Node or a subclass of Node
+    # Check if a pymel class is DependNode or a subclass of DependNode
     def _PyNodeClass (x) :
         try :
             return issubclass(x, pymel.core._BaseObj)
@@ -512,15 +524,11 @@ def buildPyNodeToAPI () :
         if MayaAPIToTypes().has_key(APITypeName) :
             PyNodeDict[PyNodeType] = APITypeName
             PyNodeInverseDict[APITypeName] = PyNodeType
-    # Would be good to limit special treatmements
-    PyNodeDict[pymel.core._BaseObj] = 'kBase'
-    PyNodeInverseDict['kBase'] = pymel.core._BaseObj
-    PyNodeDict[Node] = 'kDependencyNode'
-    PyNodeInverseDict['kDependencyNode'] = Node
-    PyNodeDict[Dag] = 'kDagNode'
-    PyNodeInverseDict['kDagNode'] = Dag   
-    PyNodeDict[Poly] = 'kMesh'
-    PyNodeInverseDict['kMesh'] = Poly  
+    # Would be good to limit special treatments
+    PyNodeDict[pymel.node._BaseObj] = 'kBase'
+    PyNodeInverseDict['kBase'] = pymel.node._BaseObj
+    PyNodeDict[DependNode] = 'kDependencyNode'
+    PyNodeInverseDict['kDependencyNode'] = DependNode
                           
     # Initialize the static classes to hold these
     PyNodeToMayaAPITypes (PyNodeDict)
@@ -534,7 +542,7 @@ elapsed = time.time() - start
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
 
-# child:parent lookup of the pymel classes that derive from Node
+# child:parent lookup of the pymel classes that derive from DependNode
 class PyNodeTypesHierarchy(dict) :
     __metaclass__ =  metaStatic
 
@@ -560,7 +568,7 @@ PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 elapsed = time.time() - start
 print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
         
-# Public names to MObjects function
+# names to MObjects function
 def nameToMObject( *args ):
     """ Get the API MObjects given names of existing nodes """ 
     sel = OpenMaya.MSelectionList() 
@@ -581,6 +589,109 @@ def nameToMObject( *args ):
         return result[0]
     else :
         return tuple(result)
+
+#  MObjects to names
+def MObjectToName( *args ):
+    """ Get the names of existing nodes given their API MObject""" 
+    depNodeFn = OpenMaya.MFnDependencyNode()
+    result = []
+    for a in args :
+        depNodeFn.setObject(a)
+        result.append(depNodeFn.name())
+    if len(result) == 1:
+        return result[0]
+    else :
+        return tuple(result)
+  
+# An iterator on maya nodes using the API MItDependencyNodes (ie ls command)
+
+def MItNodes( *args ):
+    """ Iterator on nodes of the specified types in the Maya scene,
+        type is list, then all nodes of a type included in the list will be iterator on,
+        if type is None, all nodes will be iterated on
+        the types can be specified either as Maya types or API types """
+    if args : 
+        typeFilter = OpenMaya.MIteratorType()
+        if len(args) == 1 :
+            typeFilter.setFilterType ( args[0] ) 
+        else :
+            # annoying argument conversion for Maya API non standard C types
+            scriptUtil = OpenMaya.MScriptUtil()
+            typeIntM = OpenMaya.MIntArray()
+            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            typeFilter.setFilterList ( typeIntM )
+        # we will iterate on dependancy nodes, not dagPaths or plugs
+        typeFilter.objFilterType = OpenMaya.MIteratorType.kMObject
+        iterObj = OpenMaya.MItDependencyNodes ( typeFilter )
+    else :     
+        iterObj = OpenMaya.MItDependencyNodes ( )     
+    depNodeFn = OpenMaya.MFnDependencyNode()
+    while not iterObj.isDone() :
+        obj = iterObj.thisNode()
+        depNodeFn.setObject(obj)
+        yield (depNodeFn.name(), obj.apiType())
+        iterObj.next()
+
+        
+        
+#for a in MItNodes([]) :
+#    print a     
+
+
+# Iterators on nodes connections using MItDependencyNodes (ie listConnections/ listHistory)
+
+
+
+# Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
+
+
+# conversion fonctions
+# conversion maya type -> api type
+# get the API type from a maya type
+def mayaTypeToApiType (*args, **kwargs) :
+    """ Given a list of maya types, return the equivalent API type or API type int """
+    if args :
+        do_apiInt = kwargs.get('apiEnum', False)
+        do_apiStr = kwargs.get('apiType', False)
+        result = []
+        for arg in args :
+            if do_apiStr and do_apiInt :
+                result.append(tuple(MayaTypesToAPI().get(arg,None), MayaTypesToAPITypeInt().get(arg,None)))
+            elif do_apiInt :
+                result.append(MayaTypesToAPITypeInt().get(arg,None))
+            else : 
+                result.append(MayaTypesToAPI().get(arg,None))    # default: API type name
+        if len(result) == 1 :
+            return result[0]
+        else :
+            return tuple(result)
+
+# calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
+# TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls)
+# TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel
+def iterNodes ( *args, **kwargs ):
+    """ Iterator on nodes of the specified types in the Maya scene,
+        type is list, then all nodes of a type included in the list will be iterator on,
+        if type is None, all nodes will be iterated on
+        the types can be specified either as Maya types or API types """           
+    types = kwargs.get('type', None)
+    if types :
+#        kwords = {'apiEnum':True}
+#        intTypes = typeToAPI(*types, **kwords)
+        it_args = mayaTypeToApiType(*types, **{'apiEnum':True})
+        if not util.isIterable(it_args) :
+            it_args = [it_args]        
+    else :
+        it_args = [0]                # default : filter on kInvalid = return all nodes
+    for tup in MItNodes( *it_args ) :
+        # yield (tup[0], tup[1])
+        yield (tup[0], MayaIntAPITypes()[tup[1]])
+        
+
+    # mayaType (nodeOrType, **kwargs) :
+#    typeInt = []
+#    for t in type :
+#        typeInt.append(MayaAPITypesInt[MayaTypesToAPI[t]])
         
 # Get the maya type, maya API type, maya API type name, plugin status
 # of an existing maya object or maya object type or maya API type or PyNode node or type
@@ -609,7 +720,7 @@ def mayaType (nodeOrType, **kwargs) :
         >>> mayaType ('kVortex', pymel=True)
         >>> <class 'pymel.Vortex'>
         >>> mayaType ('Vortex', inheritedPymel=True)
-        >>> [<class 'pymel.Vortex'>, <class 'pymel.core.Dag'>, <class 'pymel.core.Node'>, <class 'pymel.core._BaseObj'>]        
+        >>> [<class 'pymel.Vortex'>, <class 'pymel.core.DagNode'>, <class 'pymel.core.DependNode'>, <class 'pymel.core._BaseObj'>]        
         >>> mayaType ('aimConstraint', apiType=True, inheritedAPI=True)
         >>> {'inheritedAPI': ['kConstraint'], 'apiType': 'kAimConstraint'}
         >>> mayaType (pymel.Transform)
@@ -663,7 +774,7 @@ def mayaType (nodeOrType, **kwargs) :
         # PyNode type
         pyNodeType = nodeOrType
         apiTypeStr = PyNodeToMayaAPITypes()[pyNodeType]
-    elif isinstance(nodeOrType, Node) :
+    elif isinstance(nodeOrType, DependNode) :
         # a PyNode object
         pyNodeType = type(nodeOrType)
         apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
@@ -773,9 +884,9 @@ def isAType (*args, **kwargs) :
     >>> NameError: name 'Field' is not defined
     >>> isAType ('Vortex', type='Field')
     >>> False
-    >>> isAType ('Vortex', type='Dag')
+    >>> isAType ('Vortex', type='DagNode')
     >>> True
-    >>> isAType (Vortex, type=Dag)
+    >>> isAType (Vortex, type=DagNode)
     >>> True
     Note that the most reliable source now is API types, there are sometimes more than one maya type corresponding to an API type, and in that
     case, heritage only considers the first in the list (though mayaType will return all of them), and pymel types are not 100% identical to
@@ -918,7 +1029,7 @@ def asIndexedHierarchy (*args) :
         as argument, or the current seleciton if no arguments are provided,
         in a way that mimics the Maya scene hierarchy existing on these nodes.
         Note that:
-        >>> cmds.file ("~/pymel/examples/skel.ma", f=True, typ="mayaAscii",o=True)
+        >>> cmds.file ("~/Eclipse/pymel/examples/skel.ma", f=True, typ="mayaAscii",o=True)
         >>> File read in 0 seconds.
         >>> u'~/pymel/examples/skel.ma'
         >>> select ('FBX_Hips', replace=True, hierarchy=True)
