@@ -354,8 +354,8 @@ def mel2pyBatch( processDir, outputDir=None, verbosity=0 ):
 	processDir = path.path(processDir)
 	
 	global currentFiles
-	currentFiles = filter( lambda x: not x.name.startswith('.'), processDir.files( '*.mel') )
-	
+	#currentFiles = filter( lambda x: not x.name.startswith('.'), processDir.files( '*.mel') )
+	currentFiles = processDir.files( '[a-zA-Z]*.mel')
 	
 	"""
 	for f in currentFiles:

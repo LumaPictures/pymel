@@ -15,7 +15,7 @@ import ply.lex as lex
 
 
 reserved = (
-	'BREAK', 'CASE', 'CONTINUE', 'DEFAULT', 'DO',
+	'BREAK', 'CASE', 'CATCH', 'CONTINUE', 'DEFAULT', 'DO',
 	'ELSE', 'FALSE', 'FLOAT', 'FOR', 'GLOBAL', 'IF', 'IN', 'INT', 'ON', 'OFF', 'PROC',
 	'RETURN', 'STRING', 'SWITCH', 'TRUE', 'VECTOR',
 	'WHILE',
@@ -162,10 +162,13 @@ def t_VAR(t):
 def t_ID(t):
 	# Starts with a letter or a pipe
 	#
-	#
 	# |path|myPrfx_1:myNode_1.myAttr_1[0].subAttr   or  ..
-	r'[A-Za-z_|](?:[\w_\.:|]|(?:\[\d+\]))*|\.\.'
+	#r'[A-Za-z_|](?:[\w_\.:|]|(?:\[\d+\]))*|\.\.'
+	#r'[A-Za-z_|]([\w_\.:|]|(\[\d+\]))*|\.\.'
 	#r'[A-Za-z_|][\w_\.:|]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
+	# '(%(id)s)*([.|](%(id)s)+)*[.|]?*|\.\.' % {'id': '[A-Za-z_][\w:]*(\[\d+\])?'}
+	r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
+	
 	t.type = reserved_map.get(t.value,"ID")
 	return t
 
@@ -175,11 +178,14 @@ def t_ID(t):
 t_ICONST = r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
 
 # Floating literal
-t_FCONST = r'((\d+)?(\.\d+)(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?'
+#t_FCONST = r'((\d+)?(\.\d+)(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?' # does not allow  1.
+t_FCONST = r'(((\d+\.)(\d+)?|(\d+)?(\.\d+))(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?' 
 
 # String literal
-t_SCONST = r'\"([^\\\n]|(\\.))*?\"'
+#t_SCONST = r'\"([^\\\n]|(\\.))*?\"' # does not allow \ for spanning multiple lines
 #t_SCONST = '\"([^\n]|\r)*\"'
+#t_SCONST = r'"([^\n]|\\\n)*?"'
+t_SCONST = r'"([^\\\n]|(\\.)|\\\n)*?"'
 
 # Comments
 def t_COMMENT_BLOCK(t):

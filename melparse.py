@@ -633,7 +633,6 @@ def p_labeled_statement_3(t):
 			fallthrough = False
 			break
 		block.append(line)
-		
 	t[0] = [None, block, False]
 	
 # expression-statement:
@@ -735,13 +734,14 @@ def p_selection_statement_3(t):
 				if line == 'break\n':
 					broken = True
 					break				
-				t[0] += '\t' + line
+					t[0] += '\t' + line
 	"""
 	t[0] = ''				
 	cases = t[7]  # a 2d list: a list of cases, each with a list of lines
 	variable = t[3]
 	i = 0
 	control = ''
+	
 	while i < len(cases):
 			
 		if i == 0:
@@ -752,16 +752,23 @@ def p_selection_statement_3(t):
 		mainCondition = cases[i][0]
 		conditions = set([])
 		lines = []
-		
+			
+		# cycle through cases until we stop falling through
 		for j, (condition, block, fallthrough) in enumerate(cases[i:]):	
 			
-			if len(block):
-				lines.extend(block)
-			else:
-				conditions.add(condition)
-				i += 1 # on the next while loop, we will skip this case, because it is now subsumed under the current case
+			if fallthrough:
+				if len(block):
+					lines += block
+				else:
+					conditions.add(condition)
+					i += 1 # on the next while loop, we will skip this case, because it is now subsumed under the current case
 				
-			if not fallthrough:
+			else:
+				if len(block):
+					lines += block
+				else:
+					lines.append( 'pass\n' )
+					
 				if condition is not None and len(conditions) == j:
 					conditions.add(condition)
 					
@@ -853,7 +860,7 @@ def p_iteration_statement_2(t):
 	---------------------------------------------
 	
 	int $i;
-	for( $i=0, int j=0; $i<10; $i++, $j++) print $i;
+	for( $i=0, int $j=0; $i<10; $i++, $j++) print $i;
 	
 	
 	
@@ -917,101 +924,128 @@ def p_iteration_statement_2(t):
 	init_exprs = t[3]
 	cond_exprs = t[5]
 	update_exprs = t[7]
+	statement_body = t[10]
 	
-	if len(cond_exprs) > 1:
-		raise ValueError, """Python does not support for loops of format '(init_exp; cond_exp; update_exp)'.
-In order to convert these statements to python, there can be only one conditional expression. I found %d (%s). Please correct this portion of the loop: %s""" % (len(cond_exprs), ','.join(cond_exprs), t[5])
-	
-	#---------------------------------------------
-	# Conditional Expression  --> End
-	#---------------------------------------------
-	# the conditional expression becomes the end value of a range() function
-	# there can be only one variable driven by the range expression, so there can be only one coniditional expression
-	end = None
-	regex = re.compile('\s*(<=|>=|<|>)\s*')
-	cond_buf = regex.split(cond_exprs[0])  
-	cond_relop = cond_buf.pop(1)	# cond_buf now contains 2 values, one of which will become our iterator
-	cond_vars = set( filter( var_reg.match, cond_buf) )
-	
-	#---------------------------------------------
-	# Update Expression --> Step
-	#---------------------------------------------
-	# The initialization is optional, so the next most important expression is the update expression.  
-	iterator = None
-	step = None
-	update_op = None
-	count = 0
-	regex = re.compile('\s*(\+\+|--|\+=|-=)\s*')
-	for expr in update_exprs:
-		# expr: i++
-		update_buf = regex.split(expr)
-		update_op = update_buf.pop(1)
-		# update_opt:  ++
-		try:
-			update_vars = filter( var_reg.match, update_buf)			
-			iterator = list(cond_vars.intersection(update_vars))
-			#print cond_vars, tmp, iterator
-		except IndexError:
-			count += 1
-		else:
-			if len(iterator) > 1:
-				raise ValueError, """Python does not support for loops of format '(init_exp; cond_exp; update_exp)'.
-In order to convert these statements to python, for loop iterator must appear only once in the update expression. I found %d (%s). Please correct this portion of the loop: %s.""" % ( len(iterator), ','.join(iterator), t[7] )	
-			try:
-				iterator = iterator[0]
-				update_buf.remove(iterator)
-				cond_buf.remove(iterator)
-				step = update_buf[0]
-				end = cond_buf[0]
-				break
-			except:
-				iterator = None
-	
-	if iterator is None:
-		raise ValueError, """Python does not support for loops of format '(init_exp; cond_exp; update_exp)'.
-In order to convert these statements to python, for loop iterator must appear alone on one side of the conditional expression. Please correct this portion of the loop: %s.""" % ( t[5] )
-			
-	update_exprs.pop(count)
-	
-	#print "iterator:%s, update_op:%s, update_expr:%s, step:%s" % (iterator, update_op, update_exprs, step)
-
-	# determine the step
-	if update_op.startswith('-'):
-		step = '-'+step
-		if cond_relop == '>=':
-			end = end + '-1'
-	elif cond_relop == '<=':
-		end = end + '+1'
-	
-	#---------------------------------------------
-	# initialization --> start
-	#---------------------------------------------
-	start = None
-	init_reg = re.compile('\s*=\s*')
-	
-	for expr in init_exprs:
-		init_buf = init_reg.split(expr)
-		try:
-			init_buf.remove(iterator)
-		except ValueError:
-			pass
-		else:
-			if len(init_buf):
-				start = init_buf[0]
-			else:
-				start = iterator
-	
-	#print "start: %s, end: %s, step: %s" % (start, end, step)
-	
-	if step == '1':
-		t[0] = 'for %s in range(%s,%s):\n%s' % (iterator, start, end, entabLines(t[10]))
-	else:
-		t[0] = 'for %s in range(%s,%s,%s):\n%s' % (iterator, start, end, step, entabLines(t[10]) )
-
-	if len( update_exprs ):
-		t[0] += '\n' + entabLines('\n'.join(update_exprs) + '\n')
+	def default_formatting():
+		t[0] = ''
+		if init_exprs:
+			t[0] += '\n'.join(init_exprs)
 		
-	addHeldComments(t, 'for')
+		t[0] += '\nwhile 1:\n'
+		
+		if cond_exprs:
+			t[0] += entabLines( 'if not ( %s ):\n\tbreak\n' % ' or '.join(cond_exprs) )
+			
+		t[0] += entabLines( statement_body )
+
+		if update_exprs:
+			t[0] += entabLines('\n'.join( update_exprs ) + '\n')
+		
+		addHeldComments(t, 'for')
+		
+	if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >=1:		
+		#---------------------------------------------
+		# Conditional Expression  --> End
+		#---------------------------------------------
+		# the conditional expression becomes the end value of a range() function
+		# there can be only one variable driven by the range expression, so there can be only one coniditional expression
+		end = None
+		regex = re.compile('\s*(<=|>=|<|>)\s*')
+		cond_buf = regex.split(cond_exprs[0])
+		try:
+			cond_relop = cond_buf.pop(1)	# cond_buf now contains 2 values, one of which will become our iterator
+		except IndexError:
+			return default_formatting()
+		
+		cond_vars = set( filter( var_reg.match, cond_buf) )
+		
+		#---------------------------------------------
+		# Update Expression --> Step
+		#---------------------------------------------
+		# The initialization is optional, so the next most important expression is the update expression.  
+		iterator = None
+		step = None
+		update_op = None
+		count = 0
+		regex = re.compile('\s*(\+\+|--|\+=|-=)\s*')
+		for expr in update_exprs:
+			# expr: i++
+			update_buf = regex.split(expr)
+			
+			# update_opt:  ++
+			try:
+				update_op = update_buf.pop(1) # this might raise an indexError if the update expression followed the form:  $i = $i+1
+				# find the variables in the update statement, and find which were also present in conditional statement
+				update_vars = filter( var_reg.match, update_buf)			
+				iterator = list(cond_vars.intersection(update_vars))
+				#print cond_vars, tmp, iterator
+			except IndexError:
+				count += 1
+			else:
+				if len(iterator) > 1:
+					'''raise ValueError, """Python does not support for loops of format '(init_exp; cond_exp; update_exp)'.
+	In order to convert these statements to python, for loop iterator must appear only once in the update expression. I found %d (%s). Please correct this portion of the loop: %s.""" % ( len(iterator), ','.join(iterator), t[7] )	
+					'''
+					return default_formatting()
+				try:
+					iterator = iterator[0]
+					update_buf.remove(iterator)
+					cond_buf.remove(iterator)
+					step = update_buf[0]
+					end = cond_buf[0]
+					break
+				except:
+					iterator = None
+		
+		if iterator is None:
+			'''raise ValueError, """Python does not support for loops of format '(init_exp; cond_exp; update_exp)'.
+	In order to convert these statements to python, for loop iterator must appear alone on one side of the conditional expression. Please correct this portion of the loop: %s.""" % ( t[5] )
+			'''
+			return default_formatting()
+				
+		update_exprs.pop(count)
+		
+		#print "iterator:%s, update_op:%s, update_expr:%s, step:%s" % (iterator, update_op, update_exprs, step)
+	
+		# determine the step
+		if update_op.startswith('-'):
+			step = '-'+step
+			if cond_relop == '>=':
+				end = end + '-1'
+		elif cond_relop == '<=':
+			end = end + '+1'
+		
+		#---------------------------------------------
+		# initialization --> start
+		#---------------------------------------------
+		start = None
+		init_reg = re.compile('\s*=\s*')
+		
+		for expr in init_exprs:
+			init_buf = init_reg.split(expr)
+			try:
+				init_buf.remove(iterator)
+			except ValueError:
+				pass
+			else:
+				if len(init_buf):
+					start = init_buf[0]
+				else:
+					start = iterator
+		
+		#print "start: %s, end: %s, step: %s" % (start, end, step)
+		
+		if step == '1':
+			t[0] = 'for %s in range(%s,%s):\n%s' % (iterator, start, end, entabLines(statement_body))
+		else:
+			t[0] = 'for %s in range(%s,%s,%s):\n%s' % (iterator, start, end, step, entabLines(statement_body) )
+
+		if len( update_exprs ):
+			t[0] += '\n' + entabLines('\n'.join(update_exprs) + '\n')
+		
+		addHeldComments(t, 'for')
+	else:
+		default_formatting()
 	
 def p_iteration_statement_3(t):
 	'''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN add_comment statement '''
@@ -1080,10 +1114,16 @@ LPAREN expression RPAREN
 																	expression
 """
 
+	
 def p_expression(t):
-	'''expression : assignment_expression'''
+	'''expression : catch_expression'''
 	t[0] = assemble(t, 'p_expression')
 
+def p_catch_expression(t):
+	'''catch_expression : assignment_expression
+					| CATCH assignment_expression'''
+	t[0] = assemble(t, 'p_catch_expression')
+	
 def p_expression_list_opt(t):
 	'''expression_list_opt : expression_list
 				  | empty'''
@@ -1781,8 +1821,33 @@ def p_command_statement_input_2(t):
 	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 	
 def p_flag(t):
-	'''command_flag : MINUS ID'''
-	
+	'''command_flag : MINUS ID
+					| MINUS BREAK
+					| MINUS CASE
+					| MINUS CATCH
+					| MINUS CONTINUE
+					| MINUS DEFAULT
+					| MINUS DO
+					| MINUS ELSE
+					| MINUS FALSE
+					| MINUS FLOAT
+					| MINUS FOR
+					| MINUS GLOBAL
+					| MINUS IF
+					| MINUS IN
+					| MINUS INT
+					| MINUS ON
+					| MINUS OFF
+					| MINUS PROC
+					| MINUS RETURN
+					| MINUS STRING
+					| MINUS SWITCH
+					| MINUS TRUE
+					| MINUS VECTOR
+					| MINUS WHILE
+					'''
+
+		
 	flag = t[1] + { 	'import': 'i',
 		 		 		'del'	: 'delete' 
 					}.get( t[2], t[2] )
