@@ -145,6 +145,9 @@ def uncapitalize(s):
 def isIterable( obj ):
 	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
+def isSequence( obj ):
+    return type( obj ) is list or type( obj ) is tuple
+
 def convertListArgs( args ):
 	if len(args) == 1 and isIterable(args[0]):
 		return tuple(args[0])
