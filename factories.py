@@ -255,7 +255,8 @@ nodeTypeToCommandMap = {
 	'makeNurbCircle' : 'circle',
 	'makeNurbPlane' : 'nurbsPlane',
 	'makeNurbsSquare' : 'nurbsSquare',
-	'makeNurbCube' : 'nurbsCube'
+	'makeNurbCube' : 'nurbsCube',
+	'skinPercent' : 'skinCluster'
 }
 
 def _getUICommands():
