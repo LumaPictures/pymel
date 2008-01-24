@@ -621,7 +621,7 @@ def MItNodes( *args ):
             scriptUtil.createIntArrayFromList ( args,  typeIntM )
             typeFilter.setFilterList ( typeIntM )
         # we will iterate on dependancy nodes, not dagPaths or plugs
-        typeFilter.objFilterType = OpenMaya.MIteratorType.kMObject
+        typeFilter.setObjectType ( OpenMaya.MIteratorType.kMObject )
         iterObj = OpenMaya.MItDependencyNodes ( typeFilter )
     else :     
         iterObj = OpenMaya.MItDependencyNodes ( )     
@@ -646,10 +646,26 @@ def MItNodes( *args ):
 
 
 # conversion fonctions
+
 # conversion maya type -> api type
-# get the API type from a maya type
-def mayaTypeToApiType (*args, **kwargs) :
-    """ Given a list of maya types, return the equivalent API type or API type int """
+
+# get the API type enum (The OpenMaya.MFn.Types int, ie OpenMaya.MFn.kDagNode) from a maya type,
+# no check is done here, it's a fast private function to be used by the public functions in dagTools
+def _nodeTypeToApiEnum (nodeType) :
+    """ Given a Maya node type, return the corresponding API type enum int """
+    return MayaTypesToAPITypeInt().get(nodeType, None)
+
+# get the API type from a maya type, no check is done here, it's a fast private function
+# to be used by the public functions in dagTools
+def _nodeTypeToApiType (nodeType) :
+    """ Given a Maya node type, return the corresponding API type name """
+    return MayaTypesToAPI().get(nodeType, None)
+        
+# The public function that handles a variable number of node types and flags to return either api type enum int or name
+# in the case where no correspondance is found, will return the API type of the first node type parent in the node types
+# hierarchy that can be matched to an API type         
+def nodeTypeToApi (*args, **kwargs) :
+    """ Given a list of Maya node types, return the corresponding API type or API type int """
     if args :
         do_apiInt = kwargs.get('apiEnum', False)
         do_apiStr = kwargs.get('apiType', False)
@@ -665,7 +681,42 @@ def mayaTypeToApiType (*args, **kwargs) :
             return result[0]
         else :
             return tuple(result)
+        
+# conversion api type -> api type
+# get the maya type from an API type
+def _apiEnumToNodeType (apiTypeEnum) :
+    """ Given an API type enum int, returns the corresponding Maya node type,
+        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
+        can be found, will return the corresponding type for the first parent in the types hierarchy
+        that can be matched """
+    nodeType =  APITypeIntToMayaTypes().get(apiTypeEnum, None)
+    if nodeType is not None :
+        return nodeType
+    else :
+        pass
 
+def _apiTypeToNodeType (apiTypeEnum) :
+    """ Given an API type enum int, returns the corresponding Maya node type,
+        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
+        can be found, will return the corresponding type for the first parent in the types hierarchy
+        that can be matched """
+    nodeType =  APITypeIntToMayaTypes().get(apiTypeEnum, None)
+    if nodeType is not None :
+        return nodeType
+    else :
+        pass
+
+# conversion api type -> api type
+# get the maya type from an API type
+def apiToNodeType (*args, **kwargs) :
+    """ Given a list of API type or API type int, return the corresponding Maya node types,
+        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
+        can be found, will return the corresponding type for the first parent in the types hierarchy
+        that can be matched """
+    if type(apiType) is int :         
+        pass
+
+        
 # calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
 # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls)
 # TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel
@@ -676,17 +727,16 @@ def iterNodes ( *args, **kwargs ):
         the types can be specified either as Maya types or API types """           
     types = kwargs.get('type', None)
     if types :
-#        kwords = {'apiEnum':True}
-#        intTypes = typeToAPI(*types, **kwords)
-        it_args = mayaTypeToApiType(*types, **{'apiEnum':True})
-        if not util.isIterable(it_args) :
-            it_args = [it_args]        
+        if not util.isSequence(types) :
+            types = [types]
+        it_args = map(MayaTypesToAPITypeInt().get, types)  
     else :
         it_args = [0]                # default : filter on kInvalid = return all nodes
     for tup in MItNodes( *it_args ) :
         # yield (tup[0], tup[1])
-        yield (tup[0], MayaIntAPITypes()[tup[1]])
+        yield (tup[0], APITypeIntToMayaTypes().get(tup[1]))
         
+lst = list(iterNodes())
 
     # mayaType (nodeOrType, **kwargs) :
 #    typeInt = []
