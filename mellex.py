@@ -15,10 +15,10 @@ import ply.lex as lex
 
 
 reserved = (
-	'BREAK', 'CASE', 'CATCH', 'CONTINUE', 'DEFAULT', 'DO',
-	'ELSE', 'FALSE', 'FLOAT', 'FOR', 'GLOBAL', 'IF', 'IN', 'INT', 'ON', 'OFF', 'PROC',
+	'BREAK', 'CASE', 'CONTINUE', 'DEFAULT', 'DO',
+	'ELSE', 'FALSE', 'FLOAT', 'FOR', 'GLOBAL', 'IF', 'IN', 'INT', 'NO', 'ON', 'OFF', 'PROC',
 	'RETURN', 'STRING', 'SWITCH', 'TRUE', 'VECTOR',
-	'WHILE',
+	'WHILE', 'YES',
 	)
 
 tokens = reserved + (
@@ -27,7 +27,8 @@ tokens = reserved + (
 
 	# Operators (+,-,*,/,%,|,&,~,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
 	'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
-	'OR', 'AND', 'NOT', 'XOR', 'LSHIFT', 'RSHIFT',
+	#'OR', 'AND', 
+	'NOT', 'XOR', 'LSHIFT', 'RSHIFT',
 	'LOR', 'LAND',
 	'LT', 'LE', 'GT', 'GE', 'EQ', 'NE',
 	
@@ -35,6 +36,9 @@ tokens = reserved + (
 	'EQUALS', 'TIMESEQUAL', 'DIVEQUAL', 'MODEQUAL', 'PLUSEQUAL', 'MINUSEQUAL',
 	'LSHIFTEQUAL','RSHIFTEQUAL', 'ANDEQUAL', 'XOREQUAL', 'OREQUAL',
 
+	# Vector Component
+	'COMPONENT',
+	
 	# Increment/decrement (++,--)
 	'PLUSPLUS', 'MINUSMINUS',
 
@@ -67,12 +71,12 @@ def t_NEWLINE(t):
 		
 # Operators
 t_PLUS			   = r'\+'
-t_MINUS			= r'-'
+t_MINUS            = r'-'
 t_TIMES			   = r'\*'
 t_DIVIDE		   = r'/'
 t_MOD			   = r'%'
-t_OR			   = r'\|'
-t_AND			   = r'&'
+#t_OR			   = r'\|'
+#t_AND			   = r'&'
 t_NOT			   = r'!'
 t_XOR			   = r'\^'
 t_LSHIFT		   = r'<<'
@@ -115,7 +119,7 @@ t_RBRACE		   = r'\}'
 t_COMMA			   = r','
 #t_SEMI			   = r';'
 t_COLON			   = r':'
-
+#t_COMPONENT		   = r'\.[xyz]'
 
 # Identifiers and reserved words
 
@@ -159,6 +163,10 @@ def t_VAR(t):
 	t.value = t.value[1:]
 	return t
 
+def t_COMPONENT(t):
+	r'\.[xyz]'
+	return t
+
 def t_ID(t):
 	# Starts with a letter or a pipe
 	#
@@ -167,8 +175,11 @@ def t_ID(t):
 	#r'[A-Za-z_|]([\w_\.:|]|(\[\d+\]))*|\.\.'
 	#r'[A-Za-z_|][\w_\.:|]*(?:[\w_]|(?:\[\d+\]))+|[A-Za-z_]|\.\.'
 	# '(%(id)s)*([.|](%(id)s)+)*[.|]?*|\.\.' % {'id': '[A-Za-z_][\w:]*(\[\d+\])?'}
-	r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
 	
+	#   |    :    .     idName        [0]
+	r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
+	#   |    :    .     idName        [0] or [$var]
+	#r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[(\d+)|(\$[A-Za-z_][\w_]*)\])?)+)+)+?|\.\.'
 	t.type = reserved_map.get(t.value,"ID")
 	return t
 
@@ -213,6 +224,9 @@ def t_COMMENT(t):
 #def t_error(t):
 #	#print "Illegal character %s" % repr(t.value[0])
 #	t.lexer.skip(1)
+
+#def t_error(t):
+#	return t
 	
 #lexer = lex.lex(optimize=1)
 lexer = lex.lex()

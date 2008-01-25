@@ -246,14 +246,14 @@ class MelParser(object):
 	def parse(self, data):
 		data = data.encode( 'utf-8', 'ignore')
 		data = data.replace( '\r', '\n' )
-		'''
-		if verbosity == 2:	
+		
+		if parser.verbose == 2:	
 			lex.input(data)
 			while 1:
 				tok = lex.token()
 				if not tok: break      # No more input
 				print tok
-		'''	
+		
 		
 		parser.comment_queue = []
 		parser.comment_queue_hold = []
@@ -349,7 +349,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	pyfile.write_bytes(converted)
 	
 
-def mel2pyBatch( processDir, outputDir=None, verbosity=0 ):
+def mel2pyBatch( processDir, outputDir=None, verbosity=0 , test=False):
 	"""batch convert an entire directory"""
 	processDir = path.path(processDir)
 	
@@ -376,21 +376,25 @@ def mel2pyBatch( processDir, outputDir=None, verbosity=0 ):
 		except (ValueError, IndexError, TypeError), msg:
 			print 'failed:', msg
 		
-		try:
-			__import__(f.namebase)
-		except (SyntaxError, IndentationError):
-			print 'A syntax error exists in this file that will need to be manually fixed'
-		except RuntimeError:
-			print 'This file has code which executed on import and failed'
-		except ImportError:
-			pass
-		except:
-			print 'This file has code which executed on import and failed'
-		else:
-			importCnt += 1
+		if test:
+			try:
+				__import__(f.namebase)
+			except (SyntaxError, IndentationError):
+				print 'A syntax error exists in this file that will need to be manually fixed'
+			except RuntimeError:
+				print 'This file has code which executed on import and failed'
+			except ImportError:
+				pass
+			except:
+				print 'This file has code which executed on import and failed'
+			else:
+				importCnt += 1
 	
-	print "%d of %d files converted" % (succCnt, len(currentFiles))
-	print "%d of %d files imported without error" % (importCnt, len(currentFiles))
+	print "%d total processed for conversion" % len(currentFiles)
+	print "%d files succeeded" % succCnt
+	print "%d files failed" % (len(currentFiles)-succCnt)
+	if test:
+		print "%d files imported without error" % (importCnt)
 	
 	succCnt = 0
 	

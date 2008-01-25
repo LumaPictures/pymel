@@ -234,9 +234,9 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 	#res = separator.join(p[1:])
 	#
 	
-	if t.parser.verbose == 1:
+	if t.parser.verbose >= 1:
 		print funcname, res, t.lexer.lineno
-	#elif t.parser.verbose == 1:
+	#elif t.parser.verbose >= 1:
 	#	print 'assembled', funcname
 	
 	#if p[0].find('def') >= 0:
@@ -255,8 +255,10 @@ def addComments( t, funcname = '' ):
 
 def addHeldComments( t, funcname = '' ):
 	
-	commentList = t.parser.comment_queue_hold.pop()
-	
+	try:
+		commentList = t.parser.comment_queue_hold.pop()
+	except IndexError:
+		return
 	#commentList = ['# ' + x for x in commentList]
 	
 	if t.parser.verbose:
@@ -418,7 +420,8 @@ def p_declaration_statement(t):
 	else:
 		typ = typ[0]
 			
-	for declaration in t[2]:					
+	for declaration in t[2]:
+		#print declaration, typ					
 		if len(declaration)==1:
 			init = None
 			var = declaration[0]
@@ -448,8 +451,10 @@ def p_declaration_statement(t):
 					# if init is brackets, then it's an array, and the type needs to be string[], int[], etc
 					#print "get mel global var", var
 					if init == '[]':
-						typ += '[]'
-					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, typ, var) 
+						itype = typ + '[]'
+					else:
+						itype = typ
+					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, itype, var) 
 				
 			else:
 				t.parser.type_map[var] = typ
@@ -520,7 +525,7 @@ def p_init_declarator_list(t):
 # init-declarator
 def p_init_declarator(t):
 	'''init_declarator : declarator
-						| declarator EQUALS assignment_expression'''
+						| declarator EQUALS expression'''
 	# var=6
 	#
 	#t[0] = assemble(t, 'p_init_declarator', ' ')
@@ -1115,15 +1120,6 @@ LPAREN expression RPAREN
 """
 
 	
-def p_expression(t):
-	'''expression : catch_expression'''
-	t[0] = assemble(t, 'p_expression')
-
-def p_catch_expression(t):
-	'''catch_expression : assignment_expression
-					| CATCH assignment_expression'''
-	t[0] = assemble(t, 'p_catch_expression')
-	
 def p_expression_list_opt(t):
 	'''expression_list_opt : expression_list
 				  | empty'''
@@ -1135,8 +1131,8 @@ def p_expression_list_opt(t):
 		t[0] = []
 	
 def p_expression_list(t):
-	'''expression_list : assignment_expression
-				  | expression_list COMMA assignment_expression'''
+	'''expression_list : expression
+				  | expression_list COMMA expression'''
 	#t[0] = assemble(t, 'p_expression')
 	if len(t) == 2:
 		t[0] = [t[1]]
@@ -1144,11 +1140,63 @@ def p_expression_list(t):
 	else:
 		t[0] = t[1] + [t[3]]
 
+
+
+
+def p_expression(t):
+	'''expression : conditional_expression'''
+	t[0] = assemble(t, 'p_expression')
+
 	
+
+		
+# conditional-expression
+def p_conditional_expression_1(t):
+	'''conditional_expression : logical_or_expression'''
+	t[0] = assemble(t, 'p_conditional_expression_1', ' ')
+
+def p_conditional_expression_2(t):
+	'''conditional_expression : logical_or_expression CONDOP expression COLON conditional_expression '''
+	t[0] = assemble(t, 'p_conditional_expression_2')
+	t[0] = '%s and %s or %s' % ( t[1], t[3], t[5] )
+
+# constant-expression
+def p_constant_expression(t):
+	'''constant_expression : conditional_expression'''
+#							| CAPTURE command CAPTURE'''
+	t[0] = assemble(t, 'p_constant_expression')
+	
+
+
+
+# logical-or-expression
+def p_logical_or_expression_1(t):
+	'''logical_or_expression : logical_and_expression
+							 | logical_or_expression LOR logical_and_expression'''
+	
+	if len(t) == 4:
+		t[2] = 'or'
+	t[0] = assemble(t, 'p_logical_or_expression', ' ')
+		
+# logical-and-expression
+def p_logical_and_expression_1(t):
+	'''logical_and_expression : exclusive_or_expression
+							  | logical_and_expression LAND exclusive_or_expression'''
+	
+	if len(t) == 4:
+		t[2] = 'and'
+	t[0] = assemble(t, 'p_logical_and_expression', ' ')
+
+# exclusive-or-expression:
+def p_exclusive_or_expression_1(t):
+	'''exclusive_or_expression : assignment_expression
+							   | exclusive_or_expression XOR assignment_expression'''
+	t[0] = assemble(t, 'p_exclusive_or_expression_2', ' ')
+
 # assigment_expression:
 def p_assignment_expression(t):
 
-	'''assignment_expression : conditional_expression
+	'''assignment_expression : equality_expression
 							| postfix_expression assignment_operator assignment_expression''' # changed first item from unary to postfix
 #							| CAPTURE assignment_expression CAPTURE'''
 #							| unary_expression assignment_operator CAPTURE assignment_expression CAPTURE'''
@@ -1165,7 +1213,7 @@ def p_assignment_expression(t):
 		#	stage1:		foo[len(foo)] = bar 
 		#	stage2:		foo.append(%s) = bar
 		#	stage3:		foo.append(bar)
-		elif t[2] == ' = ' and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
+		elif t[2] in ['=',' = '] and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
 			t[0] = t[1] % t[3]
 		
 
@@ -1186,57 +1234,6 @@ def p_assignment_operator(t):
 						'''
 	t[0] = assemble(t, 'p_assignment_operator')
 	
-# conditional-expression
-def p_conditional_expression_1(t):
-	'''conditional_expression : logical_or_expression'''
-	t[0] = assemble(t, 'p_conditional_expression_1', ' ')
-
-def p_conditional_expression_2(t):
-	'''conditional_expression : logical_or_expression CONDOP expression COLON conditional_expression '''
-	t[0] = assemble(t, 'p_conditional_expression_2')
-	t[0] = '%s and %s or %s' % ( t[1], t[3], t[5] )
-# constant-expression
-def p_constant_expression(t):
-	'''constant_expression : conditional_expression'''
-#							| CAPTURE command CAPTURE'''
-	t[0] = assemble(t, 'p_constant_expression')
-	
-
-# logical-or-expression
-def p_logical_or_expression_1(t):
-	'''logical_or_expression : logical_and_expression
-							 | logical_or_expression LOR logical_and_expression'''
-	t[0] = assemble(t, 'p_logical_or_expression', ' ')
-	if len(t) == 4:
-		t[0] = '%s or %s' % (t[1], t[3])
-		
-# logical-and-expression
-def p_logical_and_expression_1(t):
-	'''logical_and_expression : inclusive_or_expression
-							  | logical_and_expression LAND inclusive_or_expression'''
-	t[0] = assemble(t, 'p_logical_and_expression', ' ')
-	if len(t) == 4:
-		t[0] = '%s and %s' % (t[1], t[3])
-		
-# inclusive-or-expression:
-def p_inclusive_or_expression_1(t):
-	'''inclusive_or_expression : exclusive_or_expression
-							   | inclusive_or_expression OR exclusive_or_expression'''
-	t[0] = assemble(t, 'p_inclusive_or_expression_2', ' ')
-
-# exclusive-or-expression:
-def p_exclusive_or_expression_1(t):
-	'''exclusive_or_expression : and_expression
-							   | exclusive_or_expression XOR and_expression'''
-	t[0] = assemble(t, 'p_exclusive_or_expression_2', ' ')
-
-# AND-expression
-def p_and_expression_1(t):
-	'''and_expression : equality_expression
-					  | and_expression AND equality_expression'''
-	t[0] = assemble(t, 'p_and_expression_2', ' ')
-
-
 # equality-expression:
 def p_equality_expression_1(t):
 	'''equality_expression : relational_expression
@@ -1343,26 +1340,42 @@ def p_unary_operator(t):
 					| MINUS
 					| NOT'''
 	t[0] = assemble(t, 'p_unary_operator')
-				
+
+#def p_catch_expression(t):
+#	'''catch_expression : procedure_expression
+#					| CATCH expression'''
+#	t[0] = assemble(t, 'p_catch_expression')
+					
 # procedure_expression
 def p_procedure_expression(t):
 	'''procedure_expression : command_expression
 				 			| procedure'''
 	t[0] = assemble(t, 'p_procedure_expression')
 
+#def p_procedure(t):
+#	'''procedure : ID LPAREN procedure_expression_list RPAREN
+#				 | ID LPAREN RPAREN '''
+#	#t[0] = assemble(t, 'p_procedure')
+#	#t[0] = 'mel.' + t[0]
+#	if len(t) == 5:
+#		t[0] = command_format( t[1], t[3], t )
+#	else:
+#		t[0] = command_format( t[1],[], t )
+		
 def p_procedure(t):
 	'''procedure : ID LPAREN procedure_expression_list RPAREN
-				 | ID LPAREN RPAREN '''
-	#t[0] = assemble(t, 'p_procedure')
-	#t[0] = 'mel.' + t[0]
+					| ID LPAREN RPAREN'''
+				
 	if len(t) == 5:
 		t[0] = command_format( t[1], t[3], t )
+	elif len(t) == 3:
+		t[0] = command_format( t[1],[t[2]], t )
 	else:
 		t[0] = command_format( t[1],[], t )
-
+		
 def p_procedure_expression_list(t):
-	'''procedure_expression_list : additive_expression
-							   | procedure_expression_list COMMA additive_expression'''
+	'''procedure_expression_list : constant_expression
+							   | procedure_expression_list COMMA constant_expression'''
 							   #| procedure_expression_list COMMA comment command_expression'''
 	
 	#t[0] = assemble(t, 'p_procedure_expression_list', matchFormatting=False )
@@ -1394,33 +1407,16 @@ def p_command_expression(t):
 # postfix-expression:
 def p_postfix_expression(t):
 	'''postfix_expression : primary_expression
-							| postfix_expression LBRACKET expression RBRACKET
 							| postfix_expression PLUSPLUS
 							| postfix_expression MINUSMINUS'''
 #							| postfix_expression LBRACE initializer_list RBRACE'''
 #							| postfix_expression command_input_list'''
 							
 	# $var
-	# $var[2-4]
 	# myProc( arg1, $var)
 	# myProc()
 	# $var++
-		
-	# element
-	if len(t)==5:
-		if not t[3]:
-			t[0] = t[1]
-		elif t[3] == 'len(%s)' % t[1]:
-			t[0] = t[1] + '.append(%s)'
-		else:
-			lenSubtractReg = re.compile( 'len\(%s\)\s*(-)' % t[1] )
-			try:
-				# assignment relative to the end of the array:   x[-1]
-				t[0] = '%s[%s]' % (t[1], ''.join(lenSubtractReg.split( t[3] )) )  
-			except:
-				t[0] = '%s[%s]' % (t[1], t[3])
-		# skip assemble
-		return
+	
 	
 	# ++ and -- must be converted to += and -=
 	if len(t) == 3:
@@ -1445,6 +1441,23 @@ def p_postfix_expression_3(t):
 	#t[0] = assemble(t, 'p_postfix_expression')
 	t[0] = 'Vector([%s])' % ','.join(t[2])	
 
+def p_postfix_expression_4(t):
+	'''postfix_expression : postfix_expression LBRACKET expression RBRACKET'''
+							
+	# array element index
+	# $var[2-4]
+	if not t[3]:
+		t[0] = t[1]
+	elif t[3] == 'len(%s)' % t[1]:
+		t[0] = t[1] + '.append(%s)'
+	else:
+		lenSubtractReg = re.compile( 'len\(%s\)\s*(-)' % t[1] )
+		try:
+			# assignment relative to the end of the array:   x[-1]
+			t[0] = '%s[%s]' % (t[1], ''.join(lenSubtractReg.split( t[3] )) )  
+		except:
+			t[0] = '%s[%s]' % (t[1], t[3])
+		
 # primary-expression:
 def p_primary_expression(t):
 	'''primary_expression :	boolean
@@ -1454,26 +1467,26 @@ def p_primary_expression(t):
 def p_primary_expression1(t):
 	'''primary_expression :	 ICONST'''
 	t[0] = Token(t[1], 'int', t.lexer.lineno)
-	if t.parser.verbose == 2:
+	if t.parser.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
 def p_primary_expression2(t):
 	'''primary_expression :	 SCONST'''
 	t[0] = Token(t[1], 'string', t.lexer.lineno)
-	if t.parser.verbose == 2:
+	if t.parser.verbose >= 2:
 		print "p_primary_expression", t[0]
 		
 		
 def p_primary_expression3(t):
 	'''primary_expression :	 FCONST'''
 	t[0] = Token(t[1], 'float', t.lexer.lineno)
-	if t.parser.verbose == 2:
+	if t.parser.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
 def p_primary_expression4(t):
 	'''primary_expression :	 variable'''	
 	t[0] = Token(t[1], t.parser.type_map.get(t[1], None), t.lexer.lineno )
-	if t.parser.verbose == 2:
+	if t.parser.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
 	#print "mapping", t[1], t.parser.type_map.get(t[1], None) 
@@ -1493,23 +1506,35 @@ def p_primary_expression4(t):
 
 def p_boolean_true(t):
 	'''boolean : ON
-				| TRUE '''
+				| TRUE
+				| YES '''
 	t[0] = 'True'
-	
+	if t.parser.verbose >= 2:
+		print "p_boolean_true", t[0]
+			
 def p_boolean_false(t):
 	'''boolean : OFF
-				| FALSE '''
+				| FALSE
+				| NO '''
 	t[0] = 'False'
-		
+	if t.parser.verbose >= 2:
+		print "p_boolean_false", t[0]
+			
 def p_variable(t):
 	'''variable : VAR'''
 	if t[1] in reserved:
 		t[0] = t[1] + '_'
 	else:
 		t[0] = t[1]
-
-
-
+	if t.parser.verbose >= 2:
+		print "p_variable", t[0]
+		
+def p_variable_vector_component(t):
+	'''variable :  VAR COMPONENT'''
+	t[0] = Token(t[1]+t[2], 'float', t.lexer.lineno)
+	if t.parser.verbose >= 2:
+		print "p_variable_vector_component", t[0]
+		
 # Commands
 def getCommandFlags( command ):
 
@@ -1751,17 +1776,45 @@ def command_format(command, args, t):
 		print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
 		return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
+# command_statement
+# -- difference between a comamnd_statement and a command:
+#		a command_statement is always followed by a semi-colon
+#		a command_statement can receive a command_expression as input
 def p_command_statement(t):
 	'''command_statement : ID SEMI
 			| ID command_statement_input_list SEMI'''
-	#print "p_command_statement"
 
 	if len(t) == 3:
 		t[0] = command_format(t[1], [], t) + '\n'
 	else:	
 		t[0] = command_format(t[1], t[2], t) + '\n'
 	addComments(t)
-			
+
+def p_command_statement_input_list(t):
+	'''command_statement_input_list : command_statement_input
+						  			| command_statement_input_list command_statement_input'''
+	#t[0] = assemble(t, 'p_command_input_list')	
+	
+	if len(t)==2:
+		t[0] = [t[1]]		
+	else:
+		t[0] = t[1] + [t[2]]
+		
+def p_command_statement_input(t):
+	'''command_statement_input 	: unary_expression
+								| command_expression
+								| command_flag'''
+	t[0] = assemble(t, 'p_command_input')
+
+def p_command_statement_input_2(t):
+	'''command_statement_input : ID'''
+	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
+
+
+# command
+# -- difference between a comamnd_statement and a command:
+#		a command_statement is always followed by a semi-colon
+#		a command_statement can receive a command_expression as input		
 def p_command(t):
 	'''command : ID
 			| ID command_input_list'''
@@ -1771,15 +1824,11 @@ def p_command(t):
 	else:	
 		t[0] = command_format(t[1], t[2], t)
 
-	
-	
-
 			
 def p_command_input_list(t):
 	'''command_input_list : command_input
 						  | command_input_list command_input'''
 	#t[0] = assemble(t, 'p_command_input_list')	
-	#print 'command_input_list', t[1:]
 	
 	#t[0] = ' '.join(t[1:])
 	if len(t)>2:
@@ -1798,33 +1847,12 @@ def p_command_input_2(t):
 	'''command_input : ID'''
 	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 
-def p_command_statement_input_list(t):
-	'''command_statement_input_list : command_statement_input
-						  			| command_statement_input_list command_statement_input'''
-	#t[0] = assemble(t, 'p_command_input_list')	
-	#print 'command_input_list', t[1:]
-	
-	#t[0] = ' '.join(t[1:])
-	if len(t)==2:
-		t[0] = [t[1]]		
-	else:
-		t[0] = t[1] + [t[2]]
-		
-def p_command_statement_input(t):
-	'''command_statement_input : unary_expression
-					 | command_expression
-					 | command_flag'''
-	t[0] = assemble(t, 'p_command_input')
 
-def p_command_statement_input_2(t):
-	'''command_statement_input : ID'''
-	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 	
 def p_flag(t):
 	'''command_flag : MINUS ID
 					| MINUS BREAK
 					| MINUS CASE
-					| MINUS CATCH
 					| MINUS CONTINUE
 					| MINUS DEFAULT
 					| MINUS DO
@@ -1836,6 +1864,7 @@ def p_flag(t):
 					| MINUS IF
 					| MINUS IN
 					| MINUS INT
+					| MINUS NO
 					| MINUS ON
 					| MINUS OFF
 					| MINUS PROC
@@ -1845,6 +1874,7 @@ def p_flag(t):
 					| MINUS TRUE
 					| MINUS VECTOR
 					| MINUS WHILE
+					| MINUS YES
 					'''
 
 		

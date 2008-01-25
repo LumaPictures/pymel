@@ -1,4 +1,4 @@
-
+ 
 """
 to create a window:
 
@@ -139,10 +139,6 @@ class Reporter(object):
 				
 	def lineFilter( self, messageType, sourceType, nativeMsg, convertedMsg ):
 		filterSourceType = self.filters['filterSourceType']
-
-		#outputFile = open( '/var/tmp/commandOutput', 'a')
-		#outputFile.write( '%s %s %s %s\n' % (nativeMsg, messageType, filterFlagNames[messageType], self.filters)  )
-		#outputFile.close()
 				
 		if (not filterSourceType or filterSourceType != sourceType) and not self.filters.get( filterFlagNames[messageType], False ): 
 			if self.filters['convertToPython'] and convertedMsg is not None:
@@ -155,7 +151,7 @@ class Reporter(object):
 			try:
 				output += self.lineFilter( *line )
 			except TypeError: pass
-		
+		self.bufferLength = len(output)
 		cmd = 'scrollField -e -text \"%s\" "%s";' % ( output, self.name )
 		self.executeCommand( cmd )
 	
@@ -166,7 +162,9 @@ class Reporter(object):
 		if output is not None:
 			global callbackState
 			
-			cmd = 'scrollField -e -insertionPosition 0 -insertText \"%s\" "%s";' % ( output, self.name )
+			cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";' % ( self.bufferLength, output, self.name )
+			
+			self.bufferLength += len(output)
 			
 			# f the line is a syntax error, we have to use OnIdle or maya will crash
 			#if line[0] == OpenMaya.MCommandMessage.kError and line[1] == kMel and 'Syntax error' in line[2] : #line[2].endswith( 'Syntax error //\n'):
@@ -191,11 +189,7 @@ class Reporter(object):
 			flags += '-%s %s ' % (key, value)
 		
 		cmd = 'cmdScrollFieldReporter -e %s "%s";' % ( flags, Reporter.cmdReporter )
-		
-		#outputFile = open( '/var/tmp/commandOutput', 'a')
-		#outputFile.write( cmd + '\n' )
-		#outputFile.close()
-		
+
 		self.executeCommand( cmd )
 
 		Reporter.globalFilters.update( filters )
@@ -206,16 +200,10 @@ class Reporter(object):
 		
 		cmd = 'cmdScrollFieldReporter -q -%s "%s";' % ( filter, Reporter.cmdReporter )
 
-		#outputFile = open( '/var/tmp/commandOutput', 'a')
-		#outputFile.write( cmd + '\n' )
-		#outputFile.close()
 
 		#result = self.executeCommandResult( cmd )
 		result = OpenMaya.MGlobal.executeCommandStringResult( cmd, False, False )
 		
-		#outputFile = open( '/var/tmp/commandOutput', 'a')
-		#outputFile.write( "results: " + res + '\n' )
-		#outputFile.close()
 		
 		return result
 	
@@ -267,9 +255,9 @@ def createCallback(stringData):
 def cmdCallback( nativeMsg, messageType, data ):
 	global callbackState
 	
-	outputFile = open( '/var/tmp/commandOutput', 'a')
-	outputFile.write( '============\n%s\n%s %s, length %s \n' % (nativeMsg, messageType, callbackState, len(nativeMsg))  )
-	outputFile.close()
+	#outputFile = open( '/var/tmp/commandOutput', 'a')
+	#outputFile.write( '============\n%s\n%s %s, length %s \n' % (nativeMsg, messageType, callbackState, len(nativeMsg))  )
+	#outputFile.close()
 	
 	
 	if callbackState == 'ignoreCommand':
@@ -296,9 +284,6 @@ def cmdCallback( nativeMsg, messageType, data ):
 				convertedMsg = mparser.parse( nativeMsg )			
 			except Exception, msg:
 				syntaxError = True
-				#outputFile = open( '/var/tmp/commandOutput', 'a')
-				#outputFile.write( "~~~~~~~~~\nfailed to convert history: %s\n" % msg )
-				#outputFile.close()
 				pass
 		else:
 			sourceType = kPython
@@ -309,9 +294,6 @@ def cmdCallback( nativeMsg, messageType, data ):
 			#convertedMsg = pymel.mel2py.mel2pyStr( nativeMsg )
 			convertedMsg = mparser.parse( nativeMsg )
 		except Exception, msg:
-			#outputFile = open( '/var/tmp/commandOutput', 'a')
-			#outputFile.write( "~~~~~~~~~\nfailed to convert display: %s\n" % msg )
-			#outputFile.close()
 			pass
 	else:
 		try:
@@ -336,9 +318,9 @@ def cmdCallback( nativeMsg, messageType, data ):
 	if convertedMsg is not None:
 		convertedMsg = encodeString( convertedMsg )
 	
-	outputFile = open( '/var/tmp/commandOutput', 'a')
-	outputFile.write( '---------\n%s %s\n' % ( convertedMsg, sourceType ) )
-	outputFile.close()
+	#outputFile = open( '/var/tmp/commandOutput', 'a')
+	#outputFile.write( '---------\n%s %s\n' % ( convertedMsg, sourceType ) )
+	#outputFile.close()
 		
 	line = [ messageType, sourceType, nativeMsg, convertedMsg ]
 	
