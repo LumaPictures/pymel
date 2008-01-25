@@ -606,7 +606,7 @@ class Attribute(_BaseObj):
 		>>> s.attr('__init__').set( .5 )
 		>>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()	
 	"""
-	attrItemReg = re.compile( '.*\[(\d+)\]$')
+	attrItemReg = re.compile( '\[(\d+)\]$')
 	
 	#def __repr__(self):
 	#	return "Attribute('%s')" % self
@@ -644,15 +644,40 @@ class Attribute(_BaseObj):
 			self.__dict__['_multiattrIndex'] += 1
 			return attr
 	'''		
-							
+
+	def array(self):
+		"""
+		Returns the array (multi) attribute of the current element
+			>>> n = Attribute('lambert1.groupNodes[0]')
+			>>> n.array()
+			'lambert1.groupNode'
+		"""
+			
+		try:
+			return Attribute(attrItemReg.split( self )[0])
+		except:
+			raise TypeError, "%s is not a multi attribute" % self
+	
 	def plugNode(self):
 		'plugNode'
 		return PyNode( str(self).split('.')[0])
 				
 	def plugAttr(self):
-		"""plugAttr"""
+		"""plugAttr
+		
+			>>> SCENE.persp.t.tx.plugAttr()
+			't.tx'
+		"""
 		return '.'.join(str(self).split('.')[1:])
-
+	
+	def lastPlugAttr(self):
+		"""
+		
+			>>> SCENE.persp.t.tx.lastPlugAttr()
+			'tx'
+		"""
+		return self.split('.')[-1]
+		
 	node = plugNode
 	
 	def nodeName( self ):
@@ -661,7 +686,7 @@ class Attribute(_BaseObj):
 	
 	def item(self):
 		try: 
-			return int(Attribute.attrItemReg.match(self).group(1))
+			return int(Attribute.attrItemReg.search(self).group(1))
 		except: return None
 			
 	# getting and setting					
@@ -840,54 +865,54 @@ class Attribute(_BaseObj):
 	# attributeQuery info methods
 	def isHidden(self):
 		"attributeQuery -hidden"
-		return cmds.attributeQuery(self.plugAttr(), node=self.node(), hidden=True)
+		return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), hidden=True)
 		
 	def isConnectable(self):
 		"attributeQuery -connectable"
-		return cmds.attributeQuery(self.plugAttr(), node=self.node(), connectable=True)	
+		return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)	
 
 	def isMulti(self):
 		"attributeQuery -multi"
-		return cmds.attributeQuery(self.plugAttr(), node=self.node(), multi=True)	
+		return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), multi=True)	
 	
 	def exists(self):
 		"attributeQuery -exists"
 		try:
-			return cmds.attributeQuery(self.plugAttr(), node=self.node(), exists=True)	
+			return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)	
 		except TypeError:
 			return False
 			
 	def longName(self):
 		"attributeQuery -longName"
-		return cmds.attributeQuery(self.plugAttr(), node=self.node(), longName=True)
+		return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), longName=True)
 		
 	def shortName(self):
 		"attributeQuery -shortName"
-		return cmds.attributeQuery(self.plugAttr(), node=self.node(), shortName=True)
+		return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), shortName=True)
 			
 	def getSoftMin(self):
 		"""attributeQuery -softMin
 			Returns None if softMin does not exist."""
-		if cmds.attributeQuery(self.plugAttr(), node=self.node(), softMinExists=True):
-			return cmds.attributeQuery(self.plugAttr(), node=self.node(), softMin=True)[0]	
+		if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMinExists=True):
+			return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMin=True)[0]	
 			
 	def getSoftMax(self):
 		"""attributeQuery -softMax
 			Returns None if softMax does not exist."""
-		if cmds.attributeQuery(self.plugAttr(), node=self.node(), softMaxExists=True):
-			return cmds.attributeQuery(self.plugAttr(), node=self.node(), softMax=True)[0]
+		if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMaxExists=True):
+			return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMax=True)[0]
 	
 	def getMin(self):
 		"""attributeQuery -min
 			Returns None if min does not exist."""
-		if cmds.attributeQuery(self.plugAttr(), node=self.node(), minExists=True):
-			return cmds.attributeQuery(self.plugAttr(), node=self.node(), min=True)[0]
+		if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), minExists=True):
+			return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), min=True)[0]
 			
 	def getMax(self):
 		"""attributeQuery -max
 			Returns None if max does not exist."""
-		if cmds.attributeQuery(self.plugAttr(), node=self.node(), maxExists=True):
-			return cmds.attributeQuery(self.plugAttr(), node=self.node(), max=True)[0]
+		if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), maxExists=True):
+			return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), max=True)[0]
 	
 	def getSoftRange(self):
 		"""attributeQuery -softRange
@@ -1022,7 +1047,7 @@ class Attribute(_BaseObj):
 		"""attributeQuery -listChildren"""
 		return map( 
 			lambda x: Attribute( self.node() + '.' + x ), 
-			util.listForNone( cmds.attributeQuery(self.plugAttr(), node=self.node(), listChildren=True) )
+			util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
 				)
 
 
@@ -1030,7 +1055,7 @@ class Attribute(_BaseObj):
 		"""attributeQuery -listSiblings"""
 		return map( 
 			lambda x: Attribute( self.node() + '.' + x ), 
-			util.listForNone( cmds.attributeQuery(self.plugAttr(), node=self.node(), listSiblings=True) )
+			util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listSiblings=True) )
 				)
 
 		
@@ -1040,7 +1065,7 @@ class Attribute(_BaseObj):
 		if self.count('.') > 1:
 			return Attribute('.'.join(self.split('.')[:-1]))
 		try:
-			return Attribute( self.node() + '.' + cmds.attributeQuery(self.plugAttr(), node=self.node(), listParent=True)[0] )
+			return Attribute( self.node() + '.' + cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listParent=True)[0] )
 		except TypeError:
 			return None
 	
