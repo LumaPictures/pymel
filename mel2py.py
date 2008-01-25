@@ -260,11 +260,11 @@ class MelParser(object):
 		
 		try:
 			converted = parser.parse(data)
-		except ValueError:
+		except ValueError, msg:
 			if parser.comment_queue:
 				converted = '\n'.join(parser.comment_queue)				
 			else:
-				raise ValueError
+				raise ValueError, msg
 			
 		#except IndexError, msg:
 		#	raise ValueError, '%s: %s' % (melfile, msg)

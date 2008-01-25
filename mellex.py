@@ -24,7 +24,8 @@ reserved = (
 tokens = reserved + (
 	# Literals (identifier, integer constant, float constant, string constant, char const)
 	'ID', 'VAR', 'ICONST', 'FCONST', 'SCONST',
-
+	#'OBJECT',
+	
 	# Operators (+,-,*,/,%,|,&,~,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
 	'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
 	#'OR', 'AND', 
@@ -55,8 +56,8 @@ tokens = reserved + (
 	# Comments
 	'COMMENT', 'COMMENT_BLOCK',
 	
-	# Ellipsis (...)
-	#'ELLIPSIS',
+	# Ellipsis (..)
+	'ELLIPSIS',
 	)
 
 # Completely ignored characters
@@ -167,6 +168,10 @@ def t_COMPONENT(t):
 	r'\.[xyz]'
 	return t
 
+def t_ELLIPSIS(t):
+	r'\.\.'
+	return t
+
 def t_ID(t):
 	# Starts with a letter or a pipe
 	#
@@ -177,16 +182,27 @@ def t_ID(t):
 	# '(%(id)s)*([.|](%(id)s)+)*[.|]?*|\.\.' % {'id': '[A-Za-z_][\w:]*(\[\d+\])?'}
 	
 	#   |    :    .     idName        [0]
-	r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
+	#r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
 	#   |    :    .     idName        [0] or [$var]
 	#r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[(\d+)|(\$[A-Za-z_][\w_]*)\])?)+)+)+?|\.\.'
+	
+	#r'[A-Za-z_][\w]*'
+	r'([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
 	t.type = reserved_map.get(t.value,"ID")
 	return t
 
-	
+#def t_OBJECT(t):
+#	
+#	#   |    :    .     idName        [0]
+#	#r'([|]?([:]?([.]?[A-Za-z_][\w]*(\[\d+\])?)+)+)+?|\.\.'
+#	
+#	#r'[A-Za-z_][\w]|\.\.'
+#	r'([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
+#	return t	
 	
 # Integer literal
-t_ICONST = r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
+#t_ICONST = r'\d+([uU]|[lL]|[uU][lL]|[lL][uU])?'
+t_ICONST = r'(0x[a-fA-F0-9]*)|\d+'
 
 # Floating literal
 #t_FCONST = r'((\d+)?(\.\d+)(e(\+|-)?(\d+))?|(\d+)e(\+|-)?(\d+))([lL]|[fF])?' # does not allow  1.

@@ -505,6 +505,8 @@ def p_type_specifier(t):
 					  | VECTOR
 					  '''
 	t[0] = assemble(t, 'p_type_specifier')
+	
+
 
 # init-declarator-list:
 def p_init_declarator_list(t):
@@ -630,7 +632,7 @@ def p_labeled_statement_2(t):
 	t[0] = [t[2], block, fallthrough]
 	
 def p_labeled_statement_3(t):
-	'''labeled_statement : DEFAULT COLON statement_list'''
+	'''labeled_statement : DEFAULT COLON statement_list_opt'''
 	#t[0] = assemble(t, 'p_labeled_statement_3')
 	block = []
 	for line in t[3]:
@@ -1466,6 +1468,8 @@ def p_primary_expression(t):
 	
 def p_primary_expression1(t):
 	'''primary_expression :	 ICONST'''
+	if t[1].startswith('0x'):
+		t[1] = "int( '%s', 16 )" % t[1]
 	t[0] = Token(t[1], 'int', t.lexer.lineno)
 	if t.parser.verbose >= 2:
 		print "p_primary_expression", t[0]
@@ -1672,8 +1676,11 @@ def command_format(command, args, t):
 			#----- Flag -----
 			if flagmatch:
 				if numArgs > 0:
-					raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
-
+					#raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
+					if t.parser.verbose >= 1: print 'reached a new flag before receiving all necessary args for last flag'
+					kwargs[currFlag]='1'
+					numArgs=0
+					
 				(numArgs, commandFlag) = flags[ token ]
 				
 				# remove dash (-) before flag
@@ -1701,6 +1708,7 @@ def command_format(command, args, t):
 				else:
 					argTally = '(%s)' % ', '.join(argTally)
 				
+				# mutliuse flag, ex.  ls -type 'mesh' -type 'camera'
 				if currFlag in kwargs:
 					if isinstance(kwargs[currFlag], list):
 						kwargs[currFlag].append( argTally )
@@ -1807,7 +1815,8 @@ def p_command_statement_input(t):
 	t[0] = assemble(t, 'p_command_input')
 
 def p_command_statement_input_2(t):
-	'''command_statement_input : ID'''
+	'''command_statement_input : object
+								| ELLIPSIS'''
 	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 
 
@@ -1837,17 +1846,24 @@ def p_command_input_list(t):
 	else:
 		#print "new"
 		t[0] = [t[1]]
-		
+
 def p_command_input(t):
 	'''command_input : unary_expression
 				 	 | command_flag'''
 	t[0] = assemble(t, 'p_command_input')
 
 def p_command_input_2(t):
-	'''command_input : ID'''
+	'''command_input 	: object
+						| ELLIPSIS'''
 	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
 
+def p_object_1(t):
+	'''object	: ID'''
+	t[0] = assemble(t, 'p_object_1')
 
+def p_object_2(t):
+	'''object	: ID LBRACKET expression RBRACKET'''
+	t[0] = assemble(t, 'p_object_2')
 	
 def p_flag(t):
 	'''command_flag : MINUS ID
