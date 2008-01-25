@@ -593,7 +593,7 @@ class metaNode(type) :
 						#else: print "%s: skipping %s" % ( classname, methodName )
 				
 				# edit command: 
-				elif 'edit' in modes:
+				if 'edit' in modes:
 					# if there is a corresponding query we use the 'set' prefix. 
 					if 'query' in modes:
 						methodName = 'set' + util.capitalize(flag)
