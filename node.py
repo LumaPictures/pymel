@@ -688,6 +688,12 @@ class Attribute(_BaseObj):
 		try: 
 			return int(Attribute.attrItemReg.search(self).group(1))
 		except: return None
+	
+	def setEnums(self, enumList):
+		cmds.addAttr( self, e=1, en=":".join(enumList) )
+	
+	def getEnums(self):
+		return cmds.addAttr( self, q=1, en=1 )	
 			
 	# getting and setting					
 	set = setAttr			
@@ -1088,7 +1094,20 @@ class DependNode( _BaseObj ):
 	#-------------------------------
 	#	Name Info and Manipulation
 	#-------------------------------
-	
+	def __new__(cls,name,create=False):
+		"""
+		Provides the ability to create the object when creating a class
+		
+			>>> n = pm.Transform("persp",create=True)
+			>>> n.__repr__()
+			# Result: Transform('persp1')
+		"""
+
+		if create:
+			ntype = util.uncapitalize(cls.__name__)
+			name = createNode(ntype,n=name,ss=1)
+		return _BaseObj.__new__(cls,name)
+
 	def node(self):
 		"""for compatibility with Attribute class"""
 		return self

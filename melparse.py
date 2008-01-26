@@ -1952,7 +1952,7 @@ def p_error(t):
 import profile
 # Build the grammar
 
-parser = yacc.yacc(method='''LALR''')
+parser = yacc.yacc(method='''LALR''', debug=0)
 
 	
 #profile.run("yacc.yacc(method='''LALR''')")

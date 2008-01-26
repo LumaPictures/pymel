@@ -168,7 +168,7 @@ class Reporter(object):
 			
 			# f the line is a syntax error, we have to use OnIdle or maya will crash
 			#if line[0] == OpenMaya.MCommandMessage.kError and line[1] == kMel and 'Syntax error' in line[2] : #line[2].endswith( 'Syntax error //\n'):
-			if callbackState == 'syntax_error' or ( line[0] == OpenMaya.MCommandMessage.kWarning and line[1] == kMel ):
+			if line[1] == kMel and ( callbackState == 'syntax_error' or line[0] in [OpenMaya.MCommandMessage.kError, OpenMaya.MCommandMessage.kWarning]  ):
 				self.executeCommandOnIdle( cmd )			
 			else:
 				self.executeCommand( cmd )
@@ -448,6 +448,9 @@ def syntaxCreator():
 # Initialize the script plug-in
 def initializePlugin(mobject):
 	mplugin = OpenMayaMPx.MFnPlugin(mobject)
+	
+	if OpenMaya.MGlobal.mayaVersion() == '8.5':
+		raise NotImplementedError, "pymelScrollFieldReporter is only supported for Maya 2008"
 	try:
 		mplugin.registerCommand( kPluginCmdName, cmdCreator, syntaxCreator )
 		
@@ -471,7 +474,6 @@ def uninitializePlugin(mobject):
 	mplugin = OpenMayaMPx.MFnPlugin(mobject)
 	try:
 		mplugin.deregisterCommand( kPluginCmdName )
-		#outputFile.close()
 	except:
 		sys.stderr.write( "Failed to unregister command: %s\n" % kPluginCmdName )
 		raise

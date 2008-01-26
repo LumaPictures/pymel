@@ -22,17 +22,17 @@ append new element
 MEL::
 	$strArray[`size $strArray`] = "foo";
 	
-Python::
-	strArray.append("foo")
+Python
+	>>> strArray.append("foo")
 
 assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MEL::
-	>>> $strArray[`size $strArray`-3] = "foo";
+	strArray[`size $strArray`-3] = "foo";
 	
-Python::	
-	strArray[-3] = "foo"
+Python	
+	>>> strArray[-3] = "foo"
 
 However, since the translator does not track values of variables, it does not know if any given index is out of
 range or not. so, the following would raise a 'list assignment index out of range' error when converted to
@@ -48,43 +48,53 @@ for(init; condition; update)
 
 	the closest equivalent to this in python is something akin to::
 
-		for i in range(start, end)
+		>>> for i in range(start, end)
 		
-	in order for this type of for loop to be translated it must meet several requirements:
+	in order for this type of for loop to be translated into a python for loop it must meet several requirements:
 	
-		1. the inititalization, conidition, and update expressions must not be empty.
+		1. the initialization, condition, and update expressions must not be empty.
 			
 			not translatable::
-			  	for(; ; $i++)
+			  	for(; ; $i++) print $i;
 		
 		2. there can be only one conditional expression.   
 			
 			not translatable::
-			  	for($i=0; $i<10, $j<20; $i++)
+			  	for($i=0; $i<10, $j<20; $i++) print $i;
 		
 		3. the variable which is being updated and tested in the condition (aka, the iterator) must exist alone on one
 			side of the	conditional expression. this one is easy enough to fix, just do some algebra:
 			
 			not translatable::
-			  	for($i=0; ($i-2)<10, $i++)
+			  	for($i=0; ($i-2)<10, $i++) print $i;
 	
 			translatable::
-			  	for($i=0; $i<(10+2), $i++)
+			  	for($i=0; $i<(10+2), $i++) print $i;
 		
 		4. the iterator can appear only once in the update expression:
 			
 			not translatable::
-			  	for($i=0; $i<10; $i++, $i+=2)
+			  	for($i=0; $i<10; $i++, $i+=2) print $i;
+			  	
+	if these conditions are not met, the for loop will be converted into a while loop:
+	
+		>>> i=0
+		>>> while 1:
+		>>> 	if not ( (i - 2)<10 ):
+		>>> 		break			
+		>>> 	print i			
+		>>> 	i+=1
+			
 
 Inconveniences
 ==============
 
-switch statements
+Switch Statements
 -----------------		
-alas, switch statements are not supported by python. the translator will convert them into an if/elif/else statement.
+Alas, switch statements are not supported by python. the translator will convert them into an if/elif/else statement.
 
 
-global variables
+Global Variables
 ----------------		
 
 Global variables are not shared between mel and python.  two functions have been added to pymel for this purpose:
@@ -149,18 +159,18 @@ to pass along to your function and order of definition does not matter.
 
 						
 						
-comments
+Comments
 --------
-rules on where comments may be placed is more strict in python, so expect your comments to be shifted around a bit
+Rules on where comments may be placed is more strict in python, so expect your comments to be shifted around a bit
 after translation.
 
 
-formatting
+Formatting
 ----------
 				
-the formatting of your original script will be lost. i apologize for this, and perhaps i'll be able to carry over some
-custom formatting in future versions, but python is much more strict about formatting than mel, so the conversion is
-infinitely simpler when the formatting is completely discarded and reconstructed based on pythonic rules.
+Much of the formatting of your original script will be lost. I apologize for this, but python is much more strict
+about formatting than mel, so the conversion is infinitely simpler when the formatting is largely discarded
+and reconstructed based on pythonic rules.
 
 
 Solutions and Caveats
@@ -169,15 +179,15 @@ Solutions and Caveats
 catch and catchQuiet	
 --------------------
 
-there is no direct equivalent in python to the catch command and it does not exist in maya.cmds so i wrote two
+There is no direct equivalent in python to the catch and catchQuiet command and it does not exist in maya.cmds so i wrote two
 python commands of the same name and put them into pymel. these are provided primarily for compatibility with 
 automatically translated scripts. try/except statements should be used instead of catch or catchQuiet if coding
-from scratch.			
+from scratch.
 
 for( $elem in $list )
 ---------------------
 	
-this variety of for loop has a direct syntactical equivalent in python.  the only catch here is that maya.cmds 
+This variety of for loop has a direct syntactical equivalent in python.  the only catch here is that maya.cmds 
 functions which are supposed to return lists, return None when there are no matches. life would be much simpler 
 if they returned empty lists instead.  the solution currently lies in pymel, where i have begun
 correcting all of these command to return proper results.  i've started with the obvious ones, but there 

@@ -8,9 +8,9 @@
 Pymel
 =====
 
-Pymel makes python scripting with Maya work the way it should. Maya's command module is a direct
+Pymel makes python scripting in Maya work the way it should. Maya's command module is a direct
 translation of mel commands into python commands. The result is a very awkward and unpythonic syntax which
-does not take advantage of python's strengths -- particulary, a flexible, object-oriented design. Pymel
+does not take advantage of python's strengths -- particularly, a flexible, object-oriented design. Pymel
 builds on the cmds module by organizing many of its commands into a class hierarchy, and by
 customizing them to operate in a more succinct and intuitive way.
 
@@ -67,7 +67,7 @@ Other Additions and Changes
 		- instancer node was not returning name of created shape
 		- fixed scriptTable getCellCmd flag to work with python functions, previously only worked with mel callbacks
 
-	- Pymel Bug Fixes:
+	- Pymel Bug Fixes
 		- _BaseObj.__unicode__ was causing errors in maya 2008
 		- Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
 		- L{DagNode.__eq__} was not comparing DAG nodes properly
@@ -75,7 +75,7 @@ Other Additions and Changes
 		- fixed a bug in DagNode.namespaceList
 		- fixed setAttr force flag to work for subclasses of basestring, such as Path, _BaseObj, etc
 				
-	- Other Improvments		
+	- Other Improvments
 		- changed DagNode.getParent to L{DagNode.firstParent}, and changed DagNode.getParent2 to L{DagNode.getParent}			
 		- added sourceFirst keyword arg for L{listConnections}, L{_BaseObj.connections}, L{_BaseObj.inputs}, L{_BaseObj.outputs}.
 		- added L{DagNode.getSiblings} 		
@@ -87,14 +87,57 @@ Other Additions and Changes
 		- added L{Camera.dolly}, L{Camera.track}, L{Camera.tumble}, L{Camera.orbit}
 		- enhanced L{addAttr}, L{Attribute.add}, and L{DependNode.addAttr} to allow python types to be passed to set -at type
 		- added L{Transform.translate} property to overcome conflict with basestring.translate method
+		- added L{Attribute.getEnums} and L{Attribute.setEnums} and L{Attribute.lastPlugAttr}
+		- added L{DependNode.__new__} with 'create' flag to provide the option to create an object when creating an instance of the class
+
+Installation
+============
+
+Pymel Package
+-------------
+
+The simplest way to install pymel is to place the unzipped pymel folder in your scripts directory 
+
+on win: My Documents/maya/8.5/scripts
+
+on mac: ~/Library/Preferences/Autodesk/maya/8.5/scripts
+
+on linux: ~/maya/maya/8.5/scripts
+
 	
+Alternately, if you have not done so already, it is a good idea to create a separate directory for your python scripts so that
+they will be accessible from within Maya.  You can do this by setting the PYTHONPATH environment variable in Maya.env::  
+
+	PYTHONPATH = /path/to/folder
+
+Then place the pymel directory in your PYTHONPATH directory.
+
+Next, to avoid having to import pymel every time you startup, if you have not done so already, you can create a userSetup.mel
+file, place it in your scipts directory and add this line::
+
+	python("from pymel import *");
+
+Note, that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
+
+Script Editor
+-------------
+Pymel includes a replacement for the script editor window that provides the option to translate all mel history into python. 
+Currently this feature is beta and works only in Maya 2008.
+
+The script editor is comprised of two files located in the pymel/misc directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  Place the mel
+file into your scripts directory, and the python file into your Maya plugins directory. Open Maya, go-to 
+B{Window S{->} Settings/Preferences S{->} Plug-in Manager} and load pymelScrollFieldReporter.  Be sure to also check "Auto Load" for this plugin.
+Next, open the Script Editor and go to B{History S{->} History Output S{->} Convert Mel to Python}. Now all output will be reported
+in python, regardless of whether the input is mel or python.
 
 Getting Started
 ===============
 
 If you are a mel scripter but have not used python in maya yet, you should start with the Maya docs on the subject, particularly
-the section 'Using Python'. This will help you to understand the differences in syntax between the two languages and how 
-to translate between them.
+the section U{Using Python<http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>}. This will help you to understand the differences in syntax between the two languages and how 
+to translate between them. Another great way to learn how to translate mel into python is to install the new Script Editor (instructions
+above). With it you can execute some mel code and watch the python output in the top pane. You can toggle back and forth by checking and
+unchecking the "Convert Mel to Python" checkbox.
 
 The Basics
 ----------
@@ -109,8 +152,13 @@ powerful than strings in mel:
 	>>> cam = maya.cmds.ls( type='camera')[0]
 	>>> print cam
 	frontShape
-	>>> cam.replace( 'front', 'crazy' )  # an example string operation
-	# Result: crazyShape # 
+	>>> cam = cam.replace( 'front', 'crazy' )  # an example string operation
+	>>> print cam
+	crazyShape
+	>>> print cam[0] # indexable
+	c
+	>>> print cam[-5:] # slicable
+	Shape
 		
 So, already you have object-oriented power at your fingertips. When using pymel, the L{ls} command still returns a list of strings,
 but these strings are on steroids: in addition to the built-in string methods ( a method is a function that belongs to a class ), 
@@ -122,8 +170,8 @@ pymel adds methods for operating on the type of object that the string represent
 	frontShape
 	>>> cam.getFocalLength()
 	# Result: 35.0 # 
-	>>> cam.replace( 'front', 'crazy' )  # still has the string functionality as well
-	# Result: monkeyShape #
+	>>> print cam[-5:]  # still has the string functionality as well
+	Shape
 
 The same goes for other objects when using pymel.  When getting a triple attribute like translate or rotate, maya.cmds.getAttr
 will return a list with three floats.  Pymel nodes, on the other hand, return a 3-element L{vector<Vector>} which inherits from the list class,
@@ -148,7 +196,7 @@ Using Node Classes
 	In order to use the object-oriented design of pymel, you must ensure that the objects that you are working 
 	with are instances of pymel classes. To make this easier, this module contains wrapped version 
 	of the more common commands for creating and getting lists of objects. These modified commands cast their results to the appropriate 
-	class type. See L{ls}, L{listRelatives}, L{listTransforms}, L{selected}, and L{listHistory}.  
+	class type. See L{ls}, L{listRelatives}, L{listTransforms}, L{selected}, and L{listHistory}, for a few examples.  
 	
 	Commands that list objects return pymel classes:
 	
@@ -162,7 +210,7 @@ Using Node Classes
 		>>> print t, type(t)
 		pSphere2, <class 'pymel.node.Transform'> #
 		
-	In many cases, you won't be creating the object directly in your code, but will want to gain access to the object by name. Pymel
+	In many cases, you won't be creating object directly in your code, but will want to gain access to the object by name. Pymel
 	provides two new ways of doing this.
 		
 	Using Objects by Name: The PyNode Command
@@ -219,19 +267,23 @@ L{DependNode}, L{DagNode}, L{Transform}, L{Constraint}, and L{ObjectSet}.
 Node Commands and their Class Counterparts
 ------------------------------------------
 
-In addition to the many classes that make up the node hierarchy, there are also 'Command Classes', which are leaf-level
+In addition to the many classes that make up the node hierarchy, there are also 'Command Classes', which are
 node classes that have methods specific to their node type. As you are probably aware, Mel contains a number of commands
 which are used to create, edit, and query specific object types in maya.  Typically, the names of these commands correspond
 with the node type on which they operate. Similarly, when using pymel, the function usually matches the class which it returns (see above).
-Some examples of these command-class pairs are L{aimConstraint} / L{AimConstraint}, L{camera} / L{Camera}, and L{directionalLight} / L{DirectionalLight}. 
+Some examples of these command-class pairs are:
+	- L{aimConstraint} S{->} L{AimConstraint}
+	- L{camera} S{->} L{Camera}
+	- L{directionalLight} S{->} L{DirectionalLight}. 
+	
 However, there are some exceptions to this rule.  For example, L{spaceLocator} creates a L{Locator} and L{vortex} creates a
 L{VortexField}. 
  
 Once nodes have been cast to their appropriate class type (usually handled automatically), you can query and edit it in
 an object oriented way.
 
-this example demonstrates some basic principles. note the relationship between the name of the object
-created, its node type, and its class type
+This example demonstrates some basic principles. Note the relationship between the name of the object
+created, its node type, and its class type:
 
 	>>> l = directionalLight()
 	>>> # print the name of the object, its maya object type, and the class type
@@ -343,29 +395,6 @@ for two reasons: 1) to improve the clarity of the documentation, and 2) so that,
 in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
 for organizational reasons.
 
-
-Setup
-=====
-The simplest way to setup pymel is to place the pymel folder in your scripts directory 
-
-on win: My Documents/maya/8.5/scripts
-on mac: ~/Library/Preferences/Autodesk/maya/8.5/scripts
-on linux: ~/maya/maya/8.5/scripts
-	
-alternately, if you have not done so already, it is a good idea to setup a separate directory for your python scripts so that
-they will be accessible from within maya.  you can do this by setting the PYTHONPATH environment variable in Maya.env::  
-
-	PYTHONPATH = $MAYA_SCRIPT_PATH
-
-then place the pymel directory in your PYTHONPATH directory.
-
-next, to avoid having to import pymel every time you startup, if you have not done so already, you can create a userSetup.mel
-file, place it in your scipts directory and add this line::
-
-	python("from pymel import *");
-
-Note, that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
- 
 """
 
 
@@ -468,7 +497,7 @@ changed lsUI to return wrapped UI classes
 added a class for every node type in the node hierarchy.
 greatly improved documentation
 added translate property to Transform class to overcome conflict with basestring.translate method
--0.7.2-
+-0.7.5-
 fixed bug in PyNode that was failing to cast Attributes to Nodes
 fixed a bug in createSurfaceShader which was failing to return the correctly renamed shadingGroup
 fixed a bug in mel2py when attempting to resolve path of a mel script that uses whitespace
@@ -482,6 +511,14 @@ fixed a bug in Transform.centerPivots (thx koreno)
 all commands, including custom commands, are now brought into the main namespace (excepting those we *wish* to filter)
 fixed bugs in Attribute.getParent, Attribute.getChildren, Attribute.getSiblings, where results were not being returned as Attribute classes
 fixed bug in Constraint.getWeight, Constraint.setWeight, and all constraint nodes that inherit from it.
+added Attribute.lastPlugAttr, which will only return the last plug attribute of a compound attribute
+Attribute commands which wrap attributeQuery now use lastPlugAttr for compatibility with compound attributes
+added Attribute.array for retreiving the array (multi) attribute of the current element
+-0.7.6-
+fixed a bug introduced in 0.7.5 with set* class methods not being generated
+added Attribute.getEnums and Attribute.setEnums
+added DependNode.__new__ with 'create' flag to provide the option to create an object when creating an instance of the class
+patched up pymelScrollFieldReporter for its first beta run (Fingers crosssed)
 
  TODO: 
 	Factory:
@@ -490,6 +527,13 @@ fixed bug in Constraint.getWeight, Constraint.setWeight, and all constraint node
 		- provide an alternate method of creation, which creates the named object if it does not exist.
 		- always returns a single object, not a list
 
+	mel2py and pymelScrollFieldReporter:
+	- max buffer size workaround
+	- formatting: different spacing for negative numbers and subtraction: ( '-1', '2 - 5') 
+	- flag info : share cache with pymel? must deal with commands whose synatx is altered (sets, move).
+	- tokenize command
+	- runtime commands
+	
 	To Debate:
 	- filter out self from listHistory command?
 	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
@@ -515,7 +559,7 @@ fixed bug in Constraint.getWeight, Constraint.setWeight, and all constraint node
 	- develop a way to add docs to selective objects based on cached info
 """
 
-__version__ = '0.7.5'
+__version__ = '0.7.6'
 
 #check for the presence of an initilized Maya
 import util
