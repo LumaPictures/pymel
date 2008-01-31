@@ -717,9 +717,24 @@ Modifications:
 				if datatype.endswith('Array'):
 					kwargs['type'] = datatype
 			
+			datatype = kwargs.get('type',None)
 			# string arrays need the first arg to be the length of the array being set
-			if kwargs.get('type',None) == 'stringArray':
+			if datatype == 'stringArray':
 				args = tuple( [len(args[0])] + args[0] )
+			elif datatype == 'vectorArray':
+				# mc.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')				
+				args = list(args[0])
+				size = len(args)
+				try:
+					tmpArgs = [args.pop(0)]
+					for filler, real in zip( [""]*(size-1), args ):
+						tmpArgs.append( filler )
+						tmpArgs.append( real )
+				except IndexError:
+					tmpArgs = []
+							
+				args = tuple( [size] + tmpArgs )
+				#print args
 			else:
 				args = tuple(args[0])
 		

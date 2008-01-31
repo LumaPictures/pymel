@@ -19,13 +19,14 @@ except ImportError:
 	print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
 	
 class Token(str):
-	def __new__(cls, val, type, lineno=None):
+	def __new__(cls, val, type, lineno=None, lexspan=None):
 		self=str.__new__(cls,val)		
 		self.type = type
 		self.lineno = lineno
+		self.lexspan = lexspan
 		return self
 	def __getslice__(self, start, end):
-		return Token( str.__getslice__(self, start, end), self.type, self.lineno )
+		return Token( str.__getslice__(self, start, end), self.type, self.lineno, self.lexspan )
 
 def substring(x, t):
 	"""convert:
@@ -1803,30 +1804,42 @@ def p_command_statement_input_list(t):
 						  			| command_statement_input_list command_statement_input'''
 	#t[0] = assemble(t, 'p_command_input_list')	
 	
-	if len(t)==2:
-		t[0] = [t[1]]		
+	if len(t)>2:
+		if isinstance(t[1], list):
+			t[0] = t[1] + t[2]
+		#print "append"
+		else:
+			t[0] = t[1] + [t[2]]
 	else:
-		t[0] = t[1] + [t[2]]
+		#print "new"
+		if isinstance(t[1], list):
+			t[0] = t[1]
+		else:
+			t[0] = [t[1]]
 		
 def p_command_statement_input(t):
-	'''command_statement_input 	: unary_expression
-								| command_expression
-								| command_flag'''
+	'''command_statement_input 	: command_input
+								| command_expression'''
 	t[0] = assemble(t, 'p_command_input')
 
+def p_command_statement_input(t):
+	'''command_statement_input : unary_expression
+								| command_flag
+				 	 			| command_expression'''
+	t[0] = assemble(t, 'p_command_statement_input')
+
 def p_command_statement_input_2(t):
-	'''command_statement_input : object
-								| ELLIPSIS'''
-	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
-
-
+	'''command_statement_input 	: object_list'''
+	t[0] =  map( lambda x: "'%s'" % x, t[1]) 
+	
+	
 # command
 # -- difference between a comamnd_statement and a command:
 #		a command_statement is always followed by a semi-colon
 #		a command_statement can receive a command_expression as input		
 def p_command(t):
 	'''command : ID
-			| ID command_input_list'''
+				| ID command_input_list'''
 	#print "p_command"
 	if len(t) == 2:
 		t[0] = command_format(t[1],[], t)
@@ -1841,11 +1854,17 @@ def p_command_input_list(t):
 	
 	#t[0] = ' '.join(t[1:])
 	if len(t)>2:
+		if isinstance(t[1], list):
+			t[0] = t[1] + t[2]
 		#print "append"
-		t[0] = t[1] + [t[2]]
+		else:
+			t[0] = t[1] + [t[2]]
 	else:
 		#print "new"
-		t[0] = [t[1]]
+		if isinstance(t[1], list):
+			t[0] = t[1]
+		else:
+			t[0] = [t[1]]
 
 def p_command_input(t):
 	'''command_input : unary_expression
@@ -1853,17 +1872,54 @@ def p_command_input(t):
 	t[0] = assemble(t, 'p_command_input')
 
 def p_command_input_2(t):
-	'''command_input 	: object
-						| ELLIPSIS'''
-	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
+	'''command_input 	: object_list'''
+	t[0] =  map( lambda x: "'%s'" % x, t[1]) 
 
+def p_command_input_3(t):
+	'''command_input 	: ELLIPSIS'''
+	t[0] = Token( "'%s'" % t[1], None, t.lexer.lineno )
+	
+def p_object_list(t):
+	'''object_list : object
+				   | object_list object'''
+	#t[0] = assemble(t, 'p_command_input_list')	
+	
+	#t[0] = ' '.join(t[1:])
+	if len(t)>2:
+		#print "append"
+		# `myFunc foo[0].bar` and `myFunc foo[0] .bar` appear the same to the lexer
+		# we must check whitespace, and join or split where necessary
+		#print t[1][-1], t[1][-1].lexspan[1]
+		#print t[2], t[2].lexspan[0]+1
+		if t[1][-1].lexspan[1]+1 == t[2].lexspan[0]:
+			# same object: join together with last element in the list and add to list
+			t[0] = t[1][:-1] + [ t[1][-1] + t[2] ]
+		else:
+			t[0] = t[1] + [ t[2] ]
+		#print t[0][-2], t[0][-2].lexspan
+		#print t[0][-1], t[0][-1].lexspan
+	else:
+		#print "new"
+		t[0] = [t[1]]
+		
 def p_object_1(t):
 	'''object	: ID'''
-	t[0] = assemble(t, 'p_object_1')
+	#print t[1], t.lexpos(1), len(t[1]), t.lexpos(1)+len(t[1])
+	t[0] = Token( t[1], 'string', lexspan=(t.lexpos(1),t.lexpos(1)+len(t[1]) ) )
+	#t[0] = assemble(t, 'p_object_1')
+
+#def p_object_2(t):
+#	'''object	: LOBJECT expression RBRACKET
+#				| LOBJECT expression ROBJECT'''
+#	t[0] = assemble(t, 'p_object_2')
+
+
 
 def p_object_2(t):
 	'''object	: ID LBRACKET expression RBRACKET'''
-	t[0] = assemble(t, 'p_object_2')
+	#print t.lexpos(1), t.lexpos(2),t.lexpos(3),t.lexpos(4)
+	t[0] = Token( t[1]+t[2]+t[3]+t[4], 'string', lexspan=(t.lexpos(1),t.lexpos(4) ) )
+	#t[0] = assemble(t, 'p_object_2')
 	
 def p_flag(t):
 	'''command_flag : MINUS ID

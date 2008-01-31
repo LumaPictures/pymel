@@ -24,7 +24,7 @@ reserved = (
 tokens = reserved + (
 	# Literals (identifier, integer constant, float constant, string constant, char const)
 	'ID', 'VAR', 'ICONST', 'FCONST', 'SCONST',
-	#'OBJECT',
+	#'LOBJECT', 'ROBJECT',
 	
 	# Operators (+,-,*,/,%,|,&,~,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
 	'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
@@ -142,6 +142,14 @@ def t_RPAREN(t):
 	r'\)'
 	return t
 
+#def t_LOBJECT(t):
+#	r'([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?\['
+#	return t
+
+#def t_ROBJECT(t):
+#	r'\]([|]?([:]?([.]?[A-Za-z_][\w]*)+)+)+?'
+#	return t
+
 def t_LBRACKET(t):
 	r'\['
 	return t
@@ -158,7 +166,6 @@ def t_SEMI(t):
 	r';'
 	return t
 	
-
 def t_VAR(t):
 	r'\$[A-Za-z_][\w_]*'
 	t.value = t.value[1:]
@@ -171,6 +178,8 @@ def t_COMPONENT(t):
 def t_ELLIPSIS(t):
 	r'\.\.'
 	return t
+
+
 
 def t_ID(t):
 	# Starts with a letter or a pipe
