@@ -12,6 +12,7 @@ showWindow;
 import sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
+import maya.OpenMayaUI as OpenMayaUI
 import pymel.mel2py
 from maya.cmds import encodeString
 
@@ -116,8 +117,10 @@ class Reporter(object):
 		self.history = allHistory[:]		
 		cmd = 'scrollField -wordWrap false -editable false "%s"' % self.name
 		self.name = self.executeCommandResult( cmd )
+		self.uiMessageID = OpenMayaUI.MUiMessage.addUiDeletedCallback( self.name, uiDeletedCallback, self.name )
 		self.refreshHistory()
-
+		
+		
 	def executeCommandOnIdle( self, cmd ):
 		global callbackState
 		if Reporter.globalFilters['echoAllCommands']:
@@ -251,6 +254,18 @@ def createCallback(stringData):
 	else:
 		messageIdSet = True
 	return id
+
+def uiDeletedCallback( name ):
+	#outputFile = open( '/var/tmp/commandOutput', 'a')
+	#outputFile.write( 'before=%s\n' % reporters  )
+	#outputFile.close()
+	
+	removeCallback( reporters[ name ].uiMessageID )
+	reporters.pop( name )
+
+	#outputFile = open( '/var/tmp/commandOutput', 'a')
+	#outputFile.write( 'after=%s\n' % reporters  )
+	#outputFile.close()
 		
 def cmdCallback( nativeMsg, messageType, data ):
 	global callbackState
@@ -356,9 +371,15 @@ class scriptedCommand(OpenMayaMPx.MPxCommand):
 
 	
 	def doIt(self, args):
-		global messageId
-	
-		argData = OpenMaya.MArgDatabase(self.syntax(), args)
+		#global messageId
+		
+		try:
+			argData = OpenMaya.MArgDatabase(self.syntax(), args)
+		except:
+			name = kPluginCmdName
+			reporter = Reporter( name )
+			reporters[reporter.name] = reporter	
+			return self.setResult( reporter.name )	
 		try:
 			name = argData.commandArgumentString(0)
 		except:
@@ -414,6 +435,11 @@ class scriptedCommand(OpenMayaMPx.MPxCommand):
 			else:
 				reporter = Reporter( name, **filters )
 				reporters[reporter.name] = reporter
+				
+				#outputFile = open( '/var/tmp/commandOutput', 'a')
+				#outputFile.write( 'create %s\n' % ( reporters ) )
+				#outputFile.close()
+				
 				#reporters[name] = reporter
 			self.setResult( reporter.name )
 			
