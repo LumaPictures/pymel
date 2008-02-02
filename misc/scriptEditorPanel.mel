@@ -2684,9 +2684,9 @@ addScriptEditorPanel (string $whichPanel)
 		// build the panels first
 		$gCommandLayout = `paneLayout -configuration "horizontal2"`;
 		//$gCommandLayout = `paneLayout -configuration "horizontal3"`;
-			print "creating reporter\n";
+			//print "creating reporter\n";
 			$gCommandReporter = `pymelScrollFieldReporter`;
-			print ("created " + $gCommandReporter + "\n");
+			//print ("created " + $gCommandReporter + "\n");
 			// CHAD: removed receiveFocusCommand, bc i cannot implement this
 			//pymelScrollFieldReporter -e -receiveFocusCommand ("setLastFocusedCommandReporter " + $gCommandReporter) $gCommandReporter;	
 				$gCommandPopupMenus[size($gCommandPopupMenus)] = `popupMenu -markingMenu true -postMenuCommand "verifyCommandPopupMenus"`;
