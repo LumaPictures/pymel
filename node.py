@@ -2143,11 +2143,12 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 def _createClasses():
 	#for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
-	#print factories.nodeHierarchy
-	for treeElem in factories.nodeHierarchy:
-		#print "treeElem: ", treeElem
+	print factories.nodeHierarchy
+	# see if breadth first isn't more practical ?
+	for treeElem in factories.nodeHierarchy.preorder():
+		print "treeElem: ", treeElem
 		nodeType = treeElem.key
-		#print "nodeType: ", nodeType
+		print "nodeType: ", nodeType
 		if nodeType == 'dependNode': continue
 		classname = util.capitalize(nodeType)
 		if not hasattr( _thisModule, classname ):
