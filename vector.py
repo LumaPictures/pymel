@@ -20,7 +20,9 @@ class Vector(list):
 	# no c'tor
 	def __init__(self, elements=[0,0,0]):
 		list.__init__(self, elements)
-		
+	
+	def __repr__(self):
+		return 'Vector(%s)' % list.__repr__(self)	
 	def __getslice__(self, i, j):
 		try:
 			# use the list __getslice__ method and convert

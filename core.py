@@ -621,15 +621,23 @@ Maya Bug Fix:
 Modifications:
 	- casts double3 datatypes to Vector
 	- casts matrix datatypes to Matrix
+	- casts vectorArrays from a flat array of floats to an array of Vectors
 	- when getting a multi-attr, maya would raise an error, but pymel will return a list of
 	 	values for the multi-attr
 	"""
 	def listToMat( l ):
-		return [ 	[	l[0], l[1], l[2], l[3]	],
+		return Matrix(
+			[ 	[	l[0], l[1], l[2], l[3]	],
 			[	l[4], l[5], l[6], l[7]	],
 			[	l[8], l[9], l[10], l[11]	],
-			[	l[12], l[13], l[14], l[15] ]	]
-		
+			[	l[12], l[13], l[14], l[15] ]	])
+	
+	def listToVec( l ):
+		vecRes = []
+		for i in range( 0, len(res), 3):
+			vecRes.append( Vector( res[i:i+3] ) )
+		return vecRes
+	
 	try:
 		res = cmds.getAttr( attr, **kwargs)
 		
@@ -638,9 +646,15 @@ Modifications:
 				res = res[0]
 				if cmds.getAttr( attr, type=1) == 'double3':
 					return Vector(list(res))
-			elif cmds.getAttr( attr, type=1) == 'matrix':
-				return Matrix(listToMat(res))
-			
+			#elif cmds.getAttr( attr, type=1) == 'matrix':
+			#	return listToMat(res)
+			else:
+				try:
+					return { 
+						'matrix': listToMat,
+						'vectorArray' : listToVec
+						}[cmds.getAttr( attr, type=1)](res)
+				except KeyError: pass
 		return res
 	
 	# perhaps it errored because it's a multi attribute
@@ -672,11 +686,15 @@ Modifications:
 			- [str]		S{->} stringArray
 	"""
 	
+	# if there is only one argument we do our special pymel tricks
 	if len(args) == 1:
+		
+		# force flag
 		force = kwargs.pop('force', False)
 		if not force:
 			force = kwargs.pop('f', False)
-			
+		
+		# arrays
 		if util.isIterable(args[0]):
 			datatype = None
 			if force:
@@ -688,7 +706,9 @@ Modifications:
 					elif isinstance( args[0][0], int ):
 						datatype = 'Int32Array'
 					elif isinstance( args[0][0], float ):
-						datatype = 'doubleArray'			
+						datatype = 'doubleArray'	
+					elif isinstance( args[0][0], list ):
+						datatype = 'vectorArray'
 					else:
 						raise ValueError, "pymel.setAttr: %s is not a supported type" % type(args[0][0])
 											
@@ -709,7 +729,7 @@ Modifications:
 					datatype = cmds.getAttr( attr, type=1)
 				if not datatype:
 					#print "Getting datatype", attr
-					datatype = cmds.addAttr( attr, q=1, dataType=1)
+					datatype = cmds.addAttr( attr, q=1, dataType=1)[0] # this is returned as a single element list
 				
 				# set datatype for arrays
 				# we could do this for all, but i'm uncertain that it needs to be 
@@ -721,6 +741,7 @@ Modifications:
 			# string arrays need the first arg to be the length of the array being set
 			if datatype == 'stringArray':
 				args = tuple( [len(args[0])] + args[0] )
+				
 			elif datatype == 'vectorArray':
 				# mc.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')				
 				args = list(args[0])
@@ -764,28 +785,33 @@ Modifications:
 def addAttr( *args, **kwargs ):
 	"""
 Modifications:
-	- addAttr: allow python types to be passed to set -at type
+	- allow python types to be passed to set -at type
 			str		--> string
 			float 	--> double
 			int		--> long
 			bool	--> bool
 			Vector	--> double3
+	- when querying dataType, the dataType is no longer returned as a list
 """
 	at = kwargs.pop('attributeType', kwargs.pop('at', None ))
 	if at is not None:
-		if at in [str, unicode]:
-			kwargs['dt'] = 'string'
-		else:
-			try: 
-				kwargs['at'] = {
-					float: 'double',
-					int: 'long',
-					bool: 'bool',
-					Vector: 'double3'
-				}[at]
-			except KeyError:
-				kwargs['at'] = at
-	return cmds.addAttr( *args, **kwargs )
+		try: 
+			kwargs['at'] = {
+				float: 'double',
+				int: 'long',
+				bool: 'bool',
+				Vector: 'double3',
+				str: 'string',
+				unicode: 'string'
+			}[at]
+		except KeyError:
+			kwargs['at'] = at
+			
+	res = cmds.addAttr( *args, **kwargs )
+	if kwargs.get( 'q', kwargs.get('query',False) ) and kwargs.get( 'dt', kwargs.get('dataType',False) ):
+		res = res[0]
+	
+	return res
 
 #-----------------------
 #  List Functions

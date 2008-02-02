@@ -693,7 +693,7 @@ class Attribute(_BaseObj):
 		cmds.addAttr( self, e=1, en=":".join(enumList) )
 	
 	def getEnums(self):
-		return cmds.addAttr( self, q=1, en=1 )	
+		return cmds.addAttr( self, q=1, en=1 ).split(':')	
 			
 	# getting and setting					
 	set = setAttr			

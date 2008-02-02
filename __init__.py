@@ -519,6 +519,10 @@ fixed a bug introduced in 0.7.5 with set* class methods not being generated
 added Attribute.getEnums and Attribute.setEnums
 added DependNode.__new__ with 'create' flag to provide the option to create an object when creating an instance of the class
 patched up pymelScrollFieldReporter for its first beta run (Fingers crosssed)
+-0.7.7-
+improved pymelScrollFieldReporter stability, particularly for windows and linux
+added support for vectorArrays to addAttr, setAttr, getAttr
+
 
  TODO: 
 	Factory:
@@ -528,7 +532,6 @@ patched up pymelScrollFieldReporter for its first beta run (Fingers crosssed)
 		- always returns a single object, not a list
 
 	mel2py and pymelScrollFieldReporter:
-	- max buffer size workaround
 	- formatting: different spacing for negative numbers and subtraction: ( '-1', '2 - 5') 
 	- flag info : share cache with pymel? must deal with commands whose synatx is altered (sets, move).
 	- tokenize command
@@ -554,12 +557,13 @@ patched up pymelScrollFieldReporter for its first beta run (Fingers crosssed)
 	- pymel preferences for breaking or maintaining backward compatibility:
 		- longNames
 		- twoDimensionalArrays (ex. ls(showType=1), fileInfo(q=1) )
+		- namespaces
 	- add sequence handling methods to Path
 	- create Vector constants.  Red, White, Up, Down, etc
 	- develop a way to add docs to selective objects based on cached info
 """
 
-__version__ = '0.7.6'
+__version__ = '0.7.7'
 
 #check for the presence of an initilized Maya
 import util
