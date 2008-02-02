@@ -31,8 +31,8 @@ if __name__ == '__main__':
 
 #print dir(FrozenTree)
 #print dir(Tree)
-#print dir(IndexedFrozenTree)
-#print dir(IndexedTree)
+##print dir(IndexedFrozenTree)
+##print dir(IndexedTree)
 #a = Tree ('a', ('aa', 'ab'), 'b', ('ba', 'bb'))
 #print a
 #print list(a)
