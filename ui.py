@@ -99,6 +99,33 @@ Maya Bug Fix:
 	
 
 class UI(unicode):
+	def __new__(cls, name=None, create=False, *args, **kwargs):
+		"""
+		Provides the ability to create the UI Element when creating a class
+		
+			>>> n = pm.Window("myWindow",create=True)
+			>>> n.__repr__()
+			# Result: Window('myWindow')
+		"""
+		def seekUpBases(test, cls):
+			ret = test(cls)
+			if ret:
+				return (ret, cls)
+			else:
+				for superCls in cls.__bases__:
+					ret = seekUpBases(test, superCls)
+					if ret:
+						return ret
+				return None
+
+		if create:
+			ret = seekUpBases(lambda cls: getattr(_thisModule, util.uncapitalize(cls.__name__), None), cls)
+			if not ret:
+				raise "Could not find a UI creator function for class '%s'" % cls
+			createFunc = ret[0] 
+			name = createFunc(name, *args, **kwargs)
+		return unicode.__new__(cls,name)
+	
 	def __repr__(self):
 		return u"%s('%s')" % (self.__class__.__name__, self)
 	def getChildren(self, **kwargs):
