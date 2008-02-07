@@ -407,7 +407,7 @@ def pow(a,b):
 		try:
 			return a.__class__(map(lambda x,y: x**y, a, b))
 		except:
-			math.pow(a,b)
+			return math.pow(a,b)
 	
 def atan2(a,b):	   
 	"""
@@ -417,7 +417,7 @@ def atan2(a,b):
 	try:
 		return a.__class__(map(atan2, a, b))
 	except:
-		math.atan2(a,b)
+		return math.atan2(a,b)
 	
 
 # general remapping operations

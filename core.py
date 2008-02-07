@@ -15,8 +15,8 @@ try:
 except ImportError:
 	pass
 
-from vector import *
 import util, factories, node, ui
+from vector import *
 
 try:
 	from luma.filepath import filepath as Filepath
@@ -27,7 +27,6 @@ except ImportError:
 
 "controls whether functions that return dag nodes use the long name by default"
 longNames = False
-
 
 #--------------------------
 # Mel <---> Python Glue
@@ -786,11 +785,11 @@ def addAttr( *args, **kwargs ):
 	"""
 Modifications:
 	- allow python types to be passed to set -at type
-			str		--> string
-			float 	--> double
-			int		--> long
-			bool	--> bool
-			Vector	--> double3
+			str		S{->} string
+			float 	S{->} double
+			int		S{->} long
+			bool	S{->} bool
+			Vector	S{->} double3
 	- when querying dataType, the dataType is no longer returned as a list
 """
 	at = kwargs.pop('attributeType', kwargs.pop('at', None ))

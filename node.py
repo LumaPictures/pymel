@@ -13,10 +13,9 @@ try:
 except ImportError:
 	pass
 
-from vector import *
+#from vector import Vector, Matrix  # in core
 from core import *
-import util, factories
-#import networkx
+#import util, factories  # in core
 
 #-----------------------------------------------
 #  Enhanced Node Commands

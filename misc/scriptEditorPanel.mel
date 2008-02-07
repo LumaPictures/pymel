@@ -19,6 +19,8 @@
 // DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
 // LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
 
+autoLoadPlugin "" "pymelScrollFieldReporter" "pymelScrollFieldReporter.py";
+
 proc scriptEditorPredefines() 
 //
 // Predefinitions such as:

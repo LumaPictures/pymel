@@ -522,7 +522,8 @@ patched up pymelScrollFieldReporter for its first beta run (Fingers crosssed)
 -0.7.7-
 improved pymelScrollFieldReporter stability, particularly for windows and linux
 added support for vectorArrays to addAttr, setAttr, getAttr
-
+-0.7.8-
+various bug fixes
 
  TODO: 
 	Factory:
@@ -533,7 +534,9 @@ added support for vectorArrays to addAttr, setAttr, getAttr
 
 	mel2py and pymelScrollFieldReporter:
 	- formatting: different spacing for negative numbers and subtraction: ( '-1', '2 - 5') 
-	- flag info : share cache with pymel? must deal with commands whose synatx is altered (sets, move).
+	- flag info : 
+		- share cache with pymel? must deal with commands whose synatx is altered (sets, move).
+		- alternative to above: cache flag info of previously used commands
 	- tokenize command
 	- runtime commands
 	
@@ -563,7 +566,7 @@ added support for vectorArrays to addAttr, setAttr, getAttr
 	- develop a way to add docs to selective objects based on cached info
 """
 
-__version__ = '0.7.7'
+__version__ = '0.7.8'
 
 #check for the presence of an initilized Maya
 import util
