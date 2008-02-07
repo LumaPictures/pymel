@@ -792,6 +792,7 @@ Modifications:
 			Vector	S{->} double3
 	- when querying dataType, the dataType is no longer returned as a list
 """
+	from vector import Vector
 	at = kwargs.pop('attributeType', kwargs.pop('at', None ))
 	if at is not None:
 		try: 
