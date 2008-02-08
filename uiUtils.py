@@ -13,6 +13,13 @@ class AutoLayout(FormLayout):
     HORIZONTAL, VERTICAL = range(2)
     sides = [["top","bottom"],["left","right"]]
 
+    def __new__(cls,  *args, **kwargs):
+        kwargs.pop("orientation",None)
+        kwargs.pop("spacing",None)
+        kwargs.pop("reversed",None)
+        kwargs.pop("ratios",None)
+        return FormLayout.__new__(cls, *args, **kwargs)
+        
     def __init__(self, orientation=VERTICAL, spacing=2, reversed=False, ratios=None, *args,**kwargs):
         """ 
         spacing - absolute space between controls
@@ -94,6 +101,18 @@ class VerticalLayout(AutoLayout):
         kwargs["orientation"] = AutoLayout.VERTICAL
         AutoLayout.__init__(self, *args, **kwargs)    
 
+def autoLayout(*args, **kwargs):
+    kwargs["create"] = True
+    return AutoLayout(*args, **kwargs)
+
+def horizontalLayout(*args, **kwargs):
+    kwargs["create"] = True
+    return HorizontalLayout(*args, **kwargs)
+
+def verticalLayout(*args, **kwargs):
+    kwargs["create"] = True
+    return VerticalLayout(*args, **kwargs)
+
 
 
 class SmartLayoutCreator:
@@ -156,8 +175,15 @@ class SmartLayoutCreator:
         [child.create(creation=creation,parent=self.me) for child in childCreators]
         if self.postFunc: self.postFunc(self.me)
         return creation
-        
 
+SLC = SmartLayoutCreator
+        
+def labeledControl(label, uiFunc, kwargs, align="left", parent=None):
+    dict = SLC(None, HorizontalLayout, {"create":True}, HorizontalLayout.redistribute,  [
+                SLC(None, text, {"l":label,"al":align}),
+                SLC("control", uiFunc, kwargs)
+            ]).create(parent=parent)
+    return dict["control"]
 
 def promptBox(title, message, okText, cancelText, **kwargs):
     """ Prompt for a value. Returns the string value or None if cancelled """
