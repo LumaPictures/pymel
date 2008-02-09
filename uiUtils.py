@@ -180,10 +180,12 @@ SLC = SmartLayoutCreator
         
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None):
     dict = SLC(None, HorizontalLayout, {"create":True}, HorizontalLayout.redistribute,  [
-                SLC(None, text, {"l":label,"al":align}),
+                SLC("label", text, {"l":label,"al":align}),
                 SLC("control", uiFunc, kwargs)
             ]).create(parent=parent)
-    return dict["control"]
+    control = dict["control"]
+    control.label = dict["label"] 
+    return control
 
 def promptBox(title, message, okText, cancelText, **kwargs):
     """ Prompt for a value. Returns the string value or None if cancelled """
@@ -194,7 +196,7 @@ def promptBox(title, message, okText, cancelText, **kwargs):
 def promptBoxGenerator(*args, **kwargs):
     """ Keep prompting for values until cancelled """
     while 1:
-        ret = pm.promptBox(*args, **kwargs)
+        ret = promptBox(*args, **kwargs)
         if not ret: return
         yield ret    
     
