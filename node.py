@@ -447,29 +447,6 @@ class ComponentArray(object):
 		return '.'.join(str(self).split('.')[1:])
 
 	node = plugNode
-	
-class FaceArray(ComponentArray):
-	def __init__(self, name):
-		ComponentArray.__init__(self, name)
-		self.returnClass = Face
-		
-	def __len__(self):
-		return cmds.polyEvaluate(self.node(), face=True)
-
-class EdgeArray(ComponentArray):
-	def __init__(self, name):
-		ComponentArray.__init__(self, name)
-		self.returnClass = Edge
-	def __len__(self):
-		return cmds.polyEvaluate(self.node(), edge=True)
-
-class VertexArray(ComponentArray):
-	def __init__(self, name):
-		ComponentArray.__init__(self, name)
-		self.returnClass = Vertex
-		
-	def __len__(self):
-		return cmds.polyEvaluate(self.node(), vertex=True)
 				
 class Component(object):
 	def __init__(self, node, item):
@@ -492,42 +469,6 @@ class Component(object):
 		return scale( self, *args, **kwargs )	
 	def rotate( self, *args, **kwargs ):
 		return rotate( self, *args, **kwargs )
-
-class Face(Component):
-	def __str__(self):
-		return '%s.f[%s]' % (self._node, self._item)
-
-	def _getFaceNormal(self):
-		return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))		
-	normal = property(_getFaceNormal)
-	
-	def _getEdges(self):
-		return map( self._node.e.__getitem__, cmds.polyInfo( str(self), faceToEdge=1)[0].split()[2:] )		
-	edges = property(_getEdges)
-	
-	def _getVertices(self):
-		return map( self._node.vtx.__getitem__, cmds.polyInfo( str(self), faceToVertex=1)[0].split()[2:] )		
-	vertices = property(_getVertices)
-	
-class Edge(Component):
-	def __str__(self):
-		return '%s.e[%s]' % (self._node, self._item)
-		
-	def _getFaces(self):
-		return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )		
-	faces = property(_getFaces)
-	
-class Vertex(Component):
-	def __str__(self):
-		return '%s.vtx[%s]' % (self._node, self._item)
-		
-	def _getEdges(self):
-		return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToEdge=1)[0].split()[2:] )		
-	edges = property(_getEdges)
-	
-	def _getFaces(self):
-		return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )		
-	faces = property(_getFaces)
 	
 				
 class Attribute(_BaseObj):
@@ -1782,18 +1723,77 @@ class Mesh(SurfaceShape):
 	>>> 		select( face , add=1)
 	
 	"""
+	class FaceArray(ComponentArray):
+		def __init__(self, name):
+			ComponentArray.__init__(self, name)
+			self.returnClass = Mesh.Face
+			
+		def __len__(self):
+			return cmds.polyEvaluate(self.node(), face=True)
+	
+	class EdgeArray(ComponentArray):
+		def __init__(self, name):
+			ComponentArray.__init__(self, name)
+			self.returnClass = Mesh.Edge
+		def __len__(self):
+			return cmds.polyEvaluate(self.node(), edge=True)
+	
+	class VertexArray(ComponentArray):
+		def __init__(self, name):
+			ComponentArray.__init__(self, name)
+			self.returnClass = Mesh.Vertex
+			
+		def __len__(self):
+			return cmds.polyEvaluate(self.node(), vertex=True)
+		
+	class Face(Component):
+		def __str__(self):
+			return '%s.f[%s]' % (self._node, self._item)
+	
+		def _getFaceNormal(self):
+			return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))		
+		normal = property(_getFaceNormal)
+		
+		def _getEdges(self):
+			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), faceToEdge=1)[0].split()[2:] )		
+		edges = property(_getEdges)
+		
+		def _getVertices(self):
+			return map( self._node.vtx.__getitem__, cmds.polyInfo( str(self), faceToVertex=1)[0].split()[2:] )		
+		vertices = property(_getVertices)
+		
+	class Edge(Component):
+		def __str__(self):
+			return '%s.e[%s]' % (self._node, self._item)
+			
+		def _getFaces(self):
+			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )		
+		faces = property(_getFaces)
+		
+	class Vertex(Component):
+		def __str__(self):
+			return '%s.vtx[%s]' % (self._node, self._item)
+			
+		def _getEdges(self):
+			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToEdge=1)[0].split()[2:] )		
+		edges = property(_getEdges)
+		
+		def _getFaces(self):
+			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )		
+		faces = property(_getFaces)
+	
 	def _getFaceArray(self):
-		return FaceArray( self + '.f' )	
+		return Mesh.FaceArray( self + '.f' )	
 	f = property(_getFaceArray)
 	faces = property(_getFaceArray)
 	
 	def _getEdgeArray(self):
-		return EdgeArray( self + '.e' )	
+		return Mesh.EdgeArray( self + '.e' )	
 	e = property(_getEdgeArray)
 	edges = property(_getEdgeArray)
 	
 	def _getVertexArray(self):
-		return VertexArray( self + '.vtx' )	
+		return Mesh.VertexArray( self + '.vtx' )	
 	vtx = property(_getVertexArray)
 	verts = property(_getVertexArray)
 			
@@ -1918,34 +1918,31 @@ class Subdiv(SurfaceShape):
 		cmds.subdCleanTopology(self)
 	
 class Particle(DeformableShape):
-	__metaclass__ = factories.metaNode	
-	class PointArray(object):
-		def __init__(self, particle):
-			self._particle = particle
+	#__metaclass__ = factories.metaNode
+	
+	class PointArray(ComponentArray):
+		def __init__(self, name):
+			ComponentArray.__init__(self, name)
+			self.returnClass = Particle.Point
 
-		def __getitem__(self, item):
-			return Particle.Point( self._particle, item )
+		def __len__(self):
+			return cmds.particle(self.node(), q=1,count=1)		
 		
-	class Point(object):
-		def __init__(self, particle, order):
-			self._particle = particle
-			self._order = order
-			
+	class Point(Component):
+		def __str__(self):
+			return '%s.pt[%s]' % (self._node, self._item)
 		def __getattr__(self, attr):
-			return cmds.particle( self._particle, q=1, attribute=attr, order=self._order)
+			return cmds.particle( self._node, q=1, attribute=attr, order=self._item)
 			
 	
-	def __getattr__(self, attr):
-		if attr.startswith('pt'):
-			return Particle.PointArray( self )	
-		
-		if attr.startswith('_'):
-			return Attribute( '%s.%s' % (self, attr[1:]) )
-			
-		return Attribute( '%s.%s' % (self, attr) )
+	def _getPointArray(self):
+		return Particle.PointArray( self + '.pt' )	
+	pt = property(_getPointArray)
+	points = property(_getPointArray)
 	
-	def num(self):
+	def count(self):
 		return cmds.particle( self, q=1,count=1)
+	num = count
 	
 class ObjectSet(Entity):
 	"""
