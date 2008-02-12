@@ -592,9 +592,8 @@ class Attribute(_BaseObj):
 			>>> n.array()
 			'lambert1.groupNode'
 		"""
-			
 		try:
-			return Attribute(attrItemReg.split( self )[0])
+			return Attribute(Attribute.attrItemReg.split( self )[0])
 		except:
 			raise TypeError, "%s is not a multi attribute" % self
 	
