@@ -1360,7 +1360,7 @@ class DagNode(Entity):
 	def isDisplaced(self):
 		"""Returns whether any of this object's shading groups have a displacement shader input"""
 		for sg in self.shadingGroups():
-			if len( sg._displacementShader.inputs() ):
+			if len( sg.attr('displacementShader').inputs() ):
 				return True
 		return False
 

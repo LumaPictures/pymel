@@ -668,86 +668,114 @@ Modifications:
 # getting and setting					
 def setAttr( attr, *args, **kwargs):
 	"""
+Maya Bug Fix:
+	- setAttr did not work with type matrix. 
 Modifications:
 	- No need to set type, this will automatically be determined
  	- Adds support for passing a list or tuple as the second argument for datatypes such as double3.
 	- When setting stringArray datatype, you no longer need to prefix the list with the number of elements - just pass a list or tuple as with other arrays
 	- Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
-		- attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
+		- if no type flag is passed, the attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
 		- currently does not support compound attributes
 		- currently supported python-to-maya mappings:		
 			- float 	S{->} double
 			- int		S{->} long
 			- str		S{->} string
 			- bool		S{->} bool
-			- [float] 	S{->} doubleArray
-			- [int]		S{->} Int32Array
+			- Vector	S{->} double3
+			- Matrix	S{->} matrix
 			- [str]		S{->} stringArray
 	"""
+	datatype = kwargs.get( 'type', kwargs.get( 'typ', None) )
 	
 	# if there is only one argument we do our special pymel tricks
 	if len(args) == 1:
 		
-		# force flag
-		force = kwargs.pop('force', False)
-		if not force:
-			force = kwargs.pop('f', False)
+		arg = args[0]
 		
-		# arrays
-		if util.isIterable(args[0]):
-			datatype = None
-			if force:
+		# force flag
+		force = kwargs.pop('force', kwargs.pop('f', False) )
+		
+		
+		# vector, matrix, and arrays
+		if util.isIterable(arg):
+								
+			if datatype is None:
+				# if we're using force flag and the attribute does not exist
+				# we can infer the type from the passed value
 				attr = node.Attribute(attr)
-				try:
-
-					if isinstance( args[0][0], basestring ):
-						datatype = 'stringArray'
-					elif isinstance( args[0][0], int ):
-						datatype = 'Int32Array'
-					elif isinstance( args[0][0], float ):
-						datatype = 'doubleArray'	
-					elif isinstance( args[0][0], list ):
-						datatype = 'vectorArray'
-					else:
-						raise ValueError, "pymel.setAttr: %s is not a supported type" % type(args[0][0])
-											
-					if not attr.exists():
+				if force and not attr.exists():
+					
+					try:
+						if isinstance( arg[0], basestring ):
+							datatype = 'stringArray'
+						#elif isinstance( arg[0], int ):
+						#	datatype = 'Int32Array'
+						#elif isinstance( arg[0], float ):
+						#	datatype = 'doubleArray'	
+						elif isinstance( arg[0], list ):
+							datatype = 'vectorArray'
+						elif isinstance( arg, Vector):
+							datatype = 'double3'
+						elif isinstnace( arg, Matrix ):
+							datatype = 'matrix'
+						else:
+							raise ValueError, "pymel.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
+												
 						print "adding", attr, datatype
 						attr.add( dt=datatype ) 
-					kwargs['type'] = datatype
+						kwargs['type'] = datatype
 						
-				except IndexError:
-					if not attr.exists():
+					# empty array is being passed
+					# if the attribute exists, this is ok
+					except IndexError:
 						raise ValueError, "pymel.setAttr: when setting 'force' keyword to create a new array attribute, you must provide an array with at least one element"  					
-				except TypeError:
-					raise ValueError, "pymel.setAttr: %s is not a supported type" % type(args[0])
-						
-			if 'type' not in kwargs:
-				if not datatype:
-					#print "Getting datatype", attr
-					datatype = cmds.getAttr( attr, type=1)
-				if not datatype:
-					#print "Getting datatype", attr
-					datatype = cmds.addAttr( attr, q=1, dataType=1)[0] # this is returned as a single element list
-				
-				# set datatype for arrays
-				# we could do this for all, but i'm uncertain that it needs to be 
-				# done and it might cause more problems
-				if datatype.endswith('Array'):
+					
+					except TypeError:
+						raise ValueError, "pymel.setAttr: %s is not a supported type" % type(args)
+					
 					kwargs['type'] = datatype
-			
-			datatype = kwargs.get('type',None)
-			# string arrays need the first arg to be the length of the array being set
-			if datatype == 'stringArray':
-				args = tuple( [len(args[0])] + args[0] )
 				
-			elif datatype == 'vectorArray':
-				# mc.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')				
-				args = list(args[0])
-				size = len(args)
+				else:
+					if isinstance( arg, Vector):
+						datatype = 'double3'
+					elif isinstnace( arg, Matrix ):
+						datatype = 'matrix'
+					else:		
+						datatype = cmds.getAttr( attr, type=1)
+						if not datatype:
+							#print "Getting datatype", attr
+							datatype = cmds.addAttr( attr, q=1, dataType=1)[0] # this is returned as a single element list
+					
+						# set datatype for arrays
+						# we could do this for all, but i'm uncertain that it needs to be 
+						# done and it might cause more problems
+						if datatype.endswith('Array'):
+							kwargs['type'] = datatype
+		
+			
+			# string arrays:
+			#	first arg must be the length of the array being set
+			# ex:
+			# 	setAttr('loc.strArray',["first", "second", "third"] )	
+			# becomes:
+			# 	cmds.setAttr('loc.strArray',3,"first", "second", "third",type='stringArray')
+			if datatype == 'stringArray':
+				args = tuple( [len(arg)] + arg )
+			
+			# vector arrays:
+			#	first arg must be the length of the array being set
+			#	empty values are placed between vectors
+			# ex:
+			# 	setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )	
+			# becomes:
+			# 	cmds.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')
+			elif datatype == 'vectorArray':			
+				arg = list(arg)
+				size = len(arg)
 				try:
-					tmpArgs = [args.pop(0)]
-					for filler, real in zip( [""]*(size-1), args ):
+					tmpArgs = [arg.pop(0)]
+					for filler, real in zip( [""]*(size-1), arg ):
 						tmpArgs.append( filler )
 						tmpArgs.append( real )
 				except IndexError:
@@ -755,30 +783,40 @@ Modifications:
 							
 				args = tuple( [size] + tmpArgs )
 				#print args
+
+			# others: 
+			#	args must be expanded
+			# ex:
+			# 	setAttr('loc.foo',[1,2,3] )	
+			# becomes:
+			# 	cmds.setAttr('loc.foo',1,2,3 )	
 			else:
-				args = tuple(args[0])
-		
+				args = tuple(arg)
+				
+		# non-iterable types
 		else:
-			if force:
-				attr = node.Attribute(attr)					
-				if not attr.exists():
-					if isinstance( args[0], basestring ):
-						attr.add( dt='string' ) 
-					elif isinstance( args[0], int ):
+			if datatype is None:
+				attr = node.Attribute(attr)	
+				if force and not attr.exists(): 
+					if isinstance( arg, basestring ):
+						attr.add( dt='string' )
+						kwargs['type'] = 'string'
+					elif isinstance( arg, int ):
 						attr.add( at='long' ) 
-					elif isinstance( args[0], float ):
+					elif isinstance( arg, float ):
 						attr.add( at='double' ) 
-					elif isinstance( args[0], bool ):
+					elif isinstance( arg, bool ):
 						attr.add( at='bool' ) 
 					else:
-						raise TypeError, "pymel.setAttr: %s is not a supported type" % type(args[0])
-									
-			if isinstance(args[0],basestring):
-				kwargs['type'] = 'string'
-				kwargs.pop('t', None )
-				
-			
-	#print args, kwargs
+						raise TypeError, "pymel.setAttr: %s is not a supported type for use with the force flag" % type(arg)
+										
+				elif isinstance(arg,basestring):
+					kwargs['type'] = 'string'
+
+	if datatype == 'matrix':
+		cmd = 'setAttr -type "matrix" "%s" %s' % (attr, ' '.join( map( str, args ) ) )
+		mm.eval(cmd)
+		return					
 	cmds.setAttr( attr, *args, **kwargs)
 
 def addAttr( *args, **kwargs ):
@@ -791,8 +829,7 @@ Modifications:
 			bool	S{->} bool
 			Vector	S{->} double3
 	- when querying dataType, the dataType is no longer returned as a list
-"""
-	from vector import Vector
+	"""
 	at = kwargs.pop('attributeType', kwargs.pop('at', None ))
 	if at is not None:
 		try: 
@@ -1243,16 +1280,17 @@ def selected( **kwargs ):
 	return ls( **kwargs )
 
 def createSurfaceShader( shadertype, name=None ):
-	classification = getClassification( shadertype )[0].split(':')
+	classification = getClassification( shadertype )
 	#print classification
+	
 	newShader = None
-	if 'shader/surface' in classification:		
-		if 'rendernode/mentalray/material' in classification:
-			newShader = node.DependNode(mel.mrCreateCustomNode( "-asShader", "", shadertype))
-		else:
-			newShader = node.DependNode(mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
+	#if 'shader/surface' in classification:		
+	if 'rendernode/mentalray/material' in classification:
+		newShader = node.DependNode(mel.mrCreateCustomNode( "-asShader", "", shadertype))
 	else:
-		raise TypeError, "%s is not a valid surface shader type. shader must be classified as 'shader/surface'" % shadertype
+		newShader = node.DependNode(mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
+	#else:
+	#	raise TypeError, "%s is not a valid surface shader type. shader must be classified as 'shader/surface'" % shadertype
 	sg = newShader.shadingGroups()[0]
 	if name:
 		newShader = newShader.rename(name)		

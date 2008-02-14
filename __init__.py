@@ -122,13 +122,34 @@ Note, that if you have your PYTHONPATH set in a shell resource file, this value 
 Script Editor
 -------------
 Pymel includes a replacement for the script editor window that provides the option to translate all mel history into python. 
-Currently this feature is beta and works only in Maya 2008.
+Currently this feature is beta and works only in Maya 8.5 SP1 and Maya 2008.
 
-The script editor is comprised of two files located in the pymel/misc directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  Place the mel
-file into your scripts directory, and the python file into your Maya plugins directory. Open Maya, go-to 
-B{Window S{->} Settings/Preferences S{->} Plug-in Manager} and load pymelScrollFieldReporter.  Be sure to also check "Auto Load" for this plugin.
-Next, open the Script Editor and go to B{History S{->} History Output S{->} Convert Mel to Python}. Now all output will be reported
-in python, regardless of whether the input is mel or python.
+The script editor is comprised of two files located in the pymel/misc directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  
+Place the mel file into your scripts directory, and the python file into your Maya plugins directory. Open Maya, go-to 
+B{Window S{->} Settings/Preferences S{->} Plug-in Manager} and load pymelScrollFieldReporter.  Be sure to also check 
+"Auto Load" for this plugin. Next, open the Script Editor and go to B{History S{->} History Output S{->} Convert 
+Mel to Python}. Now all output will be reported in python, regardless of whether the input is mel or python.
+
+Problems with Maya 2008-x64 on Linux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you encounter an error loading the plugin in maya 2008 on 64-bit linux, you may have to fix a few symlinks. 
+As root, or with sudo privileges do the following::
+
+	cd /lib64
+	ls -la libssl*
+
+You might see something like the following returned::
+	
+	-rwxr-xr-x 1 root root 302552 Nov 30  2006 libssl.so.0.9.8b
+	lrwxrwxrwx 1 root root     16 Jul 16  2007 libssl.so.6 -> libssl.so.0.9.8b
+
+The distribution of python2.5 that comes with maya2008 expects libssl.so.4, but i have libssl.so.6.  So, I have to 
+create a symbolic link to the real library (in my case libssl.so.0.9.8b, but it may differ depending on your distribution)::
+	
+	sudo ln -s libssl.so.0.9.8b libssl.so.4
+
+The same thing must be done for libcrypto.so.4
 
 Getting Started
 ===============
@@ -524,13 +545,15 @@ improved pymelScrollFieldReporter stability, particularly for windows and linux
 added support for vectorArrays to addAttr, setAttr, getAttr
 -0.7.8-
 various bug fixes
+-0.7.9-
+fixed several bugs in Particle class
+fixed bug in DagNode.isDisplaced()
+Maya Bug Fix: setAttr did not work with type matrix. 
+setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32Array from attribute types which are auto-detected when using force flag
 
  TODO: 
 	Factory:
 	- provide on option for creation command factory so that commands that always return a single object do not return a list
-	- __init__ func for factory classes.  
-		- provide an alternate method of creation, which creates the named object if it does not exist.
-		- always returns a single object, not a list
 
 	mel2py and pymelScrollFieldReporter:
 	- formatting: different spacing for negative numbers and subtraction: ( '-1', '2 - 5') 
@@ -554,7 +577,6 @@ various bug fixes
 	- re-write primary list commands using API
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
-	- correctly separate examples flag info when parsing docs
 	
 	For Future Release:
 	- pymel preferences for breaking or maintaining backward compatibility:
@@ -566,7 +588,7 @@ various bug fixes
 	- develop a way to add docs to selective objects based on cached info
 """
 
-__version__ = '0.7.8'
+__version__ = '0.7.9'
 
 #check for the presence of an initilized Maya
 import util

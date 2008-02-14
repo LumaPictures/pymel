@@ -474,9 +474,9 @@ def syntaxCreator():
 # Initialize the script plug-in
 def initializePlugin(mobject):
 	mplugin = OpenMayaMPx.MFnPlugin(mobject)
-	
-	if OpenMaya.MGlobal.mayaVersion() == '8.5':
-		raise NotImplementedError, "pymelScrollFieldReporter is only supported for Maya 2008"
+	version = OpenMaya.MGlobal.mayaVersion()
+	if version.startswith( '8.5' ) and 'Service Pack' not in version:
+		raise NotImplementedError, "pymelScrollFieldReporter is only supported for Maya 8.5 SP1 and Maya 2008"
 	try:
 		mplugin.registerCommand( kPluginCmdName, cmdCreator, syntaxCreator )
 		
