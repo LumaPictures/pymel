@@ -739,7 +739,7 @@ Modifications:
 				else:
 					if isinstance( arg, Vector):
 						datatype = 'double3'
-					elif isinstace( arg, Matrix ):
+					elif isinstance( arg, Matrix ):
 						datatype = 'matrix'
 					else:		
 						datatype = cmds.getAttr( attr, type=1)
