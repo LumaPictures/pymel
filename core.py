@@ -717,7 +717,7 @@ Modifications:
 							datatype = 'vectorArray'
 						elif isinstance( arg, Vector):
 							datatype = 'double3'
-						elif isinstnace( arg, Matrix ):
+						elif isinstance( arg, Matrix ):
 							datatype = 'matrix'
 						else:
 							raise ValueError, "pymel.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
