@@ -28,7 +28,7 @@ class Token(str):
 	def __getslice__(self, start, end):
 		return Token( str.__getslice__(self, start, end), self.type, self.lineno, self.lexspan )
 
-def substring(x, t):
+def format_substring(x, t):
 	"""convert:
 			substring( var, 2, (len(var)) )
 		to:
@@ -63,6 +63,15 @@ def substring(x, t):
 	
 	return '%s[%s:%s]' % (x[0], start, end )
 
+def format_fread(x, t):
+	formatStr = {
+	 	'string': "%s",
+		'float'	: "%f",
+		'int'	: "%d",
+		'vector': "%f %f %f" 
+	}[x[1].type]
+	return "fscanf(%s,'%s')" % (x[0], formatStr)
+		
 # commands which should not be brought into main namespace
 filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
 			
@@ -72,17 +81,21 @@ proc_remap = {
 		# strings
 		'capitalizeString' 		: lambda x, t: '%s.capitalize()' 	% (x[0]),	
 		'strip' 				: lambda x, t: '%s.strip()' 		% (x[0]),
+		'appendStringArray' 	: lambda x, t: '%s += %s[:%s]' 		% (x[0],x[1],x[2]),
 		'stringArrayToString' 	: lambda x, t: '%s.join(%s)' 		% (x[1],x[0]),
 		'stringArrayCatenate'	: lambda x, t: '%s + %s' 			% (x[0],x[1]),
 		'stringArrayContains'	: lambda x, t: '%s in %s' 			% (x[0],x[1]),
 		'stringArrayCount'		: lambda x, t: '%s.count(%s)'		% (x[1],x[0]),
+		'stringArrayInsertAtIndex'	: lambda x, t: '%s.insert(%s,%s)'		% (x[1],x[0],x[2]),
 		'stringArrayRemove'		: lambda x, t: '[x for x in %s if x not in %s]'	% (x[1],x[0]),
+		'stringArrayRemoveAtIndex'	: lambda x, t: '%s.pop(%s)'		% (x[1],x[0]),
+		#'stringArrayRemove'		: lambda x, t: 'filter( lambda x: x not in %s, %s )' % (x[0],x[1]),
 		'stringToStringArray'	: lambda x, t: '%s.split(%s)' 		% (x[0],x[1]),
 		'startsWith'			: lambda x, t: '%s.startswith(%s)' 	% (x[0],x[1]),
 		'endsWith'				: lambda x, t: '%s.endswith(%s)' 	% (x[0],x[1]),
 		'tolower'				: lambda x, t: '%s.lower()' 		% (x[0]),
 		'toupper'				: lambda x, t: '%s.upper()' 		% (x[0]),
-		'substring'				: substring,
+		'substring'				: format_substring,
 		'substitute'			: lambda x, t: '%s.replace(%s,%s)' 		% (x[1],x[0],x[2]),
 		# misc. keywords
 		'size' 					: lambda x, t: 'len(%s)' 			% (', '.join(x)),				
@@ -98,17 +111,19 @@ proc_remap = {
 		# system
 		'system'				: lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.parser.used_modules.add('os') )[0],
 		'exec'					: lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.parser.used_modules.add('os') )[0],
+		
+		# file i/o
 		#'fopen'				: lambda x, t: 'open(%s)' % (', '.join(x)),
 		#'fprint'				: lambda x, t: '%s.write(%s)' % (x[0], x[1]),
-		#'fclose'				: lambda x, t: '%s.close(%s)' % (x[0], x[1]),
+		#'fclose'				: lambda x, t: '%s.close()' % (x[0]),
 		#'fflush'				: lambda x, t: '%s.flush()' % (x[0]),
 		#'fgetline'				: lambda x, t: '%s.readline()' % (x[0]),
 		#'frewind'				: lambda x, t: '%s.seek(0)' % (x[0]),
 		
-		# no python equivalents
-		#'fgetword'				: lambda x, t: '%s.seek(0)' % (x[0]),
-		#'feof'					: lambda x, t: '%s.seek(0)' % (x[0]),
-		#'fread'				: lambda x, t: '%s.seek(0)' % (x[0]),
+		# no built-in python equivalents
+		#'fgetword'				: lambda x, t: "fscanf(%s,'%s')" % (x[0]),
+		#'feof'					: lambda x, t: 'feof(%s)' % (x[0]), 
+		#'fread'				: format_fread
 		
 		
 		#'filetest'				: lambda x, t: (  (  t.parser.used_modules.add('os'),  # add os module for access()
