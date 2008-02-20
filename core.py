@@ -85,7 +85,9 @@ def feof( fileid ):
 	end = fileid.tell() #get final position
 	fileid.seek(pos)
 	return pos == end
-						
+
+from scanf import fscanf
+					
 #--------------------------
 # Maya.mel Wrapper
 #--------------------------
@@ -153,6 +155,8 @@ class Mel(object):
 	def eval( self, command ):
 		mm.eval( command )	
 		
+	def tokenize(self, *args ):
+		raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
 mel = Mel()
 
 

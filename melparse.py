@@ -19,15 +19,21 @@ except ImportError:
 	print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
 	
 class Token(str):
-	def __new__(cls, val, type, lineno=None, lexspan=None):
+	def __new__(cls, val, type, lineno=None, lexspan=None,**kwargs):
 		self=str.__new__(cls,val)		
 		self.type = type
 		self.lineno = lineno
-		self.lexspan = lexspan
+		self.__dict__.update( kwargs )
 		return self
 	def __getslice__(self, start, end):
-		return Token( str.__getslice__(self, start, end), self.type, self.lineno, self.lexspan )
-
+		return Token( str.__getslice__(self, start, end), self.type, self.__dict__ )
+	def __add__(self, other ):
+		newdict = self.__dict__
+		try:
+			newdict.update( other.__dict__ )
+		except: pass
+		return Token( str.__add__( self, other ), **newdict  )
+	
 def format_substring(x, t):
 	"""convert:
 			substring( var, 2, (len(var)) )
@@ -71,6 +77,13 @@ def format_fread(x, t):
 		'vector': "%f %f %f" 
 	}[x[1].type]
 	return "fscanf(%s,'%s')" % (x[0], formatStr)
+
+def format_fopen(x, t):
+	try:
+		mode = x[1]
+	except IndexError:
+		mode = "'w'"
+	return 'open(%s,%s)' % (x[0], mode)
 		
 # commands which should not be brought into main namespace
 filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
@@ -95,8 +108,10 @@ proc_remap = {
 		'endsWith'				: lambda x, t: '%s.endswith(%s)' 	% (x[0],x[1]),
 		'tolower'				: lambda x, t: '%s.lower()' 		% (x[0]),
 		'toupper'				: lambda x, t: '%s.upper()' 		% (x[0]),
+		'tokenize'				: lambda x, t: Token( '%s=%s.split(%s)' % (x[2],x[0],x[1]), 'string', tokenize=x[2] ),
 		'substring'				: format_substring,
 		'substitute'			: lambda x, t: '%s.replace(%s,%s)' 		% (x[1],x[0],x[2]),
+		
 		# misc. keywords
 		'size' 					: lambda x, t: 'len(%s)' 			% (', '.join(x)),				
 		'print'					: lambda x, t: 'print %s' 			% (x[0]),
@@ -113,17 +128,15 @@ proc_remap = {
 		'exec'					: lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.parser.used_modules.add('os') )[0],
 		
 		# file i/o
-		#'fopen'				: lambda x, t: 'open(%s)' % (', '.join(x)),
-		#'fprint'				: lambda x, t: '%s.write(%s)' % (x[0], x[1]),
-		#'fclose'				: lambda x, t: '%s.close()' % (x[0]),
-		#'fflush'				: lambda x, t: '%s.flush()' % (x[0]),
-		#'fgetline'				: lambda x, t: '%s.readline()' % (x[0]),
-		#'frewind'				: lambda x, t: '%s.seek(0)' % (x[0]),
-		
-		# no built-in python equivalents
-		#'fgetword'				: lambda x, t: "fscanf(%s,'%s')" % (x[0]),
-		#'feof'					: lambda x, t: 'feof(%s)' % (x[0]), 
-		#'fread'				: format_fread
+		'fopen'					: format_fopen,
+		'fprint'				: lambda x, t: '%s.write(%s)' % (x[0], x[1]),
+		'fclose'				: lambda x, t: '%s.close()' % (x[0]),
+		'fflush'				: lambda x, t: '%s.flush()' % (x[0]),
+		'fgetline'				: lambda x, t: '%s.readline()' % (x[0]),
+		'frewind'				: lambda x, t: '%s.seek(0)' % (x[0]),
+		'fgetword'				: lambda x, t: "fscanf(%s,'%%s')" % (x[0]),
+		'feof'					: lambda x, t: 'feof(%s)' % (x[0]), 
+		'fread'					: format_fread,
 		
 		
 		#'filetest'				: lambda x, t: (  (  t.parser.used_modules.add('os'),  # add os module for access()
@@ -225,7 +238,7 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 			tokens = toList(t)
 		
 		tokType = None
-		
+		res = Token( '', None )
 		for i, tok in enumerate( tokens ) :
 			if i == 0:
 				res += tok		
@@ -246,7 +259,7 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 			except: pass
 
 		#res = Token( separator.join(tokens), type, t.lexer.lineno )
-		res = Token( res, tokType, t.lexer.lineno )
+		#res = Token( res, tokType, lineno=t.lexer.lineno )
 	#res = separator.join(p[1:])
 	#
 	
@@ -437,10 +450,12 @@ def p_declaration_statement(t):
 		typ = typ[0]
 			
 	for declaration in t[2]:
-		#print declaration, typ					
+		
+		# default initialization
 		if len(declaration)==1:
 			init = None
 			var = declaration[0]
+
 			# array
 			if '[]' in var:
 				var = var.strip().strip('[]')
@@ -471,34 +486,41 @@ def p_declaration_statement(t):
 					else:
 						itype = typ
 					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, itype, var) 
-				
+			
 			else:
 				t.parser.type_map[var] = typ
 				t[0] += '%s = %s\n' % (var, init)	
-			
+		
+		# initialize to value	
 		else:
-			#print buf
-			for i,elem in enumerate(declaration):
-				declaration[i] = elem.strip()
-				if declaration[i].endswith('[]'):
-					declaration[i] = declaration[i][:-2]
+			try: 
+				if declaration[1].tokenize:
+					buf = declaration[1].__dict__.pop( 'tokenize' )
+					t[0] += declaration[1]
+					t[0] += '\n' + declaration[0] + " = len(%s)" % buf
+			except:					
+				for i,elem in enumerate(declaration):
 					
-			t.parser.type_map[declaration[0]] = typ
-			
-			if isGlobal:
-						
-				#print "global var", buf[:-1]
+					declaration[i] = elem.strip()
+					if declaration[i].endswith('[]'):
+						declaration[i] = declaration[i][:-2]
+					
+				t.parser.type_map[declaration[0]] = typ
 				
-				for global_var in declaration[:-1]:
-					#print "set mel global var", global_var
-					t.parser.global_vars.add(global_var)
+				if isGlobal:
+							
+					#print "global var", buf[:-1]
 					
-					t[0] += 'global %s\n' % global_var 
-					t[0] += '%s=%s\n' % (global_var, declaration[-1])
-					if includeGlobalVar( global_var):
-						t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, global_var, global_var)
-			else:
-				t[0] += ' = '.join( declaration ) + '\n'
+					for global_var in declaration[:-1]:
+						#print "set mel global var", global_var
+						t.parser.global_vars.add(global_var)
+						
+						t[0] += 'global %s\n' % global_var 
+						t[0] += '%s=%s\n' % (global_var, declaration[-1])
+						if includeGlobalVar( global_var):
+							t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, global_var, global_var)
+				else:
+					t[0] += ' = '.join( declaration ) + '\n'
 			
 			
 	addComments( t, 'declaration_statement' )
@@ -533,8 +555,10 @@ def p_init_declarator_list(t):
 	#
 	#t[0] = assemble(t, 'p_init_declarator_list')
 	
+	# add to list
 	if len(t)>2:
 		t[0] = t[1] + [t[3]]
+	# start a new list
 	else:
 		t[0] = [t[1]]
 		
@@ -1221,7 +1245,12 @@ def p_assignment_expression(t):
 	t[0] = assemble(t, 'p_assignment_expression')
 	if len(t) == 4:
 		#print t[1], t[2], t[3]
-		
+		try:
+			if t[3].tokenize:
+				buf = t[3].__dict__.pop('tokenize')
+				t[0] = t[3] + '\n' + t[1] + '=len(%s)' % buf
+		except: pass
+			
 		# remove array brackets:  string[]
 		if t[2] and t[1].endswith('[]'):
 			t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
@@ -1257,6 +1286,7 @@ def p_equality_expression_1(t):
 	'''equality_expression : relational_expression
 							| equality_expression EQ relational_expression
 							| equality_expression NE relational_expression'''
+
 	t[0] = assemble(t, 'p_equality_expression_3', ' ')
 
 # relational-expression:
@@ -1267,6 +1297,7 @@ def p_relational_expression_1(t):
 							 | relational_expression GT shift_expression
 							 | relational_expression LE shift_expression
 							 | relational_expression GE shift_expression'''
+
 	t[0] = assemble(t, 'p_relational_expression_5')
 
 # shift-expression
@@ -1310,7 +1341,8 @@ def p_cast_expression(t):
 						| unary_command_expression
 						| type_specifier LPAREN expression RPAREN
 						| LPAREN type_specifier RPAREN cast_expression'''
-		
+
+			
 	# (int)myvar
 	if len(t) == 5 and t[1] == '(':
 		if t[2] == 'string':
@@ -1347,7 +1379,7 @@ def p_unary_expression_2(t):
 def p_unary_command_expression(t):
 	'''unary_command_expression : procedure_expression
 								| unary_operator procedure_expression'''
-	
+
 	if len(t)>2 and t[1] == '!':
 			t[1] = 'not '			
 	t[0] = assemble(t, 'p_unary_expression')
@@ -1368,8 +1400,10 @@ def p_unary_operator(t):
 def p_procedure_expression(t):
 	'''procedure_expression : command_expression
 				 			| procedure'''
+	
 	t[0] = assemble(t, 'p_procedure_expression')
 
+	
 #def p_procedure(t):
 #	'''procedure : ID LPAREN procedure_expression_list RPAREN
 #				 | ID LPAREN RPAREN '''
@@ -1419,7 +1453,6 @@ def p_procedure_expression_list(t):
 # command expression
 def p_command_expression(t):
 	'''command_expression : CAPTURE command CAPTURE'''
-	#t[0] = assemble(t, 'p_command_expression')
 	t[0] = t[2]
 					
 # postfix-expression:

@@ -1264,14 +1264,14 @@ class DagNode(Entity):
 		"""ensures that we compare longnames when checking for dag node equality"""
 		try:
 			return unicode(self.longName()) == unicode(DagNode(other).longName())
-		except TypeError:
+		except (TypeError,IndexError):
 			return unicode(self) == unicode(other)
 			
 	def __ne__(self, other):
 		"""ensures that we compare longnames when checking for dag node equality"""
 		try:
 			return unicode(self.longName()) != unicode(DagNode(other).longName())
-		except TypeError:
+		except (TypeError,IndexError):
 			return unicode(self) != unicode(other)	
 			
 	#--------------------------
