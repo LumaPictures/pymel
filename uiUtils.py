@@ -178,13 +178,16 @@ class SmartLayoutCreator:
 
 SLC = SmartLayoutCreator
         
-def labeledControl(label, uiFunc, kwargs, align="left", parent=None):
-    dict = SLC(None, HorizontalLayout, {"create":True}, HorizontalLayout.redistribute,  [
+def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
+    dict = SLC("layout", HorizontalLayout, {"create":True, "ratios":ratios}, HorizontalLayout.redistribute,  [
                 SLC("label", text, {"l":label,"al":align}),
                 SLC("control", uiFunc, kwargs)
             ]).create(parent=parent)
     control = dict["control"]
+    if not isinstance(control,UI):
+        control = UI(control)
     control.label = dict["label"] 
+    control.layout = dict["layout"]
     return control
 
 def promptBox(title, message, okText, cancelText, **kwargs):
