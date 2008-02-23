@@ -313,7 +313,7 @@ created, its node type, and its class type:
 
 make the light red and get shadow samples, the old way
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
-	>>> directionalLight( l, query=1, shadowSamples=1 ) 
+	>>> print directionalLight( l, query=1, shadowSamples=1 ) 
 	1	
 	
 now, the object-oriented, pymel way
@@ -411,11 +411,26 @@ maya commands.
 
 See L{pymel.io} for more information on how the file command is implemented in pymel.
 
-Even though pymel has a handful of modules, all but L{pymel.runtime} are imported directly into the main namespace. The sub-modules are provided
-for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user can edit the import commands
-in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
-for organizational reasons.
+Even though pymel has a handful of modules, all but L{pymel.runtime} are imported directly into the main namespace. The sub-modules
+are provided for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user 
+can edit the import commands in __init__.py to customize which modules are directly imported and which should remain
+in their own namespace for organizational reasons.
 
+Design Philosophy
+=================
+
+When approaching the reorganization of the existing commands provided by maya.cmds, pymel follows these practical guidelines:
+	- a value returned by a get* function or query flag should be accepted as a valid argument by the corresponding set* function or edit flag
+	- a function which returns a list should return an empty list (not None) if it finds no matches ( ex. ls, listRelatives )
+	- a function which always returns a single item should not return that item in a list or tuple ( ex. spaceLocator )
+	- wherever possible, pymel/python objects should be returned
+	- a function which provides a mapping mechanism should have a dictionary-like pymel counterpart ( ex. fileInfo, optionVar )
+	- a function which returns a list of pairs should be a 2D array, or possibly a dictionary ( ex. ls( showType=1 )  )
+	- the arguments provided by a ui callback should be of the appropriate type ( as a test it should be capable of being used to set the value of the control )
+
+Pymel design rules:
+	- node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax ( ex. foo.bar retrieves an attribute, foo.bar() executes a function )
+	- node classes are named after the nodes they control, not the mel commands that they proxy  ( ex. Locator vs. spaceLactor )
 """
 
 
@@ -560,7 +575,6 @@ setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32
 	- flag info : 
 		- share cache with pymel? must deal with commands whose synatx is altered (sets, move).
 		- alternative to above: cache flag info of previously used commands
-	- tokenize command
 	- runtime commands
 	
 	To Debate:
@@ -571,21 +585,25 @@ setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32
 		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
 		- this is particularly useful for colors
 	
-	For Next Release:
+	Todo:
 	- create a feature-rich listReferences command, with flags for recursionDepth, regular expression match, return type ( list, dict, tree )  (API?)
 	- create links between Reference (from node-hierarchy) and FileReference 
 	- re-write primary list commands using API
 	- add component classes for nurbs and subdiv
 	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
-	
-	For Future Release:
 	- pymel preferences for breaking or maintaining backward compatibility:
 		- longNames
 		- twoDimensionalArrays (ex. ls(showType=1), fileInfo(q=1) )
 		- namespaces
-	- add sequence handling methods to Path
-	- create Vector constants.  Red, White, Up, Down, etc
+	- more module organization
+	- Path
+		- add sequence handling methods
+		- rename methods using hungarian notation/camelCase?
+	- Vector
+		- add constants.  Red, White, Up, Down, etc
+		- wrap MVector for speed
 	- develop a way to add docs to selective objects based on cached info
+	- explore the possibility of a mutable node class tied to the MObject
 """
 
 __version__ = '0.7.9'
