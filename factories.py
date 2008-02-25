@@ -256,7 +256,9 @@ nodeTypeToCommandMap = {
 	'makeNurbPlane' : 'nurbsPlane',
 	'makeNurbsSquare' : 'nurbsSquare',
 	'makeNurbCube' : 'nurbsCube',
-	'skinPercent' : 'skinCluster'
+	'skinPercent' : 'skinCluster',
+	'mesh' : 'polyEvaluate',
+	'transform' : 'xform'
 }
 
 def _getUICommands():
@@ -500,27 +502,45 @@ def functionFactory( funcName, returnFunc, module=None ):
 		return newFunc
 	#else:
 	#	print "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
-			
-def _makeCreateFlagCmd( inFunc, flag, docstring='' ):
-	def f(self): return inFunc( self,  **{'edit':True, flag:True} )
-	f.__name__ = flag
-	if docstring:
-		f.__doc__ = docstring
-	return f
 
-def _makeQueryFlagCmd( name, inFunc, flag, docstring='' ):
-	#name = 'get' + flag[0].upper() + flag[1:]
-	def f(self, **kwargs):
-		kwargs['query']=True
-		kwargs[flag]=True 
-		return inFunc( self, **kwargs )
-	
+def _addFlagCmdDocs(f,name,inFunc,flag,docstring):
 	f.__name__ = name
 	if docstring:
 		f.__doc__ = docstring
+	else:
+		try:
+			f.__doc__ = cmdlist[inFunc.__name__]['flags'][flag]['docstring']
+		except KeyError: pass	
 	return f
+			
+def makeCreateFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
+	if returnFunc:
+		def f(self, **kwargs):
+			kwargs[flag]=True 
+			return returnFunc( inFunc( self, **kwargs ) )
+	else:
+		def f(self, **kwargs):
+			kwargs[flag]=True 
+			return inFunc( self, **kwargs )
+	return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
-def _makeEditFlagCmd( name, inFunc, flag, docstring='' ):
+
+def makeQueryFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
+	#name = 'get' + flag[0].upper() + flag[1:]
+	if returnFunc:
+		def f(self, **kwargs):
+			kwargs['query']=True
+			kwargs[flag]=True 
+			return returnFunc( inFunc( self, **kwargs ) )
+	else:
+		def f(self, **kwargs):
+			kwargs['query']=True
+			kwargs[flag]=True 
+			return inFunc( self, **kwargs )
+	return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
+
+	
+def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
 	#name = 'set' + flag[0].upper() + flag[1:]	
 	def f(self, val, **kwargs): 
 		kwargs['edit']=True
@@ -531,10 +551,7 @@ def _makeEditFlagCmd( name, inFunc, flag, docstring='' ):
 			kwargs.pop('edit')
 			return inFunc( self, **kwargs )
 			
-	f.__name__ = name
-	if docstring:
-		f.__doc__ = docstring
-	return f
+	return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
 def createFunctions( module, returnFunc ):
 	print module.__name__
@@ -588,7 +605,7 @@ class metaNode(type) :
 					methodName = 'get' + util.capitalize(flag)
 					if methodName not in classdict:
 						if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-							classdict[methodName] = _makeQueryFlagCmd( methodName, func, 
+							classdict[methodName] = makeQueryFlagCmd( methodName, func, 
 								flag, flagInfo['docstring'] )
 						#else: print "%s: skipping %s" % ( classname, methodName )
 				
@@ -603,7 +620,7 @@ class metaNode(type) :
 						
 					if methodName not in classdict:
 						if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-							classdict[methodName] = _makeEditFlagCmd( methodName, func,
+							classdict[methodName] = makeEditFlagCmd( methodName, func,
 						 		flag, flagInfo['docstring'] )
 					
 		except KeyError: # on cmdlist[nodeType]

@@ -1439,23 +1439,15 @@ class Camera(Shape):
 	def listBookmarks(self):
 		return self.bookmarks.inputs()
 	
-	def dolly(self, **kwargs):
-	 	return cmds.dolly(self, **kwargs)
+	dolly = factories.functionFactory('dolly', None, cmds )
+	roll = factories.functionFactory('roll', None, cmds )
+	orbit = factories.functionFactory('orbit', None, cmds )
+	track = factories.functionFactory('track', None, cmds )
+	tumble = factories.functionFactory('tumble', None, cmds )
 	
-	def roll(self, **kwargs):
-	 	return cmds.roll(self, **kwargs)
-
-	def orbit(self, **kwargs):
-	 	return cmds.orbit(self, **kwargs)
-
-	def track(self, **kwargs):
-	 	return cmds.track(self, **kwargs)
-
-	def tumble(self, **kwargs):
-	 	return cmds.tumble(self, **kwargs)
 			
 class Transform(DagNode):
-
+	__metaclass__ = factories.metaNode
 	def __getattr__(self, attr):
 		if attr.startswith('__') and attr.endswith('__'):
 			return super(_BaseObj, self).__getattr__(attr)
@@ -1530,7 +1522,7 @@ class Transform(DagNode):
 	def ungroup( self, **kwargs ):
 		return cmds.ungroup( self, **kwargs )
 
-
+	'''
 	def setScale( self, val, **kwargs ):
 		"""xform -scale"""
 		kwargs['scale'] = val
@@ -1599,13 +1591,23 @@ class Transform(DagNode):
 		kwargs.pop('query',None)
 		cmds.xform( self, **kwargs )
 
-
+	'''
+	getScale = factories.makeQueryFlagCmd( 'getScale', cmds.xform, 'scale', returnFunc=Vector )
+	getRotation = factories.makeQueryFlagCmd( 'getRotation', cmds.xform, 'rotation', returnFunc=Vector )	
+	getTranslation = factories.makeQueryFlagCmd( 'getTranslation', cmds.xform, 'translation', returnFunc=Vector )	
+	getScalePivot = factories.makeQueryFlagCmd( 'getScalePivot', cmds.xform, 'scalePivot', returnFunc=Vector )	
+	getRotatePivot = factories.makeQueryFlagCmd( 'getRotatePivot', cmds.xform, 'rotatePivot', returnFunc=Vector )	
+	#getPivots = factories.makeQueryFlagCmd( 'getPivots', cmds.xform, 'pivots', returnFunc=Vector )	
+	getRotateAxis = factories.makeQueryFlagCmd( 'getRotateAxis', cmds.xform, 'rotateAxis', returnFunc=Vector )	
+	getShear = factories.makeQueryFlagCmd( 'getShear', cmds.xform, 'shear', returnFunc=Vector )	
+	getMatrix = factories.makeQueryFlagCmd( 'getMatrix', cmds.xform, 'matrix', returnFunc=Matrix )	
+	'''
 	def getScale( self, **kwargs ):
 		"""xform -scale"""
 		kwargs['scale'] = True
 		kwargs['query'] = True
 		return Vector( cmds.xform( self, **kwargs ) )
-			
+		
 	def getRotation( self, **kwargs ):
 		"""xform -rotation"""
 		kwargs['rotation'] = True
@@ -1618,7 +1620,6 @@ class Transform(DagNode):
 		kwargs['query'] = True
 		return Vector( cmds.xform( self, **kwargs ) )
 
-
 	def getScalePivot( self, **kwargs ):
 		"""xform -scalePivot"""
 		kwargs['scalePivot'] = True
@@ -1630,13 +1631,14 @@ class Transform(DagNode):
 		kwargs['rotatePivot'] = True
 		kwargs['query'] = True
 		return Vector( cmds.xform( self, **kwargs ) )
-		
+	'''	
 	def getPivots( self, **kwargs ):
 		"""xform -pivots"""
 		kwargs['pivots'] = True
 		kwargs['query'] = True
-		return Vector( cmds.xform( self, **kwargs ) )
-
+		res = cmds.xform( self, **kwargs )
+		return ( Vector( res[:3] ), Vector( res[3:] )  )
+	'''
 	def getRotateAxis( self, **kwargs ):
 		"""xform -rotateAxis"""
 		kwargs['rotateAxis'] = True
@@ -1644,7 +1646,7 @@ class Transform(DagNode):
 		return Vector( cmds.xform( self, **kwargs ) )
 		
 								
-	def getShearing( self, **kwargs ):
+	def getShear( self, **kwargs ):
 		"""xform -shear"""
 		kwargs['shear'] = True
 		kwargs['query'] = True
@@ -1656,7 +1658,7 @@ class Transform(DagNode):
 		kwargs['matrix'] = True
 		kwargs['query'] = True
 		return Matrix( cmds.xform( self, **kwargs ) )
-			
+	'''		
 	def getBoundingBox(self, invisible=False):
 		"""xform -boundingBox and xform-boundingBoxInvisible
 		
@@ -1676,7 +1678,8 @@ class Transform(DagNode):
 		
 	def getBoundingBoxMax(self, invisible=False):
 		return self.getBoundingBox(invisible)[1]	
-			
+	
+	'''		
 	def centerPivots(self, **kwargs):
 		"""xform -centerPivots"""
 		kwargs['centerPivots'] = True
@@ -1686,7 +1689,7 @@ class Transform(DagNode):
 		"""xform -zeroTransformPivots"""
 		kwargs['zeroTransformPivots'] = True
 		cmds.xform( self, **kwargs )		
-	
+	'''
 	
 class Constraint(Transform):
 	def setWeight( self, weight, *targetObjects ):
@@ -1712,6 +1715,7 @@ class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
+	#__metaclass__ = factories.metaNode
 	"""
 	Cycle through faces and select those that point up in world space
 	
@@ -1749,37 +1753,37 @@ class Mesh(SurfaceShape):
 		def __str__(self):
 			return '%s.f[%s]' % (self._node, self._item)
 	
-		def _getFaceNormal(self):
+		def getNormal(self):
 			return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))		
-		normal = property(_getFaceNormal)
+		normal = property(getNormal)
 		
-		def _getEdges(self):
+		def toEdges(self):
 			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), faceToEdge=1)[0].split()[2:] )		
-		edges = property(_getEdges)
+		edges = property(toEdges)
 		
-		def _getVertices(self):
+		def toVertices(self):
 			return map( self._node.vtx.__getitem__, cmds.polyInfo( str(self), faceToVertex=1)[0].split()[2:] )		
-		vertices = property(_getVertices)
+		vertices = property(toVertices)
 		
 	class Edge(Component):
 		def __str__(self):
 			return '%s.e[%s]' % (self._node, self._item)
 			
-		def _getFaces(self):
+		def toFaces(self):
 			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )		
-		faces = property(_getFaces)
+		faces = property(toFaces)
 		
 	class Vertex(Component):
 		def __str__(self):
 			return '%s.vtx[%s]' % (self._node, self._item)
 			
-		def _getEdges(self):
+		def toEdges(self):
 			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToEdge=1)[0].split()[2:] )		
-		edges = property(_getEdges)
+		edges = property(toEdges)
 		
-		def _getFaces(self):
+		def toFaces(self):
 			return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )		
-		faces = property(_getFaces)
+		faces = property(toFaces)
 	
 	def _getFaceArray(self):
 		return Mesh.FaceArray( self + '.f' )	
@@ -1849,45 +1853,19 @@ class Mesh(SurfaceShape):
 				raise AttributeError, "Attribute does not exist: %s" % at
 			"""
 		return at.set(val)
-					
-	def polyEvaluate(self, **kwargs):
-		return cmds.polyEvaluate(self, **kwargs)
+						
+	vertexCount = factories.makeCreateFlagCmd( 'vertexCount', cmds.polyEvaluate, 'vertex' )
+	edgeCount = factories.makeCreateFlagCmd( 'edgeCount', cmds.polyEvaluate, 'edge' )
+	faceCount = factories.makeCreateFlagCmd( 'faceCount', cmds.polyEvaluate, 'face' )
+	uvcoordCount = factories.makeCreateFlagCmd( 'uvcoordCount', cmds.polyEvaluate, 'uvcoord' )
+	triangleCount = factories.makeCreateFlagCmd( 'triangleCount', cmds.polyEvaluate, 'triangle' )
+	area = factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
 	
-	def numVerts(self):
-		return cmds.polyEvaluate(self, vertex=True)
+	#def area(self):
+	#	return cmds.polyEvaluate(self, area=True)
 		
-	def numEdges(self):
-		return cmds.polyEvaluate(self, edge=True)
-
-	def numFaces(self):
-		return cmds.polyEvaluate(self, face=True)
-		
-	def numUVs(self):
-		return cmds.polyEvaluate(self, uvcoord=True)
-		
-	def numTris(self):
-		return cmds.polyEvaluate(self, triangle=True)	
-
-	def numSelectedVerts(self):
-		return cmds.polyEvaluate(self, vertex=True)
-		
-	def numSelectedEdges(self):
-		return cmds.polyEvaluate(self, edge=True)
-
-	def numSelectedFaces(self):
-		return cmds.polyEvaluate(self, face=True)
-		
-	def numSelectedUVs(self):
-		return cmds.polyEvaluate(self, uvcoord=True)
-		
-	def numSelectedTris(self):
-		return cmds.polyEvaluate(self, triangle=True)	
-		
-	def area(self):
-		return cmds.polyEvaluate(self, area=True)
-		
-	def worldArea(self):
-		return cmds.polyEvaluate(self, worldArea=True)
+	#def worldArea(self):
+	#	return cmds.polyEvaluate(self, worldArea=True)
 	
 	'''
 	def _listComponent( self, compType, num ):
@@ -1939,9 +1917,9 @@ class Particle(DeformableShape):
 	pt = property(_getPointArray)
 	points = property(_getPointArray)
 	
-	def count(self):
+	def pointCount(self):
 		return cmds.particle( self, q=1,count=1)
-	num = count
+	num = pointCount
 	
 class ObjectSet(Entity):
 	"""
