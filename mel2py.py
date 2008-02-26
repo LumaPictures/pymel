@@ -20,6 +20,7 @@ append new element
 ~~~~~~~~~~~~~~~~~~
 
 MEL::
+
 	$strArray[`size $strArray`] = "foo";
 	
 Python
@@ -29,6 +30,7 @@ assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MEL::
+
 	strArray[`size $strArray`-3] = "foo";
 	
 Python	
@@ -46,7 +48,7 @@ python and would need to be manually fixed::
 for(init; condition; update)
 ----------------------------
 
-	the closest equivalent to this in python is something akin to::
+	the closest equivalent to this in python is something akin to:
 
 		>>> for i in range(start, end)
 		
@@ -55,25 +57,30 @@ for(init; condition; update)
 		1. the initialization, condition, and update expressions must not be empty.
 			
 			not translatable::
+			
 			  	for(; ; $i++) print $i;
 		
 		2. there can be only one conditional expression.   
 			
 			not translatable::
+			
 			  	for($i=0; $i<10, $j<20; $i++) print $i;
 		
 		3. the variable which is being updated and tested in the condition (aka, the iterator) must exist alone on one
 			side of the	conditional expression. this one is easy enough to fix, just do some algebra:
 			
 			not translatable::
+			
 			  	for($i=0; ($i-2)<10, $i++) print $i;
 	
 			translatable::
+			
 			  	for($i=0; $i<(10+2), $i++) print $i;
 		
 		4. the iterator can appear only once in the update expression:
 			
 			not translatable::
+			
 			  	for($i=0; $i<10; $i++, $i+=2) print $i;
 			  	
 	if these conditions are not met, the for loop will be converted into a while loop:
@@ -98,7 +105,7 @@ Global Variables
 ----------------		
 
 Global variables are not shared between mel and python.  two functions have been added to pymel for this purpose:
-L{getMelGlobal} and L{setMelGlobal}. by default, the translator will convert mel global variables into python global 
+`getMelGlobal` and `setMelGlobal`. by default, the translator will convert mel global variables into python global 
 variables AND intialize them to the value of their corresponding mel global variable using getMelGlobal(). if your 
 python global variable does not need to be shared with other mel scripts, you can remove the get- and
 setMelGlobals lines (for how to filter global variables, see below). however, if it does need to be shared, it is very
@@ -106,7 +113,7 @@ important that you manually add setMelGlobal() to update the variable in the mel
 procedures that will use the global variable. 
 
 In order to hone the accuracy of the translation of global variables, you will find two dictionary parameters below --
-L{global_var_include_regex} and L{global_var_exclude_regex} -- which you can use to set a regular expression string
+`global_var_include_regex` and `global_var_exclude_regex` -- which you can use to set a regular expression string
 to tell the translator which global variables to share with the mel environment (i.e. which will use the get and set
 methods described above) and which to not.  for instance, in my case, it is desirable for all of maya's global 
 variables to be initialized from their mel value but for our in-house variables not to be, since the latter are often

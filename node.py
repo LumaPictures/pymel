@@ -1,6 +1,6 @@
 """
 The node module contains functions which are used to create nodes, as well as their class counterparts.
-See the sections 'Node Class Hierarchy' and 'Node Commands and their Class Counterparts' under the L{pymel} module.
+See the sections `Node Class Hierarchy`_ and `Node Commands and their Class Counterparts`_.
 """
 
 
@@ -58,6 +58,7 @@ Maya Bug Fix:
 	- when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
 Modifications:
 	- added new syntax for querying the weight of a target object, by passing the constraint first::
+	
 		aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
 		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
 		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
@@ -113,6 +114,7 @@ Maya Bug Fix:
 	- when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
 Modifications:
 	- added new syntax for querying the weight of a target object, by passing the constraint first::
+	
 		aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
 		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )
 		aimConstraint( 'pCube1_aimConstraint1', q=1, weight =[] )
@@ -477,13 +479,13 @@ class Attribute(_BaseObj):
 	==========
 	
 	The Attribute class is your one-stop shop for all attribute related functions. Modifying attributes follows a fairly
-	simple pattern:  L{setAttr} becomes L{set<Attribute.set>}, L{getAttr} becomes L{get<Attribute.get>}, L{connectAttr}
+	simple pattern:  `setAttr` becomes L{set<Attribute.set>}, `getAttr` becomes L{get<Attribute.get>}, `connectAttr`
 	becomes L{connect<Attribute.connect>} and so on.  
 	
 	Accessing Attributes
 	--------------------
-	Most of the time, you will access instances of the Attribute class via L{DependNode} or one of its subclasses. This example demonstrates
-	that the Attribute class like the L{DependNode} classes are based on a unicode string, and so when printed will 
+	Most of the time, you will access instances of the Attribute class via `DependNode` or one of its subclasses. This example demonstrates
+	that the Attribute class like the `DependNode` classes are based on a unicode string, and so when printed will 
 	
 		>>> s = polySphere()[0]
 		>>> if s.visibility.isKeyable() and not s.visibility.isLocked():
@@ -500,7 +502,7 @@ class Attribute(_BaseObj):
 	Getting Attribute Values
 	------------------------
 	To get an attribute, you use the L{'get'<Attribute.get>} method. Keep in mind that, where applicable, the values returned will 
-	be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as L{Vector}.
+	be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
 	
 		>>> rot = s.rotate.get()
 		>>> print rot
@@ -518,7 +520,7 @@ class Attribute(_BaseObj):
 
 	Connecting Attributes
 	---------------------
-	Since the Attribute class inherits the builtin string, you can just pass the Attribute to the L{connect} method. The string formatting
+	Since the Attribute class inherits the builtin string, you can just pass the Attribute to the `connect` method. The string formatting
 	is handled for you.
 				
 		>>> s.rotateX.connect( s.rotateY )
@@ -694,13 +696,16 @@ class Attribute(_BaseObj):
 		any pre-existing connection into node.inAttr.  if there is no
 		pre-existing connection, this method works just like connectAttr. 
 		
-		for example, for two nodes with the connection::		
+		for example, for two nodes with the connection::
+				
 			a.out-->b.in
 			
 		running this command::
+		
 			b.insertInput( 'c', 'out', 'in' )
 			
-		causes the new connection order (assuming 'c' is a node with 'in' and 'out' attributes)::			
+		causes the new connection order (assuming 'c' is a node with 'in' and 'out' attributes)::
+				
 			a.out-->c.in
 			c.out-->b.in
 		"""
@@ -2289,7 +2294,7 @@ def testNodeCmds(verbose=False):
 def _createFunctions():
 	for funcName in factories.moduleCmds['node']:
 		func = factories.functionFactory( funcName, PyNode, _thisModule )
-		func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
+		func.__doc__ = 'function counterpart of class `%s`\n\n' % util.capitalize( funcName ) + func.__doc__
 		if func:
 			func.__module__ = __name__
 			setattr( _thisModule, funcName, func )

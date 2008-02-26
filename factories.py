@@ -586,7 +586,7 @@ def createFunctions( module, returnFunc ):
 		if data['type'] == module.__name__:
 			func = functionFactory( funcName, returnFunc )
 			if module.__name__ == 'node':
-				func.__doc__ = 'function counterpart of class L{%s}\n\n' % util.capitalize( funcName ) + func.__doc__
+				func.__doc__ = 'function counterpart of class `%s`\n\n' % util.capitalize( funcName ) + func.__doc__
 			if func:
 				func.__module__ = module.__name__
 				setattr( module, funcName, func )

@@ -1,5 +1,5 @@
 """
-The core module contains all of the functions which do not fall under the category of L{ui}, L{node}, or L{ctx}.
+The core module contains all of the functions which do not fall under the category of `ui`, `node`, or `ctx`.
 """
 
 
@@ -227,7 +227,7 @@ class Workspace(util.Singleton):
 	the workspace dir can be confusing because it works by maintaining a current working directory that is persistent
 	between calls to the command.  In other words, it works much like the unix 'cd' command, or python's 'os.chdir'.
 	In order to clarify this distinction, the names of these flags have been changed in their class method counterparts
-	to resemble similar commands from the os module::
+	to resemble similar commands from the os module.
 	
 	old way (still exists for backward compatibility)
 		>>> workspace(edit=1, dir='mydir')
@@ -498,11 +498,11 @@ class Env(util.Singleton):
 		return Path(cmds.file( q=1, sn=1))
 
 	def setUpAxis( axis, rotateView=False ):
-		"""This flag specifies the axis as the world up direction. The valid axis are either "y" or "z"."""
+		"""This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
 		cmds.upAxis( axis=axis, rotateView=rotateView )
 	
 	def getUpAxis(self):
-		"""This flag gets the axis set as the world up direction. The valid axis are either "y" or "z"."""
+		"""This flag gets the axis set as the world up direction. The valid axis are either 'y' or 'z'."""
 		return cmds.upAxis( q=True, axis=True )	
 
 	def user(self):
@@ -568,6 +568,7 @@ def move(obj, *args, **kwargs):
 	"""
 Modifications:
 	- allows any iterable object to be passed as first argument::
+	
 		move("pSphere1", [0,1,2])
 		
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
@@ -581,6 +582,7 @@ def scale(obj, *args, **kwargs):
 	"""
 Modifications:
 	- allows any iterable object to be passed as first argument::
+	
 		scale("pSphere1", [0,1,2])
 		
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
@@ -594,6 +596,7 @@ def rotate(obj, *args, **kwargs):
 	"""
 Modifications:
 	- allows any iterable object to be passed as first argument::
+	
 		rotate("pSphere1", [0,1,2])
 		
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
@@ -885,7 +888,9 @@ def listConnections(*args, **kwargs):
 Modifications:
 	- returns an empty list when the result is None
 	- When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
+	
 		[['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
+		
 	- added sourceFirst keyword arg. when sourceFirst is true and connections is also true, 
 		the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
 		this puts the pairs in the order that disconnectAttr and connectAttr expect.
@@ -1150,8 +1155,10 @@ def sets( objectSet, **kwargs):
 	"""
 Modifications
 	- resolved confusing syntax: operating set is always the first and only arg::
+	
 		sets( 'blinn1SG', forceElement=['pSphere1', 'pCube1'] )
 		sets( 'blinn1SG', flatten=True )
+		
 	- returns wrapped classes
 		
 	"""
@@ -1256,6 +1263,7 @@ def currentTime( *args, **kwargs ):
 	"""
 Modifications:
 	- if no args are provided, the command returns the current time -- the equivalent of::
+	
 		cmds.currentTime(q=1)
 	"""
 	
