@@ -139,7 +139,14 @@ class Mel(object):
 							
 			cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
 			#print cmd
-			return mm.eval(cmd)
+			try:
+				return mm.eval(cmd)
+			except RuntimeError, msg:
+				info = self.whatIs( command )
+				if info.startswith( 'Presumed Mel procedure'):
+					raise NameError, 'Unknown Mel procedure'
+				raise RuntimeError, msg
+			
 		return _call
 	
 	def mprint(self, *args):

@@ -228,9 +228,9 @@ def _getNodeHierarchy( version='8.5' ):
 #  Command Help Documentation
 #-----------------------------------------------
 
-# creation commands whose names do not match the type of node they return require this dict
-# to resolve which command the class should wrap 
-nodeTypeToCommandMap = {
+#: creation commands whose names do not match the type of node they return require this dict
+#: to resolve which command the class should wrap 
+nodeType_to_nodeCommand = {
 	#'failed' : 'clip',
 	#'failed' : 'clipSchedule',
 	'airField' : 'air',
@@ -257,9 +257,30 @@ nodeTypeToCommandMap = {
 	'makeNurbsSquare' : 'nurbsSquare',
 	'makeNurbCube' : 'nurbsCube',
 	'skinPercent' : 'skinCluster',
+}
+
+#: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
+#: these commands require special treatment during class generation because, for them the 'create' mode is the same as other node's 'edit' mode
+nodeType_to_infoCommand = {
 	'mesh' : 'polyEvaluate',
 	'transform' : 'xform'
 }
+
+
+#: modifier flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
+#: because the maya docs do not specify in any parsable way which flags are modifiers, we must maintain this dictionary.
+#: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
+modifierFlags = {
+	'xform' : ( ( 'absolute', 		[] ),
+				( 'relative', 		[] ),
+				( 'euler',			['relative'] ),
+				( 'objectSpace',	['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+				( 'worldSpace',		['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+				( 'preserve',		['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
+				( 'worldSpaceDistance', ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
+			)
+}
+
 
 def _getUICommands():
 	f = open(util.moduleDir() / 'misc/commandsUI', 'r')
@@ -304,14 +325,17 @@ def buildMayaCmdsArgList() :
 		cmdlist = {}
 		moduleCmds = util.defaultdict(list)
 		for funcName, data in tmpCmdlist :	
-
-			# in version 2008, maya.cmds contains capitalized versions of many commands, which will conflict with our classes 
-			#if funcName[0].isupper() and util.uncapitalize(funcName) in tmpCmdlist:
-			#	#print "skipping", funcName
-			#	continue
 			
-			description, args = getCmdInfo(funcName, ver)
-			
+			description, flags = getCmdInfo(funcName, ver)
+			#modifiers = {}
+			try:
+				for modifierFlag, modifiedList in modifierFlags[funcName]:
+					#flagData = flags.pop(modifier)
+					#flagData['modified'] = modifiedList
+					#modifiers[modifier] = flagData
+					flags[modifierFlag]['modifier'] = modifiedList
+			except:pass
+				
 			# determine to which module this function belongs
 			if funcName in ['eval',	'file', 'filter', 'help', 'quit']:
 				module = None
@@ -319,7 +343,7 @@ def buildMayaCmdsArgList() :
 				module = 'ctx'
 			elif funcName in uiClassList:
 				module = 'ui'
-			elif funcName in nodeHierarchyTree or funcName in nodeTypeToCommandMap.values():
+			elif funcName in nodeHierarchyTree or funcName in nodeType_to_nodeCommand.values():
 				module = 'node'
 			elif mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
 				module = 'runtime'
@@ -329,7 +353,7 @@ def buildMayaCmdsArgList() :
 			if module:
 				moduleCmds[module].append(funcName)
 			
-			cmdlist[funcName] = { 'type': module, 'flags': args, 'description' : description }
+			cmdlist[funcName] = { 'type': module, 'flags': flags, 'description' : description }
 			
 			'''
 			# func, args, (usePyNode, baseClsName, nodeName)
@@ -388,9 +412,12 @@ def _addDocs(inObj, newObj, cmdInfo ):
 
 				label = '    - %s (%s)' % (flag, docs['shortname'])
 				docstring += label + '\n'
-				#docstring += '~'*len(label) + '\n'
 				if docs['modes']:
 					docstring += '        - %s\n' % (', '.join(docs['modes']))
+				try:
+					docstring += '        - modifies flags %s\n' % ( ', '.join(docs['modifier'] ))
+				except KeyError: pass
+				
 				docstring += '        - %s\n' %  docs['docstring']
 	
 		if inObj.__doc__:
@@ -564,7 +591,7 @@ def createFunctions( module, returnFunc ):
 				func.__module__ = module.__name__
 				setattr( module, funcName, func )
 
-# overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
+#: overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
 overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
 
@@ -580,7 +607,15 @@ class metaNode(type) :
 		nodeType = util.uncapitalize(classname)
 		
 		try:
-			nodeType = nodeTypeToCommandMap.get( nodeType, nodeType )
+			infoCmd = False
+			try:
+				nodeType = nodeType_to_nodeCommand[ nodeType ]
+			except KeyError:
+				try:
+					nodeType = nodeType_to_infoCommand[ nodeType ]
+					infoCmd = True
+				except KeyError: pass
+			
 			#if nodeHierarchy.children( nodeType ):
 			#	print nodeType, nodeHierarchy.children( nodeType )
 			cmdInfo = cmdlist[nodeType]
@@ -595,11 +630,13 @@ class metaNode(type) :
 			classdict['__doc__'] = 'class counterpart of function L{%s}\n\n%s\n\n' % (nodeType, cmdInfo['description'])
 			
 			for flag, flagInfo in cmdInfo['flags'].items():
- 		
-				if flag in ['query', 'edit']:
+ 				
+ 				# don't create methods for query or edit, or for flags which only serve to modify other flags
+				if flag in ['query', 'edit'] or 'modifier' in flagInfo:
 					continue
-				modes = flagInfo['modes']
 				
+				modes = flagInfo['modes']
+
 				# query command
 				if 'query' in modes:
 					methodName = 'get' + util.capitalize(flag)
@@ -610,7 +647,7 @@ class metaNode(type) :
 						#else: print "%s: skipping %s" % ( classname, methodName )
 				
 				# edit command: 
-				if 'edit' in modes:
+				if 'edit' in modes or ( infoCmd and 'create' in modes ):
 					# if there is a corresponding query we use the 'set' prefix. 
 					if 'query' in modes:
 						methodName = 'set' + util.capitalize(flag)

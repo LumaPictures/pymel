@@ -1715,7 +1715,7 @@ class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
-	#__metaclass__ = factories.metaNode
+	__metaclass__ = factories.metaNode
 	"""
 	Cycle through faces and select those that point up in world space
 	
@@ -1859,7 +1859,7 @@ class Mesh(SurfaceShape):
 	faceCount = factories.makeCreateFlagCmd( 'faceCount', cmds.polyEvaluate, 'face' )
 	uvcoordCount = factories.makeCreateFlagCmd( 'uvcoordCount', cmds.polyEvaluate, 'uvcoord' )
 	triangleCount = factories.makeCreateFlagCmd( 'triangleCount', cmds.polyEvaluate, 'triangle' )
-	area = factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
+	#area = factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
 	
 	#def area(self):
 	#	return cmds.polyEvaluate(self, area=True)
