@@ -1215,14 +1215,14 @@ class DependNode( _BaseObj ):
 	def attrInfo( self, **kwargs):
 		"attributeInfo"
 		return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.attributeInfo(self, **kwargs)))
-		
+			
+	_numPartReg = re.compile('([0-9]+)$')
 	
-	_numPartReg = '([a-zA-Z|]+[a-zA-Z0-9_|]*[a-zA-Z]+)([0-9]+)$'
 	def stripNum(self):
 		"""Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
 		the name will be returned unchanged."""
 		try:
-			return re.match( DependNode._numPartReg, self).groups()[0]
+			return DependNode._numPartReg.split(self)[0]
 		except:
 			return unicode(self)
 			
@@ -1231,7 +1231,7 @@ class DependNode( _BaseObj ):
 		an error will be raised."""
 		
 		try:
-			return re.match( DependNode._numPartReg, self).groups()[1]
+			return DependNode._numPartReg.split(self)[1]
 		except:
 			raise "No trailing numbers to extract on object ", self
 
@@ -1245,7 +1245,7 @@ class DependNode( _BaseObj ):
 	def nextName(self):
 		"""Increment the trailing number of the object by 1"""
 		try:
-			groups = re.match( DependNode._numPartReg, self).groups()
+			groups = DependNode._numPartReg.split(self)
 			num = groups[1]
 			formatStr = '%s%0' + unicode(len(num)) + 'd'			
 			return self.__class__(formatStr % ( groups[0], (int(num) + 1) ))
@@ -1255,7 +1255,7 @@ class DependNode( _BaseObj ):
 	def prevName(self):
 		"""Decrement the trailing number of the object by 1"""
 		try:
-			groups = re.match( DependNode._numPartReg, self).groups()
+			groups = DependNode._numPartReg.split(self)
 			num = groups[1]
 			formatStr = '%s%0' + unicode(len(num)) + 'd'			
 			return self.__class__(formatStr % ( groups[0], (int(num) - 1) ))
