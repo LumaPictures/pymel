@@ -287,6 +287,7 @@ def _getUICommands():
 	cmds = f.read().split('\n')
 	f.close()
 	return cmds
+		
 				
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
@@ -396,7 +397,8 @@ cmdlist, nodeHierarchy, moduleCmds = buildMayaCmdsArgList()
 
 def getUncachedCmds():
 	return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
-
+		
+		
 #-----------------------
 # Function Factory
 #-----------------------
@@ -427,12 +429,20 @@ def _addDocs(inObj, newObj, cmdInfo ):
 	except KeyError:
 		print "could not find help docs for", inObj
 
-def _getCommandFlags(flagDocs):
+def _getUICallbackFlags(flagDocs):
 	commandFlags = []
 	for flag, data in flagDocs.items():
 		if 'command' in flag.lower():
 			commandFlags += [flag, data['shortname']]
 	return commandFlags
+
+def getUICommandsWithCallbacks():
+	cmds = []
+	for funcName in moduleCmds['ui']:
+		cbFlags = _getUICallbackFlags(cmdlist[funcName]['flags'])
+		if cbFlags:
+			cmds.append( [funcName, cbFlags] )
+	return cmds
 
 _thisModule = __import__('pymel.core', globals(), locals(), [''])		
 	
@@ -462,13 +472,27 @@ def functionFactory( funcName, returnFunc, module=None ):
 		return inFunc
 	
 	elif type(inFunc) == types.BuiltinFunctionType or ( type(inFunc) == types.FunctionType and returnFunc ):					
-	
-		commandFlags = _getCommandFlags(cmdInfo['flags'])
-		
+			
 		#----------------------------		
 		# UI commands with callbacks
 		#----------------------------
-		if commandFlags:
+		
+		if funcName in moduleCmds['ui']:
+			
+			if funcName.startswith('float'):
+				callbackReturnFunc = float
+			elif funcName.startswith('int'):
+				callbackReturnFunc = int
+			elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
+				callbackReturnFunc = lambda x: x == 'true'
+			else:
+				callbackReturnFunc = None
+			
+			if callbackReturnFunc:				
+				commandFlags = _getUICallbackFlags(cmdInfo['flags'])
+			else:
+				commandFlags = []
+					
 			#print inFunc.__name__, commandFlags		
 			def newFunc( *args, **kwargs):
 				# wrap ui callback commands to ensure that the booleans True and False are returned instead of strings u'true', and u'false'
@@ -479,8 +503,7 @@ def functionFactory( funcName, returnFunc, module=None ):
 							def callback(*args):
 								newargs = []
 								for arg in args:
-									if arg == 'false': arg = False
-									elif arg == 'true': arg = True
+									arg = callbackReturnFunc(arg)
 									newargs.append(arg)
 								newargs = tuple(newargs)
 								return cb( *newargs )
