@@ -60,7 +60,7 @@ Other Additions and Changes
 			- `Mesh.FaceArray`, `Mesh.EdgeArray`, `Mesh.VertexArray`, `Mesh.Face`, `Mesh.Edge`, `Mesh.Vertex`
 				
 	- Maya Bug Fixes
-		- severe design oversight in all ui callback commands. the callbacks were being passed u'true' and u'false' instead of python booleans.
+		- severe design oversight in many ui commands.  callbacks were being passed strings instead of the appropriate python types (int, float, bool).
 		- listRelatives: allDescendents and shapes flags did not work in combination
 		- pointLight, directionalLight, ambientLight, spotLight did not return the correct name of created light 
 		- instancer node was not returning name of created shape
@@ -211,9 +211,6 @@ All node classes inherit from the `DependNode` class.
 	
 Understanding the `Attribute` class is essential to using pymel to its fullest extent.
 	
-Using Node Classes
-------------------
-
 In order to use the object-oriented design of pymel, you must ensure that the objects that you are working 
 with are instances of pymel classes. To make this easier, this module contains wrapped version 
 of the more common commands for creating and getting lists of objects. These modified commands cast their results to the appropriate 
@@ -231,32 +228,6 @@ Most commands that create objects are wrapped as well (see below):
 	>>> print t, type(t)
 	pSphere2, <class 'pymel.node.Transform'> #
 	
-In many cases, you won't be creating object directly in your code, but will want to gain access to the object by name. Pymel
-provides two new ways of doing this.
-	
-Using Objects by Name: The PyNode Command
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The `PyNode` command will automatically choose	the correct pymel class for your object.
-
-	>>> s = PyNode('perspShape') # convert to a pymel class
-	>>> print s, type(s)
-	perspShape, <class 'pymel.node.Camera'> # 
-
-
-
-Using Objects by Name: The SCENE object
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	
-The 'SCENE' object provides the same functionality as the PyNode command, but with a slightly different syntax.
-
-with PyNode:
-	>>> PyNode( 'defaultRenderGlobals').startFrame.get()
-	# Result: 1.0 #
-
-with SCENE:
-	>>> SCENE.defaultRenderGlobals.startFrame.get()
-	# Result: 1.0 #
 
 
 Node Class Hierarchy
@@ -288,10 +259,10 @@ However, there are certain key classes which provide important methods to all th
 Node Commands and their Class Counterparts
 ------------------------------------------
 
-In addition to the many classes that make up the node hierarchy, there are also 'Node Command Classes', which are
+At the leaf level of the node hierarchy you will find the Node Command Classes, which are
 node classes that have methods specific to their node type. As you are probably aware, Mel contains a number of commands
 which are used to create, edit, and query specific object types in maya.  Typically, the names of these commands correspond
-with the node type on which they operate. Similarly, when using pymel, the function usually matches the class which it returns.
+with the node type on which they operate, and hence, the pymel classes which they return.
 
 Some examples of these command-class pairs:
 
@@ -299,25 +270,28 @@ Some examples of these command-class pairs:
 Mel Command         Node  Class
 ================    =================
 aimConstraint       AimConstraint
-camera              Camera`
+camera              Camera
 directionalLight    DirectionalLight 
 ================    =================
 	
-However, there are some exceptions to this rule.  For example, `spaceLocator` creates a `Locator` and `vortex` creates a
+There are some exceptions to this naming convention.  For example, `spaceLocator` creates a `Locator` and `vortex` creates a
 `VortexField`. 
- 
-Once nodes have been cast to their appropriate class type (usually handled automatically), you can query and edit it in
-an object oriented way.
 
 This example demonstrates some basic principles. Note the relationship between the name of the object
 created, its node type, and its class type:
 
 	>>> l = directionalLight()
-	>>> # print the name of the object, its maya object type, and the class type
-	>>> print l, l.type(), type(l)	
-	directionalLightShape1 directionalLight <class 'pymel.node.DirectionalLight'>
+	>>> print "The name is", l
+	The name is directionalLightShape1
+	>>> print "The maya type is", l.type()
+	The maya type is directionalLight
+	>>> print "The python type is", type(l)	
+	The python type is <class 'pymel.node.DirectionalLight'>
 
-make the light red and get shadow samples, the old way
+Once you have an instance of a pymel class (usually handled automatically), you can use it to query and edit the
+maya node it represents in an object-oriented way.
+
+make the light red and get shadow samples, the old, procedural way
 	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
 	>>> print directionalLight( l, query=1, shadowSamples=1 ) 
 	1	
@@ -327,9 +301,10 @@ now, the object-oriented, pymel way
 	>>> print l.getShadowSamples()   
 	1
 
+For those familiar with Mel, you can probably already tell that the DirectionalLight class can be understood as an 
+object-oriented reorganization of the directionalLight command, where you 'get' queries and you 'set' edits.  
 
-In the above example, the DirectionalLight class can be understood as an object-oriented reorganization of the directionalLight command,
-where you 'get' queries and you 'set' edits.  Some classes have functionality that goes beyond their command counterpart. The `Camera` class,
+Some classes have functionality that goes beyond their command counterpart. The `Camera` class,
 for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and `cameraView` commands:
 
 	>>> camTrans, cam = camera()
@@ -339,6 +314,23 @@ for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and 
 	>>> cam.dolly( distance = -3 )
 	>>> cam.track(left=10)
 	>>> cam.addBookmark('new')
+
+
+Using Existing Objects by Name
+------------------------------
+
+In many cases, you won't be creating objects directly in your code, but will want to gain access to an existing the object by name. Pymel
+provides two ways of doing this. Both of them will automatically choose	the correct pymel class for your object.
+
+The `PyNode` command:
+
+	>>> PyNode( 'defaultRenderGlobals').startFrame.get()
+	# Result: 1.0 #
+
+The SCENE object:
+
+	>>> SCENE.defaultRenderGlobals.startFrame.get()
+	# Result: 1.0 #
 
 
 Immutability
