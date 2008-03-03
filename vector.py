@@ -96,6 +96,19 @@ class Vector(list):
 			# other is a const
 			return Vector(map(lambda x: other/x, self))
 
+	def __iadd__(self, other):
+		self = self.__add__(other)
+
+	def __isub__(self, other):
+		self = self.__sub__(other)
+		
+	def __imul__(self, other):
+		self = self.__mul__(other)
+
+	def __idiv__(self, other):
+		self = self.__div__(other)
+
+
 	def size(self): return len(self)
 
 
