@@ -1,5 +1,6 @@
 import sys, inspect, warnings, timeit, time
 # based on pymel
+import pymel
 from pymel import *
 from pymel.util import Singleton
 import maya.OpenMayaAnim as OpenMayaAnim
@@ -126,19 +127,6 @@ class MayaTypesToAPI(Singleton, dict) :
 class MayaAPIToTypes(Singleton, dict) :
     """ Dictionnary of currently existing Maya types as keys with their corresponding API type as values """
 
-# get a single MObject from a single node name
-def _getMObject( name ): 
-    """ Get an API MObject from the name of an existing node """
-    sel = OpenMaya.MSelectionList() 
-    sel.add( name )         
-    node = OpenMaya.MObject()            
-    try :
-        sel.getDependNode( 0, node )
-        if not node.isNull() :
-            return node 
-    except :
-        pass
-
 # get the API type from a maya type
 def _getAPIType (mayaType) :
     """ Get the Maya API type from the name of a Maya type """
@@ -163,8 +151,7 @@ def _getAPIType (mayaType) :
                 node = dgMod.createNode ( mayaType )
             except :
                 pass
-        finally :
-            apiType = node.apiTypeStr()
+        apiType = node.apiTypeStr()
                           
     return apiType                      
 
@@ -567,82 +554,6 @@ start = time.time()
 PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 elapsed = time.time() - start
 print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
-        
-# names to MObjects function
-def nameToMObject( *args ):
-    """ Get the API MObjects given names of existing nodes """ 
-    sel = OpenMaya.MSelectionList() 
-    for name in args :
-        sel.add( name )
-    result = []            
-    node = OpenMaya.MObject()            
-    for i in range(sel.length()) :
-        try :
-            sel.getDependNode( i, node )
-        except :
-            result.append(None)
-        if not node.isNull() :
-            result.append(node)
-        else :
-            result.append(None)
-    if len(result) == 1:
-        return result[0]
-    else :
-        return tuple(result)
-
-#  MObjects to names
-def MObjectToName( *args ):
-    """ Get the names of existing nodes given their API MObject""" 
-    depNodeFn = OpenMaya.MFnDependencyNode()
-    result = []
-    for a in args :
-        depNodeFn.setObject(a)
-        result.append(depNodeFn.name())
-    if len(result) == 1:
-        return result[0]
-    else :
-        return tuple(result)
-  
-# An iterator on maya nodes using the API MItDependencyNodes (ie ls command)
-
-def MItNodes( *args ):
-    """ Iterator on nodes of the specified types in the Maya scene,
-        type is list, then all nodes of a type included in the list will be iterator on,
-        if type is None, all nodes will be iterated on
-        the types can be specified either as Maya types or API types """
-    if args : 
-        typeFilter = OpenMaya.MIteratorType()
-        if len(args) == 1 :
-            typeFilter.setFilterType ( args[0] ) 
-        else :
-            # annoying argument conversion for Maya API non standard C types
-            scriptUtil = OpenMaya.MScriptUtil()
-            typeIntM = OpenMaya.MIntArray()
-            scriptUtil.createIntArrayFromList ( args,  typeIntM )
-            typeFilter.setFilterList ( typeIntM )
-        # we will iterate on dependancy nodes, not dagPaths or plugs
-        typeFilter.setObjectType ( OpenMaya.MIteratorType.kMObject )
-        iterObj = OpenMaya.MItDependencyNodes ( typeFilter )
-    else :     
-        iterObj = OpenMaya.MItDependencyNodes ( )     
-    depNodeFn = OpenMaya.MFnDependencyNode()
-    while not iterObj.isDone() :
-        obj = iterObj.thisNode()
-        depNodeFn.setObject(obj)
-        yield (depNodeFn.name(), obj.apiType())
-        iterObj.next()
-
-        
-        
-#for a in MItNodes([]) :
-#    print a     
-
-
-# Iterators on nodes connections using MItDependencyNodes (ie listConnections/ listHistory)
-
-
-
-# Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
 
 
 # conversion fonctions
@@ -682,61 +593,425 @@ def nodeTypeToApi (*args, **kwargs) :
         else :
             return tuple(result)
         
-# conversion api type -> api type
+# conversion node type -> api type
+
 # get the maya type from an API type
 def _apiEnumToNodeType (apiTypeEnum) :
     """ Given an API type enum int, returns the corresponding Maya node type,
         note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
         can be found, will return the corresponding type for the first parent in the types hierarchy
         that can be matched """
-    nodeType =  APITypeIntToMayaTypes().get(apiTypeEnum, None)
-    if nodeType is not None :
-        return nodeType
-    else :
-        pass
+    return APITypeIntToMayaTypes().get(apiTypeEnum, None)
 
-def _apiTypeToNodeType (apiTypeEnum) :
-    """ Given an API type enum int, returns the corresponding Maya node type,
+def _apiTypeToNodeType (apiType) :
+    """ Given an API type name, returns the corresponding Maya node type,
         note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
         can be found, will return the corresponding type for the first parent in the types hierarchy
         that can be matched """
-    nodeType =  APITypeIntToMayaTypes().get(apiTypeEnum, None)
-    if nodeType is not None :
-        return nodeType
-    else :
-        pass
+    return MayaAPIToTypes().get(apiType, None)
 
-# conversion api type -> api type
+# conversion api type -> node type
 # get the maya type from an API type
-def apiToNodeType (*args, **kwargs) :
+def apiToNodeType (*args) :
     """ Given a list of API type or API type int, return the corresponding Maya node types,
         note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
         can be found, will return the corresponding type for the first parent in the types hierarchy
         that can be matched """
-    if type(apiType) is int :         
-        pass
+    result = []
+    for a in args :
+        if type(a) is int :         
+            result.append(_apiEnumToNodeType(a))
+        else :
+            result.append(_apiTypeToNodeType(a))
+    if len(result) == 1 :
+        return result[0]
+    else :
+        return tuple(result)
 
-        
+# Converting API MObjects and more
+
+# returns a MObject for an existing node
+def _MObject (nodeName):
+    """ Get the API MObject given the name of an existing node """ 
+    sel = OpenMaya.MSelectionList()
+    node = OpenMaya.MObject()
+    result = None
+    try :
+        sel.add( nodeName )
+        sel.getDependNode( 0, node )
+        if not node.isNull() :
+            result = node        
+    except :
+        pass
+    return result
+
+def _MDagPath (nodeName):
+    """ Get an API MDagPAth to the node, given the name of an existing dag node """ 
+    obj = _MObject (nodeName)
+    if _isValidMDagNode (obj):
+        dagFn = OpenMaya.MFnDagNode (obj)
+        dagPath = OpenMaya.MDagPath()
+        dagFn.getPath ( dagPath )
+        return dagPath
+
+# returns a MPlug for an existing plug
+def _MPlug (plugName):
+    """ Get the API MObject given the name of an existing plug (node.attribute) """
+    nodeAndAttr = plugName.split('.', 1)
+    obj = _MObject (nodeAndAttr[0])
+    plug = None
+    if obj is not None :
+        depNodeFn = OpenMaya.MFnDependencyNode(obj)
+        attr = depNodeFn.attribute(nodeAndAttr[1])
+        plug = MPlug ( obj, attr )
+        if plug.isNull() :
+            plug = None
+    return plug
+
+# fast convenience tests on API objects
+def _isValidMObject (obj):
+    if isinstance(obj, OpenMaya.MObject) :
+        return not obj.isNull()
+    else :
+        return False
+    
+def _isValidMPlug (obj):
+    if isinstance(obj, OpenMaya.MPlug) :
+        return not obj.isNull()
+    else :
+        return False
+
+def _isValidMDagPath (obj):
+    if isinstance(obj, OpenMaya.MDagPath) :
+        return obj.isValid()
+    else :
+        return False
+
+def _isValidMNode (obj):
+    if _isValidMObject(obj) :
+        return obj.hasFn(OpenMaya.MFn.kDependencyNode)
+    else :
+        return False
+
+def _isValidMDagNode (obj):
+    if _isValidMObject(obj) :
+        return obj.hasFn(OpenMaya.MFn.kDagNode)
+    else :
+        return False
+    
+def _isValidMNodeOrPlug (obj):
+    return _isValidMPlug (obj) or _isValidMNode (obj)
+
+
+# MDagPath, MPlug or MObject to name
+# Note there is a kNamedObject API type but not corresponding MFn, thus
+# I see no way of querying the name of something that isn't a kDependency node or a MPlug
+# TODO : add components support, short/ long name support where applies
+def _MObjectName( obj ):
+    """ Get the name of an existing MPlug, MDagPath or MObject representing a dependency node""" 
+    if _isValidMPlug (obj) :
+        return obj.name()
+    elif _isValidMNode (obj) :
+        depNodeFn = OpenMaya.MFnDependencyNode(obj)
+        return depNodeFn.name()
+    elif _isValidMDagPath (obj):
+        # return obj.fullPathName()
+        return obj.partialPathName()
+    else :
+        return unicode(obj)
+
+#  MObjects to PyNode
+#  TODO : I think Attribute is still awkward, it should be "Plug" and the way it's built is used could be discussed
+def _MObjectPyNode( obj ):
+    """ Get the names of existing nodes given their API MObject""" 
+    if _isValidMPlug (obj):
+        return Attribute (obj.name())
+    elif _isValidMNode (obj):
+        depNodeFn = OpenMaya.MFnDependencyNode(obj)
+        return PyNode(depNodeFn.name(), _apiEnumToNodeType(obj.apiType ()))
+    elif _isValidMDagPath (obj):
+        return PyNode(obj.partialPathName(), _apiEnumToNodeType(obj.apiType ()))   
+    else :
+        raise ValueError, "'%s' is not a Plug, a Node or a Dag Path that can be expressed as a PyNode object" % unicode( obj )
+     
+# names to MObjects function (expected to be faster to share one selectionList)
+def nameToMObject( *args ):
+    """ Get the API MObjects given names of existing nodes """ 
+    sel = OpenMaya.MSelectionList() 
+    for name in args :
+        sel.add( name )
+    result = []            
+    node = OpenMaya.MObject()            
+    for i in range(sel.length()) :
+        try :
+            sel.getDependNode( i, node )
+        except :
+            result.append(None)
+        if not node.isNull() :
+            result.append(node)
+        else :
+            result.append(None)
+    if len(result) == 1:
+        return result[0]
+    else :
+        return tuple(result)
+
+# Maya scene nodes iterators
+
+# An iterator on maya nodes using the API MItDependencyNodes (ie ls command)
+
+def MItNodes( *args, **kwargs ):
+    """ Iterator on MObjects of nodes of the specified types in the Maya scene,
+        if a list of tyes is passed as args, then all nodes of a type included in the list will be iterated on,
+        if no types are specified, all nodes of the scene will be iterated on
+        the types are specified as Maya API types """
+    typeFilter = OpenMaya.MIteratorType()
+    if args : 
+        if len(args) == 1 :
+            typeFilter.setFilterType ( args[0] ) 
+        else :
+            # annoying argument conversion for Maya API non standard C types
+            scriptUtil = OpenMaya.MScriptUtil()
+            typeIntM = OpenMaya.MIntArray()
+            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            typeFilter.setFilterList ( typeIntM )
+        # we will iterate on dependancy nodes, not dagPaths or plugs
+        typeFilter.setObjectType ( OpenMaya.MIteratorType.kMObject )
+    # create iterator with (possibly empty) typeFilter
+    iterObj = OpenMaya.MItDependencyNodes ( typeFilter )     
+    while not iterObj.isDone() :
+        yield (iterObj.thisNode())
+        iterObj.next()   
+
+
+# Iterators on nodes connections using MItDependencyGraph (ie listConnections/ listHistory)
+def MItGraph (nodeOrPlug, *args, **kwargs):
+    """ Iterate over MObjects of Dependency Graph (DG) Nodes or Plugs starting at a specified root Node or Plug,
+        If a list of types is provided, then only nodes of these types will be returned,
+        if no type is provided all connected nodes will be iterated on.
+        Types are specified as Maya API types.
+        The following keywords will affect order and behavior of traversal:
+        upstream: if True connections will be followed from destination to source,
+                  if False from source to destination
+                  default is False (downstream)
+        breadth: if True nodes will be returned as a breadth first traversal of the connection graph,
+                 if False as a preorder (depth first)
+                 default is False (depth first)
+        plug: if True traversal will be at plug level (no plug will be traversed more than once),
+              if False at node level (no node will be traversed more than once),
+              default is False (node level)
+        prune : if True will stop the iteration on nodes than do not fit the types list,
+                if False these nodes will be traversed but not returned
+                default is False (do not prune) """
+#    startObj = OpenMaya.MObject() 
+#    startPlug = OpenMaya.MPlug()
+    startObj = None
+    startPlug = None   
+    if _isValidMPlug(nodeOrPlug):
+        startPlug = nodeOrPlug
+    elif _isValidMNode(nodeOrPlug) :
+        startObj = nodeOrPlug
+    else :
+        raise ValueError, "'%s' is not a valid Node or Plug" % _MObjectName(nodeOrPlug)
+    upstream = kwargs.get('upstream', False)
+    breadth = kwargs.get('breadth', False)
+    plug = kwargs.get('plug', False)
+    prune = kwargs.get('prune', False)
+    if args : 
+        typeFilter = OpenMaya.MIteratorType()
+        if len(args) == 1 :
+            typeFilter.setFilterType ( args[0] ) 
+        else :
+            # annoying argument conversion for Maya API non standard C types
+            scriptUtil = OpenMaya.MScriptUtil()
+            typeIntM = OpenMaya.MIntArray()
+            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            typeFilter.setFilterList ( typeIntM )
+        # we start on a node or a plug
+        if startPlug is not None :
+            typeFilter.setObjectType ( OpenMaya.MIteratorType.kMPlugObject )
+        else :
+            typeFilter.setObjectType ( OpenMaya.MIteratorType.kMObject )
+    # create iterator with (possibly empty) filter list and flags
+    if upstream :
+        direction = OpenMaya.MItDependencyGraph.kUpstream
+    else :
+        direction = OpenMaya.MItDependencyGraph.kDownstream
+    if breadth :
+        traversal = OpenMaya.MItDependencyGraph.kBreadthFirst 
+    else :
+        traversal =  OpenMaya.MItDependencyGraph.kDepthFirst
+    if plug :
+        level = OpenMaya.MItDependencyGraph.kPlugLevel
+    else :
+        level = OpenMaya.MItDependencyGraph.kNodeLevel
+    iterObj = OpenMaya.MItDependencyGraph ( startObj, startPlug, typeFilter, direction, traversal, level )
+    if prune :
+        iterObj.enablePruningOnFilter()
+    else :
+        iterObj.disablePruningOnFilter() 
+    # iterates and yields MObjects
+    while not iterObj.isDone() :
+        yield (iterObj.thisNode())
+        iterObj.next()
+
+# Iterators on dag nodes hierarchies using MItDag (ie listRelatives)
+def MItDag (root = None, *args, **kwargs) :
+    """ Iterate over the hierarchy under a root dag node, if root is None, will iterate on whole Maya scene
+        If a list of types is provided, then only nodes of these types will be returned,
+        if no type is provided all dag nodes under the root will be iterated on.
+        Types are specified as Maya API types.
+        The following keywords will affect order and behavior of traversal:
+        breadth: if True nodes Mobjects will be returned as a breadth first traversal of the hierarchy tree,
+                 if False as a preorder (depth first)
+                 default is False (depth first)
+        underworld: if True traversal will include a shape's underworld (dag object parented to the shape),
+              if False underworld will not be traversed,
+              default is False (do not traverse underworld )
+        depth : if True will return depth of each node.
+        prune : if True will stop the iteration on nodes than do not fit the types list,
+                if False these nodes will be traversed but not returned
+                default is False (do not prune) """
+    # startObj = OpenMaya.MObject()
+    # startPath = OpenMaya.MDagPath()
+    startObj = startPath = None  
+    if _isValidMDagPath (root) :
+        startPath = root
+    elif _isValidMDagNode (root) :
+        startObj = root
+    else :
+        raise ValueError, "'%s' is not a valid Dag Node" % _MObjectName(root)
+    breadth = kwargs.get('breadth', False)
+    underworld = kwargs.get('underworld', False)
+    prune = kwargs.get('prune', False)
+    path = kwargs.get('path', False)
+    allPaths = kwargs.get('allPaths', False)
+    if args : 
+        typeFilter = OpenMaya.MIteratorType()
+        if len(args) == 1 :
+            typeFilter.setFilterType ( args[0] ) 
+        else :
+            # annoying argument conversion for Maya API non standard C types
+            scriptUtil = OpenMaya.MScriptUtil()
+            typeIntM = OpenMaya.MIntArray()
+            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            typeFilter.setFilterList ( typeIntM )
+        # we start on a MDagPath or a Mobject
+        if startPath is not None :
+            typeFilter.setObjectType ( OpenMaya.MIteratorType.kMDagPathObject )
+        else :
+            typeFilter.setObjectType ( OpenMaya.MIteratorType.kMObject )
+    # create iterator with (possibly empty) filter list and flags
+    if breadth :
+        traversal = OpenMaya.MItDag.kBreadthFirst 
+    else :
+        traversal =  OpenMaya.MItDag.kDepthFirst
+    iterObj = OpenMaya.MItDag ( typeFilter, traversal )
+    if root is not None :
+        iterObj.reset ( typeFilter, startObj, startPath, traversal )
+ 
+    if underworld :
+        iterObj.traverseUnderWorld (True)
+    else :
+        iterObj.traverseUnderWorld (False) 
+    # iterates and yields MObject or MDagPath
+    # handle prune ?
+
+    # Must define dPath in loop or the iterator will yield
+    # them as several references to the same object (thus with the same value each time)
+    # instances must not be returned multiple times
+    # could use a dict but it requires "obj1 is obj2" and not only "obj1 == obj2" to return true to
+    # dic = {}
+    # dic[obj1]=True
+    # dic.has_key(obj2) 
+    instance = []
+    if allPaths :
+        dPathArray = OpenMaya.MDagPathArray()
+        while not iterObj.isDone() :
+            if iterObj.isInstanced ( True ) :
+                obj = iterObj.currentItem()
+                if not obj in instance :
+                    iterObj.getAllPaths(dPathArray)
+                    nbDagPath = dPathArray.length()
+                    for i in range(nbDagPath) :
+                        dPath = OpenMaya.MDagPath(dPathArray[i])
+                        yield dPath
+                    instance.append(obj)
+            else :
+                iterObj.getAllPaths(dPathArray)
+                nbDagPath = dPathArray.length()
+                for i in range(nbDagPath) :
+                    dPath = OpenMaya.MDagPath(dPathArray[i])
+                    yield dPath
+            iterObj.next()
+    elif path :
+        while not iterObj.isDone() :
+            if iterObj.isInstanced ( True ) :
+                obj = iterObj.currentItem()
+                if not obj in instance :
+                    dPath = OpenMaya.MDagPath()
+                    iterObj.getPath(dPath)
+                    yield dPath
+                    instance.append(obj)
+            else :
+                dPath = OpenMaya.MDagPath()
+                iterObj.getPath(dPath)
+                yield dPath
+            iterObj.next()                           
+    else :
+        while not iterObj.isDone() :
+            obj = iterObj.currentItem()
+            if iterObj.isInstanced ( True ) :
+                if not obj in instance :
+                    yield obj
+                    instance.append(obj)
+            else :
+                yield obj
+            iterObj.next()
+         
+#MItDag (  MIteratorType & dagInfoObject,  TraversalType  =  kDepthFirst ,  MStatus * ReturnStatus = NULL)
+#
+#kDepthFirst
+#    kBreadthFirst 
+            
 # calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
 # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls)
 # TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel
+
+
 def iterNodes ( *args, **kwargs ):
     """ Iterator on nodes of the specified types in the Maya scene,
-        type is list, then all nodes of a type included in the list will be iterator on,
-        if type is None, all nodes will be iterated on
-        the types can be specified either as Maya types or API types """           
+        type : a type or a list of types of the nodes to iterate on, if none are specified all nodes
+        of the scene will be returned
+        The types are specified as Maya types """           
     types = kwargs.get('type', None)
     if types :
         if not util.isSequence(types) :
             types = [types]
         it_args = map(MayaTypesToAPITypeInt().get, types)  
     else :
-        it_args = [0]                # default : filter on kInvalid = return all nodes
-    for tup in MItNodes( *it_args ) :
-        # yield (tup[0], tup[1])
-        yield (tup[0], APITypeIntToMayaTypes().get(tup[1]))
+        it_args = []                # default : filter on kInvalid = return all nodes
+    # if a list of nodes is provided we iterate on the ones that both exist and match the used flags
+    if args :
+        for a in args :
+            obj = _MObject (a)
+            if obj is not None :
+                if not it_args or obj.apiType() in it_args :
+                    yield _MObjectPyNode( obj ) 
+    else :
+        for obj in MItNodes( *it_args ) :
+            yield _MObjectPyNode( obj )
         
-lst = list(iterNodes())
+# lst = list(iterNodes())
+
+def iterConnections ( *args, **kwargs ):
+    pass
+
+def iterHierarchy ( *args, **kwargs ):
+    pass
+
+
+
 
     # mayaType (nodeOrType, **kwargs) :
 #    typeInt = []
