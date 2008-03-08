@@ -1,4 +1,5 @@
 import sys, inspect, warnings, timeit, time
+import re
 # based on pymel
 import pymel
 from pymel import *
@@ -54,7 +55,7 @@ class metaStatic(type) :
         # Now add methods of the defined class, as long as it doesn't try to redefine
         # __new__, __init__, __getattribute__ or __setitem__
         newdict = { '__slots__':[], '__dflts__':{}, '__init__':__init__, '__getattribute__':__getattribute__, '__setitem__':__setitem__ }
-        # Note: could have defned the __new__ method like it is done in Singleton but it's as eas to derive from it
+        # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
         for k in classdict :
             if k.startswith('__') and k.endswith('__') :
                 # special methods, copy to newdict unless they conflict with pre-defined methods
@@ -925,6 +926,8 @@ def MItDag (root = None, *args, **kwargs) :
     # dic[obj1]=True
     # dic.has_key(obj2) 
     instance = []
+    # code doesn't look nice but Im putting the tests out of the iter loops to loose as little speed as possible,
+    # will certainly define functions for each case
     if allPaths :
         dPathArray = OpenMaya.MDagPathArray()
         while not iterObj.isDone() :
@@ -973,17 +976,236 @@ def MItDag (root = None, *args, **kwargs) :
 #
 #kDepthFirst
 #    kBreadthFirst 
+
+def _optListToDict(args):
+    result = {}
+    if args is not None :
+        if not util.isMapping(args):
+            if not util.isSequence(args) :
+                args = [args]
+            for n in args :
+                try :
+                    s = unicode(n)                
+                    if s.startswith("+") :
+                        result[s.lstrip('+')] = True
+                    elif s.startswith("-") :
+                        result[s.lstrip('-')] = False              
+                    else :
+                        result[s] = True
+                except :
+                    warnings.warn("'%r' can only be a string, ignored" % n)
+                    continue                           
+        else :
+            for i in args.items() :
+                try :
+                    s = unicode(i[0])
+                    result[s] = i[1]
+                except :
+                    warnings.warn("'%r' can only be a string, ignored" % i[0])
+                    continue
+    return result
+ 
             
 # calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
-# TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls)
-# TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel
-
 
 def iterNodes ( *args, **kwargs ):
     """ Iterator on nodes of the specified types in the Maya scene,
-        type : a type or a list of types of the nodes to iterate on, if none are specified all nodes
-        of the scene will be returned
-        The types are specified as Maya types """           
+        dag = False
+        hierarchy = False
+        tree = False
+        breadth = False
+        underworld = False
+        allPaths = False
+        prune = False
+        Conditions :    
+            name=None:
+            position=None: 
+            type=None:
+            property=None:
+            attribute=None:
+            user=None:
+
+        The types are specified as Pymel or Maya types """
+
+    # if a list of existing PyNodes (DependNodes) arguments is provided, only these will be iterated / tested on the conditions
+    # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls?
+    # TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel    
+    nodes = []
+    for a in args :
+        if isinstance(a, DependNode) :
+            if a.exists() :
+                if not a in nodes :
+                    nodes.append(a)
+            else :
+                warnings.warn("'%r' does not exist, ignored" % a)
+        else :
+            warnings.warn("'%r' is not  valid PyNode (DependNode), ignored" % a)
+    # check
+    print nodes
+    # parse kwargs for keywords
+    # also iterate on the hierarchy below that node for every iterated (dag) node
+    below = int(kwargs.get('below', 0))
+    above = int(kwargs.get('above', 0))
+    # same as below(1) or above(1)
+    childs = kwargs.get('childs', False)
+    parents = kwargs.get('parents', False)
+    if childs and below == 0 :
+        below = 1
+    if parents and above == 0 :
+        above = 1  
+    # return a tuple of all the hierarchy nodes instead of iterating on the nodes when node is a dag node
+    # and above or below has been set
+    list = kwargs.get('list', False)
+    # when below has been set, use breadth order instead of preorder for iterating the nodes below
+    breadth = kwargs.get('breadth', False)
+    # returns a Tree of all the hierarchy nodes instead of iterating on the nodes when node is a dag node
+    # and above or below has been set
+    tree = kwargs.get('tree', False) 
+    # include underworld in hierarchies
+    underworld = kwargs.get('underword', False)                
+    # include all instances paths for dag nodes (means parents can return more than one parent when allPaths is True)
+    allPaths = kwargs.get('allPaths', False)
+    # prune hierarchy (above or below) iteration when conditions are not met
+    prune = kwargs.get('prune', False)
+    # to use all namespaces when none is specified instead of current one
+    # allNamespace = kwargs.get('allNamespace', False)
+    # check for incompatible flags
+    
+    # Conditions
+          
+    # conditions on names (regular expressions, namespaces), can be passed as a dict of
+    # condition:value (True or False) or a sequence of conditions, with an optionnal first
+    # char of '+' to be tested for true and '-' for false. It can be an actual node name
+    nameArgs = kwargs.get('name', None)
+    nameStr = _optListToDict(nameArgs)
+    # check
+    print nameStr
+    # for names parsing
+    invalidCharPattern = r"[^(a-z)^(A-Z)^(0-9)^_^*^?^:]"
+    validCharPattern = r"[a-zA-Z0-9_]"
+    namePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*"
+    nameSpacePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*:"
+    invalidChars = re.compile(r"("+invalidCharPattern+")+")
+    validNameSpace = re.compile(r"^:?"+"("+nameSpacePattern+")*")
+    validName = re.compile(namePattern+r"$")
+    validFullName = re.compile(r"(^:?(?:"+nameSpacePattern+r")*)("+namePattern+r")$")
+    curNameSpace = namespaceInfo( currentNamespace=True )    
+    # the resulting dictionnary of conditions on names (compiled regular expressions)
+    cNames = {}
+    for i in nameStr.items() :
+        key = i[0]
+        val = i[1]
+        if key.startswith('(') and key.endswith(')') :
+            # take it as a regular expression directly
+            pass
+        else :
+            # either a valid node name or a glob pattern
+            nameMatch = validFullName.match(key)
+            if nameMatch is not None :
+                # if it's an actual node name
+                nameSpace = nameMatch.group[0]
+                name = nameMatch.group[1]
+                print nameSpace, name
+                if not nameSpace :
+                    # if no namespace was specified use current ('*:' can still be used for 'all namespaces')
+                    nameSpace = curNameSpace
+                if namespace(exists=nameSpace) :
+                    # format to have distinct match groups for nameSpace and name
+                    key = r"("+nameSpace+r")("+name+r")"
+                else :
+                    warnings.warn("'%s' uses inexistent nameSpace '%s' and will be ignored" % (key, nameSpace))
+                    continue
+            else :
+                badChars = invalidChars.findall(key)
+                if badChars :
+                    # invalid characters, ignore name
+                    warnings.warn("'%s' contains invalid characters %s, ignored" % (key, badChars))
+                    continue
+                elif '*' in key or '?' in key :
+                    # it's a glob pattern, try build a re out of it and add it to names conditions
+                    key = key.replace("*", r"("+validCharPattern+r")*")
+                    key = key.replace("?", r"("+validCharPattern+r")")
+                else : 
+                    # it's not anything we recognize
+                    warnings.warn("'%s' is not a valid node name or glob/regular expression and will be ignored" % a)
+        try :
+            r = re.compile(key)
+        except :
+            warnings.warn("'%s' is not a valid regular expression, ignored" % key)
+            continue
+        # check for duplicates re
+        if cNames.has_key(r) :
+            if val == cNames[r] :
+                # do nothing, same regular expression with same value exists
+                continue
+            else :
+                # same regular expression with opposite value contradicts current name condition
+                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
+                del cNames[r]
+        else :
+            cNames[r] = val 
+    # check
+    for r in cNames.keys() :
+        print "%s:%r" % (r.pattern, cNames[r])     
+      
+    # conditions on position in hierarchy (only apply to dag nodes)
+    # can be passed as a dict of conditions and values
+    # condition:value (True or False) or a sequence of conditions, with an optionnal first
+    # char of '+' to be tested for true and '-' for false.
+    # valid flags are 'root', 'leaf', or 'level=x' for a relative depth to start node 
+    posArgs = kwargs.get('position', None)
+    posStr = _optListToDict(posArgs)
+    cPos = {}
+    # check
+    print posStr
+    validLevelPattern = r"level\[(-?[0-9]*)(:?)(-?[0-9]*)\]"
+    validLevel = re.compile(validLevelPattern)
+    for i in posStr.items() :
+        key = i[0]
+        val = i[1]
+        if key == 'root' or key == 'leaf' :
+            pass           
+        elif key.startswith('level') :
+            levelMatch = validLevel.match(key)
+            level = None
+            if levelMatch is not None :
+                levelStart = 0
+                levelEnd = 0
+                if levelMatch.groups[1] :
+                    # it's a range
+                    pass
+                else :
+                    # it's a single value
+                    if levelMatch.groups[1] :
+                        level = None
+                    elif levelMatch.groups[0] :
+                        level = int(levelMatch.groups[0])
+                    else :
+                        level = None
+                
+            if level is None :
+                warnings.warn("Invalid level condition %s, ignored" % key)
+            else :
+                key = level     
+        else :
+            warnings.warn("Unknown position condition %s, ignored" % key)
+        # check for duplicates
+        if cPos.has_key(key) :
+            if val == cPos[key] :
+                # do nothing, same condition with same value exists
+                continue
+            else :
+                # same regular expression with opposite value contradicts current name condition
+                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
+                del cPos[key]
+        else :
+            # check for intersection with included levels
+            cPos[key] = val 
+    # check
+    for r in cPos.keys() :
+        print "%s:%r" % (r.pattern, cNames[r])    
+                           
+    # conditions on types                   
     types = kwargs.get('type', None)
     if types :
         if not util.isSequence(types) :
@@ -991,14 +1213,26 @@ def iterNodes ( *args, **kwargs ):
         it_args = map(MayaTypesToAPITypeInt().get, types)  
     else :
         it_args = []                # default : filter on kInvalid = return all nodes
-    # if a list of nodes is provided we iterate on the ones that both exist and match the used flags
-    if args :
-        for a in args :
-            obj = _MObject (a)
+    # API iterators can filter on API types, we need to postfilter for all the rest
+ 
+    # conditions on pre-defined properties (visible, ghost, etc) for compatibility with ls
+    
+    # conditions on attributes existence / value
+    
+    # conditions on user defined boolean functions
+ 
+    # Iteration :
+    needLevelInfo = False
+    
+    if nodes :
+        # if a list of existing nodes is provided we iterate on the ones that both exist and match the used flags        
+        for n in nodes :
+            obj = _MObject (n)
             if obj is not None :
                 if not it_args or obj.apiType() in it_args :
                     yield _MObjectPyNode( obj ) 
     else :
+        # else we iterate on all scene nodes that satisfy the specified flags
         for obj in MItNodes( *it_args ) :
             yield _MObjectPyNode( obj )
         
