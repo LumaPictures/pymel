@@ -145,13 +145,17 @@ def uncapitalize(s):
 def isIterable( obj ):
 	return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
 
+# TODO : name probably badly chosen are there are more types considered as Sequence Types in Python
 def isSequence( obj ):
     return type( obj ) is list or type( obj ) is tuple
+
+def isMapping( obj ):
+    return isinstance(obj, dict)
 
 def convertListArgs( args ):
 	if len(args) == 1 and isIterable(args[0]):
 		return tuple(args[0])
-	return args	
+	return args	   
 
 # Flatten a multi-list argument so that in can be passed as
 # a list of arguments to a command.          
