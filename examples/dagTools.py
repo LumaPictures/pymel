@@ -760,6 +760,8 @@ def _MObjectPyNode( obj, comp=None ):
         otype = _apiEnumToNodeType(obj.apiType ())
         if _isValidMObject (comp) :
             clist = None
+            # TODO : component handling
+            return PyNode(oname, otype)
         else :
             return PyNode(oname, otype)   
     else :
@@ -1160,8 +1162,10 @@ def iterNodes ( *args, **kwargs ):
             # use current selection
             nodes = sel
         else :
-            # intersects
-            pass
+            # intersects, need to handle components
+            for p in nodes :
+                if p not in sel :
+                    nodes.pop(p)
             
     # Conditions
     def _addCondition(cDic, key, val):
