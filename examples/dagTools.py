@@ -1,7 +1,6 @@
 import sys, inspect, warnings, timeit, time
 import re
 # based on pymel
-import pymel
 from pymel import *
 from pymel.util import Singleton
 import maya.OpenMayaAnim as OpenMayaAnim
@@ -12,10 +11,8 @@ except: pass
 try : import maya.OpenMayaMPx as OpenMayaMPx
 except: pass
 if not cmds.about(batch=True) :
-    try :
-        import maya.OpenMayaUI as OpenMayaUI
-    except:
-        pass
+    try : import maya.OpenMayaUI as OpenMayaUI
+    except: pass
 try : import maya.OpenMayaRender as OpenMayaRender
 except: pass
 
@@ -27,7 +24,8 @@ class metaStatic(type) :
         # Class is a Singleton and some base class (dict or list for instance), Singleton must come first so that it's __new__
         # method takes precedence
         base = bases[0]
-        bases = (Singleton,)+bases        
+        if Singleton not in bases :
+            bases = (Singleton,)+bases        
         # Some predefined methods
         def __init__(self, value=None):
             # Can only create once)       
@@ -69,7 +67,45 @@ class metaStatic(type) :
                 newdict['__dflts__'][k] = classdict[k]
         return super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
 
+# fast convenience tests on API objects
+def _isValidMObject (obj):
+    if isinstance(obj, OpenMaya.MObject) :
+        return not obj.isNull()
+    else :
+        return False
+    
+def _isValidMPlug (obj):
+    if isinstance(obj, OpenMaya.MPlug) :
+        return not obj.isNull()
+    else :
+        return False
+
+def _isValidMDagPath (obj):
+    if isinstance(obj, OpenMaya.MDagPath) :
+        return obj.isValid()
+    else :
+        return False
+
+def _isValidMNode (obj):
+    if _isValidMObject(obj) :
+        return obj.hasFn(OpenMaya.MFn.kDependencyNode)
+    else :
+        return False
+
+def _isValidMDagNode (obj):
+    if _isValidMObject(obj) :
+        return obj.hasFn(OpenMaya.MFn.kDagNode)
+    else :
+        return False
+    
+def _isValidMNodeOrPlug (obj):
+    return _isValidMPlug (obj) or _isValidMNode (obj)
+
+
+# Maya static info :
 # Initializes various static look-ups to speed up Maya types conversions
+
+
 class MayaAPITypesInt(dict) :
     __metaclass__ =  metaStatic
 
@@ -111,7 +147,7 @@ class ReservedAPITypes(dict) :
 
 ReservedAPITypes(dict( (ReservedMayaTypes()[k], k) for k in ReservedMayaTypes().keys()))
 
-# some handy aliases / shortcuts easier to remember and use thatn actual Maya type name
+# some handy aliases / shortcuts easier to remember and use than actual Maya type name
 class ShortMayaTypes(dict) :
     __metaclass__ =  metaStatic
     
@@ -141,18 +177,18 @@ def _getAPIType (mayaType) :
         # we create a dummy object of this type in a dgModifier
         # as the dgModifier.doIt() method is never called, the object
         # is never actually created in the scene
-        node = OpenMaya.MObject() 
+        obj = OpenMaya.MObject() 
         dagMod = OpenMaya.MDagModifier()
         dgMod = OpenMaya.MDGModifier()          
         try :
             parent = dagMod.createNode ( 'transform', OpenMaya.MObject())
-            node = dagMod.createNode ( mayaType, parent )
+            obj = dagMod.createNode ( mayaType, parent )
         except :
             try :
-                node = dgMod.createNode ( mayaType )
+                obj = dgMod.createNode ( mayaType )
             except :
                 pass
-        apiType = node.apiTypeStr()
+        apiType = obj.apiTypeStr()
                           
     return apiType                      
 
@@ -254,7 +290,7 @@ def _getMObject(nodeType, dagMod, dgMod) :
     # cant create these nodes, some would crahs MAya also
     if ReservedAPITypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
         return None   
-    node = OpenMaya.MObject()
+    obj = OpenMaya.MObject()
     if MayaAPIToTypes().has_key(nodeType) :
         mayaType = MayaAPIToTypes()[nodeType].keys()[0]
         apiType = nodeType
@@ -266,14 +302,14 @@ def _getMObject(nodeType, dagMod, dgMod) :
       
     try :
         parent = dagMod.createNode ( 'transform', OpenMaya.MObject())
-        node = dagMod.createNode ( mayaType, parent )
+        obj = dagMod.createNode ( mayaType, parent )
     except :
         try :
-            node = dgMod.createNode ( mayaType )
+            obj = dgMod.createNode ( mayaType )
         except :
             pass
-    if not node.isNull() :
-        return node
+    if _isValidMObject(obj) :
+        return obj
     else :
         return None
 
@@ -297,9 +333,9 @@ def _hasFn (apiType, dagMod, dgMod, parentType=None) :
     # we create a dummy object of this type in a dgModifier
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
-    node = _getMObject(apiType, dagMod, dgMod, parentType) 
-    if node :
-        return node.hasFn(typeInt)
+    obj = _getMObject(apiType, dagMod, dgMod, parentType) 
+    if _isValidMObject(obj) :
+        return obj.hasFn(typeInt)
     else :
         return False
  
@@ -330,21 +366,20 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
     result = None           
-    node = kwargs.get(apiType, None)        
-    if not node or node.isNull() :
+    obj = kwargs.get(apiType, None)        
+    if not _isValidMObject(obj) :
         # print "need creation for %s" % apiType
-        node= _getMObject(apiType, dagMod, dgMod)
-
-    if node :
+        obj = _getMObject(apiType, dagMod, dgMod)
+    if _isValidMObject(obj) :
         if not kwargs.get(apiType, None) :
-            kwargs[apiType] = node          # update it if we had to create
+            kwargs[apiType] = obj          # update it if we had to create
         parents = []
         for t in kwargs.keys() :
             # Need the MFn::Types enum for the parentType
             if t != apiType :
                 if MayaAPITypesInt().has_key(t) :
                     ti = MayaAPITypesInt()[t]
-                    if node.hasFn(ti) :
+                    if obj.hasFn(ti) :
                         parents.append(t)
         # problem is the MObject.hasFn method returns True for all ancestors, not only first one
         if len(parents) :
@@ -392,17 +427,17 @@ def _createNodes(dagMod, dgMod, *args) :
         if ReservedAPITypes().has_key(apiType) or ReservedMayaTypes().has_key(mayaType) :
             result[apiType] = None
         else :
-            node = OpenMaya.MObject()          
+            obj = OpenMaya.MObject()          
             try :
                 parent = dagMod.createNode ( 'transform', OpenMaya.MObject())
-                node = dagMod.createNode ( mayaType, parent )
+                obj = dagMod.createNode ( mayaType, parent )
             except :
                 try :
-                    node = dgMod.createNode ( mayaType )
+                    obj = dgMod.createNode ( mayaType )
                 except :
                     pass
-            if not node.isNull() :
-                result[apiType] = node
+            if _isValidMObject(obj) :
+                result[apiType] = obj
             else :
                 result[apiType] = None
     return result
@@ -455,10 +490,10 @@ def buildAPITypesHierarchy () :
     nodeDict = _createNodes(dagMod, dgMod, *MayaAPITypesInt().keys())
     # for k in nodeDict.keys() :
         # print "Cached %s : %s" % (k, nodeDict[k])
-    # Fix? some MFn results are not coherent with the hierarchy presented int he docs :
-    MFnDict.pop('kWire')
-    MFnDict.pop('kBlendShape')
-    MFnDict.pop('kFFD')
+    # Fix? some MFn results are not coherent with the hierarchy presented in the docs :
+    MFnDict.pop('kWire', None)
+    MFnDict.pop('kBlendShape', None)
+    MFnDict.pop('kFFD', None)
     for k in MayaAPITypesInt().keys() :
         if k not in MFnDict.keys() :
             #print "%s not in MFnDict, looking for parents" % k
@@ -498,10 +533,10 @@ def buildPyNodeToAPI () :
     # Check if a pymel class is DependNode or a subclass of DependNode
     def _PyNodeClass (x) :
         try :
-            return issubclass(x, pymel.core._BaseObj)
+            return issubclass(x, node._BaseObj)
         except :
             return False    
-    listPyNodes = dict(inspect.getmembers(pymel, _PyNodeClass))
+    listPyNodes = dict(inspect.getmembers(node, _PyNodeClass))
     PyNodeDict = {}
     PyNodeInverseDict = {}
     for k in listPyNodes.keys() :
@@ -513,8 +548,8 @@ def buildPyNodeToAPI () :
             PyNodeDict[PyNodeType] = APITypeName
             PyNodeInverseDict[APITypeName] = PyNodeType
     # Would be good to limit special treatments
-    PyNodeDict[pymel.node._BaseObj] = 'kBase'
-    PyNodeInverseDict['kBase'] = pymel.node._BaseObj
+    PyNodeDict[node._BaseObj] = 'kBase'
+    PyNodeInverseDict['kBase'] = node._BaseObj
     PyNodeDict[DependNode] = 'kDependencyNode'
     PyNodeInverseDict['kDependencyNode'] = DependNode
                           
@@ -529,6 +564,13 @@ buildPyNodeToAPI()
 elapsed = time.time() - start
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
+# PyNode types names (as str)
+class PyNodeTypeNames(dict) :
+    """ Lookup from PyNode type name to PyNode type """
+    __metaclass__ =  metaStatic
+
+# Dictionnary of Maya API types to their MFn::Types enum
+PyNodeTypeNames((k.__name__, k) for k in PyNodeToMayaAPITypes().keys())  
 
 # child:parent lookup of the pymel classes that derive from DependNode
 class PyNodeTypesHierarchy(dict) :
@@ -542,7 +584,7 @@ def buildPyNodeTypesHierarchy () :
         try :
             ct = x[0]
             pt = x[1][0]
-            if issubclass(ct, pymel.core._BaseObj) and issubclass(pt, pymel.core._BaseObj) :
+            if issubclass(ct, node._BaseObj) and issubclass(pt, node._BaseObj) :
                 PyNodeDict[ct] = pt
         except :
             pass
@@ -629,19 +671,28 @@ def apiToNodeType (*args) :
     else :
         return tuple(result)
 
+def isValidMayaTypeName (arg):
+    return MayaTypesToAPI().has_key(arg)
+
+def isValidPyNodeType (arg):
+    return PyNodeToMayaAPITypes().has_key(arg)
+
+def isValidPyNodeTypeName (arg):
+    return PyNodeTypeNames().has_key(arg)
+
 # Converting API MObjects and more
 
 # returns a MObject for an existing node
 def _MObject (nodeName):
     """ Get the API MObject given the name of an existing node """ 
     sel = OpenMaya.MSelectionList()
-    node = OpenMaya.MObject()
+    obj = OpenMaya.MObject()
     result = None
     try :
         sel.add( nodeName )
-        sel.getDependNode( 0, node )
-        if not node.isNull() :
-            result = node        
+        sel.getDependNode( 0, obj )
+        if _isValidMObject(obj) :
+            result = obj        
     except :
         pass
     return result
@@ -661,47 +712,13 @@ def _MPlug (plugName):
     nodeAndAttr = plugName.split('.', 1)
     obj = _MObject (nodeAndAttr[0])
     plug = None
-    if obj is not None :
+    if _isValidMObject(obj) :
         depNodeFn = OpenMaya.MFnDependencyNode(obj)
         attr = depNodeFn.attribute(nodeAndAttr[1])
         plug = MPlug ( obj, attr )
         if plug.isNull() :
             plug = None
     return plug
-
-# fast convenience tests on API objects
-def _isValidMObject (obj):
-    if isinstance(obj, OpenMaya.MObject) :
-        return not obj.isNull()
-    else :
-        return False
-    
-def _isValidMPlug (obj):
-    if isinstance(obj, OpenMaya.MPlug) :
-        return not obj.isNull()
-    else :
-        return False
-
-def _isValidMDagPath (obj):
-    if isinstance(obj, OpenMaya.MDagPath) :
-        return obj.isValid()
-    else :
-        return False
-
-def _isValidMNode (obj):
-    if _isValidMObject(obj) :
-        return obj.hasFn(OpenMaya.MFn.kDependencyNode)
-    else :
-        return False
-
-def _isValidMDagNode (obj):
-    if _isValidMObject(obj) :
-        return obj.hasFn(OpenMaya.MFn.kDagNode)
-    else :
-        return False
-    
-def _isValidMNodeOrPlug (obj):
-    return _isValidMPlug (obj) or _isValidMNode (obj)
 
 
 # MDagPath, MPlug or MObject to name
@@ -722,19 +739,62 @@ def _MObjectName( obj ):
         return unicode(obj)
 
 #  MObjects to PyNode
-#  TODO : I think Attribute is still awkward, it should be "Plug" and the way it's built is used could be discussed
-def _MObjectPyNode( obj ):
+def _MObjectPyNode( obj, comp=None ):
     """ Get the names of existing nodes given their API MObject""" 
     if _isValidMPlug (obj):
         return Attribute (obj.name())
     elif _isValidMNode (obj):
         depNodeFn = OpenMaya.MFnDependencyNode(obj)
-        return PyNode(depNodeFn.name(), _apiEnumToNodeType(obj.apiType ()))
+        oname = depNodeFn.name()
+        otype = _apiEnumToNodeType(obj.apiType ())
+        # return PyNode(oname, otype) 
+        ptype = util.capitalize(otype)
+        try:
+            pyConst = getattr(node, ptype)
+            pynode = pyConst(oname)
+        except (AttributeError, TypeError):
+            pynode = DependNode(oname)       
+        return pynode
     elif _isValidMDagPath (obj):
-        return PyNode(obj.partialPathName(), _apiEnumToNodeType(obj.apiType ()))   
+        oname = obj.partialPathName()
+        otype = _apiEnumToNodeType(obj.apiType ())
+        if _isValidMObject (comp) :
+            clist = None
+        else :
+            return PyNode(oname, otype)   
     else :
         raise ValueError, "'%s' is not a Plug, a Node or a Dag Path that can be expressed as a PyNode object" % unicode( obj )
-     
+
+# Selection list to PyNodes
+def _MSelectionPyNode ( sel ):
+    length = sel.length()
+    dag = OpenMaya.MDagPath()
+    comp = OpenMaya.MObject()
+    obj = OpenMaya.MObject()
+    result = []
+    for i in xrange(length) :
+        selStrs = []
+        sel.getSelectionStrings ( i, selStrs )    
+        print "Working on selection %i:'%s'" % (i, ', '.join(selStrs))
+        try :
+            sel.getDagPath(i, dag, comp)
+            pynode = _MObjectPyNode( dag, comp )
+            result.append(pynode)
+        except :
+            try :
+                sel.getDependNode(i, obj)
+                pynode = _MObjectPyNode( obj )
+                result.append(pynode)                
+            except :
+                warnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
+    return result      
+        
+        
+def _activeSelectionPyNode () :
+    sel = OpenMaya.MSelectionList()
+    OpenMaya.MGlobal.getActiveSelectionList ( sel )   
+    return _MSelectionPyNode ( sel )
+
 # names to MObjects function (expected to be faster to share one selectionList)
 def nameToMObject( *args ):
     """ Get the API MObjects given names of existing nodes """ 
@@ -742,14 +802,14 @@ def nameToMObject( *args ):
     for name in args :
         sel.add( name )
     result = []            
-    node = OpenMaya.MObject()            
+    obj = OpenMaya.MObject()            
     for i in range(sel.length()) :
         try :
-            sel.getDependNode( i, node )
+            sel.getDependNode( i, obj )
         except :
             result.append(None)
-        if not node.isNull() :
-            result.append(node)
+        if _isValidMObject(obj) :
+            result.append(obj)
         else :
             result.append(None)
     if len(result) == 1:
@@ -977,55 +1037,75 @@ def MItDag (root = None, *args, **kwargs) :
 #kDepthFirst
 #    kBreadthFirst 
 
-def _optListToDict(args):
+def _optToDict(*args, **kwargs ):
     result = {}
-    if args is not None :
-        if not util.isMapping(args):
-            if not util.isSequence(args) :
-                args = [args]
-            for n in args :
-                try :
-                    s = unicode(n)                
-                    if s.startswith("+") :
-                        result[s.lstrip('+')] = True
-                    elif s.startswith("-") :
-                        result[s.lstrip('-')] = False              
-                    else :
-                        result[s] = True
-                except :
-                    warnings.warn("'%r' can only be a string, ignored" % n)
-                    continue                           
+    types = kwargs.get("valid", [])
+    if not util.isSequence(types) :
+        types = [types]
+    if not basestr in types :
+        types.append(basestr)
+    for n in args :
+        key = val = None
+        if isinstance (n, basestr) :            
+            if n.startswith("!") :
+                key = n.lstrip('!')
+                val = False          
+            else :
+                key = n
+                val = True
+            # strip all lead and end spaces
+            key = key.strip()                       
         else :
-            for i in args.items() :
-                try :
-                    s = unicode(i[0])
-                    result[s] = i[1]
-                except :
-                    warnings.warn("'%r' can only be a string, ignored" % i[0])
-                    continue
-    return result
- 
+            for t in types :
+                if isinstance (n, t) :
+                    key = n
+                    val = True
+        if key is not None and val is not None :
+            # check for duplicates / contradictions
+            if result.has_key(key) :
+                if result[key] == val :
+                    # already there, do nothing
+                    pass
+                else :
+                    warnings.warn("%s=%s contradicts %s=%s, both ignored" % (key, val, key, result[key]))
+                    del result[key]
+            else :
+                result[key] = val
+        else :
+            warnings.warn("'%r' has an invalid type for this keyword argument (valid types: %s)" % (n, types))
+    return result                 
             
 # calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
-
+# TODO : add a condition keyword to pass a parsable logic expression of mixed conditions (my preferred way of calling it but
+# might be too error prone for users ?)
 def iterNodes ( *args, **kwargs ):
-    """ Iterator on nodes of the specified types in the Maya scene,
-        dag = False
-        hierarchy = False
+    """ Iterates on nodes of the argument list, or when args is empty on nodes of the Maya scene,
+        that meet the given conditions.
+        The following keywords change the way the iteration is done :
+        selection=False
+        above = 0
+        below = 0
+        parents=False
+        childs=False        
+        list = False
         tree = False
         breadth = False
         underworld = False
         allPaths = False
         prune = False
-        Conditions :    
-            name=None:
-            position=None: 
-            type=None:
-            property=None:
-            attribute=None:
-            user=None:
-
-        The types are specified as Pymel or Maya types """
+        The following flags specify conditions the iterated nodes are filtered against    
+        name=None:
+        position=None: 
+        type=None: 
+            The types are specified as Pymel or Maya types
+        property=None:
+        attribute=None:
+        user=None:
+        Conditions of the same keyword are combined as with a logical or :
+        iterNodes(type = ['skinCluster', 'blendShape']) will iter on all nodes of type skinCluster or blendShape
+        Different conditions are combined as with a logical and :
+        iterNodes(type = 'skinCluster', name = 'bodySkin*') will iter on all nodes that have type skinCluster and whose name
+        starts with 'bodySkin'. """
 
     # if a list of existing PyNodes (DependNodes) arguments is provided, only these will be iterated / tested on the conditions
     # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls?
@@ -1043,7 +1123,9 @@ def iterNodes ( *args, **kwargs ):
     # check
     print nodes
     # parse kwargs for keywords
-    # also iterate on the hierarchy below that node for every iterated (dag) node
+    # use current selection for *args
+    select = int(kwargs.get('selection', 0))
+    # also iterate on the hierarchy below or above (parents) that node for every iterated (dag) node
     below = int(kwargs.get('below', 0))
     above = int(kwargs.get('above', 0))
     # same as below(1) or above(1)
@@ -1055,12 +1137,12 @@ def iterNodes ( *args, **kwargs ):
         above = 1  
     # return a tuple of all the hierarchy nodes instead of iterating on the nodes when node is a dag node
     # and above or below has been set
-    list = kwargs.get('list', False)
+    asList = kwargs.get('list', False)
     # when below has been set, use breadth order instead of preorder for iterating the nodes below
     breadth = kwargs.get('breadth', False)
     # returns a Tree of all the hierarchy nodes instead of iterating on the nodes when node is a dag node
     # and above or below has been set
-    tree = kwargs.get('tree', False) 
+    asTree = kwargs.get('tree', False) 
     # include underworld in hierarchies
     underworld = kwargs.get('underword', False)                
     # include all instances paths for dag nodes (means parents can return more than one parent when allPaths is True)
@@ -1069,158 +1151,334 @@ def iterNodes ( *args, **kwargs ):
     prune = kwargs.get('prune', False)
     # to use all namespaces when none is specified instead of current one
     # allNamespace = kwargs.get('allNamespace', False)
-    # check for incompatible flags
+    # TODO : check for incompatible flags
     
+    # selection
+    if (select) :
+        sel = _activeSelectionPyNode ()
+        if not nodes :
+            # use current selection
+            nodes = sel
+        else :
+            # intersects
+            pass
+            
     # Conditions
-          
+    def _addCondition(cDic, key, val):
+        # check for duplicates
+        if key is not None : 
+            if cDic.has_key(key) and vDic[key] != val :
+                # same condition with opposite value contradicts existing condition
+                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
+                del cDic[key]
+            else :
+                cDic[key] = val      
+                 
     # conditions on names (regular expressions, namespaces), can be passed as a dict of
-    # condition:value (True or False) or a sequence of conditions, with an optionnal first
-    # char of '+' to be tested for true and '-' for false. It can be an actual node name
+    # condition:value (True or False) or a sequence of conditions, with an optional first
+    # char of '!' to be tested for False instead of True. It can be an actual node name
     nameArgs = kwargs.get('name', None)
-    nameStr = _optListToDict(nameArgs)
-    # check
-    print nameStr
-    # for names parsing
-    invalidCharPattern = r"[^(a-z)^(A-Z)^(0-9)^_^*^?^:]"
-    validCharPattern = r"[a-zA-Z0-9_]"
-    namePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*"
-    nameSpacePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*:"
-    invalidChars = re.compile(r"("+invalidCharPattern+")+")
-    validNameSpace = re.compile(r"^:?"+"("+nameSpacePattern+")*")
-    validName = re.compile(namePattern+r"$")
-    validFullName = re.compile(r"(^:?(?:"+nameSpacePattern+r")*)("+namePattern+r")$")
-    curNameSpace = namespaceInfo( currentNamespace=True )    
     # the resulting dictionnary of conditions on names (compiled regular expressions)
     cNames = {}
-    for i in nameStr.items() :
-        key = i[0]
-        val = i[1]
-        if key.startswith('(') and key.endswith(')') :
-            # take it as a regular expression directly
-            pass
-        else :
-            # either a valid node name or a glob pattern
-            nameMatch = validFullName.match(key)
-            if nameMatch is not None :
-                # if it's an actual node name
-                nameSpace = nameMatch.group[0]
-                name = nameMatch.group[1]
-                print nameSpace, name
-                if not nameSpace :
-                    # if no namespace was specified use current ('*:' can still be used for 'all namespaces')
-                    nameSpace = curNameSpace
-                if namespace(exists=nameSpace) :
-                    # format to have distinct match groups for nameSpace and name
-                    key = r"("+nameSpace+r")("+name+r")"
-                else :
-                    warnings.warn("'%s' uses inexistent nameSpace '%s' and will be ignored" % (key, nameSpace))
-                    continue
-            else :
-                badChars = invalidChars.findall(key)
-                if badChars :
-                    # invalid characters, ignore name
-                    warnings.warn("'%s' contains invalid characters %s, ignored" % (key, badChars))
-                    continue
-                elif '*' in key or '?' in key :
-                    # it's a glob pattern, try build a re out of it and add it to names conditions
-                    key = key.replace("*", r"("+validCharPattern+r")*")
-                    key = key.replace("?", r"("+validCharPattern+r")")
-                else : 
-                    # it's not anything we recognize
-                    warnings.warn("'%s' is not a valid node name or glob/regular expression and will be ignored" % a)
-        try :
-            r = re.compile(key)
-        except :
-            warnings.warn("'%s' is not a valid regular expression, ignored" % key)
-            continue
-        # check for duplicates re
-        if cNames.has_key(r) :
-            if val == cNames[r] :
-                # do nothing, same regular expression with same value exists
-                continue
-            else :
-                # same regular expression with opposite value contradicts current name condition
-                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
-                del cNames[r]
-        else :
-            cNames[r] = val 
     # check
-    for r in cNames.keys() :
-        print "%s:%r" % (r.pattern, cNames[r])     
+    print nameArgs   
+    if nameArgs is not None :
+        # convert list to dict if necessary
+        if not util.isMapping(nameArgs):
+            if not util.isSequence(nameArgs) :
+                nameArgs = [nameArgs]    
+            nameArgs = _optToDict(*nameArgs)
+        # check
+        print nameArgs
+        # for names parsing
+        invalidCharPattern = r"[^(a-z)^(A-Z)^(0-9)^_^*^?^:]"
+        validCharPattern = r"[a-zA-Z0-9_]"
+        namePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*"
+        nameSpacePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*:"
+        invalidChars = re.compile(r"("+invalidCharPattern+")+")
+        validNameSpace = re.compile(r"^:?"+"("+nameSpacePattern+")*")
+        validName = re.compile(namePattern+r"$")
+        validFullName = re.compile(r"(^:?(?:"+nameSpacePattern+r")*)("+namePattern+r")$")
+        curNameSpace = namespaceInfo( currentNamespace=True )    
+        for i in nameArgs.items() :
+            key = i[0]
+            val = i[1]
+            if key.startswith('(') and key.endswith(')') :
+                # take it as a regular expression directly
+                pass
+            else :
+                # either a valid node name or a glob pattern
+                nameMatch = validFullName.match(key)
+                if nameMatch is not None :
+                    # if it's an actual node name
+                    nameSpace = nameMatch.group[0]
+                    name = nameMatch.group[1]
+                    print nameSpace, name
+                    if not nameSpace :
+                        # if no namespace was specified use current ('*:' can still be used for 'all namespaces')
+                        nameSpace = curNameSpace
+                    if namespace(exists=nameSpace) :
+                        # format to have distinct match groups for nameSpace and name
+                        key = r"("+nameSpace+r")("+name+r")"
+                    else :
+                        warnings.warn("'%s' uses inexistent nameSpace '%s' and will be ignored" % (key, nameSpace))
+                        continue
+                else :
+                    badChars = invalidChars.findall(key)
+                    if badChars :
+                        # invalid characters, ignore name
+                        warnings.warn("'%s' contains invalid characters %s, ignored" % (key, badChars))
+                        continue
+                    elif '*' in key or '?' in key :
+                        # it's a glob pattern, try build a re out of it and add it to names conditions
+                        key = key.replace("*", r"("+validCharPattern+r")*")
+                        key = key.replace("?", r"("+validCharPattern+r")")
+                    else : 
+                        # it's not anything we recognize
+                        warnings.warn("'%s' is not a valid node name or glob/regular expression and will be ignored" % a)
+            try :
+                r = re.compile(key)
+            except :
+                warnings.warn("'%s' is not a valid regular expression, ignored" % key)
+                continue
+            # check for duplicates re and add
+            _addCondition(cNames, r, val)
+        # check
+        for r in cNames.keys() :
+            print "%s:%r" % (r.pattern, cNames[r])     
       
     # conditions on position in hierarchy (only apply to dag nodes)
     # can be passed as a dict of conditions and values
     # condition:value (True or False) or a sequence of conditions, with an optionnal first
-    # char of '+' to be tested for true and '-' for false.
+    # char of '!' to be tested for False instead of True.
     # valid flags are 'root', 'leaf', or 'level=x' for a relative depth to start node 
     posArgs = kwargs.get('position', None)
-    posStr = _optListToDict(posArgs)
-    cPos = {}
     # check
-    print posStr
-    validLevelPattern = r"level\[(-?[0-9]*)(:?)(-?[0-9]*)\]"
-    validLevel = re.compile(validLevelPattern)
-    for i in posStr.items() :
-        key = i[0]
-        val = i[1]
-        if key == 'root' or key == 'leaf' :
-            pass           
-        elif key.startswith('level') :
-            levelMatch = validLevel.match(key)
-            level = None
-            if levelMatch is not None :
-                levelStart = 0
-                levelEnd = 0
-                if levelMatch.groups[1] :
-                    # it's a range
-                    pass
-                else :
-                    # it's a single value
+    print posArgs    
+    cPos = {}    
+    if posArgs is not None :
+        # convert list to dict if necessary
+        if not util.isMapping(posArgs):
+            if not util.isSequence(posArgs) :
+                posArgs = [posArgs]    
+            posArgs = _optToDict(*posArgs)    
+        # check
+        print posArgs
+        validLevelPattern = r"level\[(-?[0-9]*)(:?)(-?[0-9]*)\]"
+        validLevel = re.compile(validLevelPattern)
+        for i in posArgs.items() :
+            key = i[0]
+            val = i[1]
+            if key == 'root' or key == 'leaf' :
+                pass           
+            elif key.startswith('level') :
+                levelMatch = validLevel.match(key)
+                level = None
+                if levelMatch is not None :
                     if levelMatch.groups[1] :
-                        level = None
-                    elif levelMatch.groups[0] :
-                        level = int(levelMatch.groups[0])
+                        # it's a range
+                        lstart = lend = None
+                        if levelMatch.groups[0] :
+                            lstart = int(levelMatch.groups[0])
+                        if levelMatch.groups[2] :
+                            lend = int(levelMatch.groups[2])
+                        if lstart is None and lend is None :
+                            level = None
+                        else :                      
+                            level = int(lstart, lend)
                     else :
-                        level = None
-                
-            if level is None :
-                warnings.warn("Invalid level condition %s, ignored" % key)
+                        # it's a single value
+                        if levelMatch.groups[1] :
+                            level = None
+                        elif levelMatch.groups[0] :
+                            level = int(levelMatch.groups[0])
+                        else :
+                            level = None               
+                if level is None :
+                    warnings.warn("Invalid level condition %s, ignored" % key)
+                    key = None
+                else :
+                    key = level     
             else :
-                key = level     
-        else :
-            warnings.warn("Unknown position condition %s, ignored" % key)
-        # check for duplicates
-        if cPos.has_key(key) :
-            if val == cPos[key] :
-                # do nothing, same condition with same value exists
-                continue
-            else :
-                # same regular expression with opposite value contradicts current name condition
-                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
-                del cPos[key]
-        else :
-            # check for intersection with included levels
-            cPos[key] = val 
-    # check
-    for r in cPos.keys() :
-        print "%s:%r" % (r.pattern, cNames[r])    
+                warnings.warn("Unknown position condition %s, ignored" % key)
+                key = None
+            # check for duplicates and add
+            _addCondition(cPos, key, val)            
+            # TODO : check for intersection with included levels
+        # check
+        for r in cPos.keys() :
+            print "%s:%r" % (r, cPos[r])    
                            
-    # conditions on types                   
-    types = kwargs.get('type', None)
-    if types :
-        if not util.isSequence(types) :
-            types = [types]
-        it_args = map(MayaTypesToAPITypeInt().get, types)  
-    else :
-        it_args = []                # default : filter on kInvalid = return all nodes
-    # API iterators can filter on API types, we need to postfilter for all the rest
- 
+    # conditions on types
+    # can be passed as a dict of types (Maya or Pymel type names) and values
+    # condition:value (True or False) or a sequence of type names, with an optionnal first
+    # char of '!' to be tested for False instead of True.
+    # valid flags are 'root', 'leaf', or 'level=x' for a relative depth to start node                       
+    # Note: API iterators can filter on API types, we need to postfilter for all the rest
+    typeArgs = kwargs.get('type', None)
+    # check
+    print typeArgs
+    # support for types that can be translated as API types and can be directly used by API iterators
+    # and other types that must be post-filtered  
+    cAPITypes = {}
+    cExtTypes = {}  
+    if typeArgs is not None :
+        # convert list to dict if necessary
+        if not util.isMapping(typeArgs):
+            if not util.isSequence(typeArgs) :
+                typeArgs = [typeArgs]
+            # can pass strings or PyNode types directly
+            typeArgs = _optToDict(*typeArgs, **{'valid':DependNode})    
+        # check
+        print typeArgs
+        for i in typeArgs.items() :
+            key = i[0]
+            val = i[1]
+            apiType = extType = None
+            if isValidMayaTypeName (key) :
+                # is it a valid Maya type name
+                extType = key
+                # can we translate it to an API type enum (int)
+                apiType = _nodeTypeToApiEnum(extType)
+            else :
+                # or a PyNode type or type name
+                if isValidPyNodeTypeName(key) :
+                    key = PyNodeTypeNames().get(key, None)
+                if isValidPyNodeType(key) :
+                    extType = key
+                    apiType = MayaAPITypesInt.get(PyNodeToMayaAPITypes().get(key, None), None)
+            # if we have a valid API type, add it to cAPITypes, if type must be postfiltered, to cExtTypes
+            if apiType is not None :
+                _addCondition(cAPITypes, apiType, val)
+            elif extType is not None :
+                _addCondition(cExtTypes, extType, val)
+            else :
+                warnings.warn("Invalid/unknown type condition %s, ignored" % key)  
+        # check
+        for r in cAPITypes.keys() :
+            print "%s:%r" % (r, cAPITypes[r])   
+        for r in cExtTypes.keys() :
+            print "%s:%r" % (r, cExtTypes[r])                
     # conditions on pre-defined properties (visible, ghost, etc) for compatibility with ls
-    
+    validProperties = {'visible':1, 'ghost':2, 'templated':3, 'intermediate':4}    
+    propArgs = kwargs.get('properties', None)
+    # check
+    print propArgs    
+    cProp = {}    
+    if propArgs is not None :
+        # convert list to dict if necessary
+        if not util.isMapping(propArgs):
+            if not util.isSequence(propArgs) :
+                propArgs = [propArgs]    
+            propArgs = _optToDict(*propArgs)    
+        # check
+        print propArgs
+        for i in propArgs.items() :
+            key = i[0]
+            val = i[1]
+            if validProperties.has_key(key) :
+                key = validProperties[key]
+                _addCondition(cProp, key, val)
+            else :
+                warnings.warn("Unknown property condition %s, ignored" % key)
+        # check
+        for r in cProp.keys() :
+            print "%s:%r" % (r, cProp[r])      
     # conditions on attributes existence / value
-    
+    # can be passed as a dict of conditions and booleans values
+    # condition:value (True or False) or a sequence of conditions,, with an optionnal first
+    # char of '!' to be tested for False instead of True.
+    # An attribute condition is in the forms :
+    # attribute==value, attribute!=value, attribute>value, attribute<value, attribute>=value, attribute<=value, 
+    # Note : can test for attribute existence with attr != None
+    attrArgs = kwargs.get('attribute', None)
+    # check
+    print attrArgs    
+    cAttr = {}    
+    if attrArgs is not None :
+        # convert list to dict if necessary
+        if not util.isMapping(attrArgs):
+            if not util.isSequence(attrArgs) :
+                attrArgs = [attrArgs]    
+            attrArgs = _optToDict(*attrArgs)    
+        # check
+        print attrArgs      
+        attrNamePattern = r"([a-zA-Z]+[a-zA-Z0-9_]*)(\[[0-9]+\])?"
+        attrValuePattern = r".+"
+        validAttrName = re.compile(attrNamePattern)
+        attrPattern = r"\.?("+attrNamePattern+r")(\."+attrNamePattern+r")*"
+        validAttr = re.compile(attrPattern)
+        attrCondPattern = r"(?P<attr>"+attrPattern+r")[ \t]*(?P<oper>==|!=|>|<|>=|<=)[ \t]*(?P<value>"+attrValuePattern+r")"
+        validAttrCond = re.compile(attrCondPattern)        
+        for i in attrArgs.items() :
+            key = i[0]
+            val = i[1]
+            attCondMatch = validAttrCond.match(key.strip())
+            if attCondMatch is not None :
+                attCond = (attCondMatch.group('attr'), attCondMatch.group('oper'), attCondMatch.group('value'))
+                # handle inversions
+                if val is False :
+                    if attCond[1] is '==' :
+                        attCond[1] = '!='
+                    elif attCond[1] is '!=' :
+                        attCond[1] = '=='
+                    elif attCond[1] is '>' :
+                        attCond[1] = '<='
+                    elif attCond[1] is '<=' :
+                        attCond[1] = '>'
+                    elif attCond[1] is '<' :
+                        attCond[1] = '>='
+                    elif attCond[1] is '>=' :
+                        attCond[1] = '<'                        
+                    val = True
+                # Note : special case where value is None, means test for attribute existence
+                # only valid with != or ==
+                if attCond[2] is None :
+                    if attCond[1] is '==' :
+                        attCond[1] = None
+                        val = False  
+                    elif attCond[1] is '!=' :
+                        attCond[1] = None
+                        val = True
+                    else :
+                        warnings.warn("Value 'None' means testing for attribute existence and is only valid for operator '!=' or '==', '%s' ignored" % key)
+                        attCond = None
+                # check for duplicates and add
+                _addCondition(cPos, attCond, val)                                               
+            else :
+                warnings.warn("Unknown attribute condition %s, ignored (must be in the form attr" % key)            
+        # check
+        for r in cAttr.keys() :
+            print "%s:%r" % (r, cAttr[r])        
     # conditions on user defined boolean functions
- 
+    userArgs = kwargs.get('user', None)
+    # check
+    print userArgs    
+    cUser = {}    
+    if userArgs is not None :
+        # convert list to dict if necessary
+        if not util.isMapping(userArgs):
+            if not util.isSequence(userArgs) :
+                userArgss = [userArgs]    
+            userArgs = _optToDict(*userArgs, **{'valid':function})    
+        # check
+        print userArgs            
+        for i in userArgs.items() :
+            key = i[0]
+            val = i[1]
+            if isinstance(key, basestr) :
+                key = globals().get(key,None)
+            if key is not None :
+                if inspect.isfunction(key) and len(inspect.getargspec(key)[0]) is 1 :
+                    _addCondition(cUser, key, val)
+                else :
+                    warnings.warn("user condition must be a function taking one argument (the node) that will be tested against True or False, %r ignored" % key)
+            else :
+                warnings.warn("name '%s' is not defined" % key)            
+        # check
+        for r in cUser.keys() :
+            print "%r:%r" % (r, cUser[r])
+            
     # Iteration :
     needLevelInfo = False
     
@@ -1228,7 +1486,7 @@ def iterNodes ( *args, **kwargs ):
         # if a list of existing nodes is provided we iterate on the ones that both exist and match the used flags        
         for n in nodes :
             obj = _MObject (n)
-            if obj is not None :
+            if _isValidMObject(obj) :
                 if not it_args or obj.apiType() in it_args :
                     yield _MObjectPyNode( obj ) 
     else :
@@ -1279,7 +1537,7 @@ def mayaType (nodeOrType, **kwargs) :
         >>> mayaType ('kVortex', pymel=True)
         >>> <class 'pymel.Vortex'>
         >>> mayaType ('Vortex', inheritedPymel=True)
-        >>> [<class 'pymel.Vortex'>, <class 'pymel.core.DagNode'>, <class 'pymel.core.DependNode'>, <class 'pymel.core._BaseObj'>]        
+        >>> [<class 'pymel.Vortex'>, <class 'pymel.core.DagNode'>, <class 'pymel.core.DependNode'>, <class 'pymel.core.node._BaseObj'>]        
         >>> mayaType ('aimConstraint', apiType=True, inheritedAPI=True)
         >>> {'inheritedAPI': ['kConstraint'], 'apiType': 'kAimConstraint'}
         >>> mayaType (pymel.Transform)
@@ -1342,7 +1600,7 @@ def mayaType (nodeOrType, **kwargs) :
         if (hasattr(pymel, nodeOrType)) :
             pyAttr = getattr (pymel, nodeOrType)
             if inspect.isclass(pyAttr) :
-                if issubclass(pyAttr, pymel.core._BaseObj) :
+                if issubclass(pyAttr, node._BaseObj) :
                     pyNodeType = pyAttr
                     apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
         # check if it could be a not yet cached Maya type
@@ -1393,7 +1651,7 @@ def mayaType (nodeOrType, **kwargs) :
         if do_pymelInherited :
             k = pyNodeType
             pymelInherited.append(k)      # starting class
-            while k is not 'pymel.core._BaseObj' and PyNodeTypesHierarchy().has_key(k) :
+            while k is not 'node._BaseObj' and PyNodeTypesHierarchy().has_key(k) :
                 k = PyNodeTypesHierarchy()[k]
                 pymelInherited.append(k)            
             
