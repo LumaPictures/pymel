@@ -2157,6 +2157,7 @@ _createClasses()
 #-----------------------------------------------
 #  Commands for Creating pymel Objects
 #-----------------------------------------------
+# TODO : make it work on components ?
 def PyNode(strObj, nodeType=None):
 	"""Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
 	for your object."""
