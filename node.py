@@ -1326,12 +1326,48 @@ class DagNode(Entity):
         kwargs.pop('c',None)
 
         return listRelatives( self, **kwargs)
+    
+    def getAllDescendents(self, **kwargs ):
+        kwargs['allDescendents'] = True
+        kwargs.pop('ad',None)
+
+        return listRelatives( self, **kwargs)        
+    
+    def parent(self, **kwargs):
+        return self.getParent(**kwargs)
+ 
+    def children(self, **kwargs):
+        return self.getChildren(**kwargs) 
+    
+    def parents(self):
+        """Iterates on path from element to top root, starting with first parent, empty iterator means self is root"""
+        parent = self.parent()
+        while parent :
+            yield parent
+            parent = parent.parent
+            
+    # TODO using iterNodes (listRelatives(allDescendents=True) returns them in sort of messed up order)
+    def preorder(self):        
+        pass
+
+    def postorder(self):
+        pass
         
+    def breadth(self):
+        pass
+                        
     def isRoot(self):
         return self.getParent() is None
     
     def isLeaf(self):
         return not self.getChildren()
+    
+    def depth(self):
+        """Depth of self, the distance to self's root"""
+        depth = 0
+        for p in self.parents() :
+            depth += 1
+        return depth   
         
     def getSiblings(self, **kwargs ):
         #pass
