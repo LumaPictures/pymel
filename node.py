@@ -1266,14 +1266,14 @@ class DependNode( _BaseObj ):
 class Entity(DependNode): pass
 class DagNode(Entity):
 	
-	def __eq__(self, other):
+    def __eq__(self, other):
 		"""ensures that we compare longnames when checking for dag node equality"""
 		try:
 			return unicode(self.longName()) == unicode(DagNode(other).longName())
 		except (TypeError,IndexError):
 			return unicode(self) == unicode(other)
 			
-	def __ne__(self, other):
+    def __ne__(self, other):
 		"""ensures that we compare longnames when checking for dag node equality"""
 		try:
 			return unicode(self.longName()) != unicode(DagNode(other).longName())
@@ -1283,18 +1283,18 @@ class DagNode(Entity):
 	#--------------------------
 	#	DagNode Path Info
 	#--------------------------	
-	def root(self):
+    def root(self):
 		'rootOf'
 		return DagNode( '|' + self.longName()[1:].split('|')[0] )
 	
-	def firstParent(self):
+    def firstParent(self):
 		'firstParentOf'
 		try:
 			return DagNode( '|'.join( self.longName().split('|')[:-1] ) )
 		except TypeError:
 			return DagNode( '|'.join( self.split('|')[:-1] ) )
 	
-	def getParent(self, **kwargs):
+    def getParent(self, **kwargs):
 		"""unlike the firstParent command which determines the parent via string formatting, this 
 		command uses the listRelatives command"""
 		
@@ -1314,11 +1314,17 @@ class DagNode(Entity):
 			return res.shortName()
 		return res
 					
-	def getChildren(self, **kwargs ):
-		kwargs['children'] = True
-		kwargs.pop('c',None)
+    def getChildren(self, **kwargs ):
+        kwargs['children'] = True
+        kwargs.pop('c',None)
 
-		return listRelatives( self, **kwargs)
+        return listRelatives( self, **kwargs)
+        
+    def isRoot(self):
+        return self.getParent() is None
+    
+    def isLeaf(self):
+        return not self.getChildren()
 		
 	def getSiblings(self, **kwargs ):
 		#pass
