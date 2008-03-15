@@ -1197,7 +1197,7 @@ class DependNode( _BaseObj ):
         
     def setAttr( self, attr, *args, **kwargs):
         return self.attr(attr).set( *args, **kwargs )
-            
+    # NOTE : how about returning None when attribute doesn't exist instead of raising an error (like for dicts.get method) ?        
     def getAttr( self, attr, **kwargs ):
         return self.attr(attr).get( **kwargs )
 
@@ -1361,6 +1361,32 @@ class DagNode(Entity):
     
     def isLeaf(self):
         return not self.children()
+    
+    # NOTE: the Maya ls(visible=True) command doesn't take into account display layers, so I ignore them too,
+    # but it seems it would be logical to take them into account ?
+    def isVisible(self) :
+        if pyobj.getAttr('visibility') :
+            for p in self.parents() :
+                if not p.getAttr('visibility') :
+                    return False
+            return True
+        else :
+            return False
+    # NOTE : same comment
+    def isTemplated(self) :
+        if not pyobj.getAttr('template') :
+            for p in self.parents() :
+                if p.getAttr('template') :
+                    return True
+            return False
+        else :
+            return True        
+
+    def isIntermediate(self) :
+        if self.hasAttr('intermediateObject') and self.getAttr('intermediateObject') :
+            return True
+        else :
+            return False               
     
     def depth(self):
         """Depth of self, the distance to self's root"""
