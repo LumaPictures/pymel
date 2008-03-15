@@ -26,7 +26,7 @@ class MetaRange(type):
             break
         # we always derive from set as a bounded range can be expressed as a set
         if set not in bases :
-            bases.append(set)
+            bases = bases+(set,)
                              
         # remove what we don't want to expose from bases
         def __getattribute__(self, name):          
@@ -210,12 +210,15 @@ class MetaRange(type):
             else :
                 newdict[k] = classdict[k]
         
-        return super(metaRange, cls).__new__(cls, classname, bases, newdict)
+        return super(MetaRange, cls).__new__(cls, classname, bases, newdict)
 
 # ranges of int
-class IRange(int):
-    __metaclass__ =  MetaRange        
+#class IRange(int):
+#    __metaclass__ =  MetaRange        
  
 # ranges of float
-class FRange(float):
-    __metaclass__ =  MetaRange   
+#class FRange(float):
+#    __metaclass__ =  MetaRange  
+    
+# temp patch until Ranges are done   
+IRange = xrange
