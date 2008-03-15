@@ -668,12 +668,16 @@ class MetaTree(type):
                 return None      
         def parents (self):
             """Returns an iterator on path from element to top root, starting with first parent, empty iterator means self is root"""
-            parents = []
+            #parents = []
+            #parent = self.parent
+            #while parent :
+            #    parents.append(parent)
+            #    parent = parent.parent
+            #return iter(parents)
             parent = self.parent
             while parent :
-                parents.append(parent)
+                yield parent
                 parent = parent.parent
-            return iter(parents)
         def root (self):
             """ Root node of self, if self is a subtree, will travel up to top most node of containing tree """
             root = self
