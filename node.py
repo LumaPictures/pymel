@@ -1341,10 +1341,10 @@ class DagNode(Entity):
     
     def parents(self):
         """Iterates on path from element to top root, starting with first parent, empty iterator means self is root"""
-        parent = self.parent()
-        while parent :
-            yield parent
-            parent = parent.parent
+        p = self.parent()
+        while p :
+            yield p
+            p = p.parent()
             
     # TODO using iterNodes (listRelatives(allDescendents=True) returns them in sort of messed up order)
     def preorder(self):        
