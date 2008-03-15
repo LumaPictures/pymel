@@ -15,6 +15,7 @@ def _createFunctions():
 		#else:
 		#	print "could not create ctx function", funcName	
 							
-_createFunctions()
+#_createFunctions()
 
 #factories.createFunctions( _thisModule, None )
+factories.createFunctions( __name__, None )

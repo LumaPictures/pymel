@@ -46,6 +46,7 @@ class CommandDocParser(HTMLParser):
 			data = data.replace( 'Flag can appear in Query mode of command', '' )
 			data = data.replace( '\r\n', ' ' ).lstrip()
 			data = data.strip('{}\t')
+			data = data.replace('*', '\*') # for reStructuredText
 			self.flags[self.currFlag]['docstring'] += data
 		self.iData += 1
 		
@@ -106,6 +107,7 @@ class CommandDocParser(HTMLParser):
 		elif self.active == 'command':
 			data = data.replace( '\r\n', ' ' ).lstrip()
 			data = data.strip('{}')
+			data = data.replace('*', '\*') # for reStructuredText
 			if '{' not in data and '}' not in data:				
 				self.description += data
 			#print data
@@ -119,7 +121,7 @@ def _mayaDocsLocation( version ):
 	docLocation = path.path( docLocation / 'docs/Maya%s/en_US' % version )
 	return docLocation
 	
-def getCmdInfo( command, version='8.5' ):
+def _getCmdInfo( command, version='8.5' ):
 	"""Since many maya Python commands are builtins we can't get use getargspec on them.
 	besides most use keyword args that we need the precise meaning of ( if they can be be used with 
 	edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
@@ -146,6 +148,7 @@ class NodeHierarchyDocParser(HTMLParser):
 		
 		HTMLParser.__init__(self)
 	def handle_starttag(self, tag, attrs):
+		
 		self.currentTag = tag
 	
 	def handle_data(self, data):
@@ -223,6 +226,41 @@ def _getNodeHierarchy( version='8.5' ):
 	parser.feed( f.read() )
 	f.close()
 	return parser.tree
+
+class CommandModuleDocParser(HTMLParser):
+				
+	def __init__(self):
+		self.cmdList = []
+		
+		HTMLParser.__init__(self)
+		
+	def handle_starttag(self, tag, attrs):
+		try:
+			attrs = attrs[0]
+			#print attrs
+			if tag == 'a' and attrs[0]=='href': 
+				cmd = attrs[1].split("'")[1].split('.')[0]
+				self.cmdList.append( cmd )
+				#print cmd
+		except IndexError: return
+		
+	#def handle_data(self, data):
+	#	#print self.currentTag, data
+	#	if self.currentTag == 'a':
+	#		print data
+
+def _getUICommands():
+	f = open(util.moduleDir() / 'misc/commandsUI', 'r')
+	cmds = f.read().split('\n')
+	f.close()
+	return cmds
+
+def getModuleCommandList( category, version='8.5' ):
+	f = open( _mayaDocsLocation(version) / 'Commands/cat_' + category + '.html' )
+	parser = CommandModuleDocParser()
+	parser.feed( f.read() )
+	f.close()
+	return parser.cmdList
 	
 #-----------------------------------------------
 #  Command Help Documentation
@@ -266,7 +304,15 @@ nodeType_to_infoCommand = {
 	'transform' : 'xform'
 }
 
-
+module_shortName_to_longName = {
+	'model'	: 'Modeling',
+	'render': 'Rendering',
+	'fx'	: 'Effects',
+	'anim'	: 'Animation',
+	#'ui'	: 'Windows',
+	#'io'	: 'System',
+	#'core'	: 'General'
+}
 #: modifier flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
 #: because the maya docs do not specify in any parsable way which flags are modifiers, we must maintain this dictionary.
 #: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
@@ -282,12 +328,6 @@ modifierFlags = {
 }
 
 
-def _getUICommands():
-	f = open(util.moduleDir() / 'misc/commandsUI', 'r')
-	cmds = f.read().split('\n')
-	f.close()
-	return cmds
-		
 				
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
@@ -322,12 +362,15 @@ def buildMayaCmdsArgList() :
 		nodeHierarchy = _getNodeHierarchy(ver)
 		nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		uiClassList = _getUICommands()
+		for moduleName, longname in module_shortName_to_longName.items():
+			module_shortName_to_longName[moduleName] = getModuleCommandList( longname, ver )
+						
 		tmpCmdlist = inspect.getmembers(cmds, callable)
 		cmdlist = {}
 		moduleCmds = util.defaultdict(list)
 		for funcName, data in tmpCmdlist :	
 			
-			description, flags = getCmdInfo(funcName, ver)
+			description, flags = _getCmdInfo(funcName, ver)
 			#modifiers = {}
 			try:
 				for modifierFlag, modifiedList in modifierFlags[funcName]:
@@ -338,6 +381,7 @@ def buildMayaCmdsArgList() :
 			except:pass
 				
 			# determine to which module this function belongs
+			module = None
 			if funcName in ['eval',	'file', 'filter', 'help', 'quit']:
 				module = None
 			elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
@@ -346,10 +390,16 @@ def buildMayaCmdsArgList() :
 				module = 'ui'
 			elif funcName in nodeHierarchyTree or funcName in nodeType_to_nodeCommand.values():
 				module = 'node'
-			elif mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
-				module = 'runtime'
 			else:
-				module = 'core'
+				for moduleName, commands in module_shortName_to_longName.items():
+					if funcName in commands:
+						module = moduleName
+				
+				if module is None:	
+					if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
+						module = 'runtime'
+					else:
+						module = 'core'
 			
 			if module:
 				moduleCmds[module].append(funcName)
@@ -603,16 +653,13 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
 			
 	return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
-def createFunctions( module, returnFunc ):
-	print module.__name__
-	for funcName, data in cmdlist.items():
-		if data['type'] == module.__name__:
-			func = functionFactory( funcName, returnFunc )
-			if module.__name__ == 'node':
-				func.__doc__ = 'function counterpart of class `%s`\n\n' % util.capitalize( funcName ) + func.__doc__
-			if func:
-				func.__module__ = module.__name__
-				setattr( module, funcName, func )
+def createFunctions( moduleName, returnFunc ):
+	module = __import__(moduleName, globals(), locals(), [''])
+	for funcName in moduleCmds[ moduleName.split('.')[1] ]:
+		func = functionFactory( funcName, None )
+		if func:
+			func.__module__ = moduleName
+			setattr( module, funcName, func )
 
 #: overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
 overrideMethods = {}

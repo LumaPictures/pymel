@@ -12,6 +12,8 @@ def _createFunctions():
 		if func:
 			func.__module__ = __name__
 			setattr( _thisModule, funcName, func )
-_createFunctions()
+#_createFunctions()
 
 #factories.createFunctions( _thisModule, None )
+
+factories.createFunctions( __name__, None )

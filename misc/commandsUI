@@ -77,7 +77,6 @@ outlinerPanel
 optionMenuGrp
 animCurveEditor
 animDisplay
-animView
 separator
 visor
 layout
@@ -119,5 +118,9 @@ devicePanel
 dynRelEdPanel
 dynRelEditor
 dynPaintEditor
+nameField
+cmdScrollFieldExecuter
+cmdScrollFieldReporter
+cmdShell
 nameField
 palettePort

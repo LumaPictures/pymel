@@ -15,6 +15,7 @@ except ImportError:
 
 #from vector import Vector, Matrix  # in core
 from core import *
+from anim import *
 #import util, factories  # in core
 
 #-----------------------------------------------
@@ -639,7 +640,7 @@ class Attribute(_BaseObj):
 	# getting and setting					
 	set = setAttr			
 	get = getAttr
-	setKey = setKeyframe	
+	#setKey = setKeyframe	
 	
 	
 	#----------------------

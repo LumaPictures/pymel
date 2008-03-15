@@ -13,6 +13,8 @@ does not take advantage of python's strengths -- particularly, a flexible, objec
 builds on the cmds module by organizing many of its commands into a class hierarchy, and by
 customizing them to operate in a more succinct and intuitive way.
 
+.. contents:: :backlinks: none
+
 What's New in Version 0.7
 =========================
 If you are upgrading from a previous version of pymel, there are some big changes that you need to be aware of. 
@@ -95,24 +97,23 @@ Installation
 Pymel Package
 -------------
 
-The simplest way to install pymel is to place the unzipped pymel folder in your scripts directory 
+If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your scripts directory 
 
 =========   =======================
 Platform    Location
 =========   =======================
-win         My Documents/maya/8.5/scripts
 mac         ~/Library/Preferences/Autodesk/maya/8.5/scripts
-on linux    ~/maya/maya/8.5/scripts
+linux       ~/maya/maya/8.5/scripts
 =========   =======================
 	
-Alternately, if you have not done so already, it is a good idea to create a separate directory for your python scripts so that
+Otherwise, it is a good idea to create a separate directory for your python scripts so that
 they will be accessible from within Maya.  You can do this by setting the PYTHONPATH environment variable in Maya.env::  
 
 	PYTHONPATH = /path/to/folder
 
 Then place the pymel directory in your PYTHONPATH directory.
 
-Next, to avoid having to import pymel every time you startup, if you have not done so already, you can create a userSetup.mel
+Next, to avoid having to import pymel every time you startup, you can create a userSetup.mel
 file, place it in your scipts directory and add this line::
 
 	python("from pymel import *");
@@ -261,21 +262,23 @@ Node Commands and their Class Counterparts
 
 At the leaf level of the node hierarchy you will find the Node Command Classes, which are
 node classes that have methods specific to their node type. As you are probably aware, Mel contains a number of commands
-which are used to create, edit, and query specific object types in maya.  Typically, the names of these commands correspond
-with the node type on which they operate, and hence, the pymel classes which they return.
+which are used to create, edit, and query object types in maya.  Typically, the names of these commands correspond
+with the node type on which they operate, and hence, the pymel classes which they return. However, it should be noted
+that there are a handful of exceptions to this rule.
 
-Some examples of these command-class pairs:
+Some examples of command-class pairs:
 
-================    =================
-Mel Command         Node  Class
-================    =================
-aimConstraint       AimConstraint
-camera              Camera
-directionalLight    DirectionalLight 
-================    =================
+================    ================    =================
+Mel Command         Maya Node Type      Pymel Node  Class
+================    ================    =================
+aimConstraint       aimConstraint       AimConstraint
+camera              camera              Camera
+directionalLight    directionalLight    DirectionalLight 
+spaceLocator        locator             Locator
+vortex              vortexField         VortexField
+================    ================    =================
+
 	
-There are some exceptions to this naming convention.  For example, `spaceLocator` creates a `Locator` and `vortex` creates a
-`VortexField`. 
 
 This example demonstrates some basic principles. Note the relationship between the name of the object
 created, its node type, and its class type:
@@ -414,11 +417,6 @@ for two reasons: 1) to improve the clarity of the documentation, and 2) so that,
 in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
 for organizational reasons.
 
-Even though pymel has a handful of modules, all but L{pymel.runtime} are imported directly into the main namespace. The sub-modules
-are provided for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user 
-can edit the import commands in __init__.py to customize which modules are directly imported and which should remain
-in their own namespace for organizational reasons.
-
 Design Philosophy
 =================
 
@@ -430,7 +428,7 @@ When approaching the reorganization of the existing commands provided by maya.cm
 	- wherever possible, pymel/python objects should be returned
 	- a function which provides a mapping mechanism should have a dictionary-like pymel counterpart ( ex. fileInfo, optionVar )
 	- a function which returns a list of pairs should be a 2D array, or possibly a dictionary ( ex. ls( showType=1 )  )
-	- the arguments provided by a ui callback should be of the appropriate type ( as a test it should be capable of being used to set the value of the control )
+	- the arguments provided by a ui callback should be of the appropriate type ( as a test, it should be capable of being used to set the value of the control )
 
 Pymel design rules:
 
@@ -622,5 +620,9 @@ from node import *
 from ctx import *
 from io import *
 from ui import *
+from anim import *
+from fx import *
+from model import *
+from render import *
 import runtime
 	
