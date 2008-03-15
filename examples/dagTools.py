@@ -1103,10 +1103,12 @@ def iterNodes ( *args, **kwargs ):
         property=None:
         attribute=None:
         user=None:
-        Conditions of the same keyword are combined as with a logical or :
-        iterNodes(type = ['skinCluster', 'blendShape']) will iter on all nodes of type skinCluster or blendShape
-        Different conditions are combined as with a logical and :
-        iterNodes(type = 'skinCluster', name = 'bodySkin*') will iter on all nodes that have type skinCluster and whose name
+        Conditions of the same type (same keyword) are combined as with a logical or for positive conditions :
+        iterNodes(type = ['skinCluster', 'blendShape']) will iter on all nodes of type skinCluster OR blendShape
+        Conditions of the type (same keyword) are combined as with a logical and for negative conditions :
+        iterNodes(type = ['!transform', '!blendShape']) will iter on all nodes of type not transform AND not blendShape
+        Different conditions types (different keyword) are combined as with a logical and :
+        iterNodes(type = 'skinCluster', name = 'bodySkin*') will iter on all nodes that have type skinCluster AND whose name
         starts with 'bodySkin'. """
 
     # if a list of existing PyNodes (DependNodes) arguments is provided, only these will be iterated / tested on the conditions
@@ -1167,7 +1169,7 @@ def iterNodes ( *args, **kwargs ):
                 if p not in sel :
                     nodes.pop(p)
             
-    # Conditions
+    # Add a conditions with a check for contradictory conditions
     def _addCondition(cDic, key, val):
         # check for duplicates
         if key is not None : 
@@ -1176,7 +1178,9 @@ def iterNodes ( *args, **kwargs ):
                 warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
                 del cDic[key]
             else :
-                cDic[key] = val      
+                cDic[key] = val
+                return True
+        return False     
                  
     # conditions on names (regular expressions, namespaces), can be passed as a dict of
     # condition:value (True or False) or a sequence of conditions, with an optional first
@@ -1325,8 +1329,11 @@ def iterNodes ( *args, **kwargs ):
     # support for types that can be translated as API types and can be directly used by API iterators
     # and other types that must be post-filtered  
     cAPITypes = {}
-    cExtTypes = {}  
+    cExtTypes = {}
+    cAPIFilter = []
     if typeArgs is not None :
+        extendedFilter = False
+        apiFilter = False
         # convert list to dict if necessary
         if not util.isMapping(typeArgs):
             if not util.isSequence(typeArgs) :
@@ -1343,26 +1350,40 @@ def iterNodes ( *args, **kwargs ):
                 # is it a valid Maya type name
                 extType = key
                 # can we translate it to an API type enum (int)
-                apiType = _nodeTypeToApiEnum(extType)
+                apiType = _nodeTypeToApiType(extType)
             else :
                 # or a PyNode type or type name
                 if isValidPyNodeTypeName(key) :
                     key = PyNodeTypeNames().get(key, None)
                 if isValidPyNodeType(key) :
                     extType = key
-                    apiType = MayaAPITypesInt.get(PyNodeToMayaAPITypes().get(key, None), None)
+                    apiType = PyNodeToMayaAPITypes().get(key, None)
             # if we have a valid API type, add it to cAPITypes, if type must be postfiltered, to cExtTypes
             if apiType is not None :
-                _addCondition(cAPITypes, apiType, val)
+                if _addCondition(cAPITypes, apiType, val) :
+                    if val :
+                        apiFilter = True
             elif extType is not None :
-                _addCondition(cExtTypes, extType, val)
+                if _addCondition(cExtTypes, extType, val) :
+                    if val :
+                        extendedFilter = True
             else :
                 warnings.warn("Invalid/unknown type condition %s, ignored" % key)  
         # check
         for r in cAPITypes.keys() :
             print "%s:%r" % (r, cAPITypes[r])   
         for r in cExtTypes.keys() :
-            print "%s:%r" % (r, cExtTypes[r])                
+            print "%s:%r" % (r, cExtTypes[r])
+        # if we check for the presence (positive condition) of API types and API types only we can 
+        # use the API MIteratorType for faster filtering, it's not applicable if we need to prune
+        # iteration for unsatisfied conditions
+        if apiFilter and not extendedFilter and not prune :
+            for item in cAPITypes.items() :
+                if item[1] and MayaAPITypesInt.has_key(item[0]) :
+                     cAPIFilter.append(MayaAPITypesInt()[item[0]])
+        # check
+        print cAPIFilter  
+                          
     # conditions on pre-defined properties (visible, ghost, etc) for compatibility with ls
     validProperties = {'visible':1, 'ghost':2, 'templated':3, 'intermediate':4}    
     propArgs = kwargs.get('properties', None)
@@ -1381,7 +1402,7 @@ def iterNodes ( *args, **kwargs ):
             key = i[0]
             val = i[1]
             if validProperties.has_key(key) :
-                key = validProperties[key]
+                # key = validProperties[key]
                 _addCondition(cProp, key, val)
             else :
                 warnings.warn("Unknown property condition %s, ignored" % key)
@@ -1482,21 +1503,74 @@ def iterNodes ( *args, **kwargs ):
         # check
         for r in cUser.keys() :
             print "%r:%r" % (r, cUser[r])
+
+
+    # post filtering function
+    def _filter( pyobj, types=True, names=True, pos=True, prop=True, attr=True, user=True  ):
+        result = True
+        # check on types conditions
+        if result and types :
+            for ct in cAPITypes.items() :
+                if pyobj.type() == ct[0] :
+                    result &= cn[1]
+                    break
+            for ct in cExtTypes.items() :                      
+                if isinstance(pyobj, ct[0]) :
+                    result &= cn[1]
+                    break        
+        # check on names conditions
+        if result and names :
+            for cn in cNames.items() :
+                if cn[0].match(pyobj) is not None :
+                    result &= cn[1]
+                    break             
+        # check on position (for dags) conditions
+        if result and pos and isinstance(pyobj, DagNode) :
+            for cp in cPos.items() :
+                if cp[0] == 'root' :
+                    if pyobj.isRoot() :
+                        result &= cn[1]
+                        break
+                elif cp[0] == 'leaf' :
+                    if pyobj.isLeaf() :
+                        result &= cn[1]
+                        break                  
+                # TODO : 'level' condition
+        # check some pre-defined properties
+        if result and prop :
+            for cp in cProp.items() :
+                if cp[0] == 'visible' :
+                    # check if object is visible means also check parents for visibility
+                    pass
+                    # if pyobj.hasAttr('visibility') :                
+                elif cp[0] == 'ghost' :
+                    pass           
+                elif cp[0] == 'templated' :
+                    pass
+                elif cp[0] == 'intermediate' :
+                    pass
+        # check for attribute existence and value
+        if result and attr :
+            pass
+        # check for used condition functions
+        if result and user :
+            pass
+        return result
             
     # Iteration :
     needLevelInfo = False
     
     if nodes :
         # if a list of existing nodes is provided we iterate on the ones that both exist and match the used flags        
-        for n in nodes :
-            obj = _MObject (n)
-            if _isValidMObject(obj) :
-                if not it_args or obj.apiType() in it_args :
-                    yield _MObjectPyNode( obj ) 
+        for pyobj in nodes :
+            if _filter (pyobj) :
+                yield pyobj
     else :
-        # else we iterate on all scene nodes that satisfy the specified flags
-        for obj in MItNodes( *it_args ) :
-            yield _MObjectPyNode( obj )
+        # else we iterate on all scene nodes that satisfy the specified flags, 
+        for obj in MItNodes( *cAPIFilter ) :
+            pyobj = _MObjectPyNode( obj )
+            if _filter (pyobj) :
+                yield pyobj
         
 # lst = list(iterNodes())
 
