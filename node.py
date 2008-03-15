@@ -1357,10 +1357,10 @@ class DagNode(Entity):
         pass
                         
     def isRoot(self):
-        return self.getParent() is None
+        return self.parent() is None
     
     def isLeaf(self):
-        return not self.getChildren()
+        return not self.children()
     
     def depth(self):
         """Depth of self, the distance to self's root"""
