@@ -3,6 +3,8 @@ import re
 # based on pymel
 from pymel import *
 from pymel.util import Singleton
+# need the base class
+_BaseObj = node._BaseObj
 import maya.OpenMayaAnim as OpenMayaAnim
 try: import maya.OpenMayaCloth as OpenMayaCloth
 except: pass
@@ -533,7 +535,7 @@ def buildPyNodeToAPI () :
     # Check if a pymel class is DependNode or a subclass of DependNode
     def _PyNodeClass (x) :
         try :
-            return issubclass(x, node._BaseObj)
+            return issubclass(x, _BaseObj)
         except :
             return False    
     listPyNodes = dict(inspect.getmembers(node, _PyNodeClass))
@@ -548,8 +550,8 @@ def buildPyNodeToAPI () :
             PyNodeDict[PyNodeType] = APITypeName
             PyNodeInverseDict[APITypeName] = PyNodeType
     # Would be good to limit special treatments
-    PyNodeDict[node._BaseObj] = 'kBase'
-    PyNodeInverseDict['kBase'] = node._BaseObj
+    PyNodeDict[_BaseObj] = 'kBase'
+    PyNodeInverseDict['kBase'] = _BaseObj
     PyNodeDict[DependNode] = 'kDependencyNode'
     PyNodeInverseDict['kDependencyNode'] = DependNode
                           
@@ -584,7 +586,7 @@ def buildPyNodeTypesHierarchy () :
         try :
             ct = x[0]
             pt = x[1][0]
-            if issubclass(ct, node._BaseObj) and issubclass(pt, node._BaseObj) :
+            if issubclass(ct, _BaseObj) and issubclass(pt, _BaseObj) :
                 PyNodeDict[ct] = pt
         except :
             pass
@@ -746,7 +748,8 @@ def _MObjectPyNode( obj, comp=None ):
     elif _isValidMNode (obj):
         depNodeFn = OpenMaya.MFnDependencyNode(obj)
         oname = depNodeFn.name()
-        otype = _apiEnumToNodeType(obj.apiType ())
+        # otype = _apiEnumToNodeType(obj.apiType ())
+        otype = obj.apiTypeStr ()
         # return PyNode(oname, otype) 
         ptype = util.capitalize(otype)
         try:
@@ -757,7 +760,8 @@ def _MObjectPyNode( obj, comp=None ):
         return pynode
     elif _isValidMDagPath (obj):
         oname = obj.partialPathName()
-        otype = _apiEnumToNodeType(obj.apiType ())
+        # otype = _apiEnumToNodeType(obj.apiType ())
+        otype = obj.apiTypeStr ()
         if _isValidMObject (comp) :
             clist = None
             # TODO : component handling
@@ -1044,11 +1048,11 @@ def _optToDict(*args, **kwargs ):
     types = kwargs.get("valid", [])
     if not util.isSequence(types) :
         types = [types]
-    if not basestr in types :
-        types.append(basestr)
+    if not basestring in types :
+        types.append(basestring)
     for n in args :
         key = val = None
-        if isinstance (n, basestr) :            
+        if isinstance (n, basestring) :            
             if n.startswith("!") :
                 key = n.lstrip('!')
                 val = False          
@@ -1078,38 +1082,56 @@ def _optToDict(*args, **kwargs ):
     return result                 
             
 # calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
-# TODO : add a condition keyword to pass a parsable logic expression of mixed conditions (my preferred way of calling it but
-# might be too error prone for users ?)
+# TODO : special return options: below, above, childs, parents, asList, breadth, asTree, underworld, allPaths and prune
+# TODO : component support
 def iterNodes ( *args, **kwargs ):
     """ Iterates on nodes of the argument list, or when args is empty on nodes of the Maya scene,
         that meet the given conditions.
         The following keywords change the way the iteration is done :
-        selection=False
-        above = 0
-        below = 0
-        parents=False
-        childs=False        
-        list = False
-        tree = False
-        breadth = False
-        underworld = False
-        allPaths = False
-        prune = False
-        The following flags specify conditions the iterated nodes are filtered against    
-        name=None:
-        position=None: 
-        type=None: 
-            The types are specified as Pymel or Maya types
-        property=None:
-        attribute=None:
-        user=None:
-        Conditions of the same type (same keyword) are combined as with a logical or for positive conditions :
+            selection = False : will use current selection if no nodes are passed in the arguments list,
+                or will filter argument list to keep only selected nodes
+            above = 0 : for each returned dag node will also iterate on its n first ancestors
+            below = 0 : for each returned dag node will also iterate on levels of its descendents
+            parents = False : if True is equivalent to above = 1
+            childs = False : if True is equivalent to below = 1       
+            asList = False : 
+            asTree = False :
+            breadth = False :
+            underworld = False :
+            allPaths = False :
+            prune = False :
+        The following keywords specify conditions the iterated nodes are filtered against, conditions can be passed either as a
+        list of conditions, format depending on condition type, or a dictionnary of {condition:result} with result True or False
+            name = None: will filter nodes that match these names. Names can be actual node names, use wildcards * and ?, or regular expression syntax
+            position = None: will filter dag nodes that have a specific position in their hierarchy :
+                'root' for root nodes
+                'leaf' for leaves
+                'level=<int>' or 'level=[<int>:<int>]' for a specific distance from their root
+            type = None: will filter nodes that are of the specified type, or a derived type.
+                The types can be specified as Pymel Node types (DependNode and derived) or Maya types names
+            property = None: check for specific preset properties, for compatibility with the 'ls' command :
+                'visible' : object is visible (it's visibility is True and none of it's ancestor has visibility to False)
+                'ghost': ghosting is on for that object 
+                'templated': object is templated or one of its ancestors is
+                'intermediate' : object is marked as "intermediate object"
+            attribute = None: each condition is a string made of at least an attribute name and possibly a comparison operator an a value
+                checks a specific attribute of the node for existence: '.visibility',
+                or against a value: 'translateX >= 2.0'
+            user = None: each condition must be a previously defined function taking the iterated object as argument and returning True or False
+        expression = None: allows to pass the string of a Python expression that will be evaluated on each iterated node,
+            and will limit the result to nodes for which the expression evaluates to 'True'. Use the variable 'node' in the
+            expression to represent the currently evaluated node
+
+        Conditions of the same type (same keyword) are combined as with a logical 'or' for positive conditions :
         iterNodes(type = ['skinCluster', 'blendShape']) will iter on all nodes of type skinCluster OR blendShape
-        Conditions of the type (same keyword) are combined as with a logical and for negative conditions :
+        Conditions of the type (same keyword) are combined as with a logical 'and' for negative conditions :
         iterNodes(type = ['!transform', '!blendShape']) will iter on all nodes of type not transform AND not blendShape
-        Different conditions types (different keyword) are combined as with a logical and :
+        Different conditions types (different keyword) are combined as with a logical 'and' :
         iterNodes(type = 'skinCluster', name = 'bodySkin*') will iter on all nodes that have type skinCluster AND whose name
-        starts with 'bodySkin'. """
+        starts with 'bodySkin'. 
+        
+        Examples : (TODO)
+        """
 
     # if a list of existing PyNodes (DependNodes) arguments is provided, only these will be iterated / tested on the conditions
     # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls?
@@ -1189,7 +1211,7 @@ def iterNodes ( *args, **kwargs ):
     # the resulting dictionnary of conditions on names (compiled regular expressions)
     cNames = {}
     # check
-    print nameArgs   
+    print "name args", nameArgs   
     if nameArgs is not None :
         # convert list to dict if necessary
         if not util.isMapping(nameArgs):
@@ -1252,6 +1274,7 @@ def iterNodes ( *args, **kwargs ):
             # check for duplicates re and add
             _addCondition(cNames, r, val)
         # check
+        print "Name keys:"
         for r in cNames.keys() :
             print "%s:%r" % (r.pattern, cNames[r])     
       
@@ -1262,7 +1285,7 @@ def iterNodes ( *args, **kwargs ):
     # valid flags are 'root', 'leaf', or 'level=x' for a relative depth to start node 
     posArgs = kwargs.get('position', None)
     # check
-    print posArgs    
+    print "position args", posArgs    
     cPos = {}    
     if posArgs is not None :
         # convert list to dict if necessary
@@ -1293,13 +1316,13 @@ def iterNodes ( *args, **kwargs ):
                         if lstart is None and lend is None :
                             level = None
                         else :                      
-                            level = int(lstart, lend)
+                            level = IRange(lstart, lend)
                     else :
                         # it's a single value
                         if levelMatch.groups[1] :
                             level = None
                         elif levelMatch.groups[0] :
-                            level = int(levelMatch.groups[0])
+                            level = IRange(levelMatch.groups[0], levelMatch.groups[0]+1)
                         else :
                             level = None               
                 if level is None :
@@ -1314,6 +1337,7 @@ def iterNodes ( *args, **kwargs ):
             _addCondition(cPos, key, val)            
             # TODO : check for intersection with included levels
         # check
+        print "Pos keys:"
         for r in cPos.keys() :
             print "%s:%r" % (r, cPos[r])    
                            
@@ -1325,7 +1349,7 @@ def iterNodes ( *args, **kwargs ):
     # Note: API iterators can filter on API types, we need to postfilter for all the rest
     typeArgs = kwargs.get('type', None)
     # check
-    print typeArgs
+    print "type args", typeArgs
     # support for types that can be translated as API types and can be directly used by API iterators
     # and other types that must be post-filtered  
     cAPITypes = {}
@@ -1370,8 +1394,10 @@ def iterNodes ( *args, **kwargs ):
             else :
                 warnings.warn("Invalid/unknown type condition %s, ignored" % key)  
         # check
+        print " API type keys: "
         for r in cAPITypes.keys() :
-            print "%s:%r" % (r, cAPITypes[r])   
+            print "%s:%r" % (r, cAPITypes[r])
+        print " Ext type keys: "   
         for r in cExtTypes.keys() :
             print "%s:%r" % (r, cExtTypes[r])
         # if we check for the presence (positive condition) of API types and API types only we can 
@@ -1379,16 +1405,17 @@ def iterNodes ( *args, **kwargs ):
         # iteration for unsatisfied conditions
         if apiFilter and not extendedFilter and not prune :
             for item in cAPITypes.items() :
-                if item[1] and MayaAPITypesInt.has_key(item[0]) :
+                if item[1] and MayaAPITypesInt().has_key(item[0]) :
                      cAPIFilter.append(MayaAPITypesInt()[item[0]])
         # check
+        print " API filter: "
         print cAPIFilter  
                           
     # conditions on pre-defined properties (visible, ghost, etc) for compatibility with ls
     validProperties = {'visible':1, 'ghost':2, 'templated':3, 'intermediate':4}    
     propArgs = kwargs.get('properties', None)
     # check
-    print propArgs    
+    print "Property args", propArgs    
     cProp = {}    
     if propArgs is not None :
         # convert list to dict if necessary
@@ -1407,6 +1434,7 @@ def iterNodes ( *args, **kwargs ):
             else :
                 warnings.warn("Unknown property condition %s, ignored" % key)
         # check
+        print "Properties keys:"
         for r in cProp.keys() :
             print "%s:%r" % (r, cProp[r])      
     # conditions on attributes existence / value
@@ -1418,7 +1446,7 @@ def iterNodes ( *args, **kwargs ):
     # Note : can test for attribute existence with attr != None
     attrArgs = kwargs.get('attribute', None)
     # check
-    print attrArgs    
+    print "Attr args", attrArgs    
     cAttr = {}    
     if attrArgs is not None :
         # convert list to dict if necessary
@@ -1440,6 +1468,7 @@ def iterNodes ( *args, **kwargs ):
             val = i[1]
             attCondMatch = validAttrCond.match(key.strip())
             if attCondMatch is not None :
+                # eval value here or wait resolution ?
                 attCond = (attCondMatch.group('attr'), attCondMatch.group('oper'), attCondMatch.group('value'))
                 # handle inversions
                 if val is False :
@@ -1473,12 +1502,13 @@ def iterNodes ( *args, **kwargs ):
             else :
                 warnings.warn("Unknown attribute condition %s, ignored (must be in the form attr" % key)            
         # check
+        print "Attr Keys:"
         for r in cAttr.keys() :
             print "%s:%r" % (r, cAttr[r])        
     # conditions on user defined boolean functions
     userArgs = kwargs.get('user', None)
     # check
-    print userArgs    
+    print "userArgs", userArgs    
     cUser = {}    
     if userArgs is not None :
         # convert list to dict if necessary
@@ -1491,7 +1521,7 @@ def iterNodes ( *args, **kwargs ):
         for i in userArgs.items() :
             key = i[0]
             val = i[1]
-            if isinstance(key, basestr) :
+            if isinstance(key, basestring) :
                 key = globals().get(key,None)
             if key is not None :
                 if inspect.isfunction(key) and len(inspect.getargspec(key)[0]) is 1 :
@@ -1501,22 +1531,28 @@ def iterNodes ( *args, **kwargs ):
             else :
                 warnings.warn("name '%s' is not defined" % key)            
         # check
+        print "User Keys:"
         for r in cUser.keys() :
             print "%r:%r" % (r, cUser[r])
-
+    # condition on a user defined expression that will be evaluated on each returned PyNode,
+    # that must be represented by the variable 'node' in the expression    
+    userExpr = kwargs.get('exp', None)
+    if userExpr is not None and not isinstance(userExpr, basestring) :
+        raise (ValueError, "iterNodes expression keyword takes an evaluable string Python expression")
 
     # post filtering function
     def _filter( pyobj, types=True, names=True, pos=True, prop=True, attr=True, user=True  ):
         result = True
+        # print "Filter on %r" % pyobj
         # check on types conditions
         if result and types :
             for ct in cAPITypes.items() :
                 if pyobj.type() == ct[0] :
-                    result &= cn[1]
+                    result &= ct[1]
                     break
             for ct in cExtTypes.items() :                      
                 if isinstance(pyobj, ct[0]) :
-                    result &= cn[1]
+                    result &= ct[1]
                     break        
         # check on names conditions
         if result and names :
@@ -1529,37 +1565,64 @@ def iterNodes ( *args, **kwargs ):
             for cp in cPos.items() :
                 if cp[0] == 'root' :
                     if pyobj.isRoot() :
-                        result &= cn[1]
+                        result &= cp[1]
                         break
                 elif cp[0] == 'leaf' :
                     if pyobj.isLeaf() :
-                        result &= cn[1]
-                        break                  
-                # TODO : 'level' condition
-        # check some pre-defined properties
-        if result and prop :
+                        result &= cp[1]
+                        break
+                elif isinstance(cp[0], IRange) :
+                    if pyobj.depth() in cp[0] :
+                        result &= cp[1]
+                        break                             
+                # TODO : 'level' condition, would be faster to get the depth form the API iterator
+        # check some pre-defined properties, so far existing properties all concern dag nodes
+        if result and prop and isinstance(pyobj, DagNode) :
             for cp in cProp.items() :
                 if cp[0] == 'visible' :
-                    # check if object is visible means also check parents for visibility
-                    pass
-                    # if pyobj.hasAttr('visibility') :                
+                    if pyobj.isVisible() :
+                        result &= cp[1]
+                        break               
                 elif cp[0] == 'ghost' :
-                    pass           
+                    if pyobj.hasAttr('ghosting') and pyobj.getAttr('ghosting') :
+                        result &= cp[1]
+                        break                                    
                 elif cp[0] == 'templated' :
-                    pass
+                    if pyobj.isTemplated() :
+                        result &= cp[1]
+                        break       
                 elif cp[0] == 'intermediate' :
-                    pass
+                    if pyobj.isIntermediate() :
+                        result &= cp[1]
+                        break                           
         # check for attribute existence and value
         if result and attr :
-            pass
+            for ca in cAttr.items() :
+                c = ca[0] # a tuple of (attribute, operator, value)
+                if c[1] is None :
+                    if pyobj.hasAttr(c[0]) :
+                        result &= cp[1]
+                        break
+                else :
+                    if eval(str(pyobj.getAttr(c[0]))+c[1]+c[2]) :
+                        result &= cp[1]
+                        break                                               
         # check for used condition functions
         if result and user :
-            pass
+            for cu in cUser.items() :
+                if cu[0](pyobj) :
+                    result &= cp[1]
+                    break
+        # check for a user eval expression
+        if result and userExpr is not None :
+            result = eval(userExpr, globals(), {'node':pyobj})                
         return result
             
     # Iteration :
     needLevelInfo = False
     
+    # TODO : special return options
+    # below, above, childs, parents, asList, breadth, asTree, underworld, allPaths and prune
     if nodes :
         # if a list of existing nodes is provided we iterate on the ones that both exist and match the used flags        
         for pyobj in nodes :
@@ -1569,10 +1632,9 @@ def iterNodes ( *args, **kwargs ):
         # else we iterate on all scene nodes that satisfy the specified flags, 
         for obj in MItNodes( *cAPIFilter ) :
             pyobj = _MObjectPyNode( obj )
-            if _filter (pyobj) :
+            if pyobj.exists() and _filter (pyobj) :
                 yield pyobj
         
-# lst = list(iterNodes())
 
 def iterConnections ( *args, **kwargs ):
     pass
@@ -1615,7 +1677,7 @@ def mayaType (nodeOrType, **kwargs) :
         >>> mayaType ('kVortex', pymel=True)
         >>> <class 'pymel.Vortex'>
         >>> mayaType ('Vortex', inheritedPymel=True)
-        >>> [<class 'pymel.Vortex'>, <class 'pymel.core.DagNode'>, <class 'pymel.core.DependNode'>, <class 'pymel.core.node._BaseObj'>]        
+        >>> [<class 'pymel.Vortex'>, <class 'pymel.node.DagNode'>, <class 'pymel.node.DependNode'>, <class 'pymel.node._BaseObj'>]        
         >>> mayaType ('aimConstraint', apiType=True, inheritedAPI=True)
         >>> {'inheritedAPI': ['kConstraint'], 'apiType': 'kAimConstraint'}
         >>> mayaType (pymel.Transform)
@@ -1678,7 +1740,7 @@ def mayaType (nodeOrType, **kwargs) :
         if (hasattr(pymel, nodeOrType)) :
             pyAttr = getattr (pymel, nodeOrType)
             if inspect.isclass(pyAttr) :
-                if issubclass(pyAttr, node._BaseObj) :
+                if issubclass(pyAttr, _BaseObj) :
                     pyNodeType = pyAttr
                     apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
         # check if it could be a not yet cached Maya type
@@ -1729,7 +1791,7 @@ def mayaType (nodeOrType, **kwargs) :
         if do_pymelInherited :
             k = pyNodeType
             pymelInherited.append(k)      # starting class
-            while k is not 'node._BaseObj' and PyNodeTypesHierarchy().has_key(k) :
+            while k is not '_BaseObj' and PyNodeTypesHierarchy().has_key(k) :
                 k = PyNodeTypesHierarchy()[k]
                 pymelInherited.append(k)            
             
