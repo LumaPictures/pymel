@@ -14,20 +14,17 @@ class MetaRange(type):
         return "%s<BoundType:%r>" % (cls.__name__, cls.BoundType)
        
     def __new__(cls, classname, bases, classdict):
-
-        boundType = int
-        # get the bounds type from first base class that fits requirements
-        required = ('__add__', '__sub__', '__eq__', '__ne__', '__gt__', '__lt__')
-        for baseClass in bases :
-            for reqMethod in required :
-                if not hasattr(baseClass,reqMethod) :
-                    continue
-            boundType = baseClass
-            break
-        # we always derive from set as a bounded range can be expressed as a set
-        if set not in bases :
-            bases = bases+(set,)
-                             
+        
+        # get the BoundType
+        boundType = classdict.pop('bounds', int)
+        # define storage for bounds and steps
+        # adds to classdict
+        newdict = {}
+        newdict['_boundType'] = boundType
+        newdict['_bounds'] = (None, None)
+        newdict['_include'] = (True, True)      
+        newdict['_step'] = boundType(1)
+                            
         # remove what we don't want to expose from bases
         def __getattribute__(self, name):          
             remove = ()
@@ -36,6 +33,89 @@ class MetaRange(type):
             else :
                 return unicode.__getattribute__(self, name)
 
+        basedict = {}
+        # define base methods
+        def beforeEnd(self, i) :
+            end = self._bounds[1]
+            if self._include[1] :
+                return (i <= end)
+            else :
+                return (i < end)
+        def afterStart(self, i) :
+            start = self._bounds[0]
+            if self._include[0] :
+                return (i >= start)
+            else :
+                return (i > start)                          
+        def inBounds(self, i) :
+            return self.beforeEnd(i) and self.afterStart(i)
+        def isNumericStep(self):
+            return isinstance(self._step, self._boundType)
+        def __nonzero__(self) :
+            if self._step :
+                if self.isNumericStep() :
+                    i = self._bounds[0]
+                    if not self._include[0] :
+                        i += self._step
+                    return self.beforeEnd(i)
+                else :
+                    return len(self)!=0    
+            else :
+                return False   
+        def __iter__(self):
+            if self :
+                if self.isNumericStep() :
+                    start = self._bounds[0]
+                    end = self._bounds[1]       
+                    if self._include[0] :
+                        yield start
+                    i = l+self._step
+                    while self.beforeEnd(i) :
+                        yield i
+                        i += self._step
+                else :
+                    pass
+        def __len__(self):
+            if self._step :
+                if self.isNumericStep() :
+                    step = self._step
+                    start = self._bounds[0]
+                    end = self._bounds[1]                     
+                    l = (end-start)%step
+                    if not self.beforeEnd(l*step) :
+                        l -= 1
+                    if self._bounds[0] :
+                        l += 1
+                else :                   
+                    l = 0
+                    for i in self :
+                        l += 1
+                return l
+            else :
+                return 0
+        def __contains__(self, i) :
+            if self :
+                if self.isNumericStep() :
+                    pass
+                else :
+                    for j in self :
+                        if i == j :
+                            return True
+                    return False
+            else :
+                return False
+        def get(self, i, default=None):
+            result = None
+            if self :
+                pass    
+            return result
+           
+        def __getitem__(self, i):
+            pass
+                   
+#        def __add__(self, other):
+#            self_low = self
+        
 #len(s)           cardinality of set s
 #x in s         test x for membership in s
 #x not in s         test x for non-membership in s
@@ -188,33 +268,26 @@ class MetaRange(type):
 # |  
 # |  update(...)
 # |      Update a set with the union of itself and another.
- 
-        # define storage for bounds and steps
-        _bounds = ((None, None),)
-        _openness = ((True, True),)
-        _steps = (boundType(1.0),)
-        # define base methods
-        def __add__(self, other):
-            pass
-        
+
               
         # Now add methods of the defined class, as long as it doesn't try to redefine
-        # __new__, __init__, __getattribute__ or __setitem__
-        newdict = { '__slots__':[], '__dflts__':{}, '__getattribute__':__getattribute__}
-        # set class tree type
-        newdict['_boundType'] = boundType
-
+        # the methods in newdict
         for k in classdict :
             if k in newdict :
                 warnings.warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
             else :
                 newdict[k] = classdict[k]
+        # and add base class methods if not redefined
+        for k in basedict :
+            if not k in newdict :
+                newdict[k] = basedict[k]
         
         return super(MetaRange, cls).__new__(cls, classname, bases, newdict)
 
 # ranges of int
-#class IRange(int):
-#    __metaclass__ =  MetaRange        
+class IRange(object):
+    __metaclass__ =  MetaRange
+    bounds = int      
  
 # ranges of float
 #class FRange(float):
