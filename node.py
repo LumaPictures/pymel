@@ -508,7 +508,7 @@ class Component(object):
     def rotate( self, *args, **kwargs ):
         return rotate( self, *args, **kwargs )
     
-                
+# TODO : change to plug ?                
 class Attribute(_BaseObj):
     """
     Attributes
@@ -624,6 +624,20 @@ class Attribute(_BaseObj):
             return attr
     '''        
 
+    def name(self) :
+        """ Returns the full name of that attribute / plug """
+        return self
+    
+    def nodeName(self):
+        """ Returns the node name of that attribute(plug) """
+        pass
+    
+    def attributeName(self):
+        pass
+    
+    def attributeNames(self):
+        pass
+       
     def array(self):
         """
         Returns the array (multi) attribute of the current element
@@ -632,10 +646,26 @@ class Attribute(_BaseObj):
             'lambert1.groupNode'
         """
         try:
-            return Attribute(Attribute.attrItemReg.split( self )[0])
+            att = Attribute(Attribute.attrItemReg.split( self )[0])
+            if att.isMulti() :
+                return att
+            else :
+                raise TypeError, "%s is not a multi attribute" % self
         except:
             raise TypeError, "%s is not a multi attribute" % self
-    
+
+
+    # TODO : do not list all children elements by default, allow to do 
+    #        skinCluster1.weightList.elements() for first level elements weightList[x]
+    #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
+
+    def elements(self):
+        return cmds.listAttr(self.array(), multi=True)
+        
+    def isElement(self):
+        """ Is the attribute an element of a multi attribute """
+        return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
+
     def plugNode(self):
         'plugNode'
         return PyNode( str(self).split('.')[0])
@@ -654,7 +684,7 @@ class Attribute(_BaseObj):
             >>> SCENE.persp.t.tx.lastPlugAttr()
             'tx'
         """
-        return self.split('.')[-1]
+        return Attribute.attrItemReg.split( self.split('.')[-1] )[0]
         
     node = plugNode
     
@@ -774,6 +804,7 @@ class Attribute(_BaseObj):
         return cmds.removeMultiInstance( self, **kwargs )
         
     # Edge, Vertex, CV Methods
+    # TODO : move that to components ?
     def getTranslation( self, **kwargs ):
         """xform -translation"""
         kwargs['translation'] = True
@@ -864,11 +895,18 @@ class Attribute(_BaseObj):
     
     # TOTO : suppot for plugs: Attribute('node.attr[0]').exists()
     def exists(self):
-        "attributeQuery -exists"
-        try:
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
-        except TypeError:
-            return False
+        "attributeQuery -exists unless it's an element (an actual plug from a multi attribute), then we check if this actual plug exists"
+        if not self.isElement() :
+            try:
+                return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
+            except TypeError:
+                return False
+        else :
+            try:
+                allElements = cmds.listAttr(self.array(), multi=True)
+                return (self in allElements)
+            except :
+                return False
             
     def longName(self):
         "attributeQuery -longName"
