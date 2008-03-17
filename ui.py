@@ -98,6 +98,9 @@ Maya Bug Fix:
 	cmds.scriptTable( *args, **kwargs )
 	
 
+
+metaNode = factories.makeMetaNode( __name__ )
+
 class UI(unicode):
 	def __new__(cls, name=None, create=False, *args, **kwargs):
 		"""
@@ -141,14 +144,14 @@ class UI(unicode):
 # customized ui classes							
 class Window(UI):
 	"""pymel window class"""
-	__metaclass__ = factories.metaNode						
+	__metaclass__ = metaNode						
 	def show(self):
 		cmds.showWindow(self)
 	def delete(self):
 		cmds.deleteUI(self, window=True)
 				
 class FormLayout(UI):
-	__metaclass__ = factories.metaNode
+	__metaclass__ = metaNode
 	def attachForm(self, *args):
 		kwargs = {'edit':True}
 		#if isinstance(list, args[0]):
@@ -174,7 +177,7 @@ class FormLayout(UI):
 		cmds.formLayout(self,**kwargs)
 		
 class TextScrollList(UI):
-	__metaclass__ = factories.metaNode
+	__metaclass__ = metaNode
 	def extend( self, appendList ):
 		""" append a list of strings"""
 		
@@ -194,7 +197,7 @@ class TextScrollList(UI):
 	def selectAll(self):
 		"""select all items"""
 		numberOfItems = self.getNumberOfItems()
-		self.selectIndexedItems(range(1,numberOfItems+1))
+		self.getSelectIndexedItem(range(1,numberOfItems+1))
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
@@ -202,7 +205,7 @@ def _createClassesAndFunctions():
 	for funcName in factories.moduleCmds['ui']:
 		classname = util.capitalize(funcName)
 		if not hasattr( _thisModule, classname ):
-			cls = factories.metaNode(classname, (UI,), {})
+			cls = metaNode(classname, (UI,), {})
 			cls.__module__ = __name__
 			setattr( _thisModule, classname, cls )
 		else:

@@ -496,7 +496,7 @@ def getUICommandsWithCallbacks():
 
 _thisModule = __import__('pymel.core', globals(), locals(), [''])		
 	
-def functionFactory( funcName, returnFunc, module=None ):
+def functionFactory( funcName, returnFunc, module=None, rename=None ):
 	"""create a new function, apply the given returnFunc to the results (if any), 
 	and add to the module given by 'moduleName'.  Use pre-parsed command documentation
 	to add to __doc__ strings for the command."""
@@ -519,6 +519,7 @@ def functionFactory( funcName, returnFunc, module=None ):
 	# if the function is not a builtin and there's no return command to map, just add docs
 	if type(inFunc) == types.FunctionType and returnFunc is None:
 		_addDocs( inFunc, inFunc, cmdInfo )
+		if rename: inFunc.__name__ = rename
 		return inFunc
 	
 	elif type(inFunc) == types.BuiltinFunctionType or ( type(inFunc) == types.FunctionType and returnFunc ):					
@@ -528,7 +529,8 @@ def functionFactory( funcName, returnFunc, module=None ):
 		#----------------------------
 		
 		if funcName in moduleCmds['ui']:
-			
+			# wrap ui callback commands to ensure that the correct types are returned.
+			# we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
 			if funcName.startswith('float'):
 				callbackReturnFunc = float
 			elif funcName.startswith('int'):
@@ -545,7 +547,6 @@ def functionFactory( funcName, returnFunc, module=None ):
 					
 			#print inFunc.__name__, commandFlags		
 			def newFunc( *args, **kwargs):
-				# wrap ui callback commands to ensure that the booleans True and False are returned instead of strings u'true', and u'false'
 				for key in commandFlags:
 					try:
 						cb = kwargs[ key ]
@@ -597,8 +598,13 @@ def functionFactory( funcName, returnFunc, module=None ):
 			def newFunc(*args, **kwargs): return apply(inFunc, args, kwargs)
 	
 		_addDocs( inFunc, newFunc, cmdInfo )
-		newFunc.__name__ = inFunc.__name__
+		
 
+		if rename: 
+			newFunc.__name__ = rename
+		else:
+			newFunc.__name__ = inFunc.__name__
+			
 		return newFunc
 	#else:
 	#	print "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
@@ -665,75 +671,78 @@ def createFunctions( moduleName, returnFunc ):
 overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
 
-class metaNode(type) :
-	"""
-	A metaclass for creating classes based on node type.  Methods will be added to the new classes 
-	based on info parsed from the docs on their command counterparts.
-	"""
-
+def makeMetaNode( moduleName ):
+	module = __import__(moduleName, globals(), locals(), [''])
+	class metaNode(type) :
+		"""
+		A metaclass for creating classes based on node type.  Methods will be added to the new classes 
+		based on info parsed from the docs on their command counterparts.
+		"""
 	
-	def __new__(cls, classname, bases, classdict):
 		
-		nodeType = util.uncapitalize(classname)
-		
-		try:
-			infoCmd = False
+		def __new__(cls, classname, bases, classdict):
+			
+			nodeType = util.uncapitalize(classname)
+			
 			try:
-				nodeType = nodeType_to_nodeCommand[ nodeType ]
-			except KeyError:
+				infoCmd = False
 				try:
-					nodeType = nodeType_to_infoCommand[ nodeType ]
-					infoCmd = True
-				except KeyError: pass
-			
-			#if nodeHierarchy.children( nodeType ):
-			#	print nodeType, nodeHierarchy.children( nodeType )
-			cmdInfo = cmdlist[nodeType]
-			
-			try:	
-				func = getattr(_thisModule, nodeType)
-
-			except AttributeError:
-				func = getattr(cmds,nodeType)
-			
-			# add documentation
-			classdict['__doc__'] = 'class counterpart of function L{%s}\n\n%s\n\n' % (nodeType, cmdInfo['description'])
-			
-			for flag, flagInfo in cmdInfo['flags'].items():
- 				
- 				# don't create methods for query or edit, or for flags which only serve to modify other flags
-				if flag in ['query', 'edit'] or 'modifier' in flagInfo:
-					continue
+					nodeType = nodeType_to_nodeCommand[ nodeType ]
+				except KeyError:
+					try:
+						nodeType = nodeType_to_infoCommand[ nodeType ]
+						infoCmd = True
+					except KeyError: pass
 				
-				modes = flagInfo['modes']
-
-				# query command
-				if 'query' in modes:
-					methodName = 'get' + util.capitalize(flag)
-					if methodName not in classdict:
-						if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-							classdict[methodName] = makeQueryFlagCmd( methodName, func, 
-								flag, flagInfo['docstring'] )
-						#else: print "%s: skipping %s" % ( classname, methodName )
+				#if nodeHierarchy.children( nodeType ):
+				#	print nodeType, nodeHierarchy.children( nodeType )
+				cmdInfo = cmdlist[nodeType]
 				
-				# edit command: 
-				if 'edit' in modes or ( infoCmd and 'create' in modes ):
-					# if there is a corresponding query we use the 'set' prefix. 
-					if 'query' in modes:
-						methodName = 'set' + util.capitalize(flag)
-					#if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-					else:
-						methodName = flag
-						
-					if methodName not in classdict:
-						if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-							classdict[methodName] = makeEditFlagCmd( methodName, func,
-						 		flag, flagInfo['docstring'] )
+				try:	
+					func = getattr(module, nodeType)
+	
+				except AttributeError:
+					func = getattr(cmds,nodeType)
+				
+				# add documentation
+				classdict['__doc__'] = 'class counterpart of function L{%s}\n\n%s\n\n' % (nodeType, cmdInfo['description'])
+				
+				for flag, flagInfo in cmdInfo['flags'].items():
+	 				
+	 				# don't create methods for query or edit, or for flags which only serve to modify other flags
+					if flag in ['query', 'edit'] or 'modifier' in flagInfo:
+						continue
 					
-		except KeyError: # on cmdlist[nodeType]
-			pass
-			
-		return super(metaNode, cls).__new__(cls, classname, bases, classdict)
+					modes = flagInfo['modes']
+	
+					# query command
+					if 'query' in modes:
+						methodName = 'get' + util.capitalize(flag)
+						if methodName not in classdict:
+							if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+								classdict[methodName] = makeQueryFlagCmd( methodName, func, 
+									flag, flagInfo['docstring'] )
+							#else: print "%s: skipping %s" % ( classname, methodName )
+					
+					# edit command: 
+					if 'edit' in modes or ( infoCmd and 'create' in modes ):
+						# if there is a corresponding query we use the 'set' prefix. 
+						if 'query' in modes:
+							methodName = 'set' + util.capitalize(flag)
+						#if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+						else:
+							methodName = flag
+							
+						if methodName not in classdict:
+							if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+								classdict[methodName] = makeEditFlagCmd( methodName, func,
+							 		flag, flagInfo['docstring'] )
+						
+			except KeyError: # on cmdlist[nodeType]
+				pass
+				
+			return super(metaNode, cls).__new__(cls, classname, bases, classdict)
+	return metaNode
 
 def makeDocs( mayaVersion='8.5' ):
 	"internal use only"

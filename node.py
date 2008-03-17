@@ -308,9 +308,14 @@ class PlugName(MayaName):
 class UIName(MayaName):
     pass
 
+
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
+
+_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must be included for sub-modules to be imported correctly
+metaNode = factories.makeMetaNode( __name__ )
+
 
 class _BaseObj(unicode):
     def __repr__(self):
@@ -1439,7 +1444,7 @@ class DagNode(Entity):
     # NOTE: the Maya ls(visible=True) command doesn't take into account display layers, so I ignore them too,
     # but it seems it would be logical to take them into account ?
     def isVisible(self) :
-        if pyobj.getAttr('visibility') :
+        if self.getAttr('visibility') :
             for p in self.parents() :
                 if not p.getAttr('visibility') :
                     return False
@@ -1448,7 +1453,7 @@ class DagNode(Entity):
             return False
     # NOTE : same comment
     def isTemplated(self) :
-        if not pyobj.getAttr('template') :
+        if not self.getAttr('template') :
             for p in self.parents() :
                 if p.getAttr('template') :
                     return True
@@ -1541,7 +1546,7 @@ class Shape(DagNode):
 
         
 class Camera(Shape):
-    __metaclass__ = factories.metaNode
+    __metaclass__ = metaNode
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
@@ -1602,7 +1607,7 @@ class Camera(Shape):
     
             
 class Transform(DagNode):
-    __metaclass__ = factories.metaNode
+    __metaclass__ = metaNode
     def __getattr__(self, attr):
         if attr.startswith('__') and attr.endswith('__'):
             return super(_BaseObj, self).__getattr__(attr)
@@ -1870,7 +1875,7 @@ class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
-    __metaclass__ = factories.metaNode
+    __metaclass__ = metaNode
     """
     Cycle through faces and select those that point up in world space
     
@@ -2033,7 +2038,7 @@ class Mesh(SurfaceShape):
                     
 
 class Subdiv(SurfaceShape):
-    __metaclass__ = factories.metaNode
+    __metaclass__ = metaNode
     def getTweakedVerts(self, **kwargs):
         return cmds.querySubdiv( action=1, **kwargs )
         
@@ -2050,7 +2055,7 @@ class Subdiv(SurfaceShape):
         cmds.subdCleanTopology(self)
     
 class Particle(DeformableShape):
-    #__metaclass__ = factories.metaNode
+    #__metaclass__ = metaNode
     
     class PointArray(ComponentArray):
         def __init__(self, name):
@@ -2267,8 +2272,6 @@ class ObjectSet(Entity):
             
         #items = self.union(items)
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
-
 def _createClasses():
     #for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
     #print factories.nodeHierarchy
@@ -2293,7 +2296,7 @@ def _createClasses():
                 continue
         
             try:
-                cls = factories.metaNode(classname, (base,), {})
+                cls = metaNode(classname, (base,), {})
             except TypeError, msg:
                 #print "%s(%s): %s" % (classname, superNodeType, msg )
                 pass
