@@ -748,20 +748,11 @@ def _MObjectPyNode( obj, comp=None ):
     elif _isValidMNode (obj):
         depNodeFn = OpenMaya.MFnDependencyNode(obj)
         oname = depNodeFn.name()
-        # otype = _apiEnumToNodeType(obj.apiType ())
-        otype = obj.apiTypeStr ()
-        # return PyNode(oname, otype) 
-        ptype = util.capitalize(otype)
-        try:
-            pyConst = getattr(node, ptype)
-            pynode = pyConst(oname)
-        except (AttributeError, TypeError):
-            pynode = DependNode(oname)       
-        return pynode
+        otype = _apiEnumToNodeType(obj.apiType ())
+        return PyNode(oname, otype) 
     elif _isValidMDagPath (obj):
         oname = obj.partialPathName()
-        # otype = _apiEnumToNodeType(obj.apiType ())
-        otype = obj.apiTypeStr ()
+        otype = _apiEnumToNodeType(obj.apiType ())
         if _isValidMObject (comp) :
             clist = None
             # TODO : component handling
@@ -1143,9 +1134,9 @@ def iterNodes ( *args, **kwargs ):
                 if not a in nodes :
                     nodes.append(a)
             else :
-                warnings.warn("'%r' does not exist, ignored" % a)
+                raise ValueError, "'%r' does not exist" % a
         else :
-            warnings.warn("'%r' is not  valid PyNode (DependNode), ignored" % a)
+            raise TypeError, "'%r' is not  valid PyNode (DependNode)" % a
     # check
     print nodes
     # parse kwargs for keywords
@@ -1220,15 +1211,7 @@ def iterNodes ( *args, **kwargs ):
             nameArgs = _optToDict(*nameArgs)
         # check
         print nameArgs
-        # for names parsing
-        invalidCharPattern = r"[^(a-z)^(A-Z)^(0-9)^_^*^?^:]"
-        validCharPattern = r"[a-zA-Z0-9_]"
-        namePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*"
-        nameSpacePattern = r"[a-zA-Z]+[a-zA-Z0-9_]*:"
-        invalidChars = re.compile(r"("+invalidCharPattern+")+")
-        validNameSpace = re.compile(r"^:?"+"("+nameSpacePattern+")*")
-        validName = re.compile(namePattern+r"$")
-        validFullName = re.compile(r"(^:?(?:"+nameSpacePattern+r")*)("+namePattern+r")$")
+        # for names parsing, see class definition in nodes
         curNameSpace = namespaceInfo( currentNamespace=True )    
         for i in nameArgs.items() :
             key = i[0]
@@ -1236,9 +1219,12 @@ def iterNodes ( *args, **kwargs ):
             if key.startswith('(') and key.endswith(')') :
                 # take it as a regular expression directly
                 pass
+            elif MayaName.invalid.findall(key) :
+                # try it as a regular expression in case (is it a good idea)
+                pass
             else :
                 # either a valid node name or a glob pattern
-                nameMatch = validFullName.match(key)
+                nameMatch = FullObjectName.valid.match(key)
                 if nameMatch is not None :
                     # if it's an actual node name
                     nameSpace = nameMatch.group[0]
@@ -1251,26 +1237,18 @@ def iterNodes ( *args, **kwargs ):
                         # format to have distinct match groups for nameSpace and name
                         key = r"("+nameSpace+r")("+name+r")"
                     else :
-                        warnings.warn("'%s' uses inexistent nameSpace '%s' and will be ignored" % (key, nameSpace))
-                        continue
-                else :
-                    badChars = invalidChars.findall(key)
-                    if badChars :
-                        # invalid characters, ignore name
-                        warnings.warn("'%s' contains invalid characters %s, ignored" % (key, badChars))
-                        continue
-                    elif '*' in key or '?' in key :
-                        # it's a glob pattern, try build a re out of it and add it to names conditions
-                        key = key.replace("*", r"("+validCharPattern+r")*")
-                        key = key.replace("?", r"("+validCharPattern+r")")
-                    else : 
-                        # it's not anything we recognize
-                        warnings.warn("'%s' is not a valid node name or glob/regular expression and will be ignored" % a)
+                        raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)
+                elif '*' in key or '?' in key :
+                    # it's a glob pattern, try build a re out of it and add it to names conditions
+                    key = key.replace("*", r"("+MayaName.validCharPattern+r"*)")
+                    key = key.replace("?", r"("+MayaName.validCharPattern+r")")
+                else : 
+                    #is not anything we recognize
+                    raise ValueError, "'%s' is not a valid node name or glob/regular expression" % a
             try :
                 r = re.compile(key)
             except :
-                warnings.warn("'%s' is not a valid regular expression, ignored" % key)
-                continue
+                raise ValueError, "'%s' is not a valid regular expression" % key
             # check for duplicates re and add
             _addCondition(cNames, r, val)
         # check
@@ -1326,13 +1304,12 @@ def iterNodes ( *args, **kwargs ):
                         else :
                             level = None               
                 if level is None :
-                    warnings.warn("Invalid level condition %s, ignored" % key)
+                    raise ValueError, "Invalid level condition %s" % key
                     key = None
                 else :
                     key = level     
             else :
-                warnings.warn("Unknown position condition %s, ignored" % key)
-                key = None
+                raise ValueError, "Unknown position condition %s" % key
             # check for duplicates and add
             _addCondition(cPos, key, val)            
             # TODO : check for intersection with included levels
@@ -1392,7 +1369,7 @@ def iterNodes ( *args, **kwargs ):
                     if val :
                         extendedFilter = True
             else :
-                warnings.warn("Invalid/unknown type condition %s, ignored" % key)  
+                raise ValueError, "Invalid/unknown type condition '%s'" % key 
         # check
         print " API type keys: "
         for r in cAPITypes.keys() :
@@ -1432,7 +1409,7 @@ def iterNodes ( *args, **kwargs ):
                 # key = validProperties[key]
                 _addCondition(cProp, key, val)
             else :
-                warnings.warn("Unknown property condition %s, ignored" % key)
+                raise ValueError, "Unknown property condition '%s'" % key
         # check
         print "Properties keys:"
         for r in cProp.keys() :
@@ -1455,13 +1432,11 @@ def iterNodes ( *args, **kwargs ):
                 attrArgs = [attrArgs]    
             attrArgs = _optToDict(*attrArgs)    
         # check
-        print attrArgs      
-        attrNamePattern = r"([a-zA-Z]+[a-zA-Z0-9_]*)(\[[0-9]+\])?"
+        print attrArgs
+        # for valid attribute name patterns check node.Attribute  
+        # valid form for conditions
         attrValuePattern = r".+"
-        validAttrName = re.compile(attrNamePattern)
-        attrPattern = r"\.?("+attrNamePattern+r")(\."+attrNamePattern+r")*"
-        validAttr = re.compile(attrPattern)
-        attrCondPattern = r"(?P<attr>"+attrPattern+r")[ \t]*(?P<oper>==|!=|>|<|>=|<=)[ \t]*(?P<value>"+attrValuePattern+r")"
+        attrCondPattern = r"(?P<attr>"+PlugName.pattern+r")[ \t]*(?P<oper>==|!=|>|<|>=|<=)?[ \t]*(?P<value>"+attrValuePattern+r")?"
         validAttrCond = re.compile(attrCondPattern)        
         for i in attrArgs.items() :
             key = i[0]
@@ -1488,19 +1463,21 @@ def iterNodes ( *args, **kwargs ):
                 # Note : special case where value is None, means test for attribute existence
                 # only valid with != or ==
                 if attCond[2] is None :
-                    if attCond[1] is '==' :
+                    if attCond[1] is None :
+                        val = True
+                    elif attCond[1] is '==' :
                         attCond[1] = None
                         val = False  
                     elif attCond[1] is '!=' :
                         attCond[1] = None
                         val = True
                     else :
-                        warnings.warn("Value 'None' means testing for attribute existence and is only valid for operator '!=' or '==', '%s' ignored" % key)
+                        raise ValueError, "Value 'None' means testing for attribute existence and is only valid for operator '!=' or '==', '%s' invalid" % key
                         attCond = None
                 # check for duplicates and add
-                _addCondition(cPos, attCond, val)                                               
+                _addCondition(cAttr, attCond, val)                                               
             else :
-                warnings.warn("Unknown attribute condition %s, ignored (must be in the form attr" % key)            
+                raise ValueError, "Unknown attribute condition '%s', must be in the form attr <op> value with <op> : !=, ==, >=, >, <= or <" % key          
         # check
         print "Attr Keys:"
         for r in cAttr.keys() :
@@ -1527,9 +1504,9 @@ def iterNodes ( *args, **kwargs ):
                 if inspect.isfunction(key) and len(inspect.getargspec(key)[0]) is 1 :
                     _addCondition(cUser, key, val)
                 else :
-                    warnings.warn("user condition must be a function taking one argument (the node) that will be tested against True or False, %r ignored" % key)
+                    raise ValueError, "user condition must be a function taking one argument (the node) that will be tested against True or False, %r invalid" % key
             else :
-                warnings.warn("name '%s' is not defined" % key)            
+                raise ValueError, "name '%s' is not defined" % key        
         # check
         print "User Keys:"
         for r in cUser.keys() :
@@ -1538,84 +1515,129 @@ def iterNodes ( *args, **kwargs ):
     # that must be represented by the variable 'node' in the expression    
     userExpr = kwargs.get('exp', None)
     if userExpr is not None and not isinstance(userExpr, basestring) :
-        raise (ValueError, "iterNodes expression keyword takes an evaluable string Python expression")
+        raise ValueError, "iterNodes expression keyword takes an evaluable string Python expression"
 
     # post filtering function
-    def _filter( pyobj, types=True, names=True, pos=True, prop=True, attr=True, user=True  ):
+    def _filter( pyobj, apiTypes={}, extTypes={}, names={}, pos={}, prop={}, attr={}, user={}, expr=None  ):
         result = True
-        # print "Filter on %r" % pyobj
         # check on types conditions
-        if result and types :
-            for ct in cAPITypes.items() :
-                if pyobj.type() == ct[0] :
-                    result &= ct[1]
+        if result and (len(apiTypes)!=0 or len(extTypes)!=0) :
+            result = False
+            for cond in apiTypes.items() :
+                ctyp = cond[0]
+                cval = cond[1]
+                if _nodeTypeToApiType(pyobj.type()) == ctyp :
+                    result = cval
                     break
-            for ct in cExtTypes.items() :                      
-                if isinstance(pyobj, ct[0]) :
-                    result &= ct[1]
-                    break        
+                elif not cval :
+                    result = True                                      
+            for cond in extTypes.items() :  
+                ctyp = cond[0]
+                cval = cond[1]                                    
+                if isinstance(pyobj, ctyp) :
+                    result = cval
+                    break
+                elif not cval :
+                    result = True                   
         # check on names conditions
-        if result and names :
-            for cn in cNames.items() :
-                if cn[0].match(pyobj) is not None :
-                    result &= cn[1]
-                    break             
-        # check on position (for dags) conditions
-        if result and pos and isinstance(pyobj, DagNode) :
-            for cp in cPos.items() :
-                if cp[0] == 'root' :
-                    if pyobj.isRoot() :
-                        result &= cp[1]
-                        break
-                elif cp[0] == 'leaf' :
-                    if pyobj.isLeaf() :
-                        result &= cp[1]
-                        break
-                elif isinstance(cp[0], IRange) :
-                    if pyobj.depth() in cp[0] :
-                        result &= cp[1]
-                        break                             
-                # TODO : 'level' condition, would be faster to get the depth form the API iterator
-        # check some pre-defined properties, so far existing properties all concern dag nodes
-        if result and prop and isinstance(pyobj, DagNode) :
-            for cp in cProp.items() :
-                if cp[0] == 'visible' :
-                    if pyobj.isVisible() :
-                        result &= cp[1]
-                        break               
-                elif cp[0] == 'ghost' :
-                    if pyobj.hasAttr('ghosting') and pyobj.getAttr('ghosting') :
-                        result &= cp[1]
-                        break                                    
-                elif cp[0] == 'templated' :
-                    if pyobj.isTemplated() :
-                        result &= cp[1]
-                        break       
-                elif cp[0] == 'intermediate' :
-                    if pyobj.isIntermediate() :
-                        result &= cp[1]
-                        break                           
-        # check for attribute existence and value
-        if result and attr :
-            for ca in cAttr.items() :
-                c = ca[0] # a tuple of (attribute, operator, value)
-                if c[1] is None :
-                    if pyobj.hasAttr(c[0]) :
-                        result &= cp[1]
-                        break
-                else :
-                    if eval(str(pyobj.getAttr(c[0]))+c[1]+c[2]) :
-                        result &= cp[1]
-                        break                                               
-        # check for used condition functions
-        if result and user :
-            for cu in cUser.items() :
-                if cu[0](pyobj) :
-                    result &= cp[1]
+        if result and len(names)!=0 :
+            result = False
+            for cond in names.items() :
+                creg = cond[0]
+                cval = cond[1]
+                if creg.match(pyobj) is not None :
+                    result = cval
                     break
+                elif not cval :
+                    result = True                                             
+        # check on position (for dags) conditions
+        if result and len(pos)!=0 and isinstance(pyobj, DagNode) :
+            result = False
+            for cond in pos.items() :
+                cpos = cond[0]
+                cval = cond[1]                
+                if cpos == 'root' :
+                    if pyobj.isRoot() :
+                        result = cval
+                        break
+                    elif not cval :
+                        result = True
+                elif cpos == 'leaf' :
+                    if pyobj.isLeaf() :
+                        result = cval
+                        break
+                    elif not cval :
+                        result = True                    
+                elif isinstance(cpos, IRange) :
+                    if pyobj.depth() in cpos :
+                        result = cval
+                        break       
+                    elif not cval :
+                        result = True                                                                
+        # TODO : 'level' condition, would be faster to get the depth from the API iterator
+        # check some pre-defined properties, so far existing properties all concern dag nodes
+        if result and len(prop)!=0 and isinstance(pyobj, DagNode) :
+            result = False
+            for cond in prop.items() :
+                cprop = cond[0]
+                cval = cond[1]                     
+                if cprop == 'visible' :
+                    if pyobj.isVisible() :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True                                  
+                elif cprop == 'ghost' :
+                    if pyobj.hasAttr('ghosting') and pyobj.getAttr('ghosting') :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True                                   
+                elif cprop == 'templated' :
+                    if pyobj.isTemplated() :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True      
+                elif cprop == 'intermediate' :
+                    if pyobj.isIntermediate() :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True                        
+        # check for attribute existence and value
+        if result and len(attr)!=0 :
+            result = False
+            for cond in attr.items() :
+                cattr = cond[0] # a tuple of (attribute, operator, value)
+                cval = cond[1]                  
+                if cattr[1] is None :
+                    if pyobj.hasAttr(cattr[0]) :
+                        result = cval
+                        break
+                    elif not cval :
+                        result = True                      
+                else :
+                    if eval(str(pyobj.getAttr(cattr[0]))+cattr[1]+cattr[2]) :
+                        result = cval
+                        break  
+                    elif not cval :
+                        result = True                                                                   
+        # check for used condition functions
+        if result and len(user)!=0 :
+            result = False
+            for cond in user.items() :
+                cuser = cond[0]
+                cval = cond[1]                    
+                if cuser(pyobj) :
+                    result = cval
+                    break  
+                elif not cval :
+                    result = True  
         # check for a user eval expression
-        if result and userExpr is not None :
-            result = eval(userExpr, globals(), {'node':pyobj})                
+        if result and expr is not None :
+            result = eval(expr, globals(), {'node':pyobj})     
+                     
         return result
             
     # Iteration :
@@ -1626,13 +1648,13 @@ def iterNodes ( *args, **kwargs ):
     if nodes :
         # if a list of existing nodes is provided we iterate on the ones that both exist and match the used flags        
         for pyobj in nodes :
-            if _filter (pyobj) :
+            if _filter (pyobj, cAPITypes, cExtTypes, cNames, cPos, cProp, cAttr, cUser, userExpr ) :
                 yield pyobj
     else :
         # else we iterate on all scene nodes that satisfy the specified flags, 
         for obj in MItNodes( *cAPIFilter ) :
             pyobj = _MObjectPyNode( obj )
-            if pyobj.exists() and _filter (pyobj) :
+            if pyobj.exists() and _filter (pyobj, cAPITypes, cExtTypes, cNames, cPos, cProp, cAttr, cUser, userExpr ) :
                 yield pyobj
         
 
