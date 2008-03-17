@@ -272,6 +272,41 @@ Maya Bug Fix:
         cmds.instancer(*args, **kwargs)
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
+#--------------------------
+# Basic Name class (valid names)
+
+# Holds the object name as well as basic patterns and regex for valid object names in Maya
+# for names parsing
+class MayaName(unicode):
+    invalidCharPattern = r"[^(a-z)^(A-Z)^(0-9)^_^*^?^:]"
+    validCharPattern = r"[a-zA-Z0-9_]"
+    invalid = re.compile(r"("+invalidCharPattern+")+")
+
+class NameSpace(MayaName):
+    pattern = r"[a-zA-Z]+[a-zA-Z0-9_]*:"
+    valid = re.compile(r"^:?"+"("+pattern+")*")   
+     
+class ObjectName(MayaName):
+    pattern = r"[a-zA-Z]+[a-zA-Z0-9_]*"
+    valid = re.compile(pattern) 
+            
+class FullObjectName(ObjectName, NameSpace):
+    pattern = r"(^:?(?:"+NameSpace.pattern+r")*)("+ObjectName.pattern+r")$"
+    valid = re.compile(pattern)
+    
+class PathObjectName(FullObjectName):
+    pass
+            
+class AttributeName(MayaName):
+    pattern = r"([a-zA-Z]+[a-zA-Z0-9_]*)(\[[0-9]+\])?"
+    valid = re.compile(pattern)     
+
+class PlugName(MayaName):
+    pattern = r"\.?("+AttributeName.pattern+r")(\."+AttributeName.pattern+r")*"
+    valid = re.compile(pattern)   
+        
+class UIName(MayaName):
+    pass
 
 #--------------------------
 # Object Wrapper Classes
@@ -296,7 +331,7 @@ class _BaseObj(unicode):
         if attr.startswith('__') and attr.endswith('__'):
             return super(_BaseObj, self).__setattr__(attr, val)        
         return setAttr( '%s.%s' % (self, attr), val )
-
+        
     def stripNamespace(self, levels=0):
         """
         Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
@@ -561,6 +596,7 @@ class Attribute(_BaseObj):
         
     def __getitem__(self, item):
        return Attribute('%s[%s]' % (self, item) )
+       
 
     '''
     def __iter__(self):
@@ -1056,7 +1092,7 @@ class DependNode( _BaseObj ):
 
     def node(self):
         """for compatibility with Attribute class"""
-        return self
+        return self          
         
 
     #--------------------------
