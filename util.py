@@ -62,7 +62,58 @@ except:
 		def __repr__(self):
 			return 'defaultdict(%s, %s)' % (self.default_factory,
 											dict.__repr__(self))
-            
+
+# Static singleton dictionnary metaclass to quickly build classes
+# holding predefined immutable dicts
+class metaStatic(type) :
+    def __new__(mcl, classname, bases, classdict):
+        # Class is a Singleton and some base class (dict or list for instance), Singleton must come first so that it's __new__
+        # method takes precedence
+        base = bases[0]
+        if Singleton not in bases :
+            bases = (Singleton,)+bases        
+        # Some predefined methods
+        def __init__(self, value=None):
+            # Can only create once)       
+            if value is not None :
+                # Can only init once
+                if not self:
+                    # Use the ancestor class dict method to init self
+                    # base.update(self, value)
+                    # self = base(value)
+                    base.__init__(self, value)
+                else :
+                    raise TypeError, "'"+classname+"' object does not support redefinition"
+        # delete the setItem methods of dict we don't want (read only dictionary)
+        def __getattribute__(self, name):         
+            remove = ('clear', 'update', 'pop', 'popitem')
+            if name in remove :
+                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+#            elif self.__dict__.has_key(name) :
+#                return self.__dict__[name]
+            else :
+                return base.__getattribute__(self, name)
+        # Cnnot set an item of the read only dict or list
+        def __setitem__(self,key,val) :
+            raise TypeError, "'"+classname+"' object does not support item assignation"           
+        # Now add methods of the defined class, as long as it doesn't try to redefine
+        # __new__, __init__, __getattribute__ or __setitem__
+        newdict = { '__slots__':[], '__dflts__':{}, '__init__':__init__, '__getattribute__':__getattribute__, '__setitem__':__setitem__ }
+        # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
+        for k in classdict :
+            if k.startswith('__') and k.endswith('__') :
+                # special methods, copy to newdict unless they conflict with pre-defined methods
+                if k in newdict :
+                    warnings.warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
+                else :
+                    newdict[k] = classdict[k]
+            else :
+                # class variables
+                newdict['__slots__'].append(k)
+                newdict['__dflts__'][k] = classdict[k]
+        return super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
+
+           
 class PsuedoUnicode(object):
 	"""to reduce the chance of clashes between methods and attributes, _BaseObj could inherit this class, which
 	behaves exactly like a unicode and yet has none of its public methods."""
