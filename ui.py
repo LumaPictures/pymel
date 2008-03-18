@@ -243,14 +243,16 @@ class AutoLayout(FormLayout):
     HORIZONTAL, VERTICAL = range(2)
     sides = [["top","bottom"],["left","right"]]
 
+    """
     def __new__(cls,  *args, **kwargs):
         kwargs.pop("orientation",None)
         kwargs.pop("spacing",None)
         kwargs.pop("reversed",None)
         kwargs.pop("ratios",None)
         return FormLayout.__new__(cls, *args, **kwargs)
+    """
         
-    def __init__(self, orientation=VERTICAL, spacing=2, reversed=False, ratios=None, *args,**kwargs):
+    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None):
         """ 
         spacing - absolute space between controls
         orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
@@ -318,30 +320,25 @@ class AutoLayout(FormLayout):
             else:
                 self.attachNone(children[i],
                     self.sides[1-self.ori][1])
-        
-class HorizontalLayout(AutoLayout):
-    """ Alias for AutoLayout with a HORIZONTAL orientation """
-    def __init__(self, *args,**kwargs):
-        kwargs["orientation"] = AutoLayout.HORIZONTAL
-        AutoLayout.__init__(self, *args, **kwargs)
 
-class VerticalLayout(AutoLayout):
-    """ Alias for AutoLayout with a VERTICAL orientation """
-    def __init__(self, *args,**kwargs):
-        kwargs["orientation"] = AutoLayout.VERTICAL
-        AutoLayout.__init__(self, *args, **kwargs)    
 
 def autoLayout(*args, **kwargs):
-    kwargs["create"] = True
-    return AutoLayout(*args, **kwargs)
+	kw = {}
+	for k in kwargs.keys():
+		if k in ["orientation", "spacing", "reversed", "ratios"]:
+			v = kwargs.pop(k,None)
+			if v is not None:
+				kw[k] = v
+	
+	return AutoLayout(formLayout(*args, **kwargs),**kw)
 
 def horizontalLayout(*args, **kwargs):
-    kwargs["create"] = True
-    return HorizontalLayout(*args, **kwargs)
+	kwargs["orientation"] = AutoLayout.HORIZONTAL
+	return autoLayout(*args, **kwargs)
 
 def verticalLayout(*args, **kwargs):
-    kwargs["create"] = True
-    return VerticalLayout(*args, **kwargs)
+	kwargs["orientation"] = AutoLayout.VERTICAL
+	return autoLayout(*args, **kwargs)
 
 
 
@@ -409,7 +406,7 @@ class SmartLayoutCreator:
 SLC = SmartLayoutCreator
         
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
-    dict = SLC("layout", HorizontalLayout, {"create":True, "ratios":ratios}, HorizontalLayout.redistribute,  [
+    dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
                 SLC("label", text, {"l":label,"al":align}),
                 SLC("control", uiFunc, kwargs)
             ]).create(parent=parent)
