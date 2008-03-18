@@ -17,7 +17,7 @@ except ImportError:
 
 import util, factories, node, ui
 from vector import *
-from range import *
+from pyRange import *
 
 try:
 	from luma.filepath import filepath as Filepath
