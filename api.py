@@ -1,6 +1,10 @@
 """ Imports Maya API methods in the 'api' namespace, and defines various utilities for Python<->API communication """
 
-from maya.cmds import about
+# They will be imported / redefined later in Pymel, but we temporarily need them here
+from maya.cmds import about as _about
+from maya.cmds import ls as _ls
+
+# import all available Maya API methods in this module (api)
 from maya.OpenMaya import *
 from maya.OpenMayaAnim import *
 try: from maya.OpenMayaCloth import *
@@ -9,12 +13,56 @@ try : from maya.OpenMayaFX import *
 except: pass
 try : from maya.OpenMayaMPx import *
 except: pass
-if not about(batch=True) :
+if not _about(batch=True) :
     try : from maya.OpenMayaUI import *
     except: pass
 try : from maya.OpenMayaRender import *
 except: pass
 
+import sys, inspect, warnings, timeit, time, re
+from pymel.util import Singleton, metaStatic, expandArgs
+
+_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+
+# fast convenience tests on API objects
+def isValidMObjectHandle (obj):
+    if isinstance(obj, MObjectHandle) :
+        return obj.isValid() and obj.isAlive()
+    else :
+        return False
+
+def isValidMObject (obj):
+    if isinstance(obj, MObject) :
+        return not obj.isNull()
+    else :
+        return False
+    
+def isValidMPlug (obj):
+    if isinstance(obj, MPlug) :
+        return not obj.isNull()
+    else :
+        return False
+
+def isValidMDagPath (obj):
+    if isinstance(obj, MDagPath) :
+        return obj.isValid()
+    else :
+        return False
+
+def isValidMNode (obj):
+    if isValidMObject(obj) :
+        return obj.hasFn(MFn.kDependencyNode)
+    else :
+        return False
+
+def isValidMDagNode (obj):
+    if isValidMObject(obj) :
+        return obj.hasFn(MFn.kDagNode)
+    else :
+        return False
+    
+def isValidMNodeOrPlug (obj):
+    return isValidMPlug (obj) or isValidMNode (obj)
 
 # Maya static info :
 # Initializes various static look-ups to speed up Maya types conversions
@@ -24,7 +72,7 @@ class MayaAPITypesInt(dict) :
     __metaclass__ =  metaStatic
 
 # Dictionnary of Maya API types to their MFn::Types enum,
-MayaAPITypesInt(dict(inspect.getmembers(api.MFn, lambda x:type(x) is int)))
+MayaAPITypesInt(dict(inspect.getmembers(MFn, lambda x:type(x) is int)))
 
 class MayaIntAPITypes(dict) :
     __metaclass__ =  metaStatic
@@ -91,11 +139,11 @@ def _getAPIType (mayaType) :
         # we create a dummy object of this type in a dgModifier
         # as the dgModifier.doIt() method is never called, the object
         # is never actually created in the scene
-        obj = api.MObject() 
-        dagMod = api.MDagModifier()
-        dgMod = api.MDGModifier()          
+        obj = MObject() 
+        dagMod = MDagModifier()
+        dgMod = MDGModifier()          
         try :
-            parent = dagMod.createNode ( 'transform', api.MObject())
+            parent = dagMod.createNode ( 'transform', MObject())
             obj = dagMod.createNode ( mayaType, parent )
         except :
             try :
@@ -126,7 +174,7 @@ def updateMayaTypesList() :
     """ updates the cached MayaTypes lists """
     start = time.time()
     # use dict of empty keys just for faster random access
-    typeList = dict( ReservedMayaTypes().items() + [(k, None) for k in cmds.ls(nodeTypes=True)] )
+    typeList = dict( ReservedMayaTypes().items() + [(k, None) for k in _ls(nodeTypes=True)] )
     # remove types that no longuer exist
     for k in MayaTypesToAPI().keys() :
         if not typeList.has_key(k) :
@@ -199,12 +247,12 @@ ReservedAPIHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject',
 def _getMObject(nodeType, dagMod, dgMod) :
     """ Returns a queryable MObject form a give apiType """
     
-    if type(dagMod) is not api.MDagModifier or type(dgMod) is not api.MDGModifier :
+    if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
     # cant create these nodes, some would crahs MAya also
     if ReservedAPITypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
         return None   
-    obj = api.MObject()
+    obj = MObject()
     if MayaAPIToTypes().has_key(nodeType) :
         mayaType = MayaAPIToTypes()[nodeType].keys()[0]
         apiType = nodeType
@@ -215,14 +263,14 @@ def _getMObject(nodeType, dagMod, dgMod) :
         return None    
       
     try :
-        parent = dagMod.createNode ( 'transform', api.MObject())
+        parent = dagMod.createNode ( 'transform', MObject())
         obj = dagMod.createNode ( mayaType, parent )
     except :
         try :
             obj = dgMod.createNode ( mayaType )
         except :
             pass
-    if api.isValidMObject(obj) :
+    if isValidMObject(obj) :
         return obj
     else :
         return None
@@ -248,7 +296,7 @@ def _hasFn (apiType, dagMod, dgMod, parentType=None) :
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
     obj = _getMObject(apiType, dagMod, dgMod, parentType) 
-    if api.isValidMObject(obj) :
+    if isValidMObject(obj) :
         return obj.hasFn(typeInt)
     else :
         return False
@@ -281,10 +329,10 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
     # is never actually created in the scene
     result = None           
     obj = kwargs.get(apiType, None)        
-    if not api.isValidMObject(obj) :
+    if not isValidMObject(obj) :
         # print "need creation for %s" % apiType
         obj = _getMObject(apiType, dagMod, dgMod)
-    if api.isValidMObject(obj) :
+    if isValidMObject(obj) :
         if not kwargs.get(apiType, None) :
             kwargs[apiType] = obj          # update it if we had to create
         parents = []
@@ -341,16 +389,16 @@ def _createNodes(dagMod, dgMod, *args) :
         if ReservedAPITypes().has_key(apiType) or ReservedMayaTypes().has_key(mayaType) :
             result[apiType] = None
         else :
-            obj = api.MObject()          
+            obj = MObject()          
             try :
-                parent = dagMod.createNode ( 'transform', api.MObject())
+                parent = dagMod.createNode ( 'transform', MObject())
                 obj = dagMod.createNode ( mayaType, parent )
             except :
                 try :
                     obj = dgMod.createNode ( mayaType )
                 except :
                     pass
-            if api.isValidMObject(obj) :
+            if isValidMObject(obj) :
                 result[apiType] = obj
             else :
                 result[apiType] = None
@@ -363,31 +411,32 @@ class MayaAPITypesHierarchy(dict) :
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
 def buildAPITypesHierarchy () :
     def _MFnType(x) :
-        if x == api.MFnBase :
+        if x == MFnBase :
             return 1
         else :
             try :
                 return x().type()
             except :
                 return 0
-    MFn = inspect.getmembers(OpenMaya, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-    try : MFn += inspect.getmembers(OpenMayaAnim, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-    except : pass
-    try : MFn += inspect.getmembers(OpenMayaCloth, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-    except : pass
-    try : MFn += inspect.getmembers(OpenMayaFX, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-    except : pass
-    try : MFn += inspect.getmembers(OpenMayaMPx, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-    except : pass
-    if not cmds.about(batch=True) :
-        try : MFn += inspect.getmembers(OpenMayaUI, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-        except : pass
-    try : MFn += inspect.getmembers(OpenMayaRender, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
-    except : pass
+    # all of maya OpenMaya api is now imported in module api's namespace
+    MFn = inspect.getmembers(_thisModule, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+#    try : MFn += inspect.getmembers(OpenMayaAnim, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+#    except : pass
+#    try : MFn += inspect.getmembers(OpenMayaCloth, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+#    except : pass
+#    try : MFn += inspect.getmembers(OpenMayaFX, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+#    except : pass
+#    try : MFn += inspect.getmembers(OpenMayaMPx, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+#    except : pass
+#    if not cmds._about(batch=True) :
+#        try : MFn += inspect.getmembers(OpenMayaUI, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+#        except : pass
+#    try : MFn += inspect.getmembers(OpenMayaRender, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))    
+#    except : pass
     MFn = dict(MFn)
     MFnTree = inspect.getclasstree([MFn[k] for k in MFn.keys()])
     MFnDict = {}
-    for x in util.expandArgs(MFnTree, type='list') :
+    for x in expandArgs(MFnTree, type='list') :
         try :
             ct = _MFnType(x[0])
             pt = _MFnType(x[1][0])
@@ -399,8 +448,8 @@ def buildAPITypesHierarchy () :
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
     # Make it faster by pre-creating the nodes used to test
-    dagMod = api.MDagModifier()
-    dgMod = api.MDGModifier()      
+    dagMod = MDagModifier()
+    dgMod = MDGModifier()      
     nodeDict = _createNodes(dagMod, dgMod, *MayaAPITypesInt().keys())
     # for k in nodeDict.keys() :
         # print "Cached %s : %s" % (k, nodeDict[k])
@@ -432,135 +481,19 @@ MayaAPITypesHierarchy(buildAPITypesHierarchy())
 elapsed = time.time() - start
 print "Initialized Maya API types hierarchy tree in %.2f sec" % elapsed
 
-# TODO : to represent pluging registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
+# TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
-# Need to build a similar dict of Pymel types to their corresponding API types
-class PyNodeToMayaAPITypes(dict) :
-    __metaclass__ =  metaStatic
-
-# inverse lookup, some Maya API types won't have a PyNode equivalent
-class MayaAPITypesToPyNode(dict) :
-    __metaclass__ =  metaStatic
-
-# build a PyNode to API type relation or PyNode to Maya node types relation ?
-def buildPyNodeToAPI () :
-    # Check if a pymel class is DependNode or a subclass of DependNode
-    def _PyNodeClass (x) :
-        try :
-            return issubclass(x, _BaseObj)
-        except :
-            return False    
-    listPyNodes = dict(inspect.getmembers(node, _PyNodeClass))
-    PyNodeDict = {}
-    PyNodeInverseDict = {}
-    for k in listPyNodes.keys() :
-        # assume that PyNode type name is the API type without the leading 'k'
-        PyNodeType = listPyNodes[k]
-        PyNodeTypeName = PyNodeType.__name__
-        APITypeName = 'k'+PyNodeTypeName
-        if MayaAPIToTypes().has_key(APITypeName) :
-            PyNodeDict[PyNodeType] = APITypeName
-            PyNodeInverseDict[APITypeName] = PyNodeType
-    # Would be good to limit special treatments
-    PyNodeDict[_BaseObj] = 'kBase'
-    PyNodeInverseDict['kBase'] = _BaseObj
-    PyNodeDict[DependNode] = 'kDependencyNode'
-    PyNodeInverseDict['kDependencyNode'] = DependNode
-                          
-    # Initialize the static classes to hold these
-    PyNodeToMayaAPITypes (PyNodeDict)
-    MayaAPITypesToPyNode (PyNodeInverseDict)
-
-# Initialize Pymel classes to API types lookup
-#buildPyNodeToAPI()
-start = time.time()
-buildPyNodeToAPI()
-elapsed = time.time() - start
-print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
-
-# PyNode types names (as str)
-class PyNodeTypeNames(dict) :
-    """ Lookup from PyNode type name to PyNode type """
-    __metaclass__ =  metaStatic
-
-# Dictionnary of Maya API types to their MFn::Types enum
-PyNodeTypeNames((k.__name__, k) for k in PyNodeToMayaAPITypes().keys())  
-
-# child:parent lookup of the pymel classes that derive from DependNode
-class PyNodeTypesHierarchy(dict) :
-    __metaclass__ =  metaStatic
-
-# Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def buildPyNodeTypesHierarchy () :    
-    PyNodeTree = inspect.getclasstree([k for k in PyNodeToMayaAPITypes().keys()])
-    PyNodeDict = {}
-    for x in util.expandArgs(PyNodeTree, type='list') :
-        try :
-            ct = x[0]
-            pt = x[1][0]
-            if issubclass(ct, _BaseObj) and issubclass(pt, _BaseObj) :
-                PyNodeDict[ct] = pt
-        except :
-            pass
-
-    return PyNodeDict 
-
-# Initialize the Pymel class tree
-# PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
-start = time.time()
-PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
-elapsed = time.time() - start
-print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
-
-
-# conversion fonctions
-
-# conversion maya type -> api type
-
-# get the API type enum (The api.MFn.Types int, ie api.MFn.kDagNode) from a maya type,
-# no check is done here, it's a fast private function to be used by the public functions in dagTools
-def _nodeTypeToApiEnum (nodeType) :
-    """ Given a Maya node type, return the corresponding API type enum int """
-    return MayaTypesToAPITypeInt().get(nodeType, None)
-
-# get the API type from a maya type, no check is done here, it's a fast private function
-# to be used by the public functions in dagTools
-def _nodeTypeToApiType (nodeType) :
-    """ Given a Maya node type, return the corresponding API type name """
-    return MayaTypesToAPI().get(nodeType, None)
-        
-# The public function that handles a variable number of node types and flags to return either api type enum int or name
-# in the case where no correspondance is found, will return the API type of the first node type parent in the node types
-# hierarchy that can be matched to an API type         
-def nodeTypeToApi (*args, **kwargs) :
-    """ Given a list of Maya node types, return the corresponding API type or API type int """
-    if args :
-        do_apiInt = kwargs.get('apiEnum', False)
-        do_apiStr = kwargs.get('apiType', False)
-        result = []
-        for arg in args :
-            if do_apiStr and do_apiInt :
-                result.append(tuple(MayaTypesToAPI().get(arg,None), MayaTypesToAPITypeInt().get(arg,None)))
-            elif do_apiInt :
-                result.append(MayaTypesToAPITypeInt().get(arg,None))
-            else : 
-                result.append(MayaTypesToAPI().get(arg,None))    # default: API type name
-        if len(result) == 1 :
-            return result[0]
-        else :
-            return tuple(result)
-        
 # conversion node type -> api type
 
 # get the maya type from an API type
-def _apiEnumToNodeType (apiTypeEnum) :
+def apiEnumToNodeType (apiTypeEnum) :
     """ Given an API type enum int, returns the corresponding Maya node type,
         note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
         can be found, will return the corresponding type for the first parent in the types hierarchy
         that can be matched """
     return APITypeIntToMayaTypes().get(apiTypeEnum, None)
 
-def _apiTypeToNodeType (apiType) :
+def apiTypeToNodeType (apiType) :
     """ Given an API type name, returns the corresponding Maya node type,
         note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
         can be found, will return the corresponding type for the first parent in the types hierarchy
@@ -587,54 +520,6 @@ def apiToNodeType (*args) :
 
 def isValidMayaTypeName (arg):
     return MayaTypesToAPI().has_key(arg)
-
-def isValidPyNodeType (arg):
-    return PyNodeToMayaAPITypes().has_key(arg)
-
-def isValidPyNodeTypeName (arg):
-    return PyNodeTypeNames().has_key(arg)
-
-
-
-# fast convenience tests on API objects
-def isValidMObjectHandle (obj):
-    if isinstance(obj, MObjectHandle) :
-        return obj.isValid() and obj.isAlive()
-    else :
-        return False
-
-def isValidMObject (obj):
-    if isinstance(obj, MObject) :
-        return not obj.isNull()
-    else :
-        return False
-    
-def isValidMPlug (obj):
-    if isinstance(obj, MPlug) :
-        return not obj.isNull()
-    else :
-        return False
-
-def isValidMDagPath (obj):
-    if isinstance(obj, MDagPath) :
-        return obj.isValid()
-    else :
-        return False
-
-def isValidMNode (obj):
-    if isValidMObject(obj) :
-        return obj.hasFn(MFn.kDependencyNode)
-    else :
-        return False
-
-def isValidMDagNode (obj):
-    if isValidMObject(obj) :
-        return obj.hasFn(MFn.kDagNode)
-    else :
-        return False
-    
-def isValidMNodeOrPlug (obj):
-    return isValidMPlug (obj) or isValidMNode (obj)
 
 # Converting API MObjects and more
 
@@ -694,35 +579,6 @@ def MObjectName( obj ):
     else :
         return unicode(obj)
 
-# Selection list to PyNodes
-def MSelectionPyNode ( sel ):
-    length = sel.length()
-    dag = MDagPath()
-    comp = MObject()
-    obj = MObject()
-    result = []
-    for i in xrange(length) :
-        selStrs = []
-        sel.getSelectionStrings ( i, selStrs )    
-        print "Working on selection %i:'%s'" % (i, ', '.join(selStrs))
-        try :
-            sel.getDagPath(i, dag, comp)
-            pynode = PyNode( dag, comp )
-            result.append(pynode)
-        except :
-            try :
-                sel.getDependNode(i, obj)
-                pynode = PyNode( obj )
-                result.append(pynode)                
-            except :
-                warnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
-    return result      
-        
-        
-def activeSelectionPyNode () :
-    sel = MSelectionList()
-    MGlobal.getActiveSelectionList ( sel )   
-    return _MSelectionPyNode ( sel )
 
 # names to MObjects function (expected to be faster to share one selectionList)
 def nameToMObject( *args ):
@@ -745,3 +601,5 @@ def nameToMObject( *args ):
         return result[0]
     else :
         return tuple(result)
+    
+    
