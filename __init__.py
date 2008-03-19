@@ -615,7 +615,7 @@ __version__ = '0.7.9'
 import util
 assert util.mayaInit() 
 
-
+import api
 from node import *
 from ctx import *
 from io import *
