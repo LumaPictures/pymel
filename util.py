@@ -5,7 +5,13 @@ from collections import *
 from path import path
 import envparse
 
-
+if os.name == 'nt' :
+	maya = 'maya.exe'
+	sep = ';'
+else :
+	maya = 'maya.bin'
+	sep = ':'
+	
 #from maya.cmds import encodeString
 
 # Singleton classes can be derived from this class
@@ -479,18 +485,30 @@ def source (file, searchPath=None, recurse=False) :
     # print "Executing: "+filepath
     return execfile(filepath)
 
+
+def getMayaLocation():
+	try:
+		return os.environ['MAYA_LOCATION']
+	except:
+		return os.path.dirname( os.path.dirname( sys.executable ) )
+		
+def getMayaVersion():
+	try :
+		from maya.cmds import about        
+		return eval("about(version=True)");
+	except :
+		# get version from MAYA_LOCATION then
+		try :
+			return re.search( 'maya([\d.]+([\-]x[\d.]+)?)', getMayaLocation() ).group(1)
+		except:
+			pass
+						
 # parse the Maya.env file and set the environement variablas and python path accordingly
 def parseMayaenv(envLocation=None, version=None) :
 	""" parse the Maya.env file and set the environement variablas and python path accordingly.
 		You can specify a location for the Maya.env file or the Maya version"""
 	name = 'Maya.env'
-	
-	if os.name == 'nt' :
-		maya = 'maya.exe'
-		sep = ';'
-	else :
-		maya = 'maya.bin'
-		sep = ':'
+
 		
 	envPath = None
 	if envLocation :
@@ -512,20 +530,10 @@ def parseMayaenv(envLocation=None, version=None) :
 		# try to find which version of Maya should be initialized
 		if not version :
 			# try to query version, will only work if reparsing env from a working Maya
-			try :
-				from maya.cmds import about        
-				version = eval("about(version=True)");
-			except :
-				# get version from MAYA_LOCATION then
-				try :
-					version = re.search( 'maya([\d.]+([\-]x[\d.]+)?)', os.environ['MAYA_LOCATION']).group(1)		
-				except :
-					# if run from Maya provided mayapy / python interpreter, can guess version
-					startPath = os.path.dirname(sys.executable)
-					if os.path.isfile(os.path.join(startPath, maya)) :
-						version = os.path.basename(startPath)
-					else :
-						print "Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir
+			version = getMayaVersion()
+			if version is None:
+				# if run from Maya provided mayapy / python interpreter, can guess version
+				print "Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir
 		# look first for Maya.env in 'version' subdir of MAYA_APP_DIR, then directly in MAYA_APP_DIR
 		if version and os.path.isfile(os.path.join(maya_app_dir, version, name)) :
 			envPath = os.path.join(maya_app_dir, version, name)

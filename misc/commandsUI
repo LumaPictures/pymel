@@ -49,8 +49,6 @@ toolCollection
 window
 blendShapeEditor
 blendShapePanel
-buildBookmarkMenu
-buildKeyframeMenu
 button
 checkBox
 checkBoxGrp
@@ -124,3 +122,4 @@ cmdScrollFieldReporter
 cmdShell
 nameField
 palettePort
+componentEditor

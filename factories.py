@@ -9,6 +9,76 @@ try:
 except ImportError: pass
 
 #---------------------------------------------------------------
+#		Mappings and Lists
+#---------------------------------------------------------------
+
+#: creation commands whose names do not match the type of node they return require this dict
+#: to resolve which command the class should wrap 
+nodeType_to_nodeCommand = {
+	#'failed' : 'clip',
+	#'failed' : 'clipSchedule',
+	'airField' : 'air',
+	'dragField' : 'drag',
+	'emitter' : 'emitter',
+	'turbulenceField' : 'turbulence',
+	#'failed' : 'effector',
+	'volumeAxisField' : 'volumeAxis',
+	'uniformField' : 'uniform',
+	'gravityField' : 'gravity',
+	#'failed' : 'event',
+	#'failed' : 'pointCurveConstraint',
+	#'failed' : 'deformer',
+	#'failed' : 'constrain',
+	'locator' : 'spaceLocator',
+	'vortexField' : 'vortex',
+	'makeNurbTorus' : 'torus',
+	'makeNurbCone' : 'cone',
+	'makeNurbCylinder' : 'cylinder',
+	#'failed' : 'curve',
+	'makeNurbSphere' : 'sphere',
+	'makeNurbCircle' : 'circle',
+	'makeNurbPlane' : 'nurbsPlane',
+	'makeNurbsSquare' : 'nurbsSquare',
+	'makeNurbCube' : 'nurbsCube',
+	'skinPercent' : 'skinCluster',
+}
+
+#: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
+#: these commands require special treatment during class generation because, for them the 'create' mode is the same as other node's 'edit' mode
+nodeType_to_infoCommand = {
+	'mesh' : 'polyEvaluate',
+	'transform' : 'xform'
+}
+
+module_shortName_to_longName = {
+	'model'	: 'Modeling',
+	'render': 'Rendering',
+	'fx'	: 'Effects',
+	'anim'	: 'Animation',
+	'ui'	: 'Windows',
+	#'io'	: 'System',
+	#'core'	: 'General'
+}
+#: modifier flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
+#: because the maya docs do not specify in any parsable way which flags are modifiers, we must maintain this dictionary.
+#: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
+modifierFlags = {
+	'xform' : ( ( 'absolute', 		[] ),
+				( 'relative', 		[] ),
+				( 'euler',			['relative'] ),
+				( 'objectSpace',	['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+				( 'worldSpace',		['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+				( 'preserve',		['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
+				( 'worldSpaceDistance', ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
+			)
+}
+
+#: these are commands which should need to be manually added to the list parsed from the docs
+moduleCommandAddtions = {
+	'Windows' : ['deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI']
+}
+
+#---------------------------------------------------------------
 #		Doc Parser
 #---------------------------------------------------------------
 	
@@ -21,7 +91,7 @@ class CommandDocParser(HTMLParser):
 		self.pcount = 0
 		self.active = False  # this is set once we reach the portion of the document that we want to parse
 		self.description = ''
-		
+		self.example = ''
 		HTMLParser.__init__(self)
 	
 	def startFlag(self, data):
@@ -61,13 +131,16 @@ class CommandDocParser(HTMLParser):
 	def handle_starttag(self, tag, attrs):
 		#print "begin: %s tag: %s" % (tag, attrs)
 		if not self.active:
-			if tag == 'a' and attrs[0][1] == 'hFlags':
-				#print 'ACTIVE'
-				self.active = 'flag'
-					
+			if tag == 'a':
+				if attrs[0][1] == 'hFlags':
+					#print 'ACTIVE'
+					self.active = 'flag'
+				elif attrs[0][1] == 'hExamples':
+					#print "start examples"
+					self.active = 'examples'
 		elif tag == 'a' and attrs[0][0] == 'name':
 			self.endFlag()
-			#print "NEW FLAG", self.currFlag
+			#print "NEW FLAG", attrs
 			self.currFlag = attrs[0][1][4:]
 			
 	
@@ -76,7 +149,7 @@ class CommandDocParser(HTMLParser):
 			self.flags[self.currFlag]['modes'].append(attrs[1][1])
 		elif tag == 'h2':
 			self.active = False
-			
+				
 	def handle_endtag(self, tag):
 		#if tag == 'p' and self.active == 'command': self.active = False
 		#print "end: %s" % tag
@@ -86,7 +159,13 @@ class CommandDocParser(HTMLParser):
 					self.active = 'command'
 				else:
 					self.pcount += 1
-		
+		elif self.active == 'examples' and tag == 'pre':
+			self.active = False
+	
+	def handle_entityref(self,name):
+		if self.active == 'examples':
+			self.example += r'"'
+			
 	def handle_data(self, data):
 		if not self.active:
 			return
@@ -112,9 +191,16 @@ class CommandDocParser(HTMLParser):
 				self.description += data
 			#print data
 			#self.active = False
-
+		elif self.active == 'examples' and data != 'Python examples':
+			#print "Example\n"
+			#print data
+			self.example += data
+			#self.active = False
+			
 def _mayaDocsLocation( version ):
-	docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
+	#docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
+	docLocation = path.path( util.getMayaLocation() ) 
+
 	import platform
 	if platform.system() == 'Darwin':
 		docLocation = docLocation.parent.parent
@@ -130,11 +216,24 @@ def _getCmdInfo( command, version='8.5' ):
 		f = open( _mayaDocsLocation(version) / 'CommandsPython/%s.html' % (command) )	
 		parser = CommandDocParser()
 		parser.feed( f.read() )
-		f.close()
-		return parser.description, parser.flags
+		f.close()	
+
+		data = parser.example
+		data.rstrip()
+		reg = re.compile(r'\bcmds\.')
+		lines = data.split('\n')
+		for i, line in enumerate(lines):
+			line = reg.sub( 'pm.', line )
+			line = line.replace( 'import maya.cmds as cmds', 'import pymel as pm' )
+			line = '    >>> ' + line
+			lines[i] = line
+			
+		data = '\n'.join( lines )
+			
+		return {  'flags': parser.flags, 'description' : parser.description, 'example': data }
 	except IOError:
 		#print "could not find docs for %s" % command
-		return ('',{})
+		return { 'flags': {}, 'description' : '', 'example': '' }
 		#raise IOError, "cannot find maya documentation directory"
 
 class NodeHierarchyDocParser(HTMLParser):
@@ -260,77 +359,17 @@ def getModuleCommandList( category, version='8.5' ):
 	parser = CommandModuleDocParser()
 	parser.feed( f.read() )
 	f.close()
-	return parser.cmdList
+	return parser.cmdList + moduleCommandAddtions.get(category, [] )
 	
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
-
-#: creation commands whose names do not match the type of node they return require this dict
-#: to resolve which command the class should wrap 
-nodeType_to_nodeCommand = {
-	#'failed' : 'clip',
-	#'failed' : 'clipSchedule',
-	'airField' : 'air',
-	'dragField' : 'drag',
-	'emitter' : 'emitter',
-	'turbulenceField' : 'turbulence',
-	#'failed' : 'effector',
-	'volumeAxisField' : 'volumeAxis',
-	'uniformField' : 'uniform',
-	'gravityField' : 'gravity',
-	#'failed' : 'event',
-	#'failed' : 'pointCurveConstraint',
-	#'failed' : 'deformer',
-	#'failed' : 'constrain',
-	'locator' : 'spaceLocator',
-	'vortexField' : 'vortex',
-	'makeNurbTorus' : 'torus',
-	'makeNurbCone' : 'cone',
-	'makeNurbCylinder' : 'cylinder',
-	#'failed' : 'curve',
-	'makeNurbSphere' : 'sphere',
-	'makeNurbCircle' : 'circle',
-	'makeNurbPlane' : 'nurbsPlane',
-	'makeNurbsSquare' : 'nurbsSquare',
-	'makeNurbCube' : 'nurbsCube',
-	'skinPercent' : 'skinCluster',
-}
-
-#: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
-#: these commands require special treatment during class generation because, for them the 'create' mode is the same as other node's 'edit' mode
-nodeType_to_infoCommand = {
-	'mesh' : 'polyEvaluate',
-	'transform' : 'xform'
-}
-
-module_shortName_to_longName = {
-	'model'	: 'Modeling',
-	'render': 'Rendering',
-	'fx'	: 'Effects',
-	'anim'	: 'Animation',
-	#'ui'	: 'Windows',
-	#'io'	: 'System',
-	#'core'	: 'General'
-}
-#: modifier flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
-#: because the maya docs do not specify in any parsable way which flags are modifiers, we must maintain this dictionary.
-#: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
-modifierFlags = {
-	'xform' : ( ( 'absolute', 		[] ),
-				( 'relative', 		[] ),
-				( 'euler',			['relative'] ),
-				( 'objectSpace',	['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-				( 'worldSpace',		['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-				( 'preserve',		['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
-				( 'worldSpaceDistance', ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
-			)
-}
-
-
 				
 def buildMayaCmdsArgList() :
 	"""Build and save to disk the list of Maya Python commands and their arguments"""
+	
+	ver = util.getMayaVersion()
+	'''
 	try:
 		# removes extra version info which should not affect the list of commands ( x64, Service Pack 1, P04 )
 		try:
@@ -340,13 +379,14 @@ def buildMayaCmdsArgList() :
 		
 	except (AttributeError, NameError):
 		return []
+	'''
 		
 	newPath = util.moduleDir() / 'mayaCmdsList'+ver+'.bin'
 	cmdlist = {}
 	try :
 		file = newPath.open(mode='rb')
 		try :
-			cmdlist,nodeHierarchy,moduleCmds = pickle.load(file)
+			cmdlist,nodeHierarchy,uiClassList,moduleCmds = pickle.load(file)
 			nodeHierarchyTree = IndexedTree(nodeHierarchy)
 		except :
 			print "Unable to load the list of Maya commands from '"+file.name+"'"
@@ -370,7 +410,7 @@ def buildMayaCmdsArgList() :
 		moduleCmds = util.defaultdict(list)
 		for funcName, data in tmpCmdlist :	
 			
-			description, flags = _getCmdInfo(funcName, ver)
+			cmdInfo = _getCmdInfo(funcName, ver)
 			#modifiers = {}
 			try:
 				for modifierFlag, modifiedList in modifierFlags[funcName]:
@@ -387,7 +427,7 @@ def buildMayaCmdsArgList() :
 			elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
 				module = 'ctx'
 			elif funcName in uiClassList:
-				module = 'ui'
+				module = 'uiClass'
 			elif funcName in nodeHierarchyTree or funcName in nodeType_to_nodeCommand.values():
 				module = 'node'
 			else:
@@ -404,7 +444,8 @@ def buildMayaCmdsArgList() :
 			if module:
 				moduleCmds[module].append(funcName)
 			
-			cmdlist[funcName] = { 'type': module, 'flags': flags, 'description' : description }
+			cmdInfo['type'] = module
+			cmdlist[funcName] = cmdInfo
 			
 			'''
 			# func, args, (usePyNode, baseClsName, nodeName)
@@ -427,7 +468,7 @@ def buildMayaCmdsArgList() :
 		try :
 			file = newPath.open(mode='wb')
 			try :
-				pickle.dump( (cmdlist,nodeHierarchy,moduleCmds),  file, 2)
+				pickle.dump( (cmdlist,nodeHierarchy,uiClassList,moduleCmds),  file, 2)
 				print "done"
 			except:
 				print "Unable to write the list of Maya commands to '"+file.name+"'"
@@ -436,13 +477,13 @@ def buildMayaCmdsArgList() :
 			print "Unable to open '"+newPath+"' for writing"
 
 	
-	return (cmdlist,nodeHierarchyTree,moduleCmds)
+	return (cmdlist,nodeHierarchyTree,uiClassList,moduleCmds)
 
 
 				
 #---------------------------------------------------------------
 		
-cmdlist, nodeHierarchy, moduleCmds = buildMayaCmdsArgList()
+cmdlist, nodeHierarchy, uiClassList, moduleCmds = buildMayaCmdsArgList()
 
 
 def getUncachedCmds():
@@ -471,7 +512,8 @@ def _addDocs(inObj, newObj, cmdInfo ):
 				except KeyError: pass
 				
 				docstring += '        - %s\n' %  docs['docstring']
-	
+		if cmdInfo['example']:
+			docstring += '\nExample:\n' + cmdInfo['example']
 		if inObj.__doc__:
 			docstring = inObj.__doc__ + '\n' + docstring
 		newObj.__doc__ = docstring
@@ -659,7 +701,7 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
 			
 	return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
-def createFunctions( moduleName, returnFunc ):
+def createFunctions( moduleName, returnFunc=None ):
 	module = __import__(moduleName, globals(), locals(), [''])
 	for funcName in moduleCmds[ moduleName.split('.')[1] ]:
 		func = functionFactory( funcName, None )
