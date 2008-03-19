@@ -4,15 +4,15 @@ See the sections `Node Class Hierarchy`_ and `Node Commands and their Class Coun
 """
 
 
-import sys, os, re
+import sys, os, re, inspect, warnings, timeit, time
 try:
     import maya.cmds as cmds
     import maya.mel as mm
-    import maya.OpenMaya as OpenMaya
-
 except ImportError:
     pass
 
+
+import api
 #from vector import Vector, Matrix  # in core
 from core import *
 from anim import *
@@ -21,6 +21,9 @@ from anim import *
 #-----------------------------------------------
 #  Enhanced Node Commands
 #-----------------------------------------------
+
+# is that your intent ?
+metaNode = factories.makeMetaNode( __name__ )
 
 def joint(*args, **kwargs):
     """
@@ -272,74 +275,86 @@ Maya Bug Fix:
         cmds.instancer(*args, **kwargs)
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
-#--------------------------
-# Basic Name class (valid names)
 
-# Holds the object name as well as basic patterns and regex for valid object names in Maya
-# for names parsing
-class MayaName(unicode):
-    invalidCharPattern = r"[^(a-z)^(A-Z)^(0-9)^_^*^?^:]"
-    validCharPattern = r"[a-zA-Z0-9_]"
-    invalid = re.compile(r"("+invalidCharPattern+")+")
-
-class NameSpace(MayaName):
-    pattern = r"[a-zA-Z]+[a-zA-Z0-9_]*:"
-    valid = re.compile(r"^:?"+"("+pattern+")*")   
-     
-class ObjectName(MayaName):
-    pattern = r"[a-zA-Z]+[a-zA-Z0-9_]*"
-    valid = re.compile(pattern) 
-            
-class FullObjectName(ObjectName, NameSpace):
-    pattern = r"(^:?(?:"+NameSpace.pattern+r")*)("+ObjectName.pattern+r")$"
-    valid = re.compile(pattern)
-    
-class PathObjectName(FullObjectName):
-    pass
-            
-class AttributeName(MayaName):
-    pattern = r"([a-zA-Z]+[a-zA-Z0-9_]*)(\[[0-9]+\])?"
-    valid = re.compile(pattern)     
-
-class PlugName(MayaName):
-    pattern = r"\.?("+AttributeName.pattern+r")(\."+AttributeName.pattern+r")*"
-    valid = re.compile(pattern)   
+def _getPymelType(obj, comp=None) :
+    """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
+        if no correct type is found returns DependNode by default """
         
-class UIName(MayaName):
-    pass
-
+    objHandle = None
+    objName = None
+    # TODO : handle comp as a MComponent or list of components
+    if isinstance(obj, PyNode) :
+        objHandle = obj._object
+    elif isinstance(obj, api.MObject) :
+        objHandle = api.MObjectHandle(obj)
+    elif isinstance(obj,basestring) :
+        objName = obj
+        obj = api.toMObject (obj)
+        if obj is not None :
+            objHandle = api.MObjectHandle(obj)   
+                                           
+    pymelType = DependNode
+    if '.' in objName :
+        # TODO : some better checking / parsing
+        pymelType = Attribute                                           
+    elif api.isValidMObjectHandle(objHandle) :
+        obj = objHandle.object()
+        objType = api.apiEnumToNodeType(obj.apiType ())
+        try :
+            pymelType = getattr(_thisModule, util.capitalize(objType))
+        except :
+            pymelType = DependNode
+    else :
+        # non existing node
+        pymelType = basestring
+    
+    return pymelType  
 
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must be included for sub-modules to be imported correctly
-metaNode = factories.makeMetaNode( __name__ )
-
-
-class _BaseObj(unicode):
-    def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self)
-
-    #def __unicode__(self):
-    #    return u"%s" % self
-
-    def __getattr__(self, attr):
-        if attr.startswith('__') and attr.endswith('__'):
-            return super(_BaseObj, self).__getattr__(attr)
-            
-        return Attribute( '%s.%s' % (self, attr) )
+class PyNode(object):
+    """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
+        and defer to the correct derived class """
+    __metaclass__ = metaNode
+    
+    _name = None              # unicode
+    _object = None            # api.MObjectHandle()
+    
+    def __new__(cls, *args, **kwargs):
+        """ Catch all creation for PyNode classes, creates correct class depending on type passed """
         
-        #raise AttributeError, 'attribute does not exist %s' % attr
-
-    def __setattr__(self, attr, val):
-        if attr.startswith('__') and attr.endswith('__'):
-            return super(_BaseObj, self).__setattr__(attr, val)        
-        try:
-            return setAttr( '%s.%s' % (self, attr), val )
-        except RuntimeError:
-            self.__dict__[attr]=val
+        if args :
+            obj = args[0]
+            comp = None
+            if len(args)>1 :
+                comp = args[1]
+            pymelType = _getPymelType(obj, comp)
+        else :
+            pymelType = DependNode
         
+        # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
+        # if an explicit class was given (ie: pyObj=DagNode('pCube1')) just check if actual type is compatible
+        # if none was given (ie generic pyObj=PyNode('pCube1')) then use the class corresponding to the type we found
+        if cls is not PyNode :
+            # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
+            # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
+            # TODO : can add object creation option in the __iit__ if desired
+            if issubclass(pymelType, basestring) :
+                pymelType = cls            
+            if issubclass(pymelType, cls) :
+                return super(PyNode, cls).__new__(cls)
+            else :
+                raise TypeError, "Cannot make a %s PyNode out of a %s object" % (cls.__name__, pymelType.__name__)
+        else :
+            # no class name specified, use pymelType, default to DependNode if just a string that isn't an existing object was passed
+            if issubclass(pymelType, basestring) :
+                pymelType = DependNode
+            return super(PyNode, cls).__new__(pymelType)
+   
+
+    
     def stripNamespace(self, levels=0):
         """
         Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
@@ -516,8 +531,8 @@ class Component(object):
     def rotate( self, *args, **kwargs ):
         return rotate( self, *args, **kwargs )
     
-# TODO : change to plug ?                
-class Attribute(_BaseObj):
+                
+class Attribute(PyNode):
     """
     Attributes
     ==========
@@ -600,15 +615,17 @@ class Attribute(_BaseObj):
     def __init__(self, attrName):
         if '.' not in attrName:
             raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
+        self._name = attrName
+        # TODO : MObject support
         self.__dict__['_multiattrIndex'] = 0
         
     def __getitem__(self, item):
        return Attribute('%s[%s]' % (self, item) )
-       
-	# Added the __call__ so to generate a more appropriate exception when a class method is not found 
-    def __call__(self, *args, **kwargs):
-		raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
 
+    # Added the __call__ so to generate a more appropriate exception when a class method is not found 
+    def __call__(self, *args, **kwargs):
+        raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
+    
     '''
     def __iter__(self):
         """iterator for multi-attributes
@@ -634,10 +651,20 @@ class Attribute(_BaseObj):
             self.__dict__['_multiattrIndex'] += 1
             return attr
     '''        
+ 
+ 
+    def __repr__(self):
+        return u"%s('%s')" % (self.__class__.__name__, self.name())
 
-    def name(self) :
-        """ Returns the full name of that attribute / plug """
-        return self
+    def __str__(self):
+        return "%s" % self.name()
+
+    def __unicode__(self):
+        return u"%s" % self.name()
+
+    def name(self):
+        """ Returns the full name of that attribute(plug) """
+        return self._name
     
     def nodeName(self):
         """ Returns the node name of that attribute(plug) """
@@ -717,7 +744,7 @@ class Attribute(_BaseObj):
     # getting and setting                    
     set = setAttr            
     get = getAttr
-    #setKey = setKeyframe    
+    setKey = setKeyframe    
     
     
     #----------------------
@@ -815,7 +842,6 @@ class Attribute(_BaseObj):
         return cmds.removeMultiInstance( self, **kwargs )
         
     # Edge, Vertex, CV Methods
-    # TODO : move that to components ?
     def getTranslation( self, **kwargs ):
         """xform -translation"""
         kwargs['translation'] = True
@@ -904,20 +930,12 @@ class Attribute(_BaseObj):
         "attributeQuery -multi"
         return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), multi=True)    
     
-    # TOTO : suppot for plugs: Attribute('node.attr[0]').exists()
     def exists(self):
-        "attributeQuery -exists unless it's an element (an actual plug from a multi attribute), then we check if this actual plug exists"
-        if not self.isElement() :
-            try:
-                return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
-            except TypeError:
-                return False
-        else :
-            try:
-                allElements = cmds.listAttr(self.array(), multi=True)
-                return (self in allElements)
-            except :
-                return False
+        "attributeQuery -exists"
+        try:
+            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
+        except TypeError:
+            return False
             
     def longName(self):
         "attributeQuery -longName"
@@ -1121,28 +1139,95 @@ class NodeAttrRelay(unicode):
         return setAttr( '%s.%s' % (self, attr), val )    
 '''
 
-class DependNode( _BaseObj ):
+class DependNode( PyNode ):
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
-    def __new__(cls,name,create=False):
-        """
-        Provides the ability to create the object when creating a class
+#    def __new__(cls,name,create=False):
+#        """
+#        Provides the ability to create the object when creating a class
+#        
+#            >>> n = pm.Transform("persp",create=True)
+#            >>> n.__repr__()
+#            # Result: Transform('persp1')
+#        """
+#        if create:
+#            ntype = util.uncapitalize(cls.__name__)
+#            name = createNode(ntype,n=name,ss=1)
+#        return PyNode.__new__(cls,name)
+
+    def _updateName(self) :
+        if api.isValidMObjectHandle(self._object) :
+            obj = self._object.object()
+            depFn = api.MFnDependencyNode(obj)
+            self._name = depFn.name()
+        return self._name 
+
+    def object(self) :
+        if api.isValidMObjectHandle(self._object) :
+            return self._object.object()
         
-            >>> n = pm.Transform("persp",create=True)
-            >>> n.__repr__()
-            # Result: Transform('persp1')
-        """
+    def name(self, update=True) :
+        if update :
+            return self._updateName()
+        else :
+            return self._name  
 
-        if create:
-            ntype = util.uncapitalize(cls.__name__)
-            name = createNode(ntype,n=name,ss=1)
-        return _BaseObj.__new__(cls,name)
+    def __init__(self, handleOrName) :
+        if isinstance(handleOrName, DependNode) :
+            self._name = unicode(handleOrName.name())
+            self._object = api.MObjectHandle(handleOrName.object())
+        elif api.isValidMObject(handleOrName) or api.isValidMObjectHandle(handleOrName) :
+            self._object = api.MObjectHandle(handleOrName)
+            self._updateName()
+        elif isinstance(handleOrName, basestring) :
+            obj = api.toMObject (handleOrName)
+            if api.isValidMObject(obj) :
+                # actual Maya object creation
+                self._object = api.MObjectHandle(obj)
+                self._updateName()
+            else :
+                # non existent object
+                self._name = handleOrName 
+        else :
+            raise TypeError, "don't know how to make a Pymel DependencyNode out of a %s : %r" % (type(handleOrName), handleOrName)  
 
+    def __repr__(self):
+        return u"%s('%s')" % (self.__class__.__name__, self.name())
+
+    def __str__(self):
+        return "%s" % self.name()
+
+    def __unicode__(self):
+        return u"%s" % self.name()
+    
     def node(self):
         """for compatibility with Attribute class"""
-        return self          
+        return self
         
+    def __getattr__(self, attr):
+        try :
+            return super(PyNode, self).__getattr__(attr)
+        except AttributeError :
+            return Attribute( '%s.%s' % (self, attr) )
+        
+        #if attr.startswith('__') and attr.endswith('__'):
+        #    return super(PyNode, self).__getattr__(attr)
+            
+        #return Attribute( '%s.%s' % (self, attr) )
+        
+        #raise AttributeError, 'attribute does not exist %s' % attr
+
+    def __setattr__(self, attr, val):
+        try :
+            return super(PyNode, self).__setattr__(attr, val)
+        except AttributeError :
+            return setAttr( '%s.%s' % (self, attr), val ) 
+
+
+        # if attr.startswith('__') and attr.endswith('__'):
+        #     return super(PyNode, self).__setattr__(attr, val)        
+        # return setAttr( '%s.%s' % (self, attr), val )
 
     #--------------------------
     #    Modification
@@ -1273,16 +1358,10 @@ class DependNode( _BaseObj ):
     #--------------------------
     #    Attributes
     #--------------------------        
-
-    def hasAttr( self, attr):
-        try :
-            return self.attr(attr).exists( )
-        except :
-            return False
         
     def setAttr( self, attr, *args, **kwargs):
         return self.attr(attr).set( *args, **kwargs )
-    # NOTE : how about returning None when attribute doesn't exist instead of raising an error (like for dicts.get method) ?        
+            
     def getAttr( self, attr, **kwargs ):
         return self.attr(attr).get( **kwargs )
 
@@ -1358,6 +1437,55 @@ class DependNode( _BaseObj ):
 class Entity(DependNode): pass
 class DagNode(Entity):
     
+    def _updateName(self, long=False) :
+        if api.isValidMObjectHandle(self._object) :
+            obj = self._object.object()
+            dagFn = api.MFnDagNode(obj)
+            dagPath = api.MDagPath()
+            dagFn.getPath(dagPath)
+            self._name = dagPath.partialPathName()
+            if long :
+                return dagPath.fullPathName()
+        return self._name                       
+
+    def object(self) :
+        if api.isValidMObjectHandle(self._object) :
+            return self._object.object()
+        
+    def name(self, update=True, long=False) :
+        if update or long :
+            return self._updateName(long)
+        else :
+            return self._name  
+    
+    def __init__(self, handleOrName) :
+        if isinstance(handleOrName, DagNode) :
+            self._name = unicode(handleOrName.name())
+            self._object = api.MObjectHandle(handleOrName.object())
+        elif api.isValidMObject(handleOrName) or api.isValidMObjectHandle(handleOrName) :
+            objHandle = api.MObjectHandle(handleOrName)
+            obj = objHandle.object() 
+            if api.isValidMDagNode(obj) :
+                self._object = objHandle
+                self._updateName()
+            else :
+                raise TypeError, "%r might be a dependencyNode, but not a dagNode" % handleOrName              
+        elif isinstance(handleOrName, basestring) :
+            obj = api.toMObject (handleOrName)
+            if api.isValidMObject(obj) :
+                # creation for existing object
+                if api.isValidMDagNode (obj):
+                    self._object = api.MObjectHandle(api.toMObject (handleOrName))
+                    self._updateName()
+                else :
+                    raise TypeError, "%r might be a dependencyNode, but not a dagNode" % handleOrName 
+            else :
+                # creation for inexistent object 
+                self._name = handleOrName
+        else :
+            raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(handleOrName), handleOrName)  
+          
+    
     def __eq__(self, other):
         """ensures that we compare longnames when checking for dag node equality"""
         try:
@@ -1411,74 +1539,6 @@ class DagNode(Entity):
         kwargs.pop('c',None)
 
         return listRelatives( self, **kwargs)
-    
-    def getAllDescendents(self, **kwargs ):
-        kwargs['allDescendents'] = True
-        kwargs.pop('ad',None)
-
-        return listRelatives( self, **kwargs)        
-    
-    def parent(self, **kwargs):
-        return self.getParent(**kwargs)
- 
-    def children(self, **kwargs):
-        return self.getChildren(**kwargs) 
-    
-    def parents(self):
-        """Iterates on path from element to top root, starting with first parent, empty iterator means self is root"""
-        p = self.parent()
-        while p :
-            yield p
-            p = p.parent()
-            
-    # TODO using iterNodes (listRelatives(allDescendents=True) returns them in sort of messed up order)
-    def preorder(self):        
-        pass
-
-    def postorder(self):
-        pass
-        
-    def breadth(self):
-        pass
-                        
-    def isRoot(self):
-        return self.parent() is None
-    
-    def isLeaf(self):
-        return not self.children()
-    
-    # NOTE: the Maya ls(visible=True) command doesn't take into account display layers, so I ignore them too,
-    # but it seems it would be logical to take them into account ?
-    def isVisible(self) :
-        if self.getAttr('visibility') :
-            for p in self.parents() :
-                if not p.getAttr('visibility') :
-                    return False
-            return True
-        else :
-            return False
-    # NOTE : same comment
-    def isTemplated(self) :
-        if not self.getAttr('template') :
-            for p in self.parents() :
-                if p.getAttr('template') :
-                    return True
-            return False
-        else :
-            return True        
-
-    def isIntermediate(self) :
-        if self.hasAttr('intermediateObject') and self.getAttr('intermediateObject') :
-            return True
-        else :
-            return False               
-    
-    def depth(self):
-        """Depth of self, the distance to self's root"""
-        depth = 0
-        for p in self.parents() :
-            depth += 1
-        return depth   
         
     def getSiblings(self, **kwargs ):
         #pass
@@ -1492,21 +1552,15 @@ class DagNode(Entity):
         
     def longName(self):
         'longNameOf'
-        try:
-            return self.__class__( cmds.ls( self, long=True )[0] )
-        except TypeError, RuntimeError:
-            raise TypeError, "cannot return longname for non-existant object: " + self
+        return self.name(long=True)
             
     def shortName( self ):
         'shortNameOf'
-        try:
-            return self.__class__( cmds.ls( self )[0] )
-        except:
-            return self
+        return self.name(long=False)
 
     def nodeName( self ):
         'basename'
-        return self.split('|')[-1]
+        return self.name().split('|')[-1]
 
         
     #--------------------------
@@ -1614,45 +1668,45 @@ class Camera(Shape):
             
 class Transform(DagNode):
     __metaclass__ = metaNode
-    def __getattr__(self, attr):
-        if attr.startswith('__') and attr.endswith('__'):
-            return super(_BaseObj, self).__getattr__(attr)
-                        
-        at = Attribute( '%s.%s' % (self, attr) )
-        
-        # if the attribute does not exist on this node try the shape node
-        if not at.exists():
-            try:
-                childAttr = getattr( self.getShape(), attr)
-                try:
-                    if childAttr.exists():
-                        return childAttr
-                except AttributeError:
-                    return childAttr
-            except (AttributeError,TypeError):
-                pass
-                    
-        return at
-    
-    def __setattr__(self, attr,val):
-        if attr.startswith('_'):
-            attr = attr[1:]
-                        
-        at = Attribute( '%s.%s' % (self, attr) )
-        
-        # if the attribute does not exist on this node try the shape node
-        if not at.exists():
-            try:
-                childAttr = getattr( self.getShape(), attr )
-                try:
-                    if childAttr.exists():
-                        return childAttr.set(val)
-                except AttributeError:
-                    return childAttr.set(val)
-            except (AttributeError,TypeError):
-                pass
-                    
-        return at.set(val)
+#    def __getattr__(self, attr):
+#        if attr.startswith('__') and attr.endswith('__'):
+#            return super(PyNode, self).__getattr__(attr)
+#                        
+#        at = Attribute( '%s.%s' % (self, attr) )
+#        
+#        # if the attribute does not exist on this node try the shape node
+#        if not at.exists():
+#            try:
+#                childAttr = getattr( self.getShape(), attr)
+#                try:
+#                    if childAttr.exists():
+#                        return childAttr
+#                except AttributeError:
+#                    return childAttr
+#            except (AttributeError,TypeError):
+#                pass
+#                    
+#        return at
+#    
+#    def __setattr__(self, attr,val):
+#        if attr.startswith('_'):
+#            attr = attr[1:]
+#                        
+#        at = Attribute( '%s.%s' % (self, attr) )
+#        
+#        # if the attribute does not exist on this node try the shape node
+#        if not at.exists():
+#            try:
+#                childAttr = getattr( self.getShape(), attr )
+#                try:
+#                    if childAttr.exists():
+#                        return childAttr.set(val)
+#                except AttributeError:
+#                    return childAttr.set(val)
+#            except (AttributeError,TypeError):
+#                pass
+#                    
+#        return at.set(val)
             
     """    
     def move( self, *args, **kwargs ):
@@ -1856,6 +1910,33 @@ class Transform(DagNode):
         kwargs['zeroTransformPivots'] = True
         cmds.xform( self, **kwargs )        
     '''
+
+class Joint(Transform):
+    __metaclass__ = metaNode
+    connect = factories.functionFactory('connectJoint', None, cmds)
+    disconnect = factories.functionFactory('disconnectJoint', None, cmds)
+    insert = factories.functionFactory('insertJoint', None, cmds)
+
+class FluidEmitter(Transform):
+    __metaclass__ = metaNode
+    fluidVoxelInfo = factories.functionFactory('fluidVoxelInfo', None, cmds)
+    loadFluid = factories.functionFactory('loadFluid', None, cmds)
+    resampleFluid = factories.functionFactory('resampleFluid', None, cmds)
+    saveFluid = factories.functionFactory('saveFluid', None, cmds)
+    setFluidAttr = factories.functionFactory('setFluidAttr', None, cmds)
+    getFluidAttr = factories.functionFactory('getFluidAttr', None, cmds)
+    
+class RenderLayer(DependNode):
+    __metaclass__ = metaNode
+    editAdjustment = factories.functionFactory('editRenderLayerAdjustment', None, cmds)
+    editGlobals = factories.functionFactory('editRenderLayerGlobals', None, cmds)
+    editMembers = factories.functionFactory('editRenderLayerMembers',None, cmds)
+    postProcess = factories.functionFactory('renderLayerPostProcess',None,cmds)
+
+class DisplayLayer(DependNode):
+    __metaclass__ = metaNode
+    editGlobals = factories.functionFactory('editDisplayLayerGlobals', None, cmds)
+    editMembers = factories.functionFactory('editDisplayLeyerMembers', None, cmds)
     
 class Constraint(Transform):
     def setWeight( self, weight, *targetObjects ):
@@ -1968,7 +2049,7 @@ class Mesh(SurfaceShape):
             
     def __getattr__(self, attr):
         if attr.startswith('__') and attr.endswith('__'):
-            return super(_BaseObj, self).__getattr__(attr)
+            return super(PyNode, self).__getattr__(attr)
                         
         at = Attribute( '%s.%s' % (self, attr) )
         
@@ -2061,7 +2142,7 @@ class Subdiv(SurfaceShape):
         cmds.subdCleanTopology(self)
     
 class Particle(DeformableShape):
-    #__metaclass__ = metaNode
+    __metaclass__ = metaNode
     
     class PointArray(ComponentArray):
         def __init__(self, name):
@@ -2278,6 +2359,8 @@ class ObjectSet(Entity):
             
         #items = self.union(items)
 
+_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+
 def _createClasses():
     #for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
     #print factories.nodeHierarchy
@@ -2312,30 +2395,6 @@ def _createClasses():
         #else:
         #    print "already created", classname
 _createClasses()
-
-#-----------------------------------------------
-#  Commands for Creating pymel Objects
-#-----------------------------------------------
-# TODO : make it work on components ?
-def PyNode(strObj, nodeType=None):
-    """Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
-    for your object."""
-    
-    try:
-        if '.' in strObj:
-            return Attribute(strObj)
-    except TypeError:
-        raise 'PyNode: expected a string or unicode object, got %s' % type(strObj)
-    except: pass
-        
-    try:
-        if not nodeType:
-            nodeType = cmds.nodeType(strObj)
-        return getattr(_thisModule, util.capitalize(nodeType) )(strObj)
-    except (AttributeError, TypeError): pass
-    
-
-    return DependNode(strObj)
 
 
 def testNodeCmds(verbose=False):
@@ -2460,3 +2519,121 @@ def _createFunctions():
             setattr( _thisModule, funcName, func )
 _createFunctions()
 #factories.createFunctions( _thisModule, PyNode )
+
+# create PyNode conversion tables
+
+# Need to build a similar dict of Pymel types to their corresponding API types
+class PyNodeToMayaAPITypes(dict) :
+    __metaclass__ =  util.metaStatic
+
+# inverse lookup, some Maya API types won't have a PyNode equivalent
+class MayaAPITypesToPyNode(dict) :
+    __metaclass__ =  util.metaStatic
+
+# build a PyNode to API type relation or PyNode to Maya node types relation ?
+def buildPyNodeToAPI () :
+    # Check if a pymel class is DependNode or a subclass of DependNode
+    def _PyNodeClass (x) :
+        try :
+            return issubclass(x, PyNode)
+        except :
+            return False    
+    listPyNodes = dict(inspect.getmembers(node, _PyNodeClass))
+    PyNodeDict = {}
+    PyNodeInverseDict = {}
+    for k in listPyNodes.keys() :
+        # assume that PyNode type name is the API type without the leading 'k'
+        PyNodeType = listPyNodes[k]
+        PyNodeTypeName = PyNodeType.__name__
+        APITypeName = 'k'+PyNodeTypeName
+        if api.MayaAPIToTypes().has_key(APITypeName) :
+            PyNodeDict[PyNodeType] = APITypeName
+            PyNodeInverseDict[APITypeName] = PyNodeType
+    # Would be good to limit special treatments
+    PyNodeDict[PyNode] = 'kBase'
+    PyNodeInverseDict['kBase'] = PyNode
+    PyNodeDict[DependNode] = 'kDependencyNode'
+    PyNodeInverseDict['kDependencyNode'] = DependNode
+                          
+    # Initialize the static classes to hold these
+    PyNodeToMayaAPITypes (PyNodeDict)
+    MayaAPITypesToPyNode (PyNodeInverseDict)
+
+# Initialize Pymel classes to API types lookup
+#buildPyNodeToAPI()
+start = time.time()
+buildPyNodeToAPI()
+elapsed = time.time() - start
+print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
+
+# PyNode types names (as str)
+class PyNodeTypeNames(dict) :
+    """ Lookup from PyNode type name to PyNode type """
+    __metaclass__ =  util.metaStatic
+
+# Dictionnary of Maya API types to their MFn::Types enum
+PyNodeTypeNames((k.__name__, k) for k in PyNodeToMayaAPITypes().keys())  
+
+# child:parent lookup of the pymel classes that derive from DependNode
+class PyNodeTypesHierarchy(dict) :
+    __metaclass__ =  util.metaStatic
+
+# Build a dictionnary of api types and parents to represent the MFn class hierarchy
+def buildPyNodeTypesHierarchy () :    
+    PyNodeTree = inspect.getclasstree([k for k in PyNodeToMayaAPITypes().keys()])
+    PyNodeDict = {}
+    for x in util.expandArgs(PyNodeTree, type='list') :
+        try :
+            ct = x[0]
+            pt = x[1][0]
+            if issubclass(ct, PyNode) and issubclass(pt, PyNode) :
+                PyNodeDict[ct] = pt
+        except :
+            pass
+
+    return PyNodeDict 
+
+# Initialize the Pymel class tree
+# PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+start = time.time()
+PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+elapsed = time.time() - start
+print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
+
+
+
+def isValidPyNodeType (arg):
+    return PyNodeToMayaAPITypes().has_key(arg)
+
+def isValidPyNodeTypeName (arg):
+    return PyNodeTypeNames().has_key(arg)
+
+# Selection list to PyNodes
+def MSelectionPyNode ( sel ):
+    length = sel.length()
+    dag = api.MDagPath()
+    comp = api.MObject()
+    obj = api.MObject()
+    result = []
+    for i in xrange(length) :
+        selStrs = []
+        sel.getSelectionStrings ( i, selStrs )    
+        print "Working on selection %i:'%s'" % (i, ', '.join(selStrs))
+        try :
+            sel.getDagPath(i, dag, comp)
+            pynode = PyNode( dag, comp )
+            result.append(pynode)
+        except :
+            try :
+                sel.getDependNode(i, obj)
+                pynode = PyNode( obj )
+                result.append(pynode)                
+            except :
+                warnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
+    return result      
+        
+        
+def activeSelectionPyNode () :
+    sel = api.MSelectionList()
+    api.MGlobal.getActiveSelectionList ( sel )   
+    return MSelectionPyNode ( sel )
