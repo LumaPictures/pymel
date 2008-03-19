@@ -1016,17 +1016,20 @@ Modifications:
         tmp = util.listForNone(cmds.ls(*args, **kwargs))
         res = []
         for i in range(0,len(tmp),2):
-            res.append( node.PyNode( tmp[i], tmp[i+1] ) )
+            # res.append( node.PyNode( tmp[i], tmp[i+1] ) )
+            res.append( node.PyNode( tmp[i] ) )
             res.append( tmp[i+1] )
         return res    
         
-    kwargs['showType'] = True
-    tmp = util.listForNone(cmds.ls(*args, **kwargs))
-    res = []
-    for i in range(0,len(tmp),2):
-        res.append( node.PyNode( tmp[i], tmp[i+1] ) )
-    
-    return res
+#    kwargs['showType'] = True
+#    tmp = util.listForNone(cmds.ls(*args, **kwargs))
+#    res = []
+#    for i in range(0,len(tmp),2):
+#        res.append( node.PyNode( tmp[i], tmp[i+1] ) )
+#    
+#    return res
+
+    return map(node.PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
     
     '''
     showType = kwargs.get( 'showType', kwargs.get('st', False) )
@@ -1141,12 +1144,12 @@ Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
     """
     # added catch to use object name explicitely when object is a Pymel Node
-    if isinstance( newname, node.DependNode ):
+    if isinstance( newname, node.PyNode ):
         newname = newname.name()
-    if isinstance (obj, node.DependNode) :
+    if isinstance (obj, node.PyNode) :
         obj = obj.name()
         
-    return node.PyNode( cmds.rename( obj.name(), newname, **kwargs ) )
+    return node.PyNode( cmds.rename( obj, newname, **kwargs ) )
     
 def createNode( *args, **kwargs):
     return node.PyNode( cmds.createNode( *args, **kwargs ) )
