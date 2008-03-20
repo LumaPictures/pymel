@@ -2048,58 +2048,56 @@ class Mesh(SurfaceShape):
     verts = property(_getVertexArray)
             
     def __getattr__(self, attr):
-        if attr.startswith('__') and attr.endswith('__'):
+        try :
             return super(PyNode, self).__getattr__(attr)
-                        
-        at = Attribute( '%s.%s' % (self, attr) )
-        
-        # if the attribute does not exist on this node try the history
-        if not at.exists():
-            try:
-                childAttr = getattr( self.inMesh.inputs()[0], attr )
-            
+        except AttributeError :
+            at = Attribute( '%s.%s' % (self, attr) )   
+            # if the attribute does not exist on this node try the history
+            if not at.exists():
                 try:
-                    if childAttr.exists():
+                    childAttr = getattr( self.inMesh.inputs()[0], attr )
+                
+                    try:
+                        if childAttr.exists():
+                            return childAttr
+                    except AttributeError:
                         return childAttr
-                except AttributeError:
-                    return childAttr
-            
-            except IndexError:
-                pass
-            """
-            try:    
-                return getattr( self.inMesh.inputs()[0], attr)
-            except IndexError:
-                raise AttributeError, "Attribute does not exist: %s" % at
-            """
-        return at
+                
+                except IndexError:
+                    pass
+                """
+                try:    
+                    return getattr( self.inMesh.inputs()[0], attr)
+                except IndexError:
+                    raise AttributeError, "Attribute does not exist: %s" % at
+                """
+            return at
 
     def __setattr__(self, attr, val):
-        if attr.startswith('_'):
-            attr = attr[1:]
-                        
-        at = Attribute( '%s.%s' % (self, attr) )
-        
-        # if the attribute does not exist on this node try the history
-        if not at.exists():
-            try:
-                childAttr = getattr( self.inMesh.inputs()[0], attr )
-            
+        try :
+            return super(PyNode, self).__setattr__(attr, val)
+        except AttributeError :
+            at = Attribute( '%s.%s' % (self, attr) )   
+            # if the attribute does not exist on this node try the history
+            if not at.exists():
                 try:
-                    if childAttr.exists():
+                    childAttr = getattr( self.inMesh.inputs()[0], attr )
+                
+                    try:
+                        if childAttr.exists():
+                            return childAttr.set(val)
+                    except AttributeError:
                         return childAttr.set(val)
-                except AttributeError:
-                    return childAttr.set(val)
-            
-            except IndexError:
-                pass
-            """
-            try:    
-                return getattr( self.inMesh.inputs()[0], attr)
-            except IndexError:
-                raise AttributeError, "Attribute does not exist: %s" % at
-            """
-        return at.set(val)
+                
+                except IndexError:
+                    pass
+                """
+                try:    
+                    return getattr( self.inMesh.inputs()[0], attr)
+                except IndexError:
+                    raise AttributeError, "Attribute does not exist: %s" % at
+                """
+            return at.set(val)
                         
     vertexCount = factories.makeCreateFlagCmd( 'vertexCount', cmds.polyEvaluate, 'vertex' )
     edgeCount = factories.makeCreateFlagCmd( 'edgeCount', cmds.polyEvaluate, 'edge' )
