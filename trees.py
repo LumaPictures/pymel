@@ -1144,23 +1144,29 @@ class MetaTree(type):
     def __repr__(cls):
         return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)  
 
+    def __str__(cls):
+        return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType) 
+
+    def __unicode__(cls):
+        return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType) 
+
 # derive from one of these as needed
-class FrozenTree:
+class FrozenTree(object):
     __metaclass__ =  MetaTree            
     mutable = False
     indexed = False
                     
-class Tree:
+class Tree(object):
     __metaclass__ =  MetaTree
     mutable = True
     indexed = False
     
-class IndexedFrozenTree:
+class IndexedFrozenTree(object):
     __metaclass__ =  MetaTree            
     mutable = False
     indexed = True
                    
-class IndexedTree:
+class IndexedTree(object):
     __metaclass__ =  MetaTree
     mutable = True
     indexed = True    
