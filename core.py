@@ -667,6 +667,9 @@ Modifications:
             vecRes.append( Vector( res[i:i+3] ) )
         return vecRes
     
+    # quick fix until full object support
+    if isinstance(attr, PyNode) :
+        attr = attr.name()
     try:
         res = cmds.getAttr( attr, **kwargs)
         
