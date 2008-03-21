@@ -616,6 +616,7 @@ import util
 assert util.mayaInit() 
 
 import api
+from trees import *
 from node import *
 from ctx import *
 from io import *
