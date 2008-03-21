@@ -1170,3 +1170,6 @@ class IndexedTree(object):
     __metaclass__ =  MetaTree
     mutable = True
     indexed = True    
+    
+
+
