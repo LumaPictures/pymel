@@ -198,11 +198,14 @@ class ValueLex :
                 self.warn.PATH = True
         return t               
     # we just return the rest as-is
-    # TODO: warnings if it's a path and path doen'st exist ?
+    # TODO: warnings if it's a path and path doesn't exist ?
     # Would need to differentiate % or $ wether we are on nt or not but py.lex
     # handles definitions strangely, like they are static / source time evaluated
+    # removed % from the list of excluded characters as some definitions seem to use it :
+    # $RMSTREE/icons/%B
+    # TODO : Never seen it elsewhere, must check it doesn't collide with %VARNAME% on NT
     def t_VALUE(self, t):
-            r'[^=^\n^#^%^$]+'
+            r'[^=^\n^#^$]+'
             return t           
        
     def t_error(self, t):
