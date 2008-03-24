@@ -3,6 +3,7 @@ import sys, codecs, os, os.path, re, platform
 from exceptions import *
 from collections import *
 from path import path
+from nametuple import namedtuple
 import envparse
 
 if os.name == 'nt' :
@@ -437,17 +438,15 @@ def getMayaVersion(extension=True):
     try :
         from maya.cmds import about
         versionStr = about(version=True)
-        midPattern = r"[ ].*[ ]"
     except :
         versionStr = getMayaLocation()
-        midPattern = r"[\-]"
     
     # problem with service packs nottion, must be able to match things such as :
     # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
     ma = re.search( "((?:maya)?(?P<base>[\d.]+)(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
     version = ma.group('base')
     if extension and (ma.group('ext') is not None) :
-        version += ma.group('ext')
+        version += "-"+ma.group('ext')
     return version
                         
 # parse the Maya.env file and set the environement variablas and python path accordingly
