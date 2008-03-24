@@ -534,7 +534,9 @@ def buildCachedData() :
 #---------------------------------------------------------------
         
 cmdlist, nodeHierarchy, uiClassList, moduleCmds = buildCachedData()
-
+# quick fix until we make a Singleton of nodeHierarchy
+def NodeHierarchy() :
+    return nodeHierarchy
 
 def getUncachedCmds():
     return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
