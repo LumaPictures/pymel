@@ -3,7 +3,7 @@ import sys, codecs, os, os.path, re, platform
 from exceptions import *
 from collections import *
 from path import path
-from nametuple import namedtuple
+from namedtuple import namedtuple
 import envparse
 
 if os.name == 'nt' :
