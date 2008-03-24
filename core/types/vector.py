@@ -9,7 +9,7 @@ List based vector and matrix classes that support elementwise mathematical opera
 
 import math
 from math import *
-import node, core
+#import pymel.core.node, pymel.core.core
 
 
 

@@ -17,7 +17,7 @@ fs.copy('/home/me/files')
 
 """
 
-import path
+import pymel.util.path
 from itertools import groupby
 from operator import itemgetter
 from collections import defaultdict

@@ -4,6 +4,8 @@ See the sections `Node Class Hierarchy`_ and `Node Commands and their Class Coun
 """
 
 
+import pymel.util.api
+import pymel.core.core, pymel.util.factories, pymel.util, pymel.core.anim
 import sys, os, re, inspect, warnings, timeit, time
 try:
     import maya.cmds as cmds
@@ -11,19 +13,17 @@ try:
 except ImportError:
     pass
 
+#from vector import pymel.core.core.Vector, pymel.core.core.Matrix  # in core
+#from core import *
+#from anim import *
+#import pymel.util, pymel.util.factories  # in core
 
-import api
-#from vector import Vector, Matrix  # in core
-from core import *
-from anim import *
-#import util, factories  # in core
 
 #-----------------------------------------------
 #  Enhanced Node Commands
 #-----------------------------------------------
 
-# is that your intent ?
-metaNode = factories.makeMetaNode( __name__ )
+metaNode = pymel.util.factories.makeMetaNode( __name__ )
 
 def joint(*args, **kwargs):
     """
@@ -75,7 +75,7 @@ Modifications:
             
             for attr in attrs:
                 if attr in kwargs:
-                    return Vector( getAttr(args[0] + "." + attr ) )
+                    return pymel.core.core.Vector( getAttr(args[0] + "." + attr ) )
                     
             
         if len(args)==1:
@@ -85,9 +85,9 @@ Modifications:
                 # we're not concerned with weights
                 targetObjects = kwargs.get( 'weight', kwargs['w'] ) 
                 constraint = args[0]
-                if 'constraint' in cmds.nodeType( constraint, inherited=1 ):
+                if 'constraint' in cmds.cmds.nodeType( constraint, inherited=1 ):
                     print constraint
-                    if not util.isIterable( targetObjects ):
+                    if not pymel.util.isIterable( targetObjects ):
                         targetObjects = [targetObjects]
                     elif not targetObjects:
                         targetObjects = func( constraint, q=1, targetList=1 )
@@ -132,7 +132,7 @@ Modifications:
         
         for attr in attrs:
             if attr in kwargs:
-                return Vector( getAttr(args[0] + "." + attr ) )
+                return pymel.core.core.Vector( getAttr(args[0] + "." + attr ) )
                 
         
     if len(args)==1:
@@ -142,9 +142,9 @@ Modifications:
             # we're not concerned with weights
             targetObjects = kwargs.get( 'weight', kwargs['w'] ) 
             constraint = args[0]
-            if 'constraint' in cmds.nodeType( constraint, inherited=1 ):
+            if 'constraint' in cmds.cmds.nodeType( constraint, inherited=1 ):
                 print constraint
-                if not util.isIterable( targetObjects ):
+                if not pymel.util.isIterable( targetObjects ):
                     targetObjects = [targetObjects]
                 elif not targetObjects:
                     targetObjects = cmds.aimConstraint( constraint, q=1, targetList=1 )
@@ -173,7 +173,7 @@ Maya Bug Fix:
         
         for attr in attrs:
             if attr in kwargs:
-                return Vector( getAttr(args[0] + "." + attr ) )
+                return pymel.core.core.Vector( getAttr(args[0] + "." + attr ) )
                 
             
     res = cmds.normalConstraint(*args, **kwargs)
@@ -276,7 +276,7 @@ Maya Bug Fix:
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
 
-def _getPymelType(obj, comp=None) :
+def getPymelType(obj, comp=None) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default """
         
@@ -285,23 +285,23 @@ def _getPymelType(obj, comp=None) :
     # TODO : handle comp as a MComponent or list of components
     if isinstance(obj, PyNode) :
         objHandle = obj._object
-    elif isinstance(obj, api.MObject) :
-        objHandle = api.MObjectHandle(obj)
+    elif isinstance(obj, pymel.util.api.MObject) :
+        objHandle = pymel.util.api.MObjectHandle(obj)
     elif isinstance(obj,basestring) :
         objName = obj
-        obj = api.toMObject (obj)
+        obj = pymel.util.api.toMObject (obj)
         if obj is not None :
-            objHandle = api.MObjectHandle(obj)   
-                                           
+            objHandle = pymel.util.api.MObjectHandle(obj)   
+
     pymelType = DependNode
     if '.' in objName :
         # TODO : some better checking / parsing
         pymelType = Attribute                                           
-    elif api.isValidMObjectHandle(objHandle) :
+    elif pymel.util.api.isValidMObjectHandle(objHandle) :
         obj = objHandle.object()
-        objType = api.apiEnumToNodeType(obj.apiType ())
+        objType = pymel.util.api.apiEnumToNodeType(obj.apiType ())
         try :
-            pymelType = getattr(_thisModule, util.capitalize(objType))
+            pymelType = getattr(_thisModule, pymel.util.capitalize(objType))
         except :
             pymelType = DependNode
     else :
@@ -317,10 +317,10 @@ def _getPymelType(obj, comp=None) :
 class PyNode(object):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
         and defer to the correct derived class """
-    __metaclass__ = metaNode
+    #__metaclass__ = metaNode
     
     _name = None              # unicode
-    _object = None            # api.MObjectHandle()
+    _object = None            # pymel.util.api.MObjectHandle()
     
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed """
@@ -330,7 +330,7 @@ class PyNode(object):
             comp = None
             if len(args)>1 :
                 comp = args[1]
-            pymelType = _getPymelType(obj, comp)
+            pymelType = getPymelType(obj, comp)
         else :
             pymelType = DependNode
         
@@ -340,7 +340,7 @@ class PyNode(object):
         if cls is not PyNode :
             # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
-            # TODO : can add object creation option in the __iit__ if desired
+            # TODO : can add object creation option in the __init__ if desired
             if issubclass(pymelType, basestring) :
                 pymelType = cls            
             if issubclass(pymelType, cls) :
@@ -405,9 +405,9 @@ class PyNode(object):
         given attribute."""
         return Attribute( '%s.%s' % (self, attr) )
                 
-    objExists = objExists
+    objExists = cmds.objExists
         
-    nodeType = nodeType
+    cmds.nodeType = cmds.nodeType
 
     def select(self, **kwargs):
         forbiddenKeys = ['all', 'allDependencyNodes', 'adn', '-allDagObjects' 'ado', 'clear', 'cl']
@@ -420,17 +420,17 @@ class PyNode(object):
     def deselect( self ):
         self.select( deselect=1 )
     
-    listConnections = listConnections
+    listConnections = pymel.core.core.listConnections
         
-    connections = listConnections
+    connections = pymel.core.core.listConnections
 
-    listHistory = listHistory
+    listHistory = pymel.core.core.listHistory
         
-    history = listHistory
+    history = pymel.core.core.listHistory
 
-    listFuture = listFuture
+    listFuture = pymel.core.core.listFuture
                 
-    future = listFuture
+    future = pymel.core.core.listFuture
 
 
                     
@@ -561,17 +561,17 @@ class Attribute(PyNode):
     Getting Attribute Values
     ------------------------
     To get an attribute, you use the L{'get'<Attribute.get>} method. Keep in mind that, where applicable, the values returned will 
-    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
+    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `pymel.core.core.Vector`.
     
         >>> rot = s.rotate.get()
         >>> print rot
         [0.0, 0.0, 0.0]
         >>> print type(rot) # rotation is returned as a vector class
-        <class 'pymel.vector.Vector'>
+        <class 'pymel.core.vector.pymel.core.core.Vector'>
 
     Setting Attributes Values
     -------------------------
-    there are several ways to set attributes in pymel.  maybe there's too many....
+    there are several ways to set attributes in pymel.core.  maybe there's too many....
     
         >>> s.rotate.set([4,5,6])   # you can pass triples as a list
         >>> s.rotate.set(4,5,6)     # or not    
@@ -742,16 +742,16 @@ class Attribute(PyNode):
         return cmds.addAttr( self, q=1, en=1 ).split(':')    
             
     # getting and setting                    
-    set = setAttr            
-    get = getAttr
-    setKey = setKeyframe    
+    set = pymel.core.core.setAttr            
+    get = pymel.core.core.getAttr
+    setKey = pymel.core.anim.setKeyframe    
     
     
     #----------------------
     # Connections
     #----------------------    
                     
-    isConnected = isConnected
+    isConnected = cmds.isConnected
     
             
     #def __irshift__(self, other):
@@ -762,15 +762,15 @@ class Attribute(PyNode):
     #    return cmds.isConnected(self, other)
     
 
-    connect = connectAttr
+    connect = pymel.core.core.connectAttr
         
     def __rshift__(self, other):
         """operator for 'connectAttr'
             sphere.tx >> box.tx
         """ 
-        return connectAttr( self, other, force=True )
+        return pymel.core.core.connectAttr( self, other, force=True )
                 
-    disconnect = disconnectAttr
+    disconnect = pymel.core.core.disconnectAttr
 
     def __ne__(self, other):
         """operator for 'disconnectAttr'
@@ -779,22 +779,22 @@ class Attribute(PyNode):
         return cmds.disconnectAttr( self, other )
                 
     def inputs(self, **kwargs):
-        'listConnections -source 1 -destination 0'
+        'pymel.core.core.listConnections -source 1 -destination 0'
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)
+        return pymel.core.core.listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
-        'listConnections -source 0 -destination 1'
+        'pymel.core.core.listConnections -source 0 -destination 1'
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)
+        return pymel.core.core.listConnections(self, **kwargs)
     
     def insertInput(self, node, nodeOutAttr, nodeInAttr ):
         """connect the passed node.outAttr to this attribute and reconnect
@@ -846,7 +846,7 @@ class Attribute(PyNode):
         """xform -translation"""
         kwargs['translation'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
         
     #----------------------
     # Info Methods
@@ -1102,7 +1102,7 @@ class Attribute(PyNode):
         """attributeQuery -listChildren"""
         return map( 
             lambda x: Attribute( self.node() + '.' + x ), 
-            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
+            pymel.util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
                 )
 
 
@@ -1110,7 +1110,7 @@ class Attribute(PyNode):
         """attributeQuery -listSiblings"""
         return map( 
             lambda x: Attribute( self.node() + '.' + x ), 
-            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listSiblings=True) )
+            pymel.util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listSiblings=True) )
                 )
 
         
@@ -1152,19 +1152,19 @@ class DependNode( PyNode ):
 #            # Result: Transform('persp1')
 #        """
 #        if create:
-#            ntype = util.uncapitalize(cls.__name__)
+#            ntype = pymel.util.uncapitalize(cls.__name__)
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
 
     def _updateName(self) :
-        if api.isValidMObjectHandle(self._object) :
+        if pymel.util.api.isValidMObjectHandle(self._object) :
             obj = self._object.object()
-            depFn = api.MFnDependencyNode(obj)
+            depFn = pymel.util.api.MFnDependencyNode(obj)
             self._name = depFn.name()
         return self._name 
 
     def object(self) :
-        if api.isValidMObjectHandle(self._object) :
+        if pymel.util.api.isValidMObjectHandle(self._object) :
             return self._object.object()
         
     def name(self, update=True) :
@@ -1176,15 +1176,15 @@ class DependNode( PyNode ):
     def __init__(self, handleOrName) :
         if isinstance(handleOrName, DependNode) :
             self._name = unicode(handleOrName.name())
-            self._object = api.MObjectHandle(handleOrName.object())
-        elif api.isValidMObject(handleOrName) or api.isValidMObjectHandle(handleOrName) :
-            self._object = api.MObjectHandle(handleOrName)
+            self._object = pymel.util.api.MObjectHandle(handleOrName.object())
+        elif pymel.util.api.isValidMObject(handleOrName) or pymel.util.api.isValidMObjectHandle(handleOrName) :
+            self._object = pymel.util.api.MObjectHandle(handleOrName)
             self._updateName()
         elif isinstance(handleOrName, basestring) :
-            obj = api.toMObject (handleOrName)
-            if api.isValidMObject(obj) :
+            obj = pymel.util.api.toMObject (handleOrName)
+            if pymel.util.api.isValidMObject(obj) :
                 # actual Maya object creation
-                self._object = api.MObjectHandle(obj)
+                self._object = pymel.util.api.MObjectHandle(obj)
                 self._updateName()
             else :
                 # non existent object
@@ -1222,7 +1222,7 @@ class DependNode( PyNode ):
         try :
             return super(PyNode, self).__setattr__(attr, val)
         except AttributeError :
-            return setAttr( '%s.%s' % (self, attr), val ) 
+            return pymel.core.core.setAttr( '%s.%s' % (self, attr), val ) 
 
 
         # if attr.startswith('__') and attr.endswith('__'):
@@ -1249,9 +1249,9 @@ class DependNode( PyNode ):
         """nodeCast"""
         return cmds.nodeCast( self, swapNode, *kwargs )
     
-    rename = rename
+    rename = pymel.core.core.rename
     
-    duplicate = duplicate
+    duplicate = pymel.core.core.duplicate
     
     #--------------------------
     #    Presets
@@ -1285,11 +1285,11 @@ class DependNode( PyNode ):
 
     def type(self, **kwargs):
         "nodetype"        
-        return self.nodeType(**kwargs)
+        return self.cmds.nodeType(**kwargs)
             
     def exists(self, **kwargs):
-        "objExists"
-        return self.objExists(**kwargs)
+        "cmds.objExists"
+        return self.cmds.objExists(**kwargs)
         
     def isReadOnly(self):
         return (cmds.ls( self, ro=1) and True) or False
@@ -1317,38 +1317,38 @@ class DependNode( PyNode ):
     #--------------------------    
     
     def inputs(self, **kwargs):
-        'listConnections -source 1 -destination 0'
+        'pymel.core.core.listConnections -source 1 -destination 0'
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
         kwargs.pop('d', None )
-        return listConnections(self, **kwargs)
+        return pymel.core.core.listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
-        'listConnections -source 0 -destination 1'
+        'pymel.core.core.listConnections -source 0 -destination 1'
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)                            
+        return pymel.core.core.listConnections(self, **kwargs)                            
 
     def sources(self, **kwargs):
-        'listConnections -source 1 -destination 0'
+        'pymel.core.core.listConnections -source 1 -destination 0'
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
         kwargs.pop('d', None )
-        return listConnections(self, **kwargs)
+        return pymel.core.core.listConnections(self, **kwargs)
     
     def destinations(self, **kwargs):
-        'listConnections -source 0 -destination 1'
+        'pymel.core.core.listConnections -source 0 -destination 1'
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)    
+        return pymel.core.core.listConnections(self, **kwargs)    
         
     def shadingGroups(self):
         """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes """
@@ -1378,15 +1378,15 @@ class DependNode( PyNode ):
             for destination in self.outputs( plugs=True ):
                 cmds.disconnectAttr( "%s.%s" % (self, source), destination, **kwargs )
                     
-    listAnimatable = listAnimatable
+    listAnimatable = pymel.core.core.listAnimatable
 
     def listAttr( self, **kwargs):
         "listAttr"
-        return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.listAttr(self, **kwargs)))
+        return map( lambda x: PyNode( '%s.%s' % (self, x) ), pymel.util.listForNone(cmds.listAttr(self, **kwargs)))
 
     def attrInfo( self, **kwargs):
         "attributeInfo"
-        return map( lambda x: PyNode( '%s.%s' % (self, x) ), util.listForNone(cmds.attributeInfo(self, **kwargs)))
+        return map( lambda x: PyNode( '%s.%s' % (self, x) ), pymel.util.listForNone(cmds.attributeInfo(self, **kwargs)))
             
     _numPartReg = re.compile('([0-9]+)$')
     
@@ -1438,10 +1438,10 @@ class Entity(DependNode): pass
 class DagNode(Entity):
     
     def _updateName(self, long=False) :
-        if api.isValidMObjectHandle(self._object) :
+        if pymel.util.api.isValidMObjectHandle(self._object) :
             obj = self._object.object()
-            dagFn = api.MFnDagNode(obj)
-            dagPath = api.MDagPath()
+            dagFn = pymel.util.api.MFnDagNode(obj)
+            dagPath = pymel.util.api.MDagPath()
             dagFn.getPath(dagPath)
             self._name = dagPath.partialPathName()
             if long :
@@ -1449,7 +1449,7 @@ class DagNode(Entity):
         return self._name                       
 
     def object(self) :
-        if api.isValidMObjectHandle(self._object) :
+        if pymel.util.api.isValidMObjectHandle(self._object) :
             return self._object.object()
         
     def name(self, update=True, long=False) :
@@ -1461,21 +1461,21 @@ class DagNode(Entity):
     def __init__(self, handleOrName) :
         if isinstance(handleOrName, DagNode) :
             self._name = unicode(handleOrName.name())
-            self._object = api.MObjectHandle(handleOrName.object())
-        elif api.isValidMObject(handleOrName) or api.isValidMObjectHandle(handleOrName) :
-            objHandle = api.MObjectHandle(handleOrName)
+            self._object = pymel.util.api.MObjectHandle(handleOrName.object())
+        elif pymel.util.api.isValidMObject(handleOrName) or pymel.util.api.isValidMObjectHandle(handleOrName) :
+            objHandle = pymel.util.api.MObjectHandle(handleOrName)
             obj = objHandle.object() 
-            if api.isValidMDagNode(obj) :
+            if pymel.util.api.isValidMDagNode(obj) :
                 self._object = objHandle
                 self._updateName()
             else :
                 raise TypeError, "%r might be a dependencyNode, but not a dagNode" % handleOrName              
         elif isinstance(handleOrName, basestring) :
-            obj = api.toMObject (handleOrName)
-            if api.isValidMObject(obj) :
+            obj = pymel.util.api.toMObject (handleOrName)
+            if pymel.util.api.isValidMObject(obj) :
                 # creation for existing object
-                if api.isValidMDagNode (obj):
-                    self._object = api.MObjectHandle(api.toMObject (handleOrName))
+                if pymel.util.api.isValidMDagNode (obj):
+                    self._object = pymel.util.api.MObjectHandle(pymel.util.api.toMObject (handleOrName))
                     self._updateName()
                 else :
                     raise TypeError, "%r might be a dependencyNode, but not a dagNode" % handleOrName 
@@ -1516,7 +1516,7 @@ class DagNode(Entity):
     
     def getParent(self, **kwargs):
         """unlike the firstParent command which determines the parent via string formatting, this 
-        command uses the listRelatives command"""
+        command uses the pymel.core.core.listRelatives command"""
         
         kwargs['parent'] = True
         kwargs.pop('p',None)
@@ -1538,7 +1538,7 @@ class DagNode(Entity):
         kwargs['children'] = True
         kwargs.pop('c',None)
 
-        return listRelatives( self, **kwargs)
+        return pymel.core.core.listRelatives( self, **kwargs)
         
     def getSiblings(self, **kwargs ):
         #pass
@@ -1548,7 +1548,7 @@ class DagNode(Entity):
             return []
                 
     def listRelatives(self, **kwargs ):
-        return listRelatives( self, **kwargs)
+        return pymel.core.core.listRelatives( self, **kwargs)
         
     def longName(self):
         'longNameOf'
@@ -1571,7 +1571,7 @@ class DagNode(Entity):
         'parent'
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
                 
-    instance = instance
+    #instance = pymel.core.core.instance
 
     #--------------------------
     #    Shading
@@ -1659,11 +1659,11 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
-    dolly = factories.functionFactory('dolly', None, cmds )
-    roll = factories.functionFactory('roll', None, cmds )
-    orbit = factories.functionFactory('orbit', None, cmds )
-    track = factories.functionFactory('track', None, cmds )
-    tumble = factories.functionFactory('tumble', None, cmds )
+    dolly = pymel.util.factories.functionFactory('dolly', None, cmds )
+    roll = pymel.util.factories.functionFactory('roll', None, cmds )
+    orbit = pymel.util.factories.functionFactory('orbit', None, cmds )
+    track = pymel.util.factories.functionFactory('track', None, cmds )
+    tumble = pymel.util.factories.functionFactory('tumble', None, cmds )
     
             
 class Transform(DagNode):
@@ -1803,7 +1803,7 @@ class Transform(DagNode):
                                 
     def setMatrix( self, val, **kwargs ):
         """xform -scale"""
-        if isinstance(val, Matrix):
+        if isinstance(val, pymel.core.core.Matrix):
             val = val.toList()
     
         kwargs['matrix'] = val
@@ -1812,72 +1812,72 @@ class Transform(DagNode):
         cmds.xform( self, **kwargs )
 
     '''
-    getScale = factories.makeQueryFlagCmd( 'getScale', cmds.xform, 'scale', returnFunc=Vector )
-    getRotation = factories.makeQueryFlagCmd( 'getRotation', cmds.xform, 'rotation', returnFunc=Vector )    
-    getTranslation = factories.makeQueryFlagCmd( 'getTranslation', cmds.xform, 'translation', returnFunc=Vector )    
-    getScalePivot = factories.makeQueryFlagCmd( 'getScalePivot', cmds.xform, 'scalePivot', returnFunc=Vector )    
-    getRotatePivot = factories.makeQueryFlagCmd( 'getRotatePivot', cmds.xform, 'rotatePivot', returnFunc=Vector )    
-    #getPivots = factories.makeQueryFlagCmd( 'getPivots', cmds.xform, 'pivots', returnFunc=Vector )    
-    getRotateAxis = factories.makeQueryFlagCmd( 'getRotateAxis', cmds.xform, 'rotateAxis', returnFunc=Vector )    
-    getShear = factories.makeQueryFlagCmd( 'getShear', cmds.xform, 'shear', returnFunc=Vector )    
-    getMatrix = factories.makeQueryFlagCmd( 'getMatrix', cmds.xform, 'matrix', returnFunc=Matrix )    
+    #getScale = pymel.util.factories.makeQueryFlagCmd( 'getScale', cmds.xform, 'scale', returnFunc=pymel.core.core.Vector )
+    #getRotation = pymel.util.factories.makeQueryFlagCmd( 'getRotation', cmds.xform, 'rotation', returnFunc=pymel.core.core.Vector )    
+    #getTranslation = pymel.util.factories.makeQueryFlagCmd( 'getTranslation', cmds.xform, 'translation', returnFunc=pymel.core.core.Vector )    
+    #getScalePivot = pymel.util.factories.makeQueryFlagCmd( 'getScalePivot', cmds.xform, 'scalePivot', returnFunc=pymel.core.core.Vector )    
+    #getRotatePivot = pymel.util.factories.makeQueryFlagCmd( 'getRotatePivot', cmds.xform, 'rotatePivot', returnFunc=pymel.core.core.Vector )    
+    ##getPivots = pymel.util.factories.makeQueryFlagCmd( 'getPivots', cmds.xform, 'pivots', returnFunc=pymel.core.core.Vector )    
+    #getRotateAxis = pymel.util.factories.makeQueryFlagCmd( 'getRotateAxis', cmds.xform, 'rotateAxis', returnFunc=pymel.core.core.Vector )    
+    getShear = pymel.util.factories.makeQueryFlagCmd( 'getShear', cmds.xform, 'shear', returnFunc=pymel.core.core.Vector )    
+    getMatrix = pymel.util.factories.makeQueryFlagCmd( 'getMatrix', cmds.xform, 'matrix', returnFunc=pymel.core.core.Matrix )    
     '''
     def getScale( self, **kwargs ):
         """xform -scale"""
         kwargs['scale'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
         
     def getRotation( self, **kwargs ):
         """xform -rotation"""
         kwargs['rotation'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
 
     def getTranslation( self, **kwargs ):
         """xform -translation"""
         kwargs['translation'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
 
     def getScalePivot( self, **kwargs ):
         """xform -scalePivot"""
         kwargs['scalePivot'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
         
     def getRotatePivot( self, **kwargs ):
         """xform -rotatePivot"""
         kwargs['rotatePivot'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
     '''    
     def getPivots( self, **kwargs ):
         """xform -pivots"""
         kwargs['pivots'] = True
         kwargs['query'] = True
         res = cmds.xform( self, **kwargs )
-        return ( Vector( res[:3] ), Vector( res[3:] )  )
+        return ( pymel.core.core.Vector( res[:3] ), pymel.core.core.Vector( res[3:] )  )
     '''
     def getRotateAxis( self, **kwargs ):
         """xform -rotateAxis"""
         kwargs['rotateAxis'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
         
                                 
     def getShear( self, **kwargs ):
         """xform -shear"""
         kwargs['shear'] = True
         kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Vector( cmds.xform( self, **kwargs ) )
                                 
     def getMatrix( self, **kwargs ):
         """xform -matrix"""
     
         kwargs['matrix'] = True
         kwargs['query'] = True
-        return Matrix( cmds.xform( self, **kwargs ) )
+        return pymel.core.core.Matrix( cmds.xform( self, **kwargs ) )
     '''        
     def getBoundingBox(self, invisible=False):
         """xform -boundingBox and xform-boundingBoxInvisible
@@ -1891,7 +1891,7 @@ class Transform(DagNode):
             kwargs['boundingBox'] = True
                     
         res = cmds.xform( self, **kwargs )
-        return ( Vector(res[:3]), Vector(res[3:]) )
+        return ( pymel.core.core.Vector(res[:3]), pymel.core.core.Vector(res[3:]) )
     
     def getBoundingBoxMin(self, invisible=False):
         return self.getBoundingBox(invisible)[0]
@@ -1913,30 +1913,30 @@ class Transform(DagNode):
 
 class Joint(Transform):
     __metaclass__ = metaNode
-    connect = factories.functionFactory('connectJoint', None, cmds)
-    disconnect = factories.functionFactory('disconnectJoint', None, cmds)
-    insert = factories.functionFactory('insertJoint', None, cmds)
+    connect = pymel.util.factories.functionFactory('connectJoint', None, cmds)
+    disconnect = pymel.util.factories.functionFactory('disconnectJoint', None, cmds)
+    insert = pymel.util.factories.functionFactory('insertJoint', None, cmds)
 
 class FluidEmitter(Transform):
     __metaclass__ = metaNode
-    fluidVoxelInfo = factories.functionFactory('fluidVoxelInfo', None, cmds)
-    loadFluid = factories.functionFactory('loadFluid', None, cmds)
-    resampleFluid = factories.functionFactory('resampleFluid', None, cmds)
-    saveFluid = factories.functionFactory('saveFluid', None, cmds)
-    setFluidAttr = factories.functionFactory('setFluidAttr', None, cmds)
-    getFluidAttr = factories.functionFactory('getFluidAttr', None, cmds)
+    fluidVoxelInfo = pymel.util.factories.functionFactory('fluidVoxelInfo', None, cmds)
+    loadFluid = pymel.util.factories.functionFactory('loadFluid', None, cmds)
+    resampleFluid = pymel.util.factories.functionFactory('resampleFluid', None, cmds)
+    saveFluid = pymel.util.factories.functionFactory('saveFluid', None, cmds)
+    setFluidAttr = pymel.util.factories.functionFactory('setFluidAttr', None, cmds)
+    getFluidAttr = pymel.util.factories.functionFactory('getFluidAttr', None, cmds)
     
 class RenderLayer(DependNode):
     __metaclass__ = metaNode
-    editAdjustment = factories.functionFactory('editRenderLayerAdjustment', None, cmds)
-    editGlobals = factories.functionFactory('editRenderLayerGlobals', None, cmds)
-    editMembers = factories.functionFactory('editRenderLayerMembers',None, cmds)
-    postProcess = factories.functionFactory('renderLayerPostProcess',None,cmds)
+    editAdjustment = pymel.util.factories.functionFactory('editRenderLayerAdjustment', None, cmds)
+    editGlobals = pymel.util.factories.functionFactory('editRenderLayerGlobals', None, cmds)
+    editMembers = pymel.util.factories.functionFactory('editRenderLayerMembers',None, cmds)
+    postProcess = pymel.util.factories.functionFactory('renderLayerPostProcess',None,cmds)
 
 class DisplayLayer(DependNode):
     __metaclass__ = metaNode
-    editGlobals = factories.functionFactory('editDisplayLayerGlobals', None, cmds)
-    editMembers = factories.functionFactory('editDisplayLeyerMembers', None, cmds)
+    editGlobals = pymel.util.factories.functionFactory('editDisplayLayerGlobals', None, cmds)
+    editMembers = pymel.util.factories.functionFactory('editDisplayLeyerMembers', None, cmds)
     
 class Constraint(Transform):
     def setWeight( self, weight, *targetObjects ):
@@ -2001,7 +2001,7 @@ class Mesh(SurfaceShape):
             return '%s.f[%s]' % (self._node, self._item)
     
         def getNormal(self):
-            return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
+            return pymel.core.core.Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
         normal = property(getNormal)
         
         def toEdges(self):
@@ -2099,12 +2099,12 @@ class Mesh(SurfaceShape):
                 """
             return at.set(val)
                         
-    vertexCount = factories.makeCreateFlagCmd( 'vertexCount', cmds.polyEvaluate, 'vertex' )
-    edgeCount = factories.makeCreateFlagCmd( 'edgeCount', cmds.polyEvaluate, 'edge' )
-    faceCount = factories.makeCreateFlagCmd( 'faceCount', cmds.polyEvaluate, 'face' )
-    uvcoordCount = factories.makeCreateFlagCmd( 'uvcoordCount', cmds.polyEvaluate, 'uvcoord' )
-    triangleCount = factories.makeCreateFlagCmd( 'triangleCount', cmds.polyEvaluate, 'triangle' )
-    #area = factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
+    vertexCount = pymel.util.factories.makeCreateFlagCmd( 'vertexCount', cmds.polyEvaluate, 'vertex' )
+    edgeCount = pymel.util.factories.makeCreateFlagCmd( 'edgeCount', cmds.polyEvaluate, 'edge' )
+    faceCount = pymel.util.factories.makeCreateFlagCmd( 'faceCount', cmds.polyEvaluate, 'face' )
+    uvcoordCount = pymel.util.factories.makeCreateFlagCmd( 'uvcoordCount', cmds.polyEvaluate, 'uvcoord' )
+    triangleCount = pymel.util.factories.makeCreateFlagCmd( 'triangleCount', cmds.polyEvaluate, 'triangle' )
+    #area = pymel.util.factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
     
     #def area(self):
     #    return cmds.polyEvaluate(self, area=True)
@@ -2220,7 +2220,7 @@ class ObjectSet(Entity):
     
         >>> t.update(u)
 
-    mixed operation between pymel.ObjectSet and built-in set
+    mixed operation between pymel.core.ObjectSet and built-in set
         
         >>> v = set(['polyCube3', 'pSphere3'])
         >>> print s.intersection(v)
@@ -2360,26 +2360,26 @@ class ObjectSet(Entity):
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 def _createClasses():
-    #for nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
-    #print factories.nodeHierarchy
+    #for cmds.nodeType in networkx.search.dfs_preorder( pymel.util.factories.nodeHierarchy , 'dependNode' )[1:]:
+    #print pymel.util.factories.nodeHierarchy
     # see if breadth first isn't more practical ?
-    for treeElem in factories.nodeHierarchy.preorder():
+    for treeElem in pymel.util.factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
-        nodeType = treeElem.key
-        #print "nodeType: ", nodeType
-        if nodeType == 'dependNode': continue
-        classname = util.capitalize(nodeType)
+        cmds.nodeType = treeElem.key
+        #print "cmds.nodeType: ", cmds.nodeType
+        if cmds.nodeType == 'dependNode': continue
+        classname = pymel.util.capitalize(cmds.nodeType)
         if not hasattr( _thisModule, classname ):
-            #superNodeType = factories.nodeHierarchy.parent( nodeType )
+            #superNodeType = pymel.util.factories.nodeHierarchy.parent( cmds.nodeType )
             superNodeType = treeElem.parent.key
             #print "superNodeType: ", superNodeType, type(superNodeType)
             if superNodeType is None:
-                print "could not find parent node", nodeType
+                print "could not find parent node", cmds.nodeType
                 continue
             try:
-                base = getattr( _thisModule, util.capitalize(superNodeType) )
+                base = getattr( _thisModule, pymel.util.capitalize(superNodeType) )
             except AttributeError:
-                print "could not find parent class", nodeType
+                print "could not find parent class", cmds.nodeType
                 continue
         
             try:
@@ -2399,7 +2399,7 @@ def testNodeCmds(verbose=False):
 
     emptyFunctions = []
     
-    for funcName in factories.moduleCmds['node']:
+    for funcName in pymel.util.factories.moduleCmds['node']:
         print funcName.center( 50, '=')
         
         if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
@@ -2432,7 +2432,7 @@ def testNodeCmds(verbose=False):
         else:
             #(func, args, data) = cmdList[funcName]    
             #(usePyNode, baseClsName, nodeName)
-            args = factories.cmdlist[funcName]['flags']
+            args = pymel.util.factories.cmdlist[funcName]['flags']
 
             if isinstance(obj, list):
                 print "returns list"
@@ -2455,7 +2455,7 @@ def testNodeCmds(verbose=False):
                             print "\tsucceeded: %s" % val
                     except TypeError, msg:                            
                         if str(msg).startswith( 'Invalid flag' ):
-                            factories.cmdlist[funcName]['flags'].pop(flag,None)
+                            pymel.util.factories.cmdlist[funcName]['flags'].pop(flag,None)
                         #else:
                         print cmd
                         print "\t", msg
@@ -2495,7 +2495,7 @@ def testNodeCmds(verbose=False):
                         #print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
                     except TypeError, msg:                                                        
                         if str(msg).startswith( 'Invalid flag' ):
-                            factories.cmdlist[funcName]['flags'].pop(flag,None)
+                            pymel.util.factories.cmdlist[funcName]['flags'].pop(flag,None)
                         #else:
                         print cmd
                         print "\t", msg 
@@ -2509,24 +2509,29 @@ def testNodeCmds(verbose=False):
     print emptyFunctions
 
 def _createFunctions():
-    for funcName in factories.moduleCmds['node']:
-        func = factories.functionFactory( funcName, PyNode, _thisModule )
-        func.__doc__ = 'function counterpart of class `%s`\n\n' % util.capitalize( funcName ) + func.__doc__
+    for funcName in pymel.util.factories.moduleCmds['node']:
+        func = pymel.util.factories.functionFactory( funcName, PyNode, _thisModule )
+        
         if func:
-            func.__module__ = __name__
-            setattr( _thisModule, funcName, func )
+            try:
+                func.__doc__ = 'function counterpart of class `%s`\n\n' % pymel.util.capitalize( funcName ) + func.__doc__
+                func.__module__ = __name__
+                setattr( _thisModule, funcName, func )
+            except:
+                print "could not add %s to module %s" % (func, _thisModule)
+
 _createFunctions()
-#factories.createFunctions( _thisModule, PyNode )
+#pymel.util.factories.createFunctions( _thisModule, PyNode )
 
 # create PyNode conversion tables
 
 # Need to build a similar dict of Pymel types to their corresponding API types
 class PyNodeToMayaAPITypes(dict) :
-    __metaclass__ =  util.metaStatic
+    __metaclass__ =  pymel.util.metaStatic
 
 # inverse lookup, some Maya API types won't have a PyNode equivalent
 class MayaAPITypesToPyNode(dict) :
-    __metaclass__ =  util.metaStatic
+    __metaclass__ =  pymel.util.metaStatic
 
 # build a PyNode to API type relation or PyNode to Maya node types relation ?
 def buildPyNodeToAPI () :
@@ -2536,7 +2541,8 @@ def buildPyNodeToAPI () :
             return issubclass(x, PyNode)
         except :
             return False    
-    listPyNodes = dict(inspect.getmembers(node, _PyNodeClass))
+    listPyNodes = dict(inspect.getmembers(_thisModule, _PyNodeClass))
+    print listPyNodes
     PyNodeDict = {}
     PyNodeInverseDict = {}
     for k in listPyNodes.keys() :
@@ -2544,7 +2550,7 @@ def buildPyNodeToAPI () :
         PyNodeType = listPyNodes[k]
         PyNodeTypeName = PyNodeType.__name__
         APITypeName = 'k'+PyNodeTypeName
-        if api.MayaAPIToTypes().has_key(APITypeName) :
+        if pymel.util.api.MayaAPIToTypes().has_key(APITypeName) :
             PyNodeDict[PyNodeType] = APITypeName
             PyNodeInverseDict[APITypeName] = PyNodeType
     # Would be good to limit special treatments
@@ -2567,20 +2573,20 @@ print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 # PyNode types names (as str)
 class PyNodeTypeNames(dict) :
     """ Lookup from PyNode type name to PyNode type """
-    __metaclass__ =  util.metaStatic
+    __metaclass__ =  pymel.util.metaStatic
 
 # Dictionnary of Maya API types to their MFn::Types enum
 PyNodeTypeNames((k.__name__, k) for k in PyNodeToMayaAPITypes().keys())  
 
 # child:parent lookup of the pymel classes that derive from DependNode
 class PyNodeTypesHierarchy(dict) :
-    __metaclass__ =  util.metaStatic
+    __metaclass__ =  pymel.util.metaStatic
 
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
 def buildPyNodeTypesHierarchy () :    
     PyNodeTree = inspect.getclasstree([k for k in PyNodeToMayaAPITypes().keys()])
     PyNodeDict = {}
-    for x in util.expandArgs(PyNodeTree, type='list') :
+    for x in pymel.util.expandArgs(PyNodeTree, type='list') :
         try :
             ct = x[0]
             pt = x[1][0]
@@ -2594,7 +2600,7 @@ def buildPyNodeTypesHierarchy () :
 # Initialize the Pymel class tree
 # PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 start = time.time()
-PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+#PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 elapsed = time.time() - start
 print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
 
@@ -2609,9 +2615,9 @@ def isValidPyNodeTypeName (arg):
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):
     length = sel.length()
-    dag = api.MDagPath()
-    comp = api.MObject()
-    obj = api.MObject()
+    dag = pymel.util.api.MDagPath()
+    comp = pymel.util.api.MObject()
+    obj = pymel.util.api.MObject()
     result = []
     for i in xrange(length) :
         selStrs = []
@@ -2632,6 +2638,6 @@ def MSelectionPyNode ( sel ):
         
         
 def activeSelectionPyNode () :
-    sel = api.MSelectionList()
-    api.MGlobal.getActiveSelectionList ( sel )   
+    sel = pymel.util.api.MSelectionList()
+    pymel.util.api.MGlobal.getActiveSelectionList ( sel )   
     return MSelectionPyNode ( sel )

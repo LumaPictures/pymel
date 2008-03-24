@@ -615,15 +615,16 @@ __version__ = '0.7.9'
 import util
 assert util.mayaInit() 
 
-import api
-from trees import *
-from node import *
-from ctx import *
-from io import *
-from ui import *
-from anim import *
-from fx import *
-from model import *
-from render import *
-import runtime
+#import api
+from core.node import *
+from core.core import *
+from core.ctx import *
+from core.io import *
+from core.ui import *
+from core.anim import *
+from core.fx import *
+from core.model import *
+from core.render import *
+import core.runtime
+
 	

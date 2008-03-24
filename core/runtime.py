@@ -2,18 +2,16 @@
 The runtime module contains all runtime commands.
 """
 
-import factories
+import pymel.util.factories
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 def _createFunctions():
-	for funcName in factories.moduleCmds['runtime']:
-		func = factories.functionFactory( funcName, None )
+	for funcName in pymel.util.factories.moduleCmds['runtime']:
+		func = pymel.util.factories.functionFactory( funcName, None )
 		if func:
 			func.__module__ = __name__
 			setattr( _thisModule, funcName, func )
 #_createFunctions()
 
-#factories.createFunctions( _thisModule, None )
-
-factories.createFunctions( __name__, None )
+pymel.util.factories.createFunctions( __name__ )
