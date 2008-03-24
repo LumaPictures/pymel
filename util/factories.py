@@ -428,9 +428,9 @@ def getModuleCommandList( category, version='8.5' ):
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
-    # did you commit the new util?
-    #ver = pymel.util.getMayaVersion(extension=False)
-    ver = pymel.util.getMayaVersion()
+    # need to skip version extension or you can get things such as
+    # autodesk/maya2008-x64/docs/Maya2008 Service Pack 1 x64/en_US for docs path
+    ver = pymel.util.getMayaVersion(extension=False)
         
     newPath = pymel.util.moduleDir() / 'mayaCmdsList'+ver+'.bin'
     cmdlist = {}
