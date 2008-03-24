@@ -1144,23 +1144,89 @@ class MetaTree(type):
     def __repr__(cls):
         return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType)  
 
+    def __str__(cls):
+        return "%s<TreeType:%r>" % (cls.__name__, cls.TreeType) 
+
+    def __unicode__(cls):
+        return u"%s<TreeType:%r>" % (cls.__name__, cls.TreeType) 
+
 # derive from one of these as needed
-class FrozenTree:
+class FrozenTree(object):
     __metaclass__ =  MetaTree            
     mutable = False
     indexed = False
                     
-class Tree:
+class Tree(object):
     __metaclass__ =  MetaTree
     mutable = True
     indexed = False
     
-class IndexedFrozenTree:
+class IndexedFrozenTree(object):
     __metaclass__ =  MetaTree            
     mutable = False
     indexed = True
                    
-class IndexedTree:
+class IndexedTree(object):
     __metaclass__ =  MetaTree
     mutable = True
     indexed = True    
+
+def treeFromDict (arg):
+    """
+    This function will build a tree from the provided dictionnary of child:parent relations :
+        where each key represent an element and each key value represent the parent of that element, allows to build Trees form 
+        cmp(a,b): returns True if a is a direct child of b, False else.
+        All elements must be present in the dictionnary keys, with root elements having None as value/parent
+    """    
+    if isinstance(arg, dict) :
+        def isChildFn (a, b):
+            return arg.get(a, None) == b
+        s = set(arg.keys())
+        for v in arg.values() :
+            s.add(v)
+        return treeFromChildLink (isChildFn, *s)
+    else :
+        raise ValueError ("%r is not a dictionnary" % arg)
+
+def treeFromChildLink (isExactChildFn, *args):
+    """
+    This function will build a tree from the provided sequence and a comparison function in the form:
+        cmp(a,b): returns True if a is a direct child of b, False else
+    >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'a', 'b', 'bb', 'ab', 'bab', 'bba']
+    >>> def isChild(s1, s2) :
+    >>> return s1.startswith(s2) and len(s1)==len(s2)+1
+    >>> a = treeFromChildLink (isChild, *lst)
+    >>> print a[0].formatted()
+    A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
+    >>> def isChild(s1, s2) :
+    >>>     return s1.startswith(s2) 
+    >>> forest = treeFromChildLink (isChild, lst)    
+    """    
+    deq = deque()
+    for arg in args :
+        deq.append(Tree(arg))
+    lst = []
+    it = 0
+    while deq:
+        it+=1
+        #print "iteration %i deq= %s, lst= %s"% (it, deq, lst)
+        c = deq.popleft()
+        hasParent = False        
+        for p in list(deq)+lst :
+            pars = filter(lambda x:isExactChildFn(c.top().value, x.value), p.preorder())
+            for pr in pars :
+                #print "%s is child of %s" % (c, pr)                        
+                if not hasParent :
+                    pr.graft(c, pr)
+                    hasParent = True
+                else :
+                    # should only be one parent, break on first encountered
+                    raise ValueError, "A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: '%s'" % isExactChildFn.__name__
+        # If it's a root we move it to final list
+        if not hasParent :
+            #print "%s has not parent, it goes to the list as root" % str(c)
+            lst.append(c)
+    
+    # print "final list %s" % str(lst)
+    return Tree(*lst)
+
