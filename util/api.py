@@ -21,7 +21,7 @@ except: pass
 
 import sys, inspect, warnings, timeit, time, re
 from pymel.util import Singleton, metaStatic, expandArgs
-from pymel.trees import *
+from pymel.core.types.trees import *
 # TODO : would need this shared as a Singleton class, but importing from factories anywhere 
 # except form core seems to be a problem
 from factories import NodeHierarchy
