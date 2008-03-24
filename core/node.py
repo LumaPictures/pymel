@@ -3,7 +3,6 @@ The node module contains functions which are used to create nodes, as well as th
 See the sections `Node Class Hierarchy`_ and `Node Commands and their Class Counterparts`_.
 """
 
-
 import pymel.util.api
 import pymel.core.core, pymel.util.factories, pymel.util, pymel.core.anim
 import sys, os, re, inspect, warnings, timeit, time
@@ -13,11 +12,16 @@ try:
 except ImportError:
     pass
 
+
+
 #from vector import pymel.core.core.Vector, pymel.core.core.Matrix  # in core
 #from core import *
 #from anim import *
 #import pymel.util, pymel.util.factories  # in core
+# to be replaced
+from pymel.util.pyNameparse import *
 
+#import util, factories  # in core
 
 #-----------------------------------------------
 #  Enhanced Node Commands
@@ -276,37 +280,40 @@ Maya Bug Fix:
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
 
-def getPymelType(obj, comp=None) :
+def _getPymelType(arg, comp=None) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default """
         
-    objHandle = None
+    obj = None
     objName = None
     # TODO : handle comp as a MComponent or list of components
-    if isinstance(obj, PyNode) :
-        objHandle = obj._object
-    elif isinstance(obj, pymel.util.api.MObject) :
-        objHandle = pymel.util.api.MObjectHandle(obj)
-    elif isinstance(obj,basestring) :
-        objName = obj
-        obj = pymel.util.api.toMObject (obj)
-        if obj is not None :
-            objHandle = pymel.util.api.MObjectHandle(obj)   
-
-    pymelType = DependNode
-    if '.' in objName :
-        # TODO : some better checking / parsing
-        pymelType = Attribute                                           
-    elif pymel.util.api.isValidMObjectHandle(objHandle) :
-        obj = objHandle.object()
-        objType = pymel.util.api.apiEnumToNodeType(obj.apiType ())
-        try :
-            pymelType = getattr(_thisModule, pymel.util.capitalize(objType))
-        except :
-            pymelType = DependNode
-    else :
+    if isinstance(arg, PyNode) :
+        obj = arg.object()
+    elif isinstance(arg, pymel.util.api.MObject) :
+        if pymel.util.api.isValidMObjectHandle(api.MObjectHandle(arg)) :
+            obj = arg
+        else :
+            obj = None
+    elif isinstance(arg,basestring) :
+        objName = arg
+        obj = pymel.util.api.toAPIObject (arg)
+                                           
+    pymelType = DependNode                                         
+    if obj :
+        # the case of an existing node or plug
+        if api.isValidMPlug (obj):
+            pymelType = Attribute          
+        else :
+            objType = pymel.util.api.apiEnumToType(obj.apiType ())
+            pymelType = apiTypeToPyNodeType(objType, DependNode)
+    elif objName :
         # non existing node
         pymelType = basestring
+        if '.' in objName :
+            # TODO : some better checking / parsing
+            pymelType = Attribute 
+    else :
+        raise ValueError, "unable to determine a suiting Pymel type for %r" % arg         
     
     return pymelType  
 
@@ -317,8 +324,6 @@ def getPymelType(obj, comp=None) :
 class PyNode(object):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
         and defer to the correct derived class """
-    #__metaclass__ = metaNode
-    
     _name = None              # unicode
     _object = None            # pymel.util.api.MObjectHandle()
     
@@ -330,29 +335,32 @@ class PyNode(object):
             comp = None
             if len(args)>1 :
                 comp = args[1]
-            pymelType = getPymelType(obj, comp)
+            pymelType = _getPymelType(obj, comp)
         else :
             pymelType = DependNode
         
+        # print "type:", pymelType
         # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
         # if an explicit class was given (ie: pyObj=DagNode('pCube1')) just check if actual type is compatible
         # if none was given (ie generic pyObj=PyNode('pCube1')) then use the class corresponding to the type we found
+        newcls = None
         if cls is not PyNode :
             # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
-            # TODO : can add object creation option in the __init__ if desired
-            if issubclass(pymelType, basestring) :
-                pymelType = cls            
-            if issubclass(pymelType, cls) :
-                return super(PyNode, cls).__new__(cls)
-            else :
-                raise TypeError, "Cannot make a %s PyNode out of a %s object" % (cls.__name__, pymelType.__name__)
+            # TODO : can add object creation option in the __iit__ if desired
+            if issubclass(pymelType, cls) or issubclass(pymelType, basestring) :
+                newcls = cls
         else :
             # no class name specified, use pymelType, default to DependNode if just a string that isn't an existing object was passed
             if issubclass(pymelType, basestring) :
-                pymelType = DependNode
-            return super(PyNode, cls).__new__(pymelType)
-   
+                newcls = DependNode
+            else :
+                newcls = pymelType
+                
+        if newcls :  
+            return super(PyNode, cls).__new__(newcls)
+        else :
+            raise TypeError, "Cannot make a %s PyNode out of a %r object" % (cls.__name__, pymelType)   
 
     
     def stripNamespace(self, levels=0):
@@ -561,17 +569,17 @@ class Attribute(PyNode):
     Getting Attribute Values
     ------------------------
     To get an attribute, you use the L{'get'<Attribute.get>} method. Keep in mind that, where applicable, the values returned will 
-    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `pymel.core.core.Vector`.
+    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
     
         >>> rot = s.rotate.get()
         >>> print rot
         [0.0, 0.0, 0.0]
         >>> print type(rot) # rotation is returned as a vector class
-        <class 'pymel.core.vector.pymel.core.core.Vector'>
+        <class 'pymel.core.types.Vector'>
 
     Setting Attributes Values
     -------------------------
-    there are several ways to set attributes in pymel.core.  maybe there's too many....
+    there are several ways to set attributes in pymel.  maybe there's too many....
     
         >>> s.rotate.set([4,5,6])   # you can pass triples as a list
         >>> s.rotate.set(4,5,6)     # or not    
@@ -613,6 +621,7 @@ class Attribute(PyNode):
     #    return "Attribute('%s')" % self
             
     def __init__(self, attrName):
+        # print "Attribute init on", attrName
         if '.' not in attrName:
             raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
         self._name = attrName
@@ -722,13 +731,13 @@ class Attribute(PyNode):
             >>> SCENE.persp.t.tx.lastPlugAttr()
             'tx'
         """
-        return Attribute.attrItemReg.split( self.split('.')[-1] )[0]
+        return Attribute.attrItemReg.split( self.name().split('.')[-1] )[0]
         
     node = plugNode
     
     def nodeName( self ):
         'basename'
-        return self.split('|')[-1]
+        return self.name().split('|')[-1]
     
     def item(self):
         try: 
@@ -744,7 +753,7 @@ class Attribute(PyNode):
     # getting and setting                    
     set = pymel.core.core.setAttr            
     get = pymel.core.core.getAttr
-    setKey = pymel.core.anim.setKeyframe    
+    setKey = pymel.core.anim.setKeyframe      
     
     
     #----------------------
@@ -785,7 +794,7 @@ class Attribute(PyNode):
         kwargs['destination'] = False
         kwargs.pop('d', None )
         
-        return pymel.core.core.listConnections(self, **kwargs)
+        return listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
         'pymel.core.core.listConnections -source 0 -destination 1'
@@ -1173,24 +1182,28 @@ class DependNode( PyNode ):
         else :
             return self._name  
 
-    def __init__(self, handleOrName) :
-        if isinstance(handleOrName, DependNode) :
-            self._name = unicode(handleOrName.name())
-            self._object = pymel.util.api.MObjectHandle(handleOrName.object())
-        elif pymel.util.api.isValidMObject(handleOrName) or pymel.util.api.isValidMObjectHandle(handleOrName) :
-            self._object = pymel.util.api.MObjectHandle(handleOrName)
-            self._updateName()
-        elif isinstance(handleOrName, basestring) :
-            obj = pymel.util.api.toMObject (handleOrName)
-            if pymel.util.api.isValidMObject(obj) :
-                # actual Maya object creation
-                self._object = pymel.util.api.MObjectHandle(obj)
+    def __init__(self, *args, **kwargs) :
+        if args :
+            arg = args[0]
+            if len(args) > 1 :
+                comp = args[1]        
+            if isinstance(arg, DependNode) :
+                self._name = unicode(arg.name())
+                self._object = pymel.util.api.MObjectHandle(arg.object())
+            elif pymel.util.api.isValidMObject(arg) or pymel.util.api.isValidMObjectHandle(arg) :
+                self._object = pymel.util.api.MObjectHandle(arg)
                 self._updateName()
+            elif isinstance(arg, basestring) :
+                obj = api.toMObject (arg)
+                if obj :
+                    # actual Maya object creation
+                    self._object = api.MObjectHandle(obj)
+                    self._updateName()
+                else :
+                    # non existent object
+                    self._name = arg 
             else :
-                # non existent object
-                self._name = handleOrName 
-        else :
-            raise TypeError, "don't know how to make a Pymel DependencyNode out of a %s : %r" % (type(handleOrName), handleOrName)  
+                raise TypeError, "don't know how to make a Pymel DependencyNode out of a %s : %r" % (type(arg), arg)  
 
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self.name())
@@ -1284,12 +1297,21 @@ class DependNode( PyNode ):
     #--------------------------
 
     def type(self, **kwargs):
-        "nodetype"        
-        return self.cmds.nodeType(**kwargs)
+        "nodetype"
+        obj = self.object()  
+        if obj :
+            doAPI = kwargs.get('apiType', False) or kwargs.get('api', False)
+            doInherited = kwargs.get('inherited', False) or kwargs.get('i', False)        
+            return api.objType(obj, api=doAPI, inherited=doInherited)
+        else :     
+            return self.cmds.nodeType(**kwargs)
             
     def exists(self, **kwargs):
-        "cmds.objExists"
-        return self.cmds.objExists(**kwargs)
+        "objExists"
+        if self.object() :
+            return True
+        else :
+            return self.cmds.objExists(**kwargs)
         
     def isReadOnly(self):
         return (cmds.ls( self, ro=1) and True) or False
@@ -1358,7 +1380,13 @@ class DependNode( PyNode ):
     #--------------------------
     #    Attributes
     #--------------------------        
-        
+    def hasAttr( self, attr):
+        return self.attr(attr).exists()
+        try : 
+            return self.attr(attr).exists()
+        except :
+            return False
+            
     def setAttr( self, attr, *args, **kwargs):
         return self.attr(attr).set( *args, **kwargs )
             
@@ -1458,32 +1486,36 @@ class DagNode(Entity):
         else :
             return self._name  
     
-    def __init__(self, handleOrName) :
-        if isinstance(handleOrName, DagNode) :
-            self._name = unicode(handleOrName.name())
-            self._object = pymel.util.api.MObjectHandle(handleOrName.object())
-        elif pymel.util.api.isValidMObject(handleOrName) or pymel.util.api.isValidMObjectHandle(handleOrName) :
-            objHandle = pymel.util.api.MObjectHandle(handleOrName)
-            obj = objHandle.object() 
-            if pymel.util.api.isValidMDagNode(obj) :
-                self._object = objHandle
-                self._updateName()
-            else :
-                raise TypeError, "%r might be a dependencyNode, but not a dagNode" % handleOrName              
-        elif isinstance(handleOrName, basestring) :
-            obj = pymel.util.api.toMObject (handleOrName)
-            if pymel.util.api.isValidMObject(obj) :
-                # creation for existing object
-                if pymel.util.api.isValidMDagNode (obj):
-                    self._object = pymel.util.api.MObjectHandle(pymel.util.api.toMObject (handleOrName))
+    def __init__(self, *args, **kwargs) :
+        if args :
+            arg = args[0]
+            if len(args) > 1 :
+                comp = args[1]
+            if isinstance(arg, DagNode) :
+                self._name = unicode(arg.name())
+                self._object = pymel.util.api.MObjectHandle(arg.object())
+            elif api.isValidMObject(arg) or pymel.util.api.isValidMObjectHandle(arg) :
+                objHandle = pymel.util.api.MObjectHandle(arg)
+                obj = objHandle.object() 
+                if api.isValidMDagNode(obj) :
+                    self._object = objHandle
                     self._updateName()
                 else :
-                    raise TypeError, "%r might be a dependencyNode, but not a dagNode" % handleOrName 
+                    raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg              
+            elif isinstance(arg, basestring) :
+                obj = pymel.util.api.toMObject (arg)
+                if obj :
+                    # creation for existing object
+                    if pymel.util.api.isValidMDagNode (obj):
+                        self._object = pymel.util.api.MObjectHandle(obj)
+                        self._updateName()
+                    else :
+                        raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg 
+                else :
+                    # creation for inexistent object 
+                    self._name = arg
             else :
-                # creation for inexistent object 
-                self._name = handleOrName
-        else :
-            raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(handleOrName), handleOrName)  
+                raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(arg), arg)  
           
     
     def __eq__(self, other):
@@ -2600,7 +2632,7 @@ def buildPyNodeTypesHierarchy () :
 # Initialize the Pymel class tree
 # PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 start = time.time()
-#PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 elapsed = time.time() - start
 print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
 
@@ -2612,6 +2644,9 @@ def isValidPyNodeType (arg):
 def isValidPyNodeTypeName (arg):
     return PyNodeTypeNames().has_key(arg)
 
+def apiTypeToPyNodeType (arg, default=None):
+    return MayaAPITypesToPyNode().get(arg, default)
+
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):
     length = sel.length()
@@ -2622,7 +2657,7 @@ def MSelectionPyNode ( sel ):
     for i in xrange(length) :
         selStrs = []
         sel.getSelectionStrings ( i, selStrs )    
-        print "Working on selection %i:'%s'" % (i, ', '.join(selStrs))
+        # print "Working on selection %i:'%s'" % (i, ', '.join(selStrs))
         try :
             sel.getDagPath(i, dag, comp)
             pynode = PyNode( dag, comp )
@@ -2641,3 +2676,648 @@ def activeSelectionPyNode () :
     sel = pymel.util.api.MSelectionList()
     pymel.util.api.MGlobal.getActiveSelectionList ( sel )   
     return MSelectionPyNode ( sel )
+
+def _optToDict(*args, **kwargs ):
+    result = {}
+    types = kwargs.get("valid", [])
+    if not pymel.util.isSequence(types) :
+        types = [types]
+    if not basestring in types :
+        types.append(basestring)
+    for n in args :
+        key = val = None
+        if isinstance (n, basestring) :            
+            if n.startswith("!") :
+                key = n.lstrip('!')
+                val = False          
+            else :
+                key = n
+                val = True
+            # strip all lead and end spaces
+            key = key.strip()                       
+        else :
+            for t in types :
+                if isinstance (n, t) :
+                    key = n
+                    val = True
+        if key is not None and val is not None :
+            # check for duplicates / contradictions
+            if result.has_key(key) :
+                if result[key] == val :
+                    # already there, do nothing
+                    pass
+                else :
+                    warnings.warn("%s=%s contradicts %s=%s, both ignored" % (key, val, key, result[key]))
+                    del result[key]
+            else :
+                result[key] = val
+        else :
+            warnings.warn("'%r' has an invalid type for this keyword argument (valid types: %s)" % (n, types))
+    return result                 
+            
+
+
+# calling the above iterators in iterators replicating the functionalities of the builtin Maya ls/listHistory/listRelatives
+# TODO : special return options: below, above, childs, parents, asList, breadth, asTree, underworld, allPaths and prune
+# TODO : component support
+def iterNodes ( *args, **kwargs ):
+    """ Iterates on nodes of the argument list, or when args is empty on nodes of the Maya scene,
+        that meet the given conditions.
+        The following keywords change the way the iteration is done :
+            selection = False : will use current selection if no nodes are passed in the arguments list,
+                or will filter argument list to keep only selected nodes
+            above = 0 : for each returned dag node will also iterate on its n first ancestors
+            below = 0 : for each returned dag node will also iterate on levels of its descendents
+            parents = False : if True is equivalent to above = 1
+            childs = False : if True is equivalent to below = 1       
+            asList = False : 
+            asTree = False :
+            breadth = False :
+            underworld = False :
+            allPaths = False :
+            prune = False :
+        The following keywords specify conditions the iterated nodes are filtered against, conditions can be passed either as a
+        list of conditions, format depending on condition type, or a dictionnary of {condition:result} with result True or False
+            name = None: will filter nodes that match these names. Names can be actual node names, use wildcards * and ?, or regular expression syntax
+            position = None: will filter dag nodes that have a specific position in their hierarchy :
+                'root' for root nodes
+                'leaf' for leaves
+                'level=<int>' or 'level=[<int>:<int>]' for a specific distance from their root
+            type = None: will filter nodes that are of the specified type, or a derived type.
+                The types can be specified as Pymel Node types (DependNode and derived) or Maya types names
+            property = None: check for specific preset properties, for compatibility with the 'ls' command :
+                'visible' : object is visible (it's visibility is True and none of it's ancestor has visibility to False)
+                'ghost': ghosting is on for that object 
+                'templated': object is templated or one of its ancestors is
+                'intermediate' : object is marked as "intermediate object"
+            attribute = None: each condition is a string made of at least an attribute name and possibly a comparison operator an a value
+                checks a specific attribute of the node for existence: '.visibility',
+                or against a value: 'translateX >= 2.0'
+            user = None: each condition must be a previously defined function taking the iterated object as argument and returning True or False
+        expression = None: allows to pass the string of a Python expression that will be evaluated on each iterated node,
+            and will limit the result to nodes for which the expression evaluates to 'True'. Use the variable 'node' in the
+            expression to represent the currently evaluated node
+
+        Conditions of the same type (same keyword) are combined as with a logical 'or' for positive conditions :
+        iterNodes(type = ['skinCluster', 'blendShape']) will iter on all nodes of type skinCluster OR blendShape
+        Conditions of the type (same keyword) are combined as with a logical 'and' for negative conditions :
+        iterNodes(type = ['!transform', '!blendShape']) will iter on all nodes of type not transform AND not blendShape
+        Different conditions types (different keyword) are combined as with a logical 'and' :
+        iterNodes(type = 'skinCluster', name = 'bodySkin*') will iter on all nodes that have type skinCluster AND whose name
+        starts with 'bodySkin'. 
+        
+        Examples : (TODO)
+        """
+
+    # if a list of existing PyNodes (DependNodes) arguments is provided, only these will be iterated / tested on the conditions
+    # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls?
+    # TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel    
+    nodes = []
+    for a in args :
+        if isinstance(a, DependNode) :
+            if a.exists() :
+                if not a in nodes :
+                    nodes.append(a)
+            else :
+                raise ValueError, "'%r' does not exist" % a
+        else :
+            raise TypeError, "'%r' is not  valid PyNode (DependNode)" % a
+    # check
+    #print nodes
+    # parse kwargs for keywords
+    # use current selection for *args
+    select = int(kwargs.get('selection', 0))
+    # also iterate on the hierarchy below or above (parents) that node for every iterated (dag) node
+    below = int(kwargs.get('below', 0))
+    above = int(kwargs.get('above', 0))
+    # same as below(1) or above(1)
+    childs = kwargs.get('childs', False)
+    parents = kwargs.get('parents', False)
+    if childs and below == 0 :
+        below = 1
+    if parents and above == 0 :
+        above = 1  
+    # return a tuple of all the hierarchy nodes instead of iterating on the nodes when node is a dag node
+    # and above or below has been set
+    asList = kwargs.get('list', False)
+    # when below has been set, use breadth order instead of preorder for iterating the nodes below
+    breadth = kwargs.get('breadth', False)
+    # returns a Tree of all the hierarchy nodes instead of iterating on the nodes when node is a dag node
+    # and above or below has been set
+    asTree = kwargs.get('tree', False) 
+    # include underworld in hierarchies
+    underworld = kwargs.get('underword', False)                
+    # include all instances paths for dag nodes (means parents can return more than one parent when allPaths is True)
+    allPaths = kwargs.get('allPaths', False)
+    # prune hierarchy (above or below) iteration when conditions are not met
+    prune = kwargs.get('prune', False)
+    # to use all namespaces when none is specified instead of current one
+    # allNamespace = kwargs.get('allNamespace', False)
+    # TODO : check for incompatible flags
+    
+    # selection
+    if (select) :
+        sel = _activeSelectionPyNode ()
+        if not nodes :
+            # use current selection
+            nodes = sel
+        else :
+            # intersects, need to handle components
+            for p in nodes :
+                if p not in sel :
+                    nodes.pop(p)
+            
+    # Add a conditions with a check for contradictory conditions
+    def _addCondition(cDic, key, val):
+        # check for duplicates
+        if key is not None : 
+            if cDic.has_key(key) and vDic[key] != val :
+                # same condition with opposite value contradicts existing condition
+                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
+                del cDic[key]
+            else :
+                cDic[key] = val
+                return True
+        return False     
+                 
+    # conditions on names (regular expressions, namespaces), can be passed as a dict of
+    # condition:value (True or False) or a sequence of conditions, with an optional first
+    # char of '!' to be tested for False instead of True. It can be an actual node name
+    nameArgs = kwargs.get('name', None)
+    # the resulting dictionnary of conditions on names (compiled regular expressions)
+    cNames = {}
+    # check
+    #print "name args", nameArgs   
+    if nameArgs is not None :
+        # convert list to dict if necessary
+        if not pymel.util.isMapping(nameArgs):
+            if not pymel.util.isSequence(nameArgs) :
+                nameArgs = [nameArgs]    
+            nameArgs = _optToDict(*nameArgs)
+        # check
+        #print nameArgs
+        # for names parsing, see class definition in nodes
+        curNameSpace = namespaceInfo( currentNamespace=True )    
+        for i in nameArgs.items() :
+            key = i[0]
+            val = i[1]
+            if key.startswith('(') and key.endswith(')') :
+                # take it as a regular expression directly
+                pass
+            elif MayaName.invalid.findall(key) :
+                # try it as a regular expression in case (is it a good idea)
+                pass
+            else :
+                # either a valid node name or a glob pattern
+                nameMatch = FullObjectName.valid.match(key)
+                if nameMatch is not None :
+                    # if it's an actual node name
+                    nameSpace = nameMatch.group[0]
+                    name = nameMatch.group[1]
+                    #print nameSpace, name
+                    if not nameSpace :
+                        # if no namespace was specified use current ('*:' can still be used for 'all namespaces')
+                        nameSpace = curNameSpace
+                    if namespace(exists=nameSpace) :
+                        # format to have distinct match groups for nameSpace and name
+                        key = r"("+nameSpace+r")("+name+r")"
+                    else :
+                        raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)
+                elif '*' in key or '?' in key :
+                    # it's a glob pattern, try build a re out of it and add it to names conditions
+                    key = key.replace("*", r"("+MayaName.validCharPattern+r"*)")
+                    key = key.replace("?", r"("+MayaName.validCharPattern+r")")
+                else : 
+                    #is not anything we recognize
+                    raise ValueError, "'%s' is not a valid node name or glob/regular expression" % a
+            try :
+                r = re.compile(key)
+            except :
+                raise ValueError, "'%s' is not a valid regular expression" % key
+            # check for duplicates re and add
+            _addCondition(cNames, r, val)
+        # check
+        #print "Name keys:"
+        #for r in cNames.keys() :
+            #print "%s:%r" % (r.pattern, cNames[r])     
+      
+    # conditions on position in hierarchy (only apply to dag nodes)
+    # can be passed as a dict of conditions and values
+    # condition:value (True or False) or a sequence of conditions, with an optionnal first
+    # char of '!' to be tested for False instead of True.
+    # valid flags are 'root', 'leaf', or 'level=x' for a relative depth to start node 
+    posArgs = kwargs.get('position', None)
+    # check
+    #print "position args", posArgs    
+    cPos = {}    
+    if posArgs is not None :
+        # convert list to dict if necessary
+        if not pymel.util.isMapping(posArgs):
+            if not pymel.util.isSequence(posArgs) :
+                posArgs = [posArgs]    
+            posArgs = _optToDict(*posArgs)    
+        # check
+        #print posArgs
+        validLevelPattern = r"level\[(-?[0-9]*)(:?)(-?[0-9]*)\]"
+        validLevel = re.compile(validLevelPattern)
+        for i in posArgs.items() :
+            key = i[0]
+            val = i[1]
+            if key == 'root' or key == 'leaf' :
+                pass           
+            elif key.startswith('level') :
+                levelMatch = validLevel.match(key)
+                level = None
+                if levelMatch is not None :
+                    if levelMatch.groups[1] :
+                        # it's a range
+                        lstart = lend = None
+                        if levelMatch.groups[0] :
+                            lstart = int(levelMatch.groups[0])
+                        if levelMatch.groups[2] :
+                            lend = int(levelMatch.groups[2])
+                        if lstart is None and lend is None :
+                            level = None
+                        else :                      
+                            level = IRange(lstart, lend)
+                    else :
+                        # it's a single value
+                        if levelMatch.groups[1] :
+                            level = None
+                        elif levelMatch.groups[0] :
+                            level = IRange(levelMatch.groups[0], levelMatch.groups[0]+1)
+                        else :
+                            level = None               
+                if level is None :
+                    raise ValueError, "Invalid level condition %s" % key
+                    key = None
+                else :
+                    key = level     
+            else :
+                raise ValueError, "Unknown position condition %s" % key
+            # check for duplicates and add
+            _addCondition(cPos, key, val)            
+            # TODO : check for intersection with included levels
+        # check
+        #print "Pos keys:"
+        #for r in cPos.keys() :
+            #print "%s:%r" % (r, cPos[r])    
+                           
+    # conditions on types
+    # can be passed as a dict of types (Maya or Pymel type names) and values
+    # condition:value (True or False) or a sequence of type names, with an optionnal first
+    # char of '!' to be tested for False instead of True.
+    # valid flags are 'root', 'leaf', or 'level=x' for a relative depth to start node                       
+    # Note: API iterators can filter on API types, we need to postfilter for all the rest
+    typeArgs = kwargs.get('type', None)
+    # check
+    # #print "type args", typeArgs
+    # support for types that can be translated as API types and can be directly used by API iterators
+    # and other types that must be post-filtered  
+    cAPITypes = {}
+    cAPIPostTypes = {}
+    cExtTypes = {}
+    cAPIFilter = []
+    if typeArgs is not None :
+        extendedFilter = False
+        apiFilter = False
+        # convert list to dict if necessary
+        if not pymel.util.isMapping(typeArgs):
+            if not pymel.util.isSequence(typeArgs) :
+                typeArgs = [typeArgs]
+            # can pass strings or PyNode types directly
+            typeArgs = _optToDict(*typeArgs, **{'valid':DependNode})    
+        # check
+        #print typeArgs
+        for i in typeArgs.items() :
+            key = i[0]
+            val = i[1]
+            apiType = extType = None
+            if pymel.util.api.isValidMayaTypeName (key) :
+                # is it a valid Maya type name
+                extType = key
+                # can we translate it to an API type enum (int)
+                apiType = pymel.util.api.nodeTypeToAPIType(extType)
+            else :
+                # or a PyNode type or type name
+                if isValidPyNodeTypeName(key) :
+                    key = PyNodeTypeNames().get(key, None)
+                if isValidPyNodeType(key) :
+                    extType = key
+                    apiType = PyNodeToMayaAPITypes().get(key, None)
+            # if we have a valid API type, add it to cAPITypes, if type must be postfiltered, to cExtTypes
+            if apiType is not None :
+                if _addCondition(cAPITypes, apiType, val) :
+                    if val :
+                        apiFilter = True
+            elif extType is not None :
+                if _addCondition(cExtTypes, extType, val) :
+                    if val :
+                        extendedFilter = True
+            else :
+                raise ValueError, "Invalid/unknown type condition '%s'" % key 
+        # check
+        #print " API type keys: "
+        #for r in cAPITypes.keys() :
+            #print "%s:%r" % (r, cAPITypes[r])
+        #print " Ext type keys: "   
+        #for r in cExtTypes.keys() :
+            #print "%s:%r" % (r, cExtTypes[r])
+        # if we check for the presence (positive condition) of API types and API types only we can 
+        # use the API MIteratorType for faster filtering, it's not applicable if we need to prune
+        # iteration for unsatisfied conditions
+        if apiFilter and not extendedFilter and not prune :
+            for item in cAPITypes.items() :
+                apiInt = pymel.util.api.apiTypeToEnum(item[0])
+                if item[1] and apiInt :
+                    # can only use API filter for API types enums that are tested for positive
+                    cAPIFilter.append(apiInt)
+                else :
+                    # otherwise must postfilter
+                    cAPIPostTypes[item[0]] = item[1]
+        else :
+            cAPIPostTypes = cAPITypes
+        # check
+        #print " API filter: "
+        #print cAPIFilter  
+        #print " API types: "
+        #print cAPITypes
+        #print " API post types "
+        #print cAPIPostTypes
+                          
+    # conditions on pre-defined properties (visible, ghost, etc) for compatibility with ls
+    validProperties = {'visible':1, 'ghost':2, 'templated':3, 'intermediate':4}    
+    propArgs = kwargs.get('properties', None)
+    # check
+    #print "Property args", propArgs    
+    cProp = {}    
+    if propArgs is not None :
+        # convert list to dict if necessary
+        if not pymel.util.isMapping(propArgs):
+            if not pymel.util.isSequence(propArgs) :
+                propArgs = [propArgs]    
+            propArgs = _optToDict(*propArgs)    
+        # check
+        #print propArgs
+        for i in propArgs.items() :
+            key = i[0]
+            val = i[1]
+            if validProperties.has_key(key) :
+                # key = validProperties[key]
+                _addCondition(cProp, key, val)
+            else :
+                raise ValueError, "Unknown property condition '%s'" % key
+        # check
+        #print "Properties keys:"
+        #for r in cProp.keys() :
+            #print "%s:%r" % (r, cProp[r])      
+    # conditions on attributes existence / value
+    # can be passed as a dict of conditions and booleans values
+    # condition:value (True or False) or a sequence of conditions,, with an optionnal first
+    # char of '!' to be tested for False instead of True.
+    # An attribute condition is in the forms :
+    # attribute==value, attribute!=value, attribute>value, attribute<value, attribute>=value, attribute<=value, 
+    # Note : can test for attribute existence with attr != None
+    attrArgs = kwargs.get('attribute', None)
+    # check
+    #print "Attr args", attrArgs    
+    cAttr = {}    
+    if attrArgs is not None :
+        # convert list to dict if necessary
+        if not pymel.util.isMapping(attrArgs):
+            if not pymel.util.isSequence(attrArgs) :
+                attrArgs = [attrArgs]    
+            attrArgs = _optToDict(*attrArgs)    
+        # check
+        #print attrArgs
+        # for valid attribute name patterns check node.Attribute  
+        # valid form for conditions
+        attrValuePattern = r".+"
+        attrCondPattern = r"(?P<attr>"+PlugName.pattern+r")[ \t]*(?P<oper>==|!=|>|<|>=|<=)?[ \t]*(?P<value>"+attrValuePattern+r")?"
+        validAttrCond = re.compile(attrCondPattern)        
+        for i in attrArgs.items() :
+            key = i[0]
+            val = i[1]
+            attCondMatch = validAttrCond.match(key.strip())
+            if attCondMatch is not None :
+                # eval value here or wait resolution ?
+                attCond = (attCondMatch.group('attr'), attCondMatch.group('oper'), attCondMatch.group('value'))
+                # handle inversions
+                if val is False :
+                    if attCond[1] is '==' :
+                        attCond[1] = '!='
+                    elif attCond[1] is '!=' :
+                        attCond[1] = '=='
+                    elif attCond[1] is '>' :
+                        attCond[1] = '<='
+                    elif attCond[1] is '<=' :
+                        attCond[1] = '>'
+                    elif attCond[1] is '<' :
+                        attCond[1] = '>='
+                    elif attCond[1] is '>=' :
+                        attCond[1] = '<'                        
+                    val = True
+                # Note : special case where value is None, means test for attribute existence
+                # only valid with != or ==
+                if attCond[2] is None :
+                    if attCond[1] is None :
+                        val = True
+                    elif attCond[1] is '==' :
+                        attCond[1] = None
+                        val = False  
+                    elif attCond[1] is '!=' :
+                        attCond[1] = None
+                        val = True
+                    else :
+                        raise ValueError, "Value 'None' means testing for attribute existence and is only valid for operator '!=' or '==', '%s' invalid" % key
+                        attCond = None
+                # check for duplicates and add
+                _addCondition(cAttr, attCond, val)                                               
+            else :
+                raise ValueError, "Unknown attribute condition '%s', must be in the form attr <op> value with <op> : !=, ==, >=, >, <= or <" % key          
+        # check
+        #print "Attr Keys:"
+        #for r in cAttr.keys() :
+            #print "%s:%r" % (r, cAttr[r])        
+    # conditions on user defined boolean functions
+    userArgs = kwargs.get('user', None)
+    # check
+    #print "userArgs", userArgs    
+    cUser = {}    
+    if userArgs is not None :
+        # convert list to dict if necessary
+        if not pymel.util.isMapping(userArgs):
+            if not pymel.util.isSequence(userArgs) :
+                userArgss = [userArgs]    
+            userArgs = _optToDict(*userArgs, **{'valid':function})    
+        # check
+        #print userArgs            
+        for i in userArgs.items() :
+            key = i[0]
+            val = i[1]
+            if isinstance(key, basestring) :
+                key = globals().get(key,None)
+            if key is not None :
+                if inspect.isfunction(key) and len(inspect.getargspec(key)[0]) is 1 :
+                    _addCondition(cUser, key, val)
+                else :
+                    raise ValueError, "user condition must be a function taking one argument (the node) that will be tested against True or False, %r invalid" % key
+            else :
+                raise ValueError, "name '%s' is not defined" % key        
+        # check
+        #print "User Keys:"
+        #for r in cUser.keys() :
+            #print "%r:%r" % (r, cUser[r])
+    # condition on a user defined expression that will be evaluated on each returned PyNode,
+    # that must be represented by the variable 'node' in the expression    
+    userExpr = kwargs.get('exp', None)
+    if userExpr is not None and not isinstance(userExpr, basestring) :
+        raise ValueError, "iterNodes expression keyword takes an evaluable string Python expression"
+
+    # post filtering function
+    def _filter( pyobj, apiTypes={}, extTypes={}, names={}, pos={}, prop={}, attr={}, user={}, expr=None  ):
+        result = True
+        # check on types conditions
+        if result and (len(apiTypes)!=0 or len(extTypes)!=0) :
+            result = False
+            for cond in apiTypes.items() :
+                ctyp = cond[0]
+                cval = cond[1]
+                if pyobj.type(api=True) == ctyp :
+                    result = cval
+                    break
+                elif not cval :
+                    result = True                                      
+            for cond in extTypes.items() :  
+                ctyp = cond[0]
+                cval = cond[1]                                    
+                if isinstance(pyobj, ctyp) :
+                    result = cval
+                    break
+                elif not cval :
+                    result = True                   
+        # check on names conditions
+        if result and len(names)!=0 :
+            result = False
+            for cond in names.items() :
+                creg = cond[0]
+                cval = cond[1]
+                if creg.match(pyobj) is not None :
+                    result = cval
+                    break
+                elif not cval :
+                    result = True                                             
+        # check on position (for dags) conditions
+        if result and len(pos)!=0 and isinstance(pyobj, DagNode) :
+            result = False
+            for cond in pos.items() :
+                cpos = cond[0]
+                cval = cond[1]                
+                if cpos == 'root' :
+                    if pyobj.isRoot() :
+                        result = cval
+                        break
+                    elif not cval :
+                        result = True
+                elif cpos == 'leaf' :
+                    if pyobj.isLeaf() :
+                        result = cval
+                        break
+                    elif not cval :
+                        result = True                    
+                elif isinstance(cpos, IRange) :
+                    if pyobj.depth() in cpos :
+                        result = cval
+                        break       
+                    elif not cval :
+                        result = True                                                                
+        # TODO : 'level' condition, would be faster to get the depth from the API iterator
+        # check some pre-defined properties, so far existing properties all concern dag nodes
+        if result and len(prop)!=0 and isinstance(pyobj, DagNode) :
+            result = False
+            for cond in prop.items() :
+                cprop = cond[0]
+                cval = cond[1]                     
+                if cprop == 'visible' :
+                    if pyobj.isVisible() :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True                                  
+                elif cprop == 'ghost' :
+                    if pyobj.hasAttr('ghosting') and pyobj.getAttr('ghosting') :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True                                   
+                elif cprop == 'templated' :
+                    if pyobj.isTemplated() :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True      
+                elif cprop == 'intermediate' :
+                    if pyobj.isIntermediate() :
+                        result = cval
+                        break 
+                    elif not cval :
+                        result = True                        
+        # check for attribute existence and value
+        if result and len(attr)!=0 :
+            result = False
+            for cond in attr.items() :
+                cattr = cond[0] # a tuple of (attribute, operator, value)
+                cval = cond[1]  
+                if pyobj.hasAttr(cattr[0]) :                
+                    if cattr[1] is None :
+                        result = cval
+                        break                    
+                    else :
+                        if eval(str(pyobj.getAttr(cattr[0]))+cattr[1]+cattr[2]) :
+                            result = cval
+                            break  
+                        elif not cval :
+                            result = True
+                elif not cval :
+                    result = True                                                                  
+        # check for used condition functions
+        if result and len(user)!=0 :
+            result = False
+            for cond in user.items() :
+                cuser = cond[0]
+                cval = cond[1]                    
+                if cuser(pyobj) :
+                    result = cval
+                    break  
+                elif not cval :
+                    result = True  
+        # check for a user eval expression
+        if result and expr is not None :
+            result = eval(expr, globals(), {'node':pyobj})     
+                     
+        return result
+            
+    # Iteration :
+    needLevelInfo = False
+    
+    # TODO : special return options
+    # below, above, childs, parents, asList, breadth, asTree, underworld, allPaths and prune
+    if nodes :
+        # if a list of existing nodes is provided we iterate on the ones that both exist and match the used flags        
+        for pyobj in nodes :
+            if _filter (pyobj, cAPIPostTypes, cExtTypes, cNames, cPos, cProp, cAttr, cUser, userExpr ) :
+                yield pyobj
+    else :
+        # else we iterate on all scene nodes that satisfy the specified flags, 
+        for obj in pymel.util.api.MItNodes( *cAPIFilter ) :
+            pyobj = PyNode( obj )
+            if pyobj.exists() :
+                if _filter (pyobj, cAPIPostTypes, cExtTypes, cNames, cPos, cProp, cAttr, cUser, userExpr ) :
+                    yield pyobj
+        
+
+def iterConnections ( *args, **kwargs ):
+    pass
+
+def iterHierarchy ( *args, **kwargs ):
+    pass
