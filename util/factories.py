@@ -215,7 +215,7 @@ def _mayaDocsLocation( version=None ):
     
     import platform
     if platform.system() == 'Darwin':
-        docLocation = os.path.dirname( os.path.dirname( docLocation.parent ) )
+        docLocation = os.path.dirname( os.path.dirname( docLocation ) )
     docLocation = os.path.join( docLocation , 'docs/Maya%s/en_US' % version )
     return docLocation
     
@@ -259,7 +259,7 @@ def _getCmdInfo( command, version='8.5' ):
     
     try:
         docloc = _mayaDocsLocation(version)
-        f = open( docloc / 'CommandsPython/%s.html' % (command) )    
+        f = open( os.path.join( docloc , 'CommandsPython/%s.html' % (command) ) )    
         parser = CommandDocParser()
         parser.feed( f.read() )
         f.close()    
@@ -380,7 +380,7 @@ def printTree( tree, depth=0 ):
             
 def _getNodeHierarchy( version='8.5' ):
     docloc = _mayaDocsLocation(version)
-    f = open( docloc / 'Nodes/index_hierarchy.html' )    
+    f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
     parser = NodeHierarchyDocParser()
     parser.feed( f.read() )
     f.close()
@@ -409,14 +409,14 @@ class CommandModuleDocParser(HTMLParser):
     #        print data
 
 def _getUICommands():
-    f = open(pymel.util.moduleDir() / 'misc/commandsUI', 'r')
+    f = open( os.path.join( pymel.util.moduleDir() , 'misc/commandsUI') , 'r') 
     cmds = f.read().split('\n')
     f.close()
     return cmds
 
 def getModuleCommandList( category, version='8.5' ):
     docloc = _mayaDocsLocation(version)
-    f = open( docloc / 'Commands/cat_' + category + '.html' )
+    f = open( os.path.join( docloc , 'Commands/cat_' + category + '.html' ) )
     parser = CommandModuleDocParser()
     parser.feed( f.read() )
     f.close()

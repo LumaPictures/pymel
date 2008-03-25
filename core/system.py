@@ -34,8 +34,8 @@ try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
 except ImportError:
-    import pymel.types.path
-    pathClass = pymel.types.path.path
+    import types.path
+    pathClass = types.path.path
     
 import sys
 import pymel.core.general
