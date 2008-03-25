@@ -538,7 +538,7 @@ exportAnimFromReference = factories.makeSecondaryFlagCmd( 'exportAnimFromReferen
 exportSelectedAnim = factories.makeSecondaryFlagCmd( 'exportSelectedAnim', cmds.file, 'exportSelectedAnim', returnFunc=Path )
 exportSelectedAnimFromReference = factories.makeSecondaryFlagCmd( 'exportSelectedAnimFromReference', cmds.file, 'exportSelectedAnimFromReference', returnFunc=Path )
 importFile = factories.makeSecondaryFlagCmd( 'importFile', cmds.file, 'i', returnFunc=Path )
-newFile = factories.makeSecondaryFlagCmd( 'newFile', cmds.file, 'new', returnFunc=Path )
+newFile = factories.makeSecondaryFlagCmd( 'newFile', cmds.file, 'newFile', returnFunc=Path )
 openFile = factories.makeSecondaryFlagCmd( 'openFile', cmds.file, 'open', returnFunc=Path )
 renameFile = factories.makeSecondaryFlagCmd( 'renameFile', cmds.file, 'rename', returnFunc=Path )
 

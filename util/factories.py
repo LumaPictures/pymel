@@ -67,14 +67,14 @@ secondaryFlags = {
     'xform' : ( ( 'absolute',         [] ),
                 ( 'relative',         [] ),
                 ( 'euler',            ['relative'] ),
-                ( 'objectSpace',    ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-                ( 'worldSpace',        ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotationTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+                ( 'objectSpace',    ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+                ( 'worldSpace',        ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
                 ( 'preserve',        ['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
                 ( 'worldSpaceDistance', ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
             ),
     'file' : ( ( 'loadAllDeferred', ['open'] ),
                ( 'loadNoReferences', ['open'] ),
-               ( 'force',           ['open', 'new', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
+               ( 'force',           ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
                ( 'constructionHistory', ['exportSelected'] ),
                ( 'channels',        ['exportSelected'] ),
                ( 'constraints',     ['exportSelected'] ),
@@ -292,18 +292,22 @@ def _getCmdInfo( command, version='8.5' ):
             lines[i] = line
             
         data = '\n'.join( lines )
-        
-        
-        try:
+            
+        #try:
+        if command in secondaryFlags:
             for secondaryFlag, modifiedList in secondaryFlags[command]:
+                #print command, "2nd", secondaryFlag
                 parser.flags[secondaryFlag]['modified'] = modifiedList
+                #print sorted(modifiedList)
+                #print sorted(parser.flags.keys())
                 for primaryFlag in modifiedList:
-                    try:
+                    #print command, "1st", primaryFlag
+                    if 'secondaryFlags' in parser.flags[primaryFlag]:
                          parser.flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
-                    except:
+                    else:
                          parser.flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
 
-        except KeyError:pass
+        #except KeyError:pass
           
         return {  'flags': parser.flags, 'description' : parser.description, 'example': data }
     except IOError:
@@ -585,11 +589,16 @@ def _addDocs(inObj, newObj, cmdInfo ):
                 label = '    - %s (%s)' % (flag, docs['shortname'])
                 docstring += label + '\n'
                 if docs.get('modes',False):
-                    docstring += '        - %s\n' % (', '.join(docs['modes']))
+                    docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
+                
                 try:
-                    docstring += '        - modifies flags %s\n' % ( ', '.join(docs['modified'] ))
+                    docstring += '        - modifies: %s\n' % ( ', '.join(docs['modified'] ))
                 except KeyError: pass
                 
+                try:
+                    docstring += '        - secondary flags: %s\n' % ( ', '.join(docs['secondaryFlags'] ))
+                except KeyError: pass
+                               
                 try:
                     docstring += '        - %s\n' %  docs['docstring']
                 except KeyError: pass
@@ -749,7 +758,13 @@ def _addFlagCmdDocs(f,name,inFunc,flag,docstring):
         f.__doc__ = docstring
     else:
         try:
-            f.__doc__ = cmdlist[inFunc.__name__]['flags'][flag]['docstring']
+            docs = cmdlist[inFunc.__name__]['flags'][flag]
+            docstring = ''
+            try:
+                docstring += '        - secondary flags: %s\n' % ( ', '.join(docs['secondaryFlags'] ))
+            except KeyError: pass
+            docstring += '        - %s\n' %  docs['docstring']
+            f.__doc__ = docstring
         except KeyError: pass    
     return f
             
