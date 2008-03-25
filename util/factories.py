@@ -228,7 +228,6 @@ def _mayaDocsLocation( version=None ):
     if version == None :
         version = getMayaVersion(extension=False)
     docLocation = pymel.util.getMayaLocation() 
-    # print docLocation
     
     import platform
     if platform.system() == 'Darwin':
@@ -450,9 +449,12 @@ def getModuleCommandList( category, version='8.5' ):
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
-    # did you commit the new util?
-    #ver = pymel.util.getMayaVersion(extension=False)
-    ver = pymel.util.getMayaVersion()
+    # With extension can't get docs on unix 64
+    # path is
+    # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
+    # and not
+    # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
+    ver = pymel.util.getMayaVersion(extension=False)
         
     newPath = os.path.join( pymel.util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
     cmdlist = {}
