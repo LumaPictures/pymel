@@ -74,17 +74,34 @@ secondaryFlags = {
             ),
     'file' : ( ( 'loadAllDeferred', ['open'] ),
                ( 'loadNoReferences', ['open'] ),
-               ( 'force', ['open', 'new', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),
-               ( 'returnNewNodes', ['open', 'reference', 'import' ] ),
+               ( 'force',           ['open', 'new', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
                ( 'constructionHistory', ['exportSelected'] ),
-               ( 'channels', ['exportSelected'] ),
-               ( 'constraints', ['exportSelected'] )
+               ( 'channels',        ['exportSelected'] ),
+               ( 'constraints',     ['exportSelected'] ),
+               ( 'expressions',     ['exportSelected'] ),
+               ( 'shader',          ['exportSelected'] ),
+               ( 'defaultNamespace',['reference', 'i'] ),
+               ( 'deferReference',  ['reference', 'i'] ),
+               ( 'groupReference',  ['reference', 'i'] ),
+               ( 'groupLocator',  ['reference'] ),
+               ( 'groupName',  ['reference', 'i'] ),
+               ( 'groupName',  ['reference', 'i'] ),
+               ( 'namespace',  ['reference', 'exportAsReference'] ),
+               ( 'referenceNode',  ['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
+               ( 'renamingPrefix',  ['reference', 'i','exportAsReference'] ),
+               ( 'swapNamespace',  ['reference', 'i'] ),
+               ( 'sharedReferenceFile',  ['reference'] ),
+               ( 'sharedNodes',  ['reference'] ),
+               ( 'returnNewNodes',  ['open', 'reference', 'i' ] ),
+               ( 'preserveReferences',  ['i', 'exportAll', 'exportSelected'] )
              )
 }
 
 #: these are commands which should need to be manually added to the list parsed from the docs
-moduleCommandAddtions = {
-    'Windows' : ['deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen']
+moduleCommandAdditions = {
+    'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
+    'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
+                 'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
 }
 
 #---------------------------------------------------------------
@@ -420,7 +437,7 @@ def getModuleCommandList( category, version='8.5' ):
     parser = CommandModuleDocParser()
     parser.feed( f.read() )
     f.close()
-    return parser.cmdList + moduleCommandAddtions.get(category, [] )
+    return parser.cmdList + moduleCommandAdditions.get(category, [] )
     
 #-----------------------------------------------
 #  Command Help Documentation
@@ -460,7 +477,10 @@ def buildCachedData() :
                         
         tmpCmdlist = inspect.getmembers(cmds, callable)
         cmdlist = {}
-        moduleCmds = pymel.util.defaultdict(list)
+        #moduleCmds = pymel.util.defaultdict(list)
+        moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
+        moduleCmds.update( {'other':[], 'runtime': [], 'ctx': [], 'uiClass': [] } )
+        
         for funcName, data in tmpCmdlist :    
             
             
@@ -473,8 +493,8 @@ def buildCachedData() :
                 module = None
             elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
                 module = 'ctx'
-            elif funcName in uiClassList:
-                module = 'uiClass'
+            #elif funcName in uiClassList:
+            #    module = 'uiClass'
             #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
             #    module = 'node'
             else:
@@ -595,28 +615,33 @@ def _getUICallbackFlags(flagDocs):
 
 def getUICommandsWithCallbacks():
     cmds = []
-    for funcName in moduleCmds['ui']:
+    for funcName in moduleCmds['windows']:
         cbFlags = _getUICallbackFlags(cmdlist[funcName]['flags'])
         if cbFlags:
             cmds.append( [funcName, cbFlags] )
     return cmds
 
 
-def functionFactory( funcName, returnFunc=None, module=None, rename=None ):
+def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None ):
     """create a new function, apply the given returnFunc to the results (if any), 
     and add to the module given by 'moduleName'.  Use pre-parsed command documentation
     to add to __doc__ strings for the command."""
 
     #if module is None:
     #   module = _thisModule
-    try:
-        inFunc = getattr(module, funcName)          
-    except AttributeError:
+    if isinstance( funcNameOrObject, basestring ):
+        funcName = funcNameOrObject
+        
         try:
-            inFunc = getattr(cmds,funcName)
+            inFunc = getattr(module, funcName)          
         except AttributeError:
-            return
-
+            try:
+                inFunc = getattr(cmds,funcName)
+            except AttributeError:
+                return
+    else:
+        funcName = funcNameOrObject.__name__
+        inFunc = funcNameOrObject
 
     try:
         cmdInfo = cmdlist[funcName]
@@ -637,7 +662,7 @@ def functionFactory( funcName, returnFunc=None, module=None, rename=None ):
         # UI commands with callbacks
         #----------------------------
         
-        if funcName in moduleCmds['ui']:
+        if funcName in moduleCmds['windows']:
             # wrap ui callback commands to ensure that the correct types are returned.
             # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
             if funcName.startswith('float'):
@@ -715,8 +740,8 @@ def functionFactory( funcName, returnFunc=None, module=None, rename=None ):
             newFunc.__name__ = inFunc.__name__
             
         return newFunc
-    #else:
-    #    print "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
+    else:
+        raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
 
 def _addFlagCmdDocs(f,name,inFunc,flag,docstring):
     f.__name__ = name
@@ -768,6 +793,31 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
             
     return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
+def makeSecondaryFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
+    #name = 'set' + flag[0].upper() + flag[1:]    
+    if returnFunc:
+        def f(*args, **kwargs): 
+            if len(args)==1:
+                kwargs[flag]=True
+            elif len(args)==2:
+                kwargs[flag]=args[1]
+                args = (args[0],)  
+            else:
+                raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
+            return returnFunc(inFunc( *args, **kwargs ))
+    else:
+        def f(*args, **kwargs): 
+            if len(args)==1:
+                kwargs[flag]=True
+            elif len(args)==2:
+                kwargs[flag]=args[1]
+                args = (args[0],)              
+            else:
+                raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
+            return inFunc( *args, **kwargs )
+                 
+    return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
+'''
 def createFunctions( moduleName ):
     module = __import__(moduleName, globals(), locals(), [''])
     moduleShortName = moduleName.split('.')[-1]
@@ -778,28 +828,38 @@ def createFunctions( moduleName ):
                 func.__module__ = moduleName
                 setattr( module, funcName, func )
 '''
-generalModule = __import__(__name__, globals(), locals(), [''])
+#generalModule = __import__(__name__, globals(), locals(), [''])
 
-def createFunctions( moduleName ):
+def createFunctions( moduleName, returnFunc=None ):
     module = __import__(moduleName, globals(), locals(), [''])
     
     moduleShortName = moduleName.split('.')[-1]
     allCommands = set(moduleCmds[ moduleShortName ])
-    # regular
-    for funcName in allCommands.intersection(nodeCommandList):
-        if not hasattr( module, funcName ):
-            func = functionFactory( funcName, returnFunc=None )
-            if func:
-                func.__module__ = moduleName
-                setattr( module, funcName, func )
-    # node commands
-    for funcName in allCommands.difference(nodeCommandList):
-        if not hasattr( module, funcName ):
-            func = functionFactory( funcName, returnFunc=generalModule.PyNode )
-            if func:
-                func.__module__ = moduleName
-                setattr( module, funcName, func )
-'''
+
+    if returnFunc is None:
+         for funcName in allCommands:
+             if not hasattr( module, funcName ):
+                func = functionFactory( funcName, returnFunc=None )
+                if func:
+                    func.__module__ = moduleName
+                    setattr( module, funcName, func )
+    else:
+        # node commands
+        print moduleShortName, sorted(list(allCommands.intersection(nodeCommandList)))
+        for funcName in allCommands.intersection(nodeCommandList):
+            if not hasattr( module, funcName ):
+                func = functionFactory( funcName, returnFunc=returnFunc )
+                if func:
+                    func.__module__ = moduleName
+                    setattr( module, funcName, func )
+        # regular commands
+        for funcName in allCommands.difference(nodeCommandList):
+            if not hasattr( module, funcName ):
+                func = functionFactory( funcName, returnFunc=None )
+                if func:
+                    func.__module__ = moduleName
+                    setattr( module, funcName, func )
+
             
 #: overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
 overrideMethods = {}

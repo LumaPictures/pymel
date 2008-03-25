@@ -29,7 +29,11 @@ try:
 	import maya.OpenMaya as OpenMaya
 except ImportError: pass
 
-import pymel.util
+import pymel.util as util
+import pymel.util.factories as factories
+from pymel.util.scanf import fscanf
+
+import sys
 try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
@@ -37,8 +41,7 @@ except ImportError:
     import types.path
     pathClass = types.path.path
     
-import sys
-import pymel.core.general
+
 
 def _getTypeFromExtension( path ):
 	return {
@@ -63,7 +66,6 @@ def feof( fileid ):
     fileid.seek(pos)
     return pos == end
 
-from pymel.util.scanf import fscanf
 
 
 def sceneName():
@@ -117,90 +119,6 @@ def getReferences(reference=None, recursive=False):
 				res[cmds.file( x, q=1, namespace=1)] = FileReference(x)
 		except: pass
 	return res	
-	
-def createReference( *args, **kwargs ):
-	"""file -reference"""
-	kwargs['reference'] = True
-	return FileReference(cmds.file(*args, **kwargs))
-
-def loadReference( file, refNode, **kwargs ):
-	"""file -loadReference"""
-	kwargs['loadReference'] = refNode
-	return FileReference(cmds.file(file, **kwargs))
-		
-def exportAll( *args, **kwargs ):
-	"""file -exportAll"""
-	kwargs['exportAll'] = True
-	try:
-		kwargs['type'] = _getTypeFromExtension(args[0])
-	except KeyError: pass
-	
-	return Path(cmds.file(*args, **kwargs))
-
-def exportAnim( *args, **kwargs ):
-	"""file -exportAnim"""
-	kwargs['exportAnim'] = True
-	return Path(cmds.file(*args, **kwargs))
-
-def exportAnimFromReference( *args, **kwargs ):
-	"""file -exportAnimFromReference"""
-	kwargs['exportAnimFromReference'] = True
-	return Path(cmds.file(*args, **kwargs))
-
-def exportAsReference( *args, **kwargs ):
-	"""file -exportAsReference"""
-	kwargs['exportAsReference'] = True
-	try:
-		kwargs['type'] = _getTypeFromExtension(args[0])
-	except KeyError: pass
-	return FileReference(cmds.file(*args, **kwargs))
-
-def exportSelected( *args, **kwargs ):
-	"""file -exportSelected"""
-	kwargs['exportSelected'] = True
-	try:
-		kwargs['type'] = _getTypeFromExtension(args[0])
-	except KeyError: pass
-	return Path(cmds.file(*args, **kwargs))
-	
-def exportSelectedAnim( *args, **kwargs ):
-	"""file -exportSelectedAnim"""
-	kwargs['exportSelectedAnim'] = True
-	return Path(cmds.file(*args, **kwargs))
-	
-def exportSelectedAnimFromReference( *args, **kwargs ):
-	"""file -exportSelectedAnimFromReference"""
-	kwargs['exportSelectedAnimFromReference'] = True
-	return Path(cmds.file(*args, **kwargs))
-
-def importFile( *args, **kwargs ):
-	"""file -import"""
-	kwargs['import'] = True
-	return Path(cmds.file(*args, **kwargs))
-
-def newFile( *args, **kwargs ):
-	"""file -newFile"""
-	kwargs['newFile'] = True
-	return Path(cmds.file(*args, **kwargs))
-
-def openFile( *args, **kwargs ):
-	"""file -open"""
-	kwargs['open'] = True
-	return Path(cmds.file(*args, **kwargs))	
-
-def renameFile( *args, **kwargs ):
-	"""file -rename"""
-	kwargs['rename'] = True
-	return Path(cmds.file(*args, **kwargs))
-	
-def saveAs(filepath, **kwargs):
-	cmds.file( rename=filepath )
-	kwargs['save']=True
-	try:
-		kwargs['type'] = _getTypeFromExtension(filepath)
-	except KeyError: pass
-	return Path(cmds.file(**kwargs) )
-
 
 #-----------------------------------------------
 #  File Classes
@@ -302,7 +220,7 @@ class FileReference(Path):
     
     def nodes(self):
         """referenceQuery -nodes """
-        return map( pymel.core.general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
+        return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
     def copyNumberList(self):
         """returns a list of all the copy numbers of this file"""
         return cmds.file( self, q=1, copyNumberList=1 )
@@ -317,6 +235,311 @@ class FileReference(Path):
     namespace = property( _getNamespace, _setNamespace )
 
     def _getRefNode(self):
-        return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))    
-    refNode = pymel.util.cacheProperty( _getRefNode, '_refNode')
+        #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
+        return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )   
+    refNode = util.cacheProperty( _getRefNode, '_refNode')
 
+#-----------------------------------------------
+#  Workspace Class
+#-----------------------------------------------
+
+class WorkspaceEntryDict(object):
+    def __init__(self, entryType):
+        self.entryType = entryType
+    def __getitem__(self, item):
+        res = cmds.workspace( item, **{'q' : 1, self.entryType + 'Entry' : 1 } )
+        if not res:
+            raise KeyError, item
+        return res
+    def __setitem__(self, item, value):
+        return cmds.workspace( item, **{'q' : 1, self.entryType: [item, value] } )
+    def __contains__(self, key):
+        return key in self.keys()
+    def items(self):    
+        entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
+        res = []
+        for i in range( 0, len(entries), 2):
+            res.append( (entries[i], entries[i+1] ) )
+        return res
+    def keys(self):    
+        return cmds.workspace( **{'q' : 1, self.entryType + 'List': 1 } )
+    def values(self):    
+        entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
+        res = []
+        for i in range( 0, len(entries), 2):
+            res.append( entries[i+1] )
+        return res
+    def get(self, item, default=None):
+        try:
+            return self.__getitem__(item)
+        except KeyError:
+            return default
+    has_key = __contains__
+        
+    
+class Workspace(util.Singleton):
+    """
+    This class is designed to lend more readability to the often confusing workspace command.
+    The four types of workspace entries (objectType, fileRule, renderType, and variable) each
+    have a corresponding dictiony for setting and accessing these mappings.
+    
+        >>> from pymel import *
+        >>> workspace.renderTypes['audio']
+        sound
+        >>> workspace.renderTypes.keys()
+        [u'3dPaintTextures', u'audio', u'clips', u'depth', u'images', u'iprImages', u'lights', u'mentalRay', u'particles', u'renderScenes', u'sourceImages', u'textures']
+        >>> 'DXF' in workspace.fileRules
+        True
+        >>> workspace.fileRules['DXF']
+        data
+        >>> workspace.fileRules['super'] = 'data'
+        >>> workspace.fileRules.get( 'foo', 'data' )
+        data
+        
+    the workspace dir can be confusing because it works by maintaining a current working directory that is persistent
+    between calls to the command.  In other words, it works much like the unix 'cd' command, or python's 'os.chdir'.
+    In order to clarify this distinction, the names of these flags have been changed in their class method counterparts
+    to resemble similar commands from the os module.
+    
+    old way (still exists for backward compatibility)
+        >>> workspace(edit=1, dir='mydir')
+        >>> workspace(query=1, dir=1)
+        >>> workspace(create='mydir')
+    
+    new way    
+        >>> workspace.chdir('mydir')
+        >>> workspace.getcwd()    
+        >>> workspace.mkdir('mydir')
+    
+    All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
+        >>> workspace.path / workspace.fileRules['DXF']
+        /Users/chad/Documents/maya/projects/default/path
+        
+    """
+    
+    objectTypes = WorkspaceEntryDict( 'objectType' )
+    fileRules     = WorkspaceEntryDict( 'fileRule' )
+    renderTypes = WorkspaceEntryDict( 'renderType' )
+    variables     = WorkspaceEntryDict( 'variable' )
+    
+    def __init__(self):
+        self.objectTypes = WorkspaceEntryDict( 'objectType' )
+        self.fileRules     = WorkspaceEntryDict( 'fileRule' )
+        self.renderTypes = WorkspaceEntryDict( 'renderType' )
+        self.variables     = WorkspaceEntryDict( 'variable' )
+    
+    @classmethod
+    def open(self, workspace):
+        return cmds.workspace( workspace, openWorkspace=1 )
+    @classmethod
+    def save(self):
+        return cmds.workspace( saveWorkspace=1 )
+    @classmethod
+    def update(self):
+        return cmds.workspace( update=1 )
+    @classmethod
+    def new(self, workspace):
+        return cmds.workspace( workspace, newWorkspace=1 )        
+    @classmethod
+    def getName(self):
+        return cmds.workspace( q=1, act=1 )
+
+    @classmethod
+    def getPath(self):
+        return pymel.core.system.Path(cmds.workspace( q=1, fn=1 ))
+    
+    @classmethod
+    def chdir(self, newdir):
+        return cmds.workspace( dir=newdir )
+    @classmethod
+    def getcwd(self):
+        return pymel.core.system.Path(cmds.workspace( q=1, dir=1 ))
+    @classmethod
+    def mkdir(self, newdir):
+        return cmds.workspace( cr=newdir )
+
+    name = property( lambda x: cmds.workspace( q=1, act=1 ) )        
+    path = property( lambda x: pymel.core.system.Path(cmds.workspace( q=1, fn=1 ) ) )
+            
+    def __call__(self, *args, **kwargs):
+        """provides backward compatibility with cmds.workspace by allowing an instance
+        of this class to be called as if it were a function"""
+        return cmds.workspace( *args, **kwargs )
+
+workspace = Workspace()
+
+#-----------------------------------------------
+#  FileInfo Class
+#-----------------------------------------------
+
+class FileInfo( util.Singleton ):
+    """
+    store and get custom data specific to this file:
+    
+        >>> fileInfo['lastUser'] = env.user()
+        
+    if the python structures have valid __repr__ functions, you can
+    store them and reuse them later:
+    
+        >>> fileInfo['cameras'] = str( ls( cameras=1) )
+        >>> camList = eval(fileInfo['cameras'])
+        >>> camList[0]
+        # Result: frontShape #
+        >>> camList[0].getFocalLength()  # it's still a valid pymel class
+        # Result: 35.0 #
+    
+    for backward compatibility it retains it's original syntax as well:
+        
+        >>> fileInfo( 'myKey', 'myData' )
+        
+    """
+    
+    def __contains__(self, item):
+        return item in self.keys()
+        
+    def __getitem__(self, item):
+        return dict(self.items())[item]
+        
+    def __setitem__(self, item, value):
+        cmds.fileInfo( item, value )
+    
+    def __call__(self, *args, **kwargs):
+        if kwargs.get('query', kwargs.get('q', False) ):
+            return self.items()
+        else:
+            cmds.FileInfo( *args, **kwargs )
+            
+    def items(self):
+        res = cmds.fileInfo( query=1)
+        newRes = []
+        for i in range( 0, len(res), 2):
+            newRes.append( (res[i], res[i+1]) )
+        return newRes
+        
+    def keys(self):
+        res = cmds.fileInfo( query=1)
+        newRes = []
+        for i in range( 0, len(res), 2):
+            newRes.append(  res[i] )
+        return newRes
+            
+    def values(self):
+        res = cmds.fileInfo( query=1)
+        newRes = []
+        for i in range( 0, len(res), 2):
+            newRes.append( res[i+1] )
+        return newRes
+    
+    def pop(self, *args):
+        if len(args) > 2:
+            raise TypeError, 'pop expected at most 2 arguments, got %d' % len(args)
+        elif len(args) < 1:
+            raise TypeError, 'pop expected at least 1 arguments, got %d' % len(args)
+        
+        if args[0] not in self.keys():
+            try:
+                return args[1]
+            except IndexError:
+                raise KeyError, args[0]
+                    
+        cmds.fileInfo( rm=args[0])
+    
+    has_key = __contains__    
+fileInfo = FileInfo()
+
+	
+#def createReference( *args, **kwargs ):
+#	"""file -reference"""
+#	kwargs['reference'] = True
+#	return FileReference(cmds.file(*args, **kwargs))
+
+#def loadReference( file, refNode, **kwargs ):
+#	"""file -loadReference"""
+#	kwargs['loadReference'] = refNode
+#	return FileReference(cmds.file(file, **kwargs))
+	
+def exportAll( *args, **kwargs ):
+	"""file -exportAll"""
+	kwargs['exportAll'] = True
+	try:
+		kwargs['type'] = _getTypeFromExtension(args[0])
+	except KeyError: pass
+	
+	return Path(cmds.file(*args, **kwargs))
+
+def exportAsReference( *args, **kwargs ):
+	"""file -exportAsReference"""
+	kwargs['exportAsReference'] = True
+	try:
+		kwargs['type'] = _getTypeFromExtension(args[0])
+	except KeyError: pass
+	return FileReference(cmds.file(*args, **kwargs))
+
+def exportSelected( *args, **kwargs ):
+	"""file -exportSelected"""
+	kwargs['exportSelected'] = True
+	try:
+		kwargs['type'] = _getTypeFromExtension(args[0])
+	except KeyError: pass
+	return Path(cmds.file(*args, **kwargs))
+
+#def exportAnim( *args, **kwargs ):
+#	"""file -exportAnim"""
+#	kwargs['exportAnim'] = True
+#	return Path(cmds.file(*args, **kwargs))
+#
+#def exportAnimFromReference( *args, **kwargs ):
+#	"""file -exportAnimFromReference"""
+#	kwargs['exportAnimFromReference'] = True
+#	return Path(cmds.file(*args, **kwargs))
+#	
+#def exportSelectedAnim( *args, **kwargs ):
+#	"""file -exportSelectedAnim"""
+#	kwargs['exportSelectedAnim'] = True
+#	return Path(cmds.file(*args, **kwargs))
+#	
+#def exportSelectedAnimFromReference( *args, **kwargs ):
+#	"""file -exportSelectedAnimFromReference"""
+#	kwargs['exportSelectedAnimFromReference'] = True
+#	return Path(cmds.file(*args, **kwargs))
+
+#def importFile( *args, **kwargs ):
+#	"""file -import"""
+#	kwargs['i'] = True
+#	return Path(cmds.file(*args, **kwargs))
+#
+#def newFile( *args, **kwargs ):
+#	"""file -newFile"""
+#	kwargs['newFile'] = True
+#	return Path(cmds.file(*args, **kwargs))
+#
+#def openFile( *args, **kwargs ):
+#	"""file -open"""
+#	kwargs['open'] = True
+#	return Path(cmds.file(*args, **kwargs))	
+#
+#def renameFile( *args, **kwargs ):
+#	"""file -rename"""
+#	kwargs['rename'] = True
+#	return Path(cmds.file(*args, **kwargs))
+	
+def saveAs(filepath, **kwargs):
+	cmds.file( rename=filepath )
+	kwargs['save']=True
+	try:
+		kwargs['type'] = _getTypeFromExtension(filepath)
+	except KeyError: pass
+	return Path(cmds.file(**kwargs) )
+
+createReference = factories.makeSecondaryFlagCmd( 'createReference', cmds.file, 'reference', returnFunc=FileReference )
+loadReference = factories.makeSecondaryFlagCmd( 'loadReference', cmds.file, 'loadReference', returnFunc=FileReference )
+exportAnim = factories.makeSecondaryFlagCmd( 'exportAnim', cmds.file, 'exportAnim', returnFunc=Path )
+exportAnimFromReference = factories.makeSecondaryFlagCmd( 'exportAnimFromReference', cmds.file, 'exportAnimFromReference', returnFunc=Path )
+exportSelectedAnim = factories.makeSecondaryFlagCmd( 'exportSelectedAnim', cmds.file, 'exportSelectedAnim', returnFunc=Path )
+exportSelectedAnimFromReference = factories.makeSecondaryFlagCmd( 'exportSelectedAnimFromReference', cmds.file, 'exportSelectedAnimFromReference', returnFunc=Path )
+importFile = factories.makeSecondaryFlagCmd( 'importFile', cmds.file, 'i', returnFunc=Path )
+newFile = factories.makeSecondaryFlagCmd( 'newFile', cmds.file, 'new', returnFunc=Path )
+openFile = factories.makeSecondaryFlagCmd( 'openFile', cmds.file, 'open', returnFunc=Path )
+renameFile = factories.makeSecondaryFlagCmd( 'renameFile', cmds.file, 'rename', returnFunc=Path )
+
+factories.createFunctions( __name__ )

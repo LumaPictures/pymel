@@ -1,6 +1,6 @@
 
-import pymel.core.general
 import pymel.util.factories
+import pymel.core.general
 try:
     import maya.cmds as cmds
     import maya.mel as mm
@@ -100,4 +100,4 @@ Maya Bug Fix:
     
     return PyNode( cmds.ambientLight(*args, **kwargs), 'ambientLight'  )
 
-pymel.util.factories.createFunctions( __name__ )
+pymel.util.factories.createFunctions( __name__, pymel.core.general.PyNode )

@@ -1,12 +1,12 @@
 
 import pymel.util.factories
-
+import pymel.core.general
 try:
     import maya.cmds as cmds
     import maya.mel as mm
 except ImportError:
     pass
-#import pymel.core.general
+
 
 
 def joint(*args, **kwargs):
@@ -35,7 +35,7 @@ Maya Bug Fix:
         if filter( lambda x: x in args, kwargs.keys()):
             res = res[0]
     elif res is not None:    
-        res = PyNode(res)
+        res = pymel.core.general.PyNode(res)
     return res
 
 def _constraint( func ):
@@ -59,7 +59,7 @@ Modifications:
             
             for attr in attrs:
                 if attr in kwargs:
-                    return pymel.core.core.Vector( getAttr(args[0] + "." + attr ) )
+                    return pymel.core.general.Vector( getAttr(args[0] + "." + attr ) )
                     
             
         if len(args)==1:
@@ -116,7 +116,7 @@ Modifications:
         
         for attr in attrs:
             if attr in kwargs:
-                return pymel.core.core.Vector( getAttr(args[0] + "." + attr ) )
+                return pymel.core.general.Vector( getAttr(args[0] + "." + attr ) )
                 
         
     if len(args)==1:
@@ -157,13 +157,13 @@ Maya Bug Fix:
         
         for attr in attrs:
             if attr in kwargs:
-                return pymel.core.core.Vector( getAttr(args[0] + "." + attr ) )
+                return pymel.core.general.Vector( getAttr(args[0] + "." + attr ) )
                 
             
     res = cmds.normalConstraint(*args, **kwargs)
     return res
 
 
-pymel.util.factories.createFunctions( __name__ )
+pymel.util.factories.createFunctions( __name__, pymel.core.general.PyNode )
 
 

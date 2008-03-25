@@ -17,7 +17,7 @@ import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.util.factories as factories
 import pymel.util.api as api
-import pymel.core.system, pymel.core.animation
+import pymel.core.system
 from types.vector import *
 from types.ranges import *
 
@@ -147,213 +147,6 @@ class Mel(object):
 mel = Mel()
 
 
-#-----------------------------------------------
-#  Workspace Class
-#-----------------------------------------------
-
-class WorkspaceEntryDict(object):
-    def __init__(self, entryType):
-        self.entryType = entryType
-    def __getitem__(self, item):
-        res = cmds.workspace( item, **{'q' : 1, self.entryType + 'Entry' : 1 } )
-        if not res:
-            raise KeyError, item
-        return res
-    def __setitem__(self, item, value):
-        return cmds.workspace( item, **{'q' : 1, self.entryType: [item, value] } )
-    def __contains__(self, key):
-        return key in self.keys()
-    def items(self):    
-        entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
-        res = []
-        for i in range( 0, len(entries), 2):
-            res.append( (entries[i], entries[i+1] ) )
-        return res
-    def keys(self):    
-        return cmds.workspace( **{'q' : 1, self.entryType + 'List': 1 } )
-    def values(self):    
-        entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
-        res = []
-        for i in range( 0, len(entries), 2):
-            res.append( entries[i+1] )
-        return res
-    def get(self, item, default=None):
-        try:
-            return self.__getitem__(item)
-        except KeyError:
-            return default
-    has_key = __contains__
-        
-    
-class Workspace(util.Singleton):
-    """
-    This class is designed to lend more readability to the often confusing workspace command.
-    The four types of workspace entries (objectType, fileRule, renderType, and variable) each
-    have a corresponding dictiony for setting and accessing these mappings.
-    
-        >>> from pymel import *
-        >>> workspace.renderTypes['audio']
-        sound
-        >>> workspace.renderTypes.keys()
-        [u'3dPaintTextures', u'audio', u'clips', u'depth', u'images', u'iprImages', u'lights', u'mentalRay', u'particles', u'renderScenes', u'sourceImages', u'textures']
-        >>> 'DXF' in workspace.fileRules
-        True
-        >>> workspace.fileRules['DXF']
-        data
-        >>> workspace.fileRules['super'] = 'data'
-        >>> workspace.fileRules.get( 'foo', 'data' )
-        data
-        
-    the workspace dir can be confusing because it works by maintaining a current working directory that is persistent
-    between calls to the command.  In other words, it works much like the unix 'cd' command, or python's 'os.chdir'.
-    In order to clarify this distinction, the names of these flags have been changed in their class method counterparts
-    to resemble similar commands from the os module.
-    
-    old way (still exists for backward compatibility)
-        >>> workspace(edit=1, dir='mydir')
-        >>> workspace(query=1, dir=1)
-        >>> workspace(create='mydir')
-    
-    new way    
-        >>> workspace.chdir('mydir')
-        >>> workspace.getcwd()    
-        >>> workspace.mkdir('mydir')
-    
-    All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
-        >>> workspace.path / workspace.fileRules['DXF']
-        /Users/chad/Documents/maya/projects/default/path
-        
-    """
-    
-    objectTypes = WorkspaceEntryDict( 'objectType' )
-    fileRules     = WorkspaceEntryDict( 'fileRule' )
-    renderTypes = WorkspaceEntryDict( 'renderType' )
-    variables     = WorkspaceEntryDict( 'variable' )
-    
-    def __init__(self):
-        self.objectTypes = WorkspaceEntryDict( 'objectType' )
-        self.fileRules     = WorkspaceEntryDict( 'fileRule' )
-        self.renderTypes = WorkspaceEntryDict( 'renderType' )
-        self.variables     = WorkspaceEntryDict( 'variable' )
-    
-    @classmethod
-    def open(self, workspace):
-        return cmds.workspace( workspace, openWorkspace=1 )
-    @classmethod
-    def save(self):
-        return cmds.workspace( saveWorkspace=1 )
-    @classmethod
-    def update(self):
-        return cmds.workspace( update=1 )
-    @classmethod
-    def new(self, workspace):
-        return cmds.workspace( workspace, newWorkspace=1 )        
-    @classmethod
-    def getName(self):
-        return cmds.workspace( q=1, act=1 )
-
-    @classmethod
-    def getPath(self):
-        return pymel.core.system.Path(cmds.workspace( q=1, fn=1 ))
-    
-    @classmethod
-    def chdir(self, newdir):
-        return cmds.workspace( dir=newdir )
-    @classmethod
-    def getcwd(self):
-        return pymel.core.system.Path(cmds.workspace( q=1, dir=1 ))
-    @classmethod
-    def mkdir(self, newdir):
-        return cmds.workspace( cr=newdir )
-
-    name = property( lambda x: cmds.workspace( q=1, act=1 ) )        
-    path = property( lambda x: pymel.core.system.Path(cmds.workspace( q=1, fn=1 ) ) )
-            
-    def __call__(self, *args, **kwargs):
-        """provides backward compatibility with cmds.workspace by allowing an instance
-        of this class to be called as if it were a function"""
-        return cmds.workspace( *args, **kwargs )
-
-workspace = Workspace()
-
-#-----------------------------------------------
-#  FileInfo Class
-#-----------------------------------------------
-
-class FileInfo( util.Singleton ):
-    """
-    store and get custom data specific to this file:
-    
-        >>> fileInfo['lastUser'] = env.user()
-        
-    if the python structures have valid __repr__ functions, you can
-    store them and reuse them later:
-    
-        >>> fileInfo['cameras'] = str( ls( cameras=1) )
-        >>> camList = eval(fileInfo['cameras'])
-        >>> camList[0]
-        # Result: frontShape #
-        >>> camList[0].getFocalLength()  # it's still a valid pymel class
-        # Result: 35.0 #
-    
-    for backward compatibility it retains it's original syntax as well:
-        
-        >>> fileInfo( 'myKey', 'myData' )
-        
-    """
-    
-    def __contains__(self, item):
-        return item in self.keys()
-        
-    def __getitem__(self, item):
-        return dict(self.items())[item]
-        
-    def __setitem__(self, item, value):
-        cmds.fileInfo( item, value )
-    
-    def __call__(self, *args, **kwargs):
-        if kwargs.get('query', kwargs.get('q', False) ):
-            return self.items()
-        else:
-            cmds.FileInfo( *args, **kwargs )
-            
-    def items(self):
-        res = cmds.fileInfo( query=1)
-        newRes = []
-        for i in range( 0, len(res), 2):
-            newRes.append( (res[i], res[i+1]) )
-        return newRes
-        
-    def keys(self):
-        res = cmds.fileInfo( query=1)
-        newRes = []
-        for i in range( 0, len(res), 2):
-            newRes.append(  res[i] )
-        return newRes
-            
-    def values(self):
-        res = cmds.fileInfo( query=1)
-        newRes = []
-        for i in range( 0, len(res), 2):
-            newRes.append( res[i+1] )
-        return newRes
-    
-    def pop(self, *args):
-        if len(args) > 2:
-            raise TypeError, 'pop expected at most 2 arguments, got %d' % len(args)
-        elif len(args) < 1:
-            raise TypeError, 'pop expected at least 1 arguments, got %d' % len(args)
-        
-        if args[0] not in self.keys():
-            try:
-                return args[1]
-            except IndexError:
-                raise KeyError, args[0]
-                    
-        cmds.fileInfo( rm=args[0])
-    
-    has_key = __contains__    
-fileInfo = FileInfo()
 
 #-----------------------------------------------
 #  Option Variables
@@ -1789,7 +1582,7 @@ class Attribute(PyNode):
     # getting and setting                    
     set = setAttr            
     get = getAttr
-    setKey = pymel.core.animation.setKeyframe       
+    setKey = factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
     
     
     #----------------------
@@ -2726,11 +2519,11 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
-    dolly = factories.functionFactory('dolly', None, cmds )
-    roll = factories.functionFactory('roll', None, cmds )
-    orbit = factories.functionFactory('orbit', None, cmds )
-    track = factories.functionFactory('track', None, cmds )
-    tumble = factories.functionFactory('tumble', None, cmds )
+    dolly = factories.functionFactory( cmds.dolly  )
+    roll = factories.functionFactory( cmds.roll  )
+    orbit = factories.functionFactory( cmds.orbit  )
+    track = factories.functionFactory( cmds.track )
+    tumble = factories.functionFactory( cmds.tumble ) 
     
             
 class Transform(DagNode):
@@ -2980,30 +2773,30 @@ class Transform(DagNode):
 
 class Joint(Transform):
     __metaclass__ = metaNode
-    connect = factories.functionFactory('connectJoint', None, cmds)
-    disconnect = factories.functionFactory('disconnectJoint', None, cmds)
-    insert = factories.functionFactory('insertJoint', None, cmds)
+    connect = factories.functionFactory( cmds.connectJoint, rename='connect')
+    disconnect = factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
+    insert = factories.functionFactory( cmds.insertJoint, rename='insert')
 
 class FluidEmitter(Transform):
     __metaclass__ = metaNode
-    fluidVoxelInfo = factories.functionFactory('fluidVoxelInfo', None, cmds)
-    loadFluid = factories.functionFactory('loadFluid', None, cmds)
-    resampleFluid = factories.functionFactory('resampleFluid', None, cmds)
-    saveFluid = factories.functionFactory('saveFluid', None, cmds)
-    setFluidAttr = factories.functionFactory('setFluidAttr', None, cmds)
-    getFluidAttr = factories.functionFactory('getFluidAttr', None, cmds)
+    fluidVoxelInfo = factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
+    loadFluid = factories.functionFactory( cmds.loadFluid, rename='loadFluid')
+    resampleFluid = factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
+    saveFluid = factories.functionFactory( cmds.saveFluid, rename='saveFluid')
+    setFluidAttr = factories.functionFactory( cmds.setFluidAttr, rename='setFluidAttr')
+    getFluidAttr = factories.functionFactory( cmds.getFluidAttr, rename='getFluidAttr')
     
 class RenderLayer(DependNode):
     __metaclass__ = metaNode
-    editAdjustment = factories.functionFactory('editRenderLayerAdjustment', None, cmds)
-    editGlobals = factories.functionFactory('editRenderLayerGlobals', None, cmds)
-    editMembers = factories.functionFactory('editRenderLayerMembers',None, cmds)
-    postProcess = factories.functionFactory('renderLayerPostProcess',None,cmds)
+    editAdjustment = factories.functionFactory( cmds.editRenderLayerAdjustment, rename='editAdjustment')
+    editGlobals = factories.functionFactory( cmds.editRenderLayerGlobals, rename='editGlobals')
+    editMembers = factories.functionFactory( cmds.editRenderLayerMembers, rename='editMembers')
+    postProcess = factories.functionFactory( cmds.renderLayerPostProcess, rename='postProcess')
 
 class DisplayLayer(DependNode):
     __metaclass__ = metaNode
-    editGlobals = factories.functionFactory('editDisplayLayerGlobals', None, cmds)
-    editMembers = factories.functionFactory('editDisplayLeyerMembers', None, cmds)
+    editGlobals = factories.functionFactory( cmds.editDisplayLayerGlobals, rename='editGlobals')
+    editMembers = factories.functionFactory( cmds.editDisplayLayerMembers, rename='editMembers')
     
 class Constraint(Transform):
     def setWeight( self, weight, *targetObjects ):
@@ -3576,20 +3369,7 @@ def testNodeCmds(verbose=False):
     print "done"
     print emptyFunctions
 
-def _createFunctions():
-    for funcName in factories.moduleCmds['node']:
-        func = factories.functionFactory( funcName, PyNode, _thisModule )
-        
-        if func:
-            try:
-                func.__doc__ = 'function counterpart of class `%s`\n\n' % capitalize( funcName ) + func.__doc__
-                func.__module__ = __name__
-                setattr( _thisModule, funcName, func )
-            except Exception, msg:
-                print "could not add %s to module %s: %s" % (func.__name__, __name__, msg)
 
-#_createFunctions()
-#factories.createFunctions( _thisModule, PyNode )
 
 # create PyNode conversion tables
 
@@ -4358,13 +4138,24 @@ def iterHierarchy ( *args, **kwargs ):
     pass
 
 def _createFunctions():
-    for funcName in factories.moduleCmds['core']:
-        func = factories.functionFactory( funcName, None, _thisModule )
+    for funcName in factories.moduleCmds['node']:
+        func = factories.functionFactory( funcName, PyNode, _thisModule )
+        
         if func:
-            func.__module__ = __name__
-            setattr( _thisModule, funcName, func )
-    for funcName in factories.getUncachedCmds():
-        setattr( _thisModule, funcName, getattr( cmds, funcName) )
+            try:
+                func.__doc__ = 'function counterpart of class `%s`\n\n' % capitalize( funcName ) + func.__doc__
+                func.__module__ = __name__
+                setattr( _thisModule, funcName, func )
+            except Exception, msg:
+                print "could not add %s to module %s: %s" % (func.__name__, __name__, msg)
+#def _createFunctions():
+#    for funcName in factories.moduleCmds['core']:
+#        func = factories.functionFactory( funcName, None, _thisModule )
+#        if func:
+#            func.__module__ = __name__
+#            setattr( _thisModule, funcName, func )
+#    for funcName in factories.getUncachedCmds():
+#        setattr( _thisModule, funcName, getattr( cmds, funcName) )
 #_createFunctions()
 
-factories.createFunctions( __name__ )
+factories.createFunctions( __name__, PyNode )
