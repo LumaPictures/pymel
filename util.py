@@ -2,7 +2,6 @@
 import sys, codecs, os, os.path, re, platform
 from exceptions import *
 from collections import *
-from path import path
 from namedtuple import namedtuple
 import envparse
 
@@ -383,7 +382,7 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
     return property( fget, fset, fdel, doc)
 
 def moduleDir():
-    return path( sys.modules[__name__].__file__ ).parent
+    return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
     #return os.path.split( sys.modules[__name__].__file__ )[0]
 
 # A source commande that will search for the Python script "file" in the specified path
@@ -649,7 +648,7 @@ def release( username=None, password = None):
     import ply.lex as lex
     import pymel.examples.example1
     import pymel.examples.example2
-    
+    from path import path
         
     baseDir = moduleDir()
     tmpDir = baseDir.parent / "release" / str(pymel.__version__)

@@ -11,7 +11,7 @@ Created from the ansi c example included with ply, which is based on the grammar
 
 import sys, os, re, path
 import mellex
-from pymel.tools.ply import *
+from pymel.util.external.ply import *
 
 try:
 	from pymel import *

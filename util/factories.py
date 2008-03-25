@@ -1,4 +1,4 @@
-import path, pymel.util, sys, os, inspect, pickle, re, types
+import pymel.util, sys, os, inspect, pickle, re, types, os.path
 from pymel.core.types.trees import *
 #from networkx.tree import *
 from HTMLParser import HTMLParser
@@ -51,13 +51,13 @@ nodeTypeToInfoCommand = {
 }
 
 moduleNameShortToLong = {
-    'model' : 'Modeling',
-    'render': 'Rendering',
-    'fx'    : 'Effects',
-    'anim'  : 'Animation',
-    'ui'    : 'Windows',
-    'io'    : 'System',
-    'core' : 'General'
+    'modeling' : 'Modeling',
+    'rendering': 'Rendering',
+    'effects'    : 'Effects',
+    'animation'  : 'Animation',
+    'windows'    : 'Windows',
+    'system'    : 'System',
+    'general' : 'General'
 }
 
 #: modifier flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
@@ -210,13 +210,13 @@ def _mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     if version == None :
         version = getMayaVersion(extension=False)
-    docLocation = path.path( pymel.util.getMayaLocation() ) 
+    docLocation = pymel.util.getMayaLocation() 
     # print docLocation
     
     import platform
     if platform.system() == 'Darwin':
-        docLocation = docLocation.parent.parent
-    docLocation = path.path( docLocation / 'docs/Maya%s/en_US' % version )
+        docLocation = os.path.dirname( os.path.dirname( docLocation.parent ) )
+    docLocation = os.path.join( docLocation , 'docs/Maya%s/en_US' % version )
     return docLocation
     
 # class MayaDocsLoc(pymel.util.Singleton) :
@@ -244,8 +244,9 @@ def _getCmdInfoBasic( command ):
             #print tokens
             if len(tokens) > 1:
                 numArgs = len(tokens)-2
-                flags['shortname'] = str(tokens[0])
-                flags['longname'] = str(tokens[1])
+                longname = str(tokens[1][1:])
+                shortname = str(tokens[0][1:])
+                flags[longname ] = { 'shortname' : shortname }
     except:
         pass
         #print "could not retrieve command info for", command
@@ -428,16 +429,16 @@ def getModuleCommandList( category, version='8.5' ):
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
-    # need to skip version extension or you can get things such as
-    # autodesk/maya2008-x64/docs/Maya2008 Service Pack 1 x64/en_US for docs path
-    ver = pymel.util.getMayaVersion(extension=False)
+    # did you commit the new util?
+    #ver = pymel.util.getMayaVersion(extension=False)
+    ver = pymel.util.getMayaVersion()
         
-    newPath = pymel.util.moduleDir() / 'mayaCmdsList'+ver+'.bin'
+    newPath = os.path.join( pymel.util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
     cmdlist = {}
     try :
-        file = newPath.open(mode='rb')
+        file = open(newPath, mode='rb')
         try :
-            cmdlist,nodeHierarchy,uiClassList,moduleCmds = pickle.load(file)
+            cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = pickle.load(file)
             nodeHierarchyTree = IndexedTree(nodeHierarchy)
         except :
             print "Unable to load the list of Maya commands from '"+file.name+"'"
@@ -453,6 +454,7 @@ def buildCachedData() :
         nodeHierarchy = _getNodeHierarchy(ver)
         nodeHierarchyTree = IndexedTree(nodeHierarchy)
         uiClassList = _getUICommands()
+        nodeCommandList = []
         for moduleName, longname in moduleNameShortToLong.items():
             moduleNameShortToLong[moduleName] = getModuleCommandList( longname, ver )
                         
@@ -473,8 +475,8 @@ def buildCachedData() :
                 module = 'ctx'
             elif funcName in uiClassList:
                 module = 'uiClass'
-            elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
-                module = 'node'
+            #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+            #    module = 'node'
             else:
                 for moduleName, commands in moduleNameShortToLong.items():
                     if funcName in commands:
@@ -485,7 +487,10 @@ def buildCachedData() :
                         module = 'runtime'
                     else:
                         module = 'other'
-            
+ 
+            if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+                nodeCommandList.append(funcName)
+                         
             cmdInfo = {}
             
             if module:
@@ -516,9 +521,9 @@ def buildCachedData() :
         #uiClassList = map( pymel.util.capitalize, uiClassList )
                 
         try :
-            file = newPath.open(mode='wb')
+            file = open(newPath, mode='wb')
             try :
-                pickle.dump( (cmdlist,nodeHierarchy,uiClassList,moduleCmds),  file, 2)
+                pickle.dump( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds),  file, 2)
                 print "done"
             except:
                 print "Unable to write the list of Maya commands to '"+file.name+"'"
@@ -527,13 +532,13 @@ def buildCachedData() :
             print "Unable to open '"+newPath+"' for writing"
 
     
-    return (cmdlist,nodeHierarchyTree,uiClassList,moduleCmds)
+    return (cmdlist,nodeHierarchyTree,uiClassList,nodeCommandList,moduleCmds)
 
 
                 
 #---------------------------------------------------------------
         
-cmdlist, nodeHierarchy, uiClassList, moduleCmds = buildCachedData()
+cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
 # quick fix until we make a Singleton of nodeHierarchy
 def NodeHierarchy() :
     return nodeHierarchy
@@ -547,34 +552,39 @@ def getUncachedCmds():
 #-----------------------
 
 def _addDocs(inObj, newObj, cmdInfo ):
+
     try:
         docstring = cmdInfo['description'] + '\n\n'
+        
         flagDocs = cmdInfo['flags']
         if flagDocs:
             docstring += 'Flags:\n'
             for flag in sorted(flagDocs.keys()):
                 docs = flagDocs[flag]
-
+    
                 label = '    - %s (%s)' % (flag, docs['shortname'])
                 docstring += label + '\n'
-                if docs['modes']:
+                if docs.get('modes',False):
                     docstring += '        - %s\n' % (', '.join(docs['modes']))
                 try:
                     docstring += '        - modifies flags %s\n' % ( ', '.join(docs['modified'] ))
                 except KeyError: pass
                 
-                docstring += '        - %s\n' %  docs['docstring']
+                try:
+                    docstring += '        - %s\n' %  docs['docstring']
+                except KeyError: pass
+                
         if cmdInfo['example']:
             docstring += '\nExample:\n' + cmdInfo['example']
         if inObj.__doc__:
             docstring = inObj.__doc__ + '\n' + docstring
-        newObj.__doc__ = docstring
+        else:
+            newObj.__doc__ = docstring
             
-    except:
-        pass
+
         #print "could not find help docs for %s" % inObj
-    #except:
-    #    print "failed on command %s %s" % ( inObj, docs )
+    except:
+        print "failed to add docstring to %s using %s" % ( inObj.__name__, cmdInfo )
 
 def _getUICallbackFlags(flagDocs):
     commandFlags = []
@@ -592,7 +602,7 @@ def getUICommandsWithCallbacks():
     return cmds
 
 
-def functionFactory( funcName, returnFunc, module=None, rename=None ):
+def functionFactory( funcName, returnFunc=None, module=None, rename=None ):
     """create a new function, apply the given returnFunc to the results (if any), 
     and add to the module given by 'moduleName'.  Use pre-parsed command documentation
     to add to __doc__ strings for the command."""
@@ -615,7 +625,9 @@ def functionFactory( funcName, returnFunc, module=None, rename=None ):
         
     # if the function is not a builtin and there's no return command to map, just add docs
     if type(inFunc) == types.FunctionType and returnFunc is None:
-        _addDocs( inFunc, inFunc, cmdInfo )
+        # there are no docs to add for runtime commands
+        if cmdInfo['type'] != 'runtime':
+            _addDocs( inFunc, inFunc, cmdInfo )
         if rename: inFunc.__name__ = rename
         return inFunc
     
@@ -756,19 +768,114 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
             
     return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
-def createFunctions( moduleName, returnFunc=None ):
+def createFunctions( moduleName ):
     module = __import__(moduleName, globals(), locals(), [''])
-    moduleName = moduleName.split('.')[-1]
-    for funcName in moduleCmds[ moduleName ]:
+    moduleShortName = moduleName.split('.')[-1]
+    for funcName in moduleCmds[ moduleShortName ]:
         if not hasattr( module, funcName ):
-            func = functionFactory( funcName, None )
+            func = functionFactory( funcName, returnFunc=None )
             if func:
                 func.__module__ = moduleName
                 setattr( module, funcName, func )
+'''
+generalModule = __import__(__name__, globals(), locals(), [''])
 
+def createFunctions( moduleName ):
+    module = __import__(moduleName, globals(), locals(), [''])
+    
+    moduleShortName = moduleName.split('.')[-1]
+    allCommands = set(moduleCmds[ moduleShortName ])
+    # regular
+    for funcName in allCommands.intersection(nodeCommandList):
+        if not hasattr( module, funcName ):
+            func = functionFactory( funcName, returnFunc=None )
+            if func:
+                func.__module__ = moduleName
+                setattr( module, funcName, func )
+    # node commands
+    for funcName in allCommands.difference(nodeCommandList):
+        if not hasattr( module, funcName ):
+            func = functionFactory( funcName, returnFunc=generalModule.PyNode )
+            if func:
+                func.__module__ = moduleName
+                setattr( module, funcName, func )
+'''
+            
 #: overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
 overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
+
+class metaNode(type) :
+    """
+    A metaclass for creating classes based on node type.  Methods will be added to the new classes 
+    based on info parsed from the docs on their command counterparts.
+    """
+
+    
+    def __new__(cls, classname, bases, classdict):
+        
+        nodeType = pymel.util.uncapitalize(classname)
+        
+        try:
+            infoCmd = False
+            try:
+                nodeType = nodeTypeToNodeCommand[ nodeType ]
+            except KeyError:
+                try:
+                    nodeType = nodeTypeToInfoCommand[ nodeType ]
+                    infoCmd = True
+                except KeyError: pass
+            
+            #if nodeHierarchy.children( nodeType ):
+            #    print nodeType, nodeHierarchy.children( nodeType )
+            cmdInfo = cmdlist[nodeType]
+            
+            try:    
+                module = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
+                func = getattr(module, nodeType)
+
+            except (AttributeError, TypeError):
+                func = getattr(cmds,nodeType)
+            
+            # add documentation
+            classdict['__doc__'] = 'class counterpart of function L{%s}\n\n%s\n\n' % (nodeType, cmdInfo['description'])
+            
+            for flag, flagInfo in cmdInfo['flags'].items():
+                 
+                 # don't create methods for query or edit, or for flags which only serve to modify other flags
+                if flag in ['query', 'edit'] or 'modified' in flagInfo:
+                    continue
+                
+                modes = flagInfo['modes']
+
+                # query command
+                if 'query' in modes:
+                    methodName = 'get' + pymel.util.capitalize(flag)
+                    if methodName not in classdict:
+                        if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                            classdict[methodName] = makeQueryFlagCmd( methodName, func, 
+                                flag, flagInfo['docstring'] )
+                        #else: print "%s: skipping %s" % ( classname, methodName )
+                
+                # edit command: 
+                if 'edit' in modes or ( infoCmd and 'create' in modes ):
+                    # if there is a corresponding query we use the 'set' prefix. 
+                    if 'query' in modes:
+                        methodName = 'set' + pymel.util.capitalize(flag)
+                    #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+                    else:
+                        methodName = flag
+                        
+                    if methodName not in classdict:
+                        if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                            classdict[methodName] = makeEditFlagCmd( methodName, func,
+                                 flag, flagInfo['docstring'] )
+                    
+        except KeyError: # on cmdlist[nodeType]
+            pass
+            
+        return super(metaNode, cls).__new__(cls, classname, bases, classdict)
+
 
 def makeMetaNode( moduleName ):
     module = __import__(moduleName, globals(), locals(), [''])

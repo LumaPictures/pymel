@@ -61,7 +61,7 @@ try:
 	import maya.cmds as cmds
 except ImportError: pass
 
-import pymel.util.factories, pymel.util, core
+import pymel.util.factories, pymel.util
 
 	
 #-----------------------------------------------
@@ -148,7 +148,7 @@ class UI(unicode):
 		return u"%s('%s')" % (self.__class__.__name__, self)
 	def getChildren(self, **kwargs):
 		kwargs['long'] = True
-		return filter( lambda x: x.startswith(self) and not x == self, core.lsUI(**kwargs))
+		return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
 	def getParent(self):
 		return UI( '|'.join( self.split('|')[:-1] ) )
 	def type(self):
@@ -451,7 +451,7 @@ pymel.util.factories.createFunctions( __name__ )
 def PyUI(strObj, type=None):
 	try:
 		if not type:
-			type = core.objectTypeUI(strObj)
+			type = objectTypeUI(strObj)
 		return getattr(_thisModule, pymel.util.capitalize(type) )(strObj)
 	except AttributeError:
 		return UI(strObj)

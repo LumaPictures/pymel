@@ -34,13 +34,11 @@ try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
 except ImportError:
-    pathClass = pymel.util.path
+    import pymel.types.path
+    pathClass = pymel.types.path.path
     
 import sys
-
-#from pymel.core.node import pymel.core.node.Matrix
-#import pymel.core
-import pymel.core.node
+import pymel.core.general
 
 def _getTypeFromExtension( path ):
 	return {
@@ -65,11 +63,10 @@ def feof( fileid ):
     fileid.seek(pos)
     return pos == end
 
-from pymel.tools.scanf import fscanf
+from pymel.util.scanf import fscanf
 
 
 def sceneName():
-    #return pymel.core.io.Path(cmds.file( q=1, sn=1))
     return Path( OpenMaya.MFileIO.currentFile() )	
 
 def listNamespaces():
@@ -305,7 +302,7 @@ class FileReference(Path):
     
     def nodes(self):
         """referenceQuery -nodes """
-        return map( pymel.core.node.Matrix, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
+        return map( pymel.core.general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
     def copyNumberList(self):
         """returns a list of all the copy numbers of this file"""
         return cmds.file( self, q=1, copyNumberList=1 )

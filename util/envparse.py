@@ -1,6 +1,5 @@
 import sys, os
-import pymel.tools.ply
-import pymel.tools.ply.lex as lex
+import external.ply.lex as lex
 from exceptions import *
 
 # lexer and parser for the Maya.env file

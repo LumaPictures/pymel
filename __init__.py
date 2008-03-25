@@ -616,15 +616,16 @@ import util
 assert util.mayaInit() 
 
 #import api
-from core.node import *
-from core.core import *
+#from core.node import *
+#from core.core import *
+from core.general import *
 from core.ctx import *
-from core.io import *
-from core.ui import *
-from core.anim import *
-from core.fx import *
-from core.model import *
-from core.render import *
+from core.system import *
+from core.windows import *
+from core.animation import *
+from core.effects import *
+from core.modeling import *
+from core.rendering import *
 import core.runtime
 
 	
