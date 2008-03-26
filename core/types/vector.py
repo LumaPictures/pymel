@@ -3,7 +3,7 @@
 List based vector and matrix classes that support elementwise mathematical operations
 """
 
-# based on x python vector class by A. Pletzer 5 Jan 00/11 April 2002
+# based on a python vector class by A. Pletzer 5 Jan 00/11 April 2002
 
 
 
@@ -12,14 +12,25 @@ from math import *
 #import pymel.core.node, pymel.core.core
 
 
-
+# TODO : use a namedtuple rather/ bind API MVector methods
 class Vector(list):
     """
         A list based vector class
     """
-    # no c'tor
-    def __init__(self, elements=[0.0,0.0,0.0]):
-        list.__init__(self, elements)
+    # TODO : should limit to vector of 3 coordinates as the x, y, z properties imply
+    def __init__(self, *args):
+        print args
+        if args :
+            if len(args)==1 and hasattr(args[0],'__iter__') :
+                list.__init__(self, args[0])
+            else :
+                list.__init__(self, [a for a in args])
+        else :
+            list.__init__(self, [0.0, 0.0, 0.0])
+            
+    x = property( lambda self: self.__getitem__(0) ,  lambda self, val: self.__setitem__(0,val) )
+    y = property( lambda self: self.__getitem__(1) ,  lambda self, val: self.__setitem__(1,val) )
+    z = property( lambda self: self.__getitem__(2) ,  lambda self, val: self.__setitem__(2,val) )
     
     def __repr__(self):
         return 'Vector(%s)' % list.__repr__(self)    
@@ -54,21 +65,29 @@ class Vector(list):
         #if isinstance(other, Matrix):
         #if hasattr(other,'__class__') and other.__class__ is Matrix:        
         #if type(other) == Matrix:
-        
+
+        if isinstance(other, Vector) :
+            #print "VEC*VEC"
+            # normally * is for dot product
+            return dot(self, other)
+        elif isinstance(other, Matrix) :
+            dif = other.ncols()-self.size()
+            #print "VEC x MAT"
+            res = Matrix( [list(self) + [1]*dif ]) * other 
+            return res[0][0:self.size()]            
         if isinstance(other, list):
             #print "LEN OTHER", len(other)
-            if isinstance( other[0.0], list ):
+            if isinstance( other[0], list ):
                 #return Matrix( map( lambda x: [x], self ) ) * other
                 dif = other.ncols()-self.size()
                 #print "VEC x MAT"
-                result = Matrix( [list(self) + [1.0]*dif ]) * other 
-                return result[0.0][0.0:self.size()]
+                res = Matrix( [list(self) + [1]*dif ]) * other 
+                return res[0][0:self.size()]
             else:
-                #print "VEC x VEC"
                 return Vector(map(lambda x,y: x*y, self,other))
 
         #print "VEC x CONST"
-        # other is x const
+        # other is a const
         return Vector(map(lambda x: x*other, self))
 
 
@@ -93,7 +112,7 @@ class Vector(list):
         try:
             return Vector(map(lambda x,y: x/y, other, self))
         except:
-            # other is x const
+            # other is a const
             return Vector(map(lambda x: other/x, self))
 
     def __iadd__(self, other):
@@ -108,10 +127,23 @@ class Vector(list):
     def __idiv__(self, other):
         self = self.__div__(other)
 
+    def __pow__(self, other):
+        """ power or ** in Python is used for vectors cross product """
+        # usually it's ^ but Python uses this for bitwise xor
+        if isinstance(other, Vector) :
+            return cross(self, other)
+        else :
+            raise TypeError, "unsupported operand type(s) for **: '%s' and '%s'" % (type(self), type(other))
+
+    def __xor__(self, other):
+        """ ^ used for vectors cross product """
+        # could use the binary operators to do component to component logical op instead ?
+        if isinstance(other, Vector) :
+            return cross(self, other)
+        else :
+            raise TypeError, "unsupported operand type(s) for ^: '%s' and '%s'" % (type(self), type(other))
 
     def size(self): return len(self)
-
-
 
     def worldToObject(self, obj):
         return self * node.DependNode(obj).worldInverseMatrix.get()
@@ -141,7 +173,7 @@ class Vector(list):
         resAspect  = xres/yres;
         ratio = filmAspect/resAspect;
     
-        screen.y = linmap( ((ratio-1.0)/-2), (1.0+(ratio-1.0)/2), screen.y )
+        screen.y = linmap( ((ratio-1)/-2), (1+(ratio-1)/2), screen.y )
         
         return screen    
     
@@ -186,10 +218,10 @@ class Vector(list):
             ]
 
     def setToZeros(self):
-        self[:] = [0.0]*self.size() 
+        self[:] = [0]*self.size() 
 
     def setToOnes(self):
-        self[:] = [1.0]*self.size() 
+        self[:] = [1]*self.size() 
 
     def setToRandom(self, lmin=0.0, lmax=1.0):
         import whrandom
@@ -199,52 +231,55 @@ class Vector(list):
         
     def norm(self):
         """
-        Computes the norm of Vector x.
+        Computes the norm of Vector a.
         """
         return sqrt(abs(dot(self,self)))
-    
-    length = norm
-    mag = norm
 
-    def sqLength (self) :
-        return (self.x*self.x + self.y*self.y + self.z*self.z)
-  
+    mag = norm
+    length = norm
+    
+    def sqNorm(self):
+        """ Squared length of vector """
+        return dot(self,self)
+
+    sqMag = sqNorm
+    sqLength = sqNorm
+    
     def normalize(self):
         self /= self.mag()
 
     def normal(self):
-        try :
-            return self / self.mag()
+        """ Return normalized vector if non null or null vector """
+        try : 
+            return self / self.norm()
         except :
             return self
-
+        
     def sum(self):
         """
-        Returns the sum of the elements of x.
+        Returns the sum of the elements of a.
         """
-        return reduce(lambda x, y: x+y, self, 0.0)
+        return reduce(lambda x, y: x+y, self, 0)
     
                     
-    x = property( lambda self: self.__getitem__(0.0) ,  lambda self, val: self.__setitem__(0.0,val) )
-    y = property( lambda self: self.__getitem__(1.0) ,  lambda self, val: self.__setitem__(1.0,val) )
-    z = property( lambda self: self.__getitem__(2) ,  lambda self, val: self.__setitem__(2,val) )
+
 
 
 class Matrix(list):
     """
         A list based Vector class
     """
-    def __init__(self, rowColList = [[0.0]*4]*4 ):
-        for i in range( 0.0, len(rowColList )):
+    def __init__(self, rowColList = [[0]*4]*4 ):
+        for i in range( 0, len(rowColList )):
             rowColList[i] = Vector( rowColList[i] )
         
         list.__init__(self, rowColList)
     
     def __str__(self):
-        result = ''
-        for i in range(0.0,len(self)):
-             result += ', '.join( map( lambda x: "%.03f" % x, self[i]) ) + '\n'
-        return result
+        res = ''
+        for i in range(0,len(self)):
+             res += ', '.join( map( lambda x: "%.03f" % x, self[i]) ) + '\n'
+        return res
         
     def __add__(self, other):
         try:
@@ -288,7 +323,7 @@ class Matrix(list):
         try:
             return Vector(map(lambda x,y: x/y, other, self))
         except:
-            # other is x const
+            # other is a const
             return Vector(map(lambda x: other/x, self))
     
     def row(self, row):
@@ -314,185 +349,181 @@ class Matrix(list):
 
 ###############################################################################
     
-def dot(x, b):
-    """
-    dot product of two MVecs.
-    """
-    try:
-        return reduce(lambda x, y: x+y, x*b, 0.0)
-    except:
-        raise TypeError, 'Vector::FAILURE in dot'
+def dot(a, b):
+    """ dot product of two Vectors """
+    return a.x*b.x+a.y*b.y+a.z*b.z
+
+def cross(a, b):
+    """ cross product of two Vectors """
+    return Vector(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
 
 # NOTE: should be defined on Points rather
-def cotan(x, b, c) :
-    """ cotangent of the (b-x), (c-x) angle """
-    return (((c - b)*(x - b))/((c - b)^(x - b)).length());
-
+def cotan(a, b, c) :
+    """ cotangent of the (b-a), (c-a) angle """
+    return (((c - b)*(a - b))/((c - b)^(a - b)).mag());
 
 # elementwise operations
     
-def log10(x):
+def log10(a):
     log10.__doc__
     try:
-        return x.__class__(map(math.log10, x))
+        return a.__class__(map(math.log10, a))
     except:
-        return math.log10(x)
+        return math.log10(a)
 
-def log(x):
+def log(a):
     log.__doc__
     try:
-        return x.__class__(map(math.log, x))
+        return a.__class__(map(math.log, a))
     except:
-        return math.log(x)
+        return math.log(a)
         
-def exp(x):
+def exp(a):
     exp.__doc__
     try:
-        return x.__class__(map(math.exp, x))
+        return a.__class__(map(math.exp, a))
     except:
-        return math.exp(x)
+        return math.exp(a)
 
-def sin(x):
+def sin(a):
     sin.__doc__
     try:
-        return x.__class__(map(math.sin, x))
+        return a.__class__(map(math.sin, a))
     except:
-        return math.sin(x)
+        return math.sin(a)
         
-def tan(x):
+def tan(a):
     tan.__doc__
     try:
-        return x.__class__(map(math.tan, x))
+        return a.__class__(map(math.tan, a))
     except:
-        return math.tan(x)
+        return math.tan(a)
         
-def cos(x):
+def cos(a):
     cos.__doc__
     try:
-        return x.__class__(map(math.cos, x))
+        return a.__class__(map(math.cos, a))
     except:
-        return math.cos(x)
+        return math.cos(a)
 
-def asin(x):
+def asin(a):
     asin.__doc__
     try:
-        return x.__class__(map(math.asin, x))
+        return a.__class__(map(math.asin, a))
     except:
-        return math.asin(x)
+        return math.asin(a)
 
-def atan(x):
+def atan(a):
     atan.__doc__
     try:
-        return x.__class__(map(math.atan, x))
+        return a.__class__(map(math.atan, a))
     except:
-        return math.atan(x)
+        return math.atan(a)
 
-def acos(x):
+def acos(a):
     acos.__doc__
     try:
-        return x.__class__(map(math.acos, x))
+        return a.__class__(map(math.acos, a))
     except:
-        return math.acos(x)
+        return math.acos(a)
 
-def sqrt(x):
+def sqrt(a):
     sqrt.__doc__
     try:
-        return x.__class__(map(math.sqrt, x))
+        return a.__class__(map(math.sqrt, a))
     except:
-        return math.sqrt(x)
+        return math.sqrt(a)
 
-def sinh(x):
+def sinh(a):
     sinh.__doc__
     try:
-        return x.__class__(map(math.sinh, x))
+        return a.__class__(map(math.sinh, a))
     except:
-        return math.sinh(x)
+        return math.sinh(a)
 
-def tanh(x):
+def tanh(a):
     tanh.__doc__
     try:
-        return x.__class__(map(math.tanh, x))
+        return a.__class__(map(math.tanh, a))
     except:
-        return math.tanh(x)
+        return math.tanh(a)
 
-def cosh(x):
+def cosh(a):
     cosh.__doc__
     try:
-        return x.__class__(map(math.cosh, x))
+        return a.__class__(map(math.cosh, a))
     except:
-        return math.cosh(x)
+        return math.cosh(a)
 
 
-def pow(x,b):
+def pow(a,b):
     """
-    Takes the elements of x and raises them to the b-th power
+    Takes the elements of a and raises them to the b-th power
     """
     try:
-        return x.__class__(map(lambda x: x**b, x))
+        return a.__class__(map(lambda x: x**b, a))
     except:
         try:
-            return x.__class__(map(lambda x,y: x**y, x, b))
+            return a.__class__(map(lambda x,y: x**y, a, b))
         except:
-            return math.pow(x,b)
+            return math.pow(a,b)
     
-def atan2(x,b):       
+def atan2(a,b):       
     """
     Arc tangent
     
     """
     try:
-        return x.__class__(map(atan2, x, b))
+        return a.__class__(map(atan2, a, b))
     except:
-        return math.atan2(x,b)
+        return math.atan2(a,b)
     
-
 
 # general remapping operations
 
-def smoothmap(x=0.0, min=0.0, max=1.0):
-    """Returns the value of x smooth remapping function.
+def smoothmap(min, max, x):
+    """Returns the value of a smooth remapping function.
 
-    performs x smooth Hermite interpolation between 0.0 and 1.0 in the interval min to max,
+    performs a smooth Hermite interpolation between 0 and 1 in the interval min to max,
     but does not clamp the range
     """
     x = float(x)
     x = (-min)/(max-min)
     return x*x*(3.0-2.0*x)
     
-def smoothstep(x=0.0, min=0.0, max=1.0):
-    """Returns the value of x smooth step function.
+def smoothstep(min, max, x):
+    """Returns the value of a smooth step function.
 
-    Returns 0.0 if x < min, 1.0 if x > max, and performs x smooth Hermite
-    interpolation between 0.0 and 1.0 in the interval min to max.
+    Returns 0 if x < min, 1 if x > max, and performs a smooth Hermite
+    interpolation between 0 and 1 in the interval min to max.
     """
     if x<min:
         return 0.0
-    elif x>max:
+    if x>max:
         return 1.0
-    else :
-        return smoothmap(min, max, x)
+    return smoothmap(min, max, x)
 
-def linmap(x=0.0, min=0.0, max=1.0):
-    """Returns the value of x linear remaping function.
+def linmap(min, max, x):
+    """Returns the value of a linear remapping function.
 
-    performs x linear interpolation between 0.0 and 1.0 in the interval min to max,
+    performs a linear interpolation between 0 and 1 in the interval min to max,
     but does not clamp the range
     """
     return (float(x)-min)/(max-min)
     
-def linstep(x=0.0, min=0.0, max=1.0):
-    """Returns the value of x linear step function.
+def linstep(min, max, x):
+    """Returns the value of a linear step function.
 
-    Returns 0.0 if x < min, 1.0 if x > max, and performs x linear
-    interpolation between 0.0 and 1.0 in the interval min to max.
+    Returns 0 if x < min, 1 if x > max, and performs a linear
+    interpolation between 0 and 1 in the interval min to max.
     """
     if x<min:
         return 0.0
-    elif x>max:
+    if x>max:
         return 1.0
-    else:
-        return linmap(min, max, x)
-    
+    return linmap(min, max, x)
+
+# NOTE : x first seem more natural    
 def clamp(x=0.0, min=0.0, max=1.0) :
     """ Clamps the value x between min and max """
     # NOTE : in 2.5 can use 'caseTrue if condition else caseFalse'
@@ -561,11 +592,4 @@ def hermite(x=0.0, v0=0.0, v1=0.0, s0=0.0, s1=0.0) :
         res = v2
     else :
         res = hermiteInterp(x, v0, v1, s0, s1)
-    return res
-  
-
-
-
-
-
- 
+    return res    
