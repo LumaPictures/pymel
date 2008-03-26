@@ -810,7 +810,7 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
             
     return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 
-def makeSecondaryFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
+def makeSecondaryFlagCmd( name, inFunc, flag, moduleName, docstring='', returnFunc=None ):
     #name = 'set' + flag[0].upper() + flag[1:]    
     if returnFunc:
         def f(*args, **kwargs): 
@@ -832,7 +832,7 @@ def makeSecondaryFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
             else:
                 raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
             return inFunc( *args, **kwargs )
-                 
+    f.__module__ = moduleName             
     return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
 '''
 def createFunctions( moduleName ):
