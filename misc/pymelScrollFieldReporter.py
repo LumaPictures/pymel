@@ -120,7 +120,8 @@ class Reporter(object):
 		self.uiMessageID = OpenMayaUI.MUiMessage.addUiDeletedCallback( self.name, uiDeletedCallback, self.name )
 		self.refreshHistory()
 		
-		
+
+
 	def executeCommandOnIdle( self, cmd ):
 		global callbackState
 		if Reporter.globalFilters['echoAllCommands']:
@@ -165,6 +166,7 @@ class Reporter(object):
 		if output is not None:
 			global callbackState
 			
+			# cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";string $fWin=`window -frontWindow trudy -q`;setFocus("%s");setFocus($fWin);' % ( self.bufferLength, output, self.name ,self.name)
 			cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";' % ( self.bufferLength, output, self.name )
 			
 			self.bufferLength += len(output)
@@ -245,6 +247,7 @@ def removeCallback(id):
 def createCallback(stringData):
 	# global declares module level variables that will be assigned
 	global messageIdSet
+	global messageId
 
 	try:
 		id = OpenMaya.MCommandMessage.addCommandOutputCallback( cmdCallback, stringData )
@@ -259,6 +262,7 @@ def uiDeletedCallback( name ):
 	#outputFile = open( '/var/tmp/commandOutput', 'a')
 	#outputFile.write( 'before=%s\n' % reporters  )
 	#outputFile.close()
+	
 	
 	removeCallback( reporters[ name ].uiMessageID )
 	reporters.pop( name )
@@ -474,13 +478,14 @@ def syntaxCreator():
 # Initialize the script plug-in
 def initializePlugin(mobject):
 	mplugin = OpenMayaMPx.MFnPlugin(mobject)
-	version = OpenMaya.MGlobal.mayaVersion()
-	if version.startswith( '8.5' ) and 'Service Pack' not in version:
-		raise NotImplementedError, "pymelScrollFieldReporter is only supported for Maya 8.5 SP1 and Maya 2008"
+	
+	if OpenMaya.MGlobal.mayaVersion() == '8.5':
+		raise NotImplementedError, "pymelScrollFieldReporter is only supported for Maya 2008"
 	try:
 		mplugin.registerCommand( kPluginCmdName, cmdCreator, syntaxCreator )
 		
 		global messageIdSet
+		global messageId
 		if ( messageIdSet ):
 			print "Message callaback already installed"
 		else:
@@ -493,6 +498,8 @@ def initializePlugin(mobject):
 
 # Uninitialize the script plug-in
 def uninitializePlugin(mobject):
+	global messageIdSet
+	global messageId
 	# Remove the callback
 	if ( messageIdSet ):
 		removeCallback( messageId )
