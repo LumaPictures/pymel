@@ -3412,9 +3412,9 @@ def buildPyNodeToAPI () :
 
 # Initialize Pymel classes to API types lookup
 #buildPyNodeToAPI()
-start = time.time()
+startTime = time.time()
 buildPyNodeToAPI()
-elapsed = time.time() - start
+elapsed = time.time() - startTime
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
 # PyNode types names (as str)
@@ -3446,9 +3446,9 @@ def buildPyNodeTypesHierarchy () :
 
 # Initialize the Pymel class tree
 # PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
-start = time.time()
+startTime = time.time()
 PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
-elapsed = time.time() - start
+elapsed = time.time() - startTime
 print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
 
 
