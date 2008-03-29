@@ -1,4 +1,6 @@
 
+"Util contains functions and classes which are required by pymel.  These helper utilities do not require pymel to operate and can be useful in other code."
+
 import sys, codecs, os, os.path, re, platform
 from exceptions import *
 from collections import *
@@ -14,17 +16,20 @@ else :
     
 #from maya.cmds import encodeString
 
-# Singleton classes can be derived from this class
-# You can derive from other classes as long as Singleton comes first (and class doesn't override __new__
-# >>> class uniqueImmutableDict(Singleton, dict) :
-# >>>     def __init__(self, value) :
-# >>>        # will only be initialied once
-# >>>        if not len(self):
-# >>>            super(uniqueDict, self).update(value)
-# >>>        else :
-# >>>            raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
-# >>>   # You'll want to override or get rid of dict herited set item methods
 class Singleton(object) :
+    """
+Singleton classes can be derived from this class
+You can derive from other classes as long as Singleton comes first (and class doesn't override __new__
+
+    >>> class uniqueImmutableDict(Singleton, dict) :
+    >>>     def __init__(self, value) :
+    >>>        # will only be initialied once
+    >>>        if not len(self):
+    >>>            super(uniqueDict, self).update(value)
+    >>>        else :
+    >>>            raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
+    >>>   # You'll want to override or get rid of dict herited set item methods
+    """
     def __new__(cls, *p, **k):
         if not '_the_instance' in cls.__dict__:
             cls._the_instance = super(Singleton, cls).__new__(cls)
@@ -69,9 +74,9 @@ except:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
-# Static singleton dictionnary metaclass to quickly build classes
-# holding predefined immutable dicts
 class metaStatic(type) :
+    """Static singleton dictionnary metaclass to quickly build classes
+    holding predefined immutable dicts"""
     def __new__(mcl, classname, bases, classdict):
         # Class is a Singleton and some base class (dict or list for instance), Singleton must come first so that it's __new__
         # method takes precedence
@@ -121,7 +126,32 @@ class metaStatic(type) :
 
            
 
-
+class ModuleInterceptor(object):
+    """
+    This class is used to intercept an unset attribute of a module to perfrom a callback. The
+    callback will only be performed if the attribute does not exist on the module. Any error raised
+    in the callback will cause the original AttributeError to be raised.
+        
+        >>> def cb( module, attr):
+        >>>     if attr == 'this':
+        >>>         print "intercepted"
+        >>>     else:
+        >>>         raise ValueError        
+        >>> sys.modules[__name__] = ModuleInterceptor(__name__, cb)
+    
+    The class does not work when imported into the main namespace.    
+    """
+    def __init__(self, moduleName, callback):
+        self.module = __import__( moduleName , globals(), locals(), [''] )
+        self.callback = callback
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.module, attr)
+        except AttributeError, msg:
+            try:
+                self.callback( self.module, attr)
+            except:
+                raise AttributeError, msg
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------
