@@ -862,7 +862,7 @@ def createFunctions( moduleName, returnFunc=None ):
                     setattr( module, funcName, func )
     else:
         # node commands
-        print moduleShortName, sorted(list(allCommands.intersection(nodeCommandList)))
+        #print moduleShortName, sorted(list(allCommands.intersection(nodeCommandList)))
         for funcName in allCommands.intersection(nodeCommandList):
             if not hasattr( module, funcName ):
                 func = functionFactory( funcName, returnFunc=returnFunc )
