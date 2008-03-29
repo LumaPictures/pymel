@@ -2125,6 +2125,7 @@ class DependNode( PyNode ):
     #    Info
     #--------------------------
 
+    def type(self, **kwargs):
         "nodetype"
         obj = self.object()  
         if obj :
