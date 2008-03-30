@@ -13,7 +13,7 @@ import sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
 import maya.OpenMayaUI as OpenMayaUI
-import pymel.mel2py
+import pymel.tools.mel2py
 from maya.cmds import encodeString
 
 mparser = pymel.mel2py.MelParser()
@@ -167,8 +167,8 @@ class Reporter(object):
 			global callbackState
 			
 			# cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";string $fWin=`window -frontWindow trudy -q`;setFocus("%s");setFocus($fWin);' % ( self.bufferLength, output, self.name ,self.name)
-			cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";' % ( self.bufferLength, output, self.name )
-			
+			#cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";' % ( self.bufferLength, output, self.name )
+			cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";setFocus("%s")' % ( self.bufferLength, output, self.name, self.name )
 			self.bufferLength += len(output)
 			
 			# f the line is a syntax error, we have to use OnIdle or maya will crash
