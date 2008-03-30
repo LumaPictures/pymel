@@ -13,10 +13,10 @@ import sys
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
 import maya.OpenMayaUI as OpenMayaUI
-import pymel.tools.mel2py
+import pymel.tools.mel2py as mel2py
 from maya.cmds import encodeString
 
-mparser = pymel.mel2py.MelParser()
+mparser = mel2py.MelParser()
 
 kPluginCmdName = "pymelScrollFieldReporter"
 
@@ -299,7 +299,7 @@ def cmdCallback( nativeMsg, messageType, data ):
 		if nativeMsg.endswith(';\n') : # and len(nativeMsg) >= 2:
 			sourceType = kMel
 			try:
-				#convertedMsg = pymel.mel2py.mel2pyStr( nativeMsg )
+				#convertedMsg = mel2py.mel2pyStr( nativeMsg )
 				convertedMsg = mparser.parse( nativeMsg )			
 			except Exception, msg:
 				syntaxError = True
@@ -310,7 +310,7 @@ def cmdCallback( nativeMsg, messageType, data ):
 	# Display - unaltered strings, such as that printed by the print command
 	elif messageType == OpenMaya.MCommandMessage.kDisplay and ( nativeMsg.endswith(';\n') or nativeMsg.startswith( '//' ) ):
 		try:
-			#convertedMsg = pymel.mel2py.mel2pyStr( nativeMsg )
+			#convertedMsg = mel2py.mel2pyStr( nativeMsg )
 			convertedMsg = mparser.parse( nativeMsg )
 		except Exception, msg:
 			pass
