@@ -98,16 +98,19 @@ class Vector(list):
 
 	def __iadd__(self, other):
 		self = self.__add__(other)
+		return self
 
 	def __isub__(self, other):
 		self = self.__sub__(other)
-		
+		return self
+	
 	def __imul__(self, other):
 		self = self.__mul__(other)
+		return self
 
 	def __idiv__(self, other):
 		self = self.__div__(other)
-
+		return self
 
 	def size(self): return len(self)
 
