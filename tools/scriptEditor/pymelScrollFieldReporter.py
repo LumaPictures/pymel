@@ -9,7 +9,7 @@ showWindow;
 """
 
 
-import sys
+import sys, platform
 import maya.OpenMaya as OpenMaya
 import maya.OpenMayaMPx as OpenMayaMPx
 import maya.OpenMayaUI as OpenMayaUI
@@ -83,7 +83,12 @@ allHistory = []
 
 callbackState = 'normal'
 
-
+updateCmd = ''
+if platform.system() == 'Windows':
+    updateCmd = 'string $fWin=`window -q -frontWindow blah` + "|";string $x;for ($x in `lsUI -controlLayouts -long`) {if (startsWith( $x, $fWin ) ) {break;}};scrollField -e -insertionPosition %(len)d -insertText \"%(text)s\" "%(name)s";setFocus("%(name)s");setFocus($x);'
+else:
+    updateCmd = 'scrollField -e -insertionPosition %(len)d -insertText \"%s(text)\" "%(name)s";'
+    
 class Reporter(object):
 	cmdReporter = None
 	
@@ -166,9 +171,10 @@ class Reporter(object):
 		if output is not None:
 			global callbackState
 			
-			# cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";string $fWin=`window -frontWindow trudy -q`;setFocus("%s");setFocus($fWin);' % ( self.bufferLength, output, self.name ,self.name)
-			#cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";' % ( self.bufferLength, output, self.name )
-			cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";setFocus("%s")' % ( self.bufferLength, output, self.name, self.name )
+			cmd = updateCmd % { 'len' : self.bufferLength, 'text' : output, 'name' : self.name }
+			
+            #cmd =  % ( self.bufferLength, output, self.name )
+			#cmd = 'scrollField -e -insertionPosition %d -insertText \"%s\" "%s";setFocus("%s")' % ( self.bufferLength, output, self.name, self.name )
 			self.bufferLength += len(output)
 			
 			# f the line is a syntax error, we have to use OnIdle or maya will crash
