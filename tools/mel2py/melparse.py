@@ -9,7 +9,7 @@ Created from the ansi c example included with ply, which is based on the grammar
 
 
 
-import sys, os, re, path
+import sys, os, re, os.path
 import mellex
 from pymel.util.external.ply import *
 
@@ -1651,18 +1651,20 @@ def scriptModule( procedure ):
 	buf = result.split( ':' )
 	#print buf
 	if buf[0] == 'Mel procedure found in':
-		fullpath = path.path( buf[1] )
-		name = fullpath.namebase
+		fullpath = buf[1]
+		name = os.path.splitext( os.path.basename(fullpath) )[0]
 		#print procedure, name
 		if fullpath in currentFiles:
 			proc_module[procedure] = name
 			return name
 				
 		for f in sys.path:
-			f = path.path( f + os.sep + name  + '.py' )
-			if f.isfile():
-				lines = f.lines()
-				if lines[0].startswith(tag):
+			f = f + os.sep + name  + '.py'
+			if os.path.isfile(f):
+				file = open(f, 'r')
+				firstline = file.readline()
+				file.close()
+				if firstline.startswith(tag):
 					proc_module[procedure] = name
 					return name
 					
