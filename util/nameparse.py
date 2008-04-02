@@ -1,6 +1,7 @@
 import re, inspect
 import ply.lex as lex
 import ply.yacc as yacc
+
 #from namedtuple import namedtuple
 from common import capitalize, uncapitalize
 from mexceptions import *
@@ -22,36 +23,6 @@ class NameParseError(Exception):
 class ParsingWarning(ExecutionWarning):
     pass
 
-# to store sub parts of a Parsed object
-class SubParts(list) :
-    """ Class to hold parsed data abstract syntax tree,
-        it's a list of Parsed objects, each containing a list
-        of it's sub Parsed object in its subparts """
-    def __init__(self, *args):
-        if args :
-            invalid = []
-            for arg in args :
-                if isinstance (arg, Parsed) :
-                    self.append(arg)
-                elif isIterable (arg) :
-                    for a in SubParts(*arg) :
-                        self.append(a)
-                else :
-                    invalid.append(arg)
-            if invalid :
-                raise TypeError, "SubParts can only contain Parsed objects, %r invalid" % tuple(invalid)
-    def __add__(self, other):
-        result = self
-        other = SubParts(other)
-        for a in other :
-            result.append(a)
-        return result
-    def __iadd__(self, other):
-        other = SubParts(other)
-        for a in other :
-            self.append(a)   
-    def parsedname(self):
-        return "".join(map(unicode, self))
 
 # For parsed objects, Token or upper level constructs
 class Parsed(unicode):
@@ -59,6 +30,9 @@ class Parsed(unicode):
     _parser = None
     _accepts = ()
 
+    @classmethod
+    def default(cls):
+        return None                 
     @classmethod
     def accepts(cls, other) :
         """ Checks if this Parsed class can accept another object as a subpart without reparsing """
@@ -100,7 +74,7 @@ class Parsed(unicode):
                 
                 # build class Parser, replace class _parser by the Parser instance object
 
-                print "Building parser instance of Parser %s for Parsed class: %s" % (parser, cls.__name__)
+                # print "Building parser instance of Parser %s for Parsed class: %s" % (parser, cls.__name__)
                 cls._parser = parser()
                 cls._parser.build(**kwargs)
                 # return cls._parser
@@ -112,11 +86,11 @@ class Parsed(unicode):
         clsname = cls.__name__
         data = unicode(data)
         debug = kwargs.get('debug', verbose())
-        print "Calling parser %s with debug %s" % (cls.classparser(), debug)
+        # print "Calling parser %s with debug %s" % (cls.classparser(), debug)
         result = cls.classparser().parse(data, debug=debug)
         if cls.classparser().errorcount :
             # use error or warning ?
-            raise NameParseError, "cannot parse '%s' to a valid %s, %d parser errors" % (data, clsname_, cls.classparser().errorcount)
+            raise NameParseError, "cannot parse '%s' to a valid %s, %d parser errors" % (data, clsname, cls.classparser().errorcount)
             result._valid = False
         elif isinstance(result, cls) and result == data :
             # should return a Parsed object with the same string value as the parsed string
@@ -190,7 +164,7 @@ class Parsed(unicode):
             # only authorize Empty to be built without arguments
             ptype = 'Empty'
         elif isinstance(data, lex.LexToken) :
-            ptype = capitalize(kwargs.get('type', data.type))
+            ptype = kwargs.get('type', data.type)
         elif isinstance(data, Parsed) :
             ptype = data.__class__
         # can override type with the keyword 'type'                            
@@ -198,7 +172,7 @@ class Parsed(unicode):
         
         if (cls is Parsed or cls is Token) :
             if ptype is not None :
-                print "__new__ called on %s with type %r" % (cls.__name__, ptype)
+                # print "__new__ called on %s with type %r" % (cls.__name__, ptype)
                 newcls = ParsedClasses().get(ptype, None)
                 # can only specify an existing subclass of cls
                 if newcls is None :
@@ -210,11 +184,11 @@ class Parsed(unicode):
             else :
                 raise TypeError, "Class %s is an abstract class and can't be created directly, you must specify a valid sub-type" % (cls.__name__)
         else :
-            print "__new__ called on explicit class %s" % (cls.__name__)
+            # print "__new__ called on explicit class %s" % (cls.__name__)
             clsname = cls.__name__
             newcls = cls
             
-        print "Creating new instance of Parsed class: %r" % newcls
+        # print "Creating new instance of Parsed class: %r" % newcls
 
         # process arguments and build, check arguments compatibility with that type
         pos = None
@@ -232,12 +206,20 @@ class Parsed(unicode):
                 valid = True                  
             else :
                 # build a Token from it
-                value = Token(data.value, ptype=capitalize(data.type), pos=data.pos)
+                value = Token(data.value, ptype=data.type, pos=data.pos)
 
-        if data is None and newcls is Empty :
-            # nothing to do
-            value = ''
-            valid = True            
+        if data is None :
+            # Tokens can have default value to allow initialization without arguments
+            if newcls is Empty :
+                value = ''
+                valid = True
+            else :                 
+                default = newcls.default()
+                if default :
+                    value = default
+                    valid = True
+                else :
+                    valid = False          
         elif isinstance(data, newcls) :
             # from a similar class, copy it
             sub = data.sub
@@ -256,7 +238,13 @@ class Parsed(unicode):
             if data :
                 valid = True
                 p = 0
-                for a in data :
+                for arg in data :
+                    # converts LexTokens directly
+                    if isinstance(arg, lex.LexToken) :        
+                        a = Token(arg.value, ptype=arg.type, pos=data.pos)                    
+                    else :
+                        a = arg
+                    # now check if it's a suitable sub-part
                     if newcls.accepts(a) :
                         sub.append(a)
                     else :
@@ -281,7 +269,7 @@ class Parsed(unicode):
                    
         # parse if necessary
         if valid :
-            print "No reparsing necessary for a resulting value %s (%r)" % (value, value)            
+            # print "No reparsing necessary for a resulting value %s (%r)" % (value, value)            
             strvalue = unicode(value)        
         elif isinstance(value, basestring) :
             print "Will need to reparse value %s (%r)" % (value, value)                    
@@ -380,9 +368,16 @@ class Parser(object):
         parsercls.tokensDict = {}
         parsercls.rulesDict = {}
         for m in inspect.getmembers(parsercls) :
-            if m[0].startswith('t_') and isinstance(m[1], basestring) :
+            if m[0].startswith('t_') and m[0] != 't_error' :
                 k = m[0][2:]
-                parsercls.tokensDict[k] = m[1]
+                if isinstance(m[1], basestring) :
+                    v = m[1]
+                elif inspect.isfunction(m[1]) or inspect.ismethod(m[1]) :
+                    v = m[1].__doc__
+                else :
+                    raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % m[0]
+                k = m[0][2:]
+                parsercls.tokensDict[k] = m[1]                      
             elif m[0].startswith('p_') and inspect.ismethod(m[1]) and m[0] != 'p_error' :
                 k = m[0][2:]
                 parsercls.rulesDict[k] = m[1]
@@ -483,7 +478,7 @@ class TokenParser(Parser):
     def parse(self, data, **kwargs):
         self.errorcount = 0
         if self.parser.match(data) is not None :
-            return Token(data, type=capitalize(self._type), pos=0)
+            return Token(data, type=self._type, pos=0)
         else :
             warnings.warn ("%s is not matching %s pattern %r" % (data, self.__class__.name, self._pattern))
             self.errorcount += 1
@@ -500,130 +495,112 @@ class TokenParser(Parser):
 # no parsed class for this, the tokens Parsers and Parsed will be created automatically anyway
 class NameBaseParser(Parser):
     """ Base for name parser with common tokens """
-    t_alphabetic    = r'([a-z]+)|([A-Z]+[a-z]*)'
-    t_number   = r'[0-9]+'
+    t_Alpha    = r'([a-z]+)|([A-Z]+[a-z]*)'
+    t_Num   = r'[0-9]+'
+
+    start = None
     
-    def p_alpha(self, p):
-        ''' alpha : alphabetic'''                 
-        p[0] = Token(p[1], type='Alphabetic', pos=p.lexpos(1))                    
-    def p_num(self, p):
-        ''' num : number'''            
-        p[0] = Token(p[1], type='Number', pos=p.lexpos(1))
-
-# trailing numbers at the end of a name group
-# must be declared before AlphaPart and NumPart to take precedence
-class NameTailParser(NameBaseParser):
-    """ Parser for trailing numbers at the end of a name group """
-    start = 'tail'
-    # must be declared before part / apart / npart to take precedence
-    def p_tail(self, p):
-        ''' tail : num
-                    | empty'''
-        p[0] = NameTail(p[1])   
-    def p_empty(self, p):
-        'empty :'
-        p[0] = Empty()  
-
 class NameAlphaPartParser(NameBaseParser):
     """ Parser for a name part starting with a letter """
-    start = 'apart'
-    
-    def p_apart_concat(self, p):
-        '''apart : apart alpha
-                    | apart num'''
-        p[0] = p[1] + p[2]        
+    start = 'NameAlphaPart'
+         
     def p_apart(self, p):
-        '''apart : alpha'''       
-        p[0] = NameAlphaPart(p[1])   
+        '''NameAlphaPart : Alpha'''  
+        p[0] = NameAlphaPart(Token(p[1], type='Alpha', pos=p.lexpos(1))) 
 
 class NameNumPartParser(NameBaseParser):
     """ Parser for a name part starting with a number """
-    start = 'npart'
-   
-    def p_npart_concat(self, p):
-        '''npart : npart alpha
-                    | npart num'''   
-        p[0] = p[1] + p[2]        
+    start = 'NameNumPart'
+              
     def p_npart(self, p):
-        '''npart : num'''      
-        p[0] = NameNumPart(p[1])   
+        '''NameNumPart : Num'''      
+        p[0] = NameNumPart(Token(p[1], type='Num', pos=p.lexpos(1)))   
        
 class NamePartParser(NameAlphaPartParser, NameNumPartParser):
     """ Parser for a name part of either the NameAlphaPart or NameNumPart kind """
-    start = 'part'
+    start = 'NamePart'
 
     def p_part(self, p):
-        '''part : apart
-                    | npart'''       
+        '''NamePart : NameAlphaPart
+                    | NameNumPart'''       
         p[0] = NamePart(p[1])    
 
-class NameHeadParser(NameTailParser, NameAlphaPartParser):
+class NameAlphaGroupParser(NameAlphaPartParser, NameNumPartParser):
     """
-        A Parser for a suitable group for a name head : one or more parts, the first part starting with a letter,
-        and an optionnal tail of trailing numbers    
+        A Parser for suitable groups for a name head : one or more name parts, the first part starting with a letter
+        NameAlphaGroup = NameAlphaPart NamePart *
     """
-    start = 'head'
+    start = 'NameAlphaGroup'
     
-    def p_head(self, p):
-        ''' head : apart tail '''
-        p[0] = NameHead(p[1], p[2])
-
-class NameBodyParser(NameTailParser, NamePartParser):        
+    def p_agroup_concat(self, p):
+        ''' NameAlphaGroup : NameAlphaGroup NameAlphaPart
+                                |  NameAlphaGroup NameNumPart '''
+        p[0] = p[1] + p[2]
+    def p_agroup(self, p):
+        ''' NameAlphaGroup : NameAlphaPart '''
+        p[0] = NameAlphaGroup(p[1])
+        
+class NameNumGroupParser(NameAlphaPartParser, NameNumPartParser):        
     """
-        A Parser for a name group, that might not be suitable for name head:
-        one or more parts, the first part can start with a number,
-        and an optional tail of trailing numbers.
-        If the NameBody only composed of one NameNumPart, that part will be considered the tail        
+        A Parser for suitable groups for a name body : one or more name parts, the first part starting with a number
+        NameNumGroup = NameNumPart NamePart *
     """
-    start = 'body'
+    start = 'NameNumGroup'
     
-    def p_body(self, p):
-        ''' body : npart tail
-                    | apart tail
-                    | tail '''             
-        if len(p) == 3 :
-            p[0] = NameBody(p[1], p[2])   
-        else :
-            p[0] = NameBody(p[1])
+    def p_ngroup_concat(self, p):
+        ''' NameNumGroup : NameNumGroup NameAlphaPart
+                                | NameNumGroup NameNumPart '''
+        p[0] = p[1] + p[2]
+    def p_ngroup(self, p):
+        ''' NameNumGroup : NameNumPart '''
+        p[0] = NameNumGroup(p[1])
                
-class NameGroupParser(NameHeadParser, NameBodyParser):    
+class NameGroupParser(NameAlphaGroupParser, NameNumGroupParser):    
     """
-        A Parser for a name group of either the NameHead or NameBody kind
+        A Parser for a name group of either the NameAlphaGroup or NameNumGroup kind
     """    
-    start = 'group'
+    start = 'NameGroup'
     def p_group(self, p):
-        ''' group : head
-                        | body '''                     
+        ''' NameGroup : NameAlphaGroup
+                        | NameNumGroup '''                     
         p[0] = NameGroup(p[1])
 
-class NameSeparatorParser(Parser):
+class NameSepParser(Parser):
     """ A Parser for the MayaName NameGroup separator : one or more underscores """
-    t_underscore  = r'_+'
-             
+    t_Underscore  = r'_+'
+    
+    start = 'NameSep' 
+    def p_sep_concat(self, p):
+        ''' NameSep : NameSep Underscore '''   
+        p[0] = p[1] + Token(p[1], type='Underscore', pos=p.lexpos(1))       
     def p_sep(self, p):
-        ''' sep : underscore '''   
-        p[0] = Token(p[1], type='Underscore', pos=p.lexpos(1))
+        ''' NameSep : Underscore '''   
+        p[0] = NameSep(Token(p[1], type='Underscore', pos=p.lexpos(1)))
             
-class MayaNameParser(NameGroupParser, NameSeparatorParser):    
+class MayaNameParser(NameGroupParser, NameSepParser):    
     """
         A Parser for the most basic Maya Name : several name groups separated by one or more underscores,
-        starting with a NameHead or one or more underscore, followed by zero or more NameGroup
+        starting with an alphabetic part or one or more underscore, followed by zero or more NameGroup(s)
+        separated by underscores
     """
 
-    start = 'name'
+    start = 'MayaName'
     
     def p_name_error(self, p):
-        'name : error'
-        print "Syntax error in head. Bad expression"
+        'MayaName : error'
+        print "Syntax error in MayaName. Bad expression"
         
     # a atomic Maya name is in the form (_)*head(_group)*(_)*
     def p_name_concat(self, p):
-        ''' name : name sep head  
-                    | name sep body '''
-        p[0] = p[1] + p[2] + p[3]      
+        ''' MayaName : MayaName NameSep NameGroup
+                        | MayaName NameSep '''
+        if len(p) == 4 :
+            p[0] = (p[1] + p[2]) + p[3]    
+        else :
+            p[0] = p[1] + p[2]  
     def p_name(self, p):
-        ''' name : sep body  
-                    | head '''
+        ''' MayaName : NameSep NameGroup  
+                    | NameAlphaGroup '''
         if len(p) == 3 :
             p[0] = MayaName(p[1], p[2])
         else :
@@ -631,130 +608,314 @@ class MayaNameParser(NameGroupParser, NameSeparatorParser):
 
     # always lower precedence than parts we herit the parser from 
     # TODO : gather precedence from base classes
-    precedence = ( ('left', 'underscore'),
-                   ('right', ('alphabetic', 'number') ),
+    precedence = ( ('left', 'Underscore'),
+                   ('right', ('Alpha', 'Num') ),
                  )
+
+class NamespaceSepParser(Parser):
+    """ A Parser for the NamespaceName separator """
+    t_Colon  = r':'
+    
+    start = 'NamespaceSep' 
+    def p_nspace_sep(self, p):
+        ''' NamespaceSep : Colon '''   
+        p[0] = NamespaceSep(Token(p[1], type='Colon', pos=p.lexpos(1)))    
+
+    precedence = ( ('left', ('Colon') ),
+                   ('left', 'Underscore'),
+                   ('right', ('Alpha', 'Num') ),
+                 )
+        
+class NamespaceNameParser(MayaNameParser, NamespaceSepParser):
+    """ A Parser for NamespaceName, Maya namespaces names """
+
+    start = 'NamespaceName'
+
+    def p_nspace_concat(self, p):
+        ''' NamespaceName : NamespaceName MayaName NamespaceSep '''
+        p[0] = p[1] + NamespaceName(p[2], p[3])
+    def p_nspace(self, p) :
+        ''' NamespaceName : MayaName NamespaceSep 
+                    | NamespaceSep '''
+        if len(p) == 3 :
+            p[0] = NamespaceName(p[1], p[2])
+        else :
+            p[0] = NamespaceName(p[1])
+                                    
+class MayaShortNameParser(NamespaceNameParser, MayaNameParser):
+    """ A parser for MayaShortName, a short object name (without preceding path) with a possible preceding namespace """
+    
+    start = 'MayaShortName'
+    
+    def p_sname(self, p) :
+        ''' MayaShortName : NamespaceName MayaName  
+                    | MayaName '''
+        if len(p) == 3 :
+            p[0] = MayaShortName(p[1], p[2])
+        else :
+            p[0] = MayaShortName(p[1])           
 
 # parsed objects for Maya Names
 # TODO : build _accepts from yacc rules directly
 
+# Atomic Name element, an alphabetic or numeric word
 class NamePart(Parsed):
-    """ A name part of either the NameAlphaPart or NameNumPart kind """
+    """ A name part of either the NameAlphaPart or NameNumPart kind
+        Rule : NamePart = NameAlphaPart | NameNumPart """
     _parser = NamePartParser
-    _accepts = ('Alphabetic', 'Number')
+    _accepts = ('Alpha', 'Num')
     
-    def isNum(self):
-        if self.sub :
-            return type(self.sub[0]) == 'Number'
-        else :
-            return False
     def isAlpha(self):
-        if self.sub :
-            return type(self.sub[0]) == 'Alphabetic'
-        else :
-            return False
-
-class NameTail(Parsed):
-    """ The Trailing numbers at the end of a name group """
-    _parser = NameTailParser
-    _accepts = ('Empty', 'Number')
+        return isinstance(self.sub[0], Alpha)       
+    def isNum(self):  
+        return isinstance(self.sub[0], Num) 
     
 class NameAlphaPart(NamePart):
-    """ A name part starting with a letter """
+    """ A name part made of alphabetic letters
+        Rule : NameAlphaPart = r'([a-z]+)|([A-Z]+[a-z]*)' """
     _parser = NameAlphaPartParser
-    _accepts = ('Alphabetic',)  
+    _accepts = ('Alpha', )
+         
+    def isAlpha(self):
+        return True        
+    def isNum(self):
+        return False
+
+class NameNumPart(NamePart):
+    """ A name part made of numbers
+        Rule : NameNumPart = r'[0-9]+' """
+    _parser = NameNumPartParser
+    _accepts = ('Num', )
+         
+    def isAlpha(self):
+        return False        
+    def isNum(self):
+        return True
+       
+# A Name group, all the consecutive parts between two underscores
+class NameGroup(Parsed):
+    """ A name group of either the NameAlphaGroup or NameNumGroup kind
+        Rule : NameGroup = NameAlphaGroup | NameNumGroup """
+    _parser = NameGroupParser
+    _accepts = ('NameAlphaPart', 'NameNumPart', 'NamePart')
+    
+    def isNum(self):
+        return self.parts[0].isNum()
+    def isAlpha(self):
+        return self.parts[0].isAlpha()
+    
+    @property
+    def parts(self):
+        """ All parts of that name group """
+        return self.sub  
+    @property
+    def first(self):
+        """ First part of that name group """
+        return self.parts[0]   
+    @property
+    def last(self):
+        """ Last part of that name group """
+        return self.parts[-1]          
+    @property
+    def tail(self):
+        """ The tail (trailing numbers if any) of that name group """
+        if self.last.isNum() :
+            return (self.last)
+
+   
+class NameAlphaGroup(NameGroup):
+    """ A name group starting with an alphabetic part
+        Rule : NameAlphaGroup  = NameAlphaPart NamePart * """ 
+    _parser = NameAlphaGroupParser
+    _accepts = ('NameAlphaPart', 'NameNumPart', 'NamePart')  
 
     def isNum(self):
         return False
     def isAlpha(self):
         return True
         
-class NameNumPart(NamePart):
-    """ A name part starting with a letter """
-    _parser = NameNumPartParser
-    _accepts = ('Number','Alphabetic')    
+class NameNumGroup(NameGroup):
+    """ A name group starting with an alphabetic part
+        Rule : NameAlphaGroup  = NameAlphaPart NamePart * """ 
+    _parser = NameNumGroupParser
+    _accepts = ('NameAlphaPart', 'NameNumPart', 'NamePart')     
 
     def isNum(self):
         return True
     def isAlpha(self):
         return False
     
-class NameGroup(Parsed):    
-    """
-        A NameGroup (one or more consecutive NameParts) of either the NameHead or NameBody kind
-    """    
-    _parser = NameGroupParser
-    _accepts = ('Alphabetic', 'Number')       
+# separator for name groups               
+class NameSep(Parsed):
+    """ the MayaName NameGroup separator : one or more underscores
+        Rule : NameSep = r'_+' """
+    _parser = NameSepParser
+    _accepts = ('Underscore',)  
+    
+    @classmethod
+    def default(cls):  
+        return Token('_', type='Underscore', pos=0)              
+    def reduced(self):
+        """ Reduce multiple underscores to one """
+        return NameSep()
 
+# a short Maya name without namespaces or attributes    
+class MayaName(Parsed):
+    """ The most basic Maya Name : several name groups separated by one or more underscores,
+        starting with a NameHead or one or more underscore, followed by zero or more NameGroup
+        Rule : MayaName = (NameSep * NameAlphaGroup) | (NameSep + NameNumGroup)  ( NameSep NameGroup ) * NameSep * """
+
+    _parser = MayaNameParser
+    _accepts = ('NameAlphaGroup', 'NameNumGroup', 'NameGroup', 'NameSep') 
+
+    @property
+    def groups(self):
+        """ All groups of that Maya name, skipping separators """
+        result = []
+        for s in self.parts :
+            if not isinstance(s, NameSep) :
+                result.append(s)
+        return tuple(result)
     @property
     def parts(self):
-        """ All parts of that name group """
-        return self.sub
-    
+        """ All groups of that name, including separators """
+        return self.sub   
+    @property
+    def first(self):
+        """ First group of that Maya name """
+        return self.parts[0]   
+    @property
+    def last(self):
+        """ Last group of that Maya name """
+        return self.parts[-1]        
     @property
     def tail(self):
-        """ The tail (trailing numbers if any) of that name group """
-        if self.sub and self.sub[-1].isNum() :
-            return (self.sub[-1])
+        """ The tail (trailing numbers if any) of that Maya Name """
+        if self.groups :
+            return self.groups[-1].tail
+    def reduced(self):
+        """ Reduces all separators in thet Maya Name to one underscore, eliminates head and tail separators if not needed """
+        groups = self.groups
+        result = []
+        if groups :
+            if groups[0].isNum() :
+                result.append(NameSep())
+            result.append(groups[0])
+            for g in groups[1:] :
+                result.append(NameSep())
+                result.append(g)
+            return self.__class__(*result)
+        else :
+            return self        
 
-    def isHead(self):
-        """ If that group can be the head of a name (starts with an alpha part) """
-        if self.sub and self.sub[0].isAlpha() :
-            return True
+class NamespaceSep(Parsed):
+    """ The Maya Namespace separator : the colon ':' 
+        Rule : NamespaceSep = r':' """
+    _parser = NamespaceSepParser
+    _accepts = ('Colon',) 
+    
+    @classmethod
+    def default(cls):  
+        return Token(':', type='Colon', pos=0)          
+        
+class NamespaceName(Parsed):
+    """ A Maya namespace name, one or more MayaName separated by ':'
+        Rule : NamespaceName = (NameSep * NameAlphaGroup) | (NameSep + NameNumGroup)  ( NameSep NameGroup ) * NameSep * """
+    _parser = NamespaceNameParser
+    _accepts = ('NamespaceSep', 'MayaName') 
+    @property
+    def spaces(self):
+        """ All different individual namespaces in that Maya namespace, skipping separators """
+        result = []
+        for s in self.parts :
+            if not isinstance(s, NamespaceSep) :
+                result.append(s)
+        return tuple(result)      
+    @property
+    def parts(self):
+        """ All parts of that namespace, including separators """
+        return self.sub         
+    @property
+    def first(self):
+        """ First individual namespace of that namespace """
+        try: 
+            return self.spaces[0]
+        except :
+            pass  
+    @property
+    def last(self):
+        """ Last individual namespace in that namespace """
+        try: 
+            return self.spaces[-1]
+        except :
+            pass  
+      
+    def isAbsolute(self):
+        """ True if this namespace is an absolute namespace path (starts with ':') """
+        return isinstance(self.parts[0], NamespaceSep)
+
+            
+class MayaShortName(Parsed):
+    """ A short object name in Maya, a Maya name, possibly preceded by a NamespaceName
+        Rule : MayaShortName = NamespaceName ? MayaName """
+    _parser = MayaShortNameParser
+    _accepts = ('NamespaceName', 'MayaName') 
+        
+    @property
+    def parts(self):
+        """ All parts of that namespace, including separators """
+        return self.sub         
+    @property
+    def node(self):
+        """ The node name (without any namespace) of the Maya short object name """
+        return self.parts[-1]
+    @property
+    def namespace(self):
+        """ The namespace name (full) of the Maya short object name """
+        if isinstance(self.parts[0], NamespaceName) :
+            return self.parts[0]   
+    def isAbsoluteNamespace(self):
+        """ True if this object is specified in an absolute namespace """
+        if self.namespace :
+            return self.namespace.isAbsolute()
         else :
             return False
 
-class NameBody(NameGroup):        
-    """
-        A NameGroup suitable for the start of a MayaName :
-        one or more parts, the first part can start with a number,
-        and an optional tail of trailing numbers.
-        If the NameBody only composed of only one NameNumPart, that part will be considered the tail        
-    """
-    _parser = NameBodyParser
-    _accepts = ('NameAlphaPart', 'NameNumPart', 'NameTail') 
-    
-class NameHead(NameBody):
-    """ 
-        A NameGroup suitable for the start of a MayaName : one or more parts, the first part starting with a letter,
-        and an optional tail of trailing numbers    
-    """
-    _parser = NameHeadParser
-    _accepts = ('NameAlphaPart', 'NameTail')   
-
-    def isHead(self):
-        """ If that group can be the head of a name (starts with an alpha part) """
-        return True
-               
-class NameSeparator(Parser):
-    """ the MayaName NameGroup separator : one or more underscores """
-    _parser = NameSeparatorParser
-    _accepts = ('Underscore',)   
-                      
-    def reduce(self):
-        """ Reduce multiple underscores to one """
-        return NameSeparator(Token('_', type='Underscore', pos=0))
-    
-class MayaName(Parsed):
-    """
-        The most basic Maya Name : several name groups separated by one or more underscores,
-        starting with a NameHead or one or more underscore, followed by zero or more NameGroup
-    """
-    _parser = MayaNameParser
-    _accepts = () 
-
+                 
+#    @property
+#    def groups(self):
+#        """ All parts of that name group, skipping separators """
+#        result = []
+#        for s in self.parts :
+#            if not isinstance(s, NameSep) :
+#                result.append(s)
+#        return tuple(result)
+#    @property
+#    def parts(self):
+#        """ All parts of that maya short name, that is a possible namespace and node name """
+#        return self.sub   
+    @property
+    def first(self):
+        """ All parts of that name group """
+        return self.parts[0]   
+    @property
+    def last(self):
+        """ All parts of that name group """
+        return self.parts[-1]  
+        
+#t_COLON   = r':'
+#t_VERTICAL  = r'\|'
+                
 # Empty special Parsed class
 class Empty(Parsed):
     _parser = EmptyParser
     _accepts = () 
     
 print "end of normal defs here"
-print __name__
 
 # Current module
 #_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 _thisModule = __import__(__name__)
-
 print "object _thisModule built"
 #print _thisModule
 #print dir(_thisModule)
@@ -781,15 +942,22 @@ def _createTokenClasses():
         parsercls = ParserClasses[parser]
         for m in parsercls.__dict__.items() :
             # print "class %s has attribute %s" % (parsercls.__name__, m)
-            if m[0].startswith('t_') and isinstance(m[1], basestring) :
+            if m[0].startswith('t_') and m[0] != 't_error' :
+                k = m[0][2:]
+                if isinstance(m[1], basestring) :
+                    v = m[1]
+                elif inspect.isfunction(m[1]) or inspect.ismethod(m[1]) :
+                    v = m[1].__doc__
+                else :
+                    raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % m[0]
                 k = m[0][2:]
                 if k in tokensDict :
                     warnings.warn("Token %s redefined in Parser %s" % (k, parser), UserWarning)
-                tokensDict[k] = m[1]    
+                tokensDict[k] = v    
     for token in tokensDict :
         pattern = tokensDict[token]
-        parsedName = capitalize(token)
-        parserName = capitalize(token)+"Parser"
+        parsedName = token
+        parserName = token+"Parser"
         print "adding classes %s and %s for token %s of pattern %r" % (parsedName, parserName, token, pattern)         
         class ThisToken(Token):
             """ Token stub class """            
@@ -836,176 +1004,66 @@ print "end here"
 print ParsedClasses()
 print ParserClasses()
 
-name = NameGroup('some', 'Maya')
 
-data = 'someMaya'
-name = NameGroup(data)
-print type (name)
-print repr(name)
-for t in name.tokens :
-    print t
-for t in name.parts :
-    print t
-print name.tail
-print name.sub
-print name.isHead()
 
-#
-#print "Name Parsing Test"
-#while True:
-#    expr = raw_input(":")
-#    if not expr: break
-#    try:
-#        name = MayaAtomName(expr)
-#    except NameParseError, e:
-#        print e
-#        for t in name.tokens() :
-#            print (t.type, t)         
-#    else:
-#        print name, repr(name)
  
-#class MayaShortName(ParsedBase): 
-#    _parser = MayaAtomNameParser()
-#    _parser.build()   
     
-     
+if __name__ == '__main__' :
+    # interractive test for names parsing
+    print "Name Parsing Test"
+    while True:
+        expr = raw_input("> ")
+        if not expr: break
+        try:
+            fullname = MayaShortName(expr)
+        except NameParseError, e:
+            print "NameParseError:", e
+            try :
+                print "tokens"
+                for t in fullname.tokens :
+                    print repr(t) 
+            except :
+                pass                     
+        else:
+            print "full name:%s (%r)" % (fullname, fullname)
+            print "is valid:", fullname.isValid()
+            namespace = fullname.namespace
+            node = fullname.node
+            if namespace :
+                print "\t%s : %s" % (namespace.__class__.__name__, namespace)
+                print "\t[%s-%s] name spaces:" % (namespace.first, namespace.last), " ".join(namespace.spaces)
+                print "\t[%s-%s] parts:" % (namespace.first, namespace.last), " ".join(namespace.parts)
+                print "\tis absolute:", namespace.isAbsolute()
+                for name in namespace.spaces :
+                    print "\t\tindividual name space: %s (%r)" % (name, name)
+                    print "\t\t[%s-%s] groups:" % (name.first, name.last), " ".join(name.groups)
+                    print "\t\t[%s-%s] parts:" % (name.first, name.last), " ".join(name.parts)                
+                    print "\t\ttail:", name.tail
+                    print "\t\treduced:", name.reduced()
+                    for group in name.groups :
+                        print "\t\t\tgroup:%s (%r)" % (group, group)
+                        print "\t\t\t[%s-%s] parts:" % (group.first, group.last), " ".join(group.parts)
+                        print "\t\t\ttail:", group.tail       
+                        print "\t\t\tis ok for head:", group.isAlpha()
+                        print "\t\t\tparts:", group.parts
+                        print "\t\t\ttokens:"
+                        for t in group.tokens :
+                            print repr(t)                  
+            # always a node
+            name = node
+            print "\t%s : %s" % (name.__class__.__name__, name)
+            print "\t[%s-%s] groups:" % (name.first, name.last), " ".join(name.groups)
+            print "\t[%s-%s] parts:" % (name.first, name.last), " ".join(name.parts)
+            print "\ttail:", name.tail
+            print "\treduced:", name.reduced()
+            for group in name.groups :
+                print "\t\tgroup:%s (%r)" % (group, group)
+                print "\t\t[%s-%s] parts:" % (group.first, group.last), " ".join(group.parts)
+                print "\t\ttail:", group.tail       
+                print "\t\tis ok for head:", group.isAlpha()
+                print "\t\tparts:", group.parts
+                print "\t\ttokens:"
+                for t in group.tokens :
+                    print repr(t)        
 
-#print "Name Parsing Test"
-#while True:
-#    expr = raw_input(":")
-#    if not expr: break
-#    try:
-#        name = MayaNameGroup(expr)
-#    except NameParseError, e:
-#        print "NameParseError:", e
-#        print "tokens"
-#        for t in name.tokens :
-#            print repr(t)        
-#    else:
-#        print "name:%s (%r)" % (name, name)
-#        print "is valid:", name.isValid()
-#        print "name data:", name.data
-#        print "tokens:"
-#        for t in name.tokens :
-#            print repr(t)
-#        print "parts:", name.parts
-#        print "tail:", name.tail       
-#        print "is head:", name.isHead()
-
-#data = 'someMaya'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t)    
-# 
-#data = '323Maya32'
-#name = ParsedBase(data)
-#for t in name.tokens() :
-#    print (t.type, t)        
-
-#data = 'someMayaName92'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#    
-#    
-#data = 'someMaya45Name92'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#    
-#data = 'some'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#   
-#data = '323'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t)    
-#    
-#data = '32some45Name'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t)     
-#    
-#data = '32some45Name92'
-#name = ParsedBase(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#    
-#data = 'someMayaName92_123ThisIs67Body45_andSomeTail32'
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t)       
-#
-#data = 'someMayaName92_45_andSomeTail32'
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t) 
-#    
-#data = '_someMayaName92__45_andSomeTail32_'
-#name = MayaAtomName(data)
-#print repr(name)
-#for t in name.tokens() :
-#    print (t.type, t)           
-
-#name = MayaName('someMayaName92')
-#print name
-#for t in name.tokens() :
-#    print (t.type, t)
-#
-#name = MayaName('someMayaName92')
-#print name
-#for t in name.tokens() :
-#    print (t.type, t)
-#    
-#name = MayaName('456Name92')
-#print name
-#for t in name.tokens() :
-#    print (t.type, t)
-#
-#name = MayaName('test_Name92')
-#print name
-#for t in name.tokens() :
-#    print (t.type, t)
-#    
-#name = MayaName('456Name92')
-#print name
-#for t in name.tokens() :
-#    print (t.type, t)    
-
-#t_COLON   = r':'
-#t_VERTICAL  = r'\|'
+  
