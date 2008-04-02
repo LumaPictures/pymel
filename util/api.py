@@ -86,11 +86,21 @@ MayaIntAPITypes(dict((MayaAPITypesInt()[k], k) for k in MayaAPITypesInt().keys()
 
 # Reserved Maya types and API types that need a special treatment (abstract types)
 # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
-# stragely createNode ('cluster') works but dgMod.createNode('cluser') doesn't
+# strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
+
+# added : filters them to weed out those not present in current version
+
 class ReservedMayaTypes(dict) :
     __metaclass__ =  metaStatic
+# Inverse lookup
+class ReservedAPITypes(dict) :
+    __metaclass__ =  metaStatic
 
-ReservedMayaTypes({ 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
+def getMayaReservedTypes():
+    """ Build a list of Maya reserved types.
+        These cannot be created directly from the API, thus the dgMod trick to find the corresonding Maya type won't work """
+        
+    reservedTypes = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
                 'constraint':'kConstraint', 'field':'kField', \
                 'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter', \
                 'dimensionShape':'kDimension', \
@@ -105,13 +115,17 @@ ReservedMayaTypes({ 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject
                 'plugin':'kPlugin', 'pluginNode':'kPluginDependNode', 'pluginLocator':'kPluginLocatorNode', 'pluginData':'kPluginData', \
                 'pluginDeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
                 'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
-                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' })      # creating these 2 crash Maya      
+                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' }      # creating these 2 crash Maya      
 
-# Inverse lookup
-class ReservedAPITypes(dict) :
-    __metaclass__ =  metaStatic
-
-ReservedAPITypes(dict( (ReservedMayaTypes()[k], k) for k in ReservedMayaTypes().keys()))
+    # filter to make sure all these types exist in current version (some are Maya2008 only)
+    ReservedMayaTypes ( dict( (item[0], item[1]) for item in filter(lambda i:i[1] in MayaAPITypesInt(), reservedTypes.iteritems()) ) )
+    # build reverse dict
+    ReservedAPITypes ( dict( (item[1], item[0]) for item in ReservedMayaTypes().iteritems() ) )
+    
+    return ReservedMayaTypes(), ReservedAPITypes()
+    
+# build them
+getMayaReservedTypes()
 
 # some handy aliases / shortcuts easier to remember and use than actual Maya type name
 class ShortMayaTypes(dict) :
