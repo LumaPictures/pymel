@@ -87,7 +87,7 @@ updateCmd = ''
 if platform.system() == 'Windows':
     updateCmd = 'string $fWin=`window -q -frontWindow blah` + "|";string $x;for ($x in `lsUI -controlLayouts -long`) {if (startsWith( $x, $fWin ) ) {break;}};scrollField -e -insertionPosition %(len)d -insertText \"%(text)s\" "%(name)s";setFocus("%(name)s");setFocus($x);'
 else:
-    updateCmd = 'scrollField -e -insertionPosition %(len)d -insertText \"%s(text)\" "%(name)s";'
+    updateCmd = 'scrollField -e -insertionPosition %(len)d -insertText \"%(text)s\" "%(name)s";'
     
 class Reporter(object):
 	cmdReporter = None
