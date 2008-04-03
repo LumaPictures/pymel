@@ -1,5 +1,6 @@
-import pymel.util, sys, os, inspect, pickle, re, types, os.path
+
 from pymel.core.types.trees import *
+import pymel.util, sys, os, inspect, pickle, re, types, os.path
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 from operator import itemgetter
@@ -109,7 +110,8 @@ moduleCommandAdditions = {
 #---------------------------------------------------------------
     
 class CommandDocParser(HTMLParser):
-    def __init__(self):
+    def __init__(self, command):
+        self.command = command
         self.flags = {}  # shortname, argtype, docstring, and a list of modes (i.e. edit, create, query)
         self.currFlag = ''
         # iData is used to track which type of data we are putting into flags, and corresponds with self.datatypes
@@ -118,6 +120,7 @@ class CommandDocParser(HTMLParser):
         self.active = False  # this is set once we reach the portion of the document that we want to parse
         self.description = ''
         self.example = ''
+        self.emptyModeFlags = [] # when flags are in a sequence ( lable1, label2, label3 ), only the last flag has queryedit modes. we must gather them up and fill them when the last one ends
         HTMLParser.__init__(self)
     
     def startFlag(self, data):
@@ -146,12 +149,31 @@ class CommandDocParser(HTMLParser):
             self.flags[self.currFlag]['docstring'] += data
         self.iData += 1
         
-    def endFlag(self):
+    def endFlag(self, newFlag):
         # cleanup last flag
         #data = self.flags[self.currFlag]['docstring']
         
         #print "ASSERT", data.pop(0), self.currFlag
-        #self.flags[self.currFlag]['shortname'] = data.pop(0)
+        try:
+            if not self.flags[self.currFlag]['modes']:
+                self.emptyModeFlags.append(self.currFlag)
+            elif self.emptyModeFlags:
+                    #print "past empty flags:", self.command, self.emptyModeFlags, self.currFlag
+                    basename = re.match( '([a-zA-Z]+)', self.currFlag ).groups()[0]
+                    modes = self.flags[self.currFlag]['modes']
+                    self.emptyModeFlags.reverse()
+                    for flag in self.emptyModeFlags:
+                        if re.match( '([a-zA-Z]+)', flag ).groups()[0] == basename:
+                            self.flags[flag]['modes'] = modes
+                        else:
+                            break
+                        
+                    self.emptyModeFlags = []
+        except KeyError, msg:
+            pass
+            #print self.currFlag, msg
+             
+        self.currFlag = newFlag      
         self.iData = 0
         
     def handle_starttag(self, tag, attrs):
@@ -165,9 +187,9 @@ class CommandDocParser(HTMLParser):
                     #print "start examples"
                     self.active = 'examples'
         elif tag == 'a' and attrs[0][0] == 'name':
-            self.endFlag()
+            self.endFlag(attrs[0][1][4:])
             #print "NEW FLAG", attrs
-            self.currFlag = attrs[0][1][4:]
+            #self.currFlag = attrs[0][1][4:]
             
     
         elif tag == 'img' and len(attrs) > 4:
@@ -276,7 +298,7 @@ def _getCmdInfo( command, version='8.5' ):
     try:
         docloc = _mayaDocsLocation(version)
         f = open( os.path.join( docloc , 'CommandsPython/%s.html' % (command) ) )    
-        parser = CommandDocParser()
+        parser = CommandDocParser(command)
         parser.feed( f.read() )
         f.close()    
 
@@ -658,7 +680,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         cmdInfo = cmdlist[funcName]
     except KeyError:
         return
-        
+    
     # if the function is not a builtin and there's no return command to map, just add docs
     if type(inFunc) == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
@@ -754,51 +776,71 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     else:
         raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
 
-def _addFlagCmdDocs(f,name,inFunc,flag,docstring):
+def _addFlagCmdDocs(f,name,funcName,flag,docstring):
     f.__name__ = name
     if docstring:
         f.__doc__ = docstring
     else:
         try:
-            docs = cmdlist[inFunc.__name__]['flags'][flag]
+            docs = cmdlist[funcName]['flags'][flag]
             docstring = ''
             try:
                 docstring += '        - secondary flags: %s\n' % ( ', '.join(docs['secondaryFlags'] ))
             except KeyError: pass
             docstring += '        - %s\n' %  docs['docstring']
             f.__doc__ = docstring
-        except KeyError: pass    
+        except KeyError: print "No documentation available for %s flag of %s command" % (flag,funcName )    
     return f
             
-def makeCreateFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
-    if returnFunc:
-        def f(self, **kwargs):
-            kwargs[flag]=True 
-            return returnFunc( inFunc( self, **kwargs ) )
-    else:
-        def f(self, **kwargs):
-            kwargs[flag]=True 
-            return inFunc( self, **kwargs )
-    return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
-
-
-def makeQueryFlagCmd( name, inFunc, flag, docstring='', returnFunc=None ):
-    #name = 'get' + flag[0].upper() + flag[1:]
-    if returnFunc:
-        def f(self, **kwargs):
-            kwargs['query']=True
-            kwargs[flag]=True 
-            return returnFunc( inFunc( self, **kwargs ) )
-    else:
-        def f(self, **kwargs):
-            kwargs['query']=True
-            kwargs[flag]=True 
-            return inFunc( self, **kwargs )
-    return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
-
+def makeCreateFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFunc=None ):
+    if cmdName is None:
+        cmdName = inFunc.__name__
     
-def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
+    if returnFunc:
+        def f(self, **kwargs):
+            kwargs[flag]=True 
+            return returnFunc( inFunc( self, **kwargs ) )
+    else:
+        def f(self, **kwargs):
+            kwargs[flag]=True 
+            return inFunc( self, **kwargs )
+    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
+
+def createflag( cmdName, flag ):
+    """create flag decorator"""
+    def create_decorator(method):
+        return makeCreateFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+    return create_decorator
+
+
+
+def makeQueryFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFunc=None ):
+    #name = 'get' + flag[0].upper() + flag[1:]
+    if cmdName is None:
+        cmdName = inFunc.__name__
+    if returnFunc:
+        def f(self, **kwargs):
+            kwargs['query']=True
+            kwargs[flag]=True 
+            return returnFunc( inFunc( self, **kwargs ) )
+    else:
+        def f(self, **kwargs):
+            kwargs['query']=True
+            kwargs[flag]=True 
+            return inFunc( self, **kwargs )
+    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
+
+def queryflag( cmdName, flag ):
+    """query flag decorator"""
+    def query_decorator(method):
+        return makeQueryFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+    return query_decorator
+
+   
+def makeEditFlagCmd( name, inFunc, flag, docstring='', cmdName=None):
     #name = 'set' + flag[0].upper() + flag[1:]    
+    if cmdName is None:
+        cmdName = inFunc.__name__
     def f(self, val, **kwargs): 
         kwargs['edit']=True
         kwargs[flag]=val 
@@ -808,10 +850,19 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='' ):
             kwargs.pop('edit')
             return inFunc( self, **kwargs )
             
-    return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
+    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
 
-def makeSecondaryFlagCmd( name, inFunc, flag, moduleName, docstring='', returnFunc=None ):
-    #name = 'set' + flag[0].upper() + flag[1:]    
+def editflag( cmdName, flag ):
+    """query flag decorator"""
+    def edit_decorator(method):
+        return makeEditFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+    return edit_decorator
+
+
+def makeSecondaryFlagCmd( name, inFunc, flag, moduleName, docstring='', returnFunc=None, cmdName=None ):
+    #name = 'set' + flag[0].upper() + flag[1:]
+    if cmdName is None:
+        cmdName = inFunc.__name__
     if returnFunc:
         def f(*args, **kwargs): 
             if len(args)==1:
@@ -833,7 +884,14 @@ def makeSecondaryFlagCmd( name, inFunc, flag, moduleName, docstring='', returnFu
                 raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
             return inFunc( *args, **kwargs )
     f.__module__ = moduleName             
-    return _addFlagCmdDocs(f, name, inFunc, flag, docstring )
+    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
+
+def secondaryflag( cmdName, flag ):
+    """query flag decorator"""
+    def secondary_decorator(method):
+        return makeSecondaryFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+    return secondary_decorator
+
 '''
 def createFunctions( moduleName ):
     module = __import__(moduleName, globals(), locals(), [''])
@@ -915,7 +973,7 @@ class metaNode(type) :
                 func = getattr(cmds,nodeType)
             
             # add documentation
-            classdict['__doc__'] = 'class counterpart of function L{%s}\n\n%s\n\n' % (nodeType, cmdInfo['description'])
+            classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeType, cmdInfo['description'])
             
             for flag, flagInfo in cmdInfo['flags'].items():
                  
@@ -931,7 +989,7 @@ class metaNode(type) :
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                             classdict[methodName] = makeQueryFlagCmd( methodName, func, 
-                                flag, flagInfo['docstring'] )
+                                flag, docstring=flagInfo['docstring'] )
                         #else: print "%s: skipping %s" % ( classname, methodName )
                 
                 # edit command: 
@@ -946,7 +1004,7 @@ class metaNode(type) :
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                             classdict[methodName] = makeEditFlagCmd( methodName, func,
-                                 flag, flagInfo['docstring'] )
+                                 flag, docstring=flagInfo['docstring'] )
                     
         except KeyError: # on cmdlist[nodeType]
             pass
@@ -1004,7 +1062,7 @@ def makeMetaNode( moduleName ):
                         if methodName not in classdict:
                             if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                                 classdict[methodName] = makeQueryFlagCmd( methodName, func, 
-                                    flag, flagInfo['docstring'] )
+                                    flag, docstring=flagInfo['docstring'] )
                             #else: print "%s: skipping %s" % ( classname, methodName )
                     
                     # edit command: 
@@ -1019,7 +1077,7 @@ def makeMetaNode( moduleName ):
                         if methodName not in classdict:
                             if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                                 classdict[methodName] = makeEditFlagCmd( methodName, func,
-                                     flag, flagInfo['docstring'] )
+                                     flag, docstring=flagInfo['docstring'] )
                         
             except KeyError: # on cmdlist[nodeType]
                 pass

@@ -38,8 +38,8 @@ try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
 except ImportError:
-    import types.path
-    pathClass = types.path.path
+    import pymel.core.types.path
+    pathClass = pymel.core.types.path.path
     
 
 

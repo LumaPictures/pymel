@@ -16,6 +16,7 @@ except ImportError:
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.util.factories as factories
+from pymel.util.factories import queryflag, editflag, createflag
 import pymel.util.api as api
 import pymel.core.system
 from types.vector import *
@@ -2602,144 +2603,86 @@ class Transform(DagNode):
                 
     def ungroup( self, **kwargs ):
         return cmds.ungroup( self, **kwargs )
-
     '''
+    @editflag('xform','scale')      
     def setScale( self, val, **kwargs ):
-        """xform -scale"""
-        kwargs['scale'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
-            
+
+    @editflag('xform','rotation')             
     def setRotation( self, val, **kwargs ):
-        """xform -rotation"""
-        kwargs['rotation'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
-
+        
+    @editflag('xform','translation')  
     def setTranslation( self, val, **kwargs ):
-        """xform -translation"""
-        kwargs['translation'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
 
-
+    @editflag('xform','scalePivot')  
     def setScalePivot( self, val, **kwargs ):
-        """xform -scalePivot"""
-        kwargs['scalePivot'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
         
+    @editflag('xform','rotatePivot')         
     def setRotatePivot( self, val, **kwargs ):
-        """xform -rotatePivot"""
-        kwargs['rotatePivot'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
-        
+ 
+    @editflag('xform','pivots')         
     def setPivots( self, val, **kwargs ):
-        """xform -pivots"""
-        kwargs['pivots'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
-        cmds.xform( self, **kwargs )
-
-    def setRotateAxis( self, val, **kwargs ):
-        """xform -rotateAxis"""
-        kwargs['rotateAxis'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
         
-                                
-    def setShearing( self, val, **kwargs ):
-        """xform -shear"""
-        kwargs['shear'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
+    @editflag('xform','rotateAxis')  
+    def setRotateAxis( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
-                                
+        
+    @editflag('xform','shear')                                 
+    def setShearing( self, val, **kwargs ):
+        cmds.xform( self, **kwargs )
+    '''
+    
+    @editflag('xform','rotateAxis')                                
     def setMatrix( self, val, **kwargs ):
         """xform -scale"""
         if isinstance(val, Matrix):
             val = val.toList()
     
         kwargs['matrix'] = val
-        kwargs.pop('q',None)
-        kwargs.pop('query',None)
         cmds.xform( self, **kwargs )
 
-    '''
-    #getScale = factories.makeQueryFlagCmd( 'getScale', cmds.xform, 'scale', returnFunc=Vector )
-    #getRotation = factories.makeQueryFlagCmd( 'getRotation', cmds.xform, 'rotation', returnFunc=Vector )    
-    #getTranslation = factories.makeQueryFlagCmd( 'getTranslation', cmds.xform, 'translation', returnFunc=Vector )    
-    #getScalePivot = factories.makeQueryFlagCmd( 'getScalePivot', cmds.xform, 'scalePivot', returnFunc=Vector )    
-    #getRotatePivot = factories.makeQueryFlagCmd( 'getRotatePivot', cmds.xform, 'rotatePivot', returnFunc=Vector )    
-    ##getPivots = factories.makeQueryFlagCmd( 'getPivots', cmds.xform, 'pivots', returnFunc=Vector )    
-    #getRotateAxis = factories.makeQueryFlagCmd( 'getRotateAxis', cmds.xform, 'rotateAxis', returnFunc=Vector )    
-    getShear = factories.makeQueryFlagCmd( 'getShear', cmds.xform, 'shear', returnFunc=Vector )    
-    getMatrix = factories.makeQueryFlagCmd( 'getMatrix', cmds.xform, 'matrix', returnFunc=Matrix )    
-    '''
+    @queryflag('xform','scale') 
     def getScale( self, **kwargs ):
-        """xform -scale"""
-        kwargs['scale'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
-        
+ 
+    @queryflag('xform','rotation')        
     def getRotation( self, **kwargs ):
-        """xform -rotation"""
-        kwargs['rotation'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
 
+    @queryflag('xform','translation') 
     def getTranslation( self, **kwargs ):
-        """xform -translation"""
-        kwargs['translation'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
 
+    @queryflag('xform','scalePivot') 
     def getScalePivot( self, **kwargs ):
-        """xform -scalePivot"""
-        kwargs['scalePivot'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
-        
+ 
+    @queryflag('xform','rotatePivot')        
     def getRotatePivot( self, **kwargs ):
-        """xform -rotatePivot"""
-        kwargs['rotatePivot'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
-    '''    
+ 
+    @queryflag('xform','pivots') 
     def getPivots( self, **kwargs ):
-        """xform -pivots"""
-        kwargs['pivots'] = True
-        kwargs['query'] = True
         res = cmds.xform( self, **kwargs )
         return ( Vector( res[:3] ), Vector( res[3:] )  )
-    '''
+    
+    @queryflag('xform','rotateAxis') 
     def getRotateAxis( self, **kwargs ):
-        """xform -rotateAxis"""
-        kwargs['rotateAxis'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
         
-                                
+    @queryflag('xform','shear')                          
     def getShear( self, **kwargs ):
-        """xform -shear"""
-        kwargs['shear'] = True
-        kwargs['query'] = True
         return Vector( cmds.xform( self, **kwargs ) )
-                                
-    def getMatrix( self, **kwargs ):
-        """xform -matrix"""
-    
-        kwargs['matrix'] = True
-        kwargs['query'] = True
+
+    @queryflag('xform','matrix')                
+    def getMatrix( self, **kwargs ): 
         return Matrix( cmds.xform( self, **kwargs ) )
-    '''        
+           
     def getBoundingBox(self, invisible=False):
         """xform -boundingBox and xform-boundingBoxInvisible
         
@@ -4138,25 +4081,5 @@ def iterConnections ( *args, **kwargs ):
 def iterHierarchy ( *args, **kwargs ):
     pass
 
-def _createFunctions():
-    for funcName in factories.moduleCmds['node']:
-        func = factories.functionFactory( funcName, PyNode, _thisModule )
-        
-        if func:
-            try:
-                func.__doc__ = 'function counterpart of class `%s`\n\n' % capitalize( funcName ) + func.__doc__
-                func.__module__ = __name__
-                setattr( _thisModule, funcName, func )
-            except Exception, msg:
-                print "could not add %s to module %s: %s" % (func.__name__, __name__, msg)
-#def _createFunctions():
-#    for funcName in factories.moduleCmds['core']:
-#        func = factories.functionFactory( funcName, None, _thisModule )
-#        if func:
-#            func.__module__ = __name__
-#            setattr( _thisModule, funcName, func )
-#    for funcName in factories.getUncachedCmds():
-#        setattr( _thisModule, funcName, getattr( cmds, funcName) )
-#_createFunctions()
 
 factories.createFunctions( __name__, PyNode )
