@@ -459,6 +459,9 @@ class OptionVarDict(util.Singleton):
 
 		raise TypeError, 'unsupported datatype: strings, ints, float, lists, and their subclasses are supported'			
 
+	def __delitem__(self,key):
+		cmds.optionVar(remove=key)
+	
 	def keys(self):
 		return cmds.optionVar( list=True )
 
