@@ -3627,12 +3627,13 @@ def iterNodes ( *args, **kwargs ):
                 # try it as a regular expression in case (is it a good idea)
                 pass
             else :
-                # either a valid node name or a glob pattern
-                nameMatch = FullObjectName.valid.match(key)
-                if nameMatch is not None :
-                    # if it's an actual node name
-                    nameSpace = nameMatch.group[0]
-                    name = nameMatch.group[1]
+                # either a valid dag node / node name or a glob pattern
+                try :
+                    name = util.MayaObjectName(key)
+                    # if it's an actual node, plug or component name
+                    # TODO : if it's a long name need to substitude namespaces on all dags
+                    nameSpace = name.node.namespace
+                    name = name.node
                     #print nameSpace, name
                     if not nameSpace :
                         # if no namespace was specified use current ('*:' can still be used for 'all namespaces')
@@ -3641,14 +3642,15 @@ def iterNodes ( *args, **kwargs ):
                         # format to have distinct match groups for nameSpace and name
                         key = r"("+nameSpace+r")("+name+r")"
                     else :
-                        raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)
-                elif '*' in key or '?' in key :
-                    # it's a glob pattern, try build a re out of it and add it to names conditions
-                    key = key.replace("*", r"("+MayaName.validCharPattern+r"*)")
-                    key = key.replace("?", r"("+MayaName.validCharPattern+r")")
-                else : 
-                    #is not anything we recognize
-                    raise ValueError, "'%s' is not a valid node name or glob/regular expression" % a
+                        raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)                    
+                except NameParseError, e :
+                    if '*' in key or '?' in key :
+                        # it's a glob pattern, try build a re out of it and add it to names conditions
+                        key = key.replace("*", r"("+MayaName.validCharPattern+r"*)")
+                        key = key.replace("?", r"("+MayaName.validCharPattern+r")")
+                    else : 
+                        #is not anything we recognize
+                        raise ValueError, "'%s' not valid: " % a, e
             try :
                 r = re.compile(key)
             except :
