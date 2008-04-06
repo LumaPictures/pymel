@@ -71,3 +71,33 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 def moduleDir():
     return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
     #return os.path.split( sys.modules[__name__].__file__ )[0]
+    
+def timer( command='pass', number=10, setup='import pymel' ):
+    import timeit
+    t = timeit.Timer(command, setup)
+    time = t.timeit(number=number)
+    print "command took %.2f sec to execute" % time
+    return time
+    
+def toZip( directory, zipFile ):
+    """Sample for storing directory to a ZipFile"""
+    import zipfile
+
+    zipFile = path(zipFile)
+    if zipFile.exists(): zipFile.remove()
+    
+    z = zipfile.ZipFile(
+        zipFile, 'w', compression=zipfile.ZIP_DEFLATED
+    )
+    if not directory.endswith(os.sep):
+        directory += os.sep
+        
+    directory = path(directory)
+    
+    for subdir in directory.dirs('[a-z]*') + [directory]: 
+        print "adding ", subdir
+        for fname in subdir.files('[a-z]*'):
+            archiveName = fname.replace( directory, '' )            
+            z.write( fname, archiveName, zipfile.ZIP_DEFLATED )
+    z.close()
+    return zipFile
