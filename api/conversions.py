@@ -20,11 +20,11 @@ try : from maya.OpenMayaRender import *
 except: pass
 
 import sys, inspect, warnings, timeit, time, re
-from pymel.util import Singleton, metaStatic, expandArgs
-from pymel.core.types.trees import *
+from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, treeFromDict
+
 # TODO : would need this shared as a Singleton class, but importing from factories anywhere 
 # except form core seems to be a problem
-from factories import NodeHierarchy
+from pymel.util.factories import NodeHierarchy
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
