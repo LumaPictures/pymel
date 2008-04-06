@@ -1,4 +1,4 @@
-import re, inspect, sys
+import re, inspect, sys, os
 import external.ply.lex as lex
 import external.ply.yacc as yacc
 
@@ -10,7 +10,7 @@ from utilitytypes import *
 
 # increase from 0 to 1 or 2 for more debug feedback
 def verbose() :
-    return 1
+    return 0
 
 def currentfn() :
     try :
@@ -273,7 +273,8 @@ class Parsed(unicode):
             # print "No reparsing necessary for a resulting value %s (%r)" % (value, value)            
             strvalue = unicode(value)        
         elif isinstance(value, basestring) :
-            print "Will need to reparse value %s (%r)" % (value, value)                    
+            if debug :
+                print "Will need to reparse value %s (%r)" % (value, value)                    
             newcls.classparserbuild(debug=debug)
             result = newcls.classparse(value, debug=debug) 
             if result is not None and isinstance(result, newcls) :
@@ -425,7 +426,12 @@ class Parser(object):
     def build(self,**kwargs):
         debug = kwargs.get('debug', verbose())
         start = kwargs.get('start', self.__class__.start)  
-        outputdir = kwargs.get('outputdir', 'parsers') 
+        outputdir = kwargs.get('outputdir', 'parsers')
+        parserspath = os.path.dirname(__file__)
+        parserspath = os.path.join(parserspath, outputdir)
+        if debug :
+            print "nameparse parsers path", parserspath
+        outputdir = None 
         method = kwargs.get('method', 'LALR')    
         if debug :
             print "Build for", self.__class__.__name__
@@ -443,7 +449,7 @@ class Parser(object):
             self.lexer = lex.lex(object=self, **lkwargs)
         if self.parser is None :
             tabmodule=self.__class__.__name__+"_yacc_"+start
-            pkwargs = {'outputdir':outputdir, 'debug':debug, 'tabmodule':tabmodule, 'start':start, 'method':method }
+            pkwargs = {'outputdir':parserspath, 'debug':debug, 'tabmodule':tabmodule, 'start':start, 'method':method }
             self.parser = yacc.yacc(module=self, **pkwargs)
         
     def parse(self, data, **kwargs):
@@ -1548,8 +1554,8 @@ def parserClasses():
 ParserClasses(parserClasses())
 
 # restrict visibility to Parsed classes :
-__all__ = ParsedClasses().keys()
-print "nameparse.py exporting: ", __all__
+# __all__ = ParsedClasses().keys()
+# print "nameparse.py exporting: ", __all__
 #print "end here"
 #print ParsedClasses()
 #print ParserClasses()
