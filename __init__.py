@@ -614,8 +614,8 @@ __version__ = '0.7.9'
 #check for the presence of an initilized Maya
 import util
 assert util.mayaInit() 
+import api
 
-#import api
 #from core.node import *
 #from core.core import *
 from core.general import *
