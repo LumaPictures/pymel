@@ -736,7 +736,7 @@ class NameRangeIndexParser(Parser):
     t_RangeIndex  = r'\[[0-9]*:[0-9]*\]'
     
     start = 'NameRangeIndex' 
-    def p_index(self, p):
+    def p_rindex(self, p):
         ''' NameRangeIndex : RangeIndex '''   
         p[0] = NameIndex(Token(p[1], type='RangeIndex', pos=p.lexpos(1)))    
 
