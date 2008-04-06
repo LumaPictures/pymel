@@ -8,9 +8,9 @@ from mexceptions import *
 from arguments import *
 from utilitytypes import *
 
-# increase to 1 or 2 for more debug feedback
+# increase from 0 to 1 or 2 for more debug feedback
 def verbose() :
-    return 2
+    return 1
 
 def currentfn() :
     try :
@@ -1547,6 +1547,9 @@ def parserClasses():
 # Stores it at import so that the inspect method isn't recalled at each query
 ParserClasses(parserClasses())
 
+# restrict visibility to Parsed classes :
+__all__ = ParsedClasses().keys()
+print "nameparse.py exporting: ", __all__
 #print "end here"
 #print ParsedClasses()
 #print ParserClasses()
