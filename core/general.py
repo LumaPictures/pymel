@@ -17,10 +17,12 @@ import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.util.factories as factories
 from pymel.util.factories import queryflag, editflag, createflag
-import pymel.util.api as api
+import pymel.api as api
 import pymel.core.system
+from system import namespaceInfo
 from types.vector import *
 from types.ranges import *
+from pymel.util.nameparse import *
 
 
 "controls whether functions that return dag nodes use the long name by default"
@@ -3576,7 +3578,7 @@ def iterNodes ( *args, **kwargs ):
     
     # selection
     if (select) :
-        sel = _activeSelectionPyNode ()
+        sel = activeSelectionPyNode ()
         if not nodes :
             # use current selection
             nodes = sel
@@ -3623,34 +3625,35 @@ def iterNodes ( *args, **kwargs ):
             if key.startswith('(') and key.endswith(')') :
                 # take it as a regular expression directly
                 pass
-            elif MayaName.invalid.findall(key) :
-                # try it as a regular expression in case (is it a good idea)
-                pass
+            elif '*' in key or '?' in key :
+                # it's a glob pattern, try build a re out of it and add it to names conditions
+                validCharPattern = r"[a-zA-z0-9_]"
+                key = key.replace("*", r"("+validCharPattern+r"*)")
+                key = key.replace("?", r"("+validCharPattern+r")")
             else :
                 # either a valid dag node / node name or a glob pattern
                 try :
-                    name = util.MayaObjectName(key)
+                    name = MayaObjectName(key)
                     # if it's an actual node, plug or component name
                     # TODO : if it's a long name need to substitude namespaces on all dags
-                    nameSpace = name.node.namespace
                     name = name.node
+                    # only returns last node namespace in the case of a long name / dag path
+                    # TODO : check how ls handles that
+                    nameSpace = name.node.namespace
                     #print nameSpace, name
                     if not nameSpace :
                         # if no namespace was specified use current ('*:' can still be used for 'all namespaces')
                         nameSpace = curNameSpace
-                    if namespace(exists=nameSpace) :
+                    if cmds.namespace(exists=nameSpace) :
                         # format to have distinct match groups for nameSpace and name
                         key = r"("+nameSpace+r")("+name+r")"
                     else :
-                        raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)                    
+                        raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)
+                    # namespace thing needs a fix
+                    key = r"("+name+r")"                    
                 except NameParseError, e :
-                    if '*' in key or '?' in key :
-                        # it's a glob pattern, try build a re out of it and add it to names conditions
-                        key = key.replace("*", r"("+MayaName.validCharPattern+r"*)")
-                        key = key.replace("?", r"("+MayaName.validCharPattern+r")")
-                    else : 
-                        #is not anything we recognize
-                        raise ValueError, "'%s' not valid: " % a, e
+                    # TODO : bad formed name, ignore it
+                    pass
             try :
                 r = re.compile(key)
             except :
@@ -3963,7 +3966,8 @@ def iterNodes ( *args, **kwargs ):
             for cond in names.items() :
                 creg = cond[0]
                 cval = cond[1]
-                if creg.match(pyobj) is not None :
+                # print "match %s on %s" % (creg.pattern, pyobj.name(update=False))
+                if creg.match(pyobj.name(update=False)) is not None :
                     result = cval
                     break
                 elif not cval :
