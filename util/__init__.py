@@ -10,16 +10,11 @@ from namedtuple import namedtuple
 from common import *
 from arguments import *
 from utilitytypes import *
-from mayautils import *
 from trees import *
 
-import envparse
+from mayautils import *
 
-if os.name == 'nt' :
-    maya = 'maya.exe'
-    sep = ';'
-else :
-    maya = 'maya.bin'
-    sep = ':'
+
+
 
 
