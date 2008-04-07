@@ -1,8 +1,17 @@
-import re
+import re, os, sys, platform
+
+import envparse
 
 #from maya.cmds import encodeString
 
-
+# is this still needed ?
+if os.name == 'nt' :
+    maya = 'maya.exe'
+    sep = ';'
+else :
+    maya = 'maya.bin'
+    sep = ':'
+    
 # A source commande that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it
 def source (file, searchPath=None, recurse=False) :
