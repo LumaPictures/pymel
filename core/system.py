@@ -31,6 +31,7 @@ except ImportError: pass
 
 import pymel.util as util
 import pymel.util.factories as factories
+from pymel.util.factories import secondaryflag
 from pymel.util.scanf import fscanf
 
 import sys
@@ -199,16 +200,16 @@ class FileReference(Path):
     def importContents(self):
         """file -importReference """
         return cmds.file( self.withCopyNumber(), importReference=1 )
-    def    remove(self):
+    def remove(self):
         """file -removeReference """
         return cmds.file( self.withCopyNumber(), removeReference=1 )
-    def    unload(self):
+    def unload(self):
         """file -unloadReference """
         return cmds.file( self.withCopyNumber(), unloadReference=1 )    
-    def    clean(self):
+    def clean(self):
         """file -cleanReference """
         return cmds.file( self.withCopyNumber(), cleanReference=1 )
-    def    lock(self):
+    def lock(self):
         """file -lockReference """
         return cmds.file( self.withCopyNumber(), lockReference=1 )
     
@@ -252,7 +253,7 @@ class WorkspaceEntryDict(object):
             raise KeyError, item
         return res
     def __setitem__(self, item, value):
-        return cmds.workspace( item, **{'q' : 1, self.entryType: [item, value] } )
+        return cmds.workspace( **{self.entryType: [item, value] } )
     def __contains__(self, key):
         return key in self.keys()
     def items(self):    
@@ -447,99 +448,85 @@ class FileInfo( util.Singleton ):
     has_key = __contains__    
 fileInfo = FileInfo()
 
-	
-#def createReference( *args, **kwargs ):
-#	"""file -reference"""
-#	kwargs['reference'] = True
-#	return FileReference(cmds.file(*args, **kwargs))
-
-#def loadReference( file, refNode, **kwargs ):
-#	"""file -loadReference"""
-#	kwargs['loadReference'] = refNode
-#	return FileReference(cmds.file(file, **kwargs))
-	
-def exportAll( *args, **kwargs ):
-	"""file -exportAll"""
-	kwargs['exportAll'] = True
-	try:
-		kwargs['type'] = _getTypeFromExtension(args[0])
-	except KeyError: pass
-	
-	return Path(cmds.file(*args, **kwargs))
-
-def exportAsReference( *args, **kwargs ):
-	"""file -exportAsReference"""
-	kwargs['exportAsReference'] = True
-	try:
-		kwargs['type'] = _getTypeFromExtension(args[0])
-	except KeyError: pass
+@secondaryflag('file', 'reference')
+def createReference( *args, **kwargs ):
 	return FileReference(cmds.file(*args, **kwargs))
 
-def exportSelected( *args, **kwargs ):
-	"""file -exportSelected"""
-	kwargs['exportSelected'] = True
+@secondaryflag('file', 'loadReference')
+def loadReference( file, refNode, **kwargs ):
+	return FileReference(cmds.file(file, **kwargs))
+
+@secondaryflag('file', 'exportAll')	
+def exportAll( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
+	
 	return Path(cmds.file(*args, **kwargs))
 
-#def exportAnim( *args, **kwargs ):
-#	"""file -exportAnim"""
-#	kwargs['exportAnim'] = True
-#	return Path(cmds.file(*args, **kwargs))
-#
-#def exportAnimFromReference( *args, **kwargs ):
-#	"""file -exportAnimFromReference"""
-#	kwargs['exportAnimFromReference'] = True
-#	return Path(cmds.file(*args, **kwargs))
-#	
-#def exportSelectedAnim( *args, **kwargs ):
-#	"""file -exportSelectedAnim"""
-#	kwargs['exportSelectedAnim'] = True
-#	return Path(cmds.file(*args, **kwargs))
-#	
-#def exportSelectedAnimFromReference( *args, **kwargs ):
-#	"""file -exportSelectedAnimFromReference"""
-#	kwargs['exportSelectedAnimFromReference'] = True
-#	return Path(cmds.file(*args, **kwargs))
+@secondaryflag('file', 'exportAsReference')
+def exportAsReference( *args, **kwargs ):
+	if 'type' not in kwargs:
+		try: kwargs['type'] = _getTypeFromExtension(filepath)
+		except KeyError: pass
+	return FileReference(cmds.file(*args, **kwargs))
 
-#def importFile( *args, **kwargs ):
-#	"""file -import"""
-#	kwargs['i'] = True
-#	return Path(cmds.file(*args, **kwargs))
-#
-#def newFile( *args, **kwargs ):
-#	"""file -newFile"""
-#	kwargs['newFile'] = True
-#	return Path(cmds.file(*args, **kwargs))
-#
-#def openFile( *args, **kwargs ):
-#	"""file -open"""
-#	kwargs['open'] = True
-#	return Path(cmds.file(*args, **kwargs))	
-#
-#def renameFile( *args, **kwargs ):
-#	"""file -rename"""
-#	kwargs['rename'] = True
-#	return Path(cmds.file(*args, **kwargs))
-	
+@secondaryflag('file', 'exportSelected')
+def exportSelected( *args, **kwargs ):
+	if 'type' not in kwargs:
+		try: kwargs['type'] = _getTypeFromExtension(filepath)
+		except KeyError: pass
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'exportAnim')
+def exportAnim( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'exportAnimFromReference')
+def exportAnimFromReference( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'exportSelectedAnim')
+def exportSelectedAnim( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'exportSelectedAnimFromReference')	
+def exportSelectedAnimFromReference( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'i')
+def importFile( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'newFile')
+def newFile( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
+@secondaryflag('file', 'open')
+def openFile( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))	
+
+@secondaryflag('file', 'rename')
+def renameFile( *args, **kwargs ):
+	return Path(cmds.file(*args, **kwargs))
+
 def saveAs(filepath, **kwargs):
 	cmds.file( rename=filepath )
 	kwargs['save']=True
-	try:
-		kwargs['type'] = _getTypeFromExtension(filepath)
-	except KeyError: pass
+	if 'type' not in kwargs:
+		try: kwargs['type'] = _getTypeFromExtension(filepath)
+		except KeyError: pass
 	return Path(cmds.file(**kwargs) )
 
-createReference = factories.makeSecondaryFlagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
-loadReference = factories.makeSecondaryFlagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
-exportAnim = factories.makeSecondaryFlagCmd( 'exportAnim', cmds.file, 'exportAnim',  __name__, returnFunc=Path )
-exportAnimFromReference = factories.makeSecondaryFlagCmd( 'exportAnimFromReference', cmds.file, 'exportAnimFromReference',  __name__, returnFunc=Path )
-exportSelectedAnim = factories.makeSecondaryFlagCmd( 'exportSelectedAnim', cmds.file, 'exportSelectedAnim',  __name__, returnFunc=Path )
-exportSelectedAnimFromReference = factories.makeSecondaryFlagCmd( 'exportSelectedAnimFromReference', cmds.file, 'exportSelectedAnimFromReference', __name__,  returnFunc=Path )
-importFile = factories.makeSecondaryFlagCmd( 'importFile', cmds.file, 'i',  __name__, returnFunc=Path )
-newFile = factories.makeSecondaryFlagCmd( 'newFile', cmds.file, 'newFile',  __name__, returnFunc=Path )
-openFile = factories.makeSecondaryFlagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
-renameFile = factories.makeSecondaryFlagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
+#createReference = factories.makeSecondaryFlagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
+#loadReference = factories.makeSecondaryFlagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
+#exportAnim = factories.makeSecondaryFlagCmd( 'exportAnim', cmds.file, 'exportAnim',  __name__, returnFunc=Path )
+#exportAnimFromReference = factories.makeSecondaryFlagCmd( 'exportAnimFromReference', cmds.file, 'exportAnimFromReference',  __name__, returnFunc=Path )
+#exportSelectedAnim = factories.makeSecondaryFlagCmd( 'exportSelectedAnim', cmds.file, 'exportSelectedAnim',  __name__, returnFunc=Path )
+#exportSelectedAnimFromReference = factories.makeSecondaryFlagCmd( 'exportSelectedAnimFromReference', cmds.file, 'exportSelectedAnimFromReference', __name__,  returnFunc=Path )
+#importFile = factories.makeSecondaryFlagCmd( 'importFile', cmds.file, 'i',  __name__, returnFunc=Path )
+#newFile = factories.makeSecondaryFlagCmd( 'newFile', cmds.file, 'newFile',  __name__, returnFunc=Path )
+#openFile = factories.makeSecondaryFlagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
+#renameFile = factories.makeSecondaryFlagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
 factories.createFunctions( __name__ )
