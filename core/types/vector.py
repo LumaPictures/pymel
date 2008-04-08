@@ -19,7 +19,7 @@ class Vector(list):
     """
     # TODO : should limit to vector of 3 coordinates as the x, y, z properties imply
     def __init__(self, *args):
-        print args
+        #print args
         if args :
             if len(args)==1 and hasattr(args[0],'__iter__') :
                 list.__init__(self, args[0])
