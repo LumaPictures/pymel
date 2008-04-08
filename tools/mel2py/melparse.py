@@ -116,16 +116,16 @@ proc_remap = {
 		'size' 					: lambda x, t: 'len(%s)' 			% (', '.join(x)),				
 		'print'					: lambda x, t: 'print %s' 			% (x[0]),
 		'clear'					: lambda x, t: '%s=[]' 				% (x[0]),
-		'eval'					: lambda x, t: 'mel.eval(%s)' 		% (x[0]),
+		'eval'					: lambda x, t: '%smel.eval(%s)' 	% (t.parser.pymel_namespace, x[0]),
 		'sort'					: lambda x, t: 'sorted(%s)'			% (x[0]),
 		
 		# error handling
-		'catch'					: lambda x, t: 'catch( lambda: %s )' % (x[0]),
-		'catchQuiet'			: lambda x, t: 'catch( lambda: %s )' % (x[0]),
+		'catch'					: lambda x, t: '%scatch( lambda: %s )' % (t.parser.pymel_namespace,x[0]),
+		'catchQuiet'			: lambda x, t: '%scatch( lambda: %s )' % (t.parser.pymel_namespace,x[0]),
 
 		# system
-		'system'				: lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.parser.used_modules.add('os') )[0],
-		'exec'					: lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.parser.used_modules.add('os') )[0],
+		'system'				: lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.parser.imported_modules.add('os') )[0],
+		'exec'					: lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.parser.imported_modules.add('os') )[0],
 		
 		# file i/o
 		'fopen'					: format_fopen,
@@ -134,12 +134,12 @@ proc_remap = {
 		'fflush'				: lambda x, t: '%s.flush()' % (x[0]),
 		'fgetline'				: lambda x, t: '%s.readline()' % (x[0]),
 		'frewind'				: lambda x, t: '%s.seek(0)' % (x[0]),
-		'fgetword'				: lambda x, t: "fscanf(%s,'%%s')" % (x[0]),
-		'feof'					: lambda x, t: 'feof(%s)' % (x[0]), 
+		'fgetword'				: lambda x, t: "%sfscanf(%s,'%%s')" % (t.parser.pymel_namespace,x[0]),
+		'feof'					: lambda x, t: '%sfeof(%s)' % (t.parser.pymel_namespace,x[0]), 
 		'fread'					: format_fread,
 		
 		
-		#'filetest'				: lambda x, t: (  (  t.parser.used_modules.add('os'),  # add os module for access()
+		#'filetest'				: lambda x, t: (  (  t.parser.imported_modules.add('os'),  # add os module for access()
 		#										{ 	'-r' : "Path(%(path)s).access(os.R_OK)",
 		#											'-l' : "Path(%(path)s).islink()",
 		#											'-w' : "Path(%(path)s).access(os.W_OK)",
@@ -152,7 +152,7 @@ proc_remap = {
 		#											}[ x[0] ] % { 'path' :x[1] }) 	
 		#										)[1], 
 		
-		'filetest'				: lambda x, t: (  (  t.parser.used_modules.update( ['os', 'os.path'] ),  # add os module for access()
+		'filetest'				: lambda x, t: (  (  t.parser.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
 												{ 	'-r' : "os.access( %(path)s, os.R_OK)",
 													'-l' : "os.path.islink( %(path)s )",
 													'-w' : "os.access( %(path)s, os.W_OK)",
@@ -181,7 +181,7 @@ proc_remap = {
 												
 
 												
-		'sysFile'				: lambda x, t: (  ( t.parser.used_modules.update( ['os', 'shutil'] ),
+		'sysFile'				: lambda x, t: (  ( t.parser.imported_modules.update( ['os', 'shutil'] ),
 												{	'-delete'	: "os.remove( %(path)s )",
 													'-del'		: "os.remove( %(path)s )",
 													'-rename'	: "os.rename( %(path)s, %(param)s )",
@@ -198,7 +198,6 @@ proc_remap = {
 												)[1]
 }
 
-global_procs = {}
 tag = '# script created by pymel.melparse.mel2py'
 currentFiles = []
 proc_module = {}
@@ -354,16 +353,14 @@ def p_external_declaration(t):
 def p_function_definition(t):
 	'''function_definition :  function_declarator function_specifiers_opt ID LPAREN function_arg_list_opt RPAREN add_comment compound_statement'''
 	#t[0] = assemble(t, 'p_function_definition')
-	global global_procs
 	
-	t.parser.local_procs.append(t[3])
+	t.parser.proc_list.append( t[3] )
 	if t[1].startswith('global'):
-		if t.parser.root_module in global_procs:
-			global_procs[t.parser.root_module].add(t[3])
-		else:
-			global_procs[t.parser.root_module] = set([t[3]])
+		t.parser.global_procs[ t[3] ] = t[5] 
+	else:
+		t.parser.local_procs[ t[3] ] = t[5] 
 		
-	t[0] = "def %s(%s):\n%s\n" % (t[3], t[5], entabLines(t[8]) )
+	t[0] = "def %s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
 	addHeldComments(t, 'func')
 
 def p_add_comment(t):
@@ -394,7 +391,7 @@ def p_function_declarator(t):
 def p_function_arg(t):
 	'''function_arg : type_specifier variable
 					| type_specifier variable LBRACKET RBRACKET'''
-	t[0] = assemble(t, 'p_function_arg')
+	#t[0] = assemble(t, 'p_function_arg')
 	t[0] = t[2]
 	t.parser.type_map[t[2]] = t[1]
 	
@@ -402,18 +399,22 @@ def p_function_arg_list(t):
 	'''function_arg_list : function_arg
 						| function_arg_list COMMA function_arg'''
 							
-	t[0] = assemble(t, 'p_function_arg_list')
-	if len(t) == 2:
-		t[0] = t[1]
+	#t[0] = assemble(t, 'p_function_arg_list')
+	if len(t)>2:
+		t[0] = t[1] + [t[3]]
+	# start a new list
 	else:
-		t[0] = t[1] + ', ' + t[3]
+		t[0] = [t[1]]
 
 def p_function_arg_list_opt(t):
 	'''function_arg_list_opt : function_arg_list
 						|  empty'''
 							
-	t[0] = assemble(t, 'p_function_arg_list_opt')
-		
+	#t[0] = assemble(t, 'p_function_arg_list_opt')
+	if not t[1]:
+		t[0] = []
+	else:
+		t[0] = t[1]	
 			
 # declaration:
 def p_declaration_statement(t):
@@ -1698,16 +1699,20 @@ def command_format(command, args, t):
 	if flags is None:			
 		args = ', '.join(args)
 	
-		if command in t.parser.local_procs:
+		# function is being called locally, within same file
+		if command in t.parser.proc_list:
 			return '%s(%s)' % (command, args)
 	
 		module = scriptModule( command )
 	
 		if module:
-			t.parser.used_modules.add( module )
-			return '%s.%s(%s)' % (module, command, args)
-	
-		return 'mel.%s(%s)' % (command, args)
+			t.parser.imported_modules.add( module )
+			res = '%s.%s(%s)' % (module, command, args)
+		else:
+			res = 'mel.%s(%s)' % (command, args)
+			
+		res = t.parser.pymel_namespace + res	
+		return res
 	
 	# commands with help documentation
 	try:
@@ -1828,7 +1833,7 @@ def command_format(command, args, t):
 		#	sep = ',\n\t'		
 		#res =  '%s(%s)' % (command, sep.join( pargs ) )
 		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs, matchFormatting=True ) )
-		
+		res = t.parser.pymel_namespace + res
 		return res
 		
 	except KeyError, key:

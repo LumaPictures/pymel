@@ -206,6 +206,7 @@ quickly as i can.
 
 
 from melparse import *
+import pymel.core.types.path as path
 
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a
@@ -245,20 +246,25 @@ proc_remap.update(custom_proc_remap)
 
 class MelParser(object):
 	"""The MelParser class around which all other mel2py functions are based."""
-	def __init__(self, rootModule = None, verbosity=0 ):
-		parser.root_module = rootModule
-		parser.local_procs = []
-		parser.used_modules = set([])
-		parser.used_modules_hold = set([])
+	def __init__(self, rootModule = None, pymelNamespace='', verbosity=0 ):
+		parser.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
+		parser.proc_list = []  # ordered list of procedures
+		parser.local_procs = {} # dictionary of local procedures and their related data
+		parser.global_procs = {} # dictionary of global procedures and their related data
+		parser.imported_modules = set([])  # imported external modules, pymel is assumed
 		parser.global_vars = set([])
 		parser.comment_queue = []
 		parser.comment_queue_hold = []
 		parser.verbose = verbosity
+		if pymelNamespace and not pymelNamespace.endswith( '.' ):
+			pymelNamespace = pymelNamespace + '.'
+		parser.pymel_namespace = pymelNamespace
 		parser.type_map = {}
 		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
 		#parser.global_var_include_regex = '.*'
 		parser.global_var_exclude_regex = '$'
 		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+		parser.add_pymel_import = True
 		
 	def parse(self, data):
 		data = data.encode( 'utf-8', 'ignore')
@@ -271,6 +277,7 @@ class MelParser(object):
 				if not tok: break      # No more input
 				print tok
 		
+		prev_modules = parser.imported_modules.copy()
 		
 		parser.comment_queue = []
 		parser.comment_queue_hold = []
@@ -288,10 +295,18 @@ class MelParser(object):
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 		
-		new_modules = parser.used_modules.difference( parser.used_modules_hold )
-		parser.used_modules_hold.update( parser.used_modules )
+		new_modules = parser.imported_modules.difference( prev_modules )
 		
 		header = ''
+		if parser.add_pymel_import:
+			if not parser.pymel_namespace:
+				header += 'from pymel import *\n'
+			elif parser.pymel_namespace == 'pymel.':
+				header += 'import pymel\n'
+			else:
+				header += 'import pymel as %s\n' % parser.pymel_namespace[:-1]
+			parser._add_pymel_import = False
+			
 		if len( new_modules ):
 			header += "import %s" % ','.join(list(new_modules))
 			header += '\n'
@@ -304,7 +319,7 @@ class MelParser(object):
 			
 		return converted
 
-def mel2pyStr( data, currentModule=None, verbosity=0 ):
+def mel2pyStr( data, currentModule=None, pymelNamespace='', verbosity=0 ):
 	"""
 	convert a string representing mel code into a string representing python code
 	
@@ -321,7 +336,7 @@ def mel2pyStr( data, currentModule=None, verbosity=0 ):
 	"""
 	
 	
-	mparser = MelParser(currentModule, verbosity)
+	mparser = MelParser(currentModule, pymelNamespace=pymelNamespace, verbosity=verbosity)
 	return mparser.parse( data )
 
 def mel2py( melfile, outputDir=None, verbosity=0 ):
@@ -353,7 +368,8 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	data = melfile.bytes()
 	print "converting mel script", melfile
 	converted = mel2pyStr( data, melfile.namebase, verbosity )
-	header = "%s from mel file:\n# %s\n\nfrom pymel import *\n" % (tag, melfile) 
+	header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
+	
 	converted = header + converted
 	
 	if outputDir is None:
@@ -361,8 +377,6 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 
 	pyfile = path.path(outputDir + os.sep + melfile.namebase + '.py')	
 	print "writing converted python script: %s" % pyfile
-	global global_procs
-	#print global_procs
 	pyfile.write_bytes(converted)
 	
 
