@@ -1,6 +1,6 @@
 
-import pymel.util, sys, os, inspect, pickle, re, types, os.path
 from pymel.util.trees import *
+import pymel.util, sys, os, inspect, pickle, re, types, os.path
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 from operator import itemgetter
@@ -859,7 +859,7 @@ def editflag( cmdName, flag ):
     return edit_decorator
 
 
-def makeSecondaryFlagCmd( name, inFunc, flag, moduleName, docstring='', returnFunc=None, cmdName=None ):
+def makeSecondaryFlagCmd( name, inFunc, flag, moduleName=None, docstring='', returnFunc=None, cmdName=None ):
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = inFunc.__name__
@@ -883,7 +883,8 @@ def makeSecondaryFlagCmd( name, inFunc, flag, moduleName, docstring='', returnFu
             else:
                 raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
             return inFunc( *args, **kwargs )
-    f.__module__ = moduleName             
+    if moduleName:
+        f.__module__ = moduleName             
     return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
 
 def secondaryflag( cmdName, flag ):
