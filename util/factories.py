@@ -74,7 +74,8 @@ secondaryFlags = {
                 ( 'worldSpaceDistance', ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
             ),
     'file' : ( ( 'loadAllDeferred', ['open'] ),
-               ( 'loadNoReferences', ['open'] ),
+               ( 'loadNoReferences', ['open', 'i', 'reference', 'loadReference'] ),
+               ( 'loadReferenceDepth', ['open', 'i', 'reference', 'loadReference'] ),
                ( 'force',           ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
                ( 'constructionHistory', ['exportSelected'] ),
                ( 'channels',        ['exportSelected'] ),
@@ -83,18 +84,23 @@ secondaryFlags = {
                ( 'shader',          ['exportSelected'] ),
                ( 'defaultNamespace',['reference', 'i'] ),
                ( 'deferReference',  ['reference', 'i'] ),
+               ( 'editCommand', ['cleanReference'] ),
                ( 'groupReference',  ['reference', 'i'] ),
                ( 'groupLocator',  ['reference'] ),
                ( 'groupName',  ['reference', 'i'] ),
                ( 'groupName',  ['reference', 'i'] ),
                ( 'namespace',  ['reference', 'exportAsReference'] ),
                ( 'referenceNode',  ['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
+               ( 'renameAll', ['i'] ),
                ( 'renamingPrefix',  ['reference', 'i','exportAsReference'] ),
+               ( 'saveTextures', ['saveAs']),
                ( 'swapNamespace',  ['reference', 'i'] ),
                ( 'sharedReferenceFile',  ['reference'] ),
                ( 'sharedNodes',  ['reference'] ),
-               ( 'returnNewNodes',  ['open', 'reference', 'i' ] ),
-               ( 'preserveReferences',  ['i', 'exportAll', 'exportSelected'] )
+               ( 'returnNewNodes',  ['open', 'reference', 'i', 'loadReference' ] ),
+               ( 'preserveReferences',  ['i', 'exportAll', 'exportSelected'] ),
+               ( 'preSaveScript', ['save'] ),
+               ( 'postSaveScript', ['save'] )
              )
 }
 

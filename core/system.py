@@ -212,7 +212,10 @@ class FileReference(Path):
     def lock(self):
         """file -lockReference """
         return cmds.file( self.withCopyNumber(), lockReference=1 )
-    
+    def unlock(self):
+        """file -lockReference """
+        return cmds.file( self.withCopyNumber(), lockReference=0 )
+         
     def isDeferred(self):
         """file -q -deferReference """
         return cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
@@ -239,6 +242,9 @@ class FileReference(Path):
         #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
         return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )   
     refNode = util.cacheProperty( _getRefNode, '_refNode')
+    
+    def isUsingNamespaces(self):
+    	return cmds.file( self.withCopyNumber(), q=1, usingNamespace=1 )
 
 #-----------------------------------------------
 #  Workspace Class
@@ -448,6 +454,8 @@ class FileInfo( util.Singleton ):
     has_key = __contains__    
 fileInfo = FileInfo()
 
+# TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave
+
 @secondaryflag('file', 'reference')
 def createReference( *args, **kwargs ):
 	return FileReference(cmds.file(*args, **kwargs))
@@ -460,7 +468,7 @@ def loadReference( file, refNode, **kwargs ):
 def exportAll( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
-	except KeyError: pass
+	except: pass
 	
 	return Path(cmds.file(*args, **kwargs))
 
@@ -468,14 +476,14 @@ def exportAll( *args, **kwargs ):
 def exportAsReference( *args, **kwargs ):
 	if 'type' not in kwargs:
 		try: kwargs['type'] = _getTypeFromExtension(filepath)
-		except KeyError: pass
+		except: pass
 	return FileReference(cmds.file(*args, **kwargs))
 
 @secondaryflag('file', 'exportSelected')
 def exportSelected( *args, **kwargs ):
 	if 'type' not in kwargs:
 		try: kwargs['type'] = _getTypeFromExtension(filepath)
-		except KeyError: pass
+		except: pass
 	return Path(cmds.file(*args, **kwargs))
 
 @secondaryflag('file', 'exportAnim')
@@ -515,7 +523,7 @@ def saveAs(filepath, **kwargs):
 	kwargs['save']=True
 	if 'type' not in kwargs:
 		try: kwargs['type'] = _getTypeFromExtension(filepath)
-		except KeyError: pass
+		except: pass
 	return Path(cmds.file(**kwargs) )
 
 #createReference = factories.makeSecondaryFlagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
