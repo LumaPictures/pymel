@@ -61,8 +61,8 @@ try:
 	import maya.cmds as cmds
 except ImportError: pass
 
-import pymel.util.factories, pymel.util
-
+import pymel.util as util
+import pymel.util.factories as factories
 	
 #-----------------------------------------------
 #  Enhanced UI Commands
@@ -80,7 +80,7 @@ def lsUI( **kwargs ):
     kwargs['long'] = long
     if head is not None: kwargs['head'] = head
     if tail is not None: kwargs['tail'] = tail
-    return map( PyUI, pymel.util.listForNone( cmds.lsUI( **kwargs ) ) )
+    return map( PyUI, util.listForNone( cmds.lsUI( **kwargs ) ) )
    
 scriptTableCmds = {}
 
@@ -114,7 +114,7 @@ Maya Bug Fix:
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-metaNode = pymel.util.factories.makeMetaNode( __name__ )
+metaNode = factories.metaNode
 
 class UI(unicode):
 	def __new__(cls, name=None, create=False, *args, **kwargs):
@@ -137,7 +137,7 @@ class UI(unicode):
 				return None
 
 		if create:
-			ret = seekUpBases(lambda cls: getattr(_thisModule, pymel.util.uncapitalize(cls.__name__), None), cls)
+			ret = seekUpBases(lambda cls: getattr(_thisModule, util.uncapitalize(cls.__name__), None), cls)
 			if not ret:
 				raise "Could not find a UI creator function for class '%s'" % cls
 			createFunc = ret[0] 
@@ -155,9 +155,9 @@ class UI(unicode):
 		return objectTypeUI(self)
 	def shortName(self):
 		return self.split('|')[-1]
-	delete = pymel.util.factories.functionFactory( 'deleteUI', _thisModule, rename='delete')
-	rename = pymel.util.factories.functionFactory( 'renameUI', _thisModule, rename='rename')
-	type = pymel.util.factories.functionFactory( 'objectTypeUI', _thisModule, rename='type')
+	delete = factories.functionFactory( 'deleteUI', _thisModule, rename='delete' )
+	rename = factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
+	type = factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
 	 
 # customized ui classes							
 class Window(UI):
@@ -427,8 +427,8 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
 	return (ret==yes)
                         
 def _createClassesAndFunctions():
-	for funcName in pymel.util.factories.uiClassList:
-		classname = pymel.util.capitalize(funcName)
+	for funcName in factories.uiClassList:
+		classname = util.capitalize(funcName)
 		if not hasattr( _thisModule, classname ):
 			cls = metaNode(classname, (UI,), {})
 			cls.__module__ = __name__
@@ -436,23 +436,24 @@ def _createClassesAndFunctions():
 		else:
 			cls = getattr( _thisModule, classname )
 	
-		#funcName = pymel.util.uncapitalize( classname )
-		func = pymel.util.factories.functionFactory( funcName, cls, _thisModule )
+		#funcName = util.uncapitalize( classname )
+		func = factories.functionFactory( funcName, cls, _thisModule )
 		if func:
 			func.__module__ = __name__
 			setattr( _thisModule, funcName, func )
 		else:
 			print "ui command not created", funcName
+	
 _createClassesAndFunctions()
 
 # additional functions that do not create ui objects
-pymel.util.factories.createFunctions( __name__ )
+factories.createFunctions( __name__ )
 
 def PyUI(strObj, type=None):
 	try:
 		if not type:
 			type = objectTypeUI(strObj)
-		return getattr(_thisModule, pymel.util.capitalize(type) )(strObj)
+		return getattr(_thisModule, util.capitalize(type) )(strObj)
 	except AttributeError:
 		return UI(strObj)
 	

@@ -827,7 +827,7 @@ def makeQueryFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFunc
     if returnFunc:
         def f(self, **kwargs):
             kwargs['query']=True
-            kwargs[flag]=True 
+            kwargs[flag]=True
             return returnFunc( inFunc( self, **kwargs ) )
     else:
         def f(self, **kwargs):
@@ -1018,79 +1018,6 @@ class metaNode(type) :
             
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
-
-def makeMetaNode( moduleName ):
-    module = __import__(moduleName, globals(), locals(), [''])
-    class metaNode(type) :
-        """
-        A metaclass for creating classes based on node type.  Methods will be added to the new classes 
-        based on info parsed from the docs on their command counterparts.
-        """
-    
-        
-        def __new__(cls, classname, bases, classdict):
-            
-            nodeType = pymel.util.uncapitalize(classname)
-            
-            try:
-                infoCmd = False
-                try:
-                    nodeType = nodeTypeToNodeCommand[ nodeType ]
-                except KeyError:
-                    try:
-                        nodeType = nodeTypeToInfoCommand[ nodeType ]
-                        infoCmd = True
-                    except KeyError: pass
-                
-                #if nodeHierarchy.children( nodeType ):
-                #    print nodeType, nodeHierarchy.children( nodeType )
-                cmdInfo = cmdlist[nodeType]
-                
-                try:    
-                    func = getattr(module, nodeType)
-    
-                except AttributeError:
-                    func = getattr(cmds,nodeType)
-                
-                # add documentation
-                classdict['__doc__'] = 'class counterpart of function L{%s}\n\n%s\n\n' % (nodeType, cmdInfo['description'])
-                
-                for flag, flagInfo in cmdInfo['flags'].items():
-                     
-                     # don't create methods for query or edit, or for flags which only serve to modify other flags
-                    if flag in ['query', 'edit'] or 'modified' in flagInfo:
-                        continue
-                    
-                    modes = flagInfo['modes']
-    
-                    # query command
-                    if 'query' in modes:
-                        methodName = 'get' + pymel.util.capitalize(flag)
-                        if methodName not in classdict:
-                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                classdict[methodName] = makeQueryFlagCmd( methodName, func, 
-                                    flag, docstring=flagInfo['docstring'] )
-                            #else: print "%s: skipping %s" % ( classname, methodName )
-                    
-                    # edit command: 
-                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
-                        # if there is a corresponding query we use the 'set' prefix. 
-                        if 'query' in modes:
-                            methodName = 'set' + pymel.util.capitalize(flag)
-                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-                        else:
-                            methodName = flag
-                            
-                        if methodName not in classdict:
-                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                classdict[methodName] = makeEditFlagCmd( methodName, func,
-                                     flag, docstring=flagInfo['docstring'] )
-                        
-            except KeyError: # on cmdlist[nodeType]
-                pass
-                
-            return super(metaNode, cls).__new__(cls, classname, bases, classdict)
-    return metaNode
 
 def makeDocs( mayaVersion='8.5' ):
     "internal use only"
