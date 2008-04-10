@@ -626,6 +626,30 @@ from core.animation import *
 from core.effects import *
 from core.modeling import *
 from core.rendering import *
+from core.other import *
 import core.runtime
 
+#_module = __import__('core.other', globals(), locals(), [''])
+
+def pluginLoadedCallback(pluginName):
+    #_module = __import__(__name__, globals(), locals(), [''])
+    _module = core.other
+    from maya.cmds import pluginInfo
+    print "pluginLoaded", pluginName
+    commands = pluginInfo(pluginName, query=1, command=1)
+    if commands:
+        for funcName in commands:
+            print "adding new command", funcName
+            func = factories.functionFactory( funcName )
+            try:
+	            if func:
+	                setattr( _module, funcName, func )
+	            else:
+	                print "failed to create function"
+            except Exception, msg:
+	            print "exception", msg
+        reload(core.other)
+#module = __import__(__name__, globals(), locals(), [''])
+cmds.loadPlugin( addCallback=pluginLoadedCallback )
+#loadPlugin( addCallback=util.pluginLoadedCallback )
 	
