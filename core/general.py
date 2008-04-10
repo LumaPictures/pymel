@@ -2905,11 +2905,11 @@ class Mesh(SurfaceShape):
                 """
             return at.set(val)
                         
-    vertexCount = factories.makeCreateFlagCmd( 'vertexCount', cmds.polyEvaluate, 'vertex' )
-    edgeCount = factories.makeCreateFlagCmd( 'edgeCount', cmds.polyEvaluate, 'edge' )
-    faceCount = factories.makeCreateFlagCmd( 'faceCount', cmds.polyEvaluate, 'face' )
-    uvcoordCount = factories.makeCreateFlagCmd( 'uvcoordCount', cmds.polyEvaluate, 'uvcoord' )
-    triangleCount = factories.makeCreateFlagCmd( 'triangleCount', cmds.polyEvaluate, 'triangle' )
+    vertexCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'vertexCount', 'vertex' )
+    edgeCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'edgeCount', 'edge' )
+    faceCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'faceCount',  'face' )
+    uvcoordCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'uvcoordCount', 'uvcoord' )
+    triangleCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'triangleCount', 'triangle' )
     #area = factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
     
     #def area(self):

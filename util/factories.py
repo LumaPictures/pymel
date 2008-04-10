@@ -61,50 +61,49 @@ moduleNameShortToLong = {
     'general' : 'General'
 }
 
-#: modifier flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
-#: because the maya docs do not specify in any parsable way which flags are modifiers, we must maintain this dictionary.
+#: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
+#: because the maya docs do not specify in any parsable way which flags are secondary modifiers, we must maintain this dictionary.
 #: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
 secondaryFlags = {
-    'xform' : ( ( 'absolute',         [] ),
-                ( 'relative',         [] ),
-                ( 'euler',            ['relative'] ),
-                ( 'objectSpace',    ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-                ( 'worldSpace',        ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
-                ( 'preserve',        ['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
-                ( 'worldSpaceDistance', ['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
+    'xform' : ( ( 'absolute',         None,[] ),
+                ( 'relative',         None,[] ),
+                ( 'euler',            None,['relative'] ),
+                ( 'objectSpace',      True, ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+                ( 'worldSpace',       False, ['scalePivot', 'rotatePivot', 'rotateAxis', 'rotation', 'rotateTranslation', 'translation', 'matrix', 'boundingBox', 'boundingBoxInvisible', 'pivots'] ),
+                ( 'preserve',         None,['scalePivot', 'rotatePivot', 'rotateOrder', 'rotateAxis', 'centerPivots'] ),
+                ( 'worldSpaceDistance', None,['scalePivot', 'rotatePivot', 'scaleTranslation', 'rotateTranslation', 'translation', 'pivots'] )
             ),
-    'file' : ( ( 'loadAllDeferred', ['open'] ),
-               ( 'loadNoReferences', ['open', 'i', 'reference', 'loadReference'] ),
-               ( 'loadReferenceDepth', ['open', 'i', 'reference', 'loadReference'] ),
-               ( 'force',           ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
-               ( 'constructionHistory', ['exportSelected'] ),
-               ( 'channels',        ['exportSelected'] ),
-               ( 'constraints',     ['exportSelected'] ),
-               ( 'expressions',     ['exportSelected'] ),
-               ( 'shader',          ['exportSelected'] ),
-               ( 'defaultNamespace',['reference', 'i'] ),
-               ( 'deferReference',  ['reference', 'i'] ),
-               ( 'editCommand', ['cleanReference'] ),
-               ( 'groupReference',  ['reference', 'i'] ),
-               ( 'groupLocator',  ['reference'] ),
-               ( 'groupName',  ['reference', 'i'] ),
-               ( 'groupName',  ['reference', 'i'] ),
-               ( 'namespace',  ['reference', 'exportAsReference'] ),
-               ( 'referenceNode',  ['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
-               ( 'renameAll', ['i'] ),
-               ( 'renamingPrefix',  ['reference', 'i','exportAsReference'] ),
-               ( 'saveTextures', ['saveAs']),
-               ( 'swapNamespace',  ['reference', 'i'] ),
-               ( 'sharedReferenceFile',  ['reference'] ),
-               ( 'sharedNodes',  ['reference'] ),
-               ( 'returnNewNodes',  ['open', 'reference', 'i', 'loadReference' ] ),
-               ( 'preserveReferences',  ['i', 'exportAll', 'exportSelected'] ),
-               ( 'preSaveScript', ['save'] ),
-               ( 'postSaveScript', ['save'] )
+    'file' : ( ( 'loadAllDeferred', False, ['open'] ),
+               ( 'loadNoReferences', False, ['open', 'i', 'reference', 'loadReference'] ),
+               ( 'loadReferenceDepth', None, ['open', 'i', 'reference', 'loadReference'] ),
+               ( 'force',           False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
+               ( 'constructionHistory', True, ['exportSelected'] ),
+               ( 'channels',         True, ['exportSelected'] ),
+               ( 'constraints',      True, ['exportSelected'] ),
+               ( 'expressions',      True, ['exportSelected'] ),
+               ( 'shader',           True, ['exportSelected'] ),
+               ( 'defaultNamespace', False, ['reference', 'i'] ),
+               ( 'deferReference',   False, ['reference', 'i'] ),
+               ( 'editCommand',      None, ['cleanReference'] ),
+               ( 'groupReference',   False, ['reference', 'i'] ),
+               ( 'groupLocator',  None,['reference'] ),
+               ( 'groupName',  None,['reference', 'i'] ),
+               ( 'namespace',  None,['reference', 'exportAsReference'] ),
+               ( 'referenceNode',  None,['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
+               ( 'renameAll', None,['i'] ),
+               ( 'renamingPrefix',  None,['reference', 'i','exportAsReference'] ),
+               ( 'saveTextures', "unlessRef", ['saveAs']),
+               ( 'swapNamespace',  None, ['reference', 'i'] ),
+               ( 'sharedReferenceFile',  None, ['reference'] ),
+               ( 'sharedNodes',  None, ['reference'] ),
+               ( 'returnNewNodes',  False, ['open', 'reference', 'i', 'loadReference' ] ),
+               ( 'preserveReferences',  False, ['i', 'exportAll', 'exportSelected'] ),
+               ( 'preSaveScript', None, ['save'] ),
+               ( 'postSaveScript', None, ['save'] )
              )
 }
 
-#: these are commands which should need to be manually added to the list parsed from the docs
+#: these are commands which need to be manually added to the list parsed from the docs
 moduleCommandAdditions = {
     'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
     'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
@@ -271,8 +270,8 @@ def _mayaDocsLocation( version=None ):
 
 def _getCmdInfoBasic( command ):
     
-    flags = {}
     try:
+        flags = {}
         lines = cmds.help( command ).split('\n')
         synopsis = lines.pop(0)
         #print synopsis
@@ -291,10 +290,11 @@ def _getCmdInfoBasic( command ):
                 longname = str(tokens[1][1:])
                 shortname = str(tokens[0][1:])
                 flags[longname ] = { 'shortname' : shortname }
+        return { 'flags': flags, 'description' : '', 'example': '' }
     except:
         pass
         #print "could not retrieve command info for", command
-    return flags
+
   
 def _getCmdInfo( command, version='8.5' ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
@@ -322,7 +322,7 @@ def _getCmdInfo( command, version='8.5' ):
             
         #try:
         if command in secondaryFlags:
-            for secondaryFlag, modifiedList in secondaryFlags[command]:
+            for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
                 #print command, "2nd", secondaryFlag
                 parser.flags[secondaryFlag]['modified'] = modifiedList
                 #print sorted(modifiedList)
@@ -340,7 +340,7 @@ def _getCmdInfo( command, version='8.5' ):
     except IOError:
         #print "could not find docs for %s" % command
         
-        return { 'flags': _getCmdInfoBasic(command), 'description' : '', 'example': '' }
+        return _getCmdInfoBasic(command)
         #raise IOError, "cannot find maya documentation directory"
 
 class NodeHierarchyDocParser(HTMLParser):
@@ -685,7 +685,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     try:
         cmdInfo = cmdlist[funcName]
     except KeyError:
-        return
+        cmdInfo = _getCmdInfoBasic(funcName)
     
     # if the function is not a builtin and there's no return command to map, just add docs
     if type(inFunc) == types.FunctionType and returnFunc is None:
@@ -798,7 +798,7 @@ def _addFlagCmdDocs(f,name,funcName,flag,docstring):
         except KeyError: print "No documentation available for %s flag of %s command" % (flag,funcName )    
     return f
             
-def makeCreateFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFunc=None ):
+def makeCreateFlagCmd( inFunc, name, flag, docstring='', cmdName=None, returnFunc=None ):
     if cmdName is None:
         cmdName = inFunc.__name__
     
@@ -815,12 +815,12 @@ def makeCreateFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFun
 def createflag( cmdName, flag ):
     """create flag decorator"""
     def create_decorator(method):
-        return makeCreateFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+        return makeCreateFlagCmd( method, method.__name__, flag, cmdName=cmdName )
     return create_decorator
 
 
 
-def makeQueryFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFunc=None ):
+def makeQueryFlagCmd( inFunc, name, flag, docstring='', cmdName=None, returnFunc=None ):
     #name = 'get' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = inFunc.__name__
@@ -839,11 +839,11 @@ def makeQueryFlagCmd( name, inFunc, flag, docstring='', cmdName=None, returnFunc
 def queryflag( cmdName, flag ):
     """query flag decorator"""
     def query_decorator(method):
-        return makeQueryFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+        return makeQueryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
     return query_decorator
 
    
-def makeEditFlagCmd( name, inFunc, flag, docstring='', cmdName=None):
+def makeEditFlagCmd( inFunc, name, flag, docstring='', cmdName=None):
     #name = 'set' + flag[0].upper() + flag[1:]    
     if cmdName is None:
         cmdName = inFunc.__name__
@@ -861,11 +861,11 @@ def makeEditFlagCmd( name, inFunc, flag, docstring='', cmdName=None):
 def editflag( cmdName, flag ):
     """query flag decorator"""
     def edit_decorator(method):
-        return makeEditFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+        return makeEditFlagCmd(  method, method.__name__, flag, cmdName=cmdName )
     return edit_decorator
 
 
-def makeSecondaryFlagCmd( name, inFunc, flag, moduleName=None, docstring='', returnFunc=None, cmdName=None ):
+def makeSecondaryFlagCmd( inFunc, name, flag, moduleName=None, docstring='', returnFunc=None, cmdName=None ):
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = inFunc.__name__
@@ -885,7 +885,7 @@ def makeSecondaryFlagCmd( name, inFunc, flag, moduleName=None, docstring='', ret
                 kwargs[flag]=True
             elif len(args)==2:
                 kwargs[flag]=args[1]
-                args = (args[0],)              
+                args = (args[0],)
             else:
                 raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
             return inFunc( *args, **kwargs )
@@ -896,7 +896,13 @@ def makeSecondaryFlagCmd( name, inFunc, flag, moduleName=None, docstring='', ret
 def secondaryflag( cmdName, flag ):
     """query flag decorator"""
     def secondary_decorator(method):
-        return makeSecondaryFlagCmd( method.__name__, method, flag, cmdName=cmdName )
+        return makeSecondaryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+    return secondary_decorator
+
+def add_docs( cmdName, flag ):
+    """decorator"""
+    def doc_decorator(method):
+        return _addFlagCmdDocs(method, method.__name__, flag, cmdName=cmdName )
     return secondary_decorator
 
 '''
@@ -995,7 +1001,7 @@ class metaNode(type) :
                     methodName = 'get' + pymel.util.capitalize(flag)
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                            classdict[methodName] = makeQueryFlagCmd( methodName, func, 
+                            classdict[methodName] = makeQueryFlagCmd( func, methodName, 
                                 flag, docstring=flagInfo['docstring'] )
                         #else: print "%s: skipping %s" % ( classname, methodName )
                 
@@ -1010,7 +1016,7 @@ class metaNode(type) :
                         
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                            classdict[methodName] = makeEditFlagCmd( methodName, func,
+                            classdict[methodName] = makeEditFlagCmd( func, methodName, 
                                  flag, docstring=flagInfo['docstring'] )
                     
         except KeyError: # on cmdlist[nodeType]
