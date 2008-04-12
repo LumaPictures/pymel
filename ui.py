@@ -415,6 +415,44 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
 						   ma="center", cb="No", ds="No")
 	return (ret==yes)
 
+
+class MelToPythonWindow(Window):
+
+    def __new__(cls, name=None):
+        self = window(title=name or "Mel To Python")
+        return Window.__new__(cls, self)
+
+    def convert(w):
+	    from mel2py import mel2pyStr
+	    if cmds.cmdScrollFieldExecuter(w.mel,q=1,hasSelection=1):
+	        cmds.cmdScrollFieldExecuter(w.mel,e=1,copySelection=1)
+	        cmds.cmdScrollFieldExecuter(w.python,e=1,clear=1)
+	        cmds.cmdScrollFieldExecuter(w.python,e=1,pasteSelection=1)
+	        mel = cmds.cmdScrollFieldExecuter(w.python,q=1,text=1)
+	    else:
+	        mel = cmds.cmdScrollFieldExecuter(w.mel,q=1,text=1)
+	    try:
+	        py = mel2pyStr(mel)
+	    except Exception, e:
+	        confirmDialog(t="Mel To Python",m="Conversion Error:\n%s" % e,b=["Ok"], db="Ok")
+	    else:
+	        cmds.cmdScrollFieldExecuter(w.python,e=1,text=py)
+	
+
+    def __init__(self):
+    	SLC(None, horizontalLayout, dict(ratios=[1,.1,1]), AutoLayout.redistribute, [
+		  	SLC("mel", cmds.cmdScrollFieldExecuter, {}),
+		  	SLC("button", button, dict(l="->", c=lambda *x: self.convert(), bgc=[.5,.7,1])),
+		  	SLC("python", cmds.cmdScrollFieldExecuter, dict(st="python"))
+		  	]).create(self.__dict__,parent=self)
+		
+        self.setWidthHeight([600,800])
+        self.show()
+
+
+
+
+
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 def _createClassesAndFunctions():
