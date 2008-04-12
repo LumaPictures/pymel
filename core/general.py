@@ -15,10 +15,10 @@ except ImportError:
     pass
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
-import pymel.util.factories as factories
+import pymel.util.factories as _factories
 from pymel.util.factories import queryflag, editflag, createflag
 import pymel.api as api
-import pymel.core.system
+import system
 from system import namespaceInfo
 from types.vector import *
 from types.ranges import *
@@ -271,7 +271,7 @@ class Env(util.Singleton):
     def getConstructionHistory(self):
         return cmds.constructionHistory( q=True, tgl=True )    
     def sceneName(self):
-        return pymel.core.system.Path(cmds.file( q=1, sn=1))
+        return system.Path(cmds.file( q=1, sn=1))
 
     def setUpAxis( axis, rotateView=False ):
         """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
@@ -1082,7 +1082,7 @@ def selected( **kwargs ):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-metaNode = factories.metaNode
+metaNode = _factories.metaNode
 
 
                                 
@@ -1585,7 +1585,7 @@ class Attribute(PyNode):
     # getting and setting                    
     set = setAttr            
     get = getAttr
-    setKey = factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
+    setKey = _factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
     
     
     #----------------------
@@ -2523,11 +2523,11 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
-    dolly = factories.functionFactory( cmds.dolly  )
-    roll = factories.functionFactory( cmds.roll  )
-    orbit = factories.functionFactory( cmds.orbit  )
-    track = factories.functionFactory( cmds.track )
-    tumble = factories.functionFactory( cmds.tumble ) 
+    dolly = _factories.functionFactory( cmds.dolly  )
+    roll = _factories.functionFactory( cmds.roll  )
+    orbit = _factories.functionFactory( cmds.orbit  )
+    track = _factories.functionFactory( cmds.track )
+    tumble = _factories.functionFactory( cmds.tumble ) 
     
             
 class Transform(DagNode):
@@ -2719,30 +2719,30 @@ class Transform(DagNode):
 
 class Joint(Transform):
     __metaclass__ = metaNode
-    connect = factories.functionFactory( cmds.connectJoint, rename='connect')
-    disconnect = factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
-    insert = factories.functionFactory( cmds.insertJoint, rename='insert')
+    connect = _factories.functionFactory( cmds.connectJoint, rename='connect')
+    disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
+    insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
 class FluidEmitter(Transform):
     __metaclass__ = metaNode
-    fluidVoxelInfo = factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
-    loadFluid = factories.functionFactory( cmds.loadFluid, rename='loadFluid')
-    resampleFluid = factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
-    saveFluid = factories.functionFactory( cmds.saveFluid, rename='saveFluid')
-    setFluidAttr = factories.functionFactory( cmds.setFluidAttr, rename='setFluidAttr')
-    getFluidAttr = factories.functionFactory( cmds.getFluidAttr, rename='getFluidAttr')
+    fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
+    loadFluid = _factories.functionFactory( cmds.loadFluid, rename='loadFluid')
+    resampleFluid = _factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
+    saveFluid = _factories.functionFactory( cmds.saveFluid, rename='saveFluid')
+    setFluidAttr = _factories.functionFactory( cmds.setFluidAttr, rename='setFluidAttr')
+    getFluidAttr = _factories.functionFactory( cmds.getFluidAttr, rename='getFluidAttr')
     
 class RenderLayer(DependNode):
     __metaclass__ = metaNode
-    editAdjustment = factories.functionFactory( cmds.editRenderLayerAdjustment, rename='editAdjustment')
-    editGlobals = factories.functionFactory( cmds.editRenderLayerGlobals, rename='editGlobals')
-    editMembers = factories.functionFactory( cmds.editRenderLayerMembers, rename='editMembers')
-    postProcess = factories.functionFactory( cmds.renderLayerPostProcess, rename='postProcess')
+    editAdjustment = _factories.functionFactory( cmds.editRenderLayerAdjustment, rename='editAdjustment')
+    editGlobals = _factories.functionFactory( cmds.editRenderLayerGlobals, rename='editGlobals')
+    editMembers = _factories.functionFactory( cmds.editRenderLayerMembers, rename='editMembers')
+    postProcess = _factories.functionFactory( cmds.renderLayerPostProcess, rename='postProcess')
 
 class DisplayLayer(DependNode):
     __metaclass__ = metaNode
-    editGlobals = factories.functionFactory( cmds.editDisplayLayerGlobals, rename='editGlobals')
-    editMembers = factories.functionFactory( cmds.editDisplayLayerMembers, rename='editMembers')
+    editGlobals = _factories.functionFactory( cmds.editDisplayLayerGlobals, rename='editGlobals')
+    editMembers = _factories.functionFactory( cmds.editDisplayLayerMembers, rename='editMembers')
     
 class Constraint(Transform):
     def setWeight( self, weight, *targetObjects ):
@@ -2905,12 +2905,12 @@ class Mesh(SurfaceShape):
                 """
             return at.set(val)
                         
-    vertexCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'vertexCount', 'vertex' )
-    edgeCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'edgeCount', 'edge' )
-    faceCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'faceCount',  'face' )
-    uvcoordCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'uvcoordCount', 'uvcoord' )
-    triangleCount = factories.makeCreateFlagCmd( cmds.polyEvaluate, 'triangleCount', 'triangle' )
-    #area = factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
+    vertexCount = _factories.makeCreateFlagCmd( cmds.polyEvaluate, 'vertexCount', 'vertex' )
+    edgeCount = _factories.makeCreateFlagCmd( cmds.polyEvaluate, 'edgeCount', 'edge' )
+    faceCount = _factories.makeCreateFlagCmd( cmds.polyEvaluate, 'faceCount',  'face' )
+    uvcoordCount = _factories.makeCreateFlagCmd( cmds.polyEvaluate, 'uvcoordCount', 'uvcoord' )
+    triangleCount = _factories.makeCreateFlagCmd( cmds.polyEvaluate, 'triangleCount', 'triangle' )
+    #area = _factories.makeCreateFlagCmd( 'area', cmds.polyEvaluate, 'area' )
     
     #def area(self):
     #    return cmds.polyEvaluate(self, area=True)
@@ -3166,17 +3166,17 @@ class ObjectSet(Entity):
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 def _createClasses():
-    #for cmds.nodeType in networkx.search.dfs_preorder( factories.nodeHierarchy , 'dependNode' )[1:]:
-    #print factories.nodeHierarchy
+    #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
+    #print _factories.nodeHierarchy
     # see if breadth first isn't more practical ?
-    for treeElem in factories.nodeHierarchy.preorder():
+    for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
         nodeType = treeElem.key
         #print "cmds.nodeType: ", cmds.nodeType
         if nodeType == 'dependNode': continue
         classname = util.capitalize(nodeType)
         if not hasattr( _thisModule, classname ):
-            #superNodeType = factories.nodeHierarchy.parent( cmds.nodeType )
+            #superNodeType = _factories.nodeHierarchy.parent( cmds.nodeType )
             superNodeType = treeElem.parent.key
             #print "superNodeType: ", superNodeType, type(superNodeType)
             if superNodeType is None:
@@ -3206,7 +3206,7 @@ def testNodeCmds(verbose=False):
 
     emptyFunctions = []
     
-    for funcName in factories.moduleCmds['node']:
+    for funcName in _factories.moduleCmds['node']:
         print funcName.center( 50, '=')
         
         if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
@@ -3239,7 +3239,7 @@ def testNodeCmds(verbose=False):
         else:
             #(func, args, data) = cmdList[funcName]    
             #(usePyNode, baseClsName, nodeName)
-            args = factories.cmdlist[funcName]['flags']
+            args = _factories.cmdlist[funcName]['flags']
 
             if isinstance(obj, list):
                 print "returns list"
@@ -3262,7 +3262,7 @@ def testNodeCmds(verbose=False):
                             print "\tsucceeded: %s" % val
                     except TypeError, msg:                            
                         if str(msg).startswith( 'Invalid flag' ):
-                            factories.cmdlist[funcName]['flags'].pop(flag,None)
+                            _factories.cmdlist[funcName]['flags'].pop(flag,None)
                         #else:
                         print cmd
                         print "\t", msg
@@ -3302,7 +3302,7 @@ def testNodeCmds(verbose=False):
                         #print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
                     except TypeError, msg:                                                        
                         if str(msg).startswith( 'Invalid flag' ):
-                            factories.cmdlist[funcName]['flags'].pop(flag,None)
+                            _factories.cmdlist[funcName]['flags'].pop(flag,None)
                         #else:
                         print cmd
                         print "\t", msg 
@@ -4088,4 +4088,4 @@ def iterHierarchy ( *args, **kwargs ):
     pass
 
 
-factories.createFunctions( __name__, PyNode )
+_factories.createFunctions( __name__, PyNode )

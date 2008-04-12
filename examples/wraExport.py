@@ -40,8 +40,8 @@ def wraExport( outFile=None, tag=''):
 	
 	f = open( outFile, 'w')
 	# get anim start, end from time slider
-	start = playbackOptions( q=1, min=1)
-	end = playbackOptions( q=1, max=1)
+	start = env.getMinTime()
+	end = env.getMaxTime()
 	objs = selected()
 	print "Writing out anim for frames %d-%d to %s" % (start, end, outFile)
 
@@ -71,7 +71,7 @@ SAVED_ATTRS 0 1 2 3 4 5 6 7 8
 
 	# data
 	for frame in range( int(start), int(end)+1):
-		setCurrentTime( frame )
+		currentTime( frame )
 		for i, obj in enumerate( objs ):
 			
 			attrs = []
@@ -92,7 +92,7 @@ SAVED_ATTRS 0 1 2 3 4 5 6 7 8
 def emberExport():
 	# export camera anim
 	try:
-		Node('conCam').select()	
+		select('conCam')	
 	except:
 		print "camera must be named 'conCam'"
 	else:

@@ -9,29 +9,29 @@ primary flag -- the resulting functions are more readable and allow the file com
 within the pymel namespace.   
 
 for example, instead of this:
-	
-	>>> expFile = cmds.file( exportAll=1, preserveReferences=1 )
-	
+    
+    >>> expFile = cmds.file( exportAll=1, preserveReferences=1 )
+    
 you can do this:
 
-	>>> expFile = exportAll( preserveReferences=1)
-	
+    >>> expFile = exportAll( preserveReferences=1)
+    
 some of the new commands were changed slightly from their flag name to avoid name clashes and to add to readability:
 
-	>>> importFile( expFile )
-	>>> createReference( expFile )
+    >>> importFile( expFile )
+    >>> createReference( expFile )
 
 also note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 """
 
 try:
-	import maya.cmds as cmds
-	import maya.OpenMaya as OpenMaya
+    import maya.cmds as cmds
+    import maya.OpenMaya as OpenMaya
 except ImportError: pass
 
 import pymel.util as util
-import pymel.util.factories as factories
-from pymel.util.factories import secondaryflag
+import pymel.util.factories as _factories
+from pymel.util.factories import createflag, add_docs
 from pymel.util.scanf import fscanf
 
 import sys
@@ -39,16 +39,16 @@ try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
 except ImportError:
-    import pymel.core.types.path
-    pathClass = pymel.core.types.path.path
+    import types.path
+    pathClass = types.path.path
     
 
 
 def _getTypeFromExtension( path ):
-	return {
-		'.ma' : 'mayaAscii',
-		'.mb' :	'mayaBinary'
-	}[Path(path).ext]
+    return {
+        '.ma' : 'mayaAscii',
+        '.mb' :    'mayaBinary'
+    }[Path(path).ext]
 
 
 def feof( fileid ):
@@ -70,181 +70,56 @@ def feof( fileid ):
 
 
 def sceneName():
-    return Path( OpenMaya.MFileIO.currentFile() )	
+    return Path( OpenMaya.MFileIO.currentFile() )    
 
 def listNamespaces():
-	"""Returns a list of the namespaces of referenced files.
-	REMOVE In Favor of listReferences('dict') ?""" 
-	try:
-		return [ cmds.file( x, q=1, namespace=1) for x in cmds.file( q=1, reference=1)  ]
-	except:
-		return []
+    """Returns a list of the namespaces of referenced files.
+    REMOVE In Favor of listReferences('dict') ?""" 
+    try:
+        return [ cmds.file( x, q=1, namespace=1) for x in cmds.file( q=1, reference=1)  ]
+    except:
+        return []
 
 
 
 
 
 def listReferences(type='list'):
-	"""file -q -reference
-	By default returns a list of reference files as FileReference classes. The optional type argument can be passed a 'dict'
-	(or dict object) to return the references as a dictionary with namespaces as keys and References as values.
-	
-	Untested: multiple references with no namespace...
-	"""
-	
-	# dict
-	if type in ['dict', dict]:
-		res = {}
-		try:
-			for x in cmds.file( q=1, reference=1):
-				res[cmds.file( x, q=1, namespace=1)] = FileReference(x)
-		except: pass
-		return res
-	
-	# list
-	return map( FileReference,cmds.file( q=1, reference=1) )
-
-def getReferences(reference=None, recursive=False):
-	res = {}	
-	if reference is None:
-		try:
-			for x in cmds.file( q=1, reference=1):
-				ref = FileReference(x)
-				res[cmds.file( x, q=1, namespace=1)] = ref
-				if recursive:
-					res.update( ref.subReferences() )
-		except: pass
-	else:
-		try:
-			for x in cmds.file( self, q=1, reference=1):
-				res[cmds.file( x, q=1, namespace=1)] = FileReference(x)
-		except: pass
-	return res	
-
-#-----------------------------------------------
-#  File Classes
-#-----------------------------------------------
+    """file -q -reference
+    By default returns a list of reference files as FileReference classes. The optional type argument can be passed a 'dict'
+    (or dict object) to return the references as a dictionary with namespaces as keys and References as values.
     
-class Path(pathClass):
-    """A basic Maya file class. it gets most of its power from the path class written by Jason Orendorff.
-    see path.py for more documentation."""
-    def __repr__(self):
-        return "%s('%s')" % (self.__class__.__name__, self)
-    def writable(self):
-        return cmds.file( self, q=1, writable=1 )
-    def type(self):
-        return cmds.file( self, q=1, type=1 )
-        
-class FileReference(Path):
-    """A class for manipulating references which inherits Path and path.  you can create an 
-    instance by supplying the path to a reference file, its namespace, or its reference node to the 
-    appropriate keyword. The namespace and reference node of the reference can be retreived via 
-    the namespace and refNode properties. The namespace property can also be used to change the namespace
-    of the reference. 
+    Untested: multiple references with no namespace...
+    """
     
-    Use listRefences command to return a list of references as instances of the FileReference class.
-    
-    It is important to note that instances of this class will have their copy number stripped off
-    and stored in an internal variable upon creation.  This is to maintain compatibility with the numerous methods
-    inherited from the path class which requires a real file path. When calling built-in methods of FileReference, 
-    the path will automatically be suffixed with the copy number before being passed to maya commands, thus ensuring 
-    the proper results in maya as well. 
-     """
-    
-    def __new__(cls, path=None, namespace=None, refnode=None):
-        def create(path):
-            def splitCopyNumber(path):
-                """Return a tuple with the path and the copy number. Second element will be None if no copy number"""
-                buf = path.split('{')
-                try:
-                    return ( buf[0], int(buf[1][:-1]) )
-                except:
-                    return (path, None)
-                    
-            path, copyNumber = splitCopyNumber(path)
-            self = Path.__new__(cls, path)
-            self._copyNumber = copyNumber
-            return self
-            
-        if path:
-            return create(path)
-        if namespace:
-            for path in map( FileReference, cmds.file( q=1, reference=1) ):
-                 if path.namespace == namespace:
-                    return create(path)
-            raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
-        if refnode:
-            path = cmds.referenceQuery( refnode, filename=1 )
-            return create(path)
-        raise ValueError, "Must supply at least one argument"    
-
-    def subReferences(self):
-        namespace = self.namespace + ':'
+    # dict
+    if type in ['dict', dict]:
         res = {}
         try:
-            for x in cmds.file( self, q=1, reference=1):
-                res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.FileReference(x)
+            for x in cmds.file( q=1, reference=1):
+                res[cmds.file( x, q=1, namespace=1)] = FileReference(x)
         except: pass
-        return res    
-        
-        
-    def namespaceExists(self):
-        return cmds.namespace(ex=self.namespace)
-        
-    def withCopyNumber(self):
-        """return this path with the copy number at the end"""
-        if self._copyNumber is not None:
-            return Path( '%s{%d}' % (self, self._copyNumber) )
-        return self
-            
-    def importContents(self):
-        """file -importReference """
-        return cmds.file( self.withCopyNumber(), importReference=1 )
-    def remove(self):
-        """file -removeReference """
-        return cmds.file( self.withCopyNumber(), removeReference=1 )
-    def unload(self):
-        """file -unloadReference """
-        return cmds.file( self.withCopyNumber(), unloadReference=1 )    
-    def clean(self):
-        """file -cleanReference """
-        return cmds.file( self.withCopyNumber(), cleanReference=1 )
-    def lock(self):
-        """file -lockReference """
-        return cmds.file( self.withCopyNumber(), lockReference=1 )
-    def unlock(self):
-        """file -lockReference """
-        return cmds.file( self.withCopyNumber(), lockReference=0 )
-         
-    def isDeferred(self):
-        """file -q -deferReference """
-        return cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
-    def isLoaded(self):
-        return not cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
+        return res
     
-    def nodes(self):
-        """referenceQuery -nodes """
-        return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
-    def copyNumberList(self):
-        """returns a list of all the copy numbers of this file"""
-        return cmds.file( self, q=1, copyNumberList=1 )
-    def selectAll(self):
-        """file -selectAll"""
-        return cmds.file( self.withCopyNumber(), selectAll=1 )
-            
-    def _getNamespace(self):
-        return cmds.file( self.withCopyNumber(), q=1, ns=1)
-    def _setNamespace(self, namespace):
-        return cmds.file( self.withCopyNumber(), e=1, ns=namespace)    
-    namespace = property( _getNamespace, _setNamespace )
+    # list
+    return map( FileReference,cmds.file( q=1, reference=1) )
 
-    def _getRefNode(self):
-        #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
-        return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )   
-    refNode = util.cacheProperty( _getRefNode, '_refNode')
-    
-    def isUsingNamespaces(self):
-    	return cmds.file( self.withCopyNumber(), q=1, usingNamespace=1 )
+def getReferences(reference=None, recursive=False):
+    res = {}    
+    if reference is None:
+        try:
+            for x in cmds.file( q=1, reference=1):
+                ref = FileReference(x)
+                res[cmds.file( x, q=1, namespace=1)] = ref
+                if recursive:
+                    res.update( ref.subReferences() )
+        except: pass
+    else:
+        try:
+            for x in cmds.file( self, q=1, reference=1):
+                res[cmds.file( x, q=1, namespace=1)] = FileReference(x)
+        except: pass
+    return res    
 
 #-----------------------------------------------
 #  Workspace Class
@@ -454,87 +329,240 @@ class FileInfo( util.Singleton ):
     has_key = __contains__    
 fileInfo = FileInfo()
 
+
+
+#-----------------------------------------------
+#  File Classes
+#-----------------------------------------------
+    
+class Path(pathClass):
+    """A basic Maya file class. it gets most of its power from the path class written by Jason Orendorff.
+    see path.py for more documentation."""
+    def __repr__(self):
+        return "%s('%s')" % (self.__class__.__name__, self)
+    
+    writable = _factories.makeQueryFlagCmd( cmds.file, 'writable' )
+    type = _factories.makeQueryFlagCmd( cmds.file, 'type' )
+    setSubType = _factories.makeQueryFlagCmd( cmds.file, 'setSubType', 'subType')
+        
+class FileReference(Path):
+    """A class for manipulating references which inherits Path and path.  you can create an 
+    instance by supplying the path to a reference file, its namespace, or its reference node to the 
+    appropriate keyword. The namespace and reference node of the reference can be retreived via 
+    the namespace and refNode properties. The namespace property can also be used to change the namespace
+    of the reference. 
+    
+    Use listRefences command to return a list of references as instances of the FileReference class.
+    
+    It is important to note that instances of this class will have their copy number stripped off
+    and stored in an internal variable upon creation.  This is to maintain compatibility with the numerous methods
+    inherited from the path class which requires a real file path. When calling built-in methods of FileReference, 
+    the path will automatically be suffixed with the copy number before being passed to maya commands, thus ensuring 
+    the proper results in maya as well. 
+    """
+    
+    def __new__(cls, path=None, namespace=None, refnode=None):
+        def create(path):
+            def splitCopyNumber(path):
+                """Return a tuple with the path and the copy number. Second element will be None if no copy number"""
+                buf = path.split('{')
+                try:
+                    return ( buf[0], int(buf[1][:-1]) )
+                except:
+                    return (path, None)
+                    
+            path, copyNumber = splitCopyNumber(path)
+            self = Path.__new__(cls, path)
+            self._copyNumber = copyNumber
+            return self
+            
+        if path:
+            return create(path)
+        if namespace:
+            for path in map( FileReference, cmds.file( q=1, reference=1) ):
+                 if path.namespace == namespace:
+                    return create(path)
+            raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
+        if refnode:
+            path = cmds.referenceQuery( refnode, filename=1 )
+            return create(path)
+        raise ValueError, "Must supply at least one argument"    
+
+    def subReferences(self):
+        namespace = self.namespace + ':'
+        res = {}
+        try:
+            for x in cmds.file( self, q=1, reference=1):
+                res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.FileReference(x)
+        except: pass
+        return res    
+        
+    @add_docs('namespace', 'exists')    
+    def namespaceExists(self):
+        return cmds.namespace(ex=self.namespace)
+      
+    def withCopyNumber(self):
+        """return this path with the copy number at the end"""
+        if self._copyNumber is not None:
+            return Path( '%s{%d}' % (self, self._copyNumber) )
+        return self
+    
+    @createflag('file', 'importReference')
+    def importContents(self, **kwargs):
+        return cmds.file( self.withCopyNumber(), **kwargs )
+       
+    @createflag('file', 'removeReference')
+    def remove(self, **kwargs):
+        return cmds.file( self.withCopyNumber(), **kwargs )
+       
+    @add_docs('file', 'unloadReference')
+    def unload(self):
+        return cmds.file( self.withCopyNumber(), unloadReference=1 )
+       
+    @createflag('file', 'loadReference')
+    def load(self, **kwargs):
+        return cmds.file( self.withCopyNumber(), **kwargs )
+    
+    @add_docs('file', 'cleanReference')
+    def clean(self, **kwargs):
+        return cmds.file( cleanReference=self.refNode, **kwargs )
+    
+    @add_docs('file', 'lockReference')
+    def lock(self):
+        return cmds.file( self.withCopyNumber(), lockReference=1 )
+    
+    @add_docs('file', 'lockReference')
+    def unlock(self):
+        return cmds.file( self.withCopyNumber(), lockReference=0 )
+    
+    @add_docs('file', 'deferReference')     
+    def isDeferred(self):
+        return cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
+       
+    @add_docs('file', 'deferReference')
+    def isLoaded(self):
+        return not cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
+    
+    @add_docs('referenceQuery', 'nodes')
+    def nodes(self):
+        return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
+    
+    @add_docs('file', 'copyNumberList')
+    def copyNumberList(self):
+        """returns a list of all the copy numbers of this file"""
+        return cmds.file( self, q=1, copyNumberList=1 )
+      
+    @add_docs('file', 'selectAll')
+    def selectAll(self):
+        return cmds.file( self.withCopyNumber(), selectAll=1 )
+            
+    def _getNamespace(self):
+        return cmds.file( self.withCopyNumber(), q=1, ns=1)
+    def _setNamespace(self, namespace):
+        return cmds.file( self.withCopyNumber(), e=1, ns=namespace)    
+    namespace = property( _getNamespace, _setNamespace )
+
+    def _getRefNode(self):
+        #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
+        return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )   
+    refNode = util.cacheProperty( _getRefNode, '_refNode')
+    
+    @add_docs('file', 'usingNamespaces')
+    def isUsingNamespaces(self):
+        return cmds.file( self.withCopyNumber(), q=1, usingNamespaces=1 )
+
+    @add_docs('file', 'exportAnimFromReference')    
+    def exportAnim( self, filepath, **kwargs ):
+        if 'type' not in kwargs:
+            try: kwargs['type'] = _getTypeFromExtension(filepath)
+            except: pass
+        return Path(cmds.file( filepath, rfn=self.refNode, exportAnimFromReference=1))
+          
+    @add_docs('file', 'exportSelectedAnimFromReference')    
+    def exportSelectedAnim( self, filepath, **kwargs ):
+        if 'type' not in kwargs:
+            try: kwargs['type'] = _getTypeFromExtension(filepath)
+            except: pass
+        return Path(cmds.file( filepath, rfn=self.refNode, exportSelectedAnimFromReference=1))
+
 # TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave
 
-@secondaryflag('file', 'reference')
+@createflag('file', 'reference')
 def createReference( *args, **kwargs ):
-	return FileReference(cmds.file(*args, **kwargs))
+    return FileReference(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'loadReference')
+@createflag('file', 'loadReference')
 def loadReference( file, refNode, **kwargs ):
-	return FileReference(cmds.file(file, **kwargs))
+    return FileReference(cmds.file(file, **kwargs))
 
-@secondaryflag('file', 'exportAll')	
-def exportAll( *args, **kwargs ):
-	try:
-		kwargs['type'] = _getTypeFromExtension(args[0])
-	except: pass
-	
-	return Path(cmds.file(*args, **kwargs))
+@createflag('file', 'exportAll')    
+def exportAll( filepath, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        except: pass  
+    return Path(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'exportAsReference')
-def exportAsReference( *args, **kwargs ):
-	if 'type' not in kwargs:
-		try: kwargs['type'] = _getTypeFromExtension(filepath)
-		except: pass
-	return FileReference(cmds.file(*args, **kwargs))
+@createflag('file', 'exportAsReference')
+def exportAsReference( filepath, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        except: pass
+    return FileReference(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'exportSelected')
-def exportSelected( *args, **kwargs ):
-	if 'type' not in kwargs:
-		try: kwargs['type'] = _getTypeFromExtension(filepath)
-		except: pass
-	return Path(cmds.file(*args, **kwargs))
+@createflag('file', 'exportSelected')
+def exportSelected( filepath, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        except: pass
+    return Path(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'exportAnim')
-def exportAnim( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
+@createflag('file', 'exportAnim')
+def exportAnim( filepath, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        except: pass
+    return Path(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'exportAnimFromReference')
-def exportAnimFromReference( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
+@createflag('file', 'exportSelectedAnim')
+def exportSelectedAnim( filepath, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        except: pass
+    return Path(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'exportSelectedAnim')
-def exportSelectedAnim( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
-
-@secondaryflag('file', 'exportSelectedAnimFromReference')	
-def exportSelectedAnimFromReference( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
-
-@secondaryflag('file', 'i')
+@createflag('file', 'i')
 def importFile( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'newFile')
+@createflag('file', 'newFile')
 def newFile( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(*args, **kwargs))
 
-@secondaryflag('file', 'open')
+@createflag('file', 'open')
 def openFile( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))	
+    return Path(cmds.file(*args, **kwargs))    
 
-@secondaryflag('file', 'rename')
+@createflag('file', 'rename')
 def renameFile( *args, **kwargs ):
-	return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(*args, **kwargs))
 
 def saveAs(filepath, **kwargs):
-	cmds.file( rename=filepath )
-	kwargs['save']=True
-	if 'type' not in kwargs:
-		try: kwargs['type'] = _getTypeFromExtension(filepath)
-		except: pass
-	return Path(cmds.file(**kwargs) )
+    cmds.file( rename=filepath )
+    kwargs['save']=True
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        except: pass
+    return Path(cmds.file(**kwargs) )
 
-#createReference = factories.makeSecondaryFlagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
-#loadReference = factories.makeSecondaryFlagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
-#exportAnim = factories.makeSecondaryFlagCmd( 'exportAnim', cmds.file, 'exportAnim',  __name__, returnFunc=Path )
-#exportAnimFromReference = factories.makeSecondaryFlagCmd( 'exportAnimFromReference', cmds.file, 'exportAnimFromReference',  __name__, returnFunc=Path )
-#exportSelectedAnim = factories.makeSecondaryFlagCmd( 'exportSelectedAnim', cmds.file, 'exportSelectedAnim',  __name__, returnFunc=Path )
-#exportSelectedAnimFromReference = factories.makeSecondaryFlagCmd( 'exportSelectedAnimFromReference', cmds.file, 'exportSelectedAnimFromReference', __name__,  returnFunc=Path )
-#importFile = factories.makeSecondaryFlagCmd( 'importFile', cmds.file, 'i',  __name__, returnFunc=Path )
-#newFile = factories.makeSecondaryFlagCmd( 'newFile', cmds.file, 'newFile',  __name__, returnFunc=Path )
-#openFile = factories.makeSecondaryFlagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
-#renameFile = factories.makeSecondaryFlagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
+#createReference = _factories.makecreateflagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
+#loadReference = _factories.makecreateflagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
+#exportAnim = _factories.makecreateflagCmd( 'exportAnim', cmds.file, 'exportAnim',  __name__, returnFunc=Path )
+#exportAnimFromReference = _factories.makecreateflagCmd( 'exportAnimFromReference', cmds.file, 'exportAnimFromReference',  __name__, returnFunc=Path )
+#exportSelectedAnim = _factories.makecreateflagCmd( 'exportSelectedAnim', cmds.file, 'exportSelectedAnim',  __name__, returnFunc=Path )
+#exportSelectedAnimFromReference = _factories.makecreateflagCmd( 'exportSelectedAnimFromReference', cmds.file, 'exportSelectedAnimFromReference', __name__,  returnFunc=Path )
+#importFile = _factories.makecreateflagCmd( 'importFile', cmds.file, 'i',  __name__, returnFunc=Path )
+#newFile = _factories.makecreateflagCmd( 'newFile', cmds.file, 'newFile',  __name__, returnFunc=Path )
+#openFile = _factories.makecreateflagCmd( 'openFile', cmds.file, 'open',  __name__, returnFunc=Path )
+#renameFile = _factories.makecreateflagCmd( 'renameFile', cmds.file, 'rename',  __name__, returnFunc=Path )
 
-factories.createFunctions( __name__ )
+_factories.createFunctions( __name__ )

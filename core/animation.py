@@ -1,6 +1,8 @@
 
-import pymel.util.factories
-import pymel.core.general
+import pymel.util as util
+import pymel.util.factories as _factories
+
+import general
 try:
     import maya.cmds as cmds
     import maya.mel as mm
@@ -35,7 +37,7 @@ Maya Bug Fix:
         if filter( lambda x: x in args, kwargs.keys()):
             res = res[0]
     elif res is not None:    
-        res = pymel.core.general.PyNode(res)
+        res = general.PyNode(res)
     return res
 
 def _constraint( func ):
@@ -59,7 +61,7 @@ Modifications:
             
             for attr in attrs:
                 if attr in kwargs:
-                    return pymel.core.general.Vector( getAttr(args[0] + "." + attr ) )
+                    return general.Vector( getAttr(args[0] + "." + attr ) )
                     
             
         if len(args)==1:
@@ -71,7 +73,7 @@ Modifications:
                 constraint = args[0]
                 if 'constraint' in cmds.cmds.nodeType( constraint, inherited=1 ):
                     print constraint
-                    if not pymel.util.isIterable( targetObjects ):
+                    if not util.isIterable( targetObjects ):
                         targetObjects = [targetObjects]
                     elif not targetObjects:
                         targetObjects = func( constraint, q=1, targetList=1 )
@@ -116,7 +118,7 @@ Modifications:
         
         for attr in attrs:
             if attr in kwargs:
-                return pymel.core.general.Vector( getAttr(args[0] + "." + attr ) )
+                return general.Vector( getAttr(args[0] + "." + attr ) )
                 
         
     if len(args)==1:
@@ -128,7 +130,7 @@ Modifications:
             constraint = args[0]
             if 'constraint' in cmds.cmds.nodeType( constraint, inherited=1 ):
                 print constraint
-                if not pymel.util.isIterable( targetObjects ):
+                if not util.isIterable( targetObjects ):
                     targetObjects = [targetObjects]
                 elif not targetObjects:
                     targetObjects = cmds.aimConstraint( constraint, q=1, targetList=1 )
@@ -157,13 +159,13 @@ Maya Bug Fix:
         
         for attr in attrs:
             if attr in kwargs:
-                return pymel.core.general.Vector( getAttr(args[0] + "." + attr ) )
+                return general.Vector( getAttr(args[0] + "." + attr ) )
                 
             
     res = cmds.normalConstraint(*args, **kwargs)
     return res
 
 
-pymel.util.factories.createFunctions( __name__, pymel.core.general.PyNode )
+_factories.createFunctions( __name__, general.PyNode )
 
 

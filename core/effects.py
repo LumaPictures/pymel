@@ -1,4 +1,4 @@
 
-import pymel.util.factories as factories
-import pymel.core.general
-factories.createFunctions( __name__, pymel.core.general.PyNode )
+import pymel.util.factories as _factories
+import general
+_factories.createFunctions( __name__, general.PyNode )

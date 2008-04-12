@@ -1,6 +1,7 @@
 
-import pymel.util.factories
-import pymel.core.general
+import pymel.util as util
+import pymel.util.factories as _factories
+import general
 try:
     import maya.cmds as cmds
     import maya.mel as mm
@@ -9,7 +10,7 @@ except ImportError:
 
 
 def shadingNode( *args, **kwargs):
-    return pymel.core.general.PyNode( cmds.shadingNode( *args, **kwargs ) )
+    return general.PyNode( cmds.shadingNode( *args, **kwargs ) )
 
 def createSurfaceShader( shadertype, name=None ):
     classification = getClassification( shadertype )
@@ -18,9 +19,9 @@ def createSurfaceShader( shadertype, name=None ):
     newShader = None
     #if 'shader/surface' in classification:        
     if 'rendernode/mentalray/material' in classification:
-        newShader = pymel.core.general.DependNode(mel.mrCreateCustomNode( "-asShader", "", shadertype))
+        newShader = general.DependNode(mel.mrCreateCustomNode( "-asShader", "", shadertype))
     else:
-        newShader = pymel.core.general.DependNode(mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
+        newShader = general.DependNode(mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
     #else:
     #    raise TypeError, "%s is not a valid surface shader type. shader must be classified as 'shader/surface'" % shadertype
     sg = newShader.shadingGroups()[0]
@@ -100,4 +101,4 @@ Maya Bug Fix:
     
     return PyNode( cmds.ambientLight(*args, **kwargs), 'ambientLight'  )
 
-pymel.util.factories.createFunctions( __name__, pymel.core.general.PyNode )
+_factories.createFunctions( __name__, general.PyNode )

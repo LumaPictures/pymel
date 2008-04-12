@@ -1,5 +1,5 @@
 """
-The runtime module contains all runtime commands.
+The ctx module contains all context commands.
 """
 
 import pymel.util.factories as _factories

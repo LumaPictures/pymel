@@ -62,7 +62,7 @@ try:
 except ImportError: pass
 
 import pymel.util as util
-import pymel.util.factories as factories
+import pymel.util.factories as _factories
 	
 #-----------------------------------------------
 #  Enhanced UI Commands
@@ -114,7 +114,7 @@ Maya Bug Fix:
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-metaNode = factories.metaNode
+metaNode = _factories.metaNode
 
 class UI(unicode):
 	def __new__(cls, name=None, create=False, *args, **kwargs):
@@ -155,9 +155,9 @@ class UI(unicode):
 		return objectTypeUI(self)
 	def shortName(self):
 		return self.split('|')[-1]
-	delete = factories.functionFactory( 'deleteUI', _thisModule, rename='delete' )
-	rename = factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
-	type = factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
+	delete = _factories.functionFactory( 'deleteUI', _thisModule, rename='delete' )
+	rename = _factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
+	type = _factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
 	 
 # customized ui classes							
 class Window(UI):
@@ -427,7 +427,7 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
 	return (ret==yes)
                         
 def _createClassesAndFunctions():
-	for funcName in factories.uiClassList:
+	for funcName in _factories.uiClassList:
 		classname = util.capitalize(funcName)
 		if not hasattr( _thisModule, classname ):
 			cls = metaNode(classname, (UI,), {})
@@ -437,7 +437,7 @@ def _createClassesAndFunctions():
 			cls = getattr( _thisModule, classname )
 	
 		#funcName = util.uncapitalize( classname )
-		func = factories.functionFactory( funcName, cls, _thisModule )
+		func = _factories.functionFactory( funcName, cls, _thisModule )
 		if func:
 			func.__module__ = __name__
 			setattr( _thisModule, funcName, func )
@@ -447,7 +447,7 @@ def _createClassesAndFunctions():
 _createClassesAndFunctions()
 
 # additional functions that do not create ui objects
-factories.createFunctions( __name__ )
+_factories.createFunctions( __name__ )
 
 def PyUI(strObj, type=None):
 	try:

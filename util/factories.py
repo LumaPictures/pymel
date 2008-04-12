@@ -1,6 +1,10 @@
 
-from pymel.util.trees import *
-import pymel.util, sys, os, inspect, pickle, re, types, os.path
+from trees import *
+from common import capitalize, uncapitalize, moduleDir
+from arguments import isIterable
+from mayautils import getMayaLocation, getMayaVersion
+
+import sys, os, inspect, pickle, re, types, os.path
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 from operator import itemgetter
@@ -76,7 +80,8 @@ secondaryFlags = {
     'file' : ( ( 'loadAllDeferred', False, ['open'] ),
                ( 'loadNoReferences', False, ['open', 'i', 'reference', 'loadReference'] ),
                ( 'loadReferenceDepth', None, ['open', 'i', 'reference', 'loadReference'] ),
-               ( 'force',           False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
+               ( 'force',           False, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 
+                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ),             
                ( 'constructionHistory', True, ['exportSelected'] ),
                ( 'channels',         True, ['exportSelected'] ),
                ( 'constraints',      True, ['exportSelected'] ),
@@ -92,14 +97,17 @@ secondaryFlags = {
                ( 'referenceNode',  None,['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
                ( 'renameAll', None,['i'] ),
                ( 'renamingPrefix',  None,['reference', 'i','exportAsReference'] ),
-               ( 'saveTextures', "unlessRef", ['saveAs']),
+               #( 'saveTextures', "unlessRef", ['saveAs']),
                ( 'swapNamespace',  None, ['reference', 'i'] ),
                ( 'sharedReferenceFile',  None, ['reference'] ),
                ( 'sharedNodes',  None, ['reference'] ),
                ( 'returnNewNodes',  False, ['open', 'reference', 'i', 'loadReference' ] ),
+               #( 'loadSettings', ),
                ( 'preserveReferences',  False, ['i', 'exportAll', 'exportSelected'] ),
                ( 'preSaveScript', None, ['save'] ),
-               ( 'postSaveScript', None, ['save'] )
+               ( 'postSaveScript', None, ['save'] ),
+               ( 'type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 
+                                      'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ), 
              )
 }
 
@@ -254,7 +262,7 @@ def _mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     if version == None :
         version = getMayaVersion(extension=False)
-    docLocation = pymel.util.getMayaLocation() 
+    docLocation = getMayaLocation() 
     
     import platform
     if platform.system() == 'Darwin':
@@ -262,16 +270,15 @@ def _mayaDocsLocation( version=None ):
     docLocation = os.path.join( docLocation , 'docs/Maya%s/en_US' % version )
     return docLocation
     
-# class MayaDocsLoc(pymel.util.Singleton) :
+# class MayaDocsLoc(Singleton) :
 #    """ Path to the Maya docs, cached at pymel start """
     
 # TODO : cache doc location or it's evaluated for each _getCmdInfo !    
 # MayaDocsLoc(_mayaDocsLocation()) 
 
 def _getCmdInfoBasic( command ):
-    
-    try:
-        flags = {}
+    flags = {}
+    try:     
         lines = cmds.help( command ).split('\n')
         synopsis = lines.pop(0)
         #print synopsis
@@ -290,11 +297,11 @@ def _getCmdInfoBasic( command ):
                 longname = str(tokens[1][1:])
                 shortname = str(tokens[0][1:])
                 flags[longname ] = { 'shortname' : shortname }
-        return { 'flags': flags, 'description' : '', 'example': '' }
+        
     except:
         pass
         #print "could not retrieve command info for", command
-
+    return { 'flags': flags, 'description' : '', 'example': '', 'type' : 'other' }
   
 def _getCmdInfo( command, version='8.5' ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
@@ -421,7 +428,7 @@ class NodeHierarchyDocParser(HTMLParser):
         
 def printTree( tree, depth=0 ):
     for branch in tree:
-        if pymel.util.isIterable(branch):
+        if isIterable(branch):
             printTree( branch, depth+1)
         else:
             print '> '*depth, branch
@@ -457,7 +464,7 @@ class CommandModuleDocParser(HTMLParser):
     #        print data
 
 def _getUICommands():
-    f = open( os.path.join( pymel.util.moduleDir() , 'misc/commandsUI') , 'r') 
+    f = open( os.path.join( moduleDir() , 'misc/commandsUI') , 'r') 
     cmds = f.read().split('\n')
     f.close()
     return cmds
@@ -482,9 +489,9 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    ver = pymel.util.getMayaVersion(extension=False)
+    ver = getMayaVersion(extension=False)
         
-    newPath = os.path.join( pymel.util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
+    newPath = os.path.join( moduleDir(),  'mayaCmdsList'+ver+'.bin' )
     cmdlist = {}
     try :
         file = open(newPath, mode='rb')
@@ -511,9 +518,9 @@ def buildCachedData() :
                         
         tmpCmdlist = inspect.getmembers(cmds, callable)
         cmdlist = {}
-        #moduleCmds = pymel.util.defaultdict(list)
+        #moduleCmds = defaultdict(list)
         moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
-        moduleCmds.update( {'other':[], 'runtime': [], 'ctx': [], 'uiClass': [] } )
+        moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
         
         for funcName, data in tmpCmdlist :    
             
@@ -526,7 +533,7 @@ def buildCachedData() :
             if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
                 module = None
             elif funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
-                module = 'ctx'
+                module = 'context'
             #elif funcName in uiClassList:
             #    module = 'uiClass'
             #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
@@ -572,8 +579,7 @@ def buildCachedData() :
                     cmdlist[funcName] = (funcName, args, () )
             '''
         
-        #uiClassList = map( pymel.util.capitalize, uiClassList )
-                
+            
         try :
             file = open(newPath, mode='wb')
             try :
@@ -782,25 +788,27 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     else:
         raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
 
-def _addFlagCmdDocs(f,name,funcName,flag,docstring):
-    f.__name__ = name
+def _addFlagCmdDocs(func,newFuncName,cmdName,flag,docstring=''):
+    func.__name__ = newFuncName
     if docstring:
-        f.__doc__ = docstring
+        func.__doc__ = docstring
     else:
         try:
-            docs = cmdlist[funcName]['flags'][flag]
+            docs = cmdlist[cmdName]['flags'][flag]
             docstring = ''
             try:
                 docstring += '        - secondary flags: %s\n' % ( ', '.join(docs['secondaryFlags'] ))
             except KeyError: pass
             docstring += '        - %s\n' %  docs['docstring']
-            f.__doc__ = docstring
-        except KeyError: print "No documentation available for %s flag of %s command" % (flag,funcName )    
-    return f
-            
-def makeCreateFlagCmd( inFunc, name, flag, docstring='', cmdName=None, returnFunc=None ):
+            func.__doc__ = docstring
+        except KeyError: print "No documentation available for %s flag of %s command" % (flag,cmdName )    
+    return func
+'''            
+def makeCreateFlagCmd( inFunc, name, flag=None, docstring='', cmdName=None, returnFunc=None ):
     if cmdName is None:
         cmdName = inFunc.__name__
+    if flag is None:
+        flag = name
     
     if returnFunc:
         def f(self, **kwargs):
@@ -811,30 +819,70 @@ def makeCreateFlagCmd( inFunc, name, flag, docstring='', cmdName=None, returnFun
             kwargs[flag]=True 
             return inFunc( self, **kwargs )
     return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
+'''
+
+def makeCreateFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None, returnFunc=None ):
+    #name = 'set' + flag[0].upper() + flag[1:]
+    if cmdName is None:
+        cmdName = inFunc.__name__
+    if flag is None:
+        flag = newFuncName
+    if returnFunc:
+        def newfunc(*args, **kwargs): 
+            if len(args)==1:
+                kwargs[flag]=True
+            elif len(args)==2:
+                kwargs[flag]=args[1]
+                args = (args[0],)  
+            else:
+                kwargs[flag]=args[1:]
+                args = (args[0],)  
+            return returnFunc(inFunc( *args, **kwargs ))
+    else:
+        def newfunc(*args, **kwargs): 
+            if len(args)==1:
+                kwargs[flag]=True
+            elif len(args)==2:
+                kwargs[flag]=args[1]
+                args = (args[0],)
+            else:
+                kwargs[flag]=args[1:]
+                args = (args[0],)  
+            return inFunc( *args, **kwargs )
+    #if moduleName:
+    #    f.__module__ = moduleName             
+    return _addFlagCmdDocs(newfunc, newFuncName, cmdName, flag, docstring )
 
 def createflag( cmdName, flag ):
     """create flag decorator"""
     def create_decorator(method):
         return makeCreateFlagCmd( method, method.__name__, flag, cmdName=cmdName )
     return create_decorator
+'''
+def secondaryflag( cmdName, flag ):
+    """query flag decorator"""
+    def secondary_decorator(method):
+        return makeSecondaryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+    return secondary_decorator
+'''
 
-
-
-def makeQueryFlagCmd( inFunc, name, flag, docstring='', cmdName=None, returnFunc=None ):
+def makeQueryFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None, returnFunc=None ):
     #name = 'get' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = inFunc.__name__
+    if flag is None:
+        flag = newFuncName
     if returnFunc:
-        def f(self, **kwargs):
+        def newfunc(self, **kwargs):
             kwargs['query']=True
             kwargs[flag]=True
             return returnFunc( inFunc( self, **kwargs ) )
     else:
-        def f(self, **kwargs):
+        def newfunc(self, **kwargs):
             kwargs['query']=True
             kwargs[flag]=True 
             return inFunc( self, **kwargs )
-    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
+    return _addFlagCmdDocs(newfunc, newFuncName, cmdName, flag, docstring )
 
 def queryflag( cmdName, flag ):
     """query flag decorator"""
@@ -843,11 +891,13 @@ def queryflag( cmdName, flag ):
     return query_decorator
 
    
-def makeEditFlagCmd( inFunc, name, flag, docstring='', cmdName=None):
+def makeEditFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None):
     #name = 'set' + flag[0].upper() + flag[1:]    
     if cmdName is None:
         cmdName = inFunc.__name__
-    def f(self, val, **kwargs): 
+    if flag is None:
+        flag = nanewFuncNameme
+    def newfunc(self, val, **kwargs): 
         kwargs['edit']=True
         kwargs[flag]=val 
         try:
@@ -856,7 +906,7 @@ def makeEditFlagCmd( inFunc, name, flag, docstring='', cmdName=None):
             kwargs.pop('edit')
             return inFunc( self, **kwargs )
             
-    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
+    return _addFlagCmdDocs(newfunc, newFuncName, cmdName, flag, docstring )
 
 def editflag( cmdName, flag ):
     """query flag decorator"""
@@ -865,45 +915,11 @@ def editflag( cmdName, flag ):
     return edit_decorator
 
 
-def makeSecondaryFlagCmd( inFunc, name, flag, moduleName=None, docstring='', returnFunc=None, cmdName=None ):
-    #name = 'set' + flag[0].upper() + flag[1:]
-    if cmdName is None:
-        cmdName = inFunc.__name__
-    if returnFunc:
-        def f(*args, **kwargs): 
-            if len(args)==1:
-                kwargs[flag]=True
-            elif len(args)==2:
-                kwargs[flag]=args[1]
-                args = (args[0],)  
-            else:
-                raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
-            return returnFunc(inFunc( *args, **kwargs ))
-    else:
-        def f(*args, **kwargs): 
-            if len(args)==1:
-                kwargs[flag]=True
-            elif len(args)==2:
-                kwargs[flag]=args[1]
-                args = (args[0],)
-            else:
-                raise TypeError, "makeSecondaryFlagCmd expected at most 2 arguments, got %d" % len(args)
-            return inFunc( *args, **kwargs )
-    if moduleName:
-        f.__module__ = moduleName             
-    return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
-
-def secondaryflag( cmdName, flag ):
-    """query flag decorator"""
-    def secondary_decorator(method):
-        return makeSecondaryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
-    return secondary_decorator
-
 def add_docs( cmdName, flag ):
     """decorator"""
     def doc_decorator(method):
-        return _addFlagCmdDocs(method, method.__name__, flag, cmdName=cmdName )
-    return secondary_decorator
+        return _addFlagCmdDocs(method, method.__name__, cmdName, flag )
+    return doc_decorator
 
 '''
 def createFunctions( moduleName ):
@@ -962,7 +978,7 @@ class metaNode(type) :
     
     def __new__(cls, classname, bases, classdict):
         
-        nodeType = pymel.util.uncapitalize(classname)
+        nodeType = uncapitalize(classname)
         
         try:
             infoCmd = False
@@ -998,7 +1014,7 @@ class metaNode(type) :
 
                 # query command
                 if 'query' in modes:
-                    methodName = 'get' + pymel.util.capitalize(flag)
+                    methodName = 'get' + capitalize(flag)
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                             classdict[methodName] = makeQueryFlagCmd( func, methodName, 
@@ -1009,7 +1025,7 @@ class metaNode(type) :
                 if 'edit' in modes or ( infoCmd and 'create' in modes ):
                     # if there is a corresponding query we use the 'set' prefix. 
                     if 'query' in modes:
-                        methodName = 'set' + pymel.util.capitalize(flag)
+                        methodName = 'set' + capitalize(flag)
                     #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
                     else:
                         methodName = flag
@@ -1025,13 +1041,54 @@ class metaNode(type) :
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 
+def pluginLoadedCallback( module ):               
+    def pluginLoadedCB(pluginName):
+        print "Plugin loaded", pluginName
+        commands = cmds.pluginInfo(pluginName, query=1, command=1)
+        if commands:
+            for funcName in commands:
+                print "adding new command", funcName
+                func = functionFactory( funcName )
+                try:
+                    if func:
+                        setattr( module, funcName, func )
+                    else:
+                        print "failed to create function"
+                except Exception, msg:
+                    print "exception", msg
+                    
+    return pluginLoadedCB
+
+def pluginUnloadedCallback( module ):               
+    def pluginUnloadedCB(pluginName):
+        print "Plugin unloaded", pluginName
+        commands = cmds.pluginInfo(pluginName, query=1, command=1)
+        if commands:
+            for funcName in commands:
+                print "removing command", funcName
+                #func = factories.functionFactory( funcName )
+                try:
+                    if func:
+                        setattr( module, funcName, None )
+                    else:
+                        print "failed to remove function"
+                except Exception, msg:
+                    print "exception", msg
+                    
+    return pluginUnloadedCB
+
+def installCallbacks(module):
+    print "adding plugin callbacks"
+    cmds.loadPlugin( addCallback=pluginLoadedCallback(module) )
+    #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
+    
 def makeDocs( mayaVersion='8.5' ):
     "internal use only"
     
     import re
     import epydoc.cli
     
-    pymeldir = pymel.util.moduleDir()
+    pymeldir = moduleDir()
     
     # generate epydocs
     os.chdir( pymeldir )
