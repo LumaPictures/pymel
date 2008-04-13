@@ -1535,8 +1535,10 @@ def _test() :
     c9 = Color.red.blend(Color.blue, 0.5) 
     print "c9 = Color.red.blend(Color.blue, 0.5): %r" % c9
     c10 = c8.over(c9)
-    print "c10 = c8.over(c9): %r" % c10             
-_test()
+    print "c10 = c8.over(c9): %r" % c10 
+    
+if __name__ == '__main__' :
+    _test()
 
 
     
