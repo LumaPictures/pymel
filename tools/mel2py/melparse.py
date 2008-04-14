@@ -1754,8 +1754,43 @@ def command_format(command, args, t):
 					queryMode = True
 			
 			elif numArgs == 1:
+				# callbacks
 				if commandFlag:
-					token = 'lambda *args: mm.eval(%s)' % token
+					cbParser = MelParser( rootModule = t.parser.root_module, 
+										  	pymelNamespace=t.parser.pymel_namespace, 
+										  	verbosity=t.parser.verbose,
+										  	addPymelImport=False )
+					
+					try:
+						
+						tmpToken = token
+						print tmpToken
+						
+						# pre-parse cleanup
+						if tmpToken.startswith('"') and tmpToken.endswith('"'):
+							tmpToken = tmpToken[1:-1]
+						if not tmpToken.endswith( ';' ): 
+							tmpToken += ';'
+						cb = re.compile(  '#(\d)' )
+						#tmpToken = cb.sub( r'$args[\1-1]',  tmpToken )
+						parts = cb.split( tmpToken  )
+						for i in range(1,len(parts),2):
+							parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
+						tmpToken = ''.join( parts )
+						#print tmpToken
+						
+						# parse
+						tmpToken = cbParser.parse( tmpToken )
+						
+						# post-parse cleanup
+						if tmpToken.endswith( '\n' ): 
+							tmpToken = tmpToken[:-1]
+							
+						tmpToken = tmpToken.replace( '\n', ';')
+
+						token = 'lambda *args: %s' % (tmpToken)
+					except:					
+						token = 'lambda *args: %smel.eval(%s)' % (t.parser.pymel_namespace, token)
 				
 				argTally.append(token)
 				#print 'last flag arg', currFlag, argTally
@@ -1799,11 +1834,11 @@ def command_format(command, args, t):
 		# functions that clash with python keywords and ui functions must use the cmds namespace
 		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
 		if command in filteredCmds: # + uiCommands:
-			command = 'cmds.' + command
+			command = '%scmds.' % (t.parser.pymel_namespace, command)
 		
 		# eval command is the same as using maya.mel.eval
 		if command == 'eval':
-			command = 'mm.' + command
+			command = '%smel.%s' % (t.parser.pymel_namespace, command)
 		
 		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
 		if command == 'python':
@@ -2075,6 +2110,84 @@ import profile
 
 parser = yacc.yacc(method='''LALR''', debug=0)
 
+class MelParser(object):
+	"""The MelParser class around which all other mel2py functions are based."""
+	def __init__(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True ):
+		parser.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
+		parser.proc_list = []  # ordered list of procedures
+		parser.local_procs = {} # dictionary of local procedures and their related data
+		parser.global_procs = {} # dictionary of global procedures and their related data
+		parser.imported_modules = set([])  # imported external modules, pymel is assumed
+		parser.global_vars = set([])
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		parser.verbose = verbosity
+		if pymelNamespace and not pymelNamespace.endswith( '.' ):
+			pymelNamespace = pymelNamespace + '.'
+		parser.pymel_namespace = pymelNamespace
+		parser.type_map = {}
+		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
+		#parser.global_var_include_regex = '.*'
+		parser.global_var_exclude_regex = '$'
+		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+		parser.add_pymel_import = addPymelImport
+		
+	def parse(self, data):
+		data = data.encode( 'utf-8', 'ignore')
+		data = data.replace( '\r', '\n' )
+		
+		if parser.verbose == 2:	
+			lex.input(data)
+			while 1:
+				tok = lex.token()
+				if not tok: break      # No more input
+				print tok
+		
+		prev_modules = parser.imported_modules.copy()
+		
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		
+		try:
+			converted = parser.parse(data)
+		except ValueError, msg:
+			if parser.comment_queue:
+				converted = '\n'.join(parser.comment_queue)				
+			else:
+				raise ValueError, msg
+			
+		#except IndexError, msg:
+		#	raise ValueError, '%s: %s' % (melfile, msg)
+		#except AttributeError:
+		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
+		
+		new_modules = parser.imported_modules.difference( prev_modules )
+		
+		header = ''
+		
+		# adding the pymel import statement should occur only on the 
+		# first execution of the parser or not at all.
+		
+		if parser.add_pymel_import:
+			if not parser.pymel_namespace:
+				header += 'from pymel import *\n'
+			elif parser.pymel_namespace == 'pymel.':
+				header += 'import pymel\n'
+			else:
+				header += 'import pymel as %s\n' % parser.pymel_namespace[:-1]
+			parser._add_pymel_import = False
+			
+		if len( new_modules ):
+			header += "import %s" % ','.join(list(new_modules))
+			header += '\n'
+			
+		converted = header + converted
+		#if parser.verbose:
+		#	print '\n\n'
+		#	print converted
+	
+			
+		return converted
 	
 #profile.run("yacc.yacc(method='''LALR''')")
 
