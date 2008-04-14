@@ -481,7 +481,7 @@ Maya Bug Fix:
     - setAttr did not work with type matrix. 
 Modifications:
     - No need to set type, this will automatically be determined
-     - Adds support for passing a list or tuple as the second argument for datatypes such as double3.
+    - Adds support for passing a list or tuple as the second argument for datatypes such as double3.
     - When setting stringArray datatype, you no longer need to prefix the list with the number of elements - just pass a list or tuple as with other arrays
     - Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
         - if no type flag is passed, the attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
@@ -2733,16 +2733,45 @@ class FluidEmitter(Transform):
     getFluidAttr = _factories.functionFactory( cmds.getFluidAttr, rename='getFluidAttr')
     
 class RenderLayer(DependNode):
-    __metaclass__ = metaNode
-    editAdjustment = _factories.functionFactory( cmds.editRenderLayerAdjustment, rename='editAdjustment')
-    editGlobals = _factories.functionFactory( cmds.editRenderLayerGlobals, rename='editGlobals')
-    editMembers = _factories.functionFactory( cmds.editRenderLayerMembers, rename='editMembers')
-    postProcess = _factories.functionFactory( cmds.renderLayerPostProcess, rename='postProcess')
+    def listMembers(self, fullNames=True):
+        if fullNames:
+            return map( PyNode, util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=True) ) )
+        else:
+            return util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=False) )
+        
+    def addMembers(self, members, noRecurse=True):
+        cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
+
+    def removeMembers(self, members ):
+        cmds.editRenderLayerMembers( self, members, remove=True )
+ 
+    def listAdjustments(self):
+        return map( PyNode, util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
+      
+    def addAdjustments(self, members):
+        return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
+
+    def removeAdjustments(self, members ):
+        return cmds.editRenderLayerMembers( self, members, remove=True )      
+    
+    def setCurrent(self):
+        cmds.editRenderLayerGlobals( currentRenderLayer=self)    
 
 class DisplayLayer(DependNode):
-    __metaclass__ = metaNode
-    editGlobals = _factories.functionFactory( cmds.editDisplayLayerGlobals, rename='editGlobals')
-    editMembers = _factories.functionFactory( cmds.editDisplayLayerMembers, rename='editMembers')
+    def listMembers(self, fullNames=True):
+        if fullNames:
+            return map( PyNode, util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=True) ) )
+        else:
+            return util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=False) )
+        
+    def addMembers(self, members, noRecurse=True):
+        cmds.editDisplayLayerMembers( self, members, noRecurse=noRecurse )
+
+    def removeMembers(self, members ):
+        cmds.editDisplayLayerMembers( self, members, remove=True )
+        
+    def setCurrent(self):
+        cmds.editDisplayLayerMembers( currentDisplayLayer=self)  
     
 class Constraint(Transform):
     def setWeight( self, weight, *targetObjects ):
