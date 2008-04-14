@@ -125,7 +125,7 @@ moduleCommandAdditions = {
 class CommandDocParser(HTMLParser):
     def __init__(self, command):
         self.command = command
-        self.flags = {}  # shortname, argtype, docstring, and a list of modes (i.e. edit, create, query)
+        self.flags = {}  # shortname, args, docstring, and a list of modes (i.e. edit, create, query)
         self.currFlag = ''
         # iData is used to track which type of data we are putting into flags, and corresponds with self.datatypes
         self.iData = 0
@@ -140,14 +140,17 @@ class CommandDocParser(HTMLParser):
         #print self, data
         #assert data == self.currFlag
         self.iData = 0
-        self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'argtype': None, 'docstring': '', 'modes': [] }
+        self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
     
     def addFlagData(self, data):
-        # shortname, argtype
+        # shortname, args
         if self.iData == 0:
             self.flags[self.currFlag]['shortname'] = data
         elif self.iData == 1:
-            self.flags[self.currFlag]['argtype'] = data    
+            args = data.strip('[]').split(',') 
+            numArgs = len(args)
+            self.flags[self.currFlag]['args'] = args
+            self.flags[self.currFlag]['numArgs'] = numArgs
         else:
             #self.flags[self.currFlag]['docstring'] += data.replace( '\r\n', ' ' ).strip() + " "
             
@@ -276,8 +279,16 @@ def _mayaDocsLocation( version=None ):
 # TODO : cache doc location or it's evaluated for each _getCmdInfo !    
 # MayaDocsLoc(_mayaDocsLocation()) 
 
+class CommandInfo(object):
+    def __init__(self, flags={}, description='', example='', type='other'):
+        self.flags = flags
+        self.description = description
+        self.example = example
+        self.type = type
+        
 def _getCmdInfoBasic( command ):
     flags = {}
+    shortFlags = {}
     try:     
         lines = cmds.help( command ).split('\n')
         synopsis = lines.pop(0)
@@ -293,20 +304,24 @@ def _getCmdInfoBasic( command ):
                 pass
             #print tokens
             if len(tokens) > 1:
-                numArgs = len(tokens)-2
+                args = tokens[2:]  
+                numArgs = len(args)
                 longname = str(tokens[1][1:])
                 shortname = str(tokens[0][1:])
-                flags[longname ] = { 'shortname' : shortname }
+                flags[longname] = { 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs }
+                shortFlags[shortname] = flags[longname]
         
     except:
         pass
         #print "could not retrieve command info for", command
-    return { 'flags': flags, 'description' : '', 'example': '', 'type' : 'other' }
+    return { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
   
 def _getCmdInfo( command, version='8.5' ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with 
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
+    
+    basicInfo = _getCmdInfoBasic(command)
     
     try:
         docloc = _mayaDocsLocation(version)
@@ -326,28 +341,43 @@ def _getCmdInfo( command, version='8.5' ):
             lines[i] = line
             
         data = '\n'.join( lines )
-            
+        
+        flags = parser.flags
+        shortFlags = {}
         #try:
         if command in secondaryFlags:
             for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
                 #print command, "2nd", secondaryFlag
-                parser.flags[secondaryFlag]['modified'] = modifiedList
+                flags[secondaryFlag]['modified'] = modifiedList
                 #print sorted(modifiedList)
                 #print sorted(parser.flags.keys())
                 for primaryFlag in modifiedList:
                     #print command, "1st", primaryFlag
                     if 'secondaryFlags' in parser.flags[primaryFlag]:
-                         parser.flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
+                         flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
                     else:
-                         parser.flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
-
+                         flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
+                         
+        # add shortname lookup
+        #print command, sorted( basicInfo['flags'].keys() )
+        #print command, sorted( flags.keys() )
+        for flag, flagData in flags.items():
+            try:
+                basicFlagData = basicInfo['flags'][flag]
+                flagData['args'] = basicFlagData['args']
+                flagData['numArgs'] = basicFlagData['numArgs']
+            except KeyError: pass
+            
+            shortFlags[ flagData['shortname'] ] = flagData
+            
         #except KeyError:pass
           
-        return {  'flags': parser.flags, 'description' : parser.description, 'example': data }
+        return {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': data }
+    
     except IOError:
         #print "could not find docs for %s" % command
+        return basicInfo
         
-        return _getCmdInfoBasic(command)
         #raise IOError, "cannot find maya documentation directory"
 
 class NodeHierarchyDocParser(HTMLParser):
@@ -611,8 +641,8 @@ def getUncachedCmds():
 # Function Factory
 #-----------------------
 
-def _addDocs(inObj, newObj, cmdInfo ):
-
+def _addCmdDocs(inObj, newObj, cmdInfo ):
+    
     try:
         docstring = cmdInfo['description'] + '\n\n'
         
@@ -624,27 +654,31 @@ def _addDocs(inObj, newObj, cmdInfo ):
     
                 label = '    - %s (%s)' % (flag, docs['shortname'])
                 docstring += label + '\n'
-                if docs.get('modes',False):
-                    docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
                 
-                try:
-                    docstring += '        - modifies: %s\n' % ( ', '.join(docs['modified'] ))
-                except KeyError: pass
-                
-                try:
-                    docstring += '        - secondary flags: %s\n' % ( ', '.join(docs['secondaryFlags'] ))
-                except KeyError: pass
-                               
                 try:
                     docstring += '        - %s\n' %  docs['docstring']
                 except KeyError: pass
                 
+                if docs.get('modes',False):
+                    docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
+                
+                try:
+                    modified = docs['modified']
+                    if modified:
+                        docstring += '        - modifies: *%s*\n' % ( ', '.join( ))
+                except KeyError: pass
+                
+                try:
+                    docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
+                except KeyError: pass
+                   
         if cmdInfo['example']:
             docstring += '\nExample:\n' + cmdInfo['example']
+            
         if inObj.__doc__:
             docstring = inObj.__doc__ + '\n' + docstring
-        else:
-            newObj.__doc__ = docstring
+        
+        newObj.__doc__ = docstring
             
 
         #print "could not find help docs for %s" % inObj
@@ -678,7 +712,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         funcName = funcNameOrObject
         
         try:
-            inFunc = getattr(module, funcName)          
+            inFunc = getattr(module, funcName)    
         except AttributeError:
             try:
                 inFunc = getattr(cmds,funcName)
@@ -697,7 +731,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     if type(inFunc) == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
         if cmdInfo['type'] != 'runtime':
-            _addDocs( inFunc, inFunc, cmdInfo )
+            _addCmdDocs( inFunc, inFunc, cmdInfo )
         if rename: inFunc.__name__ = rename
         return inFunc
     
@@ -775,9 +809,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         #-----------
         else:
             def newFunc(*args, **kwargs): return apply(inFunc, args, kwargs)
-    
-        _addDocs( inFunc, newFunc, cmdInfo )
-        
+ 
+        _addCmdDocs( inFunc, newFunc, cmdInfo )
 
         if rename: 
             newFunc.__name__ = rename
@@ -786,7 +819,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             
         return newFunc
     else:
-        raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
+        pass
+        #raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
 
 def _addFlagCmdDocs(func,newFuncName,cmdName,flag,docstring=''):
     func.__name__ = newFuncName
@@ -794,15 +828,21 @@ def _addFlagCmdDocs(func,newFuncName,cmdName,flag,docstring=''):
         func.__doc__ = docstring
     else:
         try:
-            docs = cmdlist[cmdName]['flags'][flag]
+            flagDocs = cmdlist[cmdName]['flags']
+            docs = flagDocs[flag]
             docstring = ''
-            try:
-                docstring += '        - secondary flags: %s\n' % ( ', '.join(docs['secondaryFlags'] ))
-            except KeyError: pass
             docstring += '        - %s\n' %  docs['docstring']
+            
+            try:
+                docstring += '        - secondary flags:\n'
+                for secondaryFlag in docs['secondaryFlags']:
+                     docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
+            except KeyError: pass
+            
             func.__doc__ = docstring
         except KeyError: print "No documentation available for %s flag of %s command" % (flag,cmdName )    
     return func
+
 '''            
 def makeCreateFlagCmd( inFunc, name, flag=None, docstring='', cmdName=None, returnFunc=None ):
     if cmdName is None:
@@ -856,7 +896,9 @@ def makeCreateFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=Non
 def createflag( cmdName, flag ):
     """create flag decorator"""
     def create_decorator(method):
-        return makeCreateFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+        newfunc = makeCreateFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+        newfunc.__module__ = method.__module__
+        return newfunc
     return create_decorator
 '''
 def secondaryflag( cmdName, flag ):
@@ -887,7 +929,9 @@ def makeQueryFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None
 def queryflag( cmdName, flag ):
     """query flag decorator"""
     def query_decorator(method):
-        return makeQueryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+        newfunc = makeQueryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+        newfunc.__module__ = method.__module__
+        return newfunc
     return query_decorator
 
    
@@ -911,14 +955,18 @@ def makeEditFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None)
 def editflag( cmdName, flag ):
     """query flag decorator"""
     def edit_decorator(method):
-        return makeEditFlagCmd(  method, method.__name__, flag, cmdName=cmdName )
+        newfunc = makeEditFlagCmd(  method, method.__name__, flag, cmdName=cmdName )
+        newfunc.__module__ = method.__module__
+        return newfunc
     return edit_decorator
 
 
 def add_docs( cmdName, flag ):
     """decorator"""
     def doc_decorator(method):
-        return _addFlagCmdDocs(method, method.__name__, cmdName, flag )
+        newfunc = _addFlagCmdDocs(method, method.__name__, cmdName, flag )
+        newfunc.__module__ = method.__module__
+        return newfunc
     return doc_decorator
 
 '''
@@ -934,7 +982,7 @@ def createFunctions( moduleName ):
 '''
 #generalModule = __import__(__name__, globals(), locals(), [''])
 
-def createFunctions( moduleName, returnFunc=None ):
+def createFunctions2( moduleName, returnFunc=None ):
     module = __import__(moduleName, globals(), locals(), [''])
     
     moduleShortName = moduleName.split('.')[-1]
@@ -949,7 +997,6 @@ def createFunctions( moduleName, returnFunc=None ):
                     setattr( module, funcName, func )
     else:
         # node commands
-        #print moduleShortName, sorted(list(allCommands.intersection(nodeCommandList)))
         for funcName in allCommands.intersection(nodeCommandList):
             if not hasattr( module, funcName ):
                 func = functionFactory( funcName, returnFunc=returnFunc )
@@ -964,7 +1011,20 @@ def createFunctions( moduleName, returnFunc=None ):
                     func.__module__ = moduleName
                     setattr( module, funcName, func )
 
-            
+def createFunctions( moduleName, returnFunc=None ):
+    module = __import__(moduleName, globals(), locals(), [''])
+    
+    moduleShortName = moduleName.split('.')[-1]
+    for funcName in moduleCmds[ moduleShortName ] :
+        if funcName in nodeCommandList:
+            func = functionFactory( funcName, returnFunc=returnFunc, module=module )
+        else:
+            func = functionFactory( funcName, returnFunc=None, module=module )
+        if func:
+            func.__module__ = moduleName
+            setattr( module, funcName, func )
+
+
 #: overrideMethods specifies methods of base classes which should not be overridden by sub-classes 
 overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
