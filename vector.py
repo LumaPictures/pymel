@@ -226,6 +226,13 @@ class Vector(list):
 
     __pow__ = cross
     
+    def dot(a, b):
+        """
+        dot Product of Two Vectors.
+        """
+        return reduce(lambda x, y: x+y, a*b, 0.)
+
+    
     def angle(a,b):
        """
        Determine the angle between two Vectors
@@ -262,7 +269,7 @@ class Vector(list):
 
 class Matrix(list):
     """
-        A list based Vector class
+    A list based Matrix class
     """
     def __init__(self, rowColList = [[0]*4]*4 ):
         for i in range( 0, len(rowColList )):
@@ -346,12 +353,10 @@ class Matrix(list):
     
 def dot(a, b):
     """
-    dot product of two MVecs.
+    dot product of two Vectors.
     """
-    try:
-        return reduce(lambda x, y: x+y, a*b, 0.)
-    except:
-        raise TypeError, 'Vector::FAILURE in dot'
+    return reduce(lambda x, y: x+y, a*b, 0.)
+
 
 
 
@@ -473,46 +478,50 @@ def atan2(a,b):
 
 # general remapping operations
 
-def smoothmap(min, max, x):
+def smoothmap(mn, mx, x, normalize=True):
     """Returns the value of a smooth remapping function.
 
     performs a smooth Hermite interpolation between 0 and 1 in the interval min to max,
     but does not clamp the range
+    if 'normalize'==False then the value is remapped back to the original range
     """
-    x = float(x)
-    x = (-min)/(max-min)
-    return x*x*(3.0-2.0*x)
+    x = linmap(mn,mx,x)
+    x = (-2*x**3.0 + 3*x**2)
+    if not normalize:
+        x = mn + x*(mx-mn)
+    return x
     
-def smoothstep(min, max, x):
+def smoothstep(mn, mx, x, normalize=True):
     """Returns the value of a smooth step function.
 
     Returns 0 if x < min, 1 if x > max, and performs a smooth Hermite
     interpolation between 0 and 1 in the interval min to max.
+    if 'normalize'==False then the value is remapped back to the original range
     """
-    if x<min:
-        return 0.0
-    if x>max:
-        return 1.0
-    return smoothmap(min, max, x)
+    if x<=mn:
+        return mn
+    if x>=mx:
+        return mx
+    return smoothmap(mn, mx, x, normalize)
 
-def linmap(min, max, x):
+def linmap(mn, mx, x):
     """Returns the value of a linear remapping function.
 
     performs a linear interpolation between 0 and 1 in the interval min to max,
     but does not clamp the range
     """
-    return (float(x)-min)/(max-min)
+    return (float(x)-mn)/(mx-mn)
     
-def linstep(min, max, x):
+def linstep(mn, mx, x):
     """Returns the value of a linear step function.
 
     Returns 0 if x < min, 1 if x > max, and performs a linear
     interpolation between 0 and 1 in the interval min to max.
     """
-    if x<min:
-        return 0.0
-    if x>max:
-        return 1.0
-    return linmap(min, max, x)
+    if x<=mn:
+        return mn
+    if x>=mx:
+        return mx
+    return linmap(mn, mx, x)
     
     
