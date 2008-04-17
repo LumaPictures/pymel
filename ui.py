@@ -201,6 +201,29 @@ class TextScrollList(UI):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
+
+class Callback:
+    """
+    Enables deferred function evaulation with 'baked' arguments.
+    Useful where lambdas won't work...
+    Example: 
+        def addRigger(rigger):
+            ...
+            
+        for rigger in riggers:
+            pm.menuItem(
+                label = "Add " + str(rigger),
+                c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
+    """
+
+    def __init__(self,func,*args,**kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+    def __call__(self,*args):
+        return self.func(*self.args,**self.kwargs)
+    
+
 class AutoLayout(FormLayout):
 	""" 
 	Automatically distributes child controls in either a
@@ -415,7 +438,10 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
 						   ma="center", cb="No", ds="No")
 	return (ret==yes)
 
-
+def informBox(title, message, ok="Ok"):
+    """ Information box """
+    confirmDialog(t=title, m=message, b=["Ok"], db="Ok")
+    
 class MelToPythonWindow(Window):
 
     def __new__(cls, name=None):
