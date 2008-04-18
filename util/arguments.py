@@ -21,8 +21,77 @@ def convertListArgs( args ):
         return tuple(args[0])
     return args     
 
+def pythonArgToMelType(arg):
+
+    if isIterable( arg ):
+        try:
+            return pythonTypeToMelType( arg[0] ) + '[]'
+        except IndexError:
+            return 'string[]'
+    if isinstance( arg, str ) : return 'string'
+    elif isinstance( arg, int ) : return 'int'
+    elif isinstance( arg, float ) : return 'float'
+    #elif isinstnace( typ, Vector ) : return 'vector'
+    #elif isinstnace( typ, Matrix ) : return 'matrix'
 # Flatten a multi-list argument so that in can be passed as
-# a list of arguments to a command.          
+# a list of arguments to a command.
+
+def melToPythonWrapper( moduleName, funcName, procName, returnType='', evaluateInputs=True ):
+    """This is a work in progress.  It generates and sources a mel procedure which wraps the passed 
+    python function.  Theoretically useful for calling your python scripts in scenarios where maya
+    does not yet support python callbacks, such as in batch mode.
+    
+    python functions feature a very versatile argument structure (typeless, variable, defaults), 
+    whereas mel does not. As a result there are a number of concessions that must be made for this wrapper to work.
+    
+        - args without default values default to strings. If 'evaluteInputs' is True, arguments passed to the 
+            wrapper procedure will have the python eval command run on them before being passed to your wrapped python
+            function. This allows you to include a typecast in the string representing your arg::
+                
+                myWrapperProc( "int(5)" );
+                
+        - args with default values will be set to their mel analogue, if it exists
+        - varargs : not yet implemented
+        - keyword args : not likely to be implemented
+    """
+    
+    import maya.mel as mm
+    from inspect import getargspec
+    
+    melArgs = []
+    melCompile = []
+
+    module = __import__(moduleName, globals(), locals(), [''])
+    func = getattr( module, funcName )
+    getargspec( func )
+    
+    args, varargs, kwargs, defaults  = getargspec( func )
+    try:
+        ndefaults = len(defaults)
+    except:
+        ndefaults = 0
+    
+    nargs = len(args)
+    offset = nargs - ndefaults
+    for i, arg in enumerate(args):
+    
+        if i >= offset:
+            melType = pythonTypeToMelType( defaults[i-offset] )
+        else:
+            melType = 'string' 
+    
+        melArgs.append( melType + ' $' + arg )
+        if melType == 'string':
+            compilePart = "'\" + $%s + \"'" %  arg
+            if evaluateInputs and i < offset:
+                compilePart = 'eval(%s)' % compilePart
+            melCompile.append( compilePart )
+        else:
+            melCompile.append( "\" + $%s + \"" %  arg )
+    
+    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % (returnType, procName, ', '.join(melArgs), moduleName, moduleName, funcName, ','.join(melCompile) )
+    print procDef
+    mm.eval( procDef )
 
 def expandArgs( *args, **kwargs ) :
     """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
