@@ -207,7 +207,7 @@ quickly as i can.
 
 from melparse import *
 import pymel.core.types.path as path
-
+from pymel.util.external.ply.lex import LexError
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a
 library of helper mel scripts to make your life a bit easier. you will probably find that python has a built-in equivalent for many of
@@ -262,11 +262,11 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', verbosity=0 ):
 	
 	"""
 	
-	
-	mparser = MelParser(currentModule, pymelNamespace=pymelNamespace, verbosity=verbosity)
+	mparser = MelParser()
+	mparser.build(currentModule, pymelNamespace=pymelNamespace, verbosity=verbosity)
 	return mparser.parse( data )
 
-def mel2py( melfile, outputDir=None, verbosity=0 ):
+def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	"""
 	Convert a mel script into a python script. 
 	
@@ -294,7 +294,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 			pass
 	data = melfile.bytes()
 	print "converting mel script", melfile
-	converted = mel2pyStr( data, melfile.namebase, verbosity )
+	converted = mel2pyStr( data, melfile.namebase, pymelNamespace=pymelNamespace, verbosity=verbosity )
 	header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
 	
 	converted = header + converted
@@ -307,7 +307,7 @@ def mel2py( melfile, outputDir=None, verbosity=0 ):
 	pyfile.write_bytes(converted)
 	
 
-def mel2pyBatch( processDir, outputDir=None, verbosity=0 , test=False):
+def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , test=False):
 	"""batch convert an entire directory"""
 	processDir = path.path(processDir)
 	
@@ -329,9 +329,9 @@ def mel2pyBatch( processDir, outputDir=None, verbosity=0 , test=False):
 	importCnt = 0
 	for f in currentFiles:
 		try:
-			mel2py( f, outputDir, verbosity )
+			mel2py( f, outputDir, pymelNamespace=pymelNamespace, verbosity=verbosity )
 			succCnt += 1
-		except (ValueError, IndexError, TypeError), msg:
+		except (ValueError, IndexError, TypeError, LexError), msg:
 			print 'failed:', msg
 		
 		if test:

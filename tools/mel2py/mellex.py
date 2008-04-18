@@ -254,7 +254,7 @@ def t_COMMENT(t):
 #	return t
 	
 #lexer = lex.lex(optimize=1)
-lexer = lex.lex()
+#lexer = lex.lex()
 if __name__ == "__main__":
 	lex.runmain(lexer)
 
