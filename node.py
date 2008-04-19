@@ -1290,6 +1290,19 @@ class DagNode(Entity):
         'rootOf'
         return DagNode( '|' + self.longName()[1:].split('|')[0] )
     
+    def getRoot(self):
+        """unlike the root command which determines the parent via string formatting, this 
+        command uses the listRelatives command"""
+        
+        par = None
+        cur = self
+        while 1:
+            par = cur.getParent()
+            if not par:
+                break
+            cur = par[0]
+        return cur 
+    
     def firstParent(self):
         'firstParentOf'
         try:
@@ -1312,9 +1325,9 @@ class DagNode(Entity):
         except TypeError:
             return None
              
-        res = Transform( res )
+        res = PyNode(res)
         if not longNames:
-            return res.shortName()
+            return PyNode(res.shortName())
         return res
                     
     def getChildren(self, **kwargs ):
