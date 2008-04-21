@@ -1,4 +1,5 @@
-import os, sys
+import os, sys, re
+from re import escape 
 
 class ModuleInterceptor(object):
     """
@@ -32,6 +33,7 @@ class ModuleInterceptor(object):
 def pythonToMel(arg):
     if isinstance(arg,basestring):
         return '"%s"' % cmds.encodeString(arg)
+        #return '"%s"' % re.escape(arg)
     elif isIterable(arg):
         return '{%s}' % ','.join( map( pythonToMel, arg) ) 
     return unicode(arg)
@@ -42,7 +44,12 @@ def capitalize(s):
 def uncapitalize(s):
     return s[0].lower() + s[1:]
                         
-  
+def unescape( string ):
+    tokens = re.split( r'(\\*)"',  string )
+    for i in range(1,len(tokens),2 ):
+        if tokens[i]:
+            tokens[i] = tokens[i][:-1]+'"'
+    return ''.join(tokens)
 
 def cacheProperty(getter, attr_name, fdel=None, doc=None):
     """a property type for getattr functions that only need to be called once per instance.
