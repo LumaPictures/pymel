@@ -12,6 +12,7 @@ Created from the ansi c example included with ply, which is based on the grammar
 import sys, os, re, os.path
 import mellex
 from pymel.util.external.ply import *
+from pymel.util import unescape
 
 try:
 	from pymel import *
@@ -1758,18 +1759,19 @@ def command_format(command, args, t):
 				if commandFlag:
 
 					#if False:
-					if True :
-					#try:	
+					#if True :
+					try:	
 						cbParser = MelParser()
 						cbParser.build( rootModule = t.parser.root_module, 
 										  	pymelNamespace=t.parser.pymel_namespace, 
 										  	verbosity=t.parser.verbose,
 										  	addPymelImport=False )
 						tmpToken = token
-						
+						#print tmpToken.__repr__()
 						# pre-parse cleanup
-						if tmpToken.startswith('"') and tmpToken.endswith('"'):
-							tmpToken = tmpToken[1:-1]
+						#if tmpToken.startswith('"') and tmpToken.endswith('"'):
+						#	print "unescaping"
+						tmpToken = unescape(tmpToken)
 						if not tmpToken.endswith( ';' ): 
 							tmpToken += ';'
 						cb = re.compile(  '#(\d)' )
@@ -1791,8 +1793,8 @@ def command_format(command, args, t):
 						token = 'lambda *args: %s' % (tmpToken)
 						
 					#else:
-					#except:					
-					#	token = 'lambda *args: %smel.eval(%s)' % (t.parser.pymel_namespace, token)
+					except:					
+						token = 'lambda *args: %smel.eval(%s)' % (t.parser.pymel_namespace, token)
 				
 				argTally.append(token)
 				#print 'last flag arg', currFlag, argTally
