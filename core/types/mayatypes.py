@@ -1,6 +1,20 @@
 """
 A wrap of Maya's MVector type
 """
+
+# TODO : we could derived directly from the api class like
+# class MMatrix(api.MMatrix) :
+#     """ replacement MMatrix """
+# but we would still need to override most methods as they don't accept derived classes for the api class
+# I thought about monkey patching api classes :
+# def tostring(self):
+#    return "[%s]" % ', '.join( ["[%s]" % ', '.join( [ str(self(r,c)) for c in xrange(4)]) for r in xrange(4)] )
+# type.__setattr__(api.MMatrix, '__str__', tostring)
+# Though it works for methods, it can't be done to make up some class hierarchy :
+# type.__setattr__(api.MQuaternion, '__bases__', (api.MMatrix,))
+# TypeError: __bases__ assignment: 'MMatrix' deallocator differs from 'object'
+# So api methods won't be able to take the new classes directly, (but can take a Vector.vector, Matrix.matrix etc)
+
 #import pymel.util as util
 #import pymel.api as api
 import inspect
@@ -78,14 +92,26 @@ class MetaMayaTypeWrapper(type) :
         except :
             apiClass = None
         if apiClass :
+            # dimensions and size of the array representing the wrapped class
+            dim = len(newcls.shape)
+            size = reduce(operator.mul, newcls.shape, 1)
             # build the properties according to component names
             try :
                 complist = newcls.apicomp
             except :
                 complist = ()
-            for i in xrange(len(complist)) :
-                p = eval("property( lambda self: self.__getitem__(%s) ,  lambda self, val: self.__setitem__(%s,val) )" % (i, i))
-                type.__setattr__(newcls, complist[i], p)
+            if complist :
+                # only wrapping types that are one or two dimensional arrays here
+                dim = len(newcls.shape) 
+                if dim < 0 or dim > 2 :
+                    raise NotImplemented, "MetaMayaTypeWrapper can only create wrappers for Maya api classes that can be represented as one or two dimensional arrays"
+                for i in xrange(len(complist)) :
+                    if dim == 2 :
+                        c = (i/newcls.shape[1], i%newcls.shape[1])
+                    else :
+                        c = i
+                    p = eval("property( lambda self: self.__getitem__(%s) ,  lambda self, val: self.__setitem__(%s,val) )" % (c, c))
+                    type.__setattr__(newcls, complist[i], p)
             # build the data property
             def setdata(self, data):
                 self._data = self.__class__.apiclass(data)
@@ -96,6 +122,11 @@ class MetaMayaTypeWrapper(type) :
             # build a property as a shortcut to self.__class__.apiclass
             p = property(lambda self:self.__class__.apiclass, None, None, "The api class to build internal data")
             type.__setattr__(newcls, 'api', p)
+            # build size and dim properties to save one lookup or calculation as we're dealing with fixed size objects
+            p = eval("property(lambda self:%s)" % dim)
+            type.__setattr__(newcls, 'dim', p)
+            p = eval("property(lambda self:%s)" % size)
+            type.__setattr__(newcls, 'size', p)                        
             # build some constants on the class            
             constant = {}
             # constants in class definition will be converted from api class to created class
@@ -131,8 +162,8 @@ class MetaMayaTypeWrapper(type) :
             print "constant", constant
             
             # build the protected list to make some class ifo and the constants read only class attributes
-            protected = tuple(['apiclass', 'apisize', 'apidim', 'apicomp', '_protected'] + constant.keys())
-            # store constants as class atributes
+            protected = tuple(['apiclass', 'shape', 'apicomp', 'size', 'dim', '_protected'] + constant.keys())
+            # store constants as class attributes
             for name, attr in constant.iteritems() :
                 type.__setattr__(newcls, name, attr)
             # store protect class read only information                            
@@ -154,9 +185,8 @@ class Vector(object):
     __metaclass__ = MetaMayaTypeWrapper
     # class specific info
     apiclass = api.MVector
-    apisize = 3
-    apidim = 1
     apicomp = ('x', 'y', 'z')
+    shape = (3,)
          
     # class methods and properties
     @property
@@ -194,7 +224,7 @@ class Vector(object):
                     except :
                         raise TypeError, "a %s cannot be initialized from a single %s, check help(%s) " % (clsname(self), clsname(args[0]), clsname(self))
             else :
-                if nbargs == self.__class__.apisize :
+                if nbargs == self.size :
                     l = args
                 else :
                     l = list(self.__class__())
@@ -215,7 +245,7 @@ class Vector(object):
             # can also use the form <componentname>=<number>
             l = list(self)                     # current
             try :
-                for i in xrange(self.__class__.apisize) :
+                for i in xrange(self.size) :
                     l[i] = kwargs.get(self.__class__.apicomp[i], l[i])
                 self._data = self.apiclass(*l)
             except :
@@ -232,23 +262,26 @@ class Vector(object):
 
     # wrap of list-like access methods
     def __len__(self):
-        """ Vector class has a fixed length """
-        return self.__class__.apisize
+        """ Vector class is a one dimensional array of a fixed length """
+        return self.size
     # API get, actually not faster than pulling _data[i] for such a short structure
 #    def get(self):
 #        ms = api.MScriptUtil()
 #        ms.createFromDouble ( 0.0, 0.0, 0.0 )
 #        p = ms.asDoublePtr ()
 #        self._data.get(p)
-#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.__class__.apisize)]   
+#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)]   
     def __getitem__(self, i):
         """ Get component i value from self """
-        if i < 0 :
-            i = self.__class__.apisize + i
-        if i<self.__class__.apisize and not i<0 :
-            return self._data[i]
+        if isinstance(i, slice) :
+            return list(self)[i]
         else :
-            raise KeyError, "%r has no item %s" % (self, i)
+            if i < 0 :
+                i = self.size + i
+            if i<self.size and not i<0 :
+                return self._data[i]
+            else :
+                raise IndexError, "%s has only %s elements" % (self.__class__.__name__, self.size)
     def __setitem__(self, i, a):
         """ Set component i value on self """
         l = list(self)
@@ -256,28 +289,15 @@ class Vector(object):
         self._data = self.api(*l)
     def __iter__(self):
         """ Iterate on the api components """
-        for i in xrange(self.__class__.apisize) :
+        for i in xrange(self.size) :
             yield self._data[i]
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
-        for i in xrange(self.__class__.apisize) :
+        for i in xrange(self.size) :
             if self._data[i] == value :
                 return True
         return False
-    def __getslice__(self, i, j):
-        try:
-            return list(self).__getslice__(i,j)
-        except:
-            raise IndexError, "%s has only %s elements" % (self.__class__.name, self.__class__.apisize)    
-    def __setslice__(self, i, j, s):
-        try:
-            l = list(self)
-            l.__setslice__(i,j, list(s))
-            # self._data = self.__class__(*l)._data is short/safer but slower, and all Vector derived class
-            # have an api class that supports setting that way
-            self._data = self.api(*l[:self.__class__.apisize])
-        except:
-            raise IndexError, "%s has only %s elements" % (self.__class__.__name__, self.__class__.apisize)      
+    
     
     # common operators
     def __neg__(self):
@@ -293,7 +313,7 @@ class Vector(object):
             Returns the result of the addition of u and v if v is convertible to Vector,
             adds v to every component of u if v is a scalar """        
         if isinstance(other, Vector) :
-            # return self.__class__(map( lambda x, y: x+y, self[:Vector.apisize], other[:Vector.apisize]))
+            # return self.__class__(map( lambda x, y: x+y, self[:Vector.size], other[:Vector.size]))
             # return self.__class__(self.data.__add__(other.vector))
             return difmap(operator.add, self, other)
         elif isScalar(other) :
@@ -305,7 +325,7 @@ class Vector(object):
             Returns the result of the addition of u and v if v is convertible to Vector,
             adds v to every component of u if v is a scalar """        
         if isinstance(other, Vector) :
-            # return self.__class__(map( lambda x, y: x+y, self[:Vector.apisize], other[:Vector.apisize]))
+            # return self.__class__(map( lambda x, y: x+y, self[:Vector.size], other[:Vector.size]))
             # return self.__class__(self.data.__add__(other.vector))
             return difmap(operator.add, other, self)
         elif isScalar(other) :
@@ -596,10 +616,9 @@ class Vector(object):
         
 class Point(Vector):
     apiclass = api.MPoint
-    apisize = 4
-    apidim = 1
     apicomp = ('x', 'y', 'z', 'w')
-
+    shape = (4,)
+    
     # class methods and properties    
     @property
     def vector(self):
@@ -618,7 +637,7 @@ class Point(Vector):
 #        ms.createFromDouble ( 0.0, 0.0, 0.0, 0.0 )
 #        p = ms.asDoublePtr ()
 #        self._data.get(p)
-#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.__class__.apisize)] 
+#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)] 
     
     # modified operators
     def __sub__(self, other) :
@@ -704,9 +723,8 @@ class Point(Vector):
     
 class Color(Point):
     apiclass = api.MColor
-    apisize = 4
-    apidim = 1
     apicomp = ('r', 'g', 'b', 'a')
+    shape = (4,)
     
     # constants
     red = api.MColor(1.0, 0.0, 0.0)
@@ -983,19 +1001,53 @@ class Color(Point):
    
     
 
-        
+# For row, column order, see the definition of a MTransformationMatrix in docs :
+# T  = |  1    0    0    0 |
+#      |  0    1    0    0 |
+#      |  0    0    1    0 |
+#      |  tx   ty   tz   1 |
+# and m(r, c) should return value of cell at r row and c column :
+# t = api.MTransformationMatrix()
+# t.setTranslation(api.MVector(1, 2, 3), api.MSpace.kWorld)
+# m = t.asMatrix()
+# mm(3,0)
+# 1.0
+# mm(3,1)
+# 2.0
+# mm(3,2)
+# 3.0       
+
+#import pymel.core.types.mayatypes as mt
+#reload(mt)
+#t = mt.api.MTransformationMatrix()
+#t.setTranslation(mt.api.MVector(1, 2, 3), mt.api.MSpace.kWorld)
+#m = mt.Matrix(t.asMatrix())
+#mm = t.asMatrix()
+#m[3,1]
+#mm(3,1)
+
+ 
 class Matrix(object):
     """ A 4x4 transformation matrix based on api MMatrix 
         >>> v = self.__class__(1, 2, 3)
         >>> w = self.__class__(x=1, z=2)
         >>> z = self.__class__(api.Mself.__class__.xAxis, z=1)
         """    
+    __metaclass__ = MetaMayaTypeWrapper
     apiclass = api.MMatrix
-    apisize = 16
-    apidim = (4, 4)  
+    shape = (4, 4)
+    apicomp = ('a00', 'a01', 'a02', 'a03',
+               'a10', 'a11', 'a12', 'a13',
+               'a20', 'a21', 'a22', 'a23',
+               'a30', 'a31', 'a32', 'a33' ) 
 
-    # TODO a00, a01, etc properties ?  
     # class methods
+    
+    @classmethod
+    def base(cls, u=Vector.xAxis, v=Vector.yAxis, n=Vector.zAxis) :
+        """ Build the base transformation Matrix from three u, v, n vector,
+            no test is made to ensure the vectors are normalized and orthogonal """
+        pass
     
     @property
     def matrix(self):
@@ -1008,22 +1060,22 @@ class Matrix(object):
         return self.tranform.rotation()
     @property
     def euler(self):
-        return self.tranform.eulerRotation()
-            
+        return self.tranform.eulerRotation() 
+
     def __init__(self, *args, **kwargs):
         """ Init a Matrix instance
             Can pass one argument being another Matrix instance , or the Matrix components """
         self._data = None
         if args :
             nbargs = len(args)
-            if nbargs==1 and not isScalar(arg[0]):
+            if nbargs==1 and not isScalar(args[0]):
                 # single argument
                 if type(args[0]) == type(self) :
                     # copy constructor
                     self.data = args[0].data                
                 elif isinstance(args[0], self.__class__) :
                     # derived class, copy and convert to self data
-                    self.data = args[0].matrix()
+                    self.data = args[0].matrix
                 elif not hasattr(args[0],'__iter__') :
                     # else see if we can init the api class directly
                     try :
@@ -1043,15 +1095,16 @@ class Matrix(object):
                     pass
                 else :
                     # up to 16 flat components
-                    if nbargs == self.__class__.apisize :
+                    if nbargs == self.size :
                         l = args
                     else :
                         l = list(self.__class__())
                         for i in xrange(min(nbargs, len(l))) :
                             l[i] = args[i]
-                    try :
-                        self._data = self.api(*l)
-                    except :
+                    self._data = self.__class__()
+                    if api.MScriptUtil.createMatrixFromList ( l, self._data ) :
+                        pass
+                    else :
                         msg = ", ".join(map(lambda x,y:x+"=<"+clsname(y)+">", self.__class__.apicomp, l))
                         raise TypeError, "in %s(%s) the provided arguments do not match the class components, check help(%s) " % (clsname(self), clsname(self))
 
@@ -1065,12 +1118,12 @@ class Matrix(object):
 
         if self._data is not None :  
             # can also use the form <componentname>=<number>
-            l = list(self)                     # current
-            try :
-                for i in xrange(self.__class__.apisize) :
-                    l[i] = kwargs.get(self.__class__.apicomp[i], l[i])
-                self._data = self.apiclass(*l)
-            except :
+            l = self.flat                    # current        
+            for i in xrange(self.size) :
+                l[i] = kwargs.get(self.__class__.apicomp[i], l[i])
+            if api.MScriptUtil.createMatrixFromList ( l, self._data ) :
+                pass
+            else :
                 msg = ", ".join(map(lambda x,y:x+"=<"+clsname(y)+">", self.__class__.apicomp, l))
                 raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (clsname(self), msg, clsname(self))
 
@@ -1078,54 +1131,214 @@ class Matrix(object):
              
     # display      
     def __str__(self):
-        return '(%s)' % ", ".join(map(str, self))
+        return "[%s]" % ", ".join( map(str,self.row) )
     def __unicode__(self):
-        return u'(%s)' % ", ".unicode(map(str, self))    
+        return u"[%s]" % u", ".join( map(unicode,self.row) )
     def __repr__(self):
-        return '%s%s' % (self.__class__.__name__, str(self))          
+        return '%s(%s)' % (self.__class__.__name__, str(self))          
 
     # wrap of list-like access methods
     def __len__(self):
         """ Matrix class has a fixed length """
-        return self.__class__.apisize
-    def __getitem__(self, i, j):
-        """ Get component i value from self """
-#        if i < 0 :
-#            i = self.__class__.apisize + i
-#        if i<self.__class__.apisize and not i<0 :
-#            return self._data[i]
-        if True :
-            print i, j
+        return self.size
+    
+    @property
+    def row(self):
+        return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
+
+    @property
+    def column(self):
+        return [[self.matrix(r, c) for r in xrange(self.__class__.shape[0])] for c in range(self.__class__.shape[1])]
+
+    # flat list of all components in row, column order
+    @property
+    def flat(self):
+        """ Flat list of all matrix components in row by row consecutive order """
+        return [api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for r in xrange(self.__class__.shape[0]) for c in xrange(self.__class__.shape[1])]        
+    
+    # behavior made to be close to Numpy or cgkit
+    # use flat instead for a single index access to the 16 components
+    def __getitem__(self, rc):
+        """ Get value from either a (row,column) tuple or a single component index (get a full row) """
+        if isScalar (rc) :
+            r = rc
+            c = slice(None, None, None)
         else :
-            raise KeyError, "%r has no item %s" % (self, i)
-    def __setitem__(self, i, j, a):
-        """ Set component i value on self """
-        pass
-#        l = list(self)
-#        l[i] = a
-#        self._data = self.__class__(*l)._data
+            r,c = rc
+        print r,c
+        # bounds check
+        if isScalar(r) and isScalar(c) :
+            # single element
+            if r in range(self.__class__.shape[0]) and c in range(self.__class__.shape[1]) :
+                return self.matrix(r, c)
+            else :
+                raise IndexError, "%s has no element of index [%s,%s]" % (self.__class__.__name__, r, c)
+        elif isScalar(c) :
+            # numpy like m[:,2] format, we return (possibly partial) columns
+            if c in range(self.__class__.shape[1]) :
+                return [self.matrix(i, c) for i in xrange(self.__class__.shape[0])][r]
+            else :
+                raise IndexError, "There are only %s columns in class %s" % (self.__class__.shape[1], self.__class__.__name__)
+        elif isScalar(r) :
+            # numpy like m[2,:] format, we return (possibly partial) columns
+            if r in range(self.__class__.shape[0]) :
+                ptr = self.matrix[r]
+                return [api.MScriptUtil.getDoubleArrayItem(ptr, j) for j in xrange(self.__class__.shape[1])][c]
+            else :
+                raise IndexError, "There are only %s rows in class %s" % (self.__class__.shape[0], self.__class__.__name__)
+        else :
+            # numpy like m[:,:] format, we return (possibly partial) rows
+            return [row[c] for row in self.row[r]]
+
+    def __setitem__(self, rc, value):
+        """ Set value at either a (row,column) tuple or a single component index (set a full row) """
+        if isScalar (rc) :
+            r = rc
+            c = slice(None, None, None)
+        else :
+            r,c = rc
+        print r,c
+        # bounds check
+        if isScalar(r) and isScalar(c) :
+            # set a single element
+            if r in range(self.__class__.shape[0]) and c in range(self.__class__.shape[1]) :
+                ptr = self.matrix[r]
+                api.MScriptUtil.setDoubleArray(ptr, c, value)
+            else :
+                raise IndexError, "%s has no element of index [%s,%s]" % (self.__class__.__name__, r, c)
+        elif isScalar(c) :
+            # numpy like m[:,2] format, we set (possibly partial) columns
+            if c in range(self.__class__.shape[1]) :
+                l = self.flat
+                if isScalar(value) :
+                    for i in range(self.__class__.shape[0])[r] :
+                        l[i*self.__class__.shape[0] + c] = value 
+                elif hasattr(value, '__getitem__') :
+                    for v, i in enumerate(range(self.__class__.shape[0])[r]) :
+                        # to allow to assign 3 value vectors to rows or columns, 4th cell is left unchanged
+                        try :
+                            l[i*self.__class__.shape[0] + c] = value[v] 
+                        except IndexError :
+                            pass
+                else :
+                    raise TypeError, "You can only assign a single scalar value or a sequence/iterable to a %s column" % self.__class__.__name__                                          
+                api.MScriptUtil.createMatrixFromList ( l, self._data )                 
+            else :
+                raise IndexError, "There are only %s columns in class %s" % (self.__class__.shape[1], self.__class__.__name__)
+        elif isScalar(r) :
+            # numpy like m[2,:] format, we set (possibly partial) columns
+            if r in range(self.__class__.shape[0]) :
+                ptr = self.matrix[r]
+                if isScalar(value) :
+                    for j in range(self.__class__.shape[1])[c] :
+                        api.MScriptUtil.setDoubleArray(ptr, j, value)
+                elif hasattr(value, '__getitem__') :
+                    for v, j in enumerate(range(self.__class__.shape[1])[c]) :
+                        # to allow to assign 3 value vectors to rows or columns, 4th cell is left unchanged
+                        try :
+                            api.MScriptUtil.setDoubleArray(ptr, j, value[v]) 
+                        except IndexError :
+                            pass
+                else :
+                    raise TypeError, "You can only assign a single scalar value or a sequence/iterable to a %s row" % self.__class__.__name__                                                                                                                   
+            else :
+                raise IndexError, "There are only %s rows in class %s" % (self.__class__.shape[0], self.__class__.__name__)
+        else :
+            # numpy like m[:,:] format, we set a sub matrix
+            if isScalar(value) :
+                for i in range(self.__class__.shape[0])[r] :
+                    self[i,c] = value            
+            else :
+                for v, i in enumerate(range(self.__class__.shape[0])[r]) :
+                    self[i,c] = value[v]
+
     def __iter__(self):
-        """ Iterate on the Matrix components """
-        for i in xrange(self.__class__.apidim[0]) :
-            for j in xrange(self.__class__.apidim[1]) :            
-                yield self[i][j]
+        """ Iterate on all the Matrix components, in row , column order """
+        for r in xrange(self.__class__.shape[0]) :
+            ptr = self.matrix[r]
+            yield [api.MScriptUtil.getDoubleArrayItem(ptr, c) for c in xrange(self.__class__.shape[1])]
+           
     def __contains__(self, value):
-        """ True if at least one of the vector components is equal to the argument """
-        for i in xrange(self.__class__.apidim[0]) :
-            for j in xrange(self.__class__.apidim[1]) :  
-                if self[i][j] == value :
-                    return True
-        return False
-    def __getslice__(self, i, j):
-        try:
-            return self.__class__(list(self).__getslice__(i,j))
-        except:
-            raise IndexError, "%s has only %s elements" % (self.__class__.name, self.__class__.apisize)    
-    def __setslice__(self, i, j, l):
-        try:
-            self._data = self.__class__(list(self).__setslice__(i,j, list(l)))._data
-        except:
-            raise IndexError, "%s has only %s elements" % (self.__class__.name, self.__class__.apisize)      
+        """ True if at least one of the Matrix components is equal to the argument """
+        return value in self.flat
+
+    # convenience row and column get and set       
+    def getrow(self, r):
+        """ helper to get a row at once """
+        return self[r,:]
+         
+    def setrow(self, r, value):
+        """ helper to set a row at once """     
+        self[r,:] = value
+        
+    def getcolumn(self, c):
+        """ helper to get a column at once """
+        return self[:,c]
+                        
+    def setcolumn(self, c, value):
+        """ helper to set a column at once """    
+        self[:,c] = value
+
+    def setToIdentity (self) :
+        self._data = self.__class__.identity
+        
+    def setToProduct ( self, left, right ) :
+        pass
+
+    def transpose(self):
+        newMatrix = mmatrix()
+        newmat = self._mat.transpose()
+        newMatrix._mat = newmat
+        return newMatrix
+
+    def adjoint(self):
+        newMatrix = mmatrix()
+        newmat = self._mat.adjoint()
+        newMatrix._mat = newmat
+        return newMatrix
+
+    def homogenize(self):
+        newMatrix = mmatrix()
+        newmat = self._mat.homogenize()
+        newMatrix._mat = newmat
+        return newMatrix
+
+    def __add__(self, other):
+        newMatrix = mmatrix()
+        newmat = self._mat + other._mat
+        newMatrix._mat = newmat
+        return newMatrix
+
+    def __sub__(self,other):
+        newMatrix = mmatrix()
+        newmat = self._mat - other._mat
+        newMatrix._mat = newmat
+        return newMatrix
+
+    def __mul__(self, other):
+        if isinstance(other, om.MVector):
+            # vector result
+            return self._math * other
+        newMatrix = mmatrix()
+        newmat = self._mat * other._mat
+        newMatrix._mat = newmat
+        return newMatrix
+
+    def __iadd__(self,other):
+        self._mat += other._mat
+        return self
+        
+    def __isub__(self,other):
+        self._mat += other._mat
+        return self
+
+    def __imul__(self,other):
+        self._mat += other._mat
+        return self
+
+    def __eq__(self,other):
+        return self._mat == other._mat
+      
     
 #    # common operators
 #    def __neg__(self):
@@ -1441,24 +1654,87 @@ class Matrix(object):
 #identity = mmatrix( omMatrix=om.MMatrix.identity )     
         
 class Quaternion(Matrix):
-    api = api.MQuaternion
-    apisize = 4        
+    apiclass = api.MQuaternion
+    shape = (4,)
+    apicomp = ('x', 'y', 'z', 'w')      
 
-    # properties
-    x = property( lambda self: self.__getitem__(0) ,  lambda self, val: self.__setitem__(0,val) )
-    y = property( lambda self: self.__getitem__(1) ,  lambda self, val: self.__setitem__(1,val) )
-    z = property( lambda self: self.__getitem__(2) ,  lambda self, val: self.__setitem__(2,val) ) 
-    w = property( lambda self: self.__getitem__(3) ,  lambda self, val: self.__setitem__(3,val) )  
+    @property
+    def matrix(self):
+        return self._data.asMatrix()
+    @property
+    def transform(self):
+        return api.MTransformationMatrix(self.matrix)   
+    @property
+    def quaternion(self):
+        return self._data
+    @property
+    def euler(self):
+        return self._data.asEulerRotation()
 
-class EulerRotation(Matrix):
-    api = api.MEulerRotation
-    apisize = 4   
+    def __str__(self):
+        return '(%s)' % ", ".join(map(str, self))
+    def __unicode__(self):
+        return u'(%s)' % ", ".unicode(map(str, self))    
+    def __repr__(self):
+        return '%s%s' % (self.__class__.__name__, str(self))  
 
-    # properties
-    x = property( lambda self: self.__getitem__(0) ,  lambda self, val: self.__setitem__(0,val) )
-    y = property( lambda self: self.__getitem__(1) ,  lambda self, val: self.__setitem__(1,val) )
-    z = property( lambda self: self.__getitem__(2) ,  lambda self, val: self.__setitem__(2,val) ) 
-    o = property( lambda self: self.__getitem__(3) ,  lambda self, val: self.__setitem__(3,val) )  
+    # wrap of list-like access methods
+    def __len__(self):
+        """ Vector class is a one dimensional array of a fixed length """
+        return self.size
+    # API get, actually not faster than pulling _data[i] for such a short structure
+#    def get(self):
+#        ms = api.MScriptUtil()
+#        ms.createFromDouble ( 0.0, 0.0, 0.0 )
+#        p = ms.asDoublePtr ()
+#        self._data.get(p)
+#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)]   
+    def __getitem__(self, i):
+        """ Get component i value from self """
+        if i < 0 :
+            i = self.size + i
+        if i<self.size and not i<0 :
+            return self._data[i]
+        else :
+            raise KeyError, "%r has no item %s" % (self, i)
+    def __setitem__(self, i, a):
+        """ Set component i value on self """
+        l = list(self)
+        l[i] = a
+        self._data = self.api(*l)
+    def __iter__(self):
+        """ Iterate on the api components """
+        for i in xrange(self.size) :
+            yield self._data[i]
+    
+    def __init__(self, *args) : 
+        self._data = self.api()
+
+class EulerRotation(Quaternion):
+    apiclass = api.MEulerRotation
+    shape = (4,)   
+    apicomp = ('x', 'y', 'z', 'o')   
+    
+    @property
+    def matrix(self):
+        return self._data.asMatrix()
+    @property
+    def transform(self):
+        return api.MTransformationMatrix(self.matrix)   
+    @property
+    def quaternion(self):
+        return self._data.asQuaternion()
+    @property
+    def euler(self):
+        return self._data
+
+    def __str__(self):
+        return '(%s)' % ", ".join(map(str, self))
+    def __unicode__(self):
+        return u'(%s)' % ", ".unicode(map(str, self))    
+    def __repr__(self):
+        return '%s%s' % (self.__class__.__name__, str(self))  
+
 
 def _test() :
     print "Vector class", dir(Vector)
@@ -1538,6 +1814,7 @@ def _test() :
     print "c10 = c8.over(c9): %r" % c10 
     
 if __name__ == '__main__' :
+    pass
     _test()
 
 
