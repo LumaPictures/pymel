@@ -216,13 +216,14 @@ class Vector(list):
         copy.normalize()
         return copy 
 
-    def cross(a, b):
+    def cross(b, c):
        """
        cross Product of Two Vectors
        """
-       return a.__class__([ a.z*b.x - a.x*b.z,
-                            a.x*b.z - a.z*b.y,
-                            a.x*b.y - a.y*b.x])
+       
+       return b.__class__([ b.y*c.z - b.z*c.y,
+                            b.z*c.x - b.x*c.z,
+                            b.x*c.y - b.y*c.x])
 
     __pow__ = cross
     
