@@ -308,7 +308,7 @@ def _getCmdInfoBasic( command ):
                 numArgs = len(args)
                 longname = str(tokens[1][1:])
                 shortname = str(tokens[0][1:])
-                flags[longname] = { 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs }
+                flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs }
                 shortFlags[shortname] = flags[longname]
         
     except:
@@ -342,9 +342,11 @@ def _getCmdInfo( command, version='8.5' ):
             
         data = '\n'.join( lines )
         
-        flags = parser.flags
-        shortFlags = {}
-        #try:
+        # start with basic info, gathered using mel help command, then update with info parsed from docs
+        # we copy because we need access to the original basic info below
+        flags = basicInfo['flags'].copy()
+        flags.update( parser.flags )
+        
         if command in secondaryFlags:
             for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
                 #print command, "2nd", secondaryFlag
@@ -357,10 +359,15 @@ def _getCmdInfo( command, version='8.5' ):
                          flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
                     else:
                          flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
+        
                          
         # add shortname lookup
         #print command, sorted( basicInfo['flags'].keys() )
         #print command, sorted( flags.keys() )
+        
+        # args and numArgs is more reliable from mel help command than from parsed docs,
+        # so, here we put that back in place and create shortflags. 
+        shortFlags = basicInfo['shortFlags']
         for flag, flagData in flags.items():
             try:
                 basicFlagData = basicInfo['flags'][flag]
@@ -369,7 +376,7 @@ def _getCmdInfo( command, version='8.5' ):
             except KeyError: pass
             
             shortFlags[ flagData['shortname'] ] = flagData
-            
+           
         #except KeyError:pass
           
         return {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': data }
@@ -722,10 +729,9 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         funcName = funcNameOrObject.__name__
         inFunc = funcNameOrObject
 
-    try:
-        cmdInfo = cmdlist[funcName]
-    except KeyError:
-        cmdInfo = _getCmdInfoBasic(funcName)
+
+    cmdInfo = cmdlist[funcName]
+
     
     # if the function is not a builtin and there's no return command to map, just add docs
     if type(inFunc) == types.FunctionType and returnFunc is None:

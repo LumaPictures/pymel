@@ -13,6 +13,9 @@ import sys, os, re, os.path
 import mellex
 from pymel.util.external.ply import *
 from pymel.util import unescape
+import pymel.util.factories as factories
+
+
 
 try:
 	from pymel import *
@@ -70,6 +73,12 @@ def format_substring(x, t):
 	
 	return '%s[%s:%s]' % (x[0], start, end )
 
+def format_tokenize(x,t):
+	if len(x) > 2:
+		return Token( '%s=%s.split(%s)' % (x[2],x[0],x[1]), 'string', tokenize=x[2] )
+	else:
+		return Token( '%s=%s.split()' % (x[1],x[0]), 'string', tokenize=x[1] )
+	
 def format_fread(x, t):
 	formatStr = {
 	 	'string': "%s",
@@ -109,7 +118,7 @@ proc_remap = {
 		'endsWith'				: lambda x, t: '%s.endswith(%s)' 	% (x[0],x[1]),
 		'tolower'				: lambda x, t: '%s.lower()' 		% (x[0]),
 		'toupper'				: lambda x, t: '%s.upper()' 		% (x[0]),
-		'tokenize'				: lambda x, t: Token( '%s=%s.split(%s)' % (x[2],x[0],x[1]), 'string', tokenize=x[2] ),
+		'tokenize'				: format_tokenize,
 		'substring'				: format_substring,
 		'substitute'			: lambda x, t: '%s.replace(%s,%s)' 		% (x[1],x[0],x[2]),
 		
@@ -287,14 +296,15 @@ def addHeldComments( t, funcname = '' ):
 	try:
 		commentList = t.parser.comment_queue_hold.pop()
 	except IndexError:
-		return
+		return ''
 	#commentList = ['# ' + x for x in commentList]
 	
 	if t.parser.verbose:
 		print t.parser.comment_queue_hold
 		print "adding held comments:", funcname, commentList
-			
-	t[0] = ''.join(commentList) + t[0]
+	
+	return ''.join(commentList)	
+	#t[0] = ''.join(commentList) + t[0]
 
 
 def addHeldComments2( code, t, funcname = '' ):
@@ -355,14 +365,20 @@ def p_function_definition(t):
 	'''function_definition :  function_declarator function_specifiers_opt ID LPAREN function_arg_list_opt RPAREN add_comment compound_statement'''
 	#t[0] = assemble(t, 'p_function_definition')
 	
+	# add to the ordered list of procs
 	t.parser.proc_list.append( t[3] )
+	
+	# global proc
 	if t[1].startswith('global'):
-		t.parser.global_procs[ t[3] ] = t[5] 
+		t.parser.global_procs[ t[3] ] = t[5]
+		t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
+		
+	# local proc gets prefixed with underscore
 	else:
 		t.parser.local_procs[ t[3] ] = t[5] 
+		t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
 		
-	t[0] = "def %s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
-	addHeldComments(t, 'func')
+	
 
 def p_add_comment(t):
 	'''add_comment :'''
@@ -748,7 +764,8 @@ def p_selection_statement_2(t):
 	else:
 		elseStmnt='else:\n%s' % ( entabLines(t[8]) )
 	
-	t[0] += addHeldComments2( elseStmnt, t, 'if/else')
+	t[0] += addHeldComments( t, 'if/else') + elseStmnt
+	#t[0] += addHeldComments2( t, elseStmnt, 'if/else')
 	#addHeldComments(t, 'if/else')
 		
 def p_selection_statement_3(t):
@@ -838,7 +855,7 @@ def p_selection_statement_3(t):
 							
 	#print t[0]
 
-	addHeldComments(t, 'switch')
+	t[0] = addHeldComments(t, 'switch') + t[0]
 
 
 #def REMOVED_selection_statement_3(t):
@@ -882,8 +899,8 @@ def p_selection_statement_3(t):
 def p_iteration_statement_1(t):
 	'''iteration_statement : WHILE LPAREN expression RPAREN add_comment statement'''
 	#t[0] = assemble(t, 'p_iteration_statement_1')
-	t[0] = 'while %s:\n%s\n' % (t[3], entabLines(t[6]) )
-	addHeldComments(t, 'while')
+	t[0] = addHeldComments(t, 'while') + 'while %s:\n%s\n' % (t[3], entabLines(t[6]) )
+	
 	
 def p_iteration_statement_2(t):
 	'''iteration_statement : FOR LPAREN expression_list_opt SEMI expression_list_opt SEMI expression_list_opt RPAREN add_comment statement '''
@@ -990,7 +1007,7 @@ def p_iteration_statement_2(t):
 		if update_exprs:
 			t[0] += entabLines('\n'.join( update_exprs ) + '\n')
 		
-		addHeldComments(t, 'for')
+		t[0] = addHeldComments(t, 'for') + t[0]
 		
 	if len(cond_exprs) == 1 and len(init_exprs) >= 1 and len(update_exprs) >=1:		
 		#---------------------------------------------
@@ -1092,15 +1109,15 @@ def p_iteration_statement_2(t):
 		if len( update_exprs ):
 			t[0] += '\n' + entabLines('\n'.join(update_exprs) + '\n')
 		
-		addHeldComments(t, 'for')
+		t[0] = addHeldComments(t, 'for') + t[0]
 	else:
 		default_formatting()
 	
 def p_iteration_statement_3(t):
 	'''iteration_statement : FOR LPAREN variable IN expression seen_FOR RPAREN add_comment statement '''
 	#t[0] = assemble(t, 'p_iteration_statement_3')
-	t[0] = 'for %s in %s:\n%s' % (t[3], t[5], entabLines(t[9]))
-	addHeldComments(t, 'for')
+	t[0] = addHeldComments(t, 'for') + 'for %s in %s:\n%s' % (t[3], t[5], entabLines(t[9]))
+	
 
 def p_seen_FOR(t):
 	'''seen_FOR :'''
@@ -1114,7 +1131,7 @@ def p_iteration_statement_4(t):
 	
 	t[0] = t[2]	+ '\n'
 	t[0] += 'while %s:\n%s\n' % (t[5], entabLines(t[2]) )
-	addHeldComments(t, 'do while')
+	t[0] = addHeldComments(t, 'do while') + t[0]
 
 # jump_statement:
 def p_jump_statement(t):
@@ -1623,7 +1640,7 @@ def getCommandFlags( command ):
 	except:
 		#print "No help for:", command
 		return None
-			
+
 def getAllCommandFlags():
 	import maya.cmds as cmds
 	funcs = filter( lambda x: not x.startswith('_'), dir(cmds) )
@@ -1634,7 +1651,7 @@ def getAllCommandFlags():
 			commands[func] = flags
 	return commands
 
-def scriptModule( t, procedure ):
+def _proc_to_module( t, procedure ):
 	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
 	
 	# if root_module is set to None that means we are doing a string conversion, and not a file conversion
@@ -1683,10 +1700,10 @@ def command_format(command, args, t):
 	if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
 		args[0] = args[0][1:-1]
 		
-	flags = getCommandFlags(command)
+	
 	
 	if t.parser.verbose:
-		print 'p_command: input_list', command, args, flags
+		print 'p_command: input_list', command, args
 	
 	
 
@@ -1695,16 +1712,25 @@ def command_format(command, args, t):
 		return proc_remap[command](args, t)		
 	except KeyError: pass
 
+	#flags = getCommandFlags(command)
 	
+	# new-style from cached info
+	try:
+		cmdInfo = factories.cmdlist[command]
+	except KeyError:
+
+		
 	# Mel procedures and commands without help documentation
-	if flags is None:			
+	#if flags is None:			
 		args = ', '.join(args)
 	
 		# function is being called locally, within same file
-		if command in t.parser.proc_list:
+		if command in t.parser.global_proc:
 			return '%s(%s)' % (command, args)
-	
-		module = scriptModule( t, command )
+		if command in t.parser.local_proc:
+			return '_%s(%s)' % (command, args)
+		
+		module = _proc_to_module( t, command )
 	
 		if module:
 			t.parser.imported_modules.add( module )
@@ -1738,10 +1764,20 @@ def command_format(command, args, t):
 					kwargs[currFlag]='1'
 					numArgs=0
 					
-				(numArgs, commandFlag) = flags[ token ]
+				#(numArgs, commandFlag) = flags[ token ]
 				
 				# remove dash (-) before flag
 				token = token[1:]
+				
+				# new-style from cached info
+				
+				try:
+					flagInfo = cmdInfo['flags'][token]
+				except:
+					flagInfo = cmdInfo['shortFlags'][token]
+				numArgs = flagInfo['numArgs']
+				commandFlag = 'command' in flagInfo['longname'].lower()
+				
 				#print 'new flag', token, numArgs
 							
 				if numArgs == 0 or queryMode:
@@ -1991,7 +2027,7 @@ def p_object_list(t):
 			joinedToken = Token( lastObj + t[2], 
 									'string', 
 									lastObj.lineno, 
-									[ lastObj.lexspan[0], t[2].lexspan[1] ] )
+									lexspan = [ lastObj.lexspan[0], t[2].lexspan[1] ] )
 			t[0] = t[1][:-1] + [ joinedToken ]
 		else:
 			t[0] = t[1] + [ t[2] ]
@@ -2085,7 +2121,7 @@ def p_error(t):
 		comment = '#' + t.value[2:] + '\n'
 		#if t.parser.verbose:
 		#print "queueing comment", comment
-		#parser.comment_queue.append( comment )
+		parser.comment_queue.append( comment )
 		yacc.errok()
 	elif t.type == 'COMMENT_BLOCK':
 		comment = t.value[2:-2]
@@ -2096,7 +2132,7 @@ def p_error(t):
 			comment = '"""' + comment + '"""\n'
 		#if t.parser.verbose:
 		#print "queueing comment", comment
-		#parser.comment_queue.append( comment )
+		parser.comment_queue.append( comment )
 		yacc.errok()	
 		
 	else:
@@ -2113,56 +2149,55 @@ import profile
 # Build the grammar
 
 lexer = lex.lex(module=mellex)
+parser = yacc.yacc(method='''LALR''', debug=0)
 
 class MelParser(object):
 	"""The MelParser class around which all other mel2py functions are based."""
 	def build(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True ):
 		self.lexer = lexer.clone()
-		
-		self.parser = yacc.yacc(method='''LALR''', debug=0)
-		
-		self.parser.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
-		self.parser.proc_list = []  # ordered list of procedures
-		self.parser.local_procs = {} # dictionary of local procedures and their related data
-		self.parser.global_procs = {} # dictionary of global procedures and their related data
-		self.parser.imported_modules = set([])  # imported external modules, pymel is assumed
-		self.parser.global_vars = set([])
-		self.parser.comment_queue = []
-		self.parser.comment_queue_hold = []
-		self.parser.verbose = verbosity
+			
+		parser.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
+		parser.proc_list = []  # ordered list of procedures
+		parser.local_procs = {} # dictionary of local procedures and their related data
+		parser.global_procs = {} # dictionary of global procedures and their related data
+		parser.imported_modules = set([])  # imported external modules, pymel is assumed
+		parser.global_vars = set([])
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
+		parser.verbose = verbosity
 		if pymelNamespace and not pymelNamespace.endswith( '.' ):
 			pymelNamespace = pymelNamespace + '.'
-		self.parser.pymel_namespace = pymelNamespace
-		self.parser.type_map = {}
-		self.parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
-		#self.parser.global_var_include_regex = '.*'
-		self.parser.global_var_exclude_regex = '$'
-		#self.parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
-		self.parser.add_pymel_import = addPymelImport
+		parser.pymel_namespace = pymelNamespace
+		parser.type_map = {}
+		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
+		#parser.global_var_include_regex = '.*'
+		parser.global_var_exclude_regex = '$'
+		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+		parser.add_pymel_import = addPymelImport
 		
 		
 	def parse(self, data):
 		data = data.encode( 'utf-8', 'ignore')
 		data = data.replace( '\r', '\n' )
 		
-		if self.parser.verbose == 2:	
+		if parser.verbose == 2:	
 			lex.input(data)
 			while 1:
 				tok = lex.token()
 				if not tok: break      # No more input
 				print tok
 		
-		prev_modules = self.parser.imported_modules.copy()
+		prev_modules = parser.imported_modules.copy()
 		
-		self.parser.comment_queue = []
-		self.parser.comment_queue_hold = []
+		parser.comment_queue = []
+		parser.comment_queue_hold = []
 		
 		translatedStr = ''
 		try:
-			translatedStr = self.parser.parse(data, lexer=self.lexer)
+			translatedStr = parser.parse(data, lexer=self.lexer)
 		except ValueError, msg:
-			if self.parser.comment_queue:
-				translatedStr = '\n'.join(self.parser.comment_queue)				
+			if parser.comment_queue:
+				translatedStr = '\n'.join(parser.comment_queue)				
 			else:
 				raise ValueError, msg
 			
@@ -2171,21 +2206,21 @@ class MelParser(object):
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 		
-		new_modules = self.parser.imported_modules.difference( prev_modules )
+		new_modules = parser.imported_modules.difference( prev_modules )
 		
 		header = ''
 		
 		# adding the pymel import statement should occur only on the 
 		# first execution of the parser or not at all.
 		
-		if self.parser.add_pymel_import:
-			if not self.parser.pymel_namespace:
+		if parser.add_pymel_import:
+			if not parser.pymel_namespace:
 				header += 'from pymel import *\n'
-			elif self.parser.pymel_namespace == 'pymel.':
+			elif parser.pymel_namespace == 'pymel.':
 				header += 'import pymel\n'
 			else:
-				header += 'import pymel as %s\n' % self.parser.pymel_namespace[:-1]
-			self.parser._add_pymel_import = False
+				header += 'import pymel as %s\n' % parser.pymel_namespace[:-1]
+			parser._add_pymel_import = False
 			
 		if len( new_modules ):
 			header += "import %s" % ','.join(list(new_modules))
