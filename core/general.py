@@ -617,7 +617,7 @@ Modifications:
                     elif isinstance( arg, bool ):
                         attr.add( at='bool' ) 
                     else:
-                        raise TypeError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg)
+                        raise TypeError, "%s.setAttr: %s is not a supported type for use with the force flag" % ( __name__, type(arg) )
                                         
                 elif isinstance(arg,basestring):
                     kwargs['type'] = 'string'
@@ -625,9 +625,23 @@ Modifications:
     if datatype == 'matrix':
         cmd = 'setAttr -type "matrix" "%s" %s' % (attr, ' '.join( map( str, args ) ) )
         mm.eval(cmd)
-        return                    
-    cmds.setAttr( attr, *args, **kwargs)
-
+        return    
+    print attr, args, kwargs
+    try:                
+        cmds.setAttr( attr, *args, **kwargs)
+    except TypeError, msg:
+        val = kwargs.pop( 'type', kwargs.pop('typ', False) )
+        print val
+        print attr, type(attr)
+        typ = cmds.addAttr( attr, q=1, at=1)
+        if val == 'string' and typ == 'enum':
+            enums = cmds.addAttr(attr, q=1, en=1).split(":")
+            index = enums.index( args[0] )
+            args = ( index, )
+            cmds.setAttr( attr, *args, **kwargs)
+        else:
+            raise TypeError, msg
+            
 def addAttr( *args, **kwargs ):
     """
 Modifications:
@@ -3229,121 +3243,6 @@ def _createClasses():
         #else:
         #    print "already created", classname
 _createClasses()
-
-
-def testNodeCmds(verbose=False):
-
-    emptyFunctions = []
-    
-    for funcName in _factories.moduleCmds['node']:
-        print funcName.center( 50, '=')
-        
-        if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
-            print "skipping"
-            continue
-        
-        
-        
-        try:
-            func = getattr(_thisModule, funcName)
-        except AttributeError:
-            continue
-            
-        try:
-            cmds.select(cl=1)
-            
-            if funcName.endswith( 'onstraint'):
-                s = cmds.polySphere()[0]
-                c = cmds.polyCube()[0]
-                obj = func(s,c)
-            else:
-                obj = func()
-                if obj is None:
-                    emptyFunctions.append( funcName )
-                    raise ValueError, "Returned object is None"
-            
-        except (TypeError,RuntimeError, ValueError), msg:
-            print "ERROR: failed creation:", msg
-
-        else:
-            #(func, args, data) = cmdList[funcName]    
-            #(usePyNode, baseClsName, nodeName)
-            args = _factories.cmdlist[funcName]['flags']
-
-            if isinstance(obj, list):
-                print "returns list"
-                obj = obj[-1]
-
-            for flag, flagInfo in args.items():            
-                if flag in ['query', 'edit']:
-                    continue
-                modes = flagInfo['modes']
-            
-                # QUERY
-                val = None
-                if 'query' in modes:
-                    cmd = "%s('%s', query=True, %s=True)" % (func.__name__, obj,  flag)
-                    try:
-                        val = func( obj, **{'query':True, flag:True} )
-                        #print val
-                        if verbose:
-                            print cmd
-                            print "\tsucceeded: %s" % val
-                    except TypeError, msg:                            
-                        if str(msg).startswith( 'Invalid flag' ):
-                            _factories.cmdlist[funcName]['flags'].pop(flag,None)
-                        #else:
-                        print cmd
-                        print "\t", msg
-                        val = None
-                    except RuntimeError, msg:
-                        print cmd
-                        print "\t", msg    
-                        val = None
-                        
-                # EDIT
-                if 'edit' in modes:
-                    try:    
-                        if val is None:
-                            argMap = { 
-                                'boolean'         : True,
-                                'int'            : 0,
-                                'float'            : 0.0,
-                                'linear'        : 0.0,
-                                'double'        : 0.0,
-                                'angle'            : 0,
-                                'string' :        'persp'
-                            }
-                            
-                            argtype = flagInfo['argtype']
-                            if '[' in argtype:
-                                val = []
-                                for typ in argtype.strip('[]').split(','):
-                                    val.append( argMap[typ.strip()] )
-                            else:
-                                val = argMap[argtype]    
-                                                
-                        cmd =  "%s('%s', edit=True, %s=%s)" % (func.__name__, obj,  flag, val)
-                        val = func( obj, **{'edit':True, flag:val} )
-                        if verbose:
-                            print cmd
-                            print "\tsucceeded: %s" % val
-                        #print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
-                    except TypeError, msg:                                                        
-                        if str(msg).startswith( 'Invalid flag' ):
-                            _factories.cmdlist[funcName]['flags'].pop(flag,None)
-                        #else:
-                        print cmd
-                        print "\t", msg 
-                    except RuntimeError, msg:
-                        print cmd
-                        print "\t", msg    
-                    except KeyError:
-                        print "UNKNOWN ARG:", flagInfo['argtype']    
-    
-    print "done"
-    print emptyFunctions
-
 
 
 # create PyNode conversion tables

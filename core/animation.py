@@ -61,7 +61,7 @@ Modifications:
             
             for attr in attrs:
                 if attr in kwargs:
-                    return general.Vector( getAttr(args[0] + "." + attr ) )
+                    return general.Vector( general.getAttr(args[0] + "." + attr ) )
                     
             
         if len(args)==1:
@@ -118,7 +118,7 @@ Modifications:
         
         for attr in attrs:
             if attr in kwargs:
-                return general.Vector( getAttr(args[0] + "." + attr ) )
+                return general.Vector( general.getAttr(args[0] + "." + attr ) )
                 
         
     if len(args)==1:
@@ -159,7 +159,7 @@ Maya Bug Fix:
         
         for attr in attrs:
             if attr in kwargs:
-                return general.Vector( getAttr(args[0] + "." + attr ) )
+                return general.Vector( general.getAttr(args[0] + "." + attr ) )
                 
             
     res = cmds.normalConstraint(*args, **kwargs)
