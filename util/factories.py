@@ -285,8 +285,17 @@ class CommandInfo(object):
         self.description = description
         self.example = example
         self.type = type
-        
+
+      
 def _getCmdInfoBasic( command ):
+    typemap = {    
+             'string'  : str,
+             'length'  : float,
+             'float'   : float,
+             'angle'   : float,
+             'int'     : int,
+             'on|off'  : bool
+    }
     flags = {}
     shortFlags = {}
     try:     
@@ -304,8 +313,14 @@ def _getCmdInfoBasic( command ):
                 pass
             #print tokens
             if len(tokens) > 1:
-                args = tokens[2:]  
+                args = [ typemap.get(x.lower(),x) for x in tokens[2:] ]
                 numArgs = len(args)
+                
+                # lags with no args in mel require a boolean val in python
+                if numArgs == 0:
+                    args = [bool]
+                    numArgs = 1
+                    
                 longname = str(tokens[1][1:])
                 shortname = str(tokens[0][1:])
                 flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs }
