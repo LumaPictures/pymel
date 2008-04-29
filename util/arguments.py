@@ -6,8 +6,13 @@ These utility functions can be used by other util modules and are imported in ut
 from collections import deque
 import sys
 
+# some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 def isIterable( obj ):
     return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
+
+# consider only ints and floats numeric
+def isScalar(obj):
+    return isinstance(obj,int) or isinstance(obj,float)
 
 # TODO : name probably badly chosen are there are more types considered as Sequence Types in Python
 def isSequence( obj ):
@@ -15,6 +20,8 @@ def isSequence( obj ):
 
 def isMapping( obj ):
     return isinstance(obj, dict)
+
+clsname = lambda x:x.__class__.__name__
 
 def convertListArgs( args ):
     if len(args) == 1 and isIterable(args[0]):
