@@ -1300,7 +1300,7 @@ class DagNode(Entity):
             par = cur.getParent()
             if not par:
                 break
-            cur = par[0]
+            cur = par
         return cur 
     
     def firstParent(self):
