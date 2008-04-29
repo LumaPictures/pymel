@@ -1115,7 +1115,9 @@ def instancer(*args, **kwargs):
     """
 Maya Bug Fix:
     - name of newly created instancer was not returned
-    """    
+    """ 
+    # instancer does not like PyNode objects
+    args = map( unicode, args )   
     if kwargs.get('query', kwargs.get('q',False)):
         return cmds.instancer(*args, **kwargs)
     if kwargs.get('edit', kwargs.get('e',False)):
@@ -1143,16 +1145,17 @@ def _getPymelType(arg, comp=None) :
             obj = None
     elif isinstance(arg,basestring) :
         objName = arg
-        obj = api.toAPIObject (arg)
+        obj = api.toAPIObject(arg)
                                            
     pymelType = DependNode                                         
     if obj :
         # the case of an existing node or plug
-        if api.isValidMPlug (obj):
+        if api.isValidMPlug(obj):
             pymelType = Attribute          
         else :
-            objType = api.apiEnumToType(obj.apiType ())
+            objType = api.apiEnumToType( obj.apiType() )
             pymelType = apiTypeToPyNodeType(objType, DependNode)
+
     elif objName :
         # non existing node
         pymelType = basestring
@@ -3208,41 +3211,73 @@ class ObjectSet(Entity):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
+# Need to build a similar dict of Pymel types to their corresponding API types
+class PyNodeToMayaAPITypes(dict) :
+    __metaclass__ =  util.metaStatic
+
+# inverse lookup, some Maya API types won't have a PyNode equivalent
+class MayaAPITypesToPyNode(dict) :
+    __metaclass__ =  util.metaStatic
+    
 def _createClasses():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy
     # see if breadth first isn't more practical ?
+    PyNodeDict = {}
+    PyNodeInverseDict = {}
+    
     for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
-        nodeType = treeElem.key
+        MayaType = treeElem.key
         #print "cmds.nodeType: ", cmds.nodeType
-        if nodeType == 'dependNode': continue
-        classname = util.capitalize(nodeType)
-        if not hasattr( _thisModule, classname ):
+        if MayaType == 'dependNode': continue
+        PyNodeTypeName = util.capitalize(MayaType)
+        if hasattr( _thisModule, PyNodeTypeName ):
+            PyNodeType = getattr( _thisModule, PyNodeTypeName )
+        
+        else:
+            
             #superNodeType = _factories.nodeHierarchy.parent( cmds.nodeType )
             superNodeType = treeElem.parent.key
             #print "superNodeType: ", superNodeType, type(superNodeType)
             if superNodeType is None:
-                print "could not find parent node", nodeType
+                print "could not find parent node", MayaType
                 continue
             superNodeType = util.capitalize(superNodeType)
             try:
                 base = getattr( _thisModule, superNodeType )
             except AttributeError:
-                print "error creating class %s: parent class %s not in module %s" % (classname, superNodeType, __name__)
-                continue
-        
+                print "error creating class %s: parent class %s not in module %s" % (PyNodeTypeName, superNodeType, __name__)
+                continue      
             #try:
-            cls = metaNode(classname, (base,), {})
+            PyNodeType = metaNode(PyNodeTypeName, (base,), {})
             #except TypeError, msg:
             #    print "%s(%s): %s" % (classname, superNodeType, msg )
                 #pass
             #else:    
-            cls.__module__ = __name__
-            setattr( _thisModule, classname, cls )
+            PyNodeType.__module__ = __name__
+            setattr( _thisModule, PyNodeTypeName, PyNodeType )
+        
+        try:
+            APITypeName = api.MayaTypesToAPI()[MayaType]
+            PyNodeDict[PyNodeType] = APITypeName
+            PyNodeInverseDict[APITypeName] = PyNodeType
+        except KeyError:
+            pass
+        #    print "No API type exists for maya type '%s'" % MayaType
         #else:
         #    print "already created", classname
-_createClasses()
+    # Would be good to limit special treatments
+    PyNodeDict[PyNode] = 'kBase'
+    PyNodeInverseDict['kBase'] = PyNode
+    PyNodeDict[DependNode] = 'kDependencyNode'
+    PyNodeInverseDict['kDependencyNode'] = DependNode
+                          
+    # Initialize the static classes to hold these
+    PyNodeToMayaAPITypes (PyNodeDict)
+    MayaAPITypesToPyNode (PyNodeInverseDict)
+    
+#_createClasses()
 
 # add some convenience methods to the Vector / Matrix classes that use Maya nodes info
 
@@ -3297,13 +3332,7 @@ _createClasses()
 
 # create PyNode conversion tables
 
-# Need to build a similar dict of Pymel types to their corresponding API types
-class PyNodeToMayaAPITypes(dict) :
-    __metaclass__ =  util.metaStatic
 
-# inverse lookup, some Maya API types won't have a PyNode equivalent
-class MayaAPITypesToPyNode(dict) :
-    __metaclass__ =  util.metaStatic
 
 # build a PyNode to API type relation or PyNode to Maya node types relation ?
 def buildPyNodeToAPI () :
@@ -3313,6 +3342,7 @@ def buildPyNodeToAPI () :
             return issubclass(x, PyNode)
         except :
             return False    
+    #print dict(inspect.getmembers(_thisModule)).has_key( 'VortexField'), issubclass( getattr(  _thisModule, 'VortexField') , PyNode )
     listPyNodes = dict(inspect.getmembers(_thisModule, _PyNodeClass))
     PyNodeDict = {}
     PyNodeInverseDict = {}
@@ -3320,10 +3350,13 @@ def buildPyNodeToAPI () :
         # assume that PyNode type name is the API type without the leading 'k'
         PyNodeType = listPyNodes[k]
         PyNodeTypeName = PyNodeType.__name__
+        print PyNodeTypeName
         APITypeName = 'k'+PyNodeTypeName
         if api.MayaAPIToTypes().has_key(APITypeName) :
             PyNodeDict[PyNodeType] = APITypeName
             PyNodeInverseDict[APITypeName] = PyNodeType
+        else: 
+            print "%s is not a valid API type. %s" % ( APITypeName, api.MayaTypesToAPI().has_key(PyNodeTypeName) )
     # Would be good to limit special treatments
     PyNodeDict[PyNode] = 'kBase'
     PyNodeInverseDict['kBase'] = PyNode
@@ -3337,7 +3370,8 @@ def buildPyNodeToAPI () :
 # Initialize Pymel classes to API types lookup
 #buildPyNodeToAPI()
 startTime = time.time()
-buildPyNodeToAPI()
+#buildPyNodeToAPI()
+_createClasses()
 elapsed = time.time() - startTime
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
