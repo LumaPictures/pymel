@@ -442,9 +442,8 @@ Modifications:
             vecRes.append( Vector( res[i:i+3] ) )
         return vecRes
 
-    # quick fix until full object support
-    if isinstance(attr, node.PyNode) :
-        attr = attr.name()
+    # MObject Fix
+    attr = unicode(attr)
 
     try:
         res = cmds.getAttr( attr, **kwargs)
@@ -551,10 +550,10 @@ Modifications:
                     elif isinstance( arg, Matrix ):
                         datatype = 'matrix'
                     else:        
-                        datatype = cmds.getAttr( attr, type=1)
+                        datatype = getAttr( attr, type=1)
                         if not datatype:
                             #print "Getting datatype", attr
-                            datatype = cmds.addAttr( attr, q=1, dataType=1)[0] # this is returned as a single element list
+                            datatype = addAttr( attr, q=1, dataType=1) #[0] # this is returned as a single element list
                     
                         # set datatype for arrays
                         # we could do this for all, but i'm uncertain that it needs to be 
@@ -625,17 +624,17 @@ Modifications:
     if datatype == 'matrix':
         cmd = 'setAttr -type "matrix" "%s" %s' % (attr, ' '.join( map( str, args ) ) )
         mm.eval(cmd)
-        return    
-    print attr, args, kwargs
-    try:                
+        return 
+    # MObject Fix
+    attr = unicode(attr)   
+    #print attr, args, kwargs
+    try:
         cmds.setAttr( attr, *args, **kwargs)
     except TypeError, msg:
         val = kwargs.pop( 'type', kwargs.pop('typ', False) )
-        print val
-        print attr, type(attr)
-        typ = cmds.addAttr( attr, q=1, at=1)
+        typ = addAttr( attr, q=1, at=1)
         if val == 'string' and typ == 'enum':
-            enums = cmds.addAttr(attr, q=1, en=1).split(":")
+            enums = addAttr(attr, q=1, en=1).split(":")
             index = enums.index( args[0] )
             args = ( index, )
             cmds.setAttr( attr, *args, **kwargs)
@@ -666,7 +665,9 @@ Modifications:
             }[at]
         except KeyError:
             kwargs['at'] = at
-            
+    
+    # MObject Fix
+    args = map(unicode, args) 
     res = cmds.addAttr( *args, **kwargs )
     if kwargs.get( 'q', kwargs.get('query',False) ) and kwargs.get( 'dt', kwargs.get('dataType',False) ):
         res = res[0]
@@ -3218,7 +3219,7 @@ class PyNodeToMayaAPITypes(dict) :
 # inverse lookup, some Maya API types won't have a PyNode equivalent
 class MayaAPITypesToPyNode(dict) :
     __metaclass__ =  util.metaStatic
-    
+
 def _createClasses():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy

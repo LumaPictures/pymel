@@ -18,9 +18,10 @@ A wrap of Maya's MVector type
 #import pymel.util as util
 #import pymel.api as api
 import inspect
-import maya.OpenMaya as api
+#import maya.OpenMaya as api
+import pymel.api as api
 from math import *
-from mathutils import *
+from pymel.util.mathutils import *
 from copy import *
 from itertools import *
 import operator, colorsys
@@ -257,7 +258,7 @@ class Vector(object):
     def __str__(self):
         return '(%s)' % ", ".join(map(str, self))
     def __unicode__(self):
-        return u'(%s)' % ", ".unicode(map(str, self))    
+        return u'(%s)' % u", ".join(map(unicode, self))    
     def __repr__(self):
         return '%s%s' % (self.__class__.__name__, str(self))          
 
@@ -1480,7 +1481,7 @@ class Matrix(object):
         v = Vector.yAxis * self
         n = Vector.zAxis * self
         return u, v, n    
-    def blend(self, other=Matrix(), blend=0.5):
+    def blend(self, other, blend=0.5):
         """ Returns a 0.0-1.0 scalar weight blend between self and other Matrix """ 
         if isinstance(other, Matrix) :
             # len(other) <= len(self)            

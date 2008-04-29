@@ -12,7 +12,7 @@ from arguments import *
 from utilitytypes import *
 from mathutils import *
 from trees import *
-from arrays import *
+#from arrays import *
 
 from mayautils import *
 
