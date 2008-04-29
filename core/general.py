@@ -3244,6 +3244,56 @@ def _createClasses():
         #    print "already created", classname
 _createClasses()
 
+# add some convenience methods to the Vector / Matrix classes that use Maya nodes info
+
+#def worldToObject(self, obj):
+#    return self * node.DependNode(obj).worldInverseMatrix.get()
+#
+#def worldToCamera(self, camera=None):
+#    if camera is None:
+#        camera = core.mel.getCurrentCamera()
+#    return self * node.DependNode(camera).worldInverseMatrix.get()
+#    
+#def worldToScreen(self, camera=None):
+#    if camera is None:
+#        camera = node.Camera(core.mel.getCurrentCamera())
+#    else:
+#        camera = node.Camera(camera)
+#        
+#    screen = self.worldToCamera(camera)
+#    
+#    screen.x = (screen.x/-screen.z) / tan(radians(camera.horizontalFieldOfView/2))/2.0+.5
+#    screen.y = (screen.y/-screen.z) / tan(radians(camera.verticalFieldOfView/2))/2.0+.5 
+#
+#    xres = core.getAttr( 'defaultResolution.width' )
+#    yres = core.getAttr( 'defaultResolution.height' )
+#    filmApX = camera.horizontalFilmAperture.get()
+#    filmApY = camera.verticalFilmAperture.get()
+#
+#    filmAspect = filmApX/filmApY;
+#    resAspect  = xres/yres;
+#    ratio = filmAspect/resAspect;
+#
+#    screen.y = linmap( ((ratio-1)/-2), (1+(ratio-1)/2), screen.y )
+#    
+#    return screen    
+#
+#def objectToWorld(self, object):
+#    worldMatrix = node.DependNode(object).worldMatrix.get()
+#    return self * worldMatrix
+#
+#def objectToCamera(self, object, camera=None):
+#    return self.objectToWorld(object).worldToCamera( camera )
+#    
+#def objectToScreen(self, object, camera=None):
+#    return self.objectToWorld(object).worldToScreen( camera )
+#
+#        
+#def cameraToWorld(self, camera=None):
+#    if camera is None:
+#        camera = core.mel.getCurrentCamera()
+#    return self * node.DependNode(camera).worldMatrix.get()
+
 
 # create PyNode conversion tables
 
