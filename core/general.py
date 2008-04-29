@@ -20,7 +20,7 @@ from pymel.util.factories import queryflag, editflag, createflag
 import pymel.api as api
 import system
 from system import namespaceInfo
-from types.vector import *
+from types.mayatypes import *
 from types.ranges import *
 from pymel.util.nameparse import *
 
