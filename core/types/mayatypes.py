@@ -22,6 +22,7 @@ import maya.OpenMaya as api
 from math import *
 from mathutils import *
 from copy import *
+from itertools import *
 import operator, colorsys
 #from pymel.core.mathutils import *
 
@@ -265,12 +266,13 @@ class Vector(object):
         """ Vector class is a one dimensional array of a fixed length """
         return self.size
     # API get, actually not faster than pulling _data[i] for such a short structure
-#    def get(self):
-#        ms = api.MScriptUtil()
-#        ms.createFromDouble ( 0.0, 0.0, 0.0 )
-#        p = ms.asDoublePtr ()
-#        self._data.get(p)
-#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)]   
+    def get(self):
+        ms = api.MScriptUtil()
+        l = (0,)*self.size
+        ms.createFromDouble ( *l )
+        p = ms.asDoublePtr ()
+        self._data.get(p)
+        result = tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)]) 
     def __getitem__(self, i):
         """ Get component i value from self """
         if isinstance(i, slice) :
@@ -286,7 +288,7 @@ class Vector(object):
         """ Set component i value on self """
         l = list(self)
         l[i] = a
-        self._data = self.api(*l)
+        self._data = self.api(*l[:self.size])
     def __iter__(self):
         """ Iterate on the api components """
         for i in xrange(self.size) :
@@ -302,7 +304,7 @@ class Vector(object):
     # common operators
     def __neg__(self):
         """ u.__neg__() <==> -u
-            Returns the Vector obtained by inverting every component of u """        
+            Returns the Vector obtained by negating every component of u """        
         return self.__class__(map(lambda x: -x, self))   
     def __invert__(self):
         """ u.__invert__() <==> ~u
@@ -579,7 +581,7 @@ class Vector(object):
     def blend(self, other, blend=0.5):
         """ u.blend(v, blend) returns the result of blending from Vector instance u to v according to
             either a scalar blend where it yields u*(1-blend) + v*blend Vector,
-            or a an iterable of up to 3 (x, y, z) independant blend factors """ 
+            or a an iterable of up to 3 (x, y, z) independent blend factors """ 
         if isinstance(other, Vector) :
             other = Vector(other)
             if isScalar(blend) :
@@ -631,14 +633,7 @@ class Point(Vector):
         return api.MColor(self._data[0], self._data[1], self._data[2], self._data[3])   
 
     # base methods are inherited from Vector
-    # API get, actually not faster than pulling _data[i] for such a short structure
-#    def get(self):
-#        ms = api.MScriptUtil()
-#        ms.createFromDouble ( 0.0, 0.0, 0.0, 0.0 )
-#        p = ms.asDoublePtr ()
-#        self._data.get(p)
-#        result = [ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)] 
-    
+   
     # modified operators
     def __sub__(self, other) :
         """ u.__sub__(v) <==> u-v
@@ -1017,16 +1012,68 @@ class Color(Point):
 # mm(3,2)
 # 3.0       
 
-#import pymel.core.types.mayatypes as mt
-#reload(mt)
-#t = mt.api.MTransformationMatrix()
-#t.setTranslation(mt.api.MVector(1, 2, 3), mt.api.MSpace.kWorld)
-#m = mt.Matrix(t.asMatrix())
-#mm = t.asMatrix()
-#m[3,1]
-#mm(3,1)
+# iterator classes on Matrix row, column, flat, supporting __getitem__
+# replaces the more general iterator classes defined on the generic (non Maya api based) matrix class
+class MatrixIter(object):
+    def __init__(self, data, onindex=0) :
+        # print "type", type(data), "on index", onindex
+        # if isinstance(data, Matrix) :
+        if True :
+            self.base = data
+            self.shape = self.base.shape
+            self.coords = [0]*len(self.shape)
+            if onindex == 0 :
+                self._next = self._nextrow
+            elif onindex == 1 :
+                self._next = self._nextcolumn 
+            elif onindex == (0,1) :
+                self.ptr = self.base.matrix[0]
+                self._next = self._nextflat                           
+            else :
+                raise ValueError, "%s has %s dimensions, cannot iterate on index %s" % (clsname(self.base), self.base.dim, onindex)
+        else :
+            raise TypeError, "%s can only be built on Matrix" % clsname(self)
+    def __length_hint__(self) :
+        return len(self.base)
+    def __iter__(self) :
+        return self 
+    def _nextonindex(self, onindex) :
+        if self.coords[onindex] == self.shape[onindex] :        
+            raise StopIteration
+        # fix
+        val =  [self.matrix(r, self.coords[onindex]) for r in xrange(self.shape[0])]
+        self.coords[onindex] += 1
+        return val       
+    def _nextrow(self) :
+        if self.coords[0] == self.shape[0] :        
+            raise StopIteration
+        self.ptr = self.base.matrix[self.coords[0]]
+        val =  tuple(api.MScriptUtil.getDoubleArrayItem(self.ptr, c) for c in xrange(self.shape[1]))
+        self.coords[0] += 1
+        return val
+    def _nextcolumn(self) :
+        if self.coords[1] == self.shape[1] :        
+            raise StopIteration
+        val =  tuple(self.base.matrix(r, self.coords[1]) for r in xrange(self.shape[0]))
+        self.coords[1] += 1
+        return val
+    def _nextflat(self) :
+        if self.coords[1] == self.shape[1] :
+            self.coords[1] = 0
+            self.coords[0] += 1
+            if self.coords[0] < self.shape[0] : 
+                self.ptr = self.base.matrix[self.coords[0]]       
+            else :
+                raise StopIteration
+        val =  api.MScriptUtil.getDoubleArrayItem(self.ptr, self.coords[1])
+        self.coords[1] += 1
+        return val 
+    def next(self):
+        return self._next()     
+    def __getitem__(self, i) :
+        return tuple(self)[i]
+    
 
- 
 class Matrix(object):
     """ A 4x4 transformation matrix based on api MMatrix 
         >>> v = self.__class__(1, 2, 3)
@@ -1043,17 +1090,13 @@ class Matrix(object):
 
     # class methods
     
-    @classmethod
-    def base(cls, u=Vector.xAxis, v=Vector.yAxis, n=Vector.zAxis) :
-        """ Build the base transformation Matrix from three u, v, n vector,
-            no test is made to ensure the vectors are normalized and orthogonal """
-        pass
+    # properties
     
     @property
     def matrix(self):
         return self._data
     @property
-    def transform(self):
+    def tmatrix(self):
         return api.MTransformationMatrix(self._data)   
     @property
     def quaternion(self):
@@ -1118,7 +1161,7 @@ class Matrix(object):
 
         if self._data is not None :  
             # can also use the form <componentname>=<number>
-            l = self.flat                    # current        
+            l = list(self.flat)                    # current        
             for i in xrange(self.size) :
                 l[i] = kwargs.get(self.__class__.apicomp[i], l[i])
             if api.MScriptUtil.createMatrixFromList ( l, self._data ) :
@@ -1131,9 +1174,9 @@ class Matrix(object):
              
     # display      
     def __str__(self):
-        return "[%s]" % ", ".join( map(str,self.row) )
+        return "[%s]" % ", ".join( imap(str,self.row) )
     def __unicode__(self):
-        return u"[%s]" % u", ".join( map(unicode,self.row) )
+        return u"[%s]" % u", ".join( imap(unicode,self.row) )
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, str(self))          
 
@@ -1141,20 +1184,26 @@ class Matrix(object):
     def __len__(self):
         """ Matrix class has a fixed length """
         return self.size
-    
+    def get(self):
+        """ Wrap the MMatrix api get method """
+        ptr = self.matrix.matrix[4][4]
+        return tuple(tuple(api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))
+        
     @property
     def row(self):
-        return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
-
+        """ Iterator on the Matrix rows """
+        return MatrixIter(self, 0)
+        # return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
     @property
     def column(self):
-        return [[self.matrix(r, c) for r in xrange(self.__class__.shape[0])] for c in range(self.__class__.shape[1])]
-
-    # flat list of all components in row, column order
+        """ Iterator on the Matrix columns """
+        return MatrixIter(self, 1)
+        #return [[self.matrix(r, c) for r in xrange(self.__class__.shape[0])] for c in range(self.__class__.shape[1])]
     @property
     def flat(self):
-        """ Flat list of all matrix components in row by row consecutive order """
-        return [api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for r in xrange(self.__class__.shape[0]) for c in xrange(self.__class__.shape[1])]        
+        """ Flat iterator on all matrix components in row by row consecutive order """
+        return MatrixIter(self, (0,1))
+        # return [api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for r in xrange(self.__class__.shape[0]) for c in xrange(self.__class__.shape[1])]        
     
     # behavior made to be close to Numpy or cgkit
     # use flat instead for a single index access to the 16 components
@@ -1176,19 +1225,19 @@ class Matrix(object):
         elif isScalar(c) :
             # numpy like m[:,2] format, we return (possibly partial) columns
             if c in range(self.__class__.shape[1]) :
-                return [self.matrix(i, c) for i in xrange(self.__class__.shape[0])][r]
+                return tuple([self.matrix(i, c) for i in xrange(self.__class__.shape[0])][r])
             else :
                 raise IndexError, "There are only %s columns in class %s" % (self.__class__.shape[1], self.__class__.__name__)
         elif isScalar(r) :
             # numpy like m[2,:] format, we return (possibly partial) columns
             if r in range(self.__class__.shape[0]) :
                 ptr = self.matrix[r]
-                return [api.MScriptUtil.getDoubleArrayItem(ptr, j) for j in xrange(self.__class__.shape[1])][c]
+                return tuple([api.MScriptUtil.getDoubleArrayItem(ptr, j) for j in xrange(self.__class__.shape[1])][c])
             else :
                 raise IndexError, "There are only %s rows in class %s" % (self.__class__.shape[0], self.__class__.__name__)
         else :
             # numpy like m[:,:] format, we return (possibly partial) rows
-            return [row[c] for row in self.row[r]]
+            return tuple(row[c] for row in self.row[r])
 
     def __setitem__(self, rc, value):
         """ Set value at either a (row,column) tuple or a single component index (set a full row) """
@@ -1209,7 +1258,7 @@ class Matrix(object):
         elif isScalar(c) :
             # numpy like m[:,2] format, we set (possibly partial) columns
             if c in range(self.__class__.shape[1]) :
-                l = self.flat
+                l = list(self.flat)
                 if isScalar(value) :
                     for i in range(self.__class__.shape[0])[r] :
                         l[i*self.__class__.shape[0] + c] = value 
@@ -1253,116 +1302,92 @@ class Matrix(object):
                     self[i,c] = value[v]
 
     def __iter__(self):
-        """ Iterate on all the Matrix components, in row , column order """
+        """ Default Matrix iterators iterates on rows """
         for r in xrange(self.__class__.shape[0]) :
             ptr = self.matrix[r]
-            yield [api.MScriptUtil.getDoubleArrayItem(ptr, c) for c in xrange(self.__class__.shape[1])]
-           
+            yield tuple(api.MScriptUtil.getDoubleArrayItem(ptr, c) for c in xrange(self.__class__.shape[1]))         
     def __contains__(self, value):
-        """ True if at least one of the Matrix components is equal to the argument """
-        return value in self.flat
+        """ True if at least one of the Matrix components is equal to the argument,
+            can test for the presence of a complete row if argument is a row sequence """
+        if isScalar(value) :
+            return value in self.flat
+        else :
+            return value in self.row
+        # TODO : check for submatrix [[a, b], [c, d]] like inclusion ?
 
     # convenience row and column get and set       
     def getrow(self, r):
         """ helper to get a row at once """
-        return self[r,:]
-         
+        return self[r,:]        
     def setrow(self, r, value):
         """ helper to set a row at once """     
-        self[r,:] = value
-        
+        self[r,:] = value      
     def getcolumn(self, c):
         """ helper to get a column at once """
-        return self[:,c]
-                        
+        return self[:,c]                       
     def setcolumn(self, c, value):
         """ helper to set a column at once """    
         self[:,c] = value
 
-    def setToIdentity (self) :
-        self._data = self.__class__.identity
-        
-    def setToProduct ( self, left, right ) :
-        pass
+    # operators
 
-    def transpose(self):
-        newMatrix = mmatrix()
-        newmat = self._mat.transpose()
-        newMatrix._mat = newmat
-        return newMatrix
-
-    def adjoint(self):
-        newMatrix = mmatrix()
-        newmat = self._mat.adjoint()
-        newMatrix._mat = newmat
-        return newMatrix
-
-    def homogenize(self):
-        newMatrix = mmatrix()
-        newmat = self._mat.homogenize()
-        newMatrix._mat = newmat
-        return newMatrix
-
+    def __neg__(self):
+        """ m.__neg__() <==> -m
+            Returns the result obtained by negating every component of m """        
+        return self.__class__(imap(operator.neg, self.flat))   
+    def __invert__(self):
+        """ m.__invert__() <==> ~m <==> m.inverse()
+            unary inversion, returns the inverse of self """        
+        return self.__class__(self.matrix.inverse())  
     def __add__(self, other):
-        newMatrix = mmatrix()
-        newmat = self._mat + other._mat
-        newMatrix._mat = newmat
-        return newMatrix
-
+        """ u.__add__(v) <==> u+v
+            Returns the result of the addition of u and v if v is convertible to Matrix,
+            adds v to every component of u if v is a scalar """             
+        if instance(other, Matrix) :
+            return self.__class__(self.matrix + other.matrix)
+        elif isScalar(other) :
+            return self.__class__(map( lambda x: x+other, self))        
+        else :            
+            raise TypeError, "unsupported operand type(s) for +: '%s' and '%s'" % (clsname(self), clsname(other))          
+    def __radd__(self, other) :
+        """ u.__radd__(v) <==> v+u
+            Returns the result of the addition of u and v if v is convertible to Vector,
+            adds v to every component of u if v is a scalar """        
+        if instance(other, Matrix) :
+            return self.__class__(other.matrix + self.matrix)
+        elif isScalar(other) :
+            return self.__class__(map( lambda x: x+other, self))        
+        else :            
+            raise TypeError, "unsupported operand type(s) for +: '%s' and '%s'" % (clsname(other), clsname(self))         
+    def __iadd__(self, other):
+        """ u.__iadd__(v) <==> u += v
+            In place addition of u and v, see __add__ """
+        self = self.__add__(other)
     def __sub__(self,other):
-        newMatrix = mmatrix()
-        newmat = self._mat - other._mat
-        newMatrix._mat = newmat
-        return newMatrix
+        if instance(other, Matrix) :
+            return self.__class__(self.matrix - other.matrix)
+        elif isScalar(other) :
+            return self.__class__(map( lambda x: x+other, self))  
+        else :            
+            raise TypeError, "unsupported operand type(s) for -: '%s' and '%s'" % (clsname(self), clsname(other)) 
+                
+  
 
     def __mul__(self, other):
-        if isinstance(other, om.MVector):
-            # vector result
-            return self._math * other
-        newMatrix = mmatrix()
-        newmat = self._mat * other._mat
-        newMatrix._mat = newmat
-        return newMatrix
-
-    def __iadd__(self,other):
-        self._mat += other._mat
-        return self
-        
-    def __isub__(self,other):
-        self._mat += other._mat
-        return self
+        if isinstance(other, self.__class__) :
+            return self.__class__(self.matrix * other.matrix)
+        elif isinstance(other, Matrix) :
+            return Matrix(self.matrix * other.matrix)
+        elif isScalar(other) :
+            return self.__class__(map( lambda x: x*other, self))             
+        elif isinstance(other, Vector3):
+            # pre multiply a row by a Matrix
+            pass
+        else :            
+            raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (clsname(self), clsname(other)) 
 
     def __imul__(self,other):
-        self._mat += other._mat
-        return self
-
-    def __eq__(self,other):
-        return self._mat == other._mat
-      
-    
-#    # common operators
-#    def __neg__(self):
-#        """ u.__neg__() <==> -u
-#            Returns the Vector obtained by inverting every component of u """        
-#        return self.__class__(map(lambda x: -x, self))    
-#    def __add__(self, other) :
-#        """ u.__add__(v) <==> u+v
-#            Returns the result of the addition of u and v if v is convertible to Vector,
-#            adds v to every component of u if v is a scalar """        
-#        if isinstance(other, Vector) :
-#            return self.__class__(map( lambda x, y: x+y, self, other))      
-#        elif isScalar(other) :
-#            return self.__class__(map( lambda x: x+other, self))
-#        else :            
-#            try :
-#                return self.__add__(self.__class__(other))
-#            except :
-#                pass
-#        raise TypeError, "unsupported operand type(s) for +: '%s' and '%s'" % (clsname(self), clsname(other))    
-#    def __iadd__(self, other):
-#        """ u.__iadd__(v) <==> u *= v
-#            In place addition of u and v, see __add__ """
-#        self._data = (self.__add__(other))._data
+        self = self.__mul__(other)
 #    def __div__(self, other):
 #        """ u.__div__(v) <==> u/v
 #            Returns the result of the element wise division of each component of u by the
@@ -1400,258 +1425,79 @@ class Matrix(object):
 #                return self.__eq__(self.__class__(other))
 #            except :
 #                pass
-#        return False              
-#    # action depends on second object type
-#    def __mul__(self, other) :
-#        """ u.__mul__(v) <==> u*v
-#            The multiply '*' operator is mapped to the dot product when both objects are instances of Vector,
-#            to the transformation of u by matrix v when v is an instance of Matrix,
-#            and to element wise multiplication when v is a scalar """
-#        if self.__class__ == other.__class__ :
-#            return self.__class__(self.__class__.apiclass.__mul__(self._data, other._data))
-#        elif other.__class__ == Matrix :
-#            return self.__class__(self.__class__.apiclass.__mul__(self._data, other._data))
-#        elif isScalar(other) :
-#            return self.__class__(map(lambda x: x.__mul__(other), self))
-#        else :
-#            # try to convert
-#            try :
-#                return self.__mul__(self.__class__(other))
-#            except :
-#                pass
-#            try :
-#                return self.__mul__(Matrix(other))
-#            except :
-#                pass
-#        raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (clsname(self), clsname(other))    
-#    def __rmul__(self, other):
-#        """ u.__rmul__(v) <==> v*u
-#            This is equivalent to u*v thus u.__mul__(v) unless v is a Matrix, in that case this operation
-#            is not defined """ 
-#        # not possible with a Matrix
-#        if isinstance(other, self.__class__) or isScalar(other) :          
-#            return self.__mul__(other)
-#        else :
-#            try :
-#                m = Matrix(other)
-#            except :
-#                return self.__mul__(other)
-#        raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (clsname(other), clsname(self))  
-#    def __imul__(self, other):
-#        """ u.__imul__(v) <==> u *= v
-#            Valid for Vector * Matrix multiplication, in place transformation of u by Matrix v
-#            or Vector by scalar multiplication only """
-#        if other.__class__ == Matrix :
-#            self._data = self.__class__.apiclass.__mul__(self._data, other._data)
-#        elif isScalar(other) :
-#            self._data = self.__class__(map(lambda x: x.__mul__(other), self))._data
-#        else :
-#            self._data = self.__mul__(Matrix(other))._data             
-#    # special operators
-#    def __xor__(self, other):
-#        """ u.__xor__(v) <==> u^v
-#            Defines the cross product operator between two vectors,
-#            if v is a Matrix, u^v is equivalent to u.transformAsNormal(v) """
-#        if self.__class__ == other.__class__ :
-#            return self.__class__(self.__class__.apiclass.__xor__(self._data, other._data))        
-#        else :
-#            try :
-#                return self.__xor__(self.__class__(other))
-#            except :
-#                pass
-#            try :
-#                return self.transformAsNormal(Matrix(other))
-#            except :
-#                pass            
-#        raise TypeError, "unsupported operand type(s) for ^: '%s' and '%s'" % (clsname(self), clsname(other))
-#    def __ixor__(self, other):
-#        """ u.__xor__(v) <==> u^=v
-#            Inplace cross product or transformation by inverse transpose of v is v is a Matrix """        
-#        self._data = self.__ixor__(other)._data 
-#        
-
-#    def isEquivalent(self, other, tol=api.MVector_kTol):
-#        """ Returns true if both arguments considered as Vector are equal  within the specified tolerance """
-#        try :
-#            return self._data.isEquivalent(Vector(other)._data, tol)
-#        except :
-#            raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol) 
-#    def isParallel(self, other, tol=api.MVector_kTol):
-#        """ Returns true if both arguments considered as Vector are parallel within the specified tolerance """
-#        try :
-#            return self._data.isParallel(Vector(other)._data, tol)
-#        except :
-#            raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol) 
-#    def length(self):
-#        """ Length of self """
-#        return self._data.length()      
-#    def normal(self): 
-#        """ Return a normalized copy of self """ 
-#        return self._data.normal()
-#    def normalize(self):
-#        """ Performs an in place normalization of self """
-#        self._data.normalize()
-#    def angle(self, other):
-#        """  Returns the angle in radians between both arguments considered as Vector """
-#        try :
-#            return self._data.angle(Vector(other)._data)
-#        except :
-#            raise TypeError, "%s is not convertible to a Vector, check help(Vector)" % other 
-#    def rotateTo(self, other):
-#        """ Returns the Quaternion that represents the rotation of this Vector into the other
-#            argument considered as Vector about their mutually perpendicular axis """
-#        try :
-#            return Quaternion(self._data.rotateTo(Vector(other)._data))
-#        except :
-#            raise TypeError, "%s is not convertible to a Vector, check help(Vector)" % other
-#    # TODO 
-#    def rotateBy(self, *args):
-#        pass    
-#    def transformAsNormal(self, matrix):
-#        """ Returns the vector transformed by the matrix as a normal
-#            Normal vectors are not transformed in the same way as position vectors or points.
-#            If this vector is treated as a normal vector then it needs to be transformed by
-#            post multiplying it by the inverse transpose of the transformation matrix.
-#            This method will apply the proper transformation to the vector as if it were a normal. """
-#        try :
-#            return self.__class__(self._data.transformAsNormal(Matrix(matrix)._data))
-#        except :
-#            raise TypeError, "%s is not convertible to a Matrix, check help(Matrix)" % matrix
-#    # additional methods
-#    def sqLength(self):
-#        """ Squared length of vector """
-#        return self.__mul__(self)
-#    def sum(self):
-#        """ Returns the sum of the components of self """
-#        return reduce(lambda x, y: x+y, self, 0) 
-#    def axis(self, v, normalize=False):
-#        """ Returns the axis of rotation from u to v as the vector n = u ^ v
-#            if the normalize keyword argument is set to True, n is also normalized """
-#        if normalize :
-#            return (self ^ Vector(v)).normal()
-#        else :
-#            return self ^ Vector(v)        
-#    def basis(self, v, normalize=False): 
-#        """ Returns the basis Matrix built using u, v and u^v as coordinate axis,
-#            The u, v, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
-#                n = u ^ v
-#                v = n ^ u
-#            if the normalize keyword argument is set to True, the vectors are also normalized """
-#        if normalize :
-#            u = Vector(self).normal()
-#            n = u ^ Vector(v).normal()
-#            v = n ^ u
-#        else :
-#            u = Vector(self)
-#            n = u ^ Vector(v)
-#            v = n ^ u
-#        return Matrix(u, v, n)  
-# MMatrix api wrap
-
-#class mmatrix:
-#    def __init__(self, cols=[], omMatrix=None):
-#        """ inititalize with list of column vals, or an OpenMaya.MMatrix """
-#        if omMatrix:
-#            self._mat = omMatrix
-#        else:
-#            self._mat = api.MMatrix()
-#            for i,col in enumerate(cols):
-#                self.__setcolumn(i, col)
-#
-#    def __setcolumn(self, c, vals):
-#        """ helper to set a column at once """
-#        ptr = om.MMatrix.__getitem__(self._mat,c)
-#        for i,val in enumerate(vals):
-#            om.MScriptUtil.setDoubleArray(ptr, i, val)
-#    
-#    def __setitem__(self, rc, value):
-#        """ set cell value in (r,c) to value """
-#        r,c = rc
-#        om.MScriptUtil.setDoubleArray(om.MMatrix.__getitem__(self._mat,r), c, value)
-#    
-#    def __getitem__(self, rc):
-#        """ get coll value from (r,c) """
-#        r,c = rc
-#        return om.MScriptUtil.getDoubleArrayItem( om.MMatrix.__getitem__(self._mat,r), c )
-#
-#    def __str__(self):
-#        return '\n'.join( [' '.join( [ str(self[(x,y)]) for x in range(4)]) for y in range(4)] )
-#
-#    def transpose(self):
-#        newMatrix = mmatrix()
-#        newmat = self._mat.transpose()
-#        newMatrix._mat = newmat
-#        return newMatrix
-#
-#    def adjoint(self):
-#        newMatrix = mmatrix()
-#        newmat = self._mat.adjoint()
-#        newMatrix._mat = newmat
-#        return newMatrix
-#
-#    def homogenize(self):
-#        newMatrix = mmatrix()
-#        newmat = self._mat.homogenize()
-#        newMatrix._mat = newmat
-#        return newMatrix
-#
-#    def __add__(self, other):
-#        newMatrix = mmatrix()
-#        newmat = self._mat + other._mat
-#        newMatrix._mat = newmat
-#        return newMatrix
-#
-#    def __sub__(self,other):
-#        newMatrix = mmatrix()
-#        newmat = self._mat - other._mat
-#        newMatrix._mat = newmat
-#        return newMatrix
-#
-#    def __mul__(self, other):
-#        if isinstance(other, om.MVector):
-#            # vector result
-#            return self._math * other
-#        newMatrix = mmatrix()
-#        newmat = self._mat * other._mat
-#        newMatrix._mat = newmat
-#        return newMatrix
-#
-#    def __iadd__(self,other):
-#        self._mat += other._mat
-#        return self
-#        
-#    def __isub__(self,other):
-#        self._mat += other._mat
-#        return self
-#
-#    def __imul__(self,other):
-#        self._mat += other._mat
-#        return self
-#
-#    def __eq__(self,other):
-#        return self._mat == other._mat
-#    
-#  MMatrix      transpose () const
-#MMatrix &     setToIdentity ()
-#MMatrix &     setToProduct ( const MMatrix & left, const MMatrix & right )
-#MMatrix &     operator+= ( const MMatrix & right )
-#MMatrix     operator+ ( const MMatrix & right ) const
-#MMatrix &     operator-= ( const MMatrix & right )
-#MMatrix     operator- ( const MMatrix & right ) const
-#MMatrix &     operator*= ( const MMatrix & right )
-#MMatrix     operator* ( const MMatrix & right ) const
-#MMatrix &     operator*= ( double )
-#MMatrix     operator* ( double ) const
-#bool     operator== ( const MMatrix & other ) const
-#bool     operator!= ( const MMatrix & other ) const
-#MMatrix     inverse () const
-#MMatrix     adjoint () const
-#MMatrix     homogenize () const
-#double     det4x4 () const
-#double     det3x3 () const
-#bool     isEquivalent ( const MMatrix & other, double tolerance = MMatrix_kTol ) const
-#bool     isSingular () const
-#identity = mmatrix( omMatrix=om.MMatrix.identity )     
+#        return False 
+    def __eq__(self,other):
+        if isinstance(other, Matrix) :
+            return self.matrix == other.matrix
+#        elif isinstance(other, Matrix) :
+#            return self.flat == other.flat
+        else :
+            return false
+ 
+    # API methods
+    
+    def get(self):
+        pass
+    def setToIdentity (self) :
+        self = self.__class__()      
+    def setToProduct ( self, left, right ) :
+        self = self.__class__(left * right)
+    def transpose(self):
+        """ Returns the transposed Matrix """
+        return self.__class__(self.matrix.transpose())
+    def inverse(self):
+        """ Returns the inverse Matrix """
+        return self.__class__(self.matrix.inverse())
+    def adjoint(self):
+        """ Returns the adjoint (conjugate transpose, Hermitian transpose) Matrix """
+        return self.__class__(self.matrix.adjoint())
+    def homogenize(self):
+        """ Returns a homogenized version of the Matrix """
+        return self.__class__(self.matrix.homogenize())
+    def det4x4(self):
+        """ Returns the 4x4 determinant of this Matrix instance """
+        return self.matrix.det4x4()  
+    det = det4x4
+    def det3x3(self):
+        """ Returns the determinant of the upper left 3x3 submatrix of this Matrix instance,
+            it's the same as doing det(m[0:3, 0:3]) """
+        return self.matrix.det3x3()       
+    def isEquivalent (self, other, tol = api.MMatrix_kTol) :
+        """ Returns true if both arguments considered as Matrix are equal  within the specified tolerance """
+        try :
+            return bool(self.matrix.isEquivalent(Matrix(other).matrix, tol))
+        except :
+            raise TypeError, "%s is not convertible to a Matrix, or tolerance %s is not convertible to a number, check help(Matrix)" % (other, tol)     
+    def isSingular(self) : 
+        """ Returns True if the given Matrix is singular """
+        return bool(self.matrix.isSingular()) 
+ 
+    # additionnal methods
+ 
+    def base(self) :
+        """ Returns the x, y, z base as transformed by this Matrix """
+        u = Vector.xAxis * self
+        v = Vector.yAxis * self
+        n = Vector.zAxis * self
+        return u, v, n    
+    def blend(self, other=Matrix(), blend=0.5):
+        """ Returns a 0.0-1.0 scalar weight blend between self and other Matrix """ 
+        if isinstance(other, Matrix) :
+            # len(other) <= len(self)            
+            if isScalar(blend) :
+                w = float(blend)
+                return self.__class__(self.matrix*(1.0-w)+other.matrix*w) 
+            else :
+                raise TypeError, "blend can only be a scalar blend weight, not a %s" % clsname(blend)
+        else :
+            raise TypeError, "%s is not convertible to a Matrix, check help(%s)" % (clsname(other), clsname(self))     
+    def weighted(self, value):
+        """ Returns a 0.0-1.0 scalar weighted blend between identity and self """
+        if isScalar(value) :
+            return self.__class__.identity.blend(self, value)
+        else :
+            raise TypeError, "weighted weight value can only be a scalar blend weight, not a %s" % clsname(blend)
+   
         
 class Quaternion(Matrix):
     apiclass = api.MQuaternion
@@ -1662,7 +1508,7 @@ class Quaternion(Matrix):
     def matrix(self):
         return self._data.asMatrix()
     @property
-    def transform(self):
+    def tmatrix(self):
         return api.MTransformationMatrix(self.matrix)   
     @property
     def quaternion(self):
@@ -1719,7 +1565,7 @@ class EulerRotation(Quaternion):
     def matrix(self):
         return self._data.asMatrix()
     @property
-    def transform(self):
+    def tmatrix(self):
         return api.MTransformationMatrix(self.matrix)   
     @property
     def quaternion(self):
@@ -1737,6 +1583,18 @@ class EulerRotation(Quaternion):
 
 
 def _test() :
+    print "Matrix class", dir(Matrix)
+    t = api.MTransformationMatrix()
+    t.setTranslation(api.MVector(1, 2, 3), api.MSpace.kWorld)
+    m = Matrix(t.asMatrix())
+    print "m: %s" % m 
+    print "m.row[0]: %s" % m.row[0]
+    print "list(m.row): %s" % list(m.row)
+    print "m.column[0]: %s" % m.column[0]
+    print "list(m.column): %s" % list(m.column)
+    print "m.flat[0]: %s" % m.flat[0]
+    print "list(m.flat): %s" % list(m.flat)   
+    
     print "Vector class", dir(Vector)
     print "Point  class", dir(Point)
     # print "Color  class", dir(Color)    
@@ -1747,8 +1605,8 @@ def _test() :
     n = u ^ v
     print "n = u ^ v: %r" % n
     print "n.x=%s, n.y=%s, n.z=%s" % (n.x, n.y, n.z)
-    n[0:1] = [1, 1]
-    print "n[0:1] = [1, 1] : %r" % n
+    n[0:2] = [1, 1]
+    print "n[0:2] = [1, 1] : %r" % n
     n = n*2
     print "n = n * 2 : %r" % n
     print "u * n : %s" % (u * n)
@@ -1814,7 +1672,6 @@ def _test() :
     print "c10 = c8.over(c9): %r" % c10 
     
 if __name__ == '__main__' :
-    pass
     _test()
 
 
