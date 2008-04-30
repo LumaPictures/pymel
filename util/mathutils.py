@@ -2,20 +2,45 @@
 
 # TODO : What about using Numpy ?
 
-import math
+import math, operator
+
+# maps a fn on two iterable classes of possibly different sizes,
+# mapping on smallest size then filling
+# to largest size with unmodified remnant of largest list. Used for operation between arrays
+# of different sizes when we want to allow this
+def difmap(fn, a, b):
+    """ maps a function on two iterable classes of possibly different sizes,
+        mapping on smallest size then filling to largest size with unmodified remnant of largest list.
+        Will cast the result to the largest class type or to the a class in case of equal size.
+        Classes must support iteration and __getslice__ """    
+    l1 = len(a)
+    l2 = len(b)
+    if l1<l2 :
+        return b.__class__(map(fn, a, b[:l1])+b[l1:l2])
+    elif l1>l2 :
+        return a.__class__(map(fn, a[:l2], b)+a[l2:l1])
+    else :
+        return a.__class__(map(fn, a, b))
 
 def dot(a, b):
-    """ dot product of two Vectors """
-    return a.x*b.x+a.y*b.y+a.z*b.z
+    """ dot(a, b): dot product of a and b, a and b should be iterables of numeric values """
+    return reduce(operator.add, map(operator.mul, list(a)[:lm], list(b)[:lm]), 0.0)
+
+def length(a):
+    """ length(a): square root of the absolute value of dot product of a by q, a be an iterable of numeric values """
+    return sqrt(abs(dot(a, a)))
 
 def cross(a, b):
-    """ cross product of two Vectors """
-    return Vector(a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x)
+    """ cross(a, b): cross product of a and b, a and b should be iterables of 3 numeric values  """
+    la = list(a)[:3]
+    lb = list(b)[:3]
+    return [a[1]*b[2] - a[2]*b[1],
+            a[2]*b[0] - a[0]*b[2],
+            a[0]*b[1] - a[1]*b[0]]
 
-# NOTE: a, b, c are points
 def cotan(a, b, c) :
-    """ cotangent of the (b-a), (c-a) angle """
-    return (((c - b)*(a - b))/((c - b)^(a - b)).length());
+    """ cotangent of the (b-a), (c-a) angle, a, b, and c should support substraction, dot, cross and length operations """
+    return dot(c - b,a - b)/length(cross(c - b, a - b))
 
 # elementwise operations
     
