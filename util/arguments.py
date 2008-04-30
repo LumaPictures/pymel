@@ -14,6 +14,9 @@ def isIterable( obj ):
 def isScalar(obj):
     return isinstance(obj,int) or isinstance(obj,float)
 
+def isNumeric(obj):
+    return isinstance(obj,int) or isinstance(obj,float) or isinstance(obj,long) or isinstance(obj,complex)
+
 # TODO : name probably badly chosen are there are more types considered as Sequence Types in Python
 def isSequence( obj ):
     return type( obj ) is list or type( obj ) is tuple
