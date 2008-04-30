@@ -15,45 +15,19 @@ A wrap of Maya's MVector type
 # TypeError: __bases__ assignment: 'MMatrix' deallocator differs from 'object'
 # So api methods won't be able to take the new classes directly, (but can take a Vector.vector, Matrix.matrix etc)
 
-#import pymel.util as util
-#import pymel.api as api
+
 import inspect
-#import maya.OpenMaya as api
-import pymel.api as api
 from math import *
-from pymel.util.mathutils import *
 from copy import *
 from itertools import *
 import operator, colorsys
-#from pymel.core.mathutils import *
 
-def isScalar(obj):
-    # consider only ints and floats numeric
-    return isinstance(obj,int) or isinstance(obj,float)
+import pymel.api as api
 
-def isSequence( obj ):
-    return type( obj ) is list or type( obj ) is tuple
-
-clsname = lambda x:x.__class__.__name__
-
-# maps a fn on two iterable classes of possibly different sizes,
-# mapping on smallest size then filling
-# to largest size with unmodified remnant of largest list. Used for operation between vectors
-# of different sizes when we want to allow this
-def difmap(fn, first, second):
-    """ maps a function on two iterable classes of possibly different sizes,
-        mapping on smallest size then filling to largest size with unmodified remnant of largest list.
-        Will cast the result to the largest class type or to the first class in case of equal size.
-        Classes must support iteration and __getslice__ """    
-    l1 = len(first)
-    l2 = len(second)
-    if l1<l2 :
-        return second.__class__(map(fn, first, second[:l1])+second[l1:l2])
-    elif l1>l2 :
-        return first.__class__(map(fn, first[:l2], second)+first[l2:l1])
-    else :
-        return first.__class__(map(fn, first, second))
-        
+from pymel.util.arguments import isScalar, isSequence, clsname
+from pymel.util.mathutils import *
+from pymel.util.arrays import *
+       
 
 # the meta class of metaMayaWrapper
 class MetaMayaTypeWrapper(type) :
@@ -258,7 +232,7 @@ class Vector(object):
     def __str__(self):
         return '(%s)' % ", ".join(map(str, self))
     def __unicode__(self):
-        return u'(%s)' % u", ".join(map(unicode, self))    
+        return u'(%s)' % ", ".unicode(map(str, self))    
     def __repr__(self):
         return '%s%s' % (self.__class__.__name__, str(self))          
 
@@ -1481,7 +1455,7 @@ class Matrix(object):
         v = Vector.yAxis * self
         n = Vector.zAxis * self
         return u, v, n    
-    def blend(self, other, blend=0.5):
+    def blend(self, other=Matrix(), blend=0.5):
         """ Returns a 0.0-1.0 scalar weight blend between self and other Matrix """ 
         if isinstance(other, Matrix) :
             # len(other) <= len(self)            
