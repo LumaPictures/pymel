@@ -721,7 +721,7 @@ class AttrSepParser(Parser):
                  )
 
 class NameIndexParser(Parser):
-    """ An Parser for attribute or component name indexes, in the form [<int number>] """
+    """ A Parser for attribute or component name indexes, in the form [<int number>] """
     t_Index  = r'\[[0-9]+\]'
     
     start = 'NameIndex' 
@@ -738,7 +738,8 @@ class NameIndexParser(Parser):
                  )
 
 class NameRangeIndexParser(Parser):
-    """ An index specification for an attribute or a component index, in the form [<optional int number>:<optional int number>] 
+    """ A Parser for an index specification for an attribute or a component index,
+        in the form [<optional int number>:<optional int number>] 
         Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
     t_RangeIndex  = r'\[[0-9]*:[0-9]*\]'
     
@@ -756,60 +757,62 @@ class NameRangeIndexParser(Parser):
                    ('left', ('Alpha', 'Num') ),
                  )  
 
-class MayaSingleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
+class SingleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
+    """ A Parsed for the reserved single indexed components names:
+        vtx, 
+        Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
+
+class DoubleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
     pass
 
-class MayaDoubleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
+class TripleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
     pass
 
-class MayaTripleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
-    pass
-
-class MayaComponentNameParser(MayaSingleComponentNameParser, MayaDoubleComponentNameParser, MayaTripleComponentNameParser):   
+class ComponentNameParser(SingleComponentNameParser, DoubleComponentNameParser, TripleComponentNameParser):   
     pass
  
 # NOTE : call these attributes and the couple(node.attribute) a plug like in API ?
 
-class MayaNodeAttributeNameParser(NameIndexParser, MayaNameParser):
-    """ Parser for a MayaNodeAttributeName, the name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex """ 
+class NodeAttributeNameParser(NameIndexParser, MayaNameParser):
+    """ Parser for a NodeAttributeName, the name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex """ 
 
-    start = 'MayaNodeAttributeName' 
+    start = 'NodeAttributeName' 
 
     def p_nodeattr_error(self, p):
-        'MayaNodeAttributeName : error'
+        'NodeAttributeName : error'
         print "Invalid node attribute name"    
     def p_nodeattr(self, p):
-        ''' MayaNodeAttributeName : MayaName NameIndex
+        ''' NodeAttributeName : MayaName NameIndex
                                     | MayaName '''
         if len(p) == 3 :
-            p[0] = MayaNodeAttributeName(p[1], p[2])
+            p[0] = NodeAttributeName(p[1], p[2])
         else :
-            p[0] = MayaNodeAttributeName(p[1])
+            p[0] = NodeAttributeName(p[1])
                    
-class MayaNodeAttributePathParser(AttrSepParser, MayaNodeAttributeNameParser):
-    """ Parser for a full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated MayaNodeAttributeName """
+class NodeAttributePathParser(AttrSepParser, NodeAttributeNameParser):
+    """ Parser for a full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated NodeAttributeName """
 
-    start = 'MayaNodeAttributePath' 
+    start = 'NodeAttributePath' 
 
     def p_nodeattrpath_concat(self, p):
-        ''' MayaNodeAttributePath : MayaNodeAttributePath AttrSep MayaNodeAttributeName '''
-        p[0] = MayaNodeAttributePath(p[1], p[2], p[3])  
+        ''' NodeAttributePath : NodeAttributePath AttrSep NodeAttributeName '''
+        p[0] = NodeAttributePath(p[1], p[2], p[3])  
     def p_nodeattrpath(self, p):
-        ''' MayaNodeAttributePath : MayaNodeAttributeName '''
-        p[0] = MayaNodeAttributePath(p[1])
+        ''' NodeAttributePath : NodeAttributeName '''
+        p[0] = NodeAttributePath(p[1])
 
-class MayaAttributeNameParser(MayaNodeAttributePathParser, MayaNodeNameParser):
-    """ Parser for the name of a Maya attribute, a MayaNodeName followed by a AttrSep and a MayaNodeAttributePath """ 
+class AttributeNameParser(NodeAttributePathParser, MayaNodeNameParser):
+    """ Parser for the name of a Maya attribute, a MayaNodeName followed by a AttrSep and a NodeAttributePath """ 
 
-    start = 'MayaAttributeName' 
+    start = 'AttributeName' 
    
     def p_attribute(self, p):
-        ''' MayaAttributeName : MayaNodeName AttrSep MayaNodeAttributePath'''
-        p[0] = MayaAttributeName(p[1], p[2], p[3])
+        ''' AttributeName : MayaNodeName AttrSep NodeAttributePath'''
+        p[0] = AttributeName(p[1], p[2], p[3])
 
-# MayaComponentNameParser
+# ComponentNameParser
 
-class MayaObjectNameParser(MayaAttributeNameParser):      
+class MayaObjectNameParser(AttributeNameParser):      
     """ A Parser for an unspecified object name in Maya, can be a dag object name, a node name,
         an plug name, or a component name. """
     
@@ -817,7 +820,7 @@ class MayaObjectNameParser(MayaAttributeNameParser):
     
     def p_mobject(self, p) :
         ''' MayaObjectName : MayaNodeName  
-                            | MayaAttributeName '''
+                            | AttributeName '''
         p[0] = MayaObjectName(p[1])  
 
 # Parsed objects for Maya Names
@@ -1271,30 +1274,56 @@ class NameRangeIndex(Parsed):
         return tuple(r)
                     
 # components
-class MayaComponentName(Parsed): 
-    """ A Maya component name of any of the single, double or triple indexed kind """
-    _parser = MayaComponentNameParser
-    _accepts = ('MayaNodeName', 'NameIndex', 'NameRangeIndex') 
 
-class MayaSingleComponentName(MayaComponentName): 
-    _parser = MayaSingleComponentNameParser
-    _accepts = ('MayaNodeName', 'NameIndex', 'NameRangeIndex') 
-        
-class MayaDoubleComponentName(MayaComponentName): 
-    _parser = MayaDoubleComponentNameParser
-    _accepts = ('MayaNodeName', 'NameIndex', 'NameRangeIndex') 
-    
-class MayaTripleComponentName(MayaComponentName): 
-    _parser = MayaTripleComponentNameParser
-    _accepts = ('MayaNodeName', 'NameIndex', 'NameRangeIndex') 
+#class NodeComponentName(Parsed): 
+#    """ A Maya component name of any of the single, double or triple indexed kind """
+#    _parser = NodeComponentNameParser
+#    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
+#
+#class NodeSingleComponentName(ComponentName): 
+#    _parser = NodeSingleComponentNameParser
+#    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex')   
+#        
+#class NodeDoubleComponentName(ComponentName): 
+#    _parser = NodeDoubleComponentNameParser
+#    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
+#    
+#class NodeTripleComponentName(ComponentName): 
+#    _parser = NodeTripleComponentNameParser
+#    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
+#    
+#    
+#class ComponentName(Parsed): 
+#    """ A Maya component name of any of the single, double or triple indexed kind
+#        Rule : ComponentName = SingleComponentName | DoubleComponentName | TripleComponentName """
+#    _parser = ComponentNameParser
+#    _accepts = ('MayaNodeName', 'AttrSep', 'NodeComponentName') 
+#
+#class SingleComponentName(ComponentName):
+#    """ A Maya single component name, in the form node name . component
+#        Rule : SingleComponentName = MayaNodeName AttrSep NodeSingleComponentName """     
+#    _parser = SingleComponentNameParser
+#    _accepts = ('MayaNodeName', 'AttrSep', 'NodeSingleComponentName')  
+#        
+#class DoubleComponentName(ComponentName):
+#    """ A Maya double component name, in the form node name . component
+#        Rule : DoubleComponentName = MayaNodeName AttrSep NodeDoubleComponentName """       
+#    _parser = DoubleComponentNameParser
+#    _accepts = ('MayaNodeName', 'AttrSep', 'NodeDoubleComponentName')  
+#    
+#class TripleComponentName(ComponentName): 
+#    """ A Maya triple component name, in the form node name . component
+#        Rule : TripleComponentName = MayaNodeName AttrSep NodeTripleComponentName """      
+#    _parser = TripleComponentNameParser
+#    _accepts = ('MayaNodeName', 'AttrSep', 'NodeTripleComponentName') 
         
 # Decided to avoid the API denomination where attributes exist on nodes and a specific node+attribute association
 # is called a plug as most scripting people are used to calling both attributes ? 
 
-class MayaNodeAttributeName(Parsed):
+class NodeAttributeName(Parsed):
     """ The name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex
-        Rule : MayaNodeAttributeName = MayaName NameIndex ?""" 
-    _parser = MayaNodeAttributeNameParser
+        Rule : NodeAttributeName = MayaName NameIndex ?""" 
+    _parser = NodeAttributeNameParser
     _accepts = ('MayaName', 'NameIndex') 
 
     @property
@@ -1317,11 +1346,11 @@ class MayaNodeAttributeName(Parsed):
             return self.index.value             
     
          
-class MayaNodeAttributePath(Parsed):
-    """ The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated MayaNodeAttributeName
-        Rule : MayaNodeAttributePath = ( MayaNodeAttributeName AttrSep ) * MayaNodeAttributeName """
-    _parser = MayaNodeAttributePathParser
-    _accepts = ('AttrSep', 'MayaNodeAttributeName') 
+class NodeAttributePath(Parsed):
+    """ The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated NodeAttributeName
+        Rule : NodeAttributePath = ( NodeAttributeName AttrSep ) * NodeAttributeName """
+    _parser = NodeAttributePathParser
+    _accepts = ('AttrSep', 'NodeAttributeName') 
 
     @property
     def parts(self):
@@ -1371,11 +1400,11 @@ class MayaNodeAttributePath(Parsed):
         return self.attributes[-1]       
 
 
-class MayaAttributeName(Parsed):
-    """ The name of a Maya attribute, a MayaNodeName followed by a AttrSep and a MayaNodeAttributePath
-        Rule : MayaAttributeName = MayaNodeName AttrSep MayaNodeAttributePath """ 
-    _parser = MayaAttributeNameParser
-    _accepts = ('MayaNodeName', 'AttrSep', 'MayaNodeAttributePath') 
+class AttributeName(Parsed):
+    """ The name of a Maya attribute, a MayaNodeName followed by a AttrSep and a NodeAttributePath
+        Rule : AttributeName = MayaNodeName AttrSep NodeAttributePath """ 
+    _parser = AttributeNameParser
+    _accepts = ('MayaNodeName', 'AttrSep', 'NodeAttributePath') 
  
     @property
     def parts(self):
@@ -1410,9 +1439,9 @@ class MayaAttributeName(Parsed):
 class MayaObjectName(Parsed):      
     """ An object name in Maya, can be a dag object name, a node name,
         an plug name, a component name or a ui name
-        Rule : MayaObjectName = MayaNodeName | MayaAttributeName | MayaComponentName """
+        Rule : MayaObjectName = MayaNodeName | AttributeName | ComponentName """
     _parser = MayaObjectNameParser
-    _accepts = ('MayaNodeName', 'MayaAttributeName')     
+    _accepts = ('MayaNodeName', 'AttributeName')     
 
     @property
     def object(self):
@@ -1435,12 +1464,12 @@ class MayaObjectName(Parsed):
             return self.object.node
     @property
     def attribute(self):
-        """ The attribute (full) name for a MayaAttributeName (node.attribute) name """
+        """ The attribute (full) name for a AttributeName (node.attribute) name """
         if self.isAttributeName() :
             return self.object.attribute
     @property
     def component(self):
-        """ The component name for a MayaComponentName (node.component) name """
+        """ The component name for a ComponentName (node.component) name """
         if self.isComponentName() :
             return self.object.component 
           
@@ -1449,10 +1478,10 @@ class MayaObjectName(Parsed):
         return self.type == MayaNodeName  
     def isAttributeName(self):
         """ True if this object is specified including one or more dag parents """
-        return self.type == MayaAttributeName   
+        return self.type == AttributeName   
     def isComponentName(self):
         """ True if this object is specified as an absolute dag path (starting with '|') """
-        return self.type == MayaComponentName
+        return self.type == ComponentName
                        
 # Empty special Parsed class
 class Empty(Parsed):
@@ -1670,7 +1699,7 @@ def _decomposeObjectName(name, ident=0) :
     elif name.isComponentName() :
         _decomposeComponentName(name.object, ident=ident+1)
     else :
-        raise ValueError, "type should be MayaNodeName, MayaAttributeName or MayaComponentName"
+        raise ValueError, "type should be MayaNodeName, AttributeName or ComponentName"
     
 def _test (expr) :
     """ Tests the name parsing of the string argument expr and displays results """
