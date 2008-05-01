@@ -143,18 +143,41 @@ class CommandDocParser(HTMLParser):
         self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
     
     def addFlagData(self, data):
-        # shortname, args
+        # Shortname
         if self.iData == 0:
             self.flags[self.currFlag]['shortname'] = data
+            
+        # Arguments
         elif self.iData == 1:
-            args = data.strip('[]').split(',') 
+            typemap = {    
+             'string'  : unicode,
+             'float'   : float,
+             'double'  : float,
+             'linear'  : float,
+             'angle'   : float,
+             'int'     : int,
+             'uint'    : int,
+             'index'   : int,
+             'integer'  : int,
+             'boolean'  : bool,
+             'script'   : callable,
+             'name'     : 'PyNode',
+             'select'   : 'PyNode'
+            }
+            args = [ typemap.get( x.strip(), x.strip() ) for x in data.strip('[]').split(',') ] 
             numArgs = len(args)
+            if numArgs == 0:
+                args = bool
+                numArgs = 1
+            elif numArgs == 1:
+                args = args[0]
+                    
             self.flags[self.currFlag]['args'] = args
             self.flags[self.currFlag]['numArgs'] = numArgs
+            
+        # Docstring  
         else:
-            #self.flags[self.currFlag]['docstring'] += data.replace( '\r\n', ' ' ).strip() + " "
-            
-            
+            #self.flags[self.currFlag]['docstring'] += data.replace( '\r\n', ' ' ).strip() + " "        
             data = data.replace( 'In query mode, this flag needs a value.', '' )
             data = data.replace( 'Flag can appear in Create mode of command', '' )
             data = data.replace( 'Flag can appear in Edit mode of command', '' )
@@ -286,26 +309,42 @@ class CommandInfo(object):
         self.example = example
         self.type = type
 
+class FlagInfo(object):
+    def __init__(self, longname, shortname=None, args=None, numArgs=None, docstring='', modes= [] ):
+        self.longname = longname
+        self.shortname = shortname
+        self.args = args
+        self.numArgs = numArgs
+        self.docstring = docstring
+        self.modes = modes
       
 def _getCmdInfoBasic( command ):
     typemap = {    
-             'string'  : str,
+             'string'  : unicode,
              'length'  : float,
              'float'   : float,
              'angle'   : float,
              'int'     : int,
-             'on|off'  : bool
+             'unsignedint' : int,
+             'on|off'  : bool,
+             'script'  : callable,
+             'name'    : 'PyNode'
     }
     flags = {}
     shortFlags = {}
     try:     
         lines = cmds.help( command ).split('\n')
         synopsis = lines.pop(0)
+        # certain commands on certain platforms have an empty first line
+        if not synopsis:
+            synopsis = lines.pop(0)
         #print synopsis
         lines.pop(0) # 'Flags'
         #print lines
         
         for line in lines:
+            line = line.replace( '(Query Arg Mandatory)', '' )
+            line = line.replace( '(Query Arg Optional)', '' )
             tokens = line.split()
             try:
                 tokens.remove('(multi-use)')
@@ -313,16 +352,23 @@ def _getCmdInfoBasic( command ):
                 pass
             #print tokens
             if len(tokens) > 1:
-                args = [ typemap.get(x.lower(),x) for x in tokens[2:] ]
+                
+                args = [ typemap.get(x.lower(), uncapitalize(x) ) for x in tokens[2:] ]
                 numArgs = len(args)
                 
                 # lags with no args in mel require a boolean val in python
                 if numArgs == 0:
-                    args = [bool]
+                    args = bool
                     numArgs = 1
-                    
+                elif numArgs == 1:
+                    args = args[0]
+                        
                 longname = str(tokens[1][1:])
                 shortname = str(tokens[0][1:])
+                
+                #sometimes the longname is empty, so we'll use the shortname for both
+                if longname == '':
+                    longname = shortname
                 flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs }
                 shortFlags[shortname] = flags[longname]
         
@@ -386,6 +432,16 @@ def _getCmdInfo( command, version='8.5' ):
         for flag, flagData in flags.items():
             try:
                 basicFlagData = basicInfo['flags'][flag]
+#                if flagData['args'] != basicFlagData['args']:
+#                    docArgs = flagData['args']
+#                    helpArgs = basicFlagData['args']
+#                    if ( isinstance(docArgs, str) and '|' in docArgs) or (docArgs == str and helpArgs == callable):
+#                        flagData['args'] = helpArgs
+#                    else:
+#                        print command, flag, docArgs, helpArgs
+#                else:
+#                    flagData['args'] = basicFlagData['args']
+                    
                 flagData['args'] = basicFlagData['args']
                 flagData['numArgs'] = basicFlagData['numArgs']
             except KeyError: pass
@@ -532,7 +588,235 @@ def getModuleCommandList( category, version='8.5' ):
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
+def testNodeCmd( funcName, cmdInfo, verbose ):
+
+    def _formatCmd( cmd, args, kwargs ):
+        args = [ x.__repr__() for x in args ]
+        kwargs = [ '%s=%s' % (key, val.__repr__()) for key, val in kwargs.items() ]                   
+        return '%s( %s )' % ( cmd, ', '.join( args+kwargs ) )
+    
+    def _resultType( result ):
+        if isinstance(result, list):
+            return [ type(x) for x in result ]
+        else:
+            return type(result)
+    
+    _castList = [float, int, bool]
+    
+    def _listIsCastable(resultType):
+        "ensure that all elements are the same type and that the types are castable"
+        typ = resultType[0]
+        trueCount = reduce( lambda x,y: x+y, [ int( x in _castList and x == typ ) for x in resultType ] )
+        
+        return len(resultType) == trueCount
+    
+    module = cmds
+    
+    if verbose:
+        print funcName.center( 50, '=')
+    
+    if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
+        if verbose:
+            print "skipping"
+        return cmdInfo
+        
+    try:
+        func = getattr(module, funcName)
+    except AttributeError:
+        print "could not find function %s in modules %s" % (funcName, module.__name__)
+        return cmdInfo
+    
+    allObjsBegin = set( cmds.ls(l=1) )  
+    try:
+        
+        cmds.select(cl=1)
+        
+        if funcName.endswith( 'onstraint'):
+            constrObj = module.polySphere()[0]
+            c = module.polyCube()[0]
+            obj = func(constrObj,c)
+        else:
+            obj = func()
+            constrObj = None
+            
+        if isinstance(obj, list):
+            if verbose:
+                print "Return", obj
+            if len(obj) == 1:
+                print "%s: args need unpacking" % funcName
+                cmdInfo['argsNeedUnpacking'] = True
+            obj = obj[-1]
+            
+            
+        if obj is None:
+            #emptyFunctions.append( funcName )
+            raise ValueError, "Returned object is None"
+        
+        elif not cmds.objExists( obj ):
+            raise ValueError, "Returned object %s is Invalid" % obj
+            
+    except (TypeError,RuntimeError, ValueError), msg:
+        if verbose:
+            print "failed creation:", msg
+        
+    else:
+        #(func, args, data) = cmdList[funcName]    
+        #(usePyNode, baseClsName, nodeName)
+        flags = cmdInfo['flags']
+
+        for flag in sorted(flags.keys()):
+            flagInfo = flags[flag]            
+            if flag in ['query', 'edit']:
+                continue
+            
+            if constrObj and flag in ['weight']:
+                args = (constrObj,obj)
+            else:
+                args = (obj,)
+            
+            try:
+                modes = flagInfo['modes']
+                testModes = False
+            except KeyError, msg:
+                #raise KeyError, '%s: %s' % (flag, msg)
+                #print flag, "Testing modes"
+                flagInfo['modes'] = []
+                modes = []
+                testModes = True
+            
+            # QUERY
+            val = None
+            argtype = flagInfo['args']
+            
+            if 'query' in modes or testModes == True:
+                kwargs = {'query':True, flag:True}
                 
+                cmd = _formatCmd(funcName, args, kwargs)
+                try:
+                    val = func( *args, **kwargs )
+                    #print val
+                    resultType = _resultType(val)
+                    
+                    if 'edit' in modes and argtype != resultType:
+                        # [bool] --> bool
+                        if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
+                            flagInfo['argsNeedUnpacking'] = True
+                            val = val[0]
+                            
+                        # [int] --> bool
+                        elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
+                            flagInfo['argsNeedUnpacking'] = True
+                            flagInfo['argsNeedCasting'] = True
+                            val = argtype(val[0])
+                            
+                        # [int, int] --> bool
+                        elif argtype in _castList and isinstance( resultType, list) and _listIsCastable(resultType):
+                            flagInfo['argsNeedUnpacking'] = True
+                            flagInfo['argsNeedCasting'] = True
+                            val = argtype(val[0])
+                            
+                        # int --> bool
+                        elif argtype in _castList and resultType in _castList:
+                            flagInfo['argsNeedCasting'] = True
+                            val = argtype(val)
+                        else:
+                            print cmd
+                            print "\treturn mismatch"
+                            print '\tresult:', val.__repr__()
+                            print '\tpredicted type: ', argtype
+                            print '\tactual type:    ', resultType
+                            # value is no good. reset to None, so that a default will be generated for edit
+                            val = None
+                    elif verbose:
+                        print cmd
+                        print "\tsucceeded"
+                        print '\tresult:', val.__repr__()
+                        print '\result type:    ', resultType
+                        
+                except TypeError, msg:                            
+                    if str(msg).startswith( 'Invalid flag' ):
+                        #if verbose:
+                        print "removing flag", funcName, flag, msg
+                        shortname = flagInfo['shortname']
+                        flagInfo.pop(flag,None)
+                        flagInfo.pop(shortname,None)
+                        modes = [] # stop edit from running
+                    else:
+                        print cmd
+                        print "\t", str(msg).rstrip('\n')
+                    val = None
+                    
+                except RuntimeError, msg:
+                    print cmd
+                    print "\t", str(msg).rstrip('\n') 
+                    val = None
+                else:
+                     flagInfo['modes'].append('query')
+            # EDIT
+            if 'edit' in modes or testModes == True:
+                
+                #print "Args:", argtype
+                try:    
+                    if val is None:
+
+                        if isinstance(argtype, list):
+                            val = []
+                            for typ in argtype:
+                                if type == unicode or isinstance(type,basestring):
+                                    val.append('persp')
+                                else:
+                                    if 'query' in modes:
+                                        val.append( typ(0) )
+                                    # edit only, ensure that bool args are True
+                                    else:
+                                        val.append( typ(1) )
+                        else:
+                            if argtype == unicode or isinstance(argtype,basestring):
+                                val = 'persp'
+                            elif 'query' in modes:
+                                val = argtype(0)
+                            else:
+                                # edit only, ensure that bool args are True
+                                val = argtype(1)
+                                  
+                    kwargs = {'edit':True, flag:val}              
+                    cmd = _formatCmd(funcName, args, kwargs)
+                    val = func( *args, **kwargs )
+                    if verbose:
+                        print cmd
+                        print "\tsucceeded"
+                        #print '\t', val.__repr__()
+                        #print '\t', argtype, type(val)
+                    #print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
+                except TypeError, msg:                                                        
+                    if str(msg).startswith( 'Invalid flag' ):
+                        #if verbose:
+                        print "removing flag", funcName, flag, msg
+                        shortname = flagInfo['shortname']
+                        flagInfo.pop(flag,None)
+                        flagInfo.pop(shortname,None)
+                    else:
+                        print cmd
+                        print "\t", str(msg).rstrip('\n')
+                        print "\tpredicted arg:", argtype
+                        if not 'query' in modes:
+                            print "\tedit only"
+                except RuntimeError, msg:
+                    print cmd
+                    print "\t", str(msg).rstrip('\n')
+                    print "\tpredicted arg:", argtype
+                    if not 'query' in modes:
+                        print "\tedit only"
+                else:
+                    flagInfo['modes'].append('edit')
+    
+    # cleanup
+    allObjsEnd = set( cmds.ls(l=1) )
+    newObjs = list(allObjsEnd.difference(  allObjsBegin ) )
+    if newObjs:
+        cmds.delete( newObjs ) 
+    return cmdInfo
+       
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
@@ -601,9 +885,6 @@ def buildCachedData() :
                     else:
                         module = 'other'
  
-            if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
-                nodeCommandList.append(funcName)
-                         
             cmdInfo = {}
             
             if module:
@@ -613,6 +894,13 @@ def buildCachedData() :
                 cmdInfo = _getCmdInfo(funcName, ver)
             
             cmdInfo['type'] = module
+            
+            
+            if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+                nodeCommandList.append(funcName)
+                cmdInfo = testNodeCmd( funcName, cmdInfo, False )
+                
+                
             cmdlist[funcName] = cmdInfo
             
             '''
@@ -1162,56 +1450,4 @@ def installCallbacks(module):
     print "adding plugin callbacks"
     cmds.loadPlugin( addCallback=pluginLoadedCallback(module) )
     #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
-    
-def makeDocs( mayaVersion='8.5' ):
-    "internal use only"
-    
-    import re
-    import epydoc.cli
-    
-    pymeldir = moduleDir()
-    
-    # generate epydocs
-    os.chdir( pymeldir )
-    sys.argv = [pymeldir, '--debug',  '--config=%s' % os.path.join( pymeldir, 'epydoc.cfg') ]
-    epydoc.cli.cli(useLogger=False)
-    
-    return
-    
-    #---------------------------------------------------------------
-    # skipping all this for now
-    #---------------------------------------------------------------
-    '''
-    # copy over maya doc pages and link to them from the epydoc pages    
-    docdir = pymeldir / 'docs'
-    
-    try:
-        (docdir / 'CommandsPython').mkdir()
-    except OSError:
-        pass
-    
-    htmlFile = 'pymel-module.html'
-    f = open( os.path.join( docdir, htmlFile), 'r'  )
-    lines = f.readlines()
-    f.close()
-    
-    reg = re.compile("(pymel-module.html#)([a-zA-Z0-9_]+)")
-    for i, line in enumerate(lines):
-        buf = reg.split( line )
-        try:
-            command = buf[2]
-            localHelpFile = path( 'CommandsPython/' + command + '.html' )
-            line = buf[0] + localHelpFile + buf[3]
-            localHelpFile = docdir / localHelpFile
-            if not localHelpFile.exists():                
-                globalHelpFile = path( _mayaCommandHelpFile( command, mayaVersion ) )
-                print "copying", globalHelpFile, localHelpFile
-                globalHelpFile.copy( localHelpFile.parent )
-                
-        except: pass
-        lines[i] = line 
-    
-    f = open( os.path.join(pymeldir, 'docs', htmlFile), 'w' ) 
-    f.writelines(lines)
-    f.close()
-    '''
+
