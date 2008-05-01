@@ -127,7 +127,7 @@ Modifications:
             # this will cause a KeyError if neither flag has been set. this quickly gets us out of if section if
             # we're not concerned with weights
             targetObjects = kwargs.get( 'weight', kwargs['w'] ) 
-            constraint = args[0]
+            constraint = unicode(args[0])
             if 'constraint' in cmds.cmds.nodeType( constraint, inherited=1 ):
                 print constraint
                 if not util.isIterable( targetObjects ):
@@ -156,10 +156,10 @@ Maya Bug Fix:
         'upVector', 'u',
         'worldUpVector', 'wu',
         'aimVector', 'a' ]
-        
+        constraint = unicode(args[0])
         for attr in attrs:
             if attr in kwargs:
-                return general.Vector( general.getAttr(args[0] + "." + attr ) )
+                return general.Vector( general.getAttr(constraint + "." + attr ) )
                 
             
     res = cmds.normalConstraint(*args, **kwargs)
