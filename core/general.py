@@ -3210,17 +3210,68 @@ class ObjectSet(Entity):
             
         #items = self.union(items)
 
+
+#def worldToObject(self, obj):
+#    return self * node.DependNode(obj).worldInverseMatrix.get()
+#
+#def worldToCamera(self, camera=None):
+#    if camera is None:
+#        camera = core.mel.getCurrentCamera()
+#    return self * node.DependNode(camera).worldInverseMatrix.get()
+#    
+#def worldToScreen(self, camera=None):
+#    if camera is None:
+#        camera = node.Camera(core.mel.getCurrentCamera())
+#    else:
+#        camera = node.Camera(camera)
+#        
+#    screen = self.worldToCamera(camera)
+#    
+#    screen.x = (screen.x/-screen.z) / tan(radians(camera.horizontalFieldOfView/2))/2.0+.5
+#    screen.y = (screen.y/-screen.z) / tan(radians(camera.verticalFieldOfView/2))/2.0+.5 
+#
+#    xres = core.getAttr( 'defaultResolution.width' )
+#    yres = core.getAttr( 'defaultResolution.height' )
+#    filmApX = camera.horizontalFilmAperture.get()
+#    filmApY = camera.verticalFilmAperture.get()
+#
+#    filmAspect = filmApX/filmApY;
+#    resAspect  = xres/yres;
+#    ratio = filmAspect/resAspect;
+#
+#    screen.y = linmap( ((ratio-1)/-2), (1+(ratio-1)/2), screen.y )
+#    
+#    return screen    
+#
+#def objectToWorld(self, object):
+#    worldMatrix = node.DependNode(object).worldMatrix.get()
+#    return self * worldMatrix
+#
+#def objectToCamera(self, object, camera=None):
+#    return self.objectToWorld(object).worldToCamera( camera )
+#    
+#def objectToScreen(self, object, camera=None):
+#    return self.objectToWorld(object).worldToScreen( camera )
+#
+#        
+#def cameraToWorld(self, camera=None):
+#    if camera is None:
+#        camera = core.mel.getCurrentCamera()
+#    return self * node.DependNode(camera).worldMatrix.get()
+
+
+# create PyNode conversion tables
+
+
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-# Need to build a similar dict of Pymel types to their corresponding API types
-class PyNodeToMayaAPITypes(dict) :
-    __metaclass__ =  util.metaStatic
 
-# inverse lookup, some Maya API types won't have a PyNode equivalent
-class MayaAPITypesToPyNode(dict) :
+# PyNode types names (as str)
+class PyNodeTypeNames(dict) :
+    """ Lookup from PyNode type name to PyNode type """
     __metaclass__ =  util.metaStatic
-
-def _createClasses():
+    
+def _createPyNodes():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy
     # see if breadth first isn't more practical ?
@@ -3275,122 +3326,26 @@ def _createClasses():
     PyNodeInverseDict['kDependencyNode'] = DependNode
                           
     # Initialize the static classes to hold these
-    PyNodeToMayaAPITypes (PyNodeDict)
-    MayaAPITypesToPyNode (PyNodeInverseDict)
-    
-#_createClasses()
-
-# add some convenience methods to the Vector / Matrix classes that use Maya nodes info
-
-#def worldToObject(self, obj):
-#    return self * node.DependNode(obj).worldInverseMatrix.get()
-#
-#def worldToCamera(self, camera=None):
-#    if camera is None:
-#        camera = core.mel.getCurrentCamera()
-#    return self * node.DependNode(camera).worldInverseMatrix.get()
-#    
-#def worldToScreen(self, camera=None):
-#    if camera is None:
-#        camera = node.Camera(core.mel.getCurrentCamera())
-#    else:
-#        camera = node.Camera(camera)
-#        
-#    screen = self.worldToCamera(camera)
-#    
-#    screen.x = (screen.x/-screen.z) / tan(radians(camera.horizontalFieldOfView/2))/2.0+.5
-#    screen.y = (screen.y/-screen.z) / tan(radians(camera.verticalFieldOfView/2))/2.0+.5 
-#
-#    xres = core.getAttr( 'defaultResolution.width' )
-#    yres = core.getAttr( 'defaultResolution.height' )
-#    filmApX = camera.horizontalFilmAperture.get()
-#    filmApY = camera.verticalFilmAperture.get()
-#
-#    filmAspect = filmApX/filmApY;
-#    resAspect  = xres/yres;
-#    ratio = filmAspect/resAspect;
-#
-#    screen.y = linmap( ((ratio-1)/-2), (1+(ratio-1)/2), screen.y )
-#    
-#    return screen    
-#
-#def objectToWorld(self, object):
-#    worldMatrix = node.DependNode(object).worldMatrix.get()
-#    return self * worldMatrix
-#
-#def objectToCamera(self, object, camera=None):
-#    return self.objectToWorld(object).worldToCamera( camera )
-#    
-#def objectToScreen(self, object, camera=None):
-#    return self.objectToWorld(object).worldToScreen( camera )
-#
-#        
-#def cameraToWorld(self, camera=None):
-#    if camera is None:
-#        camera = core.mel.getCurrentCamera()
-#    return self * node.DependNode(camera).worldMatrix.get()
+    api.PyNodeToMayaAPITypes (PyNodeDict)
+    api.MayaAPITypesToPyNode (PyNodeInverseDict)
+    PyNodeTypeNames((k.__name__, k) for k in api.PyNodeToMayaAPITypes().keys())  
 
 
-# create PyNode conversion tables
-
-
-
-# build a PyNode to API type relation or PyNode to Maya node types relation ?
-def buildPyNodeToAPI () :
-    # Check if a pymel class is DependNode or a subclass of DependNode
-    def _PyNodeClass (x) :
-        try :
-            return issubclass(x, PyNode)
-        except :
-            return False    
-    #print dict(inspect.getmembers(_thisModule)).has_key( 'VortexField'), issubclass( getattr(  _thisModule, 'VortexField') , PyNode )
-    listPyNodes = dict(inspect.getmembers(_thisModule, _PyNodeClass))
-    PyNodeDict = {}
-    PyNodeInverseDict = {}
-    for k in listPyNodes.keys() :
-        # assume that PyNode type name is the API type without the leading 'k'
-        PyNodeType = listPyNodes[k]
-        PyNodeTypeName = PyNodeType.__name__
-        print PyNodeTypeName
-        APITypeName = 'k'+PyNodeTypeName
-        if api.MayaAPIToTypes().has_key(APITypeName) :
-            PyNodeDict[PyNodeType] = APITypeName
-            PyNodeInverseDict[APITypeName] = PyNodeType
-        else: 
-            print "%s is not a valid API type. %s" % ( APITypeName, api.MayaTypesToAPI().has_key(PyNodeTypeName) )
-    # Would be good to limit special treatments
-    PyNodeDict[PyNode] = 'kBase'
-    PyNodeInverseDict['kBase'] = PyNode
-    PyNodeDict[DependNode] = 'kDependencyNode'
-    PyNodeInverseDict['kDependencyNode'] = DependNode
-                          
-    # Initialize the static classes to hold these
-    PyNodeToMayaAPITypes (PyNodeDict)
-    MayaAPITypesToPyNode (PyNodeInverseDict)
 
 # Initialize Pymel classes to API types lookup
-#buildPyNodeToAPI()
 startTime = time.time()
-#buildPyNodeToAPI()
-_createClasses()
+_createPyNodes()
 elapsed = time.time() - startTime
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
-# PyNode types names (as str)
-class PyNodeTypeNames(dict) :
-    """ Lookup from PyNode type name to PyNode type """
-    __metaclass__ =  util.metaStatic
-
-# Dictionnary of Maya API types to their MFn::Types enum
-PyNodeTypeNames((k.__name__, k) for k in PyNodeToMayaAPITypes().keys())  
 
 # child:parent lookup of the pymel classes that derive from DependNode
 class PyNodeTypesHierarchy(dict) :
     __metaclass__ =  util.metaStatic
 
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def buildPyNodeTypesHierarchy () :    
-    PyNodeTree = inspect.getclasstree([k for k in PyNodeToMayaAPITypes().keys()])
+def _buildPyNodeTypesHierarchy () :    
+    PyNodeTree = inspect.getclasstree([k for k in api.PyNodeToMayaAPITypes().keys()])
     PyNodeDict = {}
     for x in util.expandArgs(PyNodeTree, type='list') :
         try :
@@ -3406,20 +3361,20 @@ def buildPyNodeTypesHierarchy () :
 # Initialize the Pymel class tree
 # PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
 startTime = time.time()
-PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
+PyNodeTypesHierarchy(_buildPyNodeTypesHierarchy())
 elapsed = time.time() - startTime
 print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
 
 
 
 def isValidPyNodeType (arg):
-    return PyNodeToMayaAPITypes().has_key(arg)
+    return api.PyNodeToMayaAPITypes().has_key(arg)
 
 def isValidPyNodeTypeName (arg):
     return PyNodeTypeNames().has_key(arg)
 
 def apiTypeToPyNodeType (arg, default=None):
-    return MayaAPITypesToPyNode().get(arg, default)
+    return api.MayaAPITypesToPyNode().get(arg, default)
 
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):
@@ -3781,7 +3736,7 @@ def iterNodes ( *args, **kwargs ):
                     key = PyNodeTypeNames().get(key, None)
                 if isValidPyNodeType(key) :
                     extType = key
-                    apiType = PyNodeToMayaAPITypes().get(key, None)
+                    apiType = api.PyNodeToMayaAPITypes().get(key, None)
             # if we have a valid API type, add it to cAPITypes, if type must be postfiltered, to cExtTypes
             if apiType is not None :
                 if _addCondition(cAPITypes, apiType, val) :
