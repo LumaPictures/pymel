@@ -13,7 +13,7 @@ import sys, os, re, os.path
 import mellex
 from pymel.util.external.ply import *
 from pymel.util import unescape
-import factories as factories
+import pymel.core.factories as factories
 
 
 
