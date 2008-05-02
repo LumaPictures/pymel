@@ -1,32 +1,6 @@
 import os, sys, re
 from re import escape 
 
-class ModuleInterceptor(object):
-    """
-    This class is used to intercept an unset attribute of a module to perfrom a callback. The
-    callback will only be performed if the attribute does not exist on the module. Any error raised
-    in the callback will cause the original AttributeError to be raised.
-        
-        >>> def cb( module, attr):
-        >>>     if attr == 'this':
-        >>>         print "intercepted"
-        >>>     else:
-        >>>         raise ValueError        
-        >>> sys.modules[__name__] = ModuleInterceptor(__name__, cb)
-    
-    The class does not work when imported into the main namespace.    
-    """
-    def __init__(self, moduleName, callback):
-        self.module = __import__( moduleName , globals(), locals(), [''] )
-        self.callback = callback
-    def __getattr__(self, attr):
-        try:
-            return getattr(self.module, attr)
-        except AttributeError, msg:
-            try:
-                self.callback( self.module, attr)
-            except:
-                raise AttributeError, msg
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------

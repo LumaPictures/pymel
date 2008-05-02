@@ -61,6 +61,33 @@ except:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
+class ModuleInterceptor(object):
+    """
+    This class is used to intercept an unset attribute of a module to perfrom a callback. The
+    callback will only be performed if the attribute does not exist on the module. Any error raised
+    in the callback will cause the original AttributeError to be raised.
+        
+        >>> def cb( module, attr):
+        >>>     if attr == 'this':
+        >>>         print "intercepted"
+        >>>     else:
+        >>>         raise ValueError        
+        >>> sys.modules[__name__] = ModuleInterceptor(__name__, cb)
+    
+    The class does not work when imported into the main namespace.    
+    """
+    def __init__(self, moduleName, callback):
+        self.module = __import__( moduleName , globals(), locals(), [''] )
+        self.callback = callback
+    def __getattr__(self, attr):
+        try:
+            return getattr(self.module, attr)
+        except AttributeError, msg:
+            try:
+                self.callback( self.module, attr)
+            except:
+                raise AttributeError, msg
+            
 class metaStatic(type) :
     """Static singleton dictionnary metaclass to quickly build classes
     holding predefined immutable dicts"""
@@ -110,3 +137,34 @@ class metaStatic(type) :
                 newdict['__slots__'].append(k)
                 newdict['__dflts__'][k] = classdict[k]
         return super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
+    
+def proxyClass( cls, classname, dataAttrName = '_data'):
+    """this function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
+    is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
+    will breaking hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
+    a valid __hash__ method."""
+    
+    def _methodWrapper( method ):
+        #print method
+        #@functools.wraps(f)
+        def wrapper(self, *args, **kwargs):
+            return method( cls( getattr(self, dataAttrName) ), *args, **kwargs )
+        wrapper.__doc__ = method.__doc__
+        wrapper.__name__ = method.__name__
+        return wrapper
+    
+    remove = ('__new__', '__init__', '__getattribute__', '__getattr__')
+    class Proxy(object):
+        pass
+        #def __init__(self, data):
+        #    setattr( self, dataAttrName, cls( data ) )
+
+    for methodName, method in cls.__dict__.items():
+        if methodName not in remove:
+            try:            
+                setattr(  Proxy, methodName, _methodWrapper(method) )
+            except AttributeError:
+                print "error making", methodName
+                
+    Proxy.__name__ = classname
+    return Proxy
