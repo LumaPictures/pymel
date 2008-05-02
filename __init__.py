@@ -620,7 +620,7 @@ from core import *
 
 #_module = __import__('core.other', globals(), locals(), [''])
 
-import util.factories as _factories
+import core.factories as _factories
 _module = __import__(__name__)    
 _factories.installCallbacks(_module)
 
