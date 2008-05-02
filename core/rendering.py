@@ -1,6 +1,6 @@
 
 import pymel.util as util
-import pymel.util.factories as _factories
+import factories as _factories
 import general
 try:
     import maya.cmds as cmds

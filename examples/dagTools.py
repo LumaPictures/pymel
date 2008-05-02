@@ -11,7 +11,7 @@ from pymel import api
     # mayaType (nodeOrType, **kwargs) :
 #    typeInt = []
 #    for t in type :
-#        typeInt.append(MayaAPITypesInt[MayaTypesToAPI[t]])
+#        typeInt.append(ApiTypesToApiEnums[MayaTypesToAPI[t]])
         
 # Get the maya type, maya API type, maya API type name, plugin status
 # of an existing maya object or maya object type or maya API type or PyNode node or type
@@ -80,8 +80,8 @@ def mayaType (nodeOrType, **kwargs) :
             inherited = nodeType(nodeOrType, inherited=True) 
     elif type(nodeOrType) == int :
         # MFn.Types enum int
-        apiTypeStr = MayaIntAPITypes()[nodeOrType] 
-    elif MayaAPITypesInt().has_key(nodeOrType) :
+        apiTypeStr = ApiEnumsToApiTypes()[nodeOrType] 
+    elif ApiTypesToApiEnums().has_key(nodeOrType) :
         # API type
         apiTypeStr = nodeOrType
     elif ShortMayaTypes().has_key(nodeOrType) :
@@ -90,14 +90,14 @@ def mayaType (nodeOrType, **kwargs) :
     elif MayaTypesToAPI().has_key(nodeOrType) :
         # Maya type
         mayaType = nodeOrType
-    elif PyNodeToMayaAPITypes().has_key(nodeOrType) :
+    elif PyNodesToApiTypes().has_key(nodeOrType) :
         # PyNode type
         pyNodeType = nodeOrType
-        apiTypeStr = PyNodeToMayaAPITypes()[pyNodeType]
+        apiTypeStr = PyNodesToApiTypes()[pyNodeType]
     elif isinstance(nodeOrType, DependNode) :
         # a PyNode object
         pyNodeType = type(nodeOrType)
-        apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
+        apiTypeStr = PyNodesToApiTypes().get(pyNodeType, None)
     elif isinstance(nodeOrType, basestring) : 
         # check if it could be a PyMel type name
         if (hasattr(pymel, nodeOrType)) :
@@ -105,7 +105,7 @@ def mayaType (nodeOrType, **kwargs) :
             if inspect.isclass(pyAttr) :
                 if issubclass(pyAttr, _BaseObj) :
                     pyNodeType = pyAttr
-                    apiTypeStr = PyNodeToMayaAPITypes().get(pyNodeType, None)
+                    apiTypeStr = PyNodesToApiTypes().get(pyNodeType, None)
         # check if it could be a not yet cached Maya type
         if not apiTypeStr and not mayaType :
             if addToMayaTypesList(nodeOrType) :
@@ -118,7 +118,7 @@ def mayaType (nodeOrType, **kwargs) :
             apiTypeStr = MayaTypesToAPI().get(mayaType, None)
         elif not mayaType and apiTypeStr :
             if do_type :
-                mayatypes = MayaAPIToTypes()[apiTypeStr].keys()
+                mayatypes = ApiTypesToMayaTypes()[apiTypeStr].keys()
                 if len(mayatypes) == 1 :
                     mayaType = mayatypes[0]
                 else :
@@ -126,11 +126,11 @@ def mayaType (nodeOrType, **kwargs) :
     # no need to do more if we don't have a valid apiTypeStr               
     if apiTypeStr and apiTypeStr is not 'kInvalid' :                    
         if do_apiInt :
-            apiTypeInt = MayaAPITypesInt().get(apiTypeStr, None)
+            apiTypeInt = ApiTypesToApiEnums().get(apiTypeStr, None)
         if do_plugin :
             isPluginObject = 'Plugin' in apiTypeStr
         if do_pymel and not pyNodeType :
-            pyNodeType = MayaAPITypesToPyNode().get(apiTypeStr, None)                
+            pyNodeType = ApiTypesToPyNodes().get(apiTypeStr, None)                
         if do_inherited or do_apiInherited :
             k = apiTypeStr
             apiInherited.append(k)      # starting class
@@ -141,11 +141,11 @@ def mayaType (nodeOrType, **kwargs) :
                 # problem, there can be more than one maya type for an API type, we take the "default" one is one is marked so
                 # else we just take first (until we an get a separate maya type tree, it's not 100% satisfactory)
                 for k in apiInherited :
-                    mTypes = MayaAPIToTypes()[k].keys()
+                    mTypes = ApiTypesToMayaTypes()[k].keys()
                     defType = None
                     if len(mTypes) > 1 :
                         for t in mTypes :
-                            if MayaAPIToTypes()[k][t] :
+                            if ApiTypesToMayaTypes()[k][t] :
                                 defType = t
                                 break
                     if defType is None and mTypes :

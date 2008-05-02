@@ -206,7 +206,7 @@ quickly as i can.
 
 
 from melparse import *
-import pymel.core.types.path as path
+import pymel.core.pmtypes.path as path
 from pymel.util.external.ply.lex import LexError
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a

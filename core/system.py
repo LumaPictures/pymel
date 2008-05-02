@@ -30,8 +30,8 @@ try:
 except ImportError: pass
 
 import pymel.util as util
-import pymel.util.factories as _factories
-from pymel.util.factories import createflag, add_docs
+import factories as _factories
+from factories import createflag, add_docs
 from pymel.util.scanf import fscanf
 
 import sys
@@ -39,8 +39,8 @@ try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
 except ImportError:
-    import types.path
-    pathClass = types.path.path
+    import pmtypes.path
+    pathClass = pmtypes.path.path
     
 
 
