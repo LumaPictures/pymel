@@ -1,8 +1,8 @@
 
-from trees import *
-from common import capitalize, uncapitalize, moduleDir
-from arguments import isIterable
-from mayautils import getMayaLocation, getMayaVersion
+from pymel.util.trees import *
+from pymel.util.common import capitalize, uncapitalize, moduleDir
+from pymel.util.arguments import isIterable
+from pymel.util.mayautils import getMayaLocation, getMayaVersion
 
 import sys, os, inspect, pickle, re, types, os.path
 #from networkx.tree import *
@@ -1035,16 +1035,17 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 
     cmdInfo = cmdlist[funcName]
 
+    funcType = type(inFunc)
     
     # if the function is not a builtin and there's no return command to map, just add docs
-    if type(inFunc) == types.FunctionType and returnFunc is None:
+    if funcType == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
         if cmdInfo['type'] != 'runtime':
             _addCmdDocs( inFunc, inFunc, cmdInfo )
         if rename: inFunc.__name__ = rename
         return inFunc
     
-    elif type(inFunc) == types.BuiltinFunctionType or ( type(inFunc) == types.FunctionType and returnFunc ):                    
+    elif funcType == types.BuiltinFunctionType or ( funcType == types.FunctionType and returnFunc ):                    
             
         #----------------------------        
         # UI commands with callbacks
