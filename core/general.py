@@ -15,13 +15,13 @@ except ImportError:
     pass
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
-import pymel.util.factories as _factories
-from pymel.util.factories import queryflag, editflag, createflag
+import factories as _factories
+from factories import queryflag, editflag, createflag
 import pymel.api as api
 import system
 from system import namespaceInfo
-from types.mayatypes import *
-from types.ranges import *
+from pmtypes.mayatypes import *
+from pmtypes.ranges import *
 from pymel.util.nameparse import *
 
 
@@ -155,14 +155,14 @@ mel = Mel()
 #  Option Variables
 #-----------------------------------------------
 
-class OptionVarList(list):
-    def __init__(self, val, key):
+class OptionVarList(tuple):
+    def __init__(self, key, val):
         self.key = key
-        list.__init__(self, val)
+        tuple.__init__(self, val)
+    
     def appendVar( self, val ):
         """ values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
-        The append function is still available for normal list operations.  This method is provided in addtion to the
-        append method to prevent the user from retrieiving an OptionVarList and unknowingly altering option variables."""
+        """
 
         if isinstance( val, basestring):
             return cmds.optionVar( stringValueAppend=[self.key,val] )
@@ -171,7 +171,6 @@ class OptionVarList(list):
         if isinstance( val, float):
             return cmds.optionVar( floatValueAppend=[self.key,val] )
         raise TypeError, 'unsupported datatype: strings, ints, floats and their subclasses are supported'
-
 
 class OptionVarDict(util.Singleton):
     """ 
@@ -184,7 +183,7 @@ class OptionVarDict(util.Singleton):
         
         >>> if 'numbers' not in env.optionVars:
         >>>     optionVar['numbers'] = [1,24,7]
-        >>> optionVar['numbers'].append( 9 )
+        >>> optionVar['numbers'].appendVar( 9 )
         >>> numArray = optionVar.pop('numbers') 
         >>> print numArray
         [1,24,7,9]
@@ -198,7 +197,7 @@ class OptionVarDict(util.Singleton):
     def __getitem__(self,key):
         val = cmds.optionVar( q=key )
         if isinstance(val, list):
-            val = OptionVarList( val, key )
+            val = OptionVarList( key, val )
         return val
     def __setitem__(self,key,val):
         if isinstance( val, basestring):
@@ -222,7 +221,6 @@ class OptionVarDict(util.Singleton):
                 for elem in val[1:]:
                     if not isinstance( elem, int):
                         raise TypeError,  'all elements in list must be of the same datatype'
-                    print 'appending int', key, elem
                     cmds.optionVar( intValueAppend=[key,elem] )
                 return
             if isinstance( val[0], float):
@@ -327,7 +325,7 @@ SCENE = Scene()
 def select(*args, **kwargs):
     """
 Modifications:
-    - passing an empty list no longer causes an error. instead, the selection is simply cleared
+    - passing an empty list no longer causes an error. instead, the selection is cleared
     
     """
     
@@ -1155,7 +1153,7 @@ def _getPymelType(arg, comp=None) :
             pymelType = Attribute          
         else :
             objType = api.apiEnumToType( obj.apiType() )
-            pymelType = apiTypeToPyNodeType(objType, DependNode)
+            pymelType = api.apiTypeToPyNode(objType, DependNode)
 
     elif objName :
         # non existing node
@@ -1171,8 +1169,9 @@ def _getPymelType(arg, comp=None) :
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', '_name')
 
-class PyNode(object):
+class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
         and defer to the correct derived class """
     _name = None              # unicode
@@ -1185,7 +1184,7 @@ class PyNode(object):
             obj = args[0]
             comp = None
             if len(args)>1 :
-                comp = args[1]
+                comp = args[1] # what is comp?  component?  why would this be passed as a second argument?
             pymelType = _getPymelType(obj, comp)
         else :
             pymelType = DependNode
@@ -3267,17 +3266,21 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 
 # PyNode types names (as str)
-class PyNodeTypeNames(dict) :
+class PyNodeNameToPyNode(dict) :
     """ Lookup from PyNode type name to PyNode type """
+    __metaclass__ =  util.metaStatic
+
+# child:parent lookup of the pymel classes that derive from DependNode
+class PyNodeTypesHierarchy(dict) :
     __metaclass__ =  util.metaStatic
     
 def _createPyNodes():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy
     # see if breadth first isn't more practical ?
-    PyNodeDict = {}
-    PyNodeInverseDict = {}
-    
+    pyNodeDict = {}
+    pyNodeInverseDict = {}
+    pyNodeHierarchy = {}
     for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
         MayaType = treeElem.key
@@ -3309,26 +3312,27 @@ def _createPyNodes():
             #else:    
             PyNodeType.__module__ = __name__
             setattr( _thisModule, PyNodeTypeName, PyNodeType )
-        
+            pyNodeHierarchy[ PyNodeType ] = base
         try:
-            APITypeName = api.MayaTypesToAPI()[MayaType]
-            PyNodeDict[PyNodeType] = APITypeName
-            PyNodeInverseDict[APITypeName] = PyNodeType
+            APITypeName = api.MayaTypesToApiTypes()[MayaType]
+            pyNodeDict[PyNodeType] = APITypeName
+            pyNodeInverseDict[APITypeName] = PyNodeType
         except KeyError:
             pass
         #    print "No API type exists for maya type '%s'" % MayaType
         #else:
         #    print "already created", classname
     # Would be good to limit special treatments
-    PyNodeDict[PyNode] = 'kBase'
-    PyNodeInverseDict['kBase'] = PyNode
-    PyNodeDict[DependNode] = 'kDependencyNode'
-    PyNodeInverseDict['kDependencyNode'] = DependNode
+    pyNodeDict[PyNode] = 'kBase'
+    pyNodeInverseDict['kBase'] = PyNode
+    pyNodeDict[DependNode] = 'kDependencyNode'
+    pyNodeInverseDict['kDependencyNode'] = DependNode
                           
     # Initialize the static classes to hold these
-    api.PyNodeToMayaAPITypes (PyNodeDict)
-    api.MayaAPITypesToPyNode (PyNodeInverseDict)
-    PyNodeTypeNames((k.__name__, k) for k in api.PyNodeToMayaAPITypes().keys())  
+    api.PyNodesToApiTypes(pyNodeDict)
+    api.ApiTypesToPyNodes(pyNodeInverseDict)
+    PyNodeTypesHierarchy( pyNodeHierarchy )
+    PyNodeNameToPyNode((k.__name__, k) for k in api.PyNodesToApiTypes().keys())  
 
 
 
@@ -3339,42 +3343,38 @@ elapsed = time.time() - startTime
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
 
-# child:parent lookup of the pymel classes that derive from DependNode
-class PyNodeTypesHierarchy(dict) :
-    __metaclass__ =  util.metaStatic
-
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def _buildPyNodeTypesHierarchy () :    
-    PyNodeTree = inspect.getclasstree([k for k in api.PyNodeToMayaAPITypes().keys()])
-    PyNodeDict = {}
-    for x in util.expandArgs(PyNodeTree, type='list') :
-        try :
-            ct = x[0]
-            pt = x[1][0]
-            if issubclass(ct, PyNode) and issubclass(pt, PyNode) :
-                PyNodeDict[ct] = pt
-        except :
-            pass
-
-    return PyNodeDict 
+#def _buildPyNodeTypesHierarchy () :    
+#    pyNodeTree = inspect.getclasstree([k for k in api.PyNodesToApiTypes().keys()])
+#    pyNodeDict = {}
+#    for x in util.expandArgs(pyNodeTree, type='list') :
+#        try :
+#            ct = x[0]
+#            pt = x[1][0]
+#            if issubclass(ct, PyNode) and issubclass(pt, PyNode) :
+#                pyNodeDict[ct] = pt
+#        except :
+#            pass
+#
+#    return pyNodeDict 
 
 # Initialize the Pymel class tree
 # PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
-startTime = time.time()
-PyNodeTypesHierarchy(_buildPyNodeTypesHierarchy())
-elapsed = time.time() - startTime
-print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
+#startTime = time.time()
+#PyNodeTypesHierarchy(_buildPyNodeTypesHierarchy())
+#elapsed = time.time() - startTime
+#print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
 
 
+def isValidMayaType (arg):
+    return MayaTypesToApiTypes().has_key(arg)
 
-def isValidPyNodeType (arg):
-    return api.PyNodeToMayaAPITypes().has_key(arg)
+def isValidPyNode (arg):
+    return api.PyNodesToApiTypes().has_key(arg)
 
-def isValidPyNodeTypeName (arg):
-    return PyNodeTypeNames().has_key(arg)
+def isValidPyNodeName (arg):
+    return PyNodeNameToPyNode().has_key(arg)
 
-def apiTypeToPyNodeType (arg, default=None):
-    return api.MayaAPITypesToPyNode().get(arg, default)
 
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):
@@ -3725,7 +3725,7 @@ def iterNodes ( *args, **kwargs ):
             key = i[0]
             val = i[1]
             apiType = extType = None
-            if api.isValidMayaTypeName (key) :
+            if api.isValidMayaType(key) :
                 # is it a valid Maya type name
                 extType = key
                 # can we translate it to an API type enum (int)
@@ -3733,10 +3733,10 @@ def iterNodes ( *args, **kwargs ):
             else :
                 # or a PyNode type or type name
                 if isValidPyNodeTypeName(key) :
-                    key = PyNodeTypeNames().get(key, None)
+                    key = PyNodeNameToPyNode().get(key, None)
                 if isValidPyNodeType(key) :
                     extType = key
-                    apiType = api.PyNodeToMayaAPITypes().get(key, None)
+                    apiType = api.PyNodesToApiTypes().get(key, None)
             # if we have a valid API type, add it to cAPITypes, if type must be postfiltered, to cExtTypes
             if apiType is not None :
                 if _addCondition(cAPITypes, apiType, val) :
