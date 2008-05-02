@@ -370,7 +370,7 @@ def _getCmdInfoBasic( command ):
                 #sometimes the longname is empty, so we'll use the shortname for both
                 if longname == '':
                     longname = shortname
-                flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs }
+                flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, docstring : '' }
                 shortFlags[shortname] = flags[longname]
         
     except:
@@ -954,47 +954,95 @@ def getUncachedCmds():
 
 def _addCmdDocs(inObj, newObj, cmdInfo ):
     
-    try:
-        docstring = cmdInfo['description'] + '\n\n'
-        
-        flagDocs = cmdInfo['flags']
-        if flagDocs:
-            docstring += 'Flags:\n'
-            for flag in sorted(flagDocs.keys()):
-                docs = flagDocs[flag]
+    #try:
+    docstring = cmdInfo['description'] + '\n\n'
     
-                label = '    - %s (%s)' % (flag, docs['shortname'])
-                docstring += label + '\n'
-                
-                try:
-                    docstring += '        - %s\n' %  docs['docstring']
-                except KeyError: pass
-                
-                if docs.get('modes',False):
-                    docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
-                
-                try:
-                    modified = docs['modified']
-                    if modified:
-                        docstring += '        - modifies: *%s*\n' % ( ', '.join( ))
-                except KeyError: pass
-                
-                try:
-                    docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
-                except KeyError: pass
-                   
-        if cmdInfo['example']:
-            docstring += '\nExample:\n' + cmdInfo['example']
-            
-        if inObj.__doc__:
-            docstring = inObj.__doc__ + '\n' + docstring
+    flagDocs = cmdInfo['flags']
+    if flagDocs:
         
-        newObj.__doc__ = docstring
+        docstring += 'Flags:\n'
+        for flag in sorted(flagDocs.keys()):
+            docs = flagDocs[flag]
+
+            label = '    - %s (%s)' % (flag, docs['shortname'])
+            docstring += label + '\n'
+            
+            # docstring
+            try:
+                docstring += '        - %s\n' %  docs['docstring']
+            except KeyError: pass
+            
+            # modes
+            if docs.get('modes',False):
+                docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
+            
+            #modified
+            try:
+                modified = docs['modified']
+                if modified:
+                    docstring += '        - modifies: *%s*\n' % ( ', '.join( modified ))
+            except KeyError: pass
+            
+            #secondary flags
+            try:
+                docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
+            except KeyError: pass
+            
+            #args
+            typ = docs['args']
+            if isinstance(typ, list):
+                try:
+                    typ = [ x.__name__ for x in typ ]
+                except:
+                    typ = [ str(x) for x in typ ]
+                typ = ', '.join(typ)
+            else:
+                try:
+                    typ = typ.__name__
+                except: pass
+            docstring += '        - datatype: *%s*\n' % ( typ )
+        
+        """
+        docstring += ':Keywords:\n'
+        for flag in sorted(flagDocs.keys()):
+            docs = flagDocs[flag]
+
+            #label = '  %s (%s)' % (flag, docs['shortname'])
+            label = '  %s' % (flag)
+            docstring += label + '\n'
+            
+            try:
+                docstring += '    %s\n' %  docs['docstring']
+            except KeyError: pass
+            
+            
+            if docs.get('modes',False):
+                docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
+            
+            try:
+                modified = docs['modified']
+                if modified:
+                    docstring += '        - modifies: *%s*\n' % ( ', '.join( ))
+            except KeyError: pass
+            
+            try:
+                docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
+            except KeyError: pass
+            
+        docstring += '\n'
+        """ 
+    if cmdInfo['example']:
+        docstring += '\nExample:\n' + cmdInfo['example']
+        
+    if inObj.__doc__:
+        docstring = inObj.__doc__ + '\n' + docstring
+    
+    newObj.__doc__ = docstring
             
 
         #print "could not find help docs for %s" % inObj
-    except:
-        print "failed to add docstring to %s using %s" % ( inObj.__name__, cmdInfo )
+    #except:
+    #    print "failed to add docstring to %s using %s" % ( inObj.__name__, cmdInfo )
 
 def _getUICallbackFlags(flagDocs):
     commandFlags = []
@@ -1368,7 +1416,9 @@ class metaNode(type) :
             #if nodeHierarchy.children( nodeType ):
             #    print nodeType, nodeHierarchy.children( nodeType )
             cmdInfo = cmdlist[nodeType]
-            
+        except KeyError: # on cmdlist[nodeType]
+            pass
+        else:
             try:    
                 module = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
                 func = getattr(module, nodeType)
@@ -1380,7 +1430,7 @@ class metaNode(type) :
             classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeType, cmdInfo['description'])
             
             for flag, flagInfo in cmdInfo['flags'].items():
-                 
+                #print nodeType, flag
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
                     continue
@@ -1420,8 +1470,7 @@ class metaNode(type) :
                             classdict[methodName] = makeEditFlagCmd( func, methodName, 
                                  flag, docstring=flagInfo['docstring'] )
                     
-        except KeyError: # on cmdlist[nodeType]
-            pass
+
             
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
