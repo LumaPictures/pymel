@@ -3,6 +3,7 @@ from pymel.util.trees import *
 from pymel.util.common import capitalize, uncapitalize, moduleDir
 from pymel.util.arguments import isIterable
 from pymel.util.mayautils import getMayaLocation, getMayaVersion
+#from general import PyNode
 
 import sys, os, inspect, pickle, re, types, os.path
 #from networkx.tree import *
@@ -644,7 +645,7 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                 print "Return", obj
             if len(obj) == 1:
                 print "%s: args need unpacking" % funcName
-                cmdInfo['argsNeedUnpacking'] = True
+                cmdInfo['resultNeedsUnpacking'] = True
             obj = obj[-1]
             
             
@@ -700,24 +701,24 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                     if 'edit' in modes and argtype != resultType:
                         # [bool] --> bool
                         if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
-                            flagInfo['argsNeedUnpacking'] = True
+                            flagInfo['resultNeedsUnpacking'] = True
                             val = val[0]
                             
                         # [int] --> bool
                         elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
-                            flagInfo['argsNeedUnpacking'] = True
-                            flagInfo['argsNeedCasting'] = True
+                            flagInfo['resultNeedsUnpacking'] = True
+                            flagInfo['resultNeedsCasting'] = True
                             val = argtype(val[0])
                             
                         # [int, int] --> bool
                         elif argtype in _castList and isinstance( resultType, list) and _listIsCastable(resultType):
-                            flagInfo['argsNeedUnpacking'] = True
-                            flagInfo['argsNeedCasting'] = True
+                            flagInfo['resultNeedsUnpacking'] = True
+                            flagInfo['resultNeedsCasting'] = True
                             val = argtype(val[0])
                             
                         # int --> bool
                         elif argtype in _castList and resultType in _castList:
-                            flagInfo['argsNeedCasting'] = True
+                            flagInfo['resultNeedsCasting'] = True
                             val = argtype(val)
                         else:
                             print cmd
@@ -1104,10 +1105,14 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             def newFunc( *args, **kwargs):
                 res = apply( inFunc, args, kwargs )
                 if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
-                    if isinstance(res, list):                
-                        try:
-                            res = map( returnFunc, res )
-                        except: pass
+                    if isinstance(res, list):
+                        # some node commands unnecessarily return a list with a single object
+                        if cmdInfo.get('resultNeedsUnpacking',False):
+                             res = returnFunc(res[0])
+                        else:
+                            try:
+                                res = map( returnFunc, res )
+                            except: pass
                 
                     elif res:
                         try:
@@ -1250,7 +1255,7 @@ def makeEditFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None)
     if cmdName is None:
         cmdName = inFunc.__name__
     if flag is None:
-        flag = nanewFuncNameme
+        flag = newFuncName
     def newfunc(self, val, **kwargs): 
         kwargs['edit']=True
         kwargs[flag]=val 
@@ -1387,8 +1392,18 @@ class metaNode(type) :
                     methodName = 'get' + capitalize(flag)
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                            returnFunc = None
+                            
+                            if flagInfo.get( 'resultNeedsCasting', False):
+                                returnFunc = flagInfo['args']
+                                if flagInfo.get( 'resultNeedsUnpacking', False):
+                                    returnFunc = lambda x: returnFunc(x[0])
+                                    
+                            elif flagInfo.get( 'resultNeedsUnpacking', False):
+                                returnFunc = lambda x: returnFunc(x[0])
+                            
                             classdict[methodName] = makeQueryFlagCmd( func, methodName, 
-                                flag, docstring=flagInfo['docstring'] )
+                                flag, docstring=flagInfo['docstring'], returnFunc=returnFunc )
                         #else: print "%s: skipping %s" % ( classname, methodName )
                 
                 # edit command: 
