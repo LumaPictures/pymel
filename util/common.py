@@ -18,12 +18,15 @@ def capitalize(s):
 def uncapitalize(s):
     return s[0].lower() + s[1:]
                         
-def unescape( string ):
-    tokens = re.split( r'(\\*)"',  string )
-    for i in range(1,len(tokens),2 ):
-        if tokens[i]:
-            tokens[i] = tokens[i][:-1]+'"'
-    return ''.join(tokens)
+def unescape( s ):
+    chars = [ r'"', r"'" ]
+    for char in chars:
+        tokens = re.split( r'(\\*)' + char,  s )
+        for i in range(1,len(tokens),2 ):
+            if tokens[i]:
+                tokens[i] = tokens[i][:-1]+'"'
+        s = ''.join(tokens)
+    return s
 
 def cacheProperty(getter, attr_name, fdel=None, doc=None):
     """a property type for getattr functions that only need to be called once per instance.

@@ -126,16 +126,16 @@ proc_remap = {
 		'size' 					: lambda x, t: 'len(%s)' 			% (', '.join(x)),				
 		'print'					: lambda x, t: 'print %s' 			% (x[0]),
 		'clear'					: lambda x, t: '%s=[]' 				% (x[0]),
-		'eval'					: lambda x, t: '%smel.eval(%s)' 	% (t.parser.pymel_namespace, x[0]),
+		'eval'					: lambda x, t: '%smel.eval(%s)' 	% (t.lexer.pymel_namespace, x[0]),
 		'sort'					: lambda x, t: 'sorted(%s)'			% (x[0]),
 		
 		# error handling
-		'catch'					: lambda x, t: '%scatch( lambda: %s )' % (t.parser.pymel_namespace,x[0]),
-		'catchQuiet'			: lambda x, t: '%scatch( lambda: %s )' % (t.parser.pymel_namespace,x[0]),
+		'catch'					: lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]),
+		'catchQuiet'			: lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]),
 
 		# system
-		'system'				: lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.parser.imported_modules.add('os') )[0],
-		'exec'					: lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.parser.imported_modules.add('os') )[0],
+		'system'				: lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0],
+		'exec'					: lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0],
 		
 		# file i/o
 		'fopen'					: format_fopen,
@@ -144,12 +144,12 @@ proc_remap = {
 		'fflush'				: lambda x, t: '%s.flush()' % (x[0]),
 		'fgetline'				: lambda x, t: '%s.readline()' % (x[0]),
 		'frewind'				: lambda x, t: '%s.seek(0)' % (x[0]),
-		'fgetword'				: lambda x, t: "%sfscanf(%s,'%%s')" % (t.parser.pymel_namespace,x[0]),
-		'feof'					: lambda x, t: '%sfeof(%s)' % (t.parser.pymel_namespace,x[0]), 
+		'fgetword'				: lambda x, t: "%sfscanf(%s,'%%s')" % (t.lexer.pymel_namespace,x[0]),
+		'feof'					: lambda x, t: '%sfeof(%s)' % (t.lexer.pymel_namespace,x[0]), 
 		'fread'					: format_fread,
 		
 		
-		#'filetest'				: lambda x, t: (  (  t.parser.imported_modules.add('os'),  # add os module for access()
+		#'filetest'				: lambda x, t: (  (  t.lexer.imported_modules.add('os'),  # add os module for access()
 		#										{ 	'-r' : "Path(%(path)s).access(os.R_OK)",
 		#											'-l' : "Path(%(path)s).islink()",
 		#											'-w' : "Path(%(path)s).access(os.W_OK)",
@@ -162,7 +162,7 @@ proc_remap = {
 		#											}[ x[0] ] % { 'path' :x[1] }) 	
 		#										)[1], 
 		
-		'filetest'				: lambda x, t: (  (  t.parser.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
+		'filetest'				: lambda x, t: (  (  t.lexer.imported_modules.update( ['os', 'os.path'] ),  # add os module for access()
 												{ 	'-r' : "os.access( %(path)s, os.R_OK)",
 													'-l' : "os.path.islink( %(path)s )",
 													'-w' : "os.access( %(path)s, os.W_OK)",
@@ -191,7 +191,7 @@ proc_remap = {
 												
 
 												
-		'sysFile'				: lambda x, t: (  ( t.parser.imported_modules.update( ['os', 'shutil'] ),
+		'sysFile'				: lambda x, t: (  ( t.lexer.imported_modules.update( ['os', 'shutil'] ),
 												{	'-delete'	: "os.remove( %(path)s )",
 													'-del'		: "os.remove( %(path)s )",
 													'-rename'	: "os.rename( %(path)s, %(param)s )",
@@ -226,7 +226,7 @@ reserved.update( ['and', 'assert', 'break', 'class', 'continue',
 
 
 def vprint(t, *args):
-	if t.parser.verbose:
+	if t.lexer.verbose:
 		print args
 
 def toList(t):
@@ -272,9 +272,9 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 	#res = separator.join(p[1:])
 	#
 	
-	if t.parser.verbose >= 1:
+	if t.lexer.verbose >= 1:
 		print funcname, res, t.lexer.lineno
-	#elif t.parser.verbose >= 1:
+	#elif t.lexer.verbose >= 1:
 	#	print 'assembled', funcname
 	
 	#if p[0].find('def') >= 0:
@@ -286,21 +286,21 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 
 def addComments( t, funcname = '' ):
 	
-	if t.parser.verbose:
-		print "adding comments:", funcname, t.parser.comment_queue
-	t[0] += ''.join(t.parser.comment_queue) #+ t[0]
-	t.parser.comment_queue = []
+	if t.lexer.verbose:
+		print "adding comments:", funcname, t.lexer.comment_queue
+	t[0] += ''.join(t.lexer.comment_queue) #+ t[0]
+	t.lexer.comment_queue = []
 
 def addHeldComments( t, funcname = '' ):
 	
 	try:
-		commentList = t.parser.comment_queue_hold.pop()
+		commentList = t.lexer.comment_queue_hold.pop()
 	except IndexError:
 		return ''
 	#commentList = ['# ' + x for x in commentList]
 	
-	if t.parser.verbose:
-		print t.parser.comment_queue_hold
+	if t.lexer.verbose:
+		print t.lexer.comment_queue_hold
 		print "adding held comments:", funcname, commentList
 	
 	return ''.join(commentList)	
@@ -309,19 +309,19 @@ def addHeldComments( t, funcname = '' ):
 
 def addHeldComments2( code, t, funcname = '' ):
 	
-	commentList = t.parser.comment_queue_hold.pop()
+	commentList = t.lexer.comment_queue_hold.pop()
 	
 	commentList = ['# ' + x for x in commentList]
 	
-	if t.parser.verbose:
-		print t.parser.comment_queue_hold
+	if t.lexer.verbose:
+		print t.lexer.comment_queue_hold
 		print "adding held comments:", funcname, commentList
 			
 	return ''.join(commentList) + code
 	
 def holdComments():
-	t.parser.comment_queue_hold.append( t.parser.comment_queue )
-	t.parser.comment_queue = []
+	t.lexer.comment_queue_hold.append( t.lexer.comment_queue )
+	t.lexer.comment_queue = []
 
 
 	
@@ -357,7 +357,7 @@ def p_external_declaration(t):
 	'''external_declaration : statement
 							| function_definition'''
 	t[0] = assemble(t, 'p_external_declaration')
-	#if t.parser.verbose:
+	#if t.lexer.verbose:
 	#	print "external_declaration", t[0]
 
 # function-definition:
@@ -366,26 +366,26 @@ def p_function_definition(t):
 	#t[0] = assemble(t, 'p_function_definition')
 	
 	# add to the ordered list of procs
-	t.parser.proc_list.append( t[3] )
+	t.lexer.proc_list.append( t[3] )
 	
 	# global proc
 	if t[1].startswith('global'):
-		t.parser.global_procs[ t[3] ] = t[5]
+		t.lexer.global_procs[ t[3] ] = t[5]
 		t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
 		
 	# local proc gets prefixed with underscore
 	else:
-		t.parser.local_procs[ t[3] ] = t[5] 
+		t.lexer.local_procs[ t[3] ] = t[5] 
 		t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
 		
 	
 
 def p_add_comment(t):
 	'''add_comment :'''
-	if t.parser.verbose:
-		print "holding", t.parser.comment_queue
-	t.parser.comment_queue_hold.append( t.parser.comment_queue )
-	t.parser.comment_queue = []
+	if t.lexer.verbose:
+		print "holding", t.lexer.comment_queue
+	t.lexer.comment_queue_hold.append( t.lexer.comment_queue )
+	t.lexer.comment_queue = []
 
 # function-specifiers
 def p_function_specifiers_opt(t):
@@ -410,7 +410,7 @@ def p_function_arg(t):
 					| type_specifier variable LBRACKET RBRACKET'''
 	#t[0] = assemble(t, 'p_function_arg')
 	t[0] = t[2]
-	t.parser.type_map[t[2]] = t[1]
+	t.lexer.type_map[t[2]] = t[1]
 	
 def p_function_arg_list(t):
 	'''function_arg_list : function_arg
@@ -449,8 +449,8 @@ def p_declaration_statement(t):
 		# case the python global variable will suffice.  in other cases, we may want to retrieve a
 		# global set by maya.
 		
-		incl_reg = t.parser.global_var_include_regex	# if nothing set, match all
-		excl_reg = t.parser.global_var_exclude_regex		# if nothing set, match none
+		incl_reg = t.lexer.global_var_include_regex	# if nothing set, match all
+		excl_reg = t.lexer.global_var_exclude_regex		# if nothing set, match none
 		if re.match(incl_reg, var) and not re.match(excl_reg, var):	
 			return True
 		else:
@@ -490,9 +490,9 @@ def p_declaration_statement(t):
 			# global variable -- overwrite init	
 			if isGlobal:
 				
-				t.parser.type_map[var] = typ
+				t.lexer.type_map[var] = typ
 					
-				t.parser.global_vars.add( var )
+				t.lexer.global_vars.add( var )
 					
 				t[0] += 'global %s\n' % var
 				
@@ -506,7 +506,7 @@ def p_declaration_statement(t):
 					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, itype, var) 
 			
 			else:
-				t.parser.type_map[var] = typ
+				t.lexer.type_map[var] = typ
 				t[0] += '%s = %s\n' % (var, init)	
 		
 		# initialize to value	
@@ -515,7 +515,7 @@ def p_declaration_statement(t):
 				if declaration[1].tokenize:
 					buf = declaration[1].__dict__.pop( 'tokenize' )
 					t[0] += declaration[1]
-					t[0] += '\n' + declaration[0] + " = len(%s)" % buf
+					t[0] += '\n' + declaration[0] + " = len(%s)\n" % buf
 			except:					
 				for i,elem in enumerate(declaration):
 					
@@ -523,7 +523,7 @@ def p_declaration_statement(t):
 					if declaration[i].endswith('[]'):
 						declaration[i] = declaration[i][:-2]
 					
-				t.parser.type_map[declaration[0]] = typ
+				t.lexer.type_map[declaration[0]] = typ
 				
 				if isGlobal:
 							
@@ -531,7 +531,7 @@ def p_declaration_statement(t):
 					
 					for global_var in declaration[:-1]:
 						#print "set mel global var", global_var
-						t.parser.global_vars.add(global_var)
+						t.lexer.global_vars.add(global_var)
 						
 						t[0] += 'global %s\n' % global_var 
 						t[0] += '%s=%s\n' % (global_var, declaration[-1])
@@ -713,9 +713,9 @@ def p_compound_statement(t):
 	'''compound_statement   : LBRACE statement_list RBRACE
 							| LBRACE RBRACE''' # causes reduce/reduce conflict with postfix_expression
 		 
-	#print "compound, emptying queue:", t.parser.comment_queue
-	#t[0] = ''.join(t.parser.comment_queue)
-	#t.parser.comment_queue = []
+	#print "compound, emptying queue:", t.lexer.comment_queue
+	#t[0] = ''.join(t.lexer.comment_queue)
+	#t.lexer.comment_queue = []
 	
 	#t[0] = assemble(t, 'p_compound_statement')
 	
@@ -1122,7 +1122,7 @@ def p_iteration_statement_3(t):
 def p_seen_FOR(t):
 	'''seen_FOR :'''
 
-	t.parser.type_map[t[-3].strip()] = t[-1].type	
+	t.lexer.type_map[t[-3].strip()] = t[-1].type	
 
 	
 def p_iteration_statement_4(t):
@@ -1429,20 +1429,20 @@ def p_procedure_expression(t):
 #	#t[0] = assemble(t, 'p_procedure')
 #	#t[0] = 'mel.' + t[0]
 #	if len(t) == 5:
-#		t[0] = command_format( t[1], t[3], t )
+#		t[0] = format_command( t[1], t[3], t )
 #	else:
-#		t[0] = command_format( t[1],[], t )
+#		t[0] = format_command( t[1],[], t )
 		
 def p_procedure(t):
 	'''procedure : ID LPAREN procedure_expression_list RPAREN
 					| ID LPAREN RPAREN'''
 				
 	if len(t) == 5:
-		t[0] = command_format( t[1], t[3], t )
+		t[0] = format_command( t[1], t[3], t )
 	elif len(t) == 3:
-		t[0] = command_format( t[1],[t[2]], t )
+		t[0] = format_command( t[1],[t[2]], t )
 	else:
-		t[0] = command_format( t[1],[], t )
+		t[0] = format_command( t[1],[], t )
 		
 def p_procedure_expression_list(t):
 	'''procedure_expression_list : constant_expression
@@ -1539,29 +1539,29 @@ def p_primary_expression1(t):
 	if t[1].startswith('0x'):
 		t[1] = "int( '%s', 16 )" % t[1]
 	t[0] = Token(t[1], 'int', t.lexer.lineno)
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
 def p_primary_expression2(t):
 	'''primary_expression :	 SCONST'''
 	t[0] = Token(t[1], 'string', t.lexer.lineno)
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_primary_expression", t[0]
 		
 		
 def p_primary_expression3(t):
 	'''primary_expression :	 FCONST'''
 	t[0] = Token(t[1], 'float', t.lexer.lineno)
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
 def p_primary_expression4(t):
 	'''primary_expression :	 variable'''	
-	t[0] = Token(t[1], t.parser.type_map.get(t[1], None), t.lexer.lineno )
-	if t.parser.verbose >= 2:
+	t[0] = Token(t[1], t.lexer.type_map.get(t[1], None), t.lexer.lineno )
+	if t.lexer.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
-	#print "mapping", t[1], t.parser.type_map.get(t[1], None) 
+	#print "mapping", t[1], t.lexer.type_map.get(t[1], None) 
 	#print "p_primary_expression", t[0]
 
 # comment
@@ -1581,7 +1581,7 @@ def p_boolean_true(t):
 				| TRUE
 				| YES '''
 	t[0] = 'True'
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_boolean_true", t[0]
 			
 def p_boolean_false(t):
@@ -1589,7 +1589,7 @@ def p_boolean_false(t):
 				| FALSE
 				| NO '''
 	t[0] = 'False'
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_boolean_false", t[0]
 			
 def p_variable(t):
@@ -1598,13 +1598,13 @@ def p_variable(t):
 		t[0] = t[1] + '_'
 	else:
 		t[0] = t[1]
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_variable", t[0]
 		
 def p_variable_vector_component(t):
 	'''variable :  VAR COMPONENT'''
 	t[0] = Token(t[1]+t[2], 'float', t.lexer.lineno)
-	if t.parser.verbose >= 2:
+	if t.lexer.verbose >= 2:
 		print "p_variable_vector_component", t[0]
 		
 # Commands
@@ -1656,7 +1656,7 @@ def _proc_to_module( t, procedure ):
 	
 	# if root_module is set to None that means we are doing a string conversion, and not a file conversion
 	# we don't need to find out the current or future python module.  just use pymel.mel
-	if t.parser.root_module in [ None, '__main__']:
+	if t.lexer.root_module in [ None, '__main__']:
 		return
 	
 	global currentFiles
@@ -1695,14 +1695,14 @@ def _proc_to_module( t, procedure ):
 
 		
 	
-def command_format(command, args, t):
+def format_command(command, args, t):
 			
 	if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
 		args[0] = args[0][1:-1]
 		
 	
 	
-	if t.parser.verbose:
+	if t.lexer.verbose:
 		print 'p_command: input_list', command, args
 	
 	
@@ -1725,20 +1725,24 @@ def command_format(command, args, t):
 		args = ', '.join(args)
 	
 		# function is being called locally, within same file
-		if command in t.parser.global_proc:
+		if command in t.lexer.global_procs:
 			return '%s(%s)' % (command, args)
-		if command in t.parser.local_proc:
+		if command in t.lexer.local_procs:
 			return '_%s(%s)' % (command, args)
 		
 		module = _proc_to_module( t, command )
 	
 		if module:
-			t.parser.imported_modules.add( module )
-			res = '%s.%s(%s)' % (module, command, args)
+			# the procedure is in the currently parsed script, but has not yet been placed in global or local procs.
+			if module == t.lexer.root_module:
+				return '%s(%s)' % (command, args)
+			else:
+				t.lexer.imported_modules.add( module )
+				res = '%s.%s(%s)' % (module, command, args)
 		else:
 			res = 'mel.%s(%s)' % (command, args)
 			
-		res = t.parser.pymel_namespace + res	
+		res = t.lexer.pymel_namespace + res	
 		return res
 	
 	# commands with help documentation
@@ -1760,7 +1764,7 @@ def command_format(command, args, t):
 			if flagmatch:
 				if numArgs > 0:
 					#raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
-					if t.parser.verbose >= 1: print 'reached a new flag before receiving all necessary args for last flag'
+					if t.lexer.verbose >= 1: print 'reached a new flag before receiving all necessary args for last flag'
 					kwargs[currFlag]='1'
 					numArgs=0
 					
@@ -1798,16 +1802,21 @@ def command_format(command, args, t):
 					#if True :
 					try:	
 						cbParser = MelParser()
-						cbParser.build( rootModule = t.parser.root_module, 
-										  	pymelNamespace=t.parser.pymel_namespace, 
-										  	verbosity=t.parser.verbose,
-										  	addPymelImport=False )
+						#print "root module for callback parsing", t.lexer.root_module
+						cbParser.build( rootModule = t.lexer.root_module, 
+										  	pymelNamespace=t.lexer.pymel_namespace, 
+										  	verbosity=t.lexer.verbose,
+										  	addImports=False )
+						
 						tmpToken = token
 						#print tmpToken.__repr__()
 						# pre-parse cleanup
+						
+						#print tmpToken
+						
 						#if tmpToken.startswith('"') and tmpToken.endswith('"'):
-						#	print "unescaping"
 						tmpToken = unescape(tmpToken)
+						
 						if not tmpToken.endswith( ';' ): 
 							tmpToken += ';'
 						cb = re.compile(  '#(\d)' )
@@ -1815,22 +1824,30 @@ def command_format(command, args, t):
 						for i in range(1,len(parts),2):
 							parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
 						tmpToken = ''.join( parts )
+						
 						#print tmpToken
 						
 						# parse
 						tmpToken = cbParser.parse( tmpToken )
 						
+						#print tmpToken
+						
+						# ensure that the result is not empty
+						assert tmpToken.strip()
+						
+						t.lexer.imported_modules.update( cbParser.lexer.imported_modules )
+						
 						# post-parse cleanup
 						if tmpToken.endswith( '\n' ): 
 							tmpToken = tmpToken[:-1]
 							
-						tmpToken = tmpToken.replace( '\n', ';')
+						tmpToken = tmpToken.replace( '\n', ' and ')
 
 						token = 'lambda *args: %s' % (tmpToken)
 						
 					#else:
 					except:					
-						token = 'lambda *args: %smel.eval(%s)' % (t.parser.pymel_namespace, token)
+						token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
 				
 				argTally.append(token)
 				#print 'last flag arg', currFlag, argTally
@@ -1874,11 +1891,11 @@ def command_format(command, args, t):
 		# functions that clash with python keywords and ui functions must use the cmds namespace
 		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
 		if command in filteredCmds: # + uiCommands:
-			command = '%scmds.%s' % (t.parser.pymel_namespace, command)
+			command = '%scmds.%s' % (t.lexer.pymel_namespace, command)
 		
 		# eval command is the same as using maya.mel.eval
 		if command == 'eval':
-			command = '%smel.%s' % (t.parser.pymel_namespace, command)
+			command = '%smel.%s' % (t.lexer.pymel_namespace, command)
 		
 		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
 		if command == 'python':
@@ -1895,7 +1912,7 @@ def command_format(command, args, t):
 			#	python:	ls( type=["transform","camera"] )
 			if isinstance( value, list):
 				#sep = ','
-				#if len(value) > t.parser.format_options['kwargs_newline_threshhold']:
+				#if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
 				#	sep = ',\n\t'
 				#pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
 				value = assemble(t,'multiuse_flag', ', ', value, matchFormatting=True)
@@ -1904,11 +1921,11 @@ def command_format(command, args, t):
 				pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
 		
 		#sep = ','
-		#if len(pargs) > t.parser.format_options['args_newline_threshhold']:
+		#if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
 		#	sep = ',\n\t'		
 		#res =  '%s(%s)' % (command, sep.join( pargs ) )
 		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs, matchFormatting=True ) )
-		res = t.parser.pymel_namespace + res
+		res = t.lexer.pymel_namespace + res
 		return res
 		
 	except KeyError, key:
@@ -1924,9 +1941,9 @@ def p_command_statement(t):
 			| ID command_statement_input_list SEMI'''
 
 	if len(t) == 3:
-		t[0] = command_format(t[1], [], t) + '\n'
+		t[0] = format_command(t[1], [], t) + '\n'
 	else:	
-		t[0] = command_format(t[1], t[2], t) + '\n'
+		t[0] = format_command(t[1], t[2], t) + '\n'
 	addComments(t)
 
 def p_command_statement_input_list(t):
@@ -1971,9 +1988,9 @@ def p_command(t):
 				| ID command_input_list'''
 	#print "p_command"
 	if len(t) == 2:
-		t[0] = command_format(t[1],[], t)
+		t[0] = format_command(t[1],[], t)
 	else:	
-		t[0] = command_format(t[1], t[2], t)
+		t[0] = format_command(t[1], t[2], t)
 
 			
 def p_command_input_list(t):
@@ -2040,7 +2057,7 @@ def p_object_list(t):
 	
 def p_object_1(t):
 	'''object	: ID'''
-	if t.parser.verbose >= 1:
+	if t.lexer.verbose >= 1:
 		print 'p_object_1', t[1]
 	#print t[1], t.lexpos(1), len(t[1]), t.lexpos(1)+len(t[1])
 	t[0] = Token( t[1], 'string', lexspan=(t.lexpos(1),t.lexpos(1)+len(t[1])-1 ) )
@@ -2056,7 +2073,7 @@ def p_object_1(t):
 def p_object_2(t):
 	'''object	: ID LBRACKET expression RBRACKET'''
 	#print t.lexpos(1), t.lexpos(2),t.lexpos(3),t.lexpos(4)
-	if t.parser.verbose >= 1:
+	if t.lexer.verbose >= 1:
 		print 'p_object_2'
 	t[0] = Token( t[1]+t[2]+t[3]+t[4], 'string', lexspan=(t.lexpos(1),t.lexpos(4) ) )
 	#t[0] = assemble(t, 'p_object_2')
@@ -2104,7 +2121,7 @@ def p_empty(t):
 	t[0] = assemble(t, 'p_empty')
 
 def _error(t):
-	if t.parser.verbose:
+	if t.lexer.verbose:
 		print "Error parsing script, attempting to read forward and restart parser"
 	while 1:
 		tok = yacc.token()             # Get the next token
@@ -2119,9 +2136,9 @@ def p_error(t):
 		#print "Removing Comment", t.value
 		# Just discard the token and tell the parser it's okay.		
 		comment = '#' + t.value[2:] + '\n'
-		#if t.parser.verbose:
+		#if t.lexer.verbose:
 		#print "queueing comment", comment
-		parser.comment_queue.append( comment )
+		t.lexer.comment_queue.append( comment )
 		yacc.errok()
 	elif t.type == 'COMMENT_BLOCK':
 		comment = t.value[2:-2]
@@ -2130,13 +2147,13 @@ def p_error(t):
 			comment = "'''" + comment + "'''\n"
 		else:
 			comment = '"""' + comment + '"""\n'
-		#if t.parser.verbose:
+		#if t.lexer.verbose:
 		#print "queueing comment", comment
-		parser.comment_queue.append( comment )
+		t.lexer.comment_queue.append( comment )
 		yacc.errok()	
 		
 	else:
-		#if t.parser.verbose:
+		#if t.lexer.verbose:
 		#	print "Error parsing script at %s, attempting to read forward and restart parser" % t.value
 		while 1:
 			tok = yacc.token()             # Get the next token
@@ -2153,51 +2170,51 @@ parser = yacc.yacc(method='''LALR''', debug=0)
 
 class MelParser(object):
 	"""The MelParser class around which all other mel2py functions are based."""
-	def build(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True ):
+	def build(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True, addImports=True ):
 		self.lexer = lexer.clone()
 			
-		parser.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
-		parser.proc_list = []  # ordered list of procedures
-		parser.local_procs = {} # dictionary of local procedures and their related data
-		parser.global_procs = {} # dictionary of global procedures and their related data
-		parser.imported_modules = set([])  # imported external modules, pymel is assumed
-		parser.global_vars = set([])
-		parser.comment_queue = []
-		parser.comment_queue_hold = []
-		parser.verbose = verbosity
+		self.lexer.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
+		self.lexer.proc_list = []  # ordered list of procedures
+		self.lexer.local_procs = {} # dictionary of local procedures and their related data
+		self.lexer.global_procs = {} # dictionary of global procedures and their related data
+		self.lexer.imported_modules = set([])  # imported external modules, pymel is assumed
+		self.lexer.global_vars = set([])
+		self.lexer.comment_queue = []
+		self.lexer.comment_queue_hold = []
+		self.lexer.verbose = verbosity
 		if pymelNamespace and not pymelNamespace.endswith( '.' ):
 			pymelNamespace = pymelNamespace + '.'
-		parser.pymel_namespace = pymelNamespace
-		parser.type_map = {}
-		parser.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
+		self.lexer.pymel_namespace = pymelNamespace
+		self.lexer.type_map = {}
+		self.lexer.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
 		#parser.global_var_include_regex = '.*'
-		parser.global_var_exclude_regex = '$'
+		self.lexer.global_var_exclude_regex = '$'
 		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
-		parser.add_pymel_import = addPymelImport
-		
+		self.add_pymel_import = addPymelImport
+		self.add_imports = addImports
 		
 	def parse(self, data):
 		data = data.encode( 'utf-8', 'ignore')
 		data = data.replace( '\r', '\n' )
 		
-		if parser.verbose == 2:	
+		if self.lexer.verbose == 2:	
 			lex.input(data)
 			while 1:
 				tok = lex.token()
 				if not tok: break      # No more input
 				print tok
 		
-		prev_modules = parser.imported_modules.copy()
+		prev_modules = self.lexer.imported_modules.copy()
 		
-		parser.comment_queue = []
-		parser.comment_queue_hold = []
+		self.lexer.comment_queue = []
+		self.lexer.comment_queue_hold = []
 		
 		translatedStr = ''
 		try:
 			translatedStr = parser.parse(data, lexer=self.lexer)
 		except ValueError, msg:
-			if parser.comment_queue:
-				translatedStr = '\n'.join(parser.comment_queue)				
+			if self.lexer.comment_queue:
+				translatedStr = '\n'.join(self.lexer.comment_queue)				
 			else:
 				raise ValueError, msg
 			
@@ -2206,30 +2223,28 @@ class MelParser(object):
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 		
-		new_modules = parser.imported_modules.difference( prev_modules )
-		
-		header = ''
-		
-		# adding the pymel import statement should occur only on the 
-		# first execution of the parser or not at all.
-		
-		if parser.add_pymel_import:
-			if not parser.pymel_namespace:
-				header += 'from pymel import *\n'
-			elif parser.pymel_namespace == 'pymel.':
-				header += 'import pymel\n'
-			else:
-				header += 'import pymel as %s\n' % parser.pymel_namespace[:-1]
-			parser._add_pymel_import = False
+		if self.add_imports:
+			new_modules = self.lexer.imported_modules.difference( prev_modules )
 			
-		if len( new_modules ):
-			header += "import %s" % ','.join(list(new_modules))
-			header += '\n'
+			header = ''
 			
-		translatedStr = header + translatedStr
-		#if parser.verbose:
-		#	print '\n\n'
-		#	print converted
+			# adding the pymel import statement should occur only on the 
+			# first execution of the parser or not at all.
+			
+			if self.add_pymel_import:
+				if not self.lexer.pymel_namespace:
+					header += 'from pymel import *\n'
+				elif self.lexer.pymel_namespace == 'pymel.':
+					header += 'import pymel\n'
+				else:
+					header += 'import pymel as %s\n' % self.lexer.pymel_namespace[:-1]
+				self.add_pymel_import = False
+				
+			if len( new_modules ):
+				header += "import %s" % ','.join(list(new_modules))
+				header += '\n'
+				
+			translatedStr = header + translatedStr
 	
 			
 		return translatedStr

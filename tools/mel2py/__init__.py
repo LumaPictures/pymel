@@ -307,6 +307,15 @@ def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	pyfile.write_bytes(converted)
 	
 
+def _fileInlist( file, fileList ):
+	file = path.path(file)
+	for dir in fileList:
+		try:
+			if file.samefile( dir ): 
+				return True
+		except OSError: pass
+	return False
+
 def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , test=False):
 	"""batch convert an entire directory"""
 	processDir = path.path(processDir)
@@ -315,6 +324,11 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	#currentFiles = filter( lambda x: not x.name.startswith('.'), processDir.files( '*.mel') )
 	currentFiles = processDir.files( '[a-zA-Z]*.mel')
 	
+	
+	if test and outputDir and not _fileInlist(outputDir, sys.path):
+		print "Testing is enabled, but outputDir is not in sys.path. Adding %s." % outputDir
+		sys.path.append( outputDir )
+
 	"""
 	for f in currentFiles:
 		try:
@@ -337,14 +351,14 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 		if test:
 			try:
 				__import__(f.namebase)
-			except (SyntaxError, IndentationError):
-				print 'A syntax error exists in this file that will need to be manually fixed'
-			except RuntimeError:
-				print 'This file has code which executed on import and failed'
-			except ImportError:
-				pass
-			except:
-				print 'This file has code which executed on import and failed'
+			except (SyntaxError, IndentationError), msg:
+				print 'A syntax error exists in this file that will need to be manually fixed: %s' % msg
+			except RuntimeError, msg:
+				print 'This file has code which executed on import and failed: %s' % msg
+			except ImportError, msg:
+				print '%s' % msg
+			except Exception, msg:
+				print 'This file has code which executed on import and failed: %s' % msg
 			else:
 				importCnt += 1
 	
