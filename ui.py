@@ -61,7 +61,7 @@ try:
     import maya.cmds as cmds
 except ImportError: pass
 
-import factories, util, core
+import factories, util, core, path
 
     
 #-----------------------------------------------
@@ -462,6 +462,16 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
 def informBox(title, message, ok="Ok"):
     """ Information box """
     confirmDialog(t=title, m=message, b=["Ok"], db="Ok")
+    
+    
+def promptForFolder():
+    """ Prompt the user for a folder path """
+    folder = [None]
+    def getfolder(*args):
+        folder[0] = args[0]
+    ret = fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
+    return path.path(folder[0])
+
     
 class MelToPythonWindow(Window):
 
