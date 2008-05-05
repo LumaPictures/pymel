@@ -3272,17 +3272,17 @@ class PyNodeNameToPyNode(Singleton, dict):
 class PyNodeTypesHierarchy(Singleton, dict):
     """child:parent lookup of the pymel classes that derive from DependNode"""
  
-def _createPyNode( mayaType, parentMayaType, apiEnum=None ):
+def createPyNode( module, mayaType, parentMayaType, apiEnum=None ):
     
     # unicode is not liked by metaNode
     pyNodeTypeName = str( util.capitalize(mayaType) )
-    if hasattr( _thisModule, pyNodeTypeName ):
-        PyNodeType = getattr( _thisModule, pyNodeTypeName )
+    if hasattr( module, pyNodeTypeName ):
+        PyNodeType = getattr( module, pyNodeTypeName )
         #print "already exists:", pyNodeTypeName, 
     else:
         parentMayaType = util.capitalize(parentMayaType)
         try:
-            ParentPyNode = getattr( _thisModule, parentMayaType )
+            ParentPyNode = getattr( module, parentMayaType )
         except AttributeError:
             print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
             return      
@@ -3294,7 +3294,7 @@ def _createPyNode( mayaType, parentMayaType, apiEnum=None ):
         else:
             #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
             PyNodeType.__module__ = __name__
-            setattr( _thisModule, pyNodeTypeName, PyNodeType )
+            setattr( module, pyNodeTypeName, PyNodeType )
             
             PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
             PyNodeNameToPyNode()[pyNodeTypeName] = PyNodeType
@@ -3316,7 +3316,9 @@ def _createPyNode( mayaType, parentMayaType, apiEnum=None ):
 
         else:
             print "could not find apiType from mayaType '%s'" % mayaType
-        
+
+pluginData = {}
+    
 def pluginLoadedCallback( module ):
     def getInheritence( mayaType ):
         try:
@@ -3329,10 +3331,15 @@ def pluginLoadedCallback( module ):
     def pluginLoadedCB(pluginName):
         print "Plugin loaded", pluginName
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
+        pluginData[pluginName] = {}
+        
         if commands:
+            pluginData[pluginName]['commands'] = commands
+            print "adding new commands:", commands
             for funcName in commands:
-                print "adding new command:", funcName
-                func = functionFactory( funcName )
+                #print "adding new command:", funcName
+                _factories.cmdlist[funcName] = _factories.getCmdInfoBasic( funcName )
+                func = _factories.functionFactory( funcName )
                 try:
                     if func:
                         setattr( module, funcName, func )
@@ -3344,22 +3351,70 @@ def pluginLoadedCallback( module ):
         mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
         apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
         if mayaTypes and apiEnums:
+            pluginData[pluginName]['dependNodes'] = mayaTypes
+            print "adding new nodes:", mayaTypes
+            
             for mayaType, apiEnum in zip( mayaTypes, apiEnums ):
                 inheritence = getInheritence( mayaType )
-                print "adding new node:", mayaType, apiEnum, inheritence
                 
+                #print "adding new node:", mayaType, apiEnum, inheritence
                 # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                 parent = 'dependNode'
                 for node in inheritence:
                     if node == mayaType:
-                        _createPyNode( node, parent )
+                        createPyNode( module, node, parent )
                     else:
-                        _createPyNode( node, parent, apiEnum )
+                        createPyNode( module, node, parent, apiEnum )
                     parent = node
                     
     return pluginLoadedCB
 
-         
+def pluginUnloadedCallback( module ):               
+    def pluginUnloadedCB(pluginName):
+        print "Plugin unloaded", pluginName
+        try:
+            data = pluginData.pop(pluginName)
+        except KeyError: pass
+        else:
+            commands = data.pop('commands', [])
+            print "removing commands:", commands
+            for command in commands:
+                #print "removing command", command
+                try:
+                    module.__dict__.pop(command)
+                except KeyError:
+                    print "Failed to remove %s from module %s" % (command, module.__name__)         
+        
+    return pluginUnloadedCB
+
+global pluginLoadedCB
+global pluginUnloadedCB
+pluginLoadedCB = None
+pluginUnloadedCB = None
+
+def installCallbacks(module):
+    
+    global pluginLoadedCB
+    if pluginLoadedCB is None:
+        print "adding plugin load callback"
+        pluginLoadedCB = pluginLoadedCallback(module)
+        cmds.loadPlugin( addCallback=pluginLoadedCB )
+    else:
+        print "plugin load callback already exists"
+    
+    global pluginUnloadedCB
+    if pluginUnloadedCB is None:
+        print "adding plugin unload callback"
+        pluginUnloadedCB = pluginUnloadedCallback(module)
+        unloadCBStr = util.melToPythonWrapper( pluginUnloadedCB, procName='pluginUnloadedProc' )
+        cmds.unloadPlugin( addCallback=unloadCBStr )
+    else:
+        print "plugin unload callback already exists"
+        
+    # the unloadPlugin
+    #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
+
+        
 def _createPyNodes():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy
@@ -3377,7 +3432,8 @@ def _createPyNodes():
         if parentMayaType is None:
             print "could not find parent node", mayaType
             continue
-        _createPyNode( mayaType, parentMayaType )
+        
+        createPyNode( _thisModule, mayaType, parentMayaType )
 
         #    print "No API type exists for maya type '%s'" % MayaType
         #else:

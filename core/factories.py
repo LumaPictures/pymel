@@ -1,8 +1,6 @@
 
 from pymel.util.trees import *
-from pymel.util.common import capitalize, uncapitalize, moduleDir
-from pymel.util.arguments import isIterable
-from pymel.util.mayautils import getMayaLocation, getMayaVersion
+import pymel.util as util
 #from general import PyNode
 
 import sys, os, inspect, pickle, re, types, os.path
@@ -288,8 +286,8 @@ class CommandDocParser(HTMLParser):
 def _mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     if version == None :
-        version = getMayaVersion(extension=False)
-    docLocation = getMayaLocation() 
+        version = util.getMayaVersion(extension=False)
+    docLocation = util.getMayaLocation() 
     
     import platform
     if platform.system() == 'Darwin':
@@ -300,7 +298,7 @@ def _mayaDocsLocation( version=None ):
 # class MayaDocsLoc(Singleton) :
 #    """ Path to the Maya docs, cached at pymel start """
     
-# TODO : cache doc location or it's evaluated for each _getCmdInfo !    
+# TODO : cache doc location or it's evaluated for each getCmdInfo !    
 # MayaDocsLoc(_mayaDocsLocation()) 
 
 class CommandInfo(object):
@@ -319,7 +317,7 @@ class FlagInfo(object):
         self.docstring = docstring
         self.modes = modes
       
-def _getCmdInfoBasic( command ):
+def getCmdInfoBasic( command ):
     typemap = {    
              'string'  : unicode,
              'length'  : float,
@@ -354,7 +352,7 @@ def _getCmdInfoBasic( command ):
             #print tokens
             if len(tokens) > 1:
                 
-                args = [ typemap.get(x.lower(), uncapitalize(x) ) for x in tokens[2:] ]
+                args = [ typemap.get(x.lower(), util.uncapitalize(x) ) for x in tokens[2:] ]
                 numArgs = len(args)
                 
                 # lags with no args in mel require a boolean val in python
@@ -378,12 +376,12 @@ def _getCmdInfoBasic( command ):
         #print "could not retrieve command info for", command
     return { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
   
-def _getCmdInfo( command, version='8.5' ):
+def getCmdInfo( command, version='8.5' ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with 
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
     
-    basicInfo = _getCmdInfoBasic(command)
+    basicInfo = getCmdInfoBasic(command)
     
     try:
         docloc = _mayaDocsLocation(version)
@@ -537,7 +535,7 @@ class NodeHierarchyDocParser(HTMLParser):
         
 def printTree( tree, depth=0 ):
     for branch in tree:
-        if isIterable(branch):
+        if util.isIterable(branch):
             printTree( branch, depth+1)
         else:
             print '> '*depth, branch
@@ -573,7 +571,7 @@ class CommandModuleDocParser(HTMLParser):
     #        print data
 
 def _getUICommands():
-    f = open( os.path.join( moduleDir() , 'misc/commandsUI') , 'r') 
+    f = open( os.path.join( util.moduleDir() , 'misc/commandsUI') , 'r') 
     cmds = f.read().split('\n')
     f.close()
     return cmds
@@ -826,9 +824,9 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    ver = getMayaVersion(extension=False)
+    ver = util.getMayaVersion(extension=False)
         
-    newPath = os.path.join( moduleDir(),  'mayaCmdsList'+ver+'.bin' )
+    newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
     cmdlist = {}
     try :
         file = open(newPath, mode='rb')
@@ -892,7 +890,7 @@ def buildCachedData() :
                 moduleCmds[module].append(funcName)
             
             if module != 'runtime':
-                cmdInfo = _getCmdInfo(funcName, ver)
+                cmdInfo = getCmdInfo(funcName, ver)
             
             cmdInfo['type'] = module
             
@@ -1397,7 +1395,7 @@ class metaNode(type) :
     
     def __new__(cls, classname, bases, classdict):
         
-        nodeType = uncapitalize(classname)
+        nodeType = util.uncapitalize(classname)
         
         try:
             infoCmd = False
@@ -1435,7 +1433,7 @@ class metaNode(type) :
 
                 # query command
                 if 'query' in modes:
-                    methodName = 'get' + capitalize(flag)
+                    methodName = 'get' + util.capitalize(flag)
                     if methodName not in classdict:
                         if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                             returnFunc = None
@@ -1456,7 +1454,7 @@ class metaNode(type) :
                 if 'edit' in modes or ( infoCmd and 'create' in modes ):
                     # if there is a corresponding query we use the 'set' prefix. 
                     if 'query' in modes:
-                        methodName = 'set' + capitalize(flag)
+                        methodName = 'set' + util.capitalize(flag)
                     #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
                     else:
                         methodName = flag
@@ -1471,44 +1469,38 @@ class metaNode(type) :
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 
-def pluginLoadedCallback( module ):
-                
-    def pluginLoadedCB(pluginName):
-        print "Plugin loaded", pluginName
-        commands = cmds.pluginInfo(pluginName, query=1, command=1)
-        if commands:
-            for funcName in commands:
-                print "adding new command %s to module %s" % ( funcName, module.__name__ )
-                cmdlist[funcName] = _getCmdInfoBasic( funcName )
-                func = functionFactory( funcName )
-                try:
-                    if func:
-                        setattr( module, funcName, func )
-                    else:
-                        print "failed to create function"
-                except Exception, msg:
-                    print "exception", msg
-                    
-        
-    return pluginLoadedCB
 
-def pluginUnloadedCallback( module ):               
-    def pluginUnloadedCB(pluginName):
-        print "Plugin unloaded", pluginName
-        commands = cmds.pluginInfo(pluginName, query=1, command=1)
-        if commands:
-            for funcName in commands:
-                print "removing command", funcName
-                #func = factories.functionFactory( funcName )
-                try:
-                    if func:
-                        setattr( module, funcName, None )
-                    else:
-                        print "failed to remove function"
-                except Exception, msg:
-                    print "exception", msg
-                    
-    return pluginUnloadedCB
+#def pluginLoadedCallback( module ):
+#                
+#    def pluginLoadedCB(pluginName):
+#        print "Plugin loaded", pluginName
+#        commands = cmds.pluginInfo(pluginName, query=1, command=1)
+#        if commands:
+#            for funcName in commands:
+#                print "adding new command %s to module %s" % ( funcName, module.__name__ )
+#                cmdlist[funcName] = getCmdInfoBasic( funcName )
+#                func = functionFactory( funcName )
+#                try:
+#                    if func:
+#                        setattr( module, funcName, func )
+#                    else:
+#                        print "failed to create function"
+#                except Exception, msg:
+#                    print "exception", msg
+#                    
+#        
+#    return pluginLoadedCB
+
+#def pluginUnloadedCallback( module ):               
+#    def pluginUnloadedCB(pluginName):
+#        print "Plugin unloaded", pluginName
+#        commands = cmds.pluginInfo(pluginName, query=1, command=1)
+#        if commands:
+#            for funcName in commands:
+#                print "removing command", funcName
+#
+#                    
+#    return pluginUnloadedCB
 
 def installCallbacks(module):
     print "adding plugin callbacks"

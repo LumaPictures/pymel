@@ -622,6 +622,6 @@ from core import *
 
 import core.factories as _factories
 _module = __import__(__name__)    
-_factories.installCallbacks(_module)
-
-	
+#_factories.installCallbacks(_module)
+#cmds.loadPlugin( addCallback=pluginLoadedCallback(_module) )
+installCallbacks(_module)
