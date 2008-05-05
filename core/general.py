@@ -3266,74 +3266,128 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 
 # PyNode types names (as str)
-class PyNodeNameToPyNode(dict) :
+class PyNodeNameToPyNode(Singleton, dict):
     """ Lookup from PyNode type name to PyNode type """
-    __metaclass__ =  util.metaStatic
 
-# child:parent lookup of the pymel classes that derive from DependNode
-class PyNodeTypesHierarchy(dict) :
-    __metaclass__ =  util.metaStatic
+class PyNodeTypesHierarchy(Singleton, dict):
+    """child:parent lookup of the pymel classes that derive from DependNode"""
+ 
+def _createPyNode( mayaType, parentMayaType, apiEnum=None ):
     
+    # unicode is not liked by metaNode
+    pyNodeTypeName = str( util.capitalize(mayaType) )
+    if hasattr( _thisModule, pyNodeTypeName ):
+        PyNodeType = getattr( _thisModule, pyNodeTypeName )
+        #print "already exists:", pyNodeTypeName, 
+    else:
+        parentMayaType = util.capitalize(parentMayaType)
+        try:
+            ParentPyNode = getattr( _thisModule, parentMayaType )
+        except AttributeError:
+            print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
+            return      
+        try:
+            PyNodeType = metaNode(pyNodeTypeName, (ParentPyNode,), {})
+        except TypeError, msg:
+            print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, parentMayaType, msg )
+            #pass
+        else:
+            #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
+            PyNodeType.__module__ = __name__
+            setattr( _thisModule, pyNodeTypeName, PyNodeType )
+            
+            PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
+            PyNodeNameToPyNode()[pyNodeTypeName] = PyNodeType
+
+    if not api.PyNodesToApiTypes().has_key(PyNodeType):
+        apiType = api.mayaTypeToApiType(mayaType)
+        if apiType is not 'kInvalid' :
+            api.MayaTypesToApiTypes()[mayaType] = apiType
+#            if not api.ApiTypesToMayaTypes().has_key(apiType) :
+#                api.ApiTypesToMayaTypes()[apiType] = { mayaType : None } # originally: dict( ((mayaType, None),) ) 
+#            else :
+#                api.ApiTypesToMayaTypes()[apiType][mayaType] = None
+#            if not ApiTypesToMayaTypes().has_key(apiType) :
+#                ApiTypesToMayaTypes()[apiType] = { PyNodeType : None } 
+#            else :
+#                ApiTypesToMayaTypes()[apiType][PyNodeType] = None
+#            api.ApiTypesToApiEnums()[apiType] = apiEnum
+#            api.ApiEnumsToApiTypes()[apiEnum] = apiType
+
+        else:
+            print "could not find apiType from mayaType '%s'" % mayaType
+        
+def pluginLoadedCallback( module ):
+    def getInheritence( mayaType ):
+        try:
+            res = cmds.createNode( mayaType )
+            parent = cmds.nodeType( res, inherited=1)
+            cmds.delete(res)
+            return parent
+        except: pass
+                
+    def pluginLoadedCB(pluginName):
+        print "Plugin loaded", pluginName
+        commands = cmds.pluginInfo(pluginName, query=1, command=1)
+        if commands:
+            for funcName in commands:
+                print "adding new command:", funcName
+                func = functionFactory( funcName )
+                try:
+                    if func:
+                        setattr( module, funcName, func )
+                    else:
+                        print "failed to create function"
+                except Exception, msg:
+                    print "exception", msg
+                    
+        mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
+        apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
+        if mayaTypes and apiEnums:
+            for mayaType, apiEnum in zip( mayaTypes, apiEnums ):
+                inheritence = getInheritence( mayaType )
+                print "adding new node:", mayaType, apiEnum, inheritence
+                
+                # some nodes in the hierarchy for this node might not exist, so we cycle through all 
+                parent = 'dependNode'
+                for node in inheritence:
+                    if node == mayaType:
+                        _createPyNode( node, parent )
+                    else:
+                        _createPyNode( node, parent, apiEnum )
+                    parent = node
+                    
+    return pluginLoadedCB
+
+         
 def _createPyNodes():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy
     # see if breadth first isn't more practical ?
-    pyNodeDict = {}
-    pyNodeInverseDict = {}
-    pyNodeHierarchy = {}
+
     for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
-        MayaType = treeElem.key
-        #print "cmds.nodeType: ", cmds.nodeType
-        if MayaType == 'dependNode': continue
-        PyNodeTypeName = util.capitalize(MayaType)
-        if hasattr( _thisModule, PyNodeTypeName ):
-            PyNodeType = getattr( _thisModule, PyNodeTypeName )
-        
-        else:
+        mayaType = treeElem.key
             
-            #superNodeType = _factories.nodeHierarchy.parent( cmds.nodeType )
-            superNodeType = treeElem.parent.key
-            #print "superNodeType: ", superNodeType, type(superNodeType)
-            if superNodeType is None:
-                print "could not find parent node", MayaType
-                continue
-            superNodeType = util.capitalize(superNodeType)
-            try:
-                base = getattr( _thisModule, superNodeType )
-            except AttributeError:
-                print "error creating class %s: parent class %s not in module %s" % (PyNodeTypeName, superNodeType, __name__)
-                continue      
-            #try:
-            PyNodeType = metaNode(PyNodeTypeName, (base,), {})
-            #except TypeError, msg:
-            #    print "%s(%s): %s" % (classname, superNodeType, msg )
-                #pass
-            #else:    
-            PyNodeType.__module__ = __name__
-            setattr( _thisModule, PyNodeTypeName, PyNodeType )
-            pyNodeHierarchy[ PyNodeType ] = base
-        try:
-            APITypeName = api.MayaTypesToApiTypes()[MayaType]
-            pyNodeDict[PyNodeType] = APITypeName
-            pyNodeInverseDict[APITypeName] = PyNodeType
-        except KeyError:
-            pass
+        #print "cmds.nodeType: ", cmds.nodeType
+        if mayaType == 'dependNode': continue
+        
+        parentMayaType = treeElem.parent.key
+        #print "superNodeType: ", superNodeType, type(superNodeType)
+        if parentMayaType is None:
+            print "could not find parent node", mayaType
+            continue
+        _createPyNode( mayaType, parentMayaType )
+
         #    print "No API type exists for maya type '%s'" % MayaType
         #else:
         #    print "already created", classname
     # Would be good to limit special treatments
-    pyNodeDict[PyNode] = 'kBase'
-    pyNodeInverseDict['kBase'] = PyNode
-    pyNodeDict[DependNode] = 'kDependencyNode'
-    pyNodeInverseDict['kDependencyNode'] = DependNode
-                          
-    # Initialize the static classes to hold these
-    api.PyNodesToApiTypes(pyNodeDict)
-    api.ApiTypesToPyNodes(pyNodeInverseDict)
-    PyNodeTypesHierarchy( pyNodeHierarchy )
-    PyNodeNameToPyNode((k.__name__, k) for k in api.PyNodesToApiTypes().keys())  
-
+    api.PyNodesToApiTypes()[PyNode] = 'kBase'
+    api.ApiTypesToPyNodes()['kBase'] = PyNode
+    api.PyNodesToApiTypes()[DependNode] = 'kDependencyNode'
+    api.ApiTypesToPyNodes()['kDependencyNode'] = DependNode
+    
 
 
 # Initialize Pymel classes to API types lookup

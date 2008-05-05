@@ -74,26 +74,23 @@ def isValidMNodeOrPlug (obj):
 # Initializes various static look-ups to speed up Maya types conversions
 
 # this dictionary is filled in core.general
-class PyNodesToApiTypes(dict) :
+class PyNodesToApiTypes(Singleton, dict) :
     """Lookup of Pymel Nodes to corresponding Maya API types"""
-    __metaclass__ =  metaStatic
+
 
 # this dictionary is filled in core.general. (some Maya API types won't have a PyNode equivalent)
-class ApiTypesToPyNodes(dict) :
+class ApiTypesToPyNodes(Singleton, dict) :
     """Lookup of Maya API types to corresponding Pymel Nodes"""
-    __metaclass__ =  metaStatic
 
      
-class ApiTypesToApiEnums(dict) :
+class ApiTypesToApiEnums(Singleton, dict) :
     """Lookup of Maya API types to corresponding MFn::Types enum"""
-    __metaclass__ =  metaStatic
     
 ApiTypesToApiEnums(dict(inspect.getmembers(MFn, lambda x:type(x) is int)))
 
 
-class ApiEnumsToApiTypes(dict) :
+class ApiEnumsToApiTypes(Singleton, dict) :
     """Lookup of MFn::Types enum to corresponding Maya API types"""
-    __metaclass__ =  metaStatic
 
 ApiEnumsToApiTypes(dict((ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()))
 
@@ -160,47 +157,61 @@ class ApiTypesToMayaTypes(Singleton, dict) :
     In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )"""
 
 # get the API type from a maya type
-def _getAPIType (mayaType) :
+def mayaTypeToApiType (mayaType) :
     """ Get the Maya API type from the name of a Maya type """
-    apiType = 'kInvalid'
-
-    # Reserved types must be treated specially
-    if ReservedMayaTypes().has_key(mayaType) :
-        # It's an abstract type            
-        apiType = ReservedMayaTypes()[mayaType]
-    else :
-        # we create a dummy object of this type in a dgModifier
-        # as the dgModifier.doIt() method is never called, the object
-        # is never actually created in the scene
-        obj = MObject() 
-        dagMod = MDagModifier()
-        dgMod = MDGModifier()          
-        try :
-            parent = dagMod.createNode ( 'transform', MObject())
-            obj = dagMod.createNode ( mayaType, parent )
-        except :
+    try:
+        return MayaTypesToApiTypes()[mayaType]
+    except:
+        apiType = 'kInvalid'
+    
+        # Reserved types must be treated specially
+        if ReservedMayaTypes().has_key(mayaType) :
+            # It's an abstract type            
+            apiType = ReservedMayaTypes()[mayaType]
+        else :
+            # we create a dummy object of this type in a dgModifier
+            # as the dgModifier.doIt() method is never called, the object
+            # is never actually created in the scene
+            obj = MObject() 
+            dagMod = MDagModifier()
+            dgMod = MDGModifier()          
             try :
-                obj = dgMod.createNode ( mayaType )
+                parent = dagMod.createNode ( 'transform', MObject())
+                obj = dagMod.createNode ( mayaType, parent )
             except :
-                pass
-        apiType = obj.apiTypeStr()
-                          
-    return apiType                      
+                try :
+                    obj = dgMod.createNode ( mayaType )
+                except :
+                    pass
+            apiType = obj.apiTypeStr()
+                              
+        return apiType                      
 
 
-def addToMayaTypesList(typeName) :
+def addToMayaTypes(mayaType, apiEnum, PyNodeType ) :
     """ Add a type to the MayaTypes lists """
-    if not MayaTypesToApiTypes().has_key(typeName) :
-        # this will happen for initial building and when a pluging is loaded that registers new types
-        api = _getAPIType(typeName)
-        if api is not 'kInvalid' :
-            MayaTypesToApiTypes()[typeName] = api
-            if not ApiTypesToMayaTypes().has_key(api) :
-                ApiTypesToMayaTypes()[api] = dict( ((typeName, None),) )
-            else :
-                ApiTypesToMayaTypes()[api][typeName] = None
-            return True
-    return False
+
+    MayaTypesToApiEnums()[mayaType] = apiEnum
+    ApiEnumsToMayaTypes()[apiEnum] = mayaType
+    
+
+    # this will happen for initial building and when a pluging is loaded that registers new types
+    apiType = mayaTypeToApiType(mayaType)
+    if apiType is not 'kInvalid' :
+        MayaTypesToApiTypes()[mayaType] = apiType
+        if not ApiTypesToMayaTypes().has_key(apiType) :
+            ApiTypesToMayaTypes()[apiType] = { mayaType : None } # originally: dict( ((mayaType, None),) ) 
+        else :
+            ApiTypesToMayaTypes()[apiType][mayaType] = None
+
+        if not ApiTypesToMayaTypes().has_key(apiType) :
+            ApiTypesToMayaTypes()[apiType] = { PyNodeType : None } 
+        else :
+            ApiTypesToMayaTypes()[apiType][PyNodeType] = None
+            
+        ApiTypesToApiEnums()[apiType] = apiEnum
+        ApiEnumsToApiTypes()[apiEnum] = apiType
+
 
 # Initialises/updates MayaTypes for a faster later access
 def updateMayaTypesList() :
@@ -222,7 +233,7 @@ def updateMayaTypesList() :
             # this will happen for initial building and when a plugin is loaded that registers new types
             api = typeList[k]
             if not api :
-                api = _getAPIType(k)
+                api = mayaTypeToApiType(k)
             MayaTypesToApiTypes()[k] = api
             # can have more than one Maya type associated with an API type (yeah..)
             # we mark one as "default" if it's a member of the reserved type by associating it with a True value in dict

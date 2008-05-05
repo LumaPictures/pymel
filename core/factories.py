@@ -1069,7 +1069,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     #   module = _thisModule
     if isinstance( funcNameOrObject, basestring ):
         funcName = funcNameOrObject
-        
         try:
             inFunc = getattr(module, funcName)    
         except AttributeError:
@@ -1081,11 +1080,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         funcName = funcNameOrObject.__name__
         inFunc = funcNameOrObject
 
-
     cmdInfo = cmdlist[funcName]
-
     funcType = type(inFunc)
-    
     # if the function is not a builtin and there's no return command to map, just add docs
     if funcType == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
@@ -1475,13 +1471,15 @@ class metaNode(type) :
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 
-def pluginLoadedCallback( module ):               
+def pluginLoadedCallback( module ):
+                
     def pluginLoadedCB(pluginName):
         print "Plugin loaded", pluginName
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
         if commands:
             for funcName in commands:
-                print "adding new command", funcName
+                print "adding new command %s to module %s" % ( funcName, module.__name__ )
+                cmdlist[funcName] = _getCmdInfoBasic( funcName )
                 func = functionFactory( funcName )
                 try:
                     if func:
@@ -1491,6 +1489,7 @@ def pluginLoadedCallback( module ):
                 except Exception, msg:
                     print "exception", msg
                     
+        
     return pluginLoadedCB
 
 def pluginUnloadedCallback( module ):               
