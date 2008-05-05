@@ -46,23 +46,43 @@ def pythonArgToMelType(arg):
 # Flatten a multi-list argument so that in can be passed as
 # a list of arguments to a command.
 
-def melToPythonWrapper( moduleName, funcName, procName, returnType='', evaluateInputs=True ):
+def melToPythonWrapper( funcPathOrObject, returnType='', procName=None, evaluateInputs=True ):
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed 
     python function.  Theoretically useful for calling your python scripts in scenarios where maya
     does not yet support python callbacks, such as in batch mode.
     
-    python functions feature a very versatile argument structure (typeless, variable, defaults), 
-    whereas mel does not. As a result there are a number of concessions that must be made for this wrapper to work.
+    The function is inspected in order to generate a mel procedure which relays its
+    arguments on to the python function.  However, Python feature a very versatile argument structure whereas 
+    mel does not. 
     
-        - args without default values default to strings. If 'evaluteInputs' is True, arguments passed to the 
-            wrapper procedure will have the python eval command run on them before being passed to your wrapped python
+        - python args with default values (keyword args) will be set to their mel analogue, if it exists. 
+        - normal python args without default values default to strings. If 'evaluteInputs' is True, string arguments passed to the 
+            mel wrapper proc will be evaluated as python code before being passed to your wrapped python
             function. This allows you to include a typecast in the string representing your arg::
                 
-                myWrapperProc( "int(5)" );
+                myWrapperProc( "Transform('perp')" );
                 
-        - args with default values will be set to their mel analogue, if it exists
-        - varargs : not yet implemented
-        - keyword args : not likely to be implemented
+        - *args : not yet implemented
+        - **kwargs : not likely to be implemented
+        
+     
+    funcPathOrObject
+        This can be a callable python object or the full, dotted path to the callable object as a string.  
+        
+        If passed as a python object, the object's __name__ and __module__ attribute must point to a valid module
+        where __name__ can be found. 
+        
+        If a string representing the python object is passed, it should include all packages and sub-modules, along 
+        with the function's name:  'path.to.myFunc'
+        
+    procName
+        Optional name of the mel procedure to be created.  If None, the name of the function will be used.
+    
+    evaluateInputs
+        If True (default), the arguments passed to the generated mel procedure will be evaluated as python code, allowing
+        you to pass a list as an argument, such as::
+            mel_wrapper("[ 1, 2, 3]");
+    
     """
     
     import maya.mel as mm
@@ -71,8 +91,21 @@ def melToPythonWrapper( moduleName, funcName, procName, returnType='', evaluateI
     melArgs = []
     melCompile = []
 
-    module = __import__(moduleName, globals(), locals(), [''])
-    func = getattr( module, funcName )
+    if isinstance( funcPathOrObject, basestring):
+        buf = funcPathOrObject.split()
+        funcName = buf.pop(-1)
+        moduleName = '.'.join(buf)
+        module = __import__(moduleName, globals(), locals(), [''])
+        func = getattr( module, funcName )
+        
+    else:
+        func = funcPathOrObject
+        funcName = func.__name__
+        moduleName = func.__module__
+        
+    if procName is None:
+        procName = funcName
+            
     getargspec( func )
     
     args, varargs, kwargs, defaults  = getargspec( func )
@@ -94,14 +127,29 @@ def melToPythonWrapper( moduleName, funcName, procName, returnType='', evaluateI
         if melType == 'string':
             compilePart = "'\" + $%s + \"'" %  arg
             if evaluateInputs and i < offset:
-                compilePart = 'eval(%s)' % compilePart
+                compilePart = r'eval(\"\"\"%s\"\"\")' % compilePart
             melCompile.append( compilePart )
         else:
             melCompile.append( "\" + $%s + \"" %  arg )
     
-    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % (returnType, procName, ', '.join(melArgs), moduleName, moduleName, funcName, ','.join(melCompile) )
+    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % ( returnType, 
+                                                                        procName,
+                                                                        ', '.join(melArgs), 
+                                                                        moduleName, 
+                                                                        moduleName, 
+                                                                        funcName, 
+                                                                        ','.join(melCompile) )
+#    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % ( returnType, 
+#                                                                                          procName, 
+#                                                                                          ', '.join(melArgs), 
+#                                                                                          procName, moduleName, 
+#                                                                                          moduleName, 
+#                                                                                          funcName,
+#                                                                                          ','.join(melCompile) )
+
     print procDef
     mm.eval( procDef )
+    return procName
 
 def expandArgs( *args, **kwargs ) :
     """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
