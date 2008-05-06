@@ -3028,13 +3028,13 @@ class ObjectSet(Entity):
     these will return the results of the operation as python sets containing lists of pymel node classes::
     
         s&t     s.intersection(t)
-        s|t        s.union(t)
-        s^t        s.symmetric_difference(t)
-        s-t        s.difference(t)
+        s|t     s.union(t)
+        s^t     s.symmetric_difference(t)
+        s-t     s.difference(t)
     
     the following will alter the contents of the maya set::
         
-        s&=t     s.intersection_update(t)
+        s&=t    s.intersection_update(t)
         s|=t    s.update(t)
         s^=t    s.symmetric_difference_update(t)
         s-=t    s.difference_update(t)        
@@ -3272,7 +3272,7 @@ class PyNodeNameToPyNode(Singleton, dict):
 class PyNodeTypesHierarchy(Singleton, dict):
     """child:parent lookup of the pymel classes that derive from DependNode"""
  
-def createPyNode( module, mayaType, parentMayaType, apiEnum=None ):
+def addPyNode( module, mayaType, parentMayaType, apiEnum=None ):
     
     # unicode is not liked by metaNode
     pyNodeTypeName = str( util.capitalize(mayaType) )
@@ -3300,39 +3300,25 @@ def createPyNode( module, mayaType, parentMayaType, apiEnum=None ):
             PyNodeNameToPyNode()[pyNodeTypeName] = PyNodeType
 
     if not api.PyNodesToApiTypes().has_key(PyNodeType):
-        apiType = api.mayaTypeToApiType(mayaType)
-        if apiType is not 'kInvalid' :
-            api.MayaTypesToApiTypes()[mayaType] = apiType
-#            if not api.ApiTypesToMayaTypes().has_key(apiType) :
-#                api.ApiTypesToMayaTypes()[apiType] = { mayaType : None } # originally: dict( ((mayaType, None),) ) 
-#            else :
-#                api.ApiTypesToMayaTypes()[apiType][mayaType] = None
-#            if not ApiTypesToMayaTypes().has_key(apiType) :
-#                ApiTypesToMayaTypes()[apiType] = { PyNodeType : None } 
-#            else :
-#                ApiTypesToMayaTypes()[apiType][PyNodeType] = None
-#            api.ApiTypesToApiEnums()[apiType] = apiEnum
-#            api.ApiEnumsToApiTypes()[apiEnum] = apiType
-
-        else:
-            print "could not find apiType from mayaType '%s'" % mayaType
-
+        api.addMayaType( mayaType, apiEnum=apiEnum, PyNodeType=PyNodeType )
+        
+def removePyNode( module, mayaType ):
+    pyNodeTypeName = str( util.capitalize(mayaType) )
+    PyNodeType = PyNodeNameToPyNode().pop( pyNodeTypeName, None )
+    PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
+    module.__dict__.pop(mayaType,None)
+    api.removeMayaType( mayaType )
+    
 pluginData = {}
     
 def pluginLoadedCallback( module ):
-    def getInheritence( mayaType ):
-        try:
-            res = cmds.createNode( mayaType )
-            parent = cmds.nodeType( res, inherited=1)
-            cmds.delete(res)
-            return parent
-        except: pass
                 
     def pluginLoadedCB(pluginName):
         print "Plugin loaded", pluginName
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
         pluginData[pluginName] = {}
         
+        # Commands
         if commands:
             pluginData[pluginName]['commands'] = commands
             print "adding new commands:", commands
@@ -3347,7 +3333,8 @@ def pluginLoadedCallback( module ):
                         print "failed to create function"
                 except Exception, msg:
                     print "exception", msg
-                    
+        
+        # Nodes          
         mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
         apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
         if mayaTypes and apiEnums:
@@ -3355,16 +3342,16 @@ def pluginLoadedCallback( module ):
             print "adding new nodes:", mayaTypes
             
             for mayaType, apiEnum in zip( mayaTypes, apiEnums ):
-                inheritence = getInheritence( mayaType )
+                inheritence = _factories.getInheritance( mayaType )
                 
                 #print "adding new node:", mayaType, apiEnum, inheritence
                 # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                 parent = 'dependNode'
                 for node in inheritence:
                     if node == mayaType:
-                        createPyNode( module, node, parent )
+                        addPyNode( module, node, parent )
                     else:
-                        createPyNode( module, node, parent, apiEnum )
+                        addPyNode( module, node, parent, apiEnum )
                     parent = node
                     
     return pluginLoadedCB
@@ -3376,6 +3363,7 @@ def pluginUnloadedCallback( module ):
             data = pluginData.pop(pluginName)
         except KeyError: pass
         else:
+            # Commands
             commands = data.pop('commands', [])
             print "removing commands:", commands
             for command in commands:
@@ -3383,8 +3371,13 @@ def pluginUnloadedCallback( module ):
                 try:
                     module.__dict__.pop(command)
                 except KeyError:
-                    print "Failed to remove %s from module %s" % (command, module.__name__)         
-        
+                    print "Failed to remove %s from module %s" % (command, module.__name__) 
+                            
+            # Commands
+            nodes = data.pop('dependNodes', [])
+            print "removing nodes:", nodes
+            for node in nodes:
+                removePyNode( module, node )
     return pluginUnloadedCB
 
 global pluginLoadedCB
@@ -3396,20 +3389,28 @@ def installCallbacks(module):
     
     global pluginLoadedCB
     if pluginLoadedCB is None:
-        print "adding plugin load callback"
+        print "adding pluginLoaded callback"
         pluginLoadedCB = pluginLoadedCallback(module)
         cmds.loadPlugin( addCallback=pluginLoadedCB )
+        
+        # add commands and nodes for plugins loaded prior to importing pymel
+        preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
+        if preLoadedPlugins:
+            print "Updating pymel with pre-loaded plugins:", preLoadedPlugins
+            for plugin in preLoadedPlugins:
+                pluginLoadedCB( plugin )
     else:
-        print "plugin load callback already exists"
+        print "pluginLoaded callback already exists"
     
     global pluginUnloadedCB
     if pluginUnloadedCB is None:
-        print "adding plugin unload callback"
+        print "adding pluginUnloaded callback"
         pluginUnloadedCB = pluginUnloadedCallback(module)
+        #unloadPlugin has a bug which prevents it from using python objects, so we use our mel wrapper instead
         unloadCBStr = util.melToPythonWrapper( pluginUnloadedCB, procName='pluginUnloadedProc' )
         cmds.unloadPlugin( addCallback=unloadCBStr )
     else:
-        print "plugin unload callback already exists"
+        print "pluginUnloaded callback already exists"
         
     # the unloadPlugin
     #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
@@ -3433,7 +3434,7 @@ def _createPyNodes():
             print "could not find parent node", mayaType
             continue
         
-        createPyNode( _thisModule, mayaType, parentMayaType )
+        addPyNode( _thisModule, mayaType, parentMayaType )
 
         #    print "No API type exists for maya type '%s'" % MayaType
         #else:

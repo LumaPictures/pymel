@@ -945,7 +945,22 @@ def NodeHierarchy() :
 def getUncachedCmds():
     return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
         
-        
+def getInheritance( mayaType ):
+    """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
+    This method relies on creating the node to use with cmds.nodeType -- i would prefer a cleaner solution."""
+    parent = None
+    try:
+        state = cmds.undoInfo( q=1, state=1)
+        cmds.undoInfo( state=0)
+        res = cmds.createNode( mayaType )
+        parent = cmds.nodeType( res, inherited=1)
+        cmds.delete(res)
+        cmds.undoInfo( state=state)
+        return parent
+    except:
+        # there's a chance it failed on delete
+        return parent
+   
 #-----------------------
 # Function Factory
 #-----------------------

@@ -188,36 +188,68 @@ def mayaTypeToApiType (mayaType) :
         return apiType                      
 
 
-def addToMayaTypes(mayaType, apiEnum, PyNodeType ) :
-    """ Add a type to the MayaTypes lists """
+def addMayaType(mayaType, apiType=None, apiEnum=None, PyNodeType=None ) :
+    """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for. """
 
-    MayaTypesToApiEnums()[mayaType] = apiEnum
-    ApiEnumsToMayaTypes()[apiEnum] = mayaType
+    if apiEnum:         
+        MayaTypesToApiEnums()[mayaType] = apiEnum
+        if not ApiEnumsToMayaTypes().has_key(apiEnum) :
+            ApiEnumsToMayaTypes()[apiEnum] = { mayaType : None }
+        else:
+            ApiEnumsToMayaTypes()[apiEnum][mayaType] = None 
     
-
-    # this will happen for initial building and when a pluging is loaded that registers new types
-    apiType = mayaTypeToApiType(mayaType)
+    if apiType is None:
+        apiType = mayaTypeToApiType(mayaType)
+        
     if apiType is not 'kInvalid' :
+        
+        defType = ReservedMayaTypes().has_key(mayaType)
+        
         MayaTypesToApiTypes()[mayaType] = apiType
         if not ApiTypesToMayaTypes().has_key(apiType) :
-            ApiTypesToMayaTypes()[apiType] = { mayaType : None } # originally: dict( ((mayaType, None),) ) 
+            ApiTypesToMayaTypes()[apiType] = { mayaType : defType }
         else :
-            ApiTypesToMayaTypes()[apiType][mayaType] = None
+            ApiTypesToMayaTypes()[apiType][mayaType] = defType
 
-        if not ApiTypesToMayaTypes().has_key(apiType) :
-            ApiTypesToMayaTypes()[apiType] = { PyNodeType : None } 
-        else :
-            ApiTypesToMayaTypes()[apiType][PyNodeType] = None
-            
-        ApiTypesToApiEnums()[apiType] = apiEnum
-        ApiEnumsToApiTypes()[apiEnum] = apiType
-
-
+        if PyNodeType:
+            PyNodesToApiTypes()[PyNodeType] = apiType
+            if not ApiTypesToPyNodes().has_key(apiType) :
+                ApiTypesToPyNodes()[apiType] = { PyNodeType : defType } 
+            else :
+                ApiTypesToPyNodes()[apiType][PyNodeType] = defType
+        
+        if apiEnum:   
+            ApiTypesToApiEnums()[apiType] = apiEnum
+            ApiEnumsToApiTypes()[apiEnum] = apiType
+        
+def removeMayaType( mayaType ):
+    try:
+        apiEnum = MayaTypesToApiEnums().pop( mayaType )
+    except KeyError: pass
+    else:
+        enums = ApiEnumsToMayaTypes()[apiEnum]
+        enums.pop( mayaType, None )
+        if not enums:
+           ApiEnumsToMayaTypes().pop(apiEnum)
+           ApiEnumsToApiTypes().pop(apiEnum)
+    try:
+        apiType = MayaTypesToApiTypes().pop( mayaType, None )
+    except KeyError: pass
+    else:
+        types = ApiTypesToMayaTypes()[apiType]
+        types.pop( mayaType, None )
+        if not types:
+           ApiTypesToMayaTypes().pop(apiType)
+           ApiTypesToApiEnums().pop(apiType)
+    
+    
+    
 # Initialises/updates MayaTypes for a faster later access
 def updateMayaTypesList() :
     """Updates the cached MayaTypes lists """
     start = time.time()
     # use dict of empty keys just for faster random access
+    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
     typeList = dict( ReservedMayaTypes().items() + [(k, None) for k in _ls(nodeTypes=True)] )
     # remove types that no longuer exist
     for k in MayaTypesToApiTypes().keys() :
@@ -239,15 +271,30 @@ def updateMayaTypesList() :
             # we mark one as "default" if it's a member of the reserved type by associating it with a True value in dict
             defType = ReservedMayaTypes().has_key(k)
             if not ApiTypesToMayaTypes().has_key(api) :
-                ApiTypesToMayaTypes()[api] = dict( ((k, defType),) )
+                ApiTypesToMayaTypes()[api] = { k : defType } #originally: dict( ((k, defType),) )
             else :
-                ApiTypesToMayaTypes()[api][k] = defType   
+                ApiTypesToMayaTypes()[api][k] = defType
     elapsed = time.time() - start
     print "Updated Maya types list in %.2f sec" % elapsed
 
             
 # initial update  
-updateMayaTypesList()
+#updateMayaTypesList()
+
+# Initialises MayaTypes for a faster later access
+def buildMayaTypesList() :
+    """Updates the cached MayaTypes lists """
+    start = time.time()
+    # use dict of empty keys just for faster random access
+    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
+    # add new types
+    for mayaType, apiType in ReservedMayaTypes().items() :
+         if not MayaTypesToApiTypes().has_key(mayaType) :
+             addMayaType( mayaType, apiType=apiType )
+    elapsed = time.time() - start
+    print "Updated Maya types list in %.2f sec" % elapsed
+
+buildMayaTypesList()
 
 #: lookup tables for a direct conversion between Maya type to their MFn::Types enum
 class MayaTypesToApiEnums(Singleton, dict) :
