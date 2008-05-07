@@ -1002,18 +1002,20 @@ def _addCmdDocs(inObj, newObj, cmdInfo ):
             except KeyError: pass
             
             #args
-            typ = docs['args']
-            if isinstance(typ, list):
-                try:
-                    typ = [ x.__name__ for x in typ ]
-                except:
-                    typ = [ str(x) for x in typ ]
-                typ = ', '.join(typ)
-            else:
-                try:
-                    typ = typ.__name__
-                except: pass
-            docstring += '        - datatype: *%s*\n' % ( typ )
+            try:
+                typ = docs['args']
+                if isinstance(typ, list):
+                    try:
+                        typ = [ x.__name__ for x in typ ]
+                    except:
+                        typ = [ str(x) for x in typ ]
+                    typ = ', '.join(typ)
+                else:
+                    try:
+                        typ = typ.__name__
+                    except: pass
+                docstring += '        - datatype: *%s*\n' % ( typ )
+            except KeyError: pass
         
         """
         docstring += ':Keywords:\n'
