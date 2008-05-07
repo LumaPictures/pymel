@@ -149,12 +149,10 @@ class MetaMayaTypeWrapper(type) :
             # build some constants on the class            
             constant = {}
             # constants in class definition will be converted from api class to created class
-            print "class dict so far", newcls.__dict__
             for name, attr in newcls.__dict__.iteritems() :
                 # to add the wrapped api class constants as attributes on the wrapping class,
                 # convert them to own class         
                 if isinstance(attr, apicls) :
-                    print "class constant found: %s" % name
                     if name not in constant :
                         constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
             # we'll need the api clas dict to automate some of the wrapping
@@ -165,7 +163,6 @@ class MetaMayaTypeWrapper(type) :
                 # to add the wrapped api class constants as attributes on the wrapping class,
                 # convert them to own class         
                 if isinstance(attr, apicls) :
-                    print "api constant found: %s" % name
                     if name not in constant :
                         constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
             # update the constant dict with herited constants
@@ -174,12 +171,8 @@ class MetaMayaTypeWrapper(type) :
                 if isinstance(cls, MetaMayaTypeWrapper) :
                     for name, attr in cls.__dict__.iteritems() :
                         if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
-                            print "herited constant found: %s" % name
                             if not name in constant :
                                 constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
-            print "api class", apicls
-            print "apiDict", apiDict
-            print "constant", constant
             
             # build the protected list to make some class ifo and the constants read only class attributes
             protected = tuple(['apicls', 'shape', 'cnames', 'size', 'ndim', '_protected'] + constant.keys())
@@ -1194,7 +1187,6 @@ class MMatrix(Matrix):
             c = slice(None, None, None)
         else :
             r,c = rc
-        print r,c
         # bounds check
         if util.isScalar(r) and util.isScalar(c) :
             # single element
@@ -1226,7 +1218,6 @@ class MMatrix(Matrix):
             c = slice(None, None, None)
         else :
             r,c = rc
-        print r,c
         # bounds check
         if util.isScalar(r) and util.isScalar(c) :
             # set a single element
