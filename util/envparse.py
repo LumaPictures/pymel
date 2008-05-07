@@ -1,5 +1,6 @@
 import sys, os
-import external.ply.lex as lex
+#import external.ply.lex as lex
+from external import lex
 from exceptions import *
 
 # lexer and parser for the Maya.env file
