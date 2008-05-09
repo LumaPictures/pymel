@@ -466,13 +466,14 @@ def p_declaration_statement(t):
 		isGlobal = True		
 	else:
 		typ = typ[0]
-			
-	for declaration in t[2]:
+	
+	
+	# each declaration is a two-element tuple: ( variable, value ) 		
+	for var, val in t[2]:
 		
 		# default initialization
-		if len(declaration)==1:
+		if val is None:
 			init = None
-			var = declaration[0]
 
 			# array
 			if '[]' in var:
@@ -512,33 +513,40 @@ def p_declaration_statement(t):
 		# initialize to value	
 		else:
 			try: 
-				if declaration[1].tokenize:
-					buf = declaration[1].__dict__.pop( 'tokenize' )
-					t[0] += declaration[1]
-					t[0] += '\n' + declaration[0] + " = len(%s)\n" % buf
+				if val.tokenize:
+					buf = val.__dict__.pop( 'tokenize' )
+					t[0] += val
+					t[0] += '\n' + var + " = len(%s)\n" % buf
 			except:					
-				for i,elem in enumerate(declaration):
+				#for i,elem in enumerate(declaration):
+				#	declaration[i] = elem.strip()
+				#	if declaration[i].endswith('[]'):
+				#		declaration[i] = declaration[i][:-2]
+				var = var.strip().strip('[]')
+				val = val.strip()
+				if val.endswith('[]') and val != '[]':
+					val.strip('[]')	
 					
-					declaration[i] = elem.strip()
-					if declaration[i].endswith('[]'):
-						declaration[i] = declaration[i][:-2]
-					
-				t.lexer.type_map[declaration[0]] = typ
+				t.lexer.type_map[var] = typ
 				
 				if isGlobal:
-							
-					#print "global var", buf[:-1]
-					
-					for global_var in declaration[:-1]:
-						#print "set mel global var", global_var
-						t.lexer.global_vars.add(global_var)
+
+					t.lexer.global_vars.add(var)
+					t[0] += 'global %s\n' % var 
+					t[0] += '%s=%s\n' % (var, val)
+					if includeGlobalVar( var):
+						t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, var, var)
 						
-						t[0] += 'global %s\n' % global_var 
-						t[0] += '%s=%s\n' % (global_var, declaration[-1])
-						if includeGlobalVar( global_var):
-							t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, global_var, global_var)
+#					for global_var in declaration[:-1]:
+#						#print "set mel global var", global_var
+#						t.lexer.global_vars.add(global_var)
+#						
+#						t[0] += 'global %s\n' % global_var 
+#						t[0] += '%s=%s\n' % (global_var, declaration[-1])
+#						if includeGlobalVar( global_var):
+#							t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, global_var, global_var)
 				else:
-					t[0] += ' = '.join( declaration ) + '\n'
+					t[0] += var + '=' + val + '\n'
 			
 			
 	addComments( t, 'declaration_statement' )
@@ -591,10 +599,10 @@ def p_init_declarator(t):
 	#t[0] = assemble(t, 'p_init_declarator', ' ')
 	
 	if len(t) > 2:
-		t[0] = [t[1], t[3]]
+		t[0] = (t[1], t[3])
 		
 	else:
-		t[0] = [t[1]]
+		t[0] = (t[1], None )
 	
 
 	
@@ -1651,6 +1659,12 @@ def getAllCommandFlags():
 			commands[func] = flags
 	return commands
 
+def getModuleBasename( fullpath ):
+	name = os.path.splitext( os.path.basename(fullpath) )[0]
+	name = name.replace( '.', '_')
+	name = name.replace( '-', '_')
+	return name
+
 def _proc_to_module( t, procedure ):
 	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
 	
@@ -1671,12 +1685,15 @@ def _proc_to_module( t, procedure ):
 	#print buf
 	if buf[0] == 'Mel procedure found in':
 		fullpath = buf[1]
-		name = os.path.splitext( os.path.basename(fullpath) )[0]
+		name = getModuleBasename(fullpath)
 		#print procedure, name
+		
+		# the mel file in which this proc is defined is being converted with this batch
 		if fullpath in currentFiles:
 			proc_module[procedure] = name
 			return name
-				
+		
+		# look for a python file in sys.path with the converted name	
 		for f in sys.path:
 			f = f + os.sep + name  + '.py'
 			if os.path.isfile(f):

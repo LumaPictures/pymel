@@ -208,6 +208,7 @@ quickly as i can.
 from melparse import *
 import pymel.core.pmtypes.path as path
 from pymel.util.external.ply.lex import LexError
+import pymel.util as util
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a
 library of helper mel scripts to make your life a bit easier. you will probably find that python has a built-in equivalent for many of
@@ -293,7 +294,7 @@ def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 		except:
 			pass
 	data = melfile.bytes()
-	print "converting mel script", melfile
+	print "Converting mel script", melfile
 	converted = mel2pyStr( data, melfile.namebase, pymelNamespace=pymelNamespace, verbosity=verbosity )
 	header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
 	
@@ -302,8 +303,8 @@ def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	if outputDir is None:
 		outputDir = melfile.parent
 
-	pyfile = path.path(outputDir + os.sep + melfile.namebase + '.py')	
-	print "writing converted python script: %s" % pyfile
+	pyfile = path.path(outputDir + os.sep + getModuleBasename(melfile) + '.py')	
+	print "Writing converted python script: %s" % pyfile
 	pyfile.write_bytes(converted)
 	
 
@@ -317,7 +318,26 @@ def _fileInlist( file, fileList ):
 	return False
 
 def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , test=False):
-	"""batch convert an entire directory"""
+	"""batch convert an entire directory
+	
+	processDir
+		May be a single directory or a list of directories.
+	
+	outputDir
+		Directory where resulting python files will be written to
+	
+	verbosity
+		Set to True for a *lot* of feedback
+	
+	test
+		Attempt to import the translated modules to test for errors
+	"""
+	
+	if util.isIterable( processDir ):
+		for dir in processDir:
+			mel2pyBatch( dir, outputDir, pymelNamespace, verbosity, test )
+		return
+	
 	processDir = path.path(processDir)
 	
 	global currentFiles
@@ -347,10 +367,12 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 			succCnt += 1
 		except (ValueError, IndexError, TypeError, LexError), msg:
 			print 'failed:', msg
-		
-		if test:
+
+	if test:
+		for f in currentFiles:
+			print "Testing", f
 			try:
-				__import__(f.namebase)
+				__import__( getModuleBasename(f) )
 			except (SyntaxError, IndentationError), msg:
 				print 'A syntax error exists in this file that will need to be manually fixed: %s' % msg
 			except RuntimeError, msg:
@@ -365,7 +387,7 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	print "%d total processed for conversion" % len(currentFiles)
 	print "%d files succeeded" % succCnt
 	print "%d files failed" % (len(currentFiles)-succCnt)
-	if test:
+	if test:		
 		print "%d files imported without error" % (importCnt)
 	
 	succCnt = 0
