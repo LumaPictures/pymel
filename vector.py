@@ -500,9 +500,9 @@ def smoothstep(mn, mx, x, normalize=True):
     if 'normalize'==False then the value is remapped back to the original range
     """
     if x<=mn:
-        return mn
+        return (not normalize and mn) or 0
     if x>=mx:
-        return mx
+        return (not normalize and mx) or 1
     return smoothmap(mn, mx, x, normalize)
 
 def linmap(mn, mx, x):
