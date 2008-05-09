@@ -144,7 +144,7 @@ class CommandDocParser(HTMLParser):
     def addFlagData(self, data):
         # Shortname
         if self.iData == 0:
-            self.flags[self.currFlag]['shortname'] = data
+            self.flags[self.currFlag]['shortname'] = data.lstrip('-')
             
         # Arguments
         elif self.iData == 1:
@@ -187,7 +187,7 @@ class CommandDocParser(HTMLParser):
             self.flags[self.currFlag]['docstring'] += data
         self.iData += 1
         
-    def endFlag(self, newFlag):
+    def endFlag(self):
         # cleanup last flag
         #data = self.flags[self.currFlag]['docstring']
         
@@ -210,9 +210,6 @@ class CommandDocParser(HTMLParser):
         except KeyError, msg:
             pass
             #print self.currFlag, msg
-             
-        self.currFlag = newFlag      
-        self.iData = 0
         
     def handle_starttag(self, tag, attrs):
         #print "begin: %s tag: %s" % (tag, attrs)
@@ -225,7 +222,11 @@ class CommandDocParser(HTMLParser):
                     #print "start examples"
                     self.active = 'examples'
         elif tag == 'a' and attrs[0][0] == 'name':
-            self.endFlag(attrs[0][1][4:])
+            self.endFlag()
+            newFlag = attrs[0][1][4:]
+            newFlag = newFlag.lstrip('-')
+            self.currFlag = newFlag      
+            self.iData = 0
             #print "NEW FLAG", attrs
             #self.currFlag = attrs[0][1][4:]
             
@@ -283,7 +284,7 @@ class CommandDocParser(HTMLParser):
             self.example += data
             #self.active = False
             
-def _mayaDocsLocation( version=None ):
+def mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     if version == None :
         version = util.getMayaVersion(extension=False)
@@ -299,7 +300,7 @@ def _mayaDocsLocation( version=None ):
 #    """ Path to the Maya docs, cached at pymel start """
     
 # TODO : cache doc location or it's evaluated for each getCmdInfo !    
-# MayaDocsLoc(_mayaDocsLocation()) 
+# MayaDocsLoc(mayaDocsLocation()) 
 
 class CommandInfo(object):
     def __init__(self, flags={}, description='', example='', type='other'):
@@ -333,50 +334,56 @@ def getCmdInfoBasic( command ):
     shortFlags = {}
     try:     
         lines = cmds.help( command ).split('\n')
+    except RuntimeError:
+        pass
+    else:
         synopsis = lines.pop(0)
         # certain commands on certain platforms have an empty first line
         if not synopsis:
             synopsis = lines.pop(0)
         #print synopsis
-        lines.pop(0) # 'Flags'
-        #print lines
+        if lines:
+            lines.pop(0) # 'Flags'
+            #print lines
+            
+            for line in lines:
+                line = line.replace( '(Query Arg Mandatory)', '' )
+                line = line.replace( '(Query Arg Optional)', '' )
+                tokens = line.split()
+                try:
+                    tokens.remove('(multi-use)')
+                except:
+                    pass
+                #print tokens
+                if len(tokens) > 1:
+                    
+                    args = [ typemap.get(x.lower(), util.uncapitalize(x) ) for x in tokens[2:] ]
+                    numArgs = len(args)
+                    
+                    # lags with no args in mel require a boolean val in python
+                    if numArgs == 0:
+                        args = bool
+                        # numArgs will stay at 0, which is the number of mel arguments.  
+                        # this flag should be renamed to numMelArgs
+                        #numArgs = 1
+                    elif numArgs == 1:
+                        args = args[0]
+                            
+                    longname = str(tokens[1][1:])
+                    shortname = str(tokens[0][1:])
+                    
+                    #sometimes the longname is empty, so we'll use the shortname for both
+                    if longname == '':
+                        longname = shortname
+                    flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
+                    shortFlags[shortname] = flags[longname]
         
-        for line in lines:
-            line = line.replace( '(Query Arg Mandatory)', '' )
-            line = line.replace( '(Query Arg Optional)', '' )
-            tokens = line.split()
-            try:
-                tokens.remove('(multi-use)')
-            except:
-                pass
-            #print tokens
-            if len(tokens) > 1:
-                
-                args = [ typemap.get(x.lower(), util.uncapitalize(x) ) for x in tokens[2:] ]
-                numArgs = len(args)
-                
-                # lags with no args in mel require a boolean val in python
-                if numArgs == 0:
-                    args = bool
-                    numArgs = 1
-                elif numArgs == 1:
-                    args = args[0]
-                        
-                longname = str(tokens[1][1:])
-                shortname = str(tokens[0][1:])
-                
-                #sometimes the longname is empty, so we'll use the shortname for both
-                if longname == '':
-                    longname = shortname
-                flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, docstring : '' }
-                shortFlags[shortname] = flags[longname]
-        
-    except:
-        pass
+    #except:
+    #    pass
         #print "could not retrieve command info for", command
     return { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
   
-def getCmdInfo( command, version='8.5' ):
+def getCmdInfo( command, version='8.5', python=True ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with 
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
@@ -384,23 +391,29 @@ def getCmdInfo( command, version='8.5' ):
     basicInfo = getCmdInfoBasic(command)
     
     try:
-        docloc = _mayaDocsLocation(version)
-        f = open( os.path.join( docloc , 'CommandsPython/%s.html' % (command) ) )    
+        docloc = mayaDocsLocation(version)
+        if python:
+            docloc = os.path.join( docloc , 'CommandsPython/%s.html' % (command) )
+        else:
+            docloc = os.path.join( docloc , 'Commands/%s.html' % (command) )
+            
+        f = open( docloc )    
         parser = CommandDocParser(command)
         parser.feed( f.read() )
         f.close()    
 
-        data = parser.example
-        data.rstrip()
-        reg = re.compile(r'\bcmds\.')
-        lines = data.split('\n')
-        for i, line in enumerate(lines):
-            line = reg.sub( 'pm.', line )
-            line = line.replace( 'import maya.cmds as cmds', 'import pymel as pm' )
-            line = '    >>> ' + line
-            lines[i] = line
-            
-        data = '\n'.join( lines )
+        example = parser.example
+        example = example.rstrip()
+        if python:
+            reg = re.compile(r'\bcmds\.')
+            lines = example.split('\n')
+            for i, line in enumerate(lines):
+                line = reg.sub( 'pm.', line )
+                line = line.replace( 'import maya.cmds as cmds', 'import pymel as pm' )
+                line = '    >>> ' + line
+                lines[i] = line
+                
+            example = '\n'.join( lines )
         
         # start with basic info, gathered using mel help command, then update with info parsed from docs
         # we copy because we need access to the original basic info below
@@ -449,7 +462,7 @@ def getCmdInfo( command, version='8.5' ):
            
         #except KeyError:pass
           
-        return {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': data }
+        return {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': example }
     
     except IOError:
         #print "could not find docs for %s" % command
@@ -541,7 +554,7 @@ def printTree( tree, depth=0 ):
             print '> '*depth, branch
             
 def _getNodeHierarchy( version='8.5' ):
-    docloc = _mayaDocsLocation(version)
+    docloc = mayaDocsLocation(version)
     f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
     parser = NodeHierarchyDocParser()
     parser.feed( f.read() )
@@ -577,7 +590,7 @@ def _getUICommands():
     return cmds
 
 def getModuleCommandList( category, version='8.5' ):
-    docloc = _mayaDocsLocation(version)
+    docloc = mayaDocsLocation(version)
     f = open( os.path.join( docloc , 'Commands/cat_' + category + '.html' ) )
     parser = CommandModuleDocParser()
     parser.feed( f.read() )
@@ -1002,20 +1015,18 @@ def _addCmdDocs(inObj, newObj, cmdInfo ):
             except KeyError: pass
             
             #args
-            try:
-                typ = docs['args']
-                if isinstance(typ, list):
-                    try:
-                        typ = [ x.__name__ for x in typ ]
-                    except:
-                        typ = [ str(x) for x in typ ]
-                    typ = ', '.join(typ)
-                else:
-                    try:
-                        typ = typ.__name__
-                    except: pass
-                docstring += '        - datatype: *%s*\n' % ( typ )
-            except KeyError: pass
+            typ = docs['args']
+            if isinstance(typ, list):
+                try:
+                    typ = [ x.__name__ for x in typ ]
+                except:
+                    typ = [ str(x) for x in typ ]
+                typ = ', '.join(typ)
+            else:
+                try:
+                    typ = typ.__name__
+                except: pass
+            docstring += '        - datatype: *%s*\n' % ( typ )
         
         """
         docstring += ':Keywords:\n'
@@ -1446,40 +1457,45 @@ class metaNode(type) :
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
                     continue
                 
-                modes = flagInfo['modes']
-
-                # query command
-                if 'query' in modes:
-                    methodName = 'get' + util.capitalize(flag)
-                    if methodName not in classdict:
-                        if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                            returnFunc = None
-                            
-                            if flagInfo.get( 'resultNeedsCasting', False):
-                                returnFunc = flagInfo['args']
-                                if flagInfo.get( 'resultNeedsUnpacking', False):
-                                    returnFunc = lambda x: returnFunc(x[0])
-                                    
-                            elif flagInfo.get( 'resultNeedsUnpacking', False):
-                                returnFunc = lambda x: returnFunc(x[0])
-                            
-                            classdict[methodName] = makeQueryFlagCmd( func, methodName, 
-                                flag, docstring=flagInfo['docstring'], returnFunc=returnFunc )
-                        #else: print "%s: skipping %s" % ( classname, methodName )
                 
-                # edit command: 
-                if 'edit' in modes or ( infoCmd and 'create' in modes ):
-                    # if there is a corresponding query we use the 'set' prefix. 
+                if flagInfo.has_key('modes'):
+                    # flags which are not in maya docs will have not have a modes list unless they have passed through testNodeCmds
+                    #print classname, nodeType, flag
+                    #continue
+                    modes = flagInfo['modes']
+    
+                    # query command
                     if 'query' in modes:
-                        methodName = 'set' + util.capitalize(flag)
-                    #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-                    else:
-                        methodName = flag
-                        
-                    if methodName not in classdict:
-                        if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                            classdict[methodName] = makeEditFlagCmd( func, methodName, 
-                                 flag, docstring=flagInfo['docstring'] )
+                        methodName = 'get' + util.capitalize(flag)
+                        if methodName not in classdict:
+                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                                returnFunc = None
+                                
+                                if flagInfo.get( 'resultNeedsCasting', False):
+                                    returnFunc = flagInfo['args']
+                                    if flagInfo.get( 'resultNeedsUnpacking', False):
+                                        returnFunc = lambda x: returnFunc(x[0])
+                                        
+                                elif flagInfo.get( 'resultNeedsUnpacking', False):
+                                    returnFunc = lambda x: returnFunc(x[0])
+                                
+                                classdict[methodName] = makeQueryFlagCmd( func, methodName, 
+                                    flag, docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                            #else: print "%s: skipping %s" % ( classname, methodName )
+                    
+                    # edit command: 
+                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
+                        # if there is a corresponding query we use the 'set' prefix. 
+                        if 'query' in modes:
+                            methodName = 'set' + util.capitalize(flag)
+                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+                        else:
+                            methodName = flag
+                            
+                        if methodName not in classdict:
+                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                                classdict[methodName] = makeEditFlagCmd( func, methodName, 
+                                     flag, docstring=flagInfo['docstring'] )
                     
 
             
