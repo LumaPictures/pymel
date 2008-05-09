@@ -16,18 +16,31 @@ import operator, itertools, copy
 import arguments as util
 from mathutils import difmap, clamp
 
-def _compOrArray(value) :
+def _toCompOrArray(value) :
     if hasattr(value, '__iter__') :
-        # convert values iterables to Array
-        value = Array(value)
-        shape = value.shape
+        if not isinstance(value, Array) :
+            value = Array(value)
     elif util.isNumeric(value) :
         # a single numeric value
-        shape = () 
+        pass 
     else :
         raise TypeError, "invalid value type %s for Array" % (util.clsname(value))
     
-    return value, shape
+    return value
+
+def _shapeInfo(value) :
+    if isinstance(value, Array) :
+        shape = value.shape
+        dim = value.ndim
+        size = value.size        
+    elif util.isNumeric(value) :
+        shape = ()
+        dim = 0
+        size = 1
+    else:
+        raise TypeError, "can only query shape information on Array or Array component (numeric), not %s" % (util.clsname(value))
+    
+    return shape, dim, size
 
 # iterator classes on a specific Array dimension, supporting __getitem__
 # in a Numpy like way
@@ -38,7 +51,7 @@ class ArrayIter(object):
         # print "type", type(data), "on index", onindex
         if isinstance(data, Array) :
             self.base = data
-            if Array :
+            if self.base :
                 base_ndim = self.base.ndim
                 if sub_dim is None :
                     sub_dim = base_ndim - 1
@@ -69,6 +82,8 @@ class ArrayIter(object):
         
     def __length_hint__(self) :
         return self.size
+    def __len__(self) :
+        return self.size    
     def __iter__(self) :
         return self 
     
@@ -153,16 +168,8 @@ class ArrayIter(object):
         coords = self.toArrayCoords(index)
 
         print "expected item shape: %s" % list(self.itemshape)
-        value, shape = _compOrArray(value)
-        if hasattr(value, '__iter__') :
-            # convert values iterables to Array
-            value = Array(value)
-            valueshape = value.shape
-        elif util.isNumeric(value) :
-            # a single numeric value
-            valueshape = () 
-        else :
-            raise TypeError, "invalid value type %s for %s" % (util.clsname(value), util.clsname(self.base))
+        value = _toCompOrArray(value)
+        valueshape, valuedim, valuesize = _shapeInfo(value)
                      
         if type(coords) is list :
             if valueshape == self.itemshape :
@@ -223,6 +230,7 @@ class Array(object):
     def _cacheshape(self):
         shape = []
         sub = self.data
+        print "caching shape on data %s" % sub
         while sub is not None :
             try :
                 shape.append(len(sub))
@@ -235,61 +243,142 @@ class Array(object):
     def _getshape(self):
         return self._shape
     def _setshape(self, newshape):
-        newsize = reduce(operator.mul, newshape, 1)
-        if newsize == self.size :
-            pass
-        else :
-            raise ValueError, "Can only change Array shape to a new shape of same size"
+        self = self.reshape(newshape)
+        
+    # shape, ndim, size and data properties
     shape = property(_getshape, _setshape, None, "Shape of the Array (number of dimensions and number of components in each dimension")    
     ndim = property(lambda x : x._ndim, None, None, "Number of dimensions of the Array")
     size = property(lambda x : x._size, None, None, "Total size of the Array (number of individual components)")
     def _getdata(self):
         return self._data
     def _setdata(self, data):
-        if util.isNumeric(data) :
+        if isinstance(data, list) :
             self._data = data
         else :
             self._data = list(data)
+        self._cacheshape() 
     def _deldata(self):
-        del self._data            
+        del self._data[:]
+        self._cacheshape()     
     data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
     
     def isIterable(self):
         return self.ndim > 0
-                                      
-    def __init__(self, *args ):
+    
+    @classmethod
+    def default(cls, shape=()):
+        """ Default Array for a given shape """
+        return cls.fill(shape=shape, value=0)
+        
+    @classmethod
+    def fill(cls, shape=(), value=0):
+        """ fill(value=0, shape=()) :
+            Returns an Array filled with value for the given shape """
+        if shape :
+            if hasattr(value,'__iter__') :
+                value = Array(value)
+                new = cls.default()
+                dim = new.ndim
+                valuedim = value.ndim
+                if dim >= valuedim : 
+                    subIter = new.subarray(new.ndim-value.ndim)
+                    for i in xrange(len(subIter)) :
+                        subIter[i] = value
+                    return new
+                else :
+                    raise ValueError, "value has more dimensions that the specified shape"
+            elif util.isNumeric(value) :
+                for dim in reversed(shape) :
+                    value = [value] * dim
+                return cls(value)
+            else :
+                raise ValueError, "fill value can only be a numeric or Array"
+        else :
+            return cls([])        
+                                                
+    def __init__(self, *args, **kwargs ):
         """ Initialize an Array from one or several nested lists or numeric values """
-
-        self.data = []       
+                    
         if args :
             # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
             if len(args) == 1 :
                 args = args[0]
             if isinstance (args, self.__class__) :
-                self.data = args.data
-            if hasattr(args, '__iter__') :
+                # copy constructor
+                print "copying %s to self" % (args)
+                self.data = copy.copy(args.data)
+            elif hasattr(args, '__iter__') :
+                self._data = []
                 subshapes = []
                 for arg in args :
-                    sub, shape = _compOrArray(arg)
-                    self.data.append(sub)
-                    subshapes.append(shape)
+                    sub = _toCompOrArray(arg)
+                    subshape, subdim, subsize = _shapeInfo(sub)                    
+                    self._data.append(sub)
+                    subshapes.append(subshape)
                 if not reduce(lambda x, y : x and y == subshapes[0], subshapes, True) :
-                    raise ValueError, "all sub-arrays must have same shape"                            
+                    raise ValueError, "all sub-arrays must have same shape"
+                self._cacheshape()                           
             elif util.isNumeric(args) :
                 raise TypeError, "an Array cannot be initialized from a single value, need at least 2 components or an iterable"
             else :
-                raise TypeError, "an Array element can only be another Array or a numeric value"
-
-        self._cacheshape()
+                raise TypeError, "an Array element can only be another Array or an iterable"
+        else :
+            self.data = self.__class__.default().data
+            
+        # can re-shape on creation if a shape keyword is specified
+        shape = kwargs.get('shape', None)
+        if shape is not None :
+            self.shape = shape
                     
     def append(self, value):
-        # value, shape = _compOrArray(value)
-        value, shape = _compOrArray(value)
-        if list(shape) == self.shape[1:] :
-            self.data.append(self, value)
+        value = _toCompOrArray(value)
+        valueshape, valuedim, valuesize = _shapeInfo(value)        
+        if list(valueshape) == self.shape[1:] :
+            self._data.append(self, value)
+            self._cacheshape()
         else :
             raise TypeError, "argument does not have the correct shape to append to Array"       
-        self._cacheshape()
+ 
+    def reshape(self, *args):
+        """ a.reshape(shape)
+            Returns the Array a reshaped according to the shape argument """
+        if len(args) == 1 :
+            args = args[0]
+        if isinstance(args, int) :
+            newshape = [args]
+        else :
+            newshape = list(args)
+            
+        print "set shape to %s" % newshape            
+        size = self.size
+        if newshape :
+            newsize = 1
+            unknown = None
+            for i, dim in enumerate(newshape) :
+                idim = int(dim)
+                if idim == -1 :
+                    if unknown == None :
+                        unknown = i
+                    else :
+                        raise ValueError, "can only specify one unknown dimension"
+                else :
+                    newsize *= idim
+            if unknown is not None :
+                dif = size / newsize
+                newshape[unknown] = dif
+                newsize *= dif
+        else :
+            newsize = 0
+
+        if newsize != self.size :
+            raise ValueError, "total size of new array must be unchanged"
+        
+        new = self.__class__.default(newshape)
+        flatIter = self.flat
+        newIter = new.flat
+        for i, c in enumerate(flatIter) :
+            newIter[i] = c
+        return new
   
     def resize(self, new_shape, refcheck=True, order=False) :
         pass
@@ -299,10 +388,10 @@ class Array(object):
     # hstack and vstack 
     
     def copy(self):
-        pass
+        return copy.copy(self)
     
     def deepcopy(self):
-        pass
+        return copy.deepcopy(self)
     
     # display      
     def __str__(self):
@@ -344,128 +433,116 @@ class Array(object):
             raise TypeError, "len() of unsized object"
         
     @staticmethod
-    def _extract(x, y) :
+    def _extract(x, index) :
         if isinstance(x, Array) :
-            res = x.data[y]
+            res = x.data[index]
         else :
-            res = [Array._extract(a, y) for a in x]
+            res = [Array._extract(a, index) for a in x]
         return res
-  
-    # TODO : Numpy like support for index Arrays ?
+    
     def __getitem__(self, index):
         """ Get value from either a single (first dimension) or multiple index, support for slices"""
-        # print "index %r", index
-        if not hasattr(index, '__iter__') or len(index) == 1 :
-            # single index, means on first dimension
-            return self.data[index]            
+        # TODO : Numpy like support for indices Arrays ?
+        if not hasattr(index, '__iter__') :
+            index = [index]
         else :
-            # multiple index
-            ndim = self.ndim
-            shape = self.shape
-            coords = [slice(None, None, None)]*ndim  
-            # index = list(index)[:ndim]
-            if len(index) > ndim :
-                raise ValueError, "%s coordinates provided for an Array of dimension %s" % (len(index), ndim)                   
-            for i, c in enumerate(index) :
-                if isinstance(c, slice) :
-                    coords[i] = c
-                elif isinstance(c, int) :
-                    # bounds check
-                    if c < 0 :
-                        c = shape[i] - c
-                    if c>=0 and c<shape[i] :
-                        coords[i] = c
-                    else :
-                        raise IndexError, "index %s for dimension %s is out of bounds" % (c, i)
-                else :
-                    raise TypeError, "Arrays indices must be integers" 
-            value, shape = _compOrArray(reduce(lambda x, y: Array._extract(x, y), coords, self))
-            return value
+            index = list(index)     
+        if len(index) > self.ndim :
+            raise valueError, "%s coordinates provided for an Array of dimension %s" % (len(index), self.ndim)   
 
-    def __setitem__(self, rc, value):
-        """ Set value from either a single (first dimension) or multiple index, support for slices"""
-        
-        # convert value to Array if it's not a component
-        if hasattr(value, '__iter__') :
-            # convert values iterables to Array
-            value = Array(value)
-            valueshape = value.shape
-        elif util.isNumeric(value) :
-            # a single numeric value
-            valueshape = () 
+        # coords = [slice(None, None, None)]*dim 
+#        coords = []                  
+#        for i, c in enumerate(index) :
+#            if isinstance(c, slice) :
+#                pass
+#            elif isinstance(c, int) :
+#                # bounds check
+#                if c < 0 :
+#                    c = shape[i] + c
+#                if c>=0 and c<shape[i] :
+#                    pass
+#                else :
+#                    raise IndexError, "index %s for dimension %s is out of bounds" % (c, i)
+#            else :
+#                raise TypeError, "Arrays indices must be integers"
+#            coords.append(c) 
+        value = _toCompOrArray(reduce(lambda x, y: Array._extract(x, y), index, self))
+        return value
+
+    def _inject(self, index, value) :
+        indices = range(self.shape[0])[index[0]]
+        if not hasattr(indices, '__iter__') :
+            indices = [indices]
+        ni = len(indices)
+        shape = self.shape
+        dim = self.ndim
+        if len(index) == 1 : 
+            # last check and assign        
+            values = []
+            valueshape, valuedim, valuesize = _shapeInfo(value)
+            subshape = tuple(shape[1:])
+            subdim = dim-1
+            if valuedim > subdim :
+                # a list of different values to assign, check if it fits 
+                if len(value) == ni and tuple(valueshape[1:]) == subshape :
+                    values = value                  
+            elif valuedim == subdim :
+                # a single component or sub-array used for each assign
+                values = [value]*ni
+            else :
+                # need to expand single value to a valid sub Array and use it for each assign
+                try :
+                    value = Array.fill(subshape, value)
+                    values = [value]*ni
+                except :
+                    pass                                                    
+                
+            if values :           
+                for i in xrange(ni) :
+                    self.data[indices[i]] = values[i]
+            else :
+                raise ValueError, "shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"
         else :
-            raise TypeError, "invalid value type %s for %s" % (util.clsname(value), util.clsname(self))        
-        if not hasattr(index, '__iter__') or len(index) == 1 :
-            # single index, means on first dimension
-            return list.__setitem__(self, index)            
-        else :
-            # multiple index
-            ndim = self.ndim
-            shape = self.shape
-            coords = [slice(None, None, None)]*ndim  
-            # index = list(index)[:ndim]
-            if len(index) > ndim :
-                raise ValueError, "%s coordinates provided for an Array of dimension %s" % (len(index), ndim)                   
-            for i, c in enumerate(index) :
-                if isinstance(c, slice) :
-                    coords[i] = c
-                elif isinstance(c, int) :
-                    # bounds check
-                    if c < 0 :
-                        c = shape[i] - c
-                    if c>=0 and c<shape[i] :
-                        coords[i] = c
+            # in case value is an iterable of values to be assigned to each sub-item
+            values = []
+            valueshape, valuedim, valuesize = _shapeInfo(value)
+            if valuedim :      
+                subexpected = self.__getitem__(index)
+                subshape, subdim, subsize = _shapeInfo(subexpected)
+                if valueshape == subshape :
+                    if ni > 1 :
+                        values = value
                     else :
-                        raise IndexError, "index %s for dimension %s is out of bounds" % (c, i)
+                        values = [value]
+                elif valuedim < subdim :   
+                    values = [value]*ni
                 else :
-                    raise TypeError, "Arrays indices must be integers" 
-            res = reduce(lambda x, y: Array._extract(x, y), coords, self)
-            # if isinstance(res, list) :
-            #   res = Array(res)
-            return res
-        
-        # numpy like m[:,:] format, we set a sub Matrix
-        if util.isScalar(value) :
-            for i in range(self.__class__.shape[0])[r] :
-                self[i,c] = value            
+                    raise ValueError, "shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"           
+            else :
+                # a single component value
+                values = [value]*ni                                
+           
+            nextindex = index[1:]
+            for i in xrange(ni) :
+                self.data[indices[i]]._inject(nextindex, values[i])
+
+
+    def __setitem__(self, index, value):
+        """ Set value from either a single (first dimension) or multiple index, support for slices"""
+
+        if not hasattr(index, '__iter__') :
+            index = [index]
         else :
-            for v, i in enumerate(range(self.__class__.shape[0])[r]) :
-                self[i,c] = value[v]
+            index = list(index)           
+        if len(index) > self.ndim :
+            raise ValueError, "%s coordinates provided for an Array of dimension %s" % (len(index), self.ndim)  
+        value = _toCompOrArray(value)
+                    
+        self._inject(index, value)
 
     def __delitem__(self, rc) :
         """ Delete a sub-Array, only possible for a full axis"""
-        if not hasattr(index, '__iter__') or len(index) == 1 :
-            # single index, means on first dimension
-            return list.__delitem__(self, index)            
-        else :
-            # multiple index
-            ndim = self.ndim
-            shape = self.shape
-            coords = [slice(None, None, None)]*ndim  
-            # index = list(index)[:ndim]
-            if len(index) > ndim :
-                raise ValueError, "%s coordinates provided for an Array of dimension %s" % (len(index), ndim)                   
-            for i, c in enumerate(index) :
-                if isinstance(c, slice) :
-                    if c == slice(None, None, None) :
-                        coords[i] = c
-                    else :
-                        raise ValueError, "can only delete full axis/dimension from an Array"
-                elif isinstance(c, int) :
-                    # bounds check
-                    if c < 0 :
-                        c = shape[i] - c
-                    if c>=0 and c<shape[i] :
-                        coords[i] = c
-                    else :
-                        raise IndexError, "index %s for dimension %s is out of bounds" % (c, i)
-                else :
-                    raise TypeError, "Arrays indices must be integers"
-            # all cords must be full slices except the ones to delete 
-            res = reduce(lambda x, y: Array._extract(x, y), coords, self)
-            # if isinstance(res, list) :
-            #   res = Array(res)
-            return res
+        pass
         
     def __iter__(self) :
         """ Default Array iterator on first dimension """
@@ -823,6 +900,9 @@ class Vector(Array):
             self.__class__(map(lambda x: atan2(x.imag,x.real), self)),
             ]
 
+class MatrixIter(ArrayIter):
+    pass
+
 class Matrix(Array):
     """
     A generic size Matrix class, basically a 2 dimensional Array
@@ -845,11 +925,6 @@ class Matrix(Array):
         
         list.__init__(self, rowColList)
     
-    def __str__(self):
-        res = ''
-        for i in range(0,len(self)):
-             res += ', '.join( map( lambda x: "%.03f" % x, self[i]) ) + '\n'
-        return res
         
     def __add__(self, other):
         try:
@@ -946,13 +1021,17 @@ def _test() :
     print A.size
     print A.data 
     A = Array()
-    print A
-    print repr(A)
     print A.formated()
     print A.shape
     print A.ndim
     print A.size
-    print A.data    
+    print A.data
+    A = Array.default()
+    print A.formated()      
+    A = Array.default((2, 2))
+    print A.formated()
+    A = Array.fill((2, 2), 1) 
+    print A.formated()
     A = Array([[[1,1,1],[4,4,3],[7,8,5]], [[10,10,10],[40,40,30],[70,80,50]]])
     print A
     print A.formated()
@@ -975,12 +1054,31 @@ def _test() :
     print B
     print repr(B)
     print B.formated() 
-    B = Array(B) 
-    print repr(B)
-    print B.formated()
-    B = Array([B]) 
-    print repr(B)
-    print B.formated()       
+    C = Array(B) 
+    print repr(C)
+    print C.formated()
+    print C is B
+    #shallow copy
+    print C.data is B.data
+    print C.data[0] is B.data[0]
+    print C[0] is B[0]
+    C = B.copy()
+    print repr(C)
+    print C.formated()
+    print C is B
+    #shallow copy
+    print C[0] is B[0]    
+    C = B.deepcopy()
+    print repr(C)
+    print C.formated()
+    print C is B
+    #deep copy
+    print C[0] is B[0] 
+    
+           
+    C = Array([C]) 
+    print repr(C)
+    print C.formated()       
     A = Array([[[1,1,1],[4,4,3],[7,8,5]], [[10,10,10],[40,40,30],[70,80,50]]])
     print A
     print repr(A)
@@ -995,7 +1093,7 @@ def _test() :
     #[[1, 1, 1],
     # [4, 4, 3],
     # [7, 8, 5]]
-    list.__setitem__(a, 1, Array([4, 5, 3]))
+    a[1, 1] = 5
     print "a[1, 1] = 5:"
     print a.formated()
     #[[1, 1, 1],
@@ -1018,26 +1116,31 @@ def _test() :
     print "a = A[0, 2]:"
     print a
     # [7, 8, 5]
-    list.__setitem__(a, 1, 9)
+    a[1] = 9
     print "a[1] = 9:"
     print a
     # [7, 9, 5]
     print "A[0, 2]:"
-    print A[0, 2] #.formated()
+    print A[0, 2].formated()
     # [7, 9, 5]
     print "a = A[0, :, 1]:"
     a = A[0, :, 1]
     print a
     # [1 5 9]
-    list.__setitem__(a, 1, 6)
-    print "a[1] = 4:"
+    a[1] = 6
+    print "a[1] = 6:"
     print a
     # [1 6 9]
+    # not changing value because array had to be reconstructed
     print "A[0, :]:"
-    print A[0, :] #.formated()
+    print A[0, :].formated()
     #[[1 1 1]
-    # [4 6 3]
+    # [4 5 3]
     # [7 9 5]]
+    # do it this way 
+    A[0, :, 1] = [1, 6, 9]
+    print "A[0, :, 1] = [1, 6, 9]"
+    print A[0, :].formated()
     print "A[0, :, 1:2]:"
     print A[0, :, 1:2] # .formated()
     #[[1]
@@ -1076,21 +1179,9 @@ def _test() :
     A.flat[7] = 8
     print A
     
+    print "end tests"
     
-    shape = A.shape
-    ndim = A.ndim
-    shapefact = [reduce(operator.mul, shape[i+1:], 1) for i in xrange(ndim)]
-    print "shape: %s" % list(shape)
-    print "sub sizes: %s" % shapefact
-    for x in range(A.shape[0]) :
-        for y in range(A.shape[1]) :
-            for z in range(A.shape[2]) :
-                print "------------------------------------"
-                print "xyz: %s %s %s" % (x, y, z)
-                flat = A.flat.toIterItem (x, y, z)
-                print "flat: %s, %s" % (flat, A.flat[flat])
-                coords = A.flat.toArrayCoords(flat)
-                print "xyz: %s : %s" % (coords, A[coords])
+
     
     # should fail
     # B = Array([[1,1,1],[4,4,3],[8,5]])
