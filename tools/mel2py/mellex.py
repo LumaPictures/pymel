@@ -26,16 +26,15 @@ tokens = reserved + (
 	'ID', 'VAR', 'ICONST', 'FCONST', 'SCONST',
 	#'LOBJECT', 'ROBJECT',
 	
-	# Operators (+,-,*,/,%,|,&,~,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
+	# Operators (+,-,*,/,%,^,<<,>>, ||, &&, !, <, <=, >, >=, ==, !=)
 	'PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'MOD',
-	#'OR', 'AND', 
-	'NOT', 'XOR', 'LSHIFT', 'RSHIFT',
+	'NOT', 'CROSS', 
 	'LOR', 'LAND',
 	'LT', 'LE', 'GT', 'GE', 'EQ', 'NE',
 	
-	# Assignment (=, *=, /=, %=, +=, -=, <<=, >>=, &=, ^=, |=)
+	# Assignment (=, *=, /=, %=, +=, -=, ^=)
 	'EQUALS', 'TIMESEQUAL', 'DIVEQUAL', 'MODEQUAL', 'PLUSEQUAL', 'MINUSEQUAL',
-	'LSHIFTEQUAL','RSHIFTEQUAL', 'ANDEQUAL', 'XOREQUAL', 'OREQUAL',
+	'CROSSEQUAL', 
 
 	# Vector Component
 	'COMPONENT',
@@ -52,7 +51,8 @@ tokens = reserved + (
 	'LBRACE', 'RBRACE',
 	'COMMA', 'SEMI', 'COLON',
 	'CAPTURE',
-
+	'LVEC', 'RVEC',
+	
 	# Comments
 	'COMMENT', 'COMMENT_BLOCK',
 	
@@ -79,9 +79,9 @@ t_MOD			   = r'%'
 #t_OR			   = r'\|'
 #t_AND			   = r'&'
 t_NOT			   = r'!'
-t_XOR			   = r'\^'
-t_LSHIFT		   = r'<<'
-t_RSHIFT		   = r'>>'
+t_CROSS			   = r'\^'
+t_LVEC			   = r'<<'
+t_RVEC		 	   = r'>>'
 t_LOR			   = r'\|\|'
 t_LAND			   = r'&&'
 t_LT			   = r'<'
@@ -99,11 +99,7 @@ t_DIVEQUAL		   = r'/='
 t_MODEQUAL		   = r'%='
 t_PLUSEQUAL		   = r'\+='
 t_MINUSEQUAL	   = r'-='
-t_LSHIFTEQUAL	   = r'<<='
-t_RSHIFTEQUAL	   = r'>>='
-t_ANDEQUAL		   = r'&='
-t_OREQUAL		   = r'\|='
-t_XOREQUAL		   = r'^='
+t_CROSSEQUAL	   = r'^='
 
 # Increment/decrement
 t_PLUSPLUS		   = r'\+\+'
