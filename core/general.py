@@ -144,9 +144,31 @@ class Mel(object):
         
     def eval( self, command ):
         mm.eval( command )    
-        
+    
+    def error( self, msg, showLineNumber=False ):       
+        if showLineNumber:
+            flags = ' -showLineNumber true '
+        else:
+            flags = ''
+        mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
+
+    def warning( self, msg, showLineNumber=False ):       
+        if showLineNumber:
+            flags = ' -showLineNumber true '
+        else:
+            flags = ''
+        mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
+
+    def trace( self, msg, showLineNumber=False ):       
+        if showLineNumber:
+            flags = ' -showLineNumber true '
+        else:
+            flags = ''
+        mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
+                  
     def tokenize(self, *args ):
         raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
+
 mel = Mel()
 
 
@@ -3373,7 +3395,7 @@ def pluginUnloadedCallback( module ):
                 except KeyError:
                     print "Failed to remove %s from module %s" % (command, module.__name__) 
                             
-            # Commands
+            # Nodes
             nodes = data.pop('dependNodes', [])
             print "removing nodes:", nodes
             for node in nodes:
