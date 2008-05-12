@@ -1,6 +1,7 @@
 
 from pymel.util.trees import *
 import pymel.util as util
+import pymel.mayahook as mayahook
 #from general import PyNode
 
 import sys, os, inspect, pickle, re, types, os.path
@@ -287,8 +288,8 @@ class CommandDocParser(HTMLParser):
 def mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     if version == None :
-        version = util.getMayaVersion(extension=False)
-    docLocation = util.getMayaLocation() 
+        version = mayahook.getMayaVersion(extension=False)
+    docLocation = mayahook.getMayaLocation() 
     
     import platform
     if platform.system() == 'Darwin':
@@ -837,7 +838,7 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    ver = util.getMayaVersion(extension=False)
+    ver = mayahook.getMayaVersion(extension=False)
         
     newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
     cmdlist = {}
