@@ -613,7 +613,9 @@ __version__ = '0.7.9'
 
 #check for the presence of an initilized Maya
 import util
-assert util.mayaInit() 
+
+import mayahook
+
 import api
 
 from core import *
