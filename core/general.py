@@ -911,6 +911,36 @@ Modifications:
 #  Objects
 #-----------------------
 
+def nodeType( node, **kwargs ):
+    
+    # still don't know how to do inherited via api
+    if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
+        return cmds.nodeType( unicdoe(node), **kwargs )
+        
+    obj = None
+    objName = None
+
+    if isinstance(arg, DependNode) :
+        obj = arg.object()
+    elif isinstance(arg, Attribute) :
+        obj = arg.plugNode().object()
+    elif isinstance(arg, api.MObject) :
+        # TODO : convert MObject attributes to DependNode
+        if api.isValidMObjectHandle(api.MObjectHandle(arg)) :
+            obj = arg
+        else :
+            obj = None
+    elif isinstance(arg,basestring) :
+        obj = api.toMObject( arg.split('.')[0] )
+    
+    if obj:
+        if kwargs.get( 'apiType', kwargs.get( 'api', False) ):
+            return obj.apiTypeStr()
+        # default
+        try:
+            return api.MFnDependencyNode( obj ).typeName()
+        except RuntimeError: pass
+        
 def group( *args, **kwargs ):
     """
 Modifications
@@ -1089,10 +1119,10 @@ Modifications:
     else:
         return cmds.currentTime(*args, **kwargs)
             
-def getClassifiction( *args ):
+def getClassification( *args ):
     """
 Modifications:
-    - previously returned a list with a single colon-separated string of classificatins. now returns a list of classifications
+    - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
     """
     return cmds.getClassification(*args)[0].split(':')
     
@@ -1156,6 +1186,7 @@ def _getPymelType(arg, comp=None) :
         
     obj = None
     objName = None
+    
     # TODO : handle comp as a MComponent or list of components
     if isinstance(arg, PyNode) :
         obj = arg.object()
@@ -1168,14 +1199,13 @@ def _getPymelType(arg, comp=None) :
         objName = arg
         obj = api.toAPIObject(arg)
                                            
-    pymelType = DependNode                                         
     if obj :
         # the case of an existing node or plug
         if api.isValidMPlug(obj):
             pymelType = Attribute          
         else :
-            objType = api.apiEnumToType( obj.apiType() )
-            pymelType = api.apiTypeToPyNode(objType, DependNode)
+            mayaType = api.MFnDependencyNode( obj ).typeName()
+            pymelType = mayaTypeToPyNode( mayaType, DependNode )
 
     elif objName :
         # non existing node
@@ -1206,7 +1236,7 @@ class PyNode(ProxyUnicode):
             obj = args[0]
             comp = None
             if len(args)>1 :
-                comp = args[1] # what is comp?  component?  why would this be passed as a second argument?
+                comp = args[1]
             pymelType = _getPymelType(obj, comp)
         else :
             pymelType = DependNode
@@ -3288,7 +3318,7 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 
 # PyNode types names (as str)
-class PyNodeNameToPyNode(Singleton, dict):
+class PyNodeNamesToPyNodes(Singleton, dict):
     """ Lookup from PyNode type name to PyNode type """
 
 class PyNodeTypesHierarchy(Singleton, dict):
@@ -3300,6 +3330,7 @@ def addPyNode( module, mayaType, parentMayaType, apiEnum=None ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     if hasattr( module, pyNodeTypeName ):
         PyNodeType = getattr( module, pyNodeTypeName )
+        ParentPyNode = getattr( module, parentMayaType )
         #print "already exists:", pyNodeTypeName, 
     else:
         parentMayaType = util.capitalize(parentMayaType)
@@ -3315,22 +3346,25 @@ def addPyNode( module, mayaType, parentMayaType, apiEnum=None ):
             #pass
         else:
             #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
-            PyNodeType.__module__ = __name__
+            PyNodeType.__module__ = module.__name__
             setattr( module, pyNodeTypeName, PyNodeType )
             
-            PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
-            PyNodeNameToPyNode()[pyNodeTypeName] = PyNodeType
+    PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
+    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
 
-    if not api.PyNodesToApiTypes().has_key(PyNodeType):
-        api.addMayaType( mayaType, apiEnum=apiEnum, PyNodeType=PyNodeType )
-        
+    if not module.api.PyNodesToApiTypes().has_key(PyNodeType):
+        module.api.addMayaType( mayaType, apiEnum=apiEnum, PyNodeType=PyNodeType )
+    
+    return PyNodeType
+
 def removePyNode( module, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
-    PyNodeType = PyNodeNameToPyNode().pop( pyNodeTypeName, None )
+    PyNodeType = PyNodeNamesToPyNodes().pop( pyNodeTypeName, None )
     PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
-    module.__dict__.pop(mayaType,None)
-    api.removeMayaType( mayaType )
-    
+    module.__dict__.pop(pyNodeTypeName,None)
+    module.api.removeMayaType( mayaType )
+
+#: dictionary of plugins and the nodes and commands they register   
 pluginData = {}
     
 def pluginLoadedCallback( module ):
@@ -3364,12 +3398,12 @@ def pluginLoadedCallback( module ):
             print "adding new nodes:", mayaTypes
             
             for mayaType, apiEnum in zip( mayaTypes, apiEnums ):
-                inheritence = _factories.getInheritance( mayaType )
+                inheritance = _factories.getInheritance( mayaType )
                 
                 #print "adding new node:", mayaType, apiEnum, inheritence
                 # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                 parent = 'dependNode'
-                for node in inheritence:
+                for node in inheritance:
                     if node == mayaType:
                         addPyNode( module, node, parent )
                     else:
@@ -3415,12 +3449,6 @@ def installCallbacks(module):
         pluginLoadedCB = pluginLoadedCallback(module)
         cmds.loadPlugin( addCallback=pluginLoadedCB )
         
-        # add commands and nodes for plugins loaded prior to importing pymel
-        preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
-        if preLoadedPlugins:
-            print "Updating pymel with pre-loaded plugins:", preLoadedPlugins
-            for plugin in preLoadedPlugins:
-                pluginLoadedCB( plugin )
     else:
         print "pluginLoaded callback already exists"
     
@@ -3433,7 +3461,14 @@ def installCallbacks(module):
         cmds.unloadPlugin( addCallback=unloadCBStr )
     else:
         print "pluginUnloaded callback already exists"
-        
+
+    # add commands and nodes for plugins loaded prior to importing pymel
+    preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
+    if preLoadedPlugins:
+        print "Updating pymel with pre-loaded plugins:", preLoadedPlugins
+        for plugin in preLoadedPlugins:
+            pluginLoadedCB( plugin )
+              
     # the unloadPlugin
     #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
 
@@ -3442,7 +3477,11 @@ def _createPyNodes():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
     #print _factories.nodeHierarchy
     # see if breadth first isn't more practical ?
-
+    
+    # reset cache
+    PyNodeTypesHierarchy({})
+    PyNodeNamesToPyNodes({})
+    
     for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
         mayaType = treeElem.key
@@ -3500,15 +3539,17 @@ print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
 
 def isValidMayaType (arg):
-    return MayaTypesToApiTypes().has_key(arg)
+    return api.MayaTypesToApiTypes().has_key(arg)
 
 def isValidPyNode (arg):
-    return api.PyNodesToApiTypes().has_key(arg)
+    return PyNodeTypesHierarchy().has_key(arg)
 
 def isValidPyNodeName (arg):
-    return PyNodeNameToPyNode().has_key(arg)
+    return PyNodeNamesToPyNodes().has_key(arg)
 
-
+def mayaTypeToPyNode( arg, default=None ):
+    return PyNodeNamesToPyNodes().get( util.capitalize(arg), default )
+    
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):
     length = sel.length()
@@ -3866,7 +3907,7 @@ def iterNodes ( *args, **kwargs ):
             else :
                 # or a PyNode type or type name
                 if isValidPyNodeTypeName(key) :
-                    key = PyNodeNameToPyNode().get(key, None)
+                    key = PyNodeNamesToPyNodes().get(key, None)
                 if isValidPyNodeType(key) :
                     extType = key
                     apiType = api.PyNodesToApiTypes().get(key, None)
