@@ -22,6 +22,7 @@ except: pass
 import sys, inspect, warnings, timeit, time, re
 from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, treeFromDict
 import pymel.util as util
+import pymel.mayahook as mayahook
 import pickle, os.path
 
 # TODO : would need this shared as a Singleton class, but importing from factories anywhere 
@@ -513,7 +514,7 @@ def _buildAPITypesHierarchy () :
             except :
                 return 0
             
-    ver = util.getMayaVersion(extension=False)
+    ver = mayahook.getMayaVersion(extension=False)
 
     cacheFileName = os.path.join( util.moduleDir(),  'mayaApi'+ver+'.bin'  )
     try :
