@@ -466,11 +466,16 @@ def informBox(title, message, ok="Ok"):
     
 def promptForFolder():
     """ Prompt the user for a folder path """
+    
+    # a little trick that allows us to change the top-level 'folder' variable from 
+    # the nested function ('getfolder') - use a single-element list, and change its content
     folder = [None]
     def getfolder(*args):
         folder[0] = args[0]
-    ret = fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
-    return path.path(folder[0])
+    ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
+    folder = path.path(folder[0])
+    if folder.exists():
+        return folder
 
     
 class MelToPythonWindow(Window):
