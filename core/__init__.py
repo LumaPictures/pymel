@@ -1,3 +1,4 @@
+import pymel.mayahook as mayahook
 
 from general import *
 from context import *
