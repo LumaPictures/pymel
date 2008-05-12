@@ -32,7 +32,7 @@ import itertools, operator, colorsys
 import pymel.api as api
 
 import pymel.util as util
-from pymel.util.arrays import Array, Vector, Matrix
+from pymel.util.arrays import Array, Vector, Matrix, MatrixIter
 
  
 # the meta class of metaMayaWrapper
@@ -1142,16 +1142,8 @@ class MMatrix(Matrix):
             else :
                 msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", self.__class__.cnames, l))
                 raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (util.clsname(self), msg, util.clsname(self))
-
-
-             
-    # display      
-    def __str__(self):
-        return "[%s]" % ", ".join( imap(str,self.row) )
-    def __unicode__(self):
-        return u"[%s]" % u", ".join( imap(unicode,self.row) )
-    def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, str(self))          
+            
+    # base methods derived from Matrix         
 
     # wrap of list-like access methods
     def __len__(self):
@@ -1165,18 +1157,18 @@ class MMatrix(Matrix):
     @property
     def row(self):
         """ Iterator on the MMatrix rows """
-        return MatrixIter(self, 0)
+        return MatrixIter(self, 1)
         # return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
     @property
     def column(self):
         """ Iterator on the MMatrix columns """
+        # FIXME
         return MatrixIter(self, 1)
         #return [[self.matrix(r, c) for r in xrange(self.__class__.shape[0])] for c in range(self.__class__.shape[1])]
     @property
     def flat(self):
         """ Flat iterator on all matrix components in row by row consecutive order """
-        return MatrixIter(self, (0,1))
-        # return [api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for r in xrange(self.__class__.shape[0]) for c in xrange(self.__class__.shape[1])]        
+        return MatrixIter(self, 0)
     
     # behavior made to be close to Numpy or cgkit
     # use flat instead for a single index access to the 16 components
