@@ -3326,16 +3326,22 @@ class PyNodeTypesHierarchy(Singleton, dict):
  
 def addPyNode( module, mayaType, parentMayaType, apiEnum=None ):
     
+    #print "addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module)
     # unicode is not liked by metaNode
     pyNodeTypeName = str( util.capitalize(mayaType) )
+    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
     if hasattr( module, pyNodeTypeName ):
         PyNodeType = getattr( module, pyNodeTypeName )
-        ParentPyNode = getattr( module, parentMayaType )
+        try :
+            ParentPyNode = inspect.getmro(PyNodeType)[1]
+            if ParentPyNode.__name__ != parentPyNodeTypeName :
+                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
+        except :
+            ParentPyNode = getattr( module, parentPyNodeTypeName )
         #print "already exists:", pyNodeTypeName, 
     else:
-        parentMayaType = util.capitalize(parentMayaType)
         try:
-            ParentPyNode = getattr( module, parentMayaType )
+            ParentPyNode = getattr( module, parentPyNodeTypeName )
         except AttributeError:
             print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
             return      
