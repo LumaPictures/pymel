@@ -51,6 +51,9 @@ pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'glob
 					   'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 
 					   'finally', 'is', 'return', 'def', 'for', 'lambda', 'try']
 
+reserved= set( dir(builtin_module) )
+reserved.update( pythonReservedWords )
+
 def format_substring(x, t):
 	"""convert:
 			substring( var, 2, (len(var)) )
@@ -58,7 +61,7 @@ def format_substring(x, t):
 			var[1:]
 			
 		or:
-			substring( var, 3, var2 )
+			substring( var, 2, var2 )
 		to:
 			var[1:var2]
 			
@@ -67,21 +70,24 @@ def format_substring(x, t):
 		to:
 			var[1:var2]			
 			"""
-	def makeSlice( var, arg):
+	def makeSlice( var, arg, offset=0):
 		if arg.startswith('(') and arg.endswith(')'):
 			arg = arg[1:-1]	
 		try:
-			return str( int(arg)-1 )						
+			return str( int(arg)+offset )						
 		except ValueError:
 			m = re.match( '\(*\s*len\s*\(\s*' + var + '\s*\)\s*\)*(.*)', arg )
 			if m:
-				return m.group(1)
+				return m.group(1).replace(' ', '')
+				#return m.group(1)
 
 			else:
-				return '%s-1' % arg
-				
+				res = str(arg)
+				if offset != 0:
+					res = res + str(offset)
+				return res
 
-	start = makeSlice(x[0], x[1])
+	start = makeSlice(x[0], x[1], -1)
 	end = makeSlice(x[0], x[2])
 	
 	return '%s[%s:%s]' % (x[0], start, end )
@@ -131,7 +137,7 @@ def format_source(x, t):
 	if moduleName:
 		return "import " + moduleName
 	else:
-		return '%smel.source(%s)' % (t.lexer.pymel_namespace, script )
+		return '%smel.source(%s)' % (t.lexer.pymel_namespace, x[0] )
 			 
 # dictionary of functions used to remap procedures to python commands
 proc_remap = { 
@@ -269,13 +275,7 @@ proc_to_module = {}
 # Get the list of reserved words -- any variables or procedures that conflict with these keywords will be renamed with a trailing underscore
 tokens = mellex.tokens
 
-reserved= set( dir(builtin_module) )
-reserved.update( ['and', 'assert', 'break', 'class', 'continue',
-	'def', 'del', 'elif', 'else', 'except',
-	'exec', 'finally' 	'for', 'from', 'global',
-	'if', 'import', 'in', 'is', 'lambda',
-	'not', 'or', 'pass', 'print', 'raise',
-	'return', 'try', 'while'] )
+
 
 def store_assignment_spillover( token, t ):
 	
@@ -576,6 +576,10 @@ def p_declaration_statement(t):
 	
 	# each declaration is a two-element tuple: ( variable, value ) 		
 	for var, val in t[2]:
+		try:
+			var = var.globalVar
+		except AttributeError: pass
+		
 		if '[]' in var:
 			var = var.strip().strip('[]')
 			iType = typ + '[]'
@@ -605,17 +609,13 @@ def p_declaration_statement(t):
 				t.lexer.type_map[var] = iType
 					
 				t.lexer.global_vars.add( var )
-					
-				t[0] += 'global %s\n' % var
 				
-				if includeGlobalVar( var):	
-					# if init is brackets, then it's an array, and the type needs to be string[], int[], etc
-					#print "get mel global var", var
-					#if init == '[]':
-					#	itype = typ + '[]'
-					#else:
-					#	itype = typ
-					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, iType, var) 
+				if False:
+					t[0] += 'global %s\n' % var				
+					if includeGlobalVar( var):	
+						t[0] += "%s = %sgetMelGlobal('%s','%s')\n" % (var, t.lexer.pymel_namespace, iType, var)
+				else:
+					t[0] += "%smelGlobals.initVar( '%s', '%s' )\n" % ( t.lexer.pymel_namespace, iType, var )
 			
 			else:
 				t.lexer.type_map[var] = iType
@@ -646,10 +646,16 @@ def p_declaration_statement(t):
 				if isGlobal:
 
 					t.lexer.global_vars.add(var)
-					t[0] += 'global %s\n' % var 
-					t[0] += '%s=%s\n' % (var, val)
-					if includeGlobalVar( var):
-						t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( iType, var, var)
+					
+					# this is the old method, leaving here in case we want to add a switch
+					if False:
+						t[0] += 'global %s\n' % var 
+						t[0] += '%s=%s\n' % (var, val)
+						if includeGlobalVar( var):
+							t[0] += "%ssetMelGlobal( '%s', '%s', %s )\n" % ( t.lexer.pymel_namespace, iType, var, var)
+		
+					else:
+						t[0] += "%smelGlobals.set( '%s', '%s', %s )\n" % ( t.lexer.pymel_namespace, iType, var, val)
 						
 #					for global_var in declaration[:-1]:
 #						#print "set mel global var", global_var
@@ -1444,7 +1450,8 @@ def p_assignment_expression(t):
 		
 			elif t[2] in ['=',' = '] and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
 				t[0] = t[1] % t[3]
-			
+			elif t[1].endswith('[%s]'):
+				t[0] = t[1] % t[3]
 			else:
 				t[0] = assemble(t, 'p_assignment_expression')
 				t[0].assignment = t[1]
@@ -1716,7 +1723,10 @@ def p_postfix_expression_4(t):
 	if not t[3]:
 		t[0] = t[1]
 	elif t[3] == 'len(%s)' % t[1]:
-		t[0] = t[1] + '.append(%s)'
+		if hasattr( t[1], 'globalVar' ):
+			t[0] = t[1] + ' += [%s]'
+		else:
+			t[0] = t[1] + '.append(%s)'
 	else:
 		lenSubtractReg = re.compile( 'len\(%s\)\s*(-)' % t[1] )
 		try:
@@ -1760,7 +1770,7 @@ def p_primary_expression3(t):
 	
 def p_primary_expression4(t):
 	'''primary_expression :	 variable'''	
-	t[0] = Token(t[1], t.lexer.type_map.get(t[1], None), t.lexer.lineno )
+	t[0] = t[1]
 	if t.lexer.verbose >= 2:
 		print "p_primary_expression", t[0]
 	
@@ -1797,10 +1807,26 @@ def p_boolean_false(t):
 			
 def p_variable(t):
 	'''variable : VAR'''
-	if t[1] in reserved:
-		t[0] = t[1] + '_'
+	
+	# TODO : resolve issue of global variables conflicting with reserved words
+	# they will be suffixed with an underscore and won't be able to sync with 
+	# their mel equivalent
+	
+	
+	if t[1] in pythonReservedWords:
+		var = t[1] + '_'
 	else:
-		t[0] = t[1]
+		var = t[1]
+
+	typ = t.lexer.type_map.get(var, None)
+	
+	if var in t.lexer.global_vars:
+		t[0] = Token("%smelGlobals['%s']" % (t.lexer.pymel_namespace, var), 
+					 typ, t.lexer.lineno, globalVar=var)
+
+	else:	
+		t[0] = Token(var, typ, t.lexer.lineno )
+		
 	if t.lexer.verbose >= 2:
 		print "p_variable", t[0]
 		
@@ -2201,11 +2227,11 @@ def format_command(command, args, t):
 			# remove string encapsulation
 			subCmd = eval(args.pop(0))
 			# in rare cases this might end up bing -e or -pi, which evaluate to numbers
-			assert issubtype( subCmd, basestring )
+			assert isinstance( subCmd, basestring )
 			
 			formattedSubCmd = format_command( subCmd, args, t )
 			return '%s(%s)' % (command, formattedSubCmd)
-		except NameError, AssertionError:
+		except (NameError, AssertionError):
 			print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
 			return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
