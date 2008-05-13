@@ -13,8 +13,9 @@ import sys, os, re, os.path
 import mellex
 from pymel.util.external.ply import *
 from pymel.util import unescape
+import pymel
 import pymel.util as util
-import pymel.core.factories as factories
+import pymel.mayahook.factories as factories
 
 
 
@@ -42,9 +43,14 @@ class Token(str):
 		return Token( str.__add__( self, other ), **newdict  )
 
 
-Operation = util.namedtuple( 'Operation', ['left', 'op', 'right'] )
+# commands which should not be brought into main namespace
+filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
+builtin_module = __import__('__main__').__builtins__
+pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or', 
+					   'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except', 
+					   'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 
+					   'finally', 'is', 'return', 'def', 'for', 'lambda', 'try']
 
-	
 def format_substring(x, t):
 	"""convert:
 			substring( var, 2, (len(var)) )
@@ -116,69 +122,16 @@ def format_fopen(x, t):
 		mode = "'w'"
 	return 'open(%s,%s)' % (x[0], mode)
 
-def format_assignment_value( val, typ ):
-	"""
-	when assigning a value in mel, values will be auto-cast to the type of the variable, but in python, the variable
-	will simply become the new type.  to ensure that the python operates as in mel, we need to cast when assigning
-	a value to a variable of a different type	"""
-	
-	try:
 
-		if typ != val.type:
-			#print "assignment not same type", t[1].type, t[3].type
-			val = Token(  '%s(%s)' % ( mel_type_to_python_type[typ], val ), **val.__dict__ )
-			val.type = typ
-			return val
-	except:
-		# one of the expressions did not have a type
-		try:
-			typ = val.type
-		except:
-			print "NO TYPE", val
-			
-	return val
 
-def store_assignment_spillover( token, t ):
-	
-	try:
-		var = token.__dict__.pop( 'assignment' )			
-		t.lexer.spillover_pre.append( token + '\n' ) 
-		#print "adding to spillover:", token, token.lineno
-		token = var
-		
-	except KeyError:
-		pass
-	return token
-
-def merge_assignment_spillover( t, curr_lineno, title='' ):
-	""" """
-	result = ''
-	if t.lexer.spillover_pre:
-		#curr_lineno = t[token_index].lineno
-		i=-1
-		tokens = t.lexer.spillover_pre[:]
-		t.lexer.spillover_pre = []
-		for token in tokens:
-
-			if token.lineno == curr_lineno:
-				result += token
-				#print "adding", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
-				#t.lexer.spillover_pre.pop(0)
-			else:
-				#print "skipping", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
-				t.lexer.spillover_pre.append(token)
-
-	return result
-					
-# commands which should not be brought into main namespace
-filteredCmds = ['file','filter','help','quit','sets','move','scale','rotate']
-
-#: mel commands which were not ported to python, but which have flags that need to be translated
-melCmdList = {
-			 'error'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
-			 'warning' : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
-			 'trace'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } }
-			 }
+def format_source(x, t):
+	script = eval(x[0])
+	name = os.path.splitext( os.path.basename(script) )[0]
+	moduleName = _proc_to_module( t, name )
+	if moduleName:
+		return "import " + moduleName
+	else:
+		return '%smel.source(%s)' % (t.lexer.pymel_namespace, script )
 			 
 # dictionary of functions used to remap procedures to python commands
 proc_remap = { 
@@ -210,7 +163,7 @@ proc_remap = {
 		'clear'					: ( None ,   lambda x, t: '%s=[]' 				% (x[0]) ),
 		'eval'					: ( None ,   lambda x, t: '%smel.eval(%s)' 	% (t.lexer.pymel_namespace, x[0]) ),	
 		'sort'					: ( None ,   lambda x, t: 'sorted(%s)'			% (x[0]) ),
-		
+		'source'				: ( None , 	 format_source ),
 		# error handling
 		'catch'					: ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),	
 		'catchQuiet'			: ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),	
@@ -218,6 +171,13 @@ proc_remap = {
 		# system
 		'system'				: ( None ,   lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		'exec'					: ( None ,   lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
+		'getenv'				: ( 'string', lambda x, t: ( 'os.environ[ %s ]' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
+		# NOTE : this differs from mel equiv bc it does not return a value
+		'putenv'				: ( None, lambda x, t: ( 'os.environ[ %s ] = %s' 	% (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),	
+
+		# math
+		'deg_to_rad'			: ( 'float', lambda x, t: 'radians( %s )' 	% (x[0]) ), 
+		'rad_to_deg'			: ( 'float', lambda x, t: 'degrees( %s )' 	% (x[0]) ), 
 		
 		# file i/o
 		'fopen'					: ('int',    format_fopen ),
@@ -290,14 +250,25 @@ proc_remap = {
 												)[1] )
 }
 
+#: mel commands which were not ported to python, but which have flags that need to be translated
+melCmdFlagList = {
+			 'error'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
+			 'warning' : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } },
+			 'trace'   : { 'flags': {'showLineNumber': { 'longname': 'showLineNumber', 'numArgs': 1, 'shortname': 'sl'} } }
+			 }
+
+#: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
+melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs'] # 
+melCmdList = [ x for x in melCmdList if not proc_remap.has_key(x) and ( hasattr(pymel,x) or hasattr(builtin_module,x) ) ]
+
 tag = '# script created by pymel.melparse.mel2py'
 currentFiles = []
-proc_module = {}
+proc_to_module = {}
 
 
 # Get the list of reserved words -- any variables or procedures that conflict with these keywords will be renamed with a trailing underscore
 tokens = mellex.tokens
-builtin_module = __import__('__main__').__builtins__
+
 reserved= set( dir(builtin_module) )
 reserved.update( ['and', 'assert', 'break', 'class', 'continue',
 	'def', 'del', 'elif', 'else', 'except',
@@ -306,6 +277,59 @@ reserved.update( ['and', 'assert', 'break', 'class', 'continue',
 	'not', 'or', 'pass', 'print', 'raise',
 	'return', 'try', 'while'] )
 
+def store_assignment_spillover( token, t ):
+	
+	try:
+		var = token.__dict__.pop( 'assignment' )			
+		t.lexer.spillover_pre.append( token + '\n' ) 
+		#print "adding to spillover:", token, token.lineno
+		token = var
+		
+	except KeyError:
+		pass
+	return token
+
+def merge_assignment_spillover( t, curr_lineno, title='' ):
+	""" """
+	result = ''
+	if t.lexer.spillover_pre:
+		#curr_lineno = t[token_index].lineno
+		i=-1
+		tokens = t.lexer.spillover_pre[:]
+		t.lexer.spillover_pre = []
+		for token in tokens:
+
+			if token.lineno == curr_lineno:
+				result += token
+				#print "adding", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
+				#t.lexer.spillover_pre.pop(0)
+			else:
+				#print "skipping", title, token[:-1], "(", token.lineno, curr_lineno, t.lexer.lineno, ")"
+				t.lexer.spillover_pre.append(token)
+
+	return result
+
+def format_assignment_value( val, typ ):
+	"""
+	when assigning a value in mel, values will be auto-cast to the type of the variable, but in python, the variable
+	will simply become the new type.  to ensure that the python operates as in mel, we need to cast when assigning
+	a value to a variable of a different type	"""
+	
+	try:
+
+		if typ != val.type:
+			#print "assignment not same type", t[1].type, t[3].type
+			val = Token(  '%s(%s)' % ( mel_type_to_python_type[typ], val ), **val.__dict__ )
+			val.type = typ
+			return val
+	except:
+		# one of the expressions did not have a type
+		try:
+			typ = val.type
+		except:
+			print "NO TYPE", val
+			
+	return val
 
 def vprint(t, *args):
 	if t.lexer.verbose:
@@ -336,7 +360,7 @@ def assemble(t, funcname, separator='', tokens=None, matchFormatting=False):
 			else:
 
 				try:			
-					if matchFormatting and tokens[i-1].lineno != tok.lineno:
+					if not t.lexer.expression_only and matchFormatting and tokens[i-1].lineno != tok.lineno:
 						res +=  separator + '\n' + entabLines( tok )
 					else:
 						res += separator + tok
@@ -552,30 +576,33 @@ def p_declaration_statement(t):
 	
 	# each declaration is a two-element tuple: ( variable, value ) 		
 	for var, val in t[2]:
+		if '[]' in var:
+			var = var.strip().strip('[]')
+			iType = typ + '[]'
+		else:
+			iType = typ
 		
 		# default initialization
-		if val is None:
-			init = None
-
-			# array
-			if '[]' in var:
-				var = var.strip().strip('[]')
-				init = '[]'
-			# non -array
-			else:
-
+		if val is None:	
+				
+			# non -array intitialization
+			try:
 				init = { 
 					'string': "''",
 					'int':	'0',
 					'float': '0.0',
 					'vector': 'Vector()'
-				}[  typ  ]
-
+				}[  iType  ]
+			
+			# array initialization
+			except KeyError:
+				assert '[]' in iType
+				init = '[]'
 				
 			# global variable -- overwrite init	
 			if isGlobal:
 				
-				t.lexer.type_map[var] = typ
+				t.lexer.type_map[var] = iType
 					
 				t.lexer.global_vars.add( var )
 					
@@ -584,20 +611,21 @@ def p_declaration_statement(t):
 				if includeGlobalVar( var):	
 					# if init is brackets, then it's an array, and the type needs to be string[], int[], etc
 					#print "get mel global var", var
-					if init == '[]':
-						itype = typ + '[]'
-					else:
-						itype = typ
-					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, itype, var) 
+					#if init == '[]':
+					#	itype = typ + '[]'
+					#else:
+					#	itype = typ
+					t[0] += "%s = getMelGlobal('%s','%s')\n" % (var, iType, var) 
 			
 			else:
-				t.lexer.type_map[var] = typ
+				t.lexer.type_map[var] = iType
 				t[0] += '%s = %s\n' % (var, init)	
 		
 		# initialize to value	
 		else:
+				
 			t[0] += merge_assignment_spillover( t, val.lineno, 'declaration_statement' )
-			val = format_assignment_value( val, typ )
+			val = format_assignment_value( val, iType )
 			
 			try: 
 				if val.tokenize:
@@ -608,12 +636,12 @@ def p_declaration_statement(t):
 				#	declaration[i] = elem.strip()
 				#	if declaration[i].endswith('[]'):
 				#		declaration[i] = declaration[i][:-2]
-				var = var.strip().strip('[]')
+
 				val = val.strip()
 				if val.endswith('[]') and val != '[]':
 					val.strip('[]')	
 					
-				t.lexer.type_map[var] = typ
+				t.lexer.type_map[var] = iType
 				
 				if isGlobal:
 
@@ -621,7 +649,7 @@ def p_declaration_statement(t):
 					t[0] += 'global %s\n' % var 
 					t[0] += '%s=%s\n' % (var, val)
 					if includeGlobalVar( var):
-						t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, var, var)
+						t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( iType, var, var)
 						
 #					for global_var in declaration[:-1]:
 #						#print "set mel global var", global_var
@@ -727,22 +755,22 @@ def p_constant_expression_opt_2(t):
 
 
 # statement:
-def p_statement(t):
+def p_statement_expr(t):
 	'''statement : expression_statement
-			  | selection_statement
-			  | iteration_statement
-			  | jump_statement
-			  | declaration_statement
 			  | command_statement
 			  | compound_statement'''
-#			  | comment'''
 	
-	t[0] = assemble(t, 'p_statement')
-	#if t.lexer.spillover_pre:
-	#	t[0] = ''.join(t.lexer.spillover_pre) + t[0]
-	#	t.lexer.spillover_pre = []
-	#t[0] = '\t' + t[0]
-
+	t[0] = assemble(t, 'p_statement_expr')
+	
+def p_statement_complex(t):
+	'''statement : selection_statement
+			  | iteration_statement
+			  | jump_statement
+			  | declaration_statement'''
+#			  | comment'''
+	if t.lexer.expression_only:
+		raise TypeError, "This mel code is not capable of being translated as a python expression"
+	t[0] = assemble(t, 'p_statement_complex')
 	
 # labeled-statement:
 #def REMOVED_labeled_statement_1(t):
@@ -1404,12 +1432,16 @@ def p_assignment_expression(t):
 			if t[2] and t[1].endswith('[]'):
 				raise NotImplementedError, "I didn't think we'd make it here. the line below seems very wrong."
 				#t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
-			
+
+			if t.lexer.expression_only and t[2] in ['=',' = ']:
+					raise TypeError, "This mel code is not capable of being translated as a python expression"
+	
 			# fill in the append string:  
 			#	start:		$foo[size($foo)] = $bar
 			#	stage1:		foo[len(foo)] = bar 
 			#	stage2:		foo.append(%s) = bar
 			#	stage3:		foo.append(bar)
+		
 			elif t[2] in ['=',' = '] and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
 				t[0] = t[1] % t[3]
 			
@@ -1663,7 +1695,7 @@ def p_postfix_expression_2(t):
 	
 	#t[0] = assemble(t, 'p_postfix_expression')
 	#t[0] = '[%s]' % ','.join(t[2])
-	t[2] = store_assignment_spillover( t[2], t ) 
+	t[2] = [ store_assignment_spillover( x, t ) for x in t[2] ]
 	t[0] = '[%s]' % assemble(t, 'p_postfix_expression_2', ',', t[2], matchFormatting=True)
 		
 def p_postfix_expression_3(t):
@@ -1672,7 +1704,7 @@ def p_postfix_expression_3(t):
 	# vector
 	
 	#t[0] = assemble(t, 'p_postfix_expression')
-	t[2] = store_assignment_spillover( t[2], t ) 
+	t[2] = [ store_assignment_spillover( x, t ) for x in t[2] ]
 	t[0] = Token( 'Vector([%s])' % ','.join(t[2]), 'vector', t.lexer.lineno )	
 
 def p_postfix_expression_4(t):
@@ -1706,8 +1738,9 @@ def p_primary_expression(t):
 			
 def p_primary_expression1(t):
 	'''primary_expression :	 ICONST'''
-	if t[1].startswith('0x'):
-		t[1] = "int( '%s', 16 )" % t[1]
+	# not needed, python understands this notation without the conversion below
+	#if t[1].startswith('0x'):
+	#	t[1] = "int( '%s', 16 )" % t[1]
 	t[0] = Token(t[1], 'int', t.lexer.lineno)
 	if t.lexer.verbose >= 2:
 		print "p_primary_expression", t[0]
@@ -1821,12 +1854,57 @@ def getAllCommandFlags():
 			commands[func] = flags
 	return commands
 
-def getModuleBasename( fullpath ):
-	name = os.path.splitext( os.path.basename(fullpath) )[0]
+def getModuleBasename( script ):
+	name = os.path.splitext( os.path.basename(script) )[0]
 	name = name.replace( '.', '_')
 	name = name.replace( '-', '_')
 	return name
 
+def findModule( moduleName ):
+	for f in sys.path:
+		f = os.path.join( f, moduleName  + '.py' )
+		if os.path.isfile(f):		
+			# checks for a tag added by mel2py -- this is unreliable, but so is using simple name comparison
+			# TODO : add a keyword for passing directories to look for pre-translated python scripts  
+			file = open(f, 'r')
+			firstline = file.readline()
+			file.close()
+			if firstline.startswith(tag):
+				return f
+	return
+			
+#def _script_to_module( t, script ):
+#	global currentFiles
+#	global script_to_module
+#	
+#	path, name = os.path.split(script) 
+#	if name.endswith('.mel'):
+#		name += '.mel'
+#		
+#	try:
+#		return script_to_module[name]
+#	
+#	except KeyError:
+#		
+#		if not path:
+#			result = mel.whatIs( name )
+#			buf = result.split( ':' )
+#			if buf[0] == 'Script found in':
+#				fullpath = buf[1]
+#			else:
+#				return
+#		else:
+#			fullpath = os.path.join(path, name )
+#		
+#		
+#		moduleName = getModuleBasename(fullpath)
+#	
+#
+#		# the mel file in which this proc is defined is being converted with this batch
+#		if fullpath in currentFiles:
+#			script_to_module[name] = moduleName
+#			return moduleName
+						
 def _proc_to_module( t, procedure ):
 	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
 	
@@ -1836,40 +1914,35 @@ def _proc_to_module( t, procedure ):
 		return
 	
 	global currentFiles
-	global proc_module
+	global proc_to_module
 	
-	if procedure in proc_module:
-		return proc_module[procedure]
+	try:
+		return proc_to_module[procedure]
 	
-	#try:
-	result = mel.whatIs( procedure )
-	buf = result.split( ':' )
-	#print buf
-	if buf[0] == 'Mel procedure found in':
-		fullpath = buf[1]
-		name = getModuleBasename(fullpath)
-		#print procedure, name
-		
-		# the mel file in which this proc is defined is being converted with this batch
-		if fullpath in currentFiles:
-			proc_module[procedure] = name
-			return name
-		
-		# look for a python file in sys.path with the converted name	
-		for f in sys.path:
-			f = f + os.sep + name  + '.py'
-			if os.path.isfile(f):
-				file = open(f, 'r')
-				firstline = file.readline()
-				file.close()
-				if firstline.startswith(tag):
-					proc_module[procedure] = name
-					return name
-					
-					
-	#except:
-	#	#print "No help for:", command
-	#	return None
+	except KeyError:
+		result = mel.whatIs( procedure )
+		buf = result.split( ':' )
+		if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
+			fullpath = buf[1]
+			
+			moduleName = getModuleBasename(fullpath)
+			#print procedure, name
+			
+			# the mel file in which this proc is defined is being converted with this batch
+			if fullpath in currentFiles:
+				proc_to_module[procedure] = moduleName
+				return moduleName
+			
+			# the mel file in which this proc is defined has been previously converted, and is in sys.path
+			# look for a python file in sys.path with the converted name	
+			if findModule(moduleName):
+				proc_to_module[procedure] = moduleName
+				return moduleName
+						
+						
+		#except:
+		#	#print "No help for:", command
+		#	return None
 		
 
 		
@@ -1899,17 +1972,19 @@ def format_command(command, args, t):
 		cmdInfo = factories.cmdlist[command]
 	except KeyError:
 		try:
-			cmdInfo = melCmdList[command]
+			cmdInfo = melCmdFlagList[command]
 		except KeyError:
 			# Mel procedures and commands without help documentation
 			#if flags is None:			
 			args = ', '.join(args)
-		
+			
 			# function is being called locally, within same file
 			if command in t.lexer.global_procs:
 				return '%s(%s)' % (command, args)
 			if command in t.lexer.local_procs:
 				return '_%s(%s)' % (command, args)
+			if command in melCmdList:
+				return '%s(%s)' % (command, args)
 			
 			module = _proc_to_module( t, command )
 		
@@ -1921,7 +1996,7 @@ def format_command(command, args, t):
 					t.lexer.imported_modules.add( module )
 					res = '%s.%s(%s)' % (module, command, args)
 			else:
-				res = 'mel.%s(%s)' % (command, args)
+				res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, args)
 				
 			res = t.lexer.pymel_namespace + res	
 			return res
@@ -1954,7 +2029,10 @@ def format_command(command, args, t):
 				# remove dash (-) before flag
 				token = token[1:]
 				
-				# new-style from cached info
+				# a special dict has been creatd to return the new name of flags removed due to name conflicts
+				try:
+					token = Token( cmdInfo['removedFlags'][token], token.type, token.lineno )
+				except KeyError: pass
 				
 				try:
 					flagInfo = cmdInfo['flags'][token]
@@ -1987,15 +2065,20 @@ def format_command(command, args, t):
 						cbParser.build( rootModule = t.lexer.root_module, 
 										  	pymelNamespace=t.lexer.pymel_namespace, 
 										  	verbosity=t.lexer.verbose,
-										  	addImports=False )
+										  	expressionsOnly=True )
 						
 						tmpToken = token
-						#print tmpToken.__repr__()
+						#print tmpToken
 						# pre-parse cleanup
 						
 						#print tmpToken
 						
-						#if tmpToken.startswith('"') and tmpToken.endswith('"'):
+						# remove enclosing parentheses
+						tmpToken = tmpToken.strip(' ')
+						while tmpToken.startswith('(') and tmpToken.endswith(')'):
+							tmpToken = tmpToken[1:-1]
+							tmpToken = tmpToken.strip(' ')
+							
 						tmpToken = unescape(tmpToken)
 						
 						if not tmpToken.endswith( ';' ): 
@@ -2027,7 +2110,8 @@ def format_command(command, args, t):
 						token = 'lambda *args: %s' % (tmpToken)
 						
 					#else:
-					except:					
+					except Exception, msg:
+						#print "callback translation failed", msg			
 						token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
 				
 				argTally.append(token)
@@ -2080,8 +2164,9 @@ def format_command(command, args, t):
 		
 		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
 		if command == 'python':
-			args = map( lambda x: x.strip('"'), args[0].split(' + ') )
-			return ''.join(args)
+			return 'eval(%s)' % args[0]
+			#args = map( lambda x: x.strip('"'), args[0].split(' + ') )
+			#return ''.join(args)
 		
 		# cycle through our kwargs and format them
 		for flag, value in kwargs.items():
@@ -2110,8 +2195,19 @@ def format_command(command, args, t):
 		return res
 		
 	except KeyError, key:
-		print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
-		return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
+		
+		try:
+			print command, args
+			# remove string encapsulation
+			subCmd = eval(args.pop(0))
+			# in rare cases this might end up bing -e or -pi, which evaluate to numbers
+			assert issubtype( subCmd, basestring )
+			
+			formattedSubCmd = format_command( subCmd, args, t )
+			return '%s(%s)' % (command, formattedSubCmd)
+		except NameError, AssertionError:
+			print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
+			return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
 # command_statement
 # -- difference between a comamnd_statement and a command:
@@ -2288,9 +2384,7 @@ def p_flag(t):
 					'''
 
 	# TODO: find complete list	
-	flag = t[1] + { 	'import': 'i',
-		 		 		'del'	: 'delete' 
-					}.get( t[2], t[2] )
+	flag = t[1] +  t[2]
 					
 	#t[0] = assemble(t, 'p_flag', '', [flag]  )	
 	t[0] = Token( flag, 'flag', t.lexer.lineno )
@@ -2351,7 +2445,7 @@ parser = yacc.yacc(method='''LALR''', debug=0)
 
 class MelParser(object):
 	"""The MelParser class around which all other mel2py functions are based."""
-	def build(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True, addImports=True ):
+	def build(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True, expressionsOnly=False ):
 		self.lexer = lexer.clone()
 			
 		self.lexer.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
@@ -2373,7 +2467,8 @@ class MelParser(object):
 		self.lexer.global_var_exclude_regex = '$'
 		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
 		self.add_pymel_import = addPymelImport
-		self.add_imports = addImports
+		
+		self.lexer.expression_only = expressionsOnly
 		
 	def parse(self, data):
 		data = data.encode( 'utf-8', 'ignore')
@@ -2405,7 +2500,7 @@ class MelParser(object):
 		#except AttributeError:
 		#	raise ValueError, '%s: %s' % (melfile, "script has invalid contents")
 		
-		if self.add_imports:
+		if not self.lexer.expression_only:
 			new_modules = self.lexer.imported_modules.difference( prev_modules )
 			
 			header = ''

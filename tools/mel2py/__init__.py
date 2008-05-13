@@ -209,6 +209,10 @@ from melparse import *
 import pymel.core.pmtypes.path as path
 from pymel.util.external.ply.lex import LexError
 import pymel.util as util
+import pymel.mayahook as mayahook
+import pymel.mayahook.factories as _factories
+import pymel
+
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a
 library of helper mel scripts to make your life a bit easier. you will probably find that python has a built-in equivalent for many of
@@ -333,18 +337,15 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 		Attempt to import the translated modules to test for errors
 	"""
 	
+	global currentFiles
+	
 	if util.isIterable( processDir ):
 		for dir in processDir:
-			mel2pyBatch( dir, outputDir, pymelNamespace, verbosity, test )
-		return
-	
-	processDir = path.path(processDir)
-	
-	global currentFiles
-	#currentFiles = filter( lambda x: not x.name.startswith('.'), processDir.files( '*.mel') )
-	currentFiles = processDir.files( '[a-zA-Z]*.mel')
-	
-	
+			currentFiles += path.path(dir).files( '[a-zA-Z]*.mel')
+	else:
+		processDir = path.path(processDir)
+		currentFiles = processDir.files( '[a-zA-Z]*.mel')
+		
 	if test and outputDir and not _fileInlist(outputDir, sys.path):
 		print "Testing is enabled, but outputDir is not in sys.path. Adding %s." % outputDir
 		sys.path.append( outputDir )
@@ -393,9 +394,29 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	succCnt = 0
 	
 	
-	
-	
+def findMelOnlyCommands():
+	"""Using documentation, find commands which were not ported to python.
+	"""
 
+	docs = path.path( _factories.mayaDocsLocation() )
+	melCmds = set([ x.namebase for x in ( docs / 'Commands').files('*.html') ])
+	pyCmds = set([ x.namebase for x in ( docs / 'CommandsPython').files('*.html') ])
+	result = []
+	for cmd in sorted(melCmds.difference(pyCmds)):
+		typ = pymel.mel.whatIs(cmd)
+		if typ.startswith( 'Script') or typ.startswith( 'Mel' ):
+			typ = 'Mel'
+		try:
+			func = getattr( pymel, cmd)
+			info = func.__module__
+		except AttributeError:
+			if hasattr( builtin_module, cmd):
+				info = 'builtin'
+			else:
+				info = proc_remap.has_key( cmd )
+		result.append( (cmd, typ, info ) )
+	return result
+	
 if __name__ == '__main__':
 	import sys
 	if len(sys.argv) == 2:
