@@ -614,16 +614,14 @@ __version__ = '0.7.9'
 #check for the presence of an initilized Maya
 import util
 
-import mayahook
-
 import api
 
 from core import *
 
 #_module = __import__('core.other', globals(), locals(), [''])
 
-import core.factories as _factories
+import mayahook.factories as _factories
 _module = __import__(__name__)    
 #_factories.installCallbacks(_module)
 #cmds.loadPlugin( addCallback=pluginLoadedCallback(_module) )
-installCallbacks(_module)
+_factories.installCallbacks(_module)
