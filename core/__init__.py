@@ -1,4 +1,4 @@
-import pymel.mayahook as mayahook
+#import pymel.mayahook as mayahook
 
 from general import *
 from context import *
@@ -9,4 +9,5 @@ from effects import *
 from modeling import *
 from rendering import *
 from other import *
+from maths import *
 import runtime
