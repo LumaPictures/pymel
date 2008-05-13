@@ -33,54 +33,74 @@ longNames = False
 # Mel <---> Python Glue
 #--------------------------    
 
-
-#class MelGlobals(object):
-#    """
-#    melGlobals('string[]')['$myVar'] = ['one', 'two', 'three']
-#    """
-#    melTypes = ['string', 'int', 'float', 'vector']
-#    #def __init__(self):
-#    
-#    def __getitem__(self, var ):
-#        for type in MelGlobals.melTypes:
-#            for ext in ['', '[]']:
-#                try:
-#                    return getMelGlobal( type+ext, var)
-#                except RuntimeError:
-#                    pass
-
-                  
-def getMelGlobal( type, name ):
-    """get a mel global variable""" 
-    if not name.startswith( '$'):
-        name = '$' + name
-    ret_type = type
-    decl_name = name
+# TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ): 
+# using append or extend will not update the mel variable 
+class MelGlobals( util.Singleton, dict ):
+    """ A class for synchronizing global variables between mel and python."""
     
-    if type.endswith('[]'):
-        type = type[:-2]
-        proc_name = 'pymel_get_global_' + type + 'Array'
-        if not decl_name.endswith('[]'):
-            decl_name += '[]'
-    else:
-        proc_name = 'pymel_get_global_' + type
+    typeMap = {}
+    validTypes = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
+    def _formatVariable(self, variable):
+        # TODO : add validity check
+        if not variable.startswith( '$'):
+            variable = '$' + variable
+        return variable
+    
+    def __getitem__(self, variable ):
+        variable = self._formatVariable(variable)
+        try:
+            return self.get( MelGlobals.typeMap[variable], variable )
+        except KeyError:
+            raise ValueError, "You must specify a type for this variable first using initVar"
         
-    cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, name, proc_name )
-    print cmd
-    return mm.eval( cmd  )
+    def __setitem__(self, variable, value):
+        variable = self._formatVariable(variable)
+        try:
+            self.set( MelGlobals.typeMap[variable], variable, value )
+        except KeyError:
+            raise ValueError, "You must specify a type for this variable first using initVar"
+        
+    def initVar( self, type, variable ):
+        if type not in MelGlobals.validTypes:
+            raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MelGlobals.validTypes ] )
+        variable = self._formatVariable(variable)
+        MelGlobals.typeMap[variable] = type
+        return variable
+    
+    def get( self, type, variable ):
+        """get a mel global variable""" 
 
-def setMelGlobal( type, name, value ):
-    """set a mel global variable""" 
-    if not name.startswith( '$'):
-        name = '$' + name
-    decl_name = name
-    if type.endswith('[]'):
-        type = type[:-2]
-        decl_name += '[]'
+        variable = self.initVar(type, variable)
+        ret_type = type
+        decl_name = variable
         
-    cmd = "global %s %s; %s=%s;" % ( type, decl_name, name, pythonToMel(value) )
-    #print cmd
-    return mm.eval( cmd  )
+        if type.endswith('[]'):
+            type = type[:-2]
+            proc_name = 'pymel_get_global_' + type + 'Array'
+            if not decl_name.endswith('[]'):
+                decl_name += '[]'
+        else:
+            proc_name = 'pymel_get_global_' + type
+            
+        cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, variable, proc_name )
+        #print cmd
+        return mm.eval( cmd  )
+    
+    def set( self, type, variable, value ):
+        """set a mel global variable""" 
+        variable = self.initVar(type, variable)
+        decl_name = variable
+        if type.endswith('[]'):
+            type = type[:-2]
+            decl_name += '[]'
+            
+        cmd = "global %s %s; %s=%s;" % ( type, decl_name, variable, pythonToMel(value) )
+        #print cmd
+        return mm.eval( cmd  )
+    
+melGlobals = MelGlobals()
+                  
+
     
 def catch( func ):
     """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch, you should
