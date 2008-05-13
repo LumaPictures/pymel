@@ -1,7 +1,7 @@
 
 from pymel.util.trees import *
 import pymel.util as util
-import pymel.mayahook as mayahook
+import mayautils
 #from general import PyNode
 
 import sys, os, inspect, pickle, re, types, os.path
@@ -288,8 +288,8 @@ class CommandDocParser(HTMLParser):
 def mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     if version == None :
-        version = mayahook.getMayaVersion(extension=False)
-    docLocation = mayahook.getMayaLocation() 
+        version = mayautils.getMayaVersion(extension=False)
+    docLocation = mayautils.getMayaLocation() 
     
     import platform
     if platform.system() == 'Darwin':
@@ -297,7 +297,7 @@ def mayaDocsLocation( version=None ):
     docLocation = os.path.join( docLocation , 'docs/Maya%s/en_US' % version )
     return docLocation
     
-# class MayaDocsLoc(Singleton) :
+# class MayaDocsLoc(util.Singleton) :
 #    """ Path to the Maya docs, cached at pymel start """
     
 # TODO : cache doc location or it's evaluated for each getCmdInfo !    
@@ -318,7 +318,12 @@ class FlagInfo(object):
         self.numArgs = numArgs
         self.docstring = docstring
         self.modes = modes
-      
+
+pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or', 
+                       'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except', 
+                       'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 
+                       'finally', 'is', 'return', 'def', 'for', 'lambda', 'try']
+  
 def getCmdInfoBasic( command ):
     typemap = {    
              'string'  : unicode,
@@ -333,6 +338,7 @@ def getCmdInfoBasic( command ):
     }
     flags = {}
     shortFlags = {}
+    removedFlags = {}
     try:     
         lines = cmds.help( command ).split('\n')
     except RuntimeError:
@@ -369,21 +375,32 @@ def getCmdInfoBasic( command ):
                         #numArgs = 1
                     elif numArgs == 1:
                         args = args[0]
-                            
+                          
                     longname = str(tokens[1][1:])
                     shortname = str(tokens[0][1:])
+
                     
-                    #sometimes the longname is empty, so we'll use the shortname for both
-                    if longname == '':
+                    if longname in pythonReservedWords:                       
+                        removedFlags[ longname ] = shortname 
                         longname = shortname
+                    elif shortname in pythonReservedWords:
+                        removedFlags[ shortname ] = longname 
+                        shortname = longname
+                    #sometimes the longname is empty, so we'll use the shortname for both
+                    elif longname == '':
+                        longname = shortname
+                        
                     flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
                     shortFlags[shortname] = flags[longname]
         
     #except:
     #    pass
         #print "could not retrieve command info for", command
-    return { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
-  
+    res = { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
+    if removedFlags:
+        res['removedFlags'] = removedFlags 
+    return res
+
 def getCmdInfo( command, version='8.5', python=True ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with 
@@ -463,7 +480,12 @@ def getCmdInfo( command, version='8.5', python=True ):
            
         #except KeyError:pass
           
-        return {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': example }
+        res = {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': example }
+        try:
+            res['removedFlags'] = basicInfo['removedFlags']
+        except KeyError: pass
+        return res
+    
     
     except IOError:
         #print "could not find docs for %s" % command
@@ -838,7 +860,7 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    ver = mayahook.getMayaVersion(extension=False)
+    ver = mayautils.getMayaVersion(extension=False)
         
     newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
     cmdlist = {}
@@ -952,7 +974,7 @@ def buildCachedData() :
 #---------------------------------------------------------------
         
 cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
-# quick fix until we make a Singleton of nodeHierarchy
+# quick fix until we make a util.Singleton of nodeHierarchy
 def NodeHierarchy() :
     return nodeHierarchy
 
@@ -1503,41 +1525,156 @@ class metaNode(type) :
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 
+# PyNode types names (as str)
+class PyNodeNamesToPyNodes(util.Singleton, dict):
+    """ Lookup from PyNode type name to PyNode type """
 
-#def pluginLoadedCallback( module ):
-#                
-#    def pluginLoadedCB(pluginName):
-#        print "Plugin loaded", pluginName
-#        commands = cmds.pluginInfo(pluginName, query=1, command=1)
-#        if commands:
-#            for funcName in commands:
-#                print "adding new command %s to module %s" % ( funcName, module.__name__ )
-#                cmdlist[funcName] = getCmdInfoBasic( funcName )
-#                func = functionFactory( funcName )
-#                try:
-#                    if func:
-#                        setattr( module, funcName, func )
-#                    else:
-#                        print "failed to create function"
-#                except Exception, msg:
-#                    print "exception", msg
-#                    
-#        
-#    return pluginLoadedCB
+class PyNodeTypesHierarchy(util.Singleton, dict):
+    """child:parent lookup of the pymel classes that derive from DependNode"""
+ 
+def addPyNode( module, mayaType, parentMayaType ):
+    
+    #print "addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module)
+    # unicode is not liked by metaNode
+    pyNodeTypeName = str( util.capitalize(mayaType) )
+    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    if hasattr( module, pyNodeTypeName ):
+        PyNodeType = getattr( module, pyNodeTypeName )
+        try :
+            ParentPyNode = inspect.getmro(PyNodeType)[1]
+            if ParentPyNode.__name__ != parentPyNodeTypeName :
+                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
+        except :
+            ParentPyNode = getattr( module, parentPyNodeTypeName )
+        #print "already exists:", pyNodeTypeName, 
+    else:
+        try:
+            ParentPyNode = getattr( module, parentPyNodeTypeName )
+        except AttributeError:
+            print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
+            return      
+        try:
+            PyNodeType = metaNode(pyNodeTypeName, (ParentPyNode,), {})
+        except TypeError, msg:
+            print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, parentMayaType, msg )
+            #pass
+        else:
+            #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
+            PyNodeType.__module__ = module.__name__
+            setattr( module, pyNodeTypeName, PyNodeType )
+            
+    PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
+    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
 
-#def pluginUnloadedCallback( module ):               
-#    def pluginUnloadedCB(pluginName):
-#        print "Plugin unloaded", pluginName
-#        commands = cmds.pluginInfo(pluginName, query=1, command=1)
-#        if commands:
-#            for funcName in commands:
-#                print "removing command", funcName
-#
-#                    
-#    return pluginUnloadedCB
+    module.api.addMayaType( mayaType )
+    
+    return PyNodeType
+
+def removePyNode( module, mayaType ):
+    pyNodeTypeName = str( util.capitalize(mayaType) )
+    PyNodeType = PyNodeNamesToPyNodes().pop( pyNodeTypeName, None )
+    PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
+    module.__dict__.pop(pyNodeTypeName,None)
+    module.api.removeMayaType( mayaType )
+
+#: dictionary of plugins and the nodes and commands they register   
+pluginData = {}
+    
+def pluginLoadedCallback( module ):
+                
+    def pluginLoadedCB(pluginName):
+        print "Plugin loaded", pluginName
+        commands = cmds.pluginInfo(pluginName, query=1, command=1)
+        pluginData[pluginName] = {}
+        
+        # Commands
+        if commands:
+            pluginData[pluginName]['commands'] = commands
+            print "adding new commands:", commands
+            for funcName in commands:
+                #print "adding new command:", funcName
+                cmdlist[funcName] = getCmdInfoBasic( funcName )
+                func = functionFactory( funcName )
+                try:
+                    if func:
+                        setattr( module, funcName, func )
+                    else:
+                        print "failed to create function"
+                except Exception, msg:
+                    print "exception", msg
+        
+        # Nodes          
+        mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
+        #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
+        if mayaTypes :
+            pluginData[pluginName]['dependNodes'] = mayaTypes
+            print "adding new nodes:", ', '.join( mayaTypes )
+            
+            for mayaType in mayaTypes:
+                inheritance = getInheritance( mayaType )
+                
+                #print "adding new node:", mayaType, apiEnum, inheritence
+                # some nodes in the hierarchy for this node might not exist, so we cycle through all 
+                parent = 'dependNode'
+                for node in inheritance:
+                    addPyNode( module, node, parent )
+                    parent = node
+                    
+    return pluginLoadedCB
+
+def pluginUnloadedCallback( module ):               
+    def pluginUnloadedCB(pluginName):
+        print "Plugin unloaded", pluginName
+        try:
+            data = pluginData.pop(pluginName)
+        except KeyError: pass
+        else:
+            # Commands
+            commands = data.pop('commands', [])
+            print "removing commands:", ', '.join( commands )
+            for command in commands:
+                #print "removing command", command
+                try:
+                    module.__dict__.pop(command)
+                except KeyError:
+                    print "Failed to remove %s from module %s" % (command, module.__name__) 
+                            
+            # Nodes
+            nodes = data.pop('dependNodes', [])
+            print "removing nodes:", ', '.join( nodes )
+            for node in nodes:
+                removePyNode( module, node )
+    return pluginUnloadedCB
+
+global pluginLoadedCB
+global pluginUnloadedCB
+pluginLoadedCB = None
+pluginUnloadedCB = None
 
 def installCallbacks(module):
-    print "adding plugin callbacks"
-    cmds.loadPlugin( addCallback=pluginLoadedCallback(module) )
-    #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
+    
+    global pluginLoadedCB
+    if pluginLoadedCB is None:
+        print "adding pluginLoaded callback"
+        pluginLoadedCB = pluginLoadedCallback(module)
+        cmds.loadPlugin( addCallback=pluginLoadedCB )
+        
+    else:
+        print "pluginLoaded callback already exists"
+    
+    global pluginUnloadedCB
+    if pluginUnloadedCB is None:
+        print "adding pluginUnloaded callback"
+        pluginUnloadedCB = pluginUnloadedCallback(module)
+        #unloadPlugin has a bug which prevents it from using python objects, so we use our mel wrapper instead
+        unloadCBStr = util.melToPythonWrapper( pluginUnloadedCB, procName='pluginUnloadedProc' )
+        cmds.unloadPlugin( addCallback=unloadCBStr )
+    else:
+        print "pluginUnloaded callback already exists"
 
+    # add commands and nodes for plugins loaded prior to importing pymel
+    preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
+    if preLoadedPlugins:
+        print "Updating pymel with pre-loaded plugins:", ', '.join( preLoadedPlugins )
+        for plugin in preLoadedPlugins:
+            pluginLoadedCB( plugin )

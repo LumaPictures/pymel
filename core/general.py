@@ -15,13 +15,14 @@ except ImportError:
     pass
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
-import factories as _factories
-from factories import queryflag, editflag, createflag
+import pymel.mayahook.factories as _factories
+from pymel.mayahook.factories import queryflag, editflag, createflag
 import pymel.api as api
 import system
 from system import namespaceInfo
 from pmtypes.mayatypes import *
 from pmtypes.ranges import *
+import pmtypes.path as _path
 from pymel.util.nameparse import *
 
 
@@ -33,19 +34,39 @@ longNames = False
 #--------------------------    
 
 
+#class MelGlobals(object):
+#    """
+#    melGlobals('string[]')['$myVar'] = ['one', 'two', 'three']
+#    """
+#    melTypes = ['string', 'int', 'float', 'vector']
+#    #def __init__(self):
+#    
+#    def __getitem__(self, var ):
+#        for type in MelGlobals.melTypes:
+#            for ext in ['', '[]']:
+#                try:
+#                    return getMelGlobal( type+ext, var)
+#                except RuntimeError:
+#                    pass
+
+                  
 def getMelGlobal( type, name ):
     """get a mel global variable""" 
     if not name.startswith( '$'):
         name = '$' + name
     ret_type = type
     decl_name = name
+    
     if type.endswith('[]'):
         type = type[:-2]
+        proc_name = 'pymel_get_global_' + type + 'Array'
         if not decl_name.endswith('[]'):
             decl_name += '[]'
+    else:
+        proc_name = 'pymel_get_global_' + type
         
-    cmd = "global proc %s pymel_get_global() { global %s %s; return %s; } pymel_get_global();" % (ret_type, type, decl_name, name )
-    #print cmd
+    cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, name, proc_name )
+    print cmd
     return mm.eval( cmd  )
 
 def setMelGlobal( type, name, value ):
@@ -138,10 +159,31 @@ class Mel(object):
         #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
         mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
         
-    def source( self, script ):
-        """use this to source mel scripts from within mel"""
-        mm.eval( """source "%s";""" % script )
+    def source( self, script, language='mel' ):
+        """use this to source mel or python scripts.
+        language : 'mel', 'python'
+            When set to 'python', the source command will look for the python equivalent of this mel file, if
+            it exists, and attempt to import it. This is particularly useful when transitioning from mel to python
+            via mel2py, with this simple switch you can change back and forth from sourcing mel to importing python.
+            
+        """
         
+        if language == 'mel':
+            mm.eval( """source "%s";""" % script )
+            
+        elif language == 'python':
+            script = _path.path( script )
+            modulePath = script.namebase
+            folder = script.parent
+            print modulePath
+            if not sys.modules.has_key(modulePath):
+                print "importing"
+                module = __import__(modulePath, globals(), locals(), [''])
+                sys.modules[modulePath] = module
+            
+        else:
+            raise TypeError, "language keyword expects 'mel' or 'python'. got '%s'" % language
+            
     def eval( self, command ):
         mm.eval( command )    
     
@@ -1151,16 +1193,16 @@ metaNode = _factories.metaNode
 
 
                                 
-def spaceLocator(*args, **kwargs):
-    """
-Modifications:
-    - returns a locator instead of a list with a single locator
-    """
-    res = cmds.spaceLocator(**kwargs)
-    try:
-        return Transform(res[0])
-    except:
-        return res
+#def spaceLocator(*args, **kwargs):
+#    """
+#Modifications:
+#    - returns a locator instead of a list with a single locator
+#    """
+#    res = cmds.spaceLocator(**kwargs)
+#    try:
+#        return Transform(res[0])
+#    except:
+#        return res
     
 def instancer(*args, **kwargs):
     """
@@ -3316,168 +3358,7 @@ class ObjectSet(Entity):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-
-# PyNode types names (as str)
-class PyNodeNamesToPyNodes(Singleton, dict):
-    """ Lookup from PyNode type name to PyNode type """
-
-class PyNodeTypesHierarchy(Singleton, dict):
-    """child:parent lookup of the pymel classes that derive from DependNode"""
- 
-def addPyNode( module, mayaType, parentMayaType, apiEnum=None ):
-    
-    #print "addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module)
-    # unicode is not liked by metaNode
-    pyNodeTypeName = str( util.capitalize(mayaType) )
-    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
-    if hasattr( module, pyNodeTypeName ):
-        PyNodeType = getattr( module, pyNodeTypeName )
-        try :
-            ParentPyNode = inspect.getmro(PyNodeType)[1]
-            if ParentPyNode.__name__ != parentPyNodeTypeName :
-                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
-        except :
-            ParentPyNode = getattr( module, parentPyNodeTypeName )
-        #print "already exists:", pyNodeTypeName, 
-    else:
-        try:
-            ParentPyNode = getattr( module, parentPyNodeTypeName )
-        except AttributeError:
-            print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
-            return      
-        try:
-            PyNodeType = metaNode(pyNodeTypeName, (ParentPyNode,), {})
-        except TypeError, msg:
-            print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, parentMayaType, msg )
-            #pass
-        else:
-            #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
-            PyNodeType.__module__ = module.__name__
-            setattr( module, pyNodeTypeName, PyNodeType )
-            
-    PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
-    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
-
-    if not module.api.PyNodesToApiTypes().has_key(PyNodeType):
-        module.api.addMayaType( mayaType, apiEnum=apiEnum, PyNodeType=PyNodeType )
-    
-    return PyNodeType
-
-def removePyNode( module, mayaType ):
-    pyNodeTypeName = str( util.capitalize(mayaType) )
-    PyNodeType = PyNodeNamesToPyNodes().pop( pyNodeTypeName, None )
-    PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
-    module.__dict__.pop(pyNodeTypeName,None)
-    module.api.removeMayaType( mayaType )
-
-#: dictionary of plugins and the nodes and commands they register   
-pluginData = {}
-    
-def pluginLoadedCallback( module ):
-                
-    def pluginLoadedCB(pluginName):
-        print "Plugin loaded", pluginName
-        commands = cmds.pluginInfo(pluginName, query=1, command=1)
-        pluginData[pluginName] = {}
-        
-        # Commands
-        if commands:
-            pluginData[pluginName]['commands'] = commands
-            print "adding new commands:", commands
-            for funcName in commands:
-                #print "adding new command:", funcName
-                _factories.cmdlist[funcName] = _factories.getCmdInfoBasic( funcName )
-                func = _factories.functionFactory( funcName )
-                try:
-                    if func:
-                        setattr( module, funcName, func )
-                    else:
-                        print "failed to create function"
-                except Exception, msg:
-                    print "exception", msg
-        
-        # Nodes          
-        mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
-        apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
-        if mayaTypes and apiEnums:
-            pluginData[pluginName]['dependNodes'] = mayaTypes
-            print "adding new nodes:", mayaTypes
-            
-            for mayaType, apiEnum in zip( mayaTypes, apiEnums ):
-                inheritance = _factories.getInheritance( mayaType )
-                
-                #print "adding new node:", mayaType, apiEnum, inheritence
-                # some nodes in the hierarchy for this node might not exist, so we cycle through all 
-                parent = 'dependNode'
-                for node in inheritance:
-                    if node == mayaType:
-                        addPyNode( module, node, parent )
-                    else:
-                        addPyNode( module, node, parent, apiEnum )
-                    parent = node
-                    
-    return pluginLoadedCB
-
-def pluginUnloadedCallback( module ):               
-    def pluginUnloadedCB(pluginName):
-        print "Plugin unloaded", pluginName
-        try:
-            data = pluginData.pop(pluginName)
-        except KeyError: pass
-        else:
-            # Commands
-            commands = data.pop('commands', [])
-            print "removing commands:", commands
-            for command in commands:
-                #print "removing command", command
-                try:
-                    module.__dict__.pop(command)
-                except KeyError:
-                    print "Failed to remove %s from module %s" % (command, module.__name__) 
-                            
-            # Nodes
-            nodes = data.pop('dependNodes', [])
-            print "removing nodes:", nodes
-            for node in nodes:
-                removePyNode( module, node )
-    return pluginUnloadedCB
-
-global pluginLoadedCB
-global pluginUnloadedCB
-pluginLoadedCB = None
-pluginUnloadedCB = None
-
-def installCallbacks(module):
-    
-    global pluginLoadedCB
-    if pluginLoadedCB is None:
-        print "adding pluginLoaded callback"
-        pluginLoadedCB = pluginLoadedCallback(module)
-        cmds.loadPlugin( addCallback=pluginLoadedCB )
-        
-    else:
-        print "pluginLoaded callback already exists"
-    
-    global pluginUnloadedCB
-    if pluginUnloadedCB is None:
-        print "adding pluginUnloaded callback"
-        pluginUnloadedCB = pluginUnloadedCallback(module)
-        #unloadPlugin has a bug which prevents it from using python objects, so we use our mel wrapper instead
-        unloadCBStr = util.melToPythonWrapper( pluginUnloadedCB, procName='pluginUnloadedProc' )
-        cmds.unloadPlugin( addCallback=unloadCBStr )
-    else:
-        print "pluginUnloaded callback already exists"
-
-    # add commands and nodes for plugins loaded prior to importing pymel
-    preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
-    if preLoadedPlugins:
-        print "Updating pymel with pre-loaded plugins:", preLoadedPlugins
-        for plugin in preLoadedPlugins:
-            pluginLoadedCB( plugin )
               
-    # the unloadPlugin
-    #cmds.unloadPlugin( addCallback=pluginUnloadedCallback(module) ) # does not execute python callbacks, only mel
-
         
 def _createPyNodes():
     #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
@@ -3485,8 +3366,8 @@ def _createPyNodes():
     # see if breadth first isn't more practical ?
     
     # reset cache
-    PyNodeTypesHierarchy({})
-    PyNodeNamesToPyNodes({})
+    _factories.PyNodeTypesHierarchy({})
+    _factories.PyNodeNamesToPyNodes({})
     
     for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
@@ -3501,17 +3382,8 @@ def _createPyNodes():
             print "could not find parent node", mayaType
             continue
         
-        addPyNode( _thisModule, mayaType, parentMayaType )
+        _factories.addPyNode( _thisModule, mayaType, parentMayaType )
 
-        #    print "No API type exists for maya type '%s'" % MayaType
-        #else:
-        #    print "already created", classname
-    # Would be good to limit special treatments
-    api.PyNodesToApiTypes()[PyNode] = 'kBase'
-    api.ApiTypesToPyNodes()['kBase'] = PyNode
-    api.PyNodesToApiTypes()[DependNode] = 'kDependencyNode'
-    api.ApiTypesToPyNodes()['kDependencyNode'] = DependNode
-    
 
 
 # Initialize Pymel classes to API types lookup
@@ -3521,40 +3393,17 @@ elapsed = time.time() - startTime
 print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
 
-# Build a dictionnary of api types and parents to represent the MFn class hierarchy
-#def _buildPyNodeTypesHierarchy () :    
-#    pyNodeTree = inspect.getclasstree([k for k in api.PyNodesToApiTypes().keys()])
-#    pyNodeDict = {}
-#    for x in util.expandArgs(pyNodeTree, type='list') :
-#        try :
-#            ct = x[0]
-#            pt = x[1][0]
-#            if issubclass(ct, PyNode) and issubclass(pt, PyNode) :
-#                pyNodeDict[ct] = pt
-#        except :
-#            pass
-#
-#    return pyNodeDict 
-
-# Initialize the Pymel class tree
-# PyNodeTypesHierarchy(buildPyNodeTypesHierarchy())
-#startTime = time.time()
-#PyNodeTypesHierarchy(_buildPyNodeTypesHierarchy())
-#elapsed = time.time() - startTime
-#print "Initialized Pymel PyNode classes hierarchy tree in %.2f sec" % elapsed
-
-
 def isValidMayaType (arg):
     return api.MayaTypesToApiTypes().has_key(arg)
 
 def isValidPyNode (arg):
-    return PyNodeTypesHierarchy().has_key(arg)
+    return _factories.PyNodeTypesHierarchy().has_key(arg)
 
 def isValidPyNodeName (arg):
-    return PyNodeNamesToPyNodes().has_key(arg)
+    return _factories.PyNodeNamesToPyNodes().has_key(arg)
 
 def mayaTypeToPyNode( arg, default=None ):
-    return PyNodeNamesToPyNodes().get( util.capitalize(arg), default )
+    return _factories.PyNodeNamesToPyNodes().get( util.capitalize(arg), default )
     
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):

@@ -1,4 +1,4 @@
 
-import factories as _factories
+import pymel.mayahook.factories as _factories
 import general
 _factories.createFunctions( __name__, general.PyNode )

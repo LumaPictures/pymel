@@ -25,9 +25,9 @@ import pymel.util as util
 import pymel.mayahook as mayahook
 import pickle, os.path
 
-# TODO : would need this shared as a Singleton class, but importing from factories anywhere 
+# TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
-#from factories import NodeHierarchy
+#from pymel.mayahook.factories import NodeHierarchy
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
@@ -74,26 +74,14 @@ def isValidMNodeOrPlug (obj):
 # Maya static info :
 # Initializes various static look-ups to speed up Maya types conversions
 
-# this dictionary is filled in core.general
-class PyNodesToApiTypes(Singleton, dict) :
-    """Lookup of Pymel Nodes to corresponding Maya API types"""
-
-
-# this dictionary is filled in core.general. (some Maya API types won't have a PyNode equivalent)
-class ApiTypesToPyNodes(Singleton, dict) :
-    """Lookup of Maya API types to corresponding Pymel Nodes"""
 
      
 class ApiTypesToApiEnums(Singleton, dict) :
     """Lookup of Maya API types to corresponding MFn::Types enum"""
     
-ApiTypesToApiEnums(dict(inspect.getmembers(MFn, lambda x:type(x) is int)))
-
-
 class ApiEnumsToApiTypes(Singleton, dict) :
     """Lookup of MFn::Types enum to corresponding Maya API types"""
 
-ApiEnumsToApiTypes(dict((ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()))
 
 # Reserved Maya types and API types that need a special treatment (abstract types)
 # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
@@ -189,20 +177,16 @@ def mayaTypeToApiType (mayaType) :
         return apiType                      
 
 
-def addMayaType(mayaType, apiType=None, apiEnum=None, PyNodeType=None ) :
+def addMayaType(mayaType, apiType=None ) :
     """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for. """
 
-    if apiEnum:         
-        MayaTypesToApiEnums()[mayaType] = apiEnum
-        if not ApiEnumsToMayaTypes().has_key(apiEnum) :
-            ApiEnumsToMayaTypes()[apiEnum] = { mayaType : None }
-        else:
-            ApiEnumsToMayaTypes()[apiEnum][mayaType] = None 
-    
+
     if apiType is None:
-        apiType = mayaTypeToApiType(mayaType)
+        apiType = mayaTypeToApiType(mayaType)   
         
     if apiType is not 'kInvalid' :
+        
+        apiEnum = getattr( MFn, apiType )
         
         defType = ReservedMayaTypes().has_key(mayaType)
         
@@ -211,17 +195,15 @@ def addMayaType(mayaType, apiType=None, apiEnum=None, PyNodeType=None ) :
             ApiTypesToMayaTypes()[apiType] = { mayaType : defType }
         else :
             ApiTypesToMayaTypes()[apiType][mayaType] = defType
-
-        if PyNodeType:
-            PyNodesToApiTypes()[PyNodeType] = apiType
-            if not ApiTypesToPyNodes().has_key(apiType) :
-                ApiTypesToPyNodes()[apiType] = { PyNodeType : defType } 
-            else :
-                ApiTypesToPyNodes()[apiType][PyNodeType] = defType
         
-        if apiEnum:   
-            ApiTypesToApiEnums()[apiType] = apiEnum
-            ApiEnumsToApiTypes()[apiEnum] = apiType
+        ApiTypesToApiEnums()[apiType] = apiEnum
+        ApiEnumsToApiTypes()[apiEnum] = apiType
+        
+        MayaTypesToApiEnums()[mayaType] = apiEnum
+        if not ApiEnumsToMayaTypes().has_key(apiEnum) :
+            ApiEnumsToMayaTypes()[apiEnum] = { mayaType : None }
+        else:
+            ApiEnumsToMayaTypes()[apiEnum][mayaType] = None 
         
 def removeMayaType( mayaType ):
     try:
@@ -291,7 +273,7 @@ def buildMayaTypesList() :
     # add new types
     for mayaType, apiType in ReservedMayaTypes().items() :
          if not MayaTypesToApiTypes().has_key(mayaType) :
-             addMayaType( mayaType, apiType=apiType )
+             addMayaType( mayaType, apiType )
     elapsed = time.time() - start
     print "Updated Maya types list in %.2f sec" % elapsed
 
@@ -301,15 +283,11 @@ buildMayaTypesList()
 class MayaTypesToApiEnums(Singleton, dict) :
     """Lookup from Maya types to API MFn::Types enums """
 
-MayaTypesToApiEnums((k, ApiTypesToApiEnums()[MayaTypesToApiTypes()[k]]) for k in MayaTypesToApiTypes().keys())
-
-
 #: lookup tables for a direct conversion between API type to their MFn::Types enum 
 class ApiEnumsToMayaTypes(Singleton, dict) :
     """Lookup from API MFn::Types enums to Maya types """
 
-ApiEnumsToMayaTypes((MayaTypesToApiEnums()[k], k) for k in MayaTypesToApiEnums().keys())  
-  
+ 
 # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
 # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
 
@@ -667,9 +645,6 @@ def apiToNodeType (*args) :
         return result[0]
     else :
         return tuple(result)
-
-def apiTypeToPyNode( arg, default=None ):
-    return ApiTypesToPyNodes().get(arg, default)
 
 # Converting API MObjects and more
 

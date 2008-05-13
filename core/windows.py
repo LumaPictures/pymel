@@ -62,7 +62,7 @@ try:
 except ImportError: pass
 
 import pymel.util as util
-import factories as _factories
+import pymel.mayahook.factories as _factories
     
 #-----------------------------------------------
 #  Enhanced UI Commands
