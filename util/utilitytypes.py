@@ -61,6 +61,30 @@ except:
             return 'defaultdict(%s, %s)' % (self.default_factory,
                                             dict.__repr__(self))
 
+class defaultlist(list):
+
+    def __init__(self, default_factory, *args, **kwargs ): 
+        if (default_factory is not None and
+            not hasattr(default_factory, '__call__')):
+            raise TypeError('first argument must be callable')
+        list.__init__(self,*args, **kwargs)
+        self.default_factory = default_factory
+        
+    def __setitem__( self, index, item ):
+        try:
+            list.__setitem__(self, index, item)
+        except IndexError:
+            diff = index - len(self) - 1
+            assert diff > 0
+            self.extend( [self.default_factory() ] * diff + [item] )
+            
+    def __getitem__(self, index):
+        try:
+            return list.__getitem__(self, index)
+        except IndexError:
+            return self.default_factory()
+
+
 class ModuleInterceptor(object):
     """
     This class is used to intercept an unset attribute of a module to perfrom a callback. The
