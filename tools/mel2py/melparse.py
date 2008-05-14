@@ -143,7 +143,8 @@ def format_source(x, t):
 proc_remap = { 
 
 		# strings
-		'capitalizeString' 		: ('string', lambda x, t: '%s.capitalize()' 	% (x[0]) ),	
+		#'capitalizeString' 		: ('string', lambda x, t: '%s.capitalize()' 	% (x[0]) ), # not equiv
+		'capitalizeString' 		: ('string', lambda x, t: '%sutil.capitalize(%s)' 	% (t.lexer.pymel_namespace,x[0]) ),	
 		'strip' 				: ('string', lambda x, t: '%s.strip()' 		% (x[0]) ),	
 		'appendStringArray' 	: ( None ,   lambda x, t: '%s += %s[:%s]' 		% (x[0],x[1],x[2]) ),	
 		'stringArrayToString' 	: ('string', lambda x, t: '%s.join(%s)' 		% (x[1],x[0]) ),	
@@ -175,7 +176,7 @@ proc_remap = {
 		'catchQuiet'			: ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),	
 
 		# system
-		'system'				: ( None ,   lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
+		'system'				: ( 'int' ,   lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		'exec'					: ( None ,   lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		'getenv'				: ( 'string', lambda x, t: ( 'os.environ[ %s ]' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		# NOTE : this differs from mel equiv bc it does not return a value
@@ -266,6 +267,13 @@ melCmdFlagList = {
 #: mel commands which were not ported to python; if we find one of these in pymel, we'll assume it's a replacement
 melCmdList = ['abs', 'angle', 'ceil', 'chdir', 'clamp', 'clear', 'constrainValue', 'cos', 'cross', 'deg_to_rad', 'delrandstr', 'dot', 'env', 'erf', 'error', 'exec', 'exists', 'exp', 'fclose', 'feof', 'fflush', 'fgetline', 'fgetword', 'filetest', 'floor', 'fmod', 'fopen', 'fprint', 'fread', 'frewind', 'fwrite', 'gamma', 'gauss', 'getenv', 'getpid', 'gmatch', 'hermite', 'hsv_to_rgb', 'hypot', 'linstep', 'log', 'mag', 'match', 'max', 'min', 'noise', 'pclose', 'popen', 'pow', 'print', 'putenv', 'pwd', 'rad_to_deg', 'rand', 'randstate', 'rgb_to_hsv', 'rot', 'seed', 'sign', 'sin', 'size', 'sizeBytes', 'smoothstep', 'sort', 'sphrand', 'sqrt', 'strcmp', 'substitute', 'substring', 'system', 'tan', 'tokenize', 'tolower', 'toupper', 'trace', 'trunc', 'unit', 'warning', 'whatIs'] # 
 melCmdList = [ x for x in melCmdList if not proc_remap.has_key(x) and ( hasattr(pymel,x) or hasattr(builtin_module,x) ) ]
+
+mel_type_to_python_type = {
+	'string' 	: 'str',
+	'int'	 	: 'int',
+	'float'		: 'float',
+	'vector'	: 'Vector'
+	}
 
 tag = '# script created by pymel.melparse.mel2py'
 currentFiles = []
@@ -580,9 +588,11 @@ def p_declaration_statement(t):
 		
 		if '[]' in var:		
 			iType = typ + '[]'
+			array = True
 		else:
 			iType = typ
-
+			array = False
+			
 		# this must occur after the bracket check, bc the globalVar attribute never includes brackets
 		try:
 			var = var.globalVar
@@ -596,7 +606,7 @@ def p_declaration_statement(t):
 				
 			# non -array intitialization
 			try:
-				init = { 
+				val = { 
 					'string': "''",
 					'int':	'0',
 					'float': '0.0',
@@ -606,15 +616,20 @@ def p_declaration_statement(t):
 			# array initialization
 			except KeyError:
 				assert '[]' in iType
-				init = '[]'
-				
+				if t.lexer.force_compatibility:
+					val = '%sutil.defaultlist(%s)' % ( t.lexer.pymel_namespace, 
+													 mel_type_to_python_type[typ] )
+				else:
+					val = '[]'
+			
+			t.lexer.type_map[var] = iType
+			
 			# global variable -- overwrite init	
 			if isGlobal:
-				
-				t.lexer.type_map[var] = iType
-					
+	
 				t.lexer.global_vars.add( var )
 				
+				# this is the old method, leaving here in case we want to add a switch
 				if False:
 					t[0] += 'global %s\n' % var				
 					if includeGlobalVar( var):	
@@ -623,8 +638,7 @@ def p_declaration_statement(t):
 					t[0] += "%smelGlobals.initVar( '%s', '%s' )\n" % ( t.lexer.pymel_namespace, iType, var )
 			
 			else:
-				t.lexer.type_map[var] = iType
-				t[0] += '%s = %s\n' % (var, init)	
+				t[0] += var + '=' + val + '\n'
 		
 		# initialize to value	
 		else:
@@ -636,16 +650,12 @@ def p_declaration_statement(t):
 				if val.tokenize:
 					t[0] += format_tokenize_size(val,var)
 
-			except:					
-				#for i,elem in enumerate(declaration):
-				#	declaration[i] = elem.strip()
-				#	if declaration[i].endswith('[]'):
-				#		declaration[i] = declaration[i][:-2]
+			except:
 
 				val = val.strip()
 				if val.endswith('[]') and val != '[]':
 					val.strip('[]')	
-					
+						
 				t.lexer.type_map[var] = iType
 				
 				if isGlobal:
@@ -657,20 +667,17 @@ def p_declaration_statement(t):
 						t[0] += 'global %s\n' % var 
 						t[0] += '%s=%s\n' % (var, val)
 						if includeGlobalVar( var):
-							t[0] += "%ssetMelGlobal( '%s', '%s', %s )\n" % ( t.lexer.pymel_namespace, iType, var, var)
-		
+							t[0] += "%ssetMelGlobal( '%s', '%s', %s )\n" % ( t.lexer.pymel_namespace, iType, var, var)		
 					else:
-						t[0] += "%smelGlobals.set( '%s', '%s', %s )\n" % ( t.lexer.pymel_namespace, iType, var, val)
+						t[0] += "%smelGlobals.initVar( '%s', '%s' )\n" % ( t.lexer.pymel_namespace, iType, var )
+						t[0] += "%smelGlobals['%s'] = %s\n" % ( t.lexer.pymel_namespace, var, val)
 						
-#					for global_var in declaration[:-1]:
-#						#print "set mel global var", global_var
-#						t.lexer.global_vars.add(global_var)
-#						
-#						t[0] += 'global %s\n' % global_var 
-#						t[0] += '%s=%s\n' % (global_var, declaration[-1])
-#						if includeGlobalVar( global_var):
-#							t[0] += "setMelGlobal( '%s', '%s', %s )\n" % ( typ, global_var, global_var)
 				else:
+					if array and t.lexer.force_compatibility:
+						val = '%sutil.defaultlist(%s, %s)' % ( t.lexer.pymel_namespace, 
+													 mel_type_to_python_type[typ],
+													 val )
+					
 					t[0] += var + '=' + val + '\n'
 			
 			
@@ -1412,12 +1419,6 @@ def p_logical_and_expression_1(t):
 	t[0] = assemble(t, 'p_logical_and_expression', ' ')
 
 
-mel_type_to_python_type = {
-	'string' 	: 'str',
-	'int'	 	: 'int',
-	'float'		: 'float',
-	'vector'	: 'Vector'
-	}
 
 
 # assigment_expression:
@@ -1433,30 +1434,48 @@ def p_assignment_expression(t):
 		
 		t[3] = format_assignment_value( t[3], t[1].type )
 				
-		try:
-			if t[3].tokenize:
-				t[0] = format_tokenize_size(t[3],t[1])
+		if hasattr( t[3], 'tokenize' ):
+			t[0] = format_tokenize_size(t[3],t[1])
 
-		except: 
+		else: 
 				
 			# remove array brackets:  string[]
 			if t[2] and t[1].endswith('[]'):
 				raise NotImplementedError, "I didn't think we'd make it here. the line below seems very wrong."
 				#t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
 
-			if t.lexer.expression_only and t[2] in ['=',' = ']:
-					raise TypeError, "This mel code is not capable of being translated as a python expression"
-	
-			# fill in the append string:  
-			#	start:		$foo[size($foo)] = $bar
-			#	stage1:		foo[len(foo)] = bar 
-			#	stage2:		foo.append(%s) = bar
-			#	stage3:		foo.append(bar)
+			if t[2] in t[2] in ['=',' = ']:
+				
+				if t.lexer.expression_only:
+						raise TypeError, "This mel code is not capable of being translated as a python expression"
 		
-			elif t[2] in ['=',' = '] and t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
-				t[0] = t[1] % t[3]
-			elif t[1].endswith('[%s]'):
-				t[0] = t[1] % t[3]
+				# fill in the append string:  
+				#	start:		$foo[size($foo)] = $bar
+				#	stage1:		foo[len(foo)] = bar 
+				#	stage2:		foo.append(%s) = bar
+				#	stage3:		foo.append(bar)
+			
+				if hasattr( t[1], 'appendingToArray' ):
+					var = t[1].appendingToArray
+					if hasattr( t[1], 'globalVar' ):
+						t[0] = '%s += [%s]' % ( var, t[3] )
+					else:
+						t[0] = '%s.append(%s)' % ( var, t[3] )
+				
+				try:
+					# setting item on a global array
+					if t[1].globalVar:
+						var, expr = t[1].indexingItem
+						t[0] = var + '.setItem(%s,%s)' % ( expr, t[3])
+				except AttributeError: pass
+				
+#				elif t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
+#					t[0] = t[1] % t[3]
+#					
+#					
+#				elif t[1].endswith(' += [%s]'): # replaced below due to a var[len(var)], special case for global variables
+#					t[0] = t[1] % t[3]
+				
 			else:
 				t[0] = assemble(t, 'p_assignment_expression')
 				t[0].assignment = t[1]
@@ -1558,10 +1577,9 @@ def p_cast_expression(t):
 	'''cast_expression : unary_expression
 						| unary_command_expression
 						| type_specifier LPAREN expression RPAREN
-						| LPAREN type_specifier RPAREN cast_expression'''
-
-			
+						| LPAREN type_specifier RPAREN cast_expression'''	
 	# (int)myvar
+	
 	if len(t) == 5 and t[1] == '(':
 		t[0] =  Token( '%s(%s)' % (mel_type_to_python_type[ t[2] ], t[4]) , t[2].type  )
 		# skip assemble
@@ -1724,14 +1742,18 @@ def p_postfix_expression_4(t):
 							
 	# array element index:
 	# $var[2-4]
+	type = t[1].type
 	t[3] = store_assignment_spillover( t[3], t )
 	if not t[3]:
 		t[0] = t[1]
 	elif t[3] == 'len(%s)' % t[1]:
-		if hasattr( t[1], 'globalVar' ):
-			t[0] = t[1] + ' += [%s]'
-		else:
-			t[0] = t[1] + '.append(%s)'
+		t[0] = t[1] + '[' + t[3] + ']'
+		t[0].appendingToArray = str(t[1])
+		
+		#if hasattr( t[1], 'globalVar' ):
+		#	t[0] = t[1] + ' += [%s]'
+		#else:
+		#	t[0] = t[1] + '.append(%s)'
 	else:
 		lenSubtractReg = re.compile( 'len\(%s\)\s*(-)' % t[1] )
 		try:
@@ -1739,7 +1761,15 @@ def p_postfix_expression_4(t):
 			t[0] = t[1] + '[%s]' % (''.join(lenSubtractReg.split( t[3] )) )  
 		except:
 			t[0] = t[1] + '[%s]' % ( t[3] )
-		
+	
+	# type is no longer an array
+	try:
+		t[0].type = type.strip('[]')
+	except AttributeError: pass
+	
+	if hasattr( t[1], 'globalVar' ):
+		t[0].indexingItem = ( t[1], t[3] )
+	
 # primary-expression:
 def p_primary_expression_paren(t):
 	'''primary_expression :	LPAREN expression RPAREN'''
@@ -2489,7 +2519,8 @@ parser = yacc.yacc(method='''LALR''', debug=0)
 
 class MelParser(object):
 	"""The MelParser class around which all other mel2py functions are based."""
-	def build(self, rootModule = None, pymelNamespace='', verbosity=0, addPymelImport=True, expressionsOnly=False ):
+	def build(self, rootModule = None, pymelNamespace='', verbosity=0, 
+			  addPymelImport=True, expressionsOnly=False, forceCompatibility=True ):
 		self.lexer = lexer.clone()
 			
 		self.lexer.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
@@ -2511,7 +2542,7 @@ class MelParser(object):
 		self.lexer.global_var_exclude_regex = '$'
 		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
 		self.add_pymel_import = addPymelImport
-		
+		self.lexer.force_compatibility = forceCompatibility
 		self.lexer.expression_only = expressionsOnly
 		
 	def parse(self, data):
