@@ -1109,7 +1109,7 @@ def getUICommandsWithCallbacks():
     return cmds
 
 
-def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None ):
+def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None, uiWidget=False ):
     """create a new function, apply the given returnFunc to the results (if any), 
     and add to the module given by 'moduleName'.  Use pre-parsed command documentation
     to add to __doc__ strings for the command."""
@@ -1119,33 +1119,49 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     if isinstance( funcNameOrObject, basestring ):
         funcName = funcNameOrObject
         try:
-            inFunc = getattr(module, funcName)    
+            inFunc = getattr(module, funcName)
+            #if funcName in moduleCmds['windows']: print "function %s found in module %s: %s" % ( funcName, module.__name__, inFunc.__name__)
+
         except AttributeError:
             try:
                 inFunc = getattr(cmds,funcName)
+                #if funcName in moduleCmds['windows']: print "function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__)
             except AttributeError:
                 return
     else:
         funcName = funcNameOrObject.__name__
         inFunc = funcNameOrObject
 
+                   
     cmdInfo = cmdlist[funcName]
     funcType = type(inFunc)
+    
+
+    
     # if the function is not a builtin and there's no return command to map, just add docs
     if funcType == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
+        inFunc.__name__ = funcName
         if cmdInfo['type'] != 'runtime':
             _addCmdDocs( inFunc, inFunc, cmdInfo )
         if rename: inFunc.__name__ = rename
         return inFunc
     
     elif funcType == types.BuiltinFunctionType or ( funcType == types.FunctionType and returnFunc ):                    
+        try:
             
+            newFuncName = inFunc.__name__
+            if funcName != newFuncName:
+                print "Function found in module %s has different name than desired: %s != %s. simple fix? %s" % ( inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None)
+                return
+        except AttributeError:
+            pass
+      
         #----------------------------        
         # UI commands with callbacks
         #----------------------------
         
-        if funcName in moduleCmds['windows']:
+        if uiWidget: #funcName in moduleCmds['windows']:
             # wrap ui callback commands to ensure that the correct types are returned.
             # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
             if funcName.startswith('float'):
@@ -1162,7 +1178,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             else:
                 commandFlags = []
                     
-            #print inFunc.__name__, commandFlags        
+            #print funcName, inFunc.__name__, commandFlags
+                  
             def newFunc( *args, **kwargs):
                 for key in commandFlags:
                     try:
@@ -1216,14 +1233,15 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         # Others
         #-----------
         else:
-            def newFunc(*args, **kwargs): return apply(inFunc, args, kwargs)
- 
+            def newFunc(*args, **kwargs):
+                return apply(inFunc, args, kwargs)
+            
         _addCmdDocs( inFunc, newFunc, cmdInfo )
 
         if rename: 
             newFunc.__name__ = rename
         else:
-            newFunc.__name__ = inFunc.__name__
+            newFunc.__name__ = funcName
             
         return newFunc
     else:

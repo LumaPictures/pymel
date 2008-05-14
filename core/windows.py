@@ -111,6 +111,10 @@ Maya Bug Fix:
     
     cmds.scriptTable( *args, **kwargs )
     
+def getPanel(*args, **kwargs):
+    return util.listForNone( cmds.getPanel(*args, **kwargs ) )
+
+
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
@@ -437,7 +441,7 @@ def _createClassesAndFunctions():
             cls = getattr( _thisModule, classname )
     
         #funcName = util.uncapitalize( classname )
-        func = _factories.functionFactory( funcName, cls, _thisModule )
+        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
         if func:
             func.__module__ = __name__
             setattr( _thisModule, funcName, func )
@@ -447,10 +451,12 @@ def _createClassesAndFunctions():
     moduleShortName = __name__.split('.')[-1]
     for funcName in _factories.moduleCmds[ moduleShortName ] :
         if funcName not in _factories.uiClassList:
+            #print "bad stuff", funcName
+            #func = None
             func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
-        if func:
-            func.__module__ = __name__
-            setattr( _thisModule, funcName, func )
+            if func:
+                func.__module__ = __name__
+                setattr( _thisModule, funcName, func )
             
 _createClassesAndFunctions()
 
