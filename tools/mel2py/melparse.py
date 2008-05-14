@@ -1444,30 +1444,27 @@ def p_assignment_expression(t):
 				raise NotImplementedError, "I didn't think we'd make it here. the line below seems very wrong."
 				#t[0] = ' '.join( [ t[1][:-2], t[1], t[2] ] )
 
-			if t[2] in t[2] in ['=',' = ']:
-				
-				if t.lexer.expression_only:
-						raise TypeError, "This mel code is not capable of being translated as a python expression"
+			elif t[2] in ['=',' = '] and  t.lexer.expression_only:
+				raise TypeError, "This mel code is not capable of being translated as a python expression"
+	
+			# fill in the append string:  
+			#	start:		$foo[size($foo)] = $bar
+			#	stage1:		foo[len(foo)] = bar 
+			#	stage2:		foo.append(%s) = bar
+			#	stage3:		foo.append(bar)
 		
-				# fill in the append string:  
-				#	start:		$foo[size($foo)] = $bar
-				#	stage1:		foo[len(foo)] = bar 
-				#	stage2:		foo.append(%s) = bar
-				#	stage3:		foo.append(bar)
+			elif hasattr( t[1], 'appendingToArray' ):
+				var = t[1].appendingToArray
+				if hasattr( t[1], 'globalVar' ):
+					t[0] = '%s += [%s]' % ( var, t[3] )
+				else:
+					t[0] = '%s.append(%s)' % ( var, t[3] )
 			
-				if hasattr( t[1], 'appendingToArray' ):
-					var = t[1].appendingToArray
-					if hasattr( t[1], 'globalVar' ):
-						t[0] = '%s += [%s]' % ( var, t[3] )
-					else:
-						t[0] = '%s.append(%s)' % ( var, t[3] )
-				
-				try:
-					# setting item on a global array
-					if t[1].globalVar:
-						var, expr = t[1].indexingItem
-						t[0] = var + '.setItem(%s,%s)' % ( expr, t[3])
-				except AttributeError: pass
+			
+			# setting item on a global array
+			elif hasattr( t[1], 'globalVar') and hasattr( t[2], 'indexingItem' ):
+				var, expr = t[1].indexingItem
+				t[0] = var + '.setItem(%s,%s)' % ( expr, t[3])
 				
 #				elif t[1].endswith('.append(%s)'):  # replaced below due to a var[len(var)]
 #					t[0] = t[1] % t[3]
