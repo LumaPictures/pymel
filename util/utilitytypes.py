@@ -3,6 +3,8 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
+import warnings
+
 class Singleton(object) :
     """
 Singleton classes can be derived from this class
@@ -135,7 +137,7 @@ class metaStatic(type) :
                     raise TypeError, "'"+classname+"' object does not support redefinition"
         # delete the setItem methods of dict we don't want (read only dictionary)
         def __getattribute__(self, name):         
-            remove = ('clear', 'update', 'pop', 'popitem')
+            remove = ('clear', 'update', 'pop', 'popitem', '__setitem__', 'append', 'extend' )
             if name in remove :
                 raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
 #            elif self.__dict__.has_key(name) :
