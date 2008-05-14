@@ -1141,10 +1141,10 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     # if the function is not a builtin and there's no return command to map, just add docs
     if funcType == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
-        inFunc.__name__ = funcName
         if cmdInfo['type'] != 'runtime':
             _addCmdDocs( inFunc, inFunc, cmdInfo )
         if rename: inFunc.__name__ = rename
+        #else: inFunc.__name__ = funcName
         return inFunc
     
     elif funcType == types.BuiltinFunctionType or ( funcType == types.FunctionType and returnFunc ):                    
@@ -1241,7 +1241,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         if rename: 
             newFunc.__name__ = rename
         else:
-            newFunc.__name__ = funcName
+            newFunc.__name__ = inFunc.__name__
             
         return newFunc
     else:
