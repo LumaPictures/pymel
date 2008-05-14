@@ -16,7 +16,7 @@ from pymel.util import unescape
 import pymel
 import pymel.util as util
 import pymel.mayahook.factories as factories
-
+import pymel.core.pmtypes.path as path
 
 
 try:
@@ -576,15 +576,20 @@ def p_declaration_statement(t):
 	
 	# each declaration is a two-element tuple: ( variable, value ) 		
 	for var, val in t[2]:
+		
+		
+		if '[]' in var:		
+			iType = typ + '[]'
+		else:
+			iType = typ
+
+		# this must occur after the bracket check, bc the globalVar attribute never includes brackets
 		try:
 			var = var.globalVar
 		except AttributeError: pass
 		
-		if '[]' in var:
-			var = var.strip().strip('[]')
-			iType = typ + '[]'
-		else:
-			iType = typ
+		# this must occur after the globalVar attribute check, bc otherwise it will convert the Token into a string
+		var = var.strip().strip('[]')
 		
 		# default initialization
 		if val is None:	
@@ -1930,6 +1935,14 @@ def findModule( moduleName ):
 #		if fullpath in currentFiles:
 #			script_to_module[name] = moduleName
 #			return moduleName
+def fileInlist( file, fileList ):
+	file = path.path(file)
+	for dir in fileList:
+		try:
+			if file.samefile( dir ): 
+				return True
+		except OSError: pass
+	return False
 						
 def _proc_to_module( t, procedure ):
 	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
@@ -1946,16 +1959,18 @@ def _proc_to_module( t, procedure ):
 		return proc_to_module[procedure]
 	
 	except KeyError:
+		
 		result = mel.whatIs( procedure )
 		buf = result.split( ':' )
 		if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-			fullpath = buf[1]
+			fullpath = buf[1].lstrip()
 			
 			moduleName = getModuleBasename(fullpath)
 			#print procedure, name
 			
 			# the mel file in which this proc is defined is being converted with this batch
-			if fullpath in currentFiles:
+			
+			if fileInlist(fullpath, currentFiles):
 				proc_to_module[procedure] = moduleName
 				return moduleName
 			
@@ -1964,8 +1979,11 @@ def _proc_to_module( t, procedure ):
 			if findModule(moduleName):
 				proc_to_module[procedure] = moduleName
 				return moduleName
-						
-						
+			
+			# if we didn't find it, set moduleName to None so we don't search again
+			proc_to_module[procedure] = None			
+			#print procedure, moduleName, fullpath.__repr__()
+			
 		#except:
 		#	#print "No help for:", command
 		#	return None

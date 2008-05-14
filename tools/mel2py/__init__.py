@@ -271,6 +271,7 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', verbosity=0 ):
 	mparser.build(currentModule, pymelNamespace=pymelNamespace, verbosity=verbosity)
 	return mparser.parse( data )
 
+
 def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	"""
 	Convert a mel script into a python script. 
@@ -283,12 +284,7 @@ def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	if only the name of the mel file is	passed, mel2py will attempt to determine the location of the file using the 'whatIs' mel command,
 	which relies on the script already being sourced by maya.
 	"""
-	
-	global currentFiles
-	
-	if not currentFiles:
-		currentFiles = [melfile]
-	
+
 	
 	melfile = path.path( melfile )
 	if not melfile.exists():
@@ -297,6 +293,20 @@ def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 			melfile = path.path( pymel.mel.whatIs( melfile ).split(': ')[-1] )
 		except:
 			pass
+	
+	if outputDir is None:
+		outputDir = melfile.parent
+	
+	#if not fileInlist(outputDir, sys.path):
+	#	print "Adding outputDir to sys.path: %s." % outputDir
+	#	sys.path.append( outputDir )
+		
+	global currentFiles
+	
+	if not currentFiles:
+		currentFiles = [str(melfile)]
+		
+		
 	data = melfile.bytes()
 	print "Converting mel script", melfile
 	converted = mel2pyStr( data, melfile.namebase, pymelNamespace=pymelNamespace, verbosity=verbosity )
@@ -304,22 +314,14 @@ def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	
 	converted = header + converted
 	
-	if outputDir is None:
-		outputDir = melfile.parent
+
 
 	pyfile = path.path(outputDir + os.sep + getModuleBasename(melfile) + '.py')	
 	print "Writing converted python script: %s" % pyfile
 	pyfile.write_bytes(converted)
 	
 
-def _fileInlist( file, fileList ):
-	file = path.path(file)
-	for dir in fileList:
-		try:
-			if file.samefile( dir ): 
-				return True
-		except OSError: pass
-	return False
+
 
 def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , test=False):
 	"""batch convert an entire directory
@@ -338,6 +340,7 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	"""
 	
 	global currentFiles
+	currentFiles = []
 	
 	if util.isIterable( processDir ):
 		for dir in processDir:
@@ -345,11 +348,8 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	else:
 		processDir = path.path(processDir)
 		currentFiles = processDir.files( '[a-zA-Z]*.mel')
-		
-	if test and outputDir and not _fileInlist(outputDir, sys.path):
-		print "Testing is enabled, but outputDir is not in sys.path. Adding %s." % outputDir
-		sys.path.append( outputDir )
 
+	print currentFiles
 	"""
 	for f in currentFiles:
 		try:
