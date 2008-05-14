@@ -36,6 +36,54 @@ longNames = False
 # TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ): 
 # using append or extend will not update the mel variable 
 class MelGlobals( util.Singleton, dict ):
+    melTypeToPythonType = {
+        'string'    : str,
+        'int'       : int,
+        'float'     : float,
+        'vector'    : Vector
+        }
+
+    class MelGlobalArray1( tuple ):
+        def __new__(cls, type, variable, *args, **kwargs ): 
+             
+            self = tuple.__new__( cls, *args, **kwargs )
+            
+            decl_name = variable
+            if type.endswith('[]'):
+                type = type[:-2]
+                decl_name += '[]'
+                
+            self._setItemCmd = "global %s %s; %s" % ( type, decl_name, variable )
+            self._setItemCmd += '[%s]=%s;'
+            return self
+        
+        def setItem(self, index, value ):
+            mm.eval(self._setItemCmd % (index, value) )
+
+    class MelGlobalArray( util.defaultlist ):
+        #__metaclass__ = util.metaStatic
+        def __init__(self, type, variable, *args, **kwargs ): 
+            
+            decl_name = variable
+            if type.endswith('[]'):
+                type = type[:-2]
+                decl_name += '[]'
+            
+            pyType = MelGlobals.melTypeToPythonType[ type ]
+            util.defaultlist.__init__( self, pyType, *args, **kwargs )
+             
+               
+            self._setItemCmd = "global %s %s; %s" % ( type, decl_name, variable )
+            self._setItemCmd += '[%s]=%s;'
+
+        
+        def setItem(self, index, value ):
+            mm.eval(self._setItemCmd % (index, value) )
+        
+        def append(self, val): raise AttributeError
+        def __setitem__(self, item, val): raise AttributeError
+        def extend(self, val): raise AttributeError
+        
     """ A class for synchronizing global variables between mel and python."""
     
     typeMap = {}
@@ -75,16 +123,22 @@ class MelGlobals( util.Singleton, dict ):
         decl_name = variable
         
         if type.endswith('[]'):
+            array=True
             type = type[:-2]
             proc_name = 'pymel_get_global_' + type + 'Array'
             if not decl_name.endswith('[]'):
                 decl_name += '[]'
         else:
+            array=False
             proc_name = 'pymel_get_global_' + type
             
         cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, variable, proc_name )
         #print cmd
-        return mm.eval( cmd  )
+        res = mm.eval( cmd  )
+        if array:
+            return MelGlobals.MelGlobalArray(ret_type, variable, res)
+        else:
+            return res
     
     def set( self, type, variable, value ):
         """set a mel global variable""" 
@@ -96,7 +150,7 @@ class MelGlobals( util.Singleton, dict ):
             
         cmd = "global %s %s; %s=%s;" % ( type, decl_name, variable, pythonToMel(value) )
         #print cmd
-        return mm.eval( cmd  )
+        mm.eval( cmd  )
     
 melGlobals = MelGlobals()
                   
