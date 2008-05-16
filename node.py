@@ -548,7 +548,7 @@ class Attribute(_BaseObj):
         >>> s.attr('__init__').set( .5 )
         >>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()    
     """
-    attrItemReg = re.compile( '\[(\d+)\]$')
+    attrItemReg = re.compile( '\[(\d+:*\d*)\]$')
     
     #def __repr__(self):
     #    return "Attribute('%s')" % self
@@ -631,7 +631,11 @@ class Attribute(_BaseObj):
     
     def item(self):
         try: 
-            return int(Attribute.attrItemReg.search(self).group(1))
+            val = Attribute.attrItemReg.search(self).group(1).split(":")
+            val = map(int,val)
+            if len(val)>1:
+                return val
+            return val[0]
         except: return None
     
     def setEnums(self, enumList):
