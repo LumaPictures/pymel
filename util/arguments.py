@@ -4,7 +4,7 @@ These utility functions can be used by other util modules and are imported in ut
 """
 
 from collections import deque
-import sys
+import inspect, sys
 
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 def isIterable( obj ):
@@ -24,8 +24,8 @@ def isSequence( obj ):
 def isMapping( obj ):
     return isinstance(obj, dict)
 
-clsname = lambda x:x.__class__.__name__
-
+clsname = lambda x:type(x).__name__
+    
 def convertListArgs( args ):
     if len(args) == 1 and isIterable(args[0]):
         return tuple(args[0])
