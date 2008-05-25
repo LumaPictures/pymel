@@ -1,172 +1,26 @@
-""" Imports Python math module and adds some additionnal math related utilities. """
+""" Defines useful math functions. """
 
-# TODO : What about using Numpy ?
+# to be able to call real and imag on all numericals
 
-import math, operator
-
-# maps a fn on two iterable classes of possibly different sizes,
-# mapping on smallest size then filling
-# to largest size with unmodified remnant of largest list. Used for operation between arrays
-# of different sizes when we want to allow this
-def difmap(fn, a, b):
-    """ maps a function on two iterable classes of possibly different sizes,
-        mapping on smallest size then filling to largest size with unmodified remnant of largest list.
-        Will cast the result to the largest class type or to the a class in case of equal size.
-        Classes must support iteration and __getslice__ """    
-    l1 = len(a)
-    l2 = len(b)
-    if l1<l2 :
-        return b.__class__(map(fn, a, b[:l1])+b[l1:l2])
-    elif l1>l2 :
-        return a.__class__(map(fn, a[:l2], b)+a[l2:l1])
+def real (x):
+    """ the real part of x """
+    if isinstance(x, complex) :
+        return x.real
     else :
-        return a.__class__(map(fn, a, b))
-
-def dot(a, b):
-    """ dot(a, b): dot product of a and b, a and b should be iterables of numeric values """
-    return reduce(operator.add, map(operator.mul, list(a)[:lm], list(b)[:lm]), 0.0)
-
-def length(a):
-    """ length(a): square root of the absolute value of dot product of a by q, a be an iterable of numeric values """
-    return sqrt(abs(dot(a, a)))
-
-def cross(a, b):
-    """ cross(a, b): cross product of a and b, a and b should be iterables of 3 numeric values  """
-    la = list(a)[:3]
-    lb = list(b)[:3]
-    return [a[1]*b[2] - a[2]*b[1],
-            a[2]*b[0] - a[0]*b[2],
-            a[0]*b[1] - a[1]*b[0]]
-
-def cotan(a, b, c) :
-    """ cotangent of the (b-a), (c-a) angle, a, b, and c should support substraction, dot, cross and length operations """
-    return dot(c - b,a - b)/length(cross(c - b, a - b))
-
-# elementwise operations
+        return x
     
-def log10(a):
-    log10.__doc__
-    try:
-        return a.__class__(map(math.log10, a))
-    except:
-        return math.log10(a)
-
-def log(a):
-    log.__doc__
-    try:
-        return a.__class__(map(math.log, a))
-    except:
-        return math.log(a)
-        
-def exp(a):
-    exp.__doc__
-    try:
-        return a.__class__(map(math.exp, a))
-    except:
-        return math.exp(a)
-
-def sin(a):
-    sin.__doc__
-    try:
-        return a.__class__(map(math.sin, a))
-    except:
-        return math.sin(a)
-        
-def tan(a):
-    tan.__doc__
-    try:
-        return a.__class__(map(math.tan, a))
-    except:
-        return math.tan(a)
-        
-def cos(a):
-    cos.__doc__
-    try:
-        return a.__class__(map(math.cos, a))
-    except:
-        return math.cos(a)
-
-def asin(a):
-    asin.__doc__
-    try:
-        return a.__class__(map(math.asin, a))
-    except:
-        return math.asin(a)
-
-def atan(a):
-    atan.__doc__
-    try:
-        return a.__class__(map(math.atan, a))
-    except:
-        return math.atan(a)
-
-def acos(a):
-    acos.__doc__
-    try:
-        return a.__class__(map(math.acos, a))
-    except:
-        return math.acos(a)
-
-def sqrt(a):
-    sqrt.__doc__
-    try:
-        return a.__class__(map(math.sqrt, a))
-    except:
-        return math.sqrt(a)
-
-def sinh(a):
-    sinh.__doc__
-    try:
-        return a.__class__(map(math.sinh, a))
-    except:
-        return math.sinh(a)
-
-def tanh(a):
-    tanh.__doc__
-    try:
-        return a.__class__(map(math.tanh, a))
-    except:
-        return math.tanh(a)
-
-def cosh(a):
-    cosh.__doc__
-    try:
-        return a.__class__(map(math.cosh, a))
-    except:
-        return math.cosh(a)
-
-
-def pow(a,b):
-    """
-    Takes the elements of a and raises them to the b-th power
-    """
-    try:
-        return a.__class__(map(lambda x: x**b, a))
-    except:
-        try:
-            return a.__class__(map(lambda x,y: x**y, a, b))
-        except:
-            return math.pow(a,b)
-    
-def atan2(a,b):       
-    """
-    Arc tangent
-    
-    """
-    try:
-        return a.__class__(map(atan2, a, b))
-    except:
-        return math.atan2(a,b)
-    
-
+def imag (x):
+    """ the imaginary part of x """
+    if isinstance(x, complex) :
+        return x.imag
+    else :
+        return type(x)(0)
+       
 # general remapping operations
 
 def gamma (c, g):
     """ gamma color correction with a single scalar gamma value g"""
-    try:
-        return c.__class__(map(lambda x:x**g, c))
-    except:
-        return c**g 
+    return c**g 
 
 # TODO : modify these so that they accept iterable / element wise operations
 
