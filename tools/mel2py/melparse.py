@@ -17,7 +17,7 @@ import pymel
 import pymel.util as util
 import pymel.mayahook.factories as factories
 import pymel.core.pmtypes.path as path
-
+import melscan
 
 try:
 	from pymel import *
@@ -31,6 +31,7 @@ class Token(str):
 		self=str.__new__(cls,val)		
 		self.type = type
 		self.lineno = lineno
+		self.array = False
 		self.__dict__.update( kwargs )
 		return self
 	def __getslice__(self, start, end):
@@ -133,7 +134,8 @@ def format_fopen(x, t):
 def format_source(x, t):
 	script = eval(x[0])
 	name = os.path.splitext( os.path.basename(script) )[0]
-	moduleName = _proc_to_module( t, name )
+	#print "formatting source", name
+	moduleName, returnType = _melProc_to_pyModule( t, name )
 	if moduleName:
 		return "import " + moduleName
 	else:
@@ -276,9 +278,419 @@ mel_type_to_python_type = {
 	}
 
 tag = '# script created by pymel.melparse.mel2py'
-currentFiles = []
-proc_to_module = {}
 
+
+
+def getModuleBasename( script ):
+	name = os.path.splitext( os.path.basename(script) )[0]
+	name = name.replace( '.', '_')
+	name = name.replace( '-', '_')
+	return name
+
+def findModule( moduleName ):
+	for f in sys.path:
+		f = os.path.join( f, moduleName  + '.py' )
+		if os.path.isfile(f):		
+			# checks for a tag added by mel2py -- this is unreliable, but so is using simple name comparison
+			# TODO : add a keyword for passing directories to look for pre-translated python scripts  
+			file = open(f, 'r')
+			firstline = file.readline()
+			file.close()
+			if firstline.startswith(tag):
+				return f
+	return
+			
+#def _script_to_module( t, script ):
+#	global batchData.currentFiles
+#	global script_to_module
+#	
+#	path, name = os.path.split(script) 
+#	if name.endswith('.mel'):
+#		name += '.mel'
+#		
+#	try:
+#		return script_to_module[name]
+#	
+#	except KeyError:
+#		
+#		if not path:
+#			result = mel.whatIs( name )
+#			buf = result.split( ':' )
+#			if buf[0] == 'Script found in':
+#				fullpath = buf[1]
+#			else:
+#				return
+#		else:
+#			fullpath = os.path.join(path, name )
+#		
+#		
+#		moduleName = getModuleBasename(fullpath)
+#	
+#
+#		# the mel file in which this proc is defined is being converted with this batch
+#		if fullpath in batchData.currentFiles:
+#			script_to_module[name] = moduleName
+#			return moduleName
+def fileInlist( file, fileList ):
+	file = path.path(file)
+	for dir in fileList:
+		try:
+			if file.samefile( dir ): 
+				return True
+		except OSError: pass
+	return False
+						
+def _melProc_to_pyModule( t, procedure ):
+	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
+	
+	# if root_module is set to None that means we are doing a string conversion, and not a file conversion
+	# we don't need to find out the current or future python module.  just use pymel.mel
+	if t.lexer.root_module in [ None, '__main__']:
+		return
+	
+	global batchData
+	
+	try:
+		return batchData.proc_to_module[procedure]
+		
+	except KeyError:
+		# if the file currently being parsed is not being translated, this this parsing is just for information gathering. no need to recursively parse any further
+		if t.lexer.root_module not in batchData.currentModules:
+			#print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
+			batchData.proc_to_module[procedure] = (None, None)
+			return None, None
+		
+		result = mel.whatIs( procedure )
+		buf = result.split( ': ' )
+		if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
+			
+			
+			melfile = path.path( buf[1].lstrip() )
+			melfile = melfile.realpath()
+			translating = melfile in batchData.currentFiles
+			
+			moduleName = getModuleBasename( melfile )
+			
+#			if moduleName == t.lexer.root_module:
+#				print 'Module name cannot equal root_module:', moduleName, procedure, melfile in batchData.currentFiles, procedure in t.lexer.global_procs, procedure in t.lexer.local_procs
+#				#print "global procs:", t.lexer.global_procs
+#				raise ValueError, 'Module name cannot equal root_module: %s' % moduleName
+#				
+#
+#			
+#			print "%s not seen yet: parsing %s. current module: %s" % ( procedure, melfile, t.lexer.root_module )
+#			cbParser = MelParser()
+#			cbParser.build( rootModule = moduleName, 
+#							pymelNamespace=t.lexer.pymel_namespace, 
+#							verbosity=t.lexer.verbose
+#							)
+#			
+#			converted = cbParser.parse( melfile.bytes() )
+#			batchData.scriptPath_to_parser[melfile] = cbParser
+#			
+#			if translating:
+#				batchData.scriptPath_to_moduleText[melfile] = converted
+#			else:
+#				moduleName = None
+#				
+#			for proc, procInfo in cbParser.lexer.global_procs.items():
+#				assert proc in batchData.proc_to_module
+#				#batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
+#			
+#			return batchData.proc_to_module[procedure]
+
+			#print "%s not seen yet: scanning %s" % ( procedure, melfile )
+			cbParser = MelScanner()
+			cbParser.build()
+			proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
+			#print "global procs", global_procs
+			for proc, procInfo in global_procs.items():
+				#print proc, procInfo
+				batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
+			return batchData.proc_to_module[procedure]
+			
+		#print "could not find script for procedure: %s" % procedure
+		batchData.proc_to_module[procedure] = (None, None)
+		return None, None
+
+		
+
+		
+	
+def format_command(command, args, t):
+			
+	if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
+		args[0] = args[0][1:-1]
+		
+	
+	
+	if t.lexer.verbose:
+		print 'p_command: input_list', command, args
+	
+	
+
+	# commands with custom replacements	
+	try:
+		typ, remap_func = proc_remap[command]
+		return Token( remap_func(args, t), typ )	
+	except KeyError: pass
+
+	#flags = getCommandFlags(command)
+	
+	# new-style from cached info
+	try:
+		cmdInfo = factories.cmdlist[command]
+	except KeyError:
+		try:
+			cmdInfo = melCmdFlagList[command]
+		except KeyError:
+			# Mel procedures and commands without help documentation
+			#if flags is None:			
+			args = ', '.join(args)
+	
+			# function is being called locally, within same file
+			if command in t.lexer.global_procs:
+				returnType = t.lexer.global_procs[command]['returnType']
+				return '%s(%s)' % (command, args)
+			if command in t.lexer.local_procs:
+				returnType = t.lexer.local_procs[command]['returnType']
+				return '_%s(%s)' % (command, args)
+			if command in melCmdList:
+				return '%s(%s)' % (command, args)
+			
+			module, returnType = _melProc_to_pyModule( t, command )
+		
+			if module:
+				# the procedure is in the currently parsed script, but has not yet been placed in global or local procs.
+				#if module == t.lexer.root_module:
+				#	return '%s(%s)' % (command, args)
+				#else:
+				t.lexer.imported_modules.add( module )
+				res = '%s.%s(%s)' % (module, command, args)
+			else:
+				res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, args)
+				
+			return res
+	
+	# commands with help documentation
+	try:
+		#print 'FLAGS', t[1], flags
+		#print 'ARGS', args
+		kwargs = {}
+		pargs = []
+		argTally=[]	
+		numArgs = 0
+		commandFlag = False
+		flagReg = re.compile("-\s*([A-Za-z][\w_]*)")
+		queryMode = False
+		currFlag = None
+		for token in args:				
+			flagmatch = flagReg.match( token )
+			
+			#----- Flag -----
+			if flagmatch:
+				if numArgs > 0:
+					#raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
+					if t.lexer.verbose >= 1: print 'reached a new flag before receiving all necessary args for last flag'
+					kwargs[currFlag]='1'
+					numArgs=0
+					
+				#(numArgs, commandFlag) = flags[ token ]
+				
+				# remove dash (-) before flag
+				token = token[1:]
+				
+				# a special dict has been creatd to return the new name of flags removed due to name conflicts
+				try:
+					token = Token( cmdInfo['removedFlags'][token], token.type, token.lineno )
+				except KeyError: pass
+				
+				try:
+					flagInfo = cmdInfo['flags'][token]
+				except:
+					flagInfo = cmdInfo['shortFlags'][token]
+				numArgs = flagInfo['numArgs']
+				commandFlag = 'command' in flagInfo['longname'].lower()
+				
+				#print 'new flag', token, numArgs
+							
+				if numArgs == 0 or queryMode:
+					kwargs[token]='1'
+					numArgs=0
+				else:
+					currFlag = token
+			
+				# moved this after the queryMode check, bc sometimes the query flag expects a value other than a boolean
+				if token in ['q', 'query']:
+					queryMode = True
+			
+			elif numArgs == 1:
+				# callbacks
+				if commandFlag:
+
+					#if False:
+					#if True :
+					try:	
+						cbParser = MelParser()
+						#print "root module for callback parsing", t.lexer.root_module
+						cbParser.build( rootModule = t.lexer.root_module, 
+										  	pymelNamespace=t.lexer.pymel_namespace, 
+										  	verbosity=t.lexer.verbose,
+										  	expressionsOnly=True )
+						
+						tmpToken = token
+						#print tmpToken
+						# pre-parse cleanup
+						
+						#print tmpToken
+						
+						# remove enclosing parentheses
+						tmpToken = tmpToken.strip(' ')
+						while tmpToken.startswith('(') and tmpToken.endswith(')'):
+							tmpToken = tmpToken[1:-1]
+							tmpToken = tmpToken.strip(' ')
+							
+						tmpToken = unescape(tmpToken)
+						
+						if not tmpToken.endswith( ';' ): 
+							tmpToken += ';'
+						cb = re.compile(  '#(\d)' )
+						parts = cb.split( tmpToken  )
+						for i in range(1,len(parts),2):
+							parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
+						tmpToken = ''.join( parts )
+						
+						#print tmpToken
+						
+						# parse
+						tmpToken = cbParser.parse( tmpToken )
+						
+						#print tmpToken
+						
+						# ensure that the result is not empty
+						assert tmpToken.strip()
+						
+						t.lexer.imported_modules.update( cbParser.lexer.imported_modules )
+						
+						# post-parse cleanup
+						if tmpToken.endswith( '\n' ): 
+							tmpToken = tmpToken[:-1]
+							
+						tmpToken = tmpToken.replace( '\n', ' and ')
+
+						token = 'lambda *args: %s' % (tmpToken)
+						
+					#else:
+					except Exception, msg:
+						#print "callback translation failed", msg			
+						token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
+				
+				argTally.append(token)
+				#print 'last flag arg', currFlag, argTally
+				if len(argTally)==1:			
+					argTally = argTally[0]
+				else:
+					argTally = '(%s)' % ', '.join(argTally)
+				
+				# mutliuse flag, ex.  ls -type 'mesh' -type 'camera'
+				if currFlag in kwargs:
+					if isinstance(kwargs[currFlag], list):
+						kwargs[currFlag].append( argTally )
+						#print "appending kwarg", currFlag, kwargs
+					else:
+						kwargs[currFlag] = [ kwargs[currFlag], argTally ]
+						#print "adding kwarg", currFlag, kwargs
+				else:
+					#print "new kwarg", currFlag, kwargs 
+					kwargs[currFlag] = argTally
+					
+				numArgs=0
+				argTally=[]
+				currFlag = None
+				
+			elif numArgs > 0:
+				argTally.append(token)
+				#print 'adding arg', currFlag, argTally
+				numArgs-=1
+			else:
+				pargs.append(token)
+		"""
+		try:
+			if kwargs[-1].endswith('='):
+				kwargs[-1] += '1';
+		except IndexError:
+			pass
+		"""
+			
+		#print 'final kw list', kwargs
+		
+		# functions that clash with python keywords and ui functions must use the cmds namespace
+		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
+		if command in filteredCmds: # + uiCommands:
+			command = '%scmds.%s' % (t.lexer.pymel_namespace, command)
+		
+		# eval command is the same as using maya.mel.eval
+		if command == 'eval':
+			command = '%smel.%s' % (t.lexer.pymel_namespace, command)
+		
+		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
+		if command == 'python':
+			return 'eval(%s)' % args[0]
+			#args = map( lambda x: x.strip('"'), args[0].split(' + ') )
+			#return ''.join(args)
+		
+		# cycle through our kwargs and format them
+		for flag, value in kwargs.items():
+			if value is None:
+				value = '1'
+				
+			# multi-use flag
+			#	mel: 	ls -type "transform" -type "camera"
+			#	python:	ls( type=["transform","camera"] )
+			if isinstance( value, list):
+				#sep = ','
+				#if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
+				#	sep = ',\n\t'
+				#pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
+				value = assemble(t,'multiuse_flag', ', ', value, matchFormatting=True)
+				pargs.append( Token( '%s=[%s]' % (flag, value), None, flag.lineno  ) )
+			else:
+				pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
+		
+		#sep = ','
+		#if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
+		#	sep = ',\n\t'		
+		#res =  '%s(%s)' % (command, sep.join( pargs ) )
+		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs, matchFormatting=True ) )
+		res = t.lexer.pymel_namespace + res
+		return res
+		
+	except KeyError, key:
+		
+		try:
+			print command, args
+			# remove string encapsulation
+			subCmd = eval(args.pop(0))
+			# in rare cases this might end up bing -e or -pi, which evaluate to numbers
+			assert isinstance( subCmd, basestring )
+			
+			formattedSubCmd = format_command( subCmd, args, t )
+			return '%s(%s)' % (command, formattedSubCmd)
+		except (NameError, AssertionError):
+			print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
+			return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
+
+
+class BatchData(util.Singleton):
+	def __init__(self):
+		self.currentFiles = []
+		self.currentModules = []
+		self.proc_to_module = {}
+		self.scriptPath_to_parser = {}
+		self.scriptPath_to_moduleText = {}
+
+global batchData
+batchData = BatchData()
 
 # Get the list of reserved words -- any variables or procedures that conflict with these keywords will be renamed with a trailing underscore
 tokens = mellex.tokens
@@ -452,7 +864,6 @@ def entabLines( line ):
 	return res
 
 
-# translation-unit:
 """
 translation_unit
 	external_declaration
@@ -476,23 +887,40 @@ def p_external_declaration(t):
 
 # function-definition:
 def p_function_definition(t):
-	'''function_definition :  function_declarator function_specifiers_opt ID LPAREN function_arg_list_opt RPAREN add_comment compound_statement'''
+	'''function_definition :  function_declarator function_specifiers_opt ID seen_func LPAREN function_arg_list_opt RPAREN add_comment compound_statement'''
 	#t[0] = assemble(t, 'p_function_definition')
+	
 	
 	# add to the ordered list of procs
 	t.lexer.proc_list.append( t[3] )
 	
 	# global proc
-	if t[1].startswith('global'):
-		t.lexer.global_procs[ t[3] ] = t[5]
-		t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
+	if t[1][0] == 'global':
+		t.lexer.global_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
+		t[0] = addHeldComments(t, 'func') + "def %s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
 		
 	# local proc gets prefixed with underscore
 	else:
-		t.lexer.local_procs[ t[3] ] = t[5] 
-		t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[5]) , entabLines( t[8]) )
-		
+		t.lexer.local_procs[ t[3] ] = { 'returnType' : t[2], 'args' : t[6] }
+		t[0] = addHeldComments(t, 'func') + "def _%s(%s):\n%s\n" % (t[3], ','.join(t[6]) , entabLines( t[9]) )
 	
+def p_seen_func(t):
+	'''seen_func :'''
+
+	global batchData
+	#print "seen_func", t[-1].__repr__(), t[-2].__repr__(), t[-3].__repr__()
+	
+	if t.lexer.root_module in batchData.currentModules:
+		module = t.lexer.root_module
+	else:
+		module = None
+			
+	if t[-3][0] == 'global':
+
+		#print "adding function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
+		batchData.proc_to_module[ t[-1] ] = ( module, t[-2] )
+	#else:
+	#	print "skipping function: (%s) %s.%s, %s" % (  t.lexer.root_module, module, t[-1], t[-2] )
 
 def p_add_comment(t):
 	'''add_comment :'''
@@ -517,7 +945,7 @@ def p_function_declarator(t):
 	# string
 	# string[]
 	#
-	t[0] = assemble(t, 'p_function_declarator')
+	t[0] = t[1:]
 	
 def p_function_arg(t):
 	'''function_arg : type_specifier variable
@@ -1844,7 +2272,7 @@ def p_variable(t):
 	# they will be suffixed with an underscore and won't be able to sync with 
 	# their mel equivalent
 	
-	
+	t[1] = t[1].lstrip('$')
 	if t[1] in pythonReservedWords:
 		var = t[1] + '_'
 	else:
@@ -1864,422 +2292,11 @@ def p_variable(t):
 		
 def p_variable_vector_component(t):
 	'''variable :  VAR COMPONENT'''
+	t[1] = t[1].lstrip('$')
 	t[0] = Token(t[1]+t[2], 'float', t.lexer.lineno)
 	if t.lexer.verbose >= 2:
 		print "p_variable_vector_component", t[0]
 		
-# Commands
-def getCommandFlags( command ):
-
-	try:
-		#print "getting flags for", command
-		lines = cmds.help( command ).split('\n')
-		synopsis = lines.pop(0)
-		#print synopsis
-		lines.pop(0) # 'Flags'
-		#print lines
-		flags = {}
-		for line in lines:
-			tokens = line.split()
-			try:
-				tokens.remove('(multi-use)')
-			except:
-				pass
-			#print tokens
-			if len(tokens) > 1:
-				numArgs = len(tokens)-2
-				shortFlag = str(tokens[0])
-				longFlag = str(tokens[1])
-				commandFlag = False
-				if 'command' in longFlag.lower():
-					commandFlag = True
-				
-				flags[shortFlag] = (numArgs, commandFlag)
-				flags[longFlag]  = (numArgs, commandFlag)
-		#print command, flags
-		return flags
-	except:
-		#print "No help for:", command
-		return None
-
-def getAllCommandFlags():
-	import maya.cmds as cmds
-	funcs = filter( lambda x: not x.startswith('_'), dir(cmds) )
-	commands = {}
-	for func in funcs:
-		flags = getCommandFlags( func )
-		if flags is not None:
-			commands[func] = flags
-	return commands
-
-def getModuleBasename( script ):
-	name = os.path.splitext( os.path.basename(script) )[0]
-	name = name.replace( '.', '_')
-	name = name.replace( '-', '_')
-	return name
-
-def findModule( moduleName ):
-	for f in sys.path:
-		f = os.path.join( f, moduleName  + '.py' )
-		if os.path.isfile(f):		
-			# checks for a tag added by mel2py -- this is unreliable, but so is using simple name comparison
-			# TODO : add a keyword for passing directories to look for pre-translated python scripts  
-			file = open(f, 'r')
-			firstline = file.readline()
-			file.close()
-			if firstline.startswith(tag):
-				return f
-	return
-			
-#def _script_to_module( t, script ):
-#	global currentFiles
-#	global script_to_module
-#	
-#	path, name = os.path.split(script) 
-#	if name.endswith('.mel'):
-#		name += '.mel'
-#		
-#	try:
-#		return script_to_module[name]
-#	
-#	except KeyError:
-#		
-#		if not path:
-#			result = mel.whatIs( name )
-#			buf = result.split( ':' )
-#			if buf[0] == 'Script found in':
-#				fullpath = buf[1]
-#			else:
-#				return
-#		else:
-#			fullpath = os.path.join(path, name )
-#		
-#		
-#		moduleName = getModuleBasename(fullpath)
-#	
-#
-#		# the mel file in which this proc is defined is being converted with this batch
-#		if fullpath in currentFiles:
-#			script_to_module[name] = moduleName
-#			return moduleName
-def fileInlist( file, fileList ):
-	file = path.path(file)
-	for dir in fileList:
-		try:
-			if file.samefile( dir ): 
-				return True
-		except OSError: pass
-	return False
-						
-def _proc_to_module( t, procedure ):
-	""" determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
-	
-	# if root_module is set to None that means we are doing a string conversion, and not a file conversion
-	# we don't need to find out the current or future python module.  just use pymel.mel
-	if t.lexer.root_module in [ None, '__main__']:
-		return
-	
-	global currentFiles
-	global proc_to_module
-	
-	try:
-		return proc_to_module[procedure]
-	
-	except KeyError:
-		
-		result = mel.whatIs( procedure )
-		buf = result.split( ':' )
-		if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-			fullpath = buf[1].lstrip()
-			
-			moduleName = getModuleBasename(fullpath)
-			#print procedure, name
-			
-			# the mel file in which this proc is defined is being converted with this batch
-			
-			if fileInlist(fullpath, currentFiles):
-				proc_to_module[procedure] = moduleName
-				return moduleName
-			
-			# the mel file in which this proc is defined has been previously converted, and is in sys.path
-			# look for a python file in sys.path with the converted name	
-			if findModule(moduleName):
-				proc_to_module[procedure] = moduleName
-				return moduleName
-			
-			# if we didn't find it, set moduleName to None so we don't search again
-			proc_to_module[procedure] = None			
-			#print procedure, moduleName, fullpath.__repr__()
-			
-		#except:
-		#	#print "No help for:", command
-		#	return None
-		
-
-		
-	
-def format_command(command, args, t):
-			
-	if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
-		args[0] = args[0][1:-1]
-		
-	
-	
-	if t.lexer.verbose:
-		print 'p_command: input_list', command, args
-	
-	
-
-	# commands with custom replacements	
-	try:
-		typ, remap_func = proc_remap[command]
-		return Token( remap_func(args, t), typ )	
-	except KeyError: pass
-
-	#flags = getCommandFlags(command)
-	
-	# new-style from cached info
-	try:
-		cmdInfo = factories.cmdlist[command]
-	except KeyError:
-		try:
-			cmdInfo = melCmdFlagList[command]
-		except KeyError:
-			# Mel procedures and commands without help documentation
-			#if flags is None:			
-			args = ', '.join(args)
-			
-			# function is being called locally, within same file
-			if command in t.lexer.global_procs:
-				return '%s(%s)' % (command, args)
-			if command in t.lexer.local_procs:
-				return '_%s(%s)' % (command, args)
-			if command in melCmdList:
-				return '%s(%s)' % (command, args)
-			
-			module = _proc_to_module( t, command )
-		
-			if module:
-				# the procedure is in the currently parsed script, but has not yet been placed in global or local procs.
-				if module == t.lexer.root_module:
-					return '%s(%s)' % (command, args)
-				else:
-					t.lexer.imported_modules.add( module )
-					res = '%s.%s(%s)' % (module, command, args)
-			else:
-				res = '%smel.%s(%s)' % (t.lexer.pymel_namespace, command, args)
-				
-			res = t.lexer.pymel_namespace + res	
-			return res
-	
-	# commands with help documentation
-	try:
-		#print 'FLAGS', t[1], flags
-		#print 'ARGS', args
-		kwargs = {}
-		pargs = []
-		argTally=[]	
-		numArgs = 0
-		commandFlag = False
-		flagReg = re.compile("-\s*([A-Za-z][\w_]*)")
-		queryMode = False
-		currFlag = None
-		for token in args:				
-			flagmatch = flagReg.match( token )
-			
-			#----- Flag -----
-			if flagmatch:
-				if numArgs > 0:
-					#raise ValueError, 'reached a new flag before receiving all necessary args for last flag'
-					if t.lexer.verbose >= 1: print 'reached a new flag before receiving all necessary args for last flag'
-					kwargs[currFlag]='1'
-					numArgs=0
-					
-				#(numArgs, commandFlag) = flags[ token ]
-				
-				# remove dash (-) before flag
-				token = token[1:]
-				
-				# a special dict has been creatd to return the new name of flags removed due to name conflicts
-				try:
-					token = Token( cmdInfo['removedFlags'][token], token.type, token.lineno )
-				except KeyError: pass
-				
-				try:
-					flagInfo = cmdInfo['flags'][token]
-				except:
-					flagInfo = cmdInfo['shortFlags'][token]
-				numArgs = flagInfo['numArgs']
-				commandFlag = 'command' in flagInfo['longname'].lower()
-				
-				#print 'new flag', token, numArgs
-							
-				if numArgs == 0 or queryMode:
-					kwargs[token]='1'
-					numArgs=0
-				else:
-					currFlag = token
-			
-				# moved this after the queryMode check, bc sometimes the query flag expects a value other than a boolean
-				if token in ['q', 'query']:
-					queryMode = True
-			
-			elif numArgs == 1:
-				# callbacks
-				if commandFlag:
-
-					#if False:
-					#if True :
-					try:	
-						cbParser = MelParser()
-						#print "root module for callback parsing", t.lexer.root_module
-						cbParser.build( rootModule = t.lexer.root_module, 
-										  	pymelNamespace=t.lexer.pymel_namespace, 
-										  	verbosity=t.lexer.verbose,
-										  	expressionsOnly=True )
-						
-						tmpToken = token
-						#print tmpToken
-						# pre-parse cleanup
-						
-						#print tmpToken
-						
-						# remove enclosing parentheses
-						tmpToken = tmpToken.strip(' ')
-						while tmpToken.startswith('(') and tmpToken.endswith(')'):
-							tmpToken = tmpToken[1:-1]
-							tmpToken = tmpToken.strip(' ')
-							
-						tmpToken = unescape(tmpToken)
-						
-						if not tmpToken.endswith( ';' ): 
-							tmpToken += ';'
-						cb = re.compile(  '#(\d)' )
-						parts = cb.split( tmpToken  )
-						for i in range(1,len(parts),2):
-							parts[i] = '$args[%d]' % ( int(parts[i] ) -1 )
-						tmpToken = ''.join( parts )
-						
-						#print tmpToken
-						
-						# parse
-						tmpToken = cbParser.parse( tmpToken )
-						
-						#print tmpToken
-						
-						# ensure that the result is not empty
-						assert tmpToken.strip()
-						
-						t.lexer.imported_modules.update( cbParser.lexer.imported_modules )
-						
-						# post-parse cleanup
-						if tmpToken.endswith( '\n' ): 
-							tmpToken = tmpToken[:-1]
-							
-						tmpToken = tmpToken.replace( '\n', ' and ')
-
-						token = 'lambda *args: %s' % (tmpToken)
-						
-					#else:
-					except Exception, msg:
-						#print "callback translation failed", msg			
-						token = 'lambda *args: %smel.eval(%s)' % (t.lexer.pymel_namespace, token)
-				
-				argTally.append(token)
-				#print 'last flag arg', currFlag, argTally
-				if len(argTally)==1:			
-					argTally = argTally[0]
-				else:
-					argTally = '(%s)' % ', '.join(argTally)
-				
-				# mutliuse flag, ex.  ls -type 'mesh' -type 'camera'
-				if currFlag in kwargs:
-					if isinstance(kwargs[currFlag], list):
-						kwargs[currFlag].append( argTally )
-						#print "appending kwarg", currFlag, kwargs
-					else:
-						kwargs[currFlag] = [ kwargs[currFlag], argTally ]
-						#print "adding kwarg", currFlag, kwargs
-				else:
-					#print "new kwarg", currFlag, kwargs 
-					kwargs[currFlag] = argTally
-					
-				numArgs=0
-				argTally=[]
-				currFlag = None
-				
-			elif numArgs > 0:
-				argTally.append(token)
-				#print 'adding arg', currFlag, argTally
-				numArgs-=1
-			else:
-				pargs.append(token)
-		"""
-		try:
-			if kwargs[-1].endswith('='):
-				kwargs[-1] += '1';
-		except IndexError:
-			pass
-		"""
-			
-		#print 'final kw list', kwargs
-		
-		# functions that clash with python keywords and ui functions must use the cmds namespace
-		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
-		if command in filteredCmds: # + uiCommands:
-			command = '%scmds.%s' % (t.lexer.pymel_namespace, command)
-		
-		# eval command is the same as using maya.mel.eval
-		if command == 'eval':
-			command = '%smel.%s' % (t.lexer.pymel_namespace, command)
-		
-		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
-		if command == 'python':
-			return 'eval(%s)' % args[0]
-			#args = map( lambda x: x.strip('"'), args[0].split(' + ') )
-			#return ''.join(args)
-		
-		# cycle through our kwargs and format them
-		for flag, value in kwargs.items():
-			if value is None:
-				value = '1'
-				
-			# multi-use flag
-			#	mel: 	ls -type "transform" -type "camera"
-			#	python:	ls( type=["transform","camera"] )
-			if isinstance( value, list):
-				#sep = ','
-				#if len(value) > t.lexer.format_options['kwargs_newline_threshhold']:
-				#	sep = ',\n\t'
-				#pargs.append( '%s=[%s]' % ( flag, sep.join(value) )  )
-				value = assemble(t,'multiuse_flag', ', ', value, matchFormatting=True)
-				pargs.append( Token( '%s=[%s]' % (flag, value), None, flag.lineno  ) )
-			else:
-				pargs.append( Token( '%s=%s'   % (flag, value), None, flag.lineno ) )
-		
-		#sep = ','
-		#if len(pargs) > t.lexer.format_options['args_newline_threshhold']:
-		#	sep = ',\n\t'		
-		#res =  '%s(%s)' % (command, sep.join( pargs ) )
-		res =  '%s(%s)' % (command, assemble( t, 'command_args', ',', pargs, matchFormatting=True ) )
-		res = t.lexer.pymel_namespace + res
-		return res
-		
-	except KeyError, key:
-		
-		try:
-			print command, args
-			# remove string encapsulation
-			subCmd = eval(args.pop(0))
-			# in rare cases this might end up bing -e or -pi, which evaluate to numbers
-			assert isinstance( subCmd, basestring )
-			
-			formattedSubCmd = format_command( subCmd, args, t )
-			return '%s(%s)' % (command, formattedSubCmd)
-		except (NameError, AssertionError):
-			print "Error Parsing: Flag %s does not appear in help for command %s. Skipping command formatting" % (key, command)
-			return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
-
 # command_statement
 # -- difference between a comamnd_statement and a command:
 #		a command_statement is always followed by a semi-colon
@@ -2508,19 +2525,21 @@ def p_error(t):
 
 
 
-import profile
+#import profile
 # Build the grammar
 
 lexer = lex.lex(module=mellex)
-parser = yacc.yacc(method='''LALR''', debug=0)
+
+parser = yacc.yacc(method='''LALR''', debug=0 )
+
 
 class MelParser(object):
 	"""The MelParser class around which all other mel2py functions are based."""
 	def build(self, rootModule = None, pymelNamespace='', verbosity=0, 
 			  addPymelImport=True, expressionsOnly=False, forceCompatibility=True ):
-		self.lexer = lexer.clone()
-			
-		self.lexer.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )
+		
+		# data storage
+		self.lexer = lexer.clone()		
 		self.lexer.proc_list = []  # ordered list of procedures
 		self.lexer.local_procs = {} # dictionary of local procedures and their related data
 		self.lexer.global_procs = {} # dictionary of global procedures and their related data
@@ -2529,15 +2548,18 @@ class MelParser(object):
 		self.lexer.spillover_pre = []  # some operations require a single line to be split.
 		self.lexer.comment_queue = []
 		self.lexer.comment_queue_hold = []
-		self.lexer.verbose = verbosity
-		if pymelNamespace and not pymelNamespace.endswith( '.' ):
-			pymelNamespace = pymelNamespace + '.'
-		self.lexer.pymel_namespace = pymelNamespace
 		self.lexer.type_map = {}
 		self.lexer.global_var_include_regex = 'gv?[A-Z_].*' 	# maya global vars usually begin with 'gv_' or a 'g' followed by a capital letter 
 		#parser.global_var_include_regex = '.*'
 		self.lexer.global_var_exclude_regex = '$'
 		#parser.global_var_exclude_regex = 'g_lm.*'		# Luma's global vars begin with 'g_lm' and should not be shared with the mel environment
+
+		# options
+		if pymelNamespace and not pymelNamespace.endswith( '.' ):
+			pymelNamespace = pymelNamespace + '.'
+		self.lexer.pymel_namespace = pymelNamespace
+		self.lexer.root_module = rootModule #the name of the module that the hypothetical code is executing in. default is None (i.e. __main__ )		
+		self.lexer.verbose = verbosity	
 		self.add_pymel_import = addPymelImport
 		self.lexer.force_compatibility = forceCompatibility
 		self.lexer.expression_only = expressionsOnly
@@ -2561,6 +2583,8 @@ class MelParser(object):
 		translatedStr = ''
 		try:
 			translatedStr = parser.parse(data, lexer=self.lexer)
+			#translatedStr = simpleParser.parse(data, lexer=self.lexer)
+			
 		except ValueError, msg:
 			if self.lexer.comment_queue:
 				translatedStr = '\n'.join(self.lexer.comment_queue)				
@@ -2597,6 +2621,37 @@ class MelParser(object):
 	
 			
 		return translatedStr
+	
+scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan)
+
+
+
+#simple = SimpleMelGrammar()
+#standard = MelGrammar()
+#parser = standard.parser 
+#parser = simple.parser
+
+class MelScanner(object):
+	"""The MelParser class around which all other mel2py functions are based."""
+	def build(self):
+		
+		# data storage
+		self.lexer = lexer.clone()		
+		self.lexer.proc_list = []  # ordered list of procedures
+		self.lexer.local_procs = {} # dictionary of local procedures and their related data
+		self.lexer.global_procs = {} # dictionary of global procedures and their related data
+		self.lexer.global_vars = set([])
+
+		
+	def parse(self, data):
+		data = data.encode( 'utf-8', 'ignore')
+		data = data.replace( '\r', '\n' )
+				
+		scanner.parse(data, lexer=self.lexer)
+			#translatedStr = simpleParser.parse(data, lexer=self.lexer)
+	
+			
+		return self.lexer.proc_list, self.lexer.global_procs, self.lexer.local_procs
 	
 #profile.run("yacc.yacc(method='''LALR''')")
 

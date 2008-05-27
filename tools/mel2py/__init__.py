@@ -269,8 +269,10 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', verbosity=0 ):
 	
 	mparser = MelParser()
 	mparser.build(currentModule, pymelNamespace=pymelNamespace, verbosity=verbosity)
-	return mparser.parse( data )
-
+	
+	results = mparser.parse( data )
+	print mparser.lexer.global_procs
+	return results
 
 def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
 	"""
@@ -327,7 +329,10 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	"""batch convert an entire directory
 	
 	processDir
-		May be a single directory or a list of directories.
+		May be a directory, a list of directories, the name of a mel file, or a list of mel files.
+		If only the name of the mel file is	passed, mel2py will attempt to determine the location 
+		of the file using the 'whatIs' mel command,
+		which relies on the script already being sourced by maya.
 	
 	outputDir
 		Directory where resulting python files will be written to
@@ -336,20 +341,38 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 		Set to True for a *lot* of feedback
 	
 	test
-		Attempt to import the translated modules to test for errors
+		After translation, attempt to import the modules to test for errors
 	"""
-	
-	global currentFiles
-	currentFiles = []
+
+	def resolvePath(filepath):
+		filepath = path.path(filepath)
+		if filepath.isfile():
+			 return [ filepath.realpath() ]
+		elif filepath.isdir():
+			return [ f.realpath() for f in filepath.files( '[a-zA-Z]*.mel') ]
+		elif not filepath.exists():
+			try:
+				melfile = path.path( pymel.mel.whatIs( melfile ).split(': ')[-1] )
+				return melfile.realpath()
+			except:
+				pass
+		
+	global batchData
+	batchData = BatchData()
 	
 	if util.isIterable( processDir ):
-		for dir in processDir:
-			currentFiles += path.path(dir).files( '[a-zA-Z]*.mel')
+		for filepath in processDir:
+			batchData.currentFiles += resolvePath(filepath)
+			
 	else:
-		processDir = path.path(processDir)
-		currentFiles = processDir.files( '[a-zA-Z]*.mel')
+		batchData.currentFiles = resolvePath(processDir)
 
-	print currentFiles
+	for file in batchData.currentFiles:
+		module = getModuleBasename(file)
+		assert module not in batchData.currentModules
+		batchData.currentModules.append(module)
+		
+	print batchData.currentFiles
 	"""
 	for f in currentFiles:
 		try:
@@ -360,20 +383,43 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 	print 'Found %d procedures'	% len(global_procs)
 	"""
 	
-	succCnt = 0
 	importCnt = 0
-	for f in currentFiles:
-		try:
-			mel2py( f, outputDir, pymelNamespace=pymelNamespace, verbosity=verbosity )
-			succCnt += 1
-		except (ValueError, IndexError, TypeError, LexError), msg:
-			print 'failed:', msg
-
+	succeeded = []
+	for melfile, moduleName in zip(batchData.currentFiles, batchData.currentModules):
+		print melfile, moduleName
+		#try:
+			#moduleName = getModuleBasename(melfile)
+		
+		if melfile in batchData.scriptPath_to_moduleText:
+			print "Using pre-converted mel script", melfile
+			converted = sbatchData.criptPath_to_moduleText[melfile]
+		
+		else:
+			data = melfile.bytes()
+			print "Converting mel script", melfile
+			converted = mel2pyStr( data, moduleName, pymelNamespace=pymelNamespace, verbosity=verbosity )
+			
+		
+		header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
+		
+		converted = header + converted
+	
+		pyfile = path.path(outputDir + os.sep + moduleName + '.py')	
+		print "Writing converted python script: %s" % pyfile
+		pyfile.write_bytes(converted)
+		succeeded.append( pyfile )
+			
+		#except (ValueError, IndexError, TypeError, LexError), msg:
+		#	if ignoreErrors:
+		#		print 'failed:', msg
+		#	else:
+		#		raise Exception, msg
+		#
 	if test:
-		for f in currentFiles:
-			print "Testing", f
+		for pyfile in succeeded:
+			print "Testing", pyfile
 			try:
-				__import__( getModuleBasename(f) )
+				__import__( pyfile.namebase )
 			except (SyntaxError, IndentationError), msg:
 				print 'A syntax error exists in this file that will need to be manually fixed: %s' % msg
 			except RuntimeError, msg:
@@ -385,9 +431,10 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 			else:
 				importCnt += 1
 	
-	print "%d total processed for conversion" % len(currentFiles)
+	succCnt = len(succeeded)
+	print "%d total processed for conversion" % len(batchData.currentFiles)
 	print "%d files succeeded" % succCnt
-	print "%d files failed" % (len(currentFiles)-succCnt)
+	print "%d files failed" % (len(batchData.currentFiles)-succCnt)
 	if test:		
 		print "%d files imported without error" % (importCnt)
 	

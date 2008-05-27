@@ -164,7 +164,6 @@ def t_SEMI(t):
 	
 def t_VAR(t):
 	r'\$[A-Za-z_][\w_]*'
-	t.value = t.value[1:]
 	return t
 
 def t_COMPONENT(t):
