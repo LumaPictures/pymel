@@ -68,7 +68,7 @@ def feof( fileid ):
     return pos == end
 
 
-
+@add_docs( 'file', 'sceneName')
 def sceneName():
     return Path( OpenMaya.MFileIO.currentFile() )    
 
@@ -344,6 +344,28 @@ class Path(pathClass):
     writable = _factories.makeQueryFlagCmd( cmds.file, 'writable' )
     type = _factories.makeQueryFlagCmd( cmds.file, 'type' )
     setSubType = _factories.makeQueryFlagCmd( cmds.file, 'setSubType', 'subType')
+   
+class CurrentFile(Path):
+    getRenameToSave = classmethod( _factories.makeQueryFlagCmd( cmds.file, 'getRenameToSave', 'renameToSave'))
+    setRenameToSave = classmethod( _factories.makeCreateFlagCmd( cmds.file, 'setRenameToSave', 'renameToSave'))
+    anyModified = classmethod( _factories.makeQueryFlagCmd( cmds.file, 'anyModified'))
+    @classmethod
+    @add_docs( 'file', 'lockFile')
+    def lock(self):
+        return cmds.file( lockFile=True)
+    
+    @classmethod
+    @add_docs( 'file', 'lockFile')
+    def unlock(self):
+        return cmds.file( lockFile=False)  
+    isModified = classmethod( _factories.makeQueryFlagCmd( cmds.file, 'isModified', 'modified'))
+    setModified = classmethod( _factories.makeCreateFlagCmd( cmds.file, 'setModified', 'modified'))
+    
+    @classmethod
+    @add_docs( 'file', 'sceneName')
+    def name(self):
+        return Path( OpenMaya.MFileIO.currentFile() ) 
+  
         
 class FileReference(Path):
     """A class for manipulating references which inherits Path and path.  you can create an 
@@ -472,18 +494,18 @@ class FileReference(Path):
         return cmds.file( self.withCopyNumber(), q=1, usingNamespaces=1 )
 
     @add_docs('file', 'exportAnimFromReference')    
-    def exportAnim( self, filepath, **kwargs ):
+    def exportAnim( self, exportPath, **kwargs ):
         if 'type' not in kwargs:
-            try: kwargs['type'] = _getTypeFromExtension(filepath)
+            try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
-        return Path(cmds.file( filepath, rfn=self.refNode, exportAnimFromReference=1))
+        return Path(cmds.file( exportPath, rfn=self.refNode, exportAnimFromReference=1))
           
     @add_docs('file', 'exportSelectedAnimFromReference')    
-    def exportSelectedAnim( self, filepath, **kwargs ):
+    def exportSelectedAnim( self, exportPath, **kwargs ):
         if 'type' not in kwargs:
-            try: kwargs['type'] = _getTypeFromExtension(filepath)
+            try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
-        return Path(cmds.file( filepath, rfn=self.refNode, exportSelectedAnimFromReference=1))
+        return Path(cmds.file( exportPath, rfn=self.refNode, exportSelectedAnimFromReference=1))
 
 # TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave
 
@@ -496,40 +518,54 @@ def loadReference( file, refNode, **kwargs ):
     return FileReference(cmds.file(file, **kwargs))
 
 @createflag('file', 'exportAll')    
-def exportAll( filepath, **kwargs ):
+def exportAll( exportPath, **kwargs ):
     if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass  
     return Path(cmds.file(*args, **kwargs))
 
 @createflag('file', 'exportAsReference')
-def exportAsReference( filepath, **kwargs ):
+def exportAsReference( exportPath, **kwargs ):
     if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     return FileReference(cmds.file(*args, **kwargs))
 
 @createflag('file', 'exportSelected')
-def exportSelected( filepath, **kwargs ):
+def exportSelected( exportPath, **kwargs ):
     if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     return Path(cmds.file(*args, **kwargs))
 
 @createflag('file', 'exportAnim')
-def exportAnim( filepath, **kwargs ):
+def exportAnim( exportPath, **kwargs ):
     if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     return Path(cmds.file(*args, **kwargs))
 
 @createflag('file', 'exportSelectedAnim')
-def exportSelectedAnim( filepath, **kwargs ):
+def exportSelectedAnim( exportPath, **kwargs ):
     if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     return Path(cmds.file(*args, **kwargs))
 
+@add_docs('file', 'exportAnimFromReference')    
+def exportAnimFromReference( *args, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
+        except: pass
+    return Path(cmds.file( *args, **kwargs))
+      
+@add_docs('file', 'exportSelectedAnimFromReference')    
+def exportSelectedAnimFromReference( *args, **kwargs ):
+    if 'type' not in kwargs:
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
+        except: pass
+    return Path(cmds.file( *args, **kwargs))
+    
 @createflag('file', 'i')
 def importFile( *args, **kwargs ):
     return Path(cmds.file(*args, **kwargs))
@@ -546,13 +582,15 @@ def openFile( *args, **kwargs ):
 def renameFile( *args, **kwargs ):
     return Path(cmds.file(*args, **kwargs))
 
-def saveAs(filepath, **kwargs):
-    cmds.file( rename=filepath )
+def saveAs(exportPath, **kwargs):
+    cmds.file( rename=exportPath )
     kwargs['save']=True
     if 'type' not in kwargs:
-        try: kwargs['type'] = _getTypeFromExtension(filepath)
+        try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     return Path(cmds.file(**kwargs) )
+
+
 
 #createReference = _factories.makecreateflagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
 #loadReference = _factories.makecreateflagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
