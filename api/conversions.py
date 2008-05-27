@@ -20,7 +20,7 @@ try : from maya.OpenMayaRender import *
 except: pass
 
 import sys, inspect, warnings, timeit, time, re
-from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, treeFromDict
+from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict
 import pymel.util as util
 import pymel.mayahook as mayahook
 import pickle, os.path
@@ -75,14 +75,16 @@ def isValidMNodeOrPlug (obj):
 # Initializes various static look-ups to speed up Maya types conversions
 
 
-     
+
 class ApiTypesToApiEnums(Singleton, dict) :
     """Lookup of Maya API types to corresponding MFn::Types enum"""
     
 class ApiEnumsToApiTypes(Singleton, dict) :
     """Lookup of MFn::Types enum to corresponding Maya API types"""
 
-
+class ApiTypesToApiClasses(Singleton, dict) :
+    """Lookup of Maya API types to corresponding MFn::Types enum"""
+    
 # Reserved Maya types and API types that need a special treatment (abstract types)
 # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
 # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
@@ -92,7 +94,7 @@ class ApiEnumsToApiTypes(Singleton, dict) :
 class ReservedMayaTypes(dict) :
     __metaclass__ =  metaStatic
 # Inverse lookup
-class ReservedAPITypes(dict) :
+class ReservedApiTypes(dict) :
     __metaclass__ =  metaStatic
 
 def _buildMayaReservedTypes():
@@ -119,12 +121,9 @@ def _buildMayaReservedTypes():
     # filter to make sure all these types exist in current version (some are Maya2008 only)
     ReservedMayaTypes ( dict( (item[0], item[1]) for item in filter(lambda i:i[1] in ApiTypesToApiEnums(), reservedTypes.iteritems()) ) )
     # build reverse dict
-    ReservedAPITypes ( dict( (item[1], item[0]) for item in ReservedMayaTypes().iteritems() ) )
+    ReservedApiTypes ( dict( (item[1], item[0]) for item in ReservedMayaTypes().iteritems() ) )
     
-    return ReservedMayaTypes(), ReservedAPITypes()
-    
-# build them
-_buildMayaReservedTypes()
+    return ReservedMayaTypes(), ReservedApiTypes()
 
 # some handy aliases / shortcuts easier to remember and use than actual Maya type name
 class ShortMayaTypes(dict) :
@@ -144,6 +143,46 @@ class ApiTypesToMayaTypes(Singleton, dict) :
     """ Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
     Not a read only (static) dict as these can change (if you load a plugin)
     In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )"""
+
+#: lookup tables for a direct conversion between Maya type to their MFn::Types enum
+class MayaTypesToApiEnums(Singleton, dict) :
+    """Lookup from Maya types to API MFn::Types enums """
+
+#: lookup tables for a direct conversion between API type to their MFn::Types enum 
+class ApiEnumsToMayaTypes(Singleton, dict) :
+    """Lookup from API MFn::Types enums to Maya types """
+
+ 
+# Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
+# TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
+
+
+#: Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
+#: to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
+#: didn't follow latest Maya types additions...
+class ReservedApiHierarchy(dict) :
+    __metaclass__ =  metaStatic
+ReservedApiHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
+                    'kConstraint':'kTransform', 'kField':'kTransform', \
+                    'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
+                    'kDimension':'kShape', \
+                    'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
+                    'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
+                    'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
+                    'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
+                    'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
+                    'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
+                    'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
+                    'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
+                    'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
+                    'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
+                    'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
+                    'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' })  
+
+apiClassHierarchy = {}
+
+def ApiClassHierarchy() :
+    return apiClassHierarchy
 
 # get the API type from a maya type
 def mayaTypeToApiType (mayaType) :
@@ -178,7 +217,15 @@ def mayaTypeToApiType (mayaType) :
 
 
 def addMayaType(mayaType, apiType=None ) :
-    """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for. """
+    """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for. 
+    
+        - MayaTypesToApiTypes
+        - ApiTypesToMayaTypes
+        - ApiTypesToApiEnums
+        - ApiEnumsToApiTypes
+        - MayaTypesToApiEnums
+        - ApiEnumsToMayaTypes
+    """
 
 
     if apiType is None:
@@ -204,8 +251,17 @@ def addMayaType(mayaType, apiType=None ) :
             ApiEnumsToMayaTypes()[apiEnum] = { mayaType : None }
         else:
             ApiEnumsToMayaTypes()[apiEnum][mayaType] = None 
-        
+
 def removeMayaType( mayaType ):
+    """ Remove a type from the MayaTypes lists. 
+    
+        - MayaTypesToApiTypes
+        - ApiTypesToMayaTypes
+        - ApiTypesToApiEnums
+        - ApiEnumsToApiTypes
+        - MayaTypesToApiEnums
+        - ApiEnumsToMayaTypes
+    """
     try:
         apiEnum = MayaTypesToApiEnums().pop( mayaType )
     except KeyError: pass
@@ -227,9 +283,8 @@ def removeMayaType( mayaType ):
     
     
     
-# Initialises/updates MayaTypes for a faster later access
 def updateMayaTypesList() :
-    """Updates the cached MayaTypes lists """
+    """Updates the cached MayaTypes lists. Not currently used. """
     start = time.time()
     # use dict of empty keys just for faster random access
     # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
@@ -263,56 +318,7 @@ def updateMayaTypesList() :
             
 # initial update  
 #updateMayaTypesList()
-
-# Initialises MayaTypes for a faster later access
-def buildMayaTypesList() :
-    """Updates the cached MayaTypes lists """
-    start = time.time()
-    # use dict of empty keys just for faster random access
-    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
-    # add new types
-    for mayaType, apiType in ReservedMayaTypes().items() :
-         if not MayaTypesToApiTypes().has_key(mayaType) :
-             addMayaType( mayaType, apiType )
-    elapsed = time.time() - start
-    print "Updated Maya types list in %.2f sec" % elapsed
-
-buildMayaTypesList()
-
-#: lookup tables for a direct conversion between Maya type to their MFn::Types enum
-class MayaTypesToApiEnums(Singleton, dict) :
-    """Lookup from Maya types to API MFn::Types enums """
-
-#: lookup tables for a direct conversion between API type to their MFn::Types enum 
-class ApiEnumsToMayaTypes(Singleton, dict) :
-    """Lookup from API MFn::Types enums to Maya types """
-
- 
-# Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
-# TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
-
-#: Reserved API type hierarchy, for virtual types where we can not use the 'create trick'
-#: to query inheritance, as of 2008 types and API types seem a bit out of sync as API types
-#: didn't follow latest Maya types additions...
-class ReservedAPIHierarchy(dict) :
-    __metaclass__ =  metaStatic
-    
-ReservedAPIHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject', 'kDagNode':'kDependencyNode', \
-                    'kConstraint':'kTransform', 'kField':'kTransform', \
-                    'kShape':'kDagNode', 'kGeometric':'kShape', 'kDeformFunc':'kShape', 'kClusterFilter':'kWeightGeometryFilt', \
-                    'kDimension':'kShape', \
-                    'kCreate':'kDependencyNode', 'kPolyCreator':'kDependencyNode', \
-                    'kMidModifier':'kDependencyNode', 'kSubdModifier':'kDependencyNode', \
-                    'kCurveInfo':'kCreate', 'kCurveFromSurface':'kCreate', \
-                    'kSurface':'kGeometric', 'kRevolvedPrimitive':'kGeometric', 'kPlane':'kGeometric', 'kCurve':'kGeometric', \
-                    'kAnimCurve':'kDependencyNode', 'kResultCurve':'kAnimCurve', 'kCacheBase':'kDependencyNode' ,'kFilter':'kDependencyNode', \
-                    'kBlend':'kDependencyNode', 'kIkSolver':'kDependencyNode', \
-                    'kLight':'kShape', 'kNonAmbientLight':'kLight', 'kNonExtendedLight':'kNonAmbientLight', \
-                    'kTexture2d':'kDependencyNode', 'kTexture3d':'kDependencyNode', 'kTextureEnv':'kDependencyNode', \
-                    'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
-                    'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
-                    'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
-                    'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' })         
+       
 
 def _getMObject(nodeType, dagMod, dgMod) :
     """ Returns a queryable MObject form a give apiType """
@@ -320,7 +326,7 @@ def _getMObject(nodeType, dagMod, dgMod) :
     if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
     # cant create these nodes, some would crahs MAya also
-    if ReservedAPITypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
+    if ReservedApiTypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
         return None   
     obj = MObject()
     if ApiTypesToMayaTypes().has_key(nodeType) :
@@ -347,15 +353,15 @@ def _getMObject(nodeType, dagMod, dgMod) :
 
 
 # check if a an API type herits from another
-# it can't b e done for "virtual" types (in ReservedAPITypes)
+# it can't b e done for "virtual" types (in ReservedApiTypes)
 def _hasFn (apiType, dagMod, dgMod, parentType=None) :
     """ Get the Maya API type from the name of a Maya type """
     if parentType is None :
         parentType = 'kBase'
     # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-    # in the ReservedAPIHierarchy
-    if ReservedAPITypes().has_key(apiType) :
-        return ReservedAPIHierarchy().get(apiType, None) == parentType
+    # in the ReservedApiHierarchy
+    if ReservedApiTypes().has_key(apiType) :
+        return ReservedApiHierarchy().get(apiType, None) == parentType
     # Need the MFn::Types enum for the parentType
     if ApiTypesToApiEnums().has_key(parentType) :
         typeInt = ApiTypesToApiEnums()[parentType]
@@ -386,9 +392,9 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
             if not kwargs.has_key(k) :
                 kwargs[k] = None
     # Reserved we can't determine it as we can't create the node, all we can do is check if it's
-    # in the ReservedAPIHierarchy
-    if ReservedAPITypes().has_key(apiType) :
-        p = ReservedAPIHierarchy().get(apiType, None)
+    # in the ReservedApiHierarchy
+    if ReservedApiTypes().has_key(apiType) :
+        p = ReservedApiHierarchy().get(apiType, None)
         if p is not None :
             for t in kwargs.keys() :
                 if p == t :
@@ -424,8 +430,8 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
                             if q != p :
                                 stored = kwargs.get(q, None)
                                 if not stored :
-                                    if ReservedAPITypes().has_key(q) :
-                                        isFirst = not ReservedAPIHierarchy().get(q, None) == p
+                                    if ReservedApiTypes().has_key(q) :
+                                        isFirst = not ReservedApiHierarchy().get(q, None) == p
                                     else :                                    
                                         stored = _getMObject(q, dagMod, dgMod)
                                         if not kwargs.get(q, None) :
@@ -458,7 +464,7 @@ def _createNodes(dagMod, dgMod, *args) :
             apiType = MayaTypesToApiTypes()[k]
         else :
             continue
-        if ReservedAPITypes().has_key(apiType) or ReservedMayaTypes().has_key(mayaType) :
+        if ReservedApiTypes().has_key(apiType) or ReservedMayaTypes().has_key(mayaType) :
             result[apiType] = None
         else :
             obj = MObject()          
@@ -478,51 +484,50 @@ def _createNodes(dagMod, dgMod, *args) :
 
 # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
 # TODO : fix that, doesn't accept the Singleton base it seems
-# class MayaAPITypesHierarchy(Singleton, FrozenTree) :
+# class ApiClassHierarchy(Singleton, FrozenTree) :
 #    """ Hierarchy Tree of all API Types """
 
+def _buildApiTypesList():
+    """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with 
+    an existing api type"""
+    ApiTypesToApiEnums( dict( inspect.getmembers(MFn, lambda x:type(x) is int)) )
+    ApiEnumsToApiTypes( dict( (ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()) )
+
+    
+# Initialises MayaTypes for a faster later access
+def _buildMayaTypesList() :
+    """Updates the cached MayaTypes lists """
+    start = time.time()
+
+    # api types/enums dicts must be created before reserved type bc they are used for filtering
+    _buildMayaReservedTypes()
+    
+    # use dict of empty keys just for faster random access
+    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
+    # add new types
+    for mayaType, apiType in ReservedMayaTypes().items() + [(k, None) for k in _ls(nodeTypes=True)]:
+         #if not MayaTypesToApiTypes().has_key(mayaType) :
+         addMayaType( mayaType, apiType )
+    elapsed = time.time() - start
+    print "Updated Maya types list in %.2f sec" % elapsed
+
+
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def _buildAPITypesHierarchy () :
+def _buildApiClassHierarchy () :
     def _MFnType(x) :
         if x == MFnBase :
-            return 1
+            return ApiEnumsToApiTypes()[ 1 ]
         else :
             try :
-                return x().type()
+                return ApiEnumsToApiTypes()[ x().type() ]
             except :
-                return 0
-            
-    ver = mayahook.getMayaVersion(extension=False)
-
-    cacheFileName = os.path.join( util.moduleDir(),  'mayaApi'+ver+'.bin'  )
-    try :
-        file = open(cacheFileName, mode='rb')
-        try :
-            return pickle.load(file)
-        except :
-            print "Unable to load the Maya API Hierarchy from '"+file.name+"'"       
-        file.close()
-    except :
-        print "Unable to open '"+cacheFileName+"' for reading the list of Maya commands"
+                return ApiEnumsToApiTypes()[ 0 ]
     
-
-    print "Rebuilding the Maya API Hierarchy..."
-       
+    global apiClassHierarchy
+     
     # all of maya OpenMaya api is now imported in module api's namespace
     MFn = inspect.getmembers(_thisModule, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
-#    try : MFn += inspect.getmembers(OpenMayaAnim, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
-#    except : pass
-#    try : MFn += inspect.getmembers(OpenMayaCloth, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
-#    except : pass
-#    try : MFn += inspect.getmembers(OpenMayaFX, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
-#    except : pass
-#    try : MFn += inspect.getmembers(OpenMayaMPx, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
-#    except : pass
-#    if not cmds._about(batch=True) :
-#        try : MFn += inspect.getmembers(OpenMayaUI, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
-#        except : pass
-#    try : MFn += inspect.getmembers(OpenMayaRender, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))    
-#    except : pass
+
     MFn = dict(MFn)
     MFnTree = inspect.getclasstree([MFn[k] for k in MFn.keys()])
     MFnDict = {}
@@ -531,7 +536,8 @@ def _buildAPITypesHierarchy () :
             ct = _MFnType(x[0])
             pt = _MFnType(x[1][0])
             if ct and pt :
-                MFnDict[ApiEnumsToApiTypes()[ct]] = ApiEnumsToApiTypes()[pt]
+                ApiTypesToApiClasses()[ ct ] = x[0]
+                MFnDict[ ct ] = pt
         except :
             pass
         
@@ -562,34 +568,67 @@ def _buildAPITypesHierarchy () :
                                        
     # print MFnDict.keys()
     # make a Tree from that child:parent dictionnary
-                    
-    apiTypesTree = FrozenTree(treeFromDict(MFnDict))
+    print 'built', ApiTypesToApiClasses()
+    # assign the hierarchy to the module-level variable
+    apiClassHierarchy = IndexedFrozenTree(treeFromDict(MFnDict))
+    
+
+def _buildApiCache():
+    #print ApiTypesToApiEnums()
+    #print ApiTypesToApiClasses()
+    global ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiClassHierarchy
+    
+    
+         
+    ver = mayahook.getMayaVersion(extension=False)
+
+    cacheFileName = os.path.join( util.moduleDir(),  'mayaApi'+ver+'.bin'  )
+    try :
+        file = open(cacheFileName, mode='rb')
+        try :
+            #ReservedMayaTypes, ReservedApiTypes
+            #ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiClassHierarchy = pickle.load(file)
+            data = pickle.load(file)
+            ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiClassHierarchy = data
+            return
+        except :
+            print "Unable to load the Maya API Hierarchy from '"+file.name+"'"       
+        file.close()
+    except :
+        print "Unable to open '"+cacheFileName+"' for reading the Maya API Hierarchy"
+    
+    print "Rebuilding the API Caches..."
+    
+    # fill out the data structures
+    _buildApiTypesList()
+    _buildMayaTypesList()
+    _buildApiClassHierarchy()
+
+    #print ApiTypesToApiClasses()
     try :
         file = open(cacheFileName, mode='wb')
         try :
-            pickle.dump( apiTypesTree,  file, 2)
+            pickle.dump( (ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiClassHierarchy),
+                            file, 2)
             print "done"
         except:
-            print "Unable to write the Maya API Hierarchy to '"+file.name+"'"
+            print "Unable to write the Maya API Cache to '"+file.name+"'"
         file.close()
     except :
-        print "Unable to open '"+newPath+"' for writing"
+        print "Unable to open '"+cacheFileName+"' for writing"
         
-    return apiTypesTree
     
 
 # Initialize the API tree
-# MayaAPITypesHierarchy(_buildAPITypesHierarchy())
+# ApiClassHierarchy(_buildApiClassHierarchy())
 # initial update  
 start = time.time()
-# MayaAPITypesHierarchy(_buildAPITypesHierarchy())
-mayaAPITypesHierarchy = _buildAPITypesHierarchy()
-# quick fix until we can get a Singleton MayaAPITypesHierarchy() up
-def MayaAPITypesHierarchy() :
-    return mayaAPITypesHierarchy
+# ApiClassHierarchy(_buildApiClassHierarchy())
+_buildApiCache()
+# quick fix until we can get a Singleton ApiClassHierarchy() up
 
 elapsed = time.time() - start
-print "Initialized Maya API types hierarchy tree in %.2f sec" % elapsed
+print "Initialized API Cache in in %.2f sec" % elapsed
 
 # TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
@@ -628,8 +667,7 @@ def nodeTypeToAPIType (nodeType) :
         that can be matched """
     return MayaTypesToApiTypes().get(nodeType, None)
 
-# conversion api type -> node type
-# get the maya type from an API type
+
 def apiToNodeType (*args) :
     """ Given a list of API type or API type int, return the corresponding Maya node types,
         note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
@@ -663,7 +701,7 @@ def apiToNodeType (*args) :
 #    if api :
 #        result = apiEnumToType (result)
 #        if inherited :
-#            result = [k.value for k in MayaAPITypesHierarchy().path(result)]    
+#            result = [k.value for k in ApiClassHierarchy().path(result)]    
 #    else :
 #        result = apiEnumToNodeType (result)
 #        if inherited :
