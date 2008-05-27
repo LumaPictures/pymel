@@ -1236,11 +1236,13 @@ Modifications
 def delete(*args, **kwargs):
     """
 Modifications:
-    - if this is passed an empty list, tuple or other iterable object as the only argument, the command will no longer error
+    - added quiet keyword: the command will not fail on an empty list, and will not print warnings for read-only objects
     """
-    if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
-        return
-'''    
+    if kwargs.pop('quiet',False):
+        if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
+            return
+'''
+   
 def currentTime( *args, **kwargs ):
     """
 Modifications:
@@ -2200,7 +2202,7 @@ class DependNode( PyNode ):
 #            ntype = uncapitalize(cls.__name__)
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
-
+    _mfn = None
     def _updateName(self) :
         if api.isValidMObjectHandle(self._object) :
             obj = self._object.object()
@@ -2211,7 +2213,17 @@ class DependNode( PyNode ):
     def object(self) :
         if api.isValidMObjectHandle(self._object) :
             return self._object.object()
-        
+    
+    def MFn(self):
+        obj = self.object()
+        if obj:
+            try:
+                mfn = api.toApiFunctionSet( obj.apiTypeStr() )
+                self._mfn = mfn(obj)
+                return self._mfn
+            except KeyError:
+                pass
+    
     def name(self, update=True) :
         if update :
             return self._updateName()
