@@ -153,14 +153,14 @@ class Mel(object):
         """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
         in certain output, such as the rush render-queue manager."""
         #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
-        mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
+        return mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
         
     def source( self, script ):
         """use this to source mel scripts from within mel"""
-        mm.eval( """source "%s";""" % script )
+        return mm.eval( """source "%s";""" % script )
         
     def eval( self, command ):
-        mm.eval( command )    
+        return mm.eval( command )    
         
     def tokenize(self, *args ):
         raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
@@ -1396,9 +1396,9 @@ class FileReference(Path):
         res = {}
         for x in cmds.file( self, q=1, reference=1):
             try:
-                res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.core.FileReference(x)
+                res[namespace + cmds.file( x, q=1, namespace=1)] = FileReference(x)
             except Exception, e:
-                pymel.mel.warning("Could not get namespace for '%s': %s" % (x,e))  
+                mel.warning("Could not get namespace for '%s': %s" % (x,e))  
         return res    
         
         
@@ -1435,7 +1435,7 @@ class FileReference(Path):
     
     def nodes(self):
         """referenceQuery -nodes """
-        return map( node.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
+        return map( node.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) or [])
     def copyNumberList(self):
         """returns a list of all the copy numbers of this file"""
         return cmds.file( self, q=1, copyNumberList=1 )
