@@ -111,18 +111,13 @@ secondaryFlags = {
              )
 }
 
-#: these are commands which need to be manually added to the list parsed from the docs
-moduleCommandAdditions = {
-    'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
-    'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
-                 'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
-}
+
 
 #---------------------------------------------------------------
 #        Doc Parser
 #---------------------------------------------------------------
-    
 class CommandDocParser(HTMLParser):
+
     def __init__(self, command):
         self.command = command
         self.flags = {}  # shortname, args, docstring, and a list of modes (i.e. edit, create, query)
@@ -287,9 +282,11 @@ class CommandDocParser(HTMLParser):
             
 def mayaDocsLocation( version=None ):
     #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
+    
+    docLocation = mayautils.getMayaLocation(version) # use original version
     if version == None :
         version = mayautils.getMayaVersion(extension=False)
-    docLocation = mayautils.getMayaLocation() 
+    
     
     import platform
     if platform.system() == 'Darwin':
@@ -494,8 +491,16 @@ def getCmdInfo( command, version='8.5', python=True ):
         #raise IOError, "cannot find maya documentation directory"
 
 class NodeHierarchyDocParser(HTMLParser):
-                
-    def __init__(self):
+ 
+    def parse(self):
+        docloc = mayaDocsLocation(self.version)
+        f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
+        self.feed( f.read() )
+        f.close()
+        return self.tree
+    
+    def __init__(self, version=None):
+        self.version = version
         self.currentTag = None
         self.depth = 0
         self.lastDepth = -1
@@ -576,19 +581,29 @@ def printTree( tree, depth=0 ):
         else:
             print '> '*depth, branch
             
-def _getNodeHierarchy( version='8.5' ):
-    docloc = mayaDocsLocation(version)
-    f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
-    parser = NodeHierarchyDocParser()
-    parser.feed( f.read() )
-    f.close()
-    return parser.tree
+def _getNodeHierarchy( version='8.5' ): 
+    parser = NodeHierarchyDocParser(version)
+    return parser.parse()
 
 class CommandModuleDocParser(HTMLParser):
-                
-    def __init__(self):
+    #: these are commands which need to be manually added to the list parsed from the docs
+    moduleCommandAdditions = {
+        'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
+        'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
+                     'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
+    }
+    
+    def parse(self):
+        docloc = mayaDocsLocation(self.version)
+        f = open( os.path.join( docloc , 'Commands/cat_' + self.category + '.html' ) )
+        self.feed( f.read() )
+        f.close()
+        return self.cmdList + sef.moduleCommandAdditions.get(self.category, [] )
+              
+    def __init__(self, category, version=None ):
         self.cmdList = []
-        
+        self.category = category
+        self.version = version
         HTMLParser.__init__(self)
         
     def handle_starttag(self, tag, attrs):
@@ -613,13 +628,45 @@ def _getUICommands():
     return cmds
 
 def getModuleCommandList( category, version='8.5' ):
-    docloc = mayaDocsLocation(version)
-    f = open( os.path.join( docloc , 'Commands/cat_' + category + '.html' ) )
-    parser = CommandModuleDocParser()
-    parser.feed( f.read() )
-    f.close()
-    return parser.cmdList + moduleCommandAdditions.get(category, [] )
+    parser = CommandModuleDocParser(category, version)
+    return parser.parse()
+
+class ApiDocParser(HTMLParser):
+
+    def getClassFilename(self):
+        filename = 'class'
+        for tok in re.split( '([A-Z][a-z]+)', self.functionSet ):
+            if tok:
+                if tok[0].isupper():
+                    filename += '_' + tok.lower()
+                else:
+                    filename += tok
+        return filename
+        
+    def parse(self):
+        docloc = mayaDocsLocation(self.version)
+        f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
+        self.feed( f.read() )
+        f.close()
+        return
+              
+    def __init__(self, functionSet, version='2009' ):
+        self.cmdList = []
+        self.functionSet = functionSet
+        self.version = version
+        self.methods = []
+        self.currentMethod = {}
+        HTMLParser.__init__(self)
+        
+    def handle_data(self, data):
+        data = data.lstrip().rstrip()
+        if data:
+            print data
     
+    def handle_comment(self, comment ):
+        comment = comment.lstrip().rstrip()
+        print "comment", comment
+        
 #-----------------------------------------------
 #  Command Help Documentation
 #-----------------------------------------------
