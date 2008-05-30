@@ -629,12 +629,15 @@ class Attribute(_BaseObj):
         'basename'
         return self.split('|')[-1]
     
-    def item(self):
-        try: 
-            val = Attribute.attrItemReg.search(self).group(1).split(":")
+    def item(self, asSlice=False, asString=False):
+        try:
+            item = Attribute.attrItemReg.search(self).group(1)
+            if asString:
+                return "[%s]" % str(item)
+            val = item.split(":")
             val = map(int,val)
             if len(val)>1:
-                return val
+                return asSlice and slice(*val) or val
             return val[0]
         except: return None
     
@@ -1774,7 +1777,15 @@ class Mesh(SurfaceShape):
             
         def __len__(self):
             return cmds.polyEvaluate(self.node(), vertex=True)
-        
+    
+    class MapArray(ComponentArray):
+        def __init__(self, name):
+            ComponentArray.__init__(self, name)
+            self.returnClass = Mesh.Map
+            
+        def __len__(self):
+            return cmds.polyEvaluate(self.node(), uvcoord=True)
+                
     class Face(Component):
         def __str__(self):
             return '%s.f[%s]' % (self._node, self._item)
@@ -1790,7 +1801,7 @@ class Mesh(SurfaceShape):
         def toVertices(self):
             return map( self._node.vtx.__getitem__, cmds.polyInfo( str(self), faceToVertex=1)[0].split()[2:] )        
         vertices = property(toVertices)
-        
+
     class Edge(Component):
         def __str__(self):
             return '%s.e[%s]' % (self._node, self._item)
@@ -1811,6 +1822,10 @@ class Mesh(SurfaceShape):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )        
         faces = property(toFaces)
     
+    class Map(Component):
+        def __str__(self):
+            return '%s.map[%s]' % (self._node, self._item)
+        
     def _getFaceArray(self):
         return Mesh.FaceArray( self + '.f' )    
     f = property(_getFaceArray)
@@ -1825,6 +1840,10 @@ class Mesh(SurfaceShape):
         return Mesh.VertexArray( self + '.vtx' )    
     vtx = property(_getVertexArray)
     verts = property(_getVertexArray)
+
+    def _getMapArray(self):
+        return Mesh.MapArray( self + '.map' )    
+    map = property(_getMapArray)
             
     def __getattr__(self, attr):
         if attr.startswith('__') and attr.endswith('__'):
@@ -2052,7 +2071,7 @@ class ObjectSet(Entity):
     def __ior__(self, s):
         return self.update(s)
                                     
-    def __len__(self, s):
+    def __len__(self):
         return len(self._elements())
 
     def __lt__(self, s):
@@ -2184,9 +2203,18 @@ def PyNode(strObj, nodeType=None):
     
     try:
         if '.' in strObj:
-            return Attribute(strObj)
-    except TypeError:
-        raise 'PyNode: expected a string or unicode object, got %s' % type(strObj)
+            obj = Attribute(strObj)
+            return obj
+            # Return Component Arrays ======================================================
+            #            attr = obj.array().plugAttr()
+            #            if attr in ["f","vtx","e","map"]:
+            #                comps = getattr(Mesh(obj.node()), attr)
+            #                return comps.__getitem__(obj.item(asSlice=1))                
+            #            else:
+            #                return obj
+            #===============================================================================
+    except TypeError, e:
+        raise TypeError('PyNode: expected a string or unicode object, got %s (%s)' % (type(strObj), e))
     except: pass
         
     try:
