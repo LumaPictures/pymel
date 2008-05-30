@@ -52,12 +52,19 @@ def source (file, searchPath=None, recurse=False) :
     return execfile(filepath)
 
 
-def getMayaLocation():
+def getMayaLocation(version=None):
     try:
-        return os.environ['MAYA_LOCATION']
+        loc = os.environ['MAYA_LOCATION']
     except:
-        return os.path.dirname( os.path.dirname( sys.executable ) )
-        
+        loc = os.path.dirname( os.path.dirname( sys.executable ) )
+    
+    # get the path of a different maya version than current
+    if version:
+        currentVersion = getMayaVersion()
+        if currentVersion != version:
+            loc = loc.replace( currentVersion, version )
+    return loc
+
 def getMayaVersion(extension=True):
     """ Returns the maya version (ie 2008), with extension (known one : x64 for 64 bit cuts) if extension=True """
     
