@@ -578,9 +578,9 @@ def newFile( *args, **kwargs ):
 def openFile( *args, **kwargs ):
     return Path(cmds.file(*args, **kwargs))    
 
-@createflag('file', 'rename')
+@add_docs('file', 'rename')
 def renameFile( *args, **kwargs ):
-    return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(rename=args[0]))
 
 def saveAs(exportPath, **kwargs):
     cmds.file( rename=exportPath )
