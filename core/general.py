@@ -1334,7 +1334,46 @@ def _getPymelType(arg, comp=None) :
             obj = None
     elif isinstance(arg,basestring) :
         objName = arg
-        obj = api.toAPIObject(arg)
+        # TODO : should we delay this until the PyNode class requires an MObject? 
+        # api.MFnDependencyNode( api.toAPIOjbect(objName) ).typeName() is 25% slower than cmds.nodeType(objName).
+        # however, api.MFnDependencyNode( obj ).typeName() is 10x faster than cmds.nodeType(objName),
+        # so you could say that we get the nodeType *and* the MObject for an extra 25%.
+        """ 
+        start = cmds.timerX()
+        for i in range(100):
+            for objName in cmds.ls(): typ = cmds.nodeType( objName )
+        print "%.03f" % cmds.timerX(startTime=start)
+        
+        start = cmds.timerX()
+        for i in range(100):
+            for objName in cmds.ls(): x = api.toAPIObject(objName) 
+        print "%.03f" % cmds.timerX(startTime=start)
+        
+        start = cmds.timerX()
+        for i in range(100):
+            for objName in cmds.ls(): x = api.MFnDependencyNode( api.toAPIObject(objName) )
+        print "%.03f" % cmds.timerX(startTime=start)
+        
+        start = cmds.timerX()
+        for i in range(100):
+            for objName in cmds.ls(): typ =api.MFnDependencyNode( api.toAPIObject(objName) ).typeName() 
+        print "%.03f" % cmds.timerX(startTime=start)
+        
+        apiObjs = []
+        for objName in cmds.ls(): apiObjs.append( api.toAPIObject(objName) ) 
+        start = cmds.timerX()
+        for i in range(100):
+            for objName in apiObjs: typ =api.MFnDependencyNode( objName ).typeName() 
+        print "%.03f" % cmds.timerX(startTime=start)
+        
+        3.140
+        3.430
+        3.700
+        3.960
+        0.390
+        """
+        
+        obj = api.toAPIObject(objName)
                                            
     if obj :
         # the case of an existing node or plug
@@ -1353,7 +1392,7 @@ def _getPymelType(arg, comp=None) :
     else :
         raise ValueError, "unable to determine a suiting Pymel type for %r" % arg         
     
-    return pymelType 
+    return pymelType, obj
 
 #--------------------------
 # Object Wrapper Classes
@@ -1374,7 +1413,8 @@ class PyNode(ProxyUnicode):
             comp = None
             if len(args)>1 :
                 comp = args[1]
-            pymelType = _getPymelType(obj, comp)
+            pymelType, obj = _getPymelType(obj, comp)
+            self._object = obj
         else :
             pymelType = DependNode
         
