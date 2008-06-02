@@ -146,7 +146,7 @@ class Mel(object):
             strArgs.extend(map( pythonToMel, args))
             
             cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
-            print cmd
+            #print cmd
             try:
                 return mm.eval(cmd)
             except RuntimeError, msg:
