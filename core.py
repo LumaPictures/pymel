@@ -133,12 +133,20 @@ class Mel(object):
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
             return self.__dict__[command]
-        def _call(*args):
+        def _call(*args, **kwarg):
         
-            strArgs = map( pythonToMel, args)
-                            
+            strArgs = []
+            for (k,v) in kwarg.iteritems():
+                if v is True:
+                    strArgs.append('"-%s"' % k)
+                elif v is not False:
+                    strArgs.append('"-%s"' % k)
+                    strArgs.append(pythonToMel(v))
+                    
+            strArgs.extend(map( pythonToMel, args))
+            
             cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
-            #print cmd
+            print cmd
             try:
                 return mm.eval(cmd)
             except RuntimeError, msg:
