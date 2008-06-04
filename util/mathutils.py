@@ -1,7 +1,9 @@
 """ Defines useful math functions. """
 
-# to be able to call real and imag on all numericals
+from __builtin__ import round as _round
+import math
 
+# to be able to call real and imag on all numericals
 def real (x):
     """ the real part of x """
     if isinstance(x, complex) :
@@ -14,13 +16,31 @@ def imag (x):
     if isinstance(x, complex) :
         return x.imag
     else :
-        return type(x)(0)
+        return type(x)(0)    
+
+# overload of built-in round fn to accept complex numbers
+def round(value, ndigits=0) :
+    """ round(number[, ndigits]) -> floating point number
+        Round a number to a given precision in decimal digits (default 0 digits).
+        This always returns a floating point number.  Precision may be negative.
+        This builtin function was overloaded in mathutils to work on complex numbers,
+        in that case rel and imaginary values are rounded separately """
+    if isinstance(value, complex) :
+        return complex(_round(value.real, ndigits), _round(value.imag, ndigits))
+    else :
+        return _round(value, ndigits)
        
 # general remapping operations
 
 def gamma (c, g):
-    """ gamma color correction with a single scalar gamma value g"""
+    """ Gamma color correction with a single scalar gamma value g"""
     return c**g 
+
+def blend (a, b, w=0.5):
+    """ blend(a, b, w) :
+        Blends values a and b according to normalized weight w,
+        returns a for w == 0.0 and b for w = 0.1, a*(1.0-w)+b*w in between """
+    return a*(1.0-w)+b*w
 
 # TODO : modify these so that they accept iterable / element wise operations
 
