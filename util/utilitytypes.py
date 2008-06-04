@@ -3,7 +3,7 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import warnings
+import warnings, inspect
 
 class Singleton(object) :
     """
@@ -163,6 +163,65 @@ class metaStatic(type) :
                 newdict['__slots__'].append(k)
                 newdict['__dflts__'][k] = classdict[k]
         return super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
+
+# read only decorator
+def readonly(f) :
+    """ Marks a class member as protected, allowing metaProtected to prevent re-assignation on the classes it generates """
+    f.__readonly__ = None
+    return f
+
+class metaReadOnlyAttr(type) :
+    """ A metaclass to allow to define read-only class attributes, accessible either on the class or it's instances
+        and protected against re-write or re-definition.
+        Read only attributes are stored in the class '__readonly__' dictionary.
+        Any attribute can be marked as read only by including its name in a tuple named '__readonly__' in the class
+        definition. Alternatively methods can be marked as read only with the @readonly decorator and will then get
+        added to the dictionary at class creation """ 
+
+    def __setattr__(cls, name, value):
+        """ overload __setattr__ to forbid modification of read only class info """  
+        readonly = {}
+        for c in inspect.getmro(cls) :
+            if hasattr(c, '__readonly__') :
+                readonly.update(c.__readonly__) 
+        if name in readonly :
+            raise AttributeError, "attribute %s is a read only class attribute and cannot be modified on class %s" % (name, cls.__name__)
+        else :
+            super(metaReadOnlyAttr, cls).__setattr__(name, value)
+
+           
+    def __new__(mcl, classname, bases, classdict):
+        """ Create a new metaReadOnlyAttr class """
+            
+        # checks for protected members, in base classes on in class to be created
+        readonly = {}
+        # check for protected members in class definition
+        if '__readonly__' in classdict :
+            readonly.update(dict((a, None) for a in classdict['__readonly__']))
+        for a in classdict :
+            if hasattr(classdict[a], '__readonly__') :
+                readonly[a] = None
+        readonly['__readonly__'] = None
+        classdict['__readonly__'] = readonly
+        
+        # create the new class   
+        newcls = super(metaReadOnlyAttr, mcl).__new__(mcl, classname, bases, classdict)
+        
+        def __setattr__(self, name, value):
+            """ overload __setattr__ to forbid overloading of read only class info on a class instance """
+            try :
+                readonly = newcls.__readonly__
+            except :
+                readonly = {}
+            if name in readonly :
+                raise AttributeError, "attribute '%s' is a read only class attribute of class %s and cannot be overloaded on an instance of class %s" % (name, self.__class__.__name__, self.__class__.__name__)
+            else :
+                super(newcls, self).__setattr__(name, value)
+                
+        type.__setattr__(newcls, '__setattr__', __setattr__)
+        
+        return newcls                     
+
     
 def proxyClass( cls, classname, dataAttrName = '_data'):
     """this function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
