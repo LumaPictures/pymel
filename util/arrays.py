@@ -14,6 +14,7 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 import operator, itertools, copy, inspect, sys
 
 import arguments as util
+from utilitytypes import readonly, metaReadOnlyAttr
 from math import pi, exp
 import math, mathutils
 
@@ -88,7 +89,11 @@ def _patchfn(basefn) :
         else :
             return basefn(*args)
     fn.__name__ = basefn.__name__
-    fn.__doc__ = basefn.__doc__ + "\nThis function has been overriden from %s.%s to work element-wise on iterables" % (basefn.__module__, basefn.__name__)
+    if basefn.__doc__ is None :
+        basedoc = "No doc string was found on base function"
+    else :
+        basedoc = basefn.__doc__
+    fn.__doc__ = basedoc + "\nThis function has been overriden from %s.%s to work element-wise on iterables" % (basefn.__module__, basefn.__name__)
     return fn
     
 mathfn = inspect.getmembers(math, inspect.isbuiltin)
@@ -154,57 +159,50 @@ def amap(fn, *args) :
     else :
         return fn()
 
-def around(array, ndigits=0) :
-    """ around(number[, ndigits]) -> (iterable of) floating point number
-        Rounds a number, or element-wise rounds every elements of an iterable
-        to a given precision in decimal digits (default 0 digits).
-        This always returns a floating point number.  Precision may be negative. """
-    if hasattr(array, '__iter__') :
-        return array.__class__(around(x, ndigits) for x in array)
-    else :
-        return round(array, ndigits)
 
-# iterator classes on a specific Array dimension, supporting __getitem__
-# in a Numpy like way
-
+# iterator classes on a specific Array axis, supporting __getitem__ and __setitem__
+# in a numpy like way
+          
 class ArrayIter(object):
-    """ An iterator on Array sub-arrays of given number of dimensions, that support element indexing """
-    def __init__(self, data, sub_dim=None) :
-        # print "type", type(data), "on index", onindex
+    def __init__(self, data, *args) :
+        if len(args) == 1 and hasattr(args[0], '__iter__') :
+            args = tuple(args[0]) 
         if isinstance(data, Array) :
-            data_ndim = data.ndim
-            if sub_dim is None :
-                sub_dim = data_ndim - 1
-            iter_ndim = data_ndim - sub_dim
-            if iter_ndim > 0 :
-                self.base = data
-#            elif iter_ndim == 0 :
-#                self.base = Array([])
-#                self.base.data = [data]
-#            else :
-#                self.base = Array([])
-                if self.base :
-                    # something to iterate
-                    self.ndim = self.base.ndim - sub_dim
-                    # the shape of the sub array we iterate on             
-                    self.shape = tuple(self.base.shape[:self.ndim])
-                    # the shape of the items the iterator will produce (sub arrays or numerics)
-                    self.itemshape = tuple(self.base.shape[self.ndim:])
-                    self.size = reduce(operator.mul, self.shape, 1)
-                    self.subsizes = [reduce(operator.mul, self.shape[i+1:], 1) for i in xrange(self.ndim)]   
-                    self.coords = [0]*self.ndim
-                else :
-                    # empty iterator
-                    self.ndim = 1
-                    self.shape = (0,)
-                    self.size = 0
-                    self.subsizes = (1,)
-                    self.coords = (0,)
+            if args :
+                axis = [int(x) for x in args]
             else :
-                raise ValueError, "can only iterate for a dimension inferior to Array's dimensions"
+                axis = [0]                    
+            ndim = len(axis)
+            size = 1
+            coords = [slice(None)]*data.ndim
+            shape = []
+            for x in axis :
+                if x < 0 or x >= data.ndim :
+                    raise ValueError, "%s has %s dimensions, cannot iterate on axis %s" % (util.clsname(data), data.ndim, x)
+                elif axis.count(x) > 1 :
+                    raise ValueError, "axis %s is present more than once in ArrayIter axis list %s" % (x, axis)
+                else :
+                    coords[x] = 0
+                    size *= data.shape[x]
+                    shape.append(data.shape[x])
+            itemshape = []
+            for x in xrange(data.ndim) : 
+                if not x in axis :
+                    itemshape.append(data.shape[x]) 
+            
+            self.base = data
+            self.ndim = ndim 
+            self.size = size         
+            self.coords = coords  
+            self.axis = tuple(axis)               
+            self.shape = tuple(shape)
+            self.itemshape = tuple(itemshape) 
+            self.itemdim = len(itemshape) 
+            self.subsizes = [reduce(operator.mul, shape[i+1:], 1) for i in xrange(ndim)]  
+            #print "Base shape %s, Axis %s, Iter shape %s, iter dim %s, iter size %s, item shape %s, item dim %s, subsizes %s"\
+            #         % (self.base.shape, self.axis, self.shape, self.ndim, self.size, self.itemshape, self.itemdim, self.subsizes)                
         else :
-            raise TypeError, "%s can only be built on Array or derived, not %s" % (util.clsname(self), util.clsname(data))
-        
+            raise TypeError, "%s can only be built on Array" % util.clsname(self)
     def __length_hint__(self) :
         return self.size
     def __len__(self) :
@@ -213,72 +211,45 @@ class ArrayIter(object):
         return self 
     
     def next(self):
-        for i in range(self.ndim-1, 0, -1) :
-            if self.coords[i] == self.shape[i] :
-                self.coords[i] = 0
-                self.coords[i-1] += 1
-        if self.coords[0] >= self.shape[0] : 
+        for i in range(len(self.axis)-1, 0, -1) :
+            if self.coords[self.axis[i]] == self.shape[i] :
+                self.coords[self.axis[i]] = 0
+                self.coords[self.axis[i-1]] += 1
+        if self.coords[self.axis[0]] >= self.shape[0] : 
             raise StopIteration
 
         val =  self.base.__getitem__(tuple(self.coords))
-        self.coords[-1] += 1
-        return val         
+        self.coords[self.axis[-1]] += 1
+        return val       
 
     # fast internal version without checks or negative index / slice support
     def _toArrayCoords(self, item):
-        coords = []
-        for i in xrange(self.ndim) :
-            c = item//self.subsizes[i]
-            item -= c*self.subsizes[i]
-            coords.append(c)
-        return tuple(coords)                      
-    # fast internal version without checks or negative index / slice support    
-    def _toIterItem(self, coords):
-        return reduce(lambda x, y: x+y[0]*y[1], zip(coords, self.subsizes), 0)
+        owncoords = []
+        for s in self.subsizes :
+            c = item//s
+            item -= c*s
+            owncoords.append(c)
+        coords = [slice(None)]*self.base.ndim
+        for i,c in enumerate(owncoords) :
+            coords[self.axis[i]] = c
+        # remove trailing ":" slices, leaving a minimum of one coord   
+        while len(coords) > 1 and coords[-1] == slice(None) :
+            del coords[-1]
+        return tuple(coords)
         
     def toArrayCoords(self, item):
         """ Converts an iterator item index (nth item) for that Array iterator to a tuple of axis coordinates for that Array, 
             returns a single coordinates tuple or a list of coordinate tuples if item index was a slice """
         if isinstance(item, slice) :
             return [self._toArrayCoords(f) for f in range(self.size)[item]]
-        elif isinstance(item, int) :
+        else :
+            item = int(item)
             if item < 0 :
                 item = self.size - item
             if item>=0 and item<self.size :
                 return self._toArrayCoords(item)
             else :
-                raise IndexError, "index %s out of range (%s)" % (item, self.size)
-        else :
-            raise TypeError, "Arrays iterator item index must be an integer" 
-            
-    def toIterItem(self, *args):
-        """ Converts axis coordinates for that array to an index (nth item) for that Array iterator,
-            returns a single item index or a list of item indices if coordinates include slices """
-        # TODO : FIXME
-        if args :
-            shape = self.shape
-            ndim = self.ndim
-            if len(args) == 1 and util.isIterable(args[0]) :
-                args = list(args[0])
-            else :
-                args = list(args)
-            if len(args) > ndim :
-                raise ValueError, "%s coordinates provided for an Array of dimension %s" % (len(args), ndim)
-            allcoords = []
-            for i, c in enumerate(args) :
-                if isinstance(c, slice) :
-                    pass
-                elif isinstance(c, int) :
-                    if c<0 :
-                        c = self.shape[i]-c
-                    if c>=0 and c<shape[i] :
-                        allcoords.append(c)
-                    else :
-                        raise IndexError, "index %s for dimension %s is out of bounds" % (c, i)
-                else :
-                    raise TypeError, "Arrays indices must be integers"     
-        else :
-            return 0 
+                raise IndexError, "item numer %s for iterator of %s items is out of bounds" % (item, self.size)
 
     def __getitem__(self, index) :
         """ Returns a single sub-Array or component corresponding to the iterator item item, or an Array of values if index is a slice """      
@@ -313,44 +284,17 @@ class ArrayIter(object):
                 self.base.__setitem__(coords, value)
             else :
                 raise ValueError, "iterated items shape and value shape do not match"
-            
-class ArrayAxisIter(object):
-    def __init__(self, data, axis=0) :
-        # print "type", type(data), "on index", onindex
-        if isinstance(data, Array) :
-            self.base = data
-            self.shape = self.base.shape
-            self.size = self.base.size
-            self.ndim = self.base.ndim            
-            self.coords = [0]*len(self.shape)
-            if onindex in range(self.ndim) :
-                self.onindex = onindex                  
-            else :
-                raise ValueError, "%s has %s dimensions, cannot iterate on index %s" % (util.clsname(self.base), self.base.ndim, onindex)
-        else :
-            raise TypeError, "%s can only be built on Array" % util.clsname(self)
-    def __length_hint__(self) :
-        return self.shape[self.onindex]
-    def __iter__(self) :
-        return self 
     
-    def _nextrow(self) :
-        if self.coords[0] == self.shape[0] :        
-            raise StopIteration
-        self.ptr = self.base.Matrix[self.coords[0]]
-        val =  tuple(api.MScriptUtil.getDoubleArrayItem(self.ptr, c) for c in xrange(self.shape[1]))
-        self.coords[0] += 1
-        return val
-    def next(self):
-        pass     
-    def __getitem__(self, i) :
-        return tuple(self)[i]
+
     
 # A generic multi dimensional Array class
 # NOTE : Numpy Array class could be used instead, just implemented the bare minimum inspired from it
 class Array(object):
     """ A generic n-dimensional array class using nested lists for storage """
-        
+    __metaclass__ = metaReadOnlyAttr
+    __readonly__ = ('stype',)
+    
+    stype = list
     # cache shape and size to save time
     def _cacheshape(self):
         shape = []
@@ -376,10 +320,10 @@ class Array(object):
     def _getdata(self):
         return self._data
     def _setdata(self, data):
-        if isinstance(data, list) :
+        if isinstance(data, self.stype) :
             self._data = data
         else :
-            self._data = list(data)
+            self._data = self.stype(data)
         self._cacheshape() 
     def _deldata(self):
         del self._data[:]
@@ -402,7 +346,7 @@ class Array(object):
             for d in reversed(shape) :
                 defval = [defval]*d
         else :
-            defval = []
+            defval = cls.stype()
             
         return cls(defval)
         
@@ -430,7 +374,7 @@ class Array(object):
                     else :
                         raise ValueError, "value of shape %s cannot be fit in a %s of shape %s, some data would be lost" % (vshape, cls.__name__, shape)
                 if vdim < dim :
-                    iter = new.subarray(vdim)
+                    iter = new.subiter(vdim)
                     for i in xrange(len(iter)) :
                         iter[i] = value    
                 else :
@@ -454,23 +398,36 @@ class Array(object):
         """ Initialize an Array from one or several nested lists or numeric values """
 
         shape = kwargs.get('shape', None)
-        if shape is not None and type(shape) is not tuple :
-            if hasattr(shape, '__iter__') :
-                shape = tuple(shape)
-            else :
-                shape = (shape,)
-        # fill = kwargs.get('fill', False)
+        ndim = None
+        if shape is not None :
+            if type(shape) is not tuple :
+                if hasattr(shape, '__iter__') :
+                    shape = tuple(shape)
+                else :
+                    shape = (shape,)
+            ndim = len(shape)
         
         # some Array sub classes have fixed shapes
         try :
             cls_shape = tuple(cls.shape)
             if shape is None :
                 shape = cls_shape
+                ndim = len(shape)
             elif shape != cls_shape :
-                raise ValueError, "class %s has a fixed shape %s and can't accept a different shape at creation" % (cls.__name__, cls_shape)
+                raise ValueError, "class %s has a fixed shape %s and can't accept a different shape at creation" % (cls.__name__, tuple(cls_shape))
         except :
             pass
-           
+
+        # some Array sub classes have a fixed number of dimensions
+        try : 
+            cls_ndim = int(cls.ndim)
+            if shape is None :
+                ndim = cls_ndim
+            elif ndim != cls_ndim :
+                raise ValueError, "class %s has a fixed number of dimensions %s and can't accept shape %s of different dimensions at creation" % (cls.__name__, cls_ndim, tuple(shape))
+        except :
+            pass
+                   
         data = None       
         if args :
             # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
@@ -494,33 +451,46 @@ class Array(object):
                     # can initialize an array from a single numeric value if a shape is specified
                     data = cls.filled(args, shape).data
                 else :
-                    raise TypeError, "an Array cannot be initialized from a single value without specifying a shape, need at least 2 components or an iterable"
+                    raise TypeError, "an %s cannot be initialized from a single value without specifying a shape, need at least 2 components or an iterable" % cls.__name__
             else :
-                raise TypeError, "an Array element can only be another Array or an iterable"
+                raise TypeError, "an %s element can only be another Array or an iterable" % cls.__name__
         else :
             data = cls.default(shape).data
             
         if data is not None :
             new = super(Array, cls).__new__(cls)
             new.data = data
-            # can re-shape on creation if a shape keyword is specified
-            if shape is not None and shape != new.shape :
-                # accept expanding but not shrinking to catch casting errors
-                size = reduce(operator.mul, shape, 1) 
-                if (size >= new.size) :
-                    try :
-                        new.fill(data, shape)
-                    except :
-                        new.resize(shape)
-#                    if fill :
-#                        new.fill(data, shape)
-#                    else :
-#                        new.resize(shape)
-                else :
-                    if isinstance (args, Array) :
-                        raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (util.clsname(args), args.shape, cls.__name__, shape)
+            # can re-shape on creation if a shape keyword is specified or the class has a fixed shape
+            if ndim is not None :
+                if shape is None :
+                    # we only have a dimension constraint, no specific shape
+                    if ndim != new.ndim :
+                        # only case we guess shape is when there is no ambiguity (ndim == 1)
+                        if ndim == 1 :
+                            shape = (ndim,)
+                        else :
+                            raise ValueError, "cannot initialize a %s of dimension %s from %s without indication of the shape" % (cls.__name__, ndim, args)
+                # resize if we have a valid shape
+                if shape is not None and shape != new.shape :
+                    # accept expanding but not shrinking to catch casting errors
+                    shape = cls._expandshape(shape, new.size)
+                    size = reduce(operator.mul, shape, 1) 
+                    if (size >= new.size) :
+                        try :
+                            new.fill(data, shape)
+                        except :
+                            new.resize(shape)
+#                        if ndim > new.ndim :
+#                            new.fill(data, shape)
+#                        elif ndim == new.ndim :
+#                            new.resize(shape)
+#                        else :
+#                            raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (util.clsname(args), args.shape, cls.__name__, shape)
                     else :
-                        raise ValueError, "cannot initialize a %s of shape %s from %s, some data would be lost" % (cls.__name__, shape, args)
+                        if isinstance (args, Array) :
+                            raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (util.clsname(args), args.shape, cls.__name__, shape)
+                        else :
+                            raise ValueError, "cannot initialize a %s of shape %s from %s, some data would be lost" % (cls.__name__, shape, args)
 
             return new
         else :
@@ -535,36 +505,43 @@ class Array(object):
         else :
             raise TypeError, "argument does not have the correct shape to append to Array"       
  
+    @classmethod
+    def _expandshape(cls, shape, size):      
+        if not hasattr(shape, '__iter__') :
+            newshape = [shape]
+        else :
+            newshape = list(shape)         
+           
+        newsize = 1
+        unknown = None
+        for i, dim in enumerate(newshape) :
+            idim = int(dim)
+            if idim == -1 :
+                if unknown == None :
+                    unknown = i
+                else :
+                    raise ValueError, "can only specify one unknown dimension"
+            else :
+                newsize *= idim
+        if unknown is not None :
+            if newsize :
+                newshape[unknown] = size / newsize
+            else :
+                newshape[unknown] = 0
+     
+        return tuple(newshape)
+ 
     def toshape(self, shape):
         """ a.toshape(shape)
             Returns the Array as reshaped according to the shape argument """
         
-        size = self.size  
-        if shape :
-            if not hasattr(shape, '__iter__') :
-                shape = (shape,)              
-            newsize = 1
-            unknown = None
-            for i, dim in enumerate(shape) :
-                idim = int(dim)
-                if idim == -1 :
-                    if unknown == None :
-                        unknown = i
-                    else :
-                        raise ValueError, "can only specify one unknown dimension"
-                else :
-                    newsize *= idim
-            if unknown is not None :
-                dif = size / newsize
-                shape[unknown] = dif
-                newsize *= dif
-        else :
-            newsize = 0
-
+        size = self.size
+        newshape = self.__class__._expandshape(shape, size)
+        newsize = reduce(operator.mul, newshape, 1)
         if newsize != size :
             raise ValueError, "total size of new array must be unchanged"
         
-        return self.tosize(shape)
+        return self.tosize(tuple(newshape))
     
     def reshape(self, shape):
         """ a.reshape(shape)
@@ -579,12 +556,14 @@ class Array(object):
         """ a.tosize([shape [, value]])
             Returns the Array as resized according to the shape argument.          
             An optional value argument can be passed and will be used to fill
-            the newly created components if the resize results in a size increase. """            
+            the newly created components if the resize results in a size increase. """
+        newshape = self.__class__._expandshape(shape, self.size)
+                   
         new = None
         for cls in inspect.getmro(self.__class__) :
             if issubclass(cls, Array) :
                 try :
-                    new = cls.filled(value, shape)
+                    new = cls.filled(value, newshape)
                     break
                 except :
                     pass
@@ -617,10 +596,7 @@ class Array(object):
 
 #    concat(     a, b)
 #    __concat__(     a, b)
-#        Return a + b for a and b sequences. 
-#    
-#    
-#    
+#        Return a + b for a and b sequences.     
 #    repeat(     a, b)
 #    __repeat__(     a, b)
 #        Return a * b where a is a sequence and b is an integer. 
@@ -768,26 +744,36 @@ class Array(object):
         """ Delete a sub-Array, only possible for a full axis"""
         pass
         
-    def __iter__(self) :
+    def __iter__(self, *args) :
         """ Default Array iterator on first dimension """
-        # return ArrayIter(self)
-        return iter(self.data) 
+        # return iter(self.data)
+        return self.subiter() 
      
-    def axisiter(self, axis=0) :
-        """ Returns an iterator using a specific axis of self as first dimension,
-            it is equivalent to transposing the Array using that axis and iterating on the new Array first dimension """
-        return ArrayAxisIter(self, axis)
+    def axisiter(self, *args) :
+        """ Returns an iterator using a specific axis or list of ordered axis,
+            it is equivalent to transposing the Array using these ordered axis and iterating on the new Array
+            for the remaining sub array dimension """
+        return ArrayIter(self, *args)
     
-    def subarray(self, dim=None) :
+    def subiter(self, dim=None) :
         """ Returns an iterator on all sub Arrays for a specific sub Array dimension,
-            self.subarray(1) is equivalent to self.flat
-            self.subarray() is equivalent to self.subarray(self.ndim-1) and thus to self.__iter__() """
-        return ArrayIter(self, dim)
+            self.subiter(0) is equivalent to self.flat list sub-arrays of dimension 0, ie components
+            self.subiter() is equivalent to self.subiter(self.ndim-1) and thus to self.__iter__() """
+        ndim = self.ndim
+        if dim is None :
+            dim = ndim - 1
+        iter_ndim = ndim - dim
+        if iter_ndim > 0 :
+            axis = tuple(x for x in xrange(iter_ndim))
+            # print "subiter called on dim = %s, axis %s" % (dim, axis)
+            return ArrayIter(self, axis)
+        else :
+            raise ValueError, "can only iterate for a sub-dimension inferior to Array's number of dimensions %s" % (ndim)       
 
     @property    
     def flat(self):
         """ Flat iterator on the Array components """
-        return ArrayIter(self, 0)   
+        return self.subiter(0)   
 
     def tolist(self):
         """ Returns that Array converted to a nested list """
@@ -842,7 +828,7 @@ class Array(object):
             vshape, vdim, vsize = _shapeInfo(value)
             if vdim <= dim :
                 if self.shape[dim-vdim:] == vshape[:] :
-                    for sub in self.subarray(vdim) :
+                    for sub in self.subiter(vdim) :
                         if sub == value :
                             res += 1
 
@@ -857,7 +843,7 @@ class Array(object):
             value = _toCompOrArray(value)
             vshape, vdim, vsize = _shapeInfo(value)
             if vdim <= dim and self.shape[dim-vdim:] == vshape[:] :
-                iter = self.subarray(vdim)
+                iter = self.subiter(vdim)
                 for i, sub in enumerate(iter) :
                     if sub == value :
                         return iter.toArrayCoords(i)
@@ -1008,7 +994,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except :
             return NotImplemented
-        res = map(lambda x,y:x.__pow__(y, modulo), self, other)
+        res = map(lambda x,y:x.__pow__(y, modulo), nself, nother)
         return self.__class__._convert(res)          
     def __rpow__(self, other):
         """ a.__rpow__(b[, modulo]) <==> b**a or (b**a) % modulo
@@ -1019,7 +1005,7 @@ class Array(object):
             nself, nother = coerce(self, other)
         except :
             return NotImplemented
-        res = map(lambda x,y:x.__pow__(y, modulo), other, self)
+        res = map(lambda x,y:x.__pow__(y, modulo), nother, nself)
         return self.__class__._convert(res)          
     def __ipow__(self, other, modulo=None):
         """ a.__ipow__(b[, modulo]) <==> a**=b or a = (a**b) % modulo
@@ -1031,44 +1017,24 @@ class Array(object):
             when __future__.division is in effect, otherwise __div__() is used.
             Returns the result of the element wise division of a by b if b is convertible to Array,
             divides every component of a by b if b is a single numeric value """       
-        if util.isNumeric(other) :
-            return self.__class__(x.__div__(other) for x in self)
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for /: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.div, self, other)
-            return self.__class__._convert(res)
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.div, nself, nother)
+        return self.__class__._convert(res)    
     def __rdiv__(self, other) :
         """ a.__rdiv__(b) <==> b/a
             The division operator (/) is implemented by these methods. The __truediv__() method is used
             when __future__.division is in effect, otherwise __div__() is used.        
             Returns the result of the element wise division of b by a if b is convertible to Array,
             replaces every component c of a by b/c if b is a single numeric value """        
-        if util.isNumeric(other) :
-            return self.__class__(other.__div__(x) for x in self)        
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for /: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.div, other, self)
-            return self.__class__._convert(res)     
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.div, nother, nself)
+        return self.__class__._convert(res)     
     def __idiv__(self, other):
         """ a.__idiv__(b) <==> a /= b
             The division operator (/) is implemented by these methods. The __truediv__() method is used
@@ -1081,44 +1047,22 @@ class Array(object):
             when __future__.division is in effect, otherwise __div__() is used.        
             Returns the result of the element wise true division of a by b if b is convertible to Array,
             performs true division of every component of a by b if b is a single numeric value """       
-        if util.isNumeric(other) :
-            return self.__class__(x.__truediv__(other) for x in self)
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for /: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.truediv, self, other)
-            return self.__class__._convert(res)
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.truediv, nself, nother)
     def __rtruediv__(self, other) :
         """ a.__rtruediv__(b) <==> b/a
             The division operator (/) is implemented by these methods. The __rtruediv__() method is used
             when __future__.division is in effect, otherwise __rdiv__() is used.         
             Returns the result of the element wise true division of b by a if b is convertible to Array,
             replaces every component c of a by b/c if b is a single numeric value """        
-        if util.isNumeric(other) :
-            return self.__class__(other.__truediv__(x) for x in self)        
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for /: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.truediv, other, self)
-            return self.__class__._convert(res)     
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.truediv, nother, nself)  
     def __itruediv__(self, other):
         """ a.__itruediv__(b) <==> a /= b
             In place true division of a by b, see __truediv__, result must fit a's type """
@@ -1127,42 +1071,20 @@ class Array(object):
         """ a.__floordiv__(b) <==> a//b      
             Returns the result of the element wise floor division of a by b if b is convertible to Array,
             performs floor division of every component of a by b if b is a single numeric value """       
-        if util.isNumeric(other) :
-            return self.__class__(x.__floordiv__(other) for x in self)
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for //: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.floordiv, self, other)
-            return self.__class__._convert(res)
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.floordiv, nself, nother)
     def __rfloordiv__(self, other) :
         """ a.__rfloordiv__(b) <==> b//a       
             Returns the result of the element wise floor division of b by a if b is convertible to Array,
             replaces every component c of a by b//c if b is a single numeric value """        
-        if util.isNumeric(other) :
-            return self.__class__(other.__floordiv__(x) for x in self)        
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for /: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.floordiv, other, self)
-            return self.__class__._convert(res)     
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.floordiv, nother, nself)    
     def __ifloordiv__(self, other):
         """ a.__ifloordiv__(b) <==> a //= b
             In place true division of a by b, see __floordiv__, result must fit a's type """
@@ -1171,42 +1093,20 @@ class Array(object):
         """ a.__mod__(b) <==> a%b      
             Returns the result of the element wise modulo of a by b if b is convertible to Array,
             performs modulo of every component of a by b if b is a single numeric value """       
-        if util.isNumeric(other) :
-            return self.__class__(x.__mod__(other) for x in self)
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for //: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.mod, self, other)
-            return self.__class__._convert(res)
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.mod, nself, nother)
     def __rmod__(self, other) :
         """ a.__rmod__(b) <==> b%a       
             Returns the result of the element wise modulo of b by a if b is convertible to Array,
             replaces every component c of a by b%c if b is a single numeric value """        
-        if util.isNumeric(other) :
-            return self.__class__(other.__mod__(x) for x in self)        
-        else :
-            shape = self.shape
-            if not isinstance(other, Array) :
-                try :
-                    other = Array(other, shape=shape)
-                except :
-                    raise TypeError, "unsupported operand type(s) for /: %s and %s" % (util.clsname(self), util.clsname(other))
-            if other.shape != shape :
-                try :
-                    other = other.resize(shape)
-                except :
-                    raise ValueError, "shape mismatch: objects cannot be resized to similar shapes"
-            res = map(operator.mod, other, self)
-            return self.__class__._convert(res)     
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        res = map(operator.mod, nother, nself)      
     def __imod__(self, other):
         """ a.__imod__(b) <==> a %= b
             In place modulo of a by b, see __mod__, result must fit a's type """
@@ -1214,15 +1114,10 @@ class Array(object):
 
     # more could be wrapped the same way, __divmod__, logical operations etc
 
-                   
-                   
-    # additional methods
-
     # additional methods
     # a.any(axis=None)
     # a.all(axis=None)
         # min, max, sum, prod
-        
         # __nonzero__
         
 #    def sum(self):
@@ -1235,45 +1130,7 @@ class Array(object):
 #            return (other-self).sqLength() <= tol*tol
 #        except :
 #            raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol)  
-#    def blend(self, other, blend=0.5):
-#        """ u.blend(v, blend) returns the result of blending from Vector instance u to v according to
-#            either a scalar blend where it yields u*(1-blend) + v*blend Vector,
-#            or a an iterable of independent blend factors """ 
-#        try :
-#            other = self.__class__(other)
-#        except :
-#            raise TypeError, "%s is not convertible to a %s, check help(%s)" % (util.clsname(other), util.clsname(self), util.clsname(self))        
-#        if util.isNumeric(blend) :
-#            l = (self*(1-blend) + other*blend)[:len(other)] + self[len(other):len(self)]
-#            return self.__class__(*l)            
-#        else :
-#            try : 
-#                bl = list(blend)
-#            except :
-#                raise TypeError, "blend can be an iterable (list, tuple, Vector...) of numeric values, or a single numeric value, not a %s" % util.clsname(blend)
-#            lm = min(len(bl), len(self), len(other))
-#            l = map(lambda x,y,b:(1-b)*x+b*y, self[:lm], other[:lm], bl[:lm]) + self[lm:len(self)]
-#            return self.__class__(*l)       
-#    def clamp(self, low=0.0, high=1.0):
-#        """ u.clamp(low, high) returns the result of clamping each component of u between low and high if low and high are scalars, 
-#            or the corresponding components of low and high if low and high are sequences of scalars """
-#        ln = len(self)
-#        if util.isNumeric(low) :
-#            low = [low]*ln
-#        else :
-#            try : 
-#                low = list(low)[:ln]
-#            except :
-#                raise TypeError, "'low' can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(low) 
-#        if util.isNumeric(high) :
-#            high = [high]*ln
-#        else :
-#            try :  
-#                high = list(high)[:ln]
-#            except :
-#                raise TypeError, "'high' can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(high)         
-#        lm = min(ln, len(low), len(high))             
-#        return self.__class__(map(clamp, self, low, high))    
+   
 
 
     # arrays of complex values
@@ -1288,7 +1145,108 @@ class Array(object):
         return self.__class__(imag(x) for x in self) 
         
     # array specific inspired from numpy
+    # diagonal, trace ?
         
+    def transpose(self, *args):
+        """ a.transpose(*axes)
+        
+            Returns a with axes transposed. If no axes are given,
+            or None is passed, switches the order of the axes. For a 2-d
+            array, this is the usual matrix transpose. If axes are given,
+            they describe how the axes are permuted.  """
+        ndim = self.ndim             
+        if not args :
+            args = range(ndim-1, -1, -1)
+        elif len(args) == 1 and hasattr(args[0], '__iter__') :
+            args = list(args[0])
+        else :
+            args = list(args)
+        if len(args) != ndim :
+            raise ValueError, "Transpose axis %s do not match array shape %s" % (tuple(args), self.shape)      
+        shape = []
+        for x in args :
+            if x<0 or x>= ndim :
+                raise ValueError, "Array has %s dimensions, cannot transpose on axis %s" % (ndim, x)
+            elif args.count(x) > 1 :
+                raise ValueError, "axis %s is present more than once in transpose axis list %s" % (x, args)
+            else :            
+                shape.append(self.shape[x])
+        shape = tuple(shape)
+        return self.__class__._convert(Array([s for s in self.axisiter(*args)], shape=shape))
+    
+    T = property(transpose, None, None, """The transposed array""") 
+
+class Matrix(Array):
+    """
+    A generic size Matrix class, basically a 2 dimensional Array
+    """
+    __readonly__ = ('ndim',)
+    
+    #A Matrix is a two-dimensional Array, ndim is thus stored as a class readonly attribute
+    ndim = 2
+           
+    def _getshape(self):
+        if self.data :
+            return (len(self.data), len(self.data[0]))
+        else :
+            return (0, 0)
+    def _setshape(self, newshape):
+        self.resize(newshape)
+        
+    # shape, ndim, size and data properties
+    shape = property(_getshape, _setshape, None, "Shape of the Matrix, a tuple of the sizes of its two dimensions")    
+    size = property(lambda x : x.shape[0]*x.shape[1], None, None, "Total size of the Array (number of individual components)")
+#    def _getdata(self):
+#        return self._data
+#    def _setdata(self, data):
+#        if isinstance(data, list) :
+#            self._data = data
+#        else :
+#            self._data = list(data)
+#    def _deldata(self):
+#        del self._data[:]  
+#    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
+ 
+    # row and column size properties
+    def _getnrow(self):
+        return self.shape[0]
+    def _setnrow(self, m):
+        self.resize((m, self.shape[1]))
+    nrow = property(_getnrow, _setnrow, None, "Number of rows in this Matrix")          
+    def _getncol(self):
+        return self.shape[1]
+    def _setncol(self, n):
+        self.resize((self.shape[0], n))
+    ncol = property(_getncol, _setncol, None, "Number of columns in this Matrix")      
+
+    # specific iterators
+    @property
+    def row(self):
+        """ Iterator on the Matrix rows """
+        return self.axisiter(0)  
+    @property
+    def col(self):
+        """ Iterator on the Matrix columns """
+        return self.axisiter(1) 
+    
+    # overloaded Array operators
+
+    def __mul__(self, other):
+        """
+        Element by element multiplication
+        """
+        temp = other.transpose()
+        return Matrix( [ [ dot(row,col) for col in temp ] for row in self ] )
+    def __rmul__(self, other):
+        return (self*other)
+    def __imul__(self, other):
+        return (self*other)        
+
+    
+    # specific methods
+    
+
+ 
 #|  diagonal(...)
 # |      a.diagonal(offset=0, axis1=0, axis2=1) -> diagonals
 # |      
@@ -1347,141 +1305,58 @@ class Array(object):
 # |      a.trace(offset=0, axis1=0, axis2=1, dtype=None, out=None)
 # |      return the sum along the offset diagonal of the array's indicated
 # |      axis1 and axis2.
-# |  
-# |  transpose(...)
-# |      a.transpose(*axes)
-# |      
-# |      Returns a view of 'a' with axes transposed. If no axes are given,
-# |      or None is passed, switches the order of the axes. For a 2-d
-# |      array, this is the usual matrix transpose. If axes are given,
-# |      they describe how the axes are permuted.
-# |      
-# |      Example:
-# |      >>> a = array([[1,2],[3,4]])
-# |      >>> a
-# |      array([[1, 2],
-# |             [3, 4]])
-# |      >>> a.transpose()
-# |      array([[1, 3],
-# |             [2, 4]])
-# |      >>> a.transpose((1,0))
-# |      array([[1, 3],
-# |             [2, 4]])
-# |      >>> a.transpose(1,0)
-# |      array([[1, 3],
-# |             [2, 4]])  
-   
-    def transpose(self, *args):
-        ndim = self.ndim
-        if not args :
-            axis = range(ndim-1, -1, -1)
-        else :
-            axis = []
-            for a in args :
-                a = int(a)
-                if a in range(ndim) :
-                    if not a in axis :
-                        axis.append(a)
-                    else :
-                        raise ValueError, "transpose axis %s specified twice" % a
-                else :
-                    raise ValueError, "transpose axis %s does not exist for Array of dimension %s" % (a, ndim)
-            if len(axis) < ndim :
-                for a in range(ndim) :
-                    axis.append(a)
-        print "transpose axis %s" % axis
-        res = self
-        return res
+# |   
     
-    T = property(transpose, None, None, """The transposed array""") 
 
+    def diagonal(self):
+        pass
+    def trace(self):
+        pass
+    def det(self):
+        pass
+
+    def inverse(self): 
+        pass
+    def adjoint(self):
+        pass    
+
+ #  H
+ #      hermitian (conjugate) transpose
+
+    #T = property(transpose, None, None, """The transpose Matrix""")
+    I = property(inverse, None, None, """The inverse Matrix""")
 
 class Vector(Array):
     """
-        A generic size Vector class, basically a 1 dimensional Array
+        A generic size Vector class deerived from Array, basically a 1 dimensional Array
     """
+    __readonly__ = ('ndim',)
     
-    shape = property(lambda x : (list.__len__(x),), None, None, "A Vector is a one-dimensional Array of n components")   
-    ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
-    size = property(lambda x : list.__len__(x), None, None, "Size of the Vector (number of components)")
+    #A Vectoris a one-dimensional Array, ndim is thus stored as a class readonly attribute
+    ndim = 1
 
+       
+    def _getshape(self):
+        return (len(self.data),)
+    def _setshape(self, newshape):
+        self.resize(newshape)    
+    # shape, ndim, size and data properties
+    shape = property(_getshape, _setshape, None, "Shape of the Vector, as Vectors are one-dimensional Arrays: v.shape = (v.size,)")    
+    ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
+    size = property(lambda x : len(self.data), None, None, "Number of components of the Vector")
+    def _getdata(self):
+        return self._data
+    def _setdata(self, data):
+        if isinstance(data, list) :
+            self._data = data
+        else :
+            self._data = list(data)
+    def _deldata(self):
+        del self._data[:]   
+    data = property(_getdata, _setdata, _deldata, "The list storage for the Vector data") 
     
-    # common operators
-    def __neg__(self):
-        """ u.__neg__() <==> -u
-            Returns the Vector obtained by negating every component of u """        
-        return self.__class__(map(operator.neg, self))   
-    def __invert__(self):
-        """ u.__invert__() <==> ~u
-            unary inversion, returns 1 - u for vectors """        
-        return self.__class__(map(lambda x: 1.0-x, self))      
-    def __add__(self, other) :
-        """ u.__add__(v) <==> u+v
-            Returns the result of the addition of u and v if v is convertible to Vector,
-            adds v to every component of u if v is a scalar """        
-        if util.isNumeric(other) :
-            return self.__class__(map( lambda x: x+other, self))        
-        else :
-            return difmap(operator.add, self, other)  
-    def __radd__(self, other) :
-        """ u.__radd__(v) <==> v+u
-            Returns the result of the addition of u and v if v is convertible to Vector,
-            adds v to every component of u if v is a scalar """        
-        return self.__add__(other)  
-    def __iadd__(self, other):
-        """ u.__iadd__(v) <==> u += v
-            In place addition of u and v, see __add__ """
-        self = self.__class__(self.__add__(other))
-    def __sub__(self, other) :
-        """ u.__sub__(v) <==> u-v
-            Returns the result of the substraction of v from u if v is a Vector instance,
-            substract v to every component of u if v is a scalar """        
-        if util.isNumeric(other) :
-            return self.__class__(map( lambda x: x-other, self))        
-        else :
-            return difmap(operator.sub, self, other)      
-    def __rsub__(self, other) :
-        """ u.__rsub__(v) <==> v-u
-            Returns the result of the substraction of u from v if v is a Vector instance,
-            replace every component c of u by v-c if v is a scalar """        
-        if util.isNumeric(other) :
-            return self.__class__(map( lambda x: other-x, self))        
-        else :
-            return difmap(operator.sub, other, self)     
-    def __isub__(self, other):
-        """ u.__isub__(v) <==> u -= v
-            In place substraction of u and v, see __sub__ """
-        self = self.__class__(self.__sub__(other))        
-    def __div__(self, other):
-        """ u.__div__(v) <==> u/v
-            Returns the result of the element wise division of each component of u by the
-            corresponding component of v if both are convertible to Vector,
-            divide every component of u by v if v is a scalar """  
-        if util.isNumeric(other) :
-            return self.__class__(map(lambda x: x/other, self))
-        else :
-            return difmap(operator.div, self, other)  
-    def __rdiv__(self, other):
-        """ u.__rdiv__(v) <==> v/u
-            Returns the result of the element wise division of each component of v by the
-            corresponding component of u if both are convertible to Vector,
-            invert every component of u and multiply it by v if v is a scalar """
-        if util.isNumeric(other) :
-            return self.__class__(map(lambda x: other/x, self))
-        else :
-            return difmap(operator.div, other, self)  
-    def __idiv__(self, other):
-        """ u.__idiv__(v) <==> u /= v
-            In place division of u by v, see __div__ """        
-        self = self.__class__(self.__div__(other)) 
-    def __eq__(self, other):
-        """ u.__eq__(v) <==> u == v """
-        try :
-            return list.__eq__(self, self.__class__(other))
-        except :
-            return False              
-    # action depends on second object type
-    # NOTE : dot product mapped on mult if both arguments are Vector, else we do element wise mutliplication
+    # common operators herited from Arrays
+             
     def __mul__(self, other) :
         """ u.__mul__(v) <==> u*v
             The multiply '*' operator is mapped to the dot product when both objects are instances of Vector,
@@ -1495,18 +1370,8 @@ class Vector(Array):
             dif = other.shape[1]-self.size
             res = Matrix([list(self) + [1]*dif]) * other 
             return self.__class__(res[0, 0:self.size])
-        elif util.isNumeric(other) :
-            # multiply all components by a scalar
-            return self.__class__(map(lambda x: x*other, self))
         else :
-            # try an element wise multiplication if other is iterable
-            try :
-                other = list(other)
-            except :
-                raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (util.clsname(self), util.clsname(other))
-            lm = min(len(other), len(self))
-            l = map(operator.mul, self[:lm], other[:lm]) + self[lm:len(self)]
-            return self_class__(*l)      
+            return self.__class__(Array.__)   
     def __rmul__(self, other):
         """ u.__rmul__(v) <==> v*u
             This is equivalent to u*v thus u.__mul__(v) unless v is a Matrix,
@@ -1585,162 +1450,14 @@ class Vector(Array):
             return (other-self).sqLength() <= tol*tol
         except :
             raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol)  
-    def blend(self, other, blend=0.5):
-        """ u.blend(v, blend) returns the result of blending from Vector instance u to v according to
-            either a scalar blend where it yields u*(1-blend) + v*blend Vector,
-            or a an iterable of independent blend factors """ 
-        try :
-            other = self.__class__(other)
-        except :
-            raise TypeError, "%s is not convertible to a %s, check help(%s)" % (util.clsname(other), util.clsname(self), util.clsname(self))        
-        if util.isNumeric(blend) :
-            l = (self*(1-blend) + other*blend)[:len(other)] + self[len(other):len(self)]
-            return self.__class__(*l)            
-        else :
-            try : 
-                bl = list(blend)
-            except :
-                raise TypeError, "blend can be an iterable (list, tuple, Vector...) of numeric values, or a single numeric value, not a %s" % util.clsname(blend)
-            lm = min(len(bl), len(self), len(other))
-            l = map(lambda x,y,b:(1-b)*x+b*y, self[:lm], other[:lm], bl[:lm]) + self[lm:len(self)]
-            return self.__class__(*l)       
-    def clamp(self, low=0.0, high=1.0):
-        """ u.clamp(low, high) returns the result of clamping each component of u between low and high if low and high are scalars, 
-            or the corresponding components of low and high if low and high are sequences of scalars """
-        ln = len(self)
-        if util.isNumeric(low) :
-            low = [low]*ln
-        else :
-            try : 
-                low = list(low)[:ln]
-            except :
-                raise TypeError, "'low' can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(low) 
-        if util.isNumeric(high) :
-            high = [high]*ln
-        else :
-            try :  
-                high = list(high)[:ln]
-            except :
-                raise TypeError, "'high' can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(high)         
-        lm = min(ln, len(low), len(high))             
-        return self.__class__(map(clamp, self, low, high))    
-    # TODO : can implement Vector smoothstep, setRange, hermite from mathutils the same way  
+  
 
-    # vectors of complex values
-    def conjugate(self):
-        return self.__class__(map(lambda x: x.conjugate(), self))
-    def ReIm(self):
-        """ Returns the real and imaginary parts """
-        return [
-            self.__class__(map(lambda x: x.real, self)),
-            self.__class__(map(lambda x: x.imag, self)),
-            ]
-    def AbsArg(self):
-        """ Returns modulus and phase parts """
-        return [
-            self.__class__(map(lambda x: abs(x), self)),
-            self.__class__(map(lambda x: atan2(x.imag,x.real), self)),
-            ]
 
-class MatrixIter(ArrayIter):
-    pass
-
-class Matrix(Array):
-    """
-    A generic size Matrix class, basically a 2 dimensional Array
-    """
-
-    def _getshape(self):
-        lr = list.__len__(self)
-        if lr :
-            shape = (lr, list.__len__(self[0]))
-        else :
-            shape = (0,0)
-        return shape
-    shape = property(_getshape, None, None, "Shape of the Matrix, (m, n)")    
-    ndim = property(lambda x : 2, None, None, "A Matrix is a two-dimensional Array")
-    size = property(lambda x : x.shape[0]*x.shape[1], None, None, "Size of the Matrix (total number of components)") 
+    # vectors of complex values inherit methods from Arrays
     
-    def __init__(self, rowColList = [[0]*4]*4 ):
-        for i in range( 0, len(rowColList )):
-            rowColList[i] = Vector( rowColList[i] )
-        
-        list.__init__(self, rowColList)
-    
-        
-    def __add__(self, other):
-        try:
-            return Matrix(map(lambda x,y: x+y, self, other))
-        except:
-            return Matrix(map( lambda x: x+other, self))
-        
-    def __neg__(self):
-        return Matrix(map(lambda x: -x, self))
-    
-    def __sub__(self, other):
-        try:
-            return Matrix(map(lambda x,y: x-y, self, other))
-        except:
-            return Matrix(map( lambda x: x-other, self))
 
 
-    def __mul__(self, other):
-        """
-        Element by element multiplication
-        """
-        temp = other.transpose()
-        return Matrix( [ [ dot(row,col) for col in temp ] for row in self ] )
 
-    def __rmul__(self, other):
-        return (self*other)
-        
-    def __div__(self, other):
-        """
-        Element by element division.
-        """
-        try:
-            return Vector(map(lambda x,y: x/y, self, other))
-        except:
-            return Vector(map(lambda x: x/other, self))
-
-    def __rdiv__(self, other):
-        """
-        The same as __div__
-        """
-        try:
-            return Vector(map(lambda x,y: x/y, other, self))
-        except:
-            # other is a const
-            return Vector(map(lambda x: other/x, self))
-    
-    def row(self, row):
-        return self[row]
-        
-    def col(self, col):
-        import operator
-        return Vector(map(operator.itemgetter(col),self))
-    
-    def nrows(self):
-        len(self)
-    
-    def ncols(self):
-        return len(self.transpose())
-    
-    def sum(self):
-        return reduce(operator.add, self.flat, 0)
-    def diag(self):
-        pass
-    def det(self):
-        pass
-    def transpose(self):
-        return Matrix( apply( map, [None]+self ) )
-    def inverse(self): 
-        pass
-    def adjoint(self):
-        pass    
-
-    def flat(self):
-        return reduce( lambda x,y: list(x)+list(y), self ) 
 
 
 
@@ -1845,10 +1562,17 @@ def _test() :
     # [0, 0, 0, 0],
     # [0, 0, 0, 0]]    
     print "A = Array([1, 2, 3, 4, 5], shape=(4, 4))"
+    A = Array([1, 2, 3, 4, 5], shape=(4, 4))
+    print A.formated()
+    #[[1, 2, 3, 4],
+    # [5, 0, 0, 0],
+    # [0, 0, 0, 0],
+    # [0, 0, 0, 0]]    
+    print "A = Array([1, 2, 3, 4, 5], shape=(2, 2))"
     try :
-        A = Array([1, 2, 3, 4, 5], shape=(4, 4)) 
+        A = Array([1, 2, 3, 4, 5], shape=(2, 2))
     except :
-        print "Would raise a ValueError: value of shape (5,) cannot be fit in a Array of shape (4, 4), some data would be lost"
+        print "Would raise a ValueError: value of shape (5,) cannot be fit in a Array of shape (2, 2), some data would be lost"
        
     # copies and references
     B = Array([[1,1,1],[4,4,3],[7,8,5]])
@@ -1992,6 +1716,10 @@ def _test() :
     # [[10]
     #  [40]
     #  [80]]]
+
+    
+    # iterators
+    
     print "A:\n", A
     # [[[1, 1, 1], [4, 6, 3], [7, 9, 5]], [[10, 10, 10], [40, 40, 30], [70, 80, 50]]]
     print "list(A.flat):\n",list(A.flat)
@@ -2010,6 +1738,170 @@ def _test() :
     # [[10, 10, 10],
     #  [40, 40, 30],
     #  [70, 80, 50]]]
+        
+    print "Array([a for a in A])"
+    print Array([a for a in A]).formated()
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]]    
+    print "Array([a for a in A.subiter()])"
+    print Array([a for a in A.subiter()]).formated()
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]] 
+    print "Array([a for a in A.subiter(0)])"
+    print Array([a for a in A.subiter(0)]).formated()
+    # [1, 1, 1, 4, 6, 3, 7, 8, 5, 10, 10, 10, 40, 40, 30, 70, 80, 50]
+    print "Array([a for a in A.subiter(1)])"
+    print Array([a for a in A.subiter(1)]).formated()
+    #[[1, 1, 1],
+    # [4, 6, 3],
+    # [7, 8, 5],
+    # [10, 10, 10],
+    # [40, 40, 30],
+    # [70, 80, 50]]    
+    print "Array([a for a in A.subiter(2)])"
+    print Array([a for a in A.subiter(2)]).formated()
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]]   
+    print "Array([a for a in A.axisiter()])"
+    print Array([a for a in A.axisiter()]).formated()
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]] 
+    print "Array([a for a in A.axisiter(0)])"
+    print Array([a for a in A.axisiter(0)]).formated() 
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]]  
+    print "Array([a for a in A.axisiter(0,1)])"
+    print Array([a for a in A.axisiter(0,1)]).formated()   
+    #[[1, 1, 1],
+    # [4, 6, 3],
+    # [7, 8, 5],
+    # [10, 10, 10],
+    # [40, 40, 30],
+    # [70, 80, 50]] 
+    print "Array([a for a in A.axisiter(0,1,2)])"
+    print Array([a for a in A.axisiter(0,1,2)]).formated()   
+    # [1, 1, 1, 4, 6, 3, 7, 8, 5, 10, 10, 10, 40, 40, 30, 70, 80, 50]
+    print "Array([a for a in A.axisiter(2)])"
+    print Array([a for a in A.axisiter(2)]).formated() 
+    #[[[1, 4, 7],
+    #  [10, 40, 70]],
+    #
+    # [[1, 6, 8],
+    #  [10, 40, 80]],
+    #
+    # [[1, 3, 5],
+    #  [10, 30, 50]]]  
+    print "Array([a for a in A.axisiter(2,1)])"
+    print Array([a for a in A.axisiter(2,1)]).formated()   
+    #[[1, 10],
+    # [4, 40],
+    # [7, 70],
+    # [1, 10],
+    # [6, 40],
+    # [8, 80],
+    # [1, 10],
+    # [3, 30],
+    # [5, 50]] 
+    print "Array([a for a in A.axisiter(2,1,0)])"
+    print Array([a for a in A.axisiter(2,1,0)]).formated()   
+    #[1, 10, 4, 40, 7, 70, 1, 10, 6, 40, 8, 80, 1, 10, 3, 30, 5, 50]
+
+    # all iterator support item indexation
+    
+    print "A[0, 1, :] = [11, 66, 88]"
+    A[0, :, 1] = [11, 66, 88]
+    print A.formated()
+    #[[[1, 11, 1],
+    #  [4, 66, 3],
+    #  [7, 88, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]]     
+    print "Array([a for a in A.axisiter(0,2)])"
+    print Array([a for a in A.axisiter(0,2)]).formated() 
+    #[[1, 4, 7],
+    # [11, 66, 88],
+    # [1, 3, 5],
+    # [10, 40, 70],
+    # [10, 40, 80],
+    # [10, 30, 50]]
+    print "A.axisiter(0,2)[1]"
+    print A.axisiter(0,2)[1]
+    # [11, 66, 88]
+    print "A.axisiter(0,2)[1] = [1, 6, 8]"
+    A.axisiter(0,2)[1] = [1, 6, 8]
+    print A.formated()
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]],
+    #
+    # [[10, 10, 10],
+    #  [40, 40, 30],
+    #  [70, 80, 50]]]
+               
+    # transpose
+    print "B=A[0]"
+    B=A[0]
+    print B.formated()
+    #[[[1, 1, 1],
+    #  [4, 6, 3],
+    #  [7, 8, 5]]    
+    print "B.transpose()"
+    print B.transpose().formated()
+    #[[1, 4, 7],
+    # [1, 6, 8],
+    # [1, 3, 5]]        
+    print "A.transpose(0,2,1)"    
+    print A.transpose(0,2,1).formated() 
+    #[[[ 1  4  7]
+    #  [ 1  6  8]
+    #  [ 1  3  5]]
+    #
+    # [[10 40 70]
+    #  [10 40 80]
+    #  [10 30 50]]]    
+    print A.transpose(2,1,0).formated() 
+    print A.transpose(2,1,0).formated()
+    #[[[ 1 10]
+    #  [ 4 40]
+    #  [ 7 70]]
+    #
+    # [[ 1 10]
+    #  [ 6 40]
+    #  [ 8 80]]
+    #
+    # [[ 1 10]
+    #  [ 3 30]
+    # [ 5 50]]] 
+    
+    # count, index
+    
     print "A[:,:,1] = 2"
     A[:,:,1] = 2
     print A.formated()
@@ -2197,11 +2089,11 @@ def _test() :
     # overriden math functions
     print "A = Array([[0, pi/4.0], [pi/2.0, 3.0*pi/4.0], [pi, 5.0*pi/4.0], [3.0*pi/2.0, 7.0*pi/4.0]])"
     A = Array([[0, pi/4.0], [pi/2.0, 3.0*pi/4.0], [pi, 5.0*pi/4.0], [3.0*pi/2.0, 7.0*pi/4.0]])
-    print A.formated()
-    #[[0, 0.785398163397],
-    # [1.57079632679, 2.35619449019],
-    # [3.14159265359, 3.92699081699],
-    # [4.71238898038, 5.49778714378]]    
+    print round(A,2).formated()
+    #[[0.0, 0.79],
+    # [1.57, 2.36],
+    # [3.14, 3.93],
+    # [4.71, 5.5]]   
     print "degrees(A)"
     print degrees(A).formated()
     #[[0.0, 45.0],
@@ -2209,7 +2101,7 @@ def _test() :
     # [180.0, 225.0],
     # [270.0, 315.0]]    
     print "sin(A)"
-    print around(sin(A), 2).formated()
+    print round(sin(A), 2).formated()
     # [[0.0, 0.71],
     # [1.0, 0.71],
     # [0.0, -0.71],
@@ -2248,7 +2140,10 @@ def _test() :
     except :
         print "Will raise a ValueError: shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"
 
-
+    
+    # Matrix and Vector
+    
+    
      
         
     print "end tests"
