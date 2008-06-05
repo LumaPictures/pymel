@@ -2,41 +2,198 @@
 A wrap of Maya's MVector, MPoint, MColor, MMatrix, MTransformationMatrix, MQuaternion, MEulerRotation types
 """
 
-# TODO : we could derived directly from the api class like
-# class MMatrix(api.MMatrix) :
-#     """ replacement MMatrix """
-# but we would still need to override most methods as they don't accept derived classes for the api class :
-# this won't work even when deriving directly from the API class
-# v = MVector(1, 2, 3)
-# p = api.MPoint(v)
-# and the multiple inheritance becomes quite tricky to handle as well
-# I thought about monkey patching api classes :
-# def tostring(self):
-#    return "[%s]" % ', '.join( ["[%s]" % ', '.join( [ str(self(r,c)) for c in xrange(4)]) for r in xrange(4)] )
-# type.__setattr__(api.MMatrix, '__str__', tostring)
-# def iterVector(self) :
-#    for i in xrange(3) :
-#        yield self[i]
-# type.__setattr__(api.MVector, '__iter__', iterVector)
-# Though it works for methods, it can't be done to make up some class hierarchy :
-# type.__setattr__(api.MQuaternion, '__bases__', (api.MMatrix,))
-# TypeError: __bases__ assignment: 'MMatrix' deallocator differs from 'object'
-# So api methods won't be able to take the new classes directly, (but can take a MVector.vector, MMatrix.matrix etc)
+# Need to derive form the api class to keep api methods working but also from generic Array class
+# to allow inter-operation
+#class MVector(api.MVector) :
+#    def __str__(self):
+#        return '(%s, %s, %s)' % (self.x, self.y, self.z)
+#class MTransformationMatrix(api.MTransformationMatrix) :
+#    def __str__(self):
+#    mat = self.asMatrix()
+#        return '(%s)' % list(mat(i,j) for i in xrange(4) for j in xrange(4))
+#mt = MTransformationMatrix()
+#v = MVector(1, 2, 3)
+#print mt
+#print v
+#mt.setTranslation(v, api.MSpace.kTransform)
+#print mt
 
 
 import inspect
 import math, copy
 import itertools, operator, colorsys
 
-# import maya.OpenMaya as api
 import pymel.api as api
 
 import pymel.util as util
-from pymel.util.arrays import Array, Vector, Matrix, MatrixIter
+from pymel.util.arrays import Array, Vector, Matrix, metaReadOnlyAttr
 
+# patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
+def _patchMVector() :
+    def __iter__(self):
+        """ Iterates on all 3 components of a Maya api MVector """
+        for i in xrange(3) :
+            yield self[i]
+    type.__setattr__(api.MVector, '__iter__', __iter__)
+
+def _patchMMatrix() :
+    def __iter__(self):
+        """ Iterates on all 4 rows of a Maya api MMatrix """
+        for r in xrange(4) :
+            yield [api.MScriptUtil.getDoubleArrayItem(self[r], c) for c in xrange(4)]
+    type.__setattr__(api.MMatrix, '__iter__', __iter__)
+
+def _patchMTransformationMatrix() :
+    def __iter__(self):
+        """ Iterates on all 4 rows of a Maya api MTransformationMatrix """
+        return self.asMatrix().__iter__()
+    type.__setattr__(api.MTransformationMatrix, '__iter__', __iter__)
+
+_patchMVector()
+_patchMMatrix()
+_patchMTransformationMatrix()
+
+
+
+
+#class MVector(api.MVector, Vector) :
+#    __metaclass__ = metaReadOnlyAttr
+#    stype = api.MVector
+#    ndim = 1
+#    shape = (3,)
+#    size = 3
+#    def __str__(self):
+#        return '(%s, %s, %s)' % (self.x, self.y, self.z)
+#class MPoint(api.MPoint, MVector) :
+#    __metaclass__ = metaReadOnlyAttr
+#    pass    
+#class MTransformationMatrix(api.MTransformationMatrix, Matrix) :
+#    __metaclass__ = metaReadOnlyAttr
+#    stype = api.MTransformationMatrix
+#    ndim = 2
+#    shape = (4,4)
+#    size = 16
+#    def _getdata(self):
+#        return list(self.get())
+#    def _setdata(self, data):
+#        mat = api.MMatrix()
+#        api.MScriptUtil.createMatrixFromList ( list(data), mat)
+#        self = self.__class__(mat) 
+#    def _deldata(self):
+#        del self     
+#    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
+#    def __new__(cls, *args, **kwargs ):
+#        # newcls = super(api.MTransformationMatrix, cls).__new__(cls, *args, **kwargs )
+#        # return newcls
+#        return api.MTransformationMatrix.__new__(cls, *args, **kwargs )
+#    def __init__(self, *args, **kwargs ):
+#        mat = api.MMatrix()
+#        api.MScriptUtil.createMatrixFromList ( list(args), mat)     
+#        # super(api.MTransformationMatrix, self).__init__(mat)
+#        api.MTransformationMatrix.__init__(self, mat)
+#    @classmethod
+#    def default(cls, shape=None):
+#        """ cls.default([shape])
+#            Returns the default instance (of optional shape form shape) for that Array class """    
+#        return cls(api.MTransformationMatrix.identity)  
+#    def get(self):
+#        """ Wrap the MMatrix api get method """
+#        mat = self.asMatrix()
+#        ptr = mat.matrix[4][4]
+#        return tuple(tuple(api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))      
+#    def __str__(self):
+#        mat = self.asMatrix()
+#        return '(%s)' % list(mat(i,j) for i in xrange(4) for j in xrange(4))
+#mt = MTransformationMatrix()
+#v = MVector(1, 2, 3)
+#print type(mt), type(v)
+#print mt
+#print v
+#mt.setTranslation(v, api.MSpace.kTransform)
+#print mt
+
+
+class MetaMayaTypeWrapper(metaReadOnlyAttr) :
+    """ A metaclass to wrap Maya api types, with support for class constants """ 
+
+#    class ClassConstant(object):
+#        """ A data descriptor for user defined constants on the class """
+#        def __init__(self, value):
+#            self.value = value
+#        def __get__(self, instance, owner):
+#            # purposedly authorize notation MColor.blue but not MColor().blue,
+#            # the constants are a class property and are not defined on instances
+#            if instance is None :
+#                return owner(self.value)
+#            else :
+#                raise AttributeError, "Class constants on %s are only defined on the class" % (owner.__name__)
+#        def __set__(self, instance, value):
+#            raise AttributeError, "class constant cannot be set"
+#        def __delete__(self, instance):
+#            raise AttributeError, "class constant cannot be deleted"
+#          
+#    def __new__(mcl, classname, bases, classdict):
+#        """ Create a new class of metaClassConstants type """
+#                   
+#        # deriving from api classes does not give us what we need (see comments at file start)
+#
+#           
+#        # create the new class   
+#        newcls = super(MetaMayaArrayTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+#            
+#        if hasattr(newcls, 'stype') :
+#            # type (api type) used for the storage of data
+#            apicls  = newcls.apicls
+#
+#            # build the data property
+#            def setdata(self, data):
+#                self._data = self.__class__.apicls(data)
+#            def getdata(self):
+#                return self._data
+#            p = property(getdata, setdata, None, "One %s" % apicls.__name__)
+#            type.__setattr__(newcls, 'data', p)                           
+#            # build some constants on the class            
+#            constant = {}
+#            # constants in class definition will be converted from api class to created class
+#            for name, attr in newcls.__dict__.iteritems() :
+#                # to add the wrapped api class constants as attributes on the wrapping class,
+#                # convert them to own class         
+#                if isinstance(attr, apicls) :
+#                    if name not in constant :
+#                        constant[name] = MetaMayaArrayTypeWrapper.ClassConstant(attr)                          
+#            # we'll need the api clas dict to automate some of the wrapping
+#            # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
+#            apiDict = dict(inspect.getmembers(apicls))            
+#            # defining class properties on the created class                 
+#            for name, attr in apiDict.iteritems() :
+#                # to add the wrapped api class constants as attributes on the wrapping class,
+#                # convert them to own class         
+#                if isinstance(attr, apicls) :
+#                    if name not in constant :
+#                        constant[name] = MetaMayaArrayTypeWrapper.ClassConstant(attr)
+#            # update the constant dict with herited constants
+#            mro = inspect.getmro(newcls)            
+#            for cls in mro :
+#                if isinstance(cls, MetaMayaArrayTypeWrapper) :
+#                    for name, attr in cls.__dict__.iteritems() :
+#                        if isinstance(attr, MetaMayaArrayTypeWrapper.ClassConstant) :
+#                            if not name in constant :
+#                                constant[name] = MetaMayaArrayTypeWrapper.ClassConstant(attr.value)
+#            
+#            # build the protected list to make some class ifo and the constants read only class attributes
+#            protected = tuple(['apicls', 'shape', 'cnames', 'size', 'ndim', '_protected'] + constant.keys())
+#            # store constants as class attributes
+#            for name, attr in constant.iteritems() :
+#                type.__setattr__(newcls, name, attr)
+#            # store protect class read only information                            
+#            type.__setattr__(newcls, '_protected', protected)          
+#        else :
+#            raise TypeError, "must define 'apicls' and 'shape' in the class definition (which Maya API class to wrap, and the Array shape)"
+#        
+#        return newcls 
  
 # the meta class of metaMayaWrapper
-class MetaMayaTypeWrapper(type) :
+class MetaMayaArrayTypeWrapper(MetaMayaTypeWrapper) :
     """ A metaclass to wrap Maya type classes such as MVector, MMatrix """ 
 
     class ClassConstant(object):
@@ -64,7 +221,7 @@ class MetaMayaTypeWrapper(type) :
         if name in protected :
             raise AttributeError, "attribute %s is a %s constant and cannot be modified on class %s" % (name, cls.__name__, cls.__name__)
         else :
-            super(MetaMayaTypeWrapper, cls).__setattr__(name, value)
+            super(MetaMayaArrayTypeWrapper, cls).__setattr__(name, value)
            
     def __new__(mcl, classname, bases, classdict):
         """ Create a new wrapping class for a Maya api type, such as MVector or MMatrix """
@@ -80,22 +237,9 @@ class MetaMayaTypeWrapper(type) :
             else :
                 object.__setattr__(self, name, value)
         classdict['__setattr__'] = __setattr__
-        
-# deriving from api classes does not give us what we need (see comments at file start)
-#        apicls = classdict.get('apicls', None)
-#        if apicls is None :
-#            for cls in bases :
-#                try :
-#                    apicls = cls.apicls
-#                    break
-#                except :
-#                    pass        
-#        if apicls not in bases :
-#            print "adding %s to bases" % apicls
-#            bases = tuple([apicls]+list(bases))
            
         # create the new class   
-        newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        newcls = super(MetaMayaArrayTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
 
         try :
             apicls = newcls.apicls 
@@ -154,7 +298,7 @@ class MetaMayaTypeWrapper(type) :
                 # convert them to own class         
                 if isinstance(attr, apicls) :
                     if name not in constant :
-                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
+                        constant[name] = MetaMayaArrayTypeWrapper.ClassConstant(attr)                          
             # we'll need the api clas dict to automate some of the wrapping
             # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
             apiDict = dict(inspect.getmembers(apicls))            
@@ -164,15 +308,15 @@ class MetaMayaTypeWrapper(type) :
                 # convert them to own class         
                 if isinstance(attr, apicls) :
                     if name not in constant :
-                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
+                        constant[name] = MetaMayaArrayTypeWrapper.ClassConstant(attr)
             # update the constant dict with herited constants
             mro = inspect.getmro(newcls)            
             for cls in mro :
-                if isinstance(cls, MetaMayaTypeWrapper) :
+                if isinstance(cls, MetaMayaArrayTypeWrapper) :
                     for name, attr in cls.__dict__.iteritems() :
-                        if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
+                        if isinstance(attr, MetaMayaArrayTypeWrapper.ClassConstant) :
                             if not name in constant :
-                                constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
+                                constant[name] = MetaMayaArrayTypeWrapper.ClassConstant(attr.value)
             
             # build the protected list to make some class ifo and the constants read only class attributes
             protected = tuple(['apicls', 'shape', 'cnames', 'size', 'ndim', '_protected'] + constant.keys())
@@ -196,7 +340,7 @@ class MVector(Vector):
         >>> w = MVector(x=1, z=2)
         >>> z = MVector(MVector.xAxis, z=1)
         """
-    __metaclass__ = MetaMayaTypeWrapper
+    __metaclass__ = MetaMayaArrayTypeWrapper
     # class specific info
     apicls = api.MVector
     cnames = ('x', 'y', 'z')
@@ -1053,7 +1197,7 @@ class MMatrix(Matrix):
         >>> w = self.__class__(x=1, z=2)
         >>> z = self.__class__(api.Mself.__class__.xAxis, z=1)
         """    
-    __metaclass__ = MetaMayaTypeWrapper
+    __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = api.MMatrix
     shape = (4, 4)
     cnames = ('a00', 'a01', 'a02', 'a03',
@@ -1157,18 +1301,17 @@ class MMatrix(Matrix):
     @property
     def row(self):
         """ Iterator on the MMatrix rows """
-        return MatrixIter(self, 1)
+        return self.axisiter(0)
         # return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
     @property
     def column(self):
         """ Iterator on the MMatrix columns """
-        # FIXME
-        return MatrixIter(self, 1)
+        return self.axisiter(1)
         #return [[self.matrix(r, c) for r in xrange(self.__class__.shape[0])] for c in range(self.__class__.shape[1])]
-    @property
-    def flat(self):
-        """ Flat iterator on all matrix components in row by row consecutive order """
-        return MatrixIter(self, 0)
+#    @property
+#    def flat(self):
+#        """ Flat iterator on all matrix components in row by row consecutive order """
+#        return MatrixIter(self, 0)
     
     # behavior made to be close to Numpy or cgkit
     # use flat instead for a single index access to the 16 components
