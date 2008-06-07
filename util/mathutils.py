@@ -3,7 +3,15 @@
 from __builtin__ import round as _round
 import math
 
-# to be able to call real and imag on all numericals
+# to be able to call conjugate, real and imag on all numericals
+
+def conjugate(x):
+    """ the conjugate part of x """
+    if isinstance(x, complex) :    
+        return x.conjugate()
+    else :
+        return x
+
 def real (x):
     """ the real part of x """
     if isinstance(x, complex) :
