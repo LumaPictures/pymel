@@ -17,6 +17,23 @@ import arguments as util
 from utilitytypes import readonly, metaReadOnlyAttr
 from math import pi, exp
 import math, mathutils
+from __builtin__ import sum as _sum, min as _min, max as _max, abs as _abs
+# 2.5 only for any and all
+try :
+    from __builtin__ import all as _all, any as _any
+except :
+    def _all(iterable):
+        """ Return True if all elements of the iterable are true """
+        for element in iterable:
+            if not element:
+                return False
+            return True
+    def _any(iterable):
+        """ Return True if any element of the iterable is true """
+        for element in iterable:
+            if element:
+                return True
+        return False
 
 _thisModule = sys.modules[__name__]
 
@@ -112,27 +129,166 @@ for mfn in mathutilsfn :
   
 # some functions operating on Arrays or derived classes
 
-def dot(a, b):
-    """ dot(a, b): dot product of a and b, a and b should be iterables of numeric values """
-    return reduce(operator.add, map(operator.mul, list(a)[:lm], list(b)[:lm]), 0.0)
+def sum(a, start=0, **kwargs):
+    """ sum(a[, start[, axis=None]]) --> numeric or Array
+        Returns the sum of all the components of a, an iterable of numeric values, plus start.
+        If a is an Array and axis are specified will return an Array of sum(x) for x in a.axisiter(*axis) """
+    axis=kwargs.get('axis', None)
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        return reduce(operator.add, a.axisiter(*axis), start)
+    elif hasattr(a, '__iter__') :
+        return _sum(a, start)
+    else :
+        return a+start
+    
+def prod(a, start=1, **kwargs):
+    """ prod(a[, start[, axis=None]]) --> numeric or Array
+        Returns the product of all the components of a, an iterable of numeric values, times start.
+        If axis are specified will return an Array of prod(x) for x in a.axisiter(*axis) """
+    axis=kwargs.get('axis', None)       
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        return reduce(operator.mul, a.axisiter(*axis), start)
+    elif hasattr(a, '__iter__') :
+        return reduce(operator.mul, a, start)   
+    else :
+        return a*start
 
-def length(a):
-    """ length(a): square root of the absolute value of dot product of a by q, a be an iterable of numeric values """
-    return sqrt(abs(dot(a, a)))
+def any(*args, **kwargs):
+    """ any(a [,axis=None]) --> bool or Array of booleans
+        Returns True if any of the components of a, an iterable of numeric values, is True.
+        If axis are specified will return an Array of any(x) for x in a.axisiter(*axis) """
+    axis=kwargs.get('axis', None)
+    if len(args) == 1 :
+        a = args[0]
+    else :
+        a = args           
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        it = a.axisiter(*axis)
+        subshape = it.itemshape
+        if subshape == () :
+            return _any(it)
+        else :
+            return Array(map(_any, zip(*it)), shape=subshape)
+    elif hasattr(a, '__iter__') :
+        return _any(a)     
+    else :
+        return bool(a)
+    
+def all(*args, **kwargs):
+    """ all(a, [,axis=None]) --> bool or Array of booleans
+        Returns True if all the components of a, an iterable of numeric values, are True.
+        If axis are specified will return an Array of all(x) for x in a.axisiter(*axis) """
+    axis=kwargs.get('axis', None)
+    if len(args) == 1 :
+        a = args[0]
+    else :
+        a = args               
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        it = a.axisiter(*axis)
+        subshape = it.itemshape
+        if subshape == () :
+            return _all(it)
+        else :
+            return Array(map(_all, zip(*it)), shape=subshape)
+    elif hasattr(a, '__iter__') :
+        return _all(a)     
+    else :
+        return bool(a)
 
-def cross(a, b):
-    """ cross(a, b): cross product of a and b, a and b should be iterables of 3 numeric values  """
-    la = list(a)[:3]
-    lb = list(b)[:3]
-    return [a[1]*b[2] - a[2]*b[1],
-            a[2]*b[0] - a[0]*b[2],
-            a[0]*b[1] - a[1]*b[0]]
+def min(*args, **kwargs):
+    """ min(iterable[, key=func]) -> value
+        min(a, b, c, ...[, key=func]) -> value
+    
+        With a single iterable argument, return its smallest item.
+        With two or more arguments, return the smallest argument.
+        If the iterable argument is an Array instance, returns the smallest component of iterable.
+        If axis are specified will return an Array of element-wise min(x) for x in a.axisiter(*axis) """
+    axis=kwargs.get('axis', None)
+    key=kwargs.get('key', None)
+    opt = {}
+    if key is not None :
+        opt['key'] = key
+    if len(args) == 1 :
+        a = args[0]
+    else :
+        a = args    
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        it = a.axisiter(*axis)
+        subshape = it.itemshape
+        if subshape == () :
+            return _min(it, **opt)
+        else :
+            return Array(map(lambda x:_min(x, **opt), zip(*it)), shape=subshape)
+    elif hasattr(a, '__iter__') :
+        return _min(a, **opt)    
+    else :
+        return a
+    
+def max(*args, **kwargs):
+    """ max(iterable[, key=func]) -> value
+        max(a, b, c, ...[, key=func]) -> value
+    
+        With a single iterable argument, return its largest item.
+        With two or more arguments, return the largest argument.
+        If the iterable argument is an Array instance, returns the largest component of iterable.
+        If axis are specified will return an Array of element-wise max(x) for x in a.axisiter(*axis) """
+    axis=kwargs.get('axis', None)
+    key=kwargs.get('key', None)
+    opt = {}
+    if key is not None :
+        opt['key'] = key
+    if len(args) == 1 :
+        a = args[0]
+    else :
+        a = args    
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        it = a.axisiter(*axis)
+        subshape = it.itemshape
+        if subshape == () :
+            return _max(it, **opt)
+        else :
+            return Array(map(lambda x:_max(x, **opt), zip(*it)), shape=subshape)
+    elif hasattr(a, '__iter__') :
+        return _max(a, **opt) 
+    else :
+        return a 
 
-def cotan(a, b, c) :
-    """ cotangent of the (b-a), (c-a) angle, a, b, and c should support substraction, dot, cross and length operations """
-    return dot(c - b,a - b)/length(cross(c - b, a - b))  
+def sqlength(a, axis=None):
+    """ sqlength(a, *axis) --> numeric or Array
+        Returns square length of a, a*a or the sum of x*x for x in a if a is an iterable of numeric values.
+        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
+    if isinstance(a, Array) :
+        axis = a._getaxis(axis)
+        it = a.axisiter(*axis)
+        subshape = it.itemshape
+        if subshape == () :
+            return reduce(operator.add, map(lambda x:x*x, a.flat)) 
+        else :
+            return map(sqlength, a.axisiter(*axis))      
+    elif hasattr(a, '__iter__') :
+        return reduce(operator.add, map(lambda x:x*x, a))   
+    else :
+        return a*a
+
+def length(a, axis=None):
+    """ sqlength(a, *axis) --> numeric or Array
+        Returns length of a, sqrt(a*a) or the square root of the sum of x*x for x in a if a is an iterable of numeric values.
+        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
+    return sqrt(sqlength(a, axis))
+
+def dist(a, b, axis=None):
+    """ dist(a, b, *args) --> float or Array
+         Returns the distance between a and b, the length of b-a """
+    a = _toCompOrArray(a)
+    b = _toCompOrArray(b)
+    return length(b-a, axis)
    
-
 def difmap(fn, a, b):
     """ maps a function on two iterable classes of possibly different sizes,
         mapping on smallest size then filling to largest size with unmodified remnant of largest list.
@@ -320,7 +476,7 @@ class Array(object):
     def _getdata(self):
         return self._data
     def _setdata(self, data):
-        if isinstance(data, self.stype) :
+        if isinstance(data, self.__class__.stype) :
             self._data = data
         else :
             self._data = self.stype(data)
@@ -395,8 +551,14 @@ class Array(object):
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, util.clsname(self))            
                                                             
     def __new__(cls, *args, **kwargs ):
+        """ Creates a new Array instance from one or several nested lists or numeric values """
+        new = super(Array, cls).__new__(cls)
+        new._data=[]
+        new._cacheshape()
+        return new
+     
+    def __init__(self, *args, **kwargs):
         """ Initialize an Array from one or several nested lists or numeric values """
-
         shape = kwargs.get('shape', None)
         ndim = None
         if shape is not None :
@@ -407,6 +569,7 @@ class Array(object):
                     shape = (shape,)
             ndim = len(shape)
         
+        cls = self.__class__
         # some Array sub classes have fixed shapes
         try :
             cls_shape = tuple(cls.shape)
@@ -480,30 +643,44 @@ class Array(object):
                             new.fill(data, shape)
                         except :
                             new.resize(shape)
-#                        if ndim > new.ndim :
-#                            new.fill(data, shape)
-#                        elif ndim == new.ndim :
-#                            new.resize(shape)
-#                        else :
-#                            raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (util.clsname(args), args.shape, cls.__name__, shape)
                     else :
                         if isinstance (args, Array) :
                             raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (util.clsname(args), args.shape, cls.__name__, shape)
                         else :
                             raise ValueError, "cannot initialize a %s of shape %s from %s, some data would be lost" % (cls.__name__, shape, args)
 
-            return new
+            self.data = new.data
         else :
             raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
-                    
+                                
     def append(self, value):
+        shape = self.shape
+        cls = self.__class__
         value = _toCompOrArray(value)
-        valueshape, valuedim, valuesize = _shapeInfo(value)        
-        if list(valueshape) == self.shape[1:] :
-            self._data.append(self, value)
-            self._cacheshape()
-        else :
-            raise TypeError, "argument does not have the correct shape to append to Array"       
+        valueshape, valuedim, valuesize = _shapeInfo(value)     
+        try :
+            cls_shape = tuple(cls.shape)
+            cls_ndim = len(cls_shape)
+        except :
+            cls_shape = None
+            try : 
+                cls_ndim = int(cls.ndim)
+            except :
+                cls_dim = None        
+        
+        if cls_shape is None :
+            if not self.size or valueshape == shape[1:] :
+                if cls_dim is None or valuedim == cls_dim-1 :
+                    data = self.data
+                    data.append(value)
+                    self.data = data
+                else :
+                    raise ValueError, "argument does not have the correct dimension to append to Array"
+            else :
+                raise ValueError, "argument does not have the correct shape to append to Array"                  
+        else :  
+            raise TypeError, "class %s had a fixed shape %s and it's not possible to append to it" % (cls.__name__, cls_shape)
+     
  
     @classmethod
     def _expandshape(cls, shape, size):      
@@ -910,15 +1087,16 @@ class Array(object):
             Element-wise positive of a """         
         return self.__class__(x.__pos__ for x in self)         
     def __invert__(self):
-        """ a.__invert__() <==> invert(a)
+        """ a.__invert__() <==> ~a
             Element-wise invert of a """         
-        return self.__class__(invert(x) for x in self) 
+        return self.__class__(operator.invert(x) for x in self)    
+    
     # would define __round__ if the round() function was using it
     def round(self, ndigits=0):
         """ a.round([ndigits]) <==> around(a[, ndigits])
             Element-wise round to given precision in decimal digits (default 0 digits).
             This always returns an Array of floating point numbers.  Precision may be negative. """  
-        return self.__class__(around(x, ndigits) for x in self)                     
+        return self.__class__(round(x, ndigits) for x in self)                     
     def __neg__(self):
         """ a.__neg__() <==> -a
             Element-wise negation of a """        
@@ -1112,40 +1290,124 @@ class Array(object):
             In place modulo of a by b, see __mod__, result must fit a's type """
         return self.__class__(self.__mod__(other)) 
 
-    # more could be wrapped the same way, __divmod__, logical operations etc
+    # more could be wrapped the same way, __divmod__, etc 
 
     # additional methods
-    # a.any(axis=None)
-    # a.all(axis=None)
-        # min, max, sum, prod
-        # __nonzero__
+
+    def _getaxis(self, axis=None, **kwargs):
+        default = kwargs.get('default',True)
+        reverse = kwargs.get('reverse',False)
+        ndim = self.ndim             
+        if not axis :
+            if default :
+                if reverse :
+                    axis = range(ndim-1, -1, -1)
+                else :
+                    axis = range(0, ndim, 1)
+            else :
+                axis = []
+        else :
+            axis = list(axis) 
+        for x in axis :
+            if x<0 or x>= ndim :
+                raise ValueError, "Array has %s dimensions, cannot specify on axis %s" % (ndim, x)
+            elif axis.count(x) > 1 :
+                raise ValueError, "axis %s is present more than once in axis list %s" % (x, tuple(axis))
+        return tuple(axis)       
         
-#    def sum(self):
-#        """ Returns the sum of the components of self """
-#        return reduce(operator.add, self, 0)     
+    def sum(self, *args):
+        """ Returns the sum of the components of self """
+        return sum(self, start=0, axis=args)
+ 
+    def prod(self, *args):
+        """ Returns the product of the components of self """
+        return prod(self, start=1, axis=args) 
+ 
+    # __nonzero__ not defined, use any or all
+    def any(self, *args):
+        return any(self, axis=args)
+ 
+    def all(self, *args):
+        return all(self, axis=args) 
+ 
+    def min(self, *args, **kwargs):
+        return min(self, axis=args, **kwargs)  
+    
+    def max(self, *args, **kwargs):
+        return max(self, axis=args, **kwargs)  
+ 
+    def sqlength(self, *args):
+        return sqlength(self, axis=args)  
+    
+    def length(self, *args):
+        return length(self, axis=args) 
+    
+    def dist(self, other, *args):
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        return dist(nself, nother, axis=args)          
   
-#    def isEquivalent(self, other, tol):
-#        """ Returns true if both arguments considered as Vector are equal  within the specified tolerance """
-#        try :
-#            return (other-self).sqLength() <= tol*tol
-#        except :
-#            raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol)  
-   
-
-
-    # arrays of complex values
-    def conjugate(self):
-        """ Returns the element-wise complex.conjugate() of the Array """
-        return self.__class__(x.conjugate() for x in self)
-    def real(self):
-        """ Returns the real part of the Array """
-        return self.__class__(real(x) for x in self)
-    def imag(self):
-        """ Returns the imaginary part of the Array """
-        return self.__class__(imag(x) for x in self) 
+    def isEquivalent(self, other, tol):
+        """ Returns True if both arguments have same shape and distance between both Array arguments is inferior or equal to tol """
+        if isinstance(other, Array) :
+            try :
+                nself, nother = coerce(self, other)
+            except :
+                try : 
+                    nother, nself = coerce(other, self)
+                except :
+                    return False
+            if nself.shape == nother.shape :      
+                return dist(nself, nother) <= tol
         
-    # array specific inspired from numpy
-    # diagonal, trace ?
+        return False  
+        
+    # most likely used on Matrix but declared here for genericity
+    
+    def diagonal(self, offset=0, *args, **kwargs) :
+        """ a.diagonal(offset=0, *args) -> diagonals
+            If a is 2 dimensional Array, return the diagonal of self with the given offset,
+            i.e., the collection of elements of the form a[i,i+offset].
+            If a is n dimensional with n > 2, then the (n-2) axes specified are used to iterate 
+            on 2-d arrays and return their diagonal
+            
+            Examples
+
+            >>> a = Array(range(4), shape=(2, 2))
+            >>> a.formated()
+            >>> a.diagonal()
+            
+            >>> a = Array(range(8), shape=(2,2,2))
+            >>> a.formated()
+            >>> a.axisiter(0)
+            >>> a.diagonal(0, 0)
+            >>> a.axisiter(1)
+            >>> a.diagonal(0, 1)
+            >>> a.axisiter(2)
+            >>> a.diagonal(0, 2)
+        """
+        axis = self._getaxis(args, default=False)
+        if self.ndim - len(axis) != 2 :
+            raise ValueError, "can only calculate diagonal on Array or sub Arrays of dimension 2"
+        if axis :
+            it = self.axisiter(*axis)
+            return Array([s.diagonal(offset, **kwargs) for s in it])        
+        else :
+            wrap = kwargs.get('wrap', False)
+            shape = self.shape
+            if wrap :
+                return Array([self[i,(i+offset)%shape[1]] for i in xrange(shape[0])])
+            else :
+                l = []
+                for i in xrange(shape[0]) :
+                    if (i+offset) < shape[1] :
+                        l.append(self[i,i+offset])     
+                return Array(l)
+                
+    def trace(self, offset=0, *args, **kwargs) :
+        return sum(self.diagonal(offset, *args, **kwargs))
         
     def transpose(self, *args):
         """ a.transpose(*axes)
@@ -1154,27 +1416,26 @@ class Array(object):
             or None is passed, switches the order of the axes. For a 2-d
             array, this is the usual matrix transpose. If axes are given,
             they describe how the axes are permuted.  """
-        ndim = self.ndim             
-        if not args :
-            args = range(ndim-1, -1, -1)
-        elif len(args) == 1 and hasattr(args[0], '__iter__') :
-            args = list(args[0])
-        else :
-            args = list(args)
-        if len(args) != ndim :
-            raise ValueError, "Transpose axis %s do not match array shape %s" % (tuple(args), self.shape)      
-        shape = []
-        for x in args :
-            if x<0 or x>= ndim :
-                raise ValueError, "Array has %s dimensions, cannot transpose on axis %s" % (ndim, x)
-            elif args.count(x) > 1 :
-                raise ValueError, "axis %s is present more than once in transpose axis list %s" % (x, args)
-            else :            
-                shape.append(self.shape[x])
-        shape = tuple(shape)
-        return self.__class__._convert(Array([s for s in self.axisiter(*args)], shape=shape))
+        axis = self._getaxis(args, reverse=True)
+        if len(axis) != self.ndim :
+            raise ValueError, "Transpose axis %s do not match array shape %s" % (axis, self.shape) 
+        else :       
+            return self.__class__._convert(Array([s for s in self.axisiter(*axis)], shape=(self.shape[x] for x in axis)))
     
     T = property(transpose, None, None, """The transposed array""") 
+
+    # arrays of complex values
+    def conjugate(self):
+        """ Returns the element-wise complex.conjugate() of the Array """
+        return self.__class__(conjugate(x) for x in self)
+    def real(self):
+        """ Returns the real part of the Array """
+        return self.__class__(real(x) for x in self)
+    def imag(self):
+        """ Returns the imaginary part of the Array """
+        return self.__class__(imag(x) for x in self) 
+    
+
 
 class Matrix(Array):
     """
@@ -1246,72 +1507,6 @@ class Matrix(Array):
     # specific methods
     
 
- 
-#|  diagonal(...)
-# |      a.diagonal(offset=0, axis1=0, axis2=1) -> diagonals
-# |      
-# |      If a is 2-d, return the diagonal of self with the given offset, i.e., the
-# |      collection of elements of the form a[i,i+offset]. If a is n-d with n > 2,
-# |      then the axes specified by axis1 and axis2 are used to determine the 2-d
-# |      subarray whose diagonal is returned. The shape of the resulting array can
-# |      be determined by removing axis1 and axis2 and appending an index to the
-# |      right equal to the size of the resulting diagonals.
-# |      
-# |      :Parameters:
-# |          offset : integer
-# |              Offset of the diagonal from the main diagonal. Can be both positive
-# |              and negative. Defaults to main diagonal.
-# |          axis1 : integer
-# |              Axis to be used as the first axis of the 2-d subarrays from which
-# |              the diagonals should be taken. Defaults to first index.
-# |          axis2 : integer
-# |              Axis to be used as the second axis of the 2-d subarrays from which
-# |              the diagonals should be taken. Defaults to second index.
-# |      
-# |      :Returns:
-# |          array_of_diagonals : same type as original array
-# |              If a is 2-d, then a 1-d array containing the diagonal is returned.
-# |              If a is n-d, n > 2, then an array of diagonals is returned.
-# |      
-# |      :SeeAlso:
-# |          - diag : matlab workalike for 1-d and 2-d arrays.
-# |          - diagflat : creates diagonal arrays
-# |          - trace : sum along diagonals
-# |      
-# |      Examples
-# |      --------
-# |      
-# |      >>> a = arange(4).reshape(2,2)
-# |      >>> a
-# |      array([[0, 1],
-# |             [2, 3]])
-# |      >>> a.diagonal()
-# |      array([0, 3])
-# |      >>> a.diagonal(1)
-# |      array([1])
-# |      
-# |      >>> a = arange(8).reshape(2,2,2)
-# |      >>> a
-# |      array([[[0, 1],
-# |              [2, 3]],
-# |      
-# |             [[4, 5],
-# |              [6, 7]]])
-# |      >>> a.diagonal(0,-2,-1)
-# |      array([[0, 3],
-# |             [4, 7]])
-#
-# |  trace(...)
-# |      a.trace(offset=0, axis1=0, axis2=1, dtype=None, out=None)
-# |      return the sum along the offset diagonal of the array's indicated
-# |      axis1 and axis2.
-# |   
-    
-
-    def diagonal(self):
-        pass
-    def trace(self):
-        pass
     def det(self):
         pass
 
@@ -1325,6 +1520,26 @@ class Matrix(Array):
 
     #T = property(transpose, None, None, """The transpose Matrix""")
     I = property(inverse, None, None, """The inverse Matrix""")
+
+# functions that work on Vectors
+
+def dot(a, b, axis=None):
+    """ dot(a, b): dot product of a and b, a and b should be iterables of numeric values """
+    a = _toCompOrArray(a)
+    b = _toCompOrArray(b)
+    return sum(a*b, axis)
+
+def cross(a, b, axis=None):
+    """ cross(a, b): cross product of a and b, a and b should be iterables of 3 numeric values  """
+    la = list(a)[:3]
+    lb = list(b)[:3]
+    return [a[1]*b[2] - a[2]*b[1],
+            a[2]*b[0] - a[0]*b[2],
+            a[0]*b[1] - a[1]*b[0]]
+
+def cotan(a, b, c) :
+    """ cotangent of the (b-a), (c-a) angle, a, b, and c should support substraction, dot, cross and length operations """
+    return dot(c - b,a - b)/length(cross(c - b, a - b))  
 
 class Vector(Array):
     """
@@ -1407,29 +1622,20 @@ class Vector(Array):
         self = self.__xor__(other) 
                 
     # additional methods
-    def sum(self):
-        """ Returns the sum of the components of self """
-        return reduce(operator.add, self, 0)     
-    def dot(self, other):
-        if isinstance(other, Vector) :
-            lm = min(len(self), len(other))
-            return reduce(operator.add, map(operator.mul, self[:lm], other[:lm]), 0.0)
-        else :
-            raise TypeError, "dot product is only defined between two vectors"        
-    def cross(self, other):
-        """ cross product, only defined for two 3D vectors """
-        if isinstance(other, Vector) and self.size == 3 and other.size == 3 :
-            return self.__class__(self[1]*other[2] - self[2]*other[1],
-                                  self[2]*other[0] - self[0]*other[2],
-                                  self[0]*other[1] - self[1]*other[0])
-        else :
-            raise ValueError, "cross product is only defined between two vectors of size 3"
-    def length(self):
-        """ Length of self """
-        return sqrt(abs(self.dot(self)))                        
-    def sqLength(self):
-        """ Squared length of Vector """
-        return self.dot(self)
+ 
+    def dot(self, other, *args):
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        return dot(nself, nother, axis=args)   
+
+    def cross(self, other, *args):
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented
+        return cross(nself, nother, axis=args)  
     def normal(self): 
         """ Return a normalized copy of self. To be consistant with Maya API and MEL unit command,
             does not raise an exception if self if of zero length, instead returns a copy of self """
@@ -1443,17 +1649,8 @@ class Vector(Array):
         self /= self.length()
 
     def distanceTo(self, other):
-        return (other-self).length()   
-    def isEquivalent(self, other, tol):
-        """ Returns true if both arguments considered as Vector are equal  within the specified tolerance """
-        try :
-            return (other-self).sqLength() <= tol*tol
-        except :
-            raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol)  
-  
+        return self.dist(other)  
 
-
-    # vectors of complex values inherit methods from Arrays
     
 
 
@@ -1471,6 +1668,7 @@ def _test() :
 #    print A.ndim
 #    print A.size
 #    print A.data
+
     A = Array([2])
     print A
     print repr(A)
@@ -1506,6 +1704,13 @@ def _test() :
     B = Array([[[1], [2], [3]]])
     print B
        
+    # append (hstack, vstack)
+    A = Array([])
+    A.append(1)
+    A.append(2)
+    B = Array([A])
+    B.append([3, 4])
+    
     # fills and init with shape    
     A = Array.filled([0, 1, 2], 5)
     print "Array.filled([0, 1, 2], 5)"
@@ -1864,41 +2069,7 @@ def _test() :
     # [[10, 10, 10],
     #  [40, 40, 30],
     #  [70, 80, 50]]]
-               
-    # transpose
-    print "B=A[0]"
-    B=A[0]
-    print B.formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]]    
-    print "B.transpose()"
-    print B.transpose().formated()
-    #[[1, 4, 7],
-    # [1, 6, 8],
-    # [1, 3, 5]]        
-    print "A.transpose(0,2,1)"    
-    print A.transpose(0,2,1).formated() 
-    #[[[ 1  4  7]
-    #  [ 1  6  8]
-    #  [ 1  3  5]]
-    #
-    # [[10 40 70]
-    #  [10 40 80]
-    #  [10 30 50]]]    
-    print A.transpose(2,1,0).formated() 
-    print A.transpose(2,1,0).formated()
-    #[[[ 1 10]
-    #  [ 4 40]
-    #  [ 7 70]]
-    #
-    # [[ 1 10]
-    #  [ 6 40]
-    #  [ 8 80]]
-    #
-    # [[ 1 10]
-    #  [ 3 30]
-    # [ 5 50]]] 
+ 
     
     # count, index
     
@@ -2117,14 +2288,226 @@ def _test() :
     # complex arrays
     print "A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]]) :"
     A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]])
+    #[[(1+2j), (2+3j)],
+    # [(4+5j), (6+7j)]]    
     print A.formated()
     print "A.conjugate()"
     print A.conjugate().formated()
+    #[[(1-2j), (2-3j)],
+    # [(4-5j), (6-7j)]]    
     print "A.real() or real(A)"
     print A.real().formated()
+    #[[1.0, 2.0],
+    # [4.0, 6.0]]    
     print "A.imag() or imag(A)"
-    print A.imag().formated()    
+    print A.imag().formated()
+    #[[2.0, 3.0],
+    # [5.0, 7.0]]    
+    print "abs(A)"
+    print abs(A).formated() 
+    #[[2.2360679775, 3.60555127546],
+    # [6.40312423743, 9.21954445729]]
     
+    # other methods
+
+    A = Array([[1,2,3],[4,5,6]])    
+    print A.formated()
+    #[[1, 2, 3],
+    # [4, 5, 6]]   
+    print "A.sum() or A.sum(0,1) or sum(A) or sum(A, axis=(0,1))" 
+    print A.sum()
+    #21
+    print "A.sum(0) or sum(A, axis=0)" 
+    print A.sum(0)
+    print sum(A, axis=0)
+    #[5, 7, 9]
+    print "A.sum(1) or sum(A, axis=1)" 
+    print A.sum(1)
+    #[6, 15]
+    
+    print "A.prod() or prod(A)"
+    print A.prod()
+    #720
+    print A.prod(0)
+    #[4, 10, 18]
+    print A.prod(1)    
+    #[6, 120]
+    
+    M = Array([[6,3,4],[1,5,0.5]])
+    print M.formated()
+    #[[6, 3, 4],
+    # [1, 5, 0.5]]    
+    print min(M)
+    #0.5
+    print max(M)
+    #6
+    print list(M.axisiter(0))
+    #[Array([6, 3, 4]), Array([1, 5, 0.5])]
+    print M.min(0)
+    #[1, 3, 0.5]
+    print M.max(0)
+    #[6, 5, 4]
+    print list(M.axisiter(1))
+    #[Array([6, 1]), Array([3, 5]), Array([4, 0.5])]
+    print M.min(1)
+    #[3, 0.5]
+    print M.max(1)
+    #[6, 5] 
+    
+    A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0]])
+    print A.formated()  
+    print round(A.length(), 2)
+    print list(A.axisiter(0))
+    print round(A.length(0), 2)
+    print list(A.axisiter(1))
+    print round(A.length(1), 2) 
+
+    B = Array([[0.51,0.49,-0.71],[0.71,-0.70,0]])
+    
+    print sum([A, -B])
+    
+    print A.dist(B)
+    print A.dist(B,0)
+    print A.dist(B,1)
+    
+        
+    C = Array([[0.501,0.499,-0.706],[0.706,-0.708,0.01]])
+    print A.dist(C)
+    print A.isEquivalent(C, 0.015)
+    # True
+    print A.isEquivalent(B, 0.015)
+    # False
+    print A.isEquivalent(B, 0.02)
+    # True
+    
+    # boolean any and all
+    
+    A = Array([[True,True,True],[False,True,False]])
+    print A.formated()
+    print A.any()
+    # True
+    print A.all()
+    # False
+    print list(A.axisiter(0))
+    # [Array([True, True, True]), Array([False, True, False])]
+    print A.any(0)
+    # [True, True, True]
+    print A.all(0)
+    # [False  True False]
+    print list(A.axisiter(1))
+    # [Array([True, False]), Array([True, True]), Array([True, False])]
+    print A.any(1)
+    # [True, True]
+    print A.all(1)
+    # [True, False]
+
+
+    # diagonal and trace
+    
+    A = Array(range(4), shape=(2, 2))
+    print "A = Array(range(4), shape=(2, 2))"
+    print A.formated()
+    #[[0, 1],
+    # [2, 3]]    
+    print A.diagonal()
+    #[0, 3]
+    print A.trace()
+    #3
+    print A.diagonal(1)
+    #[1]
+    print A.trace(1)
+    #1
+    print A.diagonal(1, wrap=True)
+    #[1, 2]
+    print A.trace(1, wrap=True)
+    #3
+                    
+    A = Array(range(8), shape=(2,2,2))
+    print "Array(range(8), shape=(2,2,2))"
+    print A.formated()
+    #[[[0, 1],
+    #  [2, 3]],
+    #
+    # [[4, 5],
+    #  [6, 7]]]    
+    print Array(A.axisiter(0)).formated()
+    #[[[0, 1],
+    #  [2, 3]],
+    #
+    # [[4, 5],
+    #  [6, 7]]]
+    print A.diagonal(0,0).formated()
+    #[[0, 3],
+    # [4, 7]]    
+    print A.trace(0,0)
+    # [3, 11]
+    print Array(A.axisiter(0, 2, 1)).formated()
+
+    print A.diagonal(1,0, wrap=True).formated()
+    #[[0, 3],
+    # [4, 7]]    
+    print A.trace(1,0, wrap=True)
+    # [3, 11]
+    
+    print A.diagonal(0,0, 2, 1).formated()
+    
+    print Array(A.axisiter(1)).formated()
+    #[[[0, 1],
+    #  [4, 5]],
+    #
+    # [[2, 3],
+    #  [6, 7]]] 
+    print A.diagonal(0, 1).formated()
+    #[[0, 5],
+    # [2, 7]] 
+    print A.trace(0,1)
+    
+    print Array(A.axisiter(2)).formated()
+    
+    
+    
+    print A.diagonal(0, 2).formated()
+    
+    print A.trace(0,2)   
+    
+ 
+    A = Array(range(16), shape=(2,2,2,2))
+    print "Array(range(16), shape=(2,2,2,2))" 
+    print A.formated()
+    
+    
+    print "A.diagonal(0, 0, 1)"
+    print A.diagonal(0, 0, 1).formated()
+    #[[[ 0  3]
+    #  [ 4  7]]
+    #
+    # [[ 8 11]
+    #  [12 15]]] 
+               
+               
+    # transpose
+    A = Array(range(18), shape=(2,3,3))
+    print "Array(range(18), shape=(2,3,3))"
+    print A.formated()
+     
+    
+    print "B=A[0]"
+    B=A[0]
+    print B.formated()
+ 
+ 
+    print "B.transpose()"
+    print B.transpose().formated()
+     
+    print "A.transpose(0,2,1)"    
+    print A.transpose(0,2,1).formated() 
+  
+    print "A.transpose(2,1,0)"
+    print A.transpose(2,1,0).formated()
+
+
+
+
     # should fail
     print "B = Array([[1,2,3],[4,5,6],[7,8]])"
     try :
