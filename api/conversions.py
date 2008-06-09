@@ -697,7 +697,9 @@ def toApiFunctionSet( obj ):
         except KeyError:
             return
 
-
+#-----------------------------------
+# All Below Here are Deprecated
+#-----------------------------------
 # conversion API enum int to API type string and back
 def apiEnumToType (apiEnum) :
     """ Given an API type enum int, returns the corresponding Maya API type string,
@@ -747,6 +749,10 @@ def apiToNodeType (*args) :
         return result[0]
     else :
         return tuple(result)
+
+#-----------------------------------
+# All Above Here are Deprecated
+#-----------------------------------
 
 # Converting API MObjects and more
 

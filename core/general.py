@@ -1050,7 +1050,7 @@ def nodeType( node, **kwargs ):
     
     # still don't know how to do inherited via api
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
-        return cmds.nodeType( unicdoe(node), **kwargs )
+        return cmds.nodeType( unicode(node), **kwargs )
         
     obj = None
     objName = None
@@ -1066,8 +1066,9 @@ def nodeType( node, **kwargs ):
         else :
             obj = None
     elif isinstance(arg,basestring) :
-        obj = api.toMObject( arg.split('.')[0] )
-    
+        #obj = api.toMObject( arg.split('.')[0] )
+        # don't spend the extra time converting to MObject
+        return cmds.nodeType( node, **kwargs )
     if obj:
         if kwargs.get( 'apiType', kwargs.get( 'api', False) ):
             return obj.apiTypeStr()
@@ -1121,7 +1122,7 @@ def rename( obj, newname, **kwargs):
 Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
     """
-    # added catch to use object name explicitely when object is a Pymel Node
+    # added catch to use object name explicitly when object is a Pymel Node
     if isinstance( newname, PyNode ):
         newname = newname.name()
     if isinstance (obj, PyNode) :
@@ -1319,80 +1320,105 @@ Maya Bug Fix:
 
 def _getPymelType(arg, comp=None) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
-        if no correct type is found returns DependNode by default """
+        if no correct type is found returns DependNode by default.
+        
+        If the name of an existing object is passed, the name and MObject will be returned
+        If a valid MObject is passed, the name will be returned as None
+        If a PyNode instance is passed, its name and MObject will be returned
+        """
         
     obj = None
     objName = None
     
-    # TODO : handle comp as a MComponent or list of components
-    if isinstance(arg, PyNode) :
-        obj = arg.object()
-    elif isinstance(arg, api.MObject) :
-        if api.isValidMObjectHandle(api.MObjectHandle(arg)) :
-            obj = arg
-        else :
-            obj = None
-    elif isinstance(arg,basestring) :
+    passedType = ''
+    
+    if isinstance(arg,basestring) :
         objName = arg
         # TODO : should we delay this until the PyNode class requires an MObject? 
         # api.MFnDependencyNode( api.toAPIOjbect(objName) ).typeName() is 25% slower than cmds.nodeType(objName).
         # however, api.MFnDependencyNode( obj ).typeName() is 10x faster than cmds.nodeType(objName),
-        # so you could say that we get the nodeType *and* the MObject for an extra 25%.
+        # so you could say that we get the nodeType *plus* the MObject for an extra 25% upfront.
+        # it's just a shame to add this overhead to every PyNode instantiation.
+        # perhaps we could create an MObjectHandle -> mayaType dictionary lookup with the new 2009 hash?
         """ 
         start = cmds.timerX()
         for i in range(100):
             for objName in cmds.ls(): typ = cmds.nodeType( objName )
-        print "%.03f" % cmds.timerX(startTime=start)
+        print "%.03f for cmds.nodeType" % cmds.timerX(startTime=start)
         
         start = cmds.timerX()
         for i in range(100):
             for objName in cmds.ls(): x = api.toAPIObject(objName) 
-        print "%.03f" % cmds.timerX(startTime=start)
+        print "%.03f for converting to MObject" % cmds.timerX(startTime=start)
         
         start = cmds.timerX()
         for i in range(100):
             for objName in cmds.ls(): x = api.MFnDependencyNode( api.toAPIObject(objName) )
-        print "%.03f" % cmds.timerX(startTime=start)
+        print "%.03f for converting to MObject and getting MFn" % cmds.timerX(startTime=start)
         
         start = cmds.timerX()
         for i in range(100):
             for objName in cmds.ls(): typ =api.MFnDependencyNode( api.toAPIObject(objName) ).typeName() 
-        print "%.03f" % cmds.timerX(startTime=start)
+        print "%.03f for converting to MObject and getting nodeType" % cmds.timerX(startTime=start)
         
         apiObjs = []
         for objName in cmds.ls(): apiObjs.append( api.toAPIObject(objName) ) 
         start = cmds.timerX()
         for i in range(100):
             for objName in apiObjs: typ =api.MFnDependencyNode( objName ).typeName() 
-        print "%.03f" % cmds.timerX(startTime=start)
+        print "%.03f for getting nodeType directly from MObject" % cmds.timerX(startTime=start)
         
-        3.140
-        3.430
-        3.700
-        3.960
-        0.390
+        3.140 for cmds.nodeType
+        3.430 for converting to MObject
+        3.700 for converting to MObject and getting MFn
+        3.960 for converting to MObject and getting nodeType
+        0.390 for getting nodeType directly from MObject
         """
-        
         obj = api.toAPIObject(objName)
-                                           
+        passedType = 'string'
+                              
+    # TODO : handle comp as a MComponent or list of components
+    elif isinstance(arg, PyNode) :
+        # grab the private variable to prevent the function triggering any additional calculations
+        obj = arg._object.object()     
+        name = arg._name
+        passedType = 'PyNode'
+        
+    elif isinstance(arg, api.MObject) :
+        obj = arg
+        passedType = 'MObject'
+                   
+    elif isinstance(arg, api.MObjectHandle) :
+        obj = arg.object()
+        passedType = 'MObjectHandle'
+    
+    elif isinstance(arg, api.MDagPath) :
+        obj = arg.node()
+        passedType = 'MDagPath'
+    
+                         
     if obj :
         # the case of an existing node or plug
         if api.isValidMPlug(obj):
             pymelType = Attribute          
         else :
-            mayaType = api.MFnDependencyNode( obj ).typeName()
+            obj = api.MObjectHandle( obj )
+            if not api.isValidMObjectHandle( obj ) :
+                raise ValueError, "Unable to determine Pymel type: the passed %s is not valid" % passedType
+            mayaType = api.MFnDependencyNode( obj.object() ).typeName()
             pymelType = mayaTypeToPyNode( mayaType, DependNode )
-
+            
+            
     elif objName :
         # non existing node
-        pymelType = basestring
+        pymelType = DependNode
         if '.' in objName :
             # TODO : some better checking / parsing
             pymelType = Attribute 
     else :
-        raise ValueError, "unable to determine a suiting Pymel type for %r" % arg         
+        raise ValueError, "Unable to determine Pymel type for %r" % arg         
     
-    return pymelType, obj
+    return pymelType, obj, objName
 
 #--------------------------
 # Object Wrapper Classes
@@ -1408,15 +1434,18 @@ class PyNode(ProxyUnicode):
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed """
         
+        #print cls.__name__, cls
+        
         if args :
             obj = args[0]
             comp = None
             if len(args)>1 :
                 comp = args[1]
-            pymelType, obj = _getPymelType(obj, comp)
-            self._object = obj
+                
+            pymelType, obj, name = _getPymelType(obj, comp)
+            assert obj or objName
         else :
-            pymelType = DependNode
+            raise TypeError, 'PyNode expects at least one argument: an object name or an MObject'
         
         # print "type:", pymelType
         # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
@@ -1430,14 +1459,13 @@ class PyNode(ProxyUnicode):
             if issubclass(pymelType, cls) or issubclass(pymelType, basestring) :
                 newcls = cls
         else :
-            # no class name specified, use pymelType, default to DependNode if just a string that isn't an existing object was passed
-            if issubclass(pymelType, basestring) :
-                newcls = DependNode
-            else :
-                newcls = pymelType
+            newcls = pymelType
                 
         if newcls :  
-            return super(PyNode, cls).__new__(newcls)
+            self = super(PyNode, cls).__new__(newcls)
+            self._name = name
+            self._object = obj
+            return self
         else :
             raise TypeError, "Cannot make a %s PyNode out of a %r object" % (cls.__name__, pymelType)   
 
@@ -1497,7 +1525,7 @@ class PyNode(ProxyUnicode):
     cmds.nodeType = cmds.nodeType
 
     def select(self, **kwargs):
-        forbiddenKeys = ['all', 'allDependencyNodes', 'adn', '-allDagObjects' 'ado', 'clear', 'cl']
+        forbiddenKeys = ['all', 'allDependencyNodes', 'adn', 'allDagObjects' 'ado', 'clear', 'cl']
         for key in forbiddenKeys:
             if key in kwargs:
                 raise TypeError, "'%s' is an inappropriate keyword argument for object-oriented implementation of this command" % key
@@ -1743,11 +1771,11 @@ class Attribute(PyNode):
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self.name())
 
-    def __str__(self):
-        return "%s" % self.name()
+    #def __str__(self):
+    #    return "%s" % self.name()
 
-    def __unicode__(self):
-        return u"%s" % self.name()
+    #def __unicode__(self):
+    #    return u"%s" % self.name()
 
     def name(self):
         """ Returns the full name of that attribute(plug) """
@@ -2243,6 +2271,7 @@ class DependNode( PyNode ):
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
     _mfn = None
+
     def _updateName(self) :
         if api.isValidMObjectHandle(self._object) :
             obj = self._object.object()
@@ -2254,6 +2283,12 @@ class DependNode( PyNode ):
         if api.isValidMObjectHandle(self._object) :
             return self._object.object()
     
+    def name(self, update=True) :
+        if update or self._name is None:
+            return self._updateName()
+        else :
+            return self._name  
+    
     def MFn(self):
         obj = self.object()
         if obj:
@@ -2263,13 +2298,7 @@ class DependNode( PyNode ):
                 return self._mfn
             except KeyError:
                 pass
-    
-    def name(self, update=True) :
-        if update :
-            return self._updateName()
-        else :
-            return self._name  
-
+    """
     def __init__(self, *args, **kwargs) :
         if args :
             arg = args[0]
@@ -2292,7 +2321,7 @@ class DependNode( PyNode ):
                     self._name = arg 
             else :
                 raise TypeError, "don't know how to make a Pymel DependencyNode out of a %s : %r" % (type(arg), arg)  
-
+    """
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self.name())
 
@@ -2305,7 +2334,7 @@ class DependNode( PyNode ):
     def node(self):
         """for compatibility with Attribute class"""
         return self
-        
+    
     def __getattr__(self, attr):
         try :
             return super(PyNode, self).__getattr__(attr)
@@ -2384,15 +2413,14 @@ class DependNode( PyNode ):
     #    Info
     #--------------------------
 
-    def type(self, **kwargs):
-        "nodetype"
-        obj = self.object()  
-        if obj :
-            doAPI = kwargs.get('apiType', False) or kwargs.get('api', False)
-            doInherited = kwargs.get('inherited', False) or kwargs.get('i', False)        
-            return api.objType(obj, api=doAPI, inherited=doInherited)
-        else :     
-            return self.cmds.nodeType(**kwargs)
+#    def type(self, **kwargs):
+#        "nodetype"
+#        obj = self.object()  
+#        if obj :
+#            return nodeType(obj)
+#        else :     
+#            return self.cmds.nodeType(**kwargs)
+    type = nodeType
             
     def exists(self, **kwargs):
         "objExists"
@@ -2569,11 +2597,11 @@ class DagNode(Entity):
             return self._object.object()
         
     def name(self, update=True, long=False) :
-        if update or long :
+        if update or long or self._name is None:
             return self._updateName(long)
         else :
             return self._name  
-    
+    """
     def __init__(self, *args, **kwargs) :
         if args :
             arg = args[0]
@@ -2604,7 +2632,7 @@ class DagNode(Entity):
                     self._name = arg
             else :
                 raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(arg), arg)  
-          
+       """   
     
     def __eq__(self, other):
         """ensures that we compare longnames when checking for dag node equality"""
@@ -3549,7 +3577,58 @@ def isValidPyNodeName (arg):
 
 def mayaTypeToPyNode( arg, default=None ):
     return _factories.PyNodeNamesToPyNodes().get( util.capitalize(arg), default )
+
+def toPyNode( obj, default=None ):
+    if isinstance( obj, int ):
+        mayaType = api.ApiEnumsToMayaTypes().get( obj, None )
+        return _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType), default )
+    elif isinstance( obj, basestring ):
+        try:
+            return _factories.PyNodeNamesToPyNodes()[ util.capitalize(obj) ]
+        except KeyError:
+            mayaType = api.ApiTypesToMayaTypes().get( obj, None )
+            return _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType), default )
+            
+def toApiTypeStr( obj, default=None ):
+    if isinstance( obj, int ):
+        return api.ApiEnumsToApiTypes().get( obj, default )
+    elif isinstance( obj, basestring ):
+        return api.MayaTypesToApiTypes().get( obj, default)
+    elif isinstance( obj, PyNode ):
+        mayaType = _factories.PyNodesToMayaTypes().get( obj, None )
+        return api.MayaTypesToApiTypes().get( mayaType, default)
     
+def toApiTypeEnum( obj, default=None ):
+    if isinstance( obj, basestring ):
+        try:
+            return api.ApiTypesToApiEnums()[obj]
+        except KeyError:
+            return api.MayaTypesToApiEnums().get(obj,default)
+    elif isinstance( obj, PyNode ):
+        mayaType = _factories.PyNodesToMayaTypes().get( obj, None )
+        return api.MayaTypesToApiEnum().get( mayaType, default)  
+
+def toMayaType( obj, default=None ):
+    if isinstance( obj, int ):
+        return api.ApiEnumsToMayaTypes().get( obj, default )
+    elif isinstance( obj, basestring ):
+        return api.ApiTypesToMayaTypes().get( obj, default)
+    elif isinstance( obj, PyNode ):
+        return _factories.PyNodesToMayaTypes().get( obj, default )
+    
+def toApiFunctionSet( obj, default=None ):
+    if isinstance( obj, basestring ):
+        try:
+            return api.ApiTypesToApiClasses()[ obj ]
+        except KeyError:
+            return api.ApiTypesToApiClasses().get( api.MayaTypesToApiTypes.get( obj, default ) ) 
+    elif isinstance( obj, int ):
+        try:
+            return api.apiTypesToApiClasses[ api.ApiEnumsToApiTypes()[ obj ] ]
+        except KeyError:
+            return default
+
+
 # Selection list to PyNodes
 def MSelectionPyNode ( sel ):
     length = sel.length()
