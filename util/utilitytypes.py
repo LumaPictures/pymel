@@ -223,21 +223,38 @@ class metaReadOnlyAttr(type) :
         return newcls                     
 
     
-def proxyClass( cls, classname, dataAttrName = '_data'):
+def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None ):
     """this function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
     will breaking hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
     a valid __hash__ method."""
-    
-    def _methodWrapper( method ):
-        #print method
-        #@functools.wraps(f)
-        def wrapper(self, *args, **kwargs):
-            return method( cls( getattr(self, dataAttrName) ), *args, **kwargs )
-        wrapper.__doc__ = method.__doc__
-        wrapper.__name__ = method.__name__
-        return wrapper
-    
+
+    assert not ( dataAttrName and dataFuncName ), 'Cannot use attribute and function for data storage. Choose one or the other.'
+
+    if dataAttrName:
+        def _methodWrapper( method ):
+            #print method
+            #@functools.wraps(f)
+            def wrapper(self, *args, **kwargs):
+                return method( cls( getattr(self, dataAttrName) ), *args, **kwargs )
+
+            wrapper.__doc__ = method.__doc__
+            wrapper.__name__ = method.__name__
+            return wrapper
+        
+    elif dataFuncName:
+        def _methodWrapper( method ):
+            #print method
+            #@functools.wraps(f)
+            def wrapper(self, *args, **kwargs):
+                return method( cls( getattr(self, dataAttrName)() ), *args, **kwargs )
+
+            wrapper.__doc__ = method.__doc__
+            wrapper.__name__ = method.__name__
+            return wrapper
+    else:
+        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'
+          
     remove = ('__new__', '__init__', '__getattribute__', '__getattr__')
     class Proxy(object):
         pass
