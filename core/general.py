@@ -1423,7 +1423,7 @@ def _getPymelType(arg, comp=None) :
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', '_name')
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name')
 
 class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
@@ -2290,14 +2290,17 @@ class DependNode( PyNode ):
             return self._name  
     
     def MFn(self):
-        obj = self.object()
-        if obj:
-            try:
-                mfn = api.toApiFunctionSet( obj.apiTypeStr() )
-                self._mfn = mfn(obj)
-                return self._mfn
-            except KeyError:
-                pass
+        if self._mfn:
+            return self._mfn
+        else:
+            obj = self.object()
+            if obj:
+                try:
+                    mfn = api.toApiFunctionSet( obj.apiTypeStr() )
+                    self._mfn = mfn(obj)
+                    return self._mfn
+                except KeyError:
+                    pass
     """
     def __init__(self, *args, **kwargs) :
         if args :
@@ -2362,24 +2365,31 @@ class DependNode( PyNode ):
     #--------------------------
     #    Modification
     #--------------------------
-        
+    def isLocked(self):
+        return self.MFn().isLocked()
+      
     def lock( self, **kwargs ):
         'lockNode -lock 1'
-        kwargs['lock'] = True
-        kwargs.pop('l',None)
-        return cmds.lockNode( self, **kwargs)
+        #kwargs['lock'] = True
+        #kwargs.pop('l',None)
+        #return cmds.lockNode( self, **kwargs)
+        return self.MFn().setLocked( True )
         
     def unlock( self, **kwargs ):
         'lockNode -lock 0'
-        kwargs['lock'] = False
-        kwargs.pop('l',None)
-        return cmds.lockNode( self, **kwargs)
-            
+        #kwargs['lock'] = False
+        #kwargs.pop('l',None)
+        #return cmds.lockNode( self, **kwargs)
+        return self.MFn().setLocked( False )
+
     def cast( self, swapNode, **kwargs):
         """nodeCast"""
         return cmds.nodeCast( self, swapNode, *kwargs )
     
-    rename = rename
+    #rename = rename
+    def rename( self, name ):
+        # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
+        return self.MFn().setName( name )
     
     duplicate = duplicate
     
@@ -2427,11 +2437,14 @@ class DependNode( PyNode ):
         if self.object() :
             return True
         else :
-            return self.cmds.objExists(**kwargs)
-        
-    def isReadOnly(self):
-        return (cmds.ls( self, ro=1) and True) or False
-        
+            return False
+    
+    def hasUniqueName(self):
+        return self.MFn().hasUniqueName()   
+
+    def isDefaultNode(self):
+        return self.MFn().isDefaultNode()  
+         
     def referenceFile(self):
         """referenceQuery -file
         Return the reference file to which this object belongs.  None if object is not referenced"""
@@ -2439,16 +2452,21 @@ class DependNode( PyNode ):
             return FileReference( cmds.referenceQuery( self, f=1) )
         except:
             None
-            
+
+    def isReadOnly(self):
+    #    #return (cmds.ls( self, ro=1) and True) or False
+        return self.MFn().isFromReferenceFile()
+                
     def isReferenced(self):
         """referenceQuery -isNodeReferenced
         Return True or False if the node is referenced"""    
-        return cmds.referenceQuery( self, isNodeReferenced=1)
-
+        #return cmds.referenceQuery( self, isNodeReferenced=1)
+        return self.MFn().isFromReferenceFile()
             
     def classification(self):
         'getClassification'
-        return getClassification( self.type() )    
+        #return getClassification( self.type() )    
+        return self.MFn().classification( self.type() )
     
     #--------------------------
     #    Connections
@@ -2654,6 +2672,39 @@ class DagNode(Entity):
     def root(self):
         'rootOf'
         return DagNode( '|' + self.longName()[1:].split('|')[0] )
+    """
+    def hasParent(self, parent ):
+        try:
+            return self.MFn().hasParent( parent.object() )
+        except AttributeError:
+            obj = api.toMObject(parent)
+            if obj:
+               return self.MFn().hasParent( obj )
+          
+    def hasChild(self, child ):
+        try:
+            return self.MFn().hasChild( child.object() )
+        except AttributeError:
+            obj = api.toMObject(child)
+            if obj:
+               return self.MFn().hasChild( obj )
+    
+    def isParentOf( self, parent ):
+        try:
+            return self.MFn().isParentOf( parent.object() )
+        except AttributeError:
+            obj = api.toMObject(parent)
+            if obj:
+               return self.MFn().isParentOf( obj )
+    
+    def isChildOf( self, child ):
+        try:
+            return self.MFn().isChildOf( child.object() )
+        except AttributeError:
+            obj = api.toMObject(child)
+            if obj:
+               return self.MFn().isChildOf( obj )
+    """
     
     def firstParent(self):
         'firstParentOf'
@@ -2710,10 +2761,10 @@ class DagNode(Entity):
         'basename'
         return self.name().split('|')[-1]
 
-        
-    #--------------------------
+       
+    #-------------------------------
     #    DagNode Path Modification
-    #--------------------------    
+    #------------------------------- 
     
     def setParent( self, *args, **kwargs ):
         'parent'
