@@ -648,24 +648,136 @@ class ApiDocParser(HTMLParser):
         f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
         self.feed( f.read() )
         f.close()
+        for method, methodInfo in self.methods.items():
+            print method
+            for methodOption in methodInfo:
+                print methodOption['argInfo']
         return
               
     def __init__(self, functionSet, version='2009' ):
         self.cmdList = []
         self.functionSet = functionSet
         self.version = version
-        self.methods = []
-        self.currentMethod = {}
+        self.methods = util.defaultdict(list)
+        self.currentMethod = None
+        self.mode = None
+        self.data = []
+        self.parameters = []
+        self.returnVal = []
         HTMLParser.__init__(self)
         
     def handle_data(self, data):
         data = data.lstrip().rstrip()
-        if data:
-            print data
+        if self.currentMethod is not None and data:
+            if data in ['Reimplemented from', 'Parameters:', 'Returns:' ]:
+                self.mode = data
+            elif self.mode == 'Parameters:':
+                self.parameters.append( data )
+            elif self.mode == 'Returns:':
+                self.returnVal.append( data )
+            elif self.mode == 'Reimplemented from':
+                pass
+            elif self.currentMethod:
+                self.data.append(data)
+                #print data
+            pass
     
     def handle_comment(self, comment ):
+        def addArgInfo( argInfo, argName, direction, doc):
+            try:
+                argInfo[ argName ]['doc'] = doc
+                #print argName, direction, doc
+                if direction == '[in]':
+                    inArgs.append(argName)
+                elif direction == '[out]':
+                    outArgs.append(argName)
+            except KeyError:
+                print 'skipping', argName
         comment = comment.lstrip().rstrip()
-        print "comment", comment
+        comment = comment.replace( '&amp;', '' ) # does not affect how we pass
+        if self.currentMethod is not None:
+            start = self.data.index( '(' )
+            end = self.data.index( ')' )
+            returnVal = ' '.join( self.data[:start] ).split()[0]
+            if returnVal == 'MStatus':
+                returnVal = None
+
+            tempargs = ' '.join( self.data[start+1:end] )
+            #print tempargs
+            argList = []
+            argInfo = {}
+            
+            for argGrp in tempargs.split(','):
+                argGrp = [ y for y in argGrp.split() if y != 'const']
+                
+                if len(argGrp):
+                    #print argGrp
+                    keyword = argGrp[1]
+                    type = argGrp[0]
+                    
+                    x = keyword.split('=')
+                    keyword = x[0]
+                    if type != 'MStatus':
+                        
+                        # convert type, keyword[3]  to type3, keyword 
+                        buf = re.split( r'\[|\]', keyword)
+                        if len(buf) > 1:
+                            keyword = buf[0]
+                            type = type + buf[1]
+                        
+                        # move pointer(asterik) from keyword to type
+                        if keyword.startswith( '*' ):
+                            keyword = keyword[1:]
+                            type = '*' + type
+                        
+                        argInfo[ keyword ] = {'type' : type}
+                        if len(x) > 1:
+                            argInfo[ keyword ]['default'] = x[1]
+                          
+                        argList.append( keyword  )
+            inArgs = []
+            outArgs = []
+            #print self.parameters
+            direction = None
+            argName = None
+            doc = ''
+            for param in self.parameters:
+                
+                if param.startswith('['):
+                    if direction and argName and doc:
+                        addArgInfo( argInfo, argName, direction, doc )
+                    
+                    argName = None
+                    doc = ''
+                    direction = param
+                
+                elif argName is None:
+                    argName = param
+                
+                else:
+                    doc += param
+            addArgInfo( argInfo, argName, direction, doc )
+                   
+            #print argList, argInfo
+            methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs } 
+            self.methods[self.currentMethod].append(methodInfo)
+            
+            self.mode = None
+            self.data = []
+            self.parameters = []
+            self.returnVal = []
+            
+        try:     
+            clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
+        except AttributeError: pass
+        else:
+            if methodname == self.functionSet:
+                return
+            print "METHOD", methodname
+            self.currentMethod = methodname
+            
+
+            
         
 #-----------------------------------------------
 #  Command Help Documentation
@@ -1590,10 +1702,12 @@ class metaNode(type) :
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 
-# PyNode types names (as str)
 class PyNodeNamesToPyNodes(util.Singleton, dict):
-    """ Lookup from PyNode type name to PyNode type """
+    """ Lookup from PyNode type name as a string to PyNode type as a class"""
 
+class PyNodesToMayaTypes(util.Singleton, dict):
+    """Lookup from PyNode class to maya type"""
+    
 class PyNodeTypesHierarchy(util.Singleton, dict):
     """child:parent lookup of the pymel classes that derive from DependNode"""
  
@@ -1629,6 +1743,7 @@ def addPyNode( module, mayaType, parentMayaType ):
             setattr( module, pyNodeTypeName, PyNodeType )
             
     PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
+    PyNodesToMayaTypes()[PyNodeType] = mayaType
     PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
 
     module.api.addMayaType( mayaType )
@@ -1639,6 +1754,7 @@ def removePyNode( module, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     PyNodeType = PyNodeNamesToPyNodes().pop( pyNodeTypeName, None )
     PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
+    PyNodesToMayaTypes().pop(PyNodeType,None)
     module.__dict__.pop(pyNodeTypeName,None)
     module.api.removeMayaType( mayaType )
 
