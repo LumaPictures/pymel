@@ -1348,21 +1348,21 @@ def _getPymelType(arg, comp=None) :
         
         start = cmds.timerX()
         for i in range(100):
-            for objName in cmds.ls(): x = api.toAPIObject(objName) 
+            for objName in cmds.ls(): x = api.toApiObject(objName) 
         print "%.03f for converting to MObject" % cmds.timerX(startTime=start)
         
         start = cmds.timerX()
         for i in range(100):
-            for objName in cmds.ls(): x = api.MFnDependencyNode( api.toAPIObject(objName) )
+            for objName in cmds.ls(): x = api.MFnDependencyNode( api.toApiObject(objName) )
         print "%.03f for converting to MObject and getting MFn" % cmds.timerX(startTime=start)
         
         start = cmds.timerX()
         for i in range(100):
-            for objName in cmds.ls(): typ =api.MFnDependencyNode( api.toAPIObject(objName) ).typeName() 
+            for objName in cmds.ls(): typ =api.MFnDependencyNode( api.toApiObject(objName) ).typeName() 
         print "%.03f for converting to MObject and getting nodeType" % cmds.timerX(startTime=start)
         
         apiObjs = []
-        for objName in cmds.ls(): apiObjs.append( api.toAPIObject(objName) ) 
+        for objName in cmds.ls(): apiObjs.append( api.toApiObject(objName) ) 
         start = cmds.timerX()
         for i in range(100):
             for objName in apiObjs: typ =api.MFnDependencyNode( objName ).typeName() 
@@ -1374,41 +1374,54 @@ def _getPymelType(arg, comp=None) :
         3.960 for converting to MObject and getting nodeType
         0.390 for getting nodeType directly from MObject
         """
-        obj = api.toAPIObject(objName)
+        arg = api.toApiObject(objName)
         passedType = 'string'
+
                               
     # TODO : handle comp as a MComponent or list of components
     elif isinstance(arg, PyNode) :
         # grab the private variable to prevent the function triggering any additional calculations
-        obj = arg._object.object()     
+        arg = arg._object   
         name = arg._name
         passedType = 'PyNode'
-        
-    elif isinstance(arg, api.MObject) :
-        obj = arg
-        passedType = 'MObject'
-                   
-    elif isinstance(arg, api.MObjectHandle) :
-        obj = arg.object()
-        passedType = 'MObjectHandle'
-    
-    elif isinstance(arg, api.MDagPath) :
-        obj = arg.node()
-        passedType = 'MDagPath'
-    
-                         
-    if obj :
-        # the case of an existing node or plug
-        if api.isValidMPlug(obj):
-            pymelType = Attribute          
-        else :
-            obj = api.MObjectHandle( obj )
-            if not api.isValidMObjectHandle( obj ) :
-                raise ValueError, "Unable to determine Pymel type: the passed %s is not valid" % passedType
+     
+    #--------------------------   
+    # API object testing
+    #--------------------------   
+    if isinstance(arg, api.MObject) :     
+        obj = api.MObjectHandle( arg )
+        if api.isValidMObjectHandle( obj ) :          
             mayaType = api.MFnDependencyNode( obj.object() ).typeName()
             pymelType = mayaTypeToPyNode( mayaType, DependNode )
-            
-            
+        else:
+            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
+                      
+    elif isinstance(arg, api.MObjectHandle) :      
+        obj = arg
+        if api.isValidMObjectHandle( obj ) :          
+            mayaType = api.MFnDependencyNode( obj.object() ).typeName()
+            pymelType = mayaTypeToPyNode( mayaType, DependNode )
+        else:
+            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
+        
+    elif isinstance(arg, api.MDagPath) :
+        obj = arg
+        if api.isValidMDagPath( obj ):          
+            mayaType = api.MFnDependencyNode( obj.node() ).typeName()
+            pymelType = mayaTypeToPyNode( mayaType, DependNode )
+        else:
+            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
+                               
+    elif isinstance(arg, api.MPlug) : 
+        obj = arg
+        if api.isValidMPlug(obj):
+            pymelType = Attribute
+        else :
+            raise ValueError, "Unable to determine Pymel type: the passed MPlug is not valid" 
+
+    #---------------------------------
+    # No Api Object : Virtual PyNode 
+    #---------------------------------   
     elif objName :
         # non existing node
         pymelType = DependNode
@@ -1429,7 +1442,9 @@ class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
         and defer to the correct derived class """
     _name = None              # unicode
-    _object = None            # api.MObjectHandle()
+    _object = None            # for DependNode : api.MObjectHandle
+                              # for DagNode    : api.MDagPath
+                              # for Attribute  : api.MPlug
     
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed """
@@ -2296,7 +2311,7 @@ class DependNode( PyNode ):
             obj = self.object()
             if obj:
                 try:
-                    mfn = api.toApiFunctionSet( obj.apiTypeStr() )
+                    mfn = api.toApiFunctionSet( obj.apiType() )
                     self._mfn = mfn(obj)
                     return self._mfn
                 except KeyError:
@@ -2600,25 +2615,52 @@ class Entity(DependNode): pass
 class DagNode(Entity):
     
     def _updateName(self, long=False) :
-        if api.isValidMObjectHandle(self._object) :
-            obj = self._object.object()
-            dagFn = api.MFnDagNode(obj)
-            dagPath = api.MDagPath()
-            dagFn.getPath(dagPath)
-            self._name = dagPath.partialPathName()
+        #if api.isValidMObjectHandle(self._object) :
+            #obj = self._object.object()
+            #dagFn = api.MFnDagNode(obj)
+            #dagPath = api.MDagPath()
+            #dagFn.getPath(dagPath)
+        try:
+            name = self._object.partialPathName()
+            if name:
+                self._name = name
             if long :
-                return dagPath.fullPathName()
+                return self._object.fullPathName()
+        except AttributeError: pass
         return self._name                       
 
     def object(self) :
-        if api.isValidMObjectHandle(self._object) :
-            return self._object.object()
+        if api.isValidMDagPath(self._object) :
+            return self._object.node()
         
     def name(self, update=True, long=False) :
         if update or long or self._name is None:
             return self._updateName(long)
         else :
-            return self._name  
+            return self._name
+
+    def MFn(self):
+        if self._mfn:
+            return self._mfn
+        else:
+            obj = self._object
+            if api.isValidMDagPath(obj):
+                try:
+                    mfn = api.toApiFunctionSet( obj.apiType() )
+                    self._mfn = mfn(obj)
+                    return self._mfn
+                except KeyError:
+                    pass
+                        
+    def __init__(self, *args, **kwargs):
+        if self._object:
+            if isinstance(self._object, api.MObjectHandle):
+                dagPath = api.MDagPath()
+                api.MDagPath.getAPathTo( self._object.object(), dagPath )
+                self._object = dagPath
+        
+            assert api.isValidMDagPath( self._object )
+            
     """
     def __init__(self, *args, **kwargs) :
         if args :
