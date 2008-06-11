@@ -51,8 +51,10 @@ def isValidMPlug (obj):
         return False
 
 def isValidMDagPath (obj):
-    if isinstance(obj, MDagPath) :
-        return obj.isValid()
+    if isinstance(obj, MDagPath) : 
+        # when the underlying MObject is no longer valid, dag.isValid() will still return true,
+        # but obj.fullPathName() will be an empty string
+        return obj.isValid() and obj.fullPathName() 
     else :
         return False
 
@@ -693,7 +695,7 @@ def toApiFunctionSet( obj ):
             return ApiTypesToApiClasses().get( MayaTypesToApiTypes.get( obj, None ) ) 
     elif isinstance( obj, int ):
         try:
-            return apiTypesToApiClasses[ ApiEnumsToApiTypes()[ obj ] ]
+            return ApiTypesToApiClasses()[ ApiEnumsToApiTypes()[ obj ] ]
         except KeyError:
             return
 
@@ -793,26 +795,36 @@ def toMObject (nodeName):
         pass
     return result
 
-def toAPIObject (nodeName):
+def toApiObject (nodeName):
     """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name of an existing node, attribute, components selection """ 
     sel = MSelectionList()
     obj = MObject()
+    dag = MDagPath()
     result = None
-    try :
+    try :     
         sel.add( nodeName )
-        sel.getDependNode( 0, obj )
-        if isValidMObject(obj) :
+        try:
+            sel.getDagPath( 0, dag )
+            if not isValidMDagPath(dag) :
+                return
+            obj = dag.node()
+            result = dag
+        except RuntimeError:
+            sel.getDependNode( 0, obj )          
+            if not isValidMObject(obj) :
+                return     
             result = obj
-            # TODO : better parsing
-            if "." in nodeName :
-                # attribute or component
-                nameSplt = nodeName.split(".", 1)
-                try :
-                    depFn = MFnDependencyNode(obj)
-                    attr = depFn.attribute (nameSplt[-1])
-                    result = MPlug(obj, attr)
-                except :
-                    pass   
+        
+        # TODO : better parsing
+        if "." in nodeName :
+            # attribute or component
+            nameSplt = nodeName.split(".", 1)
+            try :
+                depFn = MFnDependencyNode(obj)
+                attr = depFn.attribute (nameSplt[-1])
+                result = MPlug(obj, attr)
+            except :
+                pass   
     except :
         pass
     return result
