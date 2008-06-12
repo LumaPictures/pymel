@@ -207,18 +207,19 @@ class metaReadOnlyAttr(type) :
         # create the new class   
         newcls = super(metaReadOnlyAttr, mcl).__new__(mcl, classname, bases, classdict)
         
-        def __setattr__(self, name, value):
-            """ overload __setattr__ to forbid overloading of read only class info on a class instance """
-            try :
-                readonly = newcls.__readonly__
-            except :
-                readonly = {}
-            if name in readonly :
-                raise AttributeError, "attribute '%s' is a read only class attribute of class %s and cannot be overloaded on an instance of class %s" % (name, self.__class__.__name__, self.__class__.__name__)
-            else :
-                super(newcls, self).__setattr__(name, value)
-                
-        type.__setattr__(newcls, '__setattr__', __setattr__)
+        # unneeded through the use of __slots__
+#        def __setattr__(self, name, value):
+#            """ overload __setattr__ to forbid overloading of read only class info on a class instance """
+#            try :
+#                readonly = newcls.__readonly__
+#            except :
+#                readonly = {}
+#            if name in readonly :
+#                raise AttributeError, "attribute '%s' is a read only class attribute of class %s and cannot be overloaded on an instance of class %s" % (name, self.__class__.__name__, self.__class__.__name__)
+#            else :
+#                super(newcls, self).__setattr__(name, value)
+#                
+#        type.__setattr__(newcls, '__setattr__', __setattr__)
         
         return newcls                     
 
