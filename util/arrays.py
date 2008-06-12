@@ -733,70 +733,54 @@ class Array(object):
             self.data = new.data
         else :
             raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
-                                
-    def append(self, value):
-        """ Append a sub Array at the end of Array first dimension, shape of sub Array must be compatible """
-        shape = self.shape
-        cls = self.__class__
-        value = _toCompOrArray(value)
-        valueshape, valuedim, valuesize = _shapeInfo(value)  
-        
-        if self.size :          
-            if valueshape == shape[1:] :
-                newshape = (shape[0]+1,) + valueshape
-        else :
-            newshape = (1,) + valueshape
-        if not cls._shapecheck(newshape) :
-            raise TypeError, "append a value of shape %s to %s instance of shape %s would make it incompatible with class fixed shape or dimensions" % (valueshape, cls.__name__, shape)
 
-        data = self.data
-        data.append(value)
-        self.data = data  
+    # multi axis append
+#    def appended(self, other, *args):
+#        pass
+#    
+#    def append(self, other, *args):
+#        pass
 
-    def concatenated(self, other, axis=0):
+    def stacked(self, other, axis=0):
         """ Concatenates Arrays on the given axis """
         axis = self._getaxis(axis)
-        assert len(axis) == 1, "only one axis can be specified to concatenate"
+        assert len(axis) == 1, "only one axis can be specified on which to concatenate"
         axis = axis[0]
-        shape = list(self.shape)
-        oshape = other.shape
-        siter = self.axisiter(axis)
-        oiter = other.axisiter(axis)
-        print "concat self"
-        print Array(self.axisiter(axis)).formated()
-        print "concat other"
-        print Array(other.axisiter(axis)).formated() 
-        shape[axis] += oshape[axis]
-        new = Array(list(siter)+list(oiter), shape=shape)
-        print "concat result"
-        print new.formated()
-        return new       
+        other = _toCompOrArrayInstance(other)
+        oshape, odim, osize = _shapeInfo(other)
+        nself = list(self.axisiter(axis))
+        if odim == self.ndim :
+            nother = list(other.axisiter(axis))
+        else :
+            nother = [other]
+        return Array(Array(nself+nother).axisiter(axis))   
 
-    def concatenate(self, other, axis=0):
+    def stack(self, other, axis=0):
         """ Concatenates Arrays on the given axis """
-        new = self.concatenated(other, axis)
+        new = self.stacked(other, axis)
         if type(new) is type(self) :
             self.data = new.data
         else :
             raise ValueError, "new concatenated shape %s is not compatible with class %s" % (shape, util.clsname(self))
                      
     def hstacked(self, other) :
-        return self.concatenated(other, 0)
+        return self.stacked(other, 0)
 
     def hstack(self, other) :
-        self.concatenate(other, 0)
+        self.stack(other, 0)
 
     def vstacked(self, other) :
-        return self.concatenated(other, -1)
+        return self.stacked(other, -1)
 
     def vstack(self, other) :
-        return self.concatenate(other, -1)
+        return self.stack(other, -1)
 
-    def repeated(self, repeat):
-        pass
-    
-    def repeat(self, repeat):
-        pass
+#    def repeated(self, repeat, axis):
+#    # alow repeat onn multiple axis ..
+#        pass
+#    
+#    def repeat(self, repeat, axis):
+#        pass
  
     def toshape(self, shape):
         """ a.toshape(shape)
@@ -1677,6 +1661,10 @@ class Matrix(Array):
     def is_square(self):
         return self.shape[0] == self.shape[1]
  
+    @classmethod
+    def identity(cls, n):
+        return cls([[float(i==j) for i in xrange(n)] for j in xrange(n)])
+ 
     # row and column size properties
     def _getnrow(self):
         return self.shape[0]
@@ -1887,7 +1875,10 @@ class Matrix(Array):
         
 
     def inverse(self): 
-        pass
+        n = self.nrow
+        id = Matrix.identity(n)
+        m = self.hstacked(id).reduce()
+        return self.__class__(m[:, n:])
             
             
     def adjoint(self):
@@ -2096,17 +2087,28 @@ def _testArray() :
        
     # append (hstack, vstack)
     A = Array([])
-    A.append(1)
-    A.append(2)
+    A.stack(1)
+    A.stack(2)
     B = Array([A])
-    B.append([3, 4])
+    B.stack([3, 4])
     
     A = Array(range(1, 7), shape=(2, 3))
     print A.formated()
-    A.concatenate(A, 0)
+    B = Array(range(1, 5), shape=(2, 2))
+    print B.formated()
+    A.stack(B, 1)
     print A.formated()
-    A.concatenate(A, -1)
+    A.stack(range(1,6), 0)
     print A.formated()
+    A = Array(range(1, 9), shape=(2, 2, 2))
+    print A.formated()
+    A.stack([9, 9], 1)
+    print A.formated()
+    B = Array(0, shape=(2, 3, 1))
+    print B.formated()
+    A.stack(B, 2)
+    print A.formated()
+    A.stack([[1, 0], [0, 1]], 0)
         
     
     # fills and init with shape    
