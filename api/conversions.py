@@ -818,13 +818,13 @@ def toApiObject (nodeName):
         # TODO : better parsing
         if "." in nodeName :
             # attribute or component
-            nameSplt = nodeName.split(".", 1)
+            nameSplt = nodeName.split(".")
             try :
                 depFn = MFnDependencyNode(obj)
                 attr = depFn.attribute (nameSplt[-1])
                 result = MPlug(obj, attr)
-            except :
-                pass   
+            except:
+                pass
     except :
         pass
     return result
