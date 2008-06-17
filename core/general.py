@@ -1318,7 +1318,7 @@ Maya Bug Fix:
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
 
-def _getPymelType(arg, comp=None) :
+def _getPymelType(arg, attr=None, comp=None) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default.
         
@@ -1326,14 +1326,48 @@ def _getPymelType(arg, comp=None) :
         If a valid MObject is passed, the name will be returned as None
         If a PyNode instance is passed, its name and MObject will be returned
         """
-        
+    def getPymelTypeFromObject(obj, attr):
+        fnDepend = api.MFnDependencyNode( obj )        
+        mayaType = fnDepend.typeName()
+        pymelType = mayaTypeToPyNode( mayaType, DependNode )
+        plug = None
+        if attr:
+            if isinstance(attr,basestring) :
+                #attrObj = fnDepend.attribute(attr)
+                plug = fnDepend.findPlug( attr, False )
+            elif isinstance(attr, api.MObject):
+                attrHandle = api.MObjectHandle(attr)
+                if api.isValidMObjectHandle( attrHandle ) and attr.hasFn( api.MFnAttribute ):
+                    #attrObj = api.MObjectHandle(attr)
+                    plug = fnDepend.findPlug( attr, False )
+                else:
+                    raise ValueError, "Not a valid MObject attribute"
+            elif isinstance(attr, api.MObjectHandle):
+                if api.isValidMObjectHandle( attr ) and attr.object().hasFn( api.MFnAttribute ):
+                    #attrObj = attr
+                    plug = fnDepend.findPlug( attr.object(), False )
+                else:
+                    raise ValueError, "Not a valid MObjectHandle attribute"
+            elif isinstance( attr, api.MPlug ):
+                assert attr.node() == obj, "Node and MPlug do not match"
+                plug = attr
+        return pymelType, plug
+            
     obj = None
     objName = None
     
     passedType = ''
     
     if isinstance(arg,basestring) :
-        objName = arg
+        # Attribute passed as a string: 'node.attr'
+        if '.' in arg:
+            buf = arg.split('.')
+            objName = buf[0]
+            attr = buf[-1]
+        # Node passed as a single arg
+        else:                
+            objName = arg
+            
         # TODO : should we delay this until the PyNode class requires an MObject? 
         # api.MFnDependencyNode( api.toAPIOjbect(objName) ).typeName() is 25% slower than cmds.nodeType(objName).
         # however, api.MFnDependencyNode( obj ).typeName() is 10x faster than cmds.nodeType(objName),
@@ -1383,32 +1417,28 @@ def _getPymelType(arg, comp=None) :
         # grab the private variable to prevent the function triggering any additional calculations
         arg = arg._object   
         name = arg._name
-        passedType = 'PyNode'
      
     #--------------------------   
     # API object testing
     #--------------------------   
     if isinstance(arg, api.MObject) :     
         obj = api.MObjectHandle( arg )
-        if api.isValidMObjectHandle( obj ) :          
-            mayaType = api.MFnDependencyNode( obj.object() ).typeName()
-            pymelType = mayaTypeToPyNode( mayaType, DependNode )
+        if api.isValidMObjectHandle( obj ) :
+            pymelType, attr = getPymelTypeFromObject( obj.object(), attr )        
         else:
             raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
                       
     elif isinstance(arg, api.MObjectHandle) :      
         obj = arg
         if api.isValidMObjectHandle( obj ) :          
-            mayaType = api.MFnDependencyNode( obj.object() ).typeName()
-            pymelType = mayaTypeToPyNode( mayaType, DependNode )
+            pymelType, attr = getPymelTypeFromObject( obj.object(), attr )    
         else:
             raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
         
     elif isinstance(arg, api.MDagPath) :
         obj = arg
-        if api.isValidMDagPath( obj ):          
-            mayaType = api.MFnDependencyNode( obj.node() ).typeName()
-            pymelType = mayaTypeToPyNode( mayaType, DependNode )
+        if api.isValidMDagPath( obj ):
+            pymelType, attr = getPymelTypeFromObject( obj.node(), attr )    
         else:
             raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
                                
@@ -1416,6 +1446,7 @@ def _getPymelType(arg, comp=None) :
         obj = arg
         if api.isValidMPlug(obj):
             pymelType = Attribute
+            attr = api.MObjectHandle( obj.attribute() )
         else :
             raise ValueError, "Unable to determine Pymel type: the passed MPlug is not valid" 
 
@@ -1431,7 +1462,7 @@ def _getPymelType(arg, comp=None) :
     else :
         raise ValueError, "Unable to determine Pymel type for %r" % arg         
     
-    return pymelType, obj, objName
+    return pymelType, obj, objName, attr
 
 #--------------------------
 # Object Wrapper Classes
@@ -1442,32 +1473,48 @@ class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
         and defer to the correct derived class """
     _name = None              # unicode
+    
     _object = None            # for DependNode : api.MObjectHandle
                               # for DagNode    : api.MDagPath
                               # for Attribute  : api.MPlug
-    
+                              
+    _node = None              # Attribute Only: stores the PyNode
+    _mfn = None
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed """
         
         #print cls.__name__, cls
         
         if args :
-            obj = args[0]
-            comp = None
+            # Attribute passed as two args: ( node, attr )
+            # valid types:
+            #    node : string, MObject, MObjectHandle, MDagPath
+            #    attr : string, MObject, MObjectHandle
+            # One very important reason for allowing an attribute to be specified as two args instead of as an MPlug
+            # is that the node can be represented as an MDagPath which will differentiate between instances, whereas
+            # an MPlug loses this distinction.
             if len(args)>1 :
-                comp = args[1]
-                
-            pymelType, obj, name = _getPymelType(obj, comp)
-            assert obj or objName
+                argObj = args[0]
+                attr = args[1]
+            else:
+                argObj = args[0]
+                attr = None
+                 
+            pymelType, obj, name, attr = _getPymelType(argObj, attr)
+            #print pymelType, obj, name, attr
+            assert obj or name
+            
         else :
-            raise TypeError, 'PyNode expects at least one argument: an object name or an MObject'
+            raise TypeError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
         
         # print "type:", pymelType
         # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
         # if an explicit class was given (ie: pyObj=DagNode('pCube1')) just check if actual type is compatible
         # if none was given (ie generic pyObj=PyNode('pCube1')) then use the class corresponding to the type we found
         newcls = None
-        if cls is not PyNode :
+        if attr :
+            newcls = Attribute
+        elif cls is not PyNode :
             # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
             # TODO : can add object creation option in the __iit__ if desired
@@ -1479,7 +1526,11 @@ class PyNode(ProxyUnicode):
         if newcls :  
             self = super(PyNode, cls).__new__(newcls)
             self._name = name
-            self._object = obj
+            if attr:
+                self._node = pymelType(obj)
+                self._object = attr
+            else:
+                self._object = obj
             return self
         else :
             raise TypeError, "Cannot make a %s PyNode out of a %r object" % (cls.__name__, pymelType)   
@@ -1530,10 +1581,10 @@ class PyNode(ProxyUnicode):
         return self.__class__( name )
                 
                         
-    def attr(self, attr):
-        """access to attribute of a node. returns an instance of the Attribute class for the 
-        given attribute."""
-        return Attribute( '%s.%s' % (self, attr) )
+#    def attr(self, attr):
+#        """access to attribute of a node. returns an instance of the Attribute class for the 
+#        given attribute."""
+#        return Attribute( '%s.%s' % (self, attr) )
                 
     objExists = cmds.objExists
         
@@ -1741,17 +1792,32 @@ class Attribute(PyNode):
     
     #def __repr__(self):
     #    return "Attribute('%s')" % self
-            
-    def __init__(self, attrName):
-        if '.' not in attrName:
-            raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
-        self._name = attrName
-        # TODO : MObject support
-        self.__dict__['_multiattrIndex'] = 0
+    
+    def object(self) :
+        #if api.isValidMObjectHandle(self._object.attribute() ) :
+        #    return self._object.object()
+        return self._object.attribute()
+    
+    def MFn(self):
+        if self._mfn:
+            return self._mfn
+        else:
+            obj = self.object()
+            if obj:
+                self._mfn = api.MFnAttribute( obj )
+                return self._mfn
+                           
+#    def __init__(self, attrName):
+#        if '.' not in attrName:
+#            raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
+#        self._name = attrName
+#        # TODO : MObject support
+#        self.__dict__['_multiattrIndex'] = 0
         
     def __getitem__(self, item):
-       return Attribute('%s[%s]' % (self, item) )
-
+       #return Attribute('%s[%s]' % (self, item) )
+       return Attribute( self._node, self._object.elementByLogicalIndex(item) )
+   
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
@@ -1814,11 +1880,12 @@ class Attribute(PyNode):
             'lambert1.groupNode'
         """
         try:
-            att = Attribute(Attribute.attrItemReg.split( self )[0])
-            if att.isMulti() :
-                return att
-            else :
-                raise TypeError, "%s is not a multi attribute" % self
+            return Attribute( self._node, self._object.array() )
+            #att = Attribute(Attribute.attrItemReg.split( self )[0])
+            #if att.isMulti() :
+            #    return att
+            #else :
+            #    raise TypeError, "%s is not a multi attribute" % self
         except:
             raise TypeError, "%s is not a multi attribute" % self
 
@@ -1831,12 +1898,14 @@ class Attribute(PyNode):
         return cmds.listAttr(self.array(), multi=True)
         
     def isElement(self):
-        """ Is the attribute an element of a multi attribute """
-        return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
-
+        """ Is the attribute an element of a multi(array) attribute """
+        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
+        return self._object.isElement()
+    
     def plugNode(self):
         'plugNode'
-        return PyNode( str(self).split('.')[0])
+        #return PyNode( str(self).split('.')[0])
+        return self._node
                 
     def plugAttr(self):
         """plugAttr
@@ -2285,7 +2354,6 @@ class DependNode( PyNode ):
 #            ntype = uncapitalize(cls.__name__)
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
-    _mfn = None
 
     def _updateName(self) :
         if api.isValidMObjectHandle(self._object) :
@@ -2357,7 +2425,7 @@ class DependNode( PyNode ):
         try :
             return super(PyNode, self).__getattr__(attr)
         except AttributeError :
-            return Attribute( '%s.%s' % (self, attr) )
+            return self.attr(attr)
         
         #if attr.startswith('__') and attr.endswith('__'):
         #    return super(PyNode, self).__getattr__(attr)
@@ -2372,7 +2440,12 @@ class DependNode( PyNode ):
         except AttributeError :
             return setAttr( '%s.%s' % (self, attr), val ) 
 
-
+    def attr(self, attr):
+        """access to attribute of a node. returns an instance of the Attribute class for the 
+        given attribute."""
+        #return Attribute( '%s.%s' % (self, attr) )
+        return Attribute( self._object, self.MFn().findPlug( attr, False ) )
+    
         # if attr.startswith('__') and attr.endswith('__'):
         #     return super(PyNode, self).__setattr__(attr, val)        
         # return setAttr( '%s.%s' % (self, attr), val )
@@ -4400,6 +4473,107 @@ def iterConnections ( *args, **kwargs ):
 
 def iterHierarchy ( *args, **kwargs ):
     pass
+
+
+def getValidApiMethods( apiClassName, verbose=False ):
+
+    validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
+
+    parser = _factories.ApiDocParser( apiClassName )
+    try:
+        methods = parser.parse()
+    except ValueError, IndexError:
+        print "FAILED"
+        methods = {}
+    except IOError:
+        print "No Help Found"
+        methods = {}
+    validMethods = []
+    for method, methodInfoList in methods.items():
+        for methodInfo in methodInfoList:
+            #print method, methodInfoList
+            if not methodInfo['outArgs']:
+                returnVal = methodInfo['returnVal']
+                if returnVal in validTypes:
+                    count = 0
+                    types = []
+                    for x in methodInfo['inArgs']:
+                        type = methodInfo['argInfo'][x]['type']
+                        #print x, type
+                        types.append( type )
+                        if type in validTypes:
+                            count+=1
+                    if count == len( methodInfo['inArgs'] ):
+                        if verbose:
+                            print '    %s %s(%s)' % ( returnVal, method, ','.join( types ) )
+                        validMethods.append(method)
+    return validMethods
+
+def analyzeApiClasses():
+    import inspect
+    for elem in api.apiClassHierarchy.preorder():
+        try:
+            parent = elem.parent.key
+        except:
+            parent = None
+        analyzeApiClass( elem.key, None )
+        
+def analyzeApiClass( apiTypeStr, apiTypeParentStr=None ):
+    try:
+        mayaType = api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
+        if util.isIterable(mayaType) and len(mayaType) == 1:
+            mayaType = mayaType[0]
+            pymelType = _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
+        else:
+            pymelType = None
+    except KeyError:
+        mayaType = None
+        pymelType = None
+        #print "no Fn", elem.key, pymelType
+
+    try:
+        apiClass = api.ApiTypesToApiClasses()[ apiTypeStr ]
+    except KeyError:
+        pass
+        #print "no Fn", elem.key
+    else:
+        if apiTypeParentStr:
+            try:
+                parentApiClass = api.ApiTypesToApiClasses()[elem.parent.key ]
+                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
+            except KeyError:
+                parentMembers = []
+        else:
+            parentMembers = []
+        
+        if pymelType is None: pymelType = _factories.PyNodeNamesToPyNodes().get( apiClass.__name__[3:] , None )
+        
+        if pymelType:
+            parentPymelType = _factories.PyNodeTypesHierarchy()[ pymelType ]
+            parentMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
+            pymembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentMembers ])
+            print apiClass.__name__, mayaType, pymelType
+            #members = [ x[0] for x in inspect.getmembers( apiClass, callable ) if x[0] not in parentMembers ]
+            members = getValidApiMethods(apiClass.__name__)
+            # convert from api convention to pymel convention
+            origGetMethods = {}
+            for i, x in enumerate(members):
+                if len(x) > 4 and x.startswith('set') and x[3].isupper():
+                    origGetMethod = x[3].lower() + x[4:]
+                    if origGetMethod in members:
+                        idx = members.index( origGetMethod )
+                        newGetMethod = 'get' + x[3:]
+                        members[idx] = newGetMethod
+                        origGetMethods[ newGetMethod ] = origGetMethod
+            
+            members = set(members)
+            
+            print "    [shared]"
+            for x in sorted( members.intersection( pymembers ) ): print '    ', x
+            print "    [api]"
+            for x in sorted( members.difference( pymembers ) ): print '    ', x, origGetMethods.get( x, '' )
+            print "    [pymel]"
+            for x in sorted( pymembers.difference( members ) ): print '    ', x
 
 
 _factories.createFunctions( __name__, PyNode )
