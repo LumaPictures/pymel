@@ -648,11 +648,11 @@ class ApiDocParser(HTMLParser):
         f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
         self.feed( f.read() )
         f.close()
-        for method, methodInfo in self.methods.items():
-            print method
-            for methodOption in methodInfo:
-                print methodOption['argInfo']
-        return
+        #for method, methodInfo in self.methods.items():
+        #    print method
+        #    for methodOption in methodInfo:
+        #        print methodOption
+        return self.methods
               
     def __init__(self, functionSet, version='2009' ):
         self.cmdList = []
@@ -692,13 +692,23 @@ class ApiDocParser(HTMLParser):
                 elif direction == '[out]':
                     outArgs.append(argName)
             except KeyError:
-                print 'skipping', argName
+                pass
+                #print 'skipping', argName
         comment = comment.lstrip().rstrip()
         comment = comment.replace( '&amp;', '' ) # does not affect how we pass
         if self.currentMethod is not None:
             start = self.data.index( '(' )
             end = self.data.index( ')' )
-            returnVal = ' '.join( self.data[:start] ).split()[0]
+            buf = ' '.join( self.data[:start] ).split()[:-1] # last element is the method name
+            returnVal = None
+            if len(buf)>1:
+                # unsigned int
+                if buf[0] == 'unsigned':
+                    returnVal = buf[1]
+                else:
+                    print "could not determine %s return value: got list: %s" % ( self.currentMethod, buf)
+            else:
+                returnVal = buf[0]
             if returnVal == 'MStatus':
                 returnVal = None
 
@@ -773,7 +783,7 @@ class ApiDocParser(HTMLParser):
         else:
             if methodname == self.functionSet:
                 return
-            print "METHOD", methodname
+            #print "METHOD", methodname
             self.currentMethod = methodname
             
 
