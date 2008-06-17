@@ -248,7 +248,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None ):
             #print method
             #@functools.wraps(f)
             def wrapper(self, *args, **kwargs):
-                return method( cls( getattr(self, dataAttrName)() ), *args, **kwargs )
+                return method( cls( getattr(self, dataFuncName)() ), *args, **kwargs )
 
             wrapper.__doc__ = method.__doc__
             wrapper.__name__ = method.__name__
