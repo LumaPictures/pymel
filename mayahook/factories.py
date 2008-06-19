@@ -799,7 +799,8 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
         kwargs = [ '%s=%s' % (key, val.__repr__()) for key, val in kwargs.items() ]                   
         return '%s( %s )' % ( cmd, ', '.join( args+kwargs ) )
     
-    def _resultType( result ):
+    def _objectToType( result ):
+        "convert a an instance or list of instances to a python type or list of types"
         if isinstance(result, list):
             return [ type(x) for x in result ]
         else:
@@ -830,6 +831,7 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
         print "could not find function %s in modules %s" % (funcName, module.__name__)
         return cmdInfo
     
+    # get the current list of objects in the scene so we can cleanup later, after we make nodes
     allObjsBegin = set( cmds.ls(l=1) )  
     try:
         
@@ -899,9 +901,12 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                 try:
                     val = func( *args, **kwargs )
                     #print val
-                    resultType = _resultType(val)
+                    resultType = _objectToType(val)
                     
+                    # ensure symmetry between edit and query commands:
+                    # if this flag is queryable and editable, then its return value should be symmetric to its edit arguments
                     if 'edit' in modes and argtype != resultType:
+                        # there are certain patterns of asymmetry which we can safely correct:
                         # [bool] --> bool
                         if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
                             flagInfo['resultNeedsUnpacking'] = True
@@ -924,6 +929,7 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val)
                         else:
+                            # no valid corrctions found
                             print cmd
                             print "\treturn mismatch"
                             print '\tresult:', val.__repr__()
@@ -937,7 +943,8 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                         print '\tresult:', val.__repr__()
                         print '\result type:    ', resultType
                         
-                except TypeError, msg:                            
+                except TypeError, msg:
+                    # flag is no longer supported                         
                     if str(msg).startswith( 'Invalid flag' ):
                         #if verbose:
                         print "removing flag", funcName, flag, msg
@@ -955,14 +962,19 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                     print "\t", str(msg).rstrip('\n') 
                     val = None
                 else:
+                     # some flags are only in mel help and not in maya docs, so we don't know their
+                     # supported per-flag modes.  we fill that in here
                      flagInfo['modes'].append('query')
             # EDIT
             if 'edit' in modes or testModes == True:
                 
                 #print "Args:", argtype
-                try:    
+                try:
+                    # we use the value returned from query above as defaults for putting back in as edit args
+                    # but if the return was empty we need to produce something to test on.  
+                    # NOTE: this is just a guess
                     if val is None:
-
+                        
                         if isinstance(argtype, list):
                             val = []
                             for typ in argtype:
@@ -995,6 +1007,7 @@ def testNodeCmd( funcName, cmdInfo, verbose ):
                 except TypeError, msg:                                                        
                     if str(msg).startswith( 'Invalid flag' ):
                         #if verbose:
+                        # flag is no longer supported  
                         print "removing flag", funcName, flag, msg
                         shortname = flagInfo['shortname']
                         flagInfo.pop(flag,None)
