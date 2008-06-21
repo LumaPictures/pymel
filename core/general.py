@@ -4551,30 +4551,41 @@ def analyzeApiClass( apiTypeStr, apiTypeParentStr=None ):
         
         if pymelType:
             parentPymelType = _factories.PyNodeTypesHierarchy()[ pymelType ]
-            parentMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
-            pymembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentMembers ])
+            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
+            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers ])
             print apiClass.__name__, mayaType, pymelType
-            #members = [ x[0] for x in inspect.getmembers( apiClass, callable ) if x[0] not in parentMembers ]
-            members = getValidApiMethods(apiClass.__name__)
+            allFnMembers = [ x[0] for x in inspect.getmembers( apiClass, callable ) if x[0] not in parentMembers ]
+            validFnMembers = getValidApiMethods(apiClass.__name__)
             # convert from api convention to pymel convention
             origGetMethods = {}
-            for i, x in enumerate(members):
-                if len(x) > 4 and x.startswith('set') and x[3].isupper():
-                    origGetMethod = x[3].lower() + x[4:]
-                    if origGetMethod in members:
-                        idx = members.index( origGetMethod )
-                        newGetMethod = 'get' + x[3:]
-                        members[idx] = newGetMethod
+            for i, member in enumerate(allFnMembers):
+                if len(member) > 4 and member.startswith('set') and member[3].isupper():
+                    # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+                    # 'setSomething'  -->  'something'
+                    origGetMethod = member[3].lower() + member[4:]
+                    if origGetMethod in allFnMembers:
+                        newGetMethod = 'get' + member[3:]
+                        try:
+                            idx = validFnMembers.index( origGetMethod ) 
+                            validFnMembers[idx] = newGetMethod
+                        except: pass
+                        
+                        idx = allFnMembers.index( origGetMethod ) 
+                        allFnMembers[idx] = newGetMethod
+                        
                         origGetMethods[ newGetMethod ] = origGetMethod
             
-            members = set(members)
+            validFnMembers = set(validFnMembers)
+            invalidFnMembers = set(allFnMembers).difference(validFnMembers)
             
             print "    [shared]"
-            for x in sorted( members.intersection( pymembers ) ): print '    ', x
+            for x in sorted( validFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
+            print "    [potential shared]"
+            for x in sorted( invalidFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )          
             print "    [api]"
-            for x in sorted( members.difference( pymembers ) ): print '    ', x, origGetMethods.get( x, '' )
+            for x in sorted( validFnMembers.difference( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
             print "    [pymel]"
-            for x in sorted( pymembers.difference( members ) ): print '    ', x
+            for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
 
 
 _factories.createFunctions( __name__, PyNode )
