@@ -6,7 +6,6 @@ import pymel
 import pymel.util as util
 import pymel.mayahook.factories as factories
 import pymel.core.pmtypes.path as path
-import melparseSimple
 
 tokens = mellex.tokens
 def p_translation_unit(t):

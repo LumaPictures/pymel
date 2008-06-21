@@ -212,6 +212,7 @@ import pymel.util as util
 import pymel.mayahook as mayahook
 import pymel.mayahook.factories as _factories
 import pymel
+import os
 
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a
@@ -234,16 +235,15 @@ equivalents. in the case of 'firstElem', it will perform conversions like the fo
 
 
 custom_proc_remap = { 
-		'firstElem' 			: lambda args, t: '%s[0]' 				% (args[0]),
-		'firstFloatElem' 		: lambda args, t: '%s[0]' 				% (args[0]),
-		'firstElem' 			: lambda args, t: '%s[0]' 				% (args[0]),
-		'stringArrayAppend'		: lambda args, t: '%s + %s' 			% (args[0], args[1]),
-		'stringInArray'			: lambda args, t: '%s in %s' 			% (args[0], args[1]),
-		'stringInStringArray'	: lambda args, t: '%s in %s' 			% (args[0], args[1]),
-		'stringArrayPrefix'		: lambda args, t: '[ %s + x for x in %s ]' 	% (args[0], args[1]),
-		'stringArraySuffix'		: lambda args, t: '[ x + %s for x in %s ]' 	% (args[0], args[1]),
-		'addPad' 				: lambda args, t: "'%0" +  args[1] + "d' % " + args[0],
-		'getRefFileFromObject'	: lambda args, t: '%s.referenceFile()'	% (args[0])
+		'firstElem' 			: ( 'string', lambda args, t: '%s[0]' 				% (args[0]) ),
+		'firstFloatElem' 		: ( 'float', lambda args, t: '%s[0]' 				% (args[0]) ),
+		'stringArrayAppend'		: ( 'string[]', lambda args, t: '%s + %s' 			% (args[0], args[1]) ),
+		'stringInArray'			: ( 'int', lambda args, t: '%s in %s' 			% (args[0], args[1]) ),
+		'stringInStringArray'	: ( 'int', lambda args, t: '%s in %s' 			% (args[0], args[1]) ),
+		'stringArrayPrefix'		: ( 'string[]', lambda args, t: '[ %s + x for x in %s ]' 	% (args[0], args[1]) ),
+		'stringArraySuffix'		: ( 'string[]', lambda args, t: '[ x + %s for x in %s ]' 	% (args[0], args[1]) ),
+		'addPad' 				: ( 'string', lambda args, t: "'%0" +  args[1] + "d' % " + args[0] ),
+		'getRefFileFromObject'	: ( 'string', lambda args, t: '%s.referenceFile()'	% (args[0]) )
 		}
 		
 # do not change the following line !!!
@@ -274,61 +274,61 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', verbosity=0 ):
 	print mparser.lexer.global_procs
 	return results
 
-def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
-	"""
-	Convert a mel script into a python script. 
-	
-		>>> import pymel.mel2py
-		>>> pymel.mel2py.mel2py( 'scriptEditor.mel', '~/Documents' )
-		
-	if no output directory is specified, the python script will be written to the same directory as the input mel file. 
-	
-	if only the name of the mel file is	passed, mel2py will attempt to determine the location of the file using the 'whatIs' mel command,
-	which relies on the script already being sourced by maya.
-	"""
+#def mel2py( melfile, outputDir=None, pymelNamespace='', verbosity=0 ):
+#	"""
+#	Convert a mel script into a python script. 
+#	
+#		>>> import pymel.mel2py
+#		>>> pymel.mel2py.mel2py( 'scriptEditor.mel', '~/Documents' )
+#		
+#	if no output directory is specified, the python script will be written to the same directory as the input mel file. 
+#	
+#	if only the name of the mel file is	passed, mel2py will attempt to determine the location of the file using the 'whatIs' mel command,
+#	which relies on the script already being sourced by maya.
+#	"""
+#
+#	
+#	melfile = path.path( melfile )
+#	if not melfile.exists():
+#		try:
+#			import pymel
+#			melfile = path.path( pymel.mel.whatIs( melfile ).split(': ')[-1] )
+#		except:
+#			pass
+#	
+#	if outputDir is None:
+#		outputDir = melfile.parent
+#	
+#	#if not fileInlist(outputDir, sys.path):
+#	#	print "Adding outputDir to sys.path: %s." % outputDir
+#	#	sys.path.append( outputDir )
+#		
+#	global currentFiles
+#	
+#	if not currentFiles:
+#		currentFiles = [str(melfile)]
+#		
+#		
+#	data = melfile.bytes()
+#	print "Converting mel script", melfile
+#	converted = mel2pyStr( data, melfile.namebase, pymelNamespace=pymelNamespace, verbosity=verbosity )
+#	header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
+#	
+#	converted = header + converted
+#	
+#
+#
+#	pyfile = path.path(outputDir + os.sep + getModuleBasename(melfile) + '.py')	
+#	print "Writing converted python script: %s" % pyfile
+#	pyfile.write_bytes(converted)
+#	
 
-	
-	melfile = path.path( melfile )
-	if not melfile.exists():
-		try:
-			import pymel
-			melfile = path.path( pymel.mel.whatIs( melfile ).split(': ')[-1] )
-		except:
-			pass
-	
-	if outputDir is None:
-		outputDir = melfile.parent
-	
-	#if not fileInlist(outputDir, sys.path):
-	#	print "Adding outputDir to sys.path: %s." % outputDir
-	#	sys.path.append( outputDir )
-		
-	global currentFiles
-	
-	if not currentFiles:
-		currentFiles = [str(melfile)]
-		
-		
-	data = melfile.bytes()
-	print "Converting mel script", melfile
-	converted = mel2pyStr( data, melfile.namebase, pymelNamespace=pymelNamespace, verbosity=verbosity )
-	header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
-	
-	converted = header + converted
-	
 
 
-	pyfile = path.path(outputDir + os.sep + getModuleBasename(melfile) + '.py')	
-	print "Writing converted python script: %s" % pyfile
-	pyfile.write_bytes(converted)
-	
-
-
-
-def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , test=False):
+def mel2py( input, outputDir=None, pymelNamespace='', verbosity=0 , test=False):
 	"""batch convert an entire directory
 	
-	processDir
+	input
 		May be a directory, a list of directories, the name of a mel file, or a list of mel files.
 		If only the name of the mel file is	passed, mel2py will attempt to determine the location 
 		of the file using the 'whatIs' mel command,
@@ -356,16 +356,17 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 				return melfile.realpath()
 			except:
 				pass
+		print "could not determine mel file from input '%s'" % filepath
 		
 	global batchData
 	batchData = BatchData()
 	
-	if util.isIterable( processDir ):
-		for filepath in processDir:
+	if util.isIterable( input ):
+		for filepath in input:
 			batchData.currentFiles += resolvePath(filepath)
 			
 	else:
-		batchData.currentFiles = resolvePath(processDir)
+		batchData.currentFiles = resolvePath(input)
 
 	for file in batchData.currentFiles:
 		module = getModuleBasename(file)
@@ -373,6 +374,9 @@ def mel2pyBatch( processDir, outputDir=None, pymelNamespace='', verbosity=0 , te
 		batchData.currentModules.append(module)
 		
 	print batchData.currentFiles
+	
+	if outputDir is None:
+		outputDir = os.getcwd()
 	"""
 	for f in currentFiles:
 		try:
