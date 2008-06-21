@@ -1056,9 +1056,9 @@ def nodeType( node, **kwargs ):
     objName = None
 
     if isinstance(arg, DependNode) :
-        obj = arg.object()
+        obj = arg.__apiobject__()
     elif isinstance(arg, Attribute) :
-        obj = arg.plugNode().object()
+        obj = arg.plugNode().__apiobject__()
     elif isinstance(arg, api.MObject) :
         # TODO : convert MObject attributes to DependNode
         if api.isValidMObjectHandle(api.MObjectHandle(arg)) :
@@ -1415,7 +1415,7 @@ def _getPymelType(arg, attr=None, comp=None) :
     # TODO : handle comp as a MComponent or list of components
     elif isinstance(arg, PyNode) :
         # grab the private variable to prevent the function triggering any additional calculations
-        arg = arg._object   
+        arg = arg._apiobject   
         name = arg._name
      
     #--------------------------   
@@ -1474,12 +1474,12 @@ class PyNode(ProxyUnicode):
         and defer to the correct derived class """
     _name = None              # unicode
     
-    _object = None            # for DependNode : api.MObjectHandle
+    _apiobject = None         # for DependNode : api.MObjectHandle
                               # for DagNode    : api.MDagPath
                               # for Attribute  : api.MPlug
                               
-    _node = None              # Attribute Only: stores the PyNode
-    _mfn = None
+    _node = None              # Attribute Only: stores the PyNode for the plug's node
+    _apimfn = None
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed """
         
@@ -1528,9 +1528,9 @@ class PyNode(ProxyUnicode):
             self._name = name
             if attr:
                 self._node = pymelType(obj)
-                self._object = attr
+                self._apiobject = attr
             else:
-                self._object = obj
+                self._apiobject = obj
             return self
         else :
             raise TypeError, "Cannot make a %s PyNode out of a %r object" % (cls.__name__, pymelType)   
@@ -1793,19 +1793,19 @@ class Attribute(PyNode):
     #def __repr__(self):
     #    return "Attribute('%s')" % self
     
-    def object(self) :
-        #if api.isValidMObjectHandle(self._object.attribute() ) :
-        #    return self._object.object()
-        return self._object.attribute()
+    def __apiobject__(self) :
+        #if api.isValidMObjectHandle(self._apiobject.attribute() ) :
+        #    return self._apiobject.object()
+        return self._apiobject
     
-    def MFn(self):
-        if self._mfn:
-            return self._mfn
+    def __apimfn__(self):
+        if self._apimfn:
+            return self._apimfn
         else:
-            obj = self.object()
+            obj = self.__apiobject__().attribute()
             if obj:
-                self._mfn = api.MFnAttribute( obj )
-                return self._mfn
+                self._apimfn = api.MFnAttribute( obj )
+                return self._apimfn
                            
 #    def __init__(self, attrName):
 #        if '.' not in attrName:
@@ -1816,7 +1816,7 @@ class Attribute(PyNode):
         
     def __getitem__(self, item):
        #return Attribute('%s[%s]' % (self, item) )
-       return Attribute( self._node, self._object.elementByLogicalIndex(item) )
+       return Attribute( self._node, self.__apiobject__().elementByLogicalIndex(item) )
    
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
@@ -1880,7 +1880,7 @@ class Attribute(PyNode):
             'lambert1.groupNode'
         """
         try:
-            return Attribute( self._node, self._object.array() )
+            return Attribute( self._node, self.__apiobject__().array() )
             #att = Attribute(Attribute.attrItemReg.split( self )[0])
             #if att.isMulti() :
             #    return att
@@ -1897,10 +1897,6 @@ class Attribute(PyNode):
     def elements(self):
         return cmds.listAttr(self.array(), multi=True)
         
-    def isElement(self):
-        """ Is the attribute an element of a multi(array) attribute """
-        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
-        return self._object.isElement()
     
     def plugNode(self):
         'plugNode'
@@ -2066,7 +2062,12 @@ class Attribute(PyNode):
     def type(self):
         "getAttr -type"
         return cmds.getAttr(self, type=True)
-        
+ 
+    def isElement(self):
+        """ Is the attribute an element of a multi(array) attribute """
+        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
+        return self.__apiobject__().isElement()
+           
     def isKeyable(self):
         "getAttr -keyable"
         return cmds.getAttr(self, keyable=True)
@@ -2356,15 +2357,15 @@ class DependNode( PyNode ):
 #        return PyNode.__new__(cls,name)
 
     def _updateName(self) :
-        if api.isValidMObjectHandle(self._object) :
-            obj = self._object.object()
+        if api.isValidMObjectHandle(self._apiobject) :
+            obj = self._apiobject.object()
             depFn = api.MFnDependencyNode(obj)
             self._name = depFn.name()
         return self._name 
 
-    def object(self) :
-        if api.isValidMObjectHandle(self._object) :
-            return self._object.object()
+    def __apiobject__(self) :
+        if api.isValidMObjectHandle(self._apiobject) :
+            return self._apiobject.object()
     
     def name(self, update=True) :
         if update or self._name is None:
@@ -2372,16 +2373,16 @@ class DependNode( PyNode ):
         else :
             return self._name  
     
-    def MFn(self):
-        if self._mfn:
-            return self._mfn
+    def __apimfn__(self):
+        if self._apimfn:
+            return self._apimfn
         else:
-            obj = self.object()
+            obj = self.__apiobject__()
             if obj:
                 try:
                     mfn = api.toApiFunctionSet( obj.apiType() )
-                    self._mfn = mfn(obj)
-                    return self._mfn
+                    self._apimfn = mfn(obj)
+                    return self._apimfn
                 except KeyError:
                     pass
     """
@@ -2392,15 +2393,15 @@ class DependNode( PyNode ):
                 comp = args[1]        
             if isinstance(arg, DependNode) :
                 self._name = unicode(arg.name())
-                self._object = api.MObjectHandle(arg.object())
+                self._apiobject = api.MObjectHandle(arg.object())
             elif api.isValidMObject(arg) or api.isValidMObjectHandle(arg) :
-                self._object = api.MObjectHandle(arg)
+                self._apiobject = api.MObjectHandle(arg)
                 self._updateName()
             elif isinstance(arg, basestring) :
                 obj = api.toMObject (arg)
                 if obj :
                     # actual Maya object creation
-                    self._object = api.MObjectHandle(obj)
+                    self._apiobject = api.MObjectHandle(obj)
                     self._updateName()
                 else :
                     # non existent object
@@ -2444,7 +2445,7 @@ class DependNode( PyNode ):
         """access to attribute of a node. returns an instance of the Attribute class for the 
         given attribute."""
         #return Attribute( '%s.%s' % (self, attr) )
-        return Attribute( self._object, self.MFn().findPlug( attr, False ) )
+        return Attribute( self._apiobject, self.__apimfn__().findPlug( attr, False ) )
     
         # if attr.startswith('__') and attr.endswith('__'):
         #     return super(PyNode, self).__setattr__(attr, val)        
@@ -2454,21 +2455,21 @@ class DependNode( PyNode ):
     #    Modification
     #--------------------------
     def isLocked(self):
-        return self.MFn().isLocked()
+        return self.__apimfn__().isLocked()
       
     def lock( self, **kwargs ):
         'lockNode -lock 1'
         #kwargs['lock'] = True
         #kwargs.pop('l',None)
         #return cmds.lockNode( self, **kwargs)
-        return self.MFn().setLocked( True )
+        return self.__apimfn__().setLocked( True )
         
     def unlock( self, **kwargs ):
         'lockNode -lock 0'
         #kwargs['lock'] = False
         #kwargs.pop('l',None)
         #return cmds.lockNode( self, **kwargs)
-        return self.MFn().setLocked( False )
+        return self.__apimfn__().setLocked( False )
 
     def cast( self, swapNode, **kwargs):
         """nodeCast"""
@@ -2477,7 +2478,7 @@ class DependNode( PyNode ):
     #rename = rename
     def rename( self, name ):
         # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
-        return self.MFn().setName( name )
+        return self.__apimfn__().setName( name )
     
     duplicate = duplicate
     
@@ -2522,16 +2523,16 @@ class DependNode( PyNode ):
             
     def exists(self, **kwargs):
         "objExists"
-        if self.object() :
+        if self.__apiobject__() :
             return True
         else :
             return False
     
     def hasUniqueName(self):
-        return self.MFn().hasUniqueName()   
+        return self.__apimfn__().hasUniqueName()   
 
     def isDefaultNode(self):
-        return self.MFn().isDefaultNode()  
+        return self.__apimfn__().isDefaultNode()  
          
     def referenceFile(self):
         """referenceQuery -file
@@ -2543,18 +2544,18 @@ class DependNode( PyNode ):
 
     def isReadOnly(self):
     #    #return (cmds.ls( self, ro=1) and True) or False
-        return self.MFn().isFromReferenceFile()
+        return self.__apimfn__().isFromReferenceFile()
                 
     def isReferenced(self):
         """referenceQuery -isNodeReferenced
         Return True or False if the node is referenced"""    
         #return cmds.referenceQuery( self, isNodeReferenced=1)
-        return self.MFn().isFromReferenceFile()
+        return self.__apimfn__().isFromReferenceFile()
             
     def classification(self):
         'getClassification'
         #return getClassification( self.type() )    
-        return self.MFn().classification( self.type() )
+        return self.__apimfn__().classification( self.type() )
     
     #--------------------------
     #    Connections
@@ -2688,23 +2689,23 @@ class Entity(DependNode): pass
 class DagNode(Entity):
     
     def _updateName(self, long=False) :
-        #if api.isValidMObjectHandle(self._object) :
-            #obj = self._object.object()
+        #if api.isValidMObjectHandle(self._apiobject) :
+            #obj = self._apiobject.object()
             #dagFn = api.MFnDagNode(obj)
             #dagPath = api.MDagPath()
             #dagFn.getPath(dagPath)
         try:
-            name = self._object.partialPathName()
+            name = self._apiobject.partialPathName()
             if name:
                 self._name = name
             if long :
-                return self._object.fullPathName()
+                return self._apiobject.fullPathName()
         except AttributeError: pass
         return self._name                       
 
-    def object(self) :
-        if api.isValidMDagPath(self._object) :
-            return self._object.node()
+    def __apiobject__(self) :
+        if api.isValidMDagPath(self._apiobject) :
+            return self._apiobject.node()
         
     def name(self, update=True, long=False) :
         if update or long or self._name is None:
@@ -2712,27 +2713,27 @@ class DagNode(Entity):
         else :
             return self._name
 
-    def MFn(self):
-        if self._mfn:
-            return self._mfn
+    def __apimfn__(self):
+        if self._apimfn:
+            return self._apimfn
         else:
-            obj = self._object
+            obj = self._apiobject
             if api.isValidMDagPath(obj):
                 try:
                     mfn = api.toApiFunctionSet( obj.apiType() )
-                    self._mfn = mfn(obj)
-                    return self._mfn
+                    self._apimfn = mfn(obj)
+                    return self._apimfn
                 except KeyError:
                     pass
                         
     def __init__(self, *args, **kwargs):
-        if self._object:
-            if isinstance(self._object, api.MObjectHandle):
+        if self._apiobject:
+            if isinstance(self._apiobject, api.MObjectHandle):
                 dagPath = api.MDagPath()
-                api.MDagPath.getAPathTo( self._object.object(), dagPath )
-                self._object = dagPath
+                api.MDagPath.getAPathTo( self._apiobject.object(), dagPath )
+                self._apiobject = dagPath
         
-            assert api.isValidMDagPath( self._object )
+            assert api.isValidMDagPath( self._apiobject )
             
     """
     def __init__(self, *args, **kwargs) :
@@ -2742,12 +2743,12 @@ class DagNode(Entity):
                 comp = args[1]
             if isinstance(arg, DagNode) :
                 self._name = unicode(arg.name())
-                self._object = api.MObjectHandle(arg.object())
+                self._apiobject = api.MObjectHandle(arg.object())
             elif api.isValidMObject(arg) or api.isValidMObjectHandle(arg) :
                 objHandle = api.MObjectHandle(arg)
                 obj = objHandle.object() 
                 if api.isValidMDagNode(obj) :
-                    self._object = objHandle
+                    self._apiobject = objHandle
                     self._updateName()
                 else :
                     raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg              
@@ -2756,7 +2757,7 @@ class DagNode(Entity):
                 if obj :
                     # creation for existing object
                     if api.isValidMDagNode (obj):
-                        self._object = api.MObjectHandle(obj)
+                        self._apiobject = api.MObjectHandle(obj)
                         self._updateName()
                     else :
                         raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg 
@@ -2790,35 +2791,35 @@ class DagNode(Entity):
     """
     def hasParent(self, parent ):
         try:
-            return self.MFn().hasParent( parent.object() )
+            return self.__apimfn__().hasParent( parent.__apiobject__() )
         except AttributeError:
             obj = api.toMObject(parent)
             if obj:
-               return self.MFn().hasParent( obj )
+               return self.__apimfn__().hasParent( obj )
           
     def hasChild(self, child ):
         try:
-            return self.MFn().hasChild( child.object() )
+            return self.__apimfn__().hasChild( child.__apiobject__() )
         except AttributeError:
             obj = api.toMObject(child)
             if obj:
-               return self.MFn().hasChild( obj )
+               return self.__apimfn__().hasChild( obj )
     
     def isParentOf( self, parent ):
         try:
-            return self.MFn().isParentOf( parent.object() )
+            return self.__apimfn__().isParentOf( parent.__apiobject__() )
         except AttributeError:
             obj = api.toMObject(parent)
             if obj:
-               return self.MFn().isParentOf( obj )
+               return self.__apimfn__().isParentOf( obj )
     
     def isChildOf( self, child ):
         try:
-            return self.MFn().isChildOf( child.object() )
+            return self.__apimfn__().isChildOf( child.__apiobject__() )
         except AttributeError:
             obj = api.toMObject(child)
             if obj:
-               return self.MFn().isChildOf( obj )
+               return self.__apimfn__().isChildOf( obj )
     """
     
     def firstParent(self):
