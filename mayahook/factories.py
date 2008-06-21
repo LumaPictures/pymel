@@ -669,6 +669,7 @@ class ApiDocParser(HTMLParser):
     def handle_data(self, data):
         data = data.lstrip().rstrip()
         if self.currentMethod is not None and data:
+            
             if data in ['Reimplemented from', 'Parameters:', 'Returns:' ]:
                 self.mode = data
             elif self.mode == 'Parameters:':
@@ -678,9 +679,18 @@ class ApiDocParser(HTMLParser):
             elif self.mode == 'Reimplemented from':
                 pass
             elif self.currentMethod:
-                self.data.append(data)
+                if data.startswith('()'):
+                    buf = data.split()
+                    self.data.extend( ['(', ')'] + buf[1:] )
+                else:
+                    self.data.append(data)
                 #print data
-            pass
+            #elif 'Protected' in data:
+            #    print "data1", data
+        elif data == 'Protected Member Functions':
+            #print data
+            #print self.currentMethod
+            self.mode = data
     
     def handle_comment(self, comment ):
         def addArgInfo( argInfo, argName, direction, doc):
@@ -697,80 +707,103 @@ class ApiDocParser(HTMLParser):
         comment = comment.lstrip().rstrip()
         comment = comment.replace( '&amp;', '' ) # does not affect how we pass
         if self.currentMethod is not None:
-            start = self.data.index( '(' )
-            end = self.data.index( ')' )
-            buf = ' '.join( self.data[:start] ).split()[:-1] # last element is the method name
+            #print self.data
+            try:
+                start = self.data.index( '(' )
+                end = self.data.index( ')' )
+            except ValueError:
+                raise ValueError, 'could not find parentheses: %s, %r' % ( self.currentMethod, self.data )
+            buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name
             returnVal = None
-            if len(buf)>1:
-                # unsigned int
-                if buf[0] == 'unsigned':
-                    returnVal = buf[1]
+            if len(buf):
+                if len(buf)>1:
+                    # unsigned int
+                    if buf[0] == 'unsigned':
+                        returnVal = buf[1]
+                    else:
+                        print "could not determine %s return value: got list: %s" % ( self.currentMethod, buf)
                 else:
-                    print "could not determine %s return value: got list: %s" % ( self.currentMethod, buf)
-            else:
-                returnVal = buf[0]
-            if returnVal == 'MStatus':
-                returnVal = None
-
-            tempargs = ' '.join( self.data[start+1:end] )
-            #print tempargs
-            argList = []
-            argInfo = {}
-            
-            for argGrp in tempargs.split(','):
-                argGrp = [ y for y in argGrp.split() if y != 'const']
+                    returnVal = buf[0]
                 
-                if len(argGrp):
-                    #print argGrp
-                    keyword = argGrp[1]
-                    type = argGrp[0]
+                if returnVal == 'MStatus':
+                    returnVal = None
+    
+                tempargs = ' '.join( self.data[start+1:end] )
+                #print tempargs
+                argList = []
+                argInfo = {}
+                
+                for argGrp in tempargs.split(','):
+                    argGrp = [ y for y in argGrp.split() if y != 'const']
                     
-                    x = keyword.split('=')
-                    keyword = x[0]
-                    if type != 'MStatus':
+                    if len(argGrp):
+                        #print argGrp
                         
-                        # convert type, keyword[3]  to type3, keyword 
-                        buf = re.split( r'\[|\]', keyword)
-                        if len(buf) > 1:
-                            keyword = buf[0]
-                            type = type + buf[1]
                         
-                        # move pointer(asterik) from keyword to type
-                        if keyword.startswith( '*' ):
-                            keyword = keyword[1:]
-                            type = '*' + type
+                        type = argGrp[0]
                         
-                        argInfo[ keyword ] = {'type' : type}
-                        if len(x) > 1:
-                            argInfo[ keyword ]['default'] = x[1]
-                          
-                        argList.append( keyword  )
-            inArgs = []
-            outArgs = []
-            #print self.parameters
-            direction = None
-            argName = None
-            doc = ''
-            for param in self.parameters:
-                
-                if param.startswith('['):
-                    if direction and argName and doc:
-                        addArgInfo( argInfo, argName, direction, doc )
+                        try:
+                            keyword = argGrp[1]
+                            x = keyword.split('=')
+                            keyword = x[0]
+                            try:
+                                default = x[1]
+                            except IndexError:
+                                default = None
+                                
+                        except IndexError:
+                            keyword = None
+                            default = None
+    
+                            
+                        if type != 'MStatus':                      
+                            # move array length from keyword to type:
+                            # keyword[3] ---> keyword
+                            # type       ---> type3 
+                            buf = re.split( r'\[|\]', keyword)
+                            if len(buf) > 1:
+                                keyword = buf[0]
+                                type = type + buf[1]
+                            
+                            # move pointer(asterik) from keyword to type
+                            if keyword.startswith( '*' ):
+                                keyword = keyword[1:]
+                                type = '*' + type
+                            
+                            argInfo[ keyword ] = {'type' : type}
+                            if default:
+                                argInfo[ keyword ]['default'] = default
+                              
+                            argList.append( keyword  )
+                    elif len(argGrp)==1:
+                        print "arg group lenght is 1:", argGrp
+                        
+                inArgs = []
+                outArgs = []
+                #print self.parameters
+                direction = None
+                argName = None
+                doc = ''
+                for param in self.parameters:
                     
-                    argName = None
-                    doc = ''
-                    direction = param
-                
-                elif argName is None:
-                    argName = param
-                
-                else:
-                    doc += param
-            addArgInfo( argInfo, argName, direction, doc )
-                   
-            #print argList, argInfo
-            methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs } 
-            self.methods[self.currentMethod].append(methodInfo)
+                    if param.startswith('['):
+                        if direction and argName and doc:
+                            addArgInfo( argInfo, argName, direction, doc )
+                        
+                        argName = None
+                        doc = ''
+                        direction = param
+                    
+                    elif argName is None:
+                        argName = param
+                    
+                    else:
+                        doc += param
+                addArgInfo( argInfo, argName, direction, doc )
+                       
+                #print argList, argInfo
+                methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs } 
+                self.methods[self.currentMethod].append(methodInfo)
             
             self.mode = None
             self.data = []
@@ -779,11 +812,18 @@ class ApiDocParser(HTMLParser):
             
         try:     
             clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
-        except AttributeError: pass
+        except AttributeError:
+            pass
+            #print "skipping comment", comment
         else:
             if methodname == self.functionSet:
                 return
             #print "METHOD", methodname
+            if self.mode == 'Protected Member Functions':
+                #print "skipping protected function", methodname
+                self.mode = None
+                return
+            
             self.currentMethod = methodname
             
 
