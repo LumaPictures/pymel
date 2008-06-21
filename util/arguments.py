@@ -5,6 +5,7 @@ These utility functions can be used by other util modules and are imported in ut
 
 from collections import deque
 import inspect, sys
+import maya.mel as _mm
 
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 def isIterable( obj ):
@@ -31,22 +32,99 @@ def convertListArgs( args ):
         return tuple(args[0])
     return args     
 
-def pythonArgToMelType(arg):
-
-    if isIterable( arg ):
+def getMelType(arg, source='python'):
+    """return the mel type of the passed argument.
+    
+    When source is set to 'python', the command will determine the closest mel type equivalent for a python object
+    
+    When source is set to 'mel', the command will determine the mel type from a mel variable ( ex. '$foo' )
+    """
+    source = source.lower()
+    if source == 'python':    
+        if isIterable( arg ):
+            try:
+                return getMelType( arg[0] ) + '[]'
+            except IndexError:
+                return 'string[]'
+        if isinstance( arg, basestring ) : return 'string'
+        elif isinstance( arg, int ) : return 'int'
+        elif isinstance( arg, float ) : return 'float'
+       
+        #elif isinstance( typ, Vector ) : return 'vector'
+        #elif isinstance( typ, Matrix ) : return 'matrix'
+        
+    elif source == 'mel':
+        buf = _mm.eval( 'whatIs "%s"' % arg ).split()
+        #print buf
         try:
-            return pythonTypeToMelType( arg[0] ) + '[]'
-        except IndexError:
-            return 'string[]'
-    if isinstance( arg, str ) : return 'string'
-    elif isinstance( arg, int ) : return 'int'
-    elif isinstance( arg, float ) : return 'float'
-    #elif isinstnace( typ, Vector ) : return 'vector'
-    #elif isinstnace( typ, Matrix ) : return 'matrix'
+            if buf[1] == 'variable':
+                return buf[0]
+        except: pass
+    else:
+        raise ValueError, "source argument must be passed 'python' or 'mel'"
+
+
 # Flatten a multi-list argument so that in can be passed as
 # a list of arguments to a command.
 
-def melToPythonWrapper( funcPathOrObject, returnType='', procName=None, evaluateInputs=True ):
+def getMelArgs( function ):
+    """
+    given a python function, return a tuple of ( melType, argName, defaultVal )
+    
+        function
+        This can be a callable python object or the full, dotted path to the callable object as a string.  
+        
+        If passed as a python object, the object's __name__ and __module__ attribute must point to a valid module
+        where __name__ can be found. 
+        
+        If a string representing the python object is passed, it should include all packages and sub-modules, along 
+        with the function's name:  'path.to.myFunc'
+    """
+    
+    from inspect import getargspec
+    
+    melArgs = []
+    
+    # function is a string, so we must import its module and get the function object
+    if isinstance( function, basestring):
+        buf = function.split()
+        funcName = buf.pop(-1)
+        moduleName = '.'.join(buf)
+        module = __import__(moduleName, globals(), locals(), [''])
+        func = getattr( module, funcName )
+    # function is a python object    
+    elif hasattr( function, '__call__' ) :
+        func = function
+        funcName = func.__name__
+        moduleName = func.__module__
+    else:
+        raise TypeError, "First argument must be a callable python object or the full, dotted path to the callable object as a string."
+           
+    getargspec( func )
+    
+    args, varargs, kwargs, defaults  = getargspec( func )
+    try:
+        ndefaults = len(defaults)
+    except:
+        ndefaults = 0
+    
+    print args, varargs, kwargs, defaults
+    
+    nargs = len(args)
+    offset = nargs - ndefaults
+    for i, arg in enumerate(args):
+    
+        if i >= offset:
+            default = defaults[i-offset]
+            melType = getMelType( default )
+        else:
+            default = None
+            melType = 'string' 
+    
+        melArgs.append( (melType, arg, default ) )
+    return func, melArgs
+
+def melToPythonWrapper( function, returnType='', procName=None, evaluateInputs=True ):
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed 
     python function.  Theoretically useful for calling your python scripts in scenarios where maya
     does not yet support python callbacks, such as in batch mode.
@@ -66,7 +144,7 @@ def melToPythonWrapper( funcPathOrObject, returnType='', procName=None, evaluate
         - **kwargs : not likely to be implemented
         
      
-    funcPathOrObject
+    function
         This can be a callable python object or the full, dotted path to the callable object as a string.  
         
         If passed as a python object, the object's __name__ and __module__ attribute must point to a valid module
@@ -79,59 +157,43 @@ def melToPythonWrapper( funcPathOrObject, returnType='', procName=None, evaluate
         Optional name of the mel procedure to be created.  If None, the name of the function will be used.
     
     evaluateInputs
-        If True (default), the arguments passed to the generated mel procedure will be evaluated as python code, allowing
-        you to pass a list as an argument, such as::
-            mel_wrapper("[ 1, 2, 3]");
+        If True (default), string arguments passed to the generated mel procedure will be evaluated as python code, allowing
+        you to pass a more complex python objects as an argument. For example:
+        
+        In python:         
+            >>> import pymel
+            >>> def myFunc( arg ): for x in arg: print x
+            >>> pymel.util.melToPythonWrapper( myFunc, procName='myFuncWrapper', evaluateInputs=True )
+        
+        Then, in mel::
+            // execute the mel-to-python wrapper procedure
+            myFuncWrapper("[ 1, 2, 3]");
     
+        the string "[1,2,3]" will be converted to a python list [1,2,3] before it is executed by the python function myFunc
     """
     
-    import maya.mel as mm
-    from inspect import getargspec
     
-    melArgs = []
-    melCompile = []
 
-    if isinstance( funcPathOrObject, basestring):
-        buf = funcPathOrObject.split()
-        funcName = buf.pop(-1)
-        moduleName = '.'.join(buf)
-        module = __import__(moduleName, globals(), locals(), [''])
-        func = getattr( module, funcName )
         
-    else:
-        func = funcPathOrObject
-        funcName = func.__name__
-        moduleName = func.__module__
-        
-    if procName is None:
-        procName = funcName
-            
-    getargspec( func )
-    
-    args, varargs, kwargs, defaults  = getargspec( func )
-    try:
-        ndefaults = len(defaults)
-    except:
-        ndefaults = 0
-    
-    nargs = len(args)
-    offset = nargs - ndefaults
-    for i, arg in enumerate(args):
-    
-        if i >= offset:
-            melType = pythonTypeToMelType( defaults[i-offset] )
-        else:
-            melType = 'string' 
-    
+    melCompile = []
+    melArgs = []
+    func, argInfo = getMelArgs(function)
+    for melType, arg, default in argInfo:
         melArgs.append( melType + ' $' + arg )
         if melType == 'string':
             compilePart = "'\" + $%s + \"'" %  arg
-            if evaluateInputs and i < offset:
+            if evaluateInputs and default is None: #i < offset:
                 compilePart = r'eval(\"\"\"%s\"\"\")' % compilePart
             melCompile.append( compilePart )
         else:
             melCompile.append( "\" + $%s + \"" %  arg )
-    
+
+    funcName = func.__name__
+    moduleName = func.__module__
+         
+    if procName is None:
+        procName = funcName 
+        
     procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % ( returnType, 
                                                                         procName,
                                                                         ', '.join(melArgs), 
@@ -148,7 +210,7 @@ def melToPythonWrapper( funcPathOrObject, returnType='', procName=None, evaluate
 #                                                                                          ','.join(melCompile) )
 
     print procDef
-    mm.eval( procDef )
+    _mm.eval( procDef )
     return procName
 
 def expandArgs( *args, **kwargs ) :
