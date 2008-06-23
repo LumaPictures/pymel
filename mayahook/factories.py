@@ -631,6 +631,19 @@ def getModuleCommandList( category, version='8.5' ):
     parser = CommandModuleDocParser(category, version)
     return parser.parse()
 
+class ApiArrayTypeInfo(object):
+    """Simple Struct-type class for holding type and length of api array types"""
+    def __init__( self, type, length ):
+        self._type = type
+        self._length = length
+    def type( self ):
+        return self._type
+    def length(self):
+        return self._length
+    def __str__(self):
+        return self._type + str(self._length)
+    def __repr__(self):
+        return '%s(%s,%s)' % (self.__class__.__name__, self._type, self._length )
 class ApiDocParser(HTMLParser):
 
     def getClassFilename(self):
@@ -661,6 +674,7 @@ class ApiDocParser(HTMLParser):
         self.methods = util.defaultdict(list)
         self.currentMethod = None
         self.mode = None
+        self.grouping = None
         self.data = []
         self.parameters = []
         self.returnVal = []
@@ -668,6 +682,7 @@ class ApiDocParser(HTMLParser):
         
     def handle_data(self, data):
         data = data.lstrip().rstrip()
+        data = data.replace( '&amp;', '' )
         if self.currentMethod is not None and data:
             
             if data in ['Reimplemented from', 'Parameters:', 'Returns:' ]:
@@ -678,28 +693,35 @@ class ApiDocParser(HTMLParser):
                 self.returnVal.append( data )
             elif self.mode == 'Reimplemented from':
                 pass
-            elif self.currentMethod:
+            elif self.grouping == 'Member Function Documentation':
+                #print self.currentMethod, "adding data", data
                 if data.startswith('()'):
                     buf = data.split()
                     self.data.extend( ['(', ')'] + buf[1:] )
+                elif data.endswith( ')' ):
+                    self.data.append( data[:-1] )
+                    self.data.append( ')')
                 else:
                     self.data.append(data)
                 #print data
             #elif 'Protected' in data:
             #    print "data1", data
-        elif data == 'Protected Member Functions':
+        elif data in [ 'Protected Member Functions', 
+                      'Member Enumeration Documentation', 
+                      'Constructor Destructor Documentation', 
+                      'Member Function Documentation' ]:
             #print data
-            #print self.currentMethod
-            self.mode = data
+            #print self.currentMethod, data
+            self.grouping = data
     
     def handle_comment(self, comment ):
         def addArgInfo( argInfo, argName, direction, doc):
             try:
                 argInfo[ argName ]['doc'] = doc
                 #print argName, direction, doc
-                if direction == '[in]':
+                if direction == 'in':
                     inArgs.append(argName)
-                elif direction == '[out]':
+                elif direction == 'out':
                     outArgs.append(argName)
             except KeyError:
                 pass
@@ -712,75 +734,19 @@ class ApiDocParser(HTMLParser):
                 start = self.data.index( '(' )
                 end = self.data.index( ')' )
             except ValueError:
-                raise ValueError, 'could not find parentheses: %s, %r' % ( self.currentMethod, self.data )
-            buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name
+                raise ValueError, '%s: could not find parentheses: %s, %r' % ( self.functionSet, self.currentMethod, self.data )
+            buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name          
             returnVal = None
+            
             if len(buf):
-                if len(buf)>1:
-                    # unsigned int
-                    if buf[0] == 'unsigned':
-                        returnVal = buf[1]
-                    else:
-                        print "could not determine %s return value: got list: %s" % ( self.currentMethod, buf)
-                else:
-                    returnVal = buf[0]
                 
-                if returnVal == 'MStatus':
-                    returnVal = None
-    
-                tempargs = ' '.join( self.data[start+1:end] )
                 #print tempargs
                 argList = []
-                argInfo = {}
-                
-                for argGrp in tempargs.split(','):
-                    argGrp = [ y for y in argGrp.split() if y != 'const']
-                    
-                    if len(argGrp):
-                        #print argGrp
-                        
-                        
-                        type = argGrp[0]
-                        
-                        try:
-                            keyword = argGrp[1]
-                            x = keyword.split('=')
-                            keyword = x[0]
-                            try:
-                                default = x[1]
-                            except IndexError:
-                                default = None
-                                
-                        except IndexError:
-                            keyword = None
-                            default = None
-    
-                            
-                        if type != 'MStatus':                      
-                            # move array length from keyword to type:
-                            # keyword[3] ---> keyword
-                            # type       ---> type3 
-                            buf = re.split( r'\[|\]', keyword)
-                            if len(buf) > 1:
-                                keyword = buf[0]
-                                type = type + buf[1]
-                            
-                            # move pointer(asterik) from keyword to type
-                            if keyword.startswith( '*' ):
-                                keyword = keyword[1:]
-                                type = '*' + type
-                            
-                            argInfo[ keyword ] = {'type' : type}
-                            if default:
-                                argInfo[ keyword ]['default'] = default
-                              
-                            argList.append( keyword  )
-                    elif len(argGrp)==1:
-                        print "arg group lenght is 1:", argGrp
-                        
+                argInfo = defaultdict(dict)
                 inArgs = []
                 outArgs = []
-                #print self.parameters
+                
+                # Find Direction and Docs
                 direction = None
                 argName = None
                 doc = ''
@@ -788,18 +754,97 @@ class ApiDocParser(HTMLParser):
                     
                     if param.startswith('['):
                         if direction and argName and doc:
-                            addArgInfo( argInfo, argName, direction, doc )
-                        
+                            #addArgInfo( argInfo, argName, direction, doc )
+                            argInfo[ argName ]['doc'] = doc
+                            if direction == 'in': inArgs.append(argName)
+                            elif direction == 'out': outArgs.append(argName)
+                    
                         argName = None
                         doc = ''
-                        direction = param
+                        direction = param[1:-1]
                     
                     elif argName is None:
                         argName = param
                     
                     else:
                         doc += param
-                addArgInfo( argInfo, argName, direction, doc )
+                #addArgInfo( argInfo, argName, direction, doc )
+                argInfo[ argName ]['doc'] = doc
+                if direction == 'in': inArgs.append(argName)
+                elif direction == 'out': outArgs.append(argName)
+                
+                
+                # Argument Type and Defaults
+                if len(buf)>1:
+                    # unsigned int
+                    if buf[0] == 'unsigned':
+                        returnVal = buf[1]
+                    else:
+                        pass
+                        #print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
+                else:
+                    returnVal = buf[0]
+                
+                if returnVal == 'MStatus':
+                    returnVal = None
+    
+                tempargs = ' '.join( self.data[start+1:end] )
+                
+                for argGrp in tempargs.split(','):
+                    argGrp = [ y for y in argGrp.split() if y != 'const']
+                    
+                    if len(argGrp):
+                                
+                        type = argGrp[0]
+                        
+                        try:
+                            keyword = argGrp[1]
+                        except IndexError: pass
+                        else:
+                            if len(argGrp)==3:
+                                try:
+                                    type = ApiArrayTypeInfo( type, int(re.match( '\[(\d)\]', argGrp[2] ).groups()[0]) )
+                                except AttributeError:
+                                    pass
+                                    #print 'extra data', argGrp[2]
+                                
+                            x = keyword.split('=')
+                            keyword = x[0]
+                            
+                            try:
+                                default = x[1]
+                            except IndexError:
+                                default = None
+                                                         
+                            if type == 'MStatus':
+                                continue
+                                                  
+                            # move array length from keyword to type:
+                            # keyword[3] ---> keyword
+                            # type       ---> type3 
+                            buf = re.split( r'\[|\]', keyword)
+                            if len(buf) > 1:
+                                keyword = buf[0]
+                                type = ApiArrayTypeInfo( type, int(buf[1]) )
+                            # move pointer(asterik) from keyword to type
+                            # *keyword  ---> keyword
+                            # type      ---> typePtr
+                            if keyword.startswith( '*' ):
+                                keyword = keyword[1:]
+                                type = type + 'Ptr'
+                            argInfo[ keyword ]['type'] = type
+                            if default:
+                                argInfo[ keyword ]['default'] = default
+                            
+                            if keyword in inArgs:
+                                direction = 'in'
+                            else: direction = 'out'
+                            
+                            argList.append( ( keyword, type, default, direction)  )
+                                
+                    elif len(argGrp)==1:
+                        print "arg group lenght is 1:", argGrp
+                
                        
                 #print argList, argInfo
                 methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs } 
@@ -816,18 +861,22 @@ class ApiDocParser(HTMLParser):
             pass
             #print "skipping comment", comment
         else:
-            if methodname == self.functionSet:
-                return
+            #if methodname == self.functionSet:
+            #    return
+            
             #print "METHOD", methodname
-            if self.mode == 'Protected Member Functions':
-                #print "skipping protected function", methodname
-                self.mode = None
+            if self.grouping != 'Member Function Documentation':
+                #print "skipping function: %s (%s)" % ( methodname, self.grouping )
+                self.currentMethod = None
                 return
             
             self.currentMethod = methodname
             
-
-            
+def getMFnInfo( functionSet ):
+    parser = ApiDocParser(functionSet )
+    try:
+        return parser.parse()
+    except IOError: pass    
         
 #-----------------------------------------------
 #  Command Help Documentation
@@ -1764,7 +1813,190 @@ class metaNode(type) :
             
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
+def wrapApiMethod( apiClassName, methodName, api, PyNode ):
+    try:
+        # there may be more than one method signatures per method name
+        methodInfoList = api.apiClassInfo[apiClassName][methodName]
+    except KeyError:
+        return
+    
+    try:
+        method = getattr( getattr( api, apiClassName ), methodName )
+    except AttributeError:
+        return
+    
+    validInTypes = [ 'double', 'bool', 'int', 'MString', 'MObject' ]
+    validOutTypes = [ ]
+    validReturnTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
+    
+    inTypes = {     'double' : float,
+                    'bool'   : bool,
+                    'int'    : int,
+                    'MString': unicode,
+                    'MObject': PyNode }
+    
+    su = api.MScriptUtil()
+    
+    def outInit( type ):
+        return getattr( su, 'as' + util.capitalize(type) + 'Ptr' )
+    
+    def outValue( type ):
+        return getattr( su, 'get' + util.capitalize(type) )
+ 
+    def outArrayValue( type ):
+        return getattr( su, 'get' + util.capitalize(type) + 'ArrayItem' )
+        
+    for methodInfo in methodInfoList:
+        #argInfo = methodInfo['argInfo']
+        inArgs = methodInfo['inArgs']
+        outArgs = methodInfo['outArgs']
+        #argList = methodInfo['args']
+        returnType = methodInfo['returnVal']
+        def f( self, *args, **kwargs):
+            #args = list(args)
+            count = 0
+            argList = []
+            outList = []
+            for name, argtype, default, direction in methodInfo['args'] :
+                if direction == 'in':
+                    argList.append( inType[argtype]( args[i] ) )
+                    count +=1
+                else:
+                    if isinstance( argtype, basestring ):
+                        val = outInit( argtype )() 
+                    else:                
+                        #val = outInit( argtype.type() )() 
+                        val = su.asDoublePtr()
+                        
+                    assert val is not None, "script util pointer is None"
+                    argList.append( val )
+                    outList.append( ( val, argtype) )
+                                        
+            print argList
+            result = method( self, *argList )
+            print "result", result
+            #return
+            if returnType:
+                result = inType[returnType]( result )
+                
+            if len(outList):
+                if result is not None:
+                    result = [result]
+                else:
+                    result = []
+                for outArg, argtype in outList:
+                    if isinstance( argtype, basestring ):
+                        result.append( outValue( argtype )( outArg ) )
+                    else:
+                        array = []
+                        getter = outArrayValue( argtype.type() )
+                        for i in range( argtype.length() ):
+                            array.append( getter( outArg, i) )
+                        result.append( array )
+                if len(result) == 1:
+                    result = result.pop()
+            return result
+        
+        return f
+    
+def getValidApiMethods( apiClassName, api, verbose=False ):
 
+    validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
+    
+    try:
+        methods = api.apiClassInfo[apiClassName]
+    except KeyError:
+        return []
+    
+    validMethods = []
+    for method, methodInfoList in methods.items():
+        for methodInfo in methodInfoList:
+            #print method, methodInfoList
+            if not methodInfo['outArgs']:
+                returnVal = methodInfo['returnVal']
+                if returnVal in validTypes:
+                    count = 0
+                    types = []
+                    for x in methodInfo['inArgs']:
+                        type = methodInfo['argInfo'][x]['type']
+                        #print x, type
+                        types.append( type )
+                        if type in validTypes:
+                            count+=1
+                    if count == len( methodInfo['inArgs'] ):
+                        if verbose:
+                            print '    %s %s(%s)' % ( returnVal, method, ','.join( types ) )
+                        validMethods.append(method)
+    return validMethods
+
+def analyzeApiClass( apiTypeStr, apiTypeParentStr, api ):
+    try:
+        mayaType = api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
+        if util.isIterable(mayaType) and len(mayaType) == 1:
+            mayaType = mayaType[0]
+            pymelType = PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
+        else:
+            pymelType = None
+    except KeyError:
+        mayaType = None
+        pymelType = None
+        #print "no Fn", elem.key, pymelType
+
+    try:
+        apiClass = api.ApiTypesToApiClasses()[ apiTypeStr ]
+    except KeyError:
+        pass
+        #print "no Fn", elem.key
+    else:
+        if apiTypeParentStr:
+            try:
+                parentApiClass = api.ApiTypesToApiClasses()[elem.parent.key ]
+                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
+            except KeyError:
+                parentMembers = []
+        else:
+            parentMembers = []
+        
+        if pymelType is None: pymelType = PyNodeNamesToPyNodes().get( apiClass.__name__[3:] , None )
+        
+        if pymelType:
+            parentPymelType = PyNodeTypesHierarchy()[ pymelType ]
+            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
+            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers ])
+            print apiClass.__name__, mayaType, pymelType
+            allFnMembers = [ x[0] for x in inspect.getmembers( apiClass, callable ) if x[0] not in parentMembers ]
+            validFnMembers = getValidApiMethods(apiClass.__name__)
+            # convert from api convention to pymel convention
+            origGetMethods = {}
+            for i, member in enumerate(allFnMembers):
+                if len(member) > 4 and member.startswith('set') and member[3].isupper():
+                    # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+                    # 'setSomething'  -->  'something'
+                    origGetMethod = member[3].lower() + member[4:]
+                    if origGetMethod in allFnMembers:
+                        newGetMethod = 'get' + member[3:]
+                        try:
+                            idx = validFnMembers.index( origGetMethod ) 
+                            validFnMembers[idx] = newGetMethod
+                        except: pass
+                        
+                        idx = allFnMembers.index( origGetMethod ) 
+                        allFnMembers[idx] = newGetMethod
+                        
+                        origGetMethods[ newGetMethod ] = origGetMethod
+            
+            validFnMembers = set(validFnMembers)
+            invalidFnMembers = set(allFnMembers).difference(validFnMembers)
+            
+            print "    [shared]"
+            for x in sorted( validFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
+            print "    [potential shared]"
+            for x in sorted( invalidFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )          
+            print "    [api]"
+            for x in sorted( validFnMembers.difference( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
+            print "    [pymel]"
+            for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
+            
 class PyNodeNamesToPyNodes(util.Singleton, dict):
     """ Lookup from PyNode type name as a string to PyNode type as a class"""
 
