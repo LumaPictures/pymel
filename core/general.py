@@ -4476,116 +4476,18 @@ def iterHierarchy ( *args, **kwargs ):
     pass
 
 
-def getValidApiMethods( apiClassName, verbose=False ):
 
-    validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
-
-    parser = _factories.ApiDocParser( apiClassName )
-    try:
-        methods = parser.parse()
-    except ValueError, IndexError:
-        print "FAILED"
-        methods = {}
-    except IOError:
-        print "No Help Found"
-        methods = {}
-    validMethods = []
-    for method, methodInfoList in methods.items():
-        for methodInfo in methodInfoList:
-            #print method, methodInfoList
-            if not methodInfo['outArgs']:
-                returnVal = methodInfo['returnVal']
-                if returnVal in validTypes:
-                    count = 0
-                    types = []
-                    for x in methodInfo['inArgs']:
-                        type = methodInfo['argInfo'][x]['type']
-                        #print x, type
-                        types.append( type )
-                        if type in validTypes:
-                            count+=1
-                    if count == len( methodInfo['inArgs'] ):
-                        if verbose:
-                            print '    %s %s(%s)' % ( returnVal, method, ','.join( types ) )
-                        validMethods.append(method)
-    return validMethods
 
 def analyzeApiClasses():
     import inspect
-    for elem in api.apiClassHierarchy.preorder():
+    for elem in api.apiTypeHierarchy.preorder():
         try:
             parent = elem.parent.key
         except:
             parent = None
-        analyzeApiClass( elem.key, None )
+        _factories.analyzeApiClass( elem.key, None, api )
         
-def analyzeApiClass( apiTypeStr, apiTypeParentStr=None ):
-    try:
-        mayaType = api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
-        if util.isIterable(mayaType) and len(mayaType) == 1:
-            mayaType = mayaType[0]
-            pymelType = _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
-        else:
-            pymelType = None
-    except KeyError:
-        mayaType = None
-        pymelType = None
-        #print "no Fn", elem.key, pymelType
 
-    try:
-        apiClass = api.ApiTypesToApiClasses()[ apiTypeStr ]
-    except KeyError:
-        pass
-        #print "no Fn", elem.key
-    else:
-        if apiTypeParentStr:
-            try:
-                parentApiClass = api.ApiTypesToApiClasses()[elem.parent.key ]
-                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
-            except KeyError:
-                parentMembers = []
-        else:
-            parentMembers = []
-        
-        if pymelType is None: pymelType = _factories.PyNodeNamesToPyNodes().get( apiClass.__name__[3:] , None )
-        
-        if pymelType:
-            parentPymelType = _factories.PyNodeTypesHierarchy()[ pymelType ]
-            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
-            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers ])
-            print apiClass.__name__, mayaType, pymelType
-            allFnMembers = [ x[0] for x in inspect.getmembers( apiClass, callable ) if x[0] not in parentMembers ]
-            validFnMembers = getValidApiMethods(apiClass.__name__)
-            # convert from api convention to pymel convention
-            origGetMethods = {}
-            for i, member in enumerate(allFnMembers):
-                if len(member) > 4 and member.startswith('set') and member[3].isupper():
-                    # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
-                    # 'setSomething'  -->  'something'
-                    origGetMethod = member[3].lower() + member[4:]
-                    if origGetMethod in allFnMembers:
-                        newGetMethod = 'get' + member[3:]
-                        try:
-                            idx = validFnMembers.index( origGetMethod ) 
-                            validFnMembers[idx] = newGetMethod
-                        except: pass
-                        
-                        idx = allFnMembers.index( origGetMethod ) 
-                        allFnMembers[idx] = newGetMethod
-                        
-                        origGetMethods[ newGetMethod ] = origGetMethod
-            
-            validFnMembers = set(validFnMembers)
-            invalidFnMembers = set(allFnMembers).difference(validFnMembers)
-            
-            print "    [shared]"
-            for x in sorted( validFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
-            print "    [potential shared]"
-            for x in sorted( invalidFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )          
-            print "    [api]"
-            for x in sorted( validFnMembers.difference( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
-            print "    [pymel]"
-            for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
 
 
 _factories.createFunctions( __name__, PyNode )
