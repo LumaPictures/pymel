@@ -235,6 +235,7 @@ nodeType_to_nodeCommand = {
 	#'failed' : 'clipSchedule',
 	'airField' : 'air',
 	'dragField' : 'drag',
+	'distanceDimShape': 'distanceDimension',
 	'emitter' : 'emitter',
 	'turbulenceField' : 'turbulence',
 	#'failed' : 'effector',
