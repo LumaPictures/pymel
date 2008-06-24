@@ -93,12 +93,18 @@ def getReferences(reference=None, recursive=False):
 def createReference( *args, **kwargs ):
 	"""file -reference"""
 	kwargs['reference'] = True
-	return core.FileReference(cmds.file(*args, **kwargs))
+	try:
+		return core.FileReference(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def loadReference( file, refNode, **kwargs ):
 	"""file -loadReference"""
 	kwargs['loadReference'] = refNode
-	return core.FileReference(cmds.file(file, **kwargs))
+	try:
+		return core.FileReference(cmds.file(file, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 		
 def exportAll( *args, **kwargs ):
 	"""file -exportAll"""
@@ -106,18 +112,26 @@ def exportAll( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
-	
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def exportAnim( *args, **kwargs ):
 	"""file -exportAnim"""
 	kwargs['exportAnim'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def exportAnimFromReference( *args, **kwargs ):
 	"""file -exportAnimFromReference"""
 	kwargs['exportAnimFromReference'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def exportAsReference( *args, **kwargs ):
 	"""file -exportAsReference"""
@@ -125,45 +139,69 @@ def exportAsReference( *args, **kwargs ):
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
-	return core.FileReference(cmds.file(*args, **kwargs))
-
+	try:
+		return core.FileReference(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
+	
 def exportSelected( *args, **kwargs ):
 	"""file -exportSelected"""
 	kwargs['exportSelected'] = True
 	try:
 		kwargs['type'] = _getTypeFromExtension(args[0])
 	except KeyError: pass
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 	
 def exportSelectedAnim( *args, **kwargs ):
 	"""file -exportSelectedAnim"""
 	kwargs['exportSelectedAnim'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 	
 def exportSelectedAnimFromReference( *args, **kwargs ):
 	"""file -exportSelectedAnimFromReference"""
 	kwargs['exportSelectedAnimFromReference'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def importFile( *args, **kwargs ):
 	"""file -import"""
 	kwargs['import'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def newFile( *args, **kwargs ):
 	"""file -newFile"""
 	kwargs['newFile'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 
 def openFile( *args, **kwargs ):
 	"""file -open"""
 	kwargs['open'] = True
-	return core.Path(cmds.file(*args, **kwargs))	
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg	
 
 def renameFile( *args, **kwargs ):
 	"""file -rename"""
-	kwargs['rename'] = True
-	return core.Path(cmds.file(*args, **kwargs))
+	kwargs['rename'] = args[0]
+	try:
+		return core.Path(cmds.file(**kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
 	
 def saveAs(filepath, **kwargs):
 	cmds.file( rename=filepath )
@@ -171,4 +209,7 @@ def saveAs(filepath, **kwargs):
 	try:
 		kwargs['type'] = _getTypeFromExtension(filepath)
 	except KeyError: pass
-	return core.Path(cmds.file(**kwargs) )
+	try:
+		return core.Path(cmds.file(*args, **kwargs))
+	except RuntimeError, msg:
+		raise IOError, msg
