@@ -1813,29 +1813,38 @@ class metaNode(type) :
             
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
-def wrapApiMethod( apiClassName, methodName, api, PyNode ):
+_api = __import__( 'pymel.api', globals(), locals(), [''])
+_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
+
+
+def wrapApiMethod( apiClassName, methodName, newName=None ):
     try:
         # there may be more than one method signatures per method name
-        methodInfoList = api.apiClassInfo[apiClassName][methodName]
+        methodInfoList = _api.apiClassInfo[apiClassName][methodName]
     except KeyError:
         return
     
     try:
-        method = getattr( getattr( api, apiClassName ), methodName )
+        method = getattr( getattr( _api, apiClassName ), methodName )
     except AttributeError:
         return
     
-    validInTypes = [ 'double', 'bool', 'int', 'MString', 'MObject' ]
-    validOutTypes = [ ]
-    validReturnTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
-    
-    inTypes = {     'double' : float,
+
+    inCast = {     'double' : float,
                     'bool'   : bool,
                     'int'    : int,
                     'MString': unicode,
-                    'MObject': PyNode }
-    
-    su = api.MScriptUtil()
+                    'MObject': _gen.PyNode 
+                }
+
+    returnCast = {  'double' : float,
+                    'bool'   : bool,
+                    'int'    : int,
+                    'MString': unicode,
+                    'MObject': _gen.PyNode 
+                }
+     
+    su = _api.MScriptUtil()
     
     def outInit( type ):
         return getattr( su, 'as' + util.capitalize(type) + 'Ptr' )
@@ -1845,6 +1854,15 @@ def wrapApiMethod( apiClassName, methodName, api, PyNode ):
  
     def outArrayValue( type ):
         return getattr( su, 'get' + util.capitalize(type) + 'ArrayItem' )
+    
+    initRef = {     'int'      : lambda x: su.asIntPtr(),
+                    'short'    : lambda x: su.asShortPtr(),
+                    'float'    : lambda x: su.asFloatPtr(),
+                    'double'   : lambda x: su.asDoublePtr(),
+                    'uint'     : lambda x: su.asUintPtr(),
+                    'bool'     : lambda x: su.asBoolPtr()
+                }
+    
         
     for methodInfo in methodInfoList:
         #argInfo = methodInfo['argInfo']
@@ -1852,52 +1870,73 @@ def wrapApiMethod( apiClassName, methodName, api, PyNode ):
         outArgs = methodInfo['outArgs']
         #argList = methodInfo['args']
         returnType = methodInfo['returnVal']
-        def f( self, *args, **kwargs):
-            #args = list(args)
-            count = 0
-            argList = []
-            outList = []
+        
+        try:
+            if returnType is not None:
+                assert returnType in returnCast, 'invalid return type: %s' % returnType
+            
             for name, argtype, default, direction in methodInfo['args'] :
                 if direction == 'in':
-                    argList.append( inType[argtype]( args[i] ) )
-                    count +=1
-                else:
-                    if isinstance( argtype, basestring ):
-                        val = outInit( argtype )() 
-                    else:                
-                        #val = outInit( argtype.type() )() 
-                        val = su.asDoublePtr()
-                        
-                    assert val is not None, "script util pointer is None"
-                    argList.append( val )
-                    outList.append( ( val, argtype) )
-                                        
-            print argList
-            result = method( self, *argList )
-            print "result", result
-            #return
-            if returnType:
-                result = inType[returnType]( result )
-                
-            if len(outList):
-                if result is not None:
-                    result = [result]
-                else:
-                    result = []
-                for outArg, argtype in outList:
-                    if isinstance( argtype, basestring ):
-                        result.append( outValue( argtype )( outArg ) )
-                    else:
-                        array = []
-                        getter = outArrayValue( argtype.type() )
-                        for i in range( argtype.length() ):
-                            array.append( getter( outArg, i) )
-                        result.append( array )
-                if len(result) == 1:
-                    result = result.pop()
-            return result
+                    assert argtype in inCast, 'invalid arg type: %s' % argtype
+                if direction == 'out':
+                    try:
+                        assert argtype.type() in initRef, 'invalid arg reference: %s' % argtype
+                    except AttributeError:
+                        assert argtype in initRef, 'invalid arg reference: %s' % argtype
+        except AssertionError, msg:
+            print msg
         
-        return f
+        else:    
+            def f( self, *args, **kwargs):
+                #args = list(args)
+                count = 0
+                argList = []
+                outList = []
+                for name, argtype, default, direction in methodInfo['args'] :
+                    if direction == 'in':
+                        argList.append( inType[argtype]( args[i] ) )
+                        count +=1
+                    else:
+                        if isinstance( argtype, basestring ):
+                            val = outInit( argtype )() 
+                        else:                
+                            val = outInit( argtype.type() )() 
+                            #val = su.asDoublePtr()
+                            
+                        assert val is not None, "script util pointer is None"
+                        argList.append( val )
+                        outList.append( ( val, argtype) )
+                                            
+                print argList
+                result = method( self.__apimfn__(), *argList )
+                print "result", result
+                #return
+                if returnType:
+                    result = inType[returnType]( result )
+                    
+                if len(outList):
+                    if result is not None:
+                        result = [result]
+                    else:
+                        result = []
+                    for outArg, argtype in outList:
+                        if isinstance( argtype, basestring ):
+                            result.append( outValue( argtype )( outArg ) )
+                        else:
+                            array = []
+                            getter = outArrayValue( argtype.type() )
+                            for i in range( argtype.length() ):
+                                array.append( getter( outArg, i) )
+                            result.append( array )
+                    if len(result) == 1:
+                        result = result.pop()
+                return result
+            
+            if newName:
+                f.__name__ = newName
+            else:
+                f.__name__ = methodName
+            return f
     
 def getValidApiMethods( apiClassName, api, verbose=False ):
 
