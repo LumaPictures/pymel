@@ -644,6 +644,7 @@ class ApiArrayTypeInfo(object):
         return self._type + str(self._length)
     def __repr__(self):
         return '%s(%s,%s)' % (self.__class__.__name__, self._type, self._length )
+    
 class ApiDocParser(HTMLParser):
 
     def getClassFilename(self):
@@ -875,8 +876,20 @@ class ApiDocParser(HTMLParser):
 def getMFnInfo( functionSet ):
     parser = ApiDocParser(functionSet )
     try:
-        return parser.parse()
-    except IOError: pass    
+        classInfo = parser.parse()
+    except IOError: pass  
+    else:
+        allFnMembers = classInfo.keys()
+        for member in allFnMembers:
+            if len(member) > 4 and member.startswith('set') and member[3].isupper():
+                # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+                # 'setSomething'  -->  'something'
+                origGetMethod = member[3].lower() + member[4:]
+                if origGetMethod in allFnMembers:
+                    newGetMethod = 'get' + member[3:]
+                    classInfo[member]['pymelName'] = newGetMethod
+        return classInfo             
+  
         
 #-----------------------------------------------
 #  Command Help Documentation
@@ -1736,32 +1749,46 @@ class metaNode(type) :
     def __new__(cls, classname, bases, classdict):
         
         nodeType = util.uncapitalize(classname)
-        
+        _api.addMayaType( nodeType )
         try:
             infoCmd = False
             try:
-                nodeType = nodeTypeToNodeCommand[ nodeType ]
+                nodeCmd = nodeTypeToNodeCommand[ nodeType ]
             except KeyError:
                 try:
-                    nodeType = nodeTypeToInfoCommand[ nodeType ]
+                    nodeCmd = nodeTypeToInfoCommand[ nodeType ]
                     infoCmd = True
-                except KeyError: pass
+                except KeyError: 
+                    nodeCmd = nodeType
             
             #if nodeHierarchy.children( nodeType ):
             #    print nodeType, nodeHierarchy.children( nodeType )
-            cmdInfo = cmdlist[nodeType]
+            cmdInfo = cmdlist[nodeCmd]
         except KeyError: # on cmdlist[nodeType]
             pass
         else:
             try:    
                 module = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
-                func = getattr(module, nodeType)
+                func = getattr(module, nodeCmd)
 
             except (AttributeError, TypeError):
-                func = getattr(cmds,nodeType)
+                func = getattr(cmds,nodeCmd)
             
             # add documentation
-            classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeType, cmdInfo['description'])
+            classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
+            
+            #apiMethods = []
+            #apiTypeStr = _api.MayaTypesToApiTypes().get(nodeType,None)
+            #print nodeType, apiTypeStr, apiTypeStr in _api.ApiTypesToApiClasses(), _api.MayaTypesToApiTypes().keys()
+            apiClass = _api.toApiFunctionSet( nodeType )
+            if nodeType == 'transform': print 'TRANSFORM', apiClass
+            if apiClass:
+                for methodName in _api.apiClassInfo[apiClass.__name__].keys():
+                    method = wrapApiMethod(apiClass.__name__, methodName )
+                    if method:
+                        print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                        classdict[methodName] = method
+            #else: print "could not find api class for maya type %s" % nodeType
             
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
@@ -1771,7 +1798,8 @@ class metaNode(type) :
                 
                 
                 if flagInfo.has_key('modes'):
-                    # flags which are not in maya docs will have not have a modes list unless they have passed through testNodeCmds
+                    # flags which are not in maya docs will have not have a modes list unless they 
+                    # have passed through testNodeCmds
                     #print classname, nodeType, flag
                     #continue
                     modes = flagInfo['modes']
@@ -1814,7 +1842,7 @@ class metaNode(type) :
         return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 _api = __import__( 'pymel.api', globals(), locals(), [''])
-_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
+#_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
 
 
 def wrapApiMethod( apiClassName, methodName, newName=None ):
@@ -1830,18 +1858,20 @@ def wrapApiMethod( apiClassName, methodName, newName=None ):
         return
     
 
-    inCast = {     'double' : float,
+    inCast = {      'double' : float,
+                    'float' : float,
                     'bool'   : bool,
                     'int'    : int,
                     'MString': unicode,
-                    'MObject': _gen.PyNode 
+                    #'MObject': _gen.PyNode 
                 }
 
     returnCast = {  'double' : float,
+                    'float' : float,
                     'bool'   : bool,
                     'int'    : int,
                     'MString': unicode,
-                    'MObject': _gen.PyNode 
+                    #'MObject': _gen.PyNode 
                 }
      
     su = _api.MScriptUtil()
@@ -1871,22 +1901,24 @@ def wrapApiMethod( apiClassName, methodName, newName=None ):
         #argList = methodInfo['args']
         returnType = methodInfo['returnVal']
         
+        # ensure that we can properly cast all the args and return values
         try:
             if returnType is not None:
-                assert returnType in returnCast, 'invalid return type: %s' % returnType
+                assert returnType in returnCast, '%s.%s(): cannot cast return type: %s' % (apiClassName, methodName, returnType)
             
-            for name, argtype, default, direction in methodInfo['args'] :
+            for argname, argtype, default, direction in methodInfo['args'] :
                 if direction == 'in':
-                    assert argtype in inCast, 'invalid arg type: %s' % argtype
+                    assert argtype in inCast, '%s.%s(): cannot cast arg %s of type %s' % (apiClassName, methodName, argname, argtype)
                 if direction == 'out':
                     try:
-                        assert argtype.type() in initRef, 'invalid arg reference: %s' % argtype
+                        assert argtype.type() in initRef, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
                     except AttributeError:
-                        assert argtype in initRef, 'invalid arg reference: %s' % argtype
+                        assert argtype in initRef, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
             print msg
         
-        else:    
+        else:
+            # create the function 
             def f( self, *args, **kwargs):
                 #args = list(args)
                 count = 0
@@ -1907,9 +1939,9 @@ def wrapApiMethod( apiClassName, methodName, newName=None ):
                         argList.append( val )
                         outList.append( ( val, argtype) )
                                             
-                print argList
+                #print argList
                 result = method( self.__apimfn__(), *argList )
-                print "result", result
+                #print "result", result
                 #return
                 if returnType:
                     result = inType[returnType]( result )
@@ -2051,7 +2083,10 @@ def addPyNode( module, mayaType, parentMayaType ):
     # unicode is not liked by metaNode
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+    
+    
     if hasattr( module, pyNodeTypeName ):
+        _api.addMayaType( mayaType )
         PyNodeType = getattr( module, pyNodeTypeName )
         try :
             ParentPyNode = inspect.getmro(PyNodeType)[1]
@@ -2067,6 +2102,7 @@ def addPyNode( module, mayaType, parentMayaType ):
             print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
             return      
         try:
+            
             PyNodeType = metaNode(pyNodeTypeName, (ParentPyNode,), {})
         except TypeError, msg:
             print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, parentMayaType, msg )
@@ -2080,7 +2116,7 @@ def addPyNode( module, mayaType, parentMayaType ):
     PyNodesToMayaTypes()[PyNodeType] = mayaType
     PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
 
-    module.api.addMayaType( mayaType )
+    
     
     return PyNodeType
 
