@@ -2364,8 +2364,9 @@ class DependNode( PyNode ):
         return self._name 
 
     def __apiobject__(self) :
+        "get the MDagPath for this object if it is valid"
         if api.isValidMObjectHandle(self._apiobject) :
-            return self._apiobject.object()
+            return self._apiobject
     
     def name(self, update=True) :
         if update or self._name is None:
