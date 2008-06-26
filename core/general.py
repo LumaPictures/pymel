@@ -87,7 +87,7 @@ class MelGlobals( util.Singleton, dict ):
     """ A class for synchronizing global variables between mel and python."""
     
     typeMap = {}
-    validTypes = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
+    validTypes = util.MELTYPES
     def _formatVariable(self, variable):
         # TODO : add validity check
         if not variable.startswith( '$'):
@@ -99,6 +99,9 @@ class MelGlobals( util.Singleton, dict ):
         try:
             return self.get( MelGlobals.typeMap[variable], variable )
         except KeyError:
+            info = mel.whatIs( variable ).split()
+            if len(info)==2 and info[1] == 'variable':
+                return self.get( info[0], variable )
             raise ValueError, "You must specify a type for this variable first using initVar"
         
     def __setitem__(self, variable, value):
@@ -106,6 +109,9 @@ class MelGlobals( util.Singleton, dict ):
         try:
             self.set( MelGlobals.typeMap[variable], variable, value )
         except KeyError:
+            info = mel.whatIs( variable ).split()
+            if len(info)==2 and info[1] == 'variable':
+                return self.get( info[0], variable )
             raise ValueError, "You must specify a type for this variable first using initVar"
         
     def initVar( self, type, variable ):
@@ -243,6 +249,19 @@ class Mel(object):
                 raise RuntimeError, msg
             
         return _call
+    
+    def call(self, command, *args ):
+        strArgs = map( pythonToMel, args)
+                        
+        cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
+
+        try:
+            return mm.eval(cmd)
+        except RuntimeError, msg:
+            info = self.whatIs( command )
+            if info.startswith( 'Presumed Mel procedure'):
+                raise NameError, 'Unknown Mel procedure'
+            raise RuntimeError, msg
     
     def mprint(self, *args):
         """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
