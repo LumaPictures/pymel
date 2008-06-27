@@ -20,7 +20,7 @@ from pymel.mayahook.factories import queryflag, editflag, createflag
 import pymel.api as api
 import system
 from system import namespaceInfo
-from pmtypes.mayatypes import *
+from pymel.api.wrappedtypes import *
 from pmtypes.ranges import *
 import pmtypes.path as _path
 from pymel.util.nameparse import *
@@ -1632,7 +1632,7 @@ class PyNode(ProxyUnicode):
                 
     future = listFuture
 
-
+_factories.pyNodeHandler.register(PyNode)
                     
 class ComponentArray(object):
     def __init__(self, name):

@@ -1745,7 +1745,6 @@ class metaNode(type) :
     based on info parsed from the docs on their command counterparts.
     """
 
-    
     def __new__(cls, classname, bases, classdict):
         
         nodeType = util.uncapitalize(classname)
@@ -1768,8 +1767,8 @@ class metaNode(type) :
             pass
         else:
             try:    
-                module = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
-                func = getattr(module, nodeCmd)
+                cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
+                func = getattr(cmdModule, nodeCmd)
 
             except (AttributeError, TypeError):
                 func = getattr(cmds,nodeCmd)
@@ -1780,15 +1779,17 @@ class metaNode(type) :
             #apiMethods = []
             #apiTypeStr = _api.MayaTypesToApiTypes().get(nodeType,None)
             #print nodeType, apiTypeStr, apiTypeStr in _api.ApiTypesToApiClasses(), _api.MayaTypesToApiTypes().keys()
-            apiClass = _api.toApiFunctionSet( nodeType )
-            if nodeType == 'transform': print 'TRANSFORM', apiClass
-            if apiClass:
-                for methodName in _api.apiClassInfo[apiClass.__name__].keys():
-                    method = wrapApiMethod(apiClass.__name__, methodName )
-                    if method:
-                        print "%s.%s() successfully created" % (apiClass.__name__, methodName )
-                        classdict[methodName] = method
-            #else: print "could not find api class for maya type %s" % nodeType
+            if cmdInfo['type'] != 'windows':
+                apiClass = _api.toApiFunctionSet( nodeType )
+                #if nodeType == 'transform': print 'TRANSFORM', apiClass
+                if apiClass:
+                    print "========= %s =========" % nodeType
+                    for methodName in _api.apiClassInfo[apiClass.__name__].keys():
+                        method = wrapApiMethod( apiClass, methodName )
+                        if method:
+                            #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                            classdict[methodName] = method
+                else: print "%s: NO API TYPE" % nodeType
             
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
@@ -1844,8 +1845,25 @@ class metaNode(type) :
 _api = __import__( 'pymel.api', globals(), locals(), [''])
 #_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
 
+class PyNodeHandler(util.Singleton):
+    def __init__(self):
+        self.node = None
+    def register( self, PyNode ):
+        print "PyNode Registered"
+        self.node = PyNode
+    def get(self):
+        return self.node
+    
+pyNodeHandler = PyNodeHandler()
 
-def wrapApiMethod( apiClassName, methodName, newName=None ):
+def wrapApiMethod( apiClass, methodName, newName=None ):
+    #getattr( _api, apiClassName )
+    
+    PYNODE = pyNodeHandler.get()
+
+    assert PYNODE is not None, 'Use registerPyNode prior to calling this function'
+    
+    apiClassName = apiClass.__name__
     try:
         # there may be more than one method signatures per method name
         methodInfoList = _api.apiClassInfo[apiClassName][methodName]
@@ -1853,7 +1871,7 @@ def wrapApiMethod( apiClassName, methodName, newName=None ):
         return
     
     try:
-        method = getattr( getattr( _api, apiClassName ), methodName )
+        method = getattr( apiClass, methodName )
     except AttributeError:
         return
     
@@ -1863,17 +1881,16 @@ def wrapApiMethod( apiClassName, methodName, newName=None ):
                     'bool'   : bool,
                     'int'    : int,
                     'MString': unicode,
-                    #'MObject': _gen.PyNode 
+                    'MVector': _api.wrappedtypes.Vector,
+                    'MPoint': _api.wrappedtypes.Point,
+                    'MColor': _api.wrappedtypes.Color,
+                    'MObject': PYNODE,
+                    'MDagPath' : PYNODE,
+                    'MPlug' : PYNODE
                 }
 
-    returnCast = {  'double' : float,
-                    'float' : float,
-                    'bool'   : bool,
-                    'int'    : int,
-                    'MString': unicode,
-                    #'MObject': _gen.PyNode 
-                }
-     
+    returnCast = inCast.copy()
+    
     su = _api.MScriptUtil()
     
     def outInit( type ):
