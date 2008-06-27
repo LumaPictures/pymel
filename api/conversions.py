@@ -1,23 +1,9 @@
 """ Imports Maya API methods in the 'api' namespace, and defines various utilities for Python<->API communication """
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
-from maya.cmds import about as _about
 from maya.cmds import ls as _ls
 
-# import all available Maya API methods in this module (api)
-from maya.OpenMaya import *
-from maya.OpenMayaAnim import *
-try: from maya.OpenMayaCloth import *
-except: pass
-try : from maya.OpenMayaFX import *
-except: pass
-try : from maya.OpenMayaMPx import *
-except: pass
-if not _about(batch=True) :
-    try : from maya.OpenMayaUI import *
-    except: pass
-try : from maya.OpenMayaRender import *
-except: pass
+from allapi import *
 
 import sys, inspect, warnings, timeit, time, re
 from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict

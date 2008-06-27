@@ -1,10 +1,10 @@
 """
-A wrap of Maya's MVector, MPoint, MColor, MMatrix, MTransformationMatrix, MQuaternion, MEulerRotation types
+A wrap of Maya's Vector, Point, Color, Matrix, MTransformationMatrix, Quaternion, EulerRotation types
 """
 
 # Need to derive form the api class to keep api methods working but also from generic Array class
 # to allow inter-operation
-#class MVector(api.MVector) :
+#class Vector(api.MVector) :
 #    def __str__(self):
 #        return '(%s, %s, %s)' % (self.x, self.y, self.z)
 #class MTransformationMatrix(api.MTransformationMatrix) :
@@ -12,7 +12,7 @@ A wrap of Maya's MVector, MPoint, MColor, MMatrix, MTransformationMatrix, MQuate
 #    mat = self.asMatrix()
 #        return '(%s)' % list(mat(i,j) for i in xrange(4) for j in xrange(4))
 #mt = MTransformationMatrix()
-#v = MVector(1, 2, 3)
+#v = Vector(1, 2, 3)
 #print mt
 #print v
 #mt.setTranslation(v, api.MSpace.kTransform)
@@ -23,22 +23,23 @@ import inspect
 import math, copy
 import itertools, operator, colorsys
 
-import pymel.api as api
+#import pymel.api as api
+import allapi as api
 
 import pymel.util as util
-from pymel.util.arrays import Array, Vector, Matrix, metaReadOnlyAttr
+import pymel.util.arrays as arrays
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
     def __iter__(self):
-        """ Iterates on all 3 components of a Maya api MVector """
+        """ Iterates on all 3 components of a Maya api Vector """
         for i in xrange(3) :
             yield self[i]
     type.__setattr__(api.MVector, '__iter__', __iter__)
 
 def _patchMMatrix() :
     def __iter__(self):
-        """ Iterates on all 4 rows of a Maya api MMatrix """
+        """ Iterates on all 4 rows of a Maya api Matrix """
         for r in xrange(4) :
             yield [api.MScriptUtil.getDoubleArrayItem(self[r], c) for c in xrange(4)]
     type.__setattr__(api.MMatrix, '__iter__', __iter__)
@@ -56,19 +57,19 @@ _patchMTransformationMatrix()
 
 
 
-#class MVector(api.MVector, Vector) :
-#    __metaclass__ = metaReadOnlyAttr
+#class Vector(api.MVector, arrays.Vector) :
+#    __metaclass__ = arrays.metaReadOnlyAttr
 #    stype = api.MVector
 #    ndim = 1
 #    shape = (3,)
 #    size = 3
 #    def __str__(self):
 #        return '(%s, %s, %s)' % (self.x, self.y, self.z)
-#class MPoint(api.MPoint, MVector) :
-#    __metaclass__ = metaReadOnlyAttr
+#class Point(api.MPoint, Vector) :
+#    __metaclass__ = arrays.metaReadOnlyAttr
 #    pass    
-#class MTransformationMatrix(api.MTransformationMatrix, Matrix) :
-#    __metaclass__ = metaReadOnlyAttr
+#class MTransformationMatrix(api.MTransformationMatrix, arrays.Matrix) :
+#    __metaclass__ = arrays.metaReadOnlyAttr
 #    stype = api.MTransformationMatrix
 #    ndim = 2
 #    shape = (4,4)
@@ -97,7 +98,7 @@ _patchMTransformationMatrix()
 #            Returns the default instance (of optional shape form shape) for that Array class """    
 #        return cls(api.MTransformationMatrix.identity)  
 #    def get(self):
-#        """ Wrap the MMatrix api get method """
+#        """ Wrap the Matrix api get method """
 #        mat = self.asMatrix()
 #        ptr = mat.matrix[4][4]
 #        return tuple(tuple(api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))      
@@ -105,7 +106,7 @@ _patchMTransformationMatrix()
 #        mat = self.asMatrix()
 #        return '(%s)' % list(mat(i,j) for i in xrange(4) for j in xrange(4))
 #mt = MTransformationMatrix()
-#v = MVector(1, 2, 3)
+#v = Vector(1, 2, 3)
 #print type(mt), type(v)
 #print mt
 #print v
@@ -113,7 +114,7 @@ _patchMTransformationMatrix()
 #print mt
 
 
-class MetaMayaTypeWrapper(metaReadOnlyAttr) :
+class MetaMayaTypeWrapper(arrays.metaReadOnlyAttr) :
     """ A metaclass to wrap Maya api types, with support for class constants """ 
 
 #    class ClassConstant(object):
@@ -121,7 +122,7 @@ class MetaMayaTypeWrapper(metaReadOnlyAttr) :
 #        def __init__(self, value):
 #            self.value = value
 #        def __get__(self, instance, owner):
-#            # purposedly authorize notation MColor.blue but not MColor().blue,
+#            # purposedly authorize notation Color.blue but not Color().blue,
 #            # the constants are a class property and are not defined on instances
 #            if instance is None :
 #                return owner(self.value)
@@ -194,14 +195,14 @@ class MetaMayaTypeWrapper(metaReadOnlyAttr) :
  
 # the meta class of metaMayaWrapper
 class MetaMayaArrayTypeWrapper(MetaMayaTypeWrapper) :
-    """ A metaclass to wrap Maya type classes such as MVector, MMatrix """ 
+    """ A metaclass to wrap Maya type classes such as Vector, Matrix """ 
 
     class ClassConstant(object):
         """ A data descriptor for user defined constants on the class """
         def __init__(self, value):
             self.value = value
         def __get__(self, instance, owner):
-            # purposedly authorize MColor.blue but not MColor().blue,
+            # purposedly authorize Color.blue but not Color().blue,
             # the constants are a class property and are not defined on instances
             if instance is None :
                 return owner(self.value)
@@ -224,7 +225,7 @@ class MetaMayaArrayTypeWrapper(MetaMayaTypeWrapper) :
             super(MetaMayaArrayTypeWrapper, cls).__setattr__(name, value)
            
     def __new__(mcl, classname, bases, classdict):
-        """ Create a new wrapping class for a Maya api type, such as MVector or MMatrix """
+        """ Create a new wrapping class for a Maya api type, such as Vector or Matrix """
             
         def __setattr__(self, name, value):
             """ overload __setattr__ to forbid overloading of protected class info on a class instance """
@@ -332,13 +333,13 @@ class MetaMayaArrayTypeWrapper(MetaMayaTypeWrapper) :
 
                 
 # TODO : how do we want support for n-sized vectors ? Kept the code generic in case we want to share some of it
-# Derive a 3 components MVector using api from a generic VectorN using generic methods ?
+# Derive a 3 components Vector using api from a generic VectorN using generic methods ?
                  
-class MVector(Vector):
-    """ A 3 dimensional vector class that wraps Maya's api MVector class,
-        >>> v = MVector(1, 2, 3)
-        >>> w = MVector(x=1, z=2)
-        >>> z = MVector(MVector.xAxis, z=1)
+class Vector(arrays.Vector):
+    """ A 3 dimensional vector class that wraps Maya's api Vector class,
+        >>> v = Vector(1, 2, 3)
+        >>> w = Vector(x=1, z=2)
+        >>> z = Vector(Vector.xAxis, z=1)
         """
     __metaclass__ = MetaMayaArrayTypeWrapper
     # class specific info
@@ -368,7 +369,7 @@ class MVector(Vector):
         except :
             # try a base class of self class in case it can init from that api data
             for cls in self.__class__.__mro__[1:] :
-                if issubclass(cls, MVector) :
+                if issubclass(cls, Vector) :
                     try :
                         apiData = self.__class__(cls(value)).data
                     except :
@@ -380,19 +381,19 @@ class MVector(Vector):
 
     # define the __new__ method
     def __new__(cls, *args, **kwargs):
-        """ A new instance of that MVector or subtype of MVector class """
-        obj = super(MVector, cls).__new__(cls, *args, **kwargs)
+        """ A new instance of that Vector or subtype of Vector class """
+        obj = super(Vector, cls).__new__(cls, *args, **kwargs)
         obj._data = cls.apicls()              
         return obj 
         
     def __init__(self, *args, **kwargs):
-        """ Init a MVector instance or subtype of MVector instance
-            Can pass one argument being another MVector instance , or the vector components """
+        """ Init a Vector instance or subtype of Vector instance
+            Can pass one argument being another Vector instance , or the vector components """
         if args :
             nbargs = len(args)
             if nbargs==1 and not util.isScalar(args[0]) :
                 # single argument
-                if isinstance(args[0], MVector) :
+                if isinstance(args[0], Vector) :
                     # a compatible wrapped type
                     self.data = args[0].vector
                 elif hasattr(args[0],'__iter__') :
@@ -440,7 +441,7 @@ class MVector(Vector):
 
     # wrap of list-like access methods
     def __len__(self):
-        """ MVector class is a one dimensional array of a fixed length """
+        """ Vector class is a one dimensional array of a fixed length """
         return self.size
     # API get, actually not faster than pulling _data[i] for such a short structure
     def get(self):
@@ -481,7 +482,7 @@ class MVector(Vector):
     # common operators
     def __neg__(self):
         """ u.__neg__() <==> -u
-            Returns the MVector obtained by negating every component of u """        
+            Returns the Vector obtained by negating every component of u """        
         return self.__class__(map(lambda x: -x, self))   
     def __invert__(self):
         """ u.__invert__() <==> ~u
@@ -489,10 +490,10 @@ class MVector(Vector):
         return self.__class__(map(lambda x: 1.0-x, self))      
     def __add__(self, other) :
         """ u.__add__(v) <==> u+v
-            Returns the result of the addition of u and v if v is convertible to MVector,
+            Returns the result of the addition of u and v if v is convertible to Vector,
             adds v to every component of u if v is a scalar """        
-        if isinstance(other, MVector) :
-            # return self.__class__(map( lambda x, y: x+y, self[:MVector.size], other[:MVector.size]))
+        if isinstance(other, Vector) :
+            # return self.__class__(map( lambda x, y: x+y, self[:Vector.size], other[:Vector.size]))
             # return self.__class__(self.data.__add__(other.vector))
             return difmap(operator.add, self, other)
         elif util.isScalar(other) :
@@ -501,10 +502,10 @@ class MVector(Vector):
             raise TypeError, "unsupported operand type(s) for +: '%s' and '%s'" % (util.clsname(self), util.clsname(other))    
     def __radd__(self, other) :
         """ u.__radd__(v) <==> v+u
-            Returns the result of the addition of u and v if v is convertible to MVector,
+            Returns the result of the addition of u and v if v is convertible to Vector,
             adds v to every component of u if v is a scalar """        
-        if isinstance(other, MVector) :
-            # return self.__class__(map( lambda x, y: x+y, self[:MVector.size], other[:MVector.size]))
+        if isinstance(other, Vector) :
+            # return self.__class__(map( lambda x, y: x+y, self[:Vector.size], other[:Vector.size]))
             # return self.__class__(self.data.__add__(other.vector))
             return difmap(operator.add, other, self)
         elif util.isScalar(other) :
@@ -517,12 +518,12 @@ class MVector(Vector):
         self._data = (self.__add__(other)).data
     def __sub__(self, other) :
         """ u.__sub__(v) <==> u-v
-            Returns the result of the substraction of v from u if v is a MVector instance,
+            Returns the result of the substraction of v from u if v is a Vector instance,
             substract v to every component of u if v is a scalar """        
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             # difference of two points is a vector, of a vector and a point is a point
             if len(other) > len(self) :
-                # other is a MPoint or MColor
+                # other is a Point or Color
                 return other.__class__(self.data.__sub__(other.vector))
             else :
                 return self.__class__(self.data.__sub__(other.data))                     
@@ -532,12 +533,12 @@ class MVector(Vector):
             raise TypeError, "unsupported operand type(s) for -: '%s' and '%s'" % (util.clsname(self), util.clsname(other))    
     def __rsub__(self, other) :
         """ u.__rsub__(v) <==> v-u
-            Returns the result of the substraction of u from v if v is a MVector instance,
+            Returns the result of the substraction of u from v if v is a Vector instance,
             replace every component c of u by v-c if v is a scalar """        
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             # difference of two points is a vector, of a vector and a point is a point
             if len(other) > len(self) :
-                # other is a MPoint or MColor
+                # other is a Point or Color
                 return other.__class__(other.data.__sub__(self.data))
             else :
                 return self.__class__(other.data.__sub__(self.data))                     
@@ -552,7 +553,7 @@ class MVector(Vector):
     def __div__(self, other):
         """ u.__div__(v) <==> u/v
             Returns the result of the element wise division of each component of u by the
-            corresponding component of v if both are convertible to MVector,
+            corresponding component of v if both are convertible to Vector,
             divide every component of u by v if v is a scalar """  
         if hasattr(other, '__iter__') :
             lm = min(len(other), len(self))
@@ -565,7 +566,7 @@ class MVector(Vector):
     def __rdiv__(self, other):
         """ u.__rdiv__(v) <==> v/u
             Returns the result of the element wise division of each component of v by the
-            corresponding component of u if both are convertible to MVector,
+            corresponding component of u if both are convertible to Vector,
             invert every component of u and multiply it by v if v is a scalar """
         if hasattr(other, '__iter__') :
             lm = min(len(other), len(self))
@@ -592,14 +593,14 @@ class MVector(Vector):
     # TODO : do we really want to map dot product here as api does, overriding possibility for element wise mult ?
     def __mul__(self, other) :
         """ u.__mul__(v) <==> u*v
-            The multiply '*' operator is mapped to the dot product when both objects are instances of MVector,
-            to the transformation of u by matrix v when v is an instance of MMatrix,
+            The multiply '*' operator is mapped to the dot product when both objects are instances of Vector,
+            to the transformation of u by matrix v when v is an instance of Matrix,
             and to element wise multiplication when v is a scalar or a sequence """
         if isinstance(other, self.__class__) :
             # dot product in case of a vector
             return self.data.__mul__(other.data)
-        elif isinstance(other, MMatrix) :
-            # MMatrix transformation
+        elif isinstance(other, Matrix) :
+            # Matrix transformation
             return self.__class__(self.data.__mul__(other.matrix))
         elif util.isScalar(other) :
             # multiply all components by a scalar
@@ -613,58 +614,58 @@ class MVector(Vector):
             raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (util.clsname(self), util.clsname(other))    
     def __rmul__(self, other):
         """ u.__rmul__(v) <==> v*u
-            This is equivalent to u*v thus u.__mul__(v) unless v is a MMatrix, in that case this operation
+            This is equivalent to u*v thus u.__mul__(v) unless v is a Matrix, in that case this operation
             is not defined """ 
-        # not possible with a MMatrix
+        # not possible with a Matrix
         if isinstance(other, self.__class__) or util.isScalar(other) or util.isSequence(other) : 
             # in these cases it's commutative         
             return self.__mul__(other)
-        elif isinstance (other, MMatrix) :
-            # left side MMatrix
+        elif isinstance (other, Matrix) :
+            # left side Matrix
             try :
-                m = MMatrix(other)
+                m = Matrix(other)
             except :
                 return self.__mul__(other)
         raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (util.clsname(other), util.clsname(self))  
     def __imul__(self, other):
         """ u.__imul__(v) <==> u *= v
-            Valid for MVector * MMatrix multiplication, in place transformation of u by MMatrix v
-            or MVector by scalar multiplication only """
-        if isinstance(other, MMatrix) :
+            Valid for Vector * Matrix multiplication, in place transformation of u by Matrix v
+            or Vector by scalar multiplication only """
+        if isinstance(other, Matrix) :
             self._data = self.data.__mul__(other.matrix)
         elif util.isScalar(other) :
             self._data = self.__class__(map(lambda x: x.__mul__(other), self)).data
         else :
-            self._data = self.__mul__(MMatrix(other)).data             
+            self._data = self.__mul__(Matrix(other)).data             
     # special operators
     def __xor__(self, other):
         """ u.__xor__(v) <==> u^v
             Defines the cross product operator between two vectors,
-            if v is a MMatrix, u^v is equivalent to u.transformAsNormal(v) """
-        if isinstance(other, MVector) :
+            if v is a Matrix, u^v is equivalent to u.transformAsNormal(v) """
+        if isinstance(other, Vector) :
             return self.__class__(self.vector.__xor__(other.vector))   
-        elif isinstance(other, MMatrix) :
+        elif isinstance(other, Matrix) :
             return self.__class__(self.vector.transformAsNormal(other.matrix))
         else :
             raise TypeError, "unsupported operand type(s) for ^: '%s' and '%s'" % (util.clsname(self), util.clsname(other))
     def __ixor__(self, other):
         """ u.__xor__(v) <==> u^=v
-            Inplace cross product or transformation by inverse transpose of v is v is a MMatrix """        
+            Inplace cross product or transformation by inverse transpose of v is v is a Matrix """        
         self._data = self.__xor__(other).data 
         
-    # wrap of API MVector methods    
+    # wrap of API Vector methods    
     def isEquivalent(self, other, tol=api.MVector_kTol):
-        """ Returns true if both arguments considered as MVector are equal  within the specified tolerance """
+        """ Returns true if both arguments considered as Vector are equal  within the specified tolerance """
         try :
-            return bool(self._data.isEquivalent(MVector(other)._data, tol))
+            return bool(self._data.isEquivalent(Vector(other)._data, tol))
         except :
-            raise TypeError, "%s is not convertible to a MVector, or tolerance %s is not convertible to a number, check help(MVector)" % (other, tol) 
+            raise TypeError, "%s is not convertible to a Vector, or tolerance %s is not convertible to a number, check help(Vector)" % (other, tol) 
     def isParallel(self, other, tol=api.MVector_kTol):
-        """ Returns true if both arguments considered as MVector are parallel within the specified tolerance """
+        """ Returns true if both arguments considered as Vector are parallel within the specified tolerance """
         try :
-            return bool(self._data.isParallel(MVector(other)._data, tol))
+            return bool(self._data.isParallel(Vector(other)._data, tol))
         except :
-            raise TypeError, "%r is not convertible to a MVector, or tolerance %r is not convertible to a number, check help(MVector)" % (other, tol) 
+            raise TypeError, "%r is not convertible to a Vector, or tolerance %r is not convertible to a number, check help(Vector)" % (other, tol) 
     def distanceTo(self, other):
         return (other-self).length()
     def length(self):
@@ -677,18 +678,18 @@ class MVector(Vector):
         """ Performs an in place normalization of self """
         self.data = self.vector.normalize()
     def angle(self, other):
-        """  Returns the angle in radians between both arguments considered as MVector """
-        if isinstance(other, MVector) :
+        """  Returns the angle in radians between both arguments considered as Vector """
+        if isinstance(other, Vector) :
             return self.vector.angle(other.vector)
         else :
-            raise TypeError, "%r is not convertible to a MVector, check help(MVector)" % other 
+            raise TypeError, "%r is not convertible to a Vector, check help(Vector)" % other 
     def rotateTo(self, other):
-        """ Returns the Quaternion that represents the rotation of this MVector into the other
-            argument considered as MVector about their mutually perpendicular axis """
-        if isinstance(other, MVector) :
+        """ Returns the Quaternion that represents the rotation of this Vector into the other
+            argument considered as Vector about their mutually perpendicular axis """
+        if isinstance(other, Vector) :
             return Quaternion(self.vector.rotateTo(other.vector))
         else :
-            raise TypeError, "%r is not a MVector instance" % other
+            raise TypeError, "%r is not a Vector instance" % other
     # TODO 
     def rotateBy(self, *args):
         pass    
@@ -698,23 +699,23 @@ class MVector(Vector):
             If this vector is treated as a normal vector then it needs to be transformed by
             post multiplying it by the inverse transpose of the transformation matrix.
             This method will apply the proper transformation to the vector as if it were a normal. """
-        if isinstance(other, MMatrix) :
+        if isinstance(other, Matrix) :
             return self.__class__(self.vector.transformAsNormal(other.matrix))
         else :
-            raise TypeError, "%r is not a MMatrix instance" % matrix
+            raise TypeError, "%r is not a Matrix instance" % matrix
     # additional methods
     def dot(self, other):
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             lm = min(len(self), len(other))
             return reduce(operator.add, map(operator.mul, self[:lm], other[:lm]), 0.0)
         else :
-            raise TypeError, "%s is not a MVector instance" % other        
+            raise TypeError, "%s is not a Vector instance" % other        
     def cross(self, other):
         """ cross product, only defined for two 3D vectors """
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             return self.__class__(self.vector.__xor__(other.vector))  
         else :
-            raise TypeError, "%r is not a MVector instance" % other                 
+            raise TypeError, "%r is not a Vector instance" % other                 
     def sqLength(self):
         """ Squared length of vector """
         return self.vector*self.vector
@@ -724,20 +725,20 @@ class MVector(Vector):
     def axis(self, other, normalize=False):
         """ Returns the axis of rotation from u to v as the vector n = u ^ v
             if the normalize keyword argument is set to True, n is also normalized """
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             if normalize :
                 return (self ^ other).normal()
             else :
                 return self ^ other
         else :
-            raise TypeError, "%r is not a MVector instance" % other                  
+            raise TypeError, "%r is not a Vector instance" % other                  
     def basis(self, other, normalize=False): 
-        """ Returns the basis MMatrix built using u, v and u^v as coordinate axis,
+        """ Returns the basis Matrix built using u, v and u^v as coordinate axis,
             The u, v, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
                 n = u ^ v
                 v = n ^ u
             if the normalize keyword argument is set to True, the vectors are also normalized """
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             if normalize :
                 u = self.normal()
                 n = u ^ other.normal()
@@ -746,21 +747,21 @@ class MVector(Vector):
                 u = self
                 n = u ^ other
                 v = n ^ u
-            return MMatrix(u, v, n, mode='basis')
+            return Matrix(u, v, n, mode='basis')
         else :
-            raise TypeError, "%r is not a MVector instance" % other
+            raise TypeError, "%r is not a Vector instance" % other
     def cotan(self, other):
         """ cotangent of the (self, other) angle """
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             return (self*self-other*self)/(self^other).length();
         else :
-            raise TypeError, "%r is not a MVector instance" % other    
+            raise TypeError, "%r is not a Vector instance" % other    
     def blend(self, other, blend=0.5):
-        """ u.blend(v, blend) returns the result of blending from MVector instance u to v according to
-            either a scalar blend where it yields u*(1-blend) + v*blend MVector,
+        """ u.blend(v, blend) returns the result of blending from Vector instance u to v according to
+            either a scalar blend where it yields u*(1-blend) + v*blend Vector,
             or a an iterable of up to 3 (x, y, z) independent blend factors """ 
-        if isinstance(other, MVector) :
-            other = MVector(other)
+        if isinstance(other, Vector) :
+            other = Vector(other)
             if util.isScalar(blend) :
                 l = (self*(1-blend) + other*blend)[:len(other)] + self[len(other):len(self)]
                 return self.__class__(*l)            
@@ -771,7 +772,7 @@ class MVector(Vector):
                 return self.__class__(*l)
 
             else :
-                raise TypeError, "blend can only be an iterable (list, tuple, MVector...) of scalars or a scalar, not a %s" % util.clsname(blend)
+                raise TypeError, "blend can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(blend)
         else :
             raise TypeError, "%s is not convertible to a %s, check help(%s)" % (util.clsname(other), util.clsname(self), util.clsname(self))          
     def clamp(self, low=0.0, high=1.0):
@@ -783,17 +784,17 @@ class MVector(Vector):
         elif hasattr(low, '__iter__') : 
             low = list(low)[:ln]
         else :
-            raise TypeError, "'low' can only be an iterable (list, tuple, MVector...) of scalars or a scalar, not a %s" % util.clsname(blend) 
+            raise TypeError, "'low' can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(blend) 
         if util.isScalar(high) :
             high = [high]*ln
         elif hasattr(high, '__iter__') : 
             high = list(high)[:ln]
         else :
-            raise TypeError, "'high' can only be an iterable (list, tuple, MVector...) of scalars or a scalar, not a %s" % util.clsname(blend)         
+            raise TypeError, "'high' can only be an iterable (list, tuple, Vector...) of scalars or a scalar, not a %s" % util.clsname(blend)         
         lm = min(ln, len(low), len(high))             
         return self.__class__(map(clamp, self, low, high))
            
-class MPoint(MVector):
+class Point(Vector):
     apicls = api.MPoint
     cnames = ('x', 'y', 'z', 'w')
     shape = (4,)
@@ -809,29 +810,29 @@ class MPoint(MVector):
     def color(self):
         return api.MColor(self._data[0], self._data[1], self._data[2], self._data[3])   
 
-    # base methods are inherited from MVector
+    # base methods are inherited from Vector
     # define the __new__ method
     def __new__(cls, *args, **kwargs):
-        """ A new instance of that MVector or subtype of MVector class """
-        obj = super(MVector, cls).__new__(cls, *args, **kwargs)
+        """ A new instance of that Vector or subtype of Vector class """
+        obj = super(Vector, cls).__new__(cls, *args, **kwargs)
         obj._data = cls.apicls()              
         return obj 
         
     def __init__(self, *args, **kwargs):
-        """ Init a MVector instance or subtype of MVector instance
-            Can pass one argument being another MVector instance , or the vector components """
-        MVector.__init__(self, *args, **kwargs)
+        """ Init a Vector instance or subtype of Vector instance
+            Can pass one argument being another Vector instance , or the vector components """
+        Vector.__init__(self, *args, **kwargs)
                
     # modified operators
     def __sub__(self, other) :
         """ u.__sub__(v) <==> u-v
-            Returns the result of the substraction of v from u if v is a MVector instance,
+            Returns the result of the substraction of v from u if v is a Vector instance,
             substract v to every component of u if v is a scalar.
-            The substraction of two Points yields a MVector, of a MPoint and a MVector yields a MPoint """        
-        if isinstance(other, MVector) :
+            The substraction of two Points yields a Vector, of a Point and a Vector yields a Point """        
+        if isinstance(other, Vector) :
             # difference of two points is a vector, of a vector and a point is a point
-            if type(other) is MPoint :
-                return MVector(self.point.__sub__(other.point))
+            if type(other) is Point :
+                return Vector(self.point.__sub__(other.point))
             else :
                 return self.__class__(self.data.__sub__(other.data))                     
         elif util.isScalar(other) :
@@ -840,13 +841,13 @@ class MPoint(MVector):
             raise TypeError, "unsupported operand type(s) for -: '%s' and '%s'" % (util.clsname(self), util.clsname(other))    
     def __rsub__(self, other) :
         """ u.__rsub__(v) <==> v-u
-            Returns the result of the substraction of u from v if v is a MVector instance,
+            Returns the result of the substraction of u from v if v is a Vector instance,
             replace every component c of u by v-c if v is a scalar """        
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             # difference of two points is a vector, of a vector and a point is a point
-            if type(other) is MPoint :
-                # other is a MPoint or MColor
-                return MVector(other.data.__sub__(self.data))
+            if type(other) is Point :
+                # other is a Point or Color
+                return Vector(other.data.__sub__(self.data))
             else :
                 return self.__class__(other.data.__sub__(self.data))                     
         elif util.isScalar(other) :
@@ -875,7 +876,7 @@ class MPoint(MVector):
             for some scale factor W != 0, then it is reset to be P(W*x, W*y, W*z, W). """
         self.data = self.point.homogenize()
     def distanceTo (self, other):
-        """ Return the distance between this MPoint and the MPoint passed as an argument """
+        """ Return the distance between this Point and the Point passed as an argument """
         if isinstance(other, self.__class__) :
             return self.point.distanceTo (self.__class__(other)._data)
         else :
@@ -898,13 +899,13 @@ class MPoint(MVector):
         # tol = kwargs.get('tol', api.MPoint_kTol)
         pass
     def center(self, *args): 
-        """ p.center(q, r, s (...)) returns the MPoint that is the barycenter of p, q, r, s (...) """
+        """ p.center(q, r, s (...)) returns the Point that is the barycenter of p, q, r, s (...) """
         pass
     def bWeights(self, *args): 
         """ p.barycenter(p0, p1, (...), pn) returns barycentric weights so that  """
         pass                
     
-class MColor(MPoint):
+class Color(Point):
     apicls = api.MColor
     cnames = ('r', 'g', 'b', 'a')
     shape = (4,)
@@ -944,28 +945,28 @@ class MColor(MPoint):
     
     @property
     def rgb(self):
-        """ returns the tuple of the r, g, b MColor components """
+        """ returns the tuple of the r, g, b Color components """
         return tuple(self[:3])
     @property
     def hsv(self):
-        """ returns the tuple of the h, s, v MColor components """
+        """ returns the tuple of the h, s, v Color components """
         return self.__class__.rgbtohsv(self[:3])
     @property
     def h(self):
-        """ returns the tuple of the h, s, v MColor components """
+        """ returns the tuple of the h, s, v Color components """
         return self.__class__.rgbtohsv(self[:3])[0]
     @property
     def s(self):
-        """ returns the tuple of the h, s, v MColor components """
+        """ returns the tuple of the h, s, v Color components """
         return self.__class__.rgbtohsv(self[:3])[1]
     @property
     def v(self):
-        """ returns the tuple of the h, s, v MColor components """
+        """ returns the tuple of the h, s, v Color components """
         return self.__class__.rgbtohsv(self[:3])[2]
                             
     def __init__(self, *args, **kwargs):
-        """ Init a MColor instance
-            Can pass one argument being another MColor instance , or the color components """
+        """ Init a Color instance
+            Can pass one argument being another Color instance , or the color components """
          
         mode = kwargs.get('mode', None)
         # can also use the form <componentname>=<number>
@@ -1004,7 +1005,7 @@ class MColor(MPoint):
             ## Result:  1.0 240.0 1.0 1.0  #
             #colorsys.hsv_to_rgb(0.66666666666666663, 1.0, 1.0)
             ## Result: (0.0, 0.0, 1.0) #  
-        # we'll use MColor only to store RGB values internally and do the conversion a read/write if desired
+        # we'll use Color only to store RGB values internally and do the conversion a read/write if desired
         # which I think make more sense anyway       
         # quantize (255, 65535, no quantize means colors are 0.0-1.0 float values)
         quantize = kwargs.get('quantize', None)
@@ -1013,17 +1014,17 @@ class MColor(MPoint):
                 quantize = float(quantize)
             except :
                 raise ValueError, "quantize must be a numeric value, not %s" % (util.clsname(quantize))   
-        # removed all catching to get direct api errors until api MColor has evolved a bit more
+        # removed all catching to get direct api errors until api Color has evolved a bit more
         if args :
             nbargs = len(args)
-            # TODO : differentiate between MColor(1) that takes 1 for alpha (so is api) and MColor([1]) ?
+            # TODO : differentiate between Color(1) that takes 1 for alpha (so is api) and Color([1]) ?
             if nbargs==1 :
                 # single argument
-                if isinstance(args[0], MVector) :
+                if isinstance(args[0], Vector) :
                     # copy constructor
                     self.data = args[0].color
                 elif hasattr(args[0],'__iter__') :
-                    # iterable, try to init on elements, will catch MVector and MPoint as well
+                    # iterable, try to init on elements, will catch Vector and Point as well
                     self.__init__(*args[0], **kwargs)
                 elif util.isScalar(args[0]) :
                     c = float(args[0])
@@ -1087,17 +1088,17 @@ class MColor(MPoint):
             
     # overriden operators
     # action depends on second object type
-    # TODO : would be nice to define LUT classes and allow MColor * LUT transform
+    # TODO : would be nice to define LUT classes and allow Color * LUT transform
     def __mul__(self, other) :
         """ u.__mul__(v) <==> u*v
-            The multiply '*' operator is mapped to element wise multiplication product when both objects are MColor,
-            to the transformation of u by matrix v when v is an instance of MMatrix,
+            The multiply '*' operator is mapped to element wise multiplication product when both objects are Color,
+            to the transformation of u by matrix v when v is an instance of Matrix,
             and to element wise multiplication when v is a scalar or a sequence """
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             # element wise mult in case of Colors
-            return self.__class__(map(lambda x,y:x*y, self, MColor(other)))
-        elif isinstance(other, MMatrix) :
-            # MMatrix transformation, do we need that ?
+            return self.__class__(map(lambda x,y:x*y, self, Color(other)))
+        elif isinstance(other, Matrix) :
+            # Matrix transformation, do we need that ?
             return self.__class__(self.data.__mul__(other.matrix))
         elif util.isScalar(other) :
             # multiply all components by a scalar
@@ -1111,40 +1112,40 @@ class MColor(MPoint):
             raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (util.clsname(self), util.clsname(other))    
     def __rmul__(self, other):
         """ u.__rmul__(v) <==> v*u
-            This is equivalent to u*v thus u.__mul__(v) unless v is a MMatrix, in that case this operation
+            This is equivalent to u*v thus u.__mul__(v) unless v is a Matrix, in that case this operation
             is not defined """ 
-        # not possible with a MMatrix
-        if isinstance(other, MVector) or util.isScalar(other) or util.isSequence(other) : 
+        # not possible with a Matrix
+        if isinstance(other, Vector) or util.isScalar(other) or util.isSequence(other) : 
             # in these cases it's commutative         
             return self.__mul__(other)
-        elif isinstance (other, MMatrix) :
-            # left side MMatrix
+        elif isinstance (other, Matrix) :
+            # left side Matrix
             try :
-                m = MMatrix(other)
+                m = Matrix(other)
             except :
                 return self.__mul__(other)
         raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (util.clsname(other), util.clsname(self))  
     def __imul__(self, other):
         """ u.__imul__(v) <==> u *= v
-            Assgin to u the result of u.__mul__(v), see MColor.__mul__ """
+            Assgin to u the result of u.__mul__(v), see Color.__mul__ """
         self._data = self.__mul__(other).data
              
     # additionnal methods, to be extended
     def over(self, other):
         """ c1.over(c2): Composites c1 over other c2 using c1's alpha, the resulting color has the alpha of c2 """
-        if isinstance(other, MVector) :
-            return self.__class__(MVector(self)*self.a + MColor(other))               
+        if isinstance(other, Vector) :
+            return self.__class__(Vector(self)*self.a + Color(other))               
         else :
-            raise TypeError, "%s is not convertible to a MColor, check help(%s)" % (util.clsname(other), util.clsname(self))
-    # return MVector instead ? Keeping alpha doesn't make much sense
+            raise TypeError, "%s is not convertible to a Color, check help(%s)" % (util.clsname(other), util.clsname(self))
+    # return Vector instead ? Keeping alpha doesn't make much sense
     def premult(self):
-        """ Premultiply MColor r, g and b by it's alpha and resets alpha to 1.0 """
-        return self.__class__(MVector(self)*self.a)               
+        """ Premultiply Color r, g and b by it's alpha and resets alpha to 1.0 """
+        return self.__class__(Vector(self)*self.a)               
     def blend(self, other, blend):
         """ c1.blend(c2, b) blends from color c1 to c2 according to
             either a scalar b where it yields c1*(1-b) + c2*b color,
             or a an iterable of up to 4 (r, g, b, a) independant blend factors """ 
-        if isinstance(other, MVector) :
+        if isinstance(other, Vector) :
             # len(other) <= len(self)            
             if util.isScalar(blend) :
                 lm = len(other)
@@ -1157,11 +1158,11 @@ class MColor(MPoint):
                 return self.__class__(*l)
 
             else :
-                raise TypeError, "blend can only be a MVector or a scalar, not a %s" % util.clsname(blend)
+                raise TypeError, "blend can only be a Vector or a scalar, not a %s" % util.clsname(blend)
         else :
-            raise TypeError, "%s is not convertible to a MColor, check help(%s)" % (util.clsname(other), util.clsname(self))            
+            raise TypeError, "%s is not convertible to a Color, check help(%s)" % (util.clsname(other), util.clsname(self))            
     def gamma(self, gamma):
-        """ c.gamma(g) applies gamma correction g to MColor c, g can be a scalar and then will be applied to r, g, b
+        """ c.gamma(g) applies gamma correction g to Color c, g can be a scalar and then will be applied to r, g, b
             or an iterable of up to 4 (r, g, b, a) independant gamma correction values """             
         if hasattr(gamma, '__iter__') : 
             gamma = list(gamma)
@@ -1169,10 +1170,10 @@ class MColor(MPoint):
             l = map(lambda x,y:x**(1/y), self[:lm], gamma[:lm]) + self[lm:len(self)]
             return self.__class__(*l)
         elif util.isScalar(gamma) :
-            l = map(lambda x:x**(1/gamma), self[:MVector.apiSize]) + self[MVector.apiSize:len(self)]
+            l = map(lambda x:x**(1/gamma), self[:Vector.apiSize]) + self[Vector.apiSize:len(self)]
             return self.__class__(*l)
         else :
-            raise TypeError, "gamma can only be a MVector or a scalar, not a %s" % util.clsname(gamma)
+            raise TypeError, "gamma can only be a Vector or a scalar, not a %s" % util.clsname(gamma)
   
 # For row, column order, see the definition of a MTransformationMatrix in docs :
 # T  = |  1    0    0    0 |
@@ -1191,8 +1192,8 @@ class MColor(MPoint):
 # 3.0  
 
 
-class MMatrix(Matrix):
-    """ A 4x4 transformation matrix based on api MMatrix 
+class Matrix(arrays.Matrix):
+    """ A 4x4 transformation matrix based on api Matrix 
         >>> v = self.__class__(1, 2, 3)
         >>> w = self.__class__(x=1, z=2)
         >>> z = self.__class__(api.Mself.__class__.xAxis, z=1)
@@ -1223,8 +1224,8 @@ class MMatrix(Matrix):
         return self.tranform.eulerRotation() 
 
     def __init__(self, *args, **kwargs):
-        """ Init a MMatrix instance
-            Can pass one argument being another MMatrix instance , or the MMatrix components """
+        """ Init a Matrix instance
+            Can pass one argument being another Matrix instance , or the Matrix components """
         self._data = None
         if args :
             nbargs = len(args)
@@ -1287,25 +1288,25 @@ class MMatrix(Matrix):
                 msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", self.__class__.cnames, l))
                 raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (util.clsname(self), msg, util.clsname(self))
             
-    # base methods derived from Matrix         
+    # base methods derived from arrays.Matrix         
 
     # wrap of list-like access methods
     def __len__(self):
-        """ MMatrix class has a fixed length """
+        """ Matrix class has a fixed length """
         return self.size
     def get(self):
-        """ Wrap the MMatrix api get method """
+        """ Wrap the Matrix api get method """
         ptr = self.matrix.matrix[4][4]
         return tuple(tuple(api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))
         
     @property
     def row(self):
-        """ Iterator on the MMatrix rows """
+        """ Iterator on the Matrix rows """
         return self.axisiter(0)
         # return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
     @property
     def column(self):
-        """ Iterator on the MMatrix columns """
+        """ Iterator on the Matrix columns """
         return self.axisiter(1)
         #return [[self.matrix(r, c) for r in xrange(self.__class__.shape[0])] for c in range(self.__class__.shape[1])]
 #    @property
@@ -1408,12 +1409,12 @@ class MMatrix(Matrix):
                     self[i,c] = value[v]
 
     def __iter__(self):
-        """ Default MMatrix iterators iterates on rows """
+        """ Default Matrix iterators iterates on rows """
         for r in xrange(self.__class__.shape[0]) :
             ptr = self.matrix[r]
             yield tuple(api.MScriptUtil.getDoubleArrayItem(ptr, c) for c in xrange(self.__class__.shape[1]))         
     def __contains__(self, value):
-        """ True if at least one of the MMatrix components is equal to the argument,
+        """ True if at least one of the Matrix components is equal to the argument,
             can test for the presence of a complete row if argument is a row sequence """
         if util.isScalar(value) :
             return value in self.flat
@@ -1447,9 +1448,9 @@ class MMatrix(Matrix):
         return self.__class__(self.matrix.inverse())  
     def __add__(self, other):
         """ u.__add__(v) <==> u+v
-            Returns the result of the addition of u and v if v is convertible to MMatrix,
+            Returns the result of the addition of u and v if v is convertible to Matrix,
             adds v to every component of u if v is a scalar """             
-        if instance(other, MMatrix) :
+        if instance(other, Matrix) :
             return self.__class__(self.matrix + other.matrix)
         elif util.isScalar(other) :
             return self.__class__(map( lambda x: x+other, self))        
@@ -1457,9 +1458,9 @@ class MMatrix(Matrix):
             raise TypeError, "unsupported operand type(s) for +: '%s' and '%s'" % (util.clsname(self), util.clsname(other))          
     def __radd__(self, other) :
         """ u.__radd__(v) <==> v+u
-            Returns the result of the addition of u and v if v is convertible to MVector,
+            Returns the result of the addition of u and v if v is convertible to Vector,
             adds v to every component of u if v is a scalar """        
-        if instance(other, MMatrix) :
+        if instance(other, Matrix) :
             return self.__class__(other.matrix + self.matrix)
         elif util.isScalar(other) :
             return self.__class__(map( lambda x: x+other, self))        
@@ -1470,7 +1471,7 @@ class MMatrix(Matrix):
             In place addition of u and v, see __add__ """
         self = self.__add__(other)
     def __sub__(self,other):
-        if instance(other, MMatrix) :
+        if instance(other, Matrix) :
             return self.__class__(self.matrix - other.matrix)
         elif util.isScalar(other) :
             return self.__class__(map( lambda x: x+other, self))  
@@ -1482,12 +1483,12 @@ class MMatrix(Matrix):
     def __mul__(self, other):
         if isinstance(other, self.__class__) :
             return self.__class__(self.matrix * other.matrix)
-        elif isinstance(other, MMatrix) :
-            return MMatrix(self.matrix * other.matrix)
+        elif isinstance(other, Matrix) :
+            return Matrix(self.matrix * other.matrix)
         elif util.isScalar(other) :
             return self.__class__(map( lambda x: x*other, self))             
         elif isinstance(other, Vector3):
-            # pre multiply a row by a MMatrix
+            # pre multiply a row by a Matrix
             pass
         else :            
             raise TypeError, "unsupported operand type(s) for *: '%s' and '%s'" % (util.clsname(self), util.clsname(other)) 
@@ -1497,9 +1498,9 @@ class MMatrix(Matrix):
 #    def __div__(self, other):
 #        """ u.__div__(v) <==> u/v
 #            Returns the result of the element wise division of each component of u by the
-#            corresponding component of v if both are convertible to MVector,
+#            corresponding component of v if both are convertible to Vector,
 #            divide every component of u by v if v is a scalar """  
-#        if isinstance(other, MVector) :
+#        if isinstance(other, Vector) :
 #            return self.__class__(map( lambda x, y: x/y, self, other))
 #        elif util.isScalar(other) :
 #            return self.__class__(self.__class__.api.__div__(self._data,other))
@@ -1507,9 +1508,9 @@ class MMatrix(Matrix):
 #    def __rdiv__(self, other):
 #        """ u.__rdiv__(v) <==> v/u
 #            Returns the result of the element wise division of each component of v by the
-#            corresponding component of u if both are convertible to MVector,
+#            corresponding component of u if both are convertible to Vector,
 #            invert every component of u and multiply it by v if v is a scalar """
-#        if isinstance(other, MVector) :
+#        if isinstance(other, Vector) :
 #            return other.__class__(map( lambda x, y: x/y, self, other))
 #        elif util.isScalar(other) :
 #            return self.__class__(map( lambda y: other/y, self))
@@ -1533,9 +1534,9 @@ class MMatrix(Matrix):
 #                pass
 #        return False 
     def __eq__(self,other):
-        if isinstance(other, MMatrix) :
+        if isinstance(other, Matrix) :
             return self.matrix == other.matrix
-#        elif isinstance(other, MMatrix) :
+#        elif isinstance(other, Matrix) :
 #            return self.flat == other.flat
         else :
             return false
@@ -1549,48 +1550,48 @@ class MMatrix(Matrix):
     def setToProduct ( self, left, right ) :
         self = self.__class__(left * right)
     def transpose(self):
-        """ Returns the transposed MMatrix """
+        """ Returns the transposed Matrix """
         return self.__class__(self.matrix.transpose())
     def inverse(self):
-        """ Returns the inverse MMatrix """
+        """ Returns the inverse Matrix """
         return self.__class__(self.matrix.inverse())
     def adjoint(self):
-        """ Returns the adjoint (conjugate transpose, Hermitian transpose) MMatrix """
+        """ Returns the adjoint (conjugate transpose, Hermitian transpose) Matrix """
         return self.__class__(self.matrix.adjoint())
     def homogenize(self):
-        """ Returns a homogenized version of the MMatrix """
+        """ Returns a homogenized version of the Matrix """
         return self.__class__(self.matrix.homogenize())
     def det4x4(self):
-        """ Returns the 4x4 determinant of this MMatrix instance """
+        """ Returns the 4x4 determinant of this Matrix instance """
         return self.matrix.det4x4()  
     det = det4x4
     def det3x3(self):
-        """ Returns the determinant of the upper left 3x3 submatrix of this MMatrix instance,
+        """ Returns the determinant of the upper left 3x3 submatrix of this Matrix instance,
             it's the same as doing det(m[0:3, 0:3]) """
         return self.matrix.det3x3()       
     def isEquivalent (self, other, tol = api.MMatrix_kTol) :
-        """ Returns true if both arguments considered as MMatrix are equal  within the specified tolerance """
+        """ Returns true if both arguments considered as Matrix are equal  within the specified tolerance """
         try :
-            return bool(self.matrix.isEquivalent(MMatrix(other).matrix, tol))
+            return bool(self.matrix.isEquivalent(Matrix(other).matrix, tol))
         except :
-            raise TypeError, "%s is not convertible to a MMatrix, or tolerance %s is not convertible to a number, check help(MMatrix)" % (other, tol)     
+            raise TypeError, "%s is not convertible to a Matrix, or tolerance %s is not convertible to a number, check help(Matrix)" % (other, tol)     
     def isSingular(self) : 
-        """ Returns True if the given MMatrix is singular """
+        """ Returns True if the given Matrix is singular """
         return bool(self.matrix.isSingular()) 
  
     # additionnal methods
  
     def base(self) :
-        """ Returns the x, y, z base as transformed by this MMatrix """
-        u = MVector.xAxis * self
-        v = MVector.yAxis * self
-        n = MVector.zAxis * self
+        """ Returns the x, y, z base as transformed by this Matrix """
+        u = Vector.xAxis * self
+        v = Vector.yAxis * self
+        n = Vector.zAxis * self
         return u, v, n    
     def blend(self, other=None, blend=0.5):
-        """ Returns a 0.0-1.0 scalar weight blend between self and other MMatrix """
+        """ Returns a 0.0-1.0 scalar weight blend between self and other Matrix """
         if other is None :
             other = self.__class__()
-        if isinstance(other, MMatrix) :
+        if isinstance(other, Matrix) :
             # len(other) <= len(self)            
             if util.isScalar(blend) :
                 w = float(blend)
@@ -1598,7 +1599,7 @@ class MMatrix(Matrix):
             else :
                 raise TypeError, "blend can only be a scalar blend weight, not a %s" % util.clsname(blend)
         else :
-            raise TypeError, "%s is not convertible to a MMatrix, check help(%s)" % (util.clsname(other), util.clsname(self))     
+            raise TypeError, "%s is not convertible to a Matrix, check help(%s)" % (util.clsname(other), util.clsname(self))     
     def weighted(self, value):
         """ Returns a 0.0-1.0 scalar weighted blend between identity and self """
         if util.isScalar(value) :
@@ -1607,7 +1608,7 @@ class MMatrix(Matrix):
             raise TypeError, "weighted weight value can only be a scalar blend weight, not a %s" % util.clsname(blend)
    
         
-class MQuaternion(MMatrix):
+class Quaternion(Matrix):
     apicls = api.MQuaternion
     shape = (4,)
     cnames = ('x', 'y', 'z', 'w')      
@@ -1634,7 +1635,7 @@ class MQuaternion(MMatrix):
 
     # wrap of list-like access methods
     def __len__(self):
-        """ MVector class is a one dimensional array of a fixed length """
+        """ Vector class is a one dimensional array of a fixed length """
         return self.size
     # API get, actually not faster than pulling _data[i] for such a short structure
 #    def get(self):
@@ -1664,7 +1665,7 @@ class MQuaternion(MMatrix):
     def __init__(self, *args) : 
         self._data = self.apicls()
 
-class MEulerRotation(MQuaternion):
+class EulerRotation(Quaternion):
     apicls = api.MEulerRotation
     shape = (4,)   
     cnames = ('x', 'y', 'z', 'o')   
@@ -1691,10 +1692,10 @@ class MEulerRotation(MQuaternion):
 
 
 def _test() :
-    print "MMatrix class", dir(MMatrix)
+    print "Matrix class", dir(Matrix)
     t = api.MTransformationMatrix()
     t.setTranslation(api.MVector(1, 2, 3), api.MSpace.kWorld)
-    m = MMatrix(t.asMatrix())
+    m = Matrix(t.asMatrix())
     print "m: %s" % m 
     print "m.row[0]: %s" % m.row[0]
     print "list(m.row): %s" % list(m.row)
@@ -1703,13 +1704,13 @@ def _test() :
     print "m.flat[0]: %s" % m.flat[0]
     print "list(m.flat): %s" % list(m.flat)   
     
-    print "MVector class", dir(MVector)
-    print "MPoint  class", dir(MPoint)
-    # print "MColor  class", dir(MColor)    
-    u = MVector.xAxis
-    v = MVector.yAxis
-    print "u = MVector.xAxis: %r" % u
-    print "v = MVector.yAxis: %r" % v
+    print "Vector class", dir(Vector)
+    print "Point  class", dir(Point)
+    # print "Color  class", dir(Color)    
+    u = Vector.xAxis
+    v = Vector.yAxis
+    print "u = Vector.xAxis: %r" % u
+    print "v = Vector.yAxis: %r" % v
     n = u ^ v
     print "n = u ^ v: %r" % n
     print "n.x=%s, n.y=%s, n.z=%s" % (n.x, n.y, n.z)
@@ -1718,64 +1719,64 @@ def _test() :
     n = n*2
     print "n = n * 2 : %r" % n
     print "u * n : %s" % (u * n)
-    print "MVector(): %r" % MVector()
+    print "Vector(): %r" % Vector()
     
     print "~u: %r" % (~u)
 
-    p = MPoint.origin
-    q = MPoint(1, 2, 3)
-    print "p = MPoint.origin: %r" % p
-    print "q = MPoint(1, 2, 3): %r" % q
-    r = MPoint([1, 2, 3], y=0)
-    print "r = MPoint([1, 2, 3], y=0): %r" % r
+    p = Point.origin
+    q = Point(1, 2, 3)
+    print "p = Point.origin: %r" % p
+    print "q = Point(1, 2, 3): %r" % q
+    r = Point([1, 2, 3], y=0)
+    print "r = Point([1, 2, 3], y=0): %r" % r
     v = u + p
     print "v = u + p: %r" % v
     r = q + u
     print "r = q + u: %r" % r
     
-    p = MPoint(x=1, y=2, z=3)
-    print "p = MPoint(x=1, y=2, z=3): %r" % p
+    p = Point(x=1, y=2, z=3)
+    print "p = Point(x=1, y=2, z=3): %r" % p
     
     try :
-        p = MPoint(x=1, y=2, z='a')
+        p = Point(x=1, y=2, z='a')
     except :
         pass
     
-    p = MPoint(x=1, y=2, z=3)
-    print "p = MPoint(x=1, y=2, z=3): %r" % p
+    p = Point(x=1, y=2, z=3)
+    print "p = Point(x=1, y=2, z=3): %r" % p
     
     print "length of p: %s" % p.length()
     
-    c1 = MColor(1, 1, 1)
-    print "c1 = MColor(1, 1, 1): %r" % c1
-    c2 = MColor(255, 0, 0, quantize=255, mode='rgb')
-    print "c2 = MColor(255, 0, 0, quantize=255, mode='rgb'): %r" % c2
-    # careful MColor takes a solo argument as an alpha
-    c3 = MColor(255, b=128, quantize=255, mode='rgb')
-    print "c3 = MColor(255, b=128, quantize=255, mode='rgb'): %r" % c3
-    c4 = MColor(1, 0.5, 2, 0.5)
-    print "c4 = MColor(1, 0.5, 2, 0.5): %r" % c4
-    c5 = MColor(0, 65535, 65535, quantize=65535, mode='hsv')
-    print "c5 = MColor(0, 65535, 65535, quantize=65535, mode='hsv'): %r" % c5
-    a = MVector(c5.rgb)
-    print "a = MVector(c5.rgb): %r" % a    
-    b = MVector(c5.hsv)
-    print "b = MVector(c5.hsv): %r" % b
-    c6 = MColor(b, v=0.5, mode='hsv')
-    print "c6 = MColor(b, v=0.5, mode='hsv'): %r" % c6
-    c7 = MColor(MColor.blue, v=0.5)
-    print "c7 = MColor(MColor.blue, v=0.5) as rgb:", c7.rgb    
-    print "c7 = MColor(MColor.blue, v=0.5) as hsv:", c7.hsv 
+    c1 = Color(1, 1, 1)
+    print "c1 = Color(1, 1, 1): %r" % c1
+    c2 = Color(255, 0, 0, quantize=255, mode='rgb')
+    print "c2 = Color(255, 0, 0, quantize=255, mode='rgb'): %r" % c2
+    # careful Color takes a solo argument as an alpha
+    c3 = Color(255, b=128, quantize=255, mode='rgb')
+    print "c3 = Color(255, b=128, quantize=255, mode='rgb'): %r" % c3
+    c4 = Color(1, 0.5, 2, 0.5)
+    print "c4 = Color(1, 0.5, 2, 0.5): %r" % c4
+    c5 = Color(0, 65535, 65535, quantize=65535, mode='hsv')
+    print "c5 = Color(0, 65535, 65535, quantize=65535, mode='hsv'): %r" % c5
+    a = Vector(c5.rgb)
+    print "a = Vector(c5.rgb): %r" % a    
+    b = Vector(c5.hsv)
+    print "b = Vector(c5.hsv): %r" % b
+    c6 = Color(b, v=0.5, mode='hsv')
+    print "c6 = Color(b, v=0.5, mode='hsv'): %r" % c6
+    c7 = Color(Color.blue, v=0.5)
+    print "c7 = Color(Color.blue, v=0.5) as rgb:", c7.rgb    
+    print "c7 = Color(Color.blue, v=0.5) as hsv:", c7.hsv 
     print "c4.clamp() : %s" % c4.clamp()
-    c7 = MColor(c4, v=0.5)
-    print "c7 = MColor(c4, v=0.5) : %r" % c7    
-    print "c7 = MColor(c4, v=0.5) as hsv:", c7.hsv    
+    c7 = Color(c4, v=0.5)
+    print "c7 = Color(c4, v=0.5) : %r" % c7    
+    print "c7 = Color(c4, v=0.5) as hsv:", c7.hsv    
     c7 = c7.gamma([2.2, 2.0, 2.3])
     print "c7 = c7.gamma([2.2, 2.0, 2.3]): %r" % c7
-    c8 = MColor(1, 1, 1) * 0.5
-    print "c8 = MColor(1, 1, 1) * 0.5: %r" % c8
-    c9 = MColor.red.blend(MColor.blue, 0.5) 
-    print "c9 = MColor.red.blend(MColor.blue, 0.5): %r" % c9
+    c8 = Color(1, 1, 1) * 0.5
+    print "c8 = Color(1, 1, 1) * 0.5: %r" % c8
+    c9 = Color.red.blend(Color.blue, 0.5) 
+    print "c9 = Color.red.blend(Color.blue, 0.5): %r" % c9
     c10 = c8.over(c9)
     print "c10 = c8.over(c9): %r" % c10 
     
