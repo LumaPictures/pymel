@@ -978,21 +978,17 @@ Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes
     """
+    lsFilters = {}
     
-    if kwargs.get( 'allDescendents', kwargs.get('ad', False) ) and kwargs.pop( 'shapes', kwargs.pop('s', False) ):        
+    lsFilters["noIntermediate"] = kwargs.pop('noIntermediate',kwargs.pop('ni',False))
+    lsFilters["shapes"] = shapes = kwargs.pop('shapes',kwargs.pop('s',False))
+    allDescendents = kwargs.get('allDescendents',kwargs.get('ad',False))
+    if allDescendents and shapes: 
         kwargs['fullPath'] = True
         kwargs.pop('f', None)
-
-        res = cmds.listRelatives( *args, **kwargs)
-        if res is None:
-            return
-        return ls( res, shapes=1)
-
-    if longNames:
-        kwargs['fullPath'] = True
-        kwargs.pop('f', None)
-                
-    return map(node.PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
+    ret = map(node.PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
+    ret = ls(ret, **lsFilters)
+    return ret
 
 
 def ls( *args, **kwargs ):
