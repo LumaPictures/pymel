@@ -10,17 +10,17 @@ from socket import gethostname
 try:
     import maya.cmds as cmds
     import maya.mel as mm
-
 except ImportError:
     pass
+
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.mayahook.factories as _factories
 from pymel.mayahook.factories import queryflag, editflag, createflag
+from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 import system
 from system import namespaceInfo
-from pymel.api.wrappedtypes import *
 from pmtypes.ranges import *
 import pmtypes.path as _path
 from pymel.util.nameparse import *
@@ -1434,8 +1434,9 @@ def _getPymelType(arg, attr=None, comp=None) :
     # TODO : handle comp as a MComponent or list of components
     elif isinstance(arg, PyNode) :
         # grab the private variable to prevent the function triggering any additional calculations
-        arg = arg._apiobject   
         name = arg._name
+        arg = arg._apiobject   
+        
      
     #--------------------------   
     # API object testing
@@ -1632,7 +1633,7 @@ class PyNode(ProxyUnicode):
                 
     future = listFuture
 
-_factories.pyNodeHandler.register(PyNode)
+_factories.GenHolder.store(PyNode)
                     
 class ComponentArray(object):
     def __init__(self, name):
@@ -2359,6 +2360,7 @@ class NodeAttrRelay(unicode):
 '''
 
 class DependNode( PyNode ):
+    __metaclass__ = metaNode
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
@@ -2385,7 +2387,7 @@ class DependNode( PyNode ):
     def __apiobject__(self) :
         "get the MDagPath for this object if it is valid"
         if api.isValidMObjectHandle(self._apiobject) :
-            return self._apiobject
+            return self._apiobject.object()
     
     def name(self, update=True) :
         if update or self._name is None:
@@ -2707,7 +2709,7 @@ class DependNode( PyNode ):
 
 class Entity(DependNode): pass
 class DagNode(Entity):
-    
+    __metaclass__ = metaNode
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
             #obj = self._apiobject.object()
@@ -2934,7 +2936,8 @@ class DagNode(Entity):
         else:
             cmds.makeLive(self)
 
-class Shape(DagNode): 
+class Shape(DagNode):
+    __metaclass__ = metaNode
     def getTransform(self): pass    
 #class Joint(Transform):
 #    pass
@@ -3716,7 +3719,7 @@ class ObjectSet(Entity):
 # create PyNode conversion tables
 
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+#_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
               
         
