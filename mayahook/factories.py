@@ -679,6 +679,7 @@ class ApiDocParser(HTMLParser):
         self.data = []
         self.parameters = []
         self.returnVal = []
+        self.defaults = {}
         HTMLParser.__init__(self)
         
     def handle_data(self, data):
@@ -751,15 +752,23 @@ class ApiDocParser(HTMLParser):
                 direction = None
                 argName = None
                 doc = ''
+                
+
+                #print self.currentMethod, buf, self.parameters #, self.defaults
+                
+                # self.parameters looks like:
+                # ['[in]', 'node', 'node to check', '[out]', 'ReturnStatus', 'Status Code (see below)']
+                # would be easiest if it always came in triplets, but there are exceptions
                 for param in self.parameters:
                     
-                    if param.startswith('['):
+                    if param in [ '[in]', '[out]' ] :
                         if direction and argName and doc:
-                            #addArgInfo( argInfo, argName, direction, doc )
+                            # add info for this cyle
                             argInfo[ argName ]['doc'] = doc
                             if direction == 'in': inArgs.append(argName)
                             elif direction == 'out': outArgs.append(argName)
                     
+                        # start a new cycle
                         argName = None
                         doc = ''
                         direction = param[1:-1]
@@ -769,7 +778,7 @@ class ApiDocParser(HTMLParser):
                     
                     else:
                         doc += param
-                #addArgInfo( argInfo, argName, direction, doc )
+                # add remain information      
                 argInfo[ argName ]['doc'] = doc
                 if direction == 'in': inArgs.append(argName)
                 elif direction == 'out': outArgs.append(argName)
@@ -792,55 +801,68 @@ class ApiDocParser(HTMLParser):
                 tempargs = ' '.join( self.data[start+1:end] )
                 
                 for argGrp in tempargs.split(','):
-                    argGrp = [ y for y in argGrp.split() if y != 'const']
+                    
+                    argGrp = [ y for y in argGrp.split() if y not in [ '*', 'const', '=', 'unsigned'] ]
+                    
                     
                     if len(argGrp):
                                 
                         type = argGrp[0]
+                        if type == 'MStatus':
+                            continue
                         
                         try:
                             keyword = argGrp[1]
-                        except IndexError: pass
-                        else:
-                            if len(argGrp)==3:
-                                try:
-                                    type = ApiArrayTypeInfo( type, int(re.match( '\[(\d)\]', argGrp[2] ).groups()[0]) )
-                                except AttributeError:
-                                    pass
-                                    #print 'extra data', argGrp[2]
-                                
-                            x = keyword.split('=')
-                            keyword = x[0]
                             
+                        except IndexError:
+                            # void
+                            #print "something wrong with argGrp", argGrp
+                            continue
+                        else:
+
                             try:
-                                default = x[1]
+                                tmp = argGrp[2]
+                                buf = re.split( r'\[|\]', tmp)
+                                if len(buf) > 1:
+                                    type = type + buf[1]
+                                    default = None
+                                else:                     
+                                    default = {
+                                        'true' : True,
+                                        'false': False
+                                    }.get( tmp, tmp )
+                                    
                             except IndexError:
                                 default = None
                                                          
-                            if type == 'MStatus':
-                                continue
-                                                  
+                   
                             # move array length from keyword to type:
                             # keyword[3] ---> keyword
                             # type       ---> type3 
-                            buf = re.split( r'\[|\]', keyword)
-                            if len(buf) > 1:
-                                keyword = buf[0]
-                                type = ApiArrayTypeInfo( type, int(buf[1]) )
+#                            buf = re.split( r'\[|\]', keyword)
+#                            if len(buf) > 1:
+#                                keyword = buf[0]
+#                                type = type + buf[1]
+#                                #type = ApiArrayTypeInfo( type, int(buf[1]) )
+                                
                             # move pointer(asterik) from keyword to type
                             # *keyword  ---> keyword
                             # type      ---> typePtr
-                            if keyword.startswith( '*' ):
-                                keyword = keyword[1:]
-                                type = type + 'Ptr'
+#                            if keyword.startswith( '*' ):
+#                                keyword = keyword[1:]
+#                                type = type + 'Ptr'
+                                
                             argInfo[ keyword ]['type'] = type
                             if default:
                                 argInfo[ keyword ]['default'] = default
-                            
+                                argInfo[ 'defaults' ][keyword] = default
+                                
                             if keyword in inArgs:
                                 direction = 'in'
-                            else: direction = 'out'
+                            else: 
+                                direction = 'out'
                             
+                            #print self.currentMethod, [keyword, type, default, direction]
                             argList.append( ( keyword, type, default, direction)  )
                                 
                     elif len(argGrp)==1:
@@ -859,6 +881,7 @@ class ApiDocParser(HTMLParser):
         try:     
             clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
+            self.defaults = {}
             pass
             #print "skipping comment", comment
         else:
@@ -870,6 +893,22 @@ class ApiDocParser(HTMLParser):
                 #print "skipping function: %s (%s)" % ( methodname, self.grouping )
                 self.currentMethod = None
                 return
+            
+            # get defaults
+            self.defaults = {}
+            for x in tempargs.split(','):
+                try:
+                    argtype, y = x.split()
+                    try:
+                        argName, default = y.split('=')
+                        default = {
+                            'true' : True,
+                            'false': False
+                        }.get( default, default )
+                        if argName != '*ReturnStatus':
+                            self.defaults[argName] = default
+                    except IndexError: pass
+                except ValueError: pass
             
             self.currentMethod = methodname
             
@@ -887,7 +926,8 @@ def getMFnInfo( functionSet ):
                 origGetMethod = member[3].lower() + member[4:]
                 if origGetMethod in allFnMembers:
                     newGetMethod = 'get' + member[3:]
-                    classInfo[member]['pymelName'] = newGetMethod
+                    for info in classInfo[member]:
+                        info['pymelName'] = newGetMethod
         return classInfo             
   
         
@@ -1739,127 +1779,38 @@ def createFunctions( moduleName, returnFunc=None ):
 overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
 
-class metaNode(type) :
-    """
-    A metaclass for creating classes based on node type.  Methods will be added to the new classes 
-    based on info parsed from the docs on their command counterparts.
-    """
-
-    def __new__(cls, classname, bases, classdict):
-        
-        nodeType = util.uncapitalize(classname)
-        _api.addMayaType( nodeType )
-        try:
-            infoCmd = False
-            try:
-                nodeCmd = nodeTypeToNodeCommand[ nodeType ]
-            except KeyError:
-                try:
-                    nodeCmd = nodeTypeToInfoCommand[ nodeType ]
-                    infoCmd = True
-                except KeyError: 
-                    nodeCmd = nodeType
-            
-            #if nodeHierarchy.children( nodeType ):
-            #    print nodeType, nodeHierarchy.children( nodeType )
-            cmdInfo = cmdlist[nodeCmd]
-        except KeyError: # on cmdlist[nodeType]
-            pass
-        else:
-            try:    
-                cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
-                func = getattr(cmdModule, nodeCmd)
-
-            except (AttributeError, TypeError):
-                func = getattr(cmds,nodeCmd)
-            
-            # add documentation
-            classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
-            
-            #apiMethods = []
-            #apiTypeStr = _api.MayaTypesToApiTypes().get(nodeType,None)
-            #print nodeType, apiTypeStr, apiTypeStr in _api.ApiTypesToApiClasses(), _api.MayaTypesToApiTypes().keys()
-            if cmdInfo['type'] != 'windows':
-                apiClass = _api.toApiFunctionSet( nodeType )
-                #if nodeType == 'transform': print 'TRANSFORM', apiClass
-                if apiClass:
-                    print "========= %s =========" % nodeType
-                    for methodName in _api.apiClassInfo[apiClass.__name__].keys():
-                        method = wrapApiMethod( apiClass, methodName )
-                        if method:
-                            #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
-                            classdict[methodName] = method
-                else: print "%s: NO API TYPE" % nodeType
-            
-            for flag, flagInfo in cmdInfo['flags'].items():
-                #print nodeType, flag
-                 # don't create methods for query or edit, or for flags which only serve to modify other flags
-                if flag in ['query', 'edit'] or 'modified' in flagInfo:
-                    continue
-                
-                
-                if flagInfo.has_key('modes'):
-                    # flags which are not in maya docs will have not have a modes list unless they 
-                    # have passed through testNodeCmds
-                    #print classname, nodeType, flag
-                    #continue
-                    modes = flagInfo['modes']
-    
-                    # query command
-                    if 'query' in modes:
-                        methodName = 'get' + util.capitalize(flag)
-                        if methodName not in classdict:
-                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                returnFunc = None
-                                
-                                if flagInfo.get( 'resultNeedsCasting', False):
-                                    returnFunc = flagInfo['args']
-                                    if flagInfo.get( 'resultNeedsUnpacking', False):
-                                        returnFunc = lambda x: returnFunc(x[0])
-                                        
-                                elif flagInfo.get( 'resultNeedsUnpacking', False):
-                                    returnFunc = lambda x: returnFunc(x[0])
-                                
-                                classdict[methodName] = makeQueryFlagCmd( func, methodName, 
-                                    flag, docstring=flagInfo['docstring'], returnFunc=returnFunc )
-                            #else: print "%s: skipping %s" % ( classname, methodName )
-                    
-                    # edit command: 
-                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
-                        # if there is a corresponding query we use the 'set' prefix. 
-                        if 'query' in modes:
-                            methodName = 'set' + util.capitalize(flag)
-                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-                        else:
-                            methodName = flag
-                            
-                        if methodName not in classdict:
-                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                classdict[methodName] = makeEditFlagCmd( func, methodName, 
-                                     flag, docstring=flagInfo['docstring'] )
-                    
-
-            
-        return super(metaNode, cls).__new__(cls, classname, bases, classdict)
 
 _api = __import__( 'pymel.api', globals(), locals(), [''])
 #_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
 
-class PyNodeHandler(util.Singleton):
+class Holder(util.Singleton):
     def __init__(self):
-        self.node = None
-    def register( self, PyNode ):
-        print "PyNode Registered"
-        self.node = PyNode
+        self.obj = None
+    def store( self, obj ):
+        print "storing", obj
+        self.obj = obj
     def get(self):
-        return self.node
-    
-pyNodeHandler = PyNodeHandler()
+        return self.obj
 
+GenHolder = Holder()
+
+def interfacer( doer, name, args=[], keywords={}, typemap={} ):
+    """
+    """
+    g = { doer.__name__ : doer }
+    defStr = 'def %s( %s ): return %s(%s)' % (name, ','.join(args), doer.__name__, ','.join(args) )
+    exec( defStr ) in g
+    func = g[name]
+    
+
+    
 def wrapApiMethod( apiClass, methodName, newName=None ):
     #getattr( _api, apiClassName )
     
-    PYNODE = pyNodeHandler.get()
+    #general = GenHolder.get()
+    #_api = general.api
+    #PYNODE = general.PyNode
+    PYNODE = GenHolder.get()
 
     assert PYNODE is not None, 'Use registerPyNode prior to calling this function'
     
@@ -1877,40 +1828,87 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
     
 
     inCast = {      'double' : float,
-                    'float' : float,
+                    'float'  : float,
                     'bool'   : bool,
                     'int'    : int,
                     'MString': unicode,
                     'MVector': _api.wrappedtypes.Vector,
-                    'MPoint': _api.wrappedtypes.Point,
-                    'MColor': _api.wrappedtypes.Color,
-                    'MObject': PYNODE,
-                    'MDagPath' : PYNODE,
-                    'MPlug' : PYNODE
+                    'MMatrix': _api.wrappedtypes.Matrix,
+                    'MPoint' : _api.wrappedtypes.Point,
+                    'MColor' : _api.wrappedtypes.Color,
+                    'MObject': lambda x: PYNODE(x).__apiobject__(),
+                    'MDagPath': lambda x: PYNODE(x).__apiobject__(),
+                    'MPlug'  : lambda x: PYNODE(x).__apiobject__()
                 }
 
     returnCast = inCast.copy()
     
     su = _api.MScriptUtil()
     
-    def outInit( type ):
-        return getattr( su, 'as' + util.capitalize(type) + 'Ptr' )
+#    def outInit( type ):
+#        return getattr( su, 'as' + util.capitalize(type) + 'Ptr' )
+#    
+#    def outValue( type ):
+#        return getattr( su, 'get' + util.capitalize(type) )
+# 
+#    def outArrayValue( type ):
+#        return getattr( su, 'get' + util.capitalize(type) + 'ArrayItem' )
     
-    def outValue( type ):
-        return getattr( su, 'get' + util.capitalize(type) )
- 
-    def outArrayValue( type ):
-        return getattr( su, 'get' + util.capitalize(type) + 'ArrayItem' )
     
-    initRef = {     'int'      : lambda x: su.asIntPtr(),
-                    'short'    : lambda x: su.asShortPtr(),
-                    'float'    : lambda x: su.asFloatPtr(),
-                    'double'   : lambda x: su.asDoublePtr(),
-                    'uint'     : lambda x: su.asUintPtr(),
-                    'bool'     : lambda x: su.asBoolPtr()
+    refInit = {
+                    'int'      : lambda: su.asIntPtr(),
+                    'short'    : lambda: su.asShortPtr(),
+                    'float'    : lambda: su.asFloatPtr(),
+                    'double'   : lambda: su.asDoublePtr(),
+                    'uint'     : lambda: su.asUintPtr(),
+                    'bool'     : lambda: su.asBoolPtr(),
+                    
+                    'int2'      : lambda: su.asIntPtr(),
+                    'short2'    : lambda: su.asShortPtr(),
+                    'float2'    : lambda: su.asFloatPtr(),
+                    'double2'   : lambda: su.asDoublePtr(),
+                    'uint2'     : lambda: su.asUintPtr(),
+                    'bool2'     : lambda: su.asBoolPtr(),
+                    
+                    'int3'      : lambda: su.asIntPtr(),
+                    'short3'    : lambda: su.asShortPtr(),
+                    'float3'    : lambda: su.asFloatPtr(),
+                    'double3'   : lambda: su.asDoublePtr(),
+                    'uint3'     : lambda: su.asUintPtr(),
+                    'bool3'     : lambda: su.asBoolPtr(),
+                    
+                    'MVector'   : _api.MVector,
+                    'MMatrix'   : _api.MMatrix,
+                    'MPoint'   : _api.MPoint,
+                    
+                    'MObject'   : _api.MObject,
+                    'MDagPathArray' : _api.MDagPathArray,
+                    
                 }
     
-        
+    refCast = {     
+                    'int'      : lambda x: su.getInt(x),
+                    'short'    : lambda x: su.getShort(x),
+                    'float'    : lambda x: su.getFloat(x),
+                    'double'   : lambda x: su.getDouble(x),
+                    'uint'     : lambda x: su.getUint(x),
+                    'bool'     : lambda x: su.getBool(x),
+                    
+                    'int3'      : lambda x: [ su.getIntArray(x,0), su.getIntArray(x,1), su.getIntArray(x,2) ],
+                    'short3'    : lambda x: [ su.getShortArray(x,0), su.getShortArray(x,1), su.getShortArray(x,2) ],
+                    'float3'    : lambda x: [ su.getFloatArray(x,0), su.getFloatArray(x,1), su.getFloatArray(x,2) ],
+                    'double3'   : lambda x: [ su.getDoubleArray(x,0), su.getDoubleArray(x,1), su.getDoubleArray(x,2) ],
+                    'uint3'     : lambda x: [ su.getUintArray(x,0), su.getUintArray(x,1), su.getUintArray(x,2) ],
+                    'bool3'     : lambda x: [ su.getBoolArray(x,0), su.getBoolArray(x,1), su.getBoolArray(x,2) ],
+                    
+                    'MVector'   : _api.wrappedtypes.Vector,
+                    'MMatrix'   : _api.wrappedtypes.Matrix,
+                    'MPoint'    : _api.wrappedtypes.Point,
+                    
+                    'MObject'   : PYNODE,
+                    'MDagPathArray' : lambda x: [ PYNODE(x)(x[i]) for i in range( x.length() ) ],
+                }
+       
     for methodInfo in methodInfoList:
         #argInfo = methodInfo['argInfo']
         inArgs = methodInfo['inArgs']
@@ -1921,38 +1919,44 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
         # ensure that we can properly cast all the args and return values
         try:
             if returnType is not None:
-                assert returnType in returnCast, '%s.%s(): cannot cast return type: %s' % (apiClassName, methodName, returnType)
+                assert returnType in returnCast, '%s.%s(): invalid return type: %s' % (apiClassName, methodName, returnType)
             
             for argname, argtype, default, direction in methodInfo['args'] :
                 if direction == 'in':
-                    assert argtype in inCast, '%s.%s(): cannot cast arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                    assert argtype in inCast, '%s.%s(): %s: invalid input type %s' % (apiClassName, methodName, argname, argtype)
                 if direction == 'out':
-                    try:
-                        assert argtype.type() in initRef, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
-                    except AttributeError:
-                        assert argtype in initRef, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                    assert str(argtype) in refInit and str(argtype) in refCast, '%s.%s(): %s: invalid output type %s' % (apiClassName, methodName, argname, argtype)
+                    #try:
+                    #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                    #except AttributeError:
+                    #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
             print msg
         
         else:
             # create the function 
             def f( self, *args, **kwargs):
-                #args = list(args)
                 count = 0
                 argList = []
                 outList = []
-                for name, argtype, default, direction in methodInfo['args'] :
+                argInfo = methodInfo['args']
+                if len(args) != len(inArgs):
+                    raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
+                
+                for name, argtype, default, direction in argInfo :
                     if direction == 'in':
-                        argList.append( inType[argtype]( args[i] ) )
+                        argList.append( inCast[argtype]( args[count] ) )
                         count +=1
                     else:
-                        if isinstance( argtype, basestring ):
-                            val = outInit( argtype )() 
-                        else:                
-                            val = outInit( argtype.type() )() 
-                            #val = su.asDoublePtr()
-                            
-                        assert val is not None, "script util pointer is None"
+                        
+#                        if isinstance( argtype, basestring ):
+#                            val = outInit( argtype )() 
+#                        else:                
+#                            val = outInit( argtype.type() )() 
+#                            #val = su.asDoublePtr()
+#                            
+#                        assert val is not None, "script util pointer is None"
+                        val = refInit[str(argtype)]()
                         argList.append( val )
                         outList.append( ( val, argtype) )
                                             
@@ -1961,7 +1965,7 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
                 #print "result", result
                 #return
                 if returnType:
-                    result = inType[returnType]( result )
+                    result = returnCast[returnType]( result )
                     
                 if len(outList):
                     if result is not None:
@@ -1969,14 +1973,15 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
                     else:
                         result = []
                     for outArg, argtype in outList:
-                        if isinstance( argtype, basestring ):
-                            result.append( outValue( argtype )( outArg ) )
-                        else:
-                            array = []
-                            getter = outArrayValue( argtype.type() )
-                            for i in range( argtype.length() ):
-                                array.append( getter( outArg, i) )
-                            result.append( array )
+                        result.append( refCast[ argtype ]( outArg ) )
+#                        if isinstance( argtype, basestring ):
+#                            result.append( outValue( argtype )( outArg ) )
+#                        else:
+#                            array = []
+#                            getter = outArrayValue( argtype.type() )
+#                            for i in range( argtype.length() ):
+#                                array.append( getter( outArg, i) )
+#                            result.append( array )
                     if len(result) == 1:
                         result = result.pop()
                 return result
@@ -1985,7 +1990,117 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
                 f.__name__ = newName
             else:
                 f.__name__ = methodName
+            print " "*220 + "%s %s.%s( %s )" % ( returnType, apiClass.__name__, methodName, ', '.join(inArgs) ) 
             return f
+        
+class metaNode(type) :
+    """
+    A metaclass for creating classes based on node type.  Methods will be added to the new classes 
+    based on info parsed from the docs on their command counterparts.
+    """
+
+    def __new__(cls, classname, bases, classdict):
+
+        #general = GenHolder.get()
+        #_api = general.api
+    
+        nodeType = util.uncapitalize(classname)
+        _api.addMayaType( nodeType )
+  
+
+        #-------------------------
+        #   API Methods
+        #-------------------------
+        apiClass = _api.toApiFunctionSet( nodeType )
+        #if nodeType == 'transform': print 'TRANSFORM', apiClass
+        if apiClass:
+            print "="*60, nodeType, "="*60
+            for methodName in _api.apiClassInfo[apiClass.__name__].keys():
+                method = wrapApiMethod( apiClass, methodName )
+                if method:
+                    #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                    classdict[methodName] = method
+        #else: print "%s: NO API TYPE" % nodeType
+
+        #-------------------------
+        #   MEL Methods
+        #-------------------------
+#        try:
+#            infoCmd = False
+#            try:
+#                nodeCmd = nodeTypeToNodeCommand[ nodeType ]
+#            except KeyError:
+#                try:
+#                    nodeCmd = nodeTypeToInfoCommand[ nodeType ]
+#                    infoCmd = True
+#                except KeyError: 
+#                    nodeCmd = nodeType
+#            
+#            #if nodeHierarchy.children( nodeType ):
+#            #    print nodeType, nodeHierarchy.children( nodeType )
+#            cmdInfo = cmdlist[nodeCmd]
+#        except KeyError: # on cmdlist[nodeType]
+#            pass
+#        else:
+#            try:    
+#                cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
+#                func = getattr(cmdModule, nodeCmd)
+#
+#            except (AttributeError, TypeError):
+#                func = getattr(cmds,nodeCmd)
+#            # add documentation
+#            classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
+#            for flag, flagInfo in cmdInfo['flags'].items():
+#                #print nodeType, flag
+#                 # don't create methods for query or edit, or for flags which only serve to modify other flags
+#                if flag in ['query', 'edit'] or 'modified' in flagInfo:
+#                    continue
+#                
+#                
+#                if flagInfo.has_key('modes'):
+#                    # flags which are not in maya docs will have not have a modes list unless they 
+#                    # have passed through testNodeCmds
+#                    #print classname, nodeType, flag
+#                    #continue
+#                    modes = flagInfo['modes']
+#    
+#                    # query command
+#                    if 'query' in modes:
+#                        methodName = 'get' + util.capitalize(flag)
+#                        if methodName not in classdict:
+#                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+#                                returnFunc = None
+#                                
+#                                if flagInfo.get( 'resultNeedsCasting', False):
+#                                    returnFunc = flagInfo['args']
+#                                    if flagInfo.get( 'resultNeedsUnpacking', False):
+#                                        returnFunc = lambda x: returnFunc(x[0])
+#                                        
+#                                elif flagInfo.get( 'resultNeedsUnpacking', False):
+#                                    returnFunc = lambda x: returnFunc(x[0])
+#                                
+#                                classdict[methodName] = makeQueryFlagCmd( func, methodName, 
+#                                    flag, docstring=flagInfo['docstring'], returnFunc=returnFunc )
+#                            #else: print "%s: skipping %s" % ( classname, methodName )
+#                    
+#                    # edit command: 
+#                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
+#                        # if there is a corresponding query we use the 'set' prefix. 
+#                        if 'query' in modes:
+#                            methodName = 'set' + util.capitalize(flag)
+#                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+#                        else:
+#                            methodName = flag
+#                            
+#                        if methodName not in classdict:
+#                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+#                                classdict[methodName] = makeEditFlagCmd( func, methodName, 
+#                                     flag, docstring=flagInfo['docstring'] )
+                    
+
+            
+        return super(metaNode, cls).__new__(cls, classname, bases, classdict)
+
     
 def getValidApiMethods( apiClassName, api, verbose=False ):
 
