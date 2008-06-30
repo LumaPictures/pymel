@@ -741,7 +741,23 @@ class ApiDocParser(HTMLParser):
             returnVal = None
             
             if len(buf):
+                #-----------------
+                # Return Type
+                #-----------------
+                if len(buf)>1:
+                    # unsigned int
+                    if buf[0] == 'unsigned':
+                        returnVal = buf[1]
+                    else:
+                        pass
+                        #print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
+                else:
+                    returnVal = buf[0]
                 
+                if returnVal == 'MStatus':
+                    returnVal = None
+                    
+                    
                 #print tempargs
                 argList = []
                 argInfo = defaultdict(dict)
@@ -755,6 +771,10 @@ class ApiDocParser(HTMLParser):
                 
 
                 #print self.currentMethod, buf, self.parameters #, self.defaults
+
+                #---------------------
+                # Docs and Direction
+                #---------------------
                 
                 # self.parameters looks like:
                 # ['[in]', 'node', 'node to check', '[out]', 'ReturnStatus', 'Status Code (see below)']
@@ -784,21 +804,12 @@ class ApiDocParser(HTMLParser):
                 elif direction == 'out': outArgs.append(argName)
                 
                 
-                # Argument Type and Defaults
-                if len(buf)>1:
-                    # unsigned int
-                    if buf[0] == 'unsigned':
-                        returnVal = buf[1]
-                    else:
-                        pass
-                        #print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
-                else:
-                    returnVal = buf[0]
-                
-                if returnVal == 'MStatus':
-                    returnVal = None
-    
+                #------------------------
+                # Arg Type and Defaults
+                #------------------------
                 tempargs = ' '.join( self.data[start+1:end] )
+                
+                methodDoc = ''
                 
                 for argGrp in tempargs.split(','):
                     
@@ -821,6 +832,9 @@ class ApiDocParser(HTMLParser):
                         else:
 
                             try:
+                                # move array length from keyword to type:
+                                # keyword[3] ---> keyword
+                                # type       ---> type3 
                                 tmp = argGrp[2]
                                 buf = re.split( r'\[|\]', tmp)
                                 if len(buf) > 1:
@@ -835,22 +849,6 @@ class ApiDocParser(HTMLParser):
                             except IndexError:
                                 default = None
                                                          
-                   
-                            # move array length from keyword to type:
-                            # keyword[3] ---> keyword
-                            # type       ---> type3 
-#                            buf = re.split( r'\[|\]', keyword)
-#                            if len(buf) > 1:
-#                                keyword = buf[0]
-#                                type = type + buf[1]
-#                                #type = ApiArrayTypeInfo( type, int(buf[1]) )
-                                
-                            # move pointer(asterik) from keyword to type
-                            # *keyword  ---> keyword
-                            # type      ---> typePtr
-#                            if keyword.startswith( '*' ):
-#                                keyword = keyword[1:]
-#                                type = type + 'Ptr'
                                 
                             argInfo[ keyword ]['type'] = type
                             if default:
@@ -859,6 +857,9 @@ class ApiDocParser(HTMLParser):
                                 
                             if keyword in inArgs:
                                 direction = 'in'
+                                methodDoc += ':param %s: %s\n' % ( keyword, argInfo[keyword]['doc'] )
+                                methodDoc += ':type %s: %s\n' % ( keyword, type )
+                                argInfo[keyword]['doc'] = doc
                             else: 
                                 direction = 'out'
                             
@@ -870,7 +871,7 @@ class ApiDocParser(HTMLParser):
                 
                        
                 #print argList, argInfo
-                methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs } 
+                methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs, 'doc' : methodDoc } 
                 self.methods[self.currentMethod].append(methodInfo)
             
             self.mode = None
@@ -881,7 +882,6 @@ class ApiDocParser(HTMLParser):
         try:     
             clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
-            self.defaults = {}
             pass
             #print "skipping comment", comment
         else:
@@ -893,22 +893,6 @@ class ApiDocParser(HTMLParser):
                 #print "skipping function: %s (%s)" % ( methodname, self.grouping )
                 self.currentMethod = None
                 return
-            
-            # get defaults
-            self.defaults = {}
-            for x in tempargs.split(','):
-                try:
-                    argtype, y = x.split()
-                    try:
-                        argName, default = y.split('=')
-                        default = {
-                            'true' : True,
-                            'false': False
-                        }.get( default, default )
-                        if argName != '*ReturnStatus':
-                            self.defaults[argName] = default
-                    except IndexError: pass
-                except ValueError: pass
             
             self.currentMethod = methodname
             
@@ -1473,7 +1457,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     
     elif funcType == types.BuiltinFunctionType or ( funcType == types.FunctionType and returnFunc ):                    
         try:
-            
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
                 print "Function found in module %s has different name than desired: %s != %s. simple fix? %s" % ( inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None)
@@ -1794,14 +1777,29 @@ class Holder(util.Singleton):
 
 GenHolder = Holder()
 
-def interfacer( doer, name, args=[], keywords={}, typemap={} ):
+def interfacer( doer, args=[], defaults=[], typemap={} ):
     """
     """
-    g = { doer.__name__ : doer }
-    defStr = 'def %s( %s ): return %s(%s)' % (name, ','.join(args), doer.__name__, ','.join(args) )
+    name = doer.__name__
+    storageName = doer.__name__ + '_interfaced'
+    g = { storageName : doer }
+    kwargs=[]
+    offset = len(args) - len(defaults)
+    
+    for i, arg in enumerate(args):
+        if i >= offset:
+            kwargs.append( '%s=%r' % (arg, defaults[i-offset]) )
+        else:
+            kwargs.append( str(arg) )
+    print kwargs
+    #argStr = ','.join(kwargs)
+    #print argStr
+    defStr = 'def %s( %s ): return %s(%s)' % (name, ','.join(kwargs), storageName, ','.join(args) )
     exec( defStr ) in g
     func = g[name]
-    
+    func.__doc__ = doer.__doc__
+    func.__module__ = doer.__module__
+    return func
 
     
 def wrapApiMethod( apiClass, methodName, newName=None ):
@@ -1832,16 +1830,32 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
                     'bool'   : bool,
                     'int'    : int,
                     'MString': unicode,
+                    
                     'MVector': _api.wrappedtypes.Vector,
                     'MMatrix': _api.wrappedtypes.Matrix,
                     'MPoint' : _api.wrappedtypes.Point,
                     'MColor' : _api.wrappedtypes.Color,
+                    
                     'MObject': lambda x: PYNODE(x).__apiobject__(),
                     'MDagPath': lambda x: PYNODE(x).__apiobject__(),
                     'MPlug'  : lambda x: PYNODE(x).__apiobject__()
                 }
 
-    returnCast = inCast.copy()
+    returnCast = {  'double' : float,
+                    'float'  : float,
+                    'bool'   : bool,
+                    'int'    : int,
+                    'MString': unicode,
+                    
+                    'MVector': _api.wrappedtypes.Vector,
+                    'MMatrix': _api.wrappedtypes.Matrix,
+                    'MPoint' : _api.wrappedtypes.Point,
+                    'MColor' : _api.wrappedtypes.Color,
+                    
+                    'MObject': PYNODE,
+                    'MDagPath': PYNODE,
+                    'MPlug'  : PYNODE,
+                }
     
     su = _api.MScriptUtil()
     
@@ -1990,6 +2004,7 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
                 f.__name__ = newName
             else:
                 f.__name__ = methodName
+            f.__doc__ = methodInfo['doc']
             print " "*220 + "%s %s.%s( %s )" % ( returnType, apiClass.__name__, methodName, ', '.join(inArgs) ) 
             return f
         
