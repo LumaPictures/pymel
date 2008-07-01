@@ -1,4 +1,3 @@
-
 """
 A generic n-dimensionnal Array class serving as base for arbitrary length Vector and Matrix classes
 """
@@ -1852,23 +1851,30 @@ class Matrix(Array):
 
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
-            If b is a Matrix, i is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
+            If b is a Matrix, __mul__ is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value """
-        if isinstance(other, Vector) :
-            return other.__class__._convert( [ dot(row,other) for row in self.row ] )
-        elif isinstance(other, Matrix) :
+        if isinstance(other, Matrix) :
             return self.__class__._convert( [ [ dot(row,col) for col in other.col ] for row in self.row ] )
+        elif isinstance(other, Vector) :
+            return other.__rmul__(self)
         else :
-            # return super(Array, self.__class__).__mul__(self, other)
             return super(self.__class__, self).__mul__(other)
     def __rmul__(self, other):
+        """ a.__rmul__(b) <==> b*a
+            If b is a Matrix, __rmul__ is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
+            otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
+            multiplies every component of a by b if b is a single numeric value """        
         if isinstance(other, Matrix) :
             return Matrix( [ [ dot(row,col) for col in self.col ] for row in other.row ] )
+        elif isinstance(other, Vector) :
+            return other.__mul__(self)
         else :
-            return NotImplemented
+            return super(self.__class__, self).__mul__(other)
     def __imul__(self, other):
-        return (self*other)        
+        """ a.__imul__(b) <==> a *= b
+            In place multiplication of Matrix a and b, see __mul__, result must fit a's type """      
+        return self.__class__(self*other)        
 
     
     # specific methods
@@ -1916,11 +1922,12 @@ class Matrix(Array):
         return m
     
     def cofactor(self, i, j):
-        return det(self.minor(i, j))
+        return ((-1)**(i+j))*self.minor(i, j).det()
     
-    def adjoint(self):
+    # sometimes called adjoint
+    def adjugate(self):
         nr, nc = self.shape
-        assert nc == nr, "Adjoint Matrix can only be computed for a square Matrix"
+        assert nc == nr, "Adjugate Matrix can only be computed for a square Matrix"
         m = self.__class__([[self.cofactor(j, i) for j in xrange(nc)] for i in xrange(nr)])
         return m
         
@@ -1938,13 +1945,6 @@ class Matrix(Array):
             if maxr != i :
                 m[i], m[maxr] = m[maxr], m[i]
                 nbperm += 1
-#            if abs(m[i,i]) < eps :
-#                for j in xrange(i+1,nr) :
-#                    if abs(m[j,i]) >= eps :
-#                        for k in xrange(nr) :
-#                            m[i,k], m[j,k] = m[j,k], m[i,k]
-#                        nbperm += 1;
-#                        break;
             if abs(m[i,i]) < eps :
                 raise ValueError, "Matrix is singular"
             d = float(m[i,i])
@@ -1998,7 +1998,7 @@ class Matrix(Array):
             # cofactors
             d = 0
             for j in xrange(n) :
-               d += (-1)**(j)* self[0,j]*self.cofactor(0, j)  # self.minor(0,j).det() 
+               d += self[0,j]*self.cofactor(0, j)  # ((-1)**j)*self.minor(0,j).det() 
             return d
         else :
             # Gauss-Jordan elimination
@@ -2011,12 +2011,14 @@ class Matrix(Array):
    
     def inverse(self): 
         nr, nc = self.shape
-        if nr < 6 and nc < 6 :
+        if nr < 4 and nc < 4 :
+            # by cofactors expansion
             try :
-                return self.adjoint()/float(self.det())
+                return self.adjugate()/float(self.det())
             except ZeroDivisionError :
                 raise ValueError, "Matrix is singular"      
         else :
+            # by gauss-jordan elimination
             id = Matrix.identity(nr)        
             m = self.hstacked(id).reduced()
             return self.__class__(m[:, nr:])
@@ -2052,7 +2054,7 @@ def cotan(a, b, c) :
 
 class Vector(Array):
     """
-        A generic size Vector class deerived from Array, basically a 1 dimensional Array
+        A generic size Vector class derived from Array, basically a 1 dimensional Array
     """
     __slots__ = ['_data', '_shape', '_size']    
     
@@ -2067,7 +2069,7 @@ class Vector(Array):
     # shape, ndim, size and data properties
     shape = property(_getshape, _setshape, None, "Shape of the Vector, as Vectors are one-dimensional Arrays: v.shape = (v.size,)")    
     ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
-    size = property(lambda x : len(self.data), None, None, "Number of components of the Vector")
+    size = property(lambda x : len(x.data), None, None, "Number of components of the Vector")
     def _getdata(self):
         return self._data
     def _setdata(self, data):
@@ -2079,55 +2081,60 @@ class Vector(Array):
         del self._data[:]   
     data = property(_getdata, _setdata, _deldata, "The list storage for the Vector data") 
     
-    # common operators herited from Arrays
-             
-    def __mul__(self, other) :
-        """ u.__mul__(v) <==> u*v
-            The multiply '*' operator is mapped to the dot product when both objects are instances of Vector,
-            to the transformation (post-multiplication) of u by Matrix v when v is an instance of Matrix,
-            and to element wise multiplication when v is a scalar or a sequence """
-        if isinstance(other, self.__class__) :
-            # dot product in case of a Vector
+    # common operators are herited from Arrays
+           
+    # overloaded operators
+    def __mul__(self, other):
+        """ a.__mul__(b) <==> a*b
+            If b is a Vector, __mul__ is mapped to the dot product of the two vectors a and b,
+            If b is a Matrix, __mul__ is mapped to Vector a by Matrix b multiplication (post multiplication or transformation of a by b),
+            otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
+            multiplies every component of a by b if b is a single numeric value """
+        if isinstance(other, Vector) :
             return self.dot(other)
         elif isinstance(other, Matrix) :
-            # Vector by Matrix multiplication
-            dif = other.shape[1]-self.size
-            res = Matrix([list(self) + [1]*dif]) * other 
-            return self.__class__(res[0, 0:self.size])
+            if self.size == other.shape[0] :
+                return self.__class__._convert( [ dot(self, col) for col in other.col ] )
+            else :
+                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Vector * Matrix multiplication" % (self.size, other.shape) 
         else :
-            return self.__class__(Array.__)   
+            return super(self.__class__, self).__mul__(other)
     def __rmul__(self, other):
-        """ u.__rmul__(v) <==> v*u
-            This is equivalent to u*v thus u.__mul__(v) unless v is a Matrix,
-            in that case it is pre-multiplication by the Matrix """ 
-        if isinstance (other, Matrix) :
-            # not commutative with a Matrix
-            dif = other.shape[0]-self.size
-            res = other * Matrix(map(lambda x:[x], list(self)+[1]*dif))
-            return self.__class__(res[0:self.size, 0])            
+        """ a.__rmul__(b) <==> b*a
+            If b is a Vector, __rmul__ is mapped to the dot product of the two vectors a and b,
+            If b is a Matrix, __rmul__ is mapped to Matrix b by Vector a multiplication,
+            otherwise, returns the result of the element wise multiplication of b and a if b is convertible to Array,
+            multiplies every component of a by b if b is a single numeric value """       
+        if isinstance(other, Vector) :
+            return self.dot(other)
+        elif isinstance(other, Matrix) :
+            if self.size == other.shape[1] :
+                return self.__class__._convert( [ dot(row, self) for row in other.row ] )
+            else :
+                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Matrix * Vector multiplication" % (self.size, other.shape)             
         else :
-            # commutative otherwise
-            return self.__mul__(other)
+            return super(self.__class__, self).__mul__(other)
     def __imul__(self, other):
-        """ u.__imul__(v) <==> u *= v
-            Makes sense for Vector * Matrix multiplication, in place transformation of u by Matrix v
-            or Vector element wise multiplication only """
-        self = self.__mul__(other)            
+        """ a.__imul__(b) <==> a *= b
+            In place multiplication of Vector a and b, see __mul__, result must fit a's type """      
+        return self.__class__(self*other)  
+          
+                  
     # special operators
     def __xor__(self, other):
-        """ u.__xor__(v) <==> u^v
+        """ a.__xor__(b) <==> a^b
             Defines the cross product operator between two vectors,
-            if v is a Matrix, u^v is equivalent to transforming u by the adjoint Matrix of v """
+            if b is a Matrix, a^b is equivalent to transforming a by the inverse transpose Matrix of b,
+            often used to transform normals """
         if isinstance(other, Vector) :
             return self.cross(other)  
+        elif isinstance(other, Matrix) :
+            return self.__mul__(other.transpose().inverse())
         else :
-            try :
-                return self.__mul__(Matrix(other).adjoint())
-            except :
-                raise TypeError, "unsupported operand type(s) for ^: '%s' and '%s'" % (util.clsname(self), util.clsname(other))
+            return NotImplemented
     def __ixor__(self, other):
-        """ u.__xor__(v) <==> u^=v
-            Inplace cross product or transformation by inverse transpose of v is v is a Matrix """        
+        """ a.__xor__(b) <==> a^=b
+            Inplace cross product or transformation by inverse transpose Matrix of b is v is a Matrix """        
         self = self.__xor__(other) 
                 
     # additional methods
@@ -2144,7 +2151,7 @@ class Vector(Array):
             nself, nother = coerce(self, other)
         except :
             return NotImplemented
-        return self.__class__(cross(nself, nother))
+        return self.__class__._convert(cross(nself, nother))
 
     def outer(self, other):
         try :
@@ -2159,19 +2166,15 @@ class Vector(Array):
         try :
             return self/self.length()
         except :
-            return self.__class__(self)
+            return self
     unit = normal
+    
     def normalize(self):
         """ Performs an in place normalization of self """
         self.data = self.normal().data
 
     def distanceTo(self, other):
         return self.dist(other)  
-
-    
-
-
-
 
 
 
@@ -3455,38 +3458,14 @@ def _testMatrix() :
     #[0, 4, 8, 0]
     print M.trace(3, wrap=True)
     #12
-    
-    M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
-    print "M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])"
-    print M.round(2).formated()
-    print M[:2, :2].gauss().round(2).formated()
-    print M[:2, :2].reduced().round(2).formated()
-    print M[:2, :2].det()
-    #0.0833333333333
-    print M[:3, :3].gauss().round(2).formated()
-    print M[:3, :3].reduced().round(2).formated()
-    print M[:3, :3].det()
-    #0.000462962962963
-    print M[:4, :4].gauss().round(2).formated()
-    print M[:4, :4].reduced().round(2).formated()
-    print M[:4, :4].det()
-    #1.65343915344e-07
-    print M[:5, :5].gauss().round(2).formated()
-    print M[:5, :5].reduced().round(2).formated()
-    print M[:5, :5].det()
-    #3.74929513252e-12
-    print M[:6, :6].gauss().round(2).formated()
-    print M[:6, :6].reduced().round(2).formated()
-    print M[:6, :6].det()
-    #5.36729988682e-18
 
     M = Matrix([[1, 2],[3, 4]])
     print "M = Matrix([[1, 2],[3, 4]])"
     print M.formated()
     #[[1, 2],
     # [3, 4]]    
-    print "M.adjoint()"  
-    print M.adjoint().formated()
+    print "M.adjugate()"  
+    print M.adjugate().formated()
     #[[4.0, 2.0],
     # [3.0, 1.0]]      
     print "det(M)"  
@@ -3503,8 +3482,11 @@ def _testMatrix() :
     #[[0.5, 1, 2],
     # [1, 1, 1],
     # [0.5, 0.5, 2]] 
-    print "M.adjoint()"
-    print M.adjoint().formated()       
+    print "M.adjugate()"
+    print M.adjugate().formated()  
+    #[[1.5, 1.0, -1],
+    # [1.5, 0.0, -1.5],
+    # [0.0, -0.25, -0.5]]         
     print "M.inverse()"
     print M.inverse().round(2).formated()
     #[[-2.0, 1.33, 1.33],
@@ -3526,22 +3508,168 @@ def _testMatrix() :
     # [-0.24, 0.25, 0.5, 0.0],
     # [0.21, -1.53, -2.06, 1.0]]    
   
-                    
-
+    M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+    print "M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])"
+    print M.round(2).formated()
+    #[[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
+    # [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
+    # [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
+    # [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
+    # [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
+    # [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]    
+    print M[:2, :2].gauss().round(2).formated()
+    #[[1.0, 0.5],
+    # [0.0, 0.08]]    
+    print M[:2, :2].reduced().round(2).formated()
+    #[[1.0, 0.0],
+    # [0.0, 1.0]]    
+    print M[:2, :2].det()
+    #0.0833333333333
+    print M[:2, :2].inverse().formated()
+    #[[4.0, -6.0],
+    # [-6.0, 12.0]]    
     
+    print M[:3, :3].gauss().round(2).formated()
+    #[[1.0, 0.5, 0.33],
+    # [0.0, 0.08, 0.09],
+    # [0.0, 0.0, -0.01]]    
+    print M[:3, :3].reduced().round(2).formated()
+    #[[1.0, 0.0, 0.0],
+    # [0.0, 1.0, -0.0],
+    # [0.0, 0.0, 1.0]]    
+    print M[:3, :3].det()
+    #0.000462962962963
+    print M[:3, :3].inverse().formated()
+    #[[   9.  -36.   30.]
+    # [ -36.  192. -180.]
+    # [  30. -180.  180.]] 
+         
+    print M[:4, :4].gauss().round(2).formated()
+    #[[1.0, 0.5, 0.33, 0.25],
+    # [0.0, 0.08, 0.09, 0.08],
+    # [0.0, 0.0, -0.01, -0.01],
+    # [0.0, 0.0, 0.0, 0.0]]    
+    print M[:4, :4].reduced().round(2).formated()
+    #[[1.0, 0.0, 0.0, 0.0],
+    # [0.0, 1.0, -0.0, 0.0],
+    # [0.0, 0.0, 1.0, 0.0],
+    # [0.0, 0.0, 0.0, 1.0]]    
+    print M[:4, :4].det()
+    #1.65343915344e-07
+    print M[:4, :4].inverse().round(0).formated()
+    #[[16.0, -120.0, 240.0, -140.0],
+    # [-120.0, 1200.0, -2700.0, 1680.0],
+    # [240.0, -2700.0, 6480.0, -4200.0],
+    # [-140.0, 1680.0, -4200.0, 2800.0]] 
     
-    # matrix adjoint, inverse, etc
-     
+    print M[:5, :5].gauss().round(2).formated()
+    #[[1.0, 0.5, 0.33, 0.25, 0.2],
+    # [0.0, 0.08, 0.09, 0.08, 0.08],
+    # [0.0, 0.0, -0.01, -0.01, -0.01],
+    # [0.0, 0.0, 0.0, 0.0, 0.0],
+    # [0.0, 0.0, 0.0, -0.0, -0.0]]    
+    print M[:5, :5].reduced().round(2).formated()
+    #[[1.0, 0.0, 0.0, 0.0, 0.0],
+    # [0.0, 1.0, -0.0, 0.0, -0.0],
+    # [0.0, 0.0, 1.0, 0.0, -0.0],
+    # [0.0, 0.0, 0.0, 1.0, -0.0],
+    # [0.0, 0.0, 0.0, -0.0, 1.0]]    
+    print M[:5, :5].det()
+    #3.74929513252e-12
+    print M[:5, :5].inverse().round(0).formated()
+    #[[25.0, -300.0, 1050.0, -1400.0, 630.0],
+    # [-300.0, 4800.0, -18900.0, 26880.0, -12600.0],
+    # [1050.0, -18900.0, 79380.0, -117600.0, 56700.0],
+    # [-1400.0, 26880.0, -117600.0, 179200.0, -88200.0],
+    # [630.0, -12600.0, 56700.0, -88200.0, 44100.0]]    
+    
+    print M[:6, :6].gauss().round(2).formated()
+    #[[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
+    # [0.0, 0.08, 0.09, 0.08, 0.08, 0.07],
+    # [0.0, 0.0, 0.01, 0.01, 0.01, 0.01],
+    # [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    # [0.0, 0.0, 0.0, 0.0, -0.0, -0.0],
+    # [0.0, 0.0, 0.0, 0.0, 0.0, -0.0]]    
+    print M[:6, :6].reduced().round(2).formated()
+    #[[1.0, 0.0, 0.0, 0.0, -0.0, 0.0],
+    # [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+    # [0.0, 0.0, 1.0, 0.0, -0.0, 0.0],
+    # [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+    # [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+    # [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]    
+    print M[:6, :6].det()
+    #5.36729988682e-18
+    print M[:6, :6].inverse().round(0).formated()
+    #[[36.0, -630.0, 3360.0, -7560.0, 7560.0, -2772.0],
+    # [-630.0, 14700.0, -88200.0, 211680.0, -220500.0, 83160.0],
+    # [3360.0, -88200.0, 564480.0, -1411200.0, 1512000.0, -582120.0],
+    # [-7560.0, 211680.0, -1411200.0, 3628800.0, -3969000.0, 1552320.0],
+    # [7560.0, -220500.0, 1512000.0, -3969000.0, 4410000.0, -1746360.0],
+    # [-2772.0, 83160.0, -582120.0, 1552320.0, -1746360.0, 698544.0]]     
         
     print "end tests Matrix"
     
 def _testVector() :
     
-    V = Vector(1, 2, 3, 4)
+    U = Vector(1, 2, 3)
+    print "U = Vector(1, 2, 3)"
+    print U
+    # [1, 2, 3]
+    M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])
+    print "M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])"
+    print M.formated()
+    #[[1.5, 1.5, -2.12, 0.0],
+    # [-0.29, 1.71, 1.0, 0.0],
+    # [0.85, -0.15, 0.5, 0.0],
+    # [1.0, 2.0, 3.0, 1.0]]  
+    print "V = U*M[:3, :3]"
+    V = U*M[:3, :3]
     print V
-    # [1, 2, 3, 4]
-
+    # [3.47, 4.47, 1.38]
+    print U*V
+    # 16.55
+    N = U^V
+    print N
+    # [-10.65, 9.03, -2.47]
+    print N.normal()
+    # [-0.751072956189, 0.63682523891, -0.17419250721]
+    print U.dist(V)
+    # 3.8504804895
     
+    print M[:3, :3]*U
+    # [-1.86, 6.13, 2.05]
+    print U^M[:3, :3]
+    # [2.59076337407, 0.574934882789, 1.76818272891]
+    print (U^M[:3, :3]).normal()   
+    # [0.812431999034, 0.180292612136, 0.554480676809]
+ 
+    
+    print V*M[:3, :3].inverse()
+    # [1.0, 2.0, 3.0]
+    print U*2
+    # [2, 4, 6]
+        
+    # Vector of size 4 for Point
+    P = Vector(1, 2, 3, 1)
+    print "P = Vector(1, 2, 3, 1)"
+    print P
+    # [1, 2, 3, 1]
+    print "Q = P*M"
+    Q = P*M
+    print Q
+    # [4.47, 6.47, 4.38, 1.0]
+    print P.dist(Q)
+    # 5.82462015929    
+    
+    P*=M
+    print P
+    # [4.47, 6.47, 4.38, 1.0]    
+    try :
+        M*=P
+    except :
+        print "Will raise TypeError: class Matrix has a fixed number of dimensions 2 and it cannot be changed"
+    
+        
     print "end tests Vector"
     
     
