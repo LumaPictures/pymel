@@ -545,6 +545,8 @@ def _buildApiTypeHierarchy () :
                     apiClassInfo[ MFnClass.__name__ ] = info
         except IndexError:
             pass
+    
+    apiClassInfo[ 'MPlug' ] = _factories.getMFnInfo( 'MPlug' )
         
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
