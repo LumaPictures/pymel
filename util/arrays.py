@@ -13,7 +13,7 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 
 import operator, itertools, copy, inspect, sys
 
-import arguments as util
+from arguments import isNumeric, clsname
 from utilitytypes import readonly, metaReadOnlyAttr
 from math import pi, exp
 eps = 1e-10
@@ -44,11 +44,11 @@ def _toCompOrArray(value) :
     if hasattr(value, '__iter__') :
         if type(value) is not Array :
             value = Array(value)
-    elif util.isNumeric(value) :
+    elif isNumeric(value) :
         # a single numeric value
         pass 
     else :
-        raise TypeError, "invalid value type %s cannot be converted to Array" % (util.clsname(value))
+        raise TypeError, "invalid value type %s cannot be converted to Array" % (clsname(value))
     
     return value
 
@@ -56,11 +56,11 @@ def _toCompOrArrayInstance(value) :
     if hasattr(value, '__iter__') :
         if not isinstance(value, Array) :
             value = Array(value)
-    elif util.isNumeric(value) :
+    elif isNumeric(value) :
         # a single numeric value
         pass 
     else :
-        raise TypeError, "invalid value type %s cannot be converted to Array" % (util.clsname(value))
+        raise TypeError, "invalid value type %s cannot be converted to Array" % (clsname(value))
     
     return value
 
@@ -69,12 +69,12 @@ def _shapeInfo(value) :
         shape = value.shape
         dim = value.ndim
         size = value.size        
-    elif util.isNumeric(value) :
+    elif isNumeric(value) :
         shape = ()
         dim = 0
         size = 1
     else:
-        raise TypeError, "can only query shape information on Array or Array component (numeric), not %s" % (util.clsname(value))
+        raise TypeError, "can only query shape information on Array or Array component (numeric), not %s" % (clsname(value))
     
     return shape, dim, size
 
@@ -341,7 +341,7 @@ class ArrayIter(object):
             shape = []
             for x in axis :
                 if x < 0 or x >= data.ndim :
-                    raise ValueError, "%s has %s dimensions, cannot iterate on axis %s" % (util.clsname(data), data.ndim, x)
+                    raise ValueError, "%s has %s dimensions, cannot iterate on axis %s" % (clsname(data), data.ndim, x)
                 elif axis.count(x) > 1 :
                     raise ValueError, "axis %s is present more than once in ArrayIter axis list %s" % (x, axis)
                 else :
@@ -365,7 +365,7 @@ class ArrayIter(object):
             #print "Base shape %s, Axis %s, Iter shape %s, iter dim %s, iter size %s, item shape %s, item dim %s, subsizes %s"\
             #         % (self.base.shape, self.axis, self.shape, self.ndim, self.size, self.itemshape, self.itemdim, self.subsizes)                
         else :
-            raise TypeError, "%s can only be built on Array" % util.clsname(self)
+            raise TypeError, "%s can only be built on Array" % clsname(self)
     def __length_hint__(self) :
         return self.size
     def __len__(self) :
@@ -634,12 +634,20 @@ class Array(object):
             if -1 in shape :
                 raise ValueError, "cannot get the size of undefined dimension in shape %s without the total size" % (shape) 
         except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, cls.__name__)   
+            raise TypeError, "shape %s is incompatible with class %s" % (shape, cls.__name__)  
+         
         if value is not None :
-            dim = len(shape)            
             value = _toCompOrArray(value)
             vshape, vdim, vsize = _shapeInfo(value)
-            if vdim <= dim :
+            if not shape :
+                if vshape :
+                    return cls(value)
+                else :
+                    return cls([value])            
+            dim = len(shape)  
+            size = reduce(operator.mul, shape, 1)          
+
+            if vdim <= dim and vsize <= size:
                 subshape = shape[dim-vdim:]
                 if subshape != vshape :
                     subsize = reduce(operator.mul, subshape, 1)
@@ -653,11 +661,14 @@ class Array(object):
                     for i in xrange(len(iter)) :
                         iter[i] = value    
                 else :
-                    new = value      
+                    new = cls(value.resize(shape))  
             else :
-                raise ValueError, "fill value has more dimensions that the specified desired shape"
-        elif shape :
-            new = cls.default(shape)
+                raise ValueError, "fill value has more dimensions or is larger than the specified desired shape"
+        else :
+            if shape :
+                new = cls(shape=shape)
+            else :
+                new = cls()
             
         return new 
         
@@ -670,7 +681,7 @@ class Array(object):
         if type(new) is type(self) :
             self.data = new.data
         else :
-            raise ValueError, "new shape %s is not compatible with class %s" % (shape, util.clsname(self))            
+            raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))            
                                                             
     def __new__(cls, *args, **kwargs ):
         """ Creates a new Array instance from one or several nested lists or numeric values """
@@ -693,7 +704,7 @@ class Array(object):
                 args = args[0]
             if isinstance (args, Array) :
                 # copy constructor
-                data = copy.copy(args.data)
+                data = copy.copy(list(args))
             elif hasattr(args, '__iter__') :
                 data = []
                 subshapes = []
@@ -704,12 +715,13 @@ class Array(object):
                     subshapes.append(subshape)
                 if not reduce(lambda x, y : x and y == subshapes[0], subshapes, True) :
                     raise ValueError, "all sub-arrays must have same shape"                          
-            elif util.isNumeric(args) :
-                if shape is not None :
-                    # can initialize an array from a single numeric value if a shape is specified
-                    data = cls.filled(args, shape).data
-                else :
-                    raise TypeError, "an %s cannot be initialized from a single value without specifying a shape, need at least 2 components or an iterable" % cls.__name__
+            elif isNumeric(args) :
+                data = cls.filled(args, shape).data
+#                if shape :
+#                    # can initialize an array from a single numeric value if a shape is specified
+#                    data = cls.filled(args, shape).data
+#                else :
+#                    raise TypeError, "an %s cannot be initialized from a single value without specifying a shape, need at least 2 components or an iterable" % cls.__name__
             else :
                 raise TypeError, "an %s element can only be another Array or an iterable" % cls.__name__
         else :
@@ -741,7 +753,7 @@ class Array(object):
                             new.resize(shape)
                 else :
                     if isinstance (args, Array) :
-                        raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (util.clsname(args), args.shape, cls.__name__, shape)
+                        raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (clsname(args), args.shape, cls.__name__, shape)
                     else :
                         raise ValueError, "cannot initialize a %s of shape %s from %s, some data would be lost" % (cls.__name__, shape, args)                          
                         
@@ -783,7 +795,7 @@ class Array(object):
         elif odim == 0 :
             return self.__class__._convert([other])
          
-        raise ValueError, "cannot append a %s of shape %s on axis %s of %s of shape %s" % (util.clsname(other), oshape, axis, util.clsname(self), shape)
+        raise ValueError, "cannot append a %s of shape %s on axis %s of %s of shape %s" % (clsname(other), oshape, axis, clsname(self), shape)
     
     def append(self, other, axis=0):
         """ Appends other to self on the given axis """
@@ -791,7 +803,7 @@ class Array(object):
         if type(new) is type(self) :
             self.data = new.data
         else :
-            raise ValueError, "new appended shape %s is not compatible with class %s" % (shape, util.clsname(self))
+            raise ValueError, "new appended shape %s is not compatible with class %s" % (shape, clsname(self))
 
     def stacked(self, other, axis=0):
         """ Concatenates Arrays on the given axis """
@@ -814,7 +826,7 @@ class Array(object):
                     new = Array(list(self)+list(other))               
                 return self.__class__._convert(new)
         
-        raise ValueError, "cannot stack %s of shape %s and %s of shape %s on axis %s" % (util.clsname(self), shape, util.clsname(other), oshape, axis)
+        raise ValueError, "cannot stack %s of shape %s and %s of shape %s on axis %s" % (clsname(self), shape, clsname(other), oshape, axis)
 
     def stack(self, other, axis=0):
         """ Concatenates Arrays on the given axis """
@@ -822,7 +834,7 @@ class Array(object):
         if type(new) is type(self) :
             self.data = new.data
         else :
-            raise ValueError, "new concatenated shape %s is not compatible with class %s" % (shape, util.clsname(self))
+            raise ValueError, "new concatenated shape %s is not compatible with class %s" % (shape, clsname(self))
                      
     def hstacked(self, other) :
         return self.stacked(other, -1)
@@ -850,7 +862,7 @@ class Array(object):
         try :
             newshape = self.__class__._expandshape(shape, size)
         except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, util.clsname(self))   
+            raise TypeError, "shape %s is incompatible with class %s" % (shape, clsname(self))   
         newsize = reduce(operator.mul, newshape, 1)
         if newsize != size :
             raise ValueError, "total size of new Array must be unchanged"
@@ -864,7 +876,7 @@ class Array(object):
         if type(new) is type(self) :
             self.data = new.data
         else :
-            raise ValueError, "new shape %s is not compatible with class %s" % (shape, util.clsname(self))
+            raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
               
     def tosize(self, shape, value=None):
         """ a.tosize([shape [, value]])
@@ -877,7 +889,7 @@ class Array(object):
             if -1 in newshape :
                 raise ValueError, "cannot get the size of undefined dimension in shape %s without the total size" % (shape)             
         except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, util.clsname(self))   
+            raise TypeError, "shape %s is incompatible with class %s" % (shape, clsname(self))   
       
         new = None
         for c in inspect.getmro(cls) :
@@ -897,9 +909,9 @@ class Array(object):
             return new
         else :
             if value is not None :
-                raise TypeError, "%s cannot be initialized to shape %s with value %s, and has no base class that can" % (util.clsname(self), shape, value)
+                raise TypeError, "%s cannot be initialized to shape %s with value %s, and has no base class that can" % (clsname(self), shape, value)
             else :
-                raise TypeError, "%s cannot be initialized to shape %s, and has no base class that can" % (util.clsname(self), shape)
+                raise TypeError, "%s cannot be initialized to shape %s, and has no base class that can" % (clsname(self), shape)
 
     def resize(self, shape, value=None):
         """ a.resize(shape)
@@ -910,7 +922,7 @@ class Array(object):
         if type(new) is type(self) :
             self.data = new.data
         else :
-            raise ValueError, "new shape %s is not compatible with class %s" % (shape, util.clsname(self))
+            raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
 
     def _trimmedcopy(self, other):
         ls = len(self)
@@ -960,9 +972,9 @@ class Array(object):
             return new
         else :
             if value is not None :
-                raise TypeError, "%s cannot be initialized to shape %s with value %s, and has no base class that can" % (util.clsname(self), shape, value)
+                raise TypeError, "%s cannot be initialized to shape %s with value %s, and has no base class that can" % (clsname(self), shape, value)
             else :
-                raise TypeError, "%s cannot be initialized to shape %s, and has no base class that can" % (util.clsname(self), shape)
+                raise TypeError, "%s cannot be initialized to shape %s, and has no base class that can" % (clsname(self), shape)
 
     def retrim(self, shape, value=None):
         """ a.retrim(shape)
@@ -973,7 +985,7 @@ class Array(object):
         if type(new) is type(self) :
             self.data = new.data
         else :
-            raise ValueError, "new shape %s is not compatible with class %s" % (shape, util.clsname(self))    
+            raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))    
     
     def copy(self):
         return copy.copy(self)
@@ -1016,7 +1028,8 @@ class Array(object):
     def __len__(self):
         """ Length of the first dimension of the array """
         try :
-            return len(self.data)
+            # return len(self.data)
+            return self.size
         except :
             raise TypeError, "len() of unsized object"
         
@@ -1158,7 +1171,7 @@ class Array(object):
                 # b = self.__class__(a)
                 self = self.__class__(a.data)
             except :
-                raise TypeError, "deleting %s from an instance of class %s will make it incompatible with class shape" % (index, util.clsname(self))
+                raise TypeError, "deleting %s from an instance of class %s will make it incompatible with class shape" % (index, clsname(self))
             # self.data = a
 
     def deleted(self, index):
@@ -1197,7 +1210,7 @@ class Array(object):
                 # b = self.__class__(a)
                 self = self.__class__(a.data)
             except :
-                raise TypeError, "stripping %s from an instance of class %s will make it incompatible with class shape" % (index, util.clsname(self))
+                raise TypeError, "stripping %s from an instance of class %s will make it incompatible with class shape" % (index, clsname(self))
     
     def stripped(self, index):
         """ Returns a copy of self without the index elements, extra dimensions will be stripped """
@@ -1311,7 +1324,7 @@ class Array(object):
                     if sub == value :
                         return iter.toArrayCoords(i)
 
-        raise ValueError, "%s.index(x): x not in %s" % (util.clsname(self), util.clsname(self)) 
+        raise ValueError, "%s.index(x): x not in %s" % (clsname(self), clsname(self)) 
 
     # common operators
     
@@ -1336,11 +1349,11 @@ class Array(object):
             return value
         if hasattr(value, '__iter__') :
             return cls._convert(value)
-        elif util.isNumeric(value) :
+        elif isNumeric(value) :
             # a single numeric value
             return value
         else :
-            raise TypeError, "invalid value type %s cannot be converted to %s or Array" % (util.clsname(value), cls.__name__)
+            raise TypeError, "invalid value type %s cannot be converted to %s or Array" % (clsname(value), cls.__name__)
 
     def __coerce__(self, other):
         """ coerce(x, y) -> (x1, y1)
@@ -1376,7 +1389,7 @@ class Array(object):
         else :
             # that way if not able to to self.__oper__(other) (like if other is larger than self), it will try other.__roper__(self) next 
             return NotImplemented
-            # raise TypeError, "%s and %s cannot be converted to an common Array instance of same shape" % (util.clsname(self), util.clsname(other))
+            # raise TypeError, "%s and %s cannot be converted to an common Array instance of same shape" % (clsname(self), clsname(other))
         
     def __abs__(self):
         """ a.__abs__() <==> abs(a)
@@ -1751,14 +1764,14 @@ class Array(object):
 def det(value):
     if isinstance(value, Matrix) :
         return value.det()
-    elif util.isNumeric(value) :
+    elif isNumeric(value) :
         return value
     else :
         try :
             value = Matrix(value)
             return value.det()
         except :
-            raise TypeError, "cannot compute a determinant on invalid value type %s" % (util.clsname(value))
+            raise TypeError, "cannot compute a determinant on invalid value type %s" % (clsname(value))
 
 class Matrix(Array):
     """
@@ -1847,7 +1860,7 @@ class Matrix(Array):
 #        else :
 #            # that way if not able to to self.__oper__(other) (like if other is larger than self), it will try other.__roper__(self) next 
 #            return NotImplemented
-#            # raise TypeError, "%s and %s cannot be converted to an common Array instance of same shape" % (util.clsname(self), util.clsname(other))
+#            # raise TypeError, "%s and %s cannot be converted to an common Array instance of same shape" % (clsname(self), clsname(other))
 
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
@@ -1859,7 +1872,8 @@ class Matrix(Array):
         elif isinstance(other, Vector) :
             return other.__rmul__(self)
         else :
-            return super(self.__class__, self).__mul__(other)
+            return Array.__mul__(self, other)
+            # return super(Array, self).__mul__(other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
             If b is a Matrix, __rmul__ is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
@@ -1870,7 +1884,8 @@ class Matrix(Array):
         elif isinstance(other, Vector) :
             return other.__mul__(self)
         else :
-            return super(self.__class__, self).__mul__(other)
+            return Array.__rmul__(self, other)
+            #return super(Array, self).__mul__(other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
             In place multiplication of Matrix a and b, see __mul__, result must fit a's type """      
@@ -2098,7 +2113,9 @@ class Vector(Array):
             else :
                 raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Vector * Matrix multiplication" % (self.size, other.shape) 
         else :
-            return super(self.__class__, self).__mul__(other)
+            # will defer to Array.__mul__
+            return Array.__mul__(self, other)
+            # return super(Array, self).__mul__(other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
             If b is a Vector, __rmul__ is mapped to the dot product of the two vectors a and b,
@@ -2113,7 +2130,8 @@ class Vector(Array):
             else :
                 raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Matrix * Vector multiplication" % (self.size, other.shape)             
         else :
-            return super(self.__class__, self).__mul__(other)
+            return Array.__rmul__(self, other)
+            # return super(Array, self).__mul__(other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
             In place multiplication of Vector a and b, see __mul__, result must fit a's type """      
@@ -2129,7 +2147,7 @@ class Vector(Array):
         if isinstance(other, Vector) :
             return self.cross(other)  
         elif isinstance(other, Matrix) :
-            return self.__mul__(other.transpose().inverse())
+            return self.transformAsNormal(other)
         else :
             return NotImplemented
     def __ixor__(self, other):
@@ -2159,7 +2177,13 @@ class Vector(Array):
         except :
             return NotImplemented
         return Matrix(outer(nself, nother))
-     
+    
+    def transformAsNormal(self, other):
+        if isinstance(other, Matrix) :
+            return self.__mul__(other.transpose().inverse())
+        else :
+            return NotImplemented
+        
     def normal(self): 
         """ Return a normalized copy of self. To be consistant with Maya API and MEL unit command,
             does not raise an exception if self if of zero length, instead returns a copy of self """
