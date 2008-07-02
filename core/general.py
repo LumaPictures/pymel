@@ -936,7 +936,8 @@ Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes
     """
-    
+    # Stringify Fix
+    args = [ unicode(x) for x in args ]
     if kwargs.get( 'allDescendents', kwargs.get('ad', False) ) and kwargs.pop( 'shapes', kwargs.pop('s', False) ):        
         kwargs['fullPath'] = True
         kwargs.pop('f', None)
@@ -1346,7 +1347,7 @@ def _getPymelType(arg, attr=None, comp=None) :
         If a PyNode instance is passed, its name and MObject will be returned
         """
     def getPymelTypeFromObject(obj, attr):
-        fnDepend = api.MFnDependencyNode( obj )        
+        fnDepend = api.MFnDependencyNode( obj )      
         mayaType = fnDepend.typeName()
         pymelType = mayaTypeToPyNode( mayaType, DependNode )
         plug = None
@@ -1378,7 +1379,8 @@ def _getPymelType(arg, attr=None, comp=None) :
     passedType = ''
     
     if isinstance(arg,basestring) :
-        # Attribute passed as a string: 'node.attr'
+        # Attribute passed as a string: 'node.foo.attr'.
+        # split into 'node' and 'attr' (parent attribute should not matter)
         if '.' in arg:
             buf = arg.split('.')
             objName = buf[0]
@@ -1435,7 +1437,7 @@ def _getPymelType(arg, attr=None, comp=None) :
     elif isinstance(arg, PyNode) :
         # grab the private variable to prevent the function triggering any additional calculations
         name = arg._name
-        arg = arg._apiobject   
+        arg = arg._apiobject
         
      
     #--------------------------   
@@ -1463,10 +1465,10 @@ def _getPymelType(arg, attr=None, comp=None) :
             raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
                                
     elif isinstance(arg, api.MPlug) : 
-        obj = arg
-        if api.isValidMPlug(obj):
-            pymelType = Attribute
-            attr = api.MObjectHandle( obj.attribute() )
+        if api.isValidMPlug(arg):
+            obj = api.MObjectHandle( arg.node() )
+            attr = arg
+            pymelType, attr = getPymelTypeFromObject( obj.object(), attr )    
         else :
             raise ValueError, "Unable to determine Pymel type: the passed MPlug is not valid" 
 
@@ -1522,7 +1524,11 @@ class PyNode(ProxyUnicode):
                  
             pymelType, obj, name, attr = _getPymelType(argObj, attr)
             #print pymelType, obj, name, attr
-            assert obj or name
+            
+            # Virtual (non-existent) objects will be cast to their own virtual type.
+            # so, until we make that, we're rejecting them
+            assert obj # real objects only
+            #assert obj or name
             
         else :
             raise TypeError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
@@ -1537,16 +1543,17 @@ class PyNode(ProxyUnicode):
         elif cls is not PyNode :
             # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
-            # TODO : can add object creation option in the __iit__ if desired
+            # TODO : can add object creation option in the __init__ if desired
             if issubclass(pymelType, cls) or issubclass(pymelType, basestring) :
                 newcls = cls
         else :
             newcls = pymelType
-                
+   
         if newcls :  
             self = super(PyNode, cls).__new__(newcls)
             self._name = name
             if attr:
+                #print 'ATTR', attr, obj, pymelType
                 self._node = pymelType(obj)
                 self._apiobject = attr
             else:
@@ -1814,9 +1821,25 @@ class Attribute(PyNode):
     #    return "Attribute('%s')" % self
     
     def __apiobject__(self) :
-        #if api.isValidMObjectHandle(self._apiobject.attribute() ) :
-        #    return self._apiobject.object()
+        "Return the default API object (MPlug) for this attribute, if it is valid"
+        return self.__apimplug__()
+    
+    def __apimobject__(self):
+        "Return the MObject for this attribute, if it is valid"
+        obj = self._apiobject.object()
+        if api.isValidMObject( obj ):
+            return object
+    
+    def __apimplug__(self) :
+        "Return the MPlug for this attribute, if it is valid"
+        # TODO: check validity
         return self._apiobject
+
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this attribute, if it is valid"
+        try:
+            return self.node().__mdagpath__()
+        except AttributeError: pass
     
     def __apimfn__(self):
         if self._apimfn:
@@ -1828,16 +1851,26 @@ class Attribute(PyNode):
                 return self._apimfn
                            
 #    def __init__(self, attrName):
+#        assert isinstance( api.__apiobject__(), api.MPlug )
+        
 #        if '.' not in attrName:
 #            raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
 #        self._name = attrName
 #        # TODO : MObject support
 #        self.__dict__['_multiattrIndex'] = 0
-        
-    def __getitem__(self, item):
-       #return Attribute('%s[%s]' % (self, item) )
-       return Attribute( self._node, self.__apiobject__().elementByLogicalIndex(item) )
-   
+#        
+#    def __getitem__(self, item):
+#       #return Attribute('%s[%s]' % (self, item) )
+#       return Attribute( self._node, self.__apiobject__().elementByLogicalIndex(item) )
+    __getitem__ = _factories.wrapApiMethod( api.MPlug, 'elementByLogicalIndex', '__getitem__', apiObject=True )
+    #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex', apiObject=True )
+    
+    def attr(self, attr):
+        return self.node().attr(attr)
+    
+    def __getattr__(self, attr):
+        return self.node().attr(attr)
+    
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
@@ -1872,14 +1905,17 @@ class Attribute(PyNode):
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self.name())
 
-    #def __str__(self):
-    #    return "%s" % self.name()
+    def __str__(self):
+        return "%s" % self.name()
 
-    #def __unicode__(self):
-    #    return u"%s" % self.name()
+    def __unicode__(self):
+        return u"%s" % self.name()
 
     def name(self):
         """ Returns the full name of that attribute(plug) """
+        obj = self.__apiobject__()
+        if obj:
+            return self.plugNode().name() + '.' + obj.partialName( False, True, True, False, False, True )
         return self._name
     
     def nodeName(self):
@@ -1891,6 +1927,8 @@ class Attribute(PyNode):
     
     def attributeNames(self):
         pass
+
+
        
     def array(self):
         """
@@ -1943,12 +1981,15 @@ class Attribute(PyNode):
     
     def nodeName( self ):
         'basename'
-        return self.name().split('|')[-1]
+        return self.plugNode.name()
     
-    def item(self):
-        try: 
-            return int(Attribute.attrItemReg.search(self).group(1))
-        except: return None
+#    def item(self):
+#        try: 
+#            return int(Attribute.attrItemReg.search(self).group(1))
+#        except: return None
+        
+    item = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'item', apiObject=True )
+    index = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'index', apiObject=True )
     
     def setEnums(self, enumList):
         cmds.addAttr( self, e=1, en=":".join(enumList) )
@@ -2057,11 +2098,11 @@ class Attribute(PyNode):
         return cmds.removeMultiInstance( self, **kwargs )
         
     # Edge, Vertex, CV Methods
-    def getTranslation( self, **kwargs ):
-        """xform -translation"""
-        kwargs['translation'] = True
-        kwargs['query'] = True
-        return Vector( cmds.xform( self, **kwargs ) )
+#    def getTranslation( self, **kwargs ):
+#        """xform -translation"""
+#        kwargs['translation'] = True
+#        kwargs['query'] = True
+#        return Vector( cmds.xform( self, **kwargs ) )
         
     #----------------------
     # Info Methods
@@ -2083,59 +2124,59 @@ class Attribute(PyNode):
         "getAttr -type"
         return cmds.getAttr(self, type=True)
  
-    def isElement(self):
-        """ Is the attribute an element of a multi(array) attribute """
-        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
-        return self.__apiobject__().isElement()
-           
-    def isKeyable(self):
-        "getAttr -keyable"
-        return cmds.getAttr(self, keyable=True)
             
     def size(self):
         "getAttr -size"
         return cmds.getAttr(self, size=True)    
-    
-    def isLocked(self):
-        "getAttr -lock"
-        return cmds.getAttr(self, lock=True)    
 
-    def isSettable(self):
-        "getAttr -settable"
-        return cmds.getAttr(self, settable=True)
-
-    def isCaching(self):
-        "getAttr -caching"
-        return cmds.getAttr(self, caching=True)
-        
-    def isInChannelBox(self):
-        "getAttr -channelBox"
-        return cmds.getAttr(self, channelBox=True)    
-        
-    # setAttr property methods
-    def setKeyable(self, state):
-        "setAttr -keyable"
-        return cmds.setAttr(self, keyable=state)
-            
-    def setLocked(self, state):
-        "setAttr -locked"
-        return cmds.setAttr(self, lock=state)
+#    def isElement(self):
+#        """ Is the attribute an element of a multi(array) attribute """
+#        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
+#        return self.__apiobject__().isElement()
+#        
+#    def isKeyable(self):
+#        "getAttr -keyable"
+#        return cmds.getAttr(self, keyable=True)
+#
+#    def setKeyable(self, state):
+#        "setAttr -keyable"
+#        return cmds.setAttr(self, keyable=state)
+#    
+#    def isLocked(self):
+#        "getAttr -lock"
+#        return cmds.getAttr(self, lock=True)    
+#
+#    def setLocked(self, state):
+#        "setAttr -locked"
+#        return cmds.setAttr(self, lock=state)
         
     def lock(self):
         "setAttr -locked 1"
-        return cmds.setAttr(self, lock=True)
+        return self.setLocked(True)
         
     def unlock(self):
         "setAttr -locked 0"
-        return cmds.setAttr(self, lock=False)
-                
-    def setCaching(self, state):
-        "setAttr -caching"
-        return cmds.setAttr(self, caching=state)
-                
-    def showInChannelBox(self, state):
-        "setAttr -channelBox"
-        return cmds.setAttr(self, channelBox=state)    
+        return self.setLocked(False)
+    
+#    def isInChannelBox(self):
+#        "getAttr -channelBox"
+#        return cmds.getAttr(self, channelBox=True)    
+#        
+#    def showInChannelBox(self, state):
+#        "setAttr -channelBox"
+#        return cmds.setAttr(self, channelBox=state)  
+#            
+#    def isCaching(self):
+#        "getAttr -caching"
+#        return cmds.getAttr(self, caching=True)
+#              
+#    def setCaching(self, state):
+#        "setAttr -caching"
+#        return cmds.setAttr(self, caching=state)
+#                
+    def isSettable(self):
+        "getAttr -settable"
+        return cmds.getAttr(self, settable=True)
     
     # attributeQuery info methods
     def isHidden(self):
@@ -2146,9 +2187,26 @@ class Attribute(PyNode):
         "attributeQuery -connectable"
         return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)    
 
-    def isMulti(self):
-        "attributeQuery -multi"
-        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), multi=True)    
+    
+#    def isMulti(self):
+#        "attributeQuery -multi"
+#        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), multi=True)    
+    
+    isArray = _factories.wrapApiMethod( api.MPlug, 'isArray', apiObject=True )
+    isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti', apiObject=True )
+    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement', apiObject=True )
+    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound', apiObject=True )
+    
+    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable' , apiObject=True )
+    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable' , apiObject=True )
+    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked' , apiObject=True )
+    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked' , apiObject=True )
+    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching' , apiObject=True )
+    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching' , apiObject=True )
+    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox', apiObject=True )
+    showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox', apiObject=True )
+
+    
     
     def exists(self):
         "attributeQuery -exists"
@@ -2384,26 +2442,29 @@ class DependNode( PyNode ):
             self._name = depFn.name()
         return self._name 
 
-    def __apiobject__(self) :
-        "get the MDagPath for this object if it is valid"
-        if api.isValidMObjectHandle(self._apiobject) :
-            return self._apiobject.object()
-    
     def name(self, update=True) :
         if update or self._name is None:
             return self._updateName()
         else :
             return self._name  
+        
+    def __apiobject__(self) :
+        "get the default API object (MObject) for this node if it is valid"
+        return self.__apimobject__()
+    
+    def __apimobject__(self) :
+        "get the MObject for this node if it is valid"
+        if api.isValidMObjectHandle(self._apiobject) :
+            return self._apiobject.object()
     
     def __apimfn__(self):
         if self._apimfn:
             return self._apimfn
-        else:
+        elif self.__apimfnclass__:
             obj = self.__apiobject__()
             if obj:
                 try:
-                    mfn = api.toApiFunctionSet( obj.apiType() )
-                    self._apimfn = mfn(obj)
+                    self._apimfn = self.__apimfnclass__(obj)
                     return self._apimfn
                 except KeyError:
                     pass
@@ -2439,10 +2500,19 @@ class DependNode( PyNode ):
 
     def __unicode__(self):
         return u"%s" % self.name()
-    
-    def node(self):
-        """for compatibility with Attribute class"""
-        return self
+
+    def __eq__(self, other):
+        if isinstance(other,PyNode):
+            return self == other
+        else:
+            return self == PyNode(other)
+       
+    def __ne__(self, other):
+        if isinstance(other,PyNode):
+            return self != other
+        else:
+            return self != PyNode(other)
+
     
     def __getattr__(self, attr):
         try :
@@ -2457,17 +2527,21 @@ class DependNode( PyNode ):
         
         #raise AttributeError, 'attribute does not exist %s' % attr
 
-    def __setattr__(self, attr, val):
-        try :
-            return super(PyNode, self).__setattr__(attr, val)
-        except AttributeError :
-            return setAttr( '%s.%s' % (self, attr), val ) 
+#    def __setattr__(self, attr, val):
+#        try :
+#            return super(PyNode, self).__setattr__(attr, val)
+#        except AttributeError :
+#            return setAttr( '%s.%s' % (self, attr), val ) 
 
+    def node(self):
+        """for compatibility with Attribute class"""
+        return self
+    
     def attr(self, attr):
         """access to attribute of a node. returns an instance of the Attribute class for the 
         given attribute."""
         #return Attribute( '%s.%s' % (self, attr) )
-        return Attribute( self._apiobject, self.__apimfn__().findPlug( attr, False ) )
+        return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
     
         # if attr.startswith('__') and attr.endswith('__'):
         #     return super(PyNode, self).__setattr__(attr, val)        
@@ -2550,11 +2624,11 @@ class DependNode( PyNode ):
         else :
             return False
     
-    def hasUniqueName(self):
-        return self.__apimfn__().hasUniqueName()   
-
-    def isDefaultNode(self):
-        return self.__apimfn__().isDefaultNode()  
+#    def hasUniqueName(self):
+#        return self.__apimfn__().hasUniqueName()   
+#
+#    def isDefaultNode(self):
+#        return self.__apimfn__().isDefaultNode()  
          
     def referenceFile(self):
         """referenceQuery -file
@@ -2564,15 +2638,17 @@ class DependNode( PyNode ):
         except:
             None
 
-    def isReadOnly(self):
-    #    #return (cmds.ls( self, ro=1) and True) or False
-        return self.__apimfn__().isFromReferenceFile()
-                
-    def isReferenced(self):
-        """referenceQuery -isNodeReferenced
-        Return True or False if the node is referenced"""    
-        #return cmds.referenceQuery( self, isNodeReferenced=1)
-        return self.__apimfn__().isFromReferenceFile()
+    isReadOnly = _factories.wrapApiMethod( api.MPlug, 'isFromReferenceFile', 'isReadOnly' )
+    isReferenced = _factories.wrapApiMethod( api.MPlug, 'isFromReferenceFile', 'isReferenced' )
+    
+#    def isReadOnly(self):
+#       return (cmds.ls( self, ro=1) and True) or False
+#
+#                
+#    def isReferenced(self):
+#        """referenceQuery -isNodeReferenced
+#        Return True or False if the node is referenced"""    
+#        return cmds.referenceQuery( self, isNodeReferenced=1)
             
     def classification(self):
         'getClassification'
@@ -2716,34 +2792,43 @@ class DagNode(Entity):
             #dagFn = api.MFnDagNode(obj)
             #dagPath = api.MDagPath()
             #dagFn.getPath(dagPath)
-        try:
-            name = self._apiobject.partialPathName()
+        dag = self.__apimdagpath__()
+        if dag:
+            name = dag.partialPathName()
             if name:
                 self._name = name
             if long :
-                return self._apiobject.fullPathName()
-        except AttributeError: pass
-        return self._name                       
+                return dag.fullPathName()
 
-    def __apiobject__(self) :
-        if api.isValidMDagPath(self._apiobject) :
-            return self._apiobject.node()
-        
+        return self._name                       
+            
     def name(self, update=True, long=False) :
         if update or long or self._name is None:
             return self._updateName(long)
         else :
             return self._name
+    
+    def __apiobject__(self) :
+        "get the MDagPath for this object if it is valid"
+        return self.__apimdagpath__()
+ 
+    def __apimdagpath__(self) :
+        "get the MDagPath for this object if it is valid"
+        if api.isValidMDagPath(self._apiobject) :
+            return self._apiobject
+            
+    def __apimobject__(self) :
+        "get the MObject for this object if it is valid"
+        return self.__apimdagpath__().node()
 
     def __apimfn__(self):
         if self._apimfn:
             return self._apimfn
-        else:
+        elif self.__apimfnclass__:
             obj = self._apiobject
             if api.isValidMDagPath(obj):
                 try:
-                    mfn = api.toApiFunctionSet( obj.apiType() )
-                    self._apimfn = mfn(obj)
+                    self._apimfn = self.__apimfnclass__(obj)
                     return self._apimfn
                 except KeyError:
                     pass
@@ -2789,20 +2874,7 @@ class DagNode(Entity):
             else :
                 raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(arg), arg)  
        """   
-    
-    def __eq__(self, other):
-        """ensures that we compare longnames when checking for dag node equality"""
-        try:
-            return unicode(self.longName()) == unicode(DagNode(other).longName())
-        except (TypeError,IndexError):
-            return unicode(self) == unicode(other)
-            
-    def __ne__(self, other):
-        """ensures that we compare longnames when checking for dag node equality"""
-        try:
-            return unicode(self.longName()) != unicode(DagNode(other).longName())
-        except (TypeError,IndexError):
-            return unicode(self) != unicode(other)    
+
             
     #--------------------------
     #    DagNode Path Info
@@ -2844,6 +2916,14 @@ class DagNode(Entity):
                return self.__apimfn__().isChildOf( obj )
     """
     
+    def getAllInstances(self):
+        d = api.MDagPathArray()
+        self.__apimfn__().getAllPaths(d)
+        #result = [ PyNode(d[i]) for i in range(d.length()) ]
+        #print [ x.exists() for x in result ]
+        result = [ d[i] for i in range(d.length()) ]
+        return result
+
     def firstParent(self):
         'firstParentOf'
         try:
