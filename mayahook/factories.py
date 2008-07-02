@@ -598,7 +598,7 @@ class CommandModuleDocParser(HTMLParser):
         f = open( os.path.join( docloc , 'Commands/cat_' + self.category + '.html' ) )
         self.feed( f.read() )
         f.close()
-        return self.cmdList + sef.moduleCommandAdditions.get(self.category, [] )
+        return self.cmdList + self.moduleCommandAdditions.get(self.category, [] )
               
     def __init__(self, category, version=None ):
         self.cmdList = []
@@ -659,6 +659,8 @@ class ApiDocParser(HTMLParser):
         
     def parse(self):
         docloc = mayaDocsLocation(self.version)
+        if not os.path.isdir(docloc):
+            raise TypeError, "Cannot find maya documentation. Expected to find it at %s" % docloc
         f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
         self.feed( f.read() )
         f.close()
@@ -678,7 +680,7 @@ class ApiDocParser(HTMLParser):
         self.grouping = None
         self.data = []
         self.parameters = []
-        self.returnVal = []
+        self.returnType = []
         self.defaults = {}
         HTMLParser.__init__(self)
         
@@ -689,12 +691,22 @@ class ApiDocParser(HTMLParser):
             
             if data in ['Reimplemented from', 'Parameters:', 'Returns:' ]:
                 self.mode = data
+                
             elif self.mode == 'Parameters:':
-                self.parameters.append( data )
+                if data in ['[in]', '[out]']:
+                    self.parameters.append( [data[1:-1], None, ''] ) # direction
+                elif self.parameters[-1][1] == None:
+                    self.parameters[-1][1] = data
+                else:
+                    self.parameters[-1][2] += data
+                    
+                    
             elif self.mode == 'Returns:':
-                self.returnVal.append( data )
+                self.returnType.append( data )
+                
             elif self.mode == 'Reimplemented from':
                 pass
+            
             elif self.grouping == 'Member Function Documentation':
                 #print self.currentMethod, "adding data", data
                 if data.startswith('()'):
@@ -738,7 +750,7 @@ class ApiDocParser(HTMLParser):
             except ValueError:
                 raise ValueError, '%s: could not find parentheses: %s, %r' % ( self.functionSet, self.currentMethod, self.data )
             buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name          
-            returnVal = None
+            returnType = None
             
             if len(buf):
                 #-----------------
@@ -747,15 +759,15 @@ class ApiDocParser(HTMLParser):
                 if len(buf)>1:
                     # unsigned int
                     if buf[0] == 'unsigned':
-                        returnVal = buf[1]
+                        returnType = buf[1]
                     else:
                         pass
                         #print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
                 else:
-                    returnVal = buf[0]
+                    returnType = buf[0]
                 
-                if returnVal == 'MStatus':
-                    returnVal = None
+                if returnType == 'MStatus':
+                    returnType = None
                     
                     
                 #print tempargs
@@ -777,31 +789,14 @@ class ApiDocParser(HTMLParser):
                 #---------------------
                 
                 # self.parameters looks like:
-                # ['[in]', 'node', 'node to check', '[out]', 'ReturnStatus', 'Status Code (see below)']
-                # would be easiest if it always came in triplets, but there are exceptions
-                for param in self.parameters:
-                    
-                    if param in [ '[in]', '[out]' ] :
-                        if direction and argName and doc:
-                            # add info for this cyle
-                            argInfo[ argName ]['doc'] = doc
-                            if direction == 'in': inArgs.append(argName)
-                            elif direction == 'out': outArgs.append(argName)
-                    
-                        # start a new cycle
-                        argName = None
-                        doc = ''
-                        direction = param[1:-1]
-                    
-                    elif argName is None:
-                        argName = param
-                    
-                    else:
-                        doc += param
-                # add remain information      
-                argInfo[ argName ]['doc'] = doc
-                if direction == 'in': inArgs.append(argName)
-                elif direction == 'out': outArgs.append(argName)
+                # [  ['[in]', 'node', 'node to check'],  ['[out]', 'ReturnStatus', 'Status Code (see below)']  ]
+
+                for direction, argName, doc in self.parameters: 
+                    if argName not in ['ReturnStatus', 'status', 'retStatus']:
+                        argInfo[ argName ]['doc'] = doc
+                        if direction == 'in': inArgs.append(argName)
+                        elif direction == 'out': outArgs.append(argName)
+                                           
                 
                 
                 #------------------------
@@ -810,7 +805,7 @@ class ApiDocParser(HTMLParser):
                 tempargs = ' '.join( self.data[start+1:end] )
                 
                 methodDoc = ''
-                
+                defaults = {}
                 for argGrp in tempargs.split(','):
                     
                     argGrp = [ y for y in argGrp.split() if y not in [ '*', 'const', '=', 'unsigned'] ]
@@ -819,7 +814,7 @@ class ApiDocParser(HTMLParser):
                     if len(argGrp):
                                 
                         type = argGrp[0]
-                        if type == 'MStatus':
+                        if type in 'MStatus':
                             continue
                         
                         try:
@@ -831,34 +826,44 @@ class ApiDocParser(HTMLParser):
                             continue
                         else:
 
+                            
                             try:
                                 # move array length from keyword to type:
                                 # keyword[3] ---> keyword
                                 # type       ---> type3 
                                 tmp = argGrp[2]
+                                
                                 buf = re.split( r'\[|\]', tmp)
                                 if len(buf) > 1:
+                                    
                                     type = type + buf[1]
                                     default = None
-                                else:                     
+                                else:     
+                                            
                                     default = {
                                         'true' : True,
                                         'false': False
                                     }.get( tmp, tmp )
                                     
                             except IndexError:
+                                
                                 default = None
-                                                         
-                                
+                              
                             argInfo[ keyword ]['type'] = type
-                            if default:
-                                argInfo[ keyword ]['default'] = default
-                                argInfo[ 'defaults' ][keyword] = default
-                                
+                            argInfo[ 'types' ][keyword] = type
+                            if default is not None:
+                                #argInfo[ keyword ]['default'] = default
+                                #argInfo[ 'defaults' ][keyword] = default
+                                defaults[keyword] = default
                             if keyword in inArgs:
+                                #try:
+                                #    typeName = returnCast[type].__name__
+                                #except KeyError:
+                                #    typeName = type
+                                typeName = type
                                 direction = 'in'
-                                methodDoc += ':param %s: %s\n' % ( keyword, argInfo[keyword]['doc'] )
-                                methodDoc += ':type %s: %s\n' % ( keyword, type )
+                                methodDoc += ':param %s: %s\n' % ( keyword, argInfo[keyword].get('doc', '') )
+                                methodDoc += ':type %s: %s\n' % ( keyword, typeName )
                                 argInfo[keyword]['doc'] = doc
                             else: 
                                 direction = 'out'
@@ -869,15 +874,30 @@ class ApiDocParser(HTMLParser):
                     elif len(argGrp)==1:
                         print "arg group lenght is 1:", argGrp
                 
-                       
+                # return type documentation
+                allReturnTypes = []
+                if returnType:
+                    allReturnTypes.append( returnType )
+                if outArgs:
+                    allReturnTypes += [  argInfo[ 'types' ][x] for x in outArgs ]
+                    
+                if allReturnTypes:
+                    methodDoc += ':rtype: %s' % ','.join( allReturnTypes )
+                      
                 #print argList, argInfo
-                methodInfo = { 'argInfo': argInfo, 'args' : argList, 'returnVal' : returnVal, 'inArgs' : inArgs, 'outArgs' : outArgs, 'doc' : methodDoc } 
+                methodInfo = { 'argInfo': argInfo, 
+                              'args' : argList, 
+                              'returnType' : returnType, 
+                              'inArgs' : inArgs, 
+                              'outArgs' : outArgs, 
+                              'doc' : methodDoc, 
+                              'defaults' : defaults } 
                 self.methods[self.currentMethod].append(methodInfo)
             
             self.mode = None
             self.data = []
             self.parameters = []
-            self.returnVal = []
+            self.returnType = []
             
         try:     
             clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
@@ -1765,6 +1785,7 @@ overrideMethods['Constraint'] = ('getWeight', 'setWeight')
 
 _api = __import__( 'pymel.api', globals(), locals(), [''])
 #_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
+#PYNODE = None
 
 class Holder(util.Singleton):
     def __init__(self):
@@ -1777,24 +1798,172 @@ class Holder(util.Singleton):
 
 GenHolder = Holder()
 
-def interfacer( doer, args=[], defaults=[], typemap={} ):
+class ApiArgUtil(util.Singleton):
+
+    def __init__(self, apiClassName, methodName, methodInfo ):
+        PYNODE = GenHolder.get()
+        su = _api.MScriptUtil()
+        self.inCast = { 'double' : float,
+                        'float'  : float,
+                        'bool'   : bool,
+                        'int'    : int,
+                        'MString': unicode,
+                        
+                        'MVector': _api.wrappedtypes.Vector,
+                        'MMatrix': _api.wrappedtypes.Matrix,
+                        'MPoint' : _api.wrappedtypes.Point,
+                        'MColor' : _api.wrappedtypes.Color,
+                        
+                        'MObject': lambda x: PYNODE(x).__apimobject__(),
+                        'MDagPath': lambda x: PYNODE(x).__apimdagpath__(),
+                        'MPlug'  : lambda x: PYNODE(x).__apimplug__()
+                    }
+    
+        self.returnCast = {  'double' : float,
+                        'float'  : float,
+                        'bool'   : bool,
+                        'int'    : int,
+                        'MString': unicode,
+                        
+                        'MVector': _api.wrappedtypes.Vector,
+                        'MMatrix': _api.wrappedtypes.Matrix,
+                        'MPoint' : _api.wrappedtypes.Point,
+                        'MColor' : _api.wrappedtypes.Color,
+                        
+                        'MObject': PYNODE,
+                        'MDagPath': PYNODE,
+                        'MPlug'  : PYNODE,
+                    }
+        
+        self.refInit = {
+                        'int'      : lambda: su.asIntPtr(),
+                        'short'    : lambda: su.asShortPtr(),
+                        'float'    : lambda: su.asFloatPtr(),
+                        'double'   : lambda: su.asDoublePtr(),
+                        'uint'     : lambda: su.asUintPtr(),
+                        'bool'     : lambda: su.asBoolPtr(),
+                        
+                        'int2'      : lambda: su.asIntPtr(),
+                        'short2'    : lambda: su.asShortPtr(),
+                        'float2'    : lambda: su.asFloatPtr(),
+                        'double2'   : lambda: su.asDoublePtr(),
+                        'uint2'     : lambda: su.asUintPtr(),
+                        'bool2'     : lambda: su.asBoolPtr(),
+                        
+                        'int3'      : lambda: su.asIntPtr(),
+                        'short3'    : lambda: su.asShortPtr(),
+                        'float3'    : lambda: su.asFloatPtr(),
+                        'double3'   : lambda: su.asDoublePtr(),
+                        'uint3'     : lambda: su.asUintPtr(),
+                        'bool3'     : lambda: su.asBoolPtr(),
+                        
+                        'MVector'   : _api.MVector,
+                        'MMatrix'   : _api.MMatrix,
+                        'MPoint'   : _api.MPoint,
+                        
+                        'MObject'   : _api.MObject,
+                        'MDagPathArray' : _api.MDagPathArray,
+                        
+                    }
+        
+        self.refCast = {     
+                        'int'      : lambda x: su.getInt(x),
+                        'short'    : lambda x: su.getShort(x),
+                        'float'    : lambda x: su.getFloat(x),
+                        'double'   : lambda x: su.getDouble(x),
+                        'uint'     : lambda x: su.getUint(x),
+                        'bool'     : lambda x: su.getBool(x),
+                        
+                        'int3'      : lambda x: tuple([ su.getIntArrayItem(x,0),   su.getIntArrayItem(x,1),   su.getIntArrayItem(x,2) ]),
+                        'short3'    : lambda x: tuple([ su.getShortArrayItem(x,0), su.getShortArrayItem(x,1), su.getShortArrayItem(x,2) ]),
+                        'float3'    : lambda x: tuple([ su.getFloatArrayItem(x,0), su.getFloatArrayItem(x,1), su.getFloatArrayItem(x,2) ]),
+                        'double3'   : lambda x: tuple([ su.getDoubleArrayItem(x,0),su.getDoubleArrayItem(x,1),su.getDoubleArrayItem(x,2) ]),
+                        'uint3'     : lambda x: tuple([ su.getUintArrayItem(x,0),  su.getUintArrayItem(x,1),  su.getUintArrayItem(x,2) ]),
+                        'bool3'     : lambda x: tuple([ su.getBoolArrayItem(x,0),  su.getBoolArrayItem(x,1),  su.getBoolArrayItem(x,2) ]),
+                        
+                        'MVector'   : _api.wrappedtypes.Vector,
+                        'MMatrix'   : _api.wrappedtypes.Matrix,
+                        'MPoint'    : _api.wrappedtypes.Point,
+                        
+                        'MObject'   : PYNODE,
+                        'MDagPathArray' : lambda x: [ PYNODE(x[i]) for i in range( x.length() ) ],
+                    }
+        
+        self.apiClassName = apiClassName
+        self.methodName = methodName
+        self.methodInfo = methodInfo
+
+
+    def canBeWrapped(self):
+        inArgs = self.methodInfo['inArgs']
+        outArgs =  self.methodInfo['outArgs']
+        #argList = methodInfo['args']
+        returnType =  self.methodInfo['returnType']
+        # ensure that we can properly cast all the args and return values
+        try:
+            if returnType is not None:
+                assert returnType in self.returnCast, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
+            
+            for argname, argtype, default, direction in self.methodInfo['args'] :
+                if direction == 'in':
+                    assert argtype in self.inCast, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                if direction == 'out':
+                    assert argtype in self.refInit and argtype in self.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                    #try:
+                    #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+                    #except AttributeError:
+                    #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
+        except AssertionError, msg:
+            #print msg
+            return False
+        return True
+    
+    def castInput(self, argtype, input):
+        return self.inCast[argtype]( input )
+    
+    def castResult(self, returnType, result):
+        return self.returnCast[returnType]( result )
+    
+    def initializeReference(self, argtype): 
+        return self.refInit[argtype]()
+     
+    def castReferenceResult(self,argtype,outArg):
+        return self.refCast[ argtype ]( outArg )
+    
+       
+def interface_wrapper( doer, args=[], defaults=[] ):
     """
+    A wrapper which allows factories to create functions with
+    precise inputs arguments, instead of using the argument catchall:
+        >>> f( *args, **kwargs ): 
+        >>> ...
+
+    :param doer: the function to be wrapped.
+    :parm args: a list of strings to be used as argument names, in proper order
+    :param defaults: a list of default values for the arguments. must be less than or equal
+        to args in length. if less than, the last element of defaults will be paired with the last element of args,
+        the second-to-last with the second-to-last and so on ( see inspect.getargspec ). Arguments
+        which get a default become keyword arguments.
     """
+    # TODO: ensure doer has only an *args parameter
+    
     name = doer.__name__
     storageName = doer.__name__ + '_interfaced'
     g = { storageName : doer }
     kwargs=[]
     offset = len(args) - len(defaults)
-    
+    if offset < 0:
+        raise TypeError, "The number of defaults cannot exceed the number of arguments"
     for i, arg in enumerate(args):
         if i >= offset:
             kwargs.append( '%s=%r' % (arg, defaults[i-offset]) )
         else:
             kwargs.append( str(arg) )
-    print kwargs
-    #argStr = ','.join(kwargs)
-    #print argStr
-    defStr = 'def %s( %s ): return %s(%s)' % (name, ','.join(kwargs), storageName, ','.join(args) )
+
+    defStr = """def %s( %s ): 
+        return %s(%s)""" % (name, ','.join(kwargs), storageName, ','.join(args) )
+        
+
     exec( defStr ) in g
     func = g[name]
     func.__doc__ = doer.__doc__
@@ -1802,7 +1971,7 @@ def interfacer( doer, args=[], defaults=[], typemap={} ):
     return func
 
     
-def wrapApiMethod( apiClass, methodName, newName=None ):
+def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
     #getattr( _api, apiClassName )
     
     #general = GenHolder.get()
@@ -1824,170 +1993,59 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
     except AttributeError:
         return
     
-
-    inCast = {      'double' : float,
-                    'float'  : float,
-                    'bool'   : bool,
-                    'int'    : int,
-                    'MString': unicode,
-                    
-                    'MVector': _api.wrappedtypes.Vector,
-                    'MMatrix': _api.wrappedtypes.Matrix,
-                    'MPoint' : _api.wrappedtypes.Point,
-                    'MColor' : _api.wrappedtypes.Color,
-                    
-                    'MObject': lambda x: PYNODE(x).__apiobject__(),
-                    'MDagPath': lambda x: PYNODE(x).__apiobject__(),
-                    'MPlug'  : lambda x: PYNODE(x).__apiobject__()
-                }
-
-    returnCast = {  'double' : float,
-                    'float'  : float,
-                    'bool'   : bool,
-                    'int'    : int,
-                    'MString': unicode,
-                    
-                    'MVector': _api.wrappedtypes.Vector,
-                    'MMatrix': _api.wrappedtypes.Matrix,
-                    'MPoint' : _api.wrappedtypes.Point,
-                    'MColor' : _api.wrappedtypes.Color,
-                    
-                    'MObject': PYNODE,
-                    'MDagPath': PYNODE,
-                    'MPlug'  : PYNODE,
-                }
-    
-    su = _api.MScriptUtil()
-    
-#    def outInit( type ):
-#        return getattr( su, 'as' + util.capitalize(type) + 'Ptr' )
-#    
-#    def outValue( type ):
-#        return getattr( su, 'get' + util.capitalize(type) )
-# 
-#    def outArrayValue( type ):
-#        return getattr( su, 'get' + util.capitalize(type) + 'ArrayItem' )
-    
-    
-    refInit = {
-                    'int'      : lambda: su.asIntPtr(),
-                    'short'    : lambda: su.asShortPtr(),
-                    'float'    : lambda: su.asFloatPtr(),
-                    'double'   : lambda: su.asDoublePtr(),
-                    'uint'     : lambda: su.asUintPtr(),
-                    'bool'     : lambda: su.asBoolPtr(),
-                    
-                    'int2'      : lambda: su.asIntPtr(),
-                    'short2'    : lambda: su.asShortPtr(),
-                    'float2'    : lambda: su.asFloatPtr(),
-                    'double2'   : lambda: su.asDoublePtr(),
-                    'uint2'     : lambda: su.asUintPtr(),
-                    'bool2'     : lambda: su.asBoolPtr(),
-                    
-                    'int3'      : lambda: su.asIntPtr(),
-                    'short3'    : lambda: su.asShortPtr(),
-                    'float3'    : lambda: su.asFloatPtr(),
-                    'double3'   : lambda: su.asDoublePtr(),
-                    'uint3'     : lambda: su.asUintPtr(),
-                    'bool3'     : lambda: su.asBoolPtr(),
-                    
-                    'MVector'   : _api.MVector,
-                    'MMatrix'   : _api.MMatrix,
-                    'MPoint'   : _api.MPoint,
-                    
-                    'MObject'   : _api.MObject,
-                    'MDagPathArray' : _api.MDagPathArray,
-                    
-                }
-    
-    refCast = {     
-                    'int'      : lambda x: su.getInt(x),
-                    'short'    : lambda x: su.getShort(x),
-                    'float'    : lambda x: su.getFloat(x),
-                    'double'   : lambda x: su.getDouble(x),
-                    'uint'     : lambda x: su.getUint(x),
-                    'bool'     : lambda x: su.getBool(x),
-                    
-                    'int3'      : lambda x: [ su.getIntArray(x,0), su.getIntArray(x,1), su.getIntArray(x,2) ],
-                    'short3'    : lambda x: [ su.getShortArray(x,0), su.getShortArray(x,1), su.getShortArray(x,2) ],
-                    'float3'    : lambda x: [ su.getFloatArray(x,0), su.getFloatArray(x,1), su.getFloatArray(x,2) ],
-                    'double3'   : lambda x: [ su.getDoubleArray(x,0), su.getDoubleArray(x,1), su.getDoubleArray(x,2) ],
-                    'uint3'     : lambda x: [ su.getUintArray(x,0), su.getUintArray(x,1), su.getUintArray(x,2) ],
-                    'bool3'     : lambda x: [ su.getBoolArray(x,0), su.getBoolArray(x,1), su.getBoolArray(x,2) ],
-                    
-                    'MVector'   : _api.wrappedtypes.Vector,
-                    'MMatrix'   : _api.wrappedtypes.Matrix,
-                    'MPoint'    : _api.wrappedtypes.Point,
-                    
-                    'MObject'   : PYNODE,
-                    'MDagPathArray' : lambda x: [ PYNODE(x)(x[i]) for i in range( x.length() ) ],
-                }
-       
+   
     for methodInfo in methodInfoList:
         #argInfo = methodInfo['argInfo']
         inArgs = methodInfo['inArgs']
         outArgs = methodInfo['outArgs']
         #argList = methodInfo['args']
-        returnType = methodInfo['returnVal']
+        returnType = methodInfo['returnType']
+        argHelper = ApiArgUtil(apiClassName, methodName, methodInfo)
         
-        # ensure that we can properly cast all the args and return values
-        try:
-            if returnType is not None:
-                assert returnType in returnCast, '%s.%s(): invalid return type: %s' % (apiClassName, methodName, returnType)
-            
-            for argname, argtype, default, direction in methodInfo['args'] :
-                if direction == 'in':
-                    assert argtype in inCast, '%s.%s(): %s: invalid input type %s' % (apiClassName, methodName, argname, argtype)
-                if direction == 'out':
-                    assert str(argtype) in refInit and str(argtype) in refCast, '%s.%s(): %s: invalid output type %s' % (apiClassName, methodName, argname, argtype)
-                    #try:
-                    #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
-                    #except AttributeError:
-                    #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
-        except AssertionError, msg:
-            print msg
-        
-        else:
+        if argHelper.canBeWrapped() :
             # create the function 
-            def f( self, *args, **kwargs):
-                count = 0
+            def f( self, *args ):
+                inCount = 0
+                i = 0
                 argList = []
-                outList = []
+                outTypeList = []
+                outTypeIndex = []
                 argInfo = methodInfo['args']
                 if len(args) != len(inArgs):
                     raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
                 
                 for name, argtype, default, direction in argInfo :
                     if direction == 'in':
-                        argList.append( inCast[argtype]( args[count] ) )
-                        count +=1
+                        argList.append( argHelper.castInput( argtype, args[inCount] ) )
+                        inCount +=1
                     else:
-                        
-#                        if isinstance( argtype, basestring ):
-#                            val = outInit( argtype )() 
-#                        else:                
-#                            val = outInit( argtype.type() )() 
-#                            #val = su.asDoublePtr()
-#                            
-#                        assert val is not None, "script util pointer is None"
-                        val = refInit[str(argtype)]()
+                        val = argHelper.initializeReference(argtype) 
                         argList.append( val )
-                        outList.append( ( val, argtype) )
-                                            
+                        outTypeList.append( argtype )
+                        outTypeIndex.append( i )
+                    i+=1
+                                      
                 #print argList
-                result = method( self.__apimfn__(), *argList )
+                if apiObject:
+                    result = method( self.__apiobject__(), *argList )
+                else:
+                    result = method( self.__apimfn__(), *argList )
                 #print "result", result
                 #return
                 if returnType:
-                    result = returnCast[returnType]( result )
+                    result = argHelper.castResult(returnType, result) 
                     
-                if len(outList):
+                if len(outArgs):
                     if result is not None:
                         result = [result]
                     else:
                         result = []
-                    for outArg, argtype in outList:
-                        result.append( refCast[ argtype ]( outArg ) )
+                    
+                    for outType, index in zip(outTypeList,outTypeIndex):
+                        outArgVal = argList[index]
+                        res = argHelper.castReferenceResult( outType, outArgVal )
+                        result.append( res )
+                        
 #                        if isinstance( argtype, basestring ):
 #                            result.append( outValue( argtype )( outArg ) )
 #                        else:
@@ -1997,7 +2055,7 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
 #                                array.append( getter( outArg, i) )
 #                            result.append( array )
                     if len(result) == 1:
-                        result = result.pop()
+                        result = result[0]
                 return result
             
             if newName:
@@ -2005,7 +2063,18 @@ def wrapApiMethod( apiClass, methodName, newName=None ):
             else:
                 f.__name__ = methodName
             f.__doc__ = methodInfo['doc']
-            print " "*220 + "%s %s.%s( %s )" % ( returnType, apiClass.__name__, methodName, ', '.join(inArgs) ) 
+            
+            
+            defaults = []
+            for arg in inArgs:
+                try:
+                    defaults.append( methodInfo['defaults'][arg])
+                except: pass
+                
+            #print inArgs, defaults
+            f = interface_wrapper( f, ['self'] + inArgs, defaults )
+            
+            #print " "*220 + "%s %s.%s( %s )" % ( returnType, apiClass.__name__, methodName, ', '.join(inArgs) ) 
             return f
         
 class metaNode(type) :
@@ -2029,6 +2098,7 @@ class metaNode(type) :
         apiClass = _api.toApiFunctionSet( nodeType )
         #if nodeType == 'transform': print 'TRANSFORM', apiClass
         if apiClass:
+            classdict['__apimfnclass__'] = apiClass
             print "="*60, nodeType, "="*60
             for methodName in _api.apiClassInfo[apiClass.__name__].keys():
                 method = wrapApiMethod( apiClass, methodName )
@@ -2131,8 +2201,8 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
         for methodInfo in methodInfoList:
             #print method, methodInfoList
             if not methodInfo['outArgs']:
-                returnVal = methodInfo['returnVal']
-                if returnVal in validTypes:
+                returnType = methodInfo['returnType']
+                if returnType in validTypes:
                     count = 0
                     types = []
                     for x in methodInfo['inArgs']:
@@ -2143,7 +2213,7 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
                             count+=1
                     if count == len( methodInfo['inArgs'] ):
                         if verbose:
-                            print '    %s %s(%s)' % ( returnVal, method, ','.join( types ) )
+                            print '    %s %s(%s)' % ( returnType, method, ','.join( types ) )
                         validMethods.append(method)
     return validMethods
 
