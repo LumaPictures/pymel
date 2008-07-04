@@ -1293,11 +1293,11 @@ class NameRangeIndex(Parsed):
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
 #    
 #    
-#class ComponentName(Parsed): 
-#    """ A Maya component name of any of the single, double or triple indexed kind
-#        Rule : ComponentName = SingleComponentName | DoubleComponentName | TripleComponentName """
-#    _parser = ComponentNameParser
-#    _accepts = ('MayaNodeName', 'AttrSep', 'NodeComponentName') 
+class ComponentName(Parsed): 
+    """ A Maya component name of any of the single, double or triple indexed kind
+        Rule : ComponentName = SingleComponentName | DoubleComponentName | TripleComponentName """
+    _parser = ComponentNameParser
+    _accepts = ('MayaNodeName', 'AttrSep', 'NodeComponentName') 
 #
 #class SingleComponentName(ComponentName):
 #    """ A Maya single component name, in the form node name . component
@@ -1731,7 +1731,30 @@ def _itest ():
         if not expr: break
         _test(expr)    
  
+  
+def getBasicPartList( name ):
+    """convenience function for breaking apart a maya object to the appropriate level for pymel name parsing
     
+    >>> getBasicPartList('thing|foo:bar.attr[0].child')
+    [MayaNodeName('thing|foo:bar', 0), MayaName('attr', 13), NameIndex('[0]', 17), MayaName('child', 21)]
+    """
+    partList = []
+    def getParts( obj ):
+        try:
+            for i, x in enumerate(obj.parts):
+                #print "part", i, repr(x)
+                if isinstance( x, MayaNodeName) or isinstance( x, MayaName ) or isinstance( x, NameIndex ):
+                    partList.append(x)
+                else:
+                    getParts(x)
+        except AttributeError:
+            #print "deadend", repr(obj)
+            pass
+        
+    getParts( MayaObjectName(name) )
+    return partList    
+
+  
 if __name__ == '__main__' :
     # test('SPACE:pre_someMaya12Name10_12')
     # interractive test for names parsing
