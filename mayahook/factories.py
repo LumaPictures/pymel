@@ -2,6 +2,7 @@
 from pymel.util.trees import *
 import pymel.util as util
 import mayautils
+import pymel.tools.py2mel as py2mel
 #from general import PyNode
 
 import sys, os, inspect, pickle, re, types, os.path
@@ -2435,7 +2436,7 @@ def installCallbacks(module):
         print "adding pluginUnloaded callback"
         pluginUnloadedCB = pluginUnloadedCallback(module)
         #unloadPlugin has a bug which prevents it from using python objects, so we use our mel wrapper instead
-        unloadCBStr = util.melToPythonWrapper( pluginUnloadedCB, procName='pluginUnloadedProc' )
+        unloadCBStr = py2mel.py2melProc( pluginUnloadedCB, procName='pluginUnloadedProc' )
         cmds.unloadPlugin( addCallback=unloadCBStr )
     else:
         print "pluginUnloaded callback already exists"
