@@ -11,6 +11,7 @@ import pymel.util as util
 import pymel.mayahook as mayahook
 import pymel.mayahook.factories as _factories
 import pickle, os.path
+import pymel.util.nameparse as nameparse
 
 # TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
@@ -795,7 +796,8 @@ def toApiObject (nodeName):
     obj = MObject()
     dag = MDagPath()
     result = None
-    try :     
+    try :
+        # MSelectionList uses only the node, ignores after first period
         sel.add( nodeName )
         try:
             sel.getDagPath( 0, dag )
@@ -808,17 +810,21 @@ def toApiObject (nodeName):
             if not isValidMObject(obj) :
                 return     
             result = obj
-        
-        # TODO : better parsing
+            
+        # TODO : components
         if "." in nodeName :
-            # attribute or component
-            nameSplt = nodeName.split(".")
-            try :
-                depFn = MFnDependencyNode(obj)
-                attr = depFn.attribute (nameSplt[-1])
-                result = MPlug(obj, attr)
-            except:
-                pass
+            # build up to the final MPlug
+            nameTokens = nameparse.getBasicPartList( nodeName )
+            depndFn = api.MFnDependencyNode(obj)
+            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
+                if isinstance( token, nameparse.MayaName ):
+                    if isinstance( result, api.MPlug ):
+                        result = result.child( depndFn.attribute( token ) )
+                    else:
+                        result = depndFn.findPlug( token )
+                if isinstance( token, nameparse.NameIndex ):
+                    result = result.elementByLogicalIndex( token.value )
+        
     except :
         pass
     return result
