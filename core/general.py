@@ -36,6 +36,23 @@ longNames = False
 # TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ): 
 # using append or extend will not update the mel variable 
 class MelGlobals( util.Singleton, dict ):
+    """ A dictionary-like class for getting and setting global variables between mel and python.
+    an instance of the class is created by default in the pymel namespace as melGlobals.
+    
+    to retrieve existing global variables, just use the name as a key
+    
+    >>> melGlobals['gMainFileMenu']
+    mainFileMenu
+    >>> # works with or without 
+    >>> melGlobals['$gGridDisplayGridLinesDefault']
+    1
+    
+    creating new variables requires the use of the initVar function to specify the type
+    
+    >>> melGlobals.initVar( 'string', 'gMyStrVar' )
+    >>> melGlobals['gMyStrVar'] = 'fooey'
+    
+    """
     melTypeToPythonType = {
         'string'    : str,
         'int'       : int,
@@ -80,11 +97,12 @@ class MelGlobals( util.Singleton, dict ):
         def setItem(self, index, value ):
             mm.eval(self._setItemCmd % (index, value) )
         
+        # prevent these from 
         def append(self, val): raise AttributeError
         def __setitem__(self, item, val): raise AttributeError
         def extend(self, val): raise AttributeError
         
-    """ A class for synchronizing global variables between mel and python."""
+    
     
     typeMap = {}
     validTypes = util.MELTYPES
@@ -158,9 +176,15 @@ class MelGlobals( util.Singleton, dict ):
         #print cmd
         mm.eval( cmd  )
     
+    def keys(self):
+        """list all global variables"""
+        return mel.env()
+    
 melGlobals = MelGlobals()
-                  
 
+# for backward compatibility               
+getMelGlobal = melGlobals.get
+setMelGlobal = melGlobals.set
     
 class Catch(util.Singleton):
     """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch, you should
@@ -506,7 +530,7 @@ Modifications:
     """
     
     try:
-        cmds.select(*args, **kwargs)
+        cmds.select(*util.stringify(args), **kwargs)
     except TypeError, msg:
         if args == ([],):
             cmds.select(cl=True)
@@ -616,7 +640,7 @@ Modifications:
             vecRes.append( Vector( res[i:i+3] ) )
         return vecRes
 
-    # MObject Fix
+    # stringify fix
     attr = unicode(attr)
 
     try:
@@ -799,9 +823,10 @@ Modifications:
         cmd = 'setAttr -type "matrix" "%s" %s' % (attr, ' '.join( map( str, args ) ) )
         mm.eval(cmd)
         return 
-    # MObject Fix
+    
+    # stringify fix
     attr = unicode(attr)   
-    #print attr, args, kwargs
+
     try:
         cmds.setAttr( attr, *args, **kwargs)
     except TypeError, msg:
@@ -1104,7 +1129,7 @@ Modifications
     """
     if not args and not cmds.ls(sl=1):
         kwargs['empty'] = True
-    return Transform( cmds.group(*args, **kwargs) )
+    return Transform( cmds.group( *util.stringify(args), **kwargs) )
     #except RuntimeError, msg:
     #    print msg
     #    if msg == 'Not enough objects or values.':
@@ -1622,8 +1647,8 @@ class PyNode(ProxyUnicode):
         for key in forbiddenKeys:
             if key in kwargs:
                 raise TypeError, "'%s' is an inappropriate keyword argument for object-oriented implementation of this command" % key
-        
-        return cmds.select( self, **kwargs )    
+        # stringify
+        return cmds.select( self.name(), **kwargs )    
 
     def deselect( self ):
         self.select( deselect=1 )
@@ -1866,10 +1891,13 @@ class Attribute(PyNode):
     #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex', apiObject=True )
     
     def attr(self, attr):
-        return self.node().attr(attr)
+        node = self.node()
+        attrObj = node.__apimfn__().attribute(attr)
+        return Attribute( node, self.__apimplug__().child( attrObj ) )
+    
     
     def __getattr__(self, attr):
-        return self.node().attr(attr)
+        return self.attr(attr)
     
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
@@ -2505,14 +2533,19 @@ class DependNode( PyNode ):
         if isinstance(other,PyNode):
             return self == other
         else:
-            return self == PyNode(other)
+            try:
+                return self == PyNode(other)
+            except ValueError: # could not cast to PyNode
+                return False
        
     def __ne__(self, other):
         if isinstance(other,PyNode):
             return self != other
         else:
-            return self != PyNode(other)
-
+            try:
+                return self != PyNode(other)
+            except ValueError: # could not cast to PyNode
+                return False
     
     def __getattr__(self, attr):
         try :
