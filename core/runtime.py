@@ -2,5 +2,5 @@
 The runtime module contains all runtime commands.
 """
 
-import pymel.mayahook.factories as _factories
+import pymel.factories as _factories
 _factories.createFunctions( __name__ )

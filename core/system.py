@@ -30,8 +30,8 @@ try:
 except ImportError: pass
 
 import pymel.util as util
-import pymel.mayahook.factories as _factories
-from pymel.mayahook.factories import createflag, add_docs
+import pymel.factories as _factories
+from pymel.factories import createflag, add_docs
 from pymel.util.scanf import fscanf
 
 import sys

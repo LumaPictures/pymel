@@ -7,6 +7,9 @@ import sys, os, re
 from getpass import getuser
 from socket import gethostname
 
+# to make sure Maya is up
+import pymel.mayahook as mayahook
+
 try:
     import maya.cmds as cmds
     import maya.mel as mm
@@ -15,8 +18,8 @@ except ImportError:
 
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
-import pymel.mayahook.factories as _factories
-from pymel.mayahook.factories import queryflag, editflag, createflag
+import pymel.factories as _factories
+from pymel.factories import queryflag, editflag, createflag
 from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 import system

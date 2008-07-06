@@ -1,6 +1,6 @@
 
 import pymel.util as util
-import pymel.mayahook.factories as _factories
+import pymel.factories as _factories
 
 import general
 try:

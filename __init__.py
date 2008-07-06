@@ -611,17 +611,30 @@ setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32
 
 __version__ = '0.7.9'
 
-#check for the presence of an initilized Maya
+# not maya dependant
 import util
+print "imported utils"
+
+# will check for the presence of an initilized Maya / launch it
+import mayahook
+print "imported mayahook"
+
+import tools
+print "imported tools"
+#
+import factories
+print "imported factories"
 
 import api
+print "imported api"
 
 from core import *
+print "imported core"
 
 #_module = __import__('core.other', globals(), locals(), [''])
 
-import mayahook.factories as _factories
+import factories
 _module = __import__(__name__)    
 #_factories.installCallbacks(_module)
 #cmds.loadPlugin( addCallback=pluginLoadedCallback(_module) )
-_factories.installCallbacks(_module)
+factories.installCallbacks(_module)
