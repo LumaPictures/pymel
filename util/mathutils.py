@@ -160,7 +160,7 @@ def hermite(x=0.0, v0=0.0, v1=0.0, s0=0.0, s1=0.0) :
     if x<0.0 :
         res = v0
     elif x>1.0 :
-        res = v2
+        res = v1
     else :
         res = hermiteInterp(x, v0, v1, s0, s1)
     return res    
