@@ -4,7 +4,7 @@ These utility functions can be used by other util modules and are imported in ut
 """
 
 from collections import deque
-import sys
+import sys, operator
 
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
 def isIterable( obj ):
@@ -12,17 +12,17 @@ def isIterable( obj ):
 
 # consider only ints and floats numeric
 def isScalar(obj):
-    return isinstance(obj,int) or isinstance(obj,float)
+    return operator.isNumberType(obj) and not isinstance(obj,complex)
 
 def isNumeric(obj):
-    return isinstance(obj,int) or isinstance(obj,float) or isinstance(obj,long) or isinstance(obj,complex) or isinstance(obj,bool)
+    return operator.isNumberType(obj)
 
-# TODO : name probably badly chosen are there are more types considered as Sequence Types in Python
+# TODO : this is uneeded as operator provides it, can call directly to operator methods
 def isSequence( obj ):
-    return type( obj ) is list or type( obj ) is tuple
+    return operator.isSequenceType(obj)
 
 def isMapping( obj ):
-    return isinstance(obj, dict)
+    return operator.isMappingType(obj)
 
 clsname = lambda x:type(x).__name__
 
