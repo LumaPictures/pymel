@@ -4138,7 +4138,7 @@ def iterNodes ( *args, **kwargs ):
     #print "name args", nameArgs   
     if nameArgs is not None :
         # convert list to dict if necessary
-        if not util.isMapping(nameArgs):
+        if not isinstance(nameArgs, dict):
             if not util.isSequence(nameArgs) :
                 nameArgs = [nameArgs]    
             nameArgs = _optToDict(*nameArgs)
@@ -4203,7 +4203,7 @@ def iterNodes ( *args, **kwargs ):
     cPos = {}    
     if posArgs is not None :
         # convert list to dict if necessary
-        if not util.isMapping(posArgs):
+        if not isinstance(posArgs, dict):
             if not util.isSequence(posArgs) :
                 posArgs = [posArgs]    
             posArgs = _optToDict(*posArgs)    
@@ -4273,7 +4273,7 @@ def iterNodes ( *args, **kwargs ):
         extendedFilter = False
         apiFilter = False
         # convert list to dict if necessary
-        if not util.isMapping(typeArgs):
+        if not isinstance(typeArgs, dict):
             if not util.isSequence(typeArgs) :
                 typeArgs = [typeArgs]
             # can pass strings or PyNode types directly
@@ -4344,7 +4344,7 @@ def iterNodes ( *args, **kwargs ):
     cProp = {}    
     if propArgs is not None :
         # convert list to dict if necessary
-        if not util.isMapping(propArgs):
+        if not isinstance(propArgs, dict):
             if not util.isSequence(propArgs) :
                 propArgs = [propArgs]    
             propArgs = _optToDict(*propArgs)    
@@ -4375,7 +4375,7 @@ def iterNodes ( *args, **kwargs ):
     cAttr = {}    
     if attrArgs is not None :
         # convert list to dict if necessary
-        if not util.isMapping(attrArgs):
+        if not isinstance(attrArgs, dict):
             if not util.isSequence(attrArgs) :
                 attrArgs = [attrArgs]    
             attrArgs = _optToDict(*attrArgs)    
@@ -4437,7 +4437,7 @@ def iterNodes ( *args, **kwargs ):
     cUser = {}    
     if userArgs is not None :
         # convert list to dict if necessary
-        if not util.isMapping(userArgs):
+        if not isinstance(userArgs, dict):
             if not util.isSequence(userArgs) :
                 userArgss = [userArgs]    
             userArgs = _optToDict(*userArgs, **{'valid':function})    
