@@ -14,10 +14,10 @@ def isIterable( obj ):
 def isScalar(obj):
     return operator.isNumberType(obj) and not isinstance(obj,complex)
 
+# TODO : this is uneeded as operator provides it, can call directly to operator methods
 def isNumeric(obj):
     return operator.isNumberType(obj)
 
-# TODO : this is uneeded as operator provides it, can call directly to operator methods
 def isSequence( obj ):
     return operator.isSequenceType(obj)
 
