@@ -1,15 +1,15 @@
 """ Imports Maya API methods in the 'api' namespace, and defines various utilities for Python<->API communication """
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
-from maya.cmds import ls as _ls
 
+import pymel.mayahook as mayahook
 from allapi import *
+from maya.cmds import ls as _ls
+#import pymel.factories as _factories
 
 import sys, inspect, warnings, timeit, time, re
 from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict
 import pymel.util as util
-import pymel.mayahook as mayahook
-import pymel.mayahook.factories as _factories
 import pickle, os.path
 import pymel.util.nameparse as nameparse
 
@@ -17,7 +17,9 @@ import pymel.util.nameparse as nameparse
 # except form core seems to be a problem
 #from pymel.mayahook.factories import NodeHierarchy
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+print "module name", __name__
+_thisModule = sys.modules[__name__]
+#_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 # fast convenience tests on API objects
 def isValidMObjectHandle (obj):
@@ -541,13 +543,15 @@ def _buildApiTypeHierarchy () :
                 apiTypesToApiClasses[ ct ] = MFnClass
                 #ApiTypesToApiClasses()[ ct ] = x[0]
                 MFnDict[ ct ] = pt
-                info = _factories.getMFnInfo( MFnClass.__name__ )
+                # info = _factories.getMFnInfo( MFnClass.__name__ )
+                info = None
                 if info is not None:
                     apiClassInfo[ MFnClass.__name__ ] = info
         except IndexError:
             pass
     
-    apiClassInfo[ 'MPlug' ] = _factories.getMFnInfo( 'MPlug' )
+    # apiClassInfo[ 'MPlug' ] = _factories.getMFnInfo( 'MPlug' )
+    apiClassInfo = None
         
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
