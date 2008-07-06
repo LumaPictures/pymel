@@ -6,18 +6,17 @@ These types can be shared by other utils modules and imported into util main nam
 import warnings, inspect
 
 class Singleton(object) :
-    """
-Singleton classes can be derived from this class
-You can derive from other classes as long as Singleton comes first (and class doesn't override __new__
+    """ Singleton classes can be derived from this class,
+        you can derive from other classes as long as Singleton comes first (and class doesn't override __new__
 
-    >>> class uniqueImmutableDict(Singleton, dict) :
-    >>>     def __init__(self, value) :
-    >>>        # will only be initialied once
-    >>>        if not len(self):
-    >>>            super(uniqueDict, self).update(value)
-    >>>        else :
-    >>>            raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
-    >>>   # You'll want to override or get rid of dict herited set item methods
+        >>> class uniqueImmutableDict(Singleton, dict) :
+        >>>     def __init__(self, value) :
+        >>>        # will only be initialied once
+        >>>        if not len(self):
+        >>>            super(uniqueDict, self).update(value)
+        >>>        else :
+        >>>            raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
+        >>>   # You'll want to override or get rid of dict herited set item methods
     """
     def __new__(cls, *p, **k):
         if not '_the_instance' in cls.__dict__:
@@ -204,8 +203,19 @@ class metaReadOnlyAttr(type) :
         readonly['__readonly__'] = None
         classdict['__readonly__'] = readonly
         
+        # the use of __slots__ protects instance attributes
+#        slots = []
+#        if '__slots__' in classdict :
+#            slots = list(classdict['__slots__'])
+
         # create the new class   
         newcls = super(metaReadOnlyAttr, mcl).__new__(mcl, classname, bases, classdict)
+        
+#        if hasattr(newcls, '__slots__') :
+#            for s in newcls.__slots__ :
+#                if s not in slots :
+#                    slots.append(s)
+#        type.__setattr__(newcls, '__slots__', slots)
         
         # unneeded through the use of __slots__
 #        def __setattr__(self, name, value):
