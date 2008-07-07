@@ -6,7 +6,7 @@ assert mayahook.mayaInit()
 print "Maya up and running"
 import pymel.tools.py2mel as py2mel
 #from general import PyNode
-
+import pymel.api as _api
 import sys, os, inspect, pickle, re, types, os.path
 #from networkx.tree import *
 from HTMLParser import HTMLParser
@@ -1786,7 +1786,7 @@ overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
 
 
-_api = __import__( 'pymel.api', globals(), locals(), [''])
+#_api = __import__( 'pymel.api', globals(), locals(), [''])
 #_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
 #PYNODE = None
 
@@ -1801,16 +1801,37 @@ class Holder(util.Singleton):
 
 GenHolder = Holder()
 
-class ApiArgUtil(util.Singleton):
+class ApiArgUtil(object):
 
     def __init__(self, apiClassName, methodName, methodInfo ):
         PYNODE = GenHolder.get()
         su = _api.MScriptUtil()
+        
+        def setArrayFunction( type, length ):
+            capType = util.capitalize( type ) 
+            initFunc = getattr( su, 'as' + capType + 'Ptr')
+            setFunc = getattr( su, 'set' + capType + 'Array')
+            def setArray( array ):
+                #print array
+                if len(array) != length:
+                    raise ValueError, 'Input list must contain exactly %s %ss' % ( length, type )
+                arrayPtr = initFunc()
+                for i, val in enumerate( array ):
+                    setFunc( arrayPtr, i, val )
+                #print arrayPtr
+                return arrayPtr
+            setArray.__name__ = 'set' + capType + 'Array'
+            return setArray
+
         self.inCast = { 'double' : float,
                         'float'  : float,
                         'bool'   : bool,
                         'int'    : int,
+                        'short'  : int,
                         'MString': unicode,
+                        
+                        'double3': setArrayFunction( 'double', 3),
+                        'float2' : setArrayFunction( 'float', 2),
                         
                         'MVector': _api.wrappedtypes.MVector,
                         'MMatrix': _api.wrappedtypes.MMatrix,
@@ -1826,6 +1847,7 @@ class ApiArgUtil(util.Singleton):
                         'float'  : float,
                         'bool'   : bool,
                         'int'    : int,
+                        'short'  : int,
                         'MString': unicode,
                         
                         'MVector': _api.wrappedtypes.MVector,
@@ -1889,7 +1911,7 @@ class ApiArgUtil(util.Singleton):
                         'MPoint'    : _api.wrappedtypes.MPoint,
                         
                         'MObject'   : PYNODE,
-                        'MDagPathArray' : lambda x: [ PYNODE(x[i]) for i in range( x.length() ) ],
+                        'MDagPathArray' : lambda x: [ PYNODE( MDagPath(x[i]) ) for i in range( x.length() ) ],
                     }
         
         self.apiClassName = apiClassName
@@ -1917,15 +1939,17 @@ class ApiArgUtil(util.Singleton):
                     #except AttributeError:
                     #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
-            #print msg
+            print msg
             return False
         return True
     
     def castInput(self, argtype, input):
         return self.inCast[argtype]( input )
     
-    def castResult(self, returnType, result):
-        return self.returnCast[returnType]( result )
+    def castResult(self, result):
+        returnType = self.methodInfo['returnType']
+        if returnType:
+            return self.returnCast[returnType]( result )
     
     def initializeReference(self, argtype): 
         return self.refInit[argtype]()
@@ -1933,7 +1957,14 @@ class ApiArgUtil(util.Singleton):
     def castReferenceResult(self,argtype,outArg):
         return self.refCast[ argtype ]( outArg )
     
-       
+    def getDefaults(self):
+        defaults = []
+        for arg in self.methodInfo['inArgs']:
+            try:
+                defaults.append( self.methodInfo['defaults'][arg])
+            except: pass
+        return defaults
+    
 def interface_wrapper( doer, args=[], defaults=[] ):
     """
     A wrapper which allows factories to create functions with
@@ -2002,7 +2033,6 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
         inArgs = methodInfo['inArgs']
         outArgs = methodInfo['outArgs']
         #argList = methodInfo['args']
-        returnType = methodInfo['returnType']
         argHelper = ApiArgUtil(apiClassName, methodName, methodInfo)
         
         if argHelper.canBeWrapped() :
@@ -2034,9 +2064,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                 else:
                     result = method( self.__apimfn__(), *argList )
                 #print "result", result
-                #return
-                if returnType:
-                    result = argHelper.castResult(returnType, result) 
+                result = argHelper.castResult(result) 
                     
                 if len(outArgs):
                     if result is not None:
@@ -2049,14 +2077,6 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                         res = argHelper.castReferenceResult( outType, outArgVal )
                         result.append( res )
                         
-#                        if isinstance( argtype, basestring ):
-#                            result.append( outValue( argtype )( outArg ) )
-#                        else:
-#                            array = []
-#                            getter = outArrayValue( argtype.type() )
-#                            for i in range( argtype.length() ):
-#                                array.append( getter( outArg, i) )
-#                            result.append( array )
                     if len(result) == 1:
                         result = result[0]
                 return result
@@ -2068,11 +2088,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
             f.__doc__ = methodInfo['doc']
             
             
-            defaults = []
-            for arg in inArgs:
-                try:
-                    defaults.append( methodInfo['defaults'][arg])
-                except: pass
+            defaults = argHelper.getDefaults()
                 
             #print inArgs, defaults
             f = interface_wrapper( f, ['self'] + inArgs, defaults )
