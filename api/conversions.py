@@ -800,37 +800,57 @@ def toApiObject (nodeName):
     obj = MObject()
     dag = MDagPath()
     result = None
-    try :
-        # MSelectionList uses only the node, ignores after first period
-        sel.add( nodeName )
-        try:
-            sel.getDagPath( 0, dag )
-            if not isValidMDagPath(dag) :
-                return
-            obj = dag.node()
-            result = dag
-        except RuntimeError:
-            sel.getDependNode( 0, obj )          
-            if not isValidMObject(obj) :
-                return     
-            result = obj
-            
-        # TODO : components
-        if "." in nodeName :
-            # build up to the final MPlug
-            nameTokens = nameparse.getBasicPartList( nodeName )
-            depndFn = api.MFnDependencyNode(obj)
+
+    # MSelectionList uses only the node, ignores after first period
+    sel.add( nodeName )
+    try:
+        sel.getDagPath( 0, dag )
+        if not isValidMDagPath(dag) :
+            return
+        obj = dag.node()
+        result = dag
+    except RuntimeError:
+        sel.getDependNode( 0, obj )          
+        if not isValidMObject(obj) :
+            return     
+        result = obj
+        
+    # TODO : components
+    if "." in nodeName :
+        # build up to the final MPlug
+        nameTokens = nameparse.getBasicPartList( nodeName )
+        if dag.isValid():
+            fn = api.MFnDagNode(dag)
             for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
                 if isinstance( token, nameparse.MayaName ):
                     if isinstance( result, api.MPlug ):
-                        result = result.child( depndFn.attribute( token ) )
+                        result = result.child( fn.attribute( token ) )
                     else:
-                        result = depndFn.findPlug( token )
+                        try:
+                            result = fn.findPlug( token )
+                        except TypeError:
+                            for i in range(fn.childCount()):
+                                try:
+                                    result = api.MFnDagNode( fn.child(i) ).findPlug( token )
+                                except TypeError:
+                                    pass
+                                else:
+                                    break
+                if isinstance( token, nameparse.NameIndex ):
+                    result = result.elementByLogicalIndex( token.value )
+        else:
+            fn = api.MFnDependencyNode(obj)
+            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
+                if isinstance( token, nameparse.MayaName ):
+                    if isinstance( result, api.MPlug ):
+                        result = result.child( fn.attribute( token ) )
+                    else:
+                        result = fn.findPlug( token )
+                            
                 if isinstance( token, nameparse.NameIndex ):
                     result = result.elementByLogicalIndex( token.value )
         
-    except :
-        pass
+
     return result
 
 def toMDagPath (nodeName):
