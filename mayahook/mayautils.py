@@ -81,7 +81,21 @@ def getMayaVersion(extension=True):
     if extension and (ma.group('ext') is not None) :
         version += "-"+ma.group('ext')
     return version
-                        
+
+def mayaDocsLocation( version=None ):
+    #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
+    
+    docLocation = getMayaLocation(version) # use original version
+    if version == None :
+        version = getMayaVersion(extension=False)
+    
+    
+    import platform
+    if platform.system() == 'Darwin':
+        docLocation = os.path.dirname( os.path.dirname( docLocation ) )
+    docLocation = os.path.join( docLocation , 'docs/Maya%s/en_US' % version )
+    return docLocation
+                      
 # parse the Maya.env file and set the environement variablas and python path accordingly
 def parseMayaenv(envLocation=None, version=None) :
     """ parse the Maya.env file and set the environement variablas and python path accordingly.

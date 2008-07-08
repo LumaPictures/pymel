@@ -12,6 +12,8 @@ from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, Inde
 import pymel.util as util
 import pickle, os.path
 import pymel.util.nameparse as nameparse
+import pymel.mayahook as mayahook
+from HTMLParser import HTMLParser
 
 # TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
@@ -20,6 +22,319 @@ import pymel.util.nameparse as nameparse
 print "module name", __name__
 _thisModule = sys.modules[__name__]
 #_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+
+class ApiDocParser(HTMLParser):
+
+    def getClassFilename(self):
+        filename = 'class'
+        for tok in re.split( '([A-Z][a-z]+)', self.functionSet ):
+            if tok:
+                if tok[0].isupper():
+                    filename += '_' + tok.lower()
+                else:
+                    filename += tok
+        return filename
+        
+    def parse(self):
+        docloc = mayahook.mayaDocsLocation(self.version)
+        if not os.path.isdir(docloc):
+            raise TypeError, "Cannot find maya documentation. Expected to find it at %s" % docloc
+        f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
+        self.feed( f.read() )
+        f.close()
+        #for method, methodInfo in self.methods.items():
+        #    print method
+        #    for methodOption in methodInfo:
+        #        print methodOption
+        return { 'methods' : self.methods, 'enums' : self.enums }
+              
+    def __init__(self, functionSet, version='2009' ):
+        self.cmdList = []
+        self.functionSet = functionSet
+        self.version = version
+        
+        self.methods = util.defaultdict(list)
+        self.currentMethod = None
+        
+        self.mode = None
+        self.grouping = None
+        self.data = []
+        self.parameters = []
+        self.returnType = []
+        self.defaults = {}
+           
+        self.enums = util.defaultdict(list)
+        self.currentEnum = None
+        
+        HTMLParser.__init__(self)
+        
+    def handle_data(self, data):
+        data = data.lstrip().rstrip()
+        data = data.replace( '&amp;', '' )
+        
+        if data in [ 'Protected Member Functions', 
+                      'Member Enumeration Documentation', 
+                      'Constructor Destructor Documentation', 
+                      'Member Function Documentation',
+                      'Public Types',
+                      'Member Enumeration Documentation' ]:
+            #print self.currentMethod, data
+            self.grouping = data
+            
+        elif self.currentMethod is not None and data:
+            #print self.grouping, self.mode
+            if data in ['Reimplemented from', 'Parameters:', 'Returns:' ]:
+                self.mode = data
+                
+            elif self.mode == 'Parameters:':
+                if data in ['[in]', '[out]']:
+                    self.parameters.append( [data[1:-1], None, ''] ) # direction
+                elif self.parameters[-1][1] == None:
+                    self.parameters[-1][1] = data
+                else:
+                    self.parameters[-1][2] += data
+                    
+                    
+            elif self.mode == 'Returns:':
+                self.returnType.append( data )
+                
+            elif self.mode == 'Reimplemented from':
+                pass
+            
+            elif self.grouping == 'Member Function Documentation':
+                #print self.currentMethod, "adding data", data
+                if data.startswith('()'):
+                    buf = data.split()
+                    self.data.extend( ['(', ')'] + buf[1:] )
+                elif data.endswith( ')' ):
+                    self.data.append( data[:-1] )
+                    self.data.append( ')')
+                else:
+                    self.data.append(data)
+            
+        elif self.grouping == 'Public Types':
+            #print data
+            if re.match( '[A-Z]+[a-zA-Z0-9]*', data ):
+                self.currentEnum = data
+            elif re.match( 'k[a-zA-Z]+[a-zA-Z0-9]*', data ):
+                if self.currentEnum:
+                    self.enums[self.currentEnum].append( data )
+            
+                #print data
+            #elif 'Protected' in data:
+            #    print "data1", data
+
+    
+    def handle_comment(self, comment ):
+        def addArgInfo( argInfo, argName, direction, doc):
+            try:
+                argInfo[ argName ]['doc'] = doc
+                #print argName, direction, doc
+                if direction == 'in':
+                    inArgs.append(argName)
+                elif direction == 'out':
+                    outArgs.append(argName)
+            except KeyError:
+                pass
+                #print 'skipping', argName
+        comment = comment.lstrip().rstrip()
+        comment = comment.replace( '&amp;', '' ) # does not affect how we pass
+        if self.currentMethod is not None:
+            #print self.data
+            try:
+                start = self.data.index( '(' )
+                end = self.data.index( ')' )
+            except ValueError:
+                raise ValueError, '%s: could not find parentheses: %s, %r' % ( self.functionSet, self.currentMethod, self.data )
+            buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name          
+            returnType = None
+            
+            if len(buf):
+                #-----------------
+                # Return Type
+                #-----------------
+                if len(buf)>1:
+                    # unsigned int
+                    if buf[0] == 'unsigned':
+                        returnType = buf[1]
+                    else:
+                        pass
+                        #print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
+                else:
+                    returnType = buf[0]
+                
+                if returnType == 'MStatus':
+                    returnType = None
+                    
+                    
+                #print tempargs
+                argList = []
+                argInfo = util.defaultdict(dict)
+                inArgs = []
+                outArgs = []
+                
+                # Find Direction and Docs
+                direction = None
+                argName = None
+                doc = ''
+                
+
+                #print self.currentMethod, buf, self.parameters #, self.defaults
+
+                #---------------------
+                # Docs and Direction
+                #---------------------
+                
+                # self.parameters looks like:
+                # [  ['[in]', 'node', 'node to check'],  ['[out]', 'ReturnStatus', 'Status Code (see below)']  ]
+
+                for direction, argName, doc in self.parameters: 
+                    if argName not in ['ReturnStatus', 'status', 'retStatus']:
+                        argInfo[ argName ]['doc'] = doc
+                        if direction == 'in': inArgs.append(argName)
+                        elif direction == 'out': outArgs.append(argName)
+                                           
+                
+                
+                #------------------------
+                # Arg Type and Defaults
+                #------------------------
+                tempargs = ' '.join( self.data[start+1:end] )
+                
+                methodDoc = ''
+                defaults = {}
+                for argGrp in tempargs.split(','):
+                    
+                    argGrp = [ y for y in argGrp.split() if y not in [ '*', 'const', '=', 'unsigned'] ]
+                    
+                    
+                    if len(argGrp):
+                                
+                        type = argGrp[0]
+                        if type in 'MStatus':
+                            continue
+                        
+                        try:
+                            keyword = argGrp[1]
+                            
+                        except IndexError:
+                            # void
+                            #print "something wrong with argGrp", argGrp
+                            continue
+                        else:
+
+                            
+                            try:
+                                # move array length from keyword to type:
+                                # keyword[3] ---> keyword
+                                # type       ---> type3 
+                                tmp = argGrp[2]
+                                
+                                buf = re.split( r'\[|\]', tmp)
+                                if len(buf) > 1:
+                                    
+                                    type = type + buf[1]
+                                    default = None
+                                else:     
+                                            
+                                    default = {
+                                        'true' : True,
+                                        'false': False
+                                    }.get( tmp, tmp )
+                                    
+                            except IndexError:
+                                
+                                default = None
+                              
+                            argInfo[ keyword ]['type'] = type
+                            argInfo[ 'types' ][keyword] = type
+                            if default is not None:
+                                #argInfo[ keyword ]['default'] = default
+                                #argInfo[ 'defaults' ][keyword] = default
+                                defaults[keyword] = default
+                            if keyword in inArgs:
+                                #try:
+                                #    typeName = returnCast[type].__name__
+                                #except KeyError:
+                                #    typeName = type
+                                typeName = type
+                                direction = 'in'
+                                methodDoc += ':param %s: %s\n' % ( keyword, argInfo[keyword].get('doc', '') )
+                                methodDoc += ':type %s: %s\n' % ( keyword, typeName )
+                                argInfo[keyword]['doc'] = doc
+                            else: 
+                                direction = 'out'
+                            
+                            #print self.currentMethod, [keyword, type, default, direction]
+                            argList.append( ( keyword, type, default, direction)  )
+                                
+                    elif len(argGrp)==1:
+                        print "arg group lenght is 1:", argGrp
+                
+                # return type documentation
+                allReturnTypes = []
+                if returnType:
+                    allReturnTypes.append( returnType )
+                if outArgs:
+                    allReturnTypes += [  argInfo[ 'types' ][x] for x in outArgs ]
+                    
+                if allReturnTypes:
+                    methodDoc += ':rtype: %s' % ','.join( allReturnTypes )
+                      
+                #print argList, argInfo
+                methodInfo = { 'argInfo': argInfo, 
+                              'args' : argList, 
+                              'returnType' : returnType, 
+                              'inArgs' : inArgs, 
+                              'outArgs' : outArgs, 
+                              'doc' : methodDoc, 
+                              'defaults' : defaults } 
+                self.methods[self.currentMethod].append(methodInfo)
+            
+            self.mode = None
+            self.data = []
+            self.parameters = []
+            self.returnType = []
+            
+        try:     
+            clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
+        except AttributeError:
+            pass
+            #print "skipping comment", comment
+        else:
+            #if methodname == self.functionSet:
+            #    return
+            
+            #print "METHOD", methodname
+            if self.grouping != 'Member Function Documentation':
+                #print "skipping function: %s (%s)" % ( methodname, self.grouping )
+                self.currentMethod = None
+                return
+            
+            self.currentMethod = methodname
+            
+def getMFnInfo( functionSet ):
+    parser = ApiDocParser(functionSet )
+    try:
+        classInfo = parser.parse()
+    except IOError: pass  
+    else:
+        allMethodInfo = classInfo['methods']
+        allFnMembers = allMethodInfo.keys()
+        for member in allFnMembers:
+            if len(member) > 4 and member.startswith('set') and member[3].isupper():
+                # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+                # 'setSomething'  -->  'something'
+                origGetMethod = member[3].lower() + member[4:]
+                if origGetMethod in allFnMembers:
+                    newGetMethod = 'get' + member[3:]
+                    for info in allMethodInfo[member]:
+                        info['pymelName'] = newGetMethod
+                        
+        return classInfo
+
+
+
 
 # fast convenience tests on API objects
 def isValidMObjectHandle (obj):
@@ -533,7 +848,7 @@ def _buildApiTypeHierarchy () :
     MFnClasses = inspect.getmembers(_thisModule, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
     MFnTree = inspect.getclasstree( [x[1] for x in MFnClasses] )
     MFnDict = {}
-    apiClassInfo = {}
+    
     for x in expandArgs(MFnTree, type='list') :
         try :
             MFnClass = x[0]
@@ -543,16 +858,20 @@ def _buildApiTypeHierarchy () :
                 apiTypesToApiClasses[ ct ] = MFnClass
                 #ApiTypesToApiClasses()[ ct ] = x[0]
                 MFnDict[ ct ] = pt
-                # info = _factories.getMFnInfo( MFnClass.__name__ )
-                info = None
-                if info is not None:
-                    apiClassInfo[ MFnClass.__name__ ] = info
+
         except IndexError:
             pass
     
-    # apiClassInfo[ 'MPlug' ] = _factories.getMFnInfo( 'MPlug' )
-    apiClassInfo = None
-        
+    apiClassInfo = {}
+    for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
+        try:
+            info = getMFnInfo( name )
+            if info is not None:
+                #print "succeeded", name
+                apiClassInfo[ name ] = info
+        except Exception, msg:
+            print "failed", name, msg
+                    
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
     # Make it faster by pre-creating the nodes used to test
