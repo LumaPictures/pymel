@@ -23,6 +23,11 @@ print "module name", __name__
 _thisModule = sys.modules[__name__]
 #_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
+Enum = util.namedtuple( 'Enum', ['parent', 'enum'] )
+
+class Enum(tuple):
+    def __str__(self): return '.'.join( [str(x) for x in self] )
+
 class ApiDocParser(HTMLParser):
 
     def getClassFilename(self):
@@ -46,9 +51,12 @@ class ApiDocParser(HTMLParser):
         #    print method
         #    for methodOption in methodInfo:
         #        print methodOption
-        return { 'methods' : self.methods, 'enums' : self.enums }
+        
+        # convert from defaultdict
+        return { 'methods' : dict(self.methods), 
+                 'enums' : dict(self.enums) }
               
-    def __init__(self, functionSet, version='2009' ):
+    def __init__(self, functionSet, version='2009', verbose=False ):
         self.cmdList = []
         self.functionSet = functionSet
         self.version = version
@@ -65,7 +73,9 @@ class ApiDocParser(HTMLParser):
            
         self.enums = util.defaultdict(list)
         self.currentEnum = None
+        self.badEnums = []
         
+        self.verbose = verbose
         HTMLParser.__init__(self)
         
     def handle_data(self, data):
@@ -126,20 +136,38 @@ class ApiDocParser(HTMLParser):
 
     
     def handle_comment(self, comment ):
-        def addArgInfo( argInfo, argName, direction, doc):
-            try:
-                argInfo[ argName ]['doc'] = doc
-                #print argName, direction, doc
-                if direction == 'in':
-                    inArgs.append(argName)
-                elif direction == 'out':
-                    outArgs.append(argName)
-            except KeyError:
-                pass
-                #print 'skipping', argName
+        def handleEnums( type ):
+            missingTypes = ['MUint64']
+            otherTypes = ['void', 'char',
+                        'double', 'double2', 'double3', 'double4',
+                        'float', 'float2', 'float3', 'float4',
+                        'bool',
+                        'int', 'int2', 'int3', 'int4', 'uint',
+                        'short', 'short2', 'short3', 'short4',
+                        'long', 'long2', 'long3',
+                        'MString', 'MStringArray']
+            notTypes = ['MCallbackId']
+            # the enum is on another class
+            if '::' in type:
+                type = Enum( type.split( '::') )
+                
+            # the enum is on this class
+            elif type in self.enums:
+                type = Enum( [self.functionSet, type] )
+                
+            elif type[0].isupper() and 'Ptr' not in type and not hasattr( _thisModule, type ) and type not in otherTypes+missingTypes+notTypes:
+                type = Enum( [self.functionSet, type] )
+                if type not in self.badEnums:
+                    self.badEnums.append(type)
+                    if self.verbose: print "Suspected Bad Enum:", type
+                
+            return type
+                                
         comment = comment.lstrip().rstrip()
         comment = comment.replace( '&amp;', '' ) # does not affect how we pass
         if self.currentMethod is not None:
+            if self.verbose: print self.currentMethod
+            
             #print self.data
             try:
                 start = self.data.index( '(' )
@@ -155,14 +183,17 @@ class ApiDocParser(HTMLParser):
                 #-----------------
                 if len(buf)>1:
                     # unsigned int
-                    if buf[0] == 'unsigned':
-                        returnType = buf[1]
-                    else:
-                        pass
-                        #print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
+                    if buf[0] in ['const', 'unsigned']:
+                        buf.pop(0)
+                    
+                    if len(buf)==1:    
+                        returnType = buf[0]
+                    elif len(buf)==2 and buf[1]=='*':
+                        returnType = buf[0] + 'Ptr'
+                    #else:  print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
                 else:
-                    returnType = buf[0]
-                
+                    returnType = handleEnums(buf[0])
+                        
                 if returnType == 'MStatus':
                     returnType = None
                     
@@ -187,9 +218,12 @@ class ApiDocParser(HTMLParser):
                 
                 # self.parameters looks like:
                 # [  ['[in]', 'node', 'node to check'],  ['[out]', 'ReturnStatus', 'Status Code (see below)']  ]
-
+                
+                if self.verbose: print "parameters",self.parameters
+                
                 for direction, argName, doc in self.parameters: 
-                    if argName not in ['ReturnStatus', 'status', 'retStatus']:
+                    # A better way would be if we knew the type already, but we don't
+                    if argName not in ['ReturnStatus', 'status', 'retStatus', 'ret', 'stat', 'ResultStatus']:
                         argInfo[ argName ]['doc'] = doc
                         if direction == 'in': inArgs.append(argName)
                         elif direction == 'out': outArgs.append(argName)
@@ -209,7 +243,8 @@ class ApiDocParser(HTMLParser):
                     
                     
                     if len(argGrp):
-                                
+                        
+
                         type = argGrp[0]
                         if type in 'MStatus':
                             continue
@@ -223,7 +258,9 @@ class ApiDocParser(HTMLParser):
                             continue
                         else:
 
-                            
+                            #----------------
+                            #    TYPE
+                            #----------------
                             try:
                                 # move array length from keyword to type:
                                 # keyword[3] ---> keyword
@@ -243,24 +280,35 @@ class ApiDocParser(HTMLParser):
                                     }.get( tmp, tmp )
                                     
                             except IndexError:
-                                
                                 default = None
                               
+                            # Enum Types
+                            type = handleEnums( type )
+                                
                             argInfo[ keyword ]['type'] = type
                             argInfo[ 'types' ][keyword] = type
+                            
+                            #----------------
+                            #    DEFAULT
+                            #----------------
                             if default is not None:
+                                
+                                # Enums
+                                if isinstance( default, basestring ) and '::' in default:
+                                    default = default.split('::')[-1]
+                                    
                                 #argInfo[ keyword ]['default'] = default
                                 #argInfo[ 'defaults' ][keyword] = default
                                 defaults[keyword] = default
+                                
                             if keyword in inArgs:
                                 #try:
                                 #    typeName = returnCast[type].__name__
                                 #except KeyError:
                                 #    typeName = type
-                                typeName = type
                                 direction = 'in'
                                 methodDoc += ':param %s: %s\n' % ( keyword, argInfo[keyword].get('doc', '') )
-                                methodDoc += ':type %s: %s\n' % ( keyword, typeName )
+                                methodDoc += ':type %s: %s\n' % ( keyword, type )
                                 argInfo[keyword]['doc'] = doc
                             else: 
                                 direction = 'out'
@@ -279,8 +327,10 @@ class ApiDocParser(HTMLParser):
                     allReturnTypes += [  argInfo[ 'types' ][x] for x in outArgs ]
                     
                 if allReturnTypes:
-                    methodDoc += ':rtype: %s' % ','.join( allReturnTypes )
-                      
+                    methodDoc += ':rtype: %s' % ','.join( [ str(x) for x in allReturnTypes] )
+                #elif self.currentMethod.startswith( 'get' ) and len(self.currentMethod) > 3:
+                #    print "no outputs", self.functionSet, self.currentMethod, len(self.methods[self.currentMethod])
+                
                 #print argList, argInfo
                 methodInfo = { 'argInfo': argInfo, 
                               'args' : argList, 
@@ -328,9 +378,22 @@ def getMFnInfo( functionSet ):
                 origGetMethod = member[3].lower() + member[4:]
                 if origGetMethod in allFnMembers:
                     newGetMethod = 'get' + member[3:]
-                    for info in allMethodInfo[member]:
+                    for info in allMethodInfo[origGetMethod]:
                         info['pymelName'] = newGetMethod
-                        
+        
+#        for methodName, methodInfoList in classInfo['methods'].items():
+#              for i, methodInfo in enumerate( methodInfoList ):
+#                  #try: print methodInfo['pymelName'], methodName
+#                  #except: pass
+#                  newMethodName = methodInfo.get('pymelName', methodName)
+#                  if newMethodName.startswith('get') and len(newMethodName)>3:              
+#                      outputs = []
+#                      returnType = methodInfo['returnType']
+#                      if returnType:
+#                          outputs.append( returnType )
+#                      outputs += methodInfo['outArgs']
+#                      if not outputs:
+#                           print "no outputs", functionSet, methodName, i 
         return classInfo
 
 
@@ -864,13 +927,14 @@ def _buildApiTypeHierarchy () :
     
     apiClassInfo = {}
     for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
-        try:
-            info = getMFnInfo( name )
-            if info is not None:
-                #print "succeeded", name
-                apiClassInfo[ name ] = info
-        except Exception, msg:
-            print "failed", name, msg
+        if not name.startswith( 'MPx' ):
+            try:
+                info = getMFnInfo( name )
+                if info is not None:
+                    #print "succeeded", name
+                    apiClassInfo[ name ] = info
+            except (ValueError,IndexError), msg:
+                print "failed", name, msg
                     
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
@@ -1113,64 +1177,92 @@ def toMObject (nodeName):
         pass
     return result
 
-def toApiObject (nodeName):
-    """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name of an existing node, attribute, components selection """ 
+def toApiObject (nodeName, dagPlugs=True):
+    """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name of an existing node, attribute, components selection
+    
+    if dagPlugs is True, plug result will be a tuple of type (MDagPath, MPlug)
+    
+    """ 
     sel = MSelectionList()
-    obj = MObject()
-    dag = MDagPath()
-    result = None
-
-    # MSelectionList uses only the node, ignores after first period
     sel.add( nodeName )
-    try:
-        sel.getDagPath( 0, dag )
-        if not isValidMDagPath(dag) :
-            return
-        obj = dag.node()
-        result = dag
-    except RuntimeError:
-        sel.getDependNode( 0, obj )          
-        if not isValidMObject(obj) :
-            return     
-        result = obj
-        
-    # TODO : components
+    
     if "." in nodeName :
-        # build up to the final MPlug
-        nameTokens = nameparse.getBasicPartList( nodeName )
-        if dag.isValid():
-            fn = api.MFnDagNode(dag)
-            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-                if isinstance( token, nameparse.MayaName ):
-                    if isinstance( result, api.MPlug ):
-                        result = result.child( fn.attribute( token ) )
-                    else:
-                        try:
-                            result = fn.findPlug( token )
-                        except TypeError:
-                            for i in range(fn.childCount()):
-                                try:
-                                    result = api.MFnDagNode( fn.child(i) ).findPlug( token )
-                                except TypeError:
-                                    pass
-                                else:
-                                    break
-                if isinstance( token, nameparse.NameIndex ):
-                    result = result.elementByLogicalIndex( token.value )
-        else:
-            fn = api.MFnDependencyNode(obj)
-            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-                if isinstance( token, nameparse.MayaName ):
-                    if isinstance( result, api.MPlug ):
-                        result = result.child( fn.attribute( token ) )
-                    else:
-                        result = fn.findPlug( token )
-                            
-                if isinstance( token, nameparse.NameIndex ):
-                    result = result.elementByLogicalIndex( token.value )
+        try:
+            # Plugs
+            plug = MPlug()
+            sel.getPlug( 0, plug )
+            if dagPlugs:
+                try:
+                    # Plugs with DagPaths
+                    sel.add( nodeName.split('.')[0] )
+                    dag = MDagPath()
+                    sel.getDagPath( 1, dag )
+                    #if isValidMDagPath(dag) :
+                    return (dag, plug)
+                except RuntimeError: pass
+            return plug
         
-
-    return result
+        except RuntimeError:
+            # Components
+            dag = MDagPath()
+            comp = MObject()
+            sel.getDagPath( 0, dag, comp )
+            #if not isValidMDagPath(dag) :   return
+            return (dag, comp)
+    else:
+        try:
+            # DagPaths
+            dag = MDagPath()
+            sel.getDagPath( 0, dag )
+            #if not isValidMDagPath(dag) : return
+            return dag
+     
+        except RuntimeError:
+            # Objects
+            obj = MObject()
+            sel.getDependNode( 0, obj )          
+            #if not isValidMObject(obj) : return     
+            return obj
+        
+#    # TODO : components
+#    if "." in nodeName :
+#        # build up to the final MPlug
+#        nameTokens = nameparse.getBasicPartList( nodeName )
+#        if dag.isValid():
+#            fn = api.MFnDagNode(dag)
+#            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
+#                if isinstance( token, nameparse.MayaName ):
+#                    if isinstance( result, api.MPlug ):
+#                        result = result.child( fn.attribute( token ) )
+#                    else:
+#                        try:
+#                            result = fn.findPlug( token )
+#                        except TypeError:
+#                            for i in range(fn.childCount()):
+#                                try:
+#                                    result = api.MFnDagNode( fn.child(i) ).findPlug( token )
+#                                except TypeError:
+#                                    pass
+#                                else:
+#                                    break
+#                if isinstance( token, nameparse.NameIndex ):
+#                    result = result.elementByLogicalIndex( token.value )
+#            if dagMatters:
+#                result = (dag, result)
+#        else:
+#            fn = api.MFnDependencyNode(obj)
+#            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
+#                if isinstance( token, nameparse.MayaName ):
+#                    if isinstance( result, api.MPlug ):
+#                        result = result.child( fn.attribute( token ) )
+#                    else:
+#                        result = fn.findPlug( token )
+#                            
+#                if isinstance( token, nameparse.NameIndex ):
+#                    result = result.elementByLogicalIndex( token.value )
+#        
+#
+#    return result
 
 def toMDagPath (nodeName):
     """ Get an API MDagPAth to the node, given the name of an existing dag node """ 

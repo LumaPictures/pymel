@@ -1379,12 +1379,17 @@ class ApiArgUtil(object):
         # ensure that we can properly cast all the args and return values
         try:
             if returnType is not None:
-                assert returnType in self.returnCast, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
+                if isinstance( returnType, tuple ):
+                    assert _api.apiClassInfo.has_key(returnType[0]) and _api.apiClassInfo[returnType[0]]['enums'].has_key(returnType[1]),'%s.%s(): invalid return enum: %s' % (self.apiClassName, self.methodName, returnType)
+                else:
+                    assert returnType in self.returnCast, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
             
             for argname, argtype, default, direction in self.methodInfo['args'] :
-                if direction == 'in':
+                if isinstance( argtype, tuple ):
+                    assert _api.apiClassInfo.has_key(argtype[0]) and _api.apiClassInfo[argtype[0]]['enums'].has_key(argtype[1]), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype)
+                elif direction == 'in':
                     assert argtype in self.inCast, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
-                if direction == 'out':
+                elif direction == 'out':
                     assert argtype in self.refInit and argtype in self.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
                     #try:
                     #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
@@ -1393,15 +1398,35 @@ class ApiArgUtil(object):
         except AssertionError, msg:
             print msg
             return False
+        
+        print "succeeded: %s %s.%s(%s)" % ( returnType, self.apiClassName, self.methodName, ', '.join(inArgs) ) 
         return True
     
+    def castEnum(self, argtype, input ):
+        if isinstance( input, int):
+            return input
+        
+        elif input[0] != 'k' or not input[1].isupper():
+            input = 'k' + util.capitalize(input)
+            return _api.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
+            
     def castInput(self, argtype, input):
-        return self.inCast[argtype]( input )
-    
+        # enums
+        if isinstance( argtype, tuple ):
+            return self.castEnum(argtype, input)
+
+        else:
+            return self.inCast[argtype]( input )        
+            
     def castResult(self, result):
         returnType = self.methodInfo['returnType']
         if returnType:
-            return self.returnCast[returnType]( result )
+            # enums
+            if isinstance( returnType, tuple ):
+                return self.castEnum(returnType, result)
+    
+            else:
+                return self.returnCast[returnType]( result )  
     
     def initializeReference(self, argtype): 
         return self.refInit[argtype]()
@@ -1472,6 +1497,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
         # there may be more than one method signatures per method name
         methodInfoList = _api.apiClassInfo[apiClassName]['methods'][methodName]
     except KeyError:
+        print "could not find method:", apiClassName, methodName
         return
     
     try:
@@ -1479,8 +1505,12 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
     except AttributeError:
         return
     
-   
+    if newName is None:
+        newName = methodInfoList[0].get('pymelName',None)
+            
     for methodInfo in methodInfoList:
+
+        
         #argInfo = methodInfo['argInfo']
         inArgs = methodInfo['inArgs']
         outArgs = methodInfo['outArgs']
@@ -1545,7 +1575,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
             #print inArgs, defaults
             f = interface_wrapper( f, ['self'] + inArgs, defaults )
             
-            #print " "*220 + "%s %s.%s( %s )" % ( returnType, apiClass.__name__, methodName, ', '.join(inArgs) ) 
+            
             return f
         
 class metaNode(type) :
@@ -1571,7 +1601,7 @@ class metaNode(type) :
         if apiClass:
             classdict['__apimfnclass__'] = apiClass
             print "="*60, nodeType, "="*60
-            for methodName in _api.apiClassInfo[apiClass.__name__].keys():
+            for methodName in _api.apiClassInfo[apiClass.__name__]['methods'].keys():
                 method = wrapApiMethod( apiClass, methodName )
                 if method:
                     #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
@@ -1793,8 +1823,12 @@ def addPyNode( module, mayaType, parentMayaType ):
             
             PyNodeType = metaNode(pyNodeTypeName, (ParentPyNode,), {})
         except TypeError, msg:
-            print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, parentMayaType, msg )
-            #pass
+            # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+            print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )
+            import new
+            PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
+            PyNodeType.__module__ = module.__name__
+            setattr( module, pyNodeTypeName, PyNodeType )
         else:
             #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
             PyNodeType.__module__ = module.__name__
