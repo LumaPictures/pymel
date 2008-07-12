@@ -1184,45 +1184,48 @@ def toApiObject (nodeName, dagPlugs=True):
     
     """ 
     sel = MSelectionList()
-    sel.add( nodeName )
-    
-    if "." in nodeName :
-        try:
-            # Plugs
-            plug = MPlug()
-            sel.getPlug( 0, plug )
-            if dagPlugs:
-                try:
-                    # Plugs with DagPaths
-                    sel.add( nodeName.split('.')[0] )
-                    dag = MDagPath()
-                    sel.getDagPath( 1, dag )
-                    #if isValidMDagPath(dag) :
-                    return (dag, plug)
-                except RuntimeError: pass
-            return plug
-        
-        except RuntimeError:
-            # Components
-            dag = MDagPath()
-            comp = MObject()
-            sel.getDagPath( 0, dag, comp )
-            #if not isValidMDagPath(dag) :   return
-            return (dag, comp)
+    try:
+        sel.add( nodeName )
+    except:
+        return
     else:
-        try:
-            # DagPaths
-            dag = MDagPath()
-            sel.getDagPath( 0, dag )
-            #if not isValidMDagPath(dag) : return
-            return dag
-     
-        except RuntimeError:
-            # Objects
-            obj = MObject()
-            sel.getDependNode( 0, obj )          
-            #if not isValidMObject(obj) : return     
-            return obj
+        if "." in nodeName :
+            try:
+                # Plugs
+                plug = MPlug()
+                sel.getPlug( 0, plug )
+                if dagPlugs:
+                    try:
+                        # Plugs with DagPaths
+                        sel.add( nodeName.split('.')[0] )
+                        dag = MDagPath()
+                        sel.getDagPath( 1, dag )
+                        #if isValidMDagPath(dag) :
+                        return (dag, plug)
+                    except RuntimeError: pass
+                return plug
+            
+            except RuntimeError:
+                # Components
+                dag = MDagPath()
+                comp = MObject()
+                sel.getDagPath( 0, dag, comp )
+                #if not isValidMDagPath(dag) :   return
+                return (dag, comp)
+        else:
+            try:
+                # DagPaths
+                dag = MDagPath()
+                sel.getDagPath( 0, dag )
+                #if not isValidMDagPath(dag) : return
+                return dag
+         
+            except RuntimeError:
+                # Objects
+                obj = MObject()
+                sel.getDependNode( 0, obj )          
+                #if not isValidMObject(obj) : return     
+                return obj
         
 #    # TODO : components
 #    if "." in nodeName :
