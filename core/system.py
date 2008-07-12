@@ -341,14 +341,14 @@ class Path(pathClass):
     def __repr__(self):
         return "%s('%s')" % (self.__class__.__name__, self)
     
-    writable = _factories.makeQueryFlagCmd( cmds.file, 'writable' )
-    type = _factories.makeQueryFlagCmd( cmds.file, 'type' )
-    setSubType = _factories.makeQueryFlagCmd( cmds.file, 'setSubType', 'subType')
+    writable = _factories.makeQueryFlagMethod( cmds.file, 'writable' )
+    type = _factories.makeQueryFlagMethod( cmds.file, 'type' )
+    setSubType = _factories.makeQueryFlagMethod( cmds.file, 'subType', 'setSubType')
    
 class CurrentFile(Path):
-    getRenameToSave = classmethod( _factories.makeQueryFlagCmd( cmds.file, 'getRenameToSave', 'renameToSave'))
-    setRenameToSave = classmethod( _factories.makeCreateFlagCmd( cmds.file, 'setRenameToSave', 'renameToSave'))
-    anyModified = classmethod( _factories.makeQueryFlagCmd( cmds.file, 'anyModified'))
+    getRenameToSave = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'renameToSave', 'getRenameToSave'))
+    setRenameToSave = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'renameToSave', 'setRenameToSave'))
+    anyModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'anyModified'))
     @classmethod
     @add_docs( 'file', 'lockFile')
     def lock(self):
@@ -358,8 +358,8 @@ class CurrentFile(Path):
     @add_docs( 'file', 'lockFile')
     def unlock(self):
         return cmds.file( lockFile=False)  
-    isModified = classmethod( _factories.makeQueryFlagCmd( cmds.file, 'isModified', 'modified'))
-    setModified = classmethod( _factories.makeCreateFlagCmd( cmds.file, 'setModified', 'modified'))
+    isModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'modified', 'isModified'))
+    setModified = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'modified', 'setModified'))
     
     @classmethod
     @add_docs( 'file', 'sceneName')
@@ -467,7 +467,7 @@ class FileReference(Path):
     
     @add_docs('referenceQuery', 'nodes')
     def nodes(self):
-        return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1 ) )
+        return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1, dagPath=1 ) )
     
     @add_docs('file', 'copyNumberList')
     def copyNumberList(self):
@@ -536,21 +536,21 @@ def exportSelected( exportPath, **kwargs ):
     if 'type' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
-    return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(exportPath, **kwargs))
 
 @createflag('file', 'exportAnim')
 def exportAnim( exportPath, **kwargs ):
     if 'type' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
-    return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(exportPath, **kwargs))
 
 @createflag('file', 'exportSelectedAnim')
 def exportSelectedAnim( exportPath, **kwargs ):
     if 'type' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
-    return Path(cmds.file(*args, **kwargs))
+    return Path(cmds.file(exportPath, **kwargs))
 
 @add_docs('file', 'exportAnimFromReference')    
 def exportAnimFromReference( *args, **kwargs ):
