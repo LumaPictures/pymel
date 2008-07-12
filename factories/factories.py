@@ -499,35 +499,56 @@ class NodeHierarchyDocParser(HTMLParser):
         
         HTMLParser.__init__(self)
     def handle_starttag(self, tag, attrs):
-        
+        #print tag, attrs
         self.currentTag = tag
     
     def handle_data(self, data):
+        print "data", data
         if self.currentTag == 'tt':
-            self.lastDepth = self.depth
             self.depth = data.count('>')
-        if self.currentTag == 'a':
-            data = data.lstrip()
+            #print "lastDepth", self.lastDepth, "depth", self.depth
             
-            if self.depth == self.lastDepth:                
-                #print "adding to level", self.depth, data
+        elif self.currentTag == 'a':
+            data = data.lstrip()
+
+            if self.depth == 0:
+                if self.tree is None:
+                    #print "starting brand new tree", self.depth, data
+                    self.tree = [data]
+                else:
+                    #print "skipping", data
+                    return
+                    
+            elif self.depth == self.lastDepth and self.depth > 0:                
+                #print "adding to current level", self.depth, data
                 self.tree[ self.depth ].append( data )
                 
             elif self.depth > self.lastDepth:
                 #print "starting new level", self.depth, data
-                try:
-                    self.tree.append( [data] )
-                except AttributeError:
-                    self.tree = [data]
+                self.tree.append( [data] )
                     
             elif self.depth < self.lastDepth:
-                for i in range(0, self.lastDepth-self.depth):
-                    branch = self.tree.pop()
-                    #print "closing level", self.lastDepth
-                    self.tree[-1].append( branch )
-                
-                #print "adding to level", self.depth, data
-                self.tree[ self.depth ].append( data )
+
+                    for i in range(0, self.lastDepth-self.depth):
+                        branch = self.tree.pop()
+                        #print "closing level", self.lastDepth, self.depth, self.tree[-1]
+                        currTree = self.tree[-1]
+                        #if isinstance(currTree, list):
+                        currTree.append( branch )
+                        #else:
+                        #    print "skipping", data
+                        #    self.close()
+                        #    return
+                                
+                    #print "adding to level", self.depth, data
+                    self.tree[ self.depth ].append( data )
+            else:
+                return
+            self.lastDepth = self.depth
+            # with 2009 and the addition of the MPxNode, the hierarchy closes all the way out ( i.e. no  >'s )
+            # this prevents the depth from getting set properly. as a workaround, we'll set it to 0 here,
+            # then if we encounter '> >' we set the appropriate depth, otherwise it defaults to 0.
+            self.depth = 0 
     '''        
     def handle_data(self, data):
         if self.currentTag == 'tt':
@@ -634,7 +655,290 @@ class ApiArrayTypeInfo(object):
         return self._type + str(self._length)
     def __repr__(self):
         return '%s(%s,%s)' % (self.__class__.__name__, self._type, self._length )
-  
+
+       
+#-----------------------------------------------
+#  Command Help Documentation
+#-----------------------------------------------
+def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
+
+    dangerousCmds = ['doBlur']
+    if funcName in dangerousCmds:
+        return
+    
+    def _formatCmd( cmd, args, kwargs ):
+        args = [ x.__repr__() for x in args ]
+        kwargs = [ '%s=%s' % (key, val.__repr__()) for key, val in kwargs.items() ]                   
+        return '%s( %s )' % ( cmd, ', '.join( args+kwargs ) )
+    
+    def _objectToType( result ):
+        "convert a an instance or list of instances to a python type or list of types"
+        if isinstance(result, list):
+            return [ type(x) for x in result ]
+        else:
+            return type(result)
+    
+    _castList = [float, int, bool]
+    
+    def _listIsCastable(resultType):
+        "ensure that all elements are the same type and that the types are castable"
+        try:
+            typ = resultType[0]
+            trueCount = reduce( lambda x,y: x+y, [ int( x in _castList and x == typ ) for x in resultType ] )
+            
+            return len(resultType) == trueCount
+        except IndexError:
+            return False
+    
+    module = cmds
+    
+    if verbose:
+        print funcName.center( 50, '=')
+    
+    if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
+        if verbose:
+            print "skipping"
+        return cmdInfo
+        
+    try:
+        func = getattr(module, funcName)
+    except AttributeError:
+        print "could not find function %s in modules %s" % (funcName, module.__name__)
+        return cmdInfo
+    
+    # get the current list of objects in the scene so we can cleanup later, after we make nodes
+    allObjsBegin = set( cmds.ls(l=1) )  
+    try:
+        
+        # Attempt to create the node
+        cmds.select(cl=1)
+              
+        # the arglist passed from creation to general testing
+        args = []
+        constrObj = None
+        if nodeCmd:
+            
+            #------------------
+            # CREATION
+            #------------------
+            
+            # compile the args list for node creation
+            if funcName.endswith( 'onstraint'):
+                # special treatment for constraints because they need two objects passed to the function
+                constrObj = module.polySphere()[0]
+                c = module.polyCube()[0]
+                # run the function
+                createArgs = [constrObj,c]
+            else:
+                createArgs = []
+                
+            # run the function
+            obj = func(*createArgs)
+            
+            if isinstance(obj, list):
+                if verbose:
+                    print "Return", obj
+                if len(obj) == 1:
+                    print "%s: args need unpacking" % funcName
+                    cmdInfo['resultNeedsUnpacking'] = True
+                obj = obj[-1]
+                
+                
+            if obj is None:
+                #emptyFunctions.append( funcName )
+                raise ValueError, "Returned object is None"
+            
+            elif not cmds.objExists( obj ):
+                raise ValueError, "Returned object %s is Invalid" % obj
+         
+            args = [obj]
+                
+    except (TypeError,RuntimeError, ValueError), msg:
+        if verbose:
+            print "failed creation:", msg
+        
+    else:
+        
+        #------------------
+        # TESTING
+        #------------------
+            
+        #(func, args, data) = cmdList[funcName]    
+        #(usePyNode, baseClsName, nodeName)
+        flags = cmdInfo['flags']
+
+        hasQueryFlag = flags.has_key( 'query' )
+        hasEditFlag = flags.has_key( 'edit' )
+        
+        for flag in sorted(flags.keys()):
+            flagInfo = flags[flag]            
+            if flag in ['query', 'edit']:
+                continue
+            
+            # special case for constraints
+            if constrObj and flag in ['weight']:
+                flagargs = [constrObj] + args
+            else:
+                flagargs = args
+                
+            try:
+                modes = flagInfo['modes']
+                testModes = False
+            except KeyError, msg:
+                #raise KeyError, '%s: %s' % (flag, msg)
+                #print flag, "Testing modes"
+                flagInfo['modes'] = []
+                modes = []
+                testModes = True
+            
+            # QUERY
+            val = None
+            argtype = flagInfo['args']
+            
+            if 'query' in modes or testModes == True:
+                if hasQueryFlag:
+                    kwargs = {'query':True, flag:True}
+                else:
+                    kwargs = { flag:True }
+                    
+                cmd = _formatCmd(funcName, flagargs, kwargs)
+                try:
+                    val = func( *flagargs, **kwargs )
+                    #print val
+                    resultType = _objectToType(val)
+                    
+                    # ensure symmetry between edit and query commands:
+                    # if this flag is queryable and editable, then its queried value should be symmetric to its edit arguments
+                    if 'edit' in modes and argtype != resultType:
+                        # there are certain patterns of asymmetry which we can safely correct:
+                        # [bool] --> bool
+                        if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
+                            flagInfo['resultNeedsUnpacking'] = True
+                            val = val[0]
+                            
+                        # [int] --> bool
+                        elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
+                            flagInfo['resultNeedsUnpacking'] = True
+                            flagInfo['resultNeedsCasting'] = True
+                            val = argtype(val[0])
+                            
+                        # [int, int] --> bool
+                        elif argtype in _castList and isinstance( resultType, list) and _listIsCastable(resultType):
+                            flagInfo['resultNeedsUnpacking'] = True
+                            flagInfo['resultNeedsCasting'] = True
+                            val = argtype(val[0])
+                            
+                        # int --> bool
+                        elif argtype in _castList and resultType in _castList:
+                            flagInfo['resultNeedsCasting'] = True
+                            val = argtype(val)
+                        else:
+                            # no valid corrctions found
+                            print cmd
+                            print "\treturn mismatch"
+                            print '\tresult:', val.__repr__()
+                            print '\tpredicted type: ', argtype
+                            print '\tactual type:    ', resultType
+                            # value is no good. reset to None, so that a default will be generated for edit
+                            val = None
+                    
+                    elif verbose:
+                        print cmd
+                        print "\tsucceeded"
+                        print '\tresult:', val.__repr__()
+                        print '\tresult type:    ', resultType
+                        
+                except TypeError, msg:
+                    # flag is no longer supported                         
+                    if str(msg).startswith( 'Invalid flag' ):
+                        #if verbose:
+                        print "removing flag", funcName, flag, msg
+                        shortname = flagInfo['shortname']
+                        flagInfo.pop(flag,None)
+                        flagInfo.pop(shortname,None)
+                        modes = [] # stop edit from running
+                    else:
+                        print cmd
+                        print "\t", str(msg).rstrip('\n')
+                    val = None
+                    
+                except RuntimeError, msg:
+                    print cmd
+                    print "\t", str(msg).rstrip('\n') 
+                    val = None
+                else:
+                     # some flags are only in mel help and not in maya docs, so we don't know their
+                     # supported per-flag modes.  we fill that in here
+                     flagInfo['modes'].append('query')
+            # EDIT
+            if 'edit' in modes or testModes == True:
+                
+                #print "Args:", argtype
+                try:
+                    # we use the value returned from query above as defaults for putting back in as edit args
+                    # but if the return was empty we need to produce something to test on.  
+                    # NOTE: this is just a guess
+                    if val is None:
+                        
+                        if isinstance(argtype, list):
+                            val = []
+                            for typ in argtype:
+                                if type == unicode or isinstance(type,basestring):
+                                    val.append('persp')
+                                else:
+                                    if 'query' in modes:
+                                        val.append( typ(0) )
+                                    # edit only, ensure that bool args are True
+                                    else:
+                                        val.append( typ(1) )
+                        else:
+                            if argtype == unicode or isinstance(argtype,basestring):
+                                val = 'persp'
+                            elif 'query' in modes:
+                                val = argtype(0)
+                            else:
+                                # edit only, ensure that bool args are True
+                                val = argtype(1)
+                                  
+                    kwargs = {'edit':True, flag:val}              
+                    cmd = _formatCmd(funcName, args, kwargs)
+                    val = func( *args, **kwargs )
+                    if verbose:
+                        print cmd
+                        print "\tsucceeded"
+                        #print '\t', val.__repr__()
+                        #print '\t', argtype, type(val)
+                    #print "SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])
+                except TypeError, msg:                                                        
+                    if str(msg).startswith( 'Invalid flag' ):
+                        #if verbose:
+                        # flag is no longer supported  
+                        print "removing flag", funcName, flag, msg
+                        shortname = flagInfo['shortname']
+                        flagInfo.pop(flag,None)
+                        flagInfo.pop(shortname,None)
+                    else:
+                        print cmd
+                        print "\t", str(msg).rstrip('\n')
+                        print "\tpredicted arg:", argtype
+                        if not 'query' in modes:
+                            print "\tedit only"
+                except RuntimeError, msg:
+                    print cmd
+                    print "\t", str(msg).rstrip('\n')
+                    print "\tpredicted arg:", argtype
+                    if not 'query' in modes:
+                        print "\tedit only"
+                else:
+                    flagInfo['modes'].append('edit')
+    
+    # cleanup
+    allObjsEnd = set( cmds.ls(l=1) )
+    newObjs = list(allObjsEnd.difference(  allObjsBegin ) )
+    if newObjs:
+        cmds.delete( newObjs ) 
+    return cmdInfo
+ 
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
@@ -696,7 +1000,7 @@ def buildCachedData() :
                 for moduleName, commands in moduleNameShortToLong.items():
                     if funcName in commands:
                         module = moduleName
-                
+                        break
                 if module is None:    
                     if mm.eval('whatIs "%s"' % funcName ) == 'Run Time Command':
                         module = 'runtime'
@@ -710,15 +1014,16 @@ def buildCachedData() :
             
             if module != 'runtime':
                 cmdInfo = getCmdInfo(funcName, ver)
-            
+
+                if module != 'windows':
+                    if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+                        nodeCommandList.append(funcName)
+                        cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=True, verbose=True  )
+                    #elif module != 'context':
+                    #    cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=True  )
+                
             cmdInfo['type'] = module
-            
-            
-            if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
-                nodeCommandList.append(funcName)
-                cmdInfo = testNodeCmd( funcName, cmdInfo, False )
-                
-                
+             
             cmdlist[funcName] = cmdInfo
             
             '''
@@ -784,9 +1089,8 @@ def getInheritance( mayaType ):
 # Function Factory
 #-----------------------
 
-def _addCmdDocs(inObj, newObj, cmdInfo ):
-    
-    #try:
+def _addCmdDocs( func, cmdInfo=None ):
+        
     docstring = cmdInfo['description'] + '\n\n'
     
     flagDocs = cmdInfo['flags']
@@ -801,7 +1105,9 @@ def _addCmdDocs(inObj, newObj, cmdInfo ):
             
             # docstring
             try:
-                docstring += '        - %s\n' %  docs['docstring']
+                doc = docs['docstring']
+                if doc:
+                    docstring += '        - %s\n' %  doc
             except KeyError: pass
             
             # modes
@@ -834,47 +1140,38 @@ def _addCmdDocs(inObj, newObj, cmdInfo ):
                 except: pass
             docstring += '        - datatype: *%s*\n' % ( typ )
         
-        """
-        docstring += ':Keywords:\n'
-        for flag in sorted(flagDocs.keys()):
-            docs = flagDocs[flag]
-
-            #label = '  %s (%s)' % (flag, docs['shortname'])
-            label = '  %s' % (flag)
-            docstring += label + '\n'
-            
-            try:
-                docstring += '    %s\n' %  docs['docstring']
-            except KeyError: pass
-            
-            
-            if docs.get('modes',False):
-                docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
-            
-            try:
-                modified = docs['modified']
-                if modified:
-                    docstring += '        - modifies: *%s*\n' % ( ', '.join( ))
-            except KeyError: pass
-            
-            try:
-                docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
-            except KeyError: pass
-            
-        docstring += '\n'
-        """ 
     if cmdInfo['example']:
         docstring += '\nExample:\n' + cmdInfo['example']
-        
-    if inObj.__doc__:
-        docstring = inObj.__doc__ + '\n' + docstring
     
-    newObj.__doc__ = docstring
-            
+    if func.__doc__: 
+        docstring = func.__doc__ + '\n' + docstring
+    
+    func.__doc__ = docstring
+    return func        
 
-        #print "could not find help docs for %s" % inObj
-    #except:
-    #    print "failed to add docstring to %s using %s" % ( inObj.__name__, cmdInfo )
+def _addFlagCmdDocs(func,cmdName,flag,docstring=''):
+    if docstring:
+        func.__doc__ = docstring
+    else:
+        try:
+            flagDocs = cmdlist[cmdName]['flags']
+            docs = flagDocs[flag]
+            docstring = ''
+            doc = docs['docstring']
+            if doc:
+                docstring += '        - %s\n' %  doc
+            
+            try:
+                docstring += '        - secondary flags:\n'
+                for secondaryFlag in docs['secondaryFlags']:
+                     docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
+            except KeyError: pass
+            
+            func.__doc__ = docstring
+        except KeyError: print "No documentation available for %s flag of %s command" % (flag,cmdName )    
+    return func
+
+
 
 def _getUICallbackFlags(flagDocs):
     commandFlags = []
@@ -884,6 +1181,7 @@ def _getUICallbackFlags(flagDocs):
     return commandFlags
 
 def getUICommandsWithCallbacks():
+    # TODO : look for 'script' arg type in mel help
     cmds = []
     for funcName in moduleCmds['windows']:
         cbFlags = _getUICallbackFlags(cmdlist[funcName]['flags'])
@@ -925,7 +1223,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     if funcType == types.FunctionType and returnFunc is None:
         # there are no docs to add for runtime commands
         if cmdInfo['type'] != 'runtime':
-            _addCmdDocs( inFunc, inFunc, cmdInfo )
+            _addCmdDocs( inFunc, cmdInfo )
         if rename: inFunc.__name__ = rename
         #else: inFunc.__name__ = funcName
         return inFunc
@@ -1018,7 +1316,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             def newFunc(*args, **kwargs):
                 return apply(inFunc, args, kwargs)
             
-        _addCmdDocs( inFunc, newFunc, cmdInfo )
+        newFunc.__doc__ = inFunc.__doc__
+        _addCmdDocs( newFunc, cmdInfo )
 
         if rename: 
             newFunc.__name__ = rename
@@ -1030,29 +1329,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         pass
         #raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
 
-def _addFlagCmdDocs(func,newFuncName,cmdName,flag,docstring=''):
-    func.__name__ = newFuncName
-    if docstring:
-        func.__doc__ = docstring
-    else:
-        try:
-            flagDocs = cmdlist[cmdName]['flags']
-            docs = flagDocs[flag]
-            docstring = ''
-            docstring += '        - %s\n' %  docs['docstring']
-            
-            try:
-                docstring += '        - secondary flags:\n'
-                for secondaryFlag in docs['secondaryFlags']:
-                     docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
-            except KeyError: pass
-            
-            func.__doc__ = docstring
-        except KeyError: print "No documentation available for %s flag of %s command" % (flag,cmdName )    
-    return func
-
 '''            
-def makeCreateFlagCmd( inFunc, name, flag=None, docstring='', cmdName=None, returnFunc=None ):
+def makeCreateFlagMethodhod( inFunc, name, flag=None, docstring='', cmdName=None, returnFunc=None ):
     if cmdName is None:
         cmdName = inFunc.__name__
     if flag is None:
@@ -1069,12 +1347,11 @@ def makeCreateFlagCmd( inFunc, name, flag=None, docstring='', cmdName=None, retu
     return _addFlagCmdDocs(f, name, cmdName, flag, docstring )
 '''
 
-def makeCreateFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None, returnFunc=None ):
+def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None ):
     #name = 'set' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = inFunc.__name__
-    if flag is None:
-        flag = newFuncName
+
     if returnFunc:
         def newfunc(*args, **kwargs): 
             if len(args)==1:
@@ -1097,14 +1374,18 @@ def makeCreateFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=Non
                 kwargs[flag]=args[1:]
                 args = (args[0],)  
             return inFunc( *args, **kwargs )
-    #if moduleName:
-    #    f.__module__ = moduleName             
-    return _addFlagCmdDocs(newfunc, newFuncName, cmdName, flag, docstring )
+        
+    if newMethodName:
+        newfunc.__name__ = newMethodName
+    else:
+        newfunc.__name__ = flag
+                  
+    return _addFlagCmdDocs(newfunc, cmdName, flag, docstring )
 
 def createflag( cmdName, flag ):
     """create flag decorator"""
     def create_decorator(method):
-        newfunc = makeCreateFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+        newfunc = makeCreateFlagMethod( method, flag, method.__name__, cmdName=cmdName )
         newfunc.__module__ = method.__module__
         return newfunc
     return create_decorator
@@ -1116,12 +1397,11 @@ def secondaryflag( cmdName, flag ):
     return secondary_decorator
 '''
 
-def makeQueryFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None, returnFunc=None ):
+def makeQueryFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None, returnFunc=None ):
     #name = 'get' + flag[0].upper() + flag[1:]
     if cmdName is None:
         cmdName = inFunc.__name__
-    if flag is None:
-        flag = newFuncName
+
     if returnFunc:
         def newfunc(self, **kwargs):
             kwargs['query']=True
@@ -1132,23 +1412,28 @@ def makeQueryFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None
             kwargs['query']=True
             kwargs[flag]=True 
             return inFunc( self, **kwargs )
-    return _addFlagCmdDocs(newfunc, newFuncName, cmdName, flag, docstring )
+    
+    if newMethodName:
+        newfunc.__name__ = newMethodName
+    else:
+        newfunc.__name__ = flag
+        
+    return _addFlagCmdDocs(newfunc, cmdName, flag, docstring )
 
 def queryflag( cmdName, flag ):
     """query flag decorator"""
     def query_decorator(method):
-        newfunc = makeQueryFlagCmd( method, method.__name__, flag, cmdName=cmdName )
+        newfunc = makeQueryFlagMethod( method, flag, method.__name__, cmdName=cmdName )
         newfunc.__module__ = method.__module__
         return newfunc
     return query_decorator
 
    
-def makeEditFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None):
+def makeEditFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None):
     #name = 'set' + flag[0].upper() + flag[1:]    
     if cmdName is None:
         cmdName = inFunc.__name__
-    if flag is None:
-        flag = newFuncName
+
     def newfunc(self, val, **kwargs): 
         kwargs['edit']=True
         kwargs[flag]=val 
@@ -1157,24 +1442,44 @@ def makeEditFlagCmd( inFunc, newFuncName, flag=None, docstring='', cmdName=None)
         except TypeError:
             kwargs.pop('edit')
             return inFunc( self, **kwargs )
-            
-    return _addFlagCmdDocs(newfunc, newFuncName, cmdName, flag, docstring )
+        
+    if newMethodName:
+        newfunc.__name__ = newMethodName
+    else:
+        newfunc.__name__ = flag
+             
+    return _addFlagCmdDocs(newfunc, cmdName, flag, docstring )
 
 def editflag( cmdName, flag ):
     """query flag decorator"""
     def edit_decorator(method):
-        newfunc = makeEditFlagCmd(  method, method.__name__, flag, cmdName=cmdName )
+        newfunc = makeEditFlagMethod(  method, flag, method.__name__, cmdName=cmdName )
         newfunc.__module__ = method.__module__
         return newfunc
     return edit_decorator
 
 
-def add_docs( cmdName, flag ):
-    """decorator"""
-    def doc_decorator(method):
-        newfunc = _addFlagCmdDocs(method, method.__name__, cmdName, flag )
-        newfunc.__module__ = method.__module__
-        return newfunc
+def add_docs( cmdName, flag=None ):
+    """decorator for adding docs"""
+    
+    if flag:
+        # A method generated from a flag
+        def doc_decorator(method):
+            newfunc = _addFlagCmdDocs(method, cmdName, flag )
+            newfunc.__module__ = method.__module__
+            return newfunc
+    else:
+        # A command  
+        def doc_decorator(func):
+            try:
+                cmdInfo = cmdlist[cmdName]
+                newfunc = _addCmdDocs(func, cmdInfo )
+                newfunc.__module__ = func.__module__
+            except KeyError:
+                print "No documentation available %s command" % ( cmdName ) 
+                newfunc = func
+            return newfunc
+    
     return doc_decorator
 
 '''
@@ -1399,7 +1704,7 @@ class ApiArgUtil(object):
             print msg
             return False
         
-        print "succeeded: %s %s.%s(%s)" % ( returnType, self.apiClassName, self.methodName, ', '.join(inArgs) ) 
+        #print "succeeded: %s %s.%s(%s)" % ( returnType, self.apiClassName, self.methodName, ', '.join(inArgs) ) 
         return True
     
     def castEnum(self, argtype, input ):
@@ -1507,7 +1812,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
     
     if newName is None:
         newName = methodInfoList[0].get('pymelName',None)
-            
+    
     for methodInfo in methodInfoList:
 
         
@@ -1601,87 +1906,92 @@ class metaNode(type) :
         if apiClass:
             classdict['__apimfnclass__'] = apiClass
             print "="*60, nodeType, "="*60
-            for methodName in _api.apiClassInfo[apiClass.__name__]['methods'].keys():
-                method = wrapApiMethod( apiClass, methodName )
-                if method:
-                    #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
-                    classdict[methodName] = method
+            try:
+                for methodName in _api.apiClassInfo[apiClass.__name__]['methods'].keys():
+                    
+                    method = wrapApiMethod( apiClass, methodName )
+                    if method:
+                        #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                        classdict[method.__name__] = method
+            except KeyError:
+                print "No api information for api class %s for node %s" % ( apiClass.__name__, nodeType )
         #else: print "%s: NO API TYPE" % nodeType
 
         #-------------------------
         #   MEL Methods
         #-------------------------
-#        try:
-#            infoCmd = False
-#            try:
-#                nodeCmd = nodeTypeToNodeCommand[ nodeType ]
-#            except KeyError:
-#                try:
-#                    nodeCmd = nodeTypeToInfoCommand[ nodeType ]
-#                    infoCmd = True
-#                except KeyError: 
-#                    nodeCmd = nodeType
-#            
-#            #if nodeHierarchy.children( nodeType ):
-#            #    print nodeType, nodeHierarchy.children( nodeType )
-#            cmdInfo = cmdlist[nodeCmd]
-#        except KeyError: # on cmdlist[nodeType]
-#            pass
-#        else:
-#            try:    
-#                cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
-#                func = getattr(cmdModule, nodeCmd)
-#
-#            except (AttributeError, TypeError):
-#                func = getattr(cmds,nodeCmd)
-#            # add documentation
-#            classdict['__doc__'] = 'class counterpart of function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
-#            for flag, flagInfo in cmdInfo['flags'].items():
-#                #print nodeType, flag
-#                 # don't create methods for query or edit, or for flags which only serve to modify other flags
-#                if flag in ['query', 'edit'] or 'modified' in flagInfo:
-#                    continue
-#                
-#                
-#                if flagInfo.has_key('modes'):
-#                    # flags which are not in maya docs will have not have a modes list unless they 
-#                    # have passed through testNodeCmds
-#                    #print classname, nodeType, flag
-#                    #continue
-#                    modes = flagInfo['modes']
-#    
-#                    # query command
-#                    if 'query' in modes:
-#                        methodName = 'get' + util.capitalize(flag)
-#                        if methodName not in classdict:
-#                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-#                                returnFunc = None
-#                                
-#                                if flagInfo.get( 'resultNeedsCasting', False):
-#                                    returnFunc = flagInfo['args']
-#                                    if flagInfo.get( 'resultNeedsUnpacking', False):
-#                                        returnFunc = lambda x: returnFunc(x[0])
-#                                        
-#                                elif flagInfo.get( 'resultNeedsUnpacking', False):
-#                                    returnFunc = lambda x: returnFunc(x[0])
-#                                
-#                                classdict[methodName] = makeQueryFlagCmd( func, methodName, 
-#                                    flag, docstring=flagInfo['docstring'], returnFunc=returnFunc )
-#                            #else: print "%s: skipping %s" % ( classname, methodName )
-#                    
-#                    # edit command: 
-#                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
-#                        # if there is a corresponding query we use the 'set' prefix. 
-#                        if 'query' in modes:
-#                            methodName = 'set' + util.capitalize(flag)
-#                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
-#                        else:
-#                            methodName = flag
-#                            
-#                        if methodName not in classdict:
-#                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-#                                classdict[methodName] = makeEditFlagCmd( func, methodName, 
-#                                     flag, docstring=flagInfo['docstring'] )
+        try:
+            infoCmd = False
+            try:
+                nodeCmd = nodeTypeToNodeCommand[ nodeType ]
+            except KeyError:
+                try:
+                    nodeCmd = nodeTypeToInfoCommand[ nodeType ]
+                    infoCmd = True
+                except KeyError: 
+                    nodeCmd = nodeType
+            
+            #if nodeHierarchy.children( nodeType ):
+            #    print nodeType, nodeHierarchy.children( nodeType )
+            cmdInfo = cmdlist[nodeCmd]
+        except KeyError: # on cmdlist[nodeType]
+            pass
+        else:
+            try:    
+                cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
+                func = getattr(cmdModule, nodeCmd)
+
+            except (AttributeError, TypeError):
+                func = getattr(cmds,nodeCmd)
+            # add documentation
+            classdict['__doc__'] = 'class counterpart of mel function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
+            for flag, flagInfo in cmdInfo['flags'].items():
+                #print nodeType, flag
+                 # don't create methods for query or edit, or for flags which only serve to modify other flags
+                if flag in ['query', 'edit'] or 'modified' in flagInfo:
+                    continue
+                
+                
+                if flagInfo.has_key('modes'):
+                    # flags which are not in maya docs will have not have a modes list unless they 
+                    # have passed through testNodeCmds
+                    #print classname, nodeType, flag
+                    #continue
+                    modes = flagInfo['modes']
+    
+                    # query command
+                    if 'query' in modes:
+                        methodName = 'get' + util.capitalize(flag)
+                        if methodName not in classdict:
+                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                                returnFunc = None
+                                
+                                if flagInfo.get( 'resultNeedsCasting', False):
+                                    returnFunc = flagInfo['args']
+                                    if flagInfo.get( 'resultNeedsUnpacking', False):
+                                        returnFunc = lambda x: returnFunc(x[0])
+                                        
+                                elif flagInfo.get( 'resultNeedsUnpacking', False):
+                                    returnFunc = lambda x: returnFunc(x[0])
+                                
+                                classdict[methodName] = makeQueryFlagMethod( func, flag, methodName, 
+                                    docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                            #else: print "%s: skipping %s" % ( classname, methodName )
+                        else: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
+                    # edit command: 
+                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
+                        # if there is a corresponding query we use the 'set' prefix. 
+                        if 'query' in modes:
+                            methodName = 'set' + util.capitalize(flag)
+                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+                        else:
+                            methodName = flag
+                            
+                        if methodName not in classdict:
+                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                                classdict[methodName] = makeEditFlagMethod( func, flag, methodName, 
+                                     docstring=flagInfo['docstring'] )
+                        else: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                     
 
             
