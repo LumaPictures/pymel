@@ -45,9 +45,6 @@ _patchMPoint()
 _patchMMatrix()
 _patchMTransformationMatrix()
 
-
-
- 
 # the meta class of metaMayaWrapper
 class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
     """ A metaclass to wrap Maya array type classes such as MVector, MMatrix """ 

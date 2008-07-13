@@ -2996,7 +2996,9 @@ class DependNode( PyNode ):
         except:
             raise "could not find trailing numbers to decrement"
 
-class Entity(DependNode): pass
+class Entity(DependNode):
+    __metaclass__ = MetaMayaNodeWrapper
+    
 class DagNode(Entity):
     __metaclass__ = MetaMayaNodeWrapper
     def _updateName(self, long=False) :

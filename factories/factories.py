@@ -1908,15 +1908,38 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(mcl, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        print "MetaMayaTypeWrapper", classname
+        #print "MetaMayaTypeWrapper", classname, bases, classdict
         
+    
         # define __slots__ if not defined
         if '__slots__' not in classdict :
             classdict['__slots__'] = ()
-        if 'apicls' in classdict and not classdict['apicls'] in bases :
-            # if not in bases, add to it
-            bases = bases + (classdict['apicls'],)
+        try:
+            apicls = classdict['apicls']
             
+            if apicls is not None:
+                if apicls not in bases:
+                    #print "ADDING BASE",classdict['apicls']
+                    bases = bases + (classdict['apicls'],)
+                
+                try:
+                    print "="*40, classname, apicls, "="*40
+                    for methodName in _api.apiClassInfo[apicls.__name__]['methods'].keys():                  
+                        #TODO : check pymelName
+                        if True : #methodName not in classdict:
+                            method = wrapApiMethod( apicls, methodName )
+                            if method:
+                                #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                                classdict[method.__name__] = method
+                                
+                except KeyError:
+                    print "No api information for api class %s for node %s" % ( apicls.__name__, nodeType )
+        except KeyError:
+            pass
+
+        
+        #return super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+      
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
             
@@ -1924,85 +1947,74 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         if hasattr(newcls, 'apicls') :
             # type (api type) used for the storage of data
             apicls  = newcls.apicls
-            
-            print "="*60, apicls, "="*60
-            try:
-                for methodName in _api.apiClassInfo[apicls.__name__]['methods'].keys():                  
-                    #TODO : check pymelName
-                    if methodName not in classdict:
-                        method = wrapApiMethod( apicls, methodName )
-                        if method:
-                            #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
-                            classdict[method.__name__] = method
-                            
-            except KeyError:
-                print "No api information for api class %s for node %s" % ( apicls.__name__, nodeType )
+            if apicls is not None:
 
-            # build the data property
-            #            def setdata(self, data):
-            #                self._data = self.__class__.apicls(data)
-            #            def getdata(self):
-            #                return self._data
-            #            p = property(getdata, setdata, None, "One %s" % apicls.__name__)
-            #            type.__setattr__(newcls, 'data', p) 
+
+                # build the data property
+                #            def setdata(self, data):
+                #                self._data = self.__class__.apicls(data)
+                #            def getdata(self):
+                #                return self._data
+                #            p = property(getdata, setdata, None, "One %s" % apicls.__name__)
+                #            type.__setattr__(newcls, 'data', p) 
+                
+                #    def _getdata(self):
+                #        return list(self.get())
+                #    def _setdata(self, data):
+                #        mat = _api.MMatrix()
+                #        _api.MScriptUtil.createMatrixFromList ( list(data), mat)
+                #        self = self.__class__(mat) 
+                #    def _deldata(self):
+                #        del self     
+                #    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data")              
+                                         
+                # build some constants on the class            
+                constant = {}
+                # constants in class definition will be converted from api class to created class
+                for name, attr in newcls.__dict__.iteritems() :
+                    # to add the wrapped api class constants as attributes on the wrapping class,
+                    # convert them to own class         
+                    if isinstance(attr, apicls) :
+                        if name not in constant :
+                            constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
+                # we'll need the api clas dict to automate some of the wrapping
+                # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
+                apiDict = dict(inspect.getmembers(apicls))            
+                # defining class properties on the created class                 
+                for name, attr in apiDict.iteritems() :
+                    # to add the wrapped api class constants as attributes on the wrapping class,
+                    # convert them to own class         
+                    if isinstance(attr, apicls) :
+                        if name not in constant :
+                            constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
+                # update the constant dict with herited constants
+                mro = inspect.getmro(newcls)            
+                for cls in mro :
+                    if isinstance(cls, MetaMayaTypeWrapper) :
+                        for name, attr in cls.__dict__.iteritems() :
+                            if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
+                                if not name in constant :
+                                    constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
+                
+                # build the protected list to make some class ifo and the constants read only class attributes
+                # new.__slots__ = ['_data', '_shape', '_ndim', '_size']
+                # type.__setattr__(newcls, '__slots__', slots) 
+                
+                # set class constants as readonly 
+#                readonly = newcls.__readonly__
+#                if 'stype' not in readonly :
+#                    readonly['stype'] = None
+#                if 'apicls' not in readonly :
+#                    readonly['apicls'] = None 
+#                for c in constant.keys() :
+#                    readonly[c] = None          
+#                type.__setattr__(newcls, '__readonly__', readonly)          
+                # store constants as class attributes
+                for name, attr in constant.iteritems() :
+                    type.__setattr__(newcls, name, attr)
+                                               
+            #else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
             
-            #    def _getdata(self):
-            #        return list(self.get())
-            #    def _setdata(self, data):
-            #        mat = _api.MMatrix()
-            #        _api.MScriptUtil.createMatrixFromList ( list(data), mat)
-            #        self = self.__class__(mat) 
-            #    def _deldata(self):
-            #        del self     
-            #    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data")              
-                                     
-            # build some constants on the class            
-            constant = {}
-            # constants in class definition will be converted from api class to created class
-            for name, attr in newcls.__dict__.iteritems() :
-                # to add the wrapped api class constants as attributes on the wrapping class,
-                # convert them to own class         
-                if isinstance(attr, apicls) :
-                    if name not in constant :
-                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
-            # we'll need the api clas dict to automate some of the wrapping
-            # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
-            apiDict = dict(inspect.getmembers(apicls))            
-            # defining class properties on the created class                 
-            for name, attr in apiDict.iteritems() :
-                # to add the wrapped api class constants as attributes on the wrapping class,
-                # convert them to own class         
-                if isinstance(attr, apicls) :
-                    if name not in constant :
-                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
-            # update the constant dict with herited constants
-            mro = inspect.getmro(newcls)            
-            for cls in mro :
-                if isinstance(cls, MetaMayaTypeWrapper) :
-                    for name, attr in cls.__dict__.iteritems() :
-                        if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
-                            if not name in constant :
-                                constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
-            
-            # build the protected list to make some class ifo and the constants read only class attributes
-            # new.__slots__ = ['_data', '_shape', '_ndim', '_size']
-            # type.__setattr__(newcls, '__slots__', slots) 
-            
-            # set class constants as readonly 
-            readonly = newcls.__readonly__
-            if 'stype' not in readonly :
-                readonly['stype'] = None
-            if 'apicls' not in readonly :
-                readonly['apicls'] = None 
-            for c in constant.keys() :
-                readonly[c] = None          
-            type.__setattr__(newcls, '__readonly__', readonly)          
-            # store constants as class attributes
-            for name, attr in constant.iteritems() :
-                type.__setattr__(newcls, name, attr)
-                                           
-        #else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
-        
         return newcls 
     
 class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
@@ -2012,22 +2024,13 @@ class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
     """
 
     def __new__(cls, classname, bases, classdict):
-        print "MetaMayaNodeWrapper", classname
-        #general = GenHolder.get()
-        #_api = general.api
-    
+        #print "MetaMayaNodeWrapper", classname, bases, classdict
+
         nodeType = util.uncapitalize(classname)
         _api.addMayaType( nodeType )
-  
-
-        #-------------------------
-        #   API Methods
-        #-------------------------
-        apiClass = _api.toApiFunctionSet( nodeType )
-        #if nodeType == 'transform': print 'TRANSFORM', apiClass
-        if apiClass:
-            classdict['apicls'] = apiClass
-        
+        apicls = _api.toApiFunctionSet( nodeType )
+        classdict['apicls'] = apicls
+        #print "="*40, classname, apicls, "="*40
         return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
 
@@ -2279,7 +2282,7 @@ def addPyNode( module, mayaType, parentMayaType ):
             return      
         try:
             
-            PyNodeType = metaNode(pyNodeTypeName, (ParentPyNode,), {})
+            PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {})
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
             print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )
