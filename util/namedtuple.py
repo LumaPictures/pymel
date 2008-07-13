@@ -49,6 +49,11 @@ def namedtuple(typename, field_names, verbose=False):
         seen_names.add(name)
 
     # Create and fill-in the class template
+    # note in 2.6 collections use
+    # def __getnewargs__(self):
+    # return tuple(self)
+    # instead of __reduce__ to provide unpickling capabilities
+    
     numfields = len(field_names)
     argtxt = repr(field_names).replace("'", "")[1:-1]   # tuple repr without parens or quotes
     reprtxt = ', '.join('%s=%%r' % name for name in field_names)
