@@ -166,16 +166,15 @@ def parseMayaenv(envLocation=None, version=None) :
             print"Found no suitable Maya.env file"
         return False
 
-def _addEnv( env, value ):
-    if os.name == 'nt' :
-        sep = ';'
-    else :
-        sep = ':'
+def _addEnv( env, value, put=False ):
+    sep = os.path.pathsep
     if env not in os.environ:
         os.environ[env] = value
     else:
         os.environ[env] = sep.join( os.environ[env].split(sep) + [value] )
-                    
+    if put :
+        os.putenv(env, os.environ[env])
+                   
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
 def mayaInit(forversion=None) :
@@ -185,29 +184,43 @@ def mayaInit(forversion=None) :
     # test that Maya actually is loaded and that commands have been initialized,for the requested version        
     try :
         from maya.cmds import about        
-        version = eval("about(version=True)");
+        runningVersion = eval("about(version=True)");
     except :
-        version = None
+        runningVersion = None
 
     if forversion :
-        if version == forversion :
+        if runningVersion == forversion :
             return True
         else :
-            print "Maya is already initialized as version %s, initializing it for a different version %s" % (version, forversion)
-    elif version :
-            return True
+            print "Maya is already initialized as version %s, initializing it for a different version %s" % (runningVersion, forversion)
+    elif runningVersion is not None :
+        print "Maya is already initialized as version %s" % (runningVersion)
+        return True
                 
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
+    sep = os.path.pathsep
+    mayaVersion = getMayaVersion(extension=True)
     envVersion = os.environ.get('MAYA_ENV_VERSION', None)
     
     if (forversion and envVersion!=forversion) or not envVersion :
         if not parseMayaenv(version=forversion) :
             print "Could not read or parse Maya.env file"
+
+    # now we should have correct en vars
+    envVersion = os.environ.get('MAYA_ENV_VERSION', mayaVersion)
+    mayaLocation = os.environ.get('MAYA_LOCATION', None)
+    system = platform.system()
+    pyHome = os.environ.get('PYTHONHOME', None)
+    pyPath = os.environ.get('PYTHONPATH', None)
+    if pyPath is not None :
+        pyPaths = pyPath.split(sep)
+    else :
+        pyPaths = []
     
     # add necessary environment variables and paths for importing maya.cmds, a la mayapy
     # currently just for osx
-    if platform.system() == 'Darwin' :
-        frameworks = os.path.join( os.environ['MAYA_LOCATION'], 'Frameworks' )    
+    if system == 'Darwin' :
+        frameworks = os.path.join( mayaLocation, 'Frameworks' )    
         _addEnv( 'DYLD_FRAMEWORK_PATH', frameworks )
         
         # this *must* be set prior to launching python
@@ -220,7 +233,29 @@ def mayaInit(forversion=None) :
             sys.path.append(  os.path.join( pydir, 'lib/python%s/site-packages' % mayapyver ) )
         except:
             pass    
-        
+    elif system == 'Linux' :
+        # TODO : seems to fail (not taken into account by the import maya.standalone
+        # even with using putenv, guess it must be set before Python is started
+        lib = os.path.join( mayaLocation, 'lib' )
+        ldLibPath = os.environ.get('LD_LIBRARY_PATH', None)
+        if ldLibPath is not None :
+            ldLibPaths = ldLibPath.split(sep)
+        else :
+            ldLibPaths = []
+        if lib not in ldLibPaths :
+            print "Adding %s to LD_LIBRARY_PATH" % (lib)
+            _addEnv( 'LD_LIBRARY_PATH', lib, put=True )
+            
+        # TODO : 2008 only for now, only needed if PYTHONHOME is not maya's python and the maya package isn't in
+        # current Python PYTHONPATH, so use it debatable
+#        pyMayaPackages = lib+"/python2.5/site-packages"
+#        if pyMayaPackages not in pyPaths :
+#            print "Adding %s to PYTHONPATH" % (lib)
+#            _addEnv( 'PYTHONPATH', pyMayaPackages )
+    else :
+        # TOTO: do something for Windows here 
+        print "Nothing planned for platform: %s" % (system)
+                    
     if not sys.modules.has_key('maya.standalone') or version != forversion:
         try :
             import maya.standalone #@UnresolvedImport
