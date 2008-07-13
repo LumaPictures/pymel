@@ -106,30 +106,34 @@ mac         ~/Library/Preferences/Autodesk/maya/8.5/scripts
 linux       ~/maya/maya/8.5/scripts
 =========   =======================
 	
-Otherwise, it is a good idea to create a separate directory for your python scripts so that
-they will be accessible from within Maya.  You can do this by setting the PYTHONPATH environment variable in Maya.env::  
+Otherwise, it is a good idea to create a separate directory for your python scripts so that you can organize them independently
+of your mel scripts.  You can do this by setting the PYTHONPATH environment variable in your Maya.env file. Set the PYTHONPATH environment
+variable to the directory *above* the pymel folder.  For example, if the pymel folder on your machine is C:\My Documents\python\pymel, 
+then you would add this line to your Maya.env::  
 
-	PYTHONPATH = /path/to/folder
-
-Then place the pymel directory in your PYTHONPATH directory.
+	PYTHONPATH = C:\My Documents\python
 
 Next, to avoid having to import pymel every time you startup, you can create a userSetup.mel
 file, place it in your scipts directory and add this line::
 
 	python("from pymel import *");
 
-Note, that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
+Alternately, you can create a userSetup.py file and add the line::
+
+	from pymel import *
+
+Note that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
 
 Script Editor
 -------------
 Pymel includes a replacement for the script editor window that provides the option to translate all mel history into python. 
 Currently this feature is beta and works only in Maya 8.5 SP1 and Maya 2008.
 
-The script editor is comprised of two files located in the pymel/misc directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  
+The script editor is comprised of two files located in the pymel/tools/scriptEditor directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  
 Place the mel file into your scripts directory, and the python file into your Maya plugins directory. Open Maya, go-to 
-B{Window --> Settings/Preferences --> Plug-in Manager} and load pymelScrollFieldReporter.  Be sure to also check 
-"Auto Load" for this plugin. Next, open the Script Editor and go to B{History --> History Output --> Convert 
-Mel to Python}. Now all output will be reported in python, regardless of whether the input is mel or python.
+**Window --> Settings/Preferences --> Plug-in Manager** and load pymelScrollFieldReporter.  Be sure to also check 
+"Auto Load" for this plugin. Next, open the Script Editor and go to **History --> History Output --> Convert 
+Mel to Python**. Now all output will be reported in python, regardless of whether the input is mel or python.
 
 Problems with Maya 2008-x64 on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,18 +160,18 @@ Getting Started
 ===============
 
 If you are a mel scripter but have not used python in maya yet, you should start with the Maya docs on the subject, particularly
-the section U{Using Python<http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>}. This will help you to understand the differences in syntax between the two languages and how 
-to translate between them. Another great way to learn how to translate mel into python is to install the new Script Editor (instructions
-above). With it you can execute some mel code and watch the python output in the top pane. You can toggle back and forth by checking and
-unchecking the "Convert Mel to Python" checkbox.
+the section `Using Python<http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>`_. This will help you to understand 
+the differences in syntax between the two languages and how to translate between them. Another great way to learn how to translate 
+mel into python is to install the new Script Editor (instructions above). With it you can execute some mel code and watch the 
+python output in the top pane. You can toggle back and forth by checking and unchecking the "Convert Mel to Python" checkbox.
 
 The Basics
 ----------
 
 In its current incarnation, pymel is designed with a great deal of backward compatibility in mind, so that the maya.cmds
-module and the pymel module can be used interchangably with the same code.  However, a closer look reveals pymel is actually
+module and the pymel module can usually be used interchangably with the same code.  However, a closer look reveals pymel is actually
 hiding a great deal of its power right under your nose.  Take the `ls` command for example.  `maya.cmds.ls` 
-will return a list of strings.  These strings have a lot of built-in functionality that make them a million times more 
+will return a list of strings.  These strings have a lot of built-in functionality that make them a much more 
 powerful than strings in mel:
 
 	>>> import maya.cmds

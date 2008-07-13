@@ -8,8 +8,9 @@ import itertools, operator, colorsys
 
 import pymel.util as util
 import pymel.mayahook as mayahook
-import allapi as api
+import pymel.api as _api
 from pymel.util.arrays import *
+import pymel.factories as _factories
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
@@ -17,27 +18,27 @@ def _patchMVector() :
         """ Iterates on all 3 components of a Maya api MVector """
         for i in xrange(3) :
             yield self[i]
-    type.__setattr__(api.MVector, '__iter__', __iter__)
+    type.__setattr__(_api.MVector, '__iter__', __iter__)
 
 def _patchMPoint() :
     def __iter__(self):
         """ Iterates on all 4 components of a Maya api MPoint """
         for i in xrange(4) :
             yield self[i]
-    type.__setattr__(api.MPoint, '__iter__', __iter__)
+    type.__setattr__(_api.MPoint, '__iter__', __iter__)
     
 def _patchMMatrix() :
     def __iter__(self):
         """ Iterates on all 4 rows of a Maya api MMatrix """
         for r in xrange(4) :
-            yield [api.MScriptUtil.getDoubleArrayItem(self[r], c) for c in xrange(4)]
-    type.__setattr__(api.MMatrix, '__iter__', __iter__)
+            yield [_api.MScriptUtil.getDoubleArrayItem(self[r], c) for c in xrange(4)]
+    type.__setattr__(_api.MMatrix, '__iter__', __iter__)
 
 def _patchMTransformationMatrix() :
     def __iter__(self):
         """ Iterates on all 4 rows of a Maya api MTransformationMatrix """
         return self.asMatrix().__iter__()
-    type.__setattr__(api.MTransformationMatrix, '__iter__', __iter__)
+    type.__setattr__(_api.MTransformationMatrix, '__iter__', __iter__)
 
 _patchMVector()
 _patchMPoint()
@@ -46,115 +47,9 @@ _patchMTransformationMatrix()
 
 
 
-class MetaMayaTypeWrapper(metaReadOnlyAttr) :
-    """ A metaclass to wrap Maya api types, with support for class constants """ 
-
-    class ClassConstant(object):
-        """ A data descriptor for user defined constants on the class """
-        def __init__(self, value):
-            self.value = value
-        def __get__(self, instance, owner):
-            # purposedly authorize notation MColor.blue but not MColor().blue,
-            # the constants are a class property and are not defined on instances
-            if instance is None :
-                return owner(self.value)
-            else :
-                raise AttributeError, "Class constants on %s are only defined on the class" % (owner.__name__)
-        def __set__(self, instance, value):
-            raise AttributeError, "class constant cannot be set"
-        def __delete__(self, instance):
-            raise AttributeError, "class constant cannot be deleted"
-          
-    def __new__(mcl, classname, bases, classdict):
-        """ Create a new class of metaClassConstants type """
-         
-        # define __slots__ if not defined
-        if '__slots__' not in classdict :
-            classdict['__slots__'] = ()
-        if 'apicls' in classdict and not classdict['apicls'] in bases :
-            # if not in bases, add to it
-            bases = bases + (classdict['apicls'],)
-            
-        # create the new class   
-        newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
-            
-        # if hasattr(newcls, 'stype') :
-        if hasattr(newcls, 'apicls') :
-            # type (api type) used for the storage of data
-            apicls  = newcls.apicls
-            
-            
-
-            # build the data property
-            #            def setdata(self, data):
-            #                self._data = self.__class__.apicls(data)
-            #            def getdata(self):
-            #                return self._data
-            #            p = property(getdata, setdata, None, "One %s" % apicls.__name__)
-            #            type.__setattr__(newcls, 'data', p) 
-            
-            #    def _getdata(self):
-            #        return list(self.get())
-            #    def _setdata(self, data):
-            #        mat = api.MMatrix()
-            #        api.MScriptUtil.createMatrixFromList ( list(data), mat)
-            #        self = self.__class__(mat) 
-            #    def _deldata(self):
-            #        del self     
-            #    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data")              
-                                     
-            # build some constants on the class            
-            constant = {}
-            # constants in class definition will be converted from api class to created class
-            for name, attr in newcls.__dict__.iteritems() :
-                # to add the wrapped api class constants as attributes on the wrapping class,
-                # convert them to own class         
-                if isinstance(attr, apicls) :
-                    if name not in constant :
-                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
-            # we'll need the api clas dict to automate some of the wrapping
-            # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
-            apiDict = dict(inspect.getmembers(apicls))            
-            # defining class properties on the created class                 
-            for name, attr in apiDict.iteritems() :
-                # to add the wrapped api class constants as attributes on the wrapping class,
-                # convert them to own class         
-                if isinstance(attr, apicls) :
-                    if name not in constant :
-                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
-            # update the constant dict with herited constants
-            mro = inspect.getmro(newcls)            
-            for cls in mro :
-                if isinstance(cls, MetaMayaTypeWrapper) :
-                    for name, attr in cls.__dict__.iteritems() :
-                        if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
-                            if not name in constant :
-                                constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
-            
-            # build the protected list to make some class ifo and the constants read only class attributes
-            # new.__slots__ = ['_data', '_shape', '_ndim', '_size']
-            # type.__setattr__(newcls, '__slots__', slots) 
-            
-            # set class constants as readonly 
-            readonly = newcls.__readonly__
-            if 'stype' not in readonly :
-                readonly['stype'] = None
-            if 'apicls' not in readonly :
-                readonly['apicls'] = None 
-            for c in constant.keys() :
-                readonly[c] = None          
-            type.__setattr__(newcls, '__readonly__', readonly)          
-            # store constants as class attributes
-            for name, attr in constant.iteritems() :
-                type.__setattr__(newcls, name, attr)
-                                           
-        else :
-            raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
-        
-        return newcls 
  
 # the meta class of metaMayaWrapper
-class MetaMayaArrayTypeWrapper(MetaMayaTypeWrapper) :
+class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
     """ A metaclass to wrap Maya array type classes such as MVector, MMatrix """ 
              
     def __new__(mcl, classname, bases, classdict):
@@ -281,8 +176,8 @@ class MVector(Vector) :
     __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ['_shape']
     # class specific info
-    apicls = api.MVector
-    # stype = api.MVector
+    apicls = _api.MVector
+    # stype = _api.MVector
     cnames = ('x', 'y', 'z')
     shape = (3,)
 
@@ -360,7 +255,7 @@ class MVector(Vector) :
     
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
-        ms = api.MScriptUtil()
+        ms = _api.MScriptUtil()
         l = (0,)*self.size
         ms.createFromDouble ( *l )
         p = ms.asDoublePtr ()
@@ -549,7 +444,7 @@ class MVector(Vector) :
             return NotImplemented        
          
     # wrap of API MVector methods    
-    def isEquivalent(self, other, tol=api.MVector_kTol):
+    def isEquivalent(self, other, tol=_api.MVector_kTol):
         """ Returns true if both arguments considered as MVector are equal within the specified tolerance """
         try :
             nself, nother = coerce(self, other)
@@ -559,7 +454,7 @@ class MVector(Vector) :
             return bool(nself.apicls.isEquivalent(nself, nother, tol))
         else :
             return bool(super(MVector, nself).isEquivalent(nother, tol))            
-    def isParallel(self, other, tol=api.MVector_kTol):
+    def isParallel(self, other, tol=_api.MVector_kTol):
         """ Returns true if both arguments considered as MVector are parallel within the specified tolerance """
         try :
             return bool(self.apicls.isParallel(MVector(self), MVector(other), tol))
@@ -612,7 +507,7 @@ class MVector(Vector) :
             post multiplying it by the inverse transpose of the transformation matrix.
             This method will apply the proper transformation to the vector as if it were a normal. """
         if isinstance(other, MMatrix) :
-            return self.__class__._convert(api.MVector.transformAsNormal(MVector(self), MMatrix(other)))
+            return self.__class__._convert(_api.MVector.transformAsNormal(MVector(self), MMatrix(other)))
         else :
             return self.__class__._convert(super(MVector, self).transformAsNormal(other))
         
@@ -620,13 +515,13 @@ class MVector(Vector) :
     def dot(self, other):
         """ dot product of two vectors """
         if isinstance(other, MVector) :
-            return api.MVector.__mul__(MVector(self), MVector(other))
+            return _api.MVector.__mul__(MVector(self), MVector(other))
         else :
             return super(MVector, self).dot(other)       
     def cross(self, other):
         """ cross product, only defined for two 3D vectors """
         if isinstance(other, MVector) :
-            return self.__class__._convert(api.MVector.__xor__(MVector(self), MVector(other)))
+            return self.__class__._convert(_api.MVector.__xor__(MVector(self), MVector(other)))
         else :
             return self.__class__._convert(super(MVector, self).cross(other))              
 
@@ -655,8 +550,8 @@ class MVector(Vector) :
             or the corresponding components of low and high if low and high are sequences of scalars """
         return clamp(self, low, high)
            
-class MPoint(MVector, api.MPoint):
-    apicls = api.MPoint
+class MPoint(MVector, _api.MPoint):
+    apicls = _api.MPoint
     cnames = ('x', 'y', 'z', 'w')
     shape = (4,)
     
@@ -711,7 +606,7 @@ class MPoint(MVector, api.MPoint):
         """ If this point instance is of the form P(x, y, z, W) (ie. is in rational or (for W==1) cartesian form),
             for some scale factor W != 0, then it is reset to be P(W*x, W*y, W*z, W). """
         self.apicls.homogenize(self)
-    def isEquivalent(self, other, tol=api.MPoint_kTol):
+    def isEquivalent(self, other, tol=_api.MPoint_kTol):
         """ Returns true if both arguments considered as MPoint are equal within the specified tolerance """
         try :
             nself, nother = coerce(self, other)
@@ -725,7 +620,7 @@ class MPoint(MVector, api.MPoint):
     # TODO
     def planar(self, *args, **kwargs): 
         """ p.planar(q, r, s (...), tol=tolerance) returns True if all provided points are planar within given tolerance """
-        # tol = kwargs.get('tol', api.MPoint_kTol)
+        # tol = kwargs.get('tol', _api.MPoint_kTol)
         pass
     def center(self, *args): 
         """ p.center(q, r, s (...)) returns the MPoint that is the barycenter of p, q, r, s (...) """
@@ -735,18 +630,18 @@ class MPoint(MVector, api.MPoint):
         pass                
     
 class MColor(MPoint):
-    apicls = api.MColor
+    apicls = _api.MColor
     cnames = ('r', 'g', 'b', 'a')
     shape = (4,)
     
     # constants
-    red = api.MColor(1.0, 0.0, 0.0)
-    green = api.MColor(0.0, 1.0, 0.0)
-    blue = api.MColor(0.0, 0.0, 1.0)
-    white = api.MColor(1.0, 1.0, 1.0)
-    black = api.MColor(0.0, 0.0, 0.0)
-    opaque = api.MColor(0.0, 0.0, 0.0, 1.0)
-    clear = api.MColor(0.0, 0.0, 0.0, 0.0)
+    red = _api.MColor(1.0, 0.0, 0.0)
+    green = _api.MColor(0.0, 1.0, 0.0)
+    blue = _api.MColor(0.0, 0.0, 1.0)
+    white = _api.MColor(1.0, 1.0, 1.0)
+    black = _api.MColor(0.0, 0.0, 0.0)
+    opaque = _api.MColor(0.0, 0.0, 0.0, 1.0)
+    clear = _api.MColor(0.0, 0.0, 0.0, 0.0)
 
     # static methods
     @staticmethod
@@ -809,14 +704,14 @@ class MColor(MPoint):
             modeInt = list(self.__class__.modes()).index(mode)
         except :
             raise KeyError, "%s has no mode %s" % (util.clsname(self), m)
-        # NOTE: do not try to use mode with api.MColor, it seems bugged as of 2008
+        # NOTE: do not try to use mode with _api.MColor, it seems bugged as of 2008
             #import colorsys
             #colorsys.rgb_to_hsv(0.0, 0.0, 1.0)
             ## Result: (0.66666666666666663, 1.0, 1.0) # 
-            #c = api.MColor(api.MColor.kHSV, 0.66666666666666663, 1.0, 1.0)
+            #c = _api.MColor(_api.MColor.kHSV, 0.66666666666666663, 1.0, 1.0)
             #print "# Result: ",c[0], c[1], c[2], c[3]," #"
             ## Result:  1.0 0.666666686535 1.0 1.0  #
-            #c = api.MColor(api.MColor.kHSV, 0.66666666666666663*360, 1.0, 1.0)
+            #c = _api.MColor(_api.MColor.kHSV, 0.66666666666666663*360, 1.0, 1.0)
             #print "# Result: ",c[0], c[1], c[2], c[3]," #"
             ## Result:  1.0 240.0 1.0 1.0  #
             #colorsys.hsv_to_rgb(0.66666666666666663, 1.0, 1.0)
@@ -848,7 +743,7 @@ class MColor(MPoint):
                         c /= quantize
                     self.data = self.apicls(c)
                 else :
-                    # else see if we can init the api class directly (an api.MColor or single alpha value)
+                    # else see if we can init the api class directly (an _api.MColor or single alpha value)
                     self.fromAPI(args[0])
                                                
             else :
@@ -997,8 +892,8 @@ class MColor(MPoint):
 #      |  0    0    1    0 |
 #      |  tx   ty   tz   1 |
 # and m(r, c) should return value of cell at r row and c column :
-# t = api.MTransformationMatrix()
-# t.setTranslation(api.MVector(1, 2, 3), api.MSpace.kWorld)
+# t = _api.MTransformationMatrix()
+# t.setTranslation(_api.MVector(1, 2, 3), _api.MSpace.kWorld)
 # m = t.asMatrix()
 # mm(3,0)
 # 1.0
@@ -1012,10 +907,10 @@ class MMatrix(Matrix):
     """ A 4x4 transformation matrix based on api MMatrix 
         >>> v = self.__class__(1, 2, 3)
         >>> w = self.__class__(x=1, z=2)
-        >>> z = self.__class__(api.Mself.__class__.xAxis, z=1)
+        >>> z = self.__class__(_api.Mself.__class__.xAxis, z=1)
         """    
     __metaclass__ = MetaMayaArrayTypeWrapper
-    apicls = api.MMatrix
+    apicls = _api.MMatrix
     shape = (4, 4)
     cnames = ('a00', 'a01', 'a02', 'a03',
                'a10', 'a11', 'a12', 'a13',
@@ -1031,7 +926,7 @@ class MMatrix(Matrix):
         return self._data
     @property
     def tmatrix(self):
-        return api.MTransformationMatrix(self._data)   
+        return _api.MTransformationMatrix(self._data)   
     @property
     def quaternion(self):
         return self.tranform.rotation()
@@ -1079,7 +974,7 @@ class MMatrix(Matrix):
                         for i in xrange(min(nbargs, len(l))) :
                             l[i] = args[i]
                     self._data = self.__class__()
-                    if api.MScriptUtil.createMatrixFromList ( l, self._data ) :
+                    if _api.MScriptUtil.createMatrixFromList ( l, self._data ) :
                         pass
                     else :
                         msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", self.__class__.cnames, l))
@@ -1098,7 +993,7 @@ class MMatrix(Matrix):
             l = list(self.flat)                    # current        
             for i in xrange(self.size) :
                 l[i] = kwargs.get(self.__class__.cnames[i], l[i])
-            if api.MScriptUtil.createMatrixFromList ( l, self._data ) :
+            if _api.MScriptUtil.createMatrixFromList ( l, self._data ) :
                 pass
             else :
                 msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", self.__class__.cnames, l))
@@ -1113,13 +1008,13 @@ class MMatrix(Matrix):
     def get(self):
         """ Wrap the MMatrix api get method """
         ptr = self.matrix.matrix[4][4]
-        return tuple(tuple(api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))
+        return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))
         
     @property
     def row(self):
         """ Iterator on the MMatrix rows """
         return self.axisiter(0)
-        # return [[api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
+        # return [[_api.MScriptUtil.getDoubleArrayItem(self.matrix[r], c) for c in xrange(self.__class__.shape[1])] for r in xrange(self.__class__.shape[0])]        
     @property
     def column(self):
         """ Iterator on the MMatrix columns """
@@ -1156,7 +1051,7 @@ class MMatrix(Matrix):
             # numpy like m[2,:] format, we return (possibly partial) columns
             if r in range(self.__class__.shape[0]) :
                 ptr = self.matrix[r]
-                return tuple([api.MScriptUtil.getDoubleArrayItem(ptr, j) for j in xrange(self.__class__.shape[1])][c])
+                return tuple([_api.MScriptUtil.getDoubleArrayItem(ptr, j) for j in xrange(self.__class__.shape[1])][c])
             else :
                 raise IndexError, "There are only %s rows in class %s" % (self.__class__.shape[0], self.__class__.__name__)
         else :
@@ -1175,7 +1070,7 @@ class MMatrix(Matrix):
             # set a single element
             if r in range(self.__class__.shape[0]) and c in range(self.__class__.shape[1]) :
                 ptr = self.matrix[r]
-                api.MScriptUtil.setDoubleArray(ptr, c, value)
+                _api.MScriptUtil.setDoubleArray(ptr, c, value)
             else :
                 raise IndexError, "%s has no element of index [%s,%s]" % (self.__class__.__name__, r, c)
         elif util.isScalar(c) :
@@ -1194,7 +1089,7 @@ class MMatrix(Matrix):
                             pass
                 else :
                     raise TypeError, "You can only assign a single scalar value or a sequence/iterable to a %s column" % self.__class__.__name__                                          
-                api.MScriptUtil.createMatrixFromList ( l, self._data )                 
+                _api.MScriptUtil.createMatrixFromList ( l, self._data )                 
             else :
                 raise IndexError, "There are only %s columns in class %s" % (self.__class__.shape[1], self.__class__.__name__)
         elif util.isScalar(r) :
@@ -1203,12 +1098,12 @@ class MMatrix(Matrix):
                 ptr = self.matrix[r]
                 if util.isScalar(value) :
                     for j in range(self.__class__.shape[1])[c] :
-                        api.MScriptUtil.setDoubleArray(ptr, j, value)
+                        _api.MScriptUtil.setDoubleArray(ptr, j, value)
                 elif hasattr(value, '__getitem__') :
                     for v, j in enumerate(range(self.__class__.shape[1])[c]) :
                         # to allow to assign 3 value vectors to rows or columns, 4th cell is left unchanged
                         try :
-                            api.MScriptUtil.setDoubleArray(ptr, j, value[v]) 
+                            _api.MScriptUtil.setDoubleArray(ptr, j, value[v]) 
                         except IndexError :
                             pass
                 else :
@@ -1228,7 +1123,7 @@ class MMatrix(Matrix):
         """ Default MMatrix iterators iterates on rows """
         for r in xrange(self.__class__.shape[0]) :
             ptr = self.matrix[r]
-            yield tuple(api.MScriptUtil.getDoubleArrayItem(ptr, c) for c in xrange(self.__class__.shape[1]))         
+            yield tuple(_api.MScriptUtil.getDoubleArrayItem(ptr, c) for c in xrange(self.__class__.shape[1]))         
     def __contains__(self, value):
         """ True if at least one of the MMatrix components is equal to the argument,
             can test for the presence of a complete row if argument is a row sequence """
@@ -1319,7 +1214,7 @@ class MMatrix(Matrix):
 #        if isinstance(other, MVector) :
 #            return self.__class__(map( lambda x, y: x/y, self, other))
 #        elif util.isScalar(other) :
-#            return self.__class__(self.__class__.api.__div__(self._data,other))
+#            return self.__class__(self.__class__._api.__div__(self._data,other))
 #        raise TypeError, "unsupported operand type(s) for /: '%s' and '%s'" % (util.clsname(self), util.clsname(other))  
 #    def __rdiv__(self, other):
 #        """ u.__rdiv__(v) <==> v/u
@@ -1339,7 +1234,7 @@ class MMatrix(Matrix):
 #        """ u.__eq__(v) <==> u == v """
 #        if isinstance(other, self.__class__) :
 #            try :
-#                if self.__class__(self.__class__.api.__eq__(self._data, self.__class__(other)._data)) :
+#                if self.__class__(self.__class__._api.__eq__(self._data, self.__class__(other)._data)) :
 #                    return True
 #            except :
 #                pass
@@ -1385,7 +1280,7 @@ class MMatrix(Matrix):
         """ Returns the determinant of the upper left 3x3 submatrix of this MMatrix instance,
             it's the same as doing det(m[0:3, 0:3]) """
         return self.matrix.det3x3()       
-    def isEquivalent (self, other, tol = api.MMatrix_kTol) :
+    def isEquivalent (self, other, tol = _api.MMatrix_kTol) :
         """ Returns true if both arguments considered as MMatrix are equal  within the specified tolerance """
         try :
             return bool(self.matrix.isEquivalent(MMatrix(other).matrix, tol))
@@ -1425,7 +1320,7 @@ class MMatrix(Matrix):
    
         
 class MQuaternion(MMatrix):
-    apicls = api.MQuaternion
+    apicls = _api.MQuaternion
     shape = (4,)
     cnames = ('x', 'y', 'z', 'w')      
 
@@ -1434,7 +1329,7 @@ class MQuaternion(MMatrix):
         return self._data.asMatrix()
     @property
     def tmatrix(self):
-        return api.MTransformationMatrix(self.matrix)   
+        return _api.MTransformationMatrix(self.matrix)   
     @property
     def quaternion(self):
         return self._data
@@ -1455,7 +1350,7 @@ class MQuaternion(MMatrix):
         return self.size
     # API get, actually not faster than pulling _data[i] for such a short structure
 #    def get(self):
-#        ms = api.MScriptUtil()
+#        ms = _api.MScriptUtil()
 #        ms.createFromDouble ( 0.0, 0.0, 0.0 )
 #        p = ms.asDoublePtr ()
 #        self._data.get(p)
@@ -1482,7 +1377,7 @@ class MQuaternion(MMatrix):
         self._data = self.apicls()
 
 class MEulerRotation(MQuaternion):
-    apicls = api.MEulerRotation
+    apicls = _api.MEulerRotation
     shape = (4,)   
     cnames = ('x', 'y', 'z', 'o')   
     
@@ -1491,7 +1386,7 @@ class MEulerRotation(MQuaternion):
         return self._data.asMatrix()
     @property
     def tmatrix(self):
-        return api.MTransformationMatrix(self.matrix)   
+        return _api.MTransformationMatrix(self.matrix)   
     @property
     def quaternion(self):
         return self._data.asQuaternion()
@@ -1506,6 +1401,12 @@ class MEulerRotation(MQuaternion):
     def __repr__(self):
         return '%s%s' % (self.__class__.__name__, str(self))  
 
+_factories.ApiTypeRegister.register( 'MVector', MVector )
+_factories.ApiTypeRegister.register( 'MMatrix', MMatrix )
+_factories.ApiTypeRegister.register( 'MPoint', MPoint )
+_factories.ApiTypeRegister.register( 'MColor', MColor )
+_factories.ApiTypeRegister.register( 'MQuaternion', MQuaternion )
+_factories.ApiTypeRegister.register( 'MEulerRotation', MEulerRotation )
 
 def _testMVector() :
     
@@ -1531,13 +1432,13 @@ def _testMVector() :
     # inherits from Vector --> Array
     print isinstance(u, Vector)
     print isinstance(u, Array)
-    # as well as api.MVector
-    print isinstance(u, api.MVector)
+    # as well as _api.MVector
+    print isinstance(u, _api.MVector)
     # accepted directly by API methods
-    M = api.MTransformationMatrix()
-    M.setTranslation ( u, api.MSpace.kWorld )
+    M = _api.MTransformationMatrix()
+    M.setTranslation ( u, _api.MSpace.kWorld )
     # need conversion on the way back though
-    u = MVector(M.getTranslation ( api.MSpace.kWorld ))
+    u = MVector(M.getTranslation ( _api.MSpace.kWorld ))
     print repr(u)
     # MVector([1.0, 2.0, 3.0])
     
@@ -1545,7 +1446,7 @@ def _testMVector() :
     print repr(u)
     u = MVector([1, 2], z=3)
     print repr(u)
-    u = MVector(api.MPoint(1, 2, 3))
+    u = MVector(_api.MPoint(1, 2, 3))
     print u  
     print "u = MVector(Vector(1, 2, 3))"
     u = MVector(Vector(1, 2, 3))
@@ -1564,7 +1465,7 @@ def _testMVector() :
         print "will raise ValueError: could not cast [1, 2, 3, 4] to MVector of size 3, some data would be lost"
     p = MPoint()
     print repr(p)
-    p = MPoint(api.MPoint())
+    p = MPoint(_api.MPoint())
     print repr(p) 
     p = MPoint(1)
     print repr(p)
@@ -1572,7 +1473,7 @@ def _testMVector() :
     print repr(p)           
     p = MPoint(1, 2, 3)
     print repr(p)
-    p = MPoint(api.MPoint(1, 2, 3))
+    p = MPoint(_api.MPoint(1, 2, 3))
     print repr(p) 
     p = MPoint(Vector(1, 2, 3, 4))
     print repr(p)             
@@ -1776,8 +1677,8 @@ def _testMColor() :
 def _testMMatrix() :
 
     print "MMatrix class", dir(MMatrix)
-    t = api.MTransformationMatrix()
-    t.setTranslation(api.MVector(1, 2, 3), api.MSpace.kWorld)
+    t = _api.MTransformationMatrix()
+    t.setTranslation(_api.MVector(1, 2, 3), _api.MSpace.kWorld)
     m = MMatrix(t.asMatrix())
     print "m: %s" % m 
     print "m.row[0]: %s" % m.row[0]

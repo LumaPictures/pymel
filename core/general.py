@@ -19,12 +19,13 @@ except ImportError:
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.factories as _factories
-from pymel.factories import queryflag, editflag, createflag
-from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
+from pymel.factories import queryflag, editflag, createflag, MetaMayaNodeWrapper
+#from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 import system
 from system import namespaceInfo
-from pmtypes.ranges import *
+#from pmtypes.ranges import *
+from pmtypes.wrappedtypes import *
 import pmtypes.path as _path
 from pymel.util.nameparse import *
 
@@ -1382,9 +1383,6 @@ def selected( **kwargs ):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-metaNode = _factories.metaNode
-
-
                                 
 #def spaceLocator(*args, **kwargs):
 #    """
@@ -1834,7 +1832,12 @@ class PyNode(ProxyUnicode):
     future = listFuture
 
 _factories.GenHolder.store(PyNode)
+_factories.PyNodeNamesToPyNodes()['PyNode'] = PyNode
+_factories.ApiTypeRegister.register('MObject', PyNode, inCast=lambda x: PyNode(x).__apimobject__() )
+_factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=lambda x: PyNode(x).__apimdagpath__() )
+_factories.ApiTypeRegister.register('MPlug', PyNode, inCast=lambda x: PyNode(x).__apimplug__() )
                     
+
 class ComponentArray(object):
     def __init__(self, name):
         self._name = name
@@ -2618,7 +2621,7 @@ class NodeAttrRelay(unicode):
 '''
 
 class DependNode( PyNode ):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
@@ -2660,11 +2663,11 @@ class DependNode( PyNode ):
     def __apimfn__(self):
         if self._apimfn:
             return self._apimfn
-        elif self.__apimfnclass__:
+        elif self.apicls:
             obj = self.__apiobject__()
             if obj:
                 try:
-                    self._apimfn = self.__apimfnclass__(obj)
+                    self._apimfn = self.apicls(obj)
                     return self._apimfn
                 except KeyError:
                     pass
@@ -2995,7 +2998,7 @@ class DependNode( PyNode ):
 
 class Entity(DependNode): pass
 class DagNode(Entity):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
             #obj = self._apiobject.object()
@@ -3034,11 +3037,11 @@ class DagNode(Entity):
     def __apimfn__(self):
         if self._apimfn:
             return self._apimfn
-        elif self.__apimfnclass__:
+        elif self.apicls:
             obj = self._apiobject
             if api.isValidMDagPath(obj):
                 try:
-                    self._apimfn = self.__apimfnclass__(obj)
+                    self._apimfn = self.apicls(obj)
                     return self._apimfn
                 except KeyError:
                     pass
@@ -3250,14 +3253,14 @@ class DagNode(Entity):
             cmds.makeLive(self)
 
 class Shape(DagNode):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     def getTransform(self): pass    
 #class Joint(Transform):
 #    pass
 
         
 class Camera(Shape):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
@@ -3318,7 +3321,7 @@ class Camera(Shape):
     
             
 class Transform(DagNode):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
 #    def __getattr__(self, attr):
 #        if attr.startswith('__') and attr.endswith('__'):
 #            return super(PyNode, self).__getattr__(attr)
@@ -3505,13 +3508,13 @@ class Transform(DagNode):
     '''
 
 class Joint(Transform):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     connect = _factories.functionFactory( cmds.connectJoint, rename='connect')
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
 class FluidEmitter(Transform):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
     loadFluid = _factories.functionFactory( cmds.loadFluid, rename='loadFluid')
     resampleFluid = _factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
@@ -3584,7 +3587,7 @@ class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     """
     Cycle through faces and select those that point up in world space
     
@@ -3745,7 +3748,7 @@ class Mesh(SurfaceShape):
                     
 
 class Subdiv(SurfaceShape):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     def getTweakedVerts(self, **kwargs):
         return cmds.querySubdiv( action=1, **kwargs )
         
@@ -3762,7 +3765,7 @@ class Subdiv(SurfaceShape):
         cmds.subdCleanTopology(self)
     
 class Particle(DeformableShape):
-    __metaclass__ = metaNode
+    __metaclass__ = MetaMayaNodeWrapper
     
     class PointArray(ComponentArray):
         def __init__(self, name):

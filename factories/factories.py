@@ -1558,119 +1558,124 @@ class Holder(util.Singleton):
 
 GenHolder = Holder()
 
+class ApiTypeRegister(object):
+    """"
+    Use this class to register the classes and functions used to wrap api methods.
+    
+    there are 4 dictionaries maintained by this class:
+        - inCast : for casting input arguments to a type that the api method expects
+        - outCast: for casting the result of the api method to a type that pymel expects
+        - refInit: for initializing types passed by reference or via pointer
+        - refCast: for casting the pointers to pymel types after they have been passed to the method
+        
+    To register a new type call `ApiTypeRegister.register`.
+    """
+    
+    inCast = {}
+    outCast = {}
+    refInit = {}
+    refCast = {}
+    su = _api.MScriptUtil()
+
+    @staticmethod
+    def _makeApiArraySetter( type, inCast ):
+        def setArray( array ):
+            arrayPtr = type()
+            [ arrayPtr.append( inCast(array[x]) ) for x in array ]
+        setArray.__name__ = 'set_' + type.__name__
+        return setArray
+        
+    @staticmethod
+    def _makeArraySetter( typename, length, setFunc, initFunc ):
+        def setArray( array ):
+            print "set", array
+            if len(array) != length:
+                raise ValueError, 'Input list must contain exactly %s %ss' % ( length, typename )
+            arrayPtr = initFunc()
+            for i, val in enumerate( array ):
+                setFunc( arrayPtr, i, val )
+            print "result", arrayPtr
+            return arrayPtr
+        setArray.__name__ = 'set_' + typename + str(length) + 'Array'
+        return setArray
+
+    @staticmethod
+    def _makeArrayGetter( typename, length, getFunc ):
+        def getArray( array ):
+            print "get", array
+            return tuple([ getFunc(array,i) for i in range(length) ] )
+        getArray.__name__ = 'get_' + typename + str(length) + 'Array'
+        return getArray
+    
+    @classmethod         
+    def register(cls, typename, type, inCast=None, outCast=None):
+
+        #typename = type.__class__.__name__
+        capType = util.capitalize( typename ) 
+
+        # register result casting
+        if outCast:
+            cls.outCast[typename] = outCast
+        else:
+            cls.outCast[typename] = type
+            
+        # register argument casting
+        if inCast:
+            cls.inCast[typename] = inCast
+        else:
+            cls.inCast[typename] = type
+        
+        if typename in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
+            initFunc = getattr( cls.su, 'as' + capType + 'Ptr')
+            getFunc = getattr( cls.su, 'get' + capType )
+            setArrayFunc = getattr( cls.su, 'set' + capType + 'Array')
+            getArrayFunc = getattr( cls.su, 'get' + capType + 'ArrayItem')
+            cls.refInit[typename] = initFunc
+            cls.refCast[typename] = getFunc
+            for i in [2,3,4]:
+                itypename = typename + str(i)
+                cls.refInit[itypename] = initFunc
+                cls.inCast[itypename]  = cls._makeArraySetter( typename, i, setArrayFunc, initFunc )
+                cls.refCast[itypename] = cls._makeArrayGetter( typename, i, getArrayFunc )
+        else:
+            try:
+                # Api types
+                apiType = getattr( _api, typename )
+                cls.refInit[typename] = apiType
+                cls.refCast[typename] = type
+                try:
+                    # Api Array types
+                    arrayTypename = typename + 'Array'
+                    apiArrayType = getattr( _api, arrayTypename )
+                    cls.refInit[arrayTypename] = apiArrayType
+                    cls.inCast[arrayTypename] = cls._makeApiArraySetter( apiArrayType, inCast )
+                    
+                    # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
+                    if apiArrayType == _api.MDagPathArray:
+                        cls.refCast[arrayTypename] = lambda x: [ type( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.outCast[arrayTypename] = lambda x: [ type( apiType(x[i]) ) for i in range( x.length() ) ]
+                    else:
+                        cls.refCast[arrayTypename] = lambda x: [ type( x[i] ) for i in range( x.length() ) ]
+                        cls.outCast[arrayTypename] = lambda x: [ type( x[i] ) for i in range( x.length() ) ]
+                        
+                except AttributeError:
+                    pass
+            except AttributeError:
+                pass
+
+
+ApiTypeRegister.register('float', float)
+ApiTypeRegister.register('double', float)
+ApiTypeRegister.register('bool', bool)
+ApiTypeRegister.register('int', int)
+ApiTypeRegister.register('short', int)
+ApiTypeRegister.register('uint', int)
+#ApiTypeRegister.register('long', int)
+ApiTypeRegister.register('MString', unicode)
+  
 class ApiArgUtil(object):
 
     def __init__(self, apiClassName, methodName, methodInfo ):
-        PYNODE = GenHolder.get()
-        su = _api.MScriptUtil()
-        
-        def setArrayFunction( type, length ):
-            capType = util.capitalize( type ) 
-            initFunc = getattr( su, 'as' + capType + 'Ptr')
-            setFunc = getattr( su, 'set' + capType + 'Array')
-            def setArray( array ):
-                #print array
-                if len(array) != length:
-                    raise ValueError, 'Input list must contain exactly %s %ss' % ( length, type )
-                arrayPtr = initFunc()
-                for i, val in enumerate( array ):
-                    setFunc( arrayPtr, i, val )
-                #print arrayPtr
-                return arrayPtr
-            setArray.__name__ = 'set' + capType + 'Array'
-            return setArray
-
-        self.inCast = { 'double' : float,
-                        'float'  : float,
-                        'bool'   : bool,
-                        'int'    : int,
-                        'short'  : int,
-                        'MString': unicode,
-                        
-                        'double3': setArrayFunction( 'double', 3),
-                        'float2' : setArrayFunction( 'float', 2),
-                        
-                        'MVector': _api.wrappedtypes.MVector,
-                        'MMatrix': _api.wrappedtypes.MMatrix,
-                        'MPoint' : _api.wrappedtypes.MPoint,
-                        'MColor' : _api.wrappedtypes.MColor,
-                        
-                        'MObject': lambda x: PYNODE(x).__apimobject__(),
-                        'MDagPath': lambda x: PYNODE(x).__apimdagpath__(),
-                        'MPlug'  : lambda x: PYNODE(x).__apimplug__()
-                    }
-    
-        self.returnCast = {  'double' : float,
-                        'float'  : float,
-                        'bool'   : bool,
-                        'int'    : int,
-                        'short'  : int,
-                        'MString': unicode,
-                        
-                        'MVector': _api.wrappedtypes.MVector,
-                        'MMatrix': _api.wrappedtypes.MMatrix,
-                        'MPoint' : _api.wrappedtypes.MPoint,
-                        'MColor' : _api.wrappedtypes.MColor,
-                        
-                        'MObject': PYNODE,
-                        'MDagPath': PYNODE,
-                        'MPlug'  : PYNODE,
-                    }
-        
-        self.refInit = {
-                        'int'      : lambda: su.asIntPtr(),
-                        'short'    : lambda: su.asShortPtr(),
-                        'float'    : lambda: su.asFloatPtr(),
-                        'double'   : lambda: su.asDoublePtr(),
-                        'uint'     : lambda: su.asUintPtr(),
-                        'bool'     : lambda: su.asBoolPtr(),
-                        
-                        'int2'      : lambda: su.asIntPtr(),
-                        'short2'    : lambda: su.asShortPtr(),
-                        'float2'    : lambda: su.asFloatPtr(),
-                        'double2'   : lambda: su.asDoublePtr(),
-                        'uint2'     : lambda: su.asUintPtr(),
-                        'bool2'     : lambda: su.asBoolPtr(),
-                        
-                        'int3'      : lambda: su.asIntPtr(),
-                        'short3'    : lambda: su.asShortPtr(),
-                        'float3'    : lambda: su.asFloatPtr(),
-                        'double3'   : lambda: su.asDoublePtr(),
-                        'uint3'     : lambda: su.asUintPtr(),
-                        'bool3'     : lambda: su.asBoolPtr(),
-                        
-                        'MVector'   : _api.MVector,
-                        'MMatrix'   : _api.MMatrix,
-                        'MPoint'   : _api.MPoint,
-                        
-                        'MObject'   : _api.MObject,
-                        'MDagPathArray' : _api.MDagPathArray,
-                        
-                    }
-        
-        self.refCast = {     
-                        'int'      : lambda x: su.getInt(x),
-                        'short'    : lambda x: su.getShort(x),
-                        'float'    : lambda x: su.getFloat(x),
-                        'double'   : lambda x: su.getDouble(x),
-                        'uint'     : lambda x: su.getUint(x),
-                        'bool'     : lambda x: su.getBool(x),
-                        
-                        'int3'      : lambda x: tuple([ su.getIntArrayItem(x,0),   su.getIntArrayItem(x,1),   su.getIntArrayItem(x,2) ]),
-                        'short3'    : lambda x: tuple([ su.getShortArrayItem(x,0), su.getShortArrayItem(x,1), su.getShortArrayItem(x,2) ]),
-                        'float3'    : lambda x: tuple([ su.getFloatArrayItem(x,0), su.getFloatArrayItem(x,1), su.getFloatArrayItem(x,2) ]),
-                        'double3'   : lambda x: tuple([ su.getDoubleArrayItem(x,0),su.getDoubleArrayItem(x,1),su.getDoubleArrayItem(x,2) ]),
-                        'uint3'     : lambda x: tuple([ su.getUintArrayItem(x,0),  su.getUintArrayItem(x,1),  su.getUintArrayItem(x,2) ]),
-                        'bool3'     : lambda x: tuple([ su.getBoolArrayItem(x,0),  su.getBoolArrayItem(x,1),  su.getBoolArrayItem(x,2) ]),
-                        
-                        'MVector'   : _api.wrappedtypes.MVector,
-                        'MMatrix'   : _api.wrappedtypes.MMatrix,
-                        'MPoint'    : _api.wrappedtypes.MPoint,
-                        
-                        'MObject'   : PYNODE,
-                        'MDagPathArray' : lambda x: [ PYNODE( MDagPath(x[i]) ) for i in range( x.length() ) ],
-                    }
-        
         self.apiClassName = apiClassName
         self.methodName = methodName
         self.methodInfo = methodInfo
@@ -1687,15 +1692,15 @@ class ApiArgUtil(object):
                 if isinstance( returnType, tuple ):
                     assert _api.apiClassInfo.has_key(returnType[0]) and _api.apiClassInfo[returnType[0]]['enums'].has_key(returnType[1]),'%s.%s(): invalid return enum: %s' % (self.apiClassName, self.methodName, returnType)
                 else:
-                    assert returnType in self.returnCast, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
+                    assert returnType in ApiTypeRegister.outCast, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
             
             for argname, argtype, default, direction in self.methodInfo['args'] :
                 if isinstance( argtype, tuple ):
                     assert _api.apiClassInfo.has_key(argtype[0]) and _api.apiClassInfo[argtype[0]]['enums'].has_key(argtype[1]), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype)
                 elif direction == 'in':
-                    assert argtype in self.inCast, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                    assert argtype in ApiTypeRegister.inCast, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
                 elif direction == 'out':
-                    assert argtype in self.refInit and argtype in self.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                    assert argtype in ApiTypeRegister.refInit and argtype in ApiTypeRegister.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
                     #try:
                     #    assert argtype.type() in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
                     #except AttributeError:
@@ -1721,23 +1726,23 @@ class ApiArgUtil(object):
             return self.castEnum(argtype, input)
 
         else:
-            return self.inCast[argtype]( input )        
+            return ApiTypeRegister.inCast[argtype]( input )        
             
     def castResult(self, result):
         returnType = self.methodInfo['returnType']
         if returnType:
             # enums
             if isinstance( returnType, tuple ):
-                return self.castEnum(returnType, result)
+                return ApiTypeRegister.castEnum(returnType, result)
     
             else:
-                return self.returnCast[returnType]( result )  
+                return ApiTypeRegister.outCast[returnType]( result )  
     
     def initializeReference(self, argtype): 
-        return self.refInit[argtype]()
+        return ApiTypeRegister.refInit[argtype]()
      
     def castReferenceResult(self,argtype,outArg):
-        return self.refCast[ argtype ]( outArg )
+        return ApiTypeRegister.refCast[ argtype ]( outArg )
     
     def getDefaults(self):
         defaults = []
@@ -1793,10 +1798,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
     #general = GenHolder.get()
     #_api = general.api
     #PYNODE = general.PyNode
-    PYNODE = GenHolder.get()
 
-    assert PYNODE is not None, 'Use registerPyNode prior to calling this function'
-    
     apiClassName = apiClass.__name__
     try:
         # there may be more than one method signatures per method name
@@ -1882,7 +1884,153 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
             
             
             return f
+
+
+class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
+    """ A metaclass to wrap Maya api types, with support for class constants """ 
+
+    class ClassConstant(object):
+        """ A data descriptor for user defined constants on the class """
+        def __init__(self, value):
+            self.value = value
+        def __get__(self, instance, owner):
+            # purposedly authorize notation MColor.blue but not MColor().blue,
+            # the constants are a class property and are not defined on instances
+            if instance is None :
+                return owner(self.value)
+            else :
+                raise AttributeError, "Class constants on %s are only defined on the class" % (owner.__name__)
+        def __set__(self, instance, value):
+            raise AttributeError, "class constant cannot be set"
+        def __delete__(self, instance):
+            raise AttributeError, "class constant cannot be deleted"
+          
+    def __new__(mcl, classname, bases, classdict):
+        """ Create a new class of metaClassConstants type """
         
+        print "MetaMayaTypeWrapper", classname
+        
+        # define __slots__ if not defined
+        if '__slots__' not in classdict :
+            classdict['__slots__'] = ()
+        if 'apicls' in classdict and not classdict['apicls'] in bases :
+            # if not in bases, add to it
+            bases = bases + (classdict['apicls'],)
+            
+        # create the new class   
+        newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+            
+        # if hasattr(newcls, 'stype') :
+        if hasattr(newcls, 'apicls') :
+            # type (api type) used for the storage of data
+            apicls  = newcls.apicls
+            
+            print "="*60, apicls, "="*60
+            try:
+                for methodName in _api.apiClassInfo[apicls.__name__]['methods'].keys():                  
+                    #TODO : check pymelName
+                    if methodName not in classdict:
+                        method = wrapApiMethod( apicls, methodName )
+                        if method:
+                            #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                            classdict[method.__name__] = method
+                            
+            except KeyError:
+                print "No api information for api class %s for node %s" % ( apicls.__name__, nodeType )
+
+            # build the data property
+            #            def setdata(self, data):
+            #                self._data = self.__class__.apicls(data)
+            #            def getdata(self):
+            #                return self._data
+            #            p = property(getdata, setdata, None, "One %s" % apicls.__name__)
+            #            type.__setattr__(newcls, 'data', p) 
+            
+            #    def _getdata(self):
+            #        return list(self.get())
+            #    def _setdata(self, data):
+            #        mat = _api.MMatrix()
+            #        _api.MScriptUtil.createMatrixFromList ( list(data), mat)
+            #        self = self.__class__(mat) 
+            #    def _deldata(self):
+            #        del self     
+            #    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data")              
+                                     
+            # build some constants on the class            
+            constant = {}
+            # constants in class definition will be converted from api class to created class
+            for name, attr in newcls.__dict__.iteritems() :
+                # to add the wrapped api class constants as attributes on the wrapping class,
+                # convert them to own class         
+                if isinstance(attr, apicls) :
+                    if name not in constant :
+                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
+            # we'll need the api clas dict to automate some of the wrapping
+            # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
+            apiDict = dict(inspect.getmembers(apicls))            
+            # defining class properties on the created class                 
+            for name, attr in apiDict.iteritems() :
+                # to add the wrapped api class constants as attributes on the wrapping class,
+                # convert them to own class         
+                if isinstance(attr, apicls) :
+                    if name not in constant :
+                        constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
+            # update the constant dict with herited constants
+            mro = inspect.getmro(newcls)            
+            for cls in mro :
+                if isinstance(cls, MetaMayaTypeWrapper) :
+                    for name, attr in cls.__dict__.iteritems() :
+                        if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
+                            if not name in constant :
+                                constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
+            
+            # build the protected list to make some class ifo and the constants read only class attributes
+            # new.__slots__ = ['_data', '_shape', '_ndim', '_size']
+            # type.__setattr__(newcls, '__slots__', slots) 
+            
+            # set class constants as readonly 
+            readonly = newcls.__readonly__
+            if 'stype' not in readonly :
+                readonly['stype'] = None
+            if 'apicls' not in readonly :
+                readonly['apicls'] = None 
+            for c in constant.keys() :
+                readonly[c] = None          
+            type.__setattr__(newcls, '__readonly__', readonly)          
+            # store constants as class attributes
+            for name, attr in constant.iteritems() :
+                type.__setattr__(newcls, name, attr)
+                                           
+        #else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
+        
+        return newcls 
+    
+class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
+    """
+    A metaclass for creating classes based on node type.  Methods will be added to the new classes 
+    based on info parsed from the docs on their command counterparts.
+    """
+
+    def __new__(cls, classname, bases, classdict):
+        print "MetaMayaNodeWrapper", classname
+        #general = GenHolder.get()
+        #_api = general.api
+    
+        nodeType = util.uncapitalize(classname)
+        _api.addMayaType( nodeType )
+  
+
+        #-------------------------
+        #   API Methods
+        #-------------------------
+        apiClass = _api.toApiFunctionSet( nodeType )
+        #if nodeType == 'transform': print 'TRANSFORM', apiClass
+        if apiClass:
+            classdict['apicls'] = apiClass
+        
+        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
+
+
 class metaNode(type) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
