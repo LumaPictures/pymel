@@ -53,8 +53,39 @@ class ApiDocParser(HTMLParser):
         #        print methodOption
         
         # convert from defaultdict
+        
+        pymelEnums = {}     
+        # remove common prefixes. convert from:
+        # ['kTangentGlobal', 'kTangentFixed', 'kTangentLinear', 'kTangentFlat', 'kTangentSmooth', 'kTangentStep', 'kTangentSlow', 'kTangentFast', 'kTangentClamped', 'kTangentPlateau', 'kTangentStepNext']
+        # to:
+        # ['Global', 'Fixed', 'Linear', 'Flat', 'Smooth', 'Step', 'Slow', 'Fast', 'Clamped', 'Plateau', 'StepNext']
+ 
+        for enumName, enumList in self.enums.items():
+            splitEnums = [ [ y for y in re.split( '([A-Z][a-z0-9]+)', x ) if y ] for x in enumList ]
+            splitEnumsCopy = splitEnums[:]
+            for partList in zip( *splitEnumsCopy ):
+                if  tuple([partList[0]]*len(partList)) == partList:
+                    [ x.pop(0) for x in splitEnums ]
+            joinedEnums = [ util.uncapitalize(''.join(x)) for x in splitEnums]
+            print joinedEnums
+            pymelEnums[enumName] = joinedEnums
+
+        # add the "pymelName" : 
+        # api retrieval names are often named something like fooBar, while pymel retreival methods are getFooBar.
+        allFnMembers = self.methods.keys()
+        for member in allFnMembers:
+            if len(member) > 4 and member.startswith('set') and member[3].isupper():
+                # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+                # 'setSomething'  -->  'something'
+                origGetMethod = member[3].lower() + member[4:]
+                if origGetMethod in allFnMembers:
+                    newGetMethod = 'get' + member[3:]
+                    for info in self.methods[origGetMethod]:
+                        info['pymelName'] = newGetMethod 
+                        
         return { 'methods' : dict(self.methods), 
-                 'enums' : dict(self.enums) }
+                 'enums' : dict(self.enums),
+                 'pymelEnums' : pymelEnums }
               
     def __init__(self, functionSet, version='2009', verbose=False ):
         self.cmdList = []
@@ -80,7 +111,7 @@ class ApiDocParser(HTMLParser):
         
     def handle_data(self, data):
         data = data.lstrip().rstrip()
-        data = data.replace( '&amp;', '' )
+        #data = data.replace( '&amp;', '&' )
         
         if data in [ 'Protected Member Functions', 
                       'Member Enumeration Documentation', 
@@ -112,6 +143,7 @@ class ApiDocParser(HTMLParser):
                 pass
             
             elif self.grouping == 'Member Function Documentation':
+                #print data
                 #print self.currentMethod, "adding data", data
                 if data.startswith('()'):
                     buf = data.split()
@@ -124,8 +156,10 @@ class ApiDocParser(HTMLParser):
             
         elif self.grouping == 'Public Types':
             #print data
+            # the enum name
             if re.match( '[A-Z]+[a-zA-Z0-9]*', data ):
                 self.currentEnum = data
+            # enum entry
             elif re.match( 'k[a-zA-Z]+[a-zA-Z0-9]*', data ):
                 if self.currentEnum:
                     self.enums[self.currentEnum].append( data )
@@ -182,6 +216,7 @@ class ApiDocParser(HTMLParser):
                 # Return Type
                 #-----------------
                 if len(buf)>1:
+                    #if buf[0] == self.functionSet: print self.currentMethod, "returnBuf", buf
                     # unsigned int
                     if buf[0] in ['const', 'unsigned']:
                         buf.pop(0)
@@ -347,10 +382,10 @@ class ApiDocParser(HTMLParser):
             self.returnType = []
             
         try:     
-            clsname, methodname, tempargs = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
+            clsname, methodname, op, tempargs  = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+\s*([=!*/\-+\[\]])*)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
-            pass
-            #print "skipping comment", comment
+            #pass
+            print "skipping comment", comment
         else:
             #if methodname == self.functionSet:
             #    return
@@ -361,6 +396,30 @@ class ApiDocParser(HTMLParser):
                 self.currentMethod = None
                 return
             
+            if op: #methodname.startswith('operator'):
+                #op = methodname[8:]
+                #print op
+                if op == '=':
+                    self.currentMethod = None
+                else:
+                    
+                    self.currentMethod = { 
+                        '*=' : '__rmult__',
+                        '*'  : '__mul__',
+                        '+=' : '__radd__',
+                        '+'  : '__add__',
+                        '-=' : '__rsub__',
+                        '-'  : '__sub__',
+                        '/=' : '__rdiv__',
+                        '/'  : '__div__',
+                        '==' : '__eq__',
+                        '!=' : '__neq__',
+                        '[]' : '__getitem__'}.get( op, None )
+#                    if pymelName:
+#                        for info in self.methods[self.currentMethod]:
+#                            info['pymelName'] = pymelName 
+#                    else:
+#                        print "could not determine pymelName for operator %s" % op
             self.currentMethod = methodname
             
 def getMFnInfo( functionSet ):
@@ -369,17 +428,7 @@ def getMFnInfo( functionSet ):
         classInfo = parser.parse()
     except IOError: pass  
     else:
-        allMethodInfo = classInfo['methods']
-        allFnMembers = allMethodInfo.keys()
-        for member in allFnMembers:
-            if len(member) > 4 and member.startswith('set') and member[3].isupper():
-                # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
-                # 'setSomething'  -->  'something'
-                origGetMethod = member[3].lower() + member[4:]
-                if origGetMethod in allFnMembers:
-                    newGetMethod = 'get' + member[3:]
-                    for info in allMethodInfo[origGetMethod]:
-                        info['pymelName'] = newGetMethod
+
         
 #        for methodName, methodInfoList in classInfo['methods'].items():
 #              for i, methodInfo in enumerate( methodInfoList ):
