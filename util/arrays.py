@@ -4,8 +4,9 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 
 # NOTE: modified and added some methods that are closer to how Numpy works, as some people pointed out
 # they didn't want non-Python dependencies.
-# For instance implemented partially the reat multi index slicing, get / setitem and item indexing for iterators,
-# and tried to make the method names match so that it will be easier to include Numpy instead if desired.
+# For instance implemented partially the neat multi index slicing, __getitem__ and __setitem__ as well
+# as and item indexing for iterators,
+# Tried to make the method names match so that it will be easier to include Numpy instead if desired.
 # See http://www.numpy.org/
 
 # TODO : try a numpy import and fallback to the included class if not successful ?
@@ -128,7 +129,7 @@ for mfn in mathutilsfn :
     newfn = _patchfn(basefn)
     _thisModule.__setattr__(fname, newfn)   
   
-# some functions operating on Arrays or derived classes
+# some other math functions operating on Arrays or derived classes
 
 def sum(a, start=0, **kwargs):
     """ sum(a[, start[, axis=None]]) --> numeric or Array
@@ -260,25 +261,30 @@ def max(*args, **kwargs):
     else :
         return a 
 
+# Array specific functions that also exist as methods on the Array classes
+
 def sqlength(a, axis=None):
     """ sqlength(a, axis) --> numeric or Array
         Returns square length of a, a*a or the sum of x*x for x in a if a is an iterable of numeric values.
         If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
-    if isinstance(a, Array) :
+    a = Vector._convert(a)
+    if isinstance(a, Vector) :
+        # axis not used but this catches invalid axis errors
+        # only valid axis for Vector is (0,)
+        if axis is not None :
+            try :
+                axis = a._getaxis(axis, fill=True)
+            except :
+                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+        return a.sqlength()
+    elif isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
-        it = a.axisiter(*axis)
-        subshape = it.itemshape
-        if subshape == () :
-            return reduce(operator.add, map(lambda x:x*x, a.flat)) 
-        else :
-            return map(sqlength, a.axisiter(*axis))      
-    elif hasattr(a, '__iter__') :
-        return reduce(operator.add, map(lambda x:x*x, a))   
+        return a.sqlength(*axis)
     else :
-        return a*a
+        raise NotImplemented, "sqlength not implemented for %s" % (util.clsname(a))     
 
 def length(a, axis=None):
-    """ sqlength(a, axis) --> numeric or Array
+    """ length(a, axis) --> numeric or Array
         Returns length of a, sqrt(a*a) or the square root of the sum of x*x for x in a if a is an iterable of numeric values.
         If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
     return sqrt(sqlength(a, axis))
@@ -286,42 +292,40 @@ def length(a, axis=None):
 def normal(a, axis=None): 
     """ normal(a, axis) --> Array
         Return a normalized copy of self: self/length(self, axis) """
-    a = _toCompOrArrayInstance(a)    
-    return a / length(a, axis)
+    a = Vector._convert(a)
+    if isinstance(a, Vector) :
+        # axis not used but this catches invalid axis errors
+        # only valid axis for Vector is (0,)
+        if axis is not None :
+            try :
+                axis = a._getaxis(axis, fill=True)
+            except :
+                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+        return a.normal()
+    elif isinstance(a, Array) :
+        axis = a._getaxis(axis, fill=True)
+        return a.normal(*axis)
+    else :
+        raise NotImplemented, "normal not implemented for %s" % (util.clsname(a))            
     
 def dist(a, b, axis=None):
     """ dist(a, b, axis) --> float or Array
          Returns the distance between a and b, the length of b-a """
-    a = _toCompOrArrayInstance(a)
-    b = _toCompOrArrayInstance(b)
-    return length(b-a, axis)
-   
-def difmap(fn, a, b):
-    """ maps a function on two iterable classes of possibly different sizes,
-        mapping on smallest size then filling to largest size with unmodified remnant of largest list.
-        Will cast the result to the largest class type or to the a class in case of equal size.
-        Classes must support iteration and __getslice__ """    
-    l1 = len(a)
-    l2 = len(b)
-    if l1<l2 :
-        return b.__class__(map(fn, a, b[:l1])+b[l1:l2])
-    elif l1>l2 :
-        return a.__class__(map(fn, a[:l2], b)+a[l2:l1])
+    a = Vector._convert(a)
+    if isinstance(a, Vector) :
+        # axis not used but this catches invalid axis errors
+        # only valid axis for Vector is (0,)
+        if axis is not None :
+            try :
+                axis = a._getaxis(axis, fill=True)
+            except :
+                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+        return a.dist()
+    elif isinstance(a, Array) :
+        axis = a._getaxis(axis, fill=True)
+        return a.dist(*axis)
     else :
-        return a.__class__(map(fn, a, b))   
-                
-def amap(fn, *args) :
-    """ A map like function that maps fn element-wise on every argument Arrays """  
-    if args :
-        args = [_toCompOrArrayInstance(a) for a in args]
-        shapes = [_shapeInfo(a) for a in args]
-        shapes.sort(cmp, lambda x:x[2])
-        maxshape = shapes[-1][0]
-        iters = [Array.filled(a, maxshape).flat for a in args]
-        return Array(map(fn, *iters), maxshape)
-    else :
-        return fn()
-
+        raise NotImplemented, "dist not implemented for %s" % (util.clsname(a))             
 
 # iterator classes on a specific Array axis, supporting __getitem__ and __setitem__
 # in a numpy like way
@@ -464,21 +468,149 @@ class ArrayIter(object):
     
 # A generic multi dimensional Array class
 # NOTE : Numpy Array class could be used instead, just implemented the bare minimum inspired from it
-class Array(object):
-    """ A generic n-dimensional array class using nested lists for storage """
+class Array(list):
+    """ A generic n-dimensional array class using nested lists for storage.
+    
+        Arrays can be built from numeric values, iterables, nested lists or other Array instances
+    
+        >>> A = Array()
+        >>> A
+        Array([])
+        >>> A = Array(2)
+        >>> A
+        Array([2])
+        >>> A = Array([[1, 2], [3, 4]])
+        >>> print A.formated()
+        [[1, 2],
+         [3, 4]]
+        >>> A = Array([1, 2], [3, 4])
+        >>> print A.formated()
+        [[1, 2],
+         [3, 4]]
+        >>> A = Array([[1, 2]])
+        >>> print A.formated()
+        [[1, 2]]
+        >>> A = Array([1], [2], [3])
+        >>> print A.formated()
+        [[1],
+         [2],
+         [3]]
+        >>> A = Array([[[1], [2], [3]]])
+        >>> print A.formated()
+        [[[1],
+          [2],
+          [3]]]
+            
+        You can query some Array characteristics with the properties shape, ndim (number of dimensions) and size,
+        the total number of numeric components
+        
+        >>> A = Array(range(1, 10), shape=(3, 3))
+        >>> print A.formated()
+        [[1, 2, 3],
+         [4, 5, 6],
+         [7, 8, 9]]
+        >>> A.shape
+        (3, 3)
+        >>> A.ndim
+        2
+        >>> A.size
+        9
+        
+        Arrays are stored as nested lists and derive from the 'list' class.
+        >>> list(A)
+        [Array([1, 2, 3]), Array([4, 5, 6]), Array([7, 8, 9])]
+            
+        You can pass optional shape information at creation with the keyword arguments
+        shape, ndim and size. The provided data will be expanded to fit the desirable shape,
+        either repeating it if it's a valid sub-array of the requested shape, or padding it with
+        the Array default value (0 unless defined otherwise in an Array sub-class).
+        
+        Value will be repeated if it is a valid sub-array of the Array requested
+        
+        >>> A = Array(1, shape=(2, 2))
+        >>> print A.formated()
+        [[1, 1],
+         [1, 1]]
+         
+        It will be padded otherwise 
+         
+        >>> A = Array(1, 2, shape=(4,))
+        >>> print A.formated()
+        [1, 2, 0, 0]
+        
+        Or a combination of both, first pad it to a valid sub-array then repeat it
+        
+        >>> A = Array(1, 2, shape=(4, 3))
+        >>> print A.formated()
+        [[1, 2, 0],
+         [1, 2, 0],
+         [1, 2, 0],
+         [1, 2, 0]]
+
+        To avoid repetition, you can use a nested list of the desired number of dimensions
+
+        >>> A = Array([1,2,3], shape=(2, 3))
+        >>> print A.formated()
+        [[1, 2, 3],
+         [1, 2, 3]]
+        >>> A = Array([[1,2,3]], shape=(2, 3))
+        >>> print A.formated()
+        [[1, 2, 3],
+         [0, 0, 0]]
+         
+        The ndim and size keywords will be used to fill in missing shape information 
+
+        >>> A = Array(range(1, 10), shape=(3, -1), size=9)
+        >>> print A.formated()
+        [[1, 2, 3],
+         [4, 5, 6],
+         [7, 8, 9]]
+        >>> A = Array([1, 2, 3, 4], ndim=2, size=16)
+        >>> print A.formated()
+        [[1, 2, 3, 4],
+         [1, 2, 3, 4],
+         [1, 2, 3, 4],
+         [1, 2, 3, 4]]
+        
+        If sub-array and requested array have same number of dimensions, padding with row / columns
+        will be used (useful for the Matrix sub-class or Array) 
+        
+        >>> A = Array(range(1, 10), shape=(3, 3))
+        >>> print A.formated()
+        [[1, 2, 3],
+         [4, 5, 6],
+         [7, 8, 9]]
+        >>> B = Array(A, shape=(4, 4))
+        >>> print B.formated()
+        [[1, 2, 3, 0],
+         [4, 5, 6, 0],
+         [7, 8, 9, 0],
+         [0, 0, 0, 0]]
+            
+        Initialization will not allow to truncate data, if you provide more arguments than the
+        requested array shape can fit, it will raise an exception.
+        Use an explicit tosize / resize or item indexing if you want to extract a sub-array
+  
+        >>> A = Array([1, 2, 3, 4, 5], shape=(2, 2))
+        Traceback (most recent call last):
+            ...
+        ValueError: cannot initialize a Array of shape (2, 2) from [1, 2, 3, 4, 5], some information would be lost, use an explicit resize or trim
+     """
+     
     __metaclass__ = metaReadOnlyAttr
     __slots__ = ['_data', '_shape', '_ndim', '_size']
-    __readonly__ = ('stype', 'data', 'shape', 'ndim', 'size')
+    __readonly__ = ('apicls', 'data', 'shape', 'ndim', 'size')
     
-    stype = list
+    # apicls = list
     # cache shape and size to save time
     def _cacheshape(self):
         shape = []
-        sub = self.data
+        # sub = self.data
+        sub = self
         while sub is not None :
             try :
                 shape.append(len(sub))
-                sub = sub[0]
+                sub = super(Array, Array).__getitem__(sub, 0)
             except :
                 sub = None
         self._shape = tuple(shape) 
@@ -493,18 +625,24 @@ class Array(object):
     shape = property(_getshape, _setshape, None, "Shape of the Array (number of dimensions and number of components in each dimension")    
     ndim = property(lambda x : x._ndim, None, None, "Number of dimensions of the Array")
     size = property(lambda x : x._size, None, None, "Total size of the Array (number of individual components)")
-    def _getdata(self):
-        return self._data
-    def _setdata(self, data):
-        if isinstance(data, self.__class__.stype) :
-            self._data = data
-        else :
-            self._data = self.stype(data)
-        self._cacheshape() 
-    def _deldata(self):
-        del self._data[:]
-        self._cacheshape()     
-    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
+    
+    def assign(self, value):
+        super(Array, self).__init__(value)
+        self._cacheshape()
+    def get(self):
+        return super(Array, self).__getitem__(slice(None))
+#    def _getdata(self):
+#        return self._data
+#    def _setdata(self, data):
+#        if isinstance(data, self.__class__.apicls) :
+#            self._data = data
+#        else :
+#            self._data = self.apicls(data)
+#        self._cacheshape() 
+#    def _deldata(self):
+#        del self._data[:]
+#        self._cacheshape()     
+#    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
     
     def isIterable(self):
         """ True if array is iterable (has a dimension of more than 0) """
@@ -513,20 +651,18 @@ class Array(object):
     @classmethod
     def _shapecheck(cls, shape):
         """ A check for fixed ndim / shape classes """
-        if shape is not None :
-            try :
-                shape = cls._expandshape(shape)
-                if -1 in shape :
-                    return False
-            except :
-                return False
-            
-        return True     
-        
+        try :
+            shape, ndim, size = cls._defaultshape(shape, None, None)
+            return True
+        except :
+            return False             
+
     @classmethod
-    def _expandshape(cls, shape=None, size=None):
-        """ Expands shape that contains at most one undefined number of components for one dimension (-1) using known size """ 
-        
+    def _defaultshape(cls, shape=None, ndim=None, size=None):
+        """ Checks provided shape and size vs class shape, dim and size,
+            returns provided shape, dim and size if valid or
+            class's default shape, dim, size tuple if they exist and none are provided """
+            
         # check if class has fixed shape or dimensions
         cls_shape = cls_ndim = cls_size = None   
         try :
@@ -543,80 +679,131 @@ class Array(object):
             except :
                 pass 
                                 
-        if shape is None :
-            if cls_shape is not None :
-                newshape = list(cls_shape)
-            elif cls_ndim is not None :
-                newshape = [-1]*cls_ndim
-            else :
-                newshape = []
-        else :
+        if shape is not None :
             if not hasattr(shape, '__iter__') :
-                newshape = [shape]
+                newshape = (shape,)
             else :
-                newshape = list(shape)               
-        if size is None :
-            if cls_size is not None :
-                size = cls_size        
-        newdim = len(newshape)
-        
+                newshape = tuple(shape)
+        else :
+            if cls_shape is not None :
+                newshape = cls_shape
+            elif cls_ndim is not None :
+                newshape = (-1,)*cls_ndim
+            else :
+                newshape = ()
+        shapesize = shapedim = None
+        if newshape :
+            shapedim = len(newshape)
+            if newshape and not list(newshape).count(-1) :
+                shapesize = reduce(operator.mul, newshape, 1)
+            
+        if ndim is not None :
+            newndim = ndim
+        else :
+            newndim = cls_ndim
+                
+        if newndim is not None :
+            if not shapedim :
+                newshape = newshape + (-1,)*newndim
+            elif shapedim < newndim :
+                newshape = newshape + (-1,)*(newndim-shapedim)
+            shapedim = len(newshape)
+        else :
+            newndim = shapedim
+                                   
+        if size is not None :
+            newsize = size
+        else :
+            if shapesize is not None :
+                newsize = shapesize
+            else :
+                newsize = cls_size     
+            
         # check for conformity with class constants
-        if cls_size is not None and size != cls_size :
+        if cls_size is not None and newsize != cls_size :
             raise TypeError, "class %s has a fixed size %s and it cannot be changed" % (cls.__name__, cls_size)              
-        if cls_ndim is not None and newdim != cls_ndim :
+        if cls_ndim is not None and newndim != cls_ndim :
             raise TypeError, "class %s has a fixed number of dimensions %s and it cannot be changed" % (cls.__name__, cls_ndim)       
 #            if newdim < cls_ndim :
 #                newshape = tuple([1]*(cls_ndim-newdim) + newshape)
 #                newdim = cls_ndim
 #            else :
 #                raise TypeError, "class %s has a fixed number of dimensions %s and it cannot be changed" % (cls.__name__, cls_ndim)
-        if cls_shape is not None and tuple(newshape) != cls_shape :
-            raise TypeError, "class %s has a fixed shape %s and it cannot be changed" % (cls.__name__, cls_shape)           
+        if cls_shape is not None and newshape != cls_shape :
+            raise TypeError, "class %s has a fixed shape %s and it cannot be changed" % (cls.__name__, cls_shape)  
+
+        # check for coherence
+        if newndim != shapedim :
+            raise ValueError, "provided number of dimensions %s is incompatible with shape %s" % (newndim, newshape)        
+        if shapesize is not None and newsize != shapesize :
+            raise ValueError, "provided size %s is incompatible with shape %s" % (newsize, newshape)
+        
+        return newshape, newndim, newsize
+                
+    @classmethod
+    def _expandshape(cls, shape=None, ndim=None, size=None):
+        """ Expands shape that contains at most one undefined number of components for one dimension (-1) using known size """ 
+        
+        # check shape vs class attributes   
+        shape, ndim, size = cls._defaultshape(shape, ndim, size)         
     
         # expands unknown dimension sizes (-1) if size is known
-        if size is not None :
-            newsize = 1
-            unknown = None
-            for i, dim in enumerate(newshape) :
-                idim = int(dim)
-                if idim == -1 :
-                    if unknown == None :
+        if shape :
+            newshape = list(shape)
+            nb = newshape.count(-1)
+            if nb > 0 :
+                if nb > 1 :
+                    raise ValueError, "can only specify one unknown dimension"
+                if size is None :
+                    raise ValueError, "cannot expand shape %s without an indication of size" % (shape) 
+                newsize = 1
+                for i, dim in enumerate(newshape) :
+                    idim = int(dim)
+                    if idim == -1 :
                         unknown = i
+                        break
                     else :
-                        raise ValueError, "can only specify one unknown dimension"
-                else :
-                    newsize *= idim
-            if unknown is not None :
+                        newsize *= idim
                 if newsize :
                     newshape[unknown] = size / newsize
                 else :
-                    newshape[unknown] = 0
-            if newsize != size :
-                raise ValueError, "unable to match the required size %s with shape %s" % (size, newshape)
-        
-        return tuple(newshape)
+                    newshape[unknown] = 0                      
+                newsize = reduce(operator.mul, newshape, 1)
+                if newsize != size :
+                    raise ValueError, "unable to match the required size %s with shape %s" % (size, shape)
+                shape = tuple(newshape)              
+        else :
+            if size is not None :
+                shape=(size,)
+                ndim = 1
+                newsize = size
+            else :
+                shape=()
+                ndim = 0
+                newsize = size                
+                # raise ValueError, "cannot expand shape (-1,...) without an indication of size"
+     
+        return shape, ndim, size
     
     @classmethod
     def default(cls, shape=None, size=None):
         """ cls.default([shape])
             Returns the default instance (of optional shape form shape) for that Array class """
         
-        try :
-            shape = cls._expandshape(shape, size)
-            if -1 in shape :
-                raise ValueError, "cannot get the size of undefined dimension in shape %s without the total size" % (shape) 
-        except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, cls.__name__)        
-        if shape : 
-            if not hasattr(shape, '__iter__') :
-                shape = (shape,)               
-            defval = 0
+        defval = 0
+        
+        shape, ndim, size = cls._defaultshape(shape, None, size)
+        if size is None and not shape or list(shape).count(-1) > 0 :
+            size = 0
+        shape, ndim, size = cls._expandshape(shape, ndim, size)
+      
+        if size :             
             for d in reversed(shape) :
                 defval = [defval]*d
         else :
-            defval = cls.stype()
-            
-        return cls(defval)
+            defval = []
+        
+        return cls(defval) 
         
     @classmethod
     def filled(cls, value=None, shape=None, size=None):
@@ -629,12 +816,7 @@ class Array(object):
             the nearest matching sub array of the class, to avoid improper casts """
         
         new = None
-        try :
-            shape = cls._expandshape(shape, size)
-            if -1 in shape :
-                raise ValueError, "cannot get the size of undefined dimension in shape %s without the total size" % (shape) 
-        except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, cls.__name__)  
+        shape, ndim, size = cls._expandshape(shape, None, size)
          
         if value is not None :
             value = _toCompOrArray(value)
@@ -643,25 +825,23 @@ class Array(object):
                 if vshape :
                     return cls(value)
                 else :
-                    return cls([value])            
-            dim = len(shape)  
-            size = reduce(operator.mul, shape, 1)          
+                    return cls([value])                  
 
-            if vdim <= dim and vsize <= size:
-                subshape = shape[dim-vdim:]
+            if vdim <= ndim and vsize <= size:
+                subshape = shape[ndim-vdim:]
                 if subshape != vshape :
                     subsize = reduce(operator.mul, subshape, 1)
                     if subsize >= vsize :
                         value.resize(subshape)
                     else :
                         raise ValueError, "value of shape %s cannot be fit in a %s of shape %s, some data would be lost" % (vshape, cls.__name__, shape)
-                if vdim < dim :
+                if vdim < ndim :
                     new = cls.default(shape)                 
                     iter = new.subiter(vdim)
                     for i in xrange(len(iter)) :
                         iter[i] = value    
                 else :
-                    new = cls(value.resize(shape))  
+                    new = cls(value, shape=shape)  
             else :
                 raise ValueError, "fill value has more dimensions or is larger than the specified desired shape"
         else :
@@ -679,32 +859,36 @@ class Array(object):
             shape = self.shape            
         new = self.__class__.filled(value, shape, size)
         if type(new) is type(self) :
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))            
                                                             
     def __new__(cls, *args, **kwargs ):
         """ Creates a new Array instance from one or several nested lists or numeric values """
         new = super(Array, cls).__new__(cls)
-        new._data=[]
         new._cacheshape()
         return new
      
     def __init__(self, *args, **kwargs):
-        """ Initialize an Array from one or several nested lists or numeric values """
+        """ __init__(...)
+            a.__init__(...) initializes Array a from one or more iterable, nested lists or numeric values,
+            see help(Array) for more information.
+        """
         cls = self.__class__
         shape = kwargs.get('shape', None)
+        ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
-        shape = cls._expandshape(shape, size)
+        shape, ndim, size = cls._defaultshape(shape, ndim, size)
                    
-        data = None       
+        new = None   
         if args :
             # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
             if len(args) == 1 :
                 args = args[0]
             if isinstance (args, Array) :
                 # copy constructor
-                data = copy.copy(list(args))
+                new = super(Array, Array).__new__(Array)
+                new.assign(args)
             elif hasattr(args, '__iter__') :
                 data = []
                 subshapes = []
@@ -714,9 +898,15 @@ class Array(object):
                     data.append(sub)
                     subshapes.append(subshape)
                 if not reduce(lambda x, y : x and y == subshapes[0], subshapes, True) :
-                    raise ValueError, "all sub-arrays must have same shape"                          
+                    raise ValueError, "all sub-arrays must have same shape"
+                new = super(Array, Array).__new__(Array)
+                new.assign(data)              
             elif isNumeric(args) :
-                data = cls.filled(args, shape).data
+                # allow initialize from a single numeric value
+                if size is None :
+                    size = 1
+                new = cls.filled(args, shape, size)
+                shape, ndim, size = new.shape, new.ndim, new.size
 #                if shape :
 #                    # can initialize an array from a single numeric value if a shape is specified
 #                    data = cls.filled(args, shape).data
@@ -725,43 +915,47 @@ class Array(object):
             else :
                 raise TypeError, "an %s element can only be another Array or an iterable" % cls.__name__
         else :
-            data = cls.default(shape).data
+            new = cls.default(shape, size)
+            shape, ndim, size = new.shape, new.ndim, new.size
             
-        if data is not None :
-            # generic Array for new as it's not yet correctly reshaped
-            # new = super(Array, cls).__new__(cls)
-            new = Array.__new__(Array)
-            new.data = data
+        if new is not None :
             # can re-shape on creation if a shape keyword is specified or the class has a fixed shape
             if shape and shape != new.shape :
                 # accept expanding but not shrinking to catch casting errors
-                ndim = len(shape)
                 if size is None :
-                    unknown = list(shape).count(-1)
-                    if unknown > 1 :
-                        shape = cls._expandshape(new.shape[:ndim], new.size)
-                    elif unknown == 1 :
-                        shape = cls._expandshape(shape, new.size)
-                    size = reduce(operator.mul, shape, 1)
-                if size >= new.size :                   
-                    if ndim == new.ndim and reduce(operator.and_, map(operator.ge, shape, new.shape), True) :
-                        new.retrim(shape)
+                    size = new.size
+                shape = list(shape)
+                unknown = shape.count(-1)
+                # multiple unknown dimensions can't be expanded with the size info, we'll use the new shape instead
+                if unknown > 1 :
+                    mindim = min(ndim, new.ndim)
+                    for i in range(mindim) :
+                        if shape[i] == -1 and unknown > 1 :
+                            shape[i] = new.shape[i]
+                            unknown -= 1
+                # expand the unknown dimensions now
+                shape, ndim, size = cls._expandshape(shape, ndim, size)
+                # reshape / resize / retrim if needed
+                if shape != new.shape :
+                    if size >= new.size and ndim >= new.ndim :                   
+                        if ndim == new.ndim and reduce(operator.and_, map(operator.ge, shape, new.shape), True) :
+                            new = new.trim(shape)
+                        else :
+                            try :
+                                new = new.filled(data, shape)
+                            except :                            
+                                new = new.tosize(shape)
                     else :
-                        try :
-                            new.fill(data, shape)
-                        except :                            
-                            new.resize(shape)
-                else :
-                    if isinstance (args, Array) :
-                        raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some data would be lost" % (clsname(args), args.shape, cls.__name__, shape)
-                    else :
-                        raise ValueError, "cannot initialize a %s of shape %s from %s, some data would be lost" % (cls.__name__, shape, args)                          
+                        if isinstance (args, Array) :
+                            raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some information would be lost, use an explicit resize or trim" % (clsname(args), args.shape, cls.__name__, shape)
+                        else :
+                            raise ValueError, "cannot initialize a %s of shape %s from %s, some information would be lost, use an explicit resize or trim" % (cls.__name__, shape, args)                          
                         
             # check that the shape is compatible with the class, as some Array sub classes have fixed shapes / ndim
             if not cls._shapecheck(new.shape) :
                 raise TypeError, "shape %s is incompatible with class %s" % (new.shape, cls.__name__)            
 
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
 
@@ -776,32 +970,40 @@ class Array(object):
         axis = axis[0]
         itself = self.axisiter(axis);    
         itemshape = itself.itemshape
+        itemdim = len(itemshape)
+        other = Array.filled(other, itemshape)
         if size :
-            other = Array.filled(other, itemshape)
             if axis > 0 :
                 staxis = range(axis, -1, -1)+range(axis+1, dim)
-                # print "staxis", staxis
-                nself = self.transpose(staxis)
+                nself = self.transpose(staxis)          
                 otaxis = staxis[1:]
                 for i, a in enumerate(otaxis) :
                     if a > axis :
                         otaxis[i] = a-1
-                # print "otaxis", otaxis
                 nother = other.transpose(otaxis)
-                new = Array(list(nself)+[nother]).transpose(staxis)
+                if nother.ndim == itemdim :
+                    nother = Array([nother])                              
+                new = Array(list(nself)+list(nother))
+                new = new.transpose(staxis)           
             else :
-                new = Array(list(self)+[other])
-            return self.__class__._convert(new)            
+                if other.ndim == itemdim :
+                    other = Array([other])                       
+                new = Array(list(self)+list(other))        
         elif odim == 0 :
-            return self.__class__._convert([other])
-         
-        raise ValueError, "cannot append a %s of shape %s on axis %s of %s of shape %s" % (clsname(other), oshape, axis, clsname(self), shape)
+            if other.ndim == itemdim :
+                other = Array([other])                   
+            new = other
+        
+        try :
+            return self.__class__._convert(new)
+        except :
+            raise ValueError, "cannot append a %s of shape %s on axis %s of %s of shape %s" % (clsname(other), oshape, axis, clsname(self), shape)
     
     def append(self, other, axis=0):
         """ Appends other to self on the given axis """
         new = self.appended(other, axis)
         if type(new) is type(self) :
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "new appended shape %s is not compatible with class %s" % (shape, clsname(self))
 
@@ -832,7 +1034,7 @@ class Array(object):
         """ Concatenates Arrays on the given axis """
         new = self.stacked(other, axis)
         if type(new) is type(self) :
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "new concatenated shape %s is not compatible with class %s" % (shape, clsname(self))
                      
@@ -858,12 +1060,9 @@ class Array(object):
     def toshape(self, shape):
         """ a.toshape(shape)
             Returns the Array as reshaped according to the shape argument """
+        ndim = None
         size = self.size
-        try :
-            newshape = self.__class__._expandshape(shape, size)
-        except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, clsname(self))   
-        newsize = reduce(operator.mul, newshape, 1)
+        newshape, newndim, newsize = self.__class__._expandshape(shape, ndim, size)
         if newsize != size :
             raise ValueError, "total size of new Array must be unchanged"
         
@@ -874,7 +1073,7 @@ class Array(object):
             Performs in-place reshape of array a """
         new = self.toshape(shape)
         if type(new) is type(self) :
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
               
@@ -884,12 +1083,7 @@ class Array(object):
             An optional value argument can be passed and will be used to fill
             the newly created components if the resize results in a size increase. """
         cls = self.__class__
-        try :
-            newshape = cls._expandshape(shape, None)
-            if -1 in newshape :
-                raise ValueError, "cannot get the size of undefined dimension in shape %s without the total size" % (shape)             
-        except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, clsname(self))   
+        newshape, newndim, nsize = cls._expandshape(shape, None, None)           
       
         new = None
         for c in inspect.getmro(cls) :
@@ -920,7 +1114,7 @@ class Array(object):
             the newly created components if the resize results in a size increase. """
         new = self.tosize(shape, value)
         if type(new) is type(self) :
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
 
@@ -932,7 +1126,7 @@ class Array(object):
             for i in xrange(l) :
                 # print repr(self[i])
                 # print repr(other[i])
-                self.data[i]._trimmedcopy(other.data[i])
+                self[i]._trimmedcopy(other[i])
         else :
             for i in xrange(l) :
                 other[i] = self[i]
@@ -947,9 +1141,9 @@ class Array(object):
             the newly created components if the trim results in a size increase. """
         cls = self.__class__
         if shape is None :
-            newshape = ()
+            newshape = []
         else :
-            newshape = shape
+            newshape = list(shape)
         newndim = len(newshape)
         if newndim != self.ndim :
             raise ValueError, "can only trim using a new shape of same number of dimensions as Array"
@@ -983,9 +1177,18 @@ class Array(object):
             the newly created components if the resize results in a size increase. """
         new = self.trim(shape, value)
         if type(new) is type(self) :
-            self.data = new.data
+            self.assign(new)
         else :
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))    
+
+    def __reduce__(self):
+        return (self.__class__, tuple(self))
+ 
+    def copy(self):
+        return copy.copy(self)
+    
+    def deepcopy(self):
+        return copy.deepcopy(self) 
     
     def copy(self):
         return copy.copy(self)
@@ -995,17 +1198,13 @@ class Array(object):
     
     # display      
     def __str__(self):
-        try :
-            return "[%s]" % ", ".join( map(str,self) )
-        except :
-            return "%s" % self.data
+        return "[%s]" % ", ".join( map(str,self) )
+
     def __unicode__(self):
-        try :
-            return u"[%s]" % u", ".join( map(unicode,self) )
-        except :
-            return u"%s" % self.data        
+        return u"[%s]" % u", ".join( map(unicode,self) )
+    
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, str(self)) 
+        return "%s(%s)" % (self.__class__.__name__, str(self)) 
     
     def _formatloop(self, level=0):
         subs = []
@@ -1026,17 +1225,13 @@ class Array(object):
     
     # wrap of list-like access methods
     def __len__(self):
-        """ Length of the first dimension of the array """
-        try :
-            # return len(self.data)
-            return self.size
-        except :
-            raise TypeError, "len() of unsized object"
+        """ Length of the first dimension of the array, ie len of the array considered as list """
+        return super(Array, self).__len__()
         
     @staticmethod
     def _extract(x, index) :
         if isinstance(x, Array) :
-            res = x.data[index]
+            res = super(Array, x).__getitem__(index)
         else :
             res = [Array._extract(a, index) for a in x]
         return res
@@ -1089,7 +1284,7 @@ class Array(object):
                 
             if values :           
                 for i in xrange(ni) :
-                    self.data[indices[i]] = values[i]
+                    super(Array, self).__setitem__(indices[i], values[i])
             else :
                 raise ValueError, "shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"
         else :
@@ -1114,8 +1309,7 @@ class Array(object):
            
             nextindex = index[1:]
             for i in xrange(ni) :
-                self.data[indices[i]]._inject(nextindex, values[i])
-
+                super(Array, Array).__getitem__(self, indices[i])._inject(nextindex, values[i])
 
     def __setitem__(self, index, value):
         """ Set value from either a single (first dimension) or multiple index, support for slices"""
@@ -1130,49 +1324,26 @@ class Array(object):
                     
         self._inject(index, value)
 
-#    @staticmethod             
-#    def _remove(a, index) :
-#        # a = list(a)
-#        la = len(a)
-#        li = len(index)
-#        if la and li :
-#            next = li > 1
-#            # data = self.data
-#            for i in xrange(la-1, -1, -1) :
-#                if i in index[0] :
-#                    del a[i]
-#                elif next :      
-#                    Array._remove(a[i], index[1:])
-#            if len(a) == 1 and hasattr(a[0], '__iter__') :
-#                a[:] = list(a[0])
-
     def _delete(self, index) :
         ls = len(self)
         li = len(index)
         if ls and li :
             next = li > 1
-            data = self.data
             for i in xrange(ls-1, -1, -1) :
                 if i in index[0] :
-                    del data[i]
+                    super(Array, self).__delitem__(i)
                 elif next :      
-                    data[i]._delete(index[1:])
-            self.data = data
+                    self[i]._delete(index[1:])
                 
     def __delitem__(self, index) :
         """ Delete elements that match index from the Array """
         index = self._getindex(index, default=None, expand=True)
+        # TODO : check what shape it would yield first
         if index :
-            # a = self.data
-            # Array._remove(a, index)
-            a = self
-            a._delete(index)
-            try :
-                # b = self.__class__(a)
-                self = self.__class__(a.data)
-            except :
+            self._delete(index)
+            self._cacheshape()
+            if not self.__class__._shapecheck(self.shape) :
                 raise TypeError, "deleting %s from an instance of class %s will make it incompatible with class shape" % (index, clsname(self))
-            # self.data = a
 
     def deleted(self, index):
         """ Returns a copy of self with the index elements deleted as in __delitem__ """
@@ -1187,29 +1358,22 @@ class Array(object):
         li = len(index)
         if ls and li :
             next = li > 1
-            data = self.data
             for i in xrange(ls-1, -1, -1) :
                 if i in index[0] :
-                    del data[i]
+                    super(Array, self).__delitem__(i)
                 elif next :      
-                    data[i]._strip(index[1:])
-            if len(data) == 1 and hasattr(data[0], '__iter__') :
-                self.data = data[0]
-            else :
-                self.data = data
+                    self[i]._strip(index[1:])
+            if len(self) == 1 and hasattr(self[0], '__iter__') :
+                self.assign(self[0])
 
     def strip(self, index) :
         """ Strip elements that match index from the Array, extra dimensions will be stripped  """
         index = self._getindex(index, default=None, expand=True)
+        # TODO : check what shape it would yield first
         if index :
-            # a = self.data
-            # Array._remove(a, index)
-            a = self
-            a._strip(index)
-            try :
-                # b = self.__class__(a)
-                self = self.__class__(a.data)
-            except :
+            self._strip(index)
+            self._cacheshape()
+            if not self.__class__._shapecheck(self.shape) :
                 raise TypeError, "stripping %s from an instance of class %s will make it incompatible with class shape" % (index, clsname(self))
     
     def stripped(self, index):
@@ -1220,10 +1384,9 @@ class Array(object):
             a._strip(index)
             return self.__class__._convert(a)
                         
-    def __iter__(self, *args) :
+    def __iter__(self, *args, **kwargs) :
         """ Default Array iterator on first dimension """
-        return iter(self.data)
-        # return self.subiter() 
+        return super(Array, self).__iter__(*args, **kwargs)
      
     def axisiter(self, *args) :
         """ Returns an iterator using a specific axis or list of ordered axis,
@@ -1333,15 +1496,14 @@ class Array(object):
     def _convert(cls, value): 
         for c in inspect.getmro(cls) :
             if issubclass(c, Array) :
-                try :
-                    value = c(value)
-                    break
-                except :
-                    pass
-        if isinstance(value, Array) :
-            return value
-        else :
-            return NotImplemented
+                if isinstance(value, c) :
+                    return value
+                else :
+                    try :
+                        return c(value)
+                    except :
+                        pass
+        raise TypeError, "%s cannot be converted to %s" % (util.clsname(value), cls.__name__)
 
     @classmethod
     def _toCompOrConvert(cls, value):
@@ -1608,11 +1770,25 @@ class Array(object):
     # additional methods
     
     def _getindex(self, index=None, **kwargs):
-        """ check and expand index on array,
-            example :
-            >>> a = Array(1, shape=(3, 3, 3))
-            >>> a._getindex((slice(2,8),-1), default=slice(None))
-            >>> a._getindex((slice(2,8),-1), default=slice(None), expand=True)
+        """ check and expand index on Array,
+        
+            >>> A = Array(1, shape=(3, 3, 3))
+            >>> print A.formated()
+            [[[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+            <BLANKLINE>
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+            <BLANKLINE>
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]]]
+            >>> A._getindex((slice(2,8),-1), default=slice(None))
+            (slice(2, 3, 1), 2, slice(0, 3, 1))
+            >>> A._getindex((slice(2,8),-1), default=slice(None), expand=True)
+            ([2], [2], [0, 1, 2])
         """  
         default = kwargs.get('default',None)
         expand = kwargs.get('expand',False)            
@@ -1683,42 +1859,48 @@ class Array(object):
         
     def sum(self, *args):
         """ Returns the sum of the components of self """
-        return sum(self, start=0, axis=args)
- 
+        return sum(self, start=0, axis=args) 
     def prod(self, *args):
         """ Returns the product of the components of self """
         return prod(self, start=1, axis=args) 
- 
     # __nonzero__ not defined, use any or all
     def any(self, *args):
-        return any(self, axis=args)
- 
+        return any(self, axis=args) 
     def all(self, *args):
-        return all(self, axis=args) 
- 
+        return all(self, axis=args)  
     def min(self, *args, **kwargs):
-        return min(self, axis=args, **kwargs)  
-    
+        return min(self, axis=args, **kwargs)      
     def max(self, *args, **kwargs):
-        return max(self, axis=args, **kwargs)  
- 
+        return max(self, axis=args, **kwargs)
+    
     def sqlength(self, *args):
-        return sqlength(self, axis=args)  
-    
+        axis = self._getaxis(args, fill=True)
+        it = self.axisiter(*axis)
+        subshape = it.itemshape
+        if subshape == () :
+            return reduce(operator.add, map(lambda x:x*x, it)) 
+        else :
+            return Array(a.sqlength() for a in it)          
     def length(self, *args):
-        return length(self, axis=args) 
-    
+        return sqrt(self.sqlength(*args))    
     def normal(self, *args):
-        return normal(self, axis=args)
-    
+        try :
+            return self / self.length(*args)
+        except :
+            return self  
+    def normalize(self, *args):
+        """ Performs an in place normalization of self """
+        self.assign(self.normal(*args))       
     def dist(self, other, *args):
         try :
             nself, nother = coerce(self, other)
         except :
             return NotImplemented
-        return dist(nself, nother, axis=args)          
+        return (nother-nself).length(*args)            
+    def distanceTo(self, other):
+        return self.dist(other)
   
-    def isEquivalent(self, other, tol):
+    def isEquivalent(self, other, tol=eps):
         """ Returns True if both arguments have same shape and distance between both Array arguments is inferior or equal to tol """
         if isinstance(other, Array) :
             try :
@@ -1758,7 +1940,20 @@ class Array(object):
     def imag(self):
         """ Returns the imaginary part of the Array """
         return self.__class__(imag(x) for x in self) 
-    
+    def blend(self, other, blend=0.5):
+        """ u.blend(v, blend) returns the result of blending from Array instance u to v according to
+            either a scalar blend where it yields u*(1-blend) + v*blend Array,
+            or a an iterable of up to 3 (x, y, z) independent blend factors """
+        try :
+            nself, nother = coerce(self, other)
+        except :
+            return NotImplemented             
+        return self.__class__._convert(blend(self, other, blend))      
+    def clamp(self, low=0.0, high=1.0):
+        """ u.clamp(low, high) returns the result of clamping each component of u between low and high if low and high are scalars, 
+            or the corresponding components of low and high if low and high are sequences of scalars """
+        return self.__class__._convert(clamp(self, low, high))
+        
 # functions that work on Matrix
 
 def det(value):
@@ -1769,10 +1964,22 @@ def det(value):
     else :
         try :
             value = Matrix(value)
-            return value.det()
         except :
-            raise TypeError, "cannot compute a determinant on invalid value type %s" % (clsname(value))
-
+            raise TypeError, "%s not convertible to Matrix" % (clsname(value))
+        return value.determinant()
+    
+def inv(value):
+    if isinstance(value, Matrix) :
+        return value.inverse()
+    elif isNumeric(value) :
+        return 1.0 / value
+    else :
+        try :
+            value = Matrix(value)
+        except :
+            raise TypeError, "%s not convertible to Matrix" % (clsname(value))
+        return value.inverse()
+    
 class Matrix(Array):
     """
     A generic size Matrix class, basically a 2 dimensional Array
@@ -1783,8 +1990,8 @@ class Matrix(Array):
     ndim = 2
            
     def _getshape(self):
-        if self.data :
-            return (len(self.data), len(self.data[0]))
+        if len(self) :
+            return (len(self), len(self[0]))
         else :
             return (0, 0)
     def _setshape(self, newshape):
@@ -1800,6 +2007,26 @@ class Matrix(Array):
     @classmethod
     def identity(cls, n):
         return cls([[float(i==j) for i in xrange(n)] for j in xrange(n)])
+    
+    @classmethod
+    def basis(cls, u, v, normalize=False):
+        """ basis(u, v[, normalize=False]) --> Matrix
+            Returns the basis Matrix built using u, v and u^v as coordinate axis,
+            The a, b, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
+                n = u ^ v
+                v = n ^ u
+            if the normalize keyword argument is set to True, the vectors are also normalized """
+        u = Vector(u)
+        v = Vector(v)
+        assert len(u) == len(v) == 3, 'basis is only defined for two Vectors of size 3'    
+        if normalize :
+            u = normal(u)
+            n = normal(cross(u, v))
+            v = cross(n, u)
+        else :
+            n = cross(u, v)
+            v = cross(n, u)
+        return cls(u, v, n).transpose()
  
     # row and column size properties
     def _getnrow(self):
@@ -1902,12 +2129,18 @@ class Matrix(Array):
             
             Examples
 
-            >>> a = Array(range(4), shape=(2, 2))
-            >>> a.formated()
-            >>> a.diagonal()
-            >>> a.diagonal(1)
-            >>> a.diagonal(1, wrap=True)
-            >>> a.diagonal(-1, wrap=True)
+            >>> M = Matrix(range(4), shape=(2, 2))
+            >>> print M.formated()
+            [[0, 1],
+             [2, 3]]
+            >>> M.diagonal()
+            Array([0, 3])
+            >>> M.diagonal(1)
+            Array([1])
+            >>> M.diagonal(1, wrap=True)
+            Array([1, 2])
+            >>> M.diagonal(-1, wrap=True)
+            Array([1, 2])
         """
         if self.ndim != 2 :
             raise ValueError, "can only calculate diagonal on Array or sub Arrays of dimension 2"    
@@ -1998,7 +2231,7 @@ class Matrix(Array):
         # print m.formated()
         return m
     
-    def det(self):
+    def determinant(self):
         assert self.is_square(), "determinant is defined for square Matrix"
         n = self.nrow
         if n == 1:
@@ -2023,7 +2256,8 @@ class Matrix(Array):
             except ValueError :
                 # singular
                 return 0.0           
-   
+    det = determinant
+    
     def inverse(self): 
         nr, nc = self.shape
         if nr < 4 and nc < 4 :
@@ -2037,35 +2271,70 @@ class Matrix(Array):
             id = Matrix.identity(nr)        
             m = self.hstacked(id).reduced()
             return self.__class__(m[:, nr:])
-
+    inv = inverse
+    
     I = property(inverse, None, None, """The inverse Matrix""")
 
 # functions that work on Vectors or 1-d Arrays
 
-def dot(a, b):
-    """ dot(a, b):
-        dot product of a and b, a and b should be iterables of numeric values """
-    a = _toCompOrArray(a)
-    b = _toCompOrArray(b)
-    return sum(a*b)
+def angle(u, v):
+    """ angle(u, v) --> float
+        Returns the angle of rotation between u and v """ 
+    try :
+        u = Vector(u)
+    except :
+        raise NotImplemented, "%s is not convertible to type Vector, angle is only defined for two Vectors of size 3" % (util.clsname(u))   
+    return u.angle(v)
+
+def axis(u, v, normalize=False):
+    """ axis(u, v[, normalize=False]) --> Vector
+        Returns the axis of rotation from u to v as the vector n = u ^ v
+        if the normalize keyword argument is set to True, n is also normalized """
+    try :
+        u = Vector(u)
+    except :
+        raise NotImplemented, "%s is not convertible to type Vector, axis is only defined for two Vectors of size 3" % (util.clsname(u))   
+    return u.axis(v, normalize)
+
+def cross(u, v):
+    """ cross(u, v) --> Vector :
+        cross product of u and v, u and v should be 3 dimensional vectors  """
+    try :
+        u = Vector(u)
+    except :
+        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (util.clsname(u))  
+    return u.cross(v) 
+
+def dot(u, v):
+    """ dot(u, v) --> float :
+        dot product of u and v, u and v should be Vectors of identical size"""
+    try :
+        u = Vector(u)
+    except :
+        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (util.clsname(u))  
+    return u.dot(v)
 
 def outer(a, b):
-    """ outer(a, b) :
-        outer product of vectors a and b """
-    return Array([b*x for x in a])
-
-def cross(a, b, axis=None):
-    """ cross(a, b):
-        cross product of a and b, a and b should be iterables of 3 numeric values  """
-    assert len(a) == len(b) == 3, 'cross product is only defined for two Vectors of size 3'
-    return Vector([a[1]*b[2] - a[2]*b[1],
-            a[2]*b[0] - a[0]*b[2],
-            a[0]*b[1] - a[1]*b[0]])
+    """ outer(u, v) --> Matrix :
+        outer product of vectors u and v """
+    try :
+        u = Vector(u)
+    except :
+        raise NotImplemented, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (util.clsname(u))  
+    return u.outer(v)        
 
 def cotan(a, b, c) :
     """ cotan(a, b, c) :
-        cotangent of the (b-a), (c-a) angle, a, b, and c should support substraction, dot, cross and length operations """
-    return dot(c - b,a - b)/length(cross(c - b, a - b))  
+        cotangent of the (b-a), (c-a) angle, a, b, and c should be 3D dimensional Vectors representing points """
+    try :
+        a = Vector(a)
+    except :
+        raise NotImplemented, "%s is not convertible to type Vector, cotangent product is only defined for three 3D Vectors" % (util.clsname(a))  
+    return a.cotan(b, c) 
+
+#
+#    Vector Class
+#
 
 class Vector(Array):
     """
@@ -2075,16 +2344,15 @@ class Vector(Array):
     
     #A Vector is a one-dimensional Array, ndim is thus stored as a class readonly attribute
     ndim = 1
-
-       
+    
     def _getshape(self):
-        return (len(self.data),)
+        return (len(self),)
     def _setshape(self, newshape):
         self.resize(newshape)    
     # shape, ndim, size and data properties
     shape = property(_getshape, _setshape, None, "Shape of the Vector, as Vectors are one-dimensional Arrays: v.shape = (v.size,)")    
-    ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
-    size = property(lambda x : len(x.data), None, None, "Number of components of the Vector")
+    # ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
+    size = property(lambda x : len(x), None, None, "Number of components of the Vector")
     def _getdata(self):
         return self._data
     def _setdata(self, data):
@@ -2156,99 +2424,107 @@ class Vector(Array):
         self = self.__xor__(other) 
                 
     # additional methods
- 
-    def dot(self, other):
-        try :
-            nself, nother = coerce(self, other)
-        except :
-            return NotImplemented
-        return dot(nself, nother)   
 
-    def cross(self, other):
+    def angle(self, other):
+        """ angle(u, v) --> float
+            Returns the angle of rotation between u and v """         
         try :
-            nself, nother = coerce(self, other)
+            nself, nother = coerce(Vector(self), other)
+            assert len(nself) == len(nother) == 3
         except :
-            return NotImplemented
-        return self.__class__._convert(cross(nself, nother))
-
-    def outer(self, other):
-        try :
-            nself, nother = coerce(self, other)
-        except :
-            return NotImplemented
-        return Matrix(outer(nself, nother))
-    
-    def transformAsNormal(self, other):
-        if isinstance(other, Matrix) :
-            return self.__mul__(other.transpose().inverse())
+            raise NotImplemented, "%s not convertible to %s, angle is only defined for two Vectors of size 3" % (util.clsname(other), util.clsname(self))
+        l = u.length() * v.length()
+        if l > 0 :
+            return acos( u.dot(v) / l )
         else :
-            return NotImplemented
+            return 0.0  
+    def axis(self, other, normalize=False):
+        """ axis(u, v[, normalize=False]) --> Vector
+            Returns the axis of rotation from u to v as the vector n = u ^ v
+            if the normalize keyword argument is set to True, n is also normalized """
+        try :
+            nself, nother = coerce(Vector(self), other)
+            assert len(nself) == len(nother) == 3
+        except :
+            raise NotImplemented, "%s not convertible to %s, axis is only defined for two Vectors of size 3" % (util.clsname(other), util.clsname(self))           
+        if normalize :
+            return u.cross(v).normal()
+        else :
+            return u.cross(v)
+    def cross(self, other):
+        """ cross(u, v) --> Vector
+            cross product of u and v, u and v should be 3 dimensional vectors  """
+        try :
+            nself, nother = coerce(Vector(self), other)
+            assert len(nself) == len(nother) == 3
+        except :
+            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of size 3" % (util.clsname(other), util.clsname(self))     
+        return Vector([nself[1]*nother[2] - nself[2]*nother[1],
+                nself[2]*nother[0] - nself[0]*nother[2],
+                nself[0]*nother[1] - nself[1]*nother[0]])         
+    def dot(self, other):
+        """ dot(u, v) --> float
+            dot product of u and v, u and v should be Vectors of identical size"""
+        try :
+            nself, nother = coerce(Vector(self), other)
+        except :
+            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (util.clsname(other), util.clsname(self))               
+        return reduce(operator.add, map(operator.mul, nself, nother)) 
+    def outer(self, other):
+        """ outer(u, v) --> Matrix :
+            outer product of vectors u and v """
+        try :
+            nself, nother = coerce(Vector(self), other)
+        except :
+            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors" % (util.clsname(other), util.clsname(self))       
+        return Matrix([nother*x for x in nself]) 
+    def transformAsNormal(self, other):
+        """ u.transformAsNormal(m) --> Vector
+            Equivalent to transforming u by the inverse transpose Matrix of m, used to transform normals """ 
+        try :
+            nother = Matrix(other)
+        except :
+            raise NotImplemented, "%s not convertible to Matrix" % (util.clsname(other))                     
+        return self.__mul__(nother.transpose().inverse())
+    
+    # min, max etc methods derived from array  
         
+    # length methods can be more efficient than for Arrays as there is only one axis   
+    def sqlength(self):
+        return reduce(operator.add, map(lambda x:x**2, self))         
+    def length(self):
+        return sqrt(self.sqlength())                
     def normal(self): 
-        """ Return a normalized copy of self. To be consistant with Maya API and MEL unit command,
+        """ Return a normalized copy of self. Overriden to be consistant with Maya API and MEL unit command,
             does not raise an exception if self if of zero length, instead returns a copy of self """
         try :
             return self/self.length()
         except :
             return self
     unit = normal
+    def isParallel(self, other, tol=eps):
+        """ Returns true if both arguments considered as Vector are parallel within the specified tolerance """
+        try :
+            nself, nother = coerce(Vector(self), other)
+        except :
+            raise NotImplemented, "%s not convertible to %s, isParallel is only defined for two Vectors" % (util.clsname(other), util.clsname(self))       
+        return (abs(nself.dot(nother) - nself.length()*nother.length()) <= tol)     
+    def cotan(self, other, third):
+        """ cotan(a, b, c) :
+            cotangent of the (b-a), (c-a) angle, a, b, and c should be 3D vectors representing points a, b, c"""        
+        try :
+            nself, nother = coerce(Vector(self), other)
+            nself, nthird = coerce(nself, third)
+            assert len(nself) == len(nother) == len(nthird) == 3
+        except :
+            raise NotImplemented, "cotangent is only defined for three 3D dimensional Vectors representing points"
+        return (nthird-nother).dot(nself-nother) / (nthird-nother).cross(nself-nother).length() 
     
-    def normalize(self):
-        """ Performs an in place normalization of self """
-        self.data = self.normal().data
-
-    def distanceTo(self, other):
-        return self.dist(other)  
-
-
-
-   
+    # blend and clamp derived from Array
+             
 def _testArray() :  
-#    A = Array(2)
-#    print A
-#    print repr(A)
-#    print A.formated()
-#    print A.shape
-#    print A.ndim
-#    print A.size
-#    print A.data
 
-
-    A = Array([2])
-    print A
-    print repr(A)
-    print A.formated()
-    print A.shape
-    print A.ndim
-    print A.size
-    print A.data 
-    A = Array()
-    print A.formated()
-    print A.shape
-    print A.ndim
-    print A.size
-    print A.data
-    A = Array.default()
-    print A.formated()
-    A = Array([[[1,1,1],[4,4,3],[7,8,5]], [[10,10,10],[40,40,30],[70,80,50]]])
-    print A
-    print A.formated()
-    print A.shape
-    print A.ndim
-    print A.size
-    print A.data    
-    A = Array([[1,1,1],[4,4,3],[7,8,5]], [[10,10,10],[40,40,30],[70,80,50]])
-    print A
-    print A.formated()
-    B = Array(1, 2, 3)
-    print B
-    B = Array([1], [2], [3])
-    print B
-    B = Array([[1], [2], [3]])
-    print B
-    B = Array([[[1], [2], [3]]])
-    print B
-       
+         
     # append (hstack, vstack)
     A = Array([])
     A.append(1)
@@ -2418,62 +2694,34 @@ def _testArray() :
     #[[1, 2, 0],
     # [1, 2, 0],
     # [1, 2, 0]]
-    print "Array([1,2,3])"
-    A = Array([1,2,3])
-    print A.formated()
-    # [1, 2, 3]
-    print "Array([1,2,3], shape=(3, 3))"
-    A = Array([1,2,3], shape=(3, 3))
-    print A.formated()
-    #[[1, 2, 3],
-    # [1, 2, 3],
-    # [1, 2, 3]]   
-    print "Array([1,2,3], shape=(4, 4))"
-    A = Array([1,2,3], shape=(4, 4))
-    print A.formated()
-    #[[1, 2, 3, 0],
-    # [1, 2, 3, 0],
-    # [1, 2, 3, 0],
-    # [1, 2, 3, 0]]
-    print "Array([[1,2,3]], shape=(4, 4))"  
-    A = Array([[1,2,3]], shape=(4, 4))
-    print A.formated()
-    #[[1, 2, 3, 0],
-    # [0, 0, 0, 0],
-    # [0, 0, 0, 0],
-    # [0, 0, 0, 0]]    
-    print "A = Array([1, 2, 3, 4, 5], shape=(4, 4))"
-    A = Array([1, 2, 3, 4, 5], shape=(4, 4))
-    print A.formated()
-    #[[1, 2, 3, 4],
-    # [5, 0, 0, 0],
-    # [0, 0, 0, 0],
-    # [0, 0, 0, 0]]    
-    print "A = Array([1, 2, 3, 4, 5], shape=(2, 2))"
-    try :
-        A = Array([1, 2, 3, 4, 5], shape=(2, 2))
-    except :
-        print "Would raise a ValueError: value of shape (5,) cannot be fit in a Array of shape (2, 2), some data would be lost"
+
        
     # copies and references
     B = Array([[1,1,1],[4,4,3],[7,8,5]])
     print B.formated()
+    #[[1, 1, 1],
+    # [4, 4, 3],
+    # [7, 8, 5]]    
     # init is a shallow copy
-    C = Array(B) 
+    C = Array(B)    
     print C.formated()
+    #[[1, 1, 1],
+    # [4, 4, 3],
+    # [7, 8, 5]]         
     print C == B
     # True    
     print C is B
     # False
-    print C.data is B.data
+    print list(C) is list(B)
     # False
-    print C.data[0] is B.data[0]
-    # True
     print C[0] is B[0]
     # True
     
     C = Array([B]) 
     print C.formated()
+    #[[[1, 1, 1],
+    #  [4, 4, 3],
+    #  [7, 8, 5]]]    
     print C[0] is B
     # True
     print C[0,0] is B[0]   
@@ -2482,6 +2730,9 @@ def _testArray() :
     #shallow copy
     C = B.copy()
     print C.formated()
+    #[[[1, 1, 1],
+    #  [4, 4, 3],
+    #  [7, 8, 5]]]       
     print C == B
     # True     
     print C is B
@@ -2492,6 +2743,9 @@ def _testArray() :
     #deep copy   
     C = B.deepcopy()
     print C.formated()
+    #[[[1, 1, 1],
+    #  [4, 4, 3],
+    #  [7, 8, 5]]]       
     print C == B
     # True     
     print C is B
@@ -3634,11 +3888,31 @@ def _testMatrix() :
     print "end tests Matrix"
     
 def _testVector() :
-    
+ 
+    U = Vector()
+    print "U = Vector()"
+    print repr(U)
+    # Vector([]) 
+    U = Vector(1)
+    print "U = Vector(1)"
+    print repr(U)
+    # Vector([1])
+    U = Vector(1, 2)
+    print "U = Vector(1, 2)"
+    print repr(U)
+    # Vector([1, 2])          
     U = Vector(1, 2, 3)
     print "U = Vector(1, 2, 3)"
-    print U
-    # [1, 2, 3]
+    print repr(U)
+    # Vector([1, 2, 3])
+    # should fail
+    print "V = Vector([[1, 2], [3, 4]])"    
+    try :
+        V = Vector([[1, 2], [3, 4]])
+    except :
+        print "Will raise ValueError: cannot initialize a Vector of shape (4,) from [[1, 2], [3, 4]], some data would be lost" 
+        
+        
     M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])
     print "M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])"
     print M.formated()
@@ -3650,6 +3924,10 @@ def _testVector() :
     V = U*M[:3, :3]
     print V
     # [3.47, 4.47, 1.38]
+    print "V = U*M"
+    V = U*M
+    print V
+    # [3.47, 4.47, 1.38]    
     print U*V
     # 16.55
     N = U^V
@@ -3696,9 +3974,13 @@ def _testVector() :
         
     print "end tests Vector"
     
+def _test():
+    import doctest
+    doctest.testmod()
     
 
 if __name__ == '__main__' :
+    # _test()
     _testArray()   
     _testMatrix()
     _testVector()
