@@ -135,34 +135,145 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
         print "slots", newcls.__slots__
         return newcls  
 
+
+# conversion to MVector or a base class of MVector if not possible
+def vectorOrArray(value) :
+    value = MVector._convert(value)
+    
+    return value
+
+# same with MMatrix
+def matrixOrArray(value) :
+    value = MMatrix._convert(value)
+    
+    return value
+
+# generic math function that can operate on Arrays herited from arrays
+# (min, max, sum, prod...)
+
+# Array specific functions that can be overloaded from arrays when a faster api method exists
+
+def sqlength(a, axis=None):
+    """ sqlength(a, axis) --> numeric or Array
+        Returns square length of a, a*a or the sum of x*x for x in a if a is an iterable of numeric values.
+        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
+    a = vectorOrArray(a)
+    if isinstance(a, MVector) :
+        # axis not used but this catches invalid axis errors
+        # only valid axis for Vector is (0,)
+        if axis is not None :
+            try :
+                axis = a._getaxis(axis, fill=True)
+            except :
+                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+        return a.sqlength()
+    elif isinstance(a, Array) :
+        axis = a._getaxis(axis, fill=True)
+        return a.sqlength(*axis)
+    else :
+        raise NotImplemented, "sqLength not implemented for %s" % (util.clsname(a))  
+
+
+#def length(a, axis=None):
+#    """ length(a, axis) --> numeric or Array
+#        Returns length of a, sqrt(a*a) or the square root of the sum of x*x for x in a if a is an iterable of numeric values.
+#        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
+#    a = vectorOrArray(a)
+#    if isinstance(a, Vector) :
+#        # axis not used but this catches invalid axis errors
+#        # only valid axis for Vector is (0,)
+#        if axis is not None :
+#            try :
+#                axis = a._getaxis(axis, fill=True)
+#            except :
+#                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+#        return a.length()
+#    elif isinstance(a, Array) :
+#        axis = a._getaxis(axis, fill=True)
+#        return a.length(*axis)
+#    else :
+#        raise NotImplemented, "sqlength not implemented for %s" % (util.clsname(a))       
+
+def normal(a, axis=None): 
+    """ normal(a, axis) --> Array
+        Return a normalized copy of self: self/length(self, axis) """
+    if isinstance(a, MVector) :
+        if axis :
+            raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)        
+        return a.normal()  
+    else :
+        return arrays.normal(a, axis)
+    
+def dist(a, b, axis=None):
+    """ dist(a, b, axis) --> float or Array
+         Returns the distance between a and b, the length of b-a """
+    if isinstance(a, MVector) and isinstance(b, MVector) :
+        if axis :
+            raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)        
+        return a.distanceTo(b)  
+    else :
+        return arrays.dist(a, b, axis)
+
 # functions on MVectors
 
+def angle(u, v):
+    """ angle(u, v) --> float
+        Returns the angle of rotation between u and v """    
+    u = MVector._convert(u)
+    u = MVector._convert(v)
+    return u.angle(v)
+
 def axis(u, v, normalize=False):
-    """ axis(u, v[, normalize=False]) --> MVector
+    """ axis(u, v[, normalize=False]) --> Vector
         Returns the axis of rotation from u to v as the vector n = u ^ v
-        if the normalize keyword argument is set to True, n is also normalized """    
-    assert isinstance(u, MVector) and isinstance(v, MVector), "%r or %r is not a MVector instance" % (u, v)
-    if normalize :
-        return (self ^ other).normal()
-    else :
-        return self ^ other
+        if the normalize keyword argument is set to True, n is also normalized """ 
+    u = MVector._convert(u)
+    u = MVector._convert(v)
+    return u.axis(v)
 
 def basis(u, v, normalize=False):
-    """ basis(u, v[, normalize=False]) --> MMatrix
-        Returns the basis MMatrix built using u, v and u^v as coordinate axis,
+    """ basis(u, v[, normalize=False]) --> Matrix
+        Returns the basis Matrix built using u, v and u^v as coordinate axis,
         The a, b, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
             n = u ^ v
             v = n ^ u
         if the normalize keyword argument is set to True, the vectors are also normalized """
-    assert isinstance(u, MVector) and isinstance(v, MVector), "%r or %r is not a MVector instance" % (u, v)    
-    if normalize :
-        u = u.normal()
-        n = u ^ v.normal()
-        v = n ^ u
+    return MMatrix(u, v, n).transpose()
+
+def cotan(a, b, c) :
+    """ cotan(a, b, c) :
+        cotangent of the (b-a), (c-a) angle, a, b, and c should be 3 dimensional vectors """
+    try :        
+        a = MVector(a)
+        b = MVector(b)
+        c = MVector(c)
+        return dot(c - b,a - b)/length(cross(c - b, a - b))  
+    except :
+        return arrays.cotan(a, b, c)
+    
+def cross(a, b, axis=None):
+    """ cross(a, b):
+        cross product of a and b, a and b should be 3 dimensional vectors  """
+    if isinstance(a, MVector) and isinstance(b, MVector) :      
+        return a.cross(b)
     else :
-        n = u ^ v
-        v = n ^ u
-    return MMatrix(u, v, n, mode='basis')
+        return arrays.cross(a, b)
+
+def dot(a, b):
+    """ dot(a, b):
+        dot product of a and b, a and b should be MVector or iterables of numeric values """
+    if isinstance(a, MVector) and isinstance(b, MVector) :       
+        return a.dot(b)
+    else :
+        return arrays.dot(a, b)
+
+def outer(a, b):
+    """ outer(a, b) :
+        outer product of vectors a and b """
+    if isinstance(a, MVector) and isinstance(b, MVector) :       
+        return MMatrix([b*x for x in a])
+    else :
+        return arrays.outer(a, b)
                
 class MVector(Vector) :
     """ A 3 dimensional vector class that wraps Maya's api MVector class,
@@ -456,17 +567,16 @@ class MVector(Vector) :
         try :
             return bool(self.apicls.isParallel(MVector(self), MVector(other), tol))
         except :
-            raise TypeError, "%r is not convertible to a MVector, or tolerance %r is not convertible to a number, check help(MVector)" % (other, tol) 
+            return super(MVector, self).isParallel(other, tol)
     def distanceTo(self, other):
-        nself, nother = coerce(self, other)
         try :
-            return self.apicls.distanceTo(nself, nother)
+            return MPoint.apicls.distanceTo(MPoint(self), MPoint(other))
         except :
             return super(MVector, self).dist(other)
     def length(self):
         """ Return the length of the vector """
         return self.apicls.length(self)
-    def sqLength(self):
+    def sqlength(self):
         """ Return the square length of the vector """
         return self.dot(self)    
 #   sum herited from api class        
@@ -508,7 +618,7 @@ class MVector(Vector) :
         else :
             return self.__class__._convert(super(MVector, self).transformAsNormal(other))
         
-    # additional methods
+    # additional methods, work on MVector
     def dot(self, other):
         """ dot product of two vectors """
         if isinstance(other, MVector) :
@@ -521,31 +631,28 @@ class MVector(Vector) :
             return self.__class__._convert(_api.MVector.__xor__(MVector(self), MVector(other)))
         else :
             return self.__class__._convert(super(MVector, self).cross(other))              
-
-    # functions as methods
     def axis(self, other, normalize=False):
         """ Returns the axis of rotation from u to v as the vector n = u ^ v
             if the normalize keyword argument is set to True, n is also normalized """
-        return axis(self, other, normalize)               
+        if isinstance(other, MVector) :
+            return self.__class__._convert(_api.MVector.__xor__(MVector(self), MVector(other)))
+        else :
+            return self.__class__._convert(super(MVector, self).axis(other)) 
+    def angle(self, other):
+        """ angle between two vectors """
+        if isinstance(other, MVector) :
+            return _api.MVector.angle(MVector(self), MVector(other))
+        else :
+            return super(MVector, self).angle(other)                           
     def basis(self, other, normalize=False): 
         """ Returns the basis MMatrix built using u, v and u^v as coordinate axis,
             The u, v, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
                 n = u ^ v
                 v = n ^ u
             if the normalize keyword argument is set to True, the vectors are also normalized """
-        return basis(self, other, normalize)
-    def cotan(self, other):
-        """ cotangent of the (self, other) angle """
-        return cotan(self, other)  
-    def blend(self, other, blend=0.5):
-        """ u.blend(v, blend) returns the result of blending from MVector instance u to v according to
-            either a scalar blend where it yields u*(1-blend) + v*blend MVector,
-            or a an iterable of up to 3 (x, y, z) independent blend factors """ 
-        return blend(self, other, blend)        
-    def clamp(self, low=0.0, high=1.0):
-        """ u.clamp(low, high) returns the result of clamping each component of u between low and high if low and high are scalars, 
-            or the corresponding components of low and high if low and high are sequences of scalars """
-        return clamp(self, low, high)
+        return MMatrix(super(MVector, self).basis(other))
+    # cotan, blend, clamp are derived from Vector class
+
            
 class MPoint(MVector, _api.MPoint):
     apicls = _api.MPoint
@@ -899,6 +1006,31 @@ class MColor(MPoint):
 # mm(3,2)
 # 3.0  
 
+# functions that work on Matrix
+
+def det(value):
+    if isinstance(value, Matrix) :
+        return value.det()
+    elif isNumeric(value) :
+        return value
+    else :
+        try :
+            value = Matrix(value)
+        except :
+            raise TypeError, "%s not convertible to Matrix" % (clsname(value))
+        return value.determinant()
+    
+def inv(value):
+    if isinstance(value, Matrix) :
+        return value.inverse()
+    elif isNumeric(value) :
+        return 1.0 / value
+    else :
+        try :
+            value = Matrix(value)
+        except :
+            raise TypeError, "%s not convertible to Matrix" % (clsname(value))
+        return value.inverse()
 
 class MMatrix(Matrix):
     """ A 4x4 transformation matrix based on api MMatrix 
@@ -1550,9 +1682,9 @@ def _testMVector() :
     print repr(2+u)
     # MVector([3.0, 2.0, 2.0])
     print repr(p+2)
-
+    # MPoint([3.0, 4.0, 5.0, 3.0])
     print repr(2+p)
-
+    # MPoint([3.0, 4.0, 5.0, 3.0])
     print repr(p + u)
     # MPoint([2.0, 2.0, 3.0, 1.0])
     print repr(Vector(1, 2, 3, 4) + u)
@@ -1560,15 +1692,47 @@ def _testMVector() :
     print repr([1, 2, 3] + u)
     # MVector([2.0, 2.0, 3.0])
     print repr([1, 2, 3] + p)
-            
-    print n.length()
-    # 4.58257569496
-    print n.sqlength()
+    # MPoint([2.0, 4.0, 6.0, 1.0])
+      
+    u = MVector(1, 2, 3)
+    print repr(u)
+    # MVector([1.0, 2.0, 3.0])
+    print u.length()
+    # 3.74165738677
+    print length(u)
+    # 3.74165738677
+    print length([1, 2, 3])
+    # 3.74165738677
+    print length(Vector(1, 2, 3))
+    # 3.74165738677
+    print Vector(1, 2, 3).length()
+    # 3.74165738677
+    print length(Vector(1, 2, 3, 4))
+    # 5.47722557505
+    print Vector(1, 2, 3, 4).length() 
+    # 5.47722557505
+    print length(1)
+    # 1.0
+    print length([1, 2])
+    
+    print length([1, 2, 3])
+    
+    print length([1, 2, 3, 4])
+    
+    print length([1, 2, 3, 4], 0)
+    
+    print length([1, 2, 3, 4], (0,))
+    
+    print length([[1, 2], [3, 4]], 1)
+    
+    print length([1, 2, 3, 4], 1)
+    
+    print u.sqlength()
     # 21
-    print repr(n.normal())
+    print repr(u.normal())
     # MVector([0.218217890236, 0.436435780472, 0.872871560944])
-    n.normalize()
-    print repr(n)
+    u.normalize()
+    print repr(u)
     # MVector([0.218217890236, 0.436435780472, 0.872871560944])
     
     w = u + [0.01, 0.01, 0.01]
@@ -1583,19 +1747,33 @@ def _testMVector() :
     print (u == MVector(1.0, 0.0, 0.0))
     # True
     print (u == MPoint(1.0, 0.0, 0.0))
-    print u.isEquivalent(w)
+    # False
     print u.isEquivalent([1.0, 0.0, 0.0])
+    # True
     print u.isEquivalent(MVector(1.0, 0.0, 0.0))
-    print u.isEquivalent(MPoint(1.0, 0.0, 0.0))    
+    
+    print u.isEquivalent(MPoint(1.0, 0.0, 0.0))   
+
+    print u.isEquivalent(w)
+    # False     
     print u.isEquivalent(w, 0.1)
+    # True
     print axis(u, v)
+    
     print angle(u,v)    
+    
     print cotan(u, v)
+    
     print u.rotateTo(v)
+    
     print u.distanceTo(v)
+    
     print u.isParallel(v)
+    
     print u.isParallel(2*u)
+    
     print u.basis(v)
+    
     print u.blend(v)
   
     # print MMatrix(2, shape=(3,))
