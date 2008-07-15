@@ -1630,7 +1630,7 @@ def _getPymelType(arg) :
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name')
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
@@ -2998,7 +2998,8 @@ class DependNode( PyNode ):
 
 class Entity(DependNode):
     __metaclass__ = MetaMayaNodeWrapper
-    
+    pass
+
 class DagNode(Entity):
     __metaclass__ = MetaMayaNodeWrapper
     def _updateName(self, long=False) :

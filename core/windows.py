@@ -63,7 +63,8 @@ except ImportError: pass
 
 import pymel.util as util
 import pymel.factories as _factories
-    
+from system import Path
+
 #-----------------------------------------------
 #  Enhanced UI Commands
 #-----------------------------------------------
@@ -129,23 +130,13 @@ class UI(unicode):
             >>> n.__repr__()
             # Result: Window('myWindow')
         """
-        def seekUpBases(test, cls):
-            ret = test(cls)
-            if ret:
-                return (ret, cls)
-            else:
-                for superCls in cls.__bases__:
-                    ret = seekUpBases(test, superCls)
-                    if ret:
-                        return ret
-                return None
-
-        if create:
-            ret = seekUpBases(lambda cls: getattr(_thisModule, util.uncapitalize(cls.__name__), None), cls)
-            if not ret:
-                raise "Could not find a UI creator function for class '%s'" % cls
-            createFunc = ret[0] 
-            name = createFunc(name, *args, **kwargs)
+        def exists():
+            try: return cls.__melcmd__(name, ex=1)
+            except: pass
+        
+        parent = kwargs.get( 'parent', kwargs.get('p', None))
+        if name is None or create or parent:
+            name = cls.__melcmd__()(name, *args, **kwargs)
         return unicode.__new__(cls,name)
     
     def __repr__(self):
@@ -226,6 +217,27 @@ class TextScrollList(UI):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
+class Callback(object):
+    """
+    Enables deferred function evaulation with 'baked' arguments.
+    Useful where lambdas won't work...
+    Example: 
+        def addRigger(rigger):
+            ...
+            
+        for rigger in riggers:
+            pm.menuItem(
+                label = "Add " + str(rigger),
+                c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
+    """
+
+    def __init__(self,func,*args,**kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+    def __call__(self,*args):
+        return self.func(*self.args,**self.kwargs)
+    
 class AutoLayout(FormLayout):
     """ 
     Automatically distributes child controls in either a
@@ -444,6 +456,7 @@ def _createClassesAndFunctions():
         func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
         if func:
             func.__module__ = __name__
+            #cls.__melcmd__ = func
             setattr( _thisModule, funcName, func )
         else:
             print "ui command not created", funcName
@@ -460,6 +473,100 @@ def _createClassesAndFunctions():
             
 _createClassesAndFunctions()
 
+def promptForFolder():
+    """ Prompt the user for a folder path """
+    
+    # a little trick that allows us to change the top-level 'folder' variable from 
+    # the nested function ('getfolder') - use a single-element list, and change its content
+    folder = [None]
+    def getfolder(*args):
+        folder[0] = args[0]
+    ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
+    folder = Path(folder[0])
+    if folder.exists():
+        return folder
+
+def promptForPath():
+    """ Prompt the user for a folder path """
+    
+    if cmds.about(linux=1):
+        return fileDialog(mode=0)
+    
+    else:
+        # a little trick that allows us to change the top-level 'folder' variable from 
+        # the nested function ('getfolder') - use a single-element list, and change its content
+        
+        folder = [None]
+        def getfolder(*args):
+            folder[0] = args[0]
+        ret = cmds.fileBrowserDialog(m=0, fc=getfolder, an="Get File")
+        folder = Path(folder[0])
+        if folder.exists():
+            return folder
+    
+def fileDialog(*args, **kwargs):
+    ret = cmds.fileDialog(*args, **kwargs )
+    if ret:
+        return Path( ret )
+
+
+def pathButtonGrp( name=None, *args, **kwargs ):
+    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
+        create = True
+    else:
+        create = False
+        
+    return PathButtonGrp( name=name, create=create, *args, **kwargs ) 
+
+class PathButtonGrp( TextFieldButtonGrp ):
+    def __new__(cls, name=None, create=False, *args, **kwargs):
+        
+        if create:
+            kwargs.pop('bl', None)
+            kwargs['buttonLabel'] = 'Browse'
+            kwargs.pop('bl', None)
+            kwargs['buttonLabel'] = 'Browse'
+            kwargs.pop('bc', None)
+            kwargs.pop('buttonCommand', None)
+
+            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
+            
+            def setPathCB(name):
+                f = promptForPath()
+                if f:
+                    cmds.textFieldButtonGrp( name, e=1, text=f)
+            
+            cb = Callback( setPathCB, name ) 
+            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
+            
+        return TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
+        
+     
+    def getPath(self):
+        return Path( self.getText() )
+    
+def vectorFieldGrp( *args, **kwargs ):
+    return VectorFieldGrp( *args, **kwargs ) 
+ 
+class VectorFieldGrp( FloatFieldGrp ):
+    def __new__(cls, name=None, create=False, *args, **kwargs):
+        if create:
+            kwargs.pop('nf', None)
+            kwargs['numberOfFields'] = 3
+            name = cmds.floatFieldGrp( name, *args, **kwargs)
+
+        return FloatFieldGrp.__new__( cls, name, create=False, *args, **kwargs )
+        
+    def getVector(self):
+        x = floatFieldGrp( self, q=1, v1=True )
+        y = floatFieldGrp( self, q=1, v2=True )
+        z = floatFieldGrp( self, q=1, v3=True )
+        return Vector( [x,y,z] )
+    
+    def setVector(self, vec):
+        floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
+        
+        return Vector( [x,y,z] )
 
 
 def PyUI(strObj, type=None):

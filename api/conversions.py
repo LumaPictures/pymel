@@ -59,17 +59,35 @@ class ApiDocParser(HTMLParser):
         # ['kTangentGlobal', 'kTangentFixed', 'kTangentLinear', 'kTangentFlat', 'kTangentSmooth', 'kTangentStep', 'kTangentSlow', 'kTangentFast', 'kTangentClamped', 'kTangentPlateau', 'kTangentStepNext']
         # to:
         # ['Global', 'Fixed', 'Linear', 'Flat', 'Smooth', 'Step', 'Slow', 'Fast', 'Clamped', 'Plateau', 'StepNext']
- 
+        from keyword import iskeyword as _iskeyword
         for enumName, enumList in self.enums.items():
-            splitEnums = [ [ y for y in re.split( '([A-Z][a-z0-9]+)', x ) if y ] for x in enumList ]
-            splitEnumsCopy = splitEnums[:]
-            for partList in zip( *splitEnumsCopy ):
-                if  tuple([partList[0]]*len(partList)) == partList:
-                    [ x.pop(0) for x in splitEnums ]
-            joinedEnums = [ util.uncapitalize(''.join(x)) for x in splitEnums]
-            print joinedEnums
-            pymelEnums[enumName] = joinedEnums
-
+            if len(enumList) > 1:
+                splitEnums = [ [ y for y in re.split( '([A-Z][a-z0-9]*)', x ) if y ] for x in enumList ]
+                splitEnumsCopy = splitEnums[:]
+                for partList in zip( *splitEnumsCopy ):
+                    if  tuple([partList[0]]*len(partList)) == partList:
+                        [ x.pop(0) for x in splitEnums ]
+                    else: break
+                joinedEnums = [ util.uncapitalize(''.join(x)) for x in splitEnums]
+                for i, enum in enumerate(joinedEnums):
+                    if _iskeyword(enum):
+                        joinedEnums[i] = enum+'_'
+                        print "enums", enumName
+                        print joinedEnums
+                        print enumList
+                        break
+                    
+                #joinedEnums = [ ''.join(x) for x in splitEnums]
+#                for enum in joinedEnums:
+#                    if enum in ['None' , 'True', 'False']:
+#                        print "enums", enumName
+#                        print joinedEnums
+#                        print enumList
+#                        break
+                
+                pymelEnums[enumName] = joinedEnums
+            else:
+                pymelEnums[enumName] = enumList
         # add the "pymelName" : 
         # api retrieval names are often named something like fooBar, while pymel retreival methods are getFooBar.
         allFnMembers = self.methods.keys()
@@ -384,8 +402,8 @@ class ApiDocParser(HTMLParser):
         try:     
             clsname, methodname, op, tempargs  = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+\s*([=!*/\-+\[\]])*)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
-            #pass
-            print "skipping comment", comment
+            pass
+            #print "skipping comment", comment
         else:
             #if methodname == self.functionSet:
             #    return

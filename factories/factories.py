@@ -1816,8 +1816,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
         newName = methodInfoList[0].get('pymelName',None)
     
     for methodInfo in methodInfoList:
-
-        
+      
         #argInfo = methodInfo['argInfo']
         inArgs = methodInfo['inArgs']
         outArgs = methodInfo['outArgs']
@@ -1924,21 +1923,30 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 
                 try:
                     print "="*40, classname, apicls, "="*40
-                    for methodName in _api.apiClassInfo[apicls.__name__]['methods'].keys():                  
+                    classInfo = _api.apiClassInfo[apicls.__name__]
+                except KeyError:
+                    print "No api information for api class %s for node %s" % ( apicls.__name__, nodeType )
+                else:
+                    for methodName in classInfo['methods'].keys():                  
                         #TODO : check pymelName
-                        if True : #methodName not in classdict:
+                        if methodName not in classdict:
                             method = wrapApiMethod( apicls, methodName )
                             if method:
                                 #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
                                 classdict[method.__name__] = method
                                 
-                except KeyError:
-                    print "No api information for api class %s for node %s" % ( apicls.__name__, nodeType )
+                    try:      
+                        for enumName, enumList in classInfo['pymelEnums'].items():
+                            Enum = util.namedtuple( enumName, enumList )
+                            classdict[enumName] = Enum( *range(len(enumList)) )
+                    except KeyError:
+                        pass       
+
         except KeyError:
             pass
 
         
-        #return super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+#        #return super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
       
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)

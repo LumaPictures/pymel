@@ -234,7 +234,7 @@ class metaReadOnlyAttr(type) :
         return newcls                     
 
     
-def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None ):
+def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[] ):
     """this function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
     will breaking hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
@@ -266,7 +266,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None ):
     else:
         raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'
           
-    remove = ('__new__', '__init__', '__getattribute__', '__getattr__')
+    remove = ['__new__', '__init__', '__getattribute__', '__getattr__'] + remove
     class Proxy(object):
         pass
         #def __init__(self, data):
