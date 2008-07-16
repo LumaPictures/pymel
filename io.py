@@ -38,17 +38,15 @@ def _getTypeFromExtension( path ):
 	}[core.Path(path).ext]
 
 
+       
 
-		
-
-def listNamespaces():
-	"""Returns a list of the namespaces of referenced files.
-	REMOVE In Favor of listReferences('dict') ?""" 
-	try:
-		return [ cmds.file( x, q=1, namespace=1) for x in cmds.file( q=1, reference=1)  ]
-	except:
-		return []
-
+def listNamespaces(all=False):
+    """Returns a list of the namespaces in the scene""" 
+    ns = cmds.namespaceInfo(listOnlyNamespaces=True)
+    if not all:
+        ns = sorted(set(ns) - set(["UI","shared"]))
+    
+    return ns
 
 
 
