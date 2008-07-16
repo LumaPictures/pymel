@@ -47,6 +47,8 @@ class ApiDocParser(HTMLParser):
         f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
         self.feed( f.read() )
         f.close()
+        
+        self.processData()
         #for method, methodInfo in self.methods.items():
         #    print method
         #    for methodOption in methodInfo:
@@ -189,9 +191,7 @@ class ApiDocParser(HTMLParser):
                 #print data
             #elif 'Protected' in data:
             #    print "data1", data
-
-    
-    def handle_comment(self, comment ):
+    def processData(self):
         def handleEnums( type ):
             missingTypes = ['MUint64']
             otherTypes = ['void', 'char',
@@ -218,9 +218,6 @@ class ApiDocParser(HTMLParser):
                     if self.verbose: print "Suspected Bad Enum:", type
                 
             return type
-                                
-        comment = comment.lstrip().rstrip()
-        comment = comment.replace( '&amp;', '' ) # does not affect how we pass
         if self.currentMethod is not None:
             if self.verbose: print self.currentMethod
             
@@ -402,19 +399,25 @@ class ApiDocParser(HTMLParser):
             self.data = []
             self.parameters = []
             self.returnType = []
-            
+    
+    def handle_comment(self, comment ):
+                                
+        comment = comment.lstrip().rstrip()
+        comment = comment.replace( '&amp;', '' ) # does not affect how we pass
+        self.processData()
+        print comment    
         try:     
             clsname, methodname, op, tempargs  = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+\s*([=!*/\-+\[\]])*)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
             pass
-            #print "skipping comment", comment
+            if self.verbose: print "failed regex: ", comment
         else:
             #if methodname == self.functionSet:
             #    return
             
             #print "METHOD", methodname
             if self.grouping != 'Member Function Documentation':
-                #print "skipping function: %s (%s)" % ( methodname, self.grouping )
+                if self.verbose: print "not a member function: %s (%s)" % ( methodname, self.grouping )
                 self.currentMethod = None
                 return
             
@@ -442,7 +445,9 @@ class ApiDocParser(HTMLParser):
 #                            info['pymelName'] = pymelName 
 #                    else:
 #                        print "could not determine pymelName for operator %s" % op
+            if self.verbose: print "new method", methodname
             self.currentMethod = methodname
+            
             
 def getMFnInfo( functionSet ):
     parser = ApiDocParser(functionSet )
