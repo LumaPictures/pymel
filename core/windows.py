@@ -119,7 +119,7 @@ def getPanel(*args, **kwargs):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-metaNode = _factories.metaNode
+metaNode = _factories.MetaMayaNodeWrapper
 
 class UI(unicode):
     def __new__(cls, name=None, create=False, *args, **kwargs):
