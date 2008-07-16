@@ -2025,7 +2025,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
             
         return newcls 
     
-class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
+class MetaMayaNodeWrapper2(MetaMayaTypeWrapper) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
     based on info parsed from the docs on their command counterparts.
@@ -2042,7 +2042,7 @@ class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
         return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
 
-class metaNode(type) :
+class MetaMayaNodeWrapper(type) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
     based on info parsed from the docs on their command counterparts.
@@ -2057,24 +2057,24 @@ class metaNode(type) :
         _api.addMayaType( nodeType )
   
 
-        #-------------------------
-        #   API Methods
-        #-------------------------
-        apiClass = _api.toApiFunctionSet( nodeType )
-        #if nodeType == 'transform': print 'TRANSFORM', apiClass
-        if apiClass:
-            classdict['__apimfnclass__'] = apiClass
-            print "="*60, nodeType, "="*60
-            try:
-                for methodName in _api.apiClassInfo[apiClass.__name__]['methods'].keys():
-                    
-                    method = wrapApiMethod( apiClass, methodName )
-                    if method:
-                        #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
-                        classdict[method.__name__] = method
-            except KeyError:
-                print "No api information for api class %s for node %s" % ( apiClass.__name__, nodeType )
-        #else: print "%s: NO API TYPE" % nodeType
+#        #-------------------------
+#        #   API Methods
+#        #-------------------------
+#        apiClass = _api.toApiFunctionSet( nodeType )
+#        #if nodeType == 'transform': print 'TRANSFORM', apiClass
+#        if apiClass:
+#            classdict['__apimfnclass__'] = apiClass
+#            print "="*60, nodeType, "="*60
+#            try:
+#                for methodName in _api.apiClassInfo[apiClass.__name__]['methods'].keys():
+#                    
+#                    method = wrapApiMethod( apiClass, methodName )
+#                    if method:
+#                        #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+#                        classdict[method.__name__] = method
+#            except KeyError:
+#                print "No api information for api class %s for node %s" % ( apiClass.__name__, nodeType )
+#        #else: print "%s: NO API TYPE" % nodeType
 
         #-------------------------
         #   MEL Methods
@@ -2154,7 +2154,7 @@ class metaNode(type) :
                     
 
             
-        return super(metaNode, cls).__new__(cls, classname, bases, classdict)
+        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
     
 def getValidApiMethods( apiClassName, api, verbose=False ):
@@ -2187,9 +2187,9 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
                         validMethods.append(method)
     return validMethods
 
-def analyzeApiClass( apiTypeStr, apiTypeParentStr, api ):
+def analyzeApiClass( apiTypeStr, apiTypeParentStr ):
     try:
-        mayaType = api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
+        mayaType = _api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
         if util.isIterable(mayaType) and len(mayaType) == 1:
             mayaType = mayaType[0]
             pymelType = PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
@@ -2201,7 +2201,7 @@ def analyzeApiClass( apiTypeStr, apiTypeParentStr, api ):
         #print "no Fn", elem.key, pymelType
 
     try:
-        apiClass = api.ApiTypesToApiClasses()[ apiTypeStr ]
+        apiClass = _api.ApiTypesToApiClasses()[ apiTypeStr ]
     except KeyError:
         pass
         #print "no Fn", elem.key
@@ -2221,37 +2221,45 @@ def analyzeApiClass( apiTypeStr, apiTypeParentStr, api ):
             parentPymelType = PyNodeTypesHierarchy()[ pymelType ]
             parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
             pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers ])
+            
             print apiClass.__name__, mayaType, pymelType
-            allFnMembers = [ x[0] for x in inspect.getmembers( apiClass, callable ) if x[0] not in parentMembers ]
-            validFnMembers = getValidApiMethods(apiClass.__name__)
-            # convert from api convention to pymel convention
-            origGetMethods = {}
-            for i, member in enumerate(allFnMembers):
-                if len(member) > 4 and member.startswith('set') and member[3].isupper():
-                    # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
-                    # 'setSomething'  -->  'something'
-                    origGetMethod = member[3].lower() + member[4:]
-                    if origGetMethod in allFnMembers:
-                        newGetMethod = 'get' + member[3:]
-                        try:
-                            idx = validFnMembers.index( origGetMethod ) 
-                            validFnMembers[idx] = newGetMethod
-                        except: pass
-                        
-                        idx = allFnMembers.index( origGetMethod ) 
-                        allFnMembers[idx] = newGetMethod
-                        
-                        origGetMethods[ newGetMethod ] = origGetMethod
+            parentApiClass = inspect.getmro( apiClass )[1]
+            #print parentApiClass
+            pymelMethodNames = _api.apiClassInfo[apiClass.__name__]['pymelMethods']
+            allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
+            parentFnMembers = set([ x[0] for x in inspect.getmembers( parentApiClass, callable ) ])
+            fnMembers = allFnMembers.difference( parentFnMembers )
+#            validFnMembers = getValidApiMethods(apiClass.__name__)
+#            # convert from api convention to pymel convention
+#            origGetMethods = {}
+#            for i, member in enumerate(allFnMembers):
+#                if len(member) > 4 and member.startswith('set') and member[3].isupper():
+#                    # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+#                    # 'setSomething'  -->  'something'
+#                    origGetMethod = member[3].lower() + member[4:]
+#                    if origGetMethod in allFnMembers:
+#                        newGetMethod = 'get' + member[3:]
+#                        try:
+#                            idx = validFnMembers.index( origGetMethod ) 
+#                            validFnMembers[idx] = newGetMethod
+#                        except: pass
+#                        
+#                        idx = allFnMembers.index( origGetMethod ) 
+#                        allFnMembers[idx] = newGetMethod
+#                        
+#                        origGetMethods[ newGetMethod ] = origGetMethod
+#            
+#            validFnMembers = set(validFnMembers)
+#            invalidFnMembers = set(allFnMembers).difference(validFnMembers)
             
-            validFnMembers = set(validFnMembers)
-            invalidFnMembers = set(allFnMembers).difference(validFnMembers)
-            
-            print "    [shared]"
-            for x in sorted( validFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
-            print "    [potential shared]"
-            for x in sorted( invalidFnMembers.intersection( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )          
+            sharedCurrent = fnMembers.intersection( pyMembers )
+            sharedOnAll = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
+            print "    [shared (leaf)]"
+            for x in sorted( sharedCurrent ): print '    ', x   
+            print "    [shared (all parents)]"
+            for x in sorted( sharedOnAll ): print '    ', x    
             print "    [api]"
-            for x in sorted( validFnMembers.difference( pyMembers ) ): print '    ', x, origGetMethods.get( x, '' )
+            for x in sorted( fnMembers.difference( pyMembers ) ): print '    ', x
             print "    [pymel]"
             for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
             

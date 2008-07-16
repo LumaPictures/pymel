@@ -91,6 +91,7 @@ class ApiDocParser(HTMLParser):
         # add the "pymelName" : 
         # api retrieval names are often named something like fooBar, while pymel retreival methods are getFooBar.
         allFnMembers = self.methods.keys()
+        pymelNames = {}
         for member in allFnMembers:
             if len(member) > 4 and member.startswith('set') and member[3].isupper():
                 # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
@@ -98,12 +99,15 @@ class ApiDocParser(HTMLParser):
                 origGetMethod = member[3].lower() + member[4:]
                 if origGetMethod in allFnMembers:
                     newGetMethod = 'get' + member[3:]
+                    pymelNames[origGetMethod] = newGetMethod
                     for info in self.methods[origGetMethod]:
                         info['pymelName'] = newGetMethod 
                         
         return { 'methods' : dict(self.methods), 
                  'enums' : dict(self.enums),
-                 'pymelEnums' : pymelEnums }
+                 'pymelEnums' : pymelEnums,
+                 'pymelMethods' :  pymelNames
+                }
               
     def __init__(self, functionSet, version='2009', verbose=False ):
         self.cmdList = []
