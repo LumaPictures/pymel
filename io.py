@@ -40,13 +40,27 @@ def _getTypeFromExtension( path ):
 
        
 
-def listNamespaces(all=False):
+def listNamespaces(internal=False, recursive=False):
     """Returns a list of the namespaces in the scene""" 
-    ns = cmds.namespaceInfo(listOnlyNamespaces=True)
-    if not all:
-        ns = sorted(set(ns) - set(["UI","shared"]))
+    namespaces = cmds.namespaceInfo(listOnlyNamespaces=True)
+    if not namespaces:
+        return []
     
-    return ns
+    if not internal:
+        namespaces = sorted(set(namespaces) - set(["UI","shared"]))
+        
+    if recursive:
+        curNS = cmds.namespaceInfo(cur=True)
+        childNamespaces = []
+        for ns in namespaces:
+            try:
+                cmds.namespace(set=":"+ns)
+                childNamespaces.extend(listNamespaces(recursive=True))
+            except: pass
+        namespaces.extend(childNamespaces)
+        cmds.namespace(set=":"+curNS)
+    
+    return namespaces
 
 
 
