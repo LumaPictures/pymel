@@ -658,7 +658,7 @@ Modifications:
         for destination, source in source.inputs( connections=True, plugs=True ):
             cmds.disconnectAttr( source, destination, **kwargs )    
         
-def getAttr( attr, **kwargs ):
+def getAttr( attr, default=None, **kwargs ):
     """
 Maya Bug Fix:
     - maya pointlessly returned vector results as a tuple wrapped in 
@@ -669,6 +669,7 @@ Modifications:
     - casts vectorArrays from a flat array of floats to an array of Vectors
     - when getting a multi-attr, maya would raise an error, but pymel will return a list of
          values for the multi-attr
+    - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
     """
     def listToMat( l ):
         return Matrix(
@@ -707,11 +708,16 @@ Modifications:
     
     # perhaps it errored because it's a multi attribute
     except RuntimeError, msg:
-        attr = Attribute(attr)
-        if attr.isMulti():
-            return [attr[i].get() for i in range(attr.size())]
-        raise RuntimeError, msg
-
+        try:
+            attr = Attribute(attr)
+            if attr.isMulti():
+                return [attr[i].get() for i in range(attr.size())]
+            raise RuntimeError, msg
+        except AttributeError, msg:
+            if default is not None:
+                return default
+            else:
+                raise AttributeError, msg
 
     
 # getting and setting                    
@@ -921,7 +927,7 @@ def hasAttr( pyObj, attr ):
     if not isinstance( pyObj, PyNode ):
         raise TypeError, "hasAttr requires a PyNode instance and a string"
     try:
-        getattr( pyObj, attr )
+        pyObj.attr(attr)
         return True
     except AttributeError: pass
     return False
@@ -1067,7 +1073,11 @@ Modifications:
             res.append( PyNode( tmp[i] ) )
             res.append( tmp[i+1] )
         return res    
-        
+    
+    if kwargs.get( 'nodeTypes', kwargs.get('nt', False) ):
+        # when readOnly is provided showType is ignored
+        return cmds.ls(*args, **kwargs)   
+    
 #    kwargs['showType'] = True
 #    tmp = util.listForNone(cmds.ls(*args, **kwargs))
 #    res = []
@@ -1111,17 +1121,6 @@ Modifications:
         
         return res
     '''
-    
-def lsThroughFilter( *args, **kwargs):
-    """
-Modifications:
-    - returns an empty list when the result is None
-    - returns wrapped classes
-    """
-    return map(PyNode, util.listForNone(cmds.lsThroughFilter(*args, **kwargs)))
-
-    #for i in cmds.ls(*args, **kwargs):
-    #    yield PyNode(i)
 
 def listTransforms( *args, **kwargs ):
     """
@@ -1130,15 +1129,9 @@ Modifications:
     """
 
     res = cmds.listRelatives(  cmds.ls(*args, **kwargs), p=1, path=1 )
-    return map( PyNode, res, ['transform']*len(res) )
+    return map( PyNode, res ) #, ['transform']*len(res) )
 
-def listAnimatable( *args, **kwargs ):
-    """
-Modifications:
-    - returns an empty list when the result is None
-    - returns wrapped classes
-    """
-    return map( Attribute, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
+
     
 #-----------------------
 #  Objects
@@ -1748,6 +1741,10 @@ class PyNode(ProxyUnicode):
         else :
             raise TypeError, "Cannot make a %s out of a %r object" % (cls.__name__, pymelType)   
 
+    def __init__(self, *args, **kwargs):
+        """this  prevents the api class which is the second base, from being automatically instantiated."""
+        pass
+    
     def __radd__(self, other):
         if isinstance(other, basestring):
             return other.__add__( self.name() )
@@ -1837,6 +1834,7 @@ _factories.ApiTypeRegister.register('MObject', PyNode, inCast=lambda x: PyNode(x
 _factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=lambda x: PyNode(x).__apimdagpath__() )
 _factories.ApiTypeRegister.register('MPlug', PyNode, inCast=lambda x: PyNode(x).__apimplug__() )
                     
+from animation import listAnimatable as _listAnimatable
 
 class ComponentArray(object):
     def __init__(self, name):
@@ -2671,6 +2669,7 @@ class DependNode( PyNode ):
                     return self._apimfn
                 except KeyError:
                     pass
+
     """
     def __init__(self, *args, **kwargs) :
         if args :
@@ -2710,7 +2709,7 @@ class DependNode( PyNode ):
         else:
             try:
                 return self.__apiobject__() == PyNode(other).__apiobject__()
-            except ValueError: # could not cast to PyNode
+            except (ValueError,TypeError): # could not cast to PyNode
                 return False
        
     def __ne__(self, other):
@@ -2719,7 +2718,7 @@ class DependNode( PyNode ):
         else:
             try:
                 return self.__apiobject__() != PyNode(other).__apiobject__()
-            except ValueError: # could not cast to PyNode
+            except (ValueError,TypeError): # could not cast to PyNode
                 return False
     
     def __getattr__(self, attr):
@@ -2751,8 +2750,8 @@ class DependNode( PyNode ):
         #return Attribute( '%s.%s' % (self, attr) )
         try :
             return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
-        except RunTimeError:
-            raise AttributeError, "%r has no attribute %r" % ( self, attr )
+        except RuntimeError:
+            raise AttributeError, "Maya node %r has no attribute %r" % ( self, attr )
         
         # if attr.startswith('__') and attr.endswith('__'):
         #     return super(PyNode, self).__setattr__(attr, val)        
@@ -2913,20 +2912,20 @@ class DependNode( PyNode ):
     #    Attributes
     #--------------------------        
     def hasAttr( self, attr):
-        return self.attr(attr).exists()
         try : 
-            return self.attr(attr).exists()
-        except :
+            self.attr(attr)
+            return True
+        except AttributeError:
             return False
                     
     def setAttr( self, attr, *args, **kwargs):
-        return self.attr(attr).set( *args, **kwargs )
+        return setAttr( self.attr(attr), *args, **kwargs )
             
-    def getAttr( self, attr, **kwargs ):
-        return self.attr(attr).get( **kwargs )
+    def getAttr( self, attr, *args, **kwargs ):
+        return getAttr( self.attr(attr), *args,  **kwargs )
 
     def addAttr( self, attr, **kwargs):        
-        return self.attr(attr).add( **kwargs )
+        return addAttr( self.attr(attr), **kwargs )
             
     def connectAttr( self, attr, *args, **kwargs ):
         return cmds.attr(attr).connect( *args, **kwargs )
@@ -2938,7 +2937,7 @@ class DependNode( PyNode ):
             for destination in self.outputs( plugs=True ):
                 cmds.disconnectAttr( "%s.%s" % (self, source), destination, **kwargs )
                     
-    listAnimatable = listAnimatable
+    listAnimatable = _listAnimatable
 
     def listAttr( self, **kwargs):
         "listAttr"
@@ -3875,47 +3874,47 @@ class ObjectSet(Entity):
     def flatten(self):
         return sets( flatten=self )
     
-    #-----------------------
-    # Python ObjectSet Methods
-    #-----------------------
-    def __and__(self, s):
-        return self.intersection(s)
-
-    def __iand__(self, s):
-        return self.intersection_update(s)
-                    
-    def __contains__(self, element):
-        return element in self._elements()
-
-    #def __eq__(self, s):
-    #    return s == self._elements()
-
-    #def __ne__(self, s):
-    #    return s != self._elements()
-            
-    def __or__(self, s):
-        return self.union(s)
-
-    def __ior__(self, s):
-        return self.update(s)
-                                    
-    def __len__(self, s):
-        return len(self._elements())
-
-    def __lt__(self, s):
-        return self.issubset(s)
-
-    def __gt__(self, s):
-        return self.issuperset(s)
-                    
-    def __sub__(self, s):
-        return self.difference(s)
-
-    def __isub__(self, s):
-        return self.difference_update(s)                        
-
-    def __xor__(self, s):
-        return self.symmetric_difference(s)
+#    #-----------------------
+#    # Python ObjectSet Methods
+#    #-----------------------
+#    def __and__(self, s):
+#        return self.intersection(s)
+#
+#    def __iand__(self, s):
+#        return self.intersection_update(s)
+#                    
+#    def __contains__(self, element):
+#        return element in self._elements()
+#
+#    #def __eq__(self, s):
+#    #    return s == self._elements()
+#
+#    #def __ne__(self, s):
+#    #    return s != self._elements()
+#            
+#    def __or__(self, s):
+#        return self.union(s)
+#
+#    def __ior__(self, s):
+#        return self.update(s)
+#                                    
+#    def __len__(self, s):
+#        return len(self._elements())
+#
+#    def __lt__(self, s):
+#        return self.issubset(s)
+#
+#    def __gt__(self, s):
+#        return self.issuperset(s)
+#                    
+#    def __sub__(self, s):
+#        return self.difference(s)
+#
+#    def __isub__(self, s):
+#        return self.difference_update(s)                        
+#
+#    def __xor__(self, s):
+#        return self.symmetric_difference(s)
         
     def add(self, element):
         return sets( self, add=[element] )
@@ -4827,7 +4826,7 @@ def analyzeApiClasses():
             parent = elem.parent.key
         except:
             parent = None
-        _factories.analyzeApiClass( elem.key, None, api )
+        _factories.analyzeApiClass( elem.key, None )
         
 
 

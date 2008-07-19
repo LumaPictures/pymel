@@ -13,7 +13,7 @@ def shadingNode( *args, **kwargs):
     return general.PyNode( cmds.shadingNode( *args, **kwargs ) )
 
 def createSurfaceShader( shadertype, name=None ):
-    classification = getClassification( shadertype )
+    classification = general.getClassification( shadertype )
     #print classification
     
     newShader = None
@@ -30,7 +30,13 @@ def createSurfaceShader( shadertype, name=None ):
         sg = sg.rename( name + 'SG')
     return newShader, sg
 
-
+def lsThroughFilter( *args, **kwargs):
+    """
+Modifications:
+    - returns an empty list when the result is None
+    - returns wrapped classes
+    """
+    return map(general.PyNode, util.listForNone(cmds.lsThroughFilter(*args, **kwargs)))
 
 def pointLight(*args,**kwargs):
     """

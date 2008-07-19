@@ -486,7 +486,12 @@ class FileReference(Path):
 
     def _getRefNode(self):
         #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
-        return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )   
+        # TODO : cast this to PyNode
+        try:
+            return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )
+        except:
+            return None
+        
     refNode = util.cacheProperty( _getRefNode, '_refNode')
     
     @add_docs('file', 'usingNamespaces')

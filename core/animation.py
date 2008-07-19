@@ -10,6 +10,13 @@ except ImportError:
     pass
 
 
+def listAnimatable( *args, **kwargs ):
+    """
+Modifications:
+    - returns an empty list when the result is None
+    - returns wrapped classes
+    """
+    return map( general.PyNode, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
 
 def joint(*args, **kwargs):
     """
