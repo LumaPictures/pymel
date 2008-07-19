@@ -1199,14 +1199,14 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     #   module = _thisModule
     if isinstance( funcNameOrObject, basestring ):
         funcName = funcNameOrObject
-        try:
+        try:       
             inFunc = getattr(module, funcName)
-            #if funcName in moduleCmds['windows']: print "function %s found in module %s: %s" % ( funcName, module.__name__, inFunc.__name__)
-
+            
         except AttributeError:
+            #if funcName == 'lsThroughFilter': print "function %s not found in module %s" % ( funcName, module.__name__)
             try:
                 inFunc = getattr(cmds,funcName)
-                #if funcName in moduleCmds['windows']: print "function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__)
+                #if funcName == 'lsThroughFilter': print "function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__)
             except AttributeError:
                 return
     else:
@@ -1920,12 +1920,11 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 if apicls not in bases:
                     #print "ADDING BASE",classdict['apicls']
                     bases = bases + (classdict['apicls'],)
-                
                 try:
                     print "="*40, classname, apicls, "="*40
                     classInfo = _api.apiClassInfo[apicls.__name__]
                 except KeyError:
-                    print "No api information for api class %s for node %s" % ( apicls.__name__, nodeType )
+                    print "No api information for api class %s" % ( apicls.__name__ )
                 else:
                     for methodName in classInfo['methods'].keys():                  
                         #TODO : check pymelName
@@ -1937,6 +1936,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                 
                     try:      
                         for enumName, enumList in classInfo['pymelEnums'].items():
+                            print "adding enum %s to class %s" % ( enumName, classname )
                             Enum = util.namedtuple( enumName, enumList )
                             classdict[enumName] = Enum( *range(len(enumList)) )
                     except KeyError:
@@ -2025,7 +2025,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
             
         return newcls 
     
-class MetaMayaNodeWrapper2(MetaMayaTypeWrapper) :
+class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
     based on info parsed from the docs on their command counterparts.
@@ -2037,12 +2037,13 @@ class MetaMayaNodeWrapper2(MetaMayaTypeWrapper) :
         nodeType = util.uncapitalize(classname)
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
-        classdict['apicls'] = apicls
+        if apicls is not None:
+            classdict['apicls'] = apicls
         #print "="*40, classname, apicls, "="*40
         return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
 
-class MetaMayaNodeWrapper(type) :
+class MetaMayaNodeWrapper2(type) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
     based on info parsed from the docs on their command counterparts.

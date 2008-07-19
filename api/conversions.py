@@ -405,7 +405,7 @@ class ApiDocParser(HTMLParser):
         comment = comment.lstrip().rstrip()
         comment = comment.replace( '&amp;', '' ) # does not affect how we pass
         self.processData()
-        print comment    
+        #print comment    
         try:     
             clsname, methodname, op, tempargs  = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+\s*([=!*/\-+\[\]])*)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
