@@ -4,7 +4,7 @@ from pymel.util.external.ply import *
 from pymel.util import unescape
 import pymel
 import pymel.util as util
-import pymel.mayahook.factories as factories
+import pymel.factories as factories
 import pymel.core.pmtypes.path as path
 
 tokens = mellex.tokens

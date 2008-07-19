@@ -15,7 +15,7 @@ from pymel.util.external.ply import *
 from pymel.util import unescape
 import pymel
 import pymel.util as util
-import pymel.mayahook.factories as factories
+import pymel.factories as factories
 import pymel.core.pmtypes.path as path
 import melscan
 
@@ -178,7 +178,7 @@ proc_remap = {
 		'catchQuiet'			: ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),	
 
 		# system
-		'system'				: ( 'int' ,   lambda x, t: ( 'os.system( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
+		'system'				: ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )' 	% (x[0]), t.lexer.imported_modules.add('commands') )[0] ),	
 		'exec'					: ( None ,   lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		'getenv'				: ( 'string', lambda x, t: ( 'os.environ[ %s ]' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		# NOTE : this differs from mel equiv bc it does not return a value
@@ -625,16 +625,15 @@ def format_command(command, args, t):
 		#print 'final kw list', kwargs
 		
 		# functions that clash with python keywords and ui functions must use the cmds namespace
-		# ui functions in pymel work in a very different, class-based way, so, by default we'll convert to the standard functions
 		if command in filteredCmds: # + uiCommands:
 			command = '%scmds.%s' % (t.lexer.pymel_namespace, command)
 		
-		# eval command is the same as using maya.mel.eval
-		if command == 'eval':
+		# eval command is the same as using maya.mel.eval.  special commands: error, warning, and trace
+		elif command == 'eval' or command in melCmdFlagList:
 			command = '%smel.%s' % (t.lexer.pymel_namespace, command)
 		
 		# ironically, the python command is a nightmare to convert to python and this is probably unsuccessful most of the time
-		if command == 'python':
+		elif command == 'python':
 			return 'eval(%s)' % args[0]
 			#args = map( lambda x: x.strip('"'), args[0].split(' + ') )
 			#return ''.join(args)
