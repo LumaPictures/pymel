@@ -11,6 +11,7 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 
 # TODO : try a numpy import and fallback to the included class if not successful ?
 
+# TODO : retrim should preserve sub-element identity, as of now it returns copies (resize / reshape should be checked as well
 
 import operator, itertools, copy, inspect, sys
 
@@ -66,7 +67,13 @@ def _toCompOrArrayInstance(value) :
     return value
 
 def _shapeInfo(value) :
+    shape, dim, size = None, None, None
     if isinstance(value, Array) :
+        shape = value.shape
+        dim = value.ndim
+        size = value.size       
+    elif hasattr(value, '__iter__') :
+        value = Array(value)
         shape = value.shape
         dim = value.ndim
         size = value.size        
@@ -74,7 +81,8 @@ def _shapeInfo(value) :
         shape = ()
         dim = 0
         size = 1
-    else:
+    
+    if shape is None :
         raise TypeError, "can only query shape information on Array or Array component (numeric), not %s" % (clsname(value))
     
     return shape, dim, size
@@ -281,7 +289,7 @@ def sqlength(a, axis=None):
         axis = a._getaxis(axis, fill=True)
         return a.sqlength(*axis)
     else :
-        raise NotImplemented, "sqlength not implemented for %s" % (util.clsname(a))     
+        raise NotImplemented, "sqlength not implemented for %s" % (clsname(a))     
 
 def length(a, axis=None):
     """ length(a, axis) --> numeric or Array
@@ -306,7 +314,7 @@ def normal(a, axis=None):
         axis = a._getaxis(axis, fill=True)
         return a.normal(*axis)
     else :
-        raise NotImplemented, "normal not implemented for %s" % (util.clsname(a))            
+        raise NotImplemented, "normal not implemented for %s" % (clsname(a))            
     
 def dist(a, b, axis=None):
     """ dist(a, b, axis) --> float or Array
@@ -325,7 +333,7 @@ def dist(a, b, axis=None):
         axis = a._getaxis(axis, fill=True)
         return a.dist(*axis)
     else :
-        raise NotImplemented, "dist not implemented for %s" % (util.clsname(a))             
+        raise NotImplemented, "dist not implemented for %s" % (clsname(a))             
 
 # iterator classes on a specific Array axis, supporting __getitem__ and __setitem__
 # in a numpy like way
@@ -557,20 +565,6 @@ class Array(list):
         >>> print A.formated()
         [[1, 2, 3],
          [0, 0, 0]]
-         
-        The ndim and size keywords will be used to fill in missing shape information 
-
-        >>> A = Array(range(1, 10), shape=(3, -1), size=9)
-        >>> print A.formated()
-        [[1, 2, 3],
-         [4, 5, 6],
-         [7, 8, 9]]
-        >>> A = Array([1, 2, 3, 4], ndim=2, size=16)
-        >>> print A.formated()
-        [[1, 2, 3, 4],
-         [1, 2, 3, 4],
-         [1, 2, 3, 4],
-         [1, 2, 3, 4]]
         
         If sub-array and requested array have same number of dimensions, padding with row / columns
         will be used (useful for the Matrix sub-class or Array) 
@@ -627,8 +621,9 @@ class Array(list):
     size = property(lambda x : x._size, None, None, "Total size of the Array (number of individual components)")
     
     def assign(self, value):
-        super(Array, self).__init__(value)
-        self._cacheshape()
+        if value is not self :
+            super(Array, self).__init__(value)
+            self._cacheshape()
     def get(self):
         return super(Array, self).__getitem__(slice(None))
 #    def _getdata(self):
@@ -705,8 +700,6 @@ class Array(list):
         if newndim is not None :
             if not shapedim :
                 newshape = newshape + (-1,)*newndim
-            elif shapedim < newndim :
-                newshape = newshape + (-1,)*(newndim-shapedim)
             shapedim = len(newshape)
         else :
             newndim = shapedim
@@ -747,15 +740,33 @@ class Array(list):
         # check shape vs class attributes   
         shape, ndim, size = cls._defaultshape(shape, ndim, size)         
     
-        # expands unknown dimension sizes (-1) if size is known
-        if shape :
-            newshape = list(shape)
-            nb = newshape.count(-1)
+        # default to ndim = 1 if none specified and not a class constant
+        # ndim = 0 would mean a single numeric value and we don't convert them to Arrays
+        if not shape :
+            if not ndim :
+                ndim = 1
+            shape = (-1,)*ndim
+        if not ndim :
+            ndim = len(shape)
+        newshape = list(shape)
+        nb = newshape.count(-1)
+        if size is None :
             if nb > 0 :
-                if nb > 1 :
-                    raise ValueError, "can only specify one unknown dimension"
-                if size is None :
-                    raise ValueError, "cannot expand shape %s without an indication of size" % (shape) 
+                raise ValueError, "cannot expand shape %s without an indication of size" % (shape,) 
+            else :
+                size = reduce(operator.mul, shape, 1)                    
+
+        # expands unknown dimension sizes (-1) if size is known          
+        if nb > 0 :
+            if nb > 1 :
+                # ambiguous specification, more than one unknown dimension, means multiple ways to conform to size
+                # unless size is 0
+                if size == 0 :
+                    newshape = [0]*ndim
+                    newsize = 0                 
+                else :
+                    raise ValueError, "can only specify one unknown dimension on shape %s to try and fit it to size %s" % (shape, size)
+            else :
                 newsize = 1
                 for i, dim in enumerate(newshape) :
                     idim = int(dim)
@@ -769,42 +780,159 @@ class Array(list):
                 else :
                     newshape[unknown] = 0                      
                 newsize = reduce(operator.mul, newshape, 1)
-                if newsize != size :
-                    raise ValueError, "unable to match the required size %s with shape %s" % (size, shape)
-                shape = tuple(newshape)              
-        else :
-            if size is not None :
-                shape=(size,)
-                ndim = 1
-                newsize = size
-            else :
-                shape=()
-                ndim = 0
-                newsize = size                
-                # raise ValueError, "cannot expand shape (-1,...) without an indication of size"
+            if newsize != size :
+                raise ValueError, "unable to match the required size %s with shape %s" % (size, shape)
+            shape = tuple(newshape)                          
      
+        if not cls._shapecheck(shape) :
+            raise TypeError, "shape %s is incompatible with class %s" % (shape, cls.__name__)  
+       
         return shape, ndim, size
-    
-    @classmethod
-    def default(cls, shape=None, size=None):
-        """ cls.default([shape])
-            Returns the default instance (of optional shape form shape) for that Array class """
+                                                            
+    def __new__(cls, *args, **kwargs ):
+        """ Creates a new Array instance from one or several nested lists or numeric values """
+        shape = kwargs.get('shape', None)
+        ndim = kwargs.get('ndim', None)
+        size = kwargs.get('size', None)
         
-        defval = 0
-        
-        shape, ndim, size = cls._defaultshape(shape, None, size)
-        if size is None and not shape or list(shape).count(-1) > 0 :
+        # for new default size to 0 if not specified or class constant
+        if size is None and not shape :
             size = 0
         shape, ndim, size = cls._expandshape(shape, ndim, size)
-      
-        if size :             
-            for d in reversed(shape) :
-                defval = [defval]*d
+            
+        # default value is set here (0 or [] for Arrays)  
+        defval = 0
+                                 
+        new = super(Array, Array).__new__(Array)
+        if shape :
+            new.assign([defval]*shape[-1])
         else :
-            defval = []
-        
-        return cls(defval) 
-        
+            new.assign([])
+        for d in reversed(shape[:-1]) :
+            next = super(Array, Array).__new__(Array)
+            if d :
+                # warning doing this means all sub-arrays would actually be the same object
+                # next.assign([new]*d)
+                next.assign([copy.deepcopy(new) for i in range(d)])
+            else :
+                next.assign([new])
+            new = next
+            
+        result = super(Array, cls).__new__(cls)
+        result.assign(new)
+        return result
+     
+    def __init__(self, *args, **kwargs):
+        """ __init__(...)
+            a.__init__(...) initializes Array a from one or more iterable, nested lists or numeric values,
+            see help(Array) for more information.
+        """
+                
+        if args :
+            cls = self.__class__
+       
+            data = None
+            # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
+            if len(args) == 1 :
+                args = args[0]
+            if isinstance (args, Array) :
+                # copy constructor
+                data = super(Array, Array).__new__(Array)
+                data.assign(args)
+            elif hasattr(args, '__iter__') :
+                largs = []
+                subshapes = []
+                for arg in args :
+                    # sub is either also an Array or a single numeric value
+                    sub = _toCompOrArray(arg)
+                    subshape, subdim, subsize = _shapeInfo(sub)                    
+                    largs.append(sub)
+                    subshapes.append(subshape)
+                if not reduce(lambda x, y : x and y == subshapes[0], subshapes, True) :
+                    raise ValueError, "all sub-arrays must have same shape"
+                data = super(Array, Array).__new__(Array)
+                data.assign(largs)              
+            elif isNumeric(args) :
+                # allow initialize from a single numeric value
+                data = args  
+            else :
+                raise TypeError, "an %s element can only be another Array, an iterable of numerics or a numeric value" % (cls.__name__)
+            
+            if data is not None :
+                # can re-shape on creation if self if of a specific diferent shape
+                dshape, dndim, dsize = _shapeInfo(data)
+                shape, ndim, size = _shapeInfo(self)
+                if not size :
+                    # if self was initialized by __new__ with a zero size, then if will adapt to the argument size,
+                    # if class restrictions allow
+                    shape, ndim, size = cls._defaultshape(None, None, None)                  
+                if not size :
+                    size = dsize                     
+                if not shape :
+                    if dshape :
+                        # data is an Array
+                        shape = dshape
+                    else :
+                        # data is single numeric
+                        shape = (1,) 
+                if not ndim :
+                    ndim = len(shape)
+                                                           
+                if shape != dshape :
+                    # accept expanding but not shrinking to catch casting errors
+                    # will initialize self to at least an empty Array or an array of one numeric value, 
+
+                    # multiple -1 (Matrix init for instance)
+                    shape = list(shape)
+                    unknown = shape.count(-1)
+                    # multiple unknown dimensions can't be expanded with the size info, we'll use the new shape instead
+                    if unknown > 1 :
+                        difdim = max(ndim-dndim, 0)
+                        # replace extra unknown dimensions with 1 from first dimensions
+                        for i in range(difdim) :
+                            if unknown > 1 :
+                                if shape[i] == -1 :
+                                    shape[i] = 1
+                                    unknown -= 1
+                            else :
+                                break                        
+                        # then for the last unkown dimensions, consider them common to the target class and data, copy data's
+                        for i in range(difdim, ndim) :
+                            if unknown > 1 :
+                                if shape[i] == -1 :
+                                    shape[i] = dshape[i+difdim]
+                                    unknown -= 1
+                            else :
+                                break
+                    shape = tuple(shape)
+                     
+                    # reshape / resize / retrim if needed
+                    shape, ndim, size = cls._expandshape(shape, ndim, size)
+                    if not dshape : 
+                        data = Array.filled(data, shape)
+                    else :
+                        if size >= dsize and ndim >= dndim :                   
+                            if ndim == dndim and reduce(operator.and_, map(operator.ge, shape, dshape), True) :
+                                data = data.trim(shape)
+                            else :
+                                try :
+                                    data = Array.filled(data, shape)
+                                except :                            
+                                    data = data.tosize(shape)
+                        else :
+                            if isinstance (args, Array) :
+                                raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some information would be lost, use an explicit resize or trim" % (clsname(args), args.shape, cls.__name__, shape)
+                            else :
+                                raise ValueError, "cannot initialize a %s of shape %s from %s, some information would be lost, use an explicit resize or trim" % (cls.__name__, shape, args)                          
+                        
+                # check that the shape is compatible with the class, as some Array sub classes have fixed shapes / ndim
+                if not cls._shapecheck(data.shape) :
+                    raise TypeError, "shape of arguments %s is incompatible with class %s" % (data.shape, cls.__name__)            
+    
+                self.assign(data)
+            else :
+                raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
+
     @classmethod
     def filled(cls, value=None, shape=None, size=None):
         """ cls.filled([value[, shape[, size]]]) :
@@ -815,17 +943,14 @@ class Array(list):
             Value can't be truncated and will raise an error if of a size superior to the size of
             the nearest matching sub array of the class, to avoid improper casts """
         
-        new = None
         shape, ndim, size = cls._expandshape(shape, None, size)
-         
+        new = cls(shape=shape) 
+        
         if value is not None :
             value = _toCompOrArray(value)
             vshape, vdim, vsize = _shapeInfo(value)
             if not shape :
-                if vshape :
-                    return cls(value)
-                else :
-                    return cls([value])                  
+                return cls(value, shape=vshape)               
 
             if vdim <= ndim and vsize <= size:
                 subshape = shape[ndim-vdim:]
@@ -835,8 +960,7 @@ class Array(list):
                         value.resize(subshape)
                     else :
                         raise ValueError, "value of shape %s cannot be fit in a %s of shape %s, some data would be lost" % (vshape, cls.__name__, shape)
-                if vdim < ndim :
-                    new = cls.default(shape)                 
+                if vdim < ndim :                
                     iter = new.subiter(vdim)
                     for i in xrange(len(iter)) :
                         iter[i] = value    
@@ -844,11 +968,6 @@ class Array(list):
                     new = cls(value, shape=shape)  
             else :
                 raise ValueError, "fill value has more dimensions or is larger than the specified desired shape"
-        else :
-            if shape :
-                new = cls(shape=shape)
-            else :
-                new = cls()
             
         return new 
         
@@ -861,103 +980,7 @@ class Array(list):
         if type(new) is type(self) :
             self.assign(new)
         else :
-            raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))            
-                                                            
-    def __new__(cls, *args, **kwargs ):
-        """ Creates a new Array instance from one or several nested lists or numeric values """
-        new = super(Array, cls).__new__(cls)
-        new._cacheshape()
-        return new
-     
-    def __init__(self, *args, **kwargs):
-        """ __init__(...)
-            a.__init__(...) initializes Array a from one or more iterable, nested lists or numeric values,
-            see help(Array) for more information.
-        """
-        cls = self.__class__
-        shape = kwargs.get('shape', None)
-        ndim = kwargs.get('ndim', None)
-        size = kwargs.get('size', None)
-        shape, ndim, size = cls._defaultshape(shape, ndim, size)
-                   
-        new = None   
-        if args :
-            # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
-            if len(args) == 1 :
-                args = args[0]
-            if isinstance (args, Array) :
-                # copy constructor
-                new = super(Array, Array).__new__(Array)
-                new.assign(args)
-            elif hasattr(args, '__iter__') :
-                data = []
-                subshapes = []
-                for arg in args :
-                    sub = _toCompOrArray(arg)
-                    subshape, subdim, subsize = _shapeInfo(sub)                    
-                    data.append(sub)
-                    subshapes.append(subshape)
-                if not reduce(lambda x, y : x and y == subshapes[0], subshapes, True) :
-                    raise ValueError, "all sub-arrays must have same shape"
-                new = super(Array, Array).__new__(Array)
-                new.assign(data)              
-            elif isNumeric(args) :
-                # allow initialize from a single numeric value
-                if size is None :
-                    size = 1
-                new = cls.filled(args, shape, size)
-                shape, ndim, size = new.shape, new.ndim, new.size
-#                if shape :
-#                    # can initialize an array from a single numeric value if a shape is specified
-#                    data = cls.filled(args, shape).data
-#                else :
-#                    raise TypeError, "an %s cannot be initialized from a single value without specifying a shape, need at least 2 components or an iterable" % cls.__name__
-            else :
-                raise TypeError, "an %s element can only be another Array or an iterable" % cls.__name__
-        else :
-            new = cls.default(shape, size)
-            shape, ndim, size = new.shape, new.ndim, new.size
-            
-        if new is not None :
-            # can re-shape on creation if a shape keyword is specified or the class has a fixed shape
-            if shape and shape != new.shape :
-                # accept expanding but not shrinking to catch casting errors
-                if size is None :
-                    size = new.size
-                shape = list(shape)
-                unknown = shape.count(-1)
-                # multiple unknown dimensions can't be expanded with the size info, we'll use the new shape instead
-                if unknown > 1 :
-                    mindim = min(ndim, new.ndim)
-                    for i in range(mindim) :
-                        if shape[i] == -1 and unknown > 1 :
-                            shape[i] = new.shape[i]
-                            unknown -= 1
-                # expand the unknown dimensions now
-                shape, ndim, size = cls._expandshape(shape, ndim, size)
-                # reshape / resize / retrim if needed
-                if shape != new.shape :
-                    if size >= new.size and ndim >= new.ndim :                   
-                        if ndim == new.ndim and reduce(operator.and_, map(operator.ge, shape, new.shape), True) :
-                            new = new.trim(shape)
-                        else :
-                            try :
-                                new = new.filled(data, shape)
-                            except :                            
-                                new = new.tosize(shape)
-                    else :
-                        if isinstance (args, Array) :
-                            raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some information would be lost, use an explicit resize or trim" % (clsname(args), args.shape, cls.__name__, shape)
-                        else :
-                            raise ValueError, "cannot initialize a %s of shape %s from %s, some information would be lost, use an explicit resize or trim" % (cls.__name__, shape, args)                          
-                        
-            # check that the shape is compatible with the class, as some Array sub classes have fixed shapes / ndim
-            if not cls._shapecheck(new.shape) :
-                raise TypeError, "shape %s is incompatible with class %s" % (new.shape, cls.__name__)            
-
-            self.assign(new)
-        else :
-            raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
+            raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))    
 
     def appended(self, other, axis=0):
         """ Append other on the given axis """
@@ -971,7 +994,10 @@ class Array(list):
         itself = self.axisiter(axis);    
         itemshape = itself.itemshape
         itemdim = len(itemshape)
-        other = Array.filled(other, itemshape)
+        if itemshape :
+            other = Array.filled(other, itemshape)
+        else :
+            other = Array(other)
         if size :
             if axis > 0 :
                 staxis = range(axis, -1, -1)+range(axis+1, dim)
@@ -1118,18 +1144,17 @@ class Array(list):
         else :
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
 
-    def _trimmedcopy(self, other):
-        ls = len(self)
-        lo = len(other)
-        l = min(ls, lo)
-        if self.ndim > 1 :
+    def _asTrimmed(self, source): 
+        ndim = self.ndim       
+        lslf = len(self)
+        lsrc = len(source)
+        l = min(lslf, lsrc)
+        if ndim > 1 :
             for i in xrange(l) :
-                # print repr(self[i])
-                # print repr(other[i])
-                self[i]._trimmedcopy(other[i])
+                self[i]._asTrimmed(source[i])
         else :
             for i in xrange(l) :
-                other[i] = self[i]
+                self[i] = source[i]
                             
     def trim(self, shape, value=None):
         """ a.trim([shape [, value]])
@@ -1139,7 +1164,6 @@ class Array(list):
             A value of -1 or None for a shape dimension size will leave it unchanged         
             An optional value argument can be passed and will be used to fill
             the newly created components if the trim results in a size increase. """
-        cls = self.__class__
         if shape is None :
             newshape = []
         else :
@@ -1152,19 +1176,17 @@ class Array(list):
             if newshape[i] == -1 or newshape[i] is None :
                 newshape[i] = oldshape[i]
               
-        new = None
-        for c in inspect.getmro(cls) :
-            if issubclass(c, Array) :
-                try :
-                    new = c.filled(value, newshape)
-                    break
-                except :
-                    pass
-                
-        if new is not None :
-            self._trimmedcopy(new)
-            return new
-        else :
+        new = Array.filled(value, newshape)
+        new._asTrimmed(Array(self))
+        
+        print "self", repr(self), id(self)
+        print "new", repr(new), id(new)
+        print "self[0]", repr(self[0]), id(self[0])
+        print "new[0]", repr(new[0]), id(new[0]) 
+               
+        try :
+            return self.__class__._convert(new)
+        except :
             if value is not None :
                 raise TypeError, "%s cannot be initialized to shape %s with value %s, and has no base class that can" % (clsname(self), shape, value)
             else :
@@ -1183,6 +1205,9 @@ class Array(list):
 
     def __reduce__(self):
         return (self.__class__, tuple(self))
+    
+#    def __getnewargs__(self):
+#        return tuple(self)    
  
     def copy(self):
         return copy.copy(self)
@@ -1248,9 +1273,9 @@ class Array(list):
         
         value = reduce(lambda x, y: Array._extract(x, y), index, self)
         # print "value and id", value, id(value)
-        value = self._toCompOrConvert(value)
+        value = self.__class__._toCompOrConvert(value)
+        # value = _toCompOrArray(value)
         # print "value and id", value, id(value)
-        # value = _toCompOrArray(reduce(lambda x, y: Array._extract(x, y), index, self))
         return value
 
     def _inject(self, index, value) :
@@ -1261,7 +1286,7 @@ class Array(list):
         shape = self.shape
         dim = self.ndim
         if len(index) == 1 : 
-            # last check and assign        
+            # single dimension index last check and assign        
             values = []
             valueshape, valuedim, valuesize = _shapeInfo(value)
             subshape = tuple(shape[1:])
@@ -1288,7 +1313,7 @@ class Array(list):
             else :
                 raise ValueError, "shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"
         else :
-            # in case value is an iterable of values to be assigned to each sub-item
+            # multi dimension index
             values = []
             valueshape, valuedim, valuesize = _shapeInfo(value)
             if valuedim :      
@@ -1493,24 +1518,34 @@ class Array(list):
     
     # convert to class or closest base class
     @classmethod
-    def _convert(cls, value): 
+    def _convert(cls, value, preserveShape=True): 
+        if preserveShape :
+            try :
+                array = Array(value)
+                shape = array.shape
+            except :
+                raise TypeError, "%s cannot be converted to Array or any Array sub-class" % (clsname(value))
+        else :
+            shape = None
         for c in inspect.getmro(cls) :
             if issubclass(c, Array) :
                 if isinstance(value, c) :
+                    # return value directly so we don't add a shallow copy if type is already ok
                     return value
                 else :
                     try :
-                        return c(value)
+                        # use array as if value was a generator, it would not be able to iterate again
+                        return c(array, shape=shape)
                     except :
                         pass
-        raise TypeError, "%s cannot be converted to %s" % (util.clsname(value), cls.__name__)
+        raise TypeError, "%s cannot be converted to %s" % (clsname(value), cls.__name__)
 
     @classmethod
     def _toCompOrConvert(cls, value):
         if isinstance(value, cls) :
             return value
-        if hasattr(value, '__iter__') :
-            return cls._convert(value)
+        elif hasattr(value, '__iter__') :
+            return cls._convert(value, preserveShape=True)
         elif isNumeric(value) :
             # a single numeric value
             return value
@@ -2283,7 +2318,7 @@ def angle(u, v):
     try :
         u = Vector(u)
     except :
-        raise NotImplemented, "%s is not convertible to type Vector, angle is only defined for two Vectors of size 3" % (util.clsname(u))   
+        raise NotImplemented, "%s is not convertible to type Vector, angle is only defined for two Vectors of size 3" % (clsname(u))   
     return u.angle(v)
 
 def axis(u, v, normalize=False):
@@ -2293,7 +2328,7 @@ def axis(u, v, normalize=False):
     try :
         u = Vector(u)
     except :
-        raise NotImplemented, "%s is not convertible to type Vector, axis is only defined for two Vectors of size 3" % (util.clsname(u))   
+        raise NotImplemented, "%s is not convertible to type Vector, axis is only defined for two Vectors of size 3" % (clsname(u))   
     return u.axis(v, normalize)
 
 def cross(u, v):
@@ -2302,7 +2337,7 @@ def cross(u, v):
     try :
         u = Vector(u)
     except :
-        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (util.clsname(u))  
+        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (clsname(u))  
     return u.cross(v) 
 
 def dot(u, v):
@@ -2311,7 +2346,7 @@ def dot(u, v):
     try :
         u = Vector(u)
     except :
-        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (util.clsname(u))  
+        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (clsname(u))  
     return u.dot(v)
 
 def outer(a, b):
@@ -2320,7 +2355,7 @@ def outer(a, b):
     try :
         u = Vector(u)
     except :
-        raise NotImplemented, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (util.clsname(u))  
+        raise NotImplemented, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (clsname(u))  
     return u.outer(v)        
 
 def cotan(a, b, c) :
@@ -2329,7 +2364,7 @@ def cotan(a, b, c) :
     try :
         a = Vector(a)
     except :
-        raise NotImplemented, "%s is not convertible to type Vector, cotangent product is only defined for three 3D Vectors" % (util.clsname(a))  
+        raise NotImplemented, "%s is not convertible to type Vector, cotangent product is only defined for three 3D Vectors" % (clsname(a))  
     return a.cotan(b, c) 
 
 #
@@ -2432,7 +2467,7 @@ class Vector(Array):
             nself, nother = coerce(Vector(self), other)
             assert len(nself) == len(nother) == 3
         except :
-            raise NotImplemented, "%s not convertible to %s, angle is only defined for two Vectors of size 3" % (util.clsname(other), util.clsname(self))
+            raise NotImplemented, "%s not convertible to %s, angle is only defined for two Vectors of size 3" % (clsname(other), clsname(self))
         l = u.length() * v.length()
         if l > 0 :
             return acos( u.dot(v) / l )
@@ -2446,7 +2481,7 @@ class Vector(Array):
             nself, nother = coerce(Vector(self), other)
             assert len(nself) == len(nother) == 3
         except :
-            raise NotImplemented, "%s not convertible to %s, axis is only defined for two Vectors of size 3" % (util.clsname(other), util.clsname(self))           
+            raise NotImplemented, "%s not convertible to %s, axis is only defined for two Vectors of size 3" % (clsname(other), clsname(self))           
         if normalize :
             return u.cross(v).normal()
         else :
@@ -2458,7 +2493,7 @@ class Vector(Array):
             nself, nother = coerce(Vector(self), other)
             assert len(nself) == len(nother) == 3
         except :
-            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of size 3" % (util.clsname(other), util.clsname(self))     
+            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of size 3" % (clsname(other), clsname(self))     
         return Vector([nself[1]*nother[2] - nself[2]*nother[1],
                 nself[2]*nother[0] - nself[0]*nother[2],
                 nself[0]*nother[1] - nself[1]*nother[0]])         
@@ -2468,7 +2503,7 @@ class Vector(Array):
         try :
             nself, nother = coerce(Vector(self), other)
         except :
-            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (util.clsname(other), util.clsname(self))               
+            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))               
         return reduce(operator.add, map(operator.mul, nself, nother)) 
     def outer(self, other):
         """ outer(u, v) --> Matrix :
@@ -2476,7 +2511,7 @@ class Vector(Array):
         try :
             nself, nother = coerce(Vector(self), other)
         except :
-            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors" % (util.clsname(other), util.clsname(self))       
+            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors" % (clsname(other), clsname(self))       
         return Matrix([nother*x for x in nself]) 
     def transformAsNormal(self, other):
         """ u.transformAsNormal(m) --> Vector
@@ -2484,7 +2519,7 @@ class Vector(Array):
         try :
             nother = Matrix(other)
         except :
-            raise NotImplemented, "%s not convertible to Matrix" % (util.clsname(other))                     
+            raise NotImplemented, "%s not convertible to Matrix" % (clsname(other))                     
         return self.__mul__(nother.transpose().inverse())
     
     # min, max etc methods derived from array  
@@ -2507,7 +2542,7 @@ class Vector(Array):
         try :
             nself, nother = coerce(Vector(self), other)
         except :
-            raise NotImplemented, "%s not convertible to %s, isParallel is only defined for two Vectors" % (util.clsname(other), util.clsname(self))       
+            raise NotImplemented, "%s not convertible to %s, isParallel is only defined for two Vectors" % (clsname(other), clsname(self))       
         return (abs(nself.dot(nother) - nself.length()*nother.length()) <= tol)     
     def cotan(self, other, third):
         """ cotan(a, b, c) :
@@ -2525,8 +2560,39 @@ class Vector(Array):
 def _testArray() :  
 
          
-    # append (hstack, vstack)
+    # init and append (hstack, vstack)
+    A = Array()
+    print repr(A)
+    A = Array(1)
+    print repr(A)   
+    A = Array(1,2)
+    print repr(A) 
+    A = Array([1,2])
+    print repr(A) 
+    A = Array([[1,2], [3, 4]])
+    print repr(A)
+    print A.formated() 
+    A[0,0] = 10
+    print A.formated() 
+    #[[10, 2],
+    # [3, 4]]    
+    A[:,1] *= 2  
+    print A.formated()
+    #[[10, 4],
+    # [3, 8]]
+    A = Array(1, shape=(2, 2))
+    print A.formated()    
+    #[[1, 1],
+    # [1, 1]]                            
+    A = Array(range(1, 5), shape=(2, 2))
+    print A.formated()    
+    #[[1, 2],
+    # [3, 4]]  
+        
+    # Array([])
     A = Array([])
+    print repr(A)
+    # Array([])
     A.append(1)
     print A.formated()
     # [1]
@@ -2537,7 +2603,7 @@ def _testArray() :
     # [1, 2]
     A = Array([A])
     print A.formated()
-    # [[1, 2]]
+    # [[1, 2]]    
     A.append([4, 5],0)
     print A.formated()
     # [[1, 2],
@@ -2672,8 +2738,8 @@ def _testArray() :
     print "A = Array.filled(2, (5,))"
     print A.formated()
     # [2, 2, 2, 2, 2]      
-    A = Array.default((2, 2))
-    print "A = Array.default((2, 2))"
+    A = Array(shape=(2, 2))
+    print "A = Array(shape=(2, 2))"
     print A.formated()
     # [[0, 0],
     #  [0, 0]]
@@ -2701,7 +2767,32 @@ def _testArray() :
     print B.formated()
     #[[1, 1, 1],
     # [4, 4, 3],
-    # [7, 8, 5]]    
+    # [7, 8, 5]] 
+    # C = B   
+    C = B
+    print C.formated()
+    #[[1, 1, 1],
+    # [4, 4, 3],
+    # [7, 8, 5]] 
+    print C == B
+    # True    
+    print C is B
+    # True
+    print C[0] is B[0]
+    # True
+    # assign is a shallow copy
+    C = Array()
+    C.assign(B)   
+    print C.formated()
+    #[[1, 1, 1],
+    # [4, 4, 3],
+    # [7, 8, 5]] 
+    print C == B
+    # True    
+    print C is B
+    # False
+    print C[0] is B[0]
+    # True           
     # init is a shallow copy
     C = Array(B)    
     print C.formated()
@@ -2711,8 +2802,6 @@ def _testArray() :
     print C == B
     # True    
     print C is B
-    # False
-    print list(C) is list(B)
     # False
     print C[0] is B[0]
     # True
@@ -2806,30 +2895,43 @@ def _testArray() :
     print "A[0, 2]:"
     print A[0, 2].formated()
     # [7, 9, 5]
+    a = A[0, 0:2]
+    print "a = A[0, 0:2]"
+    print a.formated()
+    #[[1, 1, 1],
+    # [4, 5, 3]]      
+    a[0, 1] = 2
+    print a.formated()
+    #[[1, 2, 1],
+    # [4, 5, 3]]    
+    print A[0].formated()
+    #[[1, 2, 1],
+    # [4, 5, 3],
+    # [7, 9, 5]]      
     print "a = A[0, :, 1]:"
     a = A[0, :, 1]
     print a
-    # [1 5 9]
+    # [2 5 9]
     a[1] = 6
     print "a[1] = 6:"
     print a
-    # [1 6 9]
+    # [2 6 9]
     # not changing value because array had to be reconstructed
     print "A[0, :]:"
     print A[0, :].formated()
-    #[[1 1 1]
+    #[[1 2 1]
     # [4 5 3]
     # [7 9 5]]
     # do it this way 
-    A[0, :, 1] = [1, 6, 9]
-    print "A[0, :, 1] = [1, 6, 9]"
+    A[0, :, 1] = [2, 6, 9]
+    print "A[0, :, 1] = [2, 6, 9]"
     print A[0, :].formated()
-    #[[1, 1, 1],
+    #[[1, 2, 1],
     # [4, 6, 3],
     # [7, 9, 5]]    
     print "A[0, :, 1:2]:"
     print A[0, :, 1:2].formated()
-    #[[1]
+    #[[2]
     # [6]
     # [9]]
     print "A[0, 1:2, 1:2]:"
@@ -2837,12 +2939,12 @@ def _testArray() :
     #[[6]]
     print "A[0, :, 1:3]:"
     print A[0, :, 1:3].formated()
-    #[[1 1]
+    #[[2 1]
     # [6 3]
     # [9 5]]
     print "A[:, :, 1:3]:"
     print A[:, :, 1:3].formated()
-    #[[[ 1  1]
+    #[[[ 2  1]
     #  [ 6  3]
     #  [ 9  5]]
     #
@@ -2851,7 +2953,7 @@ def _testArray() :
     #  [80 50]]]
     print "A[:, :, 1:2]:"
     print A[:, :, 1:2].formated()
-    #[[[ 1]
+    #[[[ 2]
     #  [ 6]
     #  [ 9]]
     #
@@ -3147,8 +3249,8 @@ def _testArray() :
 
     # resising and reshaping
     
-    print "B=Array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])"
-    B = Array([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+    print "B=Array(range(1, 17), shape=(4, 4))"
+    B = B=Array(range(1, 17), shape=(4, 4))
     print B.formated()
     #[[ 1  2  3  4]
     # [ 5  6  7  8]
@@ -3204,19 +3306,85 @@ def _testArray() :
     #[[ 1  2  3  4]
     # [ 5  6  7  8]
     # [ 9 10 11 12]
-    # [13 14 15 16]]  
-    print "B.trim((5, 5))"
-    print B.trim((5, 5)).formated()
+    # [13 14 15 16]]
+    
+    # trim
+    
+    print "B=Array(range(1, 17), shape=(4, 4))"
+    B = B=Array(range(1, 17), shape=(4, 4))
+    print B.formated()
+    #[[ 1  2  3  4]
+    # [ 5  6  7  8]
+    # [ 9 10 11 12]
+    # [13 14 15 16]]      
+    A = B[0]
+    print "A = B[0]"
+    print A.formated()
+    # [1, 2, 3, 4]
+    print "C = B.trim((5, 4))"
+    C = B.trim((5, 4))
+    print C.formated()
+    #[[1, 2, 3, 4],
+    # [5, 6, 7, 8],
+    # [9, 10, 11, 12],
+    # [13, 14, 15, 16],
+    # [0, 0, 0, 0]]
+    print A == C[0]
+    # True
+    print A is C[0]
+    # False
+    print "C = B.trim((5, 5))"
+    C = B.trim((5, 5))
+    print C.formated()
     #[[1, 2, 3, 4, 0],
     # [5, 6, 7, 8, 0],
     # [9, 10, 11, 12, 0],
     # [13, 14, 15, 16, 0],
     # [0, 0, 0, 0, 0]]
-    print "B.trim((3, 2))"
-    print B.trim((3, 2)).formated()
+    
+    print "B=Array(range(1, 17), shape=(4, 4))"
+    B = B=Array(range(1, 17), shape=(4, 4))
+    print B.formated()
+    #[[ 1  2  3  4]
+    # [ 5  6  7  8]
+    # [ 9 10 11 12]
+    # [13 14 15 16]]    
+    A = B[0]
+    print "A = B[0]"
+    print A.formated()
+    # [1, 2, 3, 4]
+    print A == B[0]
+    # True
+    print A is B[0]
+    # True       
+    print id(A), id(B[0])
+    print "B.retrim((5, 4))"
+    B.retrim((5, 4))
+    print B.formated()
+    #[[1, 2, 3, 4],
+    # [5, 6, 7, 8],
+    # [9, 10, 11, 12],
+    # [13, 14, 15, 16],
+    # [0, 0, 0, 0]]
+    print A == B[0]
+    # True
+    print A is B[0]
+    # True  
+    print id(A), id(B[0])           
+    print "B.retrim((3, 2))"
+    B.retrim((3, 2))
+    print B.formated()
     #[[1, 2],
     # [5, 6],
-    # [9, 10]]
+    # [9, 10]]     
+
+    print "B=Array(range(1, 17), shape=(4, 4))"
+    B = B=Array(range(1, 17), shape=(4, 4))
+    print B.formated()
+    #[[ 1  2  3  4]
+    # [ 5  6  7  8]
+    # [ 9 10 11 12]
+    # [13 14 15 16]]      
     print "C = Array(B, shape=(5, 5))"
     C = Array(B, shape=(5, 5))
     print C.formated()       
@@ -3244,7 +3412,18 @@ def _testArray() :
     # [7, 8, 9, 10, 11, 12],
     # [13, 14, 15, 16, 0, 0]]   
     
-              
+    # operators
+    
+    A = Array([[[1, 2, 1], [4, 2, 3], [7, 2, 5]], [[10, 2, 10], [40, 2, 30], [70, 2, 50]]])
+    print "A = Array([[[1, 2, 1], [4, 2, 3], [7, 2, 5]], [[10, 2, 10], [40, 2, 30], [70, 2, 50]]])"
+    print A.formated()
+    #[[[1, 2, 1],
+    #  [4, 2, 3],
+    #  [7, 2, 5]],
+    #
+    # [[10, 2, 10],
+    #  [40, 2, 30],
+    #  [70, 2, 50]]]                
     print "A = A + 2"
     A = A + 2
     print A.formated()
@@ -3553,24 +3732,46 @@ def _testArray() :
 def _testMatrix() :   
     # Matrix and Vector
     
+    M = Matrix()
+    print repr(M)
+    M = Matrix([])
+    print repr(M)
+    M = Matrix([0, 1, 2])
+    print M.formated()
+    # [[0, 1, 2]]
+    M = Matrix([[0, 1, 2]])
+    print M.formated()
+    # [[0, 1, 2]]
+    M = Matrix([[0], [1], [2]])
+    print M.formated()   
+    # [[0],
+    #  [1],
+    #  [2]]       
+    M = Matrix([[1, 2, 3], [4, 5, 6]])
+    print M.formated()
+    # [[1, 2, 3],
+    #  [4, 5, 6]]
+    # should fail
+    print "M = Matrix([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])"
+    try :
+        M = Matrix([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])
+        print M.formated()
+    except :
+        print "Will raise ValueError: cannot initialize a Matrix of shape (2, 6) from [[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]], some information would be lost, use an explicit resize or trim"
     # should fail
     print "M.resize((2, 2, 3))"
     try :
         M.resize((2, 2, 3))
+        print M.formated()
     except :
         print "Will raise TypeError: shape (2, 2, 3) is incompatible with class Matrix"
 
     print "M = Matrix([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]])"
     try :
         M = Matrix([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]])
+        print M.formated()
     except :
         print "Will raise TypeError: shape (2, 2, 3) is incompatible with class Matrix"
-        
-    print "M = Matrix([0, 1, 2])"
-    try :
-        M = Matrix([0, 1, 2])
-    except :
-        print "Will raise TypeError, class Matrix has a fixed number of dimensions 2 and it cannot be changed"
           
     # init and append
     print "M = Matrix([[0, 1, 2], [3, 4, 5]])"
@@ -3583,9 +3784,132 @@ def _testMatrix() :
     print M.formated()  
     #[[0, 1, 2],
     # [3, 4, 5],
-    # [6, 7, 8]]    
+    # [6, 7, 8]]
+
+    # copies and references
+    B = Matrix(range(9), shape=(3, 3)) 
+    print B.formated()
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]] 
+    # C = B   
+    C = B
+    print C.formated()
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]] 
+    print C == B
+    # True    
+    print C is B
+    # True
+    print C[0] is B[0]
+    # True
+    
+    # assign
+    C = Matrix()
+    C.assign(B)   
+    print C.formated()
+    #[[1, 1, 1],
+    # [4, 4, 3],
+    # [7, 8, 5]] 
+    print C == B
+    # True    
+    print C is B
+    # False
+    print C[0] is B[0]
+    # True   
+            
+    # init is a shallow copy
+    C = Array(B)    
+    print C.formated()
+    #[[1, 1, 1],
+    # [4, 4, 3],
+    # [7, 8, 5]]         
+    print C == B
+    # True    
+    print C is B
+    # False
+    print C[0] is B[0]
+    # True
+    
+    C = Array([B]) 
+    print C.formated()
+    #[[[1, 1, 1],
+    #  [4, 4, 3],
+    #  [7, 8, 5]]]
+    print C[0] == B
+    # True
+    # type is different (Matrix vs Array)    
+    print C[0] is B
+    # False
+    print C[0,0] is B[0]   
+    # True  
+        
+    #shallow copy
+    C = B.copy()
+    print C.formated()
+    #[[1, 1, 1],
+    #  [4, 4, 3],
+    #  [7, 8, 5]]       
+    print C == B
+    # True     
+    print C is B
+    # False
+    print C[0] is B[0]
+    # True
+    
+    #deep copy   
+    C = B.deepcopy()
+    print C.formated()
+    #[[1, 1, 1],
+    #  [4, 4, 3],
+    #  [7, 8, 5]]      
+    print C == B
+    # True     
+    print C is B
+    # False
+    print C[0] is B[0] 
+    # False
+        
     # row and column
+    M = Matrix(range(9), shape=(3, 3)) 
+    print M.formated()
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]]    
+    a = M[0]
+    print repr(a)
+    # Array([0, 1, 2])
+    print a is M[0]
+    # True
+    a[1] = 2
+    print a.formated()
+    # [0, 2, 2]
+    print M[0].formated()
+    # [0, 2, 2]
+    a = M[0:1]
+    print repr(a)
+    print a.formated()
+    
+    
+    a is M[0:1]
+    
+    a[1, 1] = 2
+    print a.formated()
+    
+    
+    print M.formated()
+    
+    
+    
+    
+    M = Matrix(range(9), shape=(3, 3)) 
+    print M.formated()
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]]   
     print M.nrow
+    # 3
     M.nrow = 4
     print M.formated() 
     #[[0, 1, 2],
@@ -3593,6 +3917,7 @@ def _testMatrix() :
     # [6, 7, 8],
     # [0, 0, 0]]    
     print M.ncol
+    # 3
     M.ncol = 4
     print M.formated()  
     #[[0, 1, 2, 0],
@@ -3605,7 +3930,26 @@ def _testMatrix() :
     # [6, 7, 8, 0],
     # [0, 0, 0, 0]]   
     print repr(M.row[0])
-    # Array([0, 1, 2, 0])     
+    # Array([0, 1, 2, 0]) 
+    a = M.row[0]
+    print repr(a)
+    a[1] = 10
+    print a.formated()
+    
+    print M.formated()
+    
+    a = M.row[0:2]
+    print repr(a)
+    a[1, 1] = 10
+    print a.formated()   
+    
+    print M.formated()
+    
+    M = Matrix(range(9), shape=(3, 3)) 
+    print M.formated()
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]]          
     print repr(M.row[0:2])
     # Matrix([[0, 1, 2, 0], [3, 4, 5, 0]])
     print Array(M.col).formated() 
@@ -3649,6 +3993,10 @@ def _testMatrix() :
     # herited methods
     
     M = Matrix(range(0,9), shape=(3, 3))
+    print M.formated()
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]]          
     M.retrim((4, 4))
     M[3, 3] = 1
     print M.formated()
@@ -3745,7 +4093,7 @@ def _testMatrix() :
     print "M.adjugate()"  
     print M.adjugate().formated()
     #[[4.0, 2.0],
-    # [3.0, 1.0]]      
+    # [3.0, 1.0]]         
     print "det(M)"  
     print det(M)
     # -2.0   
@@ -3753,7 +4101,10 @@ def _testMatrix() :
     print M.inverse().formated()
     #[[-2.   1. ]
     # [ 1.5 -0.5]]
-        
+    print M.inverse().transpose()
+    #[[4.0, 2.0],
+    # [3.0, 1.0]]  
+            
     M = Matrix([[0.5, 1, 2],[1, 1, 1],[0.5, 0.5, 2]])
     print "M = Matrix([[0.5, 1, 2],[1, 1, 1],[0.5, 0.5, 2]])"
     print M.formated()
@@ -3911,8 +4262,14 @@ def _testVector() :
         V = Vector([[1, 2], [3, 4]])
     except :
         print "Will raise ValueError: cannot initialize a Vector of shape (4,) from [[1, 2], [3, 4]], some data would be lost" 
+    U = Vector([1, 2, 3])
+    
+    U = Vector([[1, 2, 3]])
         
-        
+    U = Vector([[1], [2], [3]])
+    
+    U = Vector([[1, 2, 3], [4, 5, 6]])
+      
     M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])
     print "M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])"
     print M.formated()
