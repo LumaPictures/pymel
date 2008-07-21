@@ -231,15 +231,6 @@ def axis(u, v, normalize=False):
     u = MVector._convert(v)
     return u.axis(v)
 
-def basis(u, v, normalize=False):
-    """ basis(u, v[, normalize=False]) --> Matrix
-        Returns the basis Matrix built using u, v and u^v as coordinate axis,
-        The a, b, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
-            n = u ^ v
-            v = n ^ u
-        if the normalize keyword argument is set to True, the vectors are also normalized """
-    return MMatrix(u, v, n).transpose()
-
 def cotan(a, b, c) :
     """ cotan(a, b, c) :
         cotangent of the (b-a), (c-a) angle, a, b, and c should be 3 dimensional vectors """
@@ -288,19 +279,6 @@ class MVector(Vector) :
     # stype = _api.MVector
     cnames = ('x', 'y', 'z')
     shape = (3,)
-
-    @classmethod
-    def default(cls, shape=None, size=None):
-        """ cls.default([shape])
-            Returns the default instance (of optional shape form shape) for that class """
-        
-        try :
-            shape = cls._expandshape(shape, size)
-            if -1 in shape :
-                raise ValueError, "cannot get the size of undefined dimension in shape %s without the total size" % (shape) 
-        except :
-            raise TypeError, "shape %s is incompatible with class %s" % (shape, cls.__name__)                   
-        return cls()
 
     def __new__(cls, *args, **kwargs): 
         new = cls.apicls.__new__(cls)
@@ -644,13 +622,6 @@ class MVector(Vector) :
             return _api.MVector.angle(MVector(self), MVector(other))
         else :
             return super(MVector, self).angle(other)                           
-    def basis(self, other, normalize=False): 
-        """ Returns the basis MMatrix built using u, v and u^v as coordinate axis,
-            The u, v, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
-                n = u ^ v
-                v = n ^ u
-            if the normalize keyword argument is set to True, the vectors are also normalized """
-        return MMatrix(super(MVector, self).basis(other))
     # cotan, blend, clamp are derived from Vector class
 
            
