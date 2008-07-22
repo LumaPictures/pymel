@@ -15,7 +15,7 @@ try:
 except ImportError:
     pass
 
-import util, factories, node, ui
+import util, factories, node, ui, io
 from vector import *
 
 try:
@@ -983,7 +983,7 @@ Modifications:
     lsFilters["noIntermediate"] = kwargs.pop('noIntermediate',kwargs.pop('ni',False))
     lsFilters["shapes"] = shapes = kwargs.pop('shapes',kwargs.pop('s',False))
     allDescendents = kwargs.get('allDescendents',kwargs.get('ad',False))
-    if allDescendents and shapes: 
+    if allDescendents or shapes: 
         kwargs['fullPath'] = True
         kwargs.pop('f', None)
     ret = map(node.PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
@@ -1423,13 +1423,17 @@ class FileReference(Path):
         return cmds.file( self.withCopyNumber(), removeReference=1 )
     def    unload(self):
         """file -unloadReference """
-        return cmds.file( self.withCopyNumber(), unloadReference=1 )    
+        return io.unloadReference( self.withCopyNumber(), self.refNode )
+    def    load(self):
+        """file -loadReference """
+        return io.loadReference( self.withCopyNumber(), self.refNode )
     def    clean(self):
         """file -cleanReference """
-        return cmds.file( self.withCopyNumber(), cleanReference=1 )
+        return cmds.file( self.withCopyNumber(), cleanReference=self.refNode )
     def    lock(self):
         """file -lockReference """
         return cmds.file( self.withCopyNumber(), lockReference=1 )
+    
     
     def isDeferred(self):
         """file -q -deferReference """
