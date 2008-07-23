@@ -592,14 +592,16 @@ class Array(list):
      """
      
     __metaclass__ = metaReadOnlyAttr
-    __slots__ = ['_data', '_shape', '_ndim', '_size']
-    __readonly__ = ('apicls', 'data', 'shape', 'ndim', 'size')
+    #__slots__ = ['_data', '_shape', '_ndim', '_size']
+    #__readonly__ = ('ctype', 'data', 'shape', 'ndim', 'size')
+    __slots__ = ['_shape', '_ndim', '_size']
+    __readonly__ = ('ctype', 'shape', 'ndim', 'size')    
+    # internal storage type
+    ctype = list
     
-    # apicls = list
     # cache shape and size to save time
     def _cacheshape(self):
         shape = []
-        # sub = self.data
         sub = self
         while sub is not None :
             try :
@@ -624,6 +626,7 @@ class Array(list):
         if value is not self :
             super(Array, self).__init__(value)
             self._cacheshape()
+        return self
     def get(self):
         return super(Array, self).__getitem__(slice(None))
 #    def _getdata(self):
@@ -817,7 +820,7 @@ class Array(list):
             else :
                 next.assign([new])
             new = next
-            
+           
         result = super(Array, cls).__new__(cls)
         result.assign(new)
         return result
