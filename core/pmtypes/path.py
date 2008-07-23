@@ -139,7 +139,7 @@ class path(_base):
     def expandvars(self):    return self.__class__(os.path.expandvars(self))
     def dirname(self):       return self.__class__(os.path.dirname(self))
     basename = os.path.basename
-	
+    
     def expand(self):
         """ Clean up a filename by calling expandvars(),
         expanduser(), and normpath() on it.
@@ -335,7 +335,7 @@ class path(_base):
             names = fnmatch.filter(names, pattern)
         return [self / child for child in names]
 
-    def dirs(self, pattern=None):
+    def dirs(self, pattern=None, realpath=False):
         """ D.dirs() -> List of this directory's subdirectories.
 
         The elements of the list are path objects.
@@ -346,7 +346,10 @@ class path(_base):
         directories whose names match the given pattern.  For
         example, d.dirs('build-*').
         """
-        return [p for p in self.listdir(pattern) if p.isdir()]
+        if realpath:
+            return [p.realpath() for p in self.listdir(pattern) if p.isdir()]
+        else:
+            return [p for p in self.listdir(pattern) if p.isdir()]
 
     def files(self, pattern=None):
         """ D.files() -> List of the files in this directory.
@@ -413,7 +416,7 @@ class path(_base):
                 for item in child.walk(pattern, errors):
                     yield item
 
-    def walkdirs(self, pattern=None, errors='strict'):
+    def walkdirs(self, pattern=None, errors='strict', realpath=False):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional 'pattern' argument, this yields only
@@ -430,7 +433,7 @@ class path(_base):
             raise ValueError("invalid errors parameter")
 
         try:
-            dirs = self.dirs()
+            dirs = self.dirs(realpath=realpath)
         except Exception:
             if errors == 'ignore':
                 return
@@ -441,11 +444,26 @@ class path(_base):
                     TreeWalkWarning)
             else:
                 raise
-
+        
+        parent_realpath = None
         for child in dirs:
             if pattern is None or child.fnmatch(pattern):
-                yield child
-            for subsubdir in child.walkdirs(pattern, errors):
+                if child.islink():
+                    if parent_realpath is None:
+                        parent_realpath = self.realpath()
+                    if realpath:
+                        child_realpath = child
+                    else:
+                        child_realpath = child.realpath()
+                    # check for infinite recursion
+                    if child_realpath == parent_realpath or parent_realpath.startswith( child_realpath + os.path.sep ):
+                        #print "skipping %s to prevent infinite recursion" % child
+                        continue
+                    else:
+                        yield child
+                else:
+                    yield child
+            for subsubdir in child.walkdirs(pattern, errors, realpath):
                 yield subsubdir
 
     def walkfiles(self, pattern=None, errors='strict'):
