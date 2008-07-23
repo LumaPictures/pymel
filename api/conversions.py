@@ -230,7 +230,8 @@ class ApiDocParser(HTMLParser):
             buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name          
             returnType = None
             
-            if len(buf):
+            if len(buf) and 'no script support.' not in [ x.lower() for x in self.data[end+1:]] :
+
                 #-----------------
                 # Return Type
                 #-----------------
@@ -251,7 +252,17 @@ class ApiDocParser(HTMLParser):
                 if returnType == 'MStatus':
                     returnType = None
                     
-                    
+                #-----------------
+                # Static
+                #-----------------
+                static = False
+                try:
+                    if self.data[end+1:][0] == '[static]':
+                        static = True
+                except IndexError: pass
+                
+                
+                
                 #print tempargs
                 argList = []
                 argInfo = util.defaultdict(dict)
@@ -392,7 +403,8 @@ class ApiDocParser(HTMLParser):
                               'inArgs' : inArgs, 
                               'outArgs' : outArgs, 
                               'doc' : methodDoc, 
-                              'defaults' : defaults } 
+                              'defaults' : defaults,
+                              'static' : static } 
                 self.methods[self.currentMethod].append(methodInfo)
             
             self.mode = None
@@ -906,7 +918,6 @@ def _createNodes(dagMod, dgMod, *args) :
     result = {}
     mayaResult = {}
     for mayaType in args :
-        print "createNodes", mayaType
 #        mayaType = apiType = None
 #        if ApiTypesToMayaTypes().has_key(k) :
 #            mayaType = ApiTypesToMayaTypes()[k].keys()[0]

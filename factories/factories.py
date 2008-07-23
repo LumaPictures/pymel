@@ -1570,7 +1570,7 @@ class ApiTypeRegister(object):
         
     To register a new type call `ApiTypeRegister.register`.
     """
-    
+    types = {}
     inCast = {}
     outCast = {}
     refInit = {}
@@ -1586,77 +1586,80 @@ class ApiTypeRegister(object):
         return setArray
         
     @staticmethod
-    def _makeArraySetter( typename, length, setFunc, initFunc ):
+    def _makeArraySetter( apiTypename, length, setFunc, initFunc ):
         def setArray( array ):
             print "set", array
             if len(array) != length:
-                raise ValueError, 'Input list must contain exactly %s %ss' % ( length, typename )
+                raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypename )
             arrayPtr = initFunc()
             for i, val in enumerate( array ):
                 setFunc( arrayPtr, i, val )
             print "result", arrayPtr
             return arrayPtr
-        setArray.__name__ = 'set_' + typename + str(length) + 'Array'
+        setArray.__name__ = 'set_' + apiTypename + str(length) + 'Array'
         return setArray
 
     @staticmethod
-    def _makeArrayGetter( typename, length, getFunc ):
+    def _makeArrayGetter( apiTypename, length, getFunc ):
         def getArray( array ):
             print "get", array
             return tuple([ getFunc(array,i) for i in range(length) ] )
-        getArray.__name__ = 'get_' + typename + str(length) + 'Array'
+        getArray.__name__ = 'get_' + apiTypename + str(length) + 'Array'
         return getArray
     
     @classmethod         
-    def register(cls, typename, type, inCast=None, outCast=None):
+    def register(cls, apiTypename, wrappedType, inCast=None, outCast=None):
 
-        #typename = type.__class__.__name__
-        capType = util.capitalize( typename ) 
+        #apiTypename = wrappedType.__class__.__name__
+        capType = util.capitalize( apiTypename ) 
 
+        # register type
+        cls.types[apiTypename] = wrappedType
+        
         # register result casting
         if outCast:
-            cls.outCast[typename] = outCast
+            cls.outCast[apiTypename] = outCast
         else:
-            cls.outCast[typename] = type
+            cls.outCast[apiTypename] = wrappedType
             
         # register argument casting
         if inCast:
-            cls.inCast[typename] = inCast
+            cls.inCast[apiTypename] = inCast
         else:
-            cls.inCast[typename] = type
+            cls.inCast[apiTypename] = wrappedType
         
-        if typename in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
+        if apiTypename in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
             initFunc = getattr( cls.su, 'as' + capType + 'Ptr')
             getFunc = getattr( cls.su, 'get' + capType )
             setArrayFunc = getattr( cls.su, 'set' + capType + 'Array')
             getArrayFunc = getattr( cls.su, 'get' + capType + 'ArrayItem')
-            cls.refInit[typename] = initFunc
-            cls.refCast[typename] = getFunc
+            cls.refInit[apiTypename] = initFunc
+            cls.refCast[apiTypename] = getFunc
             for i in [2,3,4]:
-                itypename = typename + str(i)
-                cls.refInit[itypename] = initFunc
-                cls.inCast[itypename]  = cls._makeArraySetter( typename, i, setArrayFunc, initFunc )
-                cls.refCast[itypename] = cls._makeArrayGetter( typename, i, getArrayFunc )
+                iapiTypename = apiTypename + str(i)
+                cls.refInit[iapiTypename] = initFunc
+                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypename, i, setArrayFunc, initFunc )
+                cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypename, i, getArrayFunc )
         else:
             try:
                 # Api types
-                apiType = getattr( _api, typename )
-                cls.refInit[typename] = apiType
-                cls.refCast[typename] = type
+                apiType = getattr( _api, apiTypename )
+                cls.refInit[apiTypename] = apiType
+                cls.refCast[apiTypename] = wrappedType
                 try:
                     # Api Array types
-                    arrayTypename = typename + 'Array'
+                    arrayTypename = apiTypename + 'Array'
                     apiArrayType = getattr( _api, arrayTypename )
                     cls.refInit[arrayTypename] = apiArrayType
                     cls.inCast[arrayTypename] = cls._makeApiArraySetter( apiArrayType, inCast )
                     
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiArrayType == _api.MDagPathArray:
-                        cls.refCast[arrayTypename] = lambda x: [ type( apiType(x[i]) ) for i in range( x.length() ) ]
-                        cls.outCast[arrayTypename] = lambda x: [ type( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.refCast[arrayTypename] = lambda x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.outCast[arrayTypename] = lambda x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
                     else:
-                        cls.refCast[arrayTypename] = lambda x: [ type( x[i] ) for i in range( x.length() ) ]
-                        cls.outCast[arrayTypename] = lambda x: [ type( x[i] ) for i in range( x.length() ) ]
+                        cls.refCast[arrayTypename] = lambda x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
+                        cls.outCast[arrayTypename] = lambda x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
                         
                 except AttributeError:
                     pass
@@ -1850,7 +1853,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                 if apiObject:
                     result = method( self.__apiobject__(), *argList )
                 else:
-                    result = method( self.__apimfn__(), *argList )
+                    result = method( self, *argList )
                 #print "result", result
                 result = argHelper.castResult(result) 
                     
@@ -1931,9 +1934,10 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         if methodName not in classdict:
                             method = wrapApiMethod( apicls, methodName )
                             if method:
-                                #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
+                                print "%s.%s() successfully created" % (apicls.__name__, methodName )
                                 classdict[method.__name__] = method
-                                
+                        else:
+                            print "%s.%s() skipping" % (apicls.__name__, methodName )      
                     try:      
                         for enumName, enumList in classInfo['pymelEnums'].items():
                             print "adding enum %s to class %s" % ( enumName, classname )
@@ -2041,7 +2045,6 @@ class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
             classdict['apicls'] = apicls
         #print "="*40, classname, apicls, "="*40
         return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
-
 
 class MetaMayaNodeWrapper2(type) :
     """
@@ -2280,7 +2283,6 @@ def addPyNode( module, mayaType, parentMayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
     
-    
     if hasattr( module, pyNodeTypeName ):
         _api.addMayaType( mayaType )
         PyNodeType = getattr( module, pyNodeTypeName )
@@ -2298,11 +2300,11 @@ def addPyNode( module, mayaType, parentMayaType ):
             print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
             return      
         try:
-            
+            #print "MetaMayaNodeWrapper", mayaType
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {})
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )
+            #print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             PyNodeType.__module__ = module.__name__
