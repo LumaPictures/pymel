@@ -104,8 +104,10 @@ def refreshEnviron():
     if platform.system() in [ 'Darwin', 'Linux' ]: envcmd = '/usr/bin/env' 
     else:  envcmd = 'set' 
     for line in commands.getoutput(envcmd).split( '\n' ): 
-            var, val = line.split('=') 
-            if not var.startswith('_') and var not in exclude: 
+            t = line.split('=') 
+            if len(t) == 2:
+                var, val = t
+                if not var.startswith('_') and var not in exclude: 
                     os.environ[var] = val 
                                          
 # parse the Maya.env file and set the environement variablas and python path accordingly
