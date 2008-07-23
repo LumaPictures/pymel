@@ -640,7 +640,6 @@ def mayaTypeToApiType (mayaType) :
         return MayaTypesToApiTypes()[mayaType]
     except:
         apiType = 'kInvalid'
-    
         # Reserved types must be treated specially
         if ReservedMayaTypes().has_key(mayaType) :
             # It's an abstract type            
@@ -651,15 +650,17 @@ def mayaTypeToApiType (mayaType) :
             # is never actually created in the scene
             obj = MObject() 
             dagMod = MDagModifier()
-            dgMod = MDGModifier()          
+            dgMod = MDGModifier()         
             try :
                 parent = dagMod.createNode ( 'transform', MObject())
                 obj = dagMod.createNode ( mayaType, parent )
             except :
+                
                 try :
                     obj = dgMod.createNode ( mayaType )
                 except :
                     pass
+             
             apiType = obj.apiTypeStr()
                               
         return apiType                      
@@ -678,8 +679,7 @@ def addMayaType(mayaType, apiType=None ) :
 
 
     if apiType is None:
-        apiType = mayaTypeToApiType(mayaType)   
-        
+        apiType = mayaTypeToApiType(mayaType)    
     if apiType is not 'kInvalid' :
         
         apiEnum = getattr( MFn, apiType )
@@ -900,37 +900,48 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
 
 
 def _createNodes(dagMod, dgMod, *args) :
-    """pre-build a type:MObject lookup for all provided types, be careful that these MObject
+    """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
         can be used only as long as dagMod and dgMod are not deleted"""
         
     result = {}
-    for k in args :
-        mayaType = apiType = None
-        if ApiTypesToMayaTypes().has_key(k) :
-            mayaType = ApiTypesToMayaTypes()[k].keys()[0]
-            apiType = k
-        elif MayaTypesToApiTypes().has_key(k) :
-            mayaType = k
-            apiType = MayaTypesToApiTypes()[k]
-        else :
-            continue
-        if ReservedApiTypes().has_key(apiType) or ReservedMayaTypes().has_key(mayaType) :
+    mayaResult = {}
+    for mayaType in args :
+        print "createNodes", mayaType
+#        mayaType = apiType = None
+#        if ApiTypesToMayaTypes().has_key(k) :
+#            mayaType = ApiTypesToMayaTypes()[k].keys()[0]
+#            apiType = k
+#        elif MayaTypesToApiTypes().has_key(k) :
+#            mayaType = k
+#            apiType = MayaTypesToApiTypes()[k]
+#        else :
+#            continue
+#        print mayaType, apiType
+        if ReservedMayaTypes().has_key(mayaType) :
+            apiType = ReservedMayaTypes()[mayaType]
+            print "reserved", mayaType, apiType
+            mayaResult[mayaType] = apiType
             result[apiType] = None
+      
         else :
             obj = MObject()          
             try :
+                # DagNode
                 parent = dagMod.createNode ( 'transform', MObject())
                 obj = dagMod.createNode ( mayaType, parent )
             except :
+                # DependNode
                 try :
                     obj = dgMod.createNode ( mayaType )
                 except :
                     pass
             if isValidMObject(obj) :
+                apiType = obj.apiTypeStr()
+                mayaResult[mayaType] = apiType
                 result[apiType] = obj
-            else :
-                result[apiType] = None
-    return result
+    #            else :
+    #                result[apiType] = None
+    return result, mayaResult
 
 # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
 # TODO : fix that, doesn't accept the Singleton base it seems
@@ -981,6 +992,10 @@ def _buildApiTypeHierarchy () :
                 return ApiEnumsToApiTypes()[ 0 ]
     
     #global apiTypeHierarchy, ApiTypesToApiClasses
+    _buildMayaReservedTypes()
+    
+    allMayaTypes = ReservedMayaTypes().keys() + _ls(nodeTypes=True)
+    
     apiTypesToApiClasses = {}
     
     # all of maya OpenMaya api is now imported in module api's namespace
@@ -1017,9 +1032,13 @@ def _buildApiTypeHierarchy () :
     # Make it faster by pre-creating the nodes used to test
     dagMod = MDagModifier()
     dgMod = MDGModifier()      
-    nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
-    # for k in nodeDict.keys() :
-        # print "Cached %s : %s" % (k, nodeDict[k])
+    #nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
+    nodeDict, mayaDict = _createNodes( dagMod, dgMod, *allMayaTypes )
+    
+    for mayaType, apiType in mayaDict.items() :
+        MayaTypesToApiTypes()[mayaType] = apiType
+        addMayaType( mayaType, apiType )
+    
     # Fix? some MFn results are not coherent with the hierarchy presented in the docs :
     MFnDict.pop('kWire', None)
     MFnDict.pop('kBlendShape', None)
@@ -1068,10 +1087,11 @@ def _buildApiCache():
         ReservedApiTypes(data[1])
         ApiTypesToApiEnums(data[2])
         ApiEnumsToApiTypes(data[3])
-        apiTypesToApiClasses = data[4]
-        ApiTypesToApiClasses(data[4])
-        apiTypeHierarchy = data[5]
-        apiClassInfo = data[6]
+        MayaTypesToApiTypes(data[4])
+        apiTypesToApiClasses = data[5]
+        ApiTypesToApiClasses(data[5])
+        apiTypeHierarchy = data[6]
+        apiClassInfo = data[7]
         return apiTypeHierarchy, apiClassInfo
             
         #except:
@@ -1085,7 +1105,7 @@ def _buildApiCache():
     # fill out the data structures
     _buildApiTypesList()
     #apiTypesToApiEnums, apiEnumsToApiTypes = _buildApiTypesList()
-    _buildMayaTypesList()
+    #_buildMayaTypesList()
     apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo = _buildApiTypeHierarchy()
     #_buildApiTypeHierarchy()
     
@@ -1098,7 +1118,8 @@ def _buildApiCache():
         try :
             #print "about to pickle", apiTypesToApiClasses
             #print "about to pickle", ApiEnumsToApiTypes()
-            pickle.dump( (ReservedMayaTypes(), ReservedApiTypes(), ApiTypesToApiEnums(), ApiEnumsToApiTypes(), apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo),
+            pickle.dump( (ReservedMayaTypes(), ReservedApiTypes(), ApiTypesToApiEnums(), ApiEnumsToApiTypes(), MayaTypesToApiTypes(), 
+                          apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo),
                             file, 2)
             print "done"
         except:
