@@ -50,20 +50,20 @@ def _toCompOrArray(value) :
         # a single numeric value
         pass 
     else :
-        raise TypeError, "invalid value type %s cannot be converted to Array" % (clsname(value))
-    
+        raise TypeError, "invalid value type %s cannot be converted to Array" % (clsname(value))    
     return value
 
-def _toCompOrArrayInstance(value) :
+def _toCompOrArrayInstance(value, cls=None) :
+    if cls == None :
+        cls = Array
     if hasattr(value, '__iter__') :
-        if not isinstance(value, Array) :
-            value = Array(value)
+        if not isinstance(value, cls) :
+            value = cls(value)
     elif isNumeric(value) :
         # a single numeric value
         pass 
     else :
-        raise TypeError, "invalid value type %s cannot be converted to Array" % (clsname(value))
-    
+        raise TypeError, "invalid value type %s cannot be converted to %s" % (clsname(value), cls.__name__)   
     return value
 
 def _shapeInfo(value) :
@@ -331,7 +331,7 @@ def dist(a, b, axis=None):
         return a.dist()
     elif isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
-        return a.dist(*axis)
+        return a.dist(b, *axis)
     else :
         raise NotImplemented, "dist not implemented for %s" % (clsname(a))             
 
@@ -476,7 +476,7 @@ class ArrayIter(object):
     
 # A generic multi dimensional Array class
 # NOTE : Numpy Array class could be used instead, just implemented the bare minimum inspired from it
-class Array(list):
+class Array(object):
     """ A generic n-dimensional array class using nested lists for storage.
     
         Arrays can be built from numeric values, iterables, nested lists or other Array instances
@@ -592,21 +592,19 @@ class Array(list):
      """
      
     __metaclass__ = metaReadOnlyAttr
-    #__slots__ = ['_data', '_shape', '_ndim', '_size']
-    #__readonly__ = ('ctype', 'data', 'shape', 'ndim', 'size')
-    __slots__ = ['_shape', '_ndim', '_size']
-    __readonly__ = ('ctype', 'shape', 'ndim', 'size')    
-    # internal storage type
-    ctype = list
+    __slots__ = ['_data', '_shape', '_ndim', '_size']
+    __readonly__ = ('apicls', 'data', 'shape', 'ndim', 'size')
+    # internal storage type, is expected to have __iter__, __len__,__getitem__, __setitem__, __delitem__ methods
+    apicls = list
     
     # cache shape and size to save time
     def _cacheshape(self):
         shape = []
-        sub = self
+        sub = self.data
         while sub is not None :
             try :
                 shape.append(len(sub))
-                sub = super(Array, Array).__getitem__(sub, 0)
+                sub = sub[0]
             except :
                 sub = None
         self._shape = tuple(shape) 
@@ -621,27 +619,43 @@ class Array(list):
     shape = property(_getshape, _setshape, None, "Shape of the Array (number of dimensions and number of components in each dimension")    
     ndim = property(lambda x : x._ndim, None, None, "Number of dimensions of the Array")
     size = property(lambda x : x._size, None, None, "Total size of the Array (number of individual components)")
+
+    # When wrapping a class we can't or don't want to subclass, store it in _data
+    # and only access it through the standard data property (as derived classes or base
+    # classes of this class might directly subclass the class they wrap and not have a _data attribute)
+    # no check is done on the validity of data 
+    def _getdata(self):
+        return self._data
+    def _setdata(self, value):
+        if isinstance(value, self.apicls) :
+            self._data = value
+        else :
+            self._data = self.apicls(value)
+        self._cacheshape() 
+    def _deldata(self):
+        del self._data[:]
+        self._cacheshape()     
+    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
     
+    # for compatibility with herited types like MVector and MMatrix :
+    # assign sets internal storage value (apicls) from an iterable
     def assign(self, value):
-        if value is not self :
-            super(Array, self).__init__(value)
-            self._cacheshape()
-        return self
+        if type(value) == type(self) :
+            self.data = value.data
+        else :
+            self.data = self.__class__(value).data
+        return self   
+    # get returns internal storage value as a raw tuple / nested tuple
+    # it's a raw dump of the stored components    
     def get(self):
-        return super(Array, self).__getitem__(slice(None))
-#    def _getdata(self):
-#        return self._data
-#    def _setdata(self, data):
-#        if isinstance(data, self.__class__.apicls) :
-#            self._data = data
-#        else :
-#            self._data = self.apicls(data)
-#        self._cacheshape() 
-#    def _deldata(self):
-#        del self._data[:]
-#        self._cacheshape()     
-#    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data") 
-    
+        res = []
+        for a in self :
+            if isinstance(a, Array) :
+                res.append(a.get())
+            else :
+                res.append(a)               
+        return tuple(res)
+
     def isIterable(self):
         """ True if array is iterable (has a dimension of more than 0) """
         return self.ndim > 0
@@ -808,21 +822,21 @@ class Array(list):
                                  
         new = super(Array, Array).__new__(Array)
         if shape :
-            new.assign([defval]*shape[-1])
+            new.data = [defval]*shape[-1]
         else :
-            new.assign([])
+            new.data = []
         for d in reversed(shape[:-1]) :
             next = super(Array, Array).__new__(Array)
             if d :
                 # warning doing this means all sub-arrays would actually be the same object
-                # next.assign([new]*d)
-                next.assign([copy.deepcopy(new) for i in range(d)])
+                # next.data = [new]*d
+                next.data = [copy.deepcopy(new) for i in range(d)]
             else :
-                next.assign([new])
+                next.data = [new]
             new = next
            
         result = super(Array, cls).__new__(cls)
-        result.assign(new)
+        result.data = new.data
         return result
      
     def __init__(self, *args, **kwargs):
@@ -841,7 +855,7 @@ class Array(list):
             if isinstance (args, Array) :
                 # copy constructor
                 data = super(Array, Array).__new__(Array)
-                data.assign(args)
+                data.data = args
             elif hasattr(args, '__iter__') :
                 largs = []
                 subshapes = []
@@ -854,7 +868,7 @@ class Array(list):
                 if not reduce(lambda x, y : x and y == subshapes[0], subshapes, True) :
                     raise ValueError, "all sub-arrays must have same shape"
                 data = super(Array, Array).__new__(Array)
-                data.assign(largs)              
+                data.data = largs              
             elif isNumeric(args) :
                 # allow initialize from a single numeric value
                 data = args  
@@ -934,7 +948,7 @@ class Array(list):
                 if not cls._shapecheck(data.shape) :
                     raise TypeError, "shape of arguments %s is incompatible with class %s" % (data.shape, cls.__name__)            
     
-                self.assign(data)
+                self.data = data.data
             else :
                 raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
 
@@ -1229,7 +1243,7 @@ class Array(list):
             del self[i]
         # update shape
         self._cacheshape() 
-        # self.assign(lst)          
+        # self.data = lst          
                                             
     def trimmed(self, shape, value=None):
         """ a.trimmed([shape [, value]]) --> Array
@@ -1322,12 +1336,12 @@ class Array(list):
     # wrap of list-like access methods
     def __len__(self):
         """ Length of the first dimension of the array, ie len of the array considered as list """
-        return super(Array, self).__len__()
+        return self.apicls.__len__(self.data)
         
     @staticmethod
     def _extract(x, index) :
         if isinstance(x, Array) :
-            res = super(Array, x).__getitem__(index)
+            res = x.apicls.__getitem__(x.data, index)
         else :
             res = [Array._extract(a, index) for a in x]
         return res
@@ -1384,7 +1398,7 @@ class Array(list):
                 
             if values :           
                 for i in xrange(ni) :
-                    super(Array, self).__setitem__(indices[i], values[i])
+                    self.apicls.__setitem__(self.data, indices[i], values[i])
             else :
                 raise ValueError, "shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"
         else :
@@ -1409,7 +1423,7 @@ class Array(list):
            
             nextindex = index[1:]
             for i in xrange(ni) :
-                super(Array, Array).__getitem__(self, indices[i])._inject(nextindex, values[i])
+                self[indices[i]]._inject(nextindex, values[i])
 
     def __setitem__(self, index, value):
         """ Set value from either a single (first dimension) or multiple index, support for slices"""
@@ -1435,7 +1449,7 @@ class Array(list):
             next = li > 1
             for i in xrange(ls-1, -1, -1) :
                 if i in index[0] :
-                    super(Array, self).__delitem__(i)
+                    self.apicls.__delitem__(self.data, i)
                 elif next :      
                     self[i]._delete(index[1:])
                 
@@ -1468,7 +1482,7 @@ class Array(list):
             next = li > 1
             for i in xrange(ls-1, -1, -1) :
                 if i in index[0] :
-                    super(Array, self).__delitem__(i)
+                    self.apicls.__delitem__(self.data, i)
                 elif next :      
                     self[i]._strip(index[1:])
             if len(self) == 1 and hasattr(self[0], '__iter__') :
@@ -1494,7 +1508,7 @@ class Array(list):
                         
     def __iter__(self, *args, **kwargs) :
         """ Default Array iterator on first dimension """
-        return super(Array, self).__iter__(*args, **kwargs)
+        return self.apicls.__iter__(self.data, *args, **kwargs)
      
     def axisiter(self, *args) :
         """ Returns an iterator using a specific axis or list of ordered axis,
@@ -2029,7 +2043,7 @@ class Array(list):
                 except :
                     return False
             if nself.shape == nother.shape :      
-                return dist(nself, nother) <= tol
+                return nself.dist(nother) <= tol
         
         return False  
         
@@ -2170,42 +2184,6 @@ class Matrix(Array):
     
     # overloaded Array operators
 
-#    def __coerce__(self, other):
-#        """ coerce(x, y) -> (x1, y1)
-#        
-#            Return a tuple consisting of the two numeric arguments converted to
-#            a common type and shape, using the same rules as used by arithmetic operations.
-#            If coercion is not possible, return NotImplemented. """ 
-#            
-#        print "coerce Matrix"
-#        if type(other) == type(self) :
-#            if other.shape == self.shape :
-#                return self, other
-#        else :
-#            try :    
-#                other = _toCompOrArrayInstance(other)
-#            except :
-#                return NotImplemented
-#            
-#        mro = inspect.getmro(self.__class__)
-#        nself = None
-#        nother = None            
-#        for c in mro :
-#            if issubclass(c, Array) :
-#                try :
-#                    nself = c(self)
-#                    # nother = c(other, shape=self.shape)
-#                    nother = c(other)
-#                    break;
-#                except :
-#                    pass 
-#
-#        if nself is not None and nother is not None :
-#            return nself, nother
-#        else :
-#            # that way if not able to to self.__oper__(other) (like if other is larger than self), it will try other.__roper__(self) next 
-#            return NotImplemented
-#            # raise TypeError, "%s and %s cannot be converted to an common Array instance of same shape" % (clsname(self), clsname(other))
 
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
@@ -2215,27 +2193,34 @@ class Matrix(Array):
         if isinstance(other, Matrix) :
             return self.__class__._convert( [ [ dot(row,col) for col in other.col ] for row in self.row ] )
         elif isinstance(other, Vector) :
-            return other.__rmul__(self)
+            if other.size <= self.shape[1] :
+                return other.__class__._convert( [ dot(row, other) for row in self.row ] [:other.size] )
+            else :
+                raise ValueError, "matrix of shape %s and vector of size %s are not conformable for a Matrix * Vector multiplication" % (self.size, other.shape) 
         else :
             return Array.__mul__(self, other)
-            # return super(Array, self).__mul__(other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
-            If b is a Matrix, __rmul__ is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
+            If b is a Matrix, __rmul__ is mapped to matrix multiplication, if b is a Vector, to Vector by Matrix multiplication,
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value """        
         if isinstance(other, Matrix) :
             return Matrix( [ [ dot(row,col) for col in self.col ] for row in other.row ] )
         elif isinstance(other, Vector) :
-            return other.__mul__(self)
+            if other.size <= self.shape[0] :
+                return other.__class__._convert( [ dot(col, other) for col in self.col ] [:other.size] )
+            else :
+                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Vector * Matrix multiplication" % (other.size, self.shape)           
         else :
             return Array.__rmul__(self, other)
-            #return super(Array, self).__mul__(other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
-            In place multiplication of Matrix a and b, see __mul__, result must fit a's type """      
-        return self.__class__(self*other)        
-
+            In place multiplication of Matrix a and b, see __mul__, result must fit a's type """ 
+        res = self*other
+        if isinstance(res, self.__class__) :
+            return self.__class__(res)        
+        else :
+            raise TypeError, "result of in place multiplication of %s by %s is not a %s" % (clsname(self), clsname(other), clsname(self)) 
     
     # specific methods
     
@@ -2549,14 +2534,11 @@ class Vector(Array):
         if isinstance(other, Vector) :
             return self.dot(other)
         elif isinstance(other, Matrix) :
-            if self.size == other.shape[0] :
-                return self.__class__._convert( [ dot(self, col) for col in other.col ] )
-            else :
-                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Vector * Matrix multiplication" % (self.size, other.shape) 
+            # will defer to Matrix rmul
+            return NotImplemented
         else :
             # will defer to Array.__mul__
             return Array.__mul__(self, other)
-            # return super(Array, self).__mul__(other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
             If b is a Vector, __rmul__ is mapped to the dot product of the two vectors a and b,
@@ -2566,18 +2548,19 @@ class Vector(Array):
         if isinstance(other, Vector) :
             return self.dot(other)
         elif isinstance(other, Matrix) :
-            if self.size == other.shape[1] :
-                return self.__class__._convert( [ dot(row, self) for row in other.row ] )
-            else :
-                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Matrix * Vector multiplication" % (self.size, other.shape)             
+            # will defer to Matrix mul
+            return NotImplemented
         else :
+            # will defer to Array.__rmul__
             return Array.__rmul__(self, other)
-            # return super(Array, self).__mul__(other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
             In place multiplication of Vector a and b, see __mul__, result must fit a's type """      
-        return self.__class__(self*other)  
-          
+        res = self*other
+        if isinstance(res, self.__class__) :
+            return self.__class__(res)        
+        else :
+            raise TypeError, "result of in place multiplication of %s by %s is not a %s" % (clsname(self), clsname(other), clsname(self))      
                   
     # special operators
     def __xor__(self, other):
@@ -2594,8 +2577,12 @@ class Vector(Array):
     def __ixor__(self, other):
         """ a.__xor__(b) <==> a^=b
             Inplace cross product or transformation by inverse transpose Matrix of b is v is a Matrix """        
-        self = self.__xor__(other) 
-                
+        res = self.__xor__(other) 
+        if isinstance(res, self.__class__) :
+            return self.__class__(res)        
+        else :
+            raise TypeError, "result of in place multiplication of %s by %s is not a %s" % (clsname(self), clsname(other), clsname(self)) 
+                             
     # additional methods
 
     def angle(self, other):
@@ -2658,7 +2645,7 @@ class Vector(Array):
             nother = Matrix(other)
         except :
             raise NotImplemented, "%s not convertible to Matrix" % (clsname(other))                     
-        return self.__mul__(nother.transpose().inverse())
+        return nother.transpose().inverse().__rmul__(self)
     
     # min, max etc methods derived from array  
         
@@ -2701,15 +2688,27 @@ def _testArray() :
     # init and append (hstack, vstack)
     A = Array()
     print repr(A)
+    print A.data
+    print A.shape
+    print A.ndim
+    print A.size
     A = Array(1)
-    print repr(A)   
+    print repr(A)
+    print A.data
+    print A.shape
+    print A.ndim
+    print A.size       
     A = Array(1,2)
     print repr(A) 
     A = Array([1,2])
     print repr(A) 
     A = Array([[1,2], [3, 4]])
     print repr(A)
-    print A.formated() 
+    print A.formated()
+    print A.data
+    print A.shape
+    print A.ndim
+    print A.size       
     A[0,0] = 10
     print A.formated() 
     #[[10, 2],
@@ -2726,6 +2725,13 @@ def _testArray() :
     print A.formated()    
     #[[1, 2],
     # [3, 4]]  
+    print A.data
+    # [Array([1, 2]), Array([3, 4])]
+    print A.tolist()
+    # [[1, 2], [3, 4]]     
+    print A.get()
+    # ((1, 2), (3, 4))
+    
         
     # Array([])
     A = Array([])
@@ -3057,9 +3063,9 @@ def _testArray() :
     # not changing value because array had to be reconstructed
     print "A[0, :]:"
     print A[0, :].formated()
-    #[[1 2 1]
-    # [4 5 3]
-    # [7 9 5]]
+    #[[1, 2, 1],
+    # [4, 5, 3],
+    # [7, 9, 5]]
     # do it this way 
     A[0, :, 1] = [2, 6, 9]
     print "A[0, :, 1] = [2, 6, 9]"
@@ -3069,34 +3075,34 @@ def _testArray() :
     # [7, 9, 5]]    
     print "A[0, :, 1:2]:"
     print A[0, :, 1:2].formated()
-    #[[2]
-    # [6]
+    #[[2],
+    # [6],
     # [9]]
     print "A[0, 1:2, 1:2]:"
     print A[0, 1:2, 1:2].formated()
     #[[6]]
     print "A[0, :, 1:3]:"
     print A[0, :, 1:3].formated()
-    #[[2 1]
-    # [6 3]
-    # [9 5]]
+    #[[2, 1],
+    # [6, 3],
+    # [9, 5]]
     print "A[:, :, 1:3]:"
     print A[:, :, 1:3].formated()
-    #[[[ 2  1]
-    #  [ 6  3]
-    #  [ 9  5]]
+    #[[[2, 1],
+    #  [6, 3],
+    #  [9, 5]],
     #
-    # [[10 10]
-    #  [40 30]
-    #  [80 50]]]
+    # [[10, 10],
+    #  [40, 30],
+    #  [80, 50]]]
     print "A[:, :, 1:2]:"
     print A[:, :, 1:2].formated()
-    #[[[ 2]
-    #  [ 6]
-    #  [ 9]]
+    #[[[2],
+    #  [6],
+    #  [9]],
     #
-    # [[10]
-    #  [40]
+    # [[10],
+    #  [40],
     #  [80]]]
     
     # delete or strip items
@@ -3471,7 +3477,7 @@ def _testArray() :
     # True
     print A is C[0]
     # False
-    print "C = B.trim((5, 5))"
+    print "C = B.trimmed((5, 5))"
     C = B.trimmed((5, 5))
     print C.formated()
     #[[1, 2, 3, 4, 0],
@@ -3854,22 +3860,46 @@ def _testArray() :
     A = Array(range(18), shape=(2,3,3))
     print "Array(range(18), shape=(2,3,3))"
     print A.formated()
-     
-    
+    #[[[0, 1, 2],
+    #  [3, 4, 5],
+    #  [6, 7, 8]],
+    #
+    # [[9, 10, 11],
+    #  [12, 13, 14],
+    #  [15, 16, 17]]]        
     print "B=A[0]"
     B=A[0]
     print B.formated()
- 
- 
+    #[[0, 1, 2],
+    # [3, 4, 5],
+    # [6, 7, 8]] 
     print "B.transpose()"
     print B.transpose().formated()
-     
+    #[[0, 3, 6],
+    # [1, 4, 7],
+    # [2, 5, 8]]     
     print "A.transpose(0,2,1)"    
     print A.transpose(0,2,1).formated() 
-  
+    #[[[0, 3, 6],
+    #  [1, 4, 7],
+    #  [2, 5, 8]],
+    #
+    # [[9, 12, 15],
+    #  [10, 13, 16],
+    #  [11, 14, 17]]]  
     print "A.transpose(2,1,0)"
     print A.transpose(2,1,0).formated()
-
+    #[[[0, 9],
+    #  [3, 12],
+    #  [6, 15]],
+    #
+    # [[1, 10],
+    #  [4, 13],
+    #  [7, 16]],
+    #
+    # [[2, 11],
+    #  [5, 14],
+    #  [8, 17]]]
 
 
 
@@ -4270,8 +4300,66 @@ def _testMatrix() :
     print (N*M).formated()
     #[[480, 540, 600],
     # [1360, 1580, 1800],
-    # [2240, 2620, 3000]]    
+    # [2240, 2620, 3000]] 
     
+    M = Matrix(range(1,10), shape=(3, 3))
+    print "M:"
+    print M.formated()
+    #[[1, 2, 3],
+    # [4, 5, 6],
+    # [7, 8, 9],    
+    V=Vector(1, 10, 100)   
+    print "V:"
+    print repr(V)
+    # Vector([1, 10, 100])
+    print "V*M"
+    print repr(V*M)
+    # Vector([741, 852, 963])   
+    print "M*V"
+    print repr(M*V)
+    # Vector([321, 654, 987])    
+      
+    M.trim(shape=(4, 4))
+    M[3] = [0.25, 0.5, 0.75, 1]
+    print "M:"
+    print M.formated()
+    #[[1, 2, 3, 0],
+    # [4, 5, 6, 0],
+    # [7, 8, 9, 0],
+    # [0.25, 0.5, 0.75, 1]] 
+    V=Vector(1, 10, 100)   
+    print "V:"
+    print repr(V)
+    # Vector([1, 10, 100])    
+    print "V*M"
+    print repr(V*M)
+    # Vector([741.0, 852.0, 963.0])    
+    print "M*V"
+    print repr(M*V)
+    # Vector([321, 654, 987])
+    
+    P=Vector(1, 10, 100, 1)   
+    print "P:"
+    print repr(P)
+    # Vector([1, 10, 100, 1])
+    print "P*M"
+    print repr(P*M)
+    # Vector([741.25, 852.5, 963.75, 1])
+    print "M*P"
+    print repr(M*P)
+    # Vector([321, 654, 987, 81.25])
+    
+    U=Vector(1, 2, 3, 4, 5)   
+    print "U:"
+    print repr(U)
+    # Vector([1, 2, 3, 4, 5])
+    # should fail
+    print "U*M"
+    try :
+        print repr(U*M)
+    except :
+        print "Will raise ValueError: vector of size 5 and matrix of shape (4, 4) are not conformable for a Vector * Matrix multiplication"
+                              
     # diagonal and trace
     M = Matrix(range(1,10), shape=(3, 3))
     M.nrow=4
@@ -4471,15 +4559,32 @@ def _testVector() :
     try :
         V = Vector([[1, 2], [3, 4]])
     except :
-        print "Will raise ValueError: cannot initialize a Vector of shape (4,) from [[1, 2], [3, 4]], some data would be lost" 
-    U = Vector([1, 2, 3])
-    
-    U = Vector([[1, 2, 3]])
-        
-    U = Vector([[1], [2], [3]])
-    
-    U = Vector([[1, 2, 3], [4, 5, 6]])
+        print "Will raise ValueError: cannot initialize a Vector of shape (4,) from [[1, 2], [3, 4]], some information would be lost, use an explicit resize or trim" 
+    print "V = Vector([[1, 2, 3]])"
+    try :
+        V = Vector([[1, 2, 3]])
+    except :
+        print "Will raise ValueError: cannot initialize a Vector of shape (3,) from [[1, 2, 3]], some information would be lost, use an explicit resize or trim" 
       
+    # herited methods
+    
+    U = Vector(1, 2, 3)
+    print "U:"
+    print repr(U)
+    # Vector([1, 2, 3]) 
+    print repr(U+1)
+    # Vector([2, 3, 4])
+    print repr(U*2)
+    # Vector([2, 4, 6])
+    print repr(U*[10, 100, 1000])   
+    # Vector([10, 200, 3000]) 
+      
+    # overloaded methods  
+
+    U = Vector(1, 2, 3)
+    print "U:"
+    print repr(U)
+    # Vector([1, 2, 3])       
     M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])
     print "M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])"
     print M.formated()
@@ -4489,56 +4594,63 @@ def _testVector() :
     # [1.0, 2.0, 3.0, 1.0]]  
     print "V = U*M[:3, :3]"
     V = U*M[:3, :3]
-    print V
-    # [3.47, 4.47, 1.38]
+    print repr(V)
+    # Vector([3.47, 4.47, 1.38])
     print "V = U*M"
     V = U*M
-    print V
-    # [3.47, 4.47, 1.38]    
+    print repr(V)
+    # Vector([3.47, 4.47, 1.38])   
     print U*V
     # 16.55
     N = U^V
-    print N
-    # [-10.65, 9.03, -2.47]
-    print N.normal()
-    # [-0.751072956189, 0.63682523891, -0.17419250721]
+    print repr(N)
+    # Vector([-10.65, 9.03, -2.47])
+    print repr(N.normal())
+    # Vector([-0.751072956189, 0.63682523891, -0.17419250721])
     print U.dist(V)
     # 3.8504804895
     
-    print M[:3, :3]*U
-    # [-1.86, 6.13, 2.05]
-    print U^M[:3, :3]
-    # [2.59076337407, 0.574934882789, 1.76818272891]
-    print (U^M[:3, :3]).normal()   
-    # [0.812431999034, 0.180292612136, 0.554480676809]
- 
-    
-    print V*M[:3, :3].inverse()
-    # [1.0, 2.0, 3.0]
-    print U*2
-    # [2, 4, 6]
-        
+    print repr(M[:3, :3]*U)
+    # Vector([-1.86, 6.13, 2.05])
+    print repr(U^M[:3, :3])
+    # Vector([2.59076337407, 0.574934882789, 1.76818272891])
+    print repr((U^M[:3, :3]).normal())
+    # Vector([0.812431999034, 0.180292612136, 0.554480676809])  
+    print repr(U.normal()^M[:3, :3])
+    # Vector([0.692410636856, 0.153657810793, 0.472566712057])      
+    print repr(U*M[:3, :3].transpose().inverse())
+    # Vector([2.59076337407, 0.574934882789, 1.76818272891])
+    print repr((U*M[:3, :3].transpose().inverse()).normal())
+    # Vector([0.812431999034, 0.180292612136, 0.554480676809])
+    print repr(U.normal()*M[:3, :3].transpose().inverse())
+    # Vector([0.692410636856, 0.153657810793, 0.472566712057])
+                
     # Vector of size 4 for Point
     P = Vector(1, 2, 3, 1)
     print "P = Vector(1, 2, 3, 1)"
-    print P
-    # [1, 2, 3, 1]
+    print repr(P)
+    # Vector([1, 2, 3, 1])
     print "Q = P*M"
     Q = P*M
-    print Q
-    # [4.47, 6.47, 4.38, 1.0]
+    print repr(Q)
+    # Vector([4.47, 6.47, 4.38, 1.0])
     print P.dist(Q)
-    # 5.82462015929    
-    
+    # 5.82462015929        
+    print M.formated()
+    #[[1.5, 1.5, -2.12, 0.0],
+    # [-0.29, 1.71, 1.0, 0.0],
+    # [0.85, -0.15, 0.5, 0.0],
+    # [1.0, 2.0, 3.0, 1.0]]       
     P*=M
-    print P
-    # [4.47, 6.47, 4.38, 1.0]    
+    print repr(P)
+    # Vector([4.47, 6.47, 4.38, 1.0])          
+    print  "M*=P"
     try :
         M*=P
+        print M.formated()
     except :
-        print "Will raise TypeError: class Matrix has a fixed number of dimensions 2 and it cannot be changed"
-    
-        
+        print "Will raise TypeError: result of in place multiplication of Matrix by Vector is not a Matrix"
+         
     print "end tests Vector"
     
 def _test():
