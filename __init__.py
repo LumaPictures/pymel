@@ -622,6 +622,7 @@ print "imported utils"
 # will check for the presence of an initilized Maya / launch it
 import mayahook
 print "imported mayahook"
+assert mayahook.mayaInit() 
 
 import tools
 print "imported tools"
