@@ -280,7 +280,18 @@ class MVector(Vector) :
     cnames = ('x', 'y', 'z')
     shape = (3,)
 
-    def __new__(cls, *args, **kwargs): 
+    def __new__(cls, *args, **kwargs):
+        shape = kwargs.get('shape', None)
+        ndim = kwargs.get('ndim', None)
+        size = kwargs.get('size', None)
+        # will default to class constant shape = (3,)
+        # no other option is actually possible on MVector, but this method could be used to allow wrapping
+        # of Maya array classes that can have a variable number of elements
+        # shape, ndim, size = cls._defaultshape(shape, ndim, size) 
+        shape, ndim, size = cls._expandshape(shape, ndim, size)        
+        # if not cls._shapecheck(shape) :
+        #    raise TypeError, "shape of arguments %s is incompatible with class %s" % (data.shape, cls.__name__)  
+        
         new = cls.apicls.__new__(cls)
         cls.apicls.__init__(new)
         return new
@@ -319,7 +330,7 @@ class MVector(Vector) :
                         new = cls.apicls(*l)
                     except :
                         raise TypeError, "in %s%s, arguments do not fit class definition, check help(%s) " % (cls.__name__, tuple(args), cls.__name__)
-            self.apicls.assign(self, new)
+            self.assign(self, new)
             
         if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
             # can also use the form <componentname>=<number>
@@ -332,12 +343,16 @@ class MVector(Vector) :
                         setcomp = True
             if setcomp :
                 try :
-                    self.apicls.assign(self, cls.apicls(*l))
+                    self.assign(self, cls.apicls(*l))
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
+                          
+    # standard way of accessing all Array subclasses internal value are assign and get,
+    # here they are overloaded to call on API for MVector and other API based Arrays                      
                                                  
-
+    def assign(self, value):
+        self.apicls.assign(self, self.__class__.apicls(*value))
     
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
@@ -348,6 +363,7 @@ class MVector(Vector) :
         self.apicls.get(self, p)
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
     
+    # __getitem__ / __setitem__ override
     # TODO : make Vector methods more generic (list or iterable API class) and get rid of this
     def __getitem__(self, i):
         """ Get component i value from self """
@@ -368,12 +384,16 @@ class MVector(Vector) :
                     return list(self)[i]
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+
     def __setitem__(self, i, a):
         """ Set component i value on self """
         v = Vector(self)
         v.__setitem__(i, a)
-        self.__init__(*v) 
-    def _iter(self):
+        self.assign(*v) 
+   
+    # iterator override
+        
+    def _iterapi(self):
         for i in xrange(len(self)) :
             yield self.apicls.__getitem__(self, i)           
     def __iter__(self):
@@ -381,12 +401,12 @@ class MVector(Vector) :
         if hasattr(self.apicls, '__iter__') :
             return self.apicls.__iter__(self)
         elif hasattr(self.apicls, '__getitem__') :
-            return self._iter
+            return self._iterapi
         else :
             raise NotImplemented    
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
-        return value in list(self)
+        return value in self.__iter__
     
     
     # common operators herited from Vector
