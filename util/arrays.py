@@ -30,7 +30,7 @@ except :
         for element in iterable:
             if not element:
                 return False
-            return True
+        return True
     def _any(iterable):
         """ Return True if any element of the iterable is true """
         for element in iterable:
