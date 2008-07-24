@@ -14,22 +14,41 @@ import pymel.factories as _factories
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
+    def __len__(self):
+        """ Number of components in the Maya api MVector, ie 3 """
+        return 3
+    type.__setattr__(_api.MVector, '__len__', __len__)
     def __iter__(self):
-        """ Iterates on all 3 components of a Maya api MVector """
-        for i in xrange(3) :
+        """ Iterates on all components of a Maya api MVector """
+        for i in xrange(len(self)) :
             yield self[i]
     type.__setattr__(_api.MVector, '__iter__', __iter__)
 
 def _patchMPoint() :
+    def __len__(self):
+        """ Number of components in the Maya api MPoint, ie 4 """
+        return 4
+    type.__setattr__(_api.MPoint, '__len__', __len__)    
     def __iter__(self):
-        """ Iterates on all 4 components of a Maya api MPoint """
-        for i in xrange(4) :
+        """ Iterates on all components of a Maya api MPoint """
+        for i in xrange(len(self)) :
             yield self[i]
     type.__setattr__(_api.MPoint, '__iter__', __iter__)
+  
+def _patchMColor() :
+    def __len__(self):
+        """ Number of components in the Maya api MColor, ie 4 """
+        return 4
+    type.__setattr__(_api.MColor, '__len__', __len__)    
+    def __iter__(self):
+        """ Iterates on all components of a Maya api MColor """
+        for i in xrange(len(self)) :
+            yield self[i]
+    type.__setattr__(_api.MColor, '__iter__', __iter__)  
     
 def _patchMMatrix() :
     def __iter__(self):
-        """ Iterates on all 4 rows of a Maya api MMatrix """
+        """ Iterates on all rows of a Maya api MMatrix """
         for r in xrange(4) :
             yield [_api.MScriptUtil.getDoubleArrayItem(self[r], c) for c in xrange(4)]
     type.__setattr__(_api.MMatrix, '__iter__', __iter__)
@@ -42,6 +61,7 @@ def _patchMTransformationMatrix() :
 
 _patchMVector()
 _patchMPoint()
+_patchMColor()
 _patchMMatrix()
 _patchMTransformationMatrix()
 
@@ -151,120 +171,8 @@ def matrixOrArray(value) :
 # generic math function that can operate on Arrays herited from arrays
 # (min, max, sum, prod...)
 
-# Array specific functions that can be overloaded from arrays when a faster api method exists
-
-def sqlength(a, axis=None):
-    """ sqlength(a, axis) --> numeric or Array
-        Returns square length of a, a*a or the sum of x*x for x in a if a is an iterable of numeric values.
-        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
-    a = vectorOrArray(a)
-    if isinstance(a, MVector) :
-        # axis not used but this catches invalid axis errors
-        # only valid axis for Vector is (0,)
-        if axis is not None :
-            try :
-                axis = a._getaxis(axis, fill=True)
-            except :
-                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
-        return a.sqlength()
-    elif isinstance(a, Array) :
-        axis = a._getaxis(axis, fill=True)
-        return a.sqlength(*axis)
-    else :
-        raise NotImplemented, "sqLength not implemented for %s" % (util.clsname(a))  
-
-
-#def length(a, axis=None):
-#    """ length(a, axis) --> numeric or Array
-#        Returns length of a, sqrt(a*a) or the square root of the sum of x*x for x in a if a is an iterable of numeric values.
-#        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
-#    a = vectorOrArray(a)
-#    if isinstance(a, Vector) :
-#        # axis not used but this catches invalid axis errors
-#        # only valid axis for Vector is (0,)
-#        if axis is not None :
-#            try :
-#                axis = a._getaxis(axis, fill=True)
-#            except :
-#                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
-#        return a.length()
-#    elif isinstance(a, Array) :
-#        axis = a._getaxis(axis, fill=True)
-#        return a.length(*axis)
-#    else :
-#        raise NotImplemented, "sqlength not implemented for %s" % (util.clsname(a))       
-
-def normal(a, axis=None): 
-    """ normal(a, axis) --> Array
-        Return a normalized copy of self: self/length(self, axis) """
-    if isinstance(a, MVector) :
-        if axis :
-            raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)        
-        return a.normal()  
-    else :
-        return arrays.normal(a, axis)
-    
-def dist(a, b, axis=None):
-    """ dist(a, b, axis) --> float or Array
-         Returns the distance between a and b, the length of b-a """
-    if isinstance(a, MVector) and isinstance(b, MVector) :
-        if axis :
-            raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)        
-        return a.distanceTo(b)  
-    else :
-        return arrays.dist(a, b, axis)
-
-# functions on MVectors
-
-def angle(u, v):
-    """ angle(u, v) --> float
-        Returns the angle of rotation between u and v """    
-    u = MVector._convert(u)
-    u = MVector._convert(v)
-    return u.angle(v)
-
-def axis(u, v, normalize=False):
-    """ axis(u, v[, normalize=False]) --> Vector
-        Returns the axis of rotation from u to v as the vector n = u ^ v
-        if the normalize keyword argument is set to True, n is also normalized """ 
-    u = MVector._convert(u)
-    u = MVector._convert(v)
-    return u.axis(v)
-
-def cotan(a, b, c) :
-    """ cotan(a, b, c) :
-        cotangent of the (b-a), (c-a) angle, a, b, and c should be 3 dimensional vectors """
-    try :        
-        a = MVector(a)
-        b = MVector(b)
-        c = MVector(c)
-        return dot(c - b,a - b)/length(cross(c - b, a - b))  
-    except :
-        return arrays.cotan(a, b, c)
-    
-def cross(a, b, axis=None):
-    """ cross(a, b):
-        cross product of a and b, a and b should be 3 dimensional vectors  """
-    if isinstance(a, MVector) and isinstance(b, MVector) :      
-        return a.cross(b)
-    else :
-        return arrays.cross(a, b)
-
-def dot(a, b):
-    """ dot(a, b):
-        dot product of a and b, a and b should be MVector or iterables of numeric values """
-    if isinstance(a, MVector) and isinstance(b, MVector) :       
-        return a.dot(b)
-    else :
-        return arrays.dot(a, b)
-
-def outer(a, b):
-    """ outer(a, b) :
-        outer product of vectors a and b """
-    if isinstance(a, MVector) and isinstance(b, MVector) :       
-        return MMatrix([b*x for x in a])
-    else :
-        return arrays.outer(a, b)
+# Functions that work on vectors will now be inherited from Array and properly defer
+# to the class methods
                
 class MVector(Vector) :
     """ A 3 dimensional vector class that wraps Maya's api MVector class,
@@ -273,10 +181,9 @@ class MVector(Vector) :
         >>> z = MVector(MVector.xAxis, z=1)
         """
     __metaclass__ = MetaMayaArrayTypeWrapper
-    __slots__ = ['_shape']
+    __slots__ = ()
     # class specific info
     apicls = _api.MVector
-    # stype = _api.MVector
     cnames = ('x', 'y', 'z')
     shape = (3,)
 
@@ -284,53 +191,61 @@ class MVector(Vector) :
         shape = kwargs.get('shape', None)
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
-        # will default to class constant shape = (3,)
-        # no other option is actually possible on MVector, but this method could be used to allow wrapping
+        # will default to class constant shape = (3,), so it's just an error check to catch invalid shapes,
+        # as no other option is actually possible on MVector, but this method could be used to allow wrapping
         # of Maya array classes that can have a variable number of elements
-        # shape, ndim, size = cls._defaultshape(shape, ndim, size) 
         shape, ndim, size = cls._expandshape(shape, ndim, size)        
-        # if not cls._shapecheck(shape) :
-        #    raise TypeError, "shape of arguments %s is incompatible with class %s" % (data.shape, cls.__name__)  
         
         new = cls.apicls.__new__(cls)
         cls.apicls.__init__(new)
         return new
         
     def __init__(self, *args, **kwargs):
+        """ __init__ method, valid for MVector, MPoint and MColor classes """
         cls = self.__class__
         
         if args :
-            # shortcut when initializing from other api types      
+            # allow both forms for arguments
+            if len(args)==1 and hasattr(args[0], '__iter__') :
+                args = args[0]
+            # shortcut when a direct api init is possible     
             try :
-                new = cls.apicls(*args)
+                self.assign(args)
             except :
                 # special exception to the rule that you cannot drop data in Arrays __init__
-                # to allow all conversion from MVector derived classes (MPoint, MColor) to a base class
-                if len(args)==1 and isinstance(args[0],MVector) :
-                    ranges = tuple(map(slice, cls.shape))
-                    args = args[0][ranges]
-                    new = cls.apicls(*args)
-                else :     
-                    shape = kwargs.get('shape', None)
-                    size = kwargs.get('size', cls.size)
-                    if shape is not None :
-                        shape = cls._expandshape(shape, size)                                                   
-                    nargs = Vector(*args, **{'shape':shape})
-                    nbargs = len(nargs)
-                    if nbargs != cls.size :
-                        # to protect from forced casting from longer data
-                        if nbargs > cls.size and not isinstance(args, cls) :
-                            raise ValueError, "could not cast %s to %s of size %s, some data would be lost" % (args, cls.__name__, cls.size)
-                        l = list(self.flat)
-                        for i in xrange(min(nbargs, cls.size)) :
-                            l[i] = float(nargs[i])
-                    else :
-                        l = list(nargs.flat)
-                    try :
-                        new = cls.apicls(*l)
-                    except :
-                        raise TypeError, "in %s%s, arguments do not fit class definition, check help(%s) " % (cls.__name__, tuple(args), cls.__name__)
-            self.assign(self, new)
+                # to allow all conversion from MVector derived classes (MPoint, MColor) to a base class           
+                if isinstance(args, MVector) or isinstance(args, _api.MVector) or isinstance(args, _api.MPoint) or isinstance(args, _api.MColor) :
+                    for a in args :
+                        print a
+                    largs = list(args)
+                    args = tuple(args)
+                    if len(args) > len(self) :
+                        args = args[slice(self.shape[0])]
+                super(Vector, self).__init__(*args)
+                    
+                    
+#                    shape = kwargs.get('shape', None)
+#                    ndim = kwargs.get('ndim', None)
+#                    size = kwargs.get('size', None)
+#                    # must be expanded with class constants, not Vector's
+#                    shape, ndim, size = cls._expandshape(shape, ndim, size)                                                 
+#                    nargs = Vector(*args, **{'shape':shape})
+                    
+#                    nbargs = len(nargs)
+#                    if nbargs != cls.size :
+#                        # to protect from forced casting from longer data
+#                        if nbargs > cls.size and not isinstance(args, cls) :
+#                            raise ValueError, "could not cast %s to %s of size %s, some data would be lost" % (args, cls.__name__, cls.size)
+#                        l = list(self.flat)
+#                        for i in xrange(min(nbargs, cls.size)) :
+#                            l[i] = float(nargs[i])
+#                    else :
+#                        l = list(nargs.flat)
+#                    try :
+#                        self.assign(l)
+#                    except :
+#                        raise TypeError, "in %s%s, arguments do not fit class definition, check help(%s) " % (cls.__name__, tuple(args), cls.__name__)
+#            self.assign(new)
             
         if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
             # can also use the form <componentname>=<number>
@@ -343,17 +258,39 @@ class MVector(Vector) :
                         setcomp = True
             if setcomp :
                 try :
-                    self.assign(self, cls.apicls(*l))
+                    self.assign(l)
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
+
+    # for compatibility with base classes Array that actually hold a nested list in their _data attribut
+    # here, there is no _data attribute as we subclass api.MVector directly, thus v.data is v
+    # for wraps 
                           
-    # standard way of accessing all Array subclasses internal value are assign and get,
-    # here they are overloaded to call on API for MVector and other API based Arrays                      
+    def _getdata(self):
+        return self
+    def _setdata(self, value):
+        self.assign(value) 
+    def _deldata(self):
+        if hasattr(self.apicls, 'clear') :
+            self.apicls.clear(self)  
+        else :
+            raise NotImplemented, "cannot clear stored elements of %s" % (self.__class__.__name__)
+          
+    data = property(_getdata, _setdata, _deldata, "The MVector data")                           
+                          
+    # overloads for assign and get though standard way should be to use the data property
+    # to access stored values                   
                                                  
     def assign(self, value):
-        self.apicls.assign(self, self.__class__.apicls(*value))
-    
+        # don't accept instances as assign works on exact types
+        if type(value) != self.apicls :
+            if not hasattr(value, '__iter__') :
+                value = (value,)
+            value = self.apicls(*value) 
+        self.apicls.assign(self, value)
+        return self
+   
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
         ms = _api.MScriptUtil()
@@ -362,13 +299,20 @@ class MVector(Vector) :
         p = ms.asDoublePtr ()
         self.apicls.get(self, p)
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
+
+    def __len__(self):
+        """ Number of components in the MVector instance, 3 for MVector, 4 for MPoint and MColor """
+        return self.apicls.__len__(self)
     
     # __getitem__ / __setitem__ override
-    # TODO : make Vector methods more generic (list or iterable API class) and get rid of this
     def __getitem__(self, i):
         """ Get component i value from self """
-        if hasattr(i, '__len__') and len(i) == 1 :
-            i = i[0]
+        if hasattr(i, '__iter__') :
+            i = list(i)
+            if len(i) == 1 :
+                i = i[0]
+            else :
+                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
         if isinstance(i, slice) :
             try :
                 return list(self)[i]
@@ -385,29 +329,22 @@ class MVector(Vector) :
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
 
+    # as api.MVector has no __setitem__ method
     def __setitem__(self, i, a):
         """ Set component i value on self """
         v = Vector(self)
         v.__setitem__(i, a)
-        self.assign(*v) 
+        self.assign(v) 
    
     # iterator override
-        
-    def _iterapi(self):
-        for i in xrange(len(self)) :
-            yield self.apicls.__getitem__(self, i)           
-    def __iter__(self):
+     
+    # TODO : support for optionnal __iter__ arguments           
+    def __iter__(self, *args, **kwargs):
         """ Iterate on the api components """
-        if hasattr(self.apicls, '__iter__') :
-            return self.apicls.__iter__(self)
-        elif hasattr(self.apicls, '__getitem__') :
-            return self._iterapi
-        else :
-            raise NotImplemented    
+        return self.apicls.__iter__(self.data)   
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
-        return value in self.__iter__
-    
+        return value in self.__iter__()  
     
     # common operators herited from Vector
     
@@ -584,10 +521,8 @@ class MVector(Vector) :
     def normalize(self):
         """ Performs an in place normalization of self """
         try :
-            # self.assign(self.normal())
             self.apicls.normalize(self)
         except :
-            # self.assign(super(Vector, self).normal())
             super(MVector, self).normalize()
     def angle(self, other):
         """  Returns the angle in radians between both arguments considered as MVector """
@@ -1530,9 +1465,10 @@ _factories.ApiTypeRegister.register( 'MEulerRotation', MEulerRotation )
 
 def _testMVector() :
     
-    print "MVector class", dir(MVector)
+    print "MVector class:", dir(MVector)
     u = MVector()
     print u
+    print "MVector instance:", dir(u)
     print repr(u)
     print MVector.__readonly__
     print MVector.__slots__
@@ -1545,7 +1481,6 @@ def _testMVector() :
     # should fail
     u.shape = 2
     
-
     u = MVector(1, 2, 3)
     print repr(u)
     print len(u)
@@ -1564,41 +1499,40 @@ def _testMVector() :
     
     u = MVector(x=1, y=2, z=3)
     print repr(u)
+    # MVector([1.0, 2.0, 3.0])
     u = MVector([1, 2], z=3)
     print repr(u)
+    # MVector([1.0, 2.0, 3.0])
     u = MVector(_api.MPoint(1, 2, 3))
-    print u  
+    print repr(u)  
+    # MVector([1.0, 2.0, 3.0])
     print "u = MVector(Vector(1, 2, 3))"
     u = MVector(Vector(1, 2, 3))
-    print u
+    print repr(u)
+    # MVector([1.0, 2.0, 3.0])
     u = MVector(1)
-    print u     
+    print repr(u)   
+    # MVector([1.0, 1.0, 1.0])  
     u = MVector(1,2)
-    print u                  
+    print repr(u)    
+    # MVector([1.0, 2.0, 0.0])              
     u = MVector(Vector(1, shape=(2,)))
-    print u            
+    print repr(u)  
+    # MVector([1.0, 1.0, 0.0])  
+    u = MVector(MPoint(1, 2, 3))
+    print repr(u) 
+    #
+    u = MVector(MPoint(1, 2, 3, 1), y=20, z=30)
+    print repr(u) 
+    #                            
     # should fail
     print "MVector(Vector(1, 2, 3, 4))"
     try :     
         u = MVector(Vector(1, 2, 3, 4))
     except :
         print "will raise ValueError: could not cast [1, 2, 3, 4] to MVector of size 3, some data would be lost"
-    p = MPoint()
-    print repr(p)
-    p = MPoint(_api.MPoint())
-    print repr(p) 
-    p = MPoint(1)
-    print repr(p)
-    p = MPoint(1, 2)
-    print repr(p)           
-    p = MPoint(1, 2, 3)
-    print repr(p)
-    p = MPoint(_api.MPoint(1, 2, 3))
-    print repr(p) 
-    p = MPoint(Vector(1, 2, 3, 4))
-    print repr(p)             
-    u = MVector(p, y=10, z=10)
-    print u           
+           
+    
             
     print u.get()
     print u[0]
@@ -1620,7 +1554,7 @@ def _testMVector() :
     print "u = MVector.xAxis:"
     print repr(u)
     # MVector([01 0.0, 0.0])
-    print "v = MVector.yAxis: %r"
+    print "v = MVector.yAxis:"
     print repr(v)
     # MVector([0.0, 1.0, 0.0])
     n = u ^ v
@@ -1716,7 +1650,10 @@ def _testMVector() :
     
     print length([[1, 2], [3, 4]], 1)
     
-    print length([1, 2, 3, 4], 1)
+    try :
+        print length([1, 2, 3, 4], 1)
+    except :
+        pass
     
     print u.sqlength()
     # 21
@@ -1774,7 +1711,39 @@ def _testMVector() :
 def _testMPoint() :
     
     print "MPoint class", dir(MPoint)
+    p = MPoint()
+    print repr(p)
+    # MPoint([0.0, 0.0, 0.0, 1.0])
+    print "MPoint instance", dir(p)
+    p = MPoint(_api.MPoint())
+    print repr(p) 
+    # MPoint([0.0, 0.0, 0.0, 1.0])
+    p = MPoint(1)
+    print repr(p)
+    # MPoint([1.0, 1.0, 1.0, 1.0])
+    p = MPoint(1, 2)
+    print repr(p)     
+    # MPoint([1.0, 2.0, 0.0, 1.0])      
+    p = MPoint(1, 2, 3)
+    print repr(p)
+    # MPoint([1.0, 2.0, 3.0, 1.0])
+    p = MPoint(_api.MPoint(1, 2, 3))
+    print repr(p) 
+    # MPoint([1.0, 2.0, 3.0, 1.0])
+    p = MPoint(Vector(1, 2))
+    print repr(p) 
+    # MPoint([1.0, 2.0, 0.0, 1.0])       
+    p = MPoint(MVector(1, 2, 3))
+    print repr(p) 
+    # MPoint([1.0, 2.0, 3.0, 1.0])      
+    p = MPoint(_api.MVector(1, 2, 3))
+    print repr(p) 
+    # MPoint([1.0, 2.0, 3.0, 1.0])    
+    p = MPoint(Vector(1, 2, 3, 4))
+    print repr(p) 
+    # MPoint([1.0, 2.0, 3.0, 4.0]) 
     
+        
     p = MPoint.origin
     q = MPoint(1, 2, 3)
     print "p = MPoint.origin: %r" % p
