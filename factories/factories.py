@@ -1959,27 +1959,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         if hasattr(newcls, 'apicls') :
             # type (api type) used for the storage of data
             apicls  = newcls.apicls
-            if apicls is not None:
-
-
-                # build the data property
-                #            def setdata(self, data):
-                #                self._data = self.__class__.apicls(data)
-                #            def getdata(self):
-                #                return self._data
-                #            p = property(getdata, setdata, None, "One %s" % apicls.__name__)
-                #            type.__setattr__(newcls, 'data', p) 
-                
-                #    def _getdata(self):
-                #        return list(self.get())
-                #    def _setdata(self, data):
-                #        mat = _api.MMatrix()
-                #        _api.MScriptUtil.createMatrixFromList ( list(data), mat)
-                #        self = self.__class__(mat) 
-                #    def _deldata(self):
-                #        del self     
-                #    data = property(_getdata, _setdata, _deldata, "The nested list storage for the Array data")              
-                                         
+            if apicls is not None:                                             
                 # build some constants on the class            
                 constant = {}
                 # constants in class definition will be converted from api class to created class
