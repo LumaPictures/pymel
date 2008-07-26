@@ -325,7 +325,8 @@ class Mel(object):
             raise TypeError, "language keyword expects 'mel' or 'python'. got '%s'" % language
             
     def eval( self, command ):
-        mm.eval( command )    
+        # should return a value, like mm.eval
+        return mm.eval( command )    
     
     def error( self, msg, showLineNumber=False ):       
         if showLineNumber:

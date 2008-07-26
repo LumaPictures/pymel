@@ -1,4 +1,5 @@
-import re, os, sys, platform, commands
+import re, os, os.path, sys, platform, commands, subprocess, warnings
+from pymel.util import ExecutionWarning
 
 import envparse
 
@@ -62,6 +63,9 @@ def getMayaLocation(version=None):
     
     # get the path of a different maya version than current
     if version:
+        # note that a recursive loop between getMayaLocation / getMayaVersion
+        # is avoided because getMayaVersion always calls getMayaLocation with
+        # vesion == None
         currentVersion = getMayaVersion()
         if currentVersion != version:
             loc = loc.replace( currentVersion, version )
@@ -74,7 +78,7 @@ def getMayaVersion(extension=True):
         from maya.cmds import about
         versionStr = about(version=True)
     except :
-        versionStr = getMayaLocation()
+        versionStr = _getVersionStringFromExecutable()
     
     # problem with service packs addition, must be able to match things such as :
     # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
@@ -84,33 +88,152 @@ def getMayaVersion(extension=True):
         version += "-"+ma.group('ext')
     return version
 
-def mayaDocsLocation( version=None ):
-    #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
+def getMayaExecutable(version=None, batch=False):
+    """Returns the path string to the maya executable for the given version; if version is None, then returns the path
+    string for the current maya version.
     
-    docLocation = getMayaLocation(version) # use original version
-    if version == None :
-        version = getMayaVersion(extension=False)
+    If batch is True and we are running on windows, will return the path to mayabatch.exe, instead of maya.exe"""
     
     
-    import platform
-    if platform.system() == 'Darwin':
-        docLocation = os.path.dirname( os.path.dirname( docLocation ) )
+    filename = "maya"
+    
+    if batch and os.name == "nt":
+        filename += "batch"	
+        
+    if os.name == "nt":
+        filename += ".exe"
+        
+    fullPath = os.path.join(getMayaLocation(version), 'bin', filename )
+    
+    if os.path.isfile(fullPath):
+        return fullPath
+    else:
+        # if all else fails...
+        return sys.executable
+    
+def _getVersionStringFromExecutable(version=None):
+    """Returns the raw string that would be returned from maya by calling it from the command line with the -v switch."""
+    return executableOutput([getMayaExecutable(version, batch=True), "-v"])
 
-    docLocation = os.path.join( docLocation , 'docs/Maya%s/en_US' % version )
+def mayaDocsLocation(version=None):
+    #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
+    docLocation = None
+    if version == None or version == getMayaVersion():
+        try:
+            # Return the doc location for the running version of maya
+            from maya.cmds import showHelp
+            docLocation = showHelp("", q=True, docs=True)
+        except:
+            docLocation = None
+        else:
+            # Other versions have no trailing slash, but the result returned by
+            # showHelp has a trailing slash... so eliminate any trailing slashes for
+            # consistency
+            while docLocation != "" and os.path.basename(docLocation) == "":
+                docLocation = os.path.dirname(docLocation)
+                
+    # Want the docs for a different version, or maya isn't initialized yet
+    if not docLocation:
+        docLocation = getMayaLocation(version) # use original version
+        if version == None :
+            version = getMayaVersion(extension=False)
+        
+        import platform
+        if platform.system() == 'Darwin':
+            docLocation = os.path.dirname(os.path.dirname(docLocation))
+    
+        docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % version)
+
     return docLocation
+
+def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True, **kwargs):
+    """Will return the text output of running the given executable with the given arguments.
+    
+    This is just a convenience wrapper for subprocess.Popen, so the exeAndArgs argment
+    should have the same format as the first argument to Popen: ie, either a single string
+    giving the executable, or a list where the first element is the executable and the rest
+    are arguments. 
+    
+    convertNewlines: if True, will replace os-specific newlines (ie, '\r\n' on Windows) with
+        the standard '\n' newline
+        
+    stripTrailingNewline: if True, and the output from the executable contains a final newline,
+        it is removed from the return value
+        Note: the newline that is stripped is the one given by os.linesep, not '\n'
+    
+    kwargs are passed onto subprocess.Popen
+    
+    Note that if the keyword arg 'stdout' is supplied (and is something other than subprocess.PIPE),
+    then the return will be empty - you must check the file object supplied as the stdout yourself.
+    
+    Also, 'stderr' is given the default value of subprocess.STDOUT, so that the return will be
+    the combined output of stdout and stderr.
+    
+    Finally, since maya's python build doesn't support universal_newlines, this is always set to False - 
+    however, set convertNewlines to True for an equivalent result."""
+    
+    kwargs.setdefault('stdout', subprocess.PIPE)
+    kwargs.setdefault('stderr', subprocess.STDOUT)
+
+    cmdProcess = subprocess.Popen(exeAndArgs, **kwargs)
+    cmdOutput = cmdProcess.communicate()[0]
+
+    if stripTrailingNewline and cmdOutput.endswith(os.linesep):
+        cmdOutput = cmdOutput[:-len(os.linesep)]
+
+    if convertNewlines:
+        cmdOutput = cmdOutput.replace(os.linesep, '\n')
+    return cmdOutput
+
+def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, **kwargs):
+    """Will return the text output of running a given shell command.
+    
+    convertNewlines: if True, will replace os-specific newlines (ie, '\r\n' on Windows) with
+        the standard '\n' newline
+        
+    stripTrailingNewline: if True, and the output from the shell contains a final newline,
+        it is removed from the return value
+        Note: the newline that is stripped is the one given by os.linesep, not '\n'
+    
+    With default arguments, behaves like commands.getoutput(shellCommand),
+    except it works on windows as well.
+    
+    kwargs are passed onto subprocess.Popen
+    
+    Note that if the keyword arg 'stdout' is supplied (and is something other than subprocess.PIPE),
+    then the return will be empty - you must check the file object supplied as the stdout yourself.
+    
+    Also, 'stderr' is given the default value of subprocess.STDOUT, so that the return will be
+    the combined output of stdout and stderr.
+    
+    Finally, since maya's python build doesn't support universal_newlines, this is always set to False - 
+    however, set convertNewlines to True for an equivalent result."""
+    
+    # commands module not supported on windows... use subprocess
+    kwargs['shell'] = True
+    kwargs['convertNewlines'] = convertNewlines
+    kwargs['stripTrailingNewline'] = stripTrailingNewline
+    return executableOutput(shellCommand, **kwargs)
 
 def refreshEnviron():
     exclude = ['SHLVL'] 
-    if platform.system() in [ 'Darwin', 'Linux' ]: envcmd = '/usr/bin/env' 
-    else:  envcmd = 'set' 
-    for line in commands.getoutput(envcmd).split( '\n' ): 
-            t = line.split('=') 
-            if len(t) == 2:
-                var, val = t
-                if not var.startswith('_') and var not in exclude: 
+    
+    if platform.system() in ('Darwin', 'Linux'):
+        cmd = '/usr/bin/env'
+    else:
+        cmd = 'set'
+        
+    cmdOutput = shellOutput(cmd)
+    # use splitlines rather than split('\n') for better handling of different
+    # newline characters on various os's
+    for line in cmdOutput.splitlines():
+        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
+        if '=' in line:
+            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
+            if not var.startswith('_') and var not in exclude: 
                     os.environ[var] = val 
-                                         
-# parse the Maya.env file and set the environement variablas and python path accordingly
+
+# parse the Maya.env file and set the environment variables and python path accordingly
 def parseMayaenv(envLocation=None, version=None) :
     """ parse the Maya.env file and set the environement variablas and python path accordingly.
         You can specify a location for the Maya.env file or the Maya version"""
@@ -370,8 +493,11 @@ def mayaInit(forversion=None) :
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
     sep = os.path.pathsep
     mayaVersion = getMayaVersion(extension=True)
-    pythonVersion = { '8.5' : '2.4',
-                      '2008' : '2.5'}[getMayaVersion(extension=False)]
+    mayaVersionToPythonVersion = { '8.5' : '2.4',
+                      '2008' : '2.5'}
+
+	# Retrieve the correct python version, with a default of 2.5
+    pythonVersion = mayaVersionToPythonVersion.get(getMayaVersion(extension=False), '2.5')
                       
     envVersion = os.environ.get('MAYA_ENV_VERSION', None)
     
@@ -430,6 +556,8 @@ def mayaInit(forversion=None) :
             refreshEnviron()
         except ImportError:
             pass
+
+    # TODO: import userSetup.py to the global namespace, like when running normal Maya 
 
     try :
         from maya.cmds import about    

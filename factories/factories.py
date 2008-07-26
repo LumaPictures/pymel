@@ -1073,16 +1073,22 @@ def getInheritance( mayaType ):
     """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
     This method relies on creating the node to use with cmds.nodeType -- i would prefer a cleaner solution."""
     parent = None
+    state = cmds.undoInfo( q=1, state=1)
     try:
-        state = cmds.undoInfo( q=1, state=1)
         cmds.undoInfo( state=0)
-        res = cmds.createNode( mayaType )
+        res = cmds.createNode( mayaType, parent=None )
         parent = cmds.nodeType( res, inherited=1)
-        cmds.delete(res)
-        cmds.undoInfo( state=state)
-        return parent
-    except:
+
+        # createNode may also have created a transform above the returned node
+        if 'dagNode' in parent:
+            dagParent = cmds.listRelatives(res, parent=1)
+            if dagParent is not None:
+                cmds.delete(dagParent[0])
+        else:
+            cmds.delete(res)
+    finally:
         # there's a chance it failed on delete
+        cmds.undoInfo( state=state)
         return parent
    
 #-----------------------

@@ -178,10 +178,12 @@ proc_remap = {
 		'catchQuiet'			: ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),	
 
 		# system
-		'system'				: ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )' 	% (x[0]), t.lexer.imported_modules.add('commands') )[0] ),	
-		'exec'					: ( None ,   lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
+        # 'system'				: ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )' 	% (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows	
+		'system'                : ( 'string' ,   lambda x, t: '%smayahook.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),    
+        # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
+        'exec'					: ( None ,   lambda x, t: ( 'os.popen2( %s )' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
 		'getenv'				: ( 'string', lambda x, t: ( 'os.environ[ %s ]' 	% (x[0]), t.lexer.imported_modules.add('os') )[0] ),	
-		# NOTE : this differs from mel equiv bc it does not return a value
+		# TODO : this differs from mel equiv bc it does not return a value
 		'putenv'				: ( None, lambda x, t: ( 'os.environ[ %s ] = %s' 	% (x[0], x[1]), t.lexer.imported_modules.add('os') )[0] ),	
 
 		# math

@@ -17,6 +17,7 @@ import pymel.tools.mel2py as mel2py
 from maya.cmds import encodeString
 
 mparser = mel2py.MelParser()
+mparser.build()
 
 kPluginCmdName = "pymelScrollFieldReporter"
 
@@ -84,7 +85,9 @@ allHistory = []
 callbackState = 'normal'
 
 updateCmd = ''
-if platform.system() == 'Windows':
+
+# For XP x64 and Vista, system() returns 'Microsoft'
+if platform.system() in ('Windows', 'Microsoft'):
     updateCmd = 'string $fWin=`window -q -frontWindow blah` + "|";string $x;for ($x in `lsUI -controlLayouts -long`) {if (startsWith( $x, $fWin ) ) {break;}};scrollField -e -insertionPosition %(len)d -insertText \"%(text)s\" "%(name)s";setFocus("%(name)s");setFocus($x);'
 else:
     updateCmd = 'scrollField -e -insertionPosition %(len)d -insertText \"%(text)s\" "%(name)s";'

@@ -31,20 +31,26 @@ class Enum(tuple):
 class ApiDocParser(HTMLParser):
 
     def getClassFilename(self):
-        filename = 'class'
-        for tok in re.split( '([A-Z][a-z]+)', self.functionSet ):
-            if tok:
-                if tok[0].isupper():
-                    filename += '_' + tok.lower()
-                else:
-                    filename += tok
+        # Need to check the name format for versions other than 2008 and
+        # 2009... I'm just assuming for now that they're more likely to be the
+        # 2008 format than the 2009 format
+        if self.version in ('7.0', '8.0', '8.5', '2008'):
+            filename = self.functionSet
+        else:
+            filename = 'class'
+            for tok in re.split( '([A-Z][a-z]+)', self.functionSet ):
+                if tok:
+                    if tok[0].isupper():
+                        filename += '_' + tok.lower()
+                    else:
+                        filename += tok
         return filename
         
     def parse(self):
         docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir(docloc):
             raise TypeError, "Cannot find maya documentation. Expected to find it at %s" % docloc
-        f = open( os.path.join( docloc , 'API/' + self.getClassFilename() + '.html' ) )
+        f = open( os.path.join( docloc , 'API', self.getClassFilename() + '.html' ) )
         self.feed( f.read() )
         f.close()
         
@@ -111,9 +117,12 @@ class ApiDocParser(HTMLParser):
                  'pymelMethods' :  pymelNames
                 }
               
-    def __init__(self, functionSet, version='2009', verbose=False ):
+    def __init__(self, functionSet, version=None, verbose=False ):
         self.cmdList = []
         self.functionSet = functionSet
+
+        if version is None:
+            version = mayahook.getMayaVersion()
         self.version = version
         
         self.methods = util.defaultdict(list)
