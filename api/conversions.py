@@ -117,7 +117,7 @@ class ApiDocParser(HTMLParser):
                  'pymelMethods' :  pymelNames
                 }
               
-    def __init__(self, functionSet, version=None, verbose=False ):
+    def __init__(self, functionSet, version='2009', verbose=False ):
         self.cmdList = []
         self.functionSet = functionSet
 
