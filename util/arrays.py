@@ -852,7 +852,11 @@ class Array(object):
             # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
             if len(args) == 1 :
                 args = args[0]
-            if isinstance (args, Array) :
+            # to accommodate some herited Maya api classes
+            if hasattr(args, 'asMatrix') :
+                args = args.asMatrix()                
+            # if isinstance (args, Array) :
+            if type(args) in (Array, Matrix, Vector) :
                 # copy constructor
                 data = super(Array, Array).__new__(Array)
                 data.data = args
@@ -1127,7 +1131,7 @@ class Array(object):
     def sort(self, axis=None):
         raise NotImplemented, "sort is not implemented for class %s" % (clsname(self))      
  
-    def reshaped(self, shape):
+    def reshaped(self, shape=None):
         """ a.reshaped(shape)
             Returns the Array as reshaped according to the shape argument """
         ndim = None
@@ -1138,7 +1142,7 @@ class Array(object):
         
         return self.resized(tuple(newshape))
     
-    def reshape(self, shape):
+    def reshape(self, shape=None):
         """ a.reshape(shape)
             Performs in-place reshape of array a """
         new = self.reshaped(shape)
@@ -1147,7 +1151,7 @@ class Array(object):
         else :
             raise ValueError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
               
-    def resized(self, shape, value=None):
+    def resized(self, shape=None, value=None):
         """ a.resized([shape [, value]])
             Returns the Array as resized according to the shape argument.          
             An optional value argument can be passed and will be used to fill
@@ -1177,7 +1181,7 @@ class Array(object):
             else :
                 raise TypeError, "%s cannot be initialized to shape %s, and has no base class that can" % (clsname(self), shape)
 
-    def resize(self, shape, value=None):
+    def resize(self, shape=None, value=None):
         """ a.resize(shape)
             Performs in-place resize of array a to given shape.
             An optional value argument can be passed and will be used to fill
@@ -1245,7 +1249,7 @@ class Array(object):
         self._cacheshape() 
         # self.data = lst          
                                             
-    def trimmed(self, shape, value=None):
+    def trimmed(self, shape=None, value=None):
         """ a.trimmed([shape [, value]]) --> Array
             Returns the Array as "trimmed", re-sized according to the shape argument.
             The difference with a resize is that each dimension will be resized individually,
@@ -1271,7 +1275,7 @@ class Array(object):
 
         return new
     
-    def trim(self, shape, value=None):
+    def trim(self, shape=None, value=None):
         """ a.trim(shape)
             Performs in-place trimming of array a to given shape.
             An optional value argument can be passed and will be used to fill
@@ -1552,17 +1556,17 @@ class Array(object):
         
     # operators    
         
-    def __eq__(self, other):  
-        if not isinstance(other, self.__class__) :
-            try :
-                other = self.__class__(other)
-            except :
-                return False
-        if self.shape == other.shape :
-            return reduce(lambda x, y : x and y[0]==y[1], itertools.izip(self, other), True )
-        else :
+    def __eq__(self, other): 
+        """ a.__equ__(b) <==> a == b
+            Equivalence operator, will only work for exact same type of a and b, check isEquivalent method to have it
+            convert a and b to a common type (if possible) """
+        if type(self) != type(other) :
             return False
-                 
+        if self.shape != other.shape :
+            return False
+        return reduce(lambda x, y : x and y[0]==y[1], itertools.izip(self, other), True )
+    def __ne__(self, other):
+        return (not self.__eq__(other))           
     def __contains__(self, other):
         """ True if at least one of the Array sub-Arrays (down to individual components) is equal to the argument """
         if self == other :
@@ -1576,7 +1580,6 @@ class Array(object):
                     if other == sub :
                         return True
         return False
-
 
     def count(self, value):
         """ a.count(b)
@@ -2072,15 +2075,15 @@ class Array(object):
     def imag(self):
         """ Returns the imaginary part of the Array """
         return self.__class__(imag(x) for x in self) 
-    def blend(self, other, blend=0.5):
-        """ u.blend(v, blend) returns the result of blending from Array instance u to v according to
-            either a scalar blend where it yields u*(1-blend) + v*blend Array,
-            or a an iterable of up to 3 (x, y, z) independent blend factors """
+    def blend(self, other, weight=0.5):
+        """ u.blend(v, weight) returns the result of blending from Array instance u to v according to
+            either a scalar weight where it yields u*(1-weight) + v*weight Array,
+            or a an iterable of up to 3 (x, y, z) independent weights """
         try :
             nself, nother = coerce(self, other)
         except :
             return NotImplemented             
-        return self.__class__._convert(blend(self, other, blend))      
+        return self.__class__._convert(blend(self, other, weight))      
     def clamp(self, low=0.0, high=1.0):
         """ u.clamp(low, high) returns the result of clamping each component of u between low and high if low and high are scalars, 
             or the corresponding components of low and high if low and high are sequences of scalars """
@@ -2158,7 +2161,7 @@ class Matrix(Array):
         else :
             n = cross(u, v)
             v = cross(n, u)
-        return cls(u, v, n).transpose()
+        return cls(Matrix(u, v, n).transpose())
  
     # row and column size properties
     def _getnrow(self):
@@ -2183,7 +2186,6 @@ class Matrix(Array):
         return self.axisiter(1) 
     
     # overloaded Array operators
-
 
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
@@ -2392,6 +2394,9 @@ class Matrix(Array):
               
     det = determinant
     
+    def isSingular(self):
+        return (self.det() < eps)
+    
     def inverse(self): 
         assert self.is_square(), "inverse is only defined for a square Matrix, see leftinverse and rightinverse"
         n = self.nrow
@@ -2447,57 +2452,64 @@ class Matrix(Array):
 
 def angle(u, v):
     """ angle(u, v) --> float
-        Returns the angle of rotation between u and v """ 
-    try :
-        u = Vector(u)
-    except :
-        raise NotImplemented, "%s is not convertible to type Vector, angle is only defined for two Vectors of size 3" % (clsname(u))   
+        Returns the angle of rotation between u and v """
+    if not isinstance(u, Vector) : 
+        try :
+            u = Vector(u)
+        except :
+            raise NotImplemented, "%s is not convertible to type Vector, angle is only defined for two Vectors of size 3" % (clsname(u))   
     return u.angle(v)
 
 def axis(u, v, normalize=False):
     """ axis(u, v[, normalize=False]) --> Vector
         Returns the axis of rotation from u to v as the vector n = u ^ v
         if the normalize keyword argument is set to True, n is also normalized """
-    try :
-        u = Vector(u)
-    except :
-        raise NotImplemented, "%s is not convertible to type Vector, axis is only defined for two Vectors of size 3" % (clsname(u))   
+    if not isinstance(u, Vector) :
+        try :
+            u = Vector(u)
+        except :
+            raise NotImplemented, "%s is not convertible to type Vector, axis is only defined for two Vectors of size 3" % (clsname(u))   
     return u.axis(v, normalize)
 
 def cross(u, v):
     """ cross(u, v) --> Vector :
         cross product of u and v, u and v should be 3 dimensional vectors  """
-    try :
-        u = Vector(u)
-    except :
-        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (clsname(u))  
+    if not isinstance(u, Vector) :
+        try :
+            u = Vector(u)
+        except :
+            raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (clsname(u))  
     return u.cross(v) 
 
 def dot(u, v):
     """ dot(u, v) --> float :
         dot product of u and v, u and v should be Vectors of identical size"""
-    try :
-        u = Vector(u)
-    except :
-        raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (clsname(u))  
+    if not isinstance(u, Vector) :
+        try :
+            u = Vector(u)
+        except :
+            raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (clsname(u))  
     return u.dot(v)
 
-def outer(a, b):
+def outer(u, v):
     """ outer(u, v) --> Matrix :
         outer product of vectors u and v """
-    try :
-        u = Vector(u)
-    except :
-        raise NotImplemented, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (clsname(u))  
+    if not isinstance(u, Vector) :
+        try :
+            u = Vector(u)
+        except :
+            raise NotImplemented, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (clsname(u))  
     return u.outer(v)        
 
-def cotan(a, b, c) :
-    """ cotan(a, b, c) :
-        cotangent of the (b-a), (c-a) angle, a, b, and c should be 3D dimensional Vectors representing points """
-    try :
-        a = Vector(a)
-    except :
-        raise NotImplemented, "%s is not convertible to type Vector, cotangent product is only defined for three 3D Vectors" % (clsname(a))  
+def cotan(a, b, c=None) :
+    """ cotan(a, b[, c]) :
+        If only a and b are provided, contangent of the a, b angle, a and b should be 3 dimensional Vectors representing vectors,
+        if c is provided, cotangent of the (b-a), (c-a) angle, a, b, and c being be 3 dimensional Vectors representing points """
+    if not isinstance(a, Vector) :
+        try :
+            a = Vector(a)
+        except :
+            raise NotImplemented, "%s is not convertible to type Vector, cotangent product is only defined for 2 vectors or 3 points" % (clsname(a))  
     return a.cotan(b, c) 
 
 #
@@ -2593,9 +2605,9 @@ class Vector(Array):
             assert len(nself) == len(nother) == 3
         except :
             raise NotImplemented, "%s not convertible to %s, angle is only defined for two Vectors of size 3" % (clsname(other), clsname(self))
-        l = u.length() * v.length()
+        l = float(nself.length() * nother.length())
         if l > 0 :
-            return acos( u.dot(v) / l )
+            return acos( nself.dot(nother) / l )
         else :
             return 0.0  
     def axis(self, other, normalize=False):
@@ -2608,9 +2620,9 @@ class Vector(Array):
         except :
             raise NotImplemented, "%s not convertible to %s, axis is only defined for two Vectors of size 3" % (clsname(other), clsname(self))           
         if normalize :
-            return u.cross(v).normal()
+            return nself.cross(nother).normal()
         else :
-            return u.cross(v)
+            return nself.cross(nother)
     def cross(self, other):
         """ cross(u, v) --> Vector
             cross product of u and v, u and v should be 3 dimensional vectors  """
@@ -2669,16 +2681,29 @@ class Vector(Array):
         except :
             raise NotImplemented, "%s not convertible to %s, isParallel is only defined for two Vectors" % (clsname(other), clsname(self))       
         return (abs(nself.dot(nother) - nself.length()*nother.length()) <= tol)     
-    def cotan(self, other, third):
-        """ cotan(a, b, c) :
-            cotangent of the (b-a), (c-a) angle, a, b, and c should be 3D vectors representing points a, b, c"""        
-        try :
-            nself, nother = coerce(Vector(self), other)
-            nself, nthird = coerce(nself, third)
-            assert len(nself) == len(nother) == len(nthird) == 3
-        except :
-            raise NotImplemented, "cotangent is only defined for three 3D dimensional Vectors representing points"
-        return (nthird-nother).dot(nself-nother) / (nthird-nother).cross(nself-nother).length() 
+    def cotan(self, other, third=None):
+        """ cotan(a, b[, c]) --> float :
+            If only a and b are provided, contangent of the a, b angle, a and b should be 3 dimensional Vectors representing vectors,
+            if c is provided, cotangent of the ab, ac angle, a, b, and c being be 3 dimensional Vectors representing points """ 
+        if third is None :
+            # it's 2 vectors
+            # ((v - u)*(-u))/((v - u)^(-u)).length() 
+            try :
+                nself, nother = coerce(Vector(self), other)
+                assert len(nself) == len(nother) == 3
+            except :
+                raise NotImplemented, "cotan is defined for 2 vectors"
+            return (nself.dot(nother)) / (nself.cross(nother)).length()             
+        else :
+            # it's 3 points a, b, c, cotangent of the angle in a
+            # ((b - a)*(c - a))/((b - a)^(c - a)).length()  
+            try :
+                nself, nother = coerce(Vector(self), other)
+                nself, nthird = coerce(nself, third)
+                assert len(nself) == len(nother) == len(nthird) == 3
+            except :
+                raise NotImplemented, "cotan is defined for 3 points"
+            return ((nother-nself).dot(nthird-nself)) / ((nother-nself).cross(nthird-nself)).length() 
     
     # blend and clamp derived from Array
              
