@@ -133,6 +133,18 @@ class Mel(object):
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
             return self.__dict__[command]
+
+        def safeConvert(item):
+            if isinstance(item, basestring):
+                try:
+                    p = node.PyNode(item)
+                    if p.exists():
+                        return p
+                except Exception, e: 
+                    print e
+            return item
+            
+        
         def _call(*args, **kwarg):
         
             strArgs = []
@@ -148,7 +160,12 @@ class Mel(object):
             cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
             #print cmd
             try:
-                return mm.eval(cmd)
+                ret = mm.eval(cmd)
+                if hasattr(ret, "__iter__"):
+                    ret = map(safeConvert, ret)
+                else:
+                    ret = safeConvert(ret)
+                return ret
             except RuntimeError, msg:
                 info = self.whatIs( command )
                 if info.startswith( 'Presumed Mel procedure'):
@@ -618,6 +635,32 @@ NOTE: this command also reorders the argument order to be more intuitive, with t
     return cmds.rotate(*args, **kwargs)
 
 
+def pointPosition(obj=None, *args, **kwargs):
+    """
+Modifications:
+    @param obj: Allows multiple objects of different type (components or transforms). Uses selection if not supplied
+    @param average: If True then returns the average center of specified points
+    """
+    if not obj:
+        obj = selected(flatten=True)
+        if len(obj)==1:
+            obj = obj[0]
+            
+    if hasattr(obj, "__iter__"):
+        points = [pointPosition(item, *args, **kwargs) for item in map(node.PyNode, obj)]
+        if kwargs.get("average",False):
+            from operator import add
+            return reduce(add, points) / len(points) 
+        else:
+            return points
+    
+    if isinstance(obj, node.Attribute):
+        return Vector(cmds.pointPosition(obj))
+    else:
+        return obj.getPivots(absolute=1,worldSpace=1)[0]
+    
+        
+    
 
 #-----------------------
 #  Attributes
@@ -1456,6 +1499,10 @@ class FileReference(Path):
     def _setNamespace(self, namespace):
         return cmds.file( self.withCopyNumber(), e=1, ns=namespace)    
     namespace = property( _getNamespace, _setNamespace )
+    
+    def _getFullNamespace(self):
+        return "%s%s" % (self.refNode.namespace(), self.namespace)
+    fullNamespace = property(_getFullNamespace)
 
     def _getRefNode(self):
         return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))    
