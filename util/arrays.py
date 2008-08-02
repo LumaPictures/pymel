@@ -91,18 +91,25 @@ def _shapeInfo(value) :
 # override math and mathutils functions to make them accept iterables and operate element-wise on iterables
 
 def _patchfn(basefn) :
-    """ Patch the given base function to have it accept iterators """
+    """ Patch the given base function to have it accept iterables """
     def fn(*args) :      
         maxarg = Array([])
+        maxsize = 0
+        maxtype = None
         args = list(args)
         ln = len(args)
         for i in xrange(ln) :
-            args[i] = _toCompOrArrayInstance(args[i])
-            a = args[i]
-            if isinstance(a, Array) :
-                if a.size > maxarg.size :
-                    maxarg = a
-        if maxarg.size > 0 :
+            if hasattr(args[i], '__iter__') :
+                t = type(args[i])
+                args[i] = Array(args[i])
+                s = args[i].size
+                if s >= maxsize :
+                    # for equal sizes give preferences to Array subtypes for conversion
+                    if issubclass(t, Array) or s > maxsize :
+                       maxarg = args[i]
+                       maxsize = maxarg.size
+                       maxtype = t
+        if maxsize > 0 :
             try :
                 for i in xrange(ln) :
                     maxarg, args[i] = coerce(maxarg, args[i])
@@ -110,8 +117,12 @@ def _patchfn(basefn) :
                 return NotImplemented
             allargs = zip(*args)
             res = _toCompOrArray(fn(*a) for a in allargs)
-            if isinstance(res, Array) :
-                res = maxarg.__class__._convert(res)
+            if hasattr(res, '__iter__') :
+                try :
+                    res = maxtype(res)
+                except :
+                    if isinstance(maxtype, Array) :
+                        res = maxtype._convert(res)
             return res
         else :
             return basefn(*args)
@@ -2078,7 +2089,7 @@ class Array(object):
     def blend(self, other, weight=0.5):
         """ u.blend(v, weight) returns the result of blending from Array instance u to v according to
             either a scalar weight where it yields u*(1-weight) + v*weight Array,
-            or a an iterable of up to 3 (x, y, z) independent weights """
+            or a an iterable of independent weights """
         try :
             nself, nother = coerce(self, other)
         except :
