@@ -14,6 +14,8 @@ import pickle, os.path
 import pymel.util.nameparse as nameparse
 import pymel.mayahook as mayahook
 from HTMLParser import HTMLParser
+from pymel.util.external.BeautifulSoup import BeautifulSoup
+from keyword import iskeyword as _iskeyword
 
 # TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
@@ -32,7 +34,7 @@ class ApiDocParser(HTMLParser):
 
     def getClassFilename(self):
         filename = 'class'
-        for tok in re.split( '([A-Z][a-z]+)', self.functionSet ):
+        for tok in re.split( '([A-Z][a-z]+)', self.apiClassName ):
             if tok:
                 if tok[0].isupper():
                     filename += '_' + tok.lower()
@@ -43,8 +45,10 @@ class ApiDocParser(HTMLParser):
     def parse(self):
         docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir(docloc):
-            raise TypeError, "Cannot find maya documentation. Expected to find it at %s" % docloc
-        f = open( os.path.join( docloc , 'API', self.getClassFilename() + '.html' ) )
+            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
+        file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
+        if self.verbose: print file
+        f = open( file )
         self.feed( f.read() )
         f.close()
         
@@ -111,9 +115,17 @@ class ApiDocParser(HTMLParser):
                  'pymelMethods' :  pymelNames
                 }
               
-    def __init__(self, functionSet, version='2009', verbose=False ):
+    def __init__(self, apiClassName, verbose=False ):
+        """only 2009 docs can be parsed.  2009 docs contain additional information that is not in
+        prior versions, and without which the metaclass wrappers will not work."""
+        
+        version='2009'
+        
         self.cmdList = []
-        self.functionSet = functionSet
+        self.apiClassName = apiClassName
+
+        if version is None:
+            version = mayahook.getMayaVersion()
         self.version = version
         
         self.methods = util.defaultdict(list)
@@ -136,7 +148,7 @@ class ApiDocParser(HTMLParser):
     def handle_data(self, data):
         data = data.lstrip().rstrip()
         #data = data.replace( '&amp;', '&' )
-        
+        #print "Data", data
         if data in [ 'Protected Member Functions', 
                       'Member Enumeration Documentation', 
                       'Constructor Destructor Documentation', 
@@ -209,15 +221,16 @@ class ApiDocParser(HTMLParser):
                 
             # the enum is on this class
             elif type in self.enums:
-                type = Enum( [self.functionSet, type] )
+                type = Enum( [self.apiClassName, type] )
                 
             elif type[0].isupper() and 'Ptr' not in type and not hasattr( _thisModule, type ) and type not in otherTypes+missingTypes+notTypes:
-                type = Enum( [self.functionSet, type] )
+                type = Enum( [self.apiClassName, type] )
                 if type not in self.badEnums:
                     self.badEnums.append(type)
                     if self.verbose: print "Suspected Bad Enum:", type
                 
             return type
+
         if self.currentMethod is not None:
             if self.verbose: print self.currentMethod
             
@@ -226,17 +239,17 @@ class ApiDocParser(HTMLParser):
                 start = self.data.index( '(' )
                 end = self.data.index( ')' )
             except ValueError:
-                raise ValueError, '%s: could not find parentheses: %s, %r' % ( self.functionSet, self.currentMethod, self.data )
+                raise ValueError, '%s: could not find parentheses: %s, %r' % ( self.apiClassName, self.currentMethod, self.data )
             buf = ' '.join( self.data[:start] ).split()[:-1] # remove last element, the method name          
             returnType = None
             
             if len(buf) and 'no script support.' not in [ x.lower() for x in self.data[end+1:]] :
-
+                print buf
                 #-----------------
                 # Return Type
                 #-----------------
                 if len(buf)>1:
-                    #if buf[0] == self.functionSet: print self.currentMethod, "returnBuf", buf
+                    #if buf[0] == self.apiClassName: print self.currentMethod, "returnBuf", buf
                     # unsigned int
                     if buf[0] in ['const', 'unsigned']:
                         buf.pop(0)
@@ -245,7 +258,7 @@ class ApiDocParser(HTMLParser):
                         returnType = buf[0]
                     elif len(buf)==2 and buf[1]=='*':
                         returnType = buf[0] + 'Ptr'
-                    #else:  print "%s: could not determine %s return value: got list: %s" % ( self.functionSet, self.currentMethod, buf)
+                    else:  print "%s: could not determine %s return value: got list: %s" % ( self.apiClassName, self.currentMethod, buf)
                 else:
                     returnType = handleEnums(buf[0])
                         
@@ -365,7 +378,8 @@ class ApiDocParser(HTMLParser):
                                 #argInfo[ keyword ]['default'] = default
                                 #argInfo[ 'defaults' ][keyword] = default
                                 defaults[keyword] = default
-                                
+                            
+                               
                             if keyword in inArgs:
                                 #try:
                                 #    typeName = returnCast[type].__name__
@@ -375,9 +389,13 @@ class ApiDocParser(HTMLParser):
                                 methodDoc += ':param %s: %s\n' % ( keyword, argInfo[keyword].get('doc', '') )
                                 methodDoc += ':type %s: %s\n' % ( keyword, type )
                                 argInfo[keyword]['doc'] = doc
-                            else: 
+                            elif keyword in outArgs: 
                                 direction = 'out'
-                            
+                            else:
+                                print self.apiClassName, self.currentMethod, "no direction found, defaulting to input"
+                                direction = 'in'
+                                inArgs.append(keyword)
+                                
                             #print self.currentMethod, [keyword, type, default, direction]
                             argList.append( ( keyword, type, default, direction)  )
                                 
@@ -394,7 +412,7 @@ class ApiDocParser(HTMLParser):
                 if allReturnTypes:
                     methodDoc += ':rtype: %s' % ','.join( [ str(x) for x in allReturnTypes] )
                 #elif self.currentMethod.startswith( 'get' ) and len(self.currentMethod) > 3:
-                #    print "no outputs", self.functionSet, self.currentMethod, len(self.methods[self.currentMethod])
+                #    print "no outputs", self.apiClassName, self.currentMethod, len(self.methods[self.currentMethod])
                 
                 #print argList, argInfo
                 methodInfo = { 'argInfo': argInfo, 
@@ -417,14 +435,14 @@ class ApiDocParser(HTMLParser):
         comment = comment.lstrip().rstrip()
         comment = comment.replace( '&amp;', '' ) # does not affect how we pass
         self.processData()
-        #print comment    
+
         try:     
-            clsname, methodname, op, tempargs  = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+\s*([=!*/\-+\[\]])*)" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
+            clsname, methodname, op, tempargs  = re.search( r'doxytag: member="([a-zA-Z0-9]+)::([a-zA-Z0-9]+\s*([=!*/\-+\[\]]*))" ref="[0-9a-f]+" args="\((.*)\)', comment ).groups()
         except AttributeError:
             pass
             if self.verbose: print "failed regex: ", comment
         else:
-            #if methodname == self.functionSet:
+            #if methodname == self.apiClassName:
             #    return
             
             #print "METHOD", methodname
@@ -435,12 +453,12 @@ class ApiDocParser(HTMLParser):
             
             if op: #methodname.startswith('operator'):
                 #op = methodname[8:]
-                #print op
+                #print "operator", methodname, op
                 if op == '=':
-                    self.currentMethod = None
+                    methodname = None
                 else:
                     
-                    self.currentMethod = { 
+                    methodname = { 
                         '*=' : '__rmult__',
                         '*'  : '__mul__',
                         '+=' : '__radd__',
@@ -452,6 +470,9 @@ class ApiDocParser(HTMLParser):
                         '==' : '__eq__',
                         '!=' : '__neq__',
                         '[]' : '__getitem__'}.get( op, None )
+                        
+                    #if self.currentMethod:
+                        
 #                    if pymelName:
 #                        for info in self.methods[self.currentMethod]:
 #                            info['pymelName'] = pymelName 
@@ -461,11 +482,353 @@ class ApiDocParser(HTMLParser):
             self.currentMethod = methodname
             
             
-def getMFnInfo( functionSet ):
-    parser = ApiDocParser(functionSet )
+
+class ApiDocParser(object):
+    def __init__(self, apiClassName, version='2009', verbose=False):
+        self.enums = {}
+        self.pymelEnums = {}
+        self.methods=util.defaultdict(list)
+        self.apiClassName = apiClassName
+        self.currentMethod=None
+        self.verbose = verbose
+        self.version = version
+        self.badEnums = []
+    
+    def xprint(self, *args): 
+        if self.verbose:
+            print self.apiClassName + '.' + self.currentMethod + ':', ' '.join( [ str(x) for x in args ] ) 
+           
+    def getPymelMethodNames(self):
+        allFnMembers = self.methods.keys()
+        pymelNames = {}
+        for member in allFnMembers:
+            if len(member) > 4 and member.startswith('set') and member[3].isupper():
+                # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
+                # 'setSomething'  -->  'something'
+                origGetMethod = member[3].lower() + member[4:]
+                if origGetMethod in allFnMembers:
+                    newGetMethod = 'get' + member[3:]
+                    pymelNames[origGetMethod] = newGetMethod
+                    for info in self.methods[origGetMethod]:
+                        info['pymelName'] = newGetMethod 
+        return pymelNames
+
+                           
+    def getClassFilename(self):
+        filename = 'class'
+        for tok in re.split( '([A-Z][a-z]+)', self.apiClassName ):
+            if tok:
+                if tok[0].isupper():
+                    filename += '_' + tok.lower()
+                else:
+                    filename += tok
+        return filename
+    
+    def getPymelEnums(self, enumList):
+        """remove all common prefixes from list of enum values"""
+        if len(enumList) > 1:
+            splitEnums = [ [ y for y in re.split( '([A-Z0-9][a-z0-9]*)', x ) if y ] for x in enumList ]
+            splitEnumsCopy = splitEnums[:]
+            for partList in zip( *splitEnumsCopy ):
+                if  tuple([partList[0]]*len(partList)) == partList:
+                    [ x.pop(0) for x in splitEnums ]
+                else: break
+            joinedEnums = [ util.uncapitalize(''.join(x), preserveAcronymns=True ) for x in splitEnums]
+            for i, enum in enumerate(joinedEnums):
+                if _iskeyword(enum):
+                    joinedEnums[i] = enum+'_'
+                    self.xprint( "bad enum", enum )
+                elif enum[0].isdigit():
+                    joinedEnums[i] = 'k' + enum
+                    self.xprint( "bad enum", enum )
+                    
+                    #print joinedEnums
+                    #print enumList
+                    #break
+                
+            #print "enums", joinedEnums
+            return joinedEnums
+        
+        return enumList
+                           
+    def handleEnums( self, type ):
+        missingTypes = ['MUint64']
+        otherTypes = ['void', 'char',
+                    'double', 'double2', 'double3', 'double4',
+                    'float', 'float2', 'float3', 'float4',
+                    'bool',
+                    'int', 'int2', 'int3', 'int4', 'uint',
+                    'short', 'short2', 'short3', 'short4',
+                    'long', 'long2', 'long3',
+                    'MString', 'MStringArray']
+        notTypes = ['MCallbackId']
+        
+        if type is None: return type
+        
+        # the enum is on another class
+        if '::' in type:
+            type = Enum( type.split( '::') )
+            
+        # the enum is on this class
+        elif type in self.enums:
+            type = Enum( [self.apiClassName, type] )
+            
+        elif type[0].isupper() and 'Ptr' not in type and not hasattr( _thisModule, type ) and type not in otherTypes+missingTypes+notTypes:
+            type = Enum( [self.apiClassName, type] )
+            if type not in self.badEnums:
+                self.badEnums.append(type)
+                if self.verbose: print "Suspected Bad Enum:", type
+        else:
+            type = str(type)
+        return type
+    
+    def getOperatorName(self, methodName):
+        op = methodName[8:]
+        #print "operator", methodName, op
+        if op == '=':
+            methodName = None
+        else:
+            
+            methodName = { 
+                '*=' : '__rmult__',
+                '*'  : '__mul__',
+                '+=' : '__radd__',
+                '+'  : '__add__',
+                '-=' : '__rsub__',
+                '-'  : '__sub__',
+                '/=' : '__rdiv__',
+                '/'  : '__div__',
+                '==' : '__eq__',
+                '!=' : '__neq__',
+                '[]' : '__getitem__'}.get( op, None )
+        return methodName
+    
+    def parse(self):            
+        docloc = mayahook.mayaDocsLocation(self.version)
+        if not os.path.isdir(docloc):
+            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
+        file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
+        f = open( file )
+    
+        soup = BeautifulSoup( f.read(), convertEntities='html' )
+        f.close()
+          
+
+        for proto in soup.body.findAll( 'div', **{'class':'memproto'} ): 
+
+        
+            # NAME AND RETURN TYPE
+            memb = proto.findAll( 'td', **{'class':'memname'} )[0]
+            buf = [ x.strip() for x in memb.findAll( text=True )]
+            if len(buf) ==1:
+                buf = [ x for x in buf[0].split() if x not in ['const', 'unsigned'] ]
+                if len(buf)==1:
+                    returnType = None
+                    methodName = buf[0]
+                else:
+                    returnType = ''.join(buf[:-1])
+                    methodName = buf[-1]
+            else:
+                returnType = buf[0]
+                methodName = buf[1]
+                buf = [ x for x in buf[0].split() if x not in ['const', 'unsigned'] ]
+                if len(buf) > 1:
+                    returnType += buf[0]
+                    methodName = buf[1]
+            
+            methodName = methodName.split('::')[-1]
+            
+            if methodName.startswith('operator'):
+                methodName = self.getOperatorName(methodName)
+                
+                if methodName is None: continue
+            
+            if returnType == 'MStatus':
+                returnType = None
+            else:
+                returnType = self.handleEnums(returnType)
+            
+            # convert to unicode
+            self.currentMethod = str(methodName)
+            
+            #constructors and destructors
+            if self.currentMethod.startswith('~') or self.currentMethod == self.apiClassName:
+                continue
+            
+            # ENUMS
+            if returnType == 'enum':
+                self.xprint( "ENUM", returnType)
+                #print returnType, methodName    
+                try:
+                    enumList = [ str(x.contents[-1]) for x in proto.findNextSiblings( 'div', limit=1)[0].findAll( 'em') ]
+                    #print enumList
+                    pymelEnumList = self.getPymelEnums( enumList )
+                    self.enums[self.currentMethod] = enumList
+                    self.pymelEnums[self.currentMethod] = pymelEnumList
+                    
+                    #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
+                    #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )               
+
+                 
+                except AttributeError, msg:
+                    print "FAILED ENUM", msg
+                    
+            # ARGUMENTS
+            else:
+                self.xprint( "RETURN", returnType)
+                
+                argInfo={}
+                argList=[]
+                defaults={}
+                names=[]
+                directions={}
+                docs={}
+                inArgs=[]
+                outArgs=[]
+                types ={}
+                
+                static = False
+                try:
+                    code = proto.findAll('code')[-1].string
+                    if code and code.strip() == '[static]': 
+                        static = True
+                except IndexError: pass    
+                
+                tmpTypes=[]
+                # TYPES
+                for paramtype in proto.findAll( 'td', **{'class':'paramtype'} ) :
+                    buf = [ str( x.strip() ) for x in paramtype.findAll( text=True ) if x.strip() not in ['', '*', '&', 'const', 'unsigned'] ]
+                    
+                    buf2 = [x for x in buf[0].split() if x not in ['', '*', '&', 'const', 'unsigned'] ]
+                    argtype = self.handleEnums(buf2[0])
+                    
+                    #print '\targtype', argtype, buf
+                    tmpTypes.append( argtype )
+                
+                # ARGUMENT NAMES 
+                i = 0
+                for paramname in  proto.findAll( 'td', **{'class':'paramname'} )  :
+                    buf = [ x.strip() for x in paramname.findAll( text=True ) if x.strip() not in['',','] ]
+                    if buf:
+                        argname = buf[0]
+                        data = buf[1:]
+                        
+                        type = tmpTypes[i]
+                        default=None
+                        joined = ''.join(data).strip()
+                        
+                        if joined:
+                            # break apart into index and defaults :  '[3] = NULL'
+                            brackets, default = re.search( '([^=]*)(?:\s*=\s*(.*))?', joined ).groups()
+                            
+                            if brackets:                         
+                                numbuf = re.split( r'\[|\]', brackets)
+                                if len(numbuf) > 1:
+                                    type = type + numbuf[1]
+                                else:
+                                    print "this is not a bracketed number", repr(brackets), joined
+                            
+                            if default:
+                                       
+                                default = {
+                                        'true' : True,
+                                        'false': False
+                                    }.get( default, self.handleEnums(default) )
+
+                        defaults[argname] = default
+                        types[argname] = type
+                        names.append(argname)
+                        i+=1
+                        
+                try:
+                    # ARGUMENT DIRECTION AND DOCUMENTATION
+                    extraInfo = proto.findNextSiblings( 'div', limit=1)[0].dl.table
+                    assert extraInfo
+                    
+                    tmpDirs = extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
+
+                    tmpNames = [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
+                    
+                    tmpDocs = []
+                    for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in extraInfo.findAll( 'td' )]:
+                        if doc: tmpDocs.append( ''.join(doc) )
+                        
+                    assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), 'names and types lists are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs) 
+                    
+                    for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs) :
+                        if dir == '[in]': dir = 'in'
+                        elif dir == '[out]': dir = 'out'
+                        else: raise
+                        assert name in names
+                        directions[name] = dir
+                        docs[name] = doc
+                        
+                                               
+
+                        
+                except (AttributeError, AssertionError), msg:
+                    #print "FAILED", msg
+                    pass
+
+                 
+#                print names
+#                print types
+#                print defaults
+#                print directions
+#                print docs
+
+                for argname in names:
+                    default = defaults[argname]
+                    type = types[argname]
+                    direction = directions.get(argname, 'in')
+                    doc = docs.get( argname, '')
+                    
+                    if type == 'MStatus':
+                        types.pop(argname)
+                        defaults.pop(argname)
+                        directions.pop(argname,None)
+                        docs.pop(argname,None)
+                    else:          
+                        data = ( argname, type, default, direction)
+                        if self.verbose: print data       
+                        argList.append(  data )
+                        if direction == 'in':
+                            inArgs.append(argname)
+                        else:
+                            outArgs.append(argname)
+                        argInfo[ argname ] = {'type': type, 'doc': doc }
+                    
+                argInfo[ 'types' ] = types
+                        
+                methodInfo = { 'argInfo': argInfo, 
+                              'args' : argList, 
+                              'returnType' : returnType, 
+                              'inArgs' : inArgs, 
+                              'outArgs' : outArgs, 
+                              'doc' : '', #methodDoc, 
+                              'defaults' : defaults,
+                              'static' : static } 
+                self.methods[self.currentMethod].append(methodInfo)
+                
+                # reset
+                self.currentMethod=None
+                
+        pymelNames = self.getPymelMethodNames()
+        
+                   
+        return { 'methods' : dict(self.methods), 
+                 'enums' : self.enums,
+                 'pymelEnums' : self.pymelEnums,
+                 'pymelMethods' :  pymelNames
+                }
+        
+def getMFnInfo( apiClassName ):
+    parser = ApiDocParser(apiClassName )
     try:
         classInfo = parser.parse()
-    except IOError: pass  
+    except IOError, msg: 
+        #print "Error parsing docs: %s" % msg
+        pass
     else:
 
         
@@ -481,12 +844,9 @@ def getMFnInfo( functionSet ):
 #                          outputs.append( returnType )
 #                      outputs += methodInfo['outArgs']
 #                      if not outputs:
-#                           print "no outputs", functionSet, methodName, i 
-        return classInfo
-
-
-
-
+#                           print "no outputs", apiClassName, methodName, i 
+        return classInfo 
+                       
 # fast convenience tests on API objects
 def isValidMObjectHandle (obj):
     if isinstance(obj, MObjectHandle) :
@@ -930,7 +1290,7 @@ def _createNodes(dagMod, dgMod, *args) :
 #        print mayaType, apiType
         if ReservedMayaTypes().has_key(mayaType) :
             apiType = ReservedMayaTypes()[mayaType]
-            print "reserved", mayaType, apiType
+            #print "reserved", mayaType, apiType
             mayaResult[mayaType] = apiType
             result[apiType] = None
       
@@ -1035,8 +1395,8 @@ def _buildApiTypeHierarchy () :
                 if info is not None:
                     #print "succeeded", name
                     apiClassInfo[ name ] = info
-            except (ValueError,IndexError), msg:
-                print "failed", name, msg
+                else: print "failed to parse docs:", name
+            except (ValueError,IndexError), msg: print "failed", name, msg
                     
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
@@ -1295,7 +1655,17 @@ def toApiObject (nodeName, dagPlugs=True):
     try:
         sel.add( nodeName )
     except:
-        return
+        if "." in nodeName :
+            # Compound Attributes
+            #  sometimes the index might be left off a somewhere in a compound attribute 
+            # (ex 'Nexus.auxiliary.input' instead of 'Nexus.auxiliary[0].input' )
+            #  but we can still get a representative plug. this will return the equivalent of 'Nexus.auxiliary[-1].input'
+            buf = nodeName.split('.')
+            obj = toApiObject( buf[0] )
+            plug = MFnDependencyNode(obj).findPlug( buf[-1], False )
+            if dagPlugs and isValidMDagPath(obj) : 
+                return (obj, plug)
+            return plug
     else:
         if "." in nodeName :
             try:
