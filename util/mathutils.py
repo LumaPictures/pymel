@@ -33,6 +33,7 @@ def round(value, ndigits=0) :
         This always returns a floating point number.  Precision may be negative.
         This builtin function was overloaded in mathutils to work on complex numbers,
         in that case rel and imaginary values are rounded separately """
+    ndigits = int(ndigits)
     if isinstance(value, complex) :
         return complex(_round(value.real, ndigits), _round(value.imag, ndigits))
     else :
