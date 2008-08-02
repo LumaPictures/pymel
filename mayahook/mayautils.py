@@ -73,19 +73,30 @@ def getMayaLocation(version=None):
 
 def getMayaVersion(extension=True):
     """ Returns the maya version (ie 2008), with extension (known one : x64 for 64 bit cuts) if extension=True """
+
+    def parseVersionStr(versionStr, extension):
+        # problem with service packs addition, must be able to match things such as :
+        # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
+        ma = re.search( "((?:maya)?(?P<base>[\d.]+)(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
+        version = ma.group('base')
+        
+        if extension and (ma.group('ext') is not None) :
+            version += "-"+ma.group('ext')
+        return version
     
     try :
         from maya.cmds import about
-        versionStr = about(version=True)
+        version = parseVersionStr( about(version=True), extension)
     except :
-        versionStr = _getVersionStringFromExecutable()
+        try:
+            # try the path if maya.cmds is not loaded
+            version = parseVersionStr( getMayaLocation(), extension)
+        except AttributeError:
+            # for non-standard installation directories, call the maya binary for the version.
+            # we try this as a last resort because of potential load-time slowdowns
+            version = parseVersionStr( _getVersionStringFromExecutable(), extension)
     
-    # problem with service packs addition, must be able to match things such as :
-    # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
-    ma = re.search( "((?:maya)?(?P<base>[\d.]+)(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
-    version = ma.group('base')
-    if extension and (ma.group('ext') is not None) :
-        version += "-"+ma.group('ext')
+     
     return version
 
 def getMayaExecutable(version=None, batch=False):
@@ -224,6 +235,7 @@ def refreshEnviron():
         cmd = 'set'
         
     cmdOutput = shellOutput(cmd)
+    #print "ENV", cmdOutput
     # use splitlines rather than split('\n') for better handling of different
     # newline characters on various os's
     for line in cmdOutput.splitlines():
