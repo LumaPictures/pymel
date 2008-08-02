@@ -4,18 +4,35 @@ from re import escape
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------
-def pythonToMel(arg):
-    if isinstance(arg,basestring):
-        return '"%s"' % cmds.encodeString(arg)
-        #return '"%s"' % re.escape(arg)
-    elif isIterable(arg):
-        return '{%s}' % ','.join( map( pythonToMel, arg) ) 
-    return unicode(arg)
-            
+
+
+#def pythonToMel(arg):
+#    if isinstance(arg,basestring):
+#        return '"%s"' % cmds.encodeString(arg)
+#        #return '"%s"' % re.escape(arg)
+#    elif isIterable(arg):
+#        return '{%s}' % ','.join( map( pythonToMel, arg) ) 
+#    return unicode(arg)
+#
+#def pythonToMel(arg):
+#    if isinstance(arg,basestring):
+#        return u'"%s"' % cmds.encodeString(arg)
+#    elif isinstance(arg, PyNode):
+#        return u'"%s"' % arg
+#    elif util.isIterable(arg):
+#        return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
+#    return unicode(arg)   
+         
 def capitalize(s):
     return s[0].upper() + s[1:]
 
-def uncapitalize(s):
+def uncapitalize(s, preserveAcronymns=False):
+    """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'"""
+    try:
+        if preserveAcronymns and s[0:2].isupper():
+            return s
+    except IndexError: pass
+    
     return s[0].lower() + s[1:]
                         
 def unescape( s ):
