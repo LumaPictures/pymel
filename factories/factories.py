@@ -65,7 +65,8 @@ moduleNameShortToLong = {
     'animation'  : 'Animation',
     'windows'    : 'Windows',
     'system'    : 'System',
-    'general' : 'General'
+    'general' : 'General',
+    'language' : 'Language'
 }
 
 #: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
@@ -1701,13 +1702,16 @@ class ApiArgUtil(object):
                 if isinstance( returnType, tuple ):
                     assert _api.apiClassInfo.has_key(returnType[0]) and _api.apiClassInfo[returnType[0]]['enums'].has_key(returnType[1]),'%s.%s(): invalid return enum: %s' % (self.apiClassName, self.methodName, returnType)
                 else:
-                    assert returnType in ApiTypeRegister.outCast, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
+                    assert returnType in ApiTypeRegister.outCast or returnType == self.apiClassName, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
             
             for argname, argtype, default, direction in self.methodInfo['args'] :
+                
                 if isinstance( argtype, tuple ):
                     assert _api.apiClassInfo.has_key(argtype[0]) and _api.apiClassInfo[argtype[0]]['enums'].has_key(argtype[1]), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype)
+                
                 elif direction == 'in':
-                    assert argtype in ApiTypeRegister.inCast, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                    assert argtype in ApiTypeRegister.inCast or argtype == self.apiClassName, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                
                 elif direction == 'out':
                     assert argtype in ApiTypeRegister.refInit and argtype in ApiTypeRegister.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
                     #try:
@@ -1718,35 +1722,58 @@ class ApiArgUtil(object):
             print msg
             return False
         
-        #print "succeeded: %s %s.%s(%s)" % ( returnType, self.apiClassName, self.methodName, ', '.join(inArgs) ) 
+        print "%s.%s(%s): valid" % (self.apiClassName, self.methodName, ', '.join( [ '%s %s' % ( self.methodInfo['argInfo'][x]['type'], x) for x in inArgs] ) ) 
         return True
     
-    def castEnum(self, argtype, input ):
-        if isinstance( input, int):
-            return input
-        
-        elif input[0] != 'k' or not input[1].isupper():
-            input = 'k' + util.capitalize(input)
-            return _api.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
+#    def castEnum(self, argtype, input ):
+#        if isinstance( input, int):
+#            return input
+#        
+#        elif input[0] != 'k' or not input[1].isupper():
+#            input = 'k' + util.capitalize(input)
+#            return _api.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
             
-    def castInput(self, argtype, input):
+    def castInput(self, argtype, input, cls):
         # enums
         if isinstance( argtype, tuple ):
-            return self.castEnum(argtype, input)
-
-        else:
-            return ApiTypeRegister.inCast[argtype]( input )        
+            if isinstance( input, int):
+                return input
             
-    def castResult(self, result):
+            apiClassName, enumName = argtype
+            try:
+                return _api.apiClassInfo[apiClassName]['enums'][enumName].index(input)
+            except ValueError:
+                try:
+                    return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].index(input)
+                except ValueError:
+                    raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
+                
+        else:
+            try:
+                return ApiTypeRegister.inCast[argtype]( input )   
+            except:
+                assert argtype == cls.__name__     
+                return cls(input)
+            
+    def castResult(self, result, cls):
         returnType = self.methodInfo['returnType']
         if returnType:
             # enums
             if isinstance( returnType, tuple ):
-                return ApiTypeRegister.castEnum(returnType, result)
+                #raise NotImplementedError
+                apiClassName, enumName = returnType
+                try:
+                    return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
+                except KeyError:
+                    raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
     
             else:
-                return ApiTypeRegister.outCast[returnType]( result )  
-    
+                try:
+                    return ApiTypeRegister.outCast[returnType]( result )  
+                except:
+                    assert returnType == cls.__name__
+                    return cls(result)
+                
     def initializeReference(self, argtype): 
         return ApiTypeRegister.refInit[argtype]()
      
@@ -1760,6 +1787,9 @@ class ApiArgUtil(object):
                 defaults.append( self.methodInfo['defaults'][arg])
             except: pass
         return defaults
+    
+    def isStatic(self):
+        return self.methodInfo['static']
     
 def interface_wrapper( doer, args=[], defaults=[] ):
     """
@@ -1839,37 +1869,42 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                 i = 0
                 argList = []
                 outTypeList = []
-                outTypeIndex = []
+                #outTypeIndex = []
                 argInfo = methodInfo['args']
                 if len(args) != len(inArgs):
                     raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
                 
                 for name, argtype, default, direction in argInfo :
                     if direction == 'in':
-                        argList.append( argHelper.castInput( argtype, args[inCount] ) )
+                        argList.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
                         inCount +=1
                     else:
                         val = argHelper.initializeReference(argtype) 
                         argList.append( val )
-                        outTypeList.append( argtype )
-                        outTypeIndex.append( i )
+                        outTypeList.append( (argtype, i) )
+                        #outTypeIndex.append( i )
                     i+=1
                                       
-                #print argList
-                if apiObject:
-                    result = method( self.__apiobject__(), *argList )
+                print "%s.%s: arglist %s" % ( apiClassName, methodName, argList)
+                
+                if argHelper.isStatic():
+                    result = method( *argList )
                 else:
                     result = method( self, *argList )
-                #print "result", result
-                result = argHelper.castResult(result) 
-                    
+                      
+                print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
+                
+                result = argHelper.castResult(result, self.__class__) 
+                
+                #print methodName, "result (post)", result
+                 
                 if len(outArgs):
                     if result is not None:
                         result = [result]
                     else:
                         result = []
                     
-                    for outType, index in zip(outTypeList,outTypeIndex):
+                    for outType, index in outTypeList:
                         outArgVal = argList[index]
                         res = argHelper.castReferenceResult( outType, outArgVal )
                         result.append( res )
@@ -1884,13 +1919,16 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                 f.__name__ = methodName
             f.__doc__ = methodInfo['doc']
             
-            
+
+                
             defaults = argHelper.getDefaults()
                 
             #print inArgs, defaults
             f = interface_wrapper( f, ['self'] + inArgs, defaults )
             
-            
+            if argHelper.isStatic():
+                f = classmethod(f)
+                
             return f
 
 
@@ -1917,15 +1955,17 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         """ Create a new class of metaClassConstants type """
         
         #print "MetaMayaTypeWrapper", classname, bases, classdict
-        
-    
+        removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
             classdict['__slots__'] = ()
         try:
             apicls = classdict['apicls']
-            
+        except KeyError:
+            pass
+        else:
             if apicls is not None:
+                
                 if apicls not in bases:
                     #print "ADDING BASE",classdict['apicls']
                     bases = bases + (classdict['apicls'],)
@@ -1935,26 +1975,43 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 except KeyError:
                     print "No api information for api class %s" % ( apicls.__name__ )
                 else:
-                    for methodName in classInfo['methods'].keys():                  
+                    # Class Methods
+                    for methodName, info in classInfo['methods'].items():                  
                         #TODO : check pymelName
-                        if methodName not in classdict:
-                            method = wrapApiMethod( apicls, methodName )
+                        try:
+                            pymelName = info[0]['pymelName']
+                            removeAttrs.append(methodName)
+                        except KeyError:
+                            pymelName = methodName
+                            
+                        if pymelName not in classdict and pymelName not in ['setObject']:
+                            method = wrapApiMethod( apicls, methodName, newName=pymelName )
                             if method:
-                                print "%s.%s() successfully created" % (apicls.__name__, methodName )
-                                classdict[method.__name__] = method
+                                #print "%s.%s() successfully created" % (apicls.__name__, pymelName )
+                                classdict[pymelName] = method
                         else:
                             print "%s.%s() skipping" % (apicls.__name__, methodName )      
-                    try:      
+                    try:   
+                        # Enumerators   
                         for enumName, enumList in classInfo['pymelEnums'].items():
                             print "adding enum %s to class %s" % ( enumName, classname )
-                            Enum = util.namedtuple( enumName, enumList )
-                            classdict[enumName] = Enum( *range(len(enumList)) )
+                            #enum = util.namedtuple( enumName, enumList )
+                            #classdict[enumName] = enum( *range(len(enumList)) )
+                            
+                            enum = util.Enum( *enumList )
+                            classdict[enumName] = enum
+                            
                     except KeyError:
-                        pass       
-
-        except KeyError:
-            pass
-
+                        pass   
+        
+        if removeAttrs:
+            print classname, "removing attributes", removeAttrs               
+        def __getattribute__(self, name):         
+            if name in removeAttrs and name not in ['name']: # tmp fix
+                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+            return bases[0].__getattribute__(self, name)
+            
+        classdict['__getattribute__'] = __getattribute__
         
 #        #return super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
       
@@ -2012,7 +2069,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     type.__setattr__(newcls, name, attr)
                                                
             #else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
-            
+        
+        if hasattr(newcls, 'apicls'):
+            ApiTypeRegister.register( newcls.apicls.__name__, newcls )   
         return newcls 
     
 class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
@@ -2176,6 +2235,32 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
                             print '    %s %s(%s)' % ( returnType, method, ','.join( types ) )
                         validMethods.append(method)
     return validMethods
+def readClassAnalysis( filename ):
+    f = open(filename)
+    info = {}
+    currentClass = None
+    currentSection = None
+    for line in f.readlines():
+        buf = line.split()
+        if buf[0] == 'CLASS':
+            currentClass = buf[1]
+            info[currentClass] = {}
+        elif buf[0].startswith('['):
+            if currentSection in ['shared_leaf', 'api', 'pymel']:
+                currentSection = buf.strip('[]')
+                info[currentClass][currentSection] = {}
+        else:
+            n = len(buf)
+            if n==2:
+                info[currentClass][currentSection][buf[0]] = buf[1]
+            elif n==1:
+                pass
+                #info[currentClass][currentSection][buf[0]] = None
+            else:
+                pass
+    f.close()
+    print info
+    return info
 
 def analyzeApiClass( apiTypeStr, apiTypeParentStr ):
     try:
@@ -2210,46 +2295,50 @@ def analyzeApiClass( apiTypeStr, apiTypeParentStr ):
         if pymelType:
             parentPymelType = PyNodeTypesHierarchy()[ pymelType ]
             parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
-            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers ])
+            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers and not x[0].startswith('_') ])
             
-            print apiClass.__name__, mayaType, pymelType
+            print "CLASS", apiClass.__name__, mayaType
             parentApiClass = inspect.getmro( apiClass )[1]
             #print parentApiClass
-            pymelMethodNames = _api.apiClassInfo[apiClass.__name__]['pymelMethods']
+            
+            pymelMethodNames = {}
+            # get all pymelName lookups for this class and its bases
+            for cls in inspect.getmro( apiClass ):
+                try:
+                    pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
+                except KeyError: pass
+                
             allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
-            parentFnMembers = set([ x[0] for x in inspect.getmembers( parentApiClass, callable ) ])
+            
+            parentFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
             fnMembers = allFnMembers.difference( parentFnMembers )
-#            validFnMembers = getValidApiMethods(apiClass.__name__)
-#            # convert from api convention to pymel convention
-#            origGetMethods = {}
-#            for i, member in enumerate(allFnMembers):
-#                if len(member) > 4 and member.startswith('set') and member[3].isupper():
-#                    # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
-#                    # 'setSomething'  -->  'something'
-#                    origGetMethod = member[3].lower() + member[4:]
-#                    if origGetMethod in allFnMembers:
-#                        newGetMethod = 'get' + member[3:]
-#                        try:
-#                            idx = validFnMembers.index( origGetMethod ) 
-#                            validFnMembers[idx] = newGetMethod
-#                        except: pass
-#                        
-#                        idx = allFnMembers.index( origGetMethod ) 
-#                        allFnMembers[idx] = newGetMethod
-#                        
-#                        origGetMethods[ newGetMethod ] = origGetMethod
-#            
-#            validFnMembers = set(validFnMembers)
-#            invalidFnMembers = set(allFnMembers).difference(validFnMembers)
+
+            reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() )
             
             sharedCurrent = fnMembers.intersection( pyMembers )
-            sharedOnAll = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
-            print "    [shared (leaf)]"
-            for x in sorted( sharedCurrent ): print '    ', x   
-            print "    [shared (all parents)]"
-            for x in sorted( sharedOnAll ): print '    ', x    
+            sharedOnAll = allFnMembers.intersection( pyMembers )
+            sharedOnOther = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
+#            print "    [shared_leaf]"
+#            for x in sorted( sharedCurrent ): 
+#                if x in reversePymelNames: print '    ', reversePymelNames[x], x 
+#                else: print '    ', x
+                
+#            print "    [shared_all]"
+#            for x in sorted( sharedOnOther ): 
+#                if x in reversePymelNames: print '    ', reversePymelNames[x], x 
+#                else: print '    ', x
+            
             print "    [api]"
-            for x in sorted( fnMembers.difference( pyMembers ) ): print '    ', x
+            for x in sorted( fnMembers ): 
+                if x in sharedCurrent:
+                    prefix = '+   '
+#                elif x in sharedOnOther:
+#                    prefix = '-   '
+                else:
+                    prefix = '    '
+                if x in reversePymelNames: print '    ', reversePymelNames[x], x 
+                else: print prefix, x
+            
             print "    [pymel]"
             for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
             
@@ -2299,7 +2388,7 @@ def addPyNode( module, mayaType, parentMayaType ):
             #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
             PyNodeType.__module__ = module.__name__
             setattr( module, pyNodeTypeName, PyNodeType )
-            
+           
     PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
     PyNodesToMayaTypes()[PyNodeType] = mayaType
     PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
