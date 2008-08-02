@@ -51,9 +51,9 @@ Maya Bug Fix:
         if name:
             tmp = cmds.pointLight(*args, **kwargs)
             tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'pointLight' )
+            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0] )
     
-    return general.PyNode( cmds.pointLight(*args, **kwargs), 'pointLight'  )
+    return general.PyNode( cmds.pointLight(*args, **kwargs)  )
 
 def spotLight(*args,**kwargs):
     """
@@ -68,9 +68,9 @@ Maya Bug Fix:
         if name:
             tmp = cmds.spotLight(*args, **kwargs)
             tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'spotLight' )
+            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0])
     
-    return general.PyNode( cmds.spotLight(*args, **kwargs), 'spotLight'  )
+    return general.PyNode( cmds.spotLight(*args, **kwargs)  )
 
 def directionalLight(*args,**kwargs):
     """
@@ -86,9 +86,9 @@ Maya Bug Fix:
         if name:
             tmp = cmds.directionalLight(*args, **kwargs)
             tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'directionalLight' )
+            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0] )
     
-    return general.PyNode( cmds.directionalLight(*args, **kwargs), 'directionalLight'  )
+    return general.PyNode( cmds.directionalLight(*args, **kwargs)  )
 
 def ambientLight(*args,**kwargs):
     """
@@ -103,9 +103,9 @@ Maya Bug Fix:
         if name:
             tmp = cmds.ambientLight(*args, **kwargs)
             tmp = cmds.rename( cmds.listRelatives( tmp, parent=1)[0], name)
-            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0], 'ambientLight' )
+            return general.PyNode( cmds.listRelatives( tmp, shapes=1)[0] )
     
-    return general.PyNode( cmds.ambientLight(*args, **kwargs), 'ambientLight'  )
+    return general.PyNode( cmds.ambientLight(*args, **kwargs)  )
 
 def createRenderLayer(*args, **kwargs):
     return general.RenderLayer( cmds.createRenderLayer(*args, **kwargs) )

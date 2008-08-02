@@ -33,6 +33,7 @@ import pymel.util as util
 import pymel.factories as _factories
 from pymel.factories import createflag, add_docs
 from pymel.util.scanf import fscanf
+import general
 
 import sys
 try:
@@ -488,7 +489,7 @@ class FileReference(Path):
         #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
         # TODO : cast this to PyNode
         try:
-            return cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 )
+            return general.PyNode( cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ) )
         except:
             return None
         

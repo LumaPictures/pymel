@@ -22,504 +22,14 @@ import pymel.factories as _factories
 from pymel.factories import queryflag, editflag, createflag, MetaMayaNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
-import system
-from system import namespaceInfo
 #from pmtypes.ranges import *
 from pmtypes.wrappedtypes import *
 import pmtypes.path as _path
-from pymel.util.nameparse import *
+import pymel.util.nameparse as nameparse
 
 
 "controls whether functions that return dag nodes use the long name by default"
 longNames = False
-
-#--------------------------
-# Mel <---> Python Glue
-#--------------------------    
-
-# TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ): 
-# using append or extend will not update the mel variable 
-class MelGlobals( util.Singleton, dict ):
-    """ A dictionary-like class for getting and setting global variables between mel and python.
-    an instance of the class is created by default in the pymel namespace as melGlobals.
-    
-    to retrieve existing global variables, just use the name as a key
-    
-    >>> melGlobals['gMainFileMenu']
-    mainFileMenu
-    >>> # works with or without 
-    >>> melGlobals['$gGridDisplayGridLinesDefault']
-    1
-    
-    creating new variables requires the use of the initVar function to specify the type
-    
-    >>> melGlobals.initVar( 'string', 'gMyStrVar' )
-    >>> melGlobals['gMyStrVar'] = 'fooey'
-    
-    """
-    melTypeToPythonType = {
-        'string'    : str,
-        'int'       : int,
-        'float'     : float,
-        'vector'    : Vector
-        }
-
-    class MelGlobalArray1( tuple ):
-        def __new__(cls, type, variable, *args, **kwargs ): 
-             
-            self = tuple.__new__( cls, *args, **kwargs )
-            
-            decl_name = variable
-            if type.endswith('[]'):
-                type = type[:-2]
-                decl_name += '[]'
-                
-            self._setItemCmd = "global %s %s; %s" % ( type, decl_name, variable )
-            self._setItemCmd += '[%s]=%s;'
-            return self
-        
-        def setItem(self, index, value ):
-            mm.eval(self._setItemCmd % (index, value) )
-
-    class MelGlobalArray( util.defaultlist ):
-        #__metaclass__ = util.metaStatic
-        def __init__(self, type, variable, *args, **kwargs ): 
-            
-            decl_name = variable
-            if type.endswith('[]'):
-                type = type[:-2]
-                decl_name += '[]'
-            
-            pyType = MelGlobals.melTypeToPythonType[ type ]
-            util.defaultlist.__init__( self, pyType, *args, **kwargs )
-             
-               
-            self._setItemCmd = "global %s %s; %s" % ( type, decl_name, variable )
-            self._setItemCmd += '[%s]=%s;'
-
-        
-        def setItem(self, index, value ):
-            mm.eval(self._setItemCmd % (index, value) )
-        
-        # prevent these from 
-        def append(self, val): raise AttributeError
-        def __setitem__(self, item, val): raise AttributeError
-        def extend(self, val): raise AttributeError
-        
-    
-    
-    typeMap = {}
-    validTypes = util.MELTYPES
-    def _formatVariable(self, variable):
-        # TODO : add validity check
-        if not variable.startswith( '$'):
-            variable = '$' + variable
-        return variable
-    
-    def __getitem__(self, variable ):
-        variable = self._formatVariable(variable)
-        try:
-            return self.get( MelGlobals.typeMap[variable], variable )
-        except KeyError:
-            info = mel.whatIs( variable ).split()
-            if len(info)==2 and info[1] == 'variable':
-                return self.get( info[0], variable )
-            raise ValueError, "You must specify a type for this variable first using initVar"
-        
-    def __setitem__(self, variable, value):
-        variable = self._formatVariable(variable)
-        try:
-            self.set( MelGlobals.typeMap[variable], variable, value )
-        except KeyError:
-            info = mel.whatIs( variable ).split()
-            if len(info)==2 and info[1] == 'variable':
-                return self.get( info[0], variable )
-            raise ValueError, "You must specify a type for this variable first using initVar"
-        
-    def initVar( self, type, variable ):
-        if type not in MelGlobals.validTypes:
-            raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MelGlobals.validTypes ] )
-        variable = self._formatVariable(variable)
-        MelGlobals.typeMap[variable] = type
-        return variable
-    
-    def get( self, type, variable ):
-        """get a mel global variable""" 
-
-        variable = self.initVar(type, variable)
-        ret_type = type
-        decl_name = variable
-        
-        if type.endswith('[]'):
-            array=True
-            type = type[:-2]
-            proc_name = 'pymel_get_global_' + type + 'Array'
-            if not decl_name.endswith('[]'):
-                decl_name += '[]'
-        else:
-            array=False
-            proc_name = 'pymel_get_global_' + type
-            
-        cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, variable, proc_name )
-        #print cmd
-        res = mm.eval( cmd  )
-        if array:
-            return MelGlobals.MelGlobalArray(ret_type, variable, res)
-        else:
-            return res
-    
-    def set( self, type, variable, value ):
-        """set a mel global variable""" 
-        variable = self.initVar(type, variable)
-        decl_name = variable
-        if type.endswith('[]'):
-            type = type[:-2]
-            decl_name += '[]'
-            
-        cmd = "global %s %s; %s=%s;" % ( type, decl_name, variable, pythonToMel(value) )
-        #print cmd
-        mm.eval( cmd  )
-    
-    def keys(self):
-        """list all global variables"""
-        return mel.env()
-    
-melGlobals = MelGlobals()
-
-# for backward compatibility               
-getMelGlobal = melGlobals.get
-setMelGlobal = melGlobals.set
-    
-class Catch(util.Singleton):
-    """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch, you should
-        really use the try/except structure. This command is provided for python scripts generated by py2mel.  stores the
-        result of the function in catch.result.
-        
-        >>> if not catch( lambda: myFunc( "somearg" ) ):
-        >>>    result = catch.result
-        >>>    print "succeeded:", result
-        
-        """
-    result = None
-    success = None
-    def __call__(self, func ):
-        try:
-            catch.result = func()
-            catch.success = True
-            return 0
-        except:
-            catch.success = False
-            return 1
-        
-    def reset(self):
-        catch.result = None
-        catch.success = None 
-
-catch = Catch()
-             
-#--------------------------
-# Maya.mel Wrapper
-#--------------------------
-
-def pythonToMel(arg):
-    if isinstance(arg,basestring):
-        return u'"%s"' % cmds.encodeString(arg)
-    elif isinstance(arg, PyNode):
-        return u'"%s"' % arg
-    elif util.isIterable(arg):
-        return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
-    return unicode(arg)
-    
-class Mel(object):
-    """This class is a necessity for calling mel scripts from python. It allows scripts to be called
-    in a cleaner fashion, by automatically formatting python arguments into a string 
-    which is executed via maya.mel.eval().  An instance of this class is already created for you 
-    when importing pymel and is called mel.  
-    
-    default:        
-        >>> import maya.mel as mel
-        >>> mel.eval( 'myScript("firstArg", 2, 3.0, {"one", "two", "three"})')
-            
-    pymel:
-        >>> from pymel import *
-        >>> mel.myScript("firstArg", 2, 3.0, ['one', 'two', 'three'])
-        
-    the advantages of this method are more readily apparent in a more complicated example:
-    
-    default:        
-        >>> import cmds as cmds
-        >>> pymel.core.node = "lambert1"
-        >>> color = cmds.getAttr( pymel.core.node + ".color" )[0]
-        >>> mel.eval('myScript("%s",{%s,%s,%s})' % (cmds.nodeType(pymel.core.node), color[0], color[1], color[2])    
-            
-    pymel:
-        >>> from pymel import *
-        >>> pymel.core.node = DependNode("lambert")
-        >>> mel.myScript( type(), color.get() )
-    
-    from this you can see how pymel.core.mel allows you to pass any python object directly to your mel script as if 
-    it were a python script, with no need for formatting arguments.
-    """
-            
-    def __getattr__(self, command):
-        if command.startswith('__') and command.endswith('__'):
-            return self.__dict__[command]
-        def _call(*args):
-        
-            strArgs = map( pythonToMel, args)
-                            
-            cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
-            #print cmd
-            try:
-                return mm.eval(cmd)
-            except RuntimeError, msg:
-                info = self.whatIs( command )
-                if info.startswith( 'Presumed Mel procedure'):
-                    raise NameError, 'Unknown Mel procedure'
-                raise RuntimeError, msg
-            
-        return _call
-    
-    def call(self, command, *args ):
-        strArgs = map( pythonToMel, args)
-                        
-        cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
-
-        try:
-            return mm.eval(cmd)
-        except RuntimeError, msg:
-            info = self.whatIs( command )
-            if info.startswith( 'Presumed Mel procedure'):
-                raise NameError, 'Unknown Mel procedure'
-            raise RuntimeError, msg
-    
-    def mprint(self, *args):
-        """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
-        in certain output, such as the rush render-queue manager."""
-        #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
-        mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
-        
-    def source( self, script, language='mel' ):
-        """use this to source mel or python scripts.
-        language : 'mel', 'python'
-            When set to 'python', the source command will look for the python equivalent of this mel file, if
-            it exists, and attempt to import it. This is particularly useful when transitioning from mel to python
-            via mel2py, with this simple switch you can change back and forth from sourcing mel to importing python.
-            
-        """
-        
-        if language == 'mel':
-            mm.eval( """source "%s";""" % script )
-            
-        elif language == 'python':
-            script = _path.path( script )
-            modulePath = script.namebase
-            folder = script.parent
-            print modulePath
-            if not sys.modules.has_key(modulePath):
-                print "importing"
-                module = __import__(modulePath, globals(), locals(), [''])
-                sys.modules[modulePath] = module
-            
-        else:
-            raise TypeError, "language keyword expects 'mel' or 'python'. got '%s'" % language
-            
-    def eval( self, command ):
-        # should return a value, like mm.eval
-        return mm.eval( command )    
-    
-    def error( self, msg, showLineNumber=False ):       
-        if showLineNumber:
-            flags = ' -showLineNumber true '
-        else:
-            flags = ''
-        mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
-
-    def warning( self, msg, showLineNumber=False ):       
-        if showLineNumber:
-            flags = ' -showLineNumber true '
-        else:
-            flags = ''
-        mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
-
-    def trace( self, msg, showLineNumber=False ):       
-        if showLineNumber:
-            flags = ' -showLineNumber true '
-        else:
-            flags = ''
-        mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
-                  
-    def tokenize(self, *args ):
-        raise NotImplementedError, "Calling the mel command 'tokenize' from python will crash Maya. Use the string split method instead."
-
-mel = Mel()
-
-
-
-#-----------------------------------------------
-#  Option Variables
-#-----------------------------------------------
-
-class OptionVarList(tuple):
-    def __init__(self, key, val):
-        self.key = key
-        tuple.__init__(self, val)
-    
-    def appendVar( self, val ):
-        """ values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
-        """
-
-        if isinstance( val, basestring):
-            return cmds.optionVar( stringValueAppend=[self.key,val] )
-        if isinstance( val, int):
-            return cmds.optionVar( intValueAppend=[self.key,val] )
-        if isinstance( val, float):
-            return cmds.optionVar( floatValueAppend=[self.key,val] )
-        raise TypeError, 'unsupported datatype: strings, ints, floats and their subclasses are supported'
-
-class OptionVarDict(util.Singleton):
-    """ 
-    A singleton dictionary-like class for accessing and modifying optionVars.
-     
-        >>> from pymel import *
-        >>> optionVar['test'] = 'dooder'
-        >>> print optionVar['test'] 
-        u'dooder'
-        
-        >>> if 'numbers' not in env.optionVars:
-        >>>     optionVar['numbers'] = [1,24,7]
-        >>> optionVar['numbers'].appendVar( 9 )
-        >>> numArray = optionVar.pop('numbers') 
-        >>> print numArray
-        [1,24,7,9]
-        >>> optionVar.has_key('numbers') # previous pop removed the key
-        False
-    """
-
-    def __contains__(self, key):
-        return cmds.optionVar( exists=key )
-            
-    def __getitem__(self,key):
-        val = cmds.optionVar( q=key )
-        if isinstance(val, list):
-            val = OptionVarList( key, val )
-        return val
-    def __setitem__(self,key,val):
-        if isinstance( val, basestring):
-            return cmds.optionVar( stringValue=[key,val] )
-        if isinstance( val, int) or isinstance( val, bool):
-            return cmds.optionVar( intValue=[key,int(val)] )
-        if isinstance( val, float):
-            return cmds.optionVar( floatValue=[key,val] )
-        if isinstance( val, list ):
-            if len(val) == 0:
-                return cmds.optionVar( clearArray=key )
-            if isinstance( val[0], basestring):
-                cmds.optionVar( stringValue=[key,val[0]] ) # force to this datatype
-                for elem in val[1:]:
-                    if not isinstance( elem, basestring):
-                        raise TypeError, 'all elements in list must be of the same datatype'
-                    cmds.optionVar( stringValueAppend=[key,elem] )
-                return
-            if isinstance( val[0], int):
-                cmds.optionVar(  intValue=[key,val[0]] ) # force to this datatype
-                for elem in val[1:]:
-                    if not isinstance( elem, int):
-                        raise TypeError,  'all elements in list must be of the same datatype'
-                    cmds.optionVar( intValueAppend=[key,elem] )
-                return
-            if isinstance( val[0], float):
-                cmds.optionVar( floatValue=[key,val[0]] ) # force to this datatype
-                for elem in val[1:]:
-                    if not isinstance( elem, foat):
-                        raise TypeError, 'all elements in list must be of the same datatype'
-                    cmds.optionVar( floatValueAppend=[key,elem] )
-                return
-
-        raise TypeError, 'unsupported datatype: strings, ints, float, lists, and their subclasses are supported'            
-
-    def keys(self):
-        return cmds.optionVar( list=True )
-
-    def get(self, key, default=None):
-        if self.has_key(key):
-            return self[key]
-        else:
-            return default
-        
-    def has_key(self, key):
-        return cmds.optionVar( exists=key )
-
-    def pop(self, key):
-        val = cmds.optionVar( q=key )
-        cmds.optionVar( remove=key )
-        return val
-    
-optionVar = OptionVarDict()
-
-#-----------------------------------------------
-#  Global Settings
-#-----------------------------------------------
-
-
-class Env(util.Singleton):
-    """ A Singleton class to represent Maya current optionVars and settings """
-    optionVars = OptionVarDict()
-    #grid = Grid()
-    #playbackOptions = PlaybackOptions()
-    
-    # TODO : create a wrapper for os.environ which allows direct appending and popping of individual env entries (i.e. make ':' transparent)
-    envVars = os.environ
-
-    def setConstructionHistory( self, state ):
-        cmds.constructionHistory( tgl=state )
-    def getConstructionHistory(self):
-        return cmds.constructionHistory( q=True, tgl=True )    
-    def sceneName(self):
-        return system.Path(cmds.file( q=1, sn=1))
-
-    def setUpAxis( axis, rotateView=False ):
-        """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
-        cmds.upAxis( axis=axis, rotateView=rotateView )
-    
-    def getUpAxis(self):
-        """This flag gets the axis set as the world up direction. The valid axis are either 'y' or 'z'."""
-        return cmds.upAxis( q=True, axis=True )    
-
-    def user(self):
-        return getuser()    
-    def host(self):
-        return gethostname()
-    
-    def getTime( self ):
-        return cmds.currentTime( q=1 )
-    def setTime( self, val ):
-        cmds.currentTime( val )    
-    time = property( getTime, setTime )
-
-    def getMinTime( self ):
-        return cmds.playbackOptions( q=1, minTime=1 )
-    def setMinTime( self, val ):
-        cmds.playbackOptions( minTime=val )
-    minTime = property( getMinTime, setMinTime )
-
-    def getMaxTime( self ):
-        return cmds.playbackOptions( q=1, maxTime=1 )
-    def setMaxTime( self, val ):
-        cmds.playbackOptions( maxTime=val )    
-    maxTime = property( getMaxTime, setMaxTime )
-            
-env = Env()
-
-#-----------------------------------------------
-#  Scene Class
-#-----------------------------------------------
-
-class Scene(util.Singleton):
-    def __getattr__(self, obj):
-        return PyNode( obj )
-
-SCENE = Scene()
 
 
 #-----------------------------------------------
@@ -957,10 +467,11 @@ Modifications:
         for i in range(0, len(l),2):
             res.append( ( PyNode(l[i]), PyNode(l[i+1]) )  )
         return res
-        
+    
+    args = util.stringify(args)   
+    
     if kwargs.get('connections', kwargs.get('c', False) ) :    
-        
-                
+              
         if kwargs.pop('sourceFirst',False):
             source = kwargs.get('source', kwargs.get('s', True ) )
             dest = kwargs.get('destination', kwargs.get('d', True ) )
@@ -1406,155 +917,6 @@ Maya Bug Fix:
         cmds.instancer(*args, **kwargs)
         return PyNode( list( set(cmds.ls(type='instancer')).difference( instancers ) )[0], 'instancer' )
 
-#
-#def _getPymelType(arg, attr=None, comp=None) :
-#    """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
-#        if no correct type is found returns DependNode by default.
-#        
-#        If the name of an existing object is passed, the name and MObject will be returned
-#        If a valid MObject is passed, the name will be returned as None
-#        If a PyNode instance is passed, its name and MObject will be returned
-#        """
-#    def getPymelTypeFromObject(obj, attr):
-#        fnDepend = api.MFnDependencyNode( obj )      
-#        mayaType = fnDepend.typeName()
-#        pymelType = mayaTypeToPyNode( mayaType, DependNode )
-#        plug = None
-#        if attr:
-#            if isinstance(attr,basestring) :
-#                #attrObj = fnDepend.attribute(attr)
-#                plug = fnDepend.findPlug( attr, False )
-#            elif isinstance(attr, api.MObject):
-#                attrHandle = api.MObjectHandle(attr)
-#                if api.isValidMObjectHandle( attrHandle ) and attr.hasFn( api.MFnAttribute ):
-#                    #attrObj = api.MObjectHandle(attr)
-#                    plug = fnDepend.findPlug( attr, False )
-#                else:
-#                    raise ValueError, "Not a valid MObject attribute"
-#            elif isinstance(attr, api.MObjectHandle):
-#                if api.isValidMObjectHandle( attr ) and attr.object().hasFn( api.MFnAttribute ):
-#                    #attrObj = attr
-#                    plug = fnDepend.findPlug( attr.object(), False )
-#                else:
-#                    raise ValueError, "Not a valid MObjectHandle attribute"
-#            elif isinstance( attr, api.MPlug ):
-#                assert attr.node() == obj, "Node and MPlug do not match"
-#                plug = attr
-#        return pymelType, plug
-#            
-#    obj = None
-#    objName = None
-#    
-#    passedType = ''
-#    
-#    if isinstance(arg,basestring) :
-#        # Attribute passed as a string: 'node.foo.attr'.
-#        # split into 'node' and 'attr' (parent attribute should not matter)
-#        
-#        res = api.toApiObject( arg, datMatters=True )
-#        if isinstance(res, tuple):
-#            arg, attr = res
-#        else:
-#            arg = res
-#        
-#        passedType = 'string'  
-#         
-#        # TODO : should we delay this until the PyNode class requires an MObject? 
-#        # api.MFnDependencyNode( api.toAPIOjbect(objName) ).typeName() is 25% slower than cmds.nodeType(objName).
-#        # however, api.MFnDependencyNode( obj ).typeName() is 10x faster than cmds.nodeType(objName),
-#        # so you could say that we get the nodeType *plus* the MObject for an extra 25% upfront.
-#        # it's just a shame to add this overhead to every PyNode instantiation.
-#        # perhaps we could create an MObjectHandle -> mayaType dictionary lookup with the new 2009 hash?
-#        """ 
-#        start = cmds.timerX()
-#        for i in range(100):
-#            for objName in cmds.ls(): typ = cmds.nodeType( objName )
-#        print "%.03f for cmds.nodeType" % cmds.timerX(startTime=start)
-#        
-#        start = cmds.timerX()
-#        for i in range(100):
-#            for objName in cmds.ls(): x = api.toApiObject(objName) 
-#        print "%.03f for converting to MObject" % cmds.timerX(startTime=start)
-#        
-#        start = cmds.timerX()
-#        for i in range(100):
-#            for objName in cmds.ls(): x = api.MFnDependencyNode( api.toApiObject(objName) )
-#        print "%.03f for converting to MObject and getting MFn" % cmds.timerX(startTime=start)
-#        
-#        start = cmds.timerX()
-#        for i in range(100):
-#            for objName in cmds.ls(): typ =api.MFnDependencyNode( api.toApiObject(objName) ).typeName() 
-#        print "%.03f for converting to MObject and getting nodeType" % cmds.timerX(startTime=start)
-#        
-#        apiObjs = []
-#        for objName in cmds.ls(): apiObjs.append( api.toApiObject(objName) ) 
-#        start = cmds.timerX()
-#        for i in range(100):
-#            for objName in apiObjs: typ =api.MFnDependencyNode( objName ).typeName() 
-#        print "%.03f for getting nodeType directly from MObject" % cmds.timerX(startTime=start)
-#        
-#        3.140 for cmds.nodeType
-#        3.430 for converting to MObject
-#        3.700 for converting to MObject and getting MFn
-#        3.960 for converting to MObject and getting nodeType
-#        0.390 for getting nodeType directly from MObject
-#        """
-#
-#        
-#
-#                              
-#    # TODO : handle comp as a MComponent or list of components
-#    elif isinstance(arg, DependNode) :
-#        # grab the private variable to prevent the function triggering any additional calculations
-#        name = arg._name
-#        arg = arg._apiobject
-#        
-#     
-#    #--------------------------   
-#    # API object testing
-#    #--------------------------   
-#    if isinstance(arg, api.MObject) :     
-#        obj = api.MObjectHandle( arg )
-#        if api.isValidMObjectHandle( obj ) :
-#            pymelType, attr = getPymelTypeFromObject( obj.object(), attr )        
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
-#                      
-#    elif isinstance(arg, api.MObjectHandle) :      
-#        obj = arg
-#        if api.isValidMObjectHandle( obj ) :          
-#            pymelType, attr = getPymelTypeFromObject( obj.object(), attr )    
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
-#        
-#    elif isinstance(arg, api.MDagPath) :
-#        obj = arg
-#        if api.isValidMDagPath( obj ):
-#            pymelType, attr = getPymelTypeFromObject( obj.node(), attr )    
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
-#                               
-#    elif isinstance(arg, api.MPlug) : 
-#        if api.isValidMPlug(arg):
-#            obj = api.MObjectHandle( arg.node() )
-#            attr = arg
-#            pymelType, attr = getPymelTypeFromObject( obj.object(), attr )    
-#        else :
-#            raise ValueError, "Unable to determine Pymel type: the passed MPlug is not valid" 
-#
-#    #---------------------------------
-#    # No Api Object : Virtual PyNode 
-#    #---------------------------------   
-#    elif objName :
-#        # non existing node
-#        pymelType = DependNode
-#        if '.' in objName :
-#            # TODO : some better checking / parsing
-#            pymelType = Attribute 
-#    else :
-#        raise ValueError, "Unable to determine Pymel type for %r" % arg         
-#    
-#    return pymelType, obj, objName, attr
 
 def _getPymelType(arg) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
@@ -1624,7 +986,7 @@ def _getPymelType(arg) :
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUnicode = util.proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
@@ -1673,19 +1035,21 @@ class PyNode(ProxyUnicode):
                 
                 attrNode = args[0]
                 argObj = args[1]
-                if isinstance( argObj, DependNode ):
-                    pass
-                else:
+                if not isinstance( attrNode, DependNode ):
                     attrNode = PyNode( attrNode )
-                
-                pymelType, obj, name = _getPymelType( argObj )
+                if isinstance(argObj,basestring) :
+                    # convert from string to api objects.
+                    res = api.toApiObject( argObj, dagPlugs=False )
+                else:
+                    res = argObj   
+                pymelType, obj, name = _getPymelType( res )
                 
             else:
                 argObj = args[0]
 
                 if isinstance(argObj,basestring) :
                     # convert from string to api objects.
-                    res = api.toApiObject( argObj )
+                    res = api.toApiObject( argObj, dagPlugs=True )
                     # DagNode Plug
                     if isinstance(res, tuple):
                         # Plug or Component
@@ -1726,8 +1090,9 @@ class PyNode(ProxyUnicode):
             # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
             # TODO : can add object creation option in the __init__ if desired
-            if issubclass(pymelType, cls):
-                newcls = cls
+            
+            #if issubclass(pymelType, cls):
+            newcls = cls
         else :
             newcls = pymelType
    
@@ -1743,7 +1108,8 @@ class PyNode(ProxyUnicode):
             raise TypeError, "Cannot make a %s out of a %r object" % (cls.__name__, pymelType)   
 
     def __init__(self, *args, **kwargs):
-        """this  prevents the api class which is the second base, from being automatically instantiated."""
+        """this  prevents the api class which is the second base, from being automatically instantiated. This __init__ should
+        be overridden on subclasses of PyNode"""
         pass
     
     def __radd__(self, other):
@@ -1754,7 +1120,7 @@ class PyNode(ProxyUnicode):
     
     def stripNamespace(self, levels=0):
         """
-        Returns a new instance of the object with its namespace removed.  The calling instance is unaffected.
+        Returns the object's name with its namespace removed.  The calling instance is unaffected.
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
         The default is 0 which will remove all namespaces.
         """
@@ -1772,9 +1138,9 @@ class PyNode(ProxyUnicode):
         return self.__class__( '|'.join( nodes) )
 
     def swapNamespace(self, prefix):
-        """Returns a new instance of the object with its current namespace replaced with the provided one.  
+        """Returns the object's name with its current namespace replaced with the provided one.  
         The calling instance is unaffected."""    
-        return DependNode.addPrefix( self.stripNamespace(), prefix+':' )
+        return self.addPrefix( self.stripNamespace(), prefix+':' )
             
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list"""
@@ -1785,24 +1151,31 @@ class PyNode(ProxyUnicode):
         return ':'.join(self.namespaceList()) + ':'
         
     def addPrefix(self, prefix):
-        'addPrefixToName'
+        """Returns the object's name with a prefix added to the beginning of the name"""
         name = self
         leadingSlash = False
         if name.startswith('|'):
             name = name[1:]
             leadingSlash = True
-        name = self.__class__( '|'.join( map( lambda x: prefix+x, name.split('|') ) ) )
+        name =  '|'.join( map( lambda x: prefix+x, name.split('|') ) ) 
         if leadingSlash:
             name = '|' + name
-        return self.__class__( name )
+        return name 
                 
                         
 #    def attr(self, attr):
 #        """access to attribute of a node. returns an instance of the Attribute class for the 
 #        given attribute."""
 #        return Attribute( '%s.%s' % (self, attr) )
-                
-    objExists = cmds.objExists
+
+    def exists(self, **kwargs):
+        "objExists"
+        if self.__apiobject__() :
+            return True
+        else :
+            return False
+                 
+    objExists = exists
         
     cmds.nodeType = cmds.nodeType
 
@@ -1836,6 +1209,23 @@ _factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=lambda x: PyNode(
 _factories.ApiTypeRegister.register('MPlug', PyNode, inCast=lambda x: PyNode(x).__apimplug__() )
                     
 from animation import listAnimatable as _listAnimatable
+
+from system import namespaceInfo
+
+#-----------------------------------------------
+#  Global Settings
+#-----------------------------------------------
+
+
+#-----------------------------------------------
+#  Scene Class
+#-----------------------------------------------
+
+class Scene(util.Singleton):
+    def __getattr__(self, obj):
+        return PyNode( obj )
+
+SCENE = Scene()
 
 class ComponentArray(object):
     def __init__(self, name):
@@ -2057,8 +1447,8 @@ class Attribute(PyNode):
 #    def __getitem__(self, item):
 #       #return Attribute('%s[%s]' % (self, item) )
 #       return Attribute( self._node, self.__apiobject__().elementByLogicalIndex(item) )
-    __getitem__ = _factories.wrapApiMethod( api.MPlug, 'elementByLogicalIndex', '__getitem__', apiObject=True )
-    #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex', apiObject=True )
+    __getitem__ = _factories.wrapApiMethod( api.MPlug, 'elementByLogicalIndex', '__getitem__' )
+    #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex' )
     
     def attr(self, attr):
         node = self.node()
@@ -2186,8 +1576,8 @@ class Attribute(PyNode):
 #            return int(Attribute.attrItemReg.search(self).group(1))
 #        except: return None
         
-    item = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'item', apiObject=True )
-    index = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'index', apiObject=True )
+    item = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'item' )
+    index = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'index' )
     
     def setEnums(self, enumList):
         cmds.addAttr( self, e=1, en=":".join(enumList) )
@@ -2394,19 +1784,19 @@ class Attribute(PyNode):
 #        "attributeQuery -multi"
 #        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), multi=True)    
     
-    isArray = _factories.wrapApiMethod( api.MPlug, 'isArray', apiObject=True )
-    isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti', apiObject=True )
-    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement', apiObject=True )
-    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound', apiObject=True )
-    
-    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable' , apiObject=True )
-    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable' , apiObject=True )
-    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked' , apiObject=True )
-    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked' , apiObject=True )
-    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching' , apiObject=True )
-    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching' , apiObject=True )
-    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox', apiObject=True )
-    showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox', apiObject=True )
+#    isArray = _factories.wrapApiMethod( api.MPlug, 'isArray' )
+    isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti' )
+#    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement' )
+#    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound' )
+#    
+#    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable'  )
+#    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable'  )
+#    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked'  )
+#    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked'  )
+    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
+#    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
+    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox' )
+    showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox' )
 
     
     
@@ -2637,6 +2027,9 @@ class DependNode( PyNode ):
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
 
+    def __init__(self, *args, **kwargs ):
+        self.apicls.__init__(self, self._apiobject.object() )
+        
     def _updateName(self) :
         if api.isValidMObjectHandle(self._apiobject) :
             obj = self._apiobject.object()
@@ -2750,7 +2143,34 @@ class DependNode( PyNode ):
         given attribute."""
         #return Attribute( '%s.%s' % (self, attr) )
         try :
-            return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
+            if '.' in attr or '[' in attr:
+                # Compound or Multi Attribute
+                # there are a couple of different ways we can proceed: 
+                # Option 1: back out to api.toApiObject (via PyNode)
+                # return Attribute( self.__apiobject__(), self.name() + '.' + attr )
+            
+                # Option 2: nameparse.
+                # this avoids calling self.name(), which can be slow
+                nameTokens = nameparse.getBasicPartList( 'dummy.' + attr )
+                result = self.__apiobject__()
+                for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
+                    if isinstance( token, nameparse.MayaName ):
+                        if isinstance( result, api.MPlug ):
+                            result = result.child( self.apicls.attribute( self, token ) )
+                        else:
+                            result = self.apicls.findPlug( self, token )                              
+#                                # search children for the attribute to simulate  persp.focalLength --> perspShape.focalLength
+#                                except TypeError:
+#                                    for i in range(fn.childCount()):
+#                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( token )
+#                                        except TypeError: pass
+#                                        else:break
+                    if isinstance( token, nameparse.NameIndex ):
+                        result = result.elementByLogicalIndex( token.value )
+                return Attribute( self.__apiobject__(), result )
+            else:
+                return Attribute( self.__apiobject__(), self.apicls.findPlug( self, attr, False ) )
+            
         except RuntimeError:
             raise AttributeError, "Maya node %r has no attribute %r" % ( self, attr )
         
@@ -2758,25 +2178,38 @@ class DependNode( PyNode ):
         #     return super(PyNode, self).__setattr__(attr, val)        
         # return setAttr( '%s.%s' % (self, attr), val )
 
+#    def attr(self, attr):
+#        """access to attribute of a node. returns an instance of the Attribute class for the 
+#        given attribute."""
+#        #return Attribute( '%s.%s' % (self, attr) )
+#        try :
+#            return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
+#        except RuntimeError:
+#            raise AttributeError, "Maya node %r has no attribute %r" % ( self, attr )
+#        
+#        # if attr.startswith('__') and attr.endswith('__'):
+#        #     return super(PyNode, self).__setattr__(attr, val)        
+#        # return setAttr( '%s.%s' % (self, attr), val )
+        
     #--------------------------
     #    Modification
     #--------------------------
-    def isLocked(self):
-        return self.__apimfn__().isLocked()
+#    def isLocked(self):
+#        return self.__apimfn__().isLocked()
       
     def lock( self, **kwargs ):
         'lockNode -lock 1'
         #kwargs['lock'] = True
         #kwargs.pop('l',None)
         #return cmds.lockNode( self, **kwargs)
-        return self.__apimfn__().setLocked( True )
+        return self.setLocked( True )
         
     def unlock( self, **kwargs ):
         'lockNode -lock 0'
         #kwargs['lock'] = False
         #kwargs.pop('l',None)
         #return cmds.lockNode( self, **kwargs)
-        return self.__apimfn__().setLocked( False )
+        return self.setLocked( False )
 
     def cast( self, swapNode, **kwargs):
         """nodeCast"""
@@ -2785,7 +2218,7 @@ class DependNode( PyNode ):
     #rename = rename
     def rename( self, name ):
         # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
-        return self.__apimfn__().setName( name )
+        return self.setName( name )
     
     duplicate = duplicate
     
@@ -2828,12 +2261,6 @@ class DependNode( PyNode ):
 #            return self.cmds.nodeType(**kwargs)
     type = nodeType
             
-    def exists(self, **kwargs):
-        "objExists"
-        if self.__apiobject__() :
-            return True
-        else :
-            return False
     
 #    def hasUniqueName(self):
 #        return self.__apimfn__().hasUniqueName()   
@@ -2861,10 +2288,10 @@ class DependNode( PyNode ):
 #        Return True or False if the node is referenced"""    
 #        return cmds.referenceQuery( self, isNodeReferenced=1)
             
-    def classification(self):
-        'getClassification'
-        #return getClassification( self.type() )    
-        return self.__apimfn__().classification( self.type() )
+#    def classification(self):
+#        'getClassification'
+#        #return getClassification( self.type() )    
+#        return self.__apimfn__().classification( self.type() )
     
     #--------------------------
     #    Connections
@@ -3002,6 +2429,10 @@ class Entity(DependNode):
 
 class DagNode(Entity):
     __metaclass__ = MetaMayaNodeWrapper
+    
+    def __init__(self, *args, **kwargs ):
+        self.apicls.__init__(self, self._apiobject )
+        
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
             #obj = self._apiobject.object()
@@ -3049,14 +2480,14 @@ class DagNode(Entity):
                 except KeyError:
                     pass
                         
-    def __init__(self, *args, **kwargs):
-        if self._apiobject:
-            if isinstance(self._apiobject, api.MObjectHandle):
-                dagPath = api.MDagPath()
-                api.MDagPath.getAPathTo( self._apiobject.object(), dagPath )
-                self._apiobject = dagPath
-        
-            assert api.isValidMDagPath( self._apiobject )
+#    def __init__(self, *args, **kwargs):
+#        if self._apiobject:
+#            if isinstance(self._apiobject, api.MObjectHandle):
+#                dagPath = api.MDagPath()
+#                api.MDagPath.getAPathTo( self._apiobject.object(), dagPath )
+#                self._apiobject = dagPath
+#        
+#            assert api.isValidMDagPath( self._apiobject )
             
     """
     def __init__(self, *args, **kwargs) :
@@ -3098,39 +2529,39 @@ class DagNode(Entity):
     def root(self):
         'rootOf'
         return DagNode( '|' + self.longName()[1:].split('|')[0] )
-    """
-    def hasParent(self, parent ):
-        try:
-            return self.__apimfn__().hasParent( parent.__apiobject__() )
-        except AttributeError:
-            obj = api.toMObject(parent)
-            if obj:
-               return self.__apimfn__().hasParent( obj )
-          
-    def hasChild(self, child ):
-        try:
-            return self.__apimfn__().hasChild( child.__apiobject__() )
-        except AttributeError:
-            obj = api.toMObject(child)
-            if obj:
-               return self.__apimfn__().hasChild( obj )
-    
-    def isParentOf( self, parent ):
-        try:
-            return self.__apimfn__().isParentOf( parent.__apiobject__() )
-        except AttributeError:
-            obj = api.toMObject(parent)
-            if obj:
-               return self.__apimfn__().isParentOf( obj )
-    
-    def isChildOf( self, child ):
-        try:
-            return self.__apimfn__().isChildOf( child.__apiobject__() )
-        except AttributeError:
-            obj = api.toMObject(child)
-            if obj:
-               return self.__apimfn__().isChildOf( obj )
-    """
+
+#    def hasParent(self, parent ):
+#        try:
+#            return self.__apimfn__().hasParent( parent.__apiobject__() )
+#        except AttributeError:
+#            obj = api.toMObject(parent)
+#            if obj:
+#               return self.__apimfn__().hasParent( obj )
+#          
+#    def hasChild(self, child ):
+#        try:
+#            return self.__apimfn__().hasChild( child.__apiobject__() )
+#        except AttributeError:
+#            obj = api.toMObject(child)
+#            if obj:
+#               return self.__apimfn__().hasChild( obj )
+#    
+#    def isParentOf( self, parent ):
+#        try:
+#            return self.__apimfn__().isParentOf( parent.__apiobject__() )
+#        except AttributeError:
+#            obj = api.toMObject(parent)
+#            if obj:
+#               return self.__apimfn__().isParentOf( obj )
+#    
+#    def isChildOf( self, child ):
+#        try:
+#            return self.__apimfn__().isChildOf( child.__apiobject__() )
+#        except AttributeError:
+#            obj = api.toMObject(child)
+#            if obj:
+#               return self.__apimfn__().isChildOf( obj )
+
     
     def getAllInstances(self):
         d = api.MDagPathArray()
@@ -3146,55 +2577,55 @@ class DagNode(Entity):
             return DagNode( '|'.join( self.longName().split('|')[:-1] ) )
         except TypeError:
             return DagNode( '|'.join( self.split('|')[:-1] ) )
-    
-    def getParent(self, **kwargs):
-        # TODO : print warning regarding removal of kwargs
-        parent = api.MDagPath( self.__apiobject__() )
-        try:
-            parent.pop()
-            return PyNode(parent)
-        except RuntimeError:
-            pass
 
     def numChildren(self):
         return self.__apiobject__().childCount()
     
-    def getChildren(self, **kwargs):
-        # TODO : print warning regarding removal of kwargs
-        children = []
-        thisDag = self.__apiobject__()
-        for i in range( thisDag.childCount() ):
-            child = api.MDagPath( thisDag )
-            child.push( thisDag.child(i) )
-            children.append( PyNode(child) )
-        return children
-             
 #    def getParent(self, **kwargs):
-#        """unlike the firstParent command which determines the parent via string formatting, this 
-#        command uses the listRelatives command"""
-#        
-#        kwargs['parent'] = True
-#        kwargs.pop('p',None)
-#        #if longNames:
-#        kwargs['fullPath'] = True
-#        kwargs.pop('p',None)
-#        
+#        # TODO : print warning regarding removal of kwargs, test speed difference
+#        parent = api.MDagPath( self.__apiobject__() )
 #        try:
-#            # stringify
-#            res = cmds.listRelatives( self.name(), **kwargs)[0]
-#        except TypeError:
-#            return None
-#             
-#        res = Transform( res )
-#        if not longNames:
-#            return res.shortName()
-#        return res
-#                    
-#    def getChildren(self, **kwargs ):
-#        kwargs['children'] = True
-#        kwargs.pop('c',None)
+#            parent.pop()
+#            return PyNode(parent)
+#        except RuntimeError:
+#            pass
 #
-#        return listRelatives( self, **kwargs)
+#    def getChildren(self, **kwargs):
+#        # TODO : print warning regarding removal of kwargs
+#        children = []
+#        thisDag = self.__apiobject__()
+#        for i in range( thisDag.childCount() ):
+#            child = api.MDagPath( thisDag )
+#            child.push( thisDag.child(i) )
+#            children.append( PyNode(child) )
+#        return children
+             
+    def getParent(self, **kwargs):
+        """unlike the firstParent command which determines the parent via string formatting, this 
+        command uses the listRelatives command"""
+        
+        kwargs['parent'] = True
+        kwargs.pop('p',None)
+        #if longNames:
+        kwargs['fullPath'] = True
+        kwargs.pop('p',None)
+        
+        try:
+            # stringify
+            res = cmds.listRelatives( self.name(), **kwargs)[0]
+        except TypeError:
+            return None
+             
+        res = Transform( res )
+        if not longNames:
+            return res.shortName()
+        return res
+                    
+    def getChildren(self, **kwargs ):
+        kwargs['children'] = True
+        kwargs.pop('c',None)
+
+        return listRelatives( self, **kwargs)
         
     def getSiblings(self, **kwargs ):
         #pass
