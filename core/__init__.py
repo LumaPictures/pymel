@@ -9,5 +9,5 @@ from effects import *
 from modeling import *
 from rendering import *
 from other import *
-from maths import *
+from language import *
 import runtime
