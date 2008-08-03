@@ -45,11 +45,11 @@ def gamma (c, g):
     """ Gamma color correction with a single scalar gamma value g"""
     return c**g 
 
-def blend (a, b, w=0.5):
-    """ blend(a, b, w) :
+def blend (a, b, weight=0.5):
+    """ blend(a, b[, weight=0.5]) :
         Blends values a and b according to normalized weight w,
-        returns a for w == 0.0 and b for w = 0.1, a*(1.0-w)+b*w in between """
-    return a*(1.0-w)+b*w
+        returns a for weight == 0.0 and b for weight = 1.0, a*(1.0-weight)+b*weight in between """
+    return a*(1.0-weight)+b*weight
 
 # TODO : modify these so that they accept iterable / element wise operations
 
