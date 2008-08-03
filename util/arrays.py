@@ -11,7 +11,8 @@ A generic n-dimensionnal Array class serving as base for arbitrary length Vector
 
 # TODO : try a numpy import and fallback to the included class if not successful ?
 
-# TODO : trim should preserve sub-element identity, trimmed should a copy or deepcopy ? (resize / reshape should be checked as well
+# TODO : trim does preserve sub-element identity, should trimmed do a copy or deepcopy (currently deepcopy)?
+# resize / reshape should be checked and set to same behavior as well
 
 import operator, itertools, copy, inspect, sys
 
@@ -92,7 +93,7 @@ def _shapeInfo(value) :
 
 def _patchfn(basefn) :
     """ Patch the given base function to have it accept iterables """
-    def fn(*args) :      
+    def fn(*args, **kwargs) :      
         maxarg = Array([])
         maxsize = 0
         maxtype = None
@@ -116,7 +117,7 @@ def _patchfn(basefn) :
             except :
                 return NotImplemented
             allargs = zip(*args)
-            res = _toCompOrArray(fn(*a) for a in allargs)
+            res = _toCompOrArray(fn(*a, **kwargs) for a in allargs)
             if hasattr(res, '__iter__') :
                 try :
                     res = maxtype(res)
@@ -125,7 +126,7 @@ def _patchfn(basefn) :
                         res = maxtype._convert(res)
             return res
         else :
-            return basefn(*args)
+            return basefn(*args, **kwargs)
     fn.__name__ = basefn.__name__
     if basefn.__doc__ is None :
         basedoc = "No doc string was found on base function"
@@ -300,7 +301,7 @@ def sqlength(a, axis=None):
         axis = a._getaxis(axis, fill=True)
         return a.sqlength(*axis)
     else :
-        raise NotImplemented, "sqlength not implemented for %s" % (clsname(a))     
+        raise TypeError, "sqlength not implemented for %s" % (clsname(a))     
 
 def length(a, axis=None):
     """ length(a, axis) --> numeric or Array
@@ -325,7 +326,7 @@ def normal(a, axis=None):
         axis = a._getaxis(axis, fill=True)
         return a.normal(*axis)
     else :
-        raise NotImplemented, "normal not implemented for %s" % (clsname(a))            
+        raise TypeError, "normal not implemented for %s" % (clsname(a))            
     
 def dist(a, b, axis=None):
     """ dist(a, b, axis) --> float or Array
@@ -344,7 +345,7 @@ def dist(a, b, axis=None):
         axis = a._getaxis(axis, fill=True)
         return a.dist(b, *axis)
     else :
-        raise NotImplemented, "dist not implemented for %s" % (clsname(a))             
+        raise TypeError, "dist not implemented for %s" % (clsname(a))             
 
 # iterator classes on a specific Array axis, supporting __getitem__ and __setitem__
 # in a numpy like way
@@ -1125,22 +1126,22 @@ class Array(object):
     
     # TODO : override and redefine these list herited methods for Arrays
     def insert(self, index, other):
-        raise NotImplemented, "insert is not implemented for class %s" % (clsname(self))
+        raise TypeError, "insert is not implemented for class %s" % (clsname(self))
 
     def __reversed__(self, axis=None):
-        raise NotImplemented, "__reversed__ is not implemented for class %s" % (clsname(self))
+        raise TypeError, "__reversed__ is not implemented for class %s" % (clsname(self))
     
     def reverse(self, axis=None):
-        raise NotImplemented, "reverse is not implemented for class %s" % (clsname(self))    
+        raise TypeError, "reverse is not implemented for class %s" % (clsname(self))    
     
     def pop(self, index):
-        raise NotImplemented, "pop is not implemented for class %s" % (clsname(self))  
+        raise TypeError, "pop is not implemented for class %s" % (clsname(self))  
 
     def remove(self, value):
-        raise NotImplemented, "remove is not implemented for class %s" % (clsname(self))  
+        raise TypeError, "remove is not implemented for class %s" % (clsname(self))  
     
     def sort(self, axis=None):
-        raise NotImplemented, "sort is not implemented for class %s" % (clsname(self))      
+        raise TypeError, "sort is not implemented for class %s" % (clsname(self))      
  
     def reshaped(self, shape=None):
         """ a.reshaped(shape)
@@ -2087,14 +2088,14 @@ class Array(object):
         """ Returns the imaginary part of the Array """
         return self.__class__(imag(x) for x in self) 
     def blend(self, other, weight=0.5):
-        """ u.blend(v, weight) returns the result of blending from Array instance u to v according to
+        """ u.blend(v[, weight=0.5]) returns the result of blending from Array instance u to v according to
             either a scalar weight where it yields u*(1-weight) + v*weight Array,
             or a an iterable of independent weights """
         try :
             nself, nother = coerce(self, other)
         except :
             return NotImplemented             
-        return self.__class__._convert(blend(self, other, weight))      
+        return self.__class__._convert(blend(self, other, weight=weight))      
     def clamp(self, low=0.0, high=1.0):
         """ u.clamp(low, high) returns the result of clamping each component of u between low and high if low and high are scalars, 
             or the corresponding components of low and high if low and high are sequences of scalars """
@@ -2461,26 +2462,7 @@ class Matrix(Array):
                 
 # functions that work on Vectors or 1-d Arrays
 
-def angle(u, v):
-    """ angle(u, v) --> float
-        Returns the angle of rotation between u and v """
-    if not isinstance(u, Vector) : 
-        try :
-            u = Vector(u)
-        except :
-            raise NotImplemented, "%s is not convertible to type Vector, angle is only defined for two Vectors of size 3" % (clsname(u))   
-    return u.angle(v)
-
-def axis(u, v, normalize=False):
-    """ axis(u, v[, normalize=False]) --> Vector
-        Returns the axis of rotation from u to v as the vector n = u ^ v
-        if the normalize keyword argument is set to True, n is also normalized """
-    if not isinstance(u, Vector) :
-        try :
-            u = Vector(u)
-        except :
-            raise NotImplemented, "%s is not convertible to type Vector, axis is only defined for two Vectors of size 3" % (clsname(u))   
-    return u.axis(v, normalize)
+# only on size 3 Vectors
 
 def cross(u, v):
     """ cross(u, v) --> Vector :
@@ -2489,7 +2471,7 @@ def cross(u, v):
         try :
             u = Vector(u)
         except :
-            raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (clsname(u))  
+            raise TypeError, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (clsname(u))  
     return u.cross(v) 
 
 def dot(u, v):
@@ -2499,7 +2481,7 @@ def dot(u, v):
         try :
             u = Vector(u)
         except :
-            raise NotImplemented, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (clsname(u))  
+            raise TypeError, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (clsname(u))  
     return u.dot(v)
 
 def outer(u, v):
@@ -2509,19 +2491,57 @@ def outer(u, v):
         try :
             u = Vector(u)
         except :
-            raise NotImplemented, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (clsname(u))  
+            raise TypeError, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (clsname(u))  
     return u.outer(v)        
 
-def cotan(a, b, c=None) :
-    """ cotan(a, b[, c]) :
-        If only a and b are provided, contangent of the a, b angle, a and b should be 3 dimensional Vectors representing vectors,
-        if c is provided, cotangent of the (b-a), (c-a) angle, a, b, and c being be 3 dimensional Vectors representing points """
+def angle(a, b, c=None):
+    """ angle(u, v) --> float
+        Returns the angle of rotation between u and v.
+        u and v should be 3 dimensional Vectors representing 3D vectors,
+        Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+        it is then equivalent to angle(b-a, c-a)
+        Note that this angle is not signed, use axis to know the direction of the rotation """     
     if not isinstance(a, Vector) :
         try :
             a = Vector(a)
         except :
-            raise NotImplemented, "%s is not convertible to type Vector, cotangent product is only defined for 2 vectors or 3 points" % (clsname(a))  
-    return a.cotan(b, c) 
+            raise TypeError, "%s is not convertible to type Vector, angle is only defined for 2 vectors or 3 points" % (clsname(a)) 
+    if c is not None :  
+        return a.angle(b, c)
+    else :
+        return a.angle(b)
+
+def axis(a, b, c=None, normalize=False):
+    """ axis(u, v[, normalize=False]) --> Vector
+        Returns the axis of rotation from u to v as the vector n = u ^ v
+        if the normalize keyword argument is set to True, n is also normalized.
+        u and v should be 3 dimensional Vectors representing 3D vectors,
+        Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+        it is then equivalent to axis(b-a, c-a) """
+    if not isinstance(a, Vector) :
+        try :
+            a = Vector(a)
+        except :
+            raise TypeError, "%s is not convertible to type Vector, axis is only defined for 2 vectors or 3 points" % (clsname(a))   
+    if c is not None :  
+        return a.axis(b, c, normalize=normalize)
+    else :
+        return a.axis(b, normalize=normalize)
+
+def cotan(a, b, c=None) :
+    """ cotan(u, v) --> float :
+        Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors,
+        Alternatively can use the form cotan(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+        it is then equivalent to cotan(b-a, c-a) """
+    if not isinstance(a, Vector) :
+        try :
+            a = Vector(a)
+        except :
+            raise TypeError, "%s is not convertible to type Vector, cotangent product is only defined for 2 vectors or 3 points" % (clsname(a))  
+    if c is not None :  
+        return a.cotan(b, c)
+    else :
+        return a.cotan(b)
 
 #
 #    Vector Class
@@ -2608,32 +2628,6 @@ class Vector(Array):
                              
     # additional methods
 
-    def angle(self, other):
-        """ angle(u, v) --> float
-            Returns the angle of rotation between u and v """         
-        try :
-            nself, nother = coerce(Vector(self), other)
-            assert len(nself) == len(nother) == 3
-        except :
-            raise NotImplemented, "%s not convertible to %s, angle is only defined for two Vectors of size 3" % (clsname(other), clsname(self))
-        l = float(nself.length() * nother.length())
-        if l > 0 :
-            return acos( nself.dot(nother) / l )
-        else :
-            return 0.0  
-    def axis(self, other, normalize=False):
-        """ axis(u, v[, normalize=False]) --> Vector
-            Returns the axis of rotation from u to v as the vector n = u ^ v
-            if the normalize keyword argument is set to True, n is also normalized """
-        try :
-            nself, nother = coerce(Vector(self), other)
-            assert len(nself) == len(nother) == 3
-        except :
-            raise NotImplemented, "%s not convertible to %s, axis is only defined for two Vectors of size 3" % (clsname(other), clsname(self))           
-        if normalize :
-            return nself.cross(nother).normal()
-        else :
-            return nself.cross(nother)
     def cross(self, other):
         """ cross(u, v) --> Vector
             cross product of u and v, u and v should be 3 dimensional vectors  """
@@ -2641,7 +2635,7 @@ class Vector(Array):
             nself, nother = coerce(Vector(self), other)
             assert len(nself) == len(nother) == 3
         except :
-            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of size 3" % (clsname(other), clsname(self))     
+            raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors of size 3" % (clsname(other), clsname(self))     
         return Vector([nself[1]*nother[2] - nself[2]*nother[1],
                 nself[2]*nother[0] - nself[0]*nother[2],
                 nself[0]*nother[1] - nself[1]*nother[0]])         
@@ -2651,7 +2645,7 @@ class Vector(Array):
         try :
             nself, nother = coerce(Vector(self), other)
         except :
-            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))               
+            raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))               
         return reduce(operator.add, map(operator.mul, nself, nother)) 
     def outer(self, other):
         """ outer(u, v) --> Matrix :
@@ -2659,7 +2653,7 @@ class Vector(Array):
         try :
             nself, nother = coerce(Vector(self), other)
         except :
-            raise NotImplemented, "%s not convertible to %s, cross product is only defined for two Vectors" % (clsname(other), clsname(self))       
+            raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors" % (clsname(other), clsname(self))       
         return Matrix([nother*x for x in nself]) 
     def transformAsNormal(self, other):
         """ u.transformAsNormal(m) --> Vector
@@ -2667,7 +2661,7 @@ class Vector(Array):
         try :
             nother = Matrix(other)
         except :
-            raise NotImplemented, "%s not convertible to Matrix" % (clsname(other))                     
+            raise TypeError, "%s not convertible to Matrix" % (clsname(other))                     
         return nother.transpose().inverse().__rmul__(self)
     
     # min, max etc methods derived from array  
@@ -2690,31 +2684,82 @@ class Vector(Array):
         try :
             nself, nother = coerce(Vector(self), other)
         except :
-            raise NotImplemented, "%s not convertible to %s, isParallel is only defined for two Vectors" % (clsname(other), clsname(self))       
+            raise TypeError, "%s not convertible to %s, isParallel is only defined for two Vectors" % (clsname(other), clsname(self))       
         return (abs(nself.dot(nother) - nself.length()*nother.length()) <= tol)     
-    def cotan(self, other, third=None):
-        """ cotan(a, b[, c]) --> float :
-            If only a and b are provided, contangent of the a, b angle, a and b should be 3 dimensional Vectors representing vectors,
-            if c is provided, cotangent of the ab, ac angle, a, b, and c being be 3 dimensional Vectors representing points """ 
-        if third is None :
-            # it's 2 vectors
-            # ((v - u)*(-u))/((v - u)^(-u)).length() 
+    def angle(self, other, third=None):
+        """ u.angle(v) <==> angle(u, v) --> float
+            Returns the angle of rotation between u and v.
+            u and v should be 3 dimensional Vectors representing 3D vectors,
+            Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+            it is then equivalent to angle(b-a, c-a)
+            Note that this angle is not signed, use axis to know the direction of the rotation """         
+        if third is not None :
+            try :
+                nself, nother = coerce(Vector(self), other)
+                nself, nthird = coerce(Vector(self), third)
+                assert len(nself) == len(nother) == len(nthird) == 4
+            except :
+                raise TypeError, "angle is defined for 3 vectors of size 4 representing 3D points"
+            nself = (nother-nself)[:3]
+            nother = (nthird-nself)[:3]
+        else :
             try :
                 nself, nother = coerce(Vector(self), other)
                 assert len(nself) == len(nother) == 3
             except :
-                raise NotImplemented, "cotan is defined for 2 vectors"
-            return (nself.dot(nother)) / (nself.cross(nother)).length()             
+                raise TypeError, "angle is defined for 2 vectors of size 3 representing 3D vectors"       
+        l = float(nself.length() * nother.length())
+        if l > 0 :
+            return acos( nself.dot(nother) / l )
         else :
-            # it's 3 points a, b, c, cotangent of the angle in a
-            # ((b - a)*(c - a))/((b - a)^(c - a)).length()  
+            return 0.0  
+    def axis(self, other, third=None, normalize=False):
+        """ u.axis(v[, normalize=False]) <==> axis(u, v[, normalize=False]) --> Vector
+            Returns the axis of rotation from u to v as the vector n = u ^ v
+            if the normalize keyword argument is set to True, n is also normalized.
+            u and v should be 3 dimensional Vectors representing 3D vectors,
+            Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+            it is then equivalent to axis(b-a, c-a) """
+        if third is not None :
             try :
                 nself, nother = coerce(Vector(self), other)
-                nself, nthird = coerce(nself, third)
-                assert len(nself) == len(nother) == len(nthird) == 3
+                nself, nthird = coerce(Vector(self), third)
+                assert len(nself) == len(nother) == len(nthird) == 4
             except :
-                raise NotImplemented, "cotan is defined for 3 points"
-            return ((nother-nself).dot(nthird-nself)) / ((nother-nself).cross(nthird-nself)).length() 
+                raise TypeError, "axis is defined for 3 vectors of size 4 representing 3D points"
+            nself = (nother-nself)[:3]
+            nother = (nthird-nself)[:3]
+        else :
+            try :
+                nself, nother = coerce(Vector(self), other)
+                assert len(nself) == len(nother) == 3
+            except :
+                raise TypeError, "axis is defined for 2 vectors of size 3 representing 3D vectors"                
+        if normalize :
+            return nself.cross(nother).normal()
+        else :
+            return nself.cross(nother)
+    def cotan(self, other, third=None):
+        """ u.cotan(v) <==> cotan(u, v) --> float :
+            Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors,
+            Alternatively can use the form a.cotan(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+            it is then equivalent to cotan(b-a, c-a) """
+        if third is not None :
+            try :
+                nself, nother = coerce(Vector(self), other)
+                nself, nthird = coerce(Vector(self), third)
+                assert len(nself) == len(nother) == len(nthird) == 4
+            except :
+                raise TypeError, "cotan is defined for 3 vectors of size 4 representing 3D points"
+            nself = (nother-nself)[:3]
+            nother = (nthird-nself)[:3]
+        else :
+            try :
+                nself, nother = coerce(Vector(self), other)
+                assert len(nself) == len(nother) == 3
+            except :
+                raise TypeError, "cotan is defined for 2 vectors of size 3 representing 3D vectors"       
+        return (nself.dot(nother)) / (nself.cross(nother)).length()             
     
     # blend and clamp derived from Array
              
