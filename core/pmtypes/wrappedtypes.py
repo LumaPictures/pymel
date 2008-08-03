@@ -308,7 +308,7 @@ class MVector(Vector) :
         if hasattr(self.apicls, 'clear') :
             self.apicls.clear(self)  
         else :
-            raise NotImplemented, "cannot clear stored elements of %s" % (self.__class__.__name__)
+            raise TypeError, "cannot clear stored elements of %s" % (self.__class__.__name__)
           
     data = property(_getdata, _setdata, _deldata, "The MVector/MFloatVector/MPoint/MFloatPoint/MColor data")                           
                           
@@ -531,8 +531,10 @@ class MVector(Vector) :
          
     # wrap of other API MVector methods, we use the api method if possible and delegate to Vector else   
     
-    def isEquivalent(self, other, tol=_api.MVector_kTol):
+    def isEquivalent(self, other, tol=None):
         """ Returns true if both arguments considered as MVector are equal within the specified tolerance """
+        if tol is None :
+            tol = _api.MVector_kTol
         try :
             nself, nother = coerce(self, other)
         except :
@@ -541,8 +543,10 @@ class MVector(Vector) :
             return bool(nself.apicls.isEquivalent(nself, nother, tol))
         else :
             return bool(super(MVector, nself).isEquivalent(nother, tol))            
-    def isParallel(self, other, tol=_api.MVector_kTol):
+    def isParallel(self, other, tol=None):
         """ Returns true if both arguments considered as MVector are parallel within the specified tolerance """
+        if tol is None :
+            tol = _api.MVector_kTol        
         try :
             return bool(self.apicls.isParallel(MVector(self), MVector(other), tol))
         except :
@@ -620,7 +624,8 @@ class MVector(Vector) :
         else :
             return self.__class__._convert(super(MVector, self).cross(other))              
     def axis(self, other, normalize=False):
-        """ Returns the axis of rotation from u to v as the vector n = u ^ v
+        """ u.axis(v) <==> angle(u, v) --> MVector
+            Returns the axis of rotation from u to v as the vector n = u ^ v
             if the normalize keyword argument is set to True, n is also normalized """
         if isinstance(other, MVector) :
             if normalize :
@@ -630,20 +635,20 @@ class MVector(Vector) :
         else :
             return self.__class__._convert(super(MVector, self).axis(other, normalize)) 
     def angle(self, other):
-        """ angle between two vectors """
+        """ u.angle(v) <==> angle(u, v) --> float
+            Returns the angle (in radians) between the two vectors u and v
+            Note that this angle is not signed, use axis to know the direction of the rotation """
         if isinstance(other, MVector) :
             return MVector.apicls.angle(MVector(self), MVector(other))
         else :
-            return super(MVector, self).angle(other) 
+            return super(MVector, self).angle(other)  
         
     # methods without an api equivalent    
         
     # cotan on MVectors only takes 2 arguments          
-    def cotan(self, other, third=None):
-        """ cotan(u, v) --> float :
-            cotangent of the a, b angle, a and b should be MVectors"""        
-        if third is not None :
-            raise NotImplemented, "cotan is only defined for 2 MVectors"
+    def cotan(self, other):
+        """ u.cotan(v) <==> cotan(u, v) --> float :
+            cotangent of the a, b angle, a and b should be MVectors"""
         return Vector.cotan(self, other)
                                    
     # rest derived from Vector class
@@ -655,6 +660,37 @@ class MFloatVector(MVector) :
         """
     __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MFloatVector
+ 
+# MPoint specific functions
+
+def planar(p, *args, **kwargs): 
+    """ planar(p[, q, r, s (...), tol=tolerance]) --> bool
+        Returns True if all provided MPoints are planar within given tolerance """
+    if not isinstance(p, MPoint) :
+        try :
+            p = MPoint(p)
+        except :
+            raise TypeError, "%s is not convertible to type MPoint, planar is only defined for n MPoints" % (util.clsname(p))           
+    return p.planar(*args, **kwargs)
+def center(p, *args): 
+    """ center(p[, q, r, s (...)]) --> MPoint
+        Returns the MPoint that is the center of p, q, r, s (...) """
+    if not isinstance(p, MPoint) :
+        try :
+            p = MPoint(p)
+        except :
+            raise TypeError, "%s is not convertible to type MPoint, center is only defined for n MPoints" % (util.clsname(p))           
+    return p.center(*args)
+def bWeights(p, *args):  
+    """ bWeights(p[, p0, p1, (...), pn]) --> tuple
+        Returns a tuple of (n0, n1, ...) normalized barycentric weights so that n0*p0 + n1*p1 + ... = p  """
+    if not isinstance(p, MPoint) :
+        try :
+            p = MPoint(p)
+        except :
+            raise TypeError, "%s is not convertible to type MPoint, bWeights is only defined for n MPoints" % (util.clsname(p))           
+    return p.bWeights(*args)
+
                
 class MPoint(MVector):
     """ A 4 dimensional vector class that wraps Maya's api MPoint class,
@@ -718,8 +754,10 @@ class MPoint(MVector):
         """ If this point instance is of the form P(x, y, z, W) (ie. is in rational or (for W==1) cartesian form),
             for some scale factor W != 0, then it is reset to be P(W*x, W*y, W*z, W). """
         self.apicls.homogenize(self)
-    def isEquivalent(self, other, tol=_api.MPoint_kTol):
+    def isEquivalent(self, other, tol=None):
         """ Returns true if both arguments considered as MPoint are equal within the specified tolerance """
+        if tol is None :
+            tol = _api.MPoint_kTol
         try :
             nself, nother = coerce(self, other)
         except :
@@ -727,90 +765,98 @@ class MPoint(MVector):
         if isinstance(nself, MPoint) :
             return bool(nself.apicls.isEquivalent(nself, nother, tol))
         else :
-            return bool(super(MPoint, nself).isEquivalent(nother, tol))           
-    def cotan(self, other, third=None):
-        """ cotan(a, b, c) --> float :
+            return bool(super(MPoint, nself).isEquivalent(nother, tol))  
+    def axis(self, start, end, normalize=False):
+        """ a.axis(b, c) --> MVector
+            Returns the axis of rotation from point b to c around a as the vector n = (b-a)^(c-a)
+            if the normalize keyword argument is set to True, n is also normalized """
+        return MVector.axis(start-self, end-self, normalize=normalize)
+    def angle(self, start, end):
+        """ a.angle(b, c) --> float
+            Returns the angle (in radians) of rotation from point b to c around a.
+            Note that this angle is not signed, use axis to know the direction of the rotation """
+        return MVector.angle(start-self, end-self)               
+    def cotan(self, start, end):
+        """ a.cotan(b, c) --> float :
             cotangent of the (b-a), (c-a) angle, a, b, and c should be MPoints representing points a, b, c"""        
-        if third is None :
-            raise NotImplemented, "cotan is only defined for 3 MPoints"
-        return Vector.cotan(MVector(self), MVector(other), MVector(third))        
-    # TODO
+        return Vector.cotan(start-self, end-self)        
     def planar(self, *args, **kwargs): 
-        """ p.planar(q, r, s (...), tol=tolerance) returns True if all provided points are planar within given tolerance """
-        # tol = kwargs.get('tol', _api.MPoint_kTol)
-        pass
+        """ p.planar(q, r, s (...), tol=tolerance) --> bool
+            Returns True if all provided points are planar within given tolerance """
+        if len(args) > 2 :
+            tol = kwargs.get('tol', None)
+            n = (args[0]-self)^(args[1]-self)
+            return reduce(operator.and_, map(lambda x:n.isParallel(x, tol), [(args[0]-self)^(a-self) for a in args[2:]]), True)
+        else :
+            return True
     def center(self, *args): 
-        """ p.center(q, r, s (...)) returns the MPoint that is the barycenter of p, q, r, s (...) """
-        pass
+        """ p.center(q, r, s (...)) --> MPoint
+            Returns the MPoint that is the center of p, q, r, s (...) """
+        return sum((self,)+args) / float(len(args) + 1)
     def bWeights(self, *args): 
-        """ p.barycenter(p0, p1, (...), pn) returns a tuple of (n0, n1, ...) barycentric weights so that
-            n0*p0 + n1*p1 + ... = p  """
-        pass  
-    # need to convert my old C code for bWeights              
-    #MStatus weightOnFacePoints (MPoint p, const MPointArray &q, MFloatArray &w)
-    #{
-    #    MStatus stat;
-    #
-    #    unsigned int nbPoints = q.length();
-    #    w.copy(MFloatArray(nbPoints));
-    #
-    #    float weightSum = 0.0;
-    #    bool isOnEdge = false;
-    #
-    #    // cas limite sur edge
-    #    for (unsigned int i=0; i<nbPoints; i++)
-    #    {
-    #        unsigned int prev = (i+nbPoints-1)%nbPoints;
-    #        unsigned int next = (i+1)%nbPoints;
-    #
-    #        double e = AM::lengthSquared( (q[next]-q[i]) ^ (p-q[i]) );
-    #        double l = AM::lengthSquared( q[next]-q[i] );
-    #        if (e <= (kDoubleEpsilon * l) )
-    #        {
-    #            if (l < kDoubleEpsilon)
-    #            {
-    #                w[i] = 0.5;
-    #                w[next] = 0.5;
-    #                weightSum += 1.0;
-    #            }
-    #            else
-    #            {
-    #                double di = (p-q[i]).length();
-    #                w[next] = float(di / sqrt(l));
-    #                w[i] = 1.0f - w[next];
-    #                weightSum += 1.0;
-    #            }
-    #            isOnEdge = true;
-    #            break;
-    #        }
-    #    }
-    #
-    #    // Pas sur une edge, cotangentes
-    #    if (!isOnEdge)
-    #        for (unsigned int i=0; i<nbPoints; i++)
-    #        {
-    #            unsigned int prev = (i+nbPoints-1)%nbPoints;
-    #            unsigned int next = (i+1)%nbPoints;
-    #
-    #            double lenSq = AM::lengthSquared(p - q[i]);
-    #            w[i] = float (( AM::cotangent(p,q[i],q[prev]) + AM::cotangent(p,q[i],q[next]) ) / lenSq);
-    #            weightSum += w[i];
-    #        }
-    #
-    #    // On normalise
-    #    if (fabs(weightSum) > kFloatEpsilon)
-    #    {
-    #        for (unsigned int i=0; i<nbPoints; i++)
-    #            w[i] /= weightSum;
-    #        stat = MStatus::kSuccess;
-    #    }
-    #    else
-    #    {
-    #        stat = MStatus::kFailure;
-    #    }
-    #
-    #    return stat;
-    #}    
+        """ p.bWeights(p0, p1, (...), pn) --> tuple
+            Returns a tuple of (n0, n1, ...) normalized barycentric weights so that n0*p0 + n1*p1 + ... = p.
+            This method works for n points defining a concave or convex n sided face,
+            always returns positive normalized weights, and is continuous on the face limits (on the edges),
+            but the n points must be coplanar, and p must be inside the face delimited by (p0, ..., pn) """
+        if args :
+            p = self
+            q = list(args)
+            np = len(q)            
+            w = Vector(0.0, size=np)
+            weightSum = 0.0
+            pOnEdge = False;
+            tol = _api.MPoint_kTol
+            # all args should be MPoints
+            for i in xrange(np) :
+                if not isinstance(q[i], MPoint) :
+                    try :
+                        q[i] = MPoint(q[i])
+                    except :
+                        raise TypeError, "cannot convert %s to MPoint, bWeights is defined for n MPoints" % (util.clsname(q[i]))
+            # if p sits on an edge, it' a limit case and there is an easy solution,
+            # all weights are 0 but for the 2 edge end points
+            for i in xrange(np) :
+                next = (i+1) % np
+                   
+                e = ((q[next]-q[i]) ^ (p-q[i])).sqlength()
+                l = (q[next]-q[i]).sqlength()
+                if e <= (tol * l) :
+                    if l < tol :
+                        # p is on a 0 length edge, point and next point are on top of each other, as is p then
+                        w[i] = 0.5
+                        w[next] = 0.5
+                    else :
+                        # p is somewhere on that edge between point and next point
+                        di = (p-q[i]).length()
+                        w[next] = float(di / sqrt(l))
+                        w[i] = 1.0 - w[next]
+                    # in both case update the weights sum and mark p as being on an edge,
+                    # problem is solved
+                    weightSum += 1.0
+                    pOnEdge = True
+                    break         
+            # If p not on edge, use the cotangents method
+            if not pOnEdge :
+                for i in xrange(np) :
+                    prev = (i+np-1) % np
+                    next = (i+1) % np
+        
+                    lenSq = (p - q[i]).sqlength()
+                    # w[i] = ( AM::cotangent(p,q[i],q[prev]) + AM::cotangent(p,q[i],q[next]) ) / lenSq
+                    w[i] = ( q[i].cotan(p, q[prev]) + q[i].cotan(p, q[next]) ) / lenSq
+                    weightSum += w[i]
+    
+            # then normalize result
+            if abs(weightSum) :
+                w /= weightSum
+            else :
+                raise ValueError, "failed to compute bWeights for %s and %s.\nThe point bWeights are computed for must be inside the planar face delimited by the n argument points" % (self, args)
+        
+            return tuple(w)               
+        else :
+            return ()  
+
 
 class MFloatPoint(MVector) :
     """ A 4 dimensional vector class that wraps Maya's api MFloatPoint class,
@@ -819,6 +865,7 @@ class MFloatPoint(MVector) :
         """    
     __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MFloatPoint    
+    
     
 class MColor(MPoint):
     """ A 4 dimensional vector class that wraps Maya's api MColor class,
@@ -970,6 +1017,7 @@ class MColor(MPoint):
             args = args[0]              
         # we dont rely much on MColor api as it doesn't seem totally finished, and do some things directly here               
         if isinstance(args, self.__class__) or isinstance(args, self.apicls) :
+            # alternatively could be just ignored / output as warning
             if quantize :
                 raise ValueError, "Can not quantize a MColor argument, a MColor is always stored internally as float color" % (mode, util.clsname(self))
             if mode == 'rgb' :
@@ -982,14 +1030,15 @@ class MColor(MPoint):
             #if not hasattr(args, '__iter__') :
             #    args = Vector(0.0, 0.0, 0.0, args)
             if hasattr(args, '__len__') :
-                shape = (min(len(args), 4),)
+                shape = (min(len(args), cls.size),)
             else :
-                shape = (4,)
-            args = Vector(args, shape=shape)   
-
-        # quantize if needed
-        if quantize :
-            args /= quantize   
+                shape = cls.shape
+            args = Vector(args, shape=shape)
+            # quantize if needed
+            if quantize :
+                args /= quantize
+            # pad to a full MColor size
+            args.stack(self[len(args):]) 
                      
         # apply keywords arguments, and convert if mode is not rgb   
         if mode == 'rgb' :
@@ -997,7 +1046,7 @@ class MColor(MPoint):
                 for i, a in enumerate('rgb') :
                     if a in rgbflag :  
                         if quantize :
-                            args[i] = float(rgbflag[a] / quantize)
+                            args[i] = float(rgbflag[a]) / quantize
                         else :                                                   
                             args[i] = float(rgbflag[a])                          
         elif mode == 'hsv' :
@@ -1005,11 +1054,18 @@ class MColor(MPoint):
                 for i, a in enumerate('hsv') :
                     if a in hsvflag : 
                         if quantize :
-                            args[i] = float(hsvflag[a] / quantize)
+                            args[i] = float(hsvflag[a]) / quantize
                         else :                                                   
                             args[i] = float(hsvflag[a])   
             args = Vector(cls.hsvtorgb(args))
-                                  
+        # finally alpha keyword
+        a = kwargs.get('a', None)
+        if a is not None :
+            if quantize :
+                args[-1] = float(a) / quantize
+            else :
+                args[-1] = float(a)
+                                      
         try :
             self.assign(args)
         except :
@@ -1056,18 +1112,39 @@ class MColor(MPoint):
     # additionnal methods, to be extended
     def over(self, other):
         """ c1.over(c2): Composites c1 over other c2 using c1's alpha, the resulting color has the alpha of c2 """
-        if isinstance(other, MVector) :
-            return self.__class__(MVector(self)*self.a + MColor(other))               
+        if isinstance(other, MColor) :
+            a = self.a
+            return MColor(MVector(other).blend(MVector(self), self.a), a=other.a)            
         else :
-            raise TypeError, "%s is not convertible to a MColor, check help(%s)" % (util.clsname(other), util.clsname(self))
+            raise TypeError, "over is defined for MColor instances, not %s" % (util.clsname(other))
     # return MVector instead ? Keeping alpha doesn't make much sense
     def premult(self):
         """ Premultiply MColor r, g and b by it's alpha and resets alpha to 1.0 """
         return self.__class__(MVector(self)*self.a)                       
     def gamma(self, g):
         """ c.gamma(g) applies gamma correction g to MColor c, g can be a scalar and then will be applied to r, g, b
-            or an iterable of up to 4 (r, g, b, a) independant gamma correction values """             
+            or an iterable of up to 3 (r, g, b) independant gamma correction values """ 
+        if not hasattr(g, '__iter__') :
+            g = (g,)*3+(1.0,)
+        else :
+            g = g[:3]+(1.0,)*(4-len(g[:3]))        
         return gamma(self, g)
+    def hsvblend(self, other, weight=0.5):
+        """ c1.hsvblend(c2) --> MColor
+            Returns the result of blending c1 with c2 in hsv space, using the given weight """
+        c1 = list(self.hsva)
+        c2 = list(other.hsva)
+        if abs(c2[0]-c1[0]) == 0.5 :
+            c1[1], c2[1] = 0.0, 0.0
+        else :
+            if c1[0] > 0.5 :
+                c1[0] -= 1.0
+            if c2[0] > 0.5 :
+                c2[0] -= 1.0
+        c = blend(c1, c2, weight=weight)
+        if c[0] < 0.0 :
+            c[0] += 1.0      
+        return self.__class__(c, mode='hsv')
   
 # For row, column order, see the definition of a MTransformationMatrix in docs :
 # T  = |  1    0    0    0 |
@@ -1208,7 +1285,7 @@ class MMatrix(Matrix):
         if hasattr(self.apicls, 'clear') :
             self.apicls.clear(self)  
         else :
-            raise NotImplemented, "cannot clear stored elements of %s" % (self.__class__.__name__)
+            raise TypeError, "cannot clear stored elements of %s" % (self.__class__.__name__)
                                 
     data = property(_getdata, _setdata, _deldata, "The MMatrix/MFloatMatrix/MTransformationMatrix/MQuaternion/MEulerRotation data") 
     
@@ -1508,15 +1585,13 @@ class MMatrix(Matrix):
  
     # additionnal methods
  
-    def blend(self, other=None, blend=0.5):
+    def blend(self, other, weight=0.5):
         """ Returns a 0.0-1.0 scalar weight blend between self and other MMatrix,
             blend mixes MMatrix as transformation matrices """
-        if other is None :
-            other = self.__class__()
         if isinstance(other, MMatrix) :
-            return self.__class__(self.weighted(1.0-blend)*other.weighted(blend))
+            return self.__class__(self.weighted(1.0-weight)*other.weighted(weight))
         else :
-            return blend(self, other)   
+            return blend(self, other, weight=weight)   
     def weighted(self, weight):
         """ Returns a 0.0-1.0 scalar weighted blend between identity and self """
         if type(self) is not MTransformationMatrix :
@@ -1958,13 +2033,13 @@ def _testMVector() :
     # Vector([-0.0, 0.707, 0.0])
     print repr(axis(u, v, normalize=True))
     # MVector([-0.0, 1.0, 0.0])
-    print repr(u.axis(v, normalize=True))
-    # MVector([-0.0, 1.0, 0.0])    
+    print repr(v.axis(u, normalize=True))
+    # MVector([-0.0, -1.0, 0.0])    
     print repr(axis(Vector(u), Vector(v), normalize=True))
     # Vector([-0.0, 1.0, 0.0])    
     print angle(u,v)    
     # 0.785398163397
-    print u.angle(v)
+    print v.angle(u)
     # 0.785398163397
     print angle(Vector(u), Vector(v))
     # 0.785398163397
@@ -2039,6 +2114,7 @@ def _testMPoint() :
 
     p = MPoint(1, 2, 3)
     print repr(p)
+    # MPoint([1.0, 2.0, 3.0, 1.0])
     print repr(p + MVector([1, 2, 3]))
     # MPoint([2.0, 4.0, 6.0, 1.0])
     print repr(p + MPoint([1, 2, 3]))
@@ -2060,7 +2136,69 @@ def _testMPoint() :
     # MPoint([2.0, 4.0, 6.0, 2.0])
     print repr(MPoint([1, 2, 3, 1]) + p)
     # MPoint([2.0, 4.0, 6.0, 1.0])
-      
+    
+    print "p = MPoint(1, 2, 3)"        
+    p = MPoint(1, 2, 3)
+    print repr(p)  
+    # MPoint([1.0, 2.0, 3.0, 1.0])
+    print "p/2"
+    print repr(p/2)
+    # MPoint([0.5, 1.0, 1.5, 1.0])
+    print "p*2"
+    print repr(p*2)
+    # MPoint([2.0, 4.0, 6.0, 1.0])  
+    print "q = MPoint(0.25, 0.5, 1.0)"        
+    q = MPoint(0.25, 0.5, 1.0, 1.0)
+    print repr(q)  
+    # MPoint([0.25, 0.5, 1.0, 1.0])
+    print repr(q+2)
+    # MPoint([2.25, 2.5, 3.0, 1.0])
+    print repr(q/2)
+    # MPoint([0.125, 0.25, 0.5, 1.0])
+    print repr(p-q)
+    # MVector([0.75, 1.5, 2.0])
+    print repr(q-p)
+    # MVector([-0.75, -1.5, -2.0])
+    print repr(p-(p-q))
+    # MPoint([0.25, 0.5, 1.0, 1.0])
+    print repr(MVector(p)*MVector(q))
+    
+    print repr(p*q)
+    
+    print repr(p/q)
+    # MPoint([4.0, 4.0, 3.0, 1.0])
+    
+    print "p = MPoint(1, 2, 3)"        
+    p = MPoint(1, 2, 3)
+    print repr(p)  
+    # MPoint([1.0, 2.0, 3.0, 1.0])
+    print "p/2"
+    print repr(p/2)
+    # MPoint([0.5, 1.0, 1.5, 1.0])
+    print "p*2"
+    print repr(p*2) 
+    # MPoint([2.0, 4.0, 6.0, 1.0])   
+    print "q = MPoint(0.25, 0.5, 1.0, 0.125)"        
+    q = MPoint(0.25, 0.5, 1.0, 0.125)
+    print repr(q)  
+    # MPoint([0.25, 0.5, 1.0, 0.125])
+    print q.homogenize()
+    
+    print repr(q+2)             # homogenize is done on the fly
+    # MPoint([4.0, 6.0, 10.0, 1.0])
+    print repr(q/2)
+    # MPoint([0.125, 0.25, 0.5, 0.125])
+    print repr(p-q)
+    # MVector([-1.0, -2.0, -5.0])
+    print repr(q-p)
+    # MVector([1.0, 2.0, 5.0])
+    print repr(p-(p-q))
+    # MPoint([2.0, 4.0, 8.0, 1.0])
+    print repr(p*q)
+    # NOT 4.25
+    print repr(p/q)    
+    # NOT MPoint([4.0, 4.0, 3.0, 8.0]) 
+       
     print "p = MPoint(x=1, y=2, z=3)"        
     p = MPoint(x=1, y=2, z=3)
     print p.length()
@@ -2072,21 +2210,48 @@ def _testMPoint() :
     print p[:3].length()
     # 3.74165738677
     
-    p = MPoint(1.0, 1.0, 1.0)
-    q = MPoint(2.0, 1.0, 1.0)
-    r = MPoint(1.707, 1.0, 0.293)
-    print repr(axis(q, r))
+    p = MPoint(1.0, 0.0, 0.0)
+    q = MPoint(0.707, 0.0, -0.707)
+    print repr(p)
+    # MPoint([1.0, 0.0, 0.0, 1.0])
+    print repr(q)
+    # MPoint([0.707, 0.0, -0.707, 1.0])
+    print repr(q-p)
+    # MVector([-0.293, 0.0, -0.707])
+    print repr(axis(MPoint.origin, p, q))
     # MVector([-0.0, 0.707, 0.0])
-    print repr(q.axis(r))
-    # MVector([-0.0, 0.707, 0.0])    
-    print angle(q,r)    
+    print repr(MPoint.origin.axis(p, q))
+    # MVector([-0.0, 0.707, 0.0]) 
+    print repr(MPoint.origin.axis(q, p))
+    # MVector([0.0, -0.707, 0.0])         
+    print angle(MPoint.origin, p, q)    
     # 0.785398163397
-    print q.angle(r)
+    print angle(MPoint.origin, q, p)    
     # 0.785398163397    
-    print q.distanceTo(r)  
+    print MPoint.origin.angle(p, q)
+    # 0.785398163397    
+    print p.distanceTo(q)  
     # 0.765309087885
-    print cotan(p, q, r)
+    print (q-p).length()
+    # 0.765309087885    
+    print cotan(MPoint.origin, p, q)
     # 1.0
+    # obviously True
+    print planar(MPoint.origin, p, q)
+    # True
+    r = center(MPoint.origin, p, q)
+    print repr(r)
+    # MPoint([0.569, 0.0, -0.235666666667, 1.0])
+    print planar(MPoint.origin, p, q, r)
+    # True
+    print planar(MPoint.origin, p, q, r+MVector(0.0, 0.1, 0.0))
+    # False 
+    print bWeights(r, MPoint.origin, p, q)
+    # (0.33333333333333337, 0.33333333333333331, 0.33333333333333343)
+      
+    p = MPoint([0.33333, 0.66666, 1.333333, 0.33333])
+    print repr(round(p, 3))
+    # MPoint([0.333, 0.667, 1.333, 0.333])
     
     print "end tests MPoint"
  
@@ -2110,12 +2275,15 @@ def _testMColor() :
     print "c = MColor(0.5)"
     c = MColor(0.5)
     print repr(c)   
-    # MColor([0.0, 0.0, 0.0, 0.5])
-    print "c = round(MColor(128, quantize=255), 2)"
-    c = round(MColor(128, quantize=255), 2)
-    print repr(c) 
     # MColor([0.5, 0.5, 0.5, 0.5])
-      
+    print "c = round(MColor(128, quantize=255), 2)"
+    c = MColor(128, quantize=255)
+    print repr(c) 
+    # MColor([0.501999974251, 0.501999974251, 0.501999974251, 0.501999974251])
+    c = MColor(255, 128, b=64, a=32, quantize=255)
+    print repr(c) 
+    # MColor([1.0 0.501999974251 0.250999987125 0.125490196078])
+          
     print "c = MColor(1, 1, 1)"
     c = MColor(1, 1, 1)
     print repr(c)
@@ -2152,56 +2320,87 @@ def _testMColor() :
     c = MColor(MColor.blue, v=0.5)
     print repr(c)
     # MColor([0.0, 0.0, 0.5, 1.0])
-    print "round(c.hsv, 2)"
-    print round(c.hsv, 2)
-    # (0.67, 1.0, 0.5)
+    print "c.hsv"
+    print c.hsv
+    # (0.66666666666666663, 1.0, 0.5)
     c.r = 1.0
     print repr(c)
     # MColor([1.0, 0.0, 0.5, 1.0])
-    print "round(c.hsv, 2)"
-    print round(c.hsv, 2)
-    # (0.92, 1.0, 1.0)
+    print "c.hsv"
+    print c.hsv
+    # (0.91666666666666663, 1.0, 1.0)
             
     print "c = MColor(1, 0.5, 2, 0.5).clamp()"
     c = MColor(1, 0.5, 2, 0.5).clamp()
     print repr(c)
     # MColor([1.0, 0.5, 1.0, 0.5])
-    
+    print c.hsv
+    # (0.83333333333333337, 0.5, 1.0)
+        
     print "MColor(c, v=0.5)"
     d = MColor(c, v=0.5)
     print repr(d)
     # MColor([0.5, 0.25, 0.5, 0.5])
-    print "round(d.hsv, 2)"
-    print round(d.hsv, 2)
-    # (0.83, 0.5, 0.5)
-    print "d = c.gamma([2.2, 2.0, 2.3])"
-    d = c.gamma([2.2, 2.0, 2.3])
-    print repr(d)
-    # MColor([1.0, 0.25, 1.0, 1.0])
-    print "c = MColor(0.25, 0.5, 0.75)"
-    c = MColor(0.0, 1,0, 0.0, 0.5)
+    print "d.hsv"
+    print d.hsv
+    # (0.83333333333333337, 0.5, 0.5)
+    
+    print "c = MColor(0.0, 0.5, 1.0, 0.5)"
+    c = MColor(0.0, 0.5, 1.0, 0.5)
     print repr(c)
-    # MColor([0.0, 1,0, 0.0, 0.5])
-    print "d = MColor.red.blend(MColor.blue, 0.5)"
-    d = MColor.red.blend(MColor.blue, 0.5)
+    # MColor(0.0, 0.5, 1.0, 0.5)
+    print "d = c.gamma(2.0)"
+    d = c.gamma(2.0)
     print repr(d)
+    # MColor([0.0, 0.25, 1.0, 0.5])
+    
+    print "c = MColor.red.blend(MColor.blue, 0.5)"
+    c = MColor.red.blend(MColor.blue, 0.5)
+    print repr(c)
     # MColor([0.5, 0.0, 0.5, 1.0])
+    print c.hsv
+    # (0.83333333333333337, 1.0, 0.5)
+    c = MColor.red.hsvblend(MColor.blue, 0.5)
+    print repr(c)
+    # MColor([1.0, 0.0, 1.0, 1.0])
+    print c.hsv
+    # (0.83333333333333337, 1.0, 1.0)
+
+    print "c = MColor(0.25, 0.5, 0.75, 0.5)"
+    c = MColor(0.25, 0.5, 0.75, 0.5)
+    print repr(c)
+    # MColor([0.25, 0.5, 0.75, 0.5])
+    print "d = MColor.black"
+    d = MColor.black
+    print repr(d)
+    # MColor([0.0, 0.0, 0.0, 1.0])                  
     print "c.over(d)"
     print repr(c.over(d))
-    # MColor([0.5, 0.5, 0.5, 1.0])
+    # MColor([0.125, 0.25, 0.375, 1.0])
     print "d.over(c)"
     print repr(d.over(c))
-    # MColor([0.5, 0.0, 0.5, 1.0])
-
-    # herited
+    # MColor([0.0, 0.0, 0.0, 0.5])
+    print "c.premult()"
+    print repr(c.premult())
+    # MColor([0.125, 0.25, 0.375, 1.0])
     
-    c = MColor(0.25, 0.5, 0.75, 1.0)
+    # herited, should ignore alpha by default as with MPoint
+    
+    print "c = MColor(0.25, 0.5, 1.0, 1.0)"
+    c = MColor(0.25, 0.5, 1.0, 1.0)
     print repr(c)
-
-    d = MColor(1, 1, 1, 0.5)
+    # MColor([0.25, 0.5, 1.0, 1.0])
+    print "d = MColor(2.0, 1.0, 0.5, 0.25)"
+    d = MColor(2.0, 1.0, 0.5, 0.25)
     print repr(d)
-    print "(c*d)/2.0"
-    print repr((c*d)/2.0)
+    # MColor([2.0, 1.0, 0.5, 0.25])
+    print "e = c*d"
+    e = c*d
+    print repr(e)
+    # MColor([0.5, 0.5, 0.5, 0.25])
+    print "e/2.0"
+    print repr(e/2.0)
+    # MColor([0.25, 0.25, 0.25, 0.25])
     
     print "end tests MColor"
     
