@@ -148,7 +148,44 @@ for mfn in mathutilsfn :
     basefn = mfn[1]
     newfn = _patchfn(basefn)
     _thisModule.__setattr__(fname, newfn)   
-  
+
+def reorder( x, indexList=[], indexDict={} ):
+    """
+    Reorder a list based upon a list of positional indices and/or a dictionary of fromIndex:toIndex. 
+    
+    >>> l = ['zero', 'one', 'two', 'three', 'four', 'five', 'six' ]    
+    >>> reorder( l, [1, 4] ) # based on positional indices: 0-->1, 1-->4
+    ['one', 'four', 'zero', 'two', 'three', 'four', 'five', 'six' ]   
+    >>> reorder( l, [1, None, 4] ) # None can be used as a place-holder
+    ['one', 'zero', 'four', 'two', 'three', 'four', 'five', 'six' ]       
+    >>> reorder( l, [1, 4], {5:6} )  # remapping via dictionary: move the value at index 5 to index 6
+    ['one', 'four', 'zero', 'two', 'three', 'six', 'five']
+    """
+    
+    x = list(x)
+    num = len(x)
+    popCount = 0
+    indexValDict = {}
+
+    for i, index in enumerate(indexList):
+        if index is not None:
+            val = x.pop( index-popCount )
+            assert index not in indexDict, indexDict
+            indexValDict[i] = val
+            popCount += 1
+    for k, v in indexDict.items():
+        indexValDict[v] = x.pop(k-popCount)
+        popCount += 1
+
+    newlist = []
+    for i in range(num):
+        try:
+            val = indexValDict[i]
+        except KeyError:
+            val = x.pop(0)
+        newlist.append( val ) 
+    return newlist 
+
 # some other math functions operating on Arrays or derived classes
 
 def sum(a, start=0, **kwargs):
