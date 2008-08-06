@@ -24,20 +24,7 @@ class NameParseError(Exception):
 class ParsingWarning(ExecutionWarning):
     pass
 
-def compileName( parseObject ):
-    newname = ''
-    partList = []
-    def getParts( obj, newname ):
-        try:
-            for x in obj.parts:
-                #print repr(x)
-                newname = getParts(x, newname)
-        except AttributeError:
-            #print "DEAD", repr(obj)
-            newname += unicode(obj._name)
-        return newname
-    newname = getParts( parseObject, newname )
-    return newname
+
 
 ProxyUni = proxyClass( unicode, 'ProxyUnicode', dataFuncName='__name__', remove=['__getitem__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
@@ -47,8 +34,6 @@ class Parsed(ProxyUni):
     _parser = None
     _accepts = ()
     _name = None
-    def __name__(self):
-        return compileName(self)
     
 #class Parsed(unicode):
 #   
@@ -63,6 +48,23 @@ class Parsed(ProxyUni):
                 if t == other.__class__.__name__ :
                     return True
         return False
+    
+    def compileName( self ):
+        newname = ''
+        partList = []
+        def getParts( obj, newname ):
+            try:
+                for x in obj.parts:
+                    #print repr(x)
+                    newname = getParts(x, newname)
+            except AttributeError:
+                #print "DEAD", repr(obj)
+                newname += unicode(obj._name)
+            return newname
+        self._name = getParts( self, newname )
+        return self._name
+    
+    __name__ = compileName
     
     # init class attributes, all objects of a Parsed class share the same parser
     # TODO : check if it can be a problem with multithreading ? In that case we'll need a parser per instance  
@@ -164,6 +166,15 @@ class Parsed(ProxyUni):
     def sub(self):
         """ Internally stored parsing data for this Parsed object sub parts """
         return self._sub
+    
+    def setSubItem(self, index, value):
+        """ Change the value of one of the Parsed sub parts.  The new value will first be parsed as the same
+        type as it is replacing."""
+        cls = self._sub[index].__class__
+        sublist = list(self._sub)
+        sublist[index] = cls(value)
+        self._sub = tuple(sublist)
+    
     @property
     def pos(self):
         """ position of that Parsed object """
@@ -172,7 +183,10 @@ class Parsed(ProxyUni):
         """ Validity """
         return self._valid
     
-             
+    def copy(self):
+        """return an new independent copy of the parsed object""" 
+        return self.__class__(self._sub)
+            
     def __new__(cls, *args, **kwargs):
         """ Creation of a Parsed object from a LexToken, other Parsed of compatible type or string,
             if a string is passed it will be parsed and checked for compatibility with this Parsed type """
@@ -322,7 +336,7 @@ class Parsed(ProxyUni):
         
         if valid :  
             # create a unicode object with appropriate string value 
-            newobj =  super(Parsed, cls).__new__(newcls, strvalue)
+            newobj =  super(Parsed, cls).__new__(newcls)#newcls, strvalue)
             newobj._name = strvalue
             if debug: print "NAME", newobj, type(newobj), sub#, inspect.getmro(newobj)                         
             # set instance attributes
@@ -371,7 +385,17 @@ class Parsed(ProxyUni):
             result = cls(unicode(self)+unicode(other))
         
         return result
-                                
+    
+    def isNodeName(self):
+        """ True if this dag path name is absolute (starts with '|') """
+        return type(self) == MayaNodePath  
+    def isAttributeName(self):
+        """ True if this object is specified including one or more dag parents """
+        return type(self) == NodeAttribute   
+    def isComponentName(self):
+        """ True if this object is specified as an absolute dag path (starting with '|') """
+        return type(self) == Component
+                             
     def __repr__(self):
         return u"%s('%s', %s)" % (self.__class__.__name__, self, self.pos)
        
@@ -662,7 +686,7 @@ class MayaNameParser(NameSepParser, NameGroupParser):
             p[0] = MayaName(p[1])
 
 class NamespaceSepParser(Parser):
-    """ A Parser for the NamespaceName separator """
+    """ A Parser for the Namespace separator """
     t_Colon  = r':'
     
     start = 'NamespaceSep' 
@@ -675,35 +699,35 @@ class NamespaceSepParser(Parser):
                    ('right', ('Alpha', 'Num') ),
                  )
         
-class NamespaceNameParser(NamespaceSepParser, MayaNameParser, EmptyParser):
-    """ A Parser for NamespaceName, Maya namespaces names """
+class NamespaceParser(NamespaceSepParser, MayaNameParser, EmptyParser):
+    """ A Parser for Namespace, Maya namespaces names """
 
-    start = 'NamespaceName'
+    start = 'Namespace'
 
     def p_nspace_concat(self, p):
-        ''' NamespaceName : NamespaceName MayaName NamespaceSep '''
-        p[0] = p[1] + NamespaceName(p[2], p[3])
+        ''' Namespace : Namespace MayaName NamespaceSep '''
+        p[0] = p[1] + Namespace(p[2], p[3])
     def p_nspace(self, p) :
-        ''' NamespaceName : MayaName NamespaceSep 
+        ''' Namespace : MayaName NamespaceSep 
                     | NamespaceSep
                     | Empty '''
         if len(p) == 3 :
-            p[0] = NamespaceName(p[1], p[2])
+            p[0] = Namespace(p[1], p[2])
         else :
-            p[0] = NamespaceName(p[1])
+            p[0] = Namespace(p[1])
                                     
-class MayaShortNameParser(NamespaceNameParser, MayaNameParser):
+class MayaShortNameParser(NamespaceParser, MayaNameParser):
     """ A parser for MayaShortName, a short object name (without preceding path) with a possible preceding namespace """
     
     start = 'MayaShortName'
     
     def p_sname(self, p) :
-        ''' MayaShortName : NamespaceName MayaName
+        ''' MayaShortName : Namespace MayaName
                             | MayaName '''
         if len(p) == 3 :
             p[0] = MayaShortName(p[1], p[2]) 
         else :
-            p[0] = MayaShortName(NamespaceName(pos=p.lexpos(1)), p[1])        
+            p[0] = MayaShortName(Namespace(pos=p.lexpos(1)), p[1])        
 
 class DagPathSepParser(Parser):
     """ A Parser for the DagPathSep separator """
@@ -808,41 +832,41 @@ class ComponentNameParser(SingleComponentNameParser, DoubleComponentNameParser, 
 # NOTE : call these attributes and the couple(node.attribute) a plug like in API ?
 
 class NodeAttributeNameParser(NameIndexParser, MayaNameParser):
-    """ Parser for a NodeAttributeName, the name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex """ 
+    """ Parser for a Attribute, the name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex """ 
 
-    start = 'NodeAttributeName' 
+    start = 'Attribute' 
 
     def p_nodeattr_error(self, p):
-        'NodeAttributeName : error'
+        'Attribute : error'
         print "Invalid node attribute name"    
     def p_nodeattr(self, p):
-        ''' NodeAttributeName : MayaName NameIndex
+        ''' Attribute : MayaName NameIndex
                                     | MayaName '''
         if len(p) == 3 :
-            p[0] = NodeAttributeName(p[1], p[2])
+            p[0] = Attribute(p[1], p[2])
         else :
-            p[0] = NodeAttributeName(p[1])
+            p[0] = Attribute(p[1])
                    
 class NodeAttributePathParser(AttrSepParser, NodeAttributeNameParser):
-    """ Parser for a full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated NodeAttributeName """
+    """ Parser for a full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute """
 
-    start = 'NodeAttributePath' 
+    start = 'AttributePath' 
 
     def p_nodeattrpath_concat(self, p):
-        ''' NodeAttributePath : NodeAttributePath AttrSep NodeAttributeName '''
-        p[0] = NodeAttributePath(p[1], p[2], p[3])  
+        ''' AttributePath : AttributePath AttrSep Attribute '''
+        p[0] = AttributePath(p[1], p[2], p[3])  
     def p_nodeattrpath(self, p):
-        ''' NodeAttributePath : NodeAttributeName '''
-        p[0] = NodeAttributePath(p[1])
+        ''' AttributePath : Attribute '''
+        p[0] = AttributePath(p[1])
 
 class AttributeNameParser(NodeAttributePathParser, MayaNodePathParser):
-    """ Parser for the name of a Maya attribute, a MayaNodePath followed by a AttrSep and a NodeAttributePath """ 
+    """ Parser for the name of a Maya attribute, a MayaNodePath followed by a AttrSep and a AttributePath """ 
 
-    start = 'AttributeName' 
+    start = 'NodeAttribute' 
    
     def p_attribute(self, p):
-        ''' AttributeName : MayaNodePath AttrSep NodeAttributePath'''
-        p[0] = AttributeName(p[1], p[2], p[3])
+        ''' NodeAttribute : MayaNodePath AttrSep AttributePath'''
+        p[0] = NodeAttribute(p[1], p[2], p[3])
 
 # ComponentNameParser
 
@@ -854,7 +878,7 @@ class MayaObjectNameParser(AttributeNameParser):
     
     def p_mobject(self, p) :
         ''' MayaObjectName : MayaNodePath  
-                            | AttributeName '''
+                            | NodeAttribute '''
         p[0] = MayaObjectName(p[1])  
 
 # Parsed objects for Maya Names
@@ -1034,10 +1058,10 @@ class NamespaceSep(Parsed):
     def default(cls):  
         return Token(':', type='Colon', pos=0)          
         
-class NamespaceName(Parsed):
+class Namespace(Parsed):
     """ A Maya namespace name, one or more MayaName separated by ':'
-        Rule : NamespaceName = NamespaceSep ? (MayaName NamespaceSep) +"""
-    _parser = NamespaceNameParser
+        Rule : Namespace = NamespaceSep ? (MayaName NamespaceSep) +"""
+    _parser = NamespaceParser
     _accepts = ('NamespaceSep', 'MayaName', 'Empty')
     
     @classmethod
@@ -1055,6 +1079,35 @@ class NamespaceName(Parsed):
             if not isinstance(s, NamespaceSep) :
                 result.append(s)
         return tuple(result)
+    
+    def setSpace(self, index, space):
+        """Set the namespace at the given index"""
+        count = 0
+        for i, s in enumerate(self.sub) :
+            if not isinstance(s, NamespaceSep) :
+                if count == index:
+                    self.setSubItem(i,space)
+                    return
+                count+=1
+        raise IndexError, "This node has %s namespaces. The given index %s is out of range" % (len(self.spaces), index)
+    
+    def pop(self, index=0):
+        """Remove an individual namespace (no separator). An index of 0 (default) is the shallowest (leftmost) in the list"""
+        index*2
+        sub = list(self.sub)
+        # remove both MayaName and NamespaceSep
+        res1 = str(sub.pop(index))
+        res2 = sub.pop(index)
+        self._sub = tuple(sub)
+        if index < 0:
+            return res2
+        return res1
+    
+    def append(self, namespace):
+        """Append a individual namespace (no separator).  The new namespace will be the shallowest (leftmost) namespace."""
+        sub = list(self.sub)
+        self._sub = tuple( [MayaName(namespace),NamespaceSep()] +sub)
+    
     @property
     def separator(self):
         return NamespaceSep()
@@ -1105,27 +1158,46 @@ class NamespaceName(Parsed):
             return isinstance(self.parts[0], NamespaceSep)  
         else :
             return False
-                         
+                 
 class MayaShortName(Parsed):
-    """ A short node name in Maya, a Maya name, possibly preceded by a NamespaceName
-        Rule : MayaShortName = NamespaceName ? MayaName """
+    """ A short node name in Maya, a Maya name, possibly preceded by a Namespace
+        Rule : MayaShortName = Namespace ? MayaName """
     _parser = MayaShortNameParser
-    _accepts = ('NamespaceName', 'MayaName') 
+    _accepts = ('Namespace', 'MayaName') 
         
     @property
     def parts(self):
         """ All parts of that namespace, including separators """
         return self.sub         
-    @property
-    def name(self):
-        """ The short node name without any namespace of the Maya short object name """
-        return self.parts[-1]
-    @property
-    def namespace(self):
-        """ The namespace name (full) of the Maya short object name """
-        # if isinstance(self.parts[0], NamespaceName) :
+
+    def getName(self):
+        "Get the short node name of the object"
+        return self.sub[-1]
+    def setName(self, name):
+        """Set the name of the object.  Should not include namespace"""
+        return self.setSubItem(-1, name)
+    name = property( getName, setName, doc=""" The short node name without any namespace of the Maya short object name """ )
+    
+    def addPrefix(self, prefix):
+        """Add a prefix to the node name. This must produce a valid maya name (no separators allowed)."""
+        self.setName( prefix + str(self.getName()) )
+        
+    def addSuffix(self, suffix):
+        """Add a suffix to the node name. This must produce a valid maya name (no separators allowed)."""
+        self.setName( str(self.getName()) + suffix )
+           
+    def getNamespace(self):
+        "Get the namespace for the current node"
+        # if isinstance(self.parts[0], Namespace) :
         #    return self.parts[0]  
-        return self.parts[0]    
+        return self.sub[0]
+    
+    def setNamespace(self, namespace):
+        "Set the namespace. The provided namespace may be nested and should including a trailing colon unless it is empty."""
+        self.setSubItem(0, namespace)
+    namespace = property( getNamespace, setNamespace, doc=""" The namespace name (full) of the Maya short object name """ )
+        
+    
     def isAbsoluteNamespace(self):
         """ True if this object is specified in an absolute namespace """
         if self.namespace :
@@ -1182,15 +1254,15 @@ class MayaNodePath(Parsed):
                 result.append(p)
         return tuple(result)                  
     @property
-    def node(self):
+    def shortName(self):
         """ The last short name of the path """
         return self.nodes[-1]  
     @property
     def separator(self):
         return DagPathSep()
     @property   
-    def path(self):
-        """ All nested namespaces in that Maya namespace """
+    def nodePaths(self):
+        """ All the long names in the dag path including the last"""
         if self.isAbsolute() :
             result = [self.__class__(self.separator, self.first)]
         else :
@@ -1201,8 +1273,8 @@ class MayaNodePath(Parsed):
     @property
     def parents(self):    
         """ All the dags in the dag hierarchy above the last node, starting from last up """
-        if len(self.path) > 1 :
-            return tuple(reversed(self.path[:-1]))
+        if len(self.nodes) > 1 :
+            return tuple(reversed(self.nodePaths[:-1]))
         else :
             return ()        
     @property
@@ -1215,9 +1287,56 @@ class MayaNodePath(Parsed):
         """ First node name of that dag path name (root of the path) """
         return self.nodes[0]
     @property
+    def root(self):
+        """ First node name of that dag path name (root of the path) """
+        return self.nodes[0]
+    @property
     def last(self):
         """ Last node name of that dag path name (leaf of the path, equivalent to self.node) """
-        return self.nodes[-1]       
+        return self.nodes[-1] 
+
+    def addPrefix(self, prefix):
+        """Add a prefix to all nodes in the path. This must produce a valid maya name (no separators allowed)."""
+        for node in self.nodes:
+            node.setName( prefix + str(node.getName()) )
+        
+    def addSuffix(self, suffix):
+        """Add a suffix to all nodes in the path. This must produce a valid maya name (no separators allowed)."""
+        for node in self.nodes:
+            node.setName( str(node.getName()) + suffix )
+         
+    def setNamespace(self, namespace):
+        "Set the namespace for all nodes in this path. The provided namespace may be nested and should including a trailing colon unless it is empty."""
+        for node in self.nodes:
+            node.setNamespace(namespace)
+            
+    def addNamespace(self, namespace):
+        "Append the namespace for all nodes in this path."""
+        for node in self.nodes:
+            node.namespace.append(namespace)
+            
+    def popNamespace(self, index=0):
+        """Remove an individual namespace (no separator) from all nodes in this path. An index of 0 (default) is the shallowest (leftmost) in the list.
+        Returns a tuple containing the namespace popped from each node in the path or None if the node had no namespaces."""
+        result =[]
+        for node in self.nodes:
+            try: 
+                result.append( node.namespace.pop(index) )
+            except IndexError:
+                result.append( None )
+        return tuple(result)     
+    
+    def popNode(self):
+        """Remove a node from the end of the path"""
+        result = []
+        parts = list(self.sub)
+        if len(parts) <= 2:
+            raise ValueError, "No more objects left to remove"
+        result = parts.pop()
+        parts.pop()
+        self._sub = tuple(parts)
+        return result
+    
     def isShortName(self):
         """ True if this object node is specified as a short name (without a path) """
         return len(self.nodes) == 1  
@@ -1314,38 +1433,38 @@ class NameRangeIndex(Parsed):
 #    _parser = NodeComponentNameParser
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
 #
-#class NodeSingleComponentName(ComponentName): 
+#class NodeSingleComponentName(Component): 
 #    _parser = NodeSingleComponentNameParser
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex')   
 #        
-#class NodeDoubleComponentName(ComponentName): 
+#class NodeDoubleComponentName(Component): 
 #    _parser = NodeDoubleComponentNameParser
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
 #    
-#class NodeTripleComponentName(ComponentName): 
+#class NodeTripleComponentName(Component): 
 #    _parser = NodeTripleComponentNameParser
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
 #    
 #    
-class ComponentName(Parsed): 
+class Component(Parsed): 
     """ A Maya component name of any of the single, double or triple indexed kind
-        Rule : ComponentName = SingleComponentName | DoubleComponentName | TripleComponentName """
+        Rule : Component = SingleComponentName | DoubleComponentName | TripleComponentName """
     _parser = ComponentNameParser
     _accepts = ('MayaNodePath', 'AttrSep', 'NodeComponentName') 
 #
-#class SingleComponentName(ComponentName):
+#class SingleComponentName(Component):
 #    """ A Maya single component name, in the form node name . component
 #        Rule : SingleComponentName = MayaNodePath AttrSep NodeSingleComponentName """     
 #    _parser = SingleComponentNameParser
 #    _accepts = ('MayaNodePath', 'AttrSep', 'NodeSingleComponentName')  
 #        
-#class DoubleComponentName(ComponentName):
+#class DoubleComponentName(Component):
 #    """ A Maya double component name, in the form node name . component
 #        Rule : DoubleComponentName = MayaNodePath AttrSep NodeDoubleComponentName """       
 #    _parser = DoubleComponentNameParser
 #    _accepts = ('MayaNodePath', 'AttrSep', 'NodeDoubleComponentName')  
 #    
-#class TripleComponentName(ComponentName): 
+#class TripleComponentName(Component): 
 #    """ A Maya triple component name, in the form node name . component
 #        Rule : TripleComponentName = MayaNodePath AttrSep NodeTripleComponentName """      
 #    _parser = TripleComponentNameParser
@@ -1354,9 +1473,9 @@ class ComponentName(Parsed):
 # Decided to avoid the API denomination where attributes exist on nodes and a specific node+attribute association
 # is called a plug as most scripting people are used to calling both attributes ? 
 
-class NodeAttributeName(Parsed):
+class Attribute(Parsed):
     """ The name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex
-        Rule : NodeAttributeName = MayaName NameIndex ?""" 
+        Rule : Attribute = MayaName NameIndex ?""" 
     _parser = NodeAttributeNameParser
     _accepts = ('MayaName', 'NameIndex') 
 
@@ -1380,11 +1499,11 @@ class NodeAttributeName(Parsed):
             return self.index.value             
     
          
-class NodeAttributePath(Parsed):
-    """ The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated NodeAttributeName
-        Rule : NodeAttributePath = ( NodeAttributeName AttrSep ) * NodeAttributeName """
+class AttributePath(Parsed):
+    """ The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute
+        Rule : AttributePath = ( Attribute AttrSep ) * Attribute """
     _parser = NodeAttributePathParser
-    _accepts = ('AttrSep', 'NodeAttributeName') 
+    _accepts = ('AttrSep', 'Attribute') 
 
     @property
     def parts(self):
@@ -1434,11 +1553,11 @@ class NodeAttributePath(Parsed):
         return self.attributes[-1]       
 
 
-class AttributeName(Parsed):
-    """ The name of a Maya attribute, a MayaNodePath followed by a AttrSep and a NodeAttributePath
-        Rule : AttributeName = MayaNodePath AttrSep NodeAttributePath """ 
+class NodeAttribute(Parsed):
+    """ The name of a Maya node and attribute (plug): a MayaNodePath followed by a AttrSep and a AttributePath
+        Rule : NodeAttribute = MayaNodePath AttrSep AttributePath """ 
     _parser = AttributeNameParser
-    _accepts = ('MayaNodePath', 'AttrSep', 'NodeAttributePath') 
+    _accepts = ('MayaNodePath', 'AttrSep', 'AttributePath') 
  
     @property
     def parts(self):
@@ -1459,6 +1578,11 @@ class AttributeName(Parsed):
     def attribute(self):
         """ All the nodes in the dag path but the last, without separators """
         return self.parts[2]
+    
+    def popNode(self):
+        """Remove a node from the end of the path, preserving any attributes (Ex. pCube1|pCubeShape1.width --> pCube1.width)."""
+        self.node.popNode()
+        
 #    @property
 #    def first(self):
 #        """ Equivalent to self.node """
@@ -1473,9 +1597,9 @@ class AttributeName(Parsed):
 class MayaObjectName(Parsed):      
     """ An object name in Maya, can be a dag object name, a node name,
         an plug name, a component name or a ui name
-        Rule : MayaObjectName = MayaNodePath | AttributeName | ComponentName """
+        Rule : MayaObjectName = MayaNodePath | NodeAttribute | Component """
     _parser = MayaObjectNameParser
-    _accepts = ('MayaNodePath', 'AttributeName')     
+    _accepts = ('MayaNodePath', 'NodeAttribute')     
 
     @property
     def object(self):
@@ -1497,7 +1621,7 @@ class MayaObjectName(Parsed):
              
     @property
     def node(self):
-        """ The node (full) name part"""
+        """ The full path of the node"""
         if self.isNodeName() :
             return self.object
         else :
@@ -1510,12 +1634,12 @@ class MayaObjectName(Parsed):
     
     @property
     def attribute(self):
-        """ The attribute (full) name for a AttributeName (node.attribute) name """
+        """ The attribute (full) name for a NodeAttribute (node.attribute) name """
         if self.isAttributeName() :
             return self.object.attribute
     @property
     def component(self):
-        """ The component name for a ComponentName (node.component) name """
+        """ The component name for a Component (node.component) name """
         if self.isComponentName() :
             return self.object.component 
           
@@ -1524,10 +1648,10 @@ class MayaObjectName(Parsed):
         return self.type == MayaNodePath  
     def isAttributeName(self):
         """ True if this object is specified including one or more dag parents """
-        return self.type == AttributeName   
+        return self.type == NodeAttribute   
     def isComponentName(self):
         """ True if this object is specified as an absolute dag path (starting with '|') """
-        return self.type == ComponentName
+        return self.type == Component
                        
 # Empty special Parsed class
 class Empty(Parsed):
@@ -1627,6 +1751,33 @@ def parserClasses():
     return dict(inspect.getmembers(_thisModule, _parserClass))
 # Stores it at import so that the inspect method isn't recalled at each query
 ParserClasses(parserClasses())
+
+
+def getBasicPartList( name ):
+    """convenience function for breaking apart a maya object to the appropriate level for pymel name parsing
+    
+    >>> getBasicPartList('thing|foo:bar.attr[0].child')
+    [MayaNodePath('thing|foo:bar', 0), MayaName('attr', 13), NameIndex('[0]', 17), MayaName('child', 21)]
+    """
+    partList = []
+    def getParts( obj ):
+        try:
+            for i, x in enumerate(obj.parts):
+                #print "part", i, repr(x)
+                if isinstance( x, MayaNodePath) or isinstance( x, MayaName ) or isinstance( x, NameIndex ):
+                    partList.append(x)
+                else:
+                    getParts(x)
+        except AttributeError:
+            #print "deadend", repr(obj)
+            pass
+        
+    getParts( MayaObjectName(name) )
+    return partList   
+
+def parse( name ):
+    """main entry point for parsing a maya node name"""
+    return MayaObjectName(name).object
 
 # restrict visibility to Parsed classes :
 # __all__ = ParsedClasses().keys()
@@ -1745,7 +1896,7 @@ def _decomposeObjectName(name, ident=0) :
     elif name.isComponentName() :
         _decomposeComponentName(name.object, ident=ident+1)
     else :
-        raise ValueError, "type should be MayaNodePath, AttributeName or ComponentName"
+        raise ValueError, "type should be MayaNodePath, NodeAttribute or Component"
     
 def _test (expr) :
     """ Tests the name parsing of the string argument expr and displays results """
@@ -1778,27 +1929,7 @@ def _itest ():
         _test(expr)    
  
 
-def getBasicPartList( name ):
-    """convenience function for breaking apart a maya object to the appropriate level for pymel name parsing
-    
-    >>> getBasicPartList('thing|foo:bar.attr[0].child')
-    [MayaNodePath('thing|foo:bar', 0), MayaName('attr', 13), NameIndex('[0]', 17), MayaName('child', 21)]
-    """
-    partList = []
-    def getParts( obj ):
-        try:
-            for i, x in enumerate(obj.parts):
-                #print "part", i, repr(x)
-                if isinstance( x, MayaNodePath) or isinstance( x, MayaName ) or isinstance( x, NameIndex ):
-                    partList.append(x)
-                else:
-                    getParts(x)
-        except AttributeError:
-            #print "deadend", repr(obj)
-            pass
-        
-    getParts( MayaObjectName(name) )
-    return partList    
+ 
 
   
 if __name__ == '__main__' :
