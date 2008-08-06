@@ -270,8 +270,8 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
     #remove = [ '__init__', '__getattribute__', '__getattr__'] + remove
     class Proxy(object):
         pass
-        def __new__(cls, *args, **kwargs):
-            return super(Proxy, cls).__new__(cls)
+        #def __new__(cls, *args, **kwargs):
+        #    return super(Proxy, cls).__new__(cls)
         #def __init__(self, data):
         #    setattr( self, dataAttrName, cls( data ) )
 
