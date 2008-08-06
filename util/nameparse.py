@@ -273,7 +273,7 @@ class Parsed(ProxyUni):
             pos = data.pos
             valid = data.isValid()
             value = unicode(data) 
-        elif isSequence(data) : 
+        elif isSequence(data) and not isinstance(data, basestring): 
             # building from sub parts, must be of the same type and in class _accepts
             # TODO : use yacc own rules for accepts
             if data :
