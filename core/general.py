@@ -986,7 +986,7 @@ def _getPymelType(arg) :
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
-ProxyUnicode = util.proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUnicode = util.proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 class PyNode(ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
@@ -1063,7 +1063,7 @@ class PyNode(ProxyUnicode):
                     elif res:
                         argObj = res
                     else:
-                        raise TypeError, "Object does not exist: " + argObj
+                        raise ValueError, "Object does not exist: " + argObj
                 elif isinstance( argObj, Attribute ):
                     attrNode = argObj._node
                     argObj = argObj._apiobject
@@ -1078,7 +1078,7 @@ class PyNode(ProxyUnicode):
             #assert obj or name
             
         else :
-            raise TypeError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
+            raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
         
         # print "type:", pymelType
         # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
@@ -2807,12 +2807,13 @@ class Transform(DagNode):
         args = (self,) + args
         cmds.align(self, *args, **kwargs)
     """
-    # workaround for conflict with translate method on basestring
-    def _getTranslate(self):
-        return self.__getattr__("translate")
-    def _setTranslate(self, val):
-        return self.__setattr__("translate", val)        
-    translate = property( _getTranslate , _setTranslate )
+    # NOTE : removed this via proxyClass
+#    # workaround for conflict with translate method on basestring
+#    def _getTranslate(self):
+#        return self.__getattr__("translate")
+#    def _setTranslate(self, val):
+#        return self.__setattr__("translate", val)        
+#    translate = property( _getTranslate , _setTranslate )
     
     def hide(self):
         self.visibility.set(0)
@@ -2873,23 +2874,23 @@ class Transform(DagNode):
         cmds.xform( self, **kwargs )
 
     @queryflag('xform','scale') 
-    def getScale( self, **kwargs ):
+    def getScaleOld( self, **kwargs ):
         return Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','rotation')        
-    def getRotation( self, **kwargs ):
+    def getRotationOld( self, **kwargs ):
         return Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','translation') 
-    def getTranslation( self, **kwargs ):
+    def getTranslationOld( self, **kwargs ):
         return Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','scalePivot') 
-    def getScalePivot( self, **kwargs ):
+    def getScalePivotOld( self, **kwargs ):
         return Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','rotatePivot')        
-    def getRotatePivot( self, **kwargs ):
+    def getRotatePivotOld( self, **kwargs ):
         return Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','pivots') 
@@ -2902,7 +2903,7 @@ class Transform(DagNode):
         return Vector( cmds.xform( self, **kwargs ) )
         
     @queryflag('xform','shear')                          
-    def getShear( self, **kwargs ):
+    def getShearOld( self, **kwargs ):
         return Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','matrix')                
