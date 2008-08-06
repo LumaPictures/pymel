@@ -1704,7 +1704,7 @@ class ApiArgUtil(object):
                 else:
                     assert returnType in ApiTypeRegister.outCast or returnType == self.apiClassName, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
             
-            for argname, argtype, default, direction in self.methodInfo['args'] :
+            for argname, argtype, direction in self.methodInfo['args'] :
                 
                 if isinstance( argtype, tuple ):
                     assert _api.apiClassInfo.has_key(argtype[0]) and _api.apiClassInfo[argtype[0]]['enums'].has_key(argtype[1]), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype)
@@ -1784,8 +1784,21 @@ class ApiArgUtil(object):
         defaults = []
         for arg in self.methodInfo['inArgs']:
             try:
-                defaults.append( self.methodInfo['defaults'][arg])
-            except: pass
+                default = self.methodInfo['defaults'][arg]
+            except KeyError: 
+                pass
+                if self.methodName == 'translation': print "NO DEFAULT", self.methodName, arg, self.methodInfo['defaults'] 
+            else:
+                if isinstance(default, _api.Enum ):
+                    # convert enums from apiName to pymelName. the default will be the readable string name
+                    try:
+                        enumList = _api.apiClassInfo[default[0]]['enums'][default[1]]
+                    except KeyError:
+                        print "COULD NOT FIND ENUM", default
+                    else:
+                        index = enumList.index(default[2])
+                        default = _api.apiClassInfo[default[0]]['pymelEnums'][default[1]][index]
+                defaults.append( default )
         return defaults
     
     def isStatic(self):
@@ -1874,7 +1887,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                 if len(args) != len(inArgs):
                     raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
                 
-                for name, argtype, default, direction in argInfo :
+                for name, argtype, direction in argInfo :
                     if direction == 'in':
                         argList.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
                         inCount +=1
@@ -1924,6 +1937,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
             defaults = argHelper.getDefaults()
                 
             #print inArgs, defaults
+            if defaults: print "defaults", defaults
             f = interface_wrapper( f, ['self'] + inArgs, defaults )
             
             if argHelper.isStatic():
