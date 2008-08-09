@@ -1776,6 +1776,200 @@ class MTime( _api.MTime ) :
     def __float__( self ): return self.as(self.apicls.uiUnit())
     def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
+class MDistance( _api.MDistance ) :
+    apicls = _api.MDistance
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    def __str__( self ): return str(float(self))
+    def __int__( self ): return int(float(self))
+    def __float__( self ): return self.as(self.apicls.uiUnit())
+    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+
+class MAngle( _api.MAngle ) :
+    apicls = _api.MAngle
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    def __str__( self ): return str(float(self))
+    def __int__( self ): return int(float(self))
+    def __float__( self ): return self.as(self.apicls.uiUnit())
+    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+   
+
+#class MItMeshEdge( _api.MItMeshEdge ):
+#    apicls = _api.MItMeshEdge
+#    __metaclass__ = _factories.MetaMayaTypeWrapper
+#    def __init__(self, *args):
+#        _api.MItMeshEdge.__init__(self, *args)
+#        self._node = args[0]
+#    def __iter__(self): return self
+#    def next(self):
+#        if self.isDone(): raise StopIteration
+#        _api.MItMeshEdge.next(self)
+#        return api.MItMeshEdge.index(self)
+#    def __len__(self): return self.count()
+#    def __getitem__(self, item):
+#        su = _api.MScriptUtil()
+#        if isinstance( item, slice):
+#            self.__iter__()
+#            rargs = [item.start, item.stop+1]
+#            if item.step is not None: rargs.append( item.step)
+#            for i in range(  *rargs ):
+#                #print i
+#                #self._iter.next()
+#                _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
+#                #print self._iter.getIndex()
+#                yield self
+#        elif isinstance( item, tuple):
+#            for slc in item:
+#                for cmp in self.__getitem__(slc): 
+#                    yield cmp
+#        else:
+#            self.__iter__()
+#            _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
+#            yield self
+
+class MItMeshEdge( _api.MItMeshEdge ):
+    apicls = _api.MItMeshEdge
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    def __init__(self, node, component=None ):
+        args = [node]
+        self._range = None
+        if _api.isValidMObject( component ): 
+            args.append(component)   
+
+        _api.MItMeshEdge.__init__(self, *args)
+        
+        if _api.isValidMObject( component ): 
+            pass 
+        elif isinstance(component, int):
+            self._range = [component]
+            su = _api.MScriptUtil()
+            _api.MItMeshEdge.setIndex( self, component, su.asIntPtr() )  # bug workaround
+            
+        elif isinstance(component, slice):
+            self._range = range( component.start, component.stop+1)
+            su = _api.MScriptUtil()
+            _api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+            
+        elif component is not None:
+            raise TypeError, "component must be a valid MObject representing a component, an integer, or a slice"
+        
+        self._node = node
+        self._comp = component
+        self._index = 0
+        
+    def __str__(self): 
+        if isinstance( self._comp, int ):
+            return 'dummy.e[%s]' % ( self._comp )
+        elif isinstance( self._comp, slice ):
+            return 'dummy.e[%s:%s]' % ( self._comp.start, self._comp.stop )
+        
+        return 'dummy.e[0:%s]' % self.count()-1
+                                       
+    
+    def __iter__(self): 
+        print "ITER"
+        #su = _api.MScriptUtil()
+        #_api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+        return self
+    
+    def next(self):
+        if self.isDone(): raise StopIteration
+        if self._range is not None:
+            try:
+                nextIndex = self._range[self._index]
+                su = _api.MScriptUtil()
+                _api.MItMeshEdge.setIndex( self, nextIndex, su.asIntPtr() )  # bug workaround
+                self._index += 1
+                return MItMeshEdge(self._node, nextIndex)
+            except IndexError:
+                raise StopIteration
+
+        else:
+            _api.MItMeshEdge.next(self)
+        return MItMeshEdge(self._node, _api.MItMeshEdge.index(self) )
+#        if isinstance( self._comp, int ):
+#            _api.MItMeshEdge.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
+#        elif isinstance( self._comp, slice):
+#            _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
+    
+    def count(self):
+        if self._range is not None:
+            return len(self._range)
+        else:
+            return _api.MItMeshEdge.count( self )
+    def __len__(self): 
+        return self.count()
+            
+    def __getitem__(self, item):
+        return MItMeshEdge(self._node, item)
+        
+#        su = _api.MScriptUtil()
+#        if isinstance( item, slice):
+#            self.__iter__()
+#            rargs = [item.start, item.stop+1]
+#            if item.step is not None: rargs.append( item.step)
+#            for i in range(  *rargs ):
+#                #print i
+#                #self._iter.next()
+#                _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
+#                #print self._iter.getIndex()
+#                yield self
+#        elif isinstance( item, tuple):
+#            for slc in item:
+#                for cmp in self.__getitem__(slc): 
+#                    yield cmp
+#        else:
+#            self.__iter__()
+#            _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
+#            yield self
+
+#class PolyEdge(object):
+#    def __init__(self, dagNode ):
+#        self._node = dagNode
+#        self._iter = None
+#    def __iter__(self):
+#        if self._iter is None:
+#            self._iter = MItMeshEdge( self._node )
+#        return self._iter
+#    def next(self):
+#        if self._iter.isDone(): raise StopIteration
+#        _api.MItMeshEdge.next(self._iter)
+#        return api.MItMeshEdge.index(self._iter)
+#    def __getitem__(self, item):
+#        if isinstance( item, slice):
+#            self.__iter__()
+#            for i in range( item.start, item.stop+1, item.step ):
+#                #print i
+#                #self._iter.next()
+#                _api.MItMeshEdge.setIndex( self._iter, i, su.asIntPtr() )  # bug workaround
+#                print self._iter.getIndex()
+#                yield self._iter
+#        elif isinstance( item, tuple):
+#            for slc in item:
+#                for cmp in self.__getitem__(slc): 
+#                    yield cmp
+#        else:
+#            self.__iter__()
+#            _api.MItMeshEdge.setIndex( self._iter, i, su.asIntPtr() )  # bug workaround
+#            yield self._iter
+
+class MBoundingBox( _api.MBoundingBox):
+    apicls = _api.MBoundingBox
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    def __init__(self, *args):
+        if len(args) == 2:
+            args = list(args)
+            if not isinstance( args[0], _api.MPoint ): 
+                args[0] = MPoint( args[0] )
+            if not isinstance( args[1], _api.MPoint ): 
+                args[1] = MPoint( args[1] )    
+        _api.MBoundingBox.__init__(self, *args)
+    def __str__(self):
+        return '%s(%s,%s)' % (self.__class__.__name__, self.min(), self.max())
+    repr = __str__
+    w = property( _factories.wrapApiMethod( _api.MBoundingBox, 'width'  ) )
+    h = property( _factories.wrapApiMethod( _api.MBoundingBox, 'height'  ) )
+    d = property( _factories.wrapApiMethod( _api.MBoundingBox, 'depth'  ) )
+                    
 def _testMVector() :
     
     print "MVector class:", dir(MVector)
