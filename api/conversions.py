@@ -210,7 +210,7 @@ class ApiDocParser(object):
                 if methodName is None: continue
             
             # no MStatus in python
-            if returnType == 'MStatus':
+            if returnType in ['MStatus', 'void']:
                 returnType = None
             else:
                 returnType = self.handleEnums(returnType)
@@ -1048,22 +1048,29 @@ def _buildApiCache():
         def _setOverloadedMethod( className, methodName, index ):
             from pymel.util.arrays import reorder
             methodInfoList = apiClassInfo[className]['methods'][methodName]
-            methodInfoList = reorder( methodInfoList, [index] )
+            apiClassInfo[className]['methods'][methodName] = reorder( methodInfoList, [index] )
             
         def _setArgDefault( className, methodName, argName, default ):
             methodInfoList = apiClassInfo[className]['methods'][methodName]
-            for methodInfo in methodInfoList:
+            for i, methodInfo in enumerate( methodInfoList ):
                 try:
-                    methodInfo['defaults'][argName]=default
+                    methodInfoList[i]['defaults'][argName] = default
                 except KeyError: pass
+            apiClassInfo[className]['methods'][methodName] = methodInfoList
         #----------------------------------------------------
         #  Api Class
         #----------------------------------------------------
         # add default to type
         #apiClassInfo['MFnTransform']['methods']['getTranslation'][0]['defaults']['space']=Enum(['MSpace', 'Space', 'kObject'])
+        #print "BEFORE", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
         _setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kObject']) )
         _setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
+        #print "AFTER", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
         
+        _setOverloadedMethod( 'MItMeshEdge','index', 1 ) # method at 0 is for returning a vertex index, while method 1 returns the edge index
+        
+        
+
 #        apiClassInfo['MFnTransform']['methods']['getRotation'].pop(0) # remove MEuler
 #        # correction to order direction
 #        order = apiClassInfo['MFnTransform']['methods']['getRotation'][0]['args'][1]
