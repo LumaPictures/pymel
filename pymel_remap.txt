@@ -1,0 +1,1842 @@
+CLASS MFnDagNode dagNode
+    [api]
+     addChild
+     boundingBox
+     child
+     childCount
+     dagPath
+     dagRoot
+     duplicate
+     fullPathName
+     getAllPaths
+     objectColor getObjectColor
+     getPath
+     hasChild
+     hasParent
+     inModel
+     inUnderWorld
+     instanceCount
+     isChildOf
+     isInstanceable
+     isInstanced
+     isInstancedAttribute
+     isIntermediateObject
+     isParentOf
+     model
+     objectGroupComponent
+     parent
+     parentCount
+     partialPathName
+     removeChild
+     removeChildAt
+     setInstanceable
+     setIntermediateObject
+     setObjectColor
+     setUseObjectColor
+     transformationMatrix
+     usingObjectColor
+    [pymel]
+     firstParent
+     getAllInstances
+     getChildren
+     getParent
+     getSiblings
+     isDisplaced
+     listRelatives
+     longName
+     makeLive
+     nodeName
+     numChildren
+     root
+     setColor
+     setParent
+     shortName
+CLASS MFnTransform transform
+    [api]
+     clearRestPosition
+     enableLimit
+     restPosition getRestPosition
+     rotateOrientation getRotateOrientation
+     rotatePivot getRotatePivot
+     rotatePivotTranslation getRotateTranslation getRotatePivotTranslation
++    getRotation
+     rotationOrder getRotateOrder getRotationOrder
+     getRotationQuaternion
++    getScale
+     scalePivot getScalePivot
+     scalePivotTranslation getScaleTranslation getScalePivotTranslation
++    getShear
+     translation getTranslation
+     isLimited
+     limitValue
+     resetFromRestPosition
+     rotateBy
+     rotateByQuaternion
+     scaleBy
+     set
+     setLimit
+     setRestPosition
+     setRotateOrientation
++    setRotatePivot
+     setRotatePivotTranslation setRotateTranslation
++    setRotation
+     setRotationOrder setRotateOrder
+     setRotationQuaternion
++    setScale
++    setScalePivot
+     setScalePivotTranslation setScaleTranslation
++    setShear
++    setTranslation
+     shearBy
+     transformation
+     translateBy
+    [pymel]
+     centerPivots
+     getBoundingBox
+     getBoundingBoxInvisible
+     getBoundingBoxMax
+     getBoundingBoxMin
+     getMatrix
+     getPivots
+     getRotateAxis
+     getShape
+     hide
+     setMatrix
+     setPivots
+     setRotateAxis
+     show
+     ungroup
+     zeroTransformPivots
+CLASS MFnHikEffector hikEffector
+    [api]
+     getAuxiliaryEffectors
+     getEffColor
+     getPivotOffset
+     setEffColor
+     setPivotOffset
+    [pymel]
+CLASS MFnIkHandle ikHandle
+    [api]
+     getEffector
+     priority getPriority
+     solver getSolver
++    getStartJoint
+     stickiness getSticky getStickiness #requires enum fix
+     weight getWeight
+     poWeight
+     setEffector
+     setPOWeight
++    setPriority
++    setSolver
++    setStartJoint
+     setStartJointAndEffector
+     setStickiness setSticky #requires enum fix
++    setWeight
+    [pymel]
+     autoPriority
+     connectEffector
+     disableHandles
+     enableHandles
+     freezeJoints
+     getCurve
+     getEndEffector
+     getForceSolver
+     getPositionWeight
+     getRootOnCurve
+     getRootTwistMode
+     getSnapHandleFlagToggle
+     getTwistType
+     jointList
+     setCurve
+     setEndEffector
+     setForceSolver
+     setPositionWeight
+     setRootOnCurve
+     setRootTwistMode
+     setSnapHandleFlagToggle
+     setTwistType
+     setupForRPsolver
+     snapHandleToEffector
+CLASS MFnIkJoint joint
+    [api]
+     getDegreesOfFreedom getDegreeOfFreedom #api returns 3 bools, mel returns a string specifying which axes to use (ex 'xy' == (True,True,False) )
+     maxRotateDampXRange getMaxRotateDampXRange
+     maxRotateDampXStrength getMaxRotateDampXStrength
+     maxRotateDampYRange getMaxRotateDampYRange
+     maxRotateDampYStrength getMaxRotateDampYStrength
+     maxRotateDampZRange getMaxRotateDampZRange
+     maxRotateDampZStrength getMaxRotateDampZStrength
+     minRotateDampXRange getMinRotateDampXRange
+     minRotateDampXStrength getMinRotateDampXStrength
+     minRotateDampYRange getMinRotateDampYRange
+     minRotateDampYStrength getMinRotateDampYStrength
+     minRotateDampZRange getMinRotateDampZRange
+     minRotateDampZStrength getMinRotateDampZStrength
++    getOrientation
+     getPreferedAngle
++    getScaleOrientation
+     getSegmentScale
+     getStiffness
+     hikJointName
+     setDegreesOfFreedom setDegreeOfFreedom #api takes 3 bools, mel takes a string specifying which axes to use (ex 'xy' == (True,True,False) )
+     setMaxRotateDampXRange
+     setMaxRotateDampXStrength
+     setMaxRotateDampYRange
+     setMaxRotateDampYStrength
+     setMaxRotateDampZRange
+     setMaxRotateDampZStrength
+     setMinRotateDampXRange
+     setMinRotateDampXStrength
+     setMinRotateDampYRange
+     setMinRotateDampYStrength
+     setMinRotateDampZRange
+     setMinRotateDampZStrength
++    setOrientation
+     setPreferedAngle setPreferredAngles #api takes an angle, mel uses current angle
++    setScaleOrientation
+     setSegmentScale
+     setStiffness
+    [pymel]
+     assumePreferredAngles
+     children
+     connect
+     disconnect
+     getAngleX
+     getAngleY
+     getAngleZ
+     getExists
+     getLimitSwitchX
+     getLimitSwitchY
+     getLimitSwitchZ
+     getLimitX
+     getLimitY
+     getLimitZ
+     getPosition
+     getRadius
+     getScaleCompensate
+     getStiffnessX
+     getStiffnessY
+     getStiffnessZ
+     insert
+     orientJoint
+     secondaryAxisOrient
+     setAngleX
+     setAngleY
+     setAngleZ
+     setLimitSwitchX
+     setLimitSwitchY
+     setLimitSwitchZ
+     setLimitX
+     setLimitY
+     setLimitZ
+     setPosition
+     setRadius
+     setScaleCompensate
+     setStiffnessX
+     setStiffnessY
+     setStiffnessZ
+     zeroScaleOrient
+CLASS MFnIkEffector ikEffector
+    [api]
+    [pymel]
+CLASS MFnFluid fluidShape
+    [api]
+     create2D
+     create3D
+     density
+     emitIntoArrays
+     falloff
+     fuel
+     getColorMode
+     getColors
+     getCoordinateMode
+     getCoordinates
+     getDensityMode
+     getDimensions
+     getFalloffMode
+     getForceAtPoint
+     getFuelMode
+     getResolution
+     getTemperatureMode
+     getVelocity
+     getVelocityMode
+     gridSize
+     index
+     pressure
+     setColorMode
+     setCoordinateMode
+     setDensityMode
+     setFalloffMode
+     setFuelMode
+     setSize
+     setTemperatureMode
+     setVelocityMode
+     temperature
+     toGridIndex
+     updateGrid
+     velocityGridSizes
+     voxelCenterPosition
+    [pymel]
+CLASS MFnLattice lattice
+    [api]
++    getDivisions
+     point
+<    reset latticeReset
++    setDivisions
+    [pymel]
+     getDeformerTools
+     getExclusive
+     getFreezeMapping
+     getGeometry
+     getLdivisions
+     prune
+     remove
+     removeTweaks
+     setFreezeMapping
+     setGeometry
+     setLdivisions
+CLASS MFnField field
+    [api]
+     falloffCurve
+     attenuation getAttenuation
+     getForceAtPoint
+     magnitude getMagnitude
+     maxDistance getMaxDistance
+     perVertex getPerVertex
+     useMaxDistance getUseMaxDistance
+     isFalloffCurveConstantOne
+     setAttenuation
+     setMagnitude
+     setMaxDistance
+     setPerVertex
+     setUseMaxDistance
+    [pymel]
+CLASS MFnUniformField uniformField
+    [api]
+     direction getDirection
+     setDirection
+    [pymel]
+     getDirectionX
+     getDirectionY
+     getDirectionZ
+     getPosition
+     getTorusSectionRadius
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setDirectionX
+     setDirectionY
+     setDirectionZ
+     setPosition
+     setTorusSectionRadius
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+CLASS MFnTurbulenceField turbulenceField
+    [api]
+     frequency getFrequency
+     phase getPhase
++    setFrequency
++    setPhase
+    [pymel]
+     getNoiseLevel
+     getNoiseRatio
+     getPhaseX
+     getPhaseY
+     getPhaseZ
+     getPosition
+     getTorusSectionRadius
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setNoiseLevel
+     setNoiseRatio
+     setPhaseX
+     setPhaseY
+     setPhaseZ
+     setPosition
+     setTorusSectionRadius
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+CLASS MFnVolumeAxisField volumeAxisField
+    [api]
+     detailTurbulence
+     direction getDirection
+     directionalSpeed 		getDirectionalSpeed
+     invertAttenuation 		getInvertAttenuation
+     speedAlongAxis 		getAlongAxis 	getSpeedAlongAxis
+     speedAroundAxis 		getAroundAxis 	getSpeedAroundAxis
+     speedAwayFromAxis 		getAwayFromAxis getSpeedAwayFromAxis
+     speedAwayFromCenter 	getAwayFromCenter 	getSpeedAwayFromCenter
+     turbulence 			getTurbulence
+     turbulenceFrequency 	getTurbulenceFrequency
+     turbulenceOffset 		getTurbulenceOffset
+     turbulenceSpeed 		getTurbulenceSpeed
+     setDirection
+     setDirectionalSpeed
++    setInvertAttenuation
+     setSpeedAlongAxis		setAlongAxis
+     setSpeedAroundAxis		setAroundAxis
+     setSpeedAwayFromAxis	setAwayFromAxis
+     setSpeedAwayFromCenter	setAwayFromCenter
++    setTurbulence
+     setTurbulenceFrequency
+     setTurbulenceOffset
++    setTurbulenceSpeed
+    [pymel]
+     getDetailTurbulence
+     getDirectionX
+     getDirectionY
+     getDirectionZ
+     getPosition
+     getTorusSectionRadius
+     getTurbulenceFrequencyX
+     getTurbulenceFrequencyY
+     getTurbulenceFrequencyZ
+     getTurbulenceOffsetX
+     getTurbulenceOffsetY
+     getTurbulenceOffsetZ
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setDetailTurbulence
+     setDirectionX
+     setDirectionY
+     setDirectionZ
+     setPosition
+     setTorusSectionRadius
+     setTurbulenceFrequencyX
+     setTurbulenceFrequencyY
+     setTurbulenceFrequencyZ
+     setTurbulenceOffsetX
+     setTurbulenceOffsetY
+     setTurbulenceOffsetZ
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+CLASS MFnGravityField gravityField
+    [api]
+     direction getDirection
+     setDirection
+    [pymel]
+     getDirectionX
+     getDirectionY
+     getDirectionZ
+     getPosition
+     getTorusSectionRadius
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setDirectionX
+     setDirectionY
+     setDirectionZ
+     setPosition
+     setTorusSectionRadius
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+CLASS MFnDragField dragField
+    [api]
+     direction getDirection
+     useDirection getUseDirection
+     setDirection
++    setUseDirection
+    [pymel]
+     getDirectionX
+     getDirectionY
+     getDirectionZ
+     getPosition
+     getTorusSectionRadius
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setDirectionX
+     setDirectionY
+     setDirectionZ
+     setPosition
+     setTorusSectionRadius
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+CLASS MFnRadialField radialField
+    [api]
+     radialType
+     setType
+    [pymel]
+CLASS MFnNewtonField newtonField
+    [api]
+     minDistance getMinDistance
+     setMinDistance
+    [pymel]
+CLASS MFnAirField airField
+    [api]
+     componentOnly getComponentOnly
+     direction getDirection
+     enableSpread getEnableSpread
+     inheritRotation getInheritRotation
+     inheritVelocity getInheritVelocity
+     speed getSpeed
+     spread getSpread
+     setComponentOnly
+     setDirection
++    setEnableSpread
++    setInheritRotation
++    setInheritVelocity
++    setSpeed
++    setSpread
+    [pymel]
+     fanSetup
+     getDirectionZ
+     getPosition
+     getTorusSectionRadius
+     getVelocityComponentOnly
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setDirectionZ
+     setPosition
+     setTorusSectionRadius
+     setVelocityComponentOnly
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+     wakeSetup
+     windSetup
+CLASS MFnVortexField vortexField
+    [api]
+     axis getAxis
+     setAxis
+    [pymel]
+     getAxisX
+     getAxisY
+     getAxisZ
+     getPosition
+     getTorusSectionRadius
+     getVolumeExclusion
+     getVolumeOffset
+     getVolumeShape
+     getVolumeSweep
+     setAxisX
+     setAxisY
+     setAxisZ
+     setPosition
+     setTorusSectionRadius
+     setVolumeExclusion
+     setVolumeOffset
+     setVolumeShape
+     setVolumeSweep
+CLASS MFnMesh mesh
+    [api]
+     addPolygon
+     allIntersections
+     anyIntersection
+     assignColor
+     assignColors
+     assignUV
+     assignUVs
+     autoUniformGridParams
+     binaryBlindDataComponentId
+     cachedIntersectionAcceleratorInfo
+     cleanupEdgeSmoothing
+     clearBlindData
+     clearColors
+     clearGlobalIntersectionAcceleratorInfo
+     clearUVs
+     closestIntersection
+     collapseEdges
+     collapseFaces
+     copy
+     copyInPlace
+     copyUVSetWithName
+     createBlindDataType
+     createColorSetDataMesh
+     createColorSetWithName
+     createInPlace
+     createUVSetDataMeshWithName
+     createUVSetWithName
+     deleteColorSet
+     deleteEdge
+     deleteFace
+     deleteUVSet
+     deleteVertex
+     duplicateFaces
+     extractFaces
+     extrudeEdges
+     extrudeFaces
+     freeCachedIntersectionAccelerator
+     generateSmoothMesh
+     getAssignedUVs
+     getAssociatedUVSetInstances
+     getAssociatedUVSetTextures
+     getBinaryBlindData
+     getBinormals
+     getBlindDataAttrNames
+     getBlindDataFaceVertexIndices
+     getBlindDataTypes
+     getBoolBlindData
+     getCheckSamePointTwice
+     getClosestNormal
+     getClosestPoint
+     getClosestPointAndNormal
+     getColor
+     getColorIndex
+     getColorRepresentation
+     getColorSetNames
+     getColors
+     getConnectedSetsAndMembers
+     getConnectedShaders
+     getCreaseEdges
+     getCreaseVertices
+     currentColorSetName getCurrentColorSetName
+     currentUVSetName getCurrentUVSetName
+     getDoubleBlindData
+     getEdgeVertices
+     getFaceNormalIds
+     getFaceUVSetNames
+     getFaceVertexBinormal
+     getFaceVertexBinormals
+     getFaceVertexBlindDataIndex
+     getFaceVertexColorIndex
+     getFaceVertexColors
+     getFaceVertexNormal
+     getFaceVertexNormals
+     getFaceVertexTangent
+     getFaceVertexTangents
+     getFloatBlindData
+     getHoles
+     getIntBlindData
+     isColorClamped getIsColorClamped
+     getNormalIds
+     getNormals
+     getPoint
+     getPointAtUV
+     getPoints
+     getPolygonNormal
+     getPolygonTriangleVertices
+     getPolygonUV
+     getPolygonUVid
+     getPolygonVertices
+     getStringBlindData
+     getTangentId
+     getTangents
+     getTriangles
+     getUV
+     getUVAtPoint
+     getUVSetFamilyNames
+     getUVSetNames
+     getUVSetsInFamily
+     getUVs
+     getUvShellsIds
+     getVertexColors
+     getVertexNormal
+     getVertices
+     globalIntersectionAcceleratorsInfo
+     hasAlphaChannels
+     hasBlindData
+     hasBlindDataComponentId
+     hasColorChannels
+     intersect
+     isBlindDataTypeUsed
+     isEdgeSmooth
+     isNormalLocked
+     isPolygonConvex
+     isUVSetPerInstance
+     lockFaceVertexNormals
+     lockVertexNormals
+     numColorSets
+     numColors
+     numEdges
+     numFaceVertices
+     numNormals
+     numPolygons
+     numUVSets
+     numUVs
+     numVertices
+     onBoundary
+     polygonVertexCount
+     removeFaceColors
+     removeFaceVertexColors
+     removeVertexColors
+     renameUVSet
+     setBinaryBlindData
+     setBoolBlindData
+     setCheckSamePointTwice
+     setColor
+     setColors
+     setCreaseEdges
+     setCreaseVertices
+     setCurrentColorSetName
+     setCurrentUVSetName
+     setDoubleBlindData
+     setEdgeSmoothing
+     setFaceColor
+     setFaceColors
+     setFaceVertexColor
+     setFaceVertexColors
+     setFaceVertexNormal
+     setFaceVertexNormals
+     setFloatBlindData
+     setIntBlindData
+     setIsColorClamped
+     setNormals
+     setPoint
+     setPoints
+     setSomeColors
+     setSomeUVs
+     setStringBlindData
+     setUV
+     setUVs
+     setVertexColor
+     setVertexColors
+     setVertexNormal
+     setVertexNormals
+     sortIntersectionFaceTriIds
+     split
+     stringBlindDataComponentId
+     subdivideEdges
+     subdivideFaces
+     syncObject
+     uniformGridParams
+     unlockFaceVertexNormals
+     unlockVertexNormals
+     updateSurface
+    [pymel]
+     Edge
+     EdgeArray
+     Face
+     FaceArray
+     Vertex
+     VertexArray
+     accurateEvaluation
+     area
+     boundingBox2d
+     boundingBoxComponent
+     boundingBoxComponent2d
+     displayStats
+     edge
+     edgeComponent
+     edgeCount
+     face
+     faceComponent
+     faceCount
+     format
+     shell
+     triangle
+     triangleComponent
+     triangleCount
+     uvComponent
+     uvSetName
+     uvcoord
+     uvcoordCount
+     vertex
+     vertexComponent
+     vertexCount
+     worldArea
+CLASS MFnNurbsCurve nurbsCurve
+    [api]
+     area
+     closestPoint
+     copy
+     createWithEditPoints
+     cv
+     cvs
+     degree
+     distanceToPoint
+     findParamFromLength
+     form
+     getCV
+     getCVs
+     getDerivativesAtParm
+     knot getKnot
+     getKnotDomain
+     getKnots
+     getParamAtPoint
+     getPointAtParam
+     hasHistoryOnCreate
+     isParamOnCurve
+     isPlanar
+     isPointOnCurve
+     length
+     makeMultipleEndKnots
+     normal
+     numCVs
+     numKnots
+     numSpans
+     removeKnot
+     reverse
+     setCV
+     setCVs
+     setKnot
+     setKnots
+     tangent
+     updateCurve
+    [pymel]
+CLASS MFnCamera camera
+    [api]
+     computeDepthOfField
+     copyViewFrom
+     aspectRatio getAspectRatio
+     getAspectRatioLimits
+     cameraScale getCameraScale
+     centerOfInterest getCenterOfInterest
+     centerOfInterestPoint getCenterOfInterestPoint
+     eyePoint getEyePoint
+     fStop getFStop
+     farClippingPlane getFarClippingPlane
+     farFocusDistance getFarFocusDistance
+     getFilmApertureLimits
+     filmFit getFilmFit
+     filmFitOffset getFilmFitOffset
+     getFilmFrustum
+     filmRollOrder getFilmRollOrder
+     filmRollValue getFilmRollValue
+     filmTranslateH getFilmTranslateH
+     filmTranslateV getFilmTranslateV
+     focalLength getFocalLength
+     getFocalLengthLimits
+     focusDistance getFocusDistance
+     horizontalFieldOfView getHorizontalFieldOfView
+     horizontalFilmAperture getHorizontalFilmAperture
+     horizontalFilmOffset getHorizontalFilmOffset
+     horizontalRollPivot getHorizontalRollPivot
+     horizontalShake getHorizontalShake
+     isOrtho 				getOrthographic  		getIsOrtho 
+     lensSqueezeRatio 		getLensSqueezeRatio
+     nearClippingPlane 		getNearClipPlane		getNearClippingPlane
+     nearFocusDistance 		getNearFocusDistance
+     orthoWidth 			getOrthographicWidth 	getOrthoWidth
+     overscan getOverscan
+     getPortFieldOfView
+     postScale getPostScale
+     preScale getPreScale
+     getRenderingFrustum
+     shakeEnabled getShakeEnabled
+     shakeOverscan getShakeOverscan
+     shakeOverscanEnabled getShakeOverscanEnabled
+     shutterAngle 		getShutterAngle
+     stereoHIT 			getStereoHorizontalImageTranslate getStereoHIT
+     stereoHITEnabled 	getStereoHorizontalImageTranslateEnabled  getStereoHITEnabled
+     tumblePivot getTumblePivot
+     usePivotAsLocalSpace getUsePivotAsLocalSpace
+     verticalFieldOfView getVerticalFieldOfView
+     verticalFilmAperture getVerticalFilmAperture
+     verticalFilmOffset getVerticalFilmOffset
+     verticalRollPivot getVerticalRollPivot
+     verticalShake getVerticalShake
+     getViewingFrustum
+     hasSamePerspective
+     isClippingPlanes getClippingPlanes
+     isDepthOfField getDepthOfField
+     isDisplayFilmGate getDisplayFilmGate
+     isMotionBlur getMotionBlur
+     isVerticalLock getVerticalLock
+     postProjectionMatrix
+     projectionMatrix
+     rightDirection
+     set
++    setAspectRatio
++    setCameraScale
++    setCenterOfInterest
+     setCenterOfInterestPoint
++    setClippingPlanes
++    setDepthOfField
++    setDisplayFilmGate
+     setEyePoint
++    setFStop
+     setFarClippingPlane 	setFarClipPlane
++    setFarFocusDistance
++    setFilmFit
++    setFilmFitOffset
++    setFilmRollOrder
++    setFilmRollValue
++    setFilmTranslateH
++    setFilmTranslateV
++    setFocalLength
++    setFocusDistance
++    setHorizontalFieldOfView
++    setHorizontalFilmAperture
++    setHorizontalFilmOffset
++    setHorizontalRollPivot
++    setHorizontalShake
+     setIsOrtho setOrthographic
++    setLensSqueezeRatio
++    setMotionBlur
+     setNearClippingPlane setNearClipPlane
+     setNearFarClippingPlanes
++    setNearFocusDistance
+     setOrthoWidth setOrthographicWidth
++    setOverscan
++    setPostScale
++    setPreScale
++    setShakeEnabled
++    setShakeOverscan
++    setShakeOverscanEnabled
++    setShutterAngle
+     setStereoHIT 			setStereoHorizontalImageTranslate
+     setStereoHITEnabled 	setStereoHorizontalImageTranslateEnabled
+     setTumblePivot
+     setUsePivotAsLocalSpace
++    setVerticalFieldOfView
++    setVerticalFilmAperture
++    setVerticalFilmOffset
++    setVerticalLock
++    setVerticalRollPivot
++    setVerticalShake
+     upDirection
+     viewDirection
+    [pymel]
+     addBookmark
+     applyBookmark
+     dolly
+     getDisplayFieldChart
+     getDisplayFilmOrigin
+     getDisplayFilmPivot
+     getDisplayResolution
+     getDisplaySafeAction
+     getDisplaySafeTitle
+     getFarClipPlane
+     getFilmAspect
+     getFov
+     getHomeCommand
+     getJournalCommand
+     getPosition
+     getRotation
+     getStartupCamera
+     getWorldCenterOfInterest
+     getWorldUp
+     listBookmarks
+     orbit
+     removeBookmark
+     roll
+     setDisplayFieldChart
+     setDisplayFilmOrigin
+     setDisplayFilmPivot
+     setDisplayResolution
+     setDisplaySafeAction
+     setDisplaySafeTitle
+     setFov
+     setHomeCommand
+     setJournalCommand
+     setPosition
+     setRotation
+     setStartupCamera
+     setWorldCenterOfInterest
+     setWorldUp
+     track
+     tumble
+     updateBookmark
+CLASS MFnPfxGeometry None
+    [api]
+     getBoundingBox
+     getLineData
+    [pymel]
+CLASS MFnNurbsSurface nurbsSurface
+    [api]
+     area
+     assignUV
+     assignUVs
+     boundaryType
+     clearUVs
+     closestPoint
+     copy
+     cv
+     cvsInU
+     cvsInV
+     degreeU
+     degreeV
+     distanceToPoint
+     edge
+     formInU
+     formInV
+     getAssignedUVs
+     getCV
+     getCVs
+     getDerivativesAtParm
+     getKnotDomain
+     knotInU getKnotInU
+     knotInV getKnotInV
+     getKnotsInU
+     getKnotsInV
+     getParamAtPoint
+     getPatchUV
+     getPatchUVid
+     getPatchUVs
+     getPointAtParam
+     getTangents
+     getTrimBoundaries
+     getUV
+     getUVs
+     hasHistoryOnCreate
+     intersect
+     isBezier
+     isFlipNorm
+     isFoldedOnBispan
+     isKnotU
+     isKnotV
+     isParamOnSurface
+     isPointInTrimmedRegion
+     isPointOnSurface
+     isTrimmedSurface
+     isUniform
+     normal
+     numBoundaries
+     numCVsInU
+     numCVsInV
+     numEdges
+     numKnotsInU
+     numKnotsInV
+     numNonZeroSpansInU
+     numNonZeroSpansInV
+     numPatches
+     numPatchesInU
+     numPatchesInV
+     numRegions
+     numSpansInU
+     numSpansInV
+     numUVs
+     projectCurve
+     removeKnotInU
+     removeKnotInV
+     removeOneKnotInU
+     removeOneKnotInV
+     setCV
+     setCVs
+     setKnotInU
+     setKnotInV
+     setKnotsInU
+     setKnotsInV
+     setUV
+     setUVs
+     tesselate
+     trim
+     trimWithBoundaries
+     updateSurface
+    [pymel]
+CLASS MFnParticleSystem particle
+    [api]
+     acceleration
+     age
+     betterIllum
+     castsShadows
+     count
+     deformedParticleShape
+     disableCloudAxis
+     emission
+     emit
+     evaluateDynamics
+     getPerParticleAttribute
+     hasEmission
+     hasLifespan
+     hasOpacity
+     hasRgb
+     isDeformedParticleShape
+     isPerParticleDoubleAttribute
+     isPerParticleIntAttribute
+     isPerParticleVectorAttribute
+     isValid
+     lifespan
+     mass
+     opacity
+     originalParticleShape
+     particleIds
+     particleName
+     position
+     position0
+     position1
+     primaryVisibility
+     radius
+     radius0
+     radius1
+     receiveShadows
+     renderType
+     rgb
+     saveInitialState
+     setPerParticleAttribute
+     surfaceShading
+     tailSize
+     threshold
+     velocity
+     visibleInReflections
+     visibleInRefractions
+    [pymel]
+     Point
+     PointArray
+     floatValue
+     getAttribute
+     getConserve
+     getCount
+     getDynamicAttrList
+     getInherit
+     getOrder
+     getParticleId
+     getPerParticleDouble
+     getPerParticleVector
+     getShapeName
+     num
+     pointCount
+     setAttribute
+     setConserve
+     setInherit
+     setOrder
+     setParticleId
+     setShapeName
+     vectorValue
+CLASS MFnSubd subdiv
+    [api]
+     collapse
+     convertToNurbs
+     copy
+     creasesClearAll
+     creasesGetAll
+     creasesSetAll
+     createBaseMesh
+     edgeAdjacentPolygon
+     edgeBetween
+     edgeChildren
+     edgeCount
+     edgeCreaseRelevant
+     edgeIsBoundary
+     edgeIsCreased
+     edgeIsValid
+     edgeSetCrease
+     edgeVertices
+     editsPending
+     editsUpdateAll
+     evaluateNormal
+     evaluatePosition
+     evaluatePositionAndNormal
+     getConnectedSetsAndMembers
+     getConnectedShaders
+     getCubicSpline
+     levelFullySubdivideTo
+     levelMaxAllowed
+     levelMaxCurrent
+     polygonBaseMeshAdd
+     polygonBaseMeshAddWithUVs
+     polygonChildren
+     polygonCount
+     polygonCountMaxWithGivenBaseMesh
+     polygonEdgeCount
+     polygonEdges
+     polygonGetCenterUV
+     polygonGetVertexUVs
+     polygonHasChildren
+     polygonHasVertexUVs
+     polygonIsValid
+     polygonSetUseUVs
+     polygonSetVertexUVs
+     polygonSubdivide
+     polygonVertexCount
+     polygonVertices
+     tesselate
+     tessellateViaNurbs
+     updateAllEditsAndCreases
+     updateSubdSurface
+     vertexAdjacentVertices
+     vertexBaseIndexFromVertexId
+     vertexBaseMeshAdd
+     vertexBaseMeshAddWithIndex
+     vertexBaseMeshGet
+     vertexBaseMeshGetWithId
+     vertexBaseMeshSet
+     vertexBaseMeshSetWithId
+     vertexChildren
+     vertexCount
+     vertexCreaseRelevant
+     vertexEditGet
+     vertexEditSet
+     vertexEditsClearAllNonBase
+     vertexEditsGetAllNonBase
+     vertexEditsSetAllNonBase
+     vertexIdFromBaseVertexIndex
+     vertexIncidentEdges
+     vertexIncidentPolygons
+     vertexIsBoundary
+     vertexIsCreased
+     vertexIsValid
+     vertexNormal
+     vertexPositionGet
+     vertexPositionGetNoEdit
+     vertexPositionSet
+     vertexSetCrease
+     vertexValence
+    [pymel]
+     cleanTopology
+     getCurrentLevel
+     getCurrentSubdLevel
+     getDeepestLevel
+     getDisplayLoad
+     getEdgeStats
+     getEdges
+     getFaceStats
+     getMaxPossibleLevel
+     getProxyMode
+     getSharpenedEdges
+     getSharpenedVerts
+     getSmallOffsets
+     getTweakedVerts
+CLASS MFnLight light
+    [api]
+     centerOfIllumination getCenterOfIllumination
+     color getColor
+     intensity getIntensity
+     numShadowSamples getNumShadowSamples
+     opticalFXvisibility getOpticalFXvisibility
+     rayDepthLimit getRayDepthLimit
+     shadowColor getShadowColor
+     useRayTraceShadows getUseRayTraceShadows
+     lightAmbient
+     lightDiffuse
+     lightDirection
+     lightIntensity
+     lightSpecular
+     setCenterOfIllumination
+     setColor
+     setIntensity
+     setNumShadowSamples
+     setOpticalFXvisibility
+     setRayDepthLimit
+     setShadowColor
+     setUseRayTraceShadows
+    [pymel]
+CLASS MFnAmbientLight ambientLight
+    [api]
+     ambientShade getAmbientShade
+     castSoftShadows getCastSoftShadows
+     shadowRadius getShadowRadius
++    setAmbientShade
+     setCastSoftShadows
+     setShadowRadius
+    [pymel]
+     getDiscRadius
+     getExclusive
+     getPosition
+x    getRgb	getColor
+     getRotation
+     getShadowDither
+     getShadowSamples
+     getSoftShadow
+     setDiscRadius
+     setExclusive
+     setPosition
+x    setRgb setColor
+     setRotation
+     setShadowDither
+     setShadowSamples
+     setSoftShadow
+CLASS MFnNonAmbientLight nonAmbientLightShapeNode
+    [api]
+     decayRate getDecayRate
+     setDecayRate
+    [pymel]
+CLASS MFnNonExtendedLight nonExtendedLightShapeNode
+    [api]
+     castSoftShadows getCastSoftShadows
+     depthMapBias getDepthMapBias
+     depthMapFilterSize getDepthMapFilterSize
+     depthMapResolution getDepthMapResolution
+     shadowRadius getShadowRadius
+     useDepthMapShadows getUseDepthMapShadows
+     setCastSoftShadows
+     setDepthMapBias
+     setDepthMapFilterSize
+     setDepthMapResolution
+     setShadowRadius
+     setUseDepthMapShadows
+    [pymel]
+CLASS MFnPointLight pointLight
+    [api]
+    [pymel]
+     getDiscRadius
+     getExclusive
+     getPosition
+x    getRgb getColor
+     getRotation
+     getShadowDither
+     getShadowSamples
+     getSoftShadow
+     setDiscRadius
+     setExclusive
+     setPosition
+x    setRgb setColor
+     setRotation
+     setShadowDither
+     setShadowSamples
+     setSoftShadow
+CLASS MFnVolumeLight volumeLight
+    [api]
+     colorRamp
+     arc getArc
+     coneEndRadius getConeEndRadius
+     emitAmbient getEmitAmbient
+     lightShape getLightShape
+     volumeLightDirection getVolumeLightDirection
+     penumbraRamp
+     setArc
+     setConeEndRadius
+     setEmitAmbient
+     setLightShape
+     setVolumeLightDirection
+    [pymel]
+CLASS MFnDirectionalLight directionalLight
+    [api]
+     shadowAngle getShadowAngle
+     setShadowAngle
+    [pymel]
+     getDiscRadius
+     getExclusive
+     getPosition
+x    getRgb getColor
+     getRotation
+     getShadowDither
+     getShadowSamples
+     getSoftShadow
+     setDiscRadius
+     setExclusive
+     setPosition
+x    setRgb setColor
+     setRotation
+     setShadowDither
+     setShadowSamples
+     setSoftShadow
+CLASS MFnSpotLight spotLight
+    [api]
+     barnDoorAngle getBarnDoorAngle
+     barnDoors getBarnDoors
+     coneAngle getConeAngle
+     dropOff getDropOff
+     endDistance getEndDistance
+     penumbraAngle getPenumbraAngle
+     startDistance getStartDistance
+     useDecayRegions getUseDecayRegions
+     setBarnDoorAngle
++    setBarnDoors
++    setConeAngle
++    setDropOff
+     setEndDistance
+     setPenumbraAngle
+     setStartDistance
+     setUseDecayRegions
+    [pymel]
+     getBottomBarnDoorAngle
+     getDiscRadius
+     getExclusive
+     getLeftBarnDoorAngle
+     getPenumbra
+     getPosition
+x    getRgb getColor
+     getRightBarnDoorAngle
+     getRotation
+     getShadowDither
+     getShadowSamples
+     getSoftShadow
+     getTopBarnDoorAngle
+     setBottomBarnDoorAngle
+     setDiscRadius
+     setExclusive
+     setLeftBarnDoorAngle
+     setPenumbra
+     setPosition
+x    setRgb setColor
+     setRightBarnDoorAngle
+     setRotation
+     setShadowDither
+     setShadowSamples
+     setSoftShadow
+     setTopBarnDoorAngle
+CLASS MFnAreaLight areaLight
+    [api]
+    [pymel]
+CLASS MFnInstancer instancer
+    [api]
+     allInstances
+     instancesForParticle
+     particleCount
+    [pymel]
+     addObject
+     getCycle
+     getCycleStep
+     getCycleStepUnits
+     getIndex
+     getLevelOfDetail
+     getObjectPosition
+     getObjectRotation
+     getObjectScale
+     getPointDataSource
+     getRotationOrder
+     getRotationUnits
+     getValueName
+     removeObject
+     setCycle
+     setCycleStep
+     setCycleStepUnits
+     setLevelOfDetail
+     setRotationOrder
+     setRotationUnits
+CLASS MFnPartition partition
+    [api]
+     addMember
+     isRenderPartition
+     removeMember
+    [pymel]
+     getRender
+CLASS MFnLayeredShader layeredShader
+    [api]
+     color getColor
+     compositingFlag getCompositingFlag
+     glowColor getGlowColor
+     hardwareColor getHardwareColor
+     hardwareShader getHardwareShader
+     transparency getTransparency
+     setColor
+     setCompositingFlag
+     setGlowColor
+     setHardwareColor
+     setHardwareShader
+     setTransparency
+    [pymel]
+CLASS MFnMotionPath motionPath
+    [api]
+     addAnimatedObject
+     getAnimatedObjects
+     bank getBank
+     bankScale getBankScale
+     bankThreshold getBankThreshold
+     follow getFollow
+     followAxis getFollowAxis
+     inverseNormal getInverseNormal
+     getOrientationMarker
+     pathObject getPathObject
+     getPositionMarker
+     uEnd getUEnd
+     uStart getUStart
+     uTimeEnd getUTimeEnd
+     uTimeStart getUTimeStart
+     upAxis getUpAxis
+     useNormal getUseNormal
+     numOrientationMarkers
+     numPositionMarkers
+     setBank
+     setBankScale
+     setBankThreshold
+     setFollow
+     setFollowAxis
+     setInverseNormal
+     setPathObject
+     setUEnd
+     setUStart
+     setUTimeEnd
+     setUTimeStart
+     setUpAxis
+     setUseNormal
+    [pymel]
+CLASS MFnAnisotropyShader anisotropic
+    [api]
+     anisotropicReflectivity getAnisotropicReflectivity
+     correlationX getCorrelationX
+     correlationY getCorrelationY
+     refractiveIndex getRefractiveIndex
+     rotateAngle getRotateAngle
+     roughness getRoughness
+     tangentUCamera getTangentUCamera
+     tangentVCamera getTangentVCamera
+     setAnisotropicReflectivity
+     setCorrelationX
+     setCorrelationY
+     setRefractiveIndex
+     setRotateAngle
+     setRoughness
+     setTangentUCamera
+     setTangentVCamera
+    [pymel]
+CLASS MFnGeometryFilter geometryFilter
+    [api]
+     deformerSet
+     envelope getEnvelope
+     getInputGeometry
+     getOutputGeometry
+     getPathAtIndex
+     groupIdAtIndex
+     indexForGroupId
+     indexForOutputConnection
+     indexForOutputShape
+     inputShapeAtIndex
+     numOutputConnections
+     outputShapeAtIndex
+     setEnvelope
+    [pymel]
+CLASS MFnBlendShapeDeformer blendShape
+    [api]
+     addBaseObject
+     addTarget
+     getBaseObjects
+     envelope getEnvelope
+     origin getOrigin
+     getTargets
+     weight getWeight
+     numWeights
+     removeTarget
++    setEnvelope
+     setOrigin
++    setWeight
+     targetItemIndexList
+     weightIndexList
+    [pymel]
+     getDeformerTools
+     getExclusive
+     getGeometry
+     getTarget
+     getWeightCount
+     inBetween
+     prune
+     remove
+     setGeometry
+     setTarget
+     setWeightCount
+CLASS MFnLatticeDeformer ffd
+    [api]
+     addGeometry
+     baseLattice
+     deformLattice
+     getAffectedGeometry
+     getDivisions
+     removeGeometry
+     resetLattice
+     setDivisions
+    [pymel]
+CLASS MFnSkinCluster skinCluster
+    [api]
+     getPointsAffectedByInfluence
+     getWeights
+     indexForInfluenceObject
+     influenceObjects
+     setWeights
+    [pymel]
+     addInfluence
+     baseShape
+     getDeformerTools
+     getDropoffRate
+     getExclusive
+     getGeometry
+     getInfluence
+     getLockWeights
+     getMaximumInfluences
+     getObeyMaxInfluences
+     getWeightedInfluence
+     ignoreBindPose
+     ignoreHierarchy
+     moveJointsMode
+     nurbsSamples
+     polySmoothness
+     prune
+     remove
+     removeInfluence
+     setDropoffRate
+     setGeometry
+     setInfluence
+     setLockWeights
+     setMaximumInfluences
+     setObeyMaxInfluences
+     smoothWeights
+     smoothWeightsMaxIterations
+     unbind
+     unbindKeepHistory
+     useGeometry
+     weight
+CLASS MFnWeightGeometryFilter weightGeometryFilter
+    [api]
+     getWeightPlugStrings
+     getWeights
+     setWeight
+     weightPlugStrings
+    [pymel]
+CLASS MFnWireDeformer wire
+    [api]
+     addGeometry
+     addWire
+     getAffectedGeometry
+     crossingEffect getCrossingEffect
+     getDropoffLocator
+     envelope getEnvelope
+     holdingShape getHoldingShape
+     localIntensity getLocalIntensity
+     rotation getRotation
+     wireDropOffDistance getWireDropOffDistance
+     wireScale getWireScale
+     numDropoffLocators
+     numWires
+     removeGeometry
++    setCrossingEffect
+     setDropoffLocator
++    setEnvelope
+     setHoldingShape
+     setLocalIntensity
+     setRotation
+     setWireDropOffDistance
+     setWireScale
+     wire
+    [pymel]
+     getDeformerTools
+     getDropoffDistance
+     getExclusive
+     getGeometry
+     getHolder
+     getLocalInfluence
+     getWire
+     getWireCount
+     prune
+     remove
+     setDropoffDistance
+     setGeometry
+     setHolder
+     setLocalInfluence
+     setWire
+     setWireCount
+CLASS MFnExpression expression
+    [api]
+     evaluate
+     getDefaultObject
+     expression getExpression
+     unitConversion getUnitConversion
+     isAnimated
++    setAnimated
+     setDefaultObject
+     setExpression
++    setUnitConversion
+    [pymel]
+     getAnimated
+     getAttribute
+     setAttribute
+CLASS MFnClip animClip
+    [api]
+     createInstancedClip
+     createSourceClip
+     getAbsolute
+     getAbsoluteChannelSettings
+     getCycle
+     getEnabled
+     getMemberAnimCurves
+     getPostCycle
+     getPreCycle
+     getScale
+     getSourceDuration
+     getSourceStart
+     getStartFrame
+     getTrack
+     getWeight
+     isInstancedClip
+     isPose
+     setAbsolute
+     setAbsoluteChannelSettings
+     setCycle
+     setEnabled
+     setPoseClip
+     setPostCycle
+     setPreCycle
+     setScale
+     setSourceData
+     setStartFrame
+     setTrack
+     setWeight
+     sourceClip
+    [pymel]
+CLASS MFnAnimCurve animCurve
+    [api]
+     addKey
+     addKeyframe
+     addKeys
+     animCurveType
+     evaluate
+     find
+     findClosest
+     inTangentType getInTangentType
+     isBreakdown getIsBreakdown
+     isWeighted getIsWeighted
+     outTangentType getOutTangentType
+     postInfinityType getPostInfinityType
+     preInfinityType getPreInfinityType
+     getTangent
+     tangentsLocked getTangentsLocked
+     time getTime
+     unitlessInput getUnitlessInput
+     value getValue
+     weightsLocked getWeightsLocked
+     isStatic
+     isTimeInput
+     isUnitlessInput
+     numKeyframes
+     numKeys
+     remove
+     setAngle
+     setInTangentType
+     setIsBreakdown
+     setIsWeighted
+     setOutTangentType
+     setPostInfinityType
+     setPreInfinityType
+     setTangent
+     setTangentsLocked
+     setTime
+     setUnitlessInput
+     setValue
+     setWeight
+     setWeightsLocked
+     timedAnimCurveTypeForPlug
+     unitlessAnimCurveTypeForPlug
+    [pymel]
+CLASS MFnIkSolver ikSolver
+    [api]
+     maxIterations getMaxIterations
+     tolerance getTolerance
++    setMaxIterations
+     setTolerance
+    [pymel]
+     getEpsilon
+     getSolverType
+     setEpsilon
+     setSolverType
+CLASS MFnSet objectSet
+    [api]
+     addMember
+     addMembers
++    clear
+     annotation getAnnotation
+     getIntersection
+     getMembers
+     getUnion
+     hasRestrictions
+     intersectsWith
+     isMember
+     removeMember
+     removeMembers
+     restriction
+     setAnnotation
+    [pymel]
+     add
+     copy
+     difference
+     difference_update
+     discard
+     elements
+     flatten
+     intersection
+     intersection_update
+     issubset
+     issuperset
+     remove
+     subtract
+     symmetric_difference
+     union
+     update
+CLASS MFnCharacter character
+    [api]
+     addCurveToClip
+     attachInstanceToCharacter
+     attachSourceToCharacter
+     blendExists
+     createBlend
+     getBlend
+     getBlendClips
+     getBlendCount
+     getCharacterThatOwnsPlug
+     getClipScheduler
+     getMemberPlugs
+     getScheduledClip
+     getScheduledClipCount
+     getSourceClip
+     getSourceClipCount
+     getSubCharacters
+     removeBlend
+    [pymel]
+     addElement
+     forceElement
+     getCharacterPlug
+     getIsIntersecting
+     getIsMember
+     getLibrary
+     getMemberIndex
+     getNodesOnly
+     getOffsetNode
+     getScheduler
+     getSubtract
+     getText
+     getUserAlias
+     include
+     setText
+CLASS MFnRenderLayer renderLayer
+    [api]
+     currentLayer
+     defaultRenderLayer
+     findLayerByName
+     inCurrentRenderLayer
+     inLayer
+     isPlugAdjusted
+     layerChildren
+     listAllRenderLayers
++    listMembers
+    [pymel]
+     addAdjustments
+     addMembers
+     listAdjustments
+     removeAdjustments
+     removeMembers
+     setCurrent
+CLASS MFnLambertShader lambert
+    [api]
+     ambientColor getAmbientColor
+     color getColor
+     diffuseCoeff getDiffuseCoeff
+     glowIntensity getGlowIntensity
+     hideSource getHideSource
+     incandescence getIncandescence
+     refractedRayDepthLimit getRefractedRayDepthLimit
+     refractiveIndex getRefractiveIndex
+     rtRefractedColor getRtRefractedColor
+     translucenceCoeff getTranslucenceCoeff
+     transparency getTransparency
+     setAmbientColor
+     setColor
+     setDiffuseCoeff
+     setGlowIntensity
+     setHideSource
+     setIncandescence
+     setRefractedRayDepthLimit
+     setRefractiveIndex
+     setRtRefractedColor
+     setTranslucenceCoeff
+     setTransparency
+    [pymel]
+CLASS MFnBlinnShader blinn
+    [api]
+     eccentricity getEccentricity
+     specularRollOff getSpecularRollOff
+     setEccentricity
+     setSpecularRollOff
+    [pymel]
+CLASS MFnPhongShader phong
+    [api]
+     cosPower getCosPower
+     setCosPower
+    [pymel]
+CLASS MFnPhongEShader phongE
+    [api]
+     highlightSize getHighlightSize
+     roughness getRoughness
+     whiteness getWhiteness
+     setHighlightSize
+     setRoughness
+     setWhiteness
+    [pymel]
