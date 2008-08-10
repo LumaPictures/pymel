@@ -178,7 +178,6 @@ class FormLayout(UI):
     def hDistribute(self,*ratios):
         AutoLayout(self, orientation=AutoLayout.HORIZONTAL, ratios=ratios).redistribute()
         
-        
 class TextScrollList(UI):
     __metaclass__ = factories.metaNode
     def extend( self, appendList ):
@@ -216,7 +215,7 @@ class OptionMenu(UI):
         for t in self.getItemListLong() or []:
             cmds.deleteUI(t)
     addItems = addMenuItems
-    
+
     
 #===============================================================================
 # Provides classes and functions to facilitate UI creation in Maya
@@ -272,7 +271,7 @@ class AutoLayout(FormLayout):
         self.ori = orientation
         self.reversed = reversed
         self.ratios = ratios and list(ratios) or []
-        
+    
     def flip(self):
         """Flip the orientation of the layout """
         self.ori = 1-self.ori
@@ -292,10 +291,10 @@ class AutoLayout(FormLayout):
     def redistribute(self,*ratios):
         """ Redistribute the child controls based on the given ratios.
             If not ratios are given (or not enough), 1 will be used 
-            win=Window(create=1)
+            win=window()
             win.show()
             al=AutoLayout(create=1,parent=win)
-            [pm.Button(create=1,l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
+            [pm.button(l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
             al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
         """
         
@@ -334,6 +333,8 @@ class AutoLayout(FormLayout):
 
 
 def autoLayout(*args, **kwargs):
+    __doc__ = AutoLayout.__doc__
+    
     kw = {}
     for k in kwargs.keys():
         if k in ["orientation", "spacing", "reversed", "ratios"]:
@@ -344,10 +345,14 @@ def autoLayout(*args, **kwargs):
     return AutoLayout(formLayout(*args, **kwargs),**kw)
 
 def horizontalLayout(*args, **kwargs):
+    __doc__ = AutoLayout.__doc__
+    
     kwargs["orientation"] = AutoLayout.HORIZONTAL
     return autoLayout(*args, **kwargs)
 
 def verticalLayout(*args, **kwargs):
+    __doc__ = AutoLayout.__doc__
+    
     kwargs["orientation"] = AutoLayout.VERTICAL
     return autoLayout(*args, **kwargs)
 
