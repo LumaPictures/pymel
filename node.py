@@ -1172,22 +1172,10 @@ class DependNode( _BaseObj ):
         
         return listConnections(self, **kwargs)                            
 
-    def sources(self, **kwargs):
-        'listConnections -source 1 -destination 0'
-        kwargs['source'] = True
-        kwargs.pop('s', None )
-        kwargs['destination'] = False
-        kwargs.pop('d', None )
-        return listConnections(self, **kwargs)
+    sources = inputs
+
+    destinations = outputs
     
-    def destinations(self, **kwargs):
-        'listConnections -source 0 -destination 1'
-        kwargs['source'] = False
-        kwargs.pop('s', None )
-        kwargs['destination'] = True
-        kwargs.pop('d', None )
-        
-        return listConnections(self, **kwargs)    
         
     def shadingGroups(self):
         """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes """
@@ -1794,6 +1782,9 @@ class Mesh(SurfaceShape):
             return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
         normal = property(getNormal)
         
+        def getCenter(self):
+            return pointPosition(self.vertices, average=True)
+        
         def toEdges(self):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), faceToEdge=1)[0].split()[2:] )        
         edges = property(toEdges)
@@ -1805,11 +1796,19 @@ class Mesh(SurfaceShape):
     class Edge(Component):
         def __str__(self):
             return '%s.e[%s]' % (self._node, self._item)
-            
+
+        def getCenter(self):
+            return pointPosition(self.vertices, average=True)
+                    
         def toFaces(self):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )        
         faces = property(toFaces)
         
+        def toVertices(self):
+            return map( self._node.vtx.__getitem__, cmds.polyInfo( str(self), edgeToVertex=1)[0].split()[2:] )        
+        vertices = property(toVertices)
+        
+
     class Vertex(Component):
         def __str__(self):
             return '%s.vtx[%s]' % (self._node, self._item)
@@ -1821,6 +1820,9 @@ class Mesh(SurfaceShape):
         def toFaces(self):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )        
         faces = property(toFaces)
+        
+        def pointPosition(self):
+            return pointPosition(str(self))
     
     class Map(Component):
         def __str__(self):
@@ -2200,7 +2202,10 @@ _createClasses()
 def PyNode(strObj, nodeType=None):
     """Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
     for your object."""
-    
+
+    # the if statement was failing for some types (ex: pymel.node.Vertex), 
+    # so forcing into unicode string:
+    strObj = unicode(strObj)  
     try:
         if '.' in strObj:
             obj = Attribute(strObj)
