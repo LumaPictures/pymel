@@ -654,7 +654,7 @@ Modifications:
         else:
             return points
     
-    if isinstance(obj, node.Attribute):
+    if "." in obj:
         return Vector(cmds.pointPosition(obj))
     else:
         return obj.getPivots(absolute=1,worldSpace=1)[0]
@@ -1343,6 +1343,44 @@ def lsUI( **kwargs ):
     if tail is not None: kwargs['tail'] = tail
     return map( ui.PyUI, util.listForNone( cmds.lsUI( **kwargs ) ) )
 
+
+def referenceQuery(*args, **kwargs):
+    if kwargs.get("editStrings", kwargs.get("es")):
+        target = node.PyNode(args[0])
+        if target.exists():
+            if target.type()=='reference':
+                fr = FileReference(refnode=target)
+            else:
+                fr = target.referenceFile()
+        else:
+            target = path(target)
+            if target.isfile():
+                fr = FileReference(path=target)
+                
+        failedEdits = kwargs.pop('failedEdits', kwargs.pop('fld', None))
+        successfulEdits = kwargs.pop('successfulEdits', kwargs.pop('scs', None))
+        modes = []
+        if failedEdits is None and successfulEdits is None:
+            modes = [True, False]
+        else:
+            if failedEdits:     modes.append(False)
+            if successfulEdits: modes.append(True)
+                    
+        allEdits = []
+        for mode in modes:
+            edits = cmds.referenceQuery(fr,
+                                        failedEdits = not mode, 
+                                        successfulEdits = mode, 
+                                        **kwargs)
+            allEdits.extend(ReferenceEdit(edit, fr, mode) for edit in edits)
+        return allEdits
+    else:
+        return cmds.referenceQuery(*args, **kwargs)
+
+    
+
+
+
 #--------------------------
 # New Commands
 #--------------------------
@@ -1395,6 +1433,8 @@ class Path(pathClass):
     def type(self):
         return cmds.file( self, q=1, type=1 )
         
+
+
 class FileReference(Path):
     """A class for manipulating references which inherits Path and path.  you can create an 
     instance by supplying the path to a reference file, its namespace, or its reference node to the 
@@ -1508,7 +1548,62 @@ class FileReference(Path):
         return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))    
     refNode = util.cacheProperty( _getRefNode, '_refNode')
 
+    def getReferenceEdits(self, **kwargs):
+        kwargs.pop('editStrings',None)
+        kwargs.pop('es',None)
+        edits = referenceQuery(self.refNode, editStrings=True, **kwargs)
+        return edits
+
+class ReferenceEdit(str):
+    def __new__(cls, editStr, fileReference=None, successful=None):
+        
+        def safePyNode(n):
+            try:
+                n = eval(n)
+            except: pass
+            return node.PyNode(n)
+
+        self = str.__new__(cls, editStr)
+        
+        elements = editStr.split()
+        self.type = elements.pop(0)
+        self.fileReference = fileReference
+        self.successful = successful
+        self.targetNode = None
+        self.targetNodeName = None
+                
+        if self.type=="addAttr":
+            n = "%s.%s" % (elements.pop(-1), elements.pop(1))
+        elif self.type=="disconnectAttr":
+            n = elements.pop(-2)
+        elif self.type=="parent":
+            n = elements.pop(-1)
+            if not elements[-1]=="-w":
+                self.targetNode = safePyNode(elements.pop(-1))
+        elif self.type=="connectAttr":
+            n = elements.pop(0)
+            self.targetNode = safePyNode(elements.pop(0))
+        else:
+            n = elements.pop(0)
+        
+        self.parameters = elements
+        self.node = safePyNode(n)
+        self.nodeName = self.node.split("|")[-1]
+        if self.targetNode:
+            self.targetNodeName = self.targetNode.split("|")[-1]
+         
+        return self
+        
+
+
+
+
+
+
+
+
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+
 
 def _createFunctions():
     for funcName in factories.moduleCmds['core']:
@@ -1519,5 +1614,8 @@ def _createFunctions():
     for funcName in factories.getUncachedCmds():
         setattr( _thisModule, funcName, getattr( cmds, funcName) )
 _createFunctions()
+
+
+
 
 #factories.createFunctions( _thisModule, None )
