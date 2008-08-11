@@ -654,7 +654,7 @@ Modifications:
         else:
             return points
     
-    if "." in obj:
+    if "." in str(obj):
         return Vector(cmds.pointPosition(obj))
     else:
         return obj.getPivots(absolute=1,worldSpace=1)[0]
