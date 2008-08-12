@@ -1569,28 +1569,24 @@ class ReferenceEdit(str):
         self.type = elements.pop(0)
         self.fileReference = fileReference
         self.successful = successful
-        self.targetNode = None
-        self.targetNodeName = None
                 
         if self.type=="addAttr":
-            n = "%s.%s" % (elements.pop(-1), elements.pop(1))
+            self.node = safePyNode(elements.pop(-1))
+            self.attr = elements.pop(1)
         elif self.type=="disconnectAttr":
-            n = elements.pop(-2)
+            self.node = safePyNode(elements.pop(-2))
         elif self.type=="parent":
-            n = elements.pop(-1)
+            self.node = safePyNode(elements.pop(-1))
             if not elements[-1]=="-w":
                 self.targetNode = safePyNode(elements.pop(-1))
         elif self.type=="connectAttr":
-            n = elements.pop(0)
+            self.node = safePyNode(elements.pop(0))
             self.targetNode = safePyNode(elements.pop(0))
         else:
-            n = elements.pop(0)
+            self.node = safePyNode(elements.pop(0))
         
-        self.parameters = elements
-        self.node = safePyNode(n)
-        self.nodeName = self.node.split("|")[-1]
-        if self.targetNode:
-            self.targetNodeName = self.targetNode.split("|")[-1]
+        self.parameters = map(str, elements)
+        
          
         return self
         
