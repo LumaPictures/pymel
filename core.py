@@ -1551,44 +1551,54 @@ class FileReference(Path):
     def getReferenceEdits(self, **kwargs):
         kwargs.pop('editStrings',None)
         kwargs.pop('es',None)
-        edits = referenceQuery(self.refNode, editStrings=True, **kwargs)
+        edits = referenceQuery(self.refNode, editStrings=True, onReferenceNode=self.refNode, **kwargs)
         return edits
+
+def _safeEval(s):
+    try:
+        return eval(s)
+    except:
+        return s
+def _safePyNode(n):
+    return node.PyNode(_safeEval(n))
 
 class ReferenceEdit(str):
     def __new__(cls, editStr, fileReference=None, successful=None):
-        
-        def safePyNode(n):
-            try:
-                n = eval(n)
-            except: pass
-            return node.PyNode(n)
 
         self = str.__new__(cls, editStr)
         
-        elements = editStr.split()
-        self.type = elements.pop(0)
+        self.type = self.split()[0]
         self.fileReference = fileReference
         self.successful = successful
-                
-        if self.type=="addAttr":
-            self.node = safePyNode(elements.pop(-1))
-            self.attr = elements.pop(1)
-        elif self.type=="disconnectAttr":
-            self.node = safePyNode(elements.pop(-2))
-        elif self.type=="parent":
-            self.node = safePyNode(elements.pop(-1))
-            if not elements[-1]=="-w":
-                self.targetNode = safePyNode(elements.pop(-1))
-        elif self.type=="connectAttr":
-            self.node = safePyNode(elements.pop(0))
-            self.targetNode = safePyNode(elements.pop(0))
-        else:
-            self.node = safePyNode(elements.pop(0))
-        
-        self.parameters = map(str, elements)
-        
-         
         return self
+    
+    def getEditData(self):
+        elements = self.split()
+        editData = {}
+        if self.type=="addAttr":
+            editData['node'] = _safePyNode(elements.pop(-1))
+            editData['attribute'] = elements.pop(1)
+        elif self.type=="setAttr":
+            editData['value'] = _safeEval(elements.pop(-1))
+            editData['node'] = _safePyNode(elements.pop(-1))
+        elif self.type=="parent":
+            editData['node'] = _safePyNode(elements.pop(-1))
+            if elements[-1]=="-w":
+                editData['child'] = '<World>'
+            else:
+                editData['child'] = _safePyNode(elements.pop(-1))
+        elif self.type=="disconnectAttr":
+            editData['sourceNode'] = _safePyNode(elements.pop(-2))
+            editData['node'] = _safePyNode(elements.pop(-1))
+        elif self.type=="connectAttr":
+            editData['sourceNode'] = _safePyNode(elements.pop(-2))
+            editData['node'] = _safePyNode(elements.pop(-1))
+        else:
+            editData['node'] = _safePyNode(elements.pop(0))
+        editData['parameters'] = map(str, elements)
+        return editData
+
+    editData = property(lambda self: self.getEditData()) 
         
 
 
