@@ -1550,28 +1550,13 @@ overrideMethods = {}
 overrideMethods['Constraint'] = ('getWeight', 'setWeight')
 
 
-#_api = __import__( 'pymel.api', globals(), locals(), [''])
-#_gen = __import__( 'pymel.core.general', globals(), locals(), [''])
-#PYNODE = None
-
-class Holder(util.Singleton):
-    def __init__(self):
-        self.obj = None
-    def store( self, obj ):
-        print "storing", obj
-        self.obj = obj
-    def get(self):
-        return self.obj
-
-GenHolder = Holder()
-
 class ApiTypeRegister(object):
     """"
     Use this class to register the classes and functions used to wrap api methods.
     
-    there are 4 dictionaries maintained by this class:
+    there are 4 dictionaries of functions maintained by this class:
         - inCast : for casting input arguments to a type that the api method expects
-        - outCast: for casting the result of the api method to a type that pymel expects
+        - outCast: for casting the result of the api method to a type that pymel expects (outCast expect two args (self, obj) )
         - refInit: for initializing types passed by reference or via pointer
         - refCast: for casting the pointers to pymel types after they have been passed to the method
         
@@ -1627,7 +1612,7 @@ class ApiTypeRegister(object):
         if outCast:
             cls.outCast[apiTypename] = outCast
         else:
-            cls.outCast[apiTypename] = wrappedType
+            cls.outCast[apiTypename] = lambda self, x: wrappedType(x)
             
         # register argument casting
         if inCast:
@@ -1663,10 +1648,10 @@ class ApiTypeRegister(object):
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiArrayType == _api.MDagPathArray:
                         cls.refCast[arrayTypename] = lambda x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
-                        cls.outCast[arrayTypename] = lambda x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.outCast[arrayTypename] = lambda self, x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
                     else:
                         cls.refCast[arrayTypename] = lambda x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
-                        cls.outCast[arrayTypename] = lambda x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
+                        cls.outCast[arrayTypename] = lambda self, x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
                         
                 except AttributeError:
                     pass
@@ -1755,7 +1740,7 @@ class ApiArgUtil(object):
                 assert argtype == cls.__name__     
                 return cls(input)
             
-    def castResult(self, result, cls):
+    def castResult(self, instance, result ):
         returnType = self.methodInfo['returnType']
         if returnType:
             # enums
@@ -1769,8 +1754,9 @@ class ApiArgUtil(object):
     
             else:
                 try:
-                    return ApiTypeRegister.outCast[returnType]( result )  
+                    return ApiTypeRegister.outCast[returnType]( instance, result )  
                 except:
+                    cls = instance.__class__
                     assert returnType == cls.__name__
                     return cls(result)
                 
@@ -1846,10 +1832,6 @@ def interface_wrapper( doer, args=[], defaults=[] ):
     
 def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
     #getattr( _api, apiClassName )
-    
-    #general = GenHolder.get()
-    #_api = general.api
-    #PYNODE = general.PyNode
 
     apiClassName = apiClass.__name__
     try:
@@ -1898,16 +1880,16 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
                         #outTypeIndex.append( i )
                     i+=1
                                       
-                print "%s.%s: arglist %s" % ( apiClassName, methodName, argList)
+                #print "%s.%s: arglist %s" % ( apiClassName, methodName, argList)
                 
                 if argHelper.isStatic():
                     result = method( *argList )
                 else:
                     result = method( self, *argList )
                       
-                print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
+                #print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
                 
-                result = argHelper.castResult(result, self.__class__) 
+                result = argHelper.castResult( self, result ) 
                 
                 #print methodName, "result (post)", result
                  
@@ -2113,9 +2095,6 @@ class MetaMayaNodeWrapper2(type) :
 
     def __new__(cls, classname, bases, classdict):
 
-        #general = GenHolder.get()
-        #_api = general.api
-    
         nodeType = util.uncapitalize(classname)
         _api.addMayaType( nodeType )
   
@@ -2249,6 +2228,7 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
                             print '    %s %s(%s)' % ( returnType, method, ','.join( types ) )
                         validMethods.append(method)
     return validMethods
+
 def readClassAnalysis( filename ):
     f = open(filename)
     info = {}
@@ -2265,6 +2245,38 @@ def readClassAnalysis( filename ):
                 info[currentClass][currentSection] = {}
         else:
             n = len(buf)
+            if n==2:
+                info[currentClass][currentSection][buf[0]] = buf[1]
+            elif n==1:
+                pass
+                #info[currentClass][currentSection][buf[0]] = None
+            else:
+                pass
+    f.close()
+    print info
+    return info
+
+def fixClassAnalysis( filename ):
+    f = open(filename)
+    info = {}
+    currentClass = None
+    currentSection = None
+    lines = f.readlines()
+    for i, line in enumerate(lines):
+        buf = line.split()
+        if buf[0] == 'CLASS':
+            currentClass = buf[1]
+            info[currentClass] = {}
+        elif buf[0].startswith('['):
+            if currentSection in ['shared_leaf', 'api', 'pymel']:
+                currentSection = buf.strip('[]')
+                info[currentClass][currentSection] = {}
+        else:
+            isAutoNamed, nativeName, pymelName, failedAutoName = re.match( '([+])?\s+([a-zA-Z0-9]+)(?:\s([a-zA-Z0-9]+))?(?:\s([a-zA-Z0-9]+))?', line ).groups()
+            if isAutoNamed and pymelName is None:
+                pymelName = nativeName
+            n = len(buf)
+            
             if n==2:
                 info[currentClass][currentSection][buf[0]] = buf[1]
             elif n==1:
@@ -2350,7 +2362,7 @@ def analyzeApiClass( apiTypeStr, apiTypeParentStr ):
 #                    prefix = '-   '
                 else:
                     prefix = '    '
-                if x in reversePymelNames: print '    ', reversePymelNames[x], x 
+                if x in reversePymelNames: print prefix, reversePymelNames[x], x 
                 else: print prefix, x
             
             print "    [pymel]"

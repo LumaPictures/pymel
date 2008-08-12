@@ -146,6 +146,8 @@ Maya Bug Fix:
     - even with the 'force' flag enabled, the command would raise an error if the connection already existed. 
     
     """
+    source = util.stringify(source)
+    destination = util.stringify(destination)
     if kwargs.get('force', False) or kwargs.get('f', False):    
         try:
             cmds.connectAttr( source, destination, **kwargs )
@@ -159,15 +161,18 @@ def disconnectAttr( source, destination=None, **kwargs ):
 Modifications:
     - If no destination is passed, all inputs and outputs will be disconnected from the attribute
     """
-    source = Attribute(source)
+    
     if destination:
+        source = util.stringify(source)
+        destination = util.stringify(destination)
         return cmds.disconnectAttr( source, destination, **kwargs )
     else:
-        for source, destination in source.outputs( connections=True, plugs=True ):
-            cmds.disconnectAttr( source, destination, **kwargs )
+        source = util.stringify(source)
+        for src, dest in cmds.listConnections( source, source=False, destination=True, connections=True, plugs=True ):
+            cmds.disconnectAttr( src, dest, **kwargs )
             
-        for destination, source in source.inputs( connections=True, plugs=True ):
-            cmds.disconnectAttr( source, destination, **kwargs )    
+        for dest, src in cmds.listConnections( source, source=True, destination=False, connections=True, plugs=True ):
+            cmds.disconnectAttr( src, dest, **kwargs )    
         
 def getAttr( attr, default=None, **kwargs ):
     """
@@ -698,7 +703,12 @@ def duplicate( *args, **kwargs ):
     """
 Modifications:
     - returns wrapped classes
+    - returnRootsOnly is forced on. This is because the duplicate command does not use full paths when returning
+    the names of duplicated objects and will fail if the name is not unique. Rather than return a mixed list of PyNodes and
+    strings, I thought it best to give more predictable results.
     """
+    kwargs['returnRootsOnly'] = True
+    kwargs.pop('rr', None)
     return map(PyNode, cmds.duplicate( *args, **kwargs ) )
 
     
@@ -1202,14 +1212,10 @@ class PyNode(ProxyUnicode):
                 
     future = listFuture
 
-_factories.GenHolder.store(PyNode)
 _factories.PyNodeNamesToPyNodes()['PyNode'] = PyNode
-_factories.ApiTypeRegister.register('MObject', PyNode, inCast=lambda x: PyNode(x).__apimobject__() )
-_factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=lambda x: PyNode(x).__apimdagpath__() )
-_factories.ApiTypeRegister.register('MPlug', PyNode, inCast=lambda x: PyNode(x).__apimplug__() )
+
                     
 from animation import listAnimatable as _listAnimatable
-
 from system import namespaceInfo
 
 #-----------------------------------------------
@@ -1326,6 +1332,8 @@ class Component(object):
 
                 
 class Attribute(PyNode):
+    __metaclass__ = MetaMayaNodeWrapper
+    apicls = api.MPlug
     """
     Attributes
     ==========
@@ -1402,8 +1410,8 @@ class Attribute(PyNode):
     """
     attrItemReg = re.compile( '\[(\d+)\]$')
     
-    #def __repr__(self):
-    #    return "Attribute('%s')" % self
+    def __init__(self, *args, **kwargs ):
+        self.apicls.__init__(self, self._apiobject )
     
     def __apiobject__(self) :
         "Return the default API object (MPlug) for this attribute, if it is valid"
@@ -1447,6 +1455,7 @@ class Attribute(PyNode):
 #    def __getitem__(self, item):
 #       #return Attribute('%s[%s]' % (self, item) )
 #       return Attribute( self._node, self.__apiobject__().elementByLogicalIndex(item) )
+
     __getitem__ = _factories.wrapApiMethod( api.MPlug, 'elementByLogicalIndex', '__getitem__' )
     #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex' )
     
@@ -1515,39 +1524,14 @@ class Attribute(PyNode):
     
     def attributeNames(self):
         pass
-
-
-       
-    def array(self):
-        """
-        Returns the array (multi) attribute of the current element
-            >>> n = Attribute('lambert1.groupNodes[0]')
-            >>> n.array()
-            'lambert1.groupNode'
-        """
-        try:
-            return Attribute( self._node, self.__apiobject__().array() )
-            #att = Attribute(Attribute.attrItemReg.split( self )[0])
-            #if att.isMulti() :
-            #    return att
-            #else :
-            #    raise TypeError, "%s is not a multi attribute" % self
-        except:
-            raise TypeError, "%s is not a multi attribute" % self
-
-
-    # TODO : do not list all children elements by default, allow to do 
-    #        skinCluster1.weightList.elements() for first level elements weightList[x]
-    #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
-
-    def elements(self):
-        return cmds.listAttr(self.array(), multi=True)
-        
+      
     
     def plugNode(self):
         'plugNode'
         #return PyNode( str(self).split('.')[0])
         return self._node
+    
+    node = plugNode
                 
     def plugAttr(self):
         """plugAttr
@@ -1564,13 +1548,44 @@ class Attribute(PyNode):
             'tx'
         """
         return Attribute.attrItemReg.split( self.name().split('.')[-1] )[0]
-        
-    node = plugNode
     
+    def longName(self):
+        "attributeQuery -longName"
+        return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), longName=True)
+        
+    def shortName(self):
+        "attributeQuery -shortName"
+        return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), shortName=True)
+        
     def nodeName( self ):
         'basename'
         return self.plugNode.name()
-    
+
+       
+    def array(self):
+        """
+        Returns the array (multi) attribute of the current element
+            >>> n = Attribute('initialShadingGroup.groupNodes[0]')
+            >>> n.array()
+            'initialShadingGroup.groupNode'
+        """
+        try:
+            return Attribute( self._node, self.__apimplug__().array() )
+            #att = Attribute(Attribute.attrItemReg.split( self )[0])
+            #if att.isMulti() :
+            #    return att
+            #else :
+            #    raise TypeError, "%s is not a multi attribute" % self
+        except:
+            raise TypeError, "%s is not a multi attribute" % self
+
+
+    # TODO : do not list all children elements by default, allow to do 
+    #        skinCluster1.weightList.elements() for first level elements weightList[x]
+    #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
+
+    def elements(self):
+        return cmds.listAttr(self.array(), multi=True)
 #    def item(self):
 #        try: 
 #            return int(Attribute.attrItemReg.search(self).group(1))
@@ -1667,14 +1682,14 @@ class Attribute(PyNode):
     # Modification
     #----------------------
     
-    def alias(self, **kwargs):
-        """aliasAttr"""
-        return cmds.aliasAttr( self, **kwargs )    
+#    def alias(self, **kwargs):
+#        """aliasAttr"""
+#        return cmds.aliasAttr( self, **kwargs )    
                             
-    def add( self, **kwargs):    
-        kwargs['longName'] = self.plugAttr()
-        kwargs.pop('ln', None )
-        return addAttr( self.node(), **kwargs )    
+#    def add( self, **kwargs):    
+#        kwargs['longName'] = self.plugAttr()
+#        kwargs.pop('ln', None )
+#        return addAttr( self.node(), **kwargs )    
                     
     def delete(self):
         """deleteAttr"""
@@ -1730,18 +1745,20 @@ class Attribute(PyNode):
 #        "getAttr -keyable"
 #        return cmds.getAttr(self, keyable=True)
 #
-#    def setKeyable(self, state):
-#        "setAttr -keyable"
-#        return cmds.setAttr(self, keyable=state)
+    def setKeyable(self, state):
+        "setAttr -keyable"
+        return cmds.setAttr(self, keyable=state)
 #    
 #    def isLocked(self):
 #        "getAttr -lock"
 #        return cmds.getAttr(self, lock=True)    
-#
-#    def setLocked(self, state):
-#        "setAttr -locked"
-#        return cmds.setAttr(self, lock=state)
-        
+#    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked'  )
+
+    def setLocked(self, state):
+        "setAttr -locked"
+        return cmds.setAttr(self, lock=state)
+#    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked'  )  
+   
     def lock(self):
         "setAttr -locked 1"
         return self.setLocked(True)
@@ -1753,19 +1770,23 @@ class Attribute(PyNode):
 #    def isInChannelBox(self):
 #        "getAttr -channelBox"
 #        return cmds.getAttr(self, channelBox=True)    
-#        
-#    def showInChannelBox(self, state):
-#        "setAttr -channelBox"
-#        return cmds.setAttr(self, channelBox=state)  
+    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox' )  
+      
+    def showInChannelBox(self, state):
+        "setAttr -channelBox"
+        return cmds.setAttr(self, channelBox=state)  
+    
+    #showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox' )
+    
 #            
 #    def isCaching(self):
 #        "getAttr -caching"
 #        return cmds.getAttr(self, caching=True)
 #              
-#    def setCaching(self, state):
-#        "setAttr -caching"
-#        return cmds.setAttr(self, caching=state)
-#                
+    def setCaching(self, state):
+        "setAttr -caching"
+        return cmds.setAttr(self, caching=state)
+                
     def isSettable(self):
         "getAttr -settable"
         return cmds.getAttr(self, settable=True)
@@ -1788,15 +1809,13 @@ class Attribute(PyNode):
     isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti' )
 #    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement' )
 #    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound' )
-#    
 #    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable'  )
 #    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable'  )
-#    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked'  )
-#    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked'  )
+
     isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
 #    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
-    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox' )
-    showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox' )
+    
+
 
     
     
@@ -1806,14 +1825,6 @@ class Attribute(PyNode):
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
         except TypeError:
             return False
-            
-    def longName(self):
-        "attributeQuery -longName"
-        return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), longName=True)
-        
-    def shortName(self):
-        "attributeQuery -shortName"
-        return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), shortName=True)
             
     def getSoftMin(self):
         """attributeQuery -softMin
@@ -1968,14 +1979,19 @@ class Attribute(PyNode):
             self >> outs
 
 
+#    def getChildren(self):
+#        """attributeQuery -listChildren"""
+#        return map( 
+#            lambda x: Attribute( self.node() + '.' + x ), 
+#            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
+#                )
     def getChildren(self):
         """attributeQuery -listChildren"""
-        return map( 
-            lambda x: Attribute( self.node() + '.' + x ), 
-            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
-                )
-
-
+        res = []
+        for i in range(self.numChildren() ):
+            res.append( Attribute( self.node(), self.apicls.child(self, i) ) )
+        return res
+    
     def getSiblings(self):
         """attributeQuery -listSiblings"""
         return map( 
@@ -1984,16 +2000,18 @@ class Attribute(PyNode):
                 )
 
         
+#    def getParent(self):
+#        """attributeQuery -listParent"""    
+#        
+#        if self.count('.') > 1:
+#            return Attribute('.'.join(self.split('.')[:-1]))
+#        try:
+#            return Attribute( self.node() + '.' + cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listParent=True)[0] )
+#        except TypeError:
+#            return None
+
     def getParent(self):
-        """attributeQuery -listParent"""    
-        
-        if self.count('.') > 1:
-            return Attribute('.'.join(self.split('.')[:-1]))
-        try:
-            return Attribute( self.node() + '.' + cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listParent=True)[0] )
-        except TypeError:
-            return None
-    
+        return Attribute( self.node(), self.apicls.parent(self) )
         
 '''
 class NodeAttrRelay(unicode):
@@ -2608,7 +2626,7 @@ class DagNode(Entity):
         kwargs.pop('p',None)
         #if longNames:
         kwargs['fullPath'] = True
-        kwargs.pop('p',None)
+        kwargs.pop('f',None)
         
         try:
             # stringify
@@ -2616,9 +2634,9 @@ class DagNode(Entity):
         except TypeError:
             return None
              
-        res = Transform( res )
-        if not longNames:
-            return res.shortName()
+        res = PyNode( res )
+        #if not longNames:
+        #    return res.shortName()
         return res
                     
     def getChildren(self, **kwargs ):
@@ -2685,6 +2703,48 @@ class DagNode(Entity):
             cmds.makeLive(none=True)
         else:
             cmds.makeLive(self)
+
+    def getBoundingBox(self, invisible=False):
+        """xform -boundingBox and xform-boundingBoxInvisible
+        
+        returns a tuple with two MVecs: ( bbmin, bbmax )
+        """
+        kwargs = {'query' : True }    
+        if invisible:
+            kwargs['boundingBoxInvisible'] = True
+        else:
+            kwargs['boundingBox'] = True
+                    
+        res = cmds.xform( self, **kwargs )
+        return ( Vector(res[:3]), Vector(res[3:]) )
+        #return MBoundingBox( res[:3], res[3:] )
+    
+    def getBoundingBoxMin(self, invisible=False):
+        return self.getBoundingBox(invisible)[0]
+        #return self.getBoundingBox(invisible).min()
+    
+    def getBoundingBoxMax(self, invisible=False):
+        return self.getBoundingBox(invisible)[1]   
+        #return self.getBoundingBox(invisible).max()
+
+
+def _MObjectIn(x):
+    if isinstance(x,PyNode): return x.__apimobject__()
+    return PyNode(x).__apimobject__()
+def _MDagPathIn(x):
+    if isinstance(x,DagNode): return x.__apimdagpath__()
+    return PyNode(x).__apimdagpath__()
+def _MPlugIn(x):
+    if isinstance(x,Attribute): return x.__apimplug__()
+    return PyNode(x).__apimplug__()
+def _MPlugOut(self,x):
+    try: return Attribute(self.node(), x)
+    except: pass
+    return Attribute(x)
+_factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn )
+_factories.ApiTypeRegister.register('MDagPath', DagNode, inCast=_MDagPathIn )
+_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
+
 
 class Shape(DagNode):
     __metaclass__ = MetaMayaNodeWrapper
@@ -2909,26 +2969,7 @@ class Transform(DagNode):
     @queryflag('xform','matrix')                
     def getMatrix( self, **kwargs ): 
         return Matrix( cmds.xform( self, **kwargs ) )
-           
-    def getBoundingBox(self, invisible=False):
-        """xform -boundingBox and xform-boundingBoxInvisible
-        
-        returns a tuple with two MVecs: ( bbmin, bbmax )
-        """
-        kwargs = {'query' : True }    
-        if invisible:
-            kwargs['boundingBoxInvisible'] = True
-        else:
-            kwargs['boundingBox'] = True
-                    
-        res = cmds.xform( self, **kwargs )
-        return ( Vector(res[:3]), Vector(res[3:]) )
-    
-    def getBoundingBoxMin(self, invisible=False):
-        return self.getBoundingBox(invisible)[0]
-        
-    def getBoundingBoxMax(self, invisible=False):
-        return self.getBoundingBox(invisible)[1]    
+            
     
     '''        
     def centerPivots(self, **kwargs):

@@ -1274,15 +1274,18 @@ def toApiObject (nodeName, dagPlugs=True):
     except:
         if "." in nodeName :
             # Compound Attributes
-            #  sometimes the index might be left off a somewhere in a compound attribute 
+            #  sometimes the index might be left off somewhere in a compound attribute 
             # (ex 'Nexus.auxiliary.input' instead of 'Nexus.auxiliary[0].input' )
             #  but we can still get a representative plug. this will return the equivalent of 'Nexus.auxiliary[-1].input'
-            buf = nodeName.split('.')
-            obj = toApiObject( buf[0] )
-            plug = MFnDependencyNode(obj).findPlug( buf[-1], False )
-            if dagPlugs and isValidMDagPath(obj) : 
-                return (obj, plug)
-            return plug
+            try:
+                buf = nodeName.split('.')
+                obj = toApiObject( buf[0] )
+                plug = MFnDependencyNode(obj).findPlug( buf[-1], False )
+                if dagPlugs and isValidMDagPath(obj) : 
+                    return (obj, plug)
+                return plug
+            except RuntimeError:
+                return
     else:
         if "." in nodeName :
             try:
