@@ -1127,6 +1127,24 @@ class PyNode(ProxyUnicode):
             return other.__add__( self.name() )
         else:
             raise TypeError, "cannot concatenate '%s' and '%s' objects" % ( other.__class__.__name__, self.__class__.__name__)
+
+    def __eq__(self, other):
+        if isinstance(other,PyNode):
+            return self.__apiobject__() == other.__apiobject__()
+        else:
+            try:
+                return self.__apiobject__() == PyNode(other).__apiobject__()
+            except (ValueError,TypeError): # could not cast to PyNode
+                return False
+       
+    def __ne__(self, other):
+        if isinstance(other,PyNode):
+            return self.__apiobject__() != other.__apiobject__()
+        else:
+            try:
+                return self.__apiobject__() != PyNode(other).__apiobject__()
+            except (ValueError,TypeError): # could not cast to PyNode
+                return False
     
     def stripNamespace(self, levels=0):
         """
@@ -1630,10 +1648,10 @@ class Attribute(PyNode):
         return connectAttr( self, other, force=True )
                 
     disconnect = disconnectAttr
-
-    def __ne__(self, other):
+    
+    def __floordiv__(self, other):
         """operator for 'disconnectAttr'
-            sphere.tx <> box.tx
+            sphere.tx // box.tx
         """ 
         return cmds.disconnectAttr( self, other )
                 
@@ -2114,24 +2132,6 @@ class DependNode( PyNode ):
 
     def __unicode__(self):
         return u"%s" % self.name()
-
-    def __eq__(self, other):
-        if isinstance(other,PyNode):
-            return self.__apiobject__() == other.__apiobject__()
-        else:
-            try:
-                return self.__apiobject__() == PyNode(other).__apiobject__()
-            except (ValueError,TypeError): # could not cast to PyNode
-                return False
-       
-    def __ne__(self, other):
-        if isinstance(other,PyNode):
-            return self.__apiobject__() != other.__apiobject__()
-        else:
-            try:
-                return self.__apiobject__() != PyNode(other).__apiobject__()
-            except (ValueError,TypeError): # could not cast to PyNode
-                return False
     
     def __getattr__(self, attr):
         try :
@@ -2675,7 +2675,10 @@ class DagNode(Entity):
     def setParent( self, *args, **kwargs ):
         'parent'
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
-                
+    
+    #addChild
+    #__or__ = addChild
+              
     #instance = instance
 
     #--------------------------
