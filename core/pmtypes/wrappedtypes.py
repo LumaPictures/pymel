@@ -658,7 +658,6 @@ class MFloatVector(MVector) :
         It behaves identically to MVector, but it also derives from api's MFloatVector
         to keep api methods happy
         """
-    __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MFloatVector
  
 # MPoint specific functions
@@ -739,21 +738,45 @@ class MPoint(MVector):
           
     # specific api methods
     def cartesianize (self) :
-        """ If this point instance is of the form P(W*x, W*y, W*z, W), for some scale factor W != 0,
+        """ p.cartesianize() --> MPoint
+            If the point instance p is of the form P(W*x, W*y, W*z, W), for some scale factor W != 0,
             then it is reset to be P(x, y, z, 1).
             This will only work correctly if the point is in homogenous form or cartesian form.
             If the point is in rational form, the results are not defined. """
-        self.apicls.cartesianize(self)
+        return self.__class__(self.apicls.cartesianize(self))
+    def cartesian (self) :
+        """ p.cartesian() --> MPoint
+            Returns the cartesianized version of p, without changing p. """
+        t = copy.deepcopy(self)
+        self.apicls.cartesianize(t)
+        return t   
     def rationalize (self) :
-        """ If this point instance is of the form P(W*x, W*y, W*z, W) (ie. is in homogenous or (for W==1) cartesian form),
+        """ p.rationalize() --> MPoint
+            If the point instance p is of the form P(W*x, W*y, W*z, W) (ie. is in homogenous or (for W==1) cartesian form),
             for some scale factor W != 0, then it is reset to be P(x, y, z, W).
             This will only work correctly if the point is in homogenous or cartesian form.
             If the point is already in rational form, the results are not defined. """
-        self.apicls.rationalize(self)
+        return self.__class__(self.apicls.rationalize(self))
+    def rational (self) :
+        """ p.rational() --> MPoint
+            Returns the rationalized version of p, without changing p. """
+        t = copy.deepcopy(self)
+        self.apicls.rationalize(t)
+        return t
     def homogenize (self) :
-        """ If this point instance is of the form P(x, y, z, W) (ie. is in rational or (for W==1) cartesian form),
+        """ p.homogenize() --> MPoint
+            If the point instance p is of the form P(x, y, z, W) (ie. is in rational or (for W==1) cartesian form),
             for some scale factor W != 0, then it is reset to be P(W*x, W*y, W*z, W). """
-        self.apicls.homogenize(self)
+        return self.__class__(self.apicls.homogenize(self))
+    def homogen (self) :
+        """ p.homogen() --> MPoint
+            Returns the homogenized version of p, without changing p. """
+        t = copy.deepcopy(self)
+        self.apicls.homogenize(t)
+        return t    
+    
+    # additionnal methods
+    
     def isEquivalent(self, other, tol=None):
         """ Returns true if both arguments considered as MPoint are equal within the specified tolerance """
         if tol is None :
@@ -858,16 +881,15 @@ class MPoint(MVector):
             return ()  
 
 
-class MFloatPoint(MVector) :
+class MFloatPoint(MPoint) :
     """ A 4 dimensional vector class that wraps Maya's api MFloatPoint class,
         It behaves identically to MPoint, but it also derives from api's MFloatPoint
         to keep api methods happy
         """    
-    __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MFloatPoint    
     
     
-class MColor(MPoint):
+class MColor(MVector):
     """ A 4 dimensional vector class that wraps Maya's api MColor class,
         It stores the r, g, b, a components of the color, as normalized (Python) floats
         """        
@@ -1074,6 +1096,73 @@ class MColor(MPoint):
 
             
     # overriden operators
+    
+    # defined for two MColors only
+    def __add__(self, other) :
+        """ c.__add__(d) <==> c+d
+            Returns the result of the addition of MColors c and d if d is convertible to a MColor,
+            adds d to every component of c if d is a scalar """ 
+        # prb with coerce when delegating to Vector, either redefine coerce for MPoint or other fix
+        # if isinstance(other, MPoint) :
+        #    other = MVector(other)   
+        try :
+            other = MColor(other) 
+        except :
+            pass   
+        try :
+            return self.__class__._convert(self.apicls.__add__(self, other))
+        except :
+            return self.__class__._convert(super(Vector, self).__add__(other)) 
+    def __radd__(self, other) :
+        """ c.__radd__(d) <==> d+c
+            Returns the result of the addition of MColors c and d if d is convertible to a MColor,
+            adds d to every component of c if d is a scalar """ 
+        try :
+            other = MColor(other) 
+        except :
+            pass                        
+        try :
+            return self.__class__._convert(self.apicls.__radd__(self, other))
+        except :
+            return self.__class__._convert(super(MPoint, self).__radd__(other))  
+    def __iadd__(self, other):
+        """ c.__iadd__(d) <==> c += d
+            In place addition of c and d, see __add__ """
+        try :
+            return self.__class__(self.__add__(other))
+        except :
+            return NotImplemented   
+    def __sub__(self, other) :
+        """ c.__add__(d) <==> c+d
+            Returns the result of the substraction of MColor d from c if d is convertible to a MColor,
+            substract d from every component of c if d is a scalar """  
+        try :
+            other = MColor(other) 
+        except :
+            pass   
+        try :
+            return self.__class__._convert(self.apicls.__sub__(self, other))
+        except :
+            return self.__class__._convert(super(Vector, self).__sub__(other)) 
+    def __rsub__(self, other) :
+        """ c.__rsub__(d) <==> d-c
+            Returns the result of the substraction of MColor c from d if d is convertible to a MColor,
+            replace every component c[i] of c by d-c[i] if d is a scalar """  
+        try :
+            other = MColor(other) 
+        except :
+            pass                        
+        try :
+            return self.__class__._convert(self.apicls.__rsub__(self, other))
+        except :
+            return self.__class__._convert(super(MPoint, self).__rsub__(other))  
+    def __isub__(self, other):
+        """ c.__isub__(d) <==> c -= d
+            In place substraction of d from c, see __sub__ """
+        try :
+            return self.__class__(self.__sub__(other))
+        except :
+            return NotImplemented             
     # action depends on second object type
     # TODO : would be nice to define LUT classes and allow MColor * LUT transform
     # overloaded operators
@@ -1229,8 +1318,8 @@ class MMatrix(Matrix):
         shape = kwargs.get('shape', None)
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
-        # will default to class constant shape = (3,), so it's just an error check to catch invalid shapes,
-        # as no other option is actually possible on MVector, but this method could be used to allow wrapping
+        # will default to class constant shape = (4, 4), so it's just an error check to catch invalid shapes,
+        # as no other option is actually possible on MMatrix, but this method could be used to allow wrapping
         # of Maya array classes that can have a variable number of elements
         shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
@@ -1241,21 +1330,25 @@ class MMatrix(Matrix):
     def __init__(self, *args, **kwargs):
         """ __init__ method, valid for MVector, MPoint and MColor classes """
         cls = self.__class__
-        
+                
         if args :
             # allow both forms for arguments
             if len(args)==1 and hasattr(args[0], '__iter__') :
                 args = args[0]
-            # MTransformationMatrix, MQuaternion, MEulerRotation api classes need conversion to MMatrix
-            if hasattr(args, 'asMatrix') :
-                args = args.asMatrix()                 
+#            shape = kwargs.get('shape', None)
+#            ndim = kwargs.get('ndim', None)
+#            size = kwargs.get('size', None)
+#            if shape is not None or ndim is not None or size is not None :
+#                shape, ndim, size = cls._expandshape(shape, ndim, size) 
+#                args = Matrix(args, shape=shape, ndim=ndim, size=size)                         
             # shortcut when a direct api init is possible     
             try :
                 self.assign(args)
             except :
                 super(Matrix, self).__init__(*args)
-                # _api.MScriptUtil.createMatrixFromList ( value, self )         
-                # super(Matrix, self).__init__(*args)
+                # value = list(Matrix(value, shape=self.shape).flat)
+                # data = self.apicls()
+                # _api.MScriptUtil.createMatrixFromList ( value, data ) 
             
         if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
             # can also use the form <componentname>=<number>
@@ -1347,14 +1440,20 @@ class MMatrix(Matrix):
     # to access stored values                                                                    
     def assign(self, value):
         # don't accept instances as assign works on exact api.MMatrix type
-        if type(value) != self.apicls and type(value) != type(self) :
-            if not hasattr(value, '__iter__') :
-                value = self.apicls(value)
-                self.apicls.assign(self, value)
+        data = None
+        if type(value) == self.apicls or type(value) == type(self) :
+            data = value
+        elif hasattr(value, 'asMatrix') :
+            data = value.asMatrix()
+        else :
+            value = list(Matrix(value).flat)
+            if len(value) == self.size :
+                data = self.apicls()
+                _api.MScriptUtil.createMatrixFromList ( value, data ) 
             else :
-                if hasattr(value, 'flat') :
-                    value = list(value.flat)
-                _api.MScriptUtil.createMatrixFromList ( value, self ) 
+                raise TypeError, "cannot assign %s to a %s" % (value, util.clsname(self))
+        
+        self.apicls.assign(self, data)
         return self
    
     # API get, actually not faster than pulling self[i] for such a short structure
@@ -1381,7 +1480,7 @@ class MMatrix(Matrix):
             index can be a single numeric value or slice, thus one or more rows will be returned,
             or a row,column tuple of numeric values / slices """
         m = Matrix(self)
-        print list(m)
+        # print list(m)
         return m.__getitem__(index)
         # return super(Matrix, self).__getitem__(index)
 
@@ -1603,11 +1702,34 @@ class MFloatMatrix(MMatrix) :
         It behaves identically to MMatrix, but it also derives from api's MFloatMatrix
         to keep api methods happy
         """    
-    __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MFloatMatrix   
 
 class MTransformationMatrix(MMatrix):
     apicls = _api.MTransformationMatrix 
+
+    def _getTranslate(self):
+        return MVector(self.getTranslation(MSpace.kTransform))     
+    def _setTranslate(self, value):
+        self.setTranslation ( MVector(value), MSpace.kTransform )
+    translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this MTransformationMatrix, in transform space") 
+    def _getRotate(self):
+        return MQuaternion(self.rotation())  
+    def _setRotate(self, value):
+        q = MQuaternion(value)
+        self.setRotationQuaternion(q.x, q.y, q.z, q.w)
+    rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this MTransformationMatrix, in transform space") 
+    def _getScale(self):
+        ms = _api.MScriptUtil()
+        ms.createFromDouble ( 1.0, 1.0, 1.0 )
+        p = ms.asDoublePtr ()
+        self.getScale (p, MSpace.kTransform);
+        return MVector([ms.getDoubleArrayItem (p, i) for i in range(3)])        
+    def _setScale(self, value):
+        ms = _api.MScriptUtil()
+        ms.createFromDouble (*MVector(value))
+        p = ms.asDoublePtr ()
+        self.setScale ( p, MSpace.kTransform)        
+    scale = property(_getScale, _setScale, None, "The scale expressed in this MTransformationMatrix, in transform space")  
         
 class MQuaternion(MMatrix):
     apicls = _api.MQuaternion
@@ -2331,6 +2453,8 @@ def _testMPoint() :
     print repr(MPoint([1, 2, 3, 1]) + p)
     # MPoint([2.0, 4.0, 6.0, 1.0])
     
+    # various operation, on cartesian and non cartesian points
+    
     print "p = MPoint(1, 2, 3)"        
     p = MPoint(1, 2, 3)
     print repr(p)  
@@ -2349,6 +2473,8 @@ def _testMPoint() :
     # MPoint([2.25, 2.5, 3.0, 1.0])
     print repr(q/2)
     # MPoint([0.125, 0.25, 0.5, 1.0])
+    print repr(p+q)
+    # MPoint([1.25, 2.5, 4.0, 1.0])
     print repr(p-q)
     # MVector([0.75, 1.5, 2.0])
     print repr(q-p)
@@ -2356,9 +2482,9 @@ def _testMPoint() :
     print repr(p-(p-q))
     # MPoint([0.25, 0.5, 1.0, 1.0])
     print repr(MVector(p)*MVector(q))
-    
+    # 4.25
     print repr(p*q)
-    
+    # 4.25
     print repr(p/q)
     # MPoint([4.0, 4.0, 3.0, 1.0])
     
@@ -2371,27 +2497,79 @@ def _testMPoint() :
     # MPoint([0.5, 1.0, 1.5, 1.0])
     print "p*2"
     print repr(p*2) 
-    # MPoint([2.0, 4.0, 6.0, 1.0])   
-    print "q = MPoint(0.25, 0.5, 1.0, 0.125)"        
-    q = MPoint(0.25, 0.5, 1.0, 0.125)
+    # MPoint([2.0, 4.0, 6.0, 1.0])       
+    print "q = MPoint(0.25, 0.5, 1.0, 0.5)"        
+    q = MPoint(0.25, 0.5, 1.0, 0.5)
     print repr(q)  
-    # MPoint([0.25, 0.5, 1.0, 0.125])
-    print q.homogenize()
-    
-    print repr(q+2)             # homogenize is done on the fly
-    # MPoint([4.0, 6.0, 10.0, 1.0])
+    # MPoint([0.25, 0.5, 1.0, 0.5])
+    r = q.deepcopy()
+    print repr(r)
+    # MPoint([0.25, 0.5, 1.0, 0.5])
+    print repr(r.cartesianize())
+    # MPoint([0.5, 1.0, 2.0, 1.0])
+    print repr(r)
+    # MPoint([0.5, 1.0, 2.0, 1.0])
+    print repr(q)
+    # MPoint([0.25, 0.5, 1.0, 0.5])
+    print repr(q.cartesian())
+    # MPoint([0.5, 1.0, 2.0, 1.0])
+    r = q.deepcopy()
+    print repr(r)
+    # MPoint([0.25, 0.5, 1.0, 0.5])
+    print repr(r.rationalize())
+    # MPoint([0.5, 1.0, 2.0, 0.5])
+    print repr(r)
+    # MPoint([0.5, 1.0, 2.0, 0.5])
+    print repr(q.rational())
+    # MPoint([0.5, 1.0, 2.0, 0.5])
+    r = q.deepcopy()
+    print repr(r.homogenize())
+    # MPoint([0.125, 0.25, 0.5, 0.5])
+    print repr(r)
+    # MPoint([0.125, 0.25, 0.5, 0.5]) 
+    print repr(q.homogen())
+    # MPoint([0.125, 0.25, 0.5, 0.5])
+    print repr(q)
+    # MPoint([0.25, 0.5, 1.0, 0.5])      
+    print MVector(q)
+    # [0.25, 0.5, 1.0]
+    print MVector(q.cartesian())
+    # [0.5, 1.0, 2.0]     
+    # ignore w
+    print "q/2"
     print repr(q/2)
-    # MPoint([0.125, 0.25, 0.5, 0.125])
+    # MPoint([0.125, 0.25, 0.5, 0.5])
+    print "q*2"
+    print repr(q*2) 
+    # MPoint([0.5, 1.0, 2.0, 0.5])
+    print repr(q+2)             # cartesianize is done by MVector add
+    # MPoint([2.5, 3.0, 4.0, 1.0])
+
+    print repr(q)
+    # MPoint([0.25, 0.5, 1.0, 0.5])     
+    print repr(p+MVector(1, 2, 3))
+    # MPoint([2.0, 4.0, 6.0, 1.0])
+    print repr(q+MVector(1, 2, 3))       
+    # MPoint([1.5, 3.0, 5.0, 1.0])
+    print repr(q.cartesian()+MVector(1, 2, 3))       
+    # MPoint([1.5, 3.0, 5.0, 1.0])
+
     print repr(p-q)
-    # MVector([-1.0, -2.0, -5.0])
+    # MVector([0.5, 1.0, 1.0])
+    print repr(p-q.cartesian())
+    # MVector([0.5, 1.0, 1.0])    
     print repr(q-p)
-    # MVector([1.0, 2.0, 5.0])
+    # MVector([-0.5, -1.0, -1.0])
     print repr(p-(p-q))
-    # MPoint([2.0, 4.0, 8.0, 1.0])
+    # MPoint([0.5, 1.0, 2.0, 1.0])
+    print repr(MVector(p)*MVector(q))
+    # 4.25    
     print repr(p*q)
-    # NOT 4.25
-    print repr(p/q)    
-    # NOT MPoint([4.0, 4.0, 3.0, 8.0]) 
+    # 4.25
+    print repr(p/q)             # need explicit homogenize as division not handled by api
+    # MPoint([4.0, 4.0, 3.0, 2.0])
+    
+    # additionnal methods
        
     print "p = MPoint(x=1, y=2, z=3)"        
     p = MPoint(x=1, y=2, z=3)
@@ -2456,16 +2634,17 @@ def _testMColor() :
     c = MColor()
     print repr(c)
     # MColor([0.0, 0.0, 0.0, 1.0])
-    print "MPoint instance", dir(c)
+    print "MColor instance", dir(c)
     print hasattr(c, 'data')
     print repr(c.data)
     # MColor([0.0, 0.0, 0.0, 1.0])
     c = MColor(_api.MColor())
     print repr(c)     
     # MColor([0.0, 0.0, 0.0, 1.0])
-    # use api convetion of single value means alpha
+    # using api convetion of single value would mean alpha
     # instead of Vector convention of filling all with value
-    # which would yield # MColor([0.5, 0.5, 0.5, 0.5]) instead   
+    # which would yield # MColor([0.5, 0.5, 0.5, 0.5]) instead
+    # This would break coerce behavior for MColor  
     print "c = MColor(0.5)"
     c = MColor(0.5)
     print repr(c)   
@@ -2578,7 +2757,7 @@ def _testMColor() :
     print repr(c.premult())
     # MColor([0.125, 0.25, 0.375, 1.0])
     
-    # herited, should ignore alpha by default as with MPoint
+    # herited from MVector
     
     print "c = MColor(0.25, 0.5, 1.0, 1.0)"
     c = MColor(0.25, 0.5, 1.0, 1.0)
@@ -2588,14 +2767,38 @@ def _testMColor() :
     d = MColor(2.0, 1.0, 0.5, 0.25)
     print repr(d)
     # MColor([2.0, 1.0, 0.5, 0.25])
+    print "-c"
+    print repr(-c)
+    # MColor([-0.25, -0.5, -1.0, 1.0]) 
     print "e = c*d"
     e = c*d
     print repr(e)
     # MColor([0.5, 0.5, 0.5, 0.25])
-    print "e/2.0"
+    print "e + 2"
+    print repr(e+2)
+    # MColor([2.5, 2.5, 2.5, 0.25])
+    print "e * 2.0"               # mult by scalar float is defined in api for colors and also multiplies alpha
+    print repr(e*2.0)
+    # MColor([1.0, 1.0, 1.0, 0.5])    
+    print "e / 2.0"               # as is divide, that ignores alpha now for some reason
     print repr(e/2.0)
     # MColor([0.25, 0.25, 0.25, 0.25])
-    
+    print "e+MVector(1, 2, 3)"
+    print repr(e+MVector(1, 2, 3))
+    # MColor([1.5, 2.5, 3.5, 0.25])
+    # how to handle operations on colors ?
+    # here behaves like api but does it make any sense
+    # for colors as it is now ?
+    print "c+c"
+    print repr(c+c)
+    # MColor([0.5, 1.0, 2.0, 1.0])
+    print "c+d"
+    print repr(c+d)
+    # MColor([2.25, 1.5, 1.5, 1.0])       
+    print "d-c"
+    print repr(d-c)
+    # MColor([1.75, 0.5, -0.5, 0.25])
+            
     print "end tests MColor"
     
 def _testMMatrix() :
@@ -2603,9 +2806,16 @@ def _testMMatrix() :
     print "MMatrix class", dir(MMatrix)
     m = MMatrix()
     print m.formated()
+    #[[1.0, 0.0, 0.0, 0.0],
+    # [0.0, 1.0, 0.0, 0.0],
+    # [0.0, 0.0, 1.0, 0.0],
+    # [0.0, 0.0, 0.0, 1.0]]    
     print m[0, 0]
-    print m[0:2, 0:3]
+    # 1.0
+    print repr(m[0:2, 0:3])
+    # [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
     print m(0, 0)
+    # 1.0
     print "MMatrix instance:", dir(m)
     print MMatrix.__readonly__
     print MMatrix.__slots__
@@ -2643,7 +2853,7 @@ def _testMMatrix() :
     # [4.0, 5.0, 6.0, 7.0],
     # [8.0, 9.0, 10.0, 11.0],
     # [12.0, 13.0, 14.0, 15.0]]     
-    M = Array(range(16), shape=(2, 2, 4))
+    M = Array(range(16), shape=(8, 2))
     m = MMatrix(M)
     print m.formated() 
     #[[0.0, 1.0, 2.0, 3.0],
@@ -2657,6 +2867,19 @@ def _testMMatrix() :
     # [3.0, 4.0, 5.0, 0.0],
     # [6.0, 7.0, 8.0, 0.0],
     # [0.0, 0.0, 0.0, 1.0]]
+    # inherits from Matrix --> Array
+    print isinstance(m, Matrix)
+    # True
+    print isinstance(m, Array)
+    # True
+    # as well as _api.MMatrix
+    print isinstance(m, _api.MMatrix)
+    # True
+    # accepted directly by API methods     
+    n = _api.MMatrix()
+    m = n.setToProduct(m, m)
+    print repr(m)
+    print repr(n)    
     t = _api.MTransformationMatrix()
     t.setTranslation ( MVector(1, 2, 3), _api.MSpace.kWorld ) 
     m = MMatrix(t)
@@ -2673,14 +2896,12 @@ def _testMMatrix() :
     # [10.0, 2.0, 3.0, 1.0]]                   
     # should fail
     print "MMatrix(range(20)"
-    m = MMatrix(range(20))
-    print m.formated()
     try :     
         m = MMatrix(range(20))
         print m.formated()
     except :
-        print "will raise ValueError: could not cast [1, 2, 3, 4] to MVector of size 3, some data would be lost"
-     
+        print "will raise ValueError: cannot initialize a MMatrix of shape (4, 4) from (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19), some information would be lost, use an explicit resize or trim"     
+
     m = MMatrix.identity
     M = m.trimmed(shape=(3, 3))
     print repr(M)
@@ -2695,16 +2916,21 @@ def _testMMatrix() :
         print "will raise TypeError: new shape (3, 3) is not compatible with class MMatrix"
            
     print m.nrow
+    # 4
     print m.ncol
+    # 4
     # should fail
-    m.nrow = 3
+    try :
+        m.nrow = 3
+    except :
+        print "will raise TypeError: new shape (3, 4) is not compatible with class MMatrix"
     print list(m.row)
+    # [Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])]
     print list(m.col)
+    # [Array([1.0, 0.0, 0.0, 0.0]), Array([0.0, 1.0, 0.0, 0.0]), Array([0.0, 0.0, 1.0, 0.0]), Array([0.0, 0.0, 0.0, 1.0])]
     
-    m = MMatrix( Matrix(range(9), shape=(3, 3)).resized(shape=(4, 4), value=10) )
-    print m.formated()
-    
-    
+    m = MMatrix( Matrix(range(9), shape=(3, 3)).trimmed(shape=(4, 4), value=10) )
+    print m.formated()   
     
     print m.get()
     # (1.0, 20.0, 30.0)
@@ -2735,8 +2961,6 @@ def _testMMatrix() :
     print "m:"
     print m.round(2).formated()
 
-
-  
     v=MVector(1, 2, 3)   
     print "v:"
     print repr(v)
@@ -2830,12 +3054,72 @@ def _testMMatrix() :
             
     print "end tests MMatrix"
 
+def _testMTransformationMatrix() :
+
+    print "MTransformationMatrix class", dir(MTransformationMatrix)
+    m = MTransformationMatrix()
+    print m.formated()
+    print m[0, 0]
+    print m[0:2, 0:3]
+    print m(0, 0)
+    print "MTransformationMatrix instance:", dir(m)
+    print MTransformationMatrix.__readonly__
+    print MTransformationMatrix.__slots__
+    print MTransformationMatrix.shape
+    print MTransformationMatrix.ndim
+    print MTransformationMatrix.size
+    print m.shape
+    print m.ndim
+    print m.size    
+    # should fail
+    m.shape = (4, 4)
+    m.shape = 2
+    
+    print dir(MSpace)
+       
+    m = MTransformationMatrix.identity    
+    # inherits from Matrix --> Array
+    print isinstance(m, Matrix)
+    # True
+    print isinstance(m, Array)
+    # True
+    # as well as _api.MTransformationMatrix and _api.MMatrix
+    print isinstance(m, _api.MTransformationMatrix)
+    # True
+    print isinstance(m, _api.MMatrix)
+    # True    
+    # accepted directly by API methods     
+    n = _api.MMatrix()
+    n = n.setToProduct(m, m)
+    print repr(n)
+
+    n = _api.MTransformationMatrix()
+    n = n.assign(m)
+    print repr(n)
+    
+    m = MTransformationMatrix.identity
+    m.rotation = MQuaternion()
+    print repr(m)
+    print m.formated()
+    
+    
+    n = MTransformationMatrix.identity 
+    n.translation = MVector(1, 2, 3)
+    print n.formated()
+    print repr(n)
+    
+    o = m*n
+    print repr(o)
+    print o.formated()
+    
+    print "end tests MTransformationMatrix"
     
 if __name__ == '__main__' :
     _testMVector()   
     _testMPoint()
     _testMColor()
     _testMMatrix()
+    _testMTransformationMatrix()
 
 
     
