@@ -5,7 +5,11 @@ The core module contains all of the functions which do not fall under the catego
 
 import sys, os, re
 from getpass import getuser
-from socket import gethostname
+try:
+    from socket import gethostname
+except ImportError:
+    def gethostname():
+        return os.environ.get('COMPUTERNAME',"")
 
 try:
     import maya.cmds as cmds
@@ -1553,14 +1557,23 @@ class FileReference(Path):
         kwargs.pop('es',None)
         edits = referenceQuery(self.refNode, editStrings=True, onReferenceNode=self.refNode, **kwargs)
         return edits
+    
+    def removeReferenceEdits(self, editCommand=None, force=False):
+        if self.isLoaded():
+            if not force:
+                raise Exception("Cannon remove edits while reference '%s' is loaded. Unload the reference first, or use the 'force=True' flag." % self)
+            self.unload()
+        
+        kwargs = {}
+        if editCommand:
+            kwargs['editCommand'] = editCommand
+        cmds.file(cleanReference=self.refNode, **kwargs)
 
 def _safeEval(s):
     try:
         return eval(s)
     except:
         return s
-def _safePyNode(n):
-    return node.PyNode(_safeEval(n))
 
 class ReferenceEdit(str):
     def __new__(cls, editStr, fileReference=None, successful=None):
@@ -1569,36 +1582,67 @@ class ReferenceEdit(str):
         
         self.type = self.split()[0]
         self.fileReference = fileReference
+        self.namespace = self.fileReference.namespace
+        self.fullNamespace = self.fileReference.fullNamespace
         self.successful = successful
         return self
+
+    def _getEditData(self):
     
-    def getEditData(self):
+        def _safePyNode(n):
+            n = node.PyNode(_safeEval(n))
+            return n
+
+        def _safeRefPyNode(n):
+            n = node.PyNode(_safeEval(n))
+            if self.namespace in n:
+                ns = self.fileReference.refNode.namespace()
+                if not ns==":":
+                    n = n.addPrefix(ns)
+            return n
+        
         elements = self.split()
+        elements.pop(0)
         editData = {}
         if self.type=="addAttr":
-            editData['node'] = _safePyNode(elements.pop(-1))
+            editData['node'] = _safeRefPyNode(elements.pop(-1))
             editData['attribute'] = elements.pop(1)
         elif self.type=="setAttr":
-            editData['value'] = _safeEval(elements.pop(-1))
-            editData['node'] = _safePyNode(elements.pop(-1))
+            editData['node'] = _safeRefPyNode(elements.pop(0))
+            editData['value'] = " ".join(elements)
         elif self.type=="parent":
-            editData['node'] = _safePyNode(elements.pop(-1))
+            editData['node'] = _safeRefPyNode(elements.pop(-1))
             if elements[-1]=="-w":
                 editData['child'] = '<World>'
             else:
                 editData['child'] = _safePyNode(elements.pop(-1))
         elif self.type=="disconnectAttr":
-            editData['sourceNode'] = _safePyNode(elements.pop(-2))
-            editData['node'] = _safePyNode(elements.pop(-1))
+            refNode, otherNode = map(_safeRefPyNode, elements[:2])
+            editData['sourceNode'] = refNode
+            editData['targetNode'] = otherNode
+            otherNode, refNode = sorted([otherNode, refNode], key=lambda  n: self.namespace in n)
+            editData['node'] = refNode
+            del elements[:2]
         elif self.type=="connectAttr":
-            editData['sourceNode'] = _safePyNode(elements.pop(-2))
-            editData['node'] = _safePyNode(elements.pop(-1))
+            refNode, otherNode = map(_safeRefPyNode, elements[:2])
+            editData['sourceNode'] = refNode
+            editData['targetNode'] = otherNode
+            otherNode, refNode = sorted([otherNode, refNode], key=lambda  n: self.namespace in n)
+            editData['node'] = refNode
+            del elements[:2]
         else:
-            editData['node'] = _safePyNode(elements.pop(0))
+            editData['node'] = _safeRefPyNode(elements.pop(0))
         editData['parameters'] = map(str, elements)
         return editData
+    
+    def remove(self, force=False):
+        if self.fileReference.isLoaded():
+            if not force:
+                raise Exception("Cannon remove edits while reference '%s' is loaded. Unload the reference first, or use the 'force=True' flag." % self.fileReference)
+            self.fileReference.unload()
+        cmds.referenceEdit(self.editData['node'], removeEdits=True, successfulEdits=True, failedEdits=True, editCommand=self.type)
 
-    editData = property(lambda self: self.getEditData()) 
+    editData = util.cacheProperty(_getEditData,"_editData") 
         
 
 
