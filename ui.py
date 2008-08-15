@@ -76,26 +76,44 @@ Maya Bug Fix:
     - fixed getCellCmd to work with python functions, previously only worked with mel callbacks
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
-    cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',False) )
+    cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
+    cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
+    
+    uiName = cmds.scriptTable( *args, **kwargs )
+    
+    kwargs.clear()
     if cb:
         if hasattr(cb, '__call__'):        
-            uiName = cmds.scriptTable( *args, **kwargs )
             procName = 'getCellMel%d' % len(scriptTableCmds.keys())
-            procCmd = "global proc string %s( int $row, int $column ){return python(\"pymel.scriptTableCmds['%s'](\" + $row + \",\" + $column + \")\");}" %  (procName,uiName) 
-            #print procCmd
-            mm.eval( procCmd )            
-            scriptTableCmds[uiName] = cb
+            key = '%s_%s' % (uiName,procName)
+            procCmd = """global proc string %s( int $row, int $column ) {
+                            return python("__import__('%s').scriptTableCmds['%s'](" + $row + "," + $column + ")");}
+                      """ %  (procName,__name__,key) 
+            core.mel.eval( procCmd )
+            scriptTableCmds[key] = cb
             
             # create a scriptJob to clean up the dictionary of functions
-            popCmd = "python(\"scriptTableCmds.pop('%s',None)\")" % uiName 
-            #print popCmd
-            cmds.scriptJob( uiDeleted=(uiName, "python(\"pymel.scriptTableCmds.pop('%s',None)\")" % uiName ) )
+            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key,None)))
+            cb = procName
+        kwargs['getCellCmd'] = cb 
+    if cc:
+        if hasattr(cc, '__call__'):        
+            procName = 'cellChangedCmd%d' % len(scriptTableCmds.keys())
+            key = '%s_%s' % (uiName,procName)
+            procCmd = """global proc int %s( int $row, int $column, string $val) {
+                            return python("__import__('%s').scriptTableCmds['%s'](" + $row + "," + $column + ",'" + $val + "')");}
+                      """ %  (procName,__name__,key)
+            core.mel.eval( procCmd )
+            scriptTableCmds[key] = cc
+            
+            # create a scriptJob to clean up the dictionary of functions
+            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key,None)))
+            cc = procName
+        kwargs['cellChangedCmd'] = cc
 
-            return cmds.scriptTable( uiName, e=1, getCellCmd=procName )
-        else:
-            kwargs['getCellCmd'] = cb    
-    
-    cmds.scriptTable( *args, **kwargs )
+    if kwargs:
+        cmds.scriptTable( uiName, e=1, **kwargs)    
+    return ScriptTable(uiName)
     
 
 class UI(unicode):
@@ -483,6 +501,18 @@ def promptForFolder():
         return folder
 
     
+def showsHourglass(func):
+    """Decorator - shows the hourglass cursor until the function returns"""
+    def decoratedFunc(*args, **kwargs):
+        cmds.waitCursor(st=True)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            cmds.waitCursor(st=False)
+    decoratedFunc.__doc__ = func.__doc__
+    decoratedFunc.__name__ = func.__name__
+    return decoratedFunc
+    
 class MelToPythonWindow(Window):
 
     def __new__(cls, name=None):
@@ -548,4 +578,8 @@ def PyUI(strObj, type=None):
         return getattr(_thisModule, util.capitalize(type) )(strObj)
     except AttributeError:
         return UI(strObj)
+    
+def getMainProgressBar():
+    return ProgressBar(core.getMelGlobal("string",'gMainProgressBar'))    
+    
     
