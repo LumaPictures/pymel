@@ -318,7 +318,7 @@ class _BaseObj(unicode):
     def swapNamespace(self, prefix):
         """Returns a new instance of the object with its current namespace replaced with the provided one.  
         The calling instance is unaffected."""    
-        return DependNode.addPrefix( self.stripNamespace(), prefix+':' )
+        return self.__class__.addPrefix( self.stripNamespace(), prefix+':' )
             
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list"""
