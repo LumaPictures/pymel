@@ -332,7 +332,7 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
     mparser.build(currentModule, pymelNamespace=pymelNamespace, forceCompatibility=forceCompatibility, verbosity=verbosity)
     
     results = mparser.parse( data )
-    print mparser.lexer.global_procs
+    #print mparser.lexer.global_procs
     return results
 
 

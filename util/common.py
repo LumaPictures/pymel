@@ -5,24 +5,7 @@ from re import escape
 #  Pymel Internals
 #-----------------------------------------------
 
-
-#def pythonToMel(arg):
-#    if isinstance(arg,basestring):
-#        return '"%s"' % cmds.encodeString(arg)
-#        #return '"%s"' % re.escape(arg)
-#    elif isIterable(arg):
-#        return '{%s}' % ','.join( map( pythonToMel, arg) ) 
-#    return unicode(arg)
-#
-#def pythonToMel(arg):
-#    if isinstance(arg,basestring):
-#        return u'"%s"' % cmds.encodeString(arg)
-#    elif isinstance(arg, PyNode):
-#        return u'"%s"' % arg
-#    elif util.isIterable(arg):
-#        return u'{%s}' % ','.join( map( pythonToMel, arg) ) 
-#    return unicode(arg)   
-         
+# Because string 'capitalize' method is NOT equiv. to mel's capitalize
 def capitalize(s):
     return s[0].upper() + s[1:]
 

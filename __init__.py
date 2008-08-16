@@ -643,3 +643,8 @@ _module = __import__(__name__)
 #_factories.installCallbacks(_module)
 #cmds.loadPlugin( addCallback=pluginLoadedCallback(_module) )
 factories.installCallbacks(_module)
+
+# some submodules do 'import pymel.core.pymel.mayahook.pmcmds as cmds' -
+# this ensures that when the user does 'from pymel import *',
+# cmds is always maya.cmds
+import maya.cmds as cmds

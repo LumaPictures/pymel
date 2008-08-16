@@ -1,4 +1,4 @@
-import re, os, os.path, sys, platform, commands, subprocess, warnings
+import re, os, os.path, sys, platform, subprocess, warnings
 from pymel.util import ExecutionWarning
 
 import envparse
@@ -71,6 +71,26 @@ def getMayaLocation(version=None):
             loc = loc.replace( currentVersion, version )
     return loc
 
+def getRunningMayaVersion():
+    """ Returns the version string (from 'about(version=True)' ) of the currently running version of maya, or None
+    if no version is initialized.
+    """
+
+    try :
+        from maya.cmds import about
+        return about(version=True)
+    except :
+        return None
+
+def mayaIsRunning():
+    """
+    Returns True if a version of maya is running / initialized, False otherwise."""
+    
+    # Implementation is essentially just a wrapper for getRunningMayaVersion -
+    # this function was included for clearer / more readable code
+    
+    return bool(getRunningMayaVersion())
+
 def getMayaVersion(extension=True):
     """ Returns the maya version (ie 2008), with extension (known one : x64 for 64 bit cuts) if extension=True """
 
@@ -83,27 +103,84 @@ def getMayaVersion(extension=True):
         if extension and (ma.group('ext') is not None) :
             version += "-"+ma.group('ext')
         return version
-    
-    try :
-        from maya.cmds import about
-        version = parseVersionStr( about(version=True), extension)
-    except :
-        try:
-            # try the path if maya.cmds is not loaded
-            version = parseVersionStr( getMayaLocation(), extension)
-        except AttributeError:
-            # for non-standard installation directories, call the maya binary for the version.
-            # we try this as a last resort because of potential load-time slowdowns
-            version = parseVersionStr( _getVersionStringFromExecutable(), extension)
-    
-     
-    return version
 
-def getMayaExecutable(version=None, batch=False):
+    # first try to get the version from maya.cmds.about (ie, getRunningMayaVersion)...
+    # ...try the path if maya.cmds is not loaded (ie, getMayaLocation)
+    # ...then, for non-standard installation directories, call the maya binary for the version.
+    # we try this as a last resort because of potential load-time slowdowns
+    for versionFunction in (getRunningMayaVersion, getMayaLocation, _getVersionStringFromExecutable):
+        try:
+            version = parseVersionStr(versionFunction(), extension)
+        except:
+            continue
+        else:
+            break
+    else:
+        raise RuntimeError("Unable to retrieve maya version")
+    return version
+    
+
+# TODO: finish this, use it in getMayaVersion
+#class MayaVersionStringParser(object):
+#    """
+#    Given a maya version string, parses various information from the string:
+#
+#    Properties:
+#    (all contain 'None' if the information was not found while parsing)
+#    
+#    .versionNum - float - the primary version number (ie, 2008, 8.5, 7.0)
+#    .versionNumStr - string - .versionNum as a string - handy because .versionNum is
+#        always a float, but for the string, we may or may not want to display the
+#        digit after the decimal (ie, '8.0', '8.5', and '2008')
+#    .extension - int - if the version is an 'Extension', (ie, '2008 Extension 2'), the
+#        extension number
+#    .servicePack - int - if the version is a 'Service Pack', (ie, '8.5 Service Pack
+#        1'), the service pack number
+#    .bits - int - if the version is for a certain bit-number system (ie, '2008 x64'),
+#        the number of bits
+#    .cut - string - the cut number
+#    
+#    The version string can be from cmds.about(version=1), or from a query of the
+#    maya binary with a -v flag (ie, 'maya -v' or 'mayabatch -v')
+#    
+#    Examples:
+#    foo = MayaVersionStringParser("2008 Extension 2 x64, Cut Number 200802242349")
+#    print repr(foo.versionNum) # 2008.0
+#    print repr(foo.versionNumStr) # '2008'
+#    print repr(foo.extension) # 2
+#    print repr(foo.servicePack) # None
+#    print repr(foo.bits) # 64
+#    print repr(foo.cut) # '200802242349'
+#     
+#    foo = MayaVersionStringParser("8.5 Service Pack 1")
+#    print repr(foo.versionNum) # 8.5
+#    print repr(foo.versionNumStr) # '8.5'
+#    print repr(foo.extension) # None
+#    print repr(foo.servicePack) # 1
+#    print repr(foo.bits) # None
+#    print repr(foo.cut) # None
+#    """
+#    
+#    def __init__(self, versionStr, extension):
+#        # problem with service packs addition, must be able to match things such as :
+#        # '2008 Service Pack 1 x64', '2008x64', '2008-x64', '2008', '8.5'
+#        
+#        # TODO: make it handle either "Extension 2 Service Pack 1" or "Service Pack 1 Extension 2"
+#        self._input = versionStr
+#        ma = re.search( "(?:[Mm]aya[ ]?)?(?P<base>[\d.]+)()?()?((?:[ ]|-)x(?P<bits>[\d]+))?(?:, Cut Number (?P<cut>[\d-]+))?", versionStr)
+#        version = ma.group('base')
+#        self.versionNumStr = version
+#        self.versionNum = float(self.versionNumStr)
+#        if extension and (ma.group('bits') is not None) :
+#            version += "-x"+ma.group('bits')
+#        self._version = version
+
+
+def getMayaExecutable(version=None, commandLine=True):
     """Returns the path string to the maya executable for the given version; if version is None, then returns the path
     string for the current maya version.
     
-    If batch is True and we are running on windows, will return the path to mayabatch.exe, instead of maya.exe"""
+    If commandLine is True and we are running on windows, will return the path to mayabatch.exe, instead of maya.exe"""
     
     
     filename = "maya"
@@ -119,29 +196,31 @@ def getMayaExecutable(version=None, batch=False):
     if os.path.isfile(fullPath):
         return fullPath
     else:
-        # if all else fails...
+        # if all else fails... check sys.executable
+        binaryRoot, binaryExtension = os.path.splitext(os.path.basename(sys.executable))
+        if binaryRoot == "python":
+        	# sys.executable was the python binary
+        	# NOTE: We don't want to return the python binary, as this will result
+        	# in _getVersionStringFromExecutable hanging
+        	raise RuntimeError("Unable to locate maya executable - try setting 'MAYA_LOCATION' environment variable")
         return sys.executable
     
 def _getVersionStringFromExecutable(version=None):
     """Returns the raw string that would be returned from maya by calling it from the command line with the -v switch."""
-    return executableOutput([getMayaExecutable(version, batch=True), "-v"])
+    return executableOutput([getMayaExecutable(version), "-v"])
 
 def mayaDocsLocation(version=None):
-    #docLocation = path.path( os.environ.get("MAYA_LOCATION", '/Applications/Autodesk/maya%s/Maya.app/Contents' % version) )
     docLocation = None
-    if version == None or version == getMayaVersion():
-        try:
-            # Return the doc location for the running version of maya
-            from maya.cmds import showHelp
-            docLocation = showHelp("", q=True, docs=True)
-        except:
-            docLocation = None
-        else:
-            # Other versions have no trailing slash, but the result returned by
-            # showHelp has a trailing slash... so eliminate any trailing slashes for
-            # consistency
-            while docLocation != "" and os.path.basename(docLocation) == "":
-                docLocation = os.path.dirname(docLocation)
+    if (version == None or version == getMayaVersion() ) and mayaIsRunning():
+        # Return the doc location for the running version of maya
+        from maya.cmds import showHelp
+        docLocation = showHelp("", q=True, docs=True)
+        
+        # Older implementations had no trailing slash, but the result returned by
+        # showHelp has a trailing slash... so eliminate any trailing slashes for
+        # consistency
+        while docLocation != "" and os.path.basename(docLocation) == "":
+            docLocation = os.path.dirname(docLocation)
                 
     # Want the docs for a different version, or maya isn't initialized yet
     if not docLocation:
@@ -149,7 +228,6 @@ def mayaDocsLocation(version=None):
         if version == None :
             version = getMayaVersion(extension=False)
         
-        import platform
         if platform.system() == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
     
@@ -485,12 +563,8 @@ def mayaInit(forversion=None) :
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
     it is possible to pass the desired Maya version number to define which Maya to initialize """
 
-    # test that Maya actually is loaded and that commands have been initialized,for the requested version        
-    try :
-        from maya.cmds import about        
-        runningVersion = eval("about(version=True)");
-    except :
-        runningVersion = None
+    # test that Maya actually is loaded and that commands have been initialized,for the requested version
+    runningVersion = getRunningMayaVersion()        
 
     if forversion :
         if runningVersion == forversion :
@@ -558,7 +632,12 @@ def mayaInit(forversion=None) :
 #  
 #
 #    else :
-#        # TOTO: do something for Windows here 
+#        # TODO: Perhaps convert 'standard paths' added on to sys.path to use backslashes?
+#        #       Normal maya does not do this, so that, on windows, it will add, for instance,
+#        #       'C:/Documents and Settings/%USERNAME%/My Documents/maya/2008-x64/prefs/scripts'
+#        #       instead of 
+#        #       'C:\\Documents and Settings\\%USERNAME%\\My Documents\\maya\\2008-x64\\prefs\\scripts',
+#        #       which means that you can't import modules located in the 'standard' script folders.
 #        print "Nothing planned for platform: %s" % (system)
                     
     if not sys.modules.has_key('maya.standalone') or version != forversion:
@@ -571,14 +650,8 @@ def mayaInit(forversion=None) :
 
     # TODO: import userSetup.py to the global namespace, like when running normal Maya 
 
-    try :
-        from maya.cmds import about    
-        reload(maya.cmds) #@UnresolvedImport
-        version = eval("about(version=True)")
-        return (forversion and version==forversion) or version
-    except :
-        return False
-
+    return mayaIsRunning()
+    
 # Fix for non US encodings in Maya
 def encodeFix():
     if mayaInit() :

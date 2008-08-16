@@ -7,13 +7,14 @@ print "Maya up and running"
 import pymel.tools.py2mel as py2mel
 #from general import PyNode
 import pymel.api as _api
-import sys, os, inspect, pickle, re, types, os.path
+import sys, os, inspect, pickle, re, types, os.path, warnings
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 from operator import itemgetter
 try:
     import maya.cmds as cmds
     import maya.mel as mm
+    import pymel.mayahook.pmcmds as pmcmds
 except ImportError: pass
 
 #---------------------------------------------------------------
@@ -868,9 +869,9 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     print "\t", str(msg).rstrip('\n') 
                     val = None
                 else:
-                     # some flags are only in mel help and not in maya docs, so we don't know their
-                     # supported per-flag modes.  we fill that in here
-                     flagInfo['modes'].append('query')
+                    # some flags are only in mel help and not in maya docs, so we don't know their
+                    # supported per-flag modes.  we fill that in here
+                    flagInfo['modes'].append('query')
             # EDIT
             if 'edit' in modes or testModes == True:
                 
@@ -1085,6 +1086,8 @@ def getInheritance( mayaType ):
             dagParent = cmds.listRelatives(res, parent=1)
             if dagParent is not None:
                 cmds.delete(dagParent[0])
+            else:
+                cmds.delete(res)
         else:
             cmds.delete(res)
     finally:
@@ -1097,6 +1100,12 @@ def getInheritance( mayaType ):
 #-----------------------
 
 def _addCmdDocs( func, cmdInfo=None ):
+    if cmdInfo is None:
+        cmdInfo = cmdlist[func.__name__]
+        
+    # runtime functions have no docs
+    if cmdInfo['type'] == 'runtime':
+        return func
         
     docstring = cmdInfo['description'] + '\n\n'
     
@@ -1171,7 +1180,7 @@ def _addFlagCmdDocs(func,cmdName,flag,docstring=''):
             try:
                 docstring += '        - secondary flags:\n'
                 for secondaryFlag in docs['secondaryFlags']:
-                     docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
+                    docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
             except KeyError: pass
             
             func.__doc__ = docstring
@@ -1204,137 +1213,155 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 
     #if module is None:
     #   module = _thisModule
+    
+    inFunc = None
     if isinstance( funcNameOrObject, basestring ):
         funcName = funcNameOrObject
-        try:       
-            inFunc = getattr(module, funcName)
-            
-        except AttributeError:
-            #if funcName == 'lsThroughFilter': print "function %s not found in module %s" % ( funcName, module.__name__)
+
+        # make sure that we import from pmcmds, not cmds
+        if module and module!=cmds:
+            try:       
+                inFunc = getattr(module, funcName)
+            except AttributeError:
+                #if funcName == 'lsThroughFilter': print "function %s not found in module %s" % ( funcName, module.__name__)
+                pass
+        
+        if not inFunc:
             try:
-                inFunc = getattr(cmds,funcName)
+                # import from pymel.mayahook.pmcmds
+                inFunc = getattr(pmcmds,funcName)
+                #inFunc = getattr(cmds,funcName)
                 #if funcName == 'lsThroughFilter': print "function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__)
             except AttributeError:
+                warnings.warn('Cannot find function %s' % funcNameOrObject)
                 return
     else:
         funcName = funcNameOrObject.__name__
         inFunc = funcNameOrObject
 
-                   
+    # Do some sanity checks...
+    if not callable(inFunc):
+        warnings.warn('%s not callable' % funcNameOrObject)
+        return
+    
     cmdInfo = cmdlist[funcName]
     funcType = type(inFunc)
+    # python doesn't like unicode function names
+    funcName = str(funcName)                   
     
-
-    
-    # if the function is not a builtin and there's no return command to map, just add docs
-    if funcType == types.FunctionType and returnFunc is None:
-        # there are no docs to add for runtime commands
-        if cmdInfo['type'] != 'runtime':
-            _addCmdDocs( inFunc, cmdInfo )
-        if rename: inFunc.__name__ = rename
-        #else: inFunc.__name__ = funcName
-        return inFunc
-    
-    elif funcType == types.BuiltinFunctionType or ( funcType == types.FunctionType and returnFunc ):                    
+    if funcType == types.BuiltinFunctionType:
         try:
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
-                print "Function found in module %s has different name than desired: %s != %s. simple fix? %s" % ( inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None)
-                return
+                warnings.warn("Function found in module %s has different name than desired: %s != %s. simple fix? %s" % ( inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None))
         except AttributeError:
-            pass
-      
-        #----------------------------        
-        # UI commands with callbacks
-        #----------------------------
+            warnings.warn("%s had no '__name__' attribute" % inFunc)
+
+    # some refactoring done here - to avoid code duplication (and make things clearer),
+    # we now ALWAYS do things in the following order:
+        # 1. Check if we need a newFunction, or can modify existing one, and set our newFunc appropriately
+        # 2. Perform operations which modify the execution of the function (ie, adding return funcs)
+        # 3. Modify the function descriptors - ie, __doc__, __name__, etc
         
-        if uiWidget: #funcName in moduleCmds['windows']:
-            # wrap ui callback commands to ensure that the correct types are returned.
-            # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
-            if funcName.startswith('float'):
-                callbackReturnFunc = float
-            elif funcName.startswith('int'):
-                callbackReturnFunc = int
-            elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-                callbackReturnFunc = lambda x: x == 'true'
-            else:
-                callbackReturnFunc = None
-            
-            if callbackReturnFunc:                
-                commandFlags = _getUICallbackFlags(cmdInfo['flags'])
-            else:
-                commandFlags = []
-                    
-            #print funcName, inFunc.__name__, commandFlags
-                  
-            def newFunc( *args, **kwargs):
-                for key in commandFlags:
-                    try:
-                        cb = kwargs[ key ]
-                        if hasattr(cb, '__call__'):
-                            def callback(*args):
-                                newargs = []
-                                for arg in args:
-                                    arg = callbackReturnFunc(arg)
-                                    newargs.append(arg)
-                                newargs = tuple(newargs)
-                                return cb( *newargs )
-                            kwargs[ key ] = callback
-                    except KeyError: pass
+    # 1. Check if we need a newFunction, or can modify existing one, and set our newFunc appropriately
+    if not (funcType == types.BuiltinFunctionType or rename):
+        # if it's a non-builtin function and we're not renaming, we don't need to create a
+        # new function - just tack docs onto existing one
+        newFunc = inFunc
+    else:
+        # otherwise, we'll need a new function: we don't want to touch built-ins, or
+        # rename an existing function, as that can screw things up... just modifying docs
+        # of non-builtin should be fine, though
+        def newFunc(*args, **kwargs):
+            return inFunc(*args, **kwargs)
+        
+        # TODO: since adding returnFuncs is so common, move the code for that here, to avoid
+        # an extra level of function wrapping
+        
+    # 2. Perform operations which modify the execution of the function (ie, adding return funcs)
+
+    #----------------------------        
+    # UI commands with callbacks
+    #----------------------------
+    
+    if uiWidget: #funcName in moduleCmds['windows']:
+        # wrap ui callback commands to ensure that the correct types are returned.
+        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
+        if funcName.startswith('float'):
+            callbackReturnFunc = float
+        elif funcName.startswith('int'):
+            callbackReturnFunc = int
+        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
+            callbackReturnFunc = lambda x: x == 'true'
+        else:
+            callbackReturnFunc = None
+        
+        if callbackReturnFunc:                
+            commandFlags = _getUICallbackFlags(cmdInfo['flags'])
+        else:
+            commandFlags = []
                 
-                res = apply( inFunc, args, kwargs )
-                if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
-                    if isinstance(res, list):                
+        #print funcName, inFunc.__name__, commandFlags
+
+        # need to define a seperate var here to hold
+        # the old value of newFunc, b/c 'return newFunc'
+        # would be recursive
+        beforeUiFunc = newFunc
+        def newUiFunc( *args, **kwargs):
+            for key in commandFlags:
+                try:
+                    cb = kwargs[ key ]
+                    if hasattr(cb, '__call__'):
+                        def callback(*args):
+                            newargs = []
+                            for arg in args:
+                                arg = callbackReturnFunc(arg)
+                                newargs.append(arg)
+                            newargs = tuple(newargs)
+                            return cb( *newargs )
+                        kwargs[ key ] = callback
+                except KeyError: pass
+            
+            return beforeUiFunc(*args, **kwargs)
+        
+        newFunc = newUiFunc
+        
+    if returnFunc:
+        # need to define a seperate var here to hold
+        # the old value of newFunc, b/c 'return newFunc'
+        # would be recursive
+        
+        beforeReturnFunc = newFunc
+        def newFuncWithReturnFunc( *args, **kwargs):
+            res = beforeReturnFunc(*args, **kwargs)
+            if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
+                if isinstance(res, list):
+                    # some node commands unnecessarily return a list with a single object
+                    if cmdInfo.get('resultNeedsUnpacking',False):
+                        res = returnFunc(res[0])
+                    else:
                         try:
                             res = map( returnFunc, res )
                         except: pass
-                
-                    elif res:
-                        try:
-                            res = returnFunc( res )
-                        except: pass
-                return res
             
-        #------------------------------------------------------------        
-        # commands whose creation/edit results need post-processing
-        #------------------------------------------------------------
-        elif returnFunc:
-            def newFunc( *args, **kwargs):
-                res = apply( inFunc, args, kwargs )
-                if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
-                    if isinstance(res, list):
-                        # some node commands unnecessarily return a list with a single object
-                        if cmdInfo.get('resultNeedsUnpacking',False):
-                             res = returnFunc(res[0])
-                        else:
-                            try:
-                                res = map( returnFunc, res )
-                            except: pass
-                
-                    elif res:
-                        try:
-                            res = returnFunc( res )
-                        except: pass
-                return res
-        #-----------
-        # Others
-        #-----------
-        else:
-            def newFunc(*args, **kwargs):
-                return apply(inFunc, args, kwargs)
-            
-        newFunc.__doc__ = inFunc.__doc__
-        _addCmdDocs( newFunc, cmdInfo )
+                elif res:
+                    try:
+                        res = returnFunc( res )
+                    except: pass
+            return res
+        newFunc = newFuncWithReturnFunc
+        
+    # 3. Modify the function descriptors - ie, __doc__, __name__, etc
+    
+    newFunc.__doc__ = inFunc.__doc__
+    _addCmdDocs( newFunc, cmdInfo )
 
-        if rename: 
-            newFunc.__name__ = rename
-        else:
-            newFunc.__name__ = inFunc.__name__
-            
-        return newFunc
+    if rename: 
+        newFunc.__name__ = rename
     else:
-        pass
-        #raise "function %s is of incorrect type: %s" % (funcName, type(inFunc) )
+        newFunc.__name__ = funcName
+        
+    return newFunc        
 
 '''            
 def makeCreateFlagMethodhod( inFunc, name, flag=None, docstring='', cmdName=None, returnFunc=None ):
@@ -2448,6 +2475,7 @@ def pluginLoadedCallback( module ):
             for funcName in commands:
                 #print "adding new command:", funcName
                 cmdlist[funcName] = getCmdInfoBasic( funcName )
+                pmcmds.addWrappedCmd(funcName)
                 func = functionFactory( funcName )
                 try:
                     if func:
@@ -2489,6 +2517,7 @@ def pluginUnloadedCallback( module ):
             for command in commands:
                 #print "removing command", command
                 try:
+                    pmcmds.removeWrappedCmd(command)
                     module.__dict__.pop(command)
                 except KeyError:
                     print "Failed to remove %s from module %s" % (command, module.__name__) 

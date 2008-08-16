@@ -851,7 +851,7 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
                                  
     return result
 
-
+# TODO: take a look at consolidating the duplicate 'dummy object' creation code in here and in _getMObject
 def _createNodes(dagMod, dgMod, *args) :
     """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
         can be used only as long as dagMod and dgMod are not deleted"""

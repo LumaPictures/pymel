@@ -11,7 +11,7 @@ from socket import gethostname
 import pymel.mayahook as mayahook
 
 try:
-    import maya.cmds as cmds
+    import pymel.mayahook.pmcmds as cmds
     import maya.mel as mm
 except ImportError:
     pass
@@ -31,11 +31,18 @@ import pymel.util.nameparse as nameparse
 "controls whether functions that return dag nodes use the long name by default"
 longNames = False
 
+# TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
+#       ...so we shouldn't always have to do it here as well?
+
+
 
 #-----------------------------------------------
 #  Enhanced Commands
 #-----------------------------------------------
 
+# TODO: possible bugfix for 'parent'?
+# Docs state 'If there is only a single object specified then the selected objects are parented to that object. '
+# ...but actual behavior is to parent the named object (and any other selected objects) to the last selected object
 
 def about(**kwargs):
     """
@@ -52,6 +59,42 @@ Modifications:
              }[ cmds.about(version=1)]
              
     return cmds.about(**kwargs)
+
+# TODO: finish this, replace current Version class...
+#class newVersion( util.Singleton ):
+#    """
+#    Class for retrieving apiVersions, which are the best method for comparing versions,
+#    as well as other version info.
+#    
+#    >>> if Version.current > Version.v85:
+#    >>>     print "The current version is later than Maya 8.5"
+#    """
+#    
+#    def __init__(self):
+#        self.refresh()
+#        
+#    def refresh(self):
+#        """Refreshes the stored version information."""
+#        # Basically, should only need to be called if _fromStringProcessing is True, 
+#        # and maya has since been initialized.
+#        if mayaIsRunning():
+#            # Since about(apiVersion=True) will work on all version after 8.5,
+#            # and 8.5 is the first version with python support, if the command fails,
+#            # we know it is 8.5
+#            try:
+#                self.current = about(apiVersion=True)
+#            except TypeError:
+#                # Since about(apiVersion=True) will work on all version after 8.5,
+#                # and 8.5 is the first version with python support, if the command fails,
+#                # we know it is 8.5
+#                self.current = {
+#                 '8.5 Service Pack 1': 200701,
+#                 '8.5': 200700,
+#                }[ cmds.about(version=1)]
+#
+#            self.versionNum = self.current // 100;
+#        else:
+#            pass
 
 class Version( util.Singleton ):
     """
@@ -84,7 +127,7 @@ Modifications:
     """
     
     try:
-        cmds.select(*util.stringify(args), **kwargs)
+        cmds.select(*args, **kwargs)
     except TypeError, msg:
         if args == ([],):
             cmds.select(cl=True)
@@ -92,6 +135,8 @@ Modifications:
             raise TypeError, msg
 #select.__doc__ = mel.help('select') + select.__doc__
 
+
+# TODO: make it handle multiple objects, like original command
 def move(obj, *args, **kwargs):
     """
 Modifications:
@@ -146,8 +191,6 @@ Maya Bug Fix:
     - even with the 'force' flag enabled, the command would raise an error if the connection already existed. 
     
     """
-    source = util.stringify(source)
-    destination = util.stringify(destination)
     if kwargs.get('force', False) or kwargs.get('f', False):    
         try:
             cmds.connectAttr( source, destination, **kwargs )
@@ -163,16 +206,25 @@ Modifications:
     """
     
     if destination:
-        source = util.stringify(source)
-        destination = util.stringify(destination)
         return cmds.disconnectAttr( source, destination, **kwargs )
     else:
-        source = util.stringify(source)
-        for src, dest in cmds.listConnections( source, source=False, destination=True, connections=True, plugs=True ):
-            cmds.disconnectAttr( src, dest, **kwargs )
+        # if disconnectingInputs, we're disconnecting inputs; otherwise, we're disconnecting outputs
+        for disconnectingInputs in (True, False):
+            connections = cmds.listConnections(source,
+                                               source=disconnectingInputs,
+                                               destination=(not disconnectingInputs),
+                                               connections=True,
+                                               plugs=True)
+            # stupid maya.cmds returns None instead of []...
+            if connections is None: continue
             
-        for dest, src in cmds.listConnections( source, source=True, destination=False, connections=True, plugs=True ):
-            cmds.disconnectAttr( src, dest, **kwargs )    
+            # if disconnectingInputs, results from listConnections will be returned in dest, src order -
+            # reverse the list to flip this to src, dest
+            if disconnectingInputs:
+                connections.reverse()
+            
+            for src, dest in util.pairIter(connections):
+                cmds.disconnectAttr( src, dest, **kwargs )  
         
 def getAttr( attr, default=None, **kwargs ):
     """
@@ -465,15 +517,9 @@ Modifications:
         this puts the pairs in the order that disconnectAttr and connectAttr expect.
     """
     def makePairs(l):
-        res = []
         if l is None:
-            return res
-            
-        for i in range(0, len(l),2):
-            res.append( ( PyNode(l[i]), PyNode(l[i+1]) )  )
-        return res
-    
-    args = util.stringify(args)   
+            return []
+        return [(PyNode(a), PyNode(b)) for (a, b) in util.pairIter(l)]
     
     if kwargs.get('connections', kwargs.get('c', False) ) :    
               
@@ -692,7 +738,7 @@ Modifications
     """
     if not args and not cmds.ls(sl=1):
         kwargs['empty'] = True
-    return Transform( cmds.group( *util.stringify(args), **kwargs) )
+    return Transform( cmds.group( *args, **kwargs) )
     #except RuntimeError, msg:
     #    print msg
     #    if msg == 'Not enough objects or values.':
@@ -996,9 +1042,8 @@ def _getPymelType(arg) :
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
-ProxyUnicode = util.proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
-class PyNode(ProxyUnicode):
+class PyNode(util.ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
         and defer to the correct derived class """
     _name = None              # unicode
@@ -1205,7 +1250,7 @@ class PyNode(ProxyUnicode):
                  
     objExists = exists
         
-    cmds.nodeType = cmds.nodeType
+    nodeType = cmds.nodeType
 
     def select(self, **kwargs):
         forbiddenKeys = ['all', 'allDependencyNodes', 'adn', 'allDagObjects' 'ado', 'clear', 'cl']
@@ -1437,9 +1482,11 @@ class Attribute(PyNode):
     
     def __apimobject__(self):
         "Return the MObject for this attribute, if it is valid"
-        obj = self._apiobject.object()
+        # MPlugs don't have '.object()' - use '.attribute()' or '.asMObject'
+        # ...using .attribute() because I think it's clearer...
+        obj = self.__apimplug__().attribute()
         if api.isValidMObject( obj ):
-            return object
+            return obj
     
     def __apimplug__(self) :
         "Return the MPlug for this attribute, if it is valid"
@@ -1453,13 +1500,11 @@ class Attribute(PyNode):
         except AttributeError: pass
     
     def __apimfn__(self):
-        if self._apimfn:
-            return self._apimfn
-        else:
-            obj = self.__apiobject__().attribute()
+        if not self._apimfn:
+            obj = self.__apimobject__()
             if obj:
                 self._apimfn = api.MFnAttribute( obj )
-                return self._apimfn
+        return self._apimfn
                            
 #    def __init__(self, attrName):
 #        assert isinstance( api.__apiobject__(), api.MPlug )
@@ -1533,10 +1578,6 @@ class Attribute(PyNode):
             return self.plugNode().name() + '.' + obj.partialName( False, True, True, False, False, True )
         return self._name
     
-    def nodeName(self):
-        """ Returns the node name of that attribute(plug) """
-        pass
-    
     def attributeName(self):
         pass
     
@@ -1576,7 +1617,7 @@ class Attribute(PyNode):
         return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), shortName=True)
         
     def nodeName( self ):
-        'basename'
+        """ Returns the node name of this attribute(plug) """
         return self.plugNode.name()
 
        
@@ -1742,9 +1783,21 @@ class Attribute(PyNode):
                 
     # getAttr info methods
     def type(self):
-        "getAttr -type"
+        """
+        getAttr -type
+        
+        Modifications:
+            for message attributes, returns u"message"
+        """
+        # check if it's a message first - if we do getAttr first, and it IS
+        # message, we will get an annoying warning message
+        if self.isMessageType():
+            return u"message" 
         return cmds.getAttr(self, type=True)
- 
+
+    # because getAttr -type doesn't return anything for mesage attributes
+    def isMessageType(self):
+        return self.__apimfn__().hasObj(maya.OpenMaya.MFn.kMessageAttribute)
             
     def size(self):
         "getAttr -size"
@@ -2636,7 +2689,7 @@ class DagNode(Entity):
              
         res = PyNode( res )
         #if not longNames:
-        #    return res.shortName()
+        #    return PyNode(res.shortName())
         return res
                     
     def getChildren(self, **kwargs ):
@@ -2992,6 +3045,14 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
+class IkHandle(Transform):
+    __metaclass__ = MetaMayaNodeWrapper
+    def jointList(self):
+        """Return the list of joints that the IkHandle is affecting."""
+        return [PyNode(x) for x in cmds.ikHandle(self, q=True, jointList=True)]
+    def endEffector(self):
+        return PyNode(cmds.ikHandle(self, q=True, endEffector=True))
+
 class FluidEmitter(Transform):
     __metaclass__ = MetaMayaNodeWrapper
     fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -3123,7 +3184,8 @@ class Mesh(SurfaceShape):
         def toFaces(self):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )        
         faces = property(toFaces)
-        
+
+	# TODO: add in getPos (and possibly setPos?) method
     class Vertex(Component):
         def __str__(self):
             return '%s.vtx[%s]' % (self._node, self._item)

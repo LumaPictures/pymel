@@ -178,6 +178,8 @@ proc_remap = {
 		'catchQuiet'			: ( 'int' ,   lambda x, t: '%scatch( lambda: %s )' % (t.lexer.pymel_namespace,x[0]) ),	
 
 		# system
+		
+		# TODO: check that new version of system works...
         # 'system'				: ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )' 	% (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows	
 		'system'                : ( 'string' ,   lambda x, t: '%smayahook.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),    
         # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec

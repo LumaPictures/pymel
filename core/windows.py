@@ -58,7 +58,7 @@ to pass along to your function and order of definition does not matter.
 
 
 try:
-    import maya.cmds as cmds
+    import pymel.mayahook.pmcmds as cmds
 except ImportError: pass
 
 import pymel.util as util

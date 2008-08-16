@@ -4764,7 +4764,14 @@ class Vector(Array):
             except :
                 raise TypeError, "cotan is defined for 2 vectors of size 3 representing 3D vectors"       
         return (nself.dot(nother)) / (nself.cross(nother)).length()             
-    
+            
+    def projectionOnto(self, other): 
+        """Returns the projection of this vector onto other vector."""
+        try :
+            nself, nother = coerce(Vector(self), other)
+        except :
+            raise NotImplemented, "%s not convertible to %s" % (clsname(other), clsname(self))     
+        return Vector( (nself.dot(nother) /  nother.sqlength()) * nother )    
     # blend and clamp derived from Array
              
 def _testArray() :  

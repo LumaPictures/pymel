@@ -216,9 +216,9 @@ class ValueLex :
     def test(self,data):
         self.lexer.input(data)
         while 1:
-             tok = self.lexer.token()
-             if not tok: break
-             print tok 
+            tok = self.lexer.token()
+            if not tok: break
+            print tok 
     
 # Do the 2 level parse of a Maya.env format text and return a symbol table of the declared env vars
 def parse(text, environ=os.environ, osname=os.name):

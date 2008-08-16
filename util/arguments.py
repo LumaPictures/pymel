@@ -4,17 +4,24 @@ These utility functions can be used by other util modules and are imported in ut
 """
 
 from collections import deque
-import sys, operator
+import sys, operator, itertools
+
+from utilitytypes import ProxyUnicode
 
 # some functions used to need to make the difference between strings and non-string iterables when PyNode where unicode derived
+# doing a hasattr(obj, '__iter__') test will fail for objects that implement __getitem__, but not __iter__, so try iter(obj)
 def isIterable( obj ):
-    return hasattr(obj,'__iter__') and not isinstance(obj,basestring)
+    if isinstance(obj,basestring): return False
+    try:
+        iter(obj)
+    except TypeError: return False
+    else: return True
 
 # consider only ints and floats numeric
 def isScalar(obj):
     return operator.isNumberType(obj) and not isinstance(obj,complex)
 
-# TODO : this is uneeded as operator provides it, can call directly to operator methods
+# TODO : this is unneeded as operator provides it, can call directly to operator methods
 def isNumeric(obj):
     return operator.isNumberType(obj)
 
@@ -36,15 +43,90 @@ def convertListArgs( args ):
         return tuple(args[0])
     return args     
 
-def stringify( args ):
-    newargs = []
-    for arg in args:
-        if isIterable(arg):
-            newargs.append( stringify(arg) )
-        else:
-            newargs.append( unicode(arg) )
+def stringify( args, recursionLimit=None, maintainDicts=True, classesToStringify=None):
+    """Will return a list which contains each element of the iterable 'args' converted to a unicode string.
+    
+    If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
+    will recursively searched for PyNodes to convert to unicode strings; if recursionLimit==0, only the elements
+    of args    itself will be searched for PyNodes -  if it is 1, iterables within args will have stringify called
+    on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
+    
+    In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
+    then iterables for whichoperator.isMappingType() returns true will be returned as dicts.
+    
+    If classesToStringify is None, then all arguments will be converted to unicode (except potentially for iterables,
+    as noted above) - however, if it is not None, then it should be a class or tuple of classes, and only arguments
+    which are subclasses of one of the given classes will be converted to strings.  Also, note that if classesToStringify
+    are    specified, then they will be immediately converted when encountered, even if they are themselves iterable.
+    """
+    if recursionLimit:
+        recursionLimit -= 1
+    
+    #isinstance only takes tuple sequences
+    if classesToStringify and \
+       not isinstance(classesToStringify, tuple) and \
+       isIterable(classesToStringify):
+        classesToStringify = tuple(classesToStringify)
+        
+    if maintainDicts and operator.isMappingType(args):
+        newargs = dict(args)
+        argIterable = args.iteritems()
+    else:
+        newargs = list(args)
+        argIterable = enumerate(args)
+    for index, value in argIterable:
+        if classesToStringify and isinstance(value, classesToStringify):
+            # If instance of classesToStringify, always stringify
+            newargs[index] = unicode(value)
+        elif ( (not recursionLimit) or recursionLimit >= 0) and isIterable(value):
+            # ...otherwise, recurse if not at recursion limit and  it's iterable
+            newargs[index] = stringify(value, recursionLimit, maintainDicts, classesToStringify)
+        elif not classesToStringify:
+            # ...otherwise, if not only stringifying certain classes, stringify it
+            newargs[index] = unicode(value)
     return newargs
-     
+
+def stringifyPyNodeArgs(function):
+    """
+    Decorator which will convert any arguments which are ProxyUnicode to strings before passing to the underlying function.
+    
+	Conceptually, this is the inverse of argsToPyNodes.
+	"""
+    def stringifiedFunc(*args, **kwargs):
+        return function(*(stringify(args, classesToStringify=ProxyUnicode)),
+                    **(stringify(kwargs, classesToStringify=ProxyUnicode)))
+    
+    stringifiedFunc.__doc__ = function.__doc__
+    stringifiedFunc.__name__ = function.__name__
+    return stringifiedFunc 
+
+def argsToPyNodes(numberedArgsToConvert='all', keywordArgsToConvert='all'):
+    """
+    Decorator generator used to convert arguments into PyNodes.
+    
+    Conceptually, this is the inverse of stringifyPyNodeArgs.
+    
+    If numberedArgsToConvert is the default (the string 'all'), then all non-keyword arguments are converted to PyNodes;
+    otherwise, it should be a list of indices indicating which non-keyword arguments should be converted.
+    
+    If keywordArgsToConvert is the default (the string 'all'), then all keyword arguments are converted to PyNodes;
+    otherwise, it should be a list of keywords indicating which keyword arguments should be converted.
+    """
+    def argsToPyNodesDecorator(function):
+        """Decorator used to convert arguments into PyNodes"""
+        def funcWithPyNodes(*args, **kwargs):
+            args = list(args)
+            from pymel import PyNode
+            for i in xrange(len(args)):
+                if numberedArgsToConvert == 'all' or (i in numberedArgsToConvert):
+                    args[i] =  PyNode(args[i])
+            for keywordArg in kwargs:
+                if keywordArgsToConvert == 'all' or (keywordArg in keywordArgsToConvert):
+                    kwargs[keywordArg] = PyNode(kwargs[keywordArg])
+            return function(*args, **kwargs)
+        return funcWithPyNodes
+    return argsToPyNodesDecorator
+         
 def expandArgs( *args, **kwargs ) :
     """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its
     elements that will be inserted at its place in the returned arguments.
@@ -246,3 +328,17 @@ def listForNone( res ):
     if res is None:
         return []
     return res
+
+# for discussion of implementation,
+# see http://mail.python.org/pipermail/python-list/2008-January/474369.html for discussion...
+def pairIter(sequence):
+    '''
+    Returns an iterator over every 2 items of sequence.
+    
+    ie, [x for x in pairIter([1,2,3,4])] == [(1,2), (3,4)]
+    
+    If sequence has an odd number of items, the last item will not be returned in a pair.
+    '''
+    theIter = iter(sequence)
+    return itertools.izip(theIter,theIter)
+   

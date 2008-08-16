@@ -6,7 +6,7 @@ import system
 from pmtypes.wrappedtypes import *
 import pymel.util as util
 import maya.mel as mm
-import maya.cmds as cmds
+import pymel.mayahook.pmcmds as cmds
 import os
 import pymel.factories as _factories
 #--------------------------
@@ -485,5 +485,13 @@ class Env(util.Singleton):
             
 env = Env()
 
+def conditionExists(conditionName):
+	"""
+	Returns True if the named condition exists, False otherwise.
+	
+	Note that 'condition' here refers to the type used by 'isTrue' and 'scriptJob', NOT to the condition NODE.
+	"""
+	return conditionName in cmds.scriptJob(listConditions=True)
+	
 
 _factories.createFunctions( __name__ )

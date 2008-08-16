@@ -25,7 +25,7 @@ also note that the 'type' flag is set automatically for you when your path inclu
 """
 
 try:
-    import maya.cmds as cmds
+    import pymel.mayahook.pmcmds as cmds
     import maya.OpenMaya as OpenMaya
 except ImportError: pass
 
