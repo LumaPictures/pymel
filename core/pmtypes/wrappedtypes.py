@@ -2091,6 +2091,8 @@ class MBoundingBox( _api.MBoundingBox):
     w = property( _factories.wrapApiMethod( _api.MBoundingBox, 'width'  ) )
     h = property( _factories.wrapApiMethod( _api.MBoundingBox, 'height'  ) )
     d = property( _factories.wrapApiMethod( _api.MBoundingBox, 'depth'  ) )
+
+
                     
 def _testMVector() :
     
