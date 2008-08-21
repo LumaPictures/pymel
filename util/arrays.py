@@ -127,11 +127,12 @@ def _patchfn(basefn) :
                     for k in kwargs :
                         ka = kwargs[k]
                         try :
-                            ka = Array(ka)
+                            maxarg, ka = coerce(maxarg, ka)
+                            # ka = Array(ka)
                         except :
                             ka = (ka,)*la
-                        if isinstance (ka, Array) :
-                            maxarg, ka = coerce(maxarg, ka)
+                        # if isinstance (ka, Array) :
+                        #    maxarg, ka = coerce(maxarg, ka)
                         kwargs[k] = ka
                     allkw = [dict([(k, kwargs[k][i]) for k in kwargs])  for i in range(la)]
                     res = _toCompOrArray(fn(*a, **allkw[i]) for i, a in enumerate(allargs))
@@ -154,7 +155,25 @@ def _patchfn(basefn) :
     return fn
 
 def patchMath() :
-    """ Overload various math functions to work element-wise on iterables """   
+    """ Overload various math functions to work element-wise on iterables
+        
+        >>> A = Array([[0, pi/4.0], [pi/2.0, 3.0*pi/4.0], [pi, 5.0*pi/4.0], [3.0*pi/2.0, 7.0*pi/4.0]])
+        >>> print round(A,2).formated()
+        [[0.0, 0.79],
+         [1.57, 2.36],
+         [3.14, 3.93],
+         [4.71, 5.5]]
+        >>> print degrees(A).formated()
+        [[0.0, 45.0],
+         [90.0, 135.0],
+         [180.0, 225.0],
+         [270.0, 315.0]]
+        >>> print round(sin(A), 2).formated()
+        [[0.0, 0.71],
+         [1.0, 0.71],
+         [0.0, -0.71],
+         [-1.0, -0.71]]
+    """   
     mathfn = inspect.getmembers(math, inspect.isbuiltin)
     for mfn in mathfn :
         fname = mfn[0]
@@ -212,12 +231,28 @@ def reorder( x, indexList=[], indexDict={} ):
     return newlist 
 
 # some other overriden math or builtin functions operating on Arrays or derived classes
+# NOTE : it's not very consistent that min and max accept a variable number of arguments and
+# sum, prod, any, all don't? But it's the way it is with the builtins
 
-def sum(a, start=0, **kwargs):
-    """ sum(a[, start[, axis=None]]) --> numeric or Array
-        Returns the sum of all the components of a, an iterable of numeric values, plus start.
-        If a is an Array and axis are specified will return an Array of sum(x) for x in a.axisiter(*axis) """
-    axis=kwargs.get('axis', None)
+def sum(a, start=0, axis=None):
+    """ sum(a[, start=0[, axis=(axis0, axis1, ...)]]) --> numeric or Array
+    
+        Returns the sum of all the components of a, an iterable of values that support the add operator, plus start.
+        If a is an Array and axis are specified will return an Array of sum(x) for x in a.axisiter(*axis)
+        
+        >>> A = Array([[1,2,3],[4,5,6]])    
+        >>> print A.formated()
+        [[1, 2, 3],
+         [4, 5, 6]]
+        >>> sum(A)
+        21
+        >>> sum(A, axis=(0, 1))
+        21
+        >>> sum(A, axis=0)
+        Array([5, 7, 9])
+        >>> sum(A, axis=1)
+        Array([6, 15])
+    """
     if isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
         return reduce(operator.add, a.axisiter(*axis), start)
@@ -226,11 +261,25 @@ def sum(a, start=0, **kwargs):
     else :
         return a+start
     
-def prod(a, start=1, **kwargs):
-    """ prod(a[, start[, axis=None]]) --> numeric or Array
-        Returns the product of all the components of a, an iterable of numeric values, times start.
-        If axis are specified will return an Array of prod(x) for x in a.axisiter(*axis) """
-    axis=kwargs.get('axis', None)       
+def prod(a, start=1, axis=None):
+    """ prod(a[, start=1[, axis=(axis0, axis1, ...)]]) --> numeric or Array
+    
+        Returns the product of all the components of a, an iterable of values that support the mul operator, times start.
+        If axis are specified will return an Array of prod(x) for x in a.axisiter(*axis).
+
+        >>> A = Array([[1,2,3],[4,5,6]])    
+        >>> print A.formated()
+        [[1, 2, 3],
+         [4, 5, 6]]
+        >>> prod(A)
+        720
+        >>> prod(A, axis=(0, 1))
+        720
+        >>> prod(A, axis=0)
+        Array([4, 10, 18])
+        >>> prod(A, axis=1)    
+        Array([6, 120])
+    """    
     if isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
         return reduce(operator.mul, a.axisiter(*axis), start)
@@ -239,15 +288,25 @@ def prod(a, start=1, **kwargs):
     else :
         return a*start
 
-def any(*args, **kwargs):
-    """ any(a [,axis=None]) --> bool or Array of booleans
-        Returns True if any of the components of a, an iterable of numeric values, is True.
-        If axis are specified will return an Array of any(x) for x in a.axisiter(*axis) """
-    axis=kwargs.get('axis', None)
-    if len(args) == 1 :
-        a = args[0]
-    else :
-        a = args           
+def any(a, axis=None):
+    """ any(a [,axis=(axis0, axis1, ...)]) --> bool or Array of booleans
+    
+        Returns True if any of the components of iterable a evaluate to True.
+        If axis are specified will return an Array of any(x) for x in a.axisiter(*axis).
+        
+        >>> A = Array([[False,True,True],[False,True,False]])
+        >>> print A.formated()
+        [[False, True, True],
+         [False, True, False]]
+        >>> any(A)
+        True
+        >>> any(A, axis=(0, 1))
+        True
+        >>> any(A, axis=0)
+        Array([False, True, True])
+        >>> any(A, axis=1)
+        Array([True, True])
+    """          
     if isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
         it = a.axisiter(*axis)
@@ -261,15 +320,25 @@ def any(*args, **kwargs):
     else :
         return bool(a)
     
-def all(*args, **kwargs):
-    """ all(a, [,axis=None]) --> bool or Array of booleans
-        Returns True if all the components of a, an iterable of numeric values, are True.
-        If axis are specified will return an Array of all(x) for x in a.axisiter(*axis) """
-    axis=kwargs.get('axis', None)
-    if len(args) == 1 :
-        a = args[0]
-    else :
-        a = args               
+def all(a, axis=None):
+    """ all(a, [,axis=(axis0, axis1, ...)]) --> bool or Array of booleans
+    
+        Returns True if all the components of iterable a evaluate to True.
+        If axis are specified will return an Array of all(x) for x in a.axisiter(*axis).
+
+        >>> A = Array([[True,True,True],[False,True,False]])
+        >>> print A.formated()
+        [[True, True, True],
+         [False, True, False]]
+        >>> all(A)
+        False
+        >>> all(A, axis=(0, 1))
+        False
+        >>> all(A, axis=0)
+        Array([False, True, False])
+        >>> all(A, axis=1)
+        Array([True, False])
+    """           
     if isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
         it = a.axisiter(*axis)
@@ -284,13 +353,27 @@ def all(*args, **kwargs):
         return bool(a)
 
 def min(*args, **kwargs):
-    """ min(iterable[, key=func]) -> value
-        min(a, b, c, ...[, key=func]) -> value
+    """ min(iterable[, key=func[, axis=(axis0, axis1, ...)]]) --> value
+        min(a, b, c, ...[, key=func[, axis=(axis0, axis1, ...)]]) --> value
     
         With a single iterable argument, return its smallest item.
         With two or more arguments, return the smallest argument.
         If the iterable argument is an Array instance, returns the smallest component of iterable.
-        If axis are specified will return an Array of element-wise min(x) for x in a.axisiter(*axis) """
+        If axis are specified will return an Array of element-wise min(x) for x in a.axisiter(*axis).
+        
+        >>> A = Array([[6,3,4],[1,5,0.5]])
+        >>> print A.formated()
+        [[6, 3, 4],
+         [1, 5, 0.5]]
+        >>> min(A)
+        0.5
+        >>> min(A, axis=(0,1))
+        0.5
+        >>> min(A, axis=0)
+        Array([1, 3, 0.5])
+        >>> min(A, axis=1)
+        Array([3, 0.5])
+    """
     axis=kwargs.get('axis', None)
     key=kwargs.get('key', None)
     opt = {}
@@ -314,13 +397,27 @@ def min(*args, **kwargs):
         return a
     
 def max(*args, **kwargs):
-    """ max(iterable[, key=func]) -> value
-        max(a, b, c, ...[, key=func]) -> value
+    """ max(iterable[, key=func[, axis=(axis0, axis1, ...)]]) --> value
+        max(a, b, c, ...[, key=func[, axis=(axis0, axis1, ...)]]) --> value
     
         With a single iterable argument, return its largest item.
         With two or more arguments, return the largest argument.
         If the iterable argument is an Array instance, returns the largest component of iterable.
-        If axis are specified will return an Array of element-wise max(x) for x in a.axisiter(*axis) """
+        If axis are specified will return an Array of element-wise max(x) for x in a.axisiter(*axis).
+        
+        >>> A = Array([[6,3,4],[1,5,0.5]])
+        >>> print A.formated()
+        [[6, 3, 4],
+         [1, 5, 0.5]]
+        >>> max(A)
+        6
+        >>> max(A, axis=(0, 1))
+        6
+        >>> max(A, axis=0)
+        Array([6, 5, 4])
+        >>> max(A, axis=1)
+        Array([6, 5])
+    """
     axis=kwargs.get('axis', None)
     key=kwargs.get('key', None)
     opt = {}
@@ -346,9 +443,24 @@ def max(*args, **kwargs):
 # Array specific functions that also exist as methods on the Array classes
 
 def sqlength(a, axis=None):
-    """ sqlength(a, axis) --> numeric or Array
-        Returns square length of a, a*a or the sum of x*x for x in a if a is an iterable of numeric values.
-        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
+    """ sqlength(a[, axis=(axis0, axis1, ...)]) --> numeric or Array
+    
+        Returns square length of a, ie a*a or the sum of x*x for x in a if a is an iterable of numeric values.
+        If a is an Array and axis are specified will return a list of sqlength(x) for x in a.axisiter(*axis).
+        
+        >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
+        >>> print A.formated()
+        [[0.5, 0.5, -0.707],
+         [0.707, -0.707, 0.0]]
+        >>> sqlength(A)
+        1.999547
+        >>> sqlength(A, axis=(0,1))
+        1.999547
+        >>> sqlength(A, axis=0)
+        Array([0.999849, 0.999698])
+        >>> sqlength(A, axis=1)
+        Array([0.749849, 0.749849, 0.499849])
+    """
     a = Vector._convert(a)
     if isinstance(a, Vector) :
         # axis not used but this catches invalid axis errors
@@ -357,7 +469,7 @@ def sqlength(a, axis=None):
             try :
                 axis = a._getaxis(axis, fill=True)
             except :
-                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+                raise ValueError, "axis 0 is the only valid axis for a Vector, %s invalid" % (axis)
         return a.sqlength()
     elif isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
@@ -366,14 +478,48 @@ def sqlength(a, axis=None):
         raise TypeError, "sqlength not implemented for %s" % (clsname(a))     
 
 def length(a, axis=None):
-    """ length(a, axis) --> numeric or Array
+    """ length(a[, axis=(axis0, axis1, ...)]) --> numeric or Array
+    
         Returns length of a, sqrt(a*a) or the square root of the sum of x*x for x in a if a is an iterable of numeric values.
-        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis) """
+        If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis).
+        
+        >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
+        >>> print A.formated()
+        [[0.5, 0.5, -0.707],
+         [0.707, -0.707, 0.0]]
+        >>> length(A)
+        1.4140533936170869
+        >>> length(A, axis=(0,1))
+        1.4140533936170869
+        >>> length(A, axis=0)
+        Array([0.99992449715, 0.999848988598])
+        >>> length(A, axis=1)
+        Array([0.865938219505, 0.865938219505, 0.707])
+    """
     return sqrt(sqlength(a, axis))
 
 def normal(a, axis=None): 
-    """ normal(a, axis) --> Array
-        Return a normalized copy of self: self/length(self, axis) """
+    """ normal(a[, axis=(axis0, axis1, ...)]) --> Array
+    
+        Returns a normalized copy of self: self/length(self, axis).
+        
+        >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
+        >>> print A.formated()
+        [[0.5, 0.5, -0.707],
+         [0.707, -0.707, 0.0]]
+        >>> print normal(A).formated()
+        [[0.353593437318, 0.353593437318, -0.499981120367],
+         [0.499981120367, -0.499981120367, 0.0]]
+        >>> print normal(A, axis=(0,1)).formated()
+        [[0.353593437318, 0.353593437318, -0.499981120367],
+         [0.499981120367, -0.499981120367, 0.0]]
+        >>> print normal(A, axis=0).formated()
+        [[0.5, 0.5, -0.707],
+         [0.707, -0.707, 0.0]]
+        >>> print normal(A, axis=1).formated()
+        [[0.577408397894, 0.577408397894, -1.0],
+         [0.816455474623, -0.816455474623, 0.0]]
+    """
     a = Vector._convert(a)
     if isinstance(a, Vector) :
         # axis not used but this catches invalid axis errors
@@ -382,7 +528,7 @@ def normal(a, axis=None):
             try :
                 axis = a._getaxis(axis, fill=True)
             except :
-                raise ValueError, "axis 0 is the only valid axis for a MVector, %s invalid" % (axis)
+                raise ValueError, "axis 0 is the only valid axis for a Vector, %s invalid" % (axis)
         return a.normal()
     elif isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
@@ -391,8 +537,29 @@ def normal(a, axis=None):
         raise TypeError, "normal not implemented for %s" % (clsname(a))            
     
 def dist(a, b, axis=None):
-    """ dist(a, b, axis) --> float or Array
-         Returns the distance between a and b, the length of b-a """
+    """ dist(a, b[, axis=(axis0, axis1, ...)]) --> float or Array
+    
+        Returns the distance between a and b, ie length(b-a, axis)
+        
+        >>> A = Array([[0.5, 0.5, -0.707],[0.707, -0.707, 0.0]])
+        >>> print A.formated()
+        [[0.5, 0.5, -0.707],
+         [0.707, -0.707, 0.0]]
+        >>> B = Array([[0.51, 0.49, -0.71],[0.71, -0.70, 0.0]])
+        >>> print B.formated()
+        [[0.51, 0.49, -0.71],
+         [0.71, -0.7, 0.0]]
+        >>> length(B-A)
+        0.016340134638368205
+        >>> dist(A, B)
+        0.016340134638368205
+        >>> dist(A, B, axis=(0, 1))
+        0.016340134638368205
+        >>> dist(A, B, axis=0)
+        Array([0.0144568322948, 0.00761577310586])
+        >>> dist(A, B, axis=1)
+        Array([0.0104403065089, 0.0122065556157, 0.003])
+    """
     a = Vector._convert(a)
     if isinstance(a, Vector) :
         # axis not used but this catches invalid axis errors
@@ -480,9 +647,13 @@ class ArrayIter(object):
         >>> print A.formated()
         [[1, 7, 3],
          [0, 0, 0],
-         [3, 9, 1]]         
+         [3, 9, 1]]
     """
     def __init__(self, data, *args) :
+        """ it.__init__(a[, axis1[, axis2[, ...]]])
+        
+            Inits this Array iterator on Array a, using the specified list of axis, see ArrayIter help.
+        """
         if len(args) == 1 and hasattr(args[0], '__iter__') :
             args = tuple(args[0]) 
         if isinstance(data, Array) :
@@ -516,6 +687,7 @@ class ArrayIter(object):
             self.shape = tuple(shape)
             self.itemshape = tuple(itemshape) 
             self.itemdim = len(itemshape) 
+            self.itemsize = reduce(operator.mul, itemshape, 1)
             self.subsizes = [reduce(operator.mul, shape[i+1:], 1) for i in xrange(ndim)]  
             #print "Base shape %s, Axis %s, Iter shape %s, iter dim %s, iter size %s, item shape %s, item dim %s, subsizes %s"\
             #         % (self.base.shape, self.axis, self.shape, self.ndim, self.size, self.itemshape, self.itemdim, self.subsizes)                
@@ -529,6 +701,7 @@ class ArrayIter(object):
         return self 
     
     def next(self):
+        """ it.next() -> the next value, or raise StopIteration """
         for i in range(len(self.axis)-1, 0, -1) :
             if self.coords[self.axis[i]] == self.shape[i] :
                 self.coords[self.axis[i]] = 0
@@ -541,36 +714,128 @@ class ArrayIter(object):
         return val       
 
     # fast internal version without checks or negative index / slice support
-    def _toArrayCoords(self, item, default=None):
+    def _toArrayCoords(self, item, subindex, default):
         owncoords = []
         for s in self.subsizes :
             c = item//s
             item -= c*s
             owncoords.append(c)
         coords = [default]*self.base.ndim
+        # set coordinates that are defined by iterator
         for i,c in enumerate(owncoords) :
             coords[self.axis[i]] = c
-        # remove trailing ":" slices or None coords, leaving a minimum of one coord   
-        while len(coords) > 1 and (coords[-1] == None or coords[-1] == slice(None)) :
+        # fill in other coordinates (coords on iterated items)
+        ls = len(subindex)
+        s = 0
+        for i,c in enumerate(coords) : 
+            if s >= ls :
+                break                
+            if c == default :
+                coords[i] = subindex[s]
+                s += 1
+
+        # remove useless trailing default coords, leaving a minimum of one coord   
+        while len(coords) > 1 and coords[-1] == default :
             del coords[-1]
         return tuple(coords)
         
-    def toArrayCoords(self, item, default=None):
-        """ Converts an iterator item index (nth item) for that Array iterator to a tuple of axis coordinates for that Array, 
-            returns a single coordinates tuple or a list of coordinate tuples if item index was a slice """
+    def toArrayCoords(self, index, default=None):
+        """ it.toArrayCoords(index, default=None) --> list or tuple
+        
+            Converts an iterator item index (item of number index in the iterator) for that Array iterator to a tuple of axis coordinates for that Array, 
+            returns a single coordinates tuple or a list of coordinate tuples if index was a slice.
+            If index is a multi-index (a tuple), the first element if index is checked against the iterator and the remaining elements are considered
+            indices on the iterated sub-array (s).
+
+            >>> A = Array(range(1, 10), shape=(3, 3))
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> it = ArrayIter(A, 0, 1)
+            >>> it[4]
+            5
+            >>> it.toArrayCoords(4)
+            (1, 1)
+            >>> A[1, 1]
+            5
+            >>> it[1:4]
+            Array([2, 3, 4])
+            >>> it.toArrayCoords(slice(1, 4))
+            [(0, 1), (0, 2), (1, 0)]
+            
+            >>> [a for a in ArrayIter(A, 1)]
+            [Array([1, 4, 7]), Array([2, 5, 8]), Array([3, 6, 9])]
+            >>> it = ArrayIter(A, 1)
+            >>> it[0]
+            Array([1, 4, 7])
+            >>> it.toArrayCoords(0)
+            (None, 0)
+            >>> it.toArrayCoords(0, default=slice(None))
+            (slice(None, None, None), 0)
+            >>> A[:, 0]
+            Array([1, 4, 7])
+            >>> it.toArrayCoords((0, 1))
+            (1, 0)
+            >>> it[0, 1]
+            4
+            >>> A[1, 0]
+            4
+        """
+        if hasattr(index, '__iter__') :
+            index = tuple(index)
+        else :
+            index = (index,)
+        item = index[0]
+        subindex = index[1:]
+        # check validity of subindex if any
+        if self.itemshape :
+            subindex = self.base.__class__._checkindex(index=subindex, shape=self.itemshape, default=default)
+                                              
         if isinstance(item, slice) :
-            return [self._toArrayCoords(f, default) for f in range(self.size)[item]]
+            return [self._toArrayCoords(f, subindex, default) for f in range(self.size)[item]]
         else :
             item = int(item)
             if item < 0 :
                 item = self.size + item
             if item>=0 and item<self.size :
-                return self._toArrayCoords(item, default)
+                return self._toArrayCoords(item, subindex, default)
             else :
                 raise IndexError, "item number %s for iterator of %s items is out of bounds" % (item, self.size)
 
     def __getitem__(self, index) :
-        """ Returns a single sub-Array or component corresponding to the iterator item item, or an Array of values if index is a slice """      
+        """ it.__getitem__(index) <==> it[index]
+        
+            Returns a single sub-Array or component corresponding to the iterator item designated by index, or an Array of values if index is a slice.
+            
+            Note : if it is an ArrayIter built on Array a, it's equivalent to a[c] for c in it.toArrayCoords(index)
+            
+            >>> A = Array(range(1, 10), shape=(3, 3))
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> ArrayIter(A, 0, 1)[4]
+            5
+            >>> ArrayIter(A, 0, 1)[0:6]
+            Array([1, 2, 3, 4, 5, 6])
+            >>> [a for a in ArrayIter(A, 1)]
+            [Array([1, 4, 7]), Array([2, 5, 8]), Array([3, 6, 9])]
+            >>> ArrayIter(A, 1)[1]
+            Array([2, 5, 8])
+            >>> ArrayIter(A, 1)[1, 0]
+            2
+            >>> print ArrayIter(A, 1)[0:2, 0:2].formated()
+            [[1, 4],
+             [2, 5]]
+            >>> print A.transpose()[0:2, 0:2].formated()
+            [[1, 4],
+             [2, 5]]
+        """               
         coords = self.toArrayCoords(index, default=slice(None))
         if type(coords) is list :
             return self.base.__class__._convert(self.base.__getitem__(c) for c in coords)
@@ -579,7 +844,32 @@ class ArrayIter(object):
             return self.base.__getitem__(coords)
         
     def __delitem__(self, index):
-        """ Do not use __delitem__ during iteration """
+        """ it.__delitem__(index) <==> del it[index]
+        
+            Note : if it is an ArrayIter built on Array a, it's equivalent to del a[c] for c in it.toArrayCoords(index)
+        
+            Warning : Do not use __delitem__ during iteration
+            
+            >>> A = Array(range(1, 10), shape=(3, 3))
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> del ArrayIter(A, 0, 1)[1]
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [4, 6, 7, 9]
+            >>> print A.formated()
+            [[4, 6],
+             [7, 9]]
+            >>> [a for a in ArrayIter(A, 1)]
+            [Array([4, 7]), Array([6, 9])]
+            >>> del ArrayIter(A, 1)[-1]
+            >>> print A.formated()
+            [[4],
+             [7]]
+        """
         coords = self.toArrayCoords(index, default=None)
         if type(coords) is list :
             for c in coords :
@@ -590,7 +880,61 @@ class ArrayIter(object):
         self.__init__(self.base, *self.axis)        
 
     def __setitem__(self, index, value) :
-        """ Returns a single sub-Array or component corresponding to the iterator item item, or an Array of values if index is a slice """
+        """ it.__setitem__(index, value) <==> it[index] = value
+        
+            Returns a single sub-Array or component corresponding to the iterator item item, or an Array of values if index is a slice.
+            
+            Note : if it is an ArrayIter built on Array a, it's equivalent to a[c]=value for c in it.toArrayCoords(index) or
+            a[c] = value[i] for i, c in enumerate(it.toArrayCoords(index)) if an iterable of values of suitable shapes was provided.
+            
+            >>> A = Array(range(1, 10), shape=(3, 3))
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            >>> ArrayIter(A, 0, 1)[4] = 10
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 2, 3, 4, 10, 6, 7, 8, 9]
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 10, 6],
+             [7, 8, 9]]
+            >>> ArrayIter(A, 0, 1)[0:3] = 1
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 1, 1, 4, 10, 6, 7, 8, 9]
+            >>> print A.formated()
+            [[1, 1, 1],
+             [4, 10, 6],
+             [7, 8, 9]]
+            >>> ArrayIter(A, 0, 1)[5:9] = [4, 3, 2, 1]
+            >>> [a for a in ArrayIter(A, 0, 1)]
+            [1, 1, 1, 4, 10, 4, 3, 2, 1]
+            >>> print A.formated()
+            [[1, 1, 1],
+             [4, 10, 4],
+             [3, 2, 1]]
+            >>> [a for a in ArrayIter(A, 1)]
+            [Array([1, 4, 3]), Array([1, 10, 2]), Array([1, 4, 1])]
+            >>> ArrayIter(A, 1)[1]
+            Array([1, 10, 2])
+            >>> ArrayIter(A, 1)[1, 1] = 5
+            >>> print A.formated()
+            [[1, 1, 1],
+             [4, 5, 4],
+             [3, 2, 1]]
+            >>> ArrayIter(A, 1)[-1] = [7, 8, 9]
+            >>> print A.formated()
+            [[1, 1, 7],
+             [4, 5, 8],
+             [3, 2, 9]]
+            >>> ArrayIter(A, 0)[1] = 0
+            >>> print A.formated()
+            [[1, 1, 7],
+             [0, 0, 0],
+             [3, 2, 9]]
+        """
         coords = self.toArrayCoords(index, default=slice(None))
 
         # print "expected item shape: %s" % list(self.itemshape)
@@ -598,7 +942,7 @@ class ArrayIter(object):
         valueshape, valuedim, valuesize = _shapeInfo(value)
                      
         if type(coords) is list :
-            if valueshape == self.itemshape :
+            if valuedim <= self.itemdim :
                 for c in coords :
                     self.base.__setitem__(c, value)
             elif hasattr(value, '__iter__') and valueshape[1:] == self.itemshape :
@@ -610,7 +954,7 @@ class ArrayIter(object):
             else :
                 raise ValueError, "value must be a single item (Array or component) of shape matching the iterated items shape, or an iterable of items, each of shape matching the iterated items shape"
         else :
-            if valueshape == self.itemshape :
+            if valuedim <= self.itemdim :
                 self.base.__setitem__(coords, value)
             else :
                 raise ValueError, "iterated items shape and value shape do not match"
@@ -770,7 +1114,8 @@ class Array(object):
         >>> A = Array([1, 2, 3, 4, 5], shape=(2, 2))
         Traceback (most recent call last):
             ...
-        ValueError: cannot initialize a Array of shape (2, 2) from [1, 2, 3, 4, 5], some information would be lost, use an explicit resize or trim
+        TypeError: cannot initialize a Array of shape (2, 2) from [1, 2, 3, 4, 5] of shape (5,),
+        as it would truncate data or reduce the number of dimensions
      """
      
     __metaclass__ = metaReadOnlyAttr
@@ -798,7 +1143,36 @@ class Array(object):
         self.resize(newshape)
         
     # shape, ndim, size and data properties
-    shape = property(_getshape, _setshape, None, "Shape of the Array (number of dimensions and number of components in each dimension)")    
+    shape = property(_getshape, _setshape, None,
+                     """ a.shape : tuple
+                     
+                         Shape of the Array (number of dimensions and number of components in each dimension).
+                     
+                         It can be queried, or set to change the Array's shape similarly to the reshape method.
+                         
+                         >>> A = Array(range(1, 17), shape=(4, 4))
+                         >>> print A.formated()
+                         [[1, 2, 3, 4],
+                          [5, 6, 7, 8],
+                          [9, 10, 11, 12],
+                          [13, 14, 15, 16]]
+                         >>> S = A[0]
+                         >>> A.shape=(2, 2, 4)
+                         >>> print A.formated()
+                         [[[1, 2, 3, 4],
+                           [5, 6, 7, 8]],
+                         <BLANKLINE>
+                          [[9, 10, 11, 12],
+                           [13, 14, 15, 16]]]
+                         >>> A.shape=(4, 4)
+                         >>> print A.formated()
+                         [[1, 2, 3, 4],
+                          [5, 6, 7, 8],
+                          [9, 10, 11, 12],
+                          [13, 14, 15, 16]]
+             
+                         Related : see Array.reshape method.
+                     """)    
     ndim = property(lambda x : x._ndim, None, None, "Number of dimensions of the Array")
     size = property(lambda x : x._size, None, None, "Total size of the Array (number of individual components)")
 
@@ -1010,8 +1384,9 @@ class Array(object):
        
         return shape, ndim, size
 
-    def _getindex(self, index=None, **kwargs):
-        """ Check and expand index on Array,
+    @classmethod
+    def _checkindex(cls, index=None, shape=None, **kwargs):
+        """ Check and expand index on Array of given shape,
         
             >>> A = Array(1, shape=(3, 3, 3))
             >>> print A.formated()
@@ -1026,15 +1401,15 @@ class Array(object):
              [[1, 1, 1],
               [1, 1, 1],
               [1, 1, 1]]]
-            >>> A._getindex((slice(2,8),-1), default=slice(None))
+            >>> Array._checkindex((slice(2,8),-1), shape=(3, 3, 3), default=slice(None))
             (slice(2, 3, 1), 2, slice(0, 3, 1))
-            >>> A._getindex((slice(2,8),-1), default=slice(None), expand=True)
+            >>> Array._checkindex((slice(2,8),-1), shape=(3, 3, 3), default=slice(None), expand=True)
             ([2], [2], [0, 1, 2])
-        """  
+        """
+        # shape, ndim, size = cls._expandshape(shape=shape)
+        ndim = len(shape)
         default = kwargs.get('default',None)
-        expand = kwargs.get('expand',False)            
-        shape = self.shape
-        ndim = self.ndim     
+        expand = kwargs.get('expand',False)    
         if index is None:
             index = []
         elif hasattr(index, '__iter__') :
@@ -1046,7 +1421,7 @@ class Array(object):
             index = [index]
                 
         if index :        
-            assert len(index)<=ndim, "Array has %s dimensions, cannot specify %s indices" % (ndim, l)
+            assert len(index)<=ndim, "Array of shape %s has %s dimensions, cannot specify %s indices" % (shape, ndim, l)
             if default is not None :
                 index = index + [default]*(ndim-len(index))      
             for i in xrange(len(index)) :
@@ -1066,13 +1441,98 @@ class Array(object):
                     if ind<0 :
                         ind = shape[i]+ind
                     if ind<0 or ind>= shape[i] :
-                        raise ValueError, "Array has %s components on axis %s, index %s from %s is out of bounds" % (shape[i], i, ind, index)
+                        raise ValueError, "Array of shape %s has %s components on axis %s, index %s from %s is out of bounds" % (shape, shape[i], i, ind, index)
                     if expand :
                         ind = [ind]
                 index[i] = ind
          
         return tuple(index) 
+            
+    def _getindex(self, index=None, **kwargs):
+        """ Check and expand index on given Array,
+        
+            >>> A = Array(1, shape=(3, 3, 3))
+            >>> print A.formated()
+            [[[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+            <BLANKLINE>
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+            <BLANKLINE>
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]]]
+            >>> A._getindex((slice(2,8),-1), default=slice(None))
+            (slice(2, 3, 1), 2, slice(0, 3, 1))
+            >>> A._getindex((slice(2,8),-1), default=slice(None), expand=True)
+            ([2], [2], [0, 1, 2])
+        """
+        return self.__class__._checkindex(index=index, shape=self.shape, **kwargs)
 
+    @classmethod
+    def _checkaxis(cls, axis=None, shape=None, **kwargs):
+        """ Check and expand a tuple of axis on Array,
+        
+            >>> A = Array(1, shape=(3, 3, 3))
+            >>> print A.formated()
+            [[[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+            <BLANKLINE>
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]],
+            <BLANKLINE>
+             [[1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1]]]
+            >>> Array._checkaxis(axis=(1,), shape=(3, 3, 3))
+            (1,)
+            >>> Array._checkaxis(shape=(3, 3, 3), fill=True)
+            (0, 1, 2)
+            >>> Array._checkaxis(shape=(3, 3, 3), fill=True, reverse=True)
+            (2, 1, 0)
+            >>> Array._checkaxis(axis=(1, 3), shape=(3, 3, 3))
+            Traceback (most recent call last):
+                ...
+            ValueError: axis 3 in axis list (1, 3) doesn't exist for an Array of shape (3, 3, 3)
+            >>> Array._checkaxis(axis=(1, 1, 2), shape=(3, 3, 3))
+            Traceback (most recent call last):
+                ...
+            ValueError: axis 1 is present more than once in axis list (1, 1, 2)
+                         
+        """
+        shape, ndim, size = cls._expandshape(shape=shape)
+        fill = kwargs.get('fill',False)
+        reverse = kwargs.get('reverse',False) 
+        if axis is None :
+            axis = []
+        if not hasattr(axis, '__iter__') :
+            axis = [axis]
+            
+        if len(axis) == 0 : 
+            if fill :
+                if reverse :
+                    axis = range(ndim-1, -1, -1)
+                else :
+                    axis = range(0, ndim, 1)
+        else :
+            try :
+                if len(axis) == 1 and hasattr(axis[0], '__iter__') :
+                    axis = [range(ndim)[x] for x in axis[0]]
+                else :
+                    axis = [range(ndim)[x] for x in axis]
+            except IndexError :
+                raise ValueError, "axis %s in axis list %s doesn't exist for an Array of shape %s" % (x, tuple(axis), shape)
+            for x in axis :
+                if axis.count(x) > 1 :
+                    raise ValueError, "axis %s is present more than once in axis list %s" % (x, tuple(axis))                
+         
+        return tuple(axis) 
+
+        
     def _getaxis(self, axis=None, **kwargs):
         """ Check and expand a tuple of axis on Array,
         
@@ -1105,34 +1565,7 @@ class Array(object):
             ValueError: axis 1 is present more than once in axis list (1, 1, 2)
                          
         """
-        fill = kwargs.get('fill',False)
-        reverse = kwargs.get('reverse',False)
-        shape = self.shape
-        ndim = self.ndim     
-        if axis is None :
-            axis = []
-        if not hasattr(axis, '__iter__') :
-            axis = [axis]
-            
-        if len(axis) == 0 : 
-            if fill :
-                if reverse :
-                    axis = range(ndim-1, -1, -1)
-                else :
-                    axis = range(0, ndim, 1)
-        else :
-            try :
-                if len(axis) == 1 and hasattr(axis[0], '__iter__') :
-                    axis = [range(ndim)[x] for x in axis[0]]
-                else :
-                    axis = [range(ndim)[x] for x in axis]
-            except IndexError :
-                raise ValueError, "axis %s in axis list %s doesn't exist for an Array of shape %s" % (x, tuple(axis), shape)
-            for x in axis :
-                if axis.count(x) > 1 :
-                    raise ValueError, "axis %s is present more than once in axis list %s" % (x, tuple(axis))                
-         
-        return tuple(axis) 
+        return self.__class__._checkaxis(axis=axis, shape=self.shape, **kwargs)
 
     # convert to class or closest base class
     @classmethod
@@ -1322,9 +1755,11 @@ class Array(object):
                                         data = data.resized(shape=shape, value=self)
                             else :
                                 if isinstance (args, Array) :
-                                    raise TypeError, "cannot cast a %s of shape %s to a %s of shape %s, some information would be lost, use an explicit resize or trim" % (clsname(args), args.shape, cls.__name__, shape)
+                                    msg = "cannot cast a %s of shape %s to a %s of shape %s,\n" % (clsname(args), args.shape, cls.__name__, shape)
                                 else :
-                                    raise ValueError, "cannot initialize a %s of shape %s from %s, some information would be lost, use an explicit resize or trim" % (cls.__name__, shape, args)                          
+                                    msg = "cannot initialize a %s of shape %s from %s of shape %s,\n" % (cls.__name__, shape, args, dshape)                          
+                                msg += "as it would truncate data or reduce the number of dimensions"
+                                raise TypeError, msg
                             
                 # check that the shape is compatible with the class, as some Array sub classes have fixed shapes / ndim
                 if not cls._shapecheck(data.shape) :
@@ -2011,12 +2446,6 @@ class Array(object):
             True
             >>> S is A[0, 0]
             False
-            >>> A.shape=(4, 4)
-            >>> print A.formated()
-            [[1, 2, 3, 4],
-             [5, 6, 7, 8],
-             [9, 10, 11, 12],
-             [13, 14, 15, 16]]
                     
         """
         ndim = None
@@ -2142,9 +2571,9 @@ class Array(object):
              [16, 0, 0, 1, 1]]
             
         """            
-        cls = self.__class__
-        newshape, newndim, nsize = cls._expandshape(shape, None, None)      
+        cls = self.__class__           
         try :
+            newshape, newndim, nsize = cls._expandshape(shape, None, None)
             new = cls(shape=newshape).filled(value)
         except :
             raise TypeError, "new shape %s is not compatible with class %s" % (shape, clsname(self))
@@ -2595,7 +3024,7 @@ class Array(object):
         else :
             index = list(index)     
         if len(index) > self.ndim :
-            raise valueError, "%s coordinates provided for an Array of dimension %s" % (len(index), self.ndim)   
+            raise ValueError, "%s coordinates provided for an Array of dimension %s" % (len(index), self.ndim)   
         
         value = reduce(lambda x, y: Array._extract(x, y), index, self)
         # print "value and id", value, id(value)
@@ -2805,6 +3234,19 @@ class Array(object):
             []
             >>> A.shape
             (0,)
+            
+            TODO : how to interpret slices (get rid of the "None" thing ?)
+
+            >>> A = Array(xrange(1, 10), shape=(3, 3))
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> del A[:, -1]
+            >>> print A.formated()
+            [[1, 2],
+             [4, 5],
+             [7, 8]]
         """
         index = self._getindex(index, default=None, expand=True)
         # TODO : check what shape it would yield first
@@ -3357,6 +3799,9 @@ class Array(object):
             Traceback (most recent call last):
                 ...
             TypeError: number coercion failed
+            
+            TODO : would be more explicit to get :
+            TypeError: Array of shape (2, 2) and Array of shape (5,) cannot be converted to an common Array instance of same shape
                         
             Arrays of dissimular shape are cast to same shape when possible, smallest size is cast to largest             
              
@@ -3378,6 +3823,9 @@ class Array(object):
             [[1, 2, 0],
              [3, 4, 0],
              [0, 0, 0]]
+             
+            When coerce(x, y) is not doable, it defers to coerce(y, x)  
+             
             >>> nB, nA = coerce(B, A)
             >>> print nA.formated()
             [[1, 2, 3],
@@ -3387,8 +3835,15 @@ class Array(object):
             [[1, 2, 0],
              [3, 4, 0],
              [0, 0, 0]]
-
-            When mixing Array derived types, result are cast to the first base class of the first argument that accepts both shapes
+             
+            And does not raise an excepetion like :            
+                Traceback (most recent call last):
+                    ...
+                TypeError: Array of shape (2, 2) and Array of shape (3, 3) cannot be converted to an common Array instance of same shape    
+            as it could be expected without this __coerce__ mechanism.
+             
+            When mixing Array derived types, result are cast to the first base class of either argument that accepts both shapes,
+            ie 'deepest' derived class is tried first, Matrix before Array, etc.
             
             >>> A = Array(range(1, 10), shape=(3, 3))
             >>> M = Matrix(range(1, 10), shape=(3, 3))
@@ -3402,10 +3857,9 @@ class Array(object):
              [7, 8, 9]]
             >>> nA, nM = coerce(A, M)
             >>> print repr(nA)
-            Array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])         
+            Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             >>> print repr(nM) 
-            Array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-            
+            Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             >>> nM, nA = coerce(M, A)
             >>> print repr(nA)
             Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -3436,6 +3890,9 @@ class Array(object):
             Traceback (most recent call last):
                 ...
             TypeError: unsupported operand type(s) for +: 'Array' and 'list'
+            
+            TODO : it would be more explicit to get more specific error messages, like :
+                TypeError: Array of shape (2, 2) and Array of shape (5,) cannot be converted to an common Array instance of same shape
              
             Arrays of dissimilar shape are cast to same shape by Array.__coerce__ if possible.
              
@@ -3460,8 +3917,8 @@ class Array(object):
             >>> print clsname(A+B)
             Array
             
-            Result is cast to the first applicable Array herited type of the largest operand.         
-
+            Result is cast to the first applicable Array herited type of either operand
+            
             >>> A = Array(range(9), shape=(3, 3)) 
             >>> M = Matrix(range(10, 50, 10), shape=(2, 2))
             >>> print (A+M).formated()
@@ -3469,13 +3926,13 @@ class Array(object):
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Array
+            Matrix
             >>> print (M+A).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M+A)
-            Array
+            Matrix
                         
             >>> A = Array(range(10, 50, 10), shape=(2, 2)) 
             >>> M = Matrix(range(9), shape=(3, 3))
@@ -3484,13 +3941,51 @@ class Array(object):
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Array
+            Matrix
             >>> print (M+A).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M+A)
             Matrix
+            
+            Here result is cast to Array as a Matrix can't have 3 dimensions
+            
+            >>> A = Array(range(10, 190, 10), shape=(2, 3, 3)) 
+            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> print (A+M).formated()
+            [[[10, 21, 32],
+              [43, 54, 65],
+              [76, 87, 98]],
+            <BLANKLINE>
+             [[100, 111, 122],
+              [133, 144, 155],
+              [166, 177, 188]]]
+            >>> print clsname(A+M)
+            Array
+            >>> print (M+A).formated()
+            [[[10, 21, 32],
+              [43, 54, 65],
+              [76, 87, 98]],
+            <BLANKLINE>
+             [[100, 111, 122],
+              [133, 144, 155],
+              [166, 177, 188]]]
+            >>> print clsname(M+A)
+            Array
+            
+            There are cases where no type coercion is possible, as it would truncate data or reduce number
+            of dimensions in either way, use an explicit conversion (trim, size, etc.) in that case :
+            
+            >>> A = Array(range(8), shape=(2, 2, 2)) 
+            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> print (A+M).formated()
+            Traceback (most recent call last):
+                ...
+            TypeError: unsupported operand type(s) for +: 'Array' and 'Matrix'
+            
+            TODO : return some more explicit messages in these cases
+                     
         """ 
             
         # print "coerce Array"
@@ -3501,16 +3996,25 @@ class Array(object):
             try :    
                 other = _toCompOrArrayInstance(other)
             except :
+                # returning NotImplemented defers to other.__coerce__(self) if applicable
+                # raise TypeError, "%s is not convertible to an Array instance" % (clsname(other))
                 return NotImplemented
-            
-        mro = inspect.getmro(self.__class__)
+        
+        ocls = other.__class__
+        scls = self.__class__
+        # convert to most specific class if possible (Matrix before Array, etc)
+        if issubclass(ocls, scls) :
+            mro = inspect.getmro(ocls)
+        else :
+            mro = inspect.getmro(scls)
         nself = None
-        nother = None            
+        nother = None
+        # always try to conform to shape of self, if it fails, will defer to coerce(other, self) anyway         
         for c in mro :
             if issubclass(c, Array) :
                 try :
                     nself = c(self)
-                    nother = c(other, shape=self.shape)
+                    nother = c(other, shape=nself.shape)
                     break;
                 except :
                     pass 
@@ -3518,9 +4022,10 @@ class Array(object):
         if nself is not None and nother is not None :
             return nself, nother
         else :
-            # that way if not able to to self.__oper__(other) (like if other is larger than self), it will try other.__roper__(self) next 
+            # raise TypeError, "%s of shape %s cannot be cast to a %s of shape %s or any common Array derived class of that shape" % (clsname(other), other.shape, clsname(self), self.shape)
+            # returning NotImplemented instead of raising an exception defers to other.__coerce__(self) if applicable
+            # TOTO : some more explicit error messages ?
             return NotImplemented
-            # raise TypeError, "%s and %s cannot be converted to an common Array instance of same shape" % (clsname(self), clsname(other))
        
     # common operators
         
@@ -3622,8 +4127,8 @@ class Array(object):
             Returns the result of the element wise addition of a and b if b is convertible to Array,
             adds b to every component of a if b is a single numeric value
             
-            Note : when the operands are 2 Arrays of different shapes, both are cast to the shape of largest size,
-            if possible, created operands are filled with class default value.
+            Note : when the operands are 2 Arrays of different shapes, both are cast to the shape of largest size
+            if possible. Created components are filled with class default value.
             
             Related : See the Array.__coerce__ method
             
@@ -3644,7 +4149,7 @@ class Array(object):
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Array
+            Matrix
             >>> A = Array(range(10, 50, 10), shape=(2, 2)) 
             >>> M = Matrix(range(9), shape=(3, 3))
             >>> print (A+M).formated()
@@ -3652,22 +4157,23 @@ class Array(object):
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Matrix                                
+            Matrix
         """ 
         try :
             nself, nother = coerce(self, other)
         except :
+            # returning NotImplemented on self.__oper__(other) defers to other.__roper__(self) UNLESS self and other are of the same type
             return NotImplemented
         res = map(operator.add, nself, nother)
-        return self.__class__._convert(res)         
+        return nself.__class__._convert(res)         
     def __radd__(self, other) :
         """ a.__radd__(b) <==> b+a
         
             Returns the result of the element wise addition of a and b if b is convertible to Array,
             adds b to every component of a if b is a single numeric value
 
-            Note : when the operands are 2 Arrays of different shapes, both are cast to the shape of largest size,
-            if possible, created operands are filled with class default value.
+            Note : when the operands are 2 Arrays of different shapes, both are cast to the shape of largest size
+            if possible. Created components are filled with class default value.
             
             Related : See the Array.__coerce__ method
             
@@ -3725,20 +4231,26 @@ class Array(object):
             
             Result must be castable to the type of a
                       
-            >>> A = Array(range(8), shape=(2, 2, 2)) 
+            >>> A = Array(range(12), shape=(2, 3, 2)) 
             >>> M = Matrix(range(9), shape=(3, 3))
             >>> B = M + A
             >>> print B.formated()
-            
+            [[[0, 2],
+              [4, 6],
+              [8, 10]],
+            <BLANKLINE>
+             [[12, 14],
+              [16, 9],
+              [10, 11]]]
             >>> print clsname(B)
-            
+            Array
             >>> M += A
-            >>> print M.formated()
-            
-            >>> print clsname(M)
-                          
+            Traceback (most recent call last):
+                ...
+            TypeError: cannot cast a Array of shape (2, 3, 2) to a Matrix of shape (2, 6),
+            as it would truncate data or reduce the number of dimensions
         """
-        return self.__class__(self.__add__(other))
+        return self.__class__(self + other)
     def __sub__(self, other) :
         """ a.__sub__(b) <==> a-b
             Returns the result of the element wise substraction of b from a if b is convertible to Array,
@@ -3911,25 +4423,152 @@ class Array(object):
 
     # more could be wrapped the same way, __divmod__, etc 
 
-    # additional methods      
+    # additional methods that defer to a generic function patched to accept iterables
         
-    def sum(self, *args):
-        """ Returns the sum of the components of self """
-        return sum(self, start=0, axis=args) 
-    def prod(self, *args):
-        """ Returns the product of the components of self """
-        return prod(self, start=1, axis=args) 
-    # __nonzero__ not defined, use any or all
-    def any(self, *args):
-        return any(self, axis=args) 
-    def all(self, *args):
-        return all(self, axis=args)  
+    def sum(self, *args, **kwargs):
+        """ a.sum([axis0[, axis1[, ...[, start=0]]]]) <=> sum(a, start=start, axis=(axis0, axis1, ...))
+    
+            Returns the sum of all the components of a, plus start.
+            If axis are specified will return an Array of sum(x) for x in a.axisiter(*axis), else will
+            sum on all axis of a.
+            
+            >>> A = Array([[1,2,3],[4,5,6]])    
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6]]
+            >>> A.sum()
+            21
+            >>> A.sum(0, 1)
+            21
+            >>> A.sum(0)
+            Array([5, 7, 9])
+            >>> A.sum(1)
+            Array([6, 15])
+        """
+        return sum(self, start=kwargs.get('start', 0), axis=kwargs.get('axis', args)) 
+    def prod(self, *args, **kwargs):
+        """ a.prod([axis0[, axis1[, ...[, start=0]]]]) <=> prod(a, start=start, axis=(axis0, axis1, ...))
+    
+            Returns the product of all the components of a, an iterable of values that support the mul operator, times start.
+            If axis are specified will return an Array of prod(x) for x in a.axisiter(*axis).
+    
+            >>> A = Array([[1,2,3],[4,5,6]])    
+            >>> print A.formated()
+            [[1, 2, 3],
+             [4, 5, 6]]
+            >>> A.prod()
+            720
+            >>> A.prod(0, 1)
+            720
+            >>> A.prod(0)
+            Array([4, 10, 18])
+            >>> A.prod(1)    
+            Array([6, 120])
+        """
+        return prod(self, start=kwargs.get('start', 1), axis=kwargs.get('axis', args)) 
+    # __nonzero__ is not defined, use any or all
+    def any(self, *args, **kwargs):
+        """ a.any([axis0[, axis1[, ...]]]) <=> any(a, axis=(axis0, axis1, ...))
+        
+            Returns True if any of the components of iterable a evaluate to True.
+            If axis are specified will return an Array of any(x) for x in a.axisiter(*axis).
+            
+            >>> A = Array([[False,True,True],[False,True,False]])
+            >>> print A.formated()
+            [[False, True, True],
+             [False, True, False]]
+            >>> A.any()
+            True
+            >>> A.any(0, 1)
+            True
+            >>> A.any(0)
+            Array([False, True, True])
+            >>> A.any(1)
+            Array([True, True])
+        """   
+        return any(self, axis=kwargs.get('axis', args)) 
+    def all(self, *args, **kwargs):
+        """ a.all([axis0[, axis1[, ...]]]) <=> all(a, axis=(axis0, axis1, ...))
+        
+            Returns True if all the components of iterable a evaluate to True.
+            If axis are specified will return an Array of all(x) for x in a.axisiter(*axis).
+    
+            >>> A = Array([[True,True,True],[False,True,False]])
+            >>> print A.formated()
+            [[True, True, True],
+             [False, True, False]]
+            >>> A.all()
+            False
+            >>> A.all(0, 1)
+            False
+            >>> A.all(0)
+            Array([False, True, False])
+            >>> A.all(1)
+            Array([True, False])
+        """                     
+        return all(self, axis=kwargs.get('axis', args))  
     def min(self, *args, **kwargs):
-        return min(self, axis=args, **kwargs)      
+        """ a.min([axis0[, axis1[, ...[, key=func]]]])  <==> min(a[, key=func[, axis=(axis0, axis1, ...)]])
+        
+            Returns the smallest component of a.
+            If axis are specified will return an Array of element-wise min(x) for x in a.axisiter(*axis).
+            
+            >>> A = Array([[6,3,4],[1,5,0.5]])
+            >>> print A.formated()
+            [[6, 3, 4],
+             [1, 5, 0.5]]
+            >>> A.min()
+            0.5
+            >>> A.min(0, 1)
+            0.5
+            >>> A.min(0)
+            Array([1, 3, 0.5])
+            >>> A.min(1)
+            Array([3, 0.5])
+        """        
+        return min(self, axis=kwargs.get('axis', args), key=kwargs.get('key', None))      
     def max(self, *args, **kwargs):
-        return max(self, axis=args, **kwargs)
+        """ a.max([axis0[, axis1[, ...[, key=func]]]])  <==> max(a[, key=func[, axis=(axis0, axis1, ...)]])
+        
+            Returns the greatest component of a.
+            If axis are specified will return an Array of element-wise max(x) for x in a.axisiter(*axis).
+            
+            >>> A = Array([[6,3,4],[1,5,0.5]])
+            >>> print A.formated()
+            [[6, 3, 4],
+             [1, 5, 0.5]]
+            >>> A.max()
+            6
+            >>> A.max(0,1)
+            6
+            >>> A.max(0)
+            Array([6, 5, 4])
+            >>> A.max(1)
+            Array([6, 5])
+        """        
+        return max(self, axis=kwargs.get('axis', args), key=kwargs.get('key', None)) 
+    
+    # methods that are defined per Array class to allow overloading
     
     def sqlength(self, *args):
+        """ a.sqlength(axis0, axis1, ...) <==> sqlength(a[, axis=(axis0, axis1, ...)])
+        
+            Returns square length of a, ie a*a or the sum of x*x for x in a if a is an iterable of numeric values.
+            If a is an Array and axis are specified will return a list of sqlength(x) for x in a.axisiter(*axis).
+            
+            >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
+            >>> print A.formated()
+            [[0.5, 0.5, -0.707],
+             [0.707, -0.707, 0.0]]
+            >>> A.sqlength()
+            1.999547
+            >>> A.sqlength(0,1)
+            1.999547
+            >>> A.sqlength(0)
+            Array([0.999849, 0.999698])
+            >>> A.sqlength(1)
+            Array([0.749849, 0.749849, 0.499849])
+        """        
         axis = self._getaxis(args, fill=True)
         it = self.axisiter(*axis)
         subshape = it.itemshape
@@ -3938,8 +4577,47 @@ class Array(object):
         else :
             return Array(a.sqlength() for a in it)          
     def length(self, *args):
+        """ a.length(axis0, axis1, ...) <==> length(a[, axis=(axis0, axis1, ...)])
+        
+            Returns length of a, sqrt(a*a) or the square root of the sum of x*x for x in a if a is an iterable of numeric values.
+            If a is an Array and axis are specified will return a list of length(x) for x in a.axisiter(*axis).
+            
+            >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
+            >>> print A.formated()
+            [[0.5, 0.5, -0.707],
+             [0.707, -0.707, 0.0]]
+            >>> A.length()
+            1.4140533936170869
+            >>> A.length(0,1)
+            1.4140533936170869
+            >>> A.length(0)
+            Array([0.99992449715, 0.999848988598])
+            >>> A.length(1)
+            Array([0.865938219505, 0.865938219505, 0.707])
+        """        
         return sqrt(self.sqlength(*args))    
     def normal(self, *args):
+        """ a.normal(axis0, axis1, ...) <==> normal(a[, axis=(axis0, axis1, ...)])
+        
+            Returns a normalized copy of self: self/self.length(axis0, axis1, ...).
+            
+            >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0.0]])
+            >>> print A.formated()
+            [[0.5, 0.5, -0.707],
+             [0.707, -0.707, 0.0]]
+            >>> print A.normal().formated()
+            [[0.353593437318, 0.353593437318, -0.499981120367],
+             [0.499981120367, -0.499981120367, 0.0]]
+            >>> print A.normal(0,1).formated()
+            [[0.353593437318, 0.353593437318, -0.499981120367],
+             [0.499981120367, -0.499981120367, 0.0]]
+            >>> print A.normal(0).formated()
+            [[0.5, 0.5, -0.707],
+             [0.707, -0.707, 0.0]]
+            >>> print A.normal(1).formated()
+            [[0.577408397894, 0.577408397894, -1.0],
+             [0.816455474623, -0.816455474623, 0.0]]
+        """        
         try :
             return self / self.length(*args)
         except :
@@ -3948,16 +4626,58 @@ class Array(object):
         """ Performs an in place normalization of self """
         self.assign(self.normal(*args))       
     def dist(self, other, *args):
+        """ a.dist(b, axis0, axis1, ...) <==> dist(a, b[, axis=(axis0, axis1, ...)])
+        
+            Returns the distance between a and b, ie length(b-a, axis)
+            
+            >>> A = Array([[0.5, 0.5, -0.707],[0.707, -0.707, 0.0]])
+            >>> print A.formated()
+            [[0.5, 0.5, -0.707],
+             [0.707, -0.707, 0.0]]
+            >>> B = Array([[0.51, 0.49, -0.71],[0.71, -0.70, 0.0]])
+            >>> print B.formated()
+            [[0.51, 0.49, -0.71],
+             [0.71, -0.7, 0.0]]
+            >>> A.dist(B)
+            0.016340134638368205
+            >>> A.dist(B, 0, 1)
+            0.016340134638368205
+            >>> A.dist(B, 0)
+            Array([0.0144568322948, 0.00761577310586])
+            >>> A.dist(B, 1)
+            Array([0.0104403065089, 0.0122065556157, 0.003])
+        """        
         try :
             nself, nother = coerce(self, other)
         except :
             return NotImplemented
         return (nother-nself).length(*args)            
     def distanceTo(self, other):
+        """ a.distanceTo(b) <==> a.dist(b)
+        
+            Equivalent to the dist method, for compatibility with Maya's API. Does not take axis arguements
+        """
         return self.dist(other)
   
     def isEquivalent(self, other, tol=eps):
-        """ Returns True if both arguments have same shape and distance between both Array arguments is inferior or equal to tol """
+        """ a.isEquivalent(b[, tol]) --> bool
+        
+            Returns True if both arguments have same shape and distance between both Array arguments is inferior or equal to tol.
+        
+            >>> A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0]])
+            >>> B = Array([[0.51,0.49,-0.71],[0.71,-0.70,0]])
+            >>> C = Array([[0.501,0.499,-0.706],[0.706,-0.708,0.01]])
+            >>> A.dist(B)
+            0.016340134638368205
+            >>> A.dist(C)
+            0.010246950765959599
+            >>> A.isEquivalent(C, 0.015)
+            True
+            >>> A.isEquivalent(B, 0.015)
+            False
+            >>> A.isEquivalent(B, 0.020)
+            True
+        """
         if isinstance(other, Array) :
             try :
                 nself, nother = coerce(self, other)
@@ -3972,12 +4692,52 @@ class Array(object):
         return False  
         
     def transpose(self, *args):
-        """ a.transpose(*axes)
+        """ a.transpose([axis0[, axis1[, ...]]]) --> Array
         
-            Returns a with axes transposed. If no axes are given,
-            or None is passed, switches the order of the axes. For a 2-d
-            array, this is the usual matrix transpose. If axes are given,
-            they describe how the axes are permuted.  """
+            Returns a reordered / transposed along the specified axes.
+            If no axes are given,or None is passed, switches the complete axes order.
+            For a 2-d array, this is the usual matrix transpose.
+
+            >>> A = Array(range(18), shape=(2,3,3))
+            >>> print A.formated()
+            [[[0, 1, 2],
+              [3, 4, 5],
+              [6, 7, 8]],
+            <BLANKLINE>
+             [[9, 10, 11],
+              [12, 13, 14],
+              [15, 16, 17]]]
+            >>> print A.transpose().formated()
+            [[[0, 9],
+              [3, 12],
+              [6, 15]],
+            <BLANKLINE>
+             [[1, 10],
+              [4, 13],
+              [7, 16]],
+            <BLANKLINE>
+             [[2, 11],
+              [5, 14],
+              [8, 17]]]
+            >>> print A.transpose(0,2,1).formated() 
+            [[[0, 3, 6],
+              [1, 4, 7],
+              [2, 5, 8]],
+            <BLANKLINE>
+             [[9, 12, 15],
+              [10, 13, 16],
+              [11, 14, 17]]]
+
+            >>> B=Matrix(range(9), shape=(3, 3))
+            >>> print B.formated()
+            [[0, 1, 2],
+             [3, 4, 5],
+             [6, 7, 8]]
+            >>> print B.transpose().formated()
+            [[0, 3, 6],
+             [1, 4, 7],
+             [2, 5, 8]]
+        """
         axis = self._getaxis(args, fill=True, reverse=True)
         if len(axis) != self.ndim :
             raise ValueError, "Transpose axis %s do not match array shape %s" % (axis, self.shape) 
@@ -4105,9 +4865,15 @@ class Array(object):
         """
         return self.__class__._convert(clamp(self, low, high))
         
-# functions that work on Matrix
+# functions that work on Matrix (and just defer to Matrix methods)
 
 def det(value):
+    """ det(m) --> float
+        
+        Returns the determinant of m, 0 if m is a singular Matrix, m must be convertible to Matrix.
+        
+        Related : see Matrix.det(self) method.
+    """    
     if isinstance(value, Matrix) :
         return value.det()
     elif isNumeric(value) :
@@ -4117,9 +4883,16 @@ def det(value):
             value = Matrix(value)
         except :
             raise TypeError, "%s not convertible to Matrix" % (clsname(value))
-        return value.determinant()
+        return value.det()
     
 def inv(value):
+    """ inv(m) --> Matrix
+        
+        Returns the inverse of m, if m is invertible, raises ZeroDivisionError otherwise.
+        m must be convertible to Matrix.
+        
+        Related : see Matrix.inverse(self) method and Matrix.I property
+    """      
     if isinstance(value, Matrix) :
         return value.inverse()
     elif isNumeric(value) :
@@ -4132,12 +4905,113 @@ def inv(value):
         return value.inverse()
     
 class Matrix(Array):
-    """
-    A generic size Matrix class, basically a 2 dimensional Array
+    """ A generic size Matrix class, basically a 2 dimensional Array.
+    
+        Most methods and behavior are herited from Array, with the limitation that a Matrix must have
+        exactly 2 dimensions.
+        
+        >>> M = Matrix()
+        >>> M
+        Matrix([[]])
+        >>> M = Matrix([])
+        >>> M
+        Matrix([[]])
+        >>> M = Matrix([0, 1, 2])
+        >>> print M.formated()
+        [[0, 1, 2]]
+        >>> M = Matrix([[0, 1, 2]])
+        >>> print M.formated()
+        [[0, 1, 2]]
+        >>> M = Matrix([[0], [1], [2]])
+        >>> print M.formated()   
+        [[0],
+         [1],
+         [2]]
+        >>> M = Matrix([[1, 2, 3], [4, 5, 6]])
+        >>> print M.formated()
+        [[1, 2, 3],
+         [4, 5, 6]]
+        >>> M = Matrix(range(4), shape=(2, 2))
+        >>> print M.formated()
+        [[0, 1],
+         [2, 3]]
+                  
+        The Matrix class has a constant ndim of 2
+        
+        >>> Matrix.ndim
+        2
+        >>> M.ndim
+        2
+        >>> Matrix.ndim = 3
+        Traceback (most recent call last):
+            ...
+        AttributeError: attribute ndim is a read only class attribute and cannot be modified on class Matrix
+        >>> M.ndim = 3
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'Matrix' object attribute 'ndim' is read-only
+            
+        It's protected against initialization or resizing to a shape that wouldn't be a Matrix anymore 
+         
+        >>> M = Matrix([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]]) 
+        Traceback (most recent call last):
+            ...
+        TypeError: cannot initialize a Matrix of shape (2, 6) from [[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]] of shape (2, 2, 3),
+        as it would truncate data or reduce the number of dimensions
+            
+        >>> M.resize((2, 2, 3))
+        Traceback (most recent call last):
+            ...
+        TypeError: new shape (2, 2, 3) is not compatible with class Matrix
+        
+        Other Array types can be cast to Matrix, but truncating data or reducing dimensions is not allowed
+        to avoid silent loss of data in a conversion, use an explicit resize / trim / sub-array extraction
+
+        >>> A = Array(range(9), shape=(3, 3))
+        >>> M = Matrix(A)
+        >>> print M.formated()
+        [[0, 1, 2],
+         [3, 4, 5],
+         [6, 7, 8]]
+        >>> print clsname(M)
+        Matrix
+        >>> A = Array([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])
+        >>> M = Matrix(A)
+        Traceback (most recent call last):
+            ...
+        TypeError: cannot cast a Array of shape (2, 2, 3) to a Matrix of shape (2, 6),
+        as it would truncate data or reduce the number of dimensions
+         
+        When initializing from a 1-d Array like a Vector, dimension is upped to 2 by making it a row 
+         
+        >>> V = Vector(1, 2, 3)
+        >>> M = Matrix(V)
+        >>> print M.formated()
+        [[1, 2, 3]]
+        
+        Internally, rows are stored as Array though, not Vector
+        
+        >>> M[0]
+        Array([1, 2, 3])
+        
+        As for Array, __init__ is a shallow copy
+        
+        >>> A = Array(range(9), shape=(3, 3))
+        >>> M = Matrix(A)
+        >>> M == A
+        False
+        >>> M is A
+        False
+        >>> M.isEquivalent(A)
+        True
+        >>> M[0] == A[0]
+        True
+        >>> M[0] is A[0]
+        True
     """
     __slots__ = ['_data', '_shape', '_size']    
     
-    #A Matrix is a two-dimensional Array, ndim is thus stored as a class readonly attribute
+    # A Matrix is a two-dimensional Array, ndim is thus stored as a class readonly attribute
     ndim = 2
            
     def _getshape(self):
@@ -4149,24 +5023,78 @@ class Matrix(Array):
         self.resize(newshape)
         
     # shape, ndim, size and data properties
-    shape = property(_getshape, _setshape, None, "Shape of the Matrix, a tuple of the sizes of its two dimensions")    
-    size = property(lambda x : x.shape[0]*x.shape[1], None, None, "Total size of the Array (number of individual components)")
+    shape = property(_getshape, _setshape, None,
+                     """ m.shape : tuple of two ints
+                     
+                         Shape of the Matrix, the (nrow, ncol) tuple.
+                     
+                         It can be queried, or set to change the Matrix's shape similarly to the reshape method.
+                         
+                         >>> M = Matrix(range(1, 17), shape=(4, 4))
+                         >>> print M.formated()
+                         [[1, 2, 3, 4],
+                          [5, 6, 7, 8],
+                          [9, 10, 11, 12],
+                          [13, 14, 15, 16]]
+                         >>> M.shape=(2, 8)
+                         >>> print M.formated()
+                         [[1, 2, 3, 4, 5, 6, 7, 8],
+                          [9, 10, 11, 12, 13, 14, 15, 16]]
+                         >>> M.shape=(2, 2, 4)
+                         Traceback (most recent call last):
+                             ...
+                         TypeError: new shape (2, 2, 4) is not compatible with class Matrix
+            
+                         Related : see Array.reshape method.
+                     """)
+    size = property(lambda x : x.shape[0]*x.shape[1], None, None, "Total size of the Matrix (number of individual components), ie nrow*ncol")
 
     def is_square(self):
+        """ m.is_square() --> bool
+            
+            Returns True if m is a square Matrix, it has the same number of rows and columns.
+            
+            >>> M = Matrix(range(4), shape=(2, 2))
+            >>> M.is_square()
+            True
+            >>> M = Matrix(range(6), shape=(2, 3))
+            >>> M.is_square()
+            False
+        """           
         return self.shape[0] == self.shape[1]
  
     @classmethod
     def identity(cls, n):
+        """ Matrix.identity(n) --> Matrix
+        
+            Returns the identity Matrix of size n :
+            a square n x n Matrix of 0.0, with all diagonal components set to 1.0.
+            
+            >>> I = Matrix.identity(4)
+            >>> print I.formated()
+            [[1.0, 0.0, 0.0, 0.0],
+             [0.0, 1.0, 0.0, 0.0],
+             [0.0, 0.0, 1.0, 0.0],
+             [0.0, 0.0, 0.0, 1.0]]
+        """
         return cls([[float(i==j) for i in xrange(n)] for j in xrange(n)])
     
     @classmethod
     def basis(cls, u, v, normalize=False):
-        """ basis(u, v[, normalize=False]) --> Matrix
+        """ Matrix.basis(u, v[, normalize=False]) --> Matrix
+        
             Returns the basis Matrix built using u, v and u^v as coordinate axis,
             The a, b, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
                 n = u ^ v
                 v = n ^ u
-            if the normalize keyword argument is set to True, the vectors are also normalized """
+            if the normalize keyword argument is set to True, the vectors are also normalized
+
+            >>> M = Matrix.basis(Vector(0, 1, 0), Vector(0, 0, 1))
+            >>> print M.formated()
+            [[0, 0, 1],
+             [1, 0, 0],
+             [0, 1, 0]]
+        """
         u = Vector(u)
         v = Vector(v)
         assert len(u) == len(v) == 3, 'basis is only defined for two Vectors of size 3'    
@@ -4184,27 +5112,264 @@ class Matrix(Array):
         return self.shape[0]
     def _setnrow(self, m):
         self.trim((m, self.shape[1]))
-    nrow = property(_getnrow, _setnrow, None, "Number of rows in this Matrix")          
+    nrow = property(_getnrow, _setnrow, None,
+                    """ m.nrow : int
+                    
+                        Number of rows in this Matrix.
+                    
+                        It can be queried, or set to reduce / expand the matrix similarly to the trim method.
+                        
+                        >>> M = Matrix(range(1, 10), shape=(3, 3))
+                        >>> print M.formated()
+                        [[1, 2, 3],
+                         [4, 5, 6],
+                         [7, 8, 9]]
+                        >>> M.nrow, M.ncol
+                        (3, 3)
+                        >>> M.nrow, M.ncol = 4, 4
+                        >>> print M.formated()
+                        [[1, 2, 3, 0],
+                         [4, 5, 6, 0],
+                         [7, 8, 9, 0],
+                         [0, 0, 0, 0]]
+                    """)          
     def _getncol(self):
         return self.shape[1]
     def _setncol(self, n):
         self.trim((self.shape[0], n))
-    ncol = property(_getncol, _setncol, None, "Number of columns in this Matrix")      
+    ncol = property(_getncol, _setncol, None,
+                    """ m.ncol : int
+                    
+                        Number of rows in this Matrix.
+                    
+                        It can be queried, or set to reduce / expand the matrix similarly to the trim method.
+                        
+                        >>> M = Matrix(range(1, 10), shape=(3, 3))
+                        >>> print M.formated()
+                        [[1, 2, 3],
+                         [4, 5, 6],
+                         [7, 8, 9]]
+                        >>> M.nrow, M.ncol
+                        (3, 3)
+                        >>> M.nrow, M.ncol = 4, 4
+                        >>> print M.formated()
+                        [[1, 2, 3, 0],
+                         [4, 5, 6, 0],
+                         [7, 8, 9, 0],
+                         [0, 0, 0, 0]]
+                    """)      
 
     # specific iterators
     @property
     def row(self):
-        """ Iterator on the Matrix rows """
+        """ m.row --> ArrayIter
+        
+            Iterator on the Matrix rows.
+            Being an ArrayIter, it support __len__, __getitem__, __setitem__ and __delitem__
+            
+            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M.nrow, M.ncol = 4, 4
+            >>> M[-1, -1] = 1
+            >>> print M.formated()
+            [[1, 2, 3, 0],
+             [4, 5, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+            >>> [r for r in M.row]
+            [Array([1, 2, 3, 0]), Array([4, 5, 6, 0]), Array([7, 8, 9, 0]), Array([0, 0, 0, 1])]
+            
+            The row iterator indexing works like the Matrix indexing and returns references.
+            
+            >>> r = M.row[0]
+            >>> r
+            Array([1, 2, 3, 0])
+            >>> r == M[0]
+            True
+            >>> r is M[0]
+            True
+            
+            Slices return shallow copies though
+            
+            >>> r = M.row[:2]
+            >>> print r.formated()
+            [[1, 2, 3, 0],
+             [4, 5, 6, 0]]
+            >>> print clsname(r)
+            Matrix
+            
+            >>> r == M[:2]
+            True
+            >>> r is M[:2]
+            False
+            >>> r[0] == M[0]
+            True
+            >>> r[0] is M[0]
+            True
+            
+            Results can be indexed again, using Array indexing or Matrix methods wether they're returned
+            as Array (single lines / columns) or Matrix (2 dimensionnal Array).
+            
+            >>> c = r.col[1]
+            >>> c
+            Array([2, 5])
+            
+            Multiple indexing is possible
+            
+            >>> M[0, 1]
+            2
+            >>> M.row[0][1]
+            2
+            >>> M.row[0, 1]
+            2
+            
+            Values can be set as with Matrix indexing
+            
+            >>> M.row[:2, 1] = 10
+            >>> print M.formated()
+            [[1, 10, 3, 0],
+             [4, 10, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+            >>> r = M.row[:2]
+            >>> r[:, 1] = [2, 5]
+            >>> print M.formated()
+            [[1, 2, 3, 0],
+             [4, 5, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+
+            Rows can be deleted too
+            
+            >>> del M.row[-1]
+            >>> del M[None, -1]
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+                           
+        """
         return self.axisiter(0)  
     @property
     def col(self):
-        """ Iterator on the Matrix columns """
+        """ m.col --> ArrayIter
+        
+            Iterator on the Matrix columns
+            Being an ArrayIter, it support __len__, __getitem__, __setitem__ and __delitem__
+            
+            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M.nrow, M.ncol = 4, 4
+            >>> M[-1, -1] = 1
+            >>> print M.formated()
+            [[1, 2, 3, 0],
+             [4, 5, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+            >>> [c for c in M.col]
+            [Array([1, 4, 7, 0]), Array([2, 5, 8, 0]), Array([3, 6, 9, 0]), Array([0, 0, 0, 1])]
+            
+            The col iterator has to rebuild sub-arrays and thus returns copies and not references.
+            
+            >>> c = M.col[0]
+            >>> c
+            Array([1, 4, 7, 0])
+            >>> c == M[:,0]
+            True
+            >>> c is M[:,0]
+            False
+            
+            Multiple columns are returned as rows in a new Matrix
+            
+            >>> c = M.col[:2]
+            >>> print c.formated()
+            [[1, 4, 7, 0],
+             [2, 5, 8, 0]]
+            >>> print clsname(c)
+            Matrix
+            
+            >>> s = M[:,:2]
+            >>> print s.formated()
+            [[1, 2],
+             [4, 5],
+             [7, 8],
+             [0, 0]]
+            >>> print clsname(s)
+            Matrix
+            
+            TODO : is it what we want ? If so invert these
+            
+            >>> c == s
+            True
+            >>> c == s.T
+            False
+            
+            Results can be indexed again, using Array indexing or Matrix methods wether they're returned
+            as Array (single lines / columns) or Matrix (2 dimensionnal Array).
+            
+            >>> r = c.row[1]
+            >>> r
+            Array([2, 5, 8, 0])
+            >>> r = s.row[1]
+            >>> r
+            Array([4, 5])
+                        
+            Multiple indexing is possible
+            
+            >>> M[0, 1]
+            2
+            >>> M.col[1][0]
+            2
+            >>> M.col[1, 0]
+            2
+            
+            As results are rebuilt Arrays, values can only b set for full columns
+
+            >>> M.col[1]
+            Array([2, 5, 8, 0])
+            
+            This won't work :
+            
+            >>> M.col[1][:2] = 10
+            >>> print M.formated()
+            [[1, 2, 3, 0],
+             [4, 5, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+             
+            But this will :
+             
+            >>> M.col[1, :2] = 10
+            >>> print M.formated()
+            [[1, 10, 3, 0],
+             [4, 10, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+             
+            >>> c = M.col[1]
+            >>> c[:2] = [2, 5]
+            >>> M.col[1] = c
+            >>> print M.formated()
+            [[1, 2, 3, 0],
+             [4, 5, 6, 0],
+             [7, 8, 9, 0],
+             [0, 0, 0, 1]]
+                         
+            Columns can be deleted too
+            
+            >>> del M.col[-1]
+            >>> del M[-1]
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+                           
+        """            
         return self.axisiter(1) 
     
     # overloaded Array operators
 
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
+        
             If b is a Matrix, __mul__ is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value """
@@ -4219,6 +5384,7 @@ class Matrix(Array):
             return Array.__mul__(self, other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
+        
             If b is a Matrix, __rmul__ is mapped to matrix multiplication, if b is a Vector, to Vector by Matrix multiplication,
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value """        
@@ -4233,6 +5399,7 @@ class Matrix(Array):
             return Array.__rmul__(self, other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
+        
             In place multiplication of Matrix a and b, see __mul__, result must fit a's type """ 
         res = self*other
         if isinstance(res, self.__class__) :
@@ -4242,31 +5409,32 @@ class Matrix(Array):
     
     # specific methods
     
-    def diagonal(self, offset=0, *args, **kwargs) :
-        """ a.diagonal([offset=0[, wrap=False]]) -> diagonal
+    def diagonal(self, offset=0, wrap=False) :
+        """ m.diagonal([offset=0[, wrap=False]]) -> Array
+        
             Returns the diagonal of the Matrix with the given offset,
             i.e., the collection of elements of the form a[i,i+offset].
             If keyword wrap=True will wrap out of bounds indices
             
-            Examples
+            Examples :
 
-            >>> M = Matrix(range(4), shape=(2, 2))
+            >>> M = Matrix([[1, 2], [4, 6]])
             >>> print M.formated()
-            [[0, 1],
-             [2, 3]]
+            [[1, 2],
+             [4, 6]]
             >>> M.diagonal()
-            Array([0, 3])
+            Array([1, 6])
             >>> M.diagonal(1)
-            Array([1])
+            Array([2])
             >>> M.diagonal(1, wrap=True)
-            Array([1, 2])
+            Array([2, 4])
+            >>> M.diagonal(-1)
+            Array([2, 4])
             >>> M.diagonal(-1, wrap=True)
-            Array([1, 2])
+            Array([2, 4])
         """
-        if self.ndim != 2 :
-            raise ValueError, "can only calculate diagonal on Array or sub Arrays of dimension 2"    
+        assert self.ndim == 2, "can only calculate diagonal on Array or sub Arrays of dimension 2"    
 
-        wrap = kwargs.get('wrap', False)
         shape = self.shape
         #axis = self._getaxis(args, fill=True)
         #it = self.axisiter(axis)
@@ -4280,21 +5448,126 @@ class Matrix(Array):
                     l.append(self[i, (i+offset)])     
             return Array(l)
                 
-    def trace(self, offset=0, *args, **kwargs) :
-        """ a.trace([offset=0[, wrap=False]]) -> diagonal
-            Returns the sum of the components on the diagonal """
-        return sum(self.diagonal(offset, *args, **kwargs))
+    def trace(self, offset=0, wrap=False) :
+        """ a.trace([offset=0[, wrap=False]]) -> float
+        
+            Returns the sum of the components on the diagonal, obtained by calling m.diagonal(offset, wrap).
+
+            >>> M = Matrix([[1, 2], [4, 6]])
+            >>> print M.formated()
+            [[1, 2],
+             [4, 6]]
+            >>> M.trace()
+            7
+            >>> M.trace(offset=1)
+            2
+            >>> M.trace(offset=1, wrap=True)
+            6
+            >>> M.trace(offset=-1)
+            6
+            >>> M.trace(offset=-1, wrap=True)
+            6
+        """
+        return sum(self.diagonal(offset, wrap))
     
     def minor(self, i, j):
+        """ m.minor(i, j) --> Matrix
+        
+            Returns the Matrix obtained by deleting row i and column j from m.
+
+            >>> M = Matrix([1])
+            >>> M
+            Matrix([[1]])
+            >>> M.minor(0, 0)
+            Matrix([])
+            
+            >>> M = Matrix(range(4), shape=(2, 2))
+            >>> print M.formated()
+            [[0, 1],
+             [2, 3]]
+            >>> M.minor(0, 0)
+            Matrix([[3]])
+            >>> M.minor(0, 1)
+            Matrix([[2]])
+            >>> M.minor(1, 0)
+            Matrix([[1]])
+            >>> M.minor(1, 1)
+            Matrix([[0]])
+
+            >>> M = Matrix.identity(4)
+            >>> M[:3, :3] = [float(i) for i in range(1, 10)]
+            >>> print M.formated()
+            [[1.0, 2.0, 3.0, 0.0],
+             [4.0, 5.0, 6.0, 0.0],
+             [7.0, 8.0, 9.0, 0.0],
+             [0.0, 0.0, 0.0, 1.0]]
+            >>> print M.minor(3, 3).formated()
+            [[1.0, 2.0, 3.0],
+             [4.0, 5.0, 6.0],
+             [7.0, 8.0, 9.0]]
+        """
         index = self._getindex((i, j), default=None)
         m = self.deleted(index)
         return m
     
     def cofactor(self, i, j):
+        """ m.cofactor(i, j) --> float
+        
+            Returns the cofactor of matrix m for index (i, j), 
+            the determinant of the Matrix obtained by deleting row i and column j from m (the minor),
+            signed by (-1)**(i+j).
+            
+            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> print M.minor(2, 2).formated()
+            [[1, 2],
+             [4, 5]]
+            >>> M.minor(2, 2).det()
+            -3
+            >>> M.cofactor(2, 2)            
+            -3
+            >>> print M.minor(0, 1).formated()
+            [[4, 6],
+             [7, 9]]
+            >>> M.minor(0, 1).det()
+            -6
+            >>> M.cofactor(0, 1)
+            6
+        """        
         return ((-1)**(i+j))*self.minor(i, j).det()
     
     # sometimes called adjoint
     def adjugate(self):
+        """ m.adjugate() --> Matrix
+        
+            Returns the adjugate Matrix of the square Matrix m : the Matrix of the cofactors of m.
+            It's a square Matrix of same size as m, where a component of index (i, j) is set to the value
+            of m.cofactor(i, j).
+            
+            >>> M = Matrix([ [100/(i+j) for i in xrange(1,5)] for j in xrange(4) ])
+            >>> print M.formated()
+            [[100, 50, 33, 25],
+             [50, 33, 25, 20],
+             [33, 25, 20, 16],
+             [25, 20, 16, 14]]
+            >>> print M[:1, :1].adjugate().formated()
+            [[1]]
+            >>> print M[:2, :2].adjugate().formated()
+            [[33, -50],
+             [-50, 100]]
+            >>> print M[:3, :3].adjugate().formated()
+            [[35, -175, 161],
+             [-175, 911, -850],
+             [161, -850, 800]]
+            >>> print M[:4, :4].adjugate().formated()
+            [[42, -210, 154, 49],
+             [-210, 1054, -775, -245],
+             [154, -775, 575, 175],
+             [49, -245, 175, 63]]
+        """
         assert self.is_square(), "Adjugate Matrix can only be computed for a square Matrix"
         n = self.nrow
         if n == 1 :
@@ -4341,14 +5614,118 @@ class Matrix(Array):
 
     def gauss(self):
         """ m.gauss() --> Matrix
-            returns the triangular matrix obtained by Gauss-Jordan elimination on m
-            will raise a ValueError if m is singular """
+        
+            Returns the triangular matrix obtained by Gauss-Jordan elimination on m,
+            will raise a ZeroDivisionError if m cannot be triangulated.
+
+            >>> M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> print round(M, 2).formated()
+            [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
+             [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
+             [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
+             [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
+             [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
+             [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]
+            >>> print round(M[:1, :1].gauss(), 2).formated()
+            [[1.0]]
+            >>> print round(M[:2, :2].gauss(), 2).formated()
+            [[1.0, 0.5],
+             [0.0, 0.08]]
+            >>> print round(M[:3, :3].gauss(), 2).formated()
+            [[1.0, 0.5, 0.33],
+             [0.0, 0.08, 0.09],
+             [0.0, 0.0, -0.01]]
+            >>> print round(M[:4, :4].gauss(), 2).formated()
+            [[1.0, 0.5, 0.33, 0.25],
+             [0.0, 0.08, 0.09, 0.08],
+             [0.0, 0.0, -0.01, -0.01],
+             [0.0, 0.0, 0.0, 0.0]]
+            >>> print round(M[:5, :5].gauss(), 2).formated()
+            [[1.0, 0.5, 0.33, 0.25, 0.2],
+             [0.0, 0.08, 0.09, 0.08, 0.08],
+             [0.0, 0.0, -0.01, -0.01, -0.01],
+             [0.0, 0.0, 0.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0, -0.0, -0.0]]
+            >>> print round(M[:6, :6].gauss(), 2).formated()
+            [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
+             [0.0, 0.08, 0.09, 0.08, 0.08, 0.07],
+             [0.0, 0.0, 0.01, 0.01, 0.01, 0.01],
+             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0, 0.0, -0.0, -0.0],
+             [0.0, 0.0, 0.0, 0.0, 0.0, -0.0]]
+             
+            >>> M = Matrix([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
+            >>> print M.formated()
+            [[1, 2, 3],
+             [2, 4, 6],
+             [6, 7, 8]]
+            >>> M.det()
+            0
+            >>> M.isSingular()
+            True
+            >>> print M.gauss().formated()
+            Traceback (most recent call last):
+                ...
+            ZeroDivisionError: Matrix is singular
+        """
         return self._gauss_jordan()[0]
 
     def reduced(self):
-        """ m.gauss() --> Matrix
-            returns the reduced row echelon form of the matrix a by Gauss-Jordan elimination,
-            followed by back substitution """
+        """ m.reduced() --> Matrix
+        
+            Returns the reduced row echelon form of the matrix a by Gauss-Jordan elimination,
+            followed by back substitution.
+            
+            >>> M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> print round(M, 2).formated()
+            [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
+             [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
+             [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
+             [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
+             [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
+             [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]
+            >>> print round(M[:1, :1].reduced(), 2).formated()
+            [[1.0]]
+            >>> print round(M[:2, :2].reduced(), 2).formated()
+            [[1.0, 0.0],
+             [0.0, 1.0]]
+            >>> print round(M[:3, :3].reduced(), 2).formated()
+            [[1.0, 0.0, 0.0],
+             [0.0, 1.0, -0.0],
+             [0.0, 0.0, 1.0]]
+            >>> print round(M[:4, :4].reduced(), 2).formated()
+            [[1.0, 0.0, 0.0, 0.0],
+             [0.0, 1.0, -0.0, 0.0],
+             [0.0, 0.0, 1.0, 0.0],
+             [0.0, 0.0, 0.0, 1.0]]
+            >>> print round(M[:5, :5].reduced(), 2).formated()
+            [[1.0, 0.0, 0.0, 0.0, 0.0],
+             [0.0, 1.0, -0.0, 0.0, -0.0],
+             [0.0, 0.0, 1.0, 0.0, -0.0],
+             [0.0, 0.0, 0.0, 1.0, -0.0],
+             [0.0, 0.0, 0.0, -0.0, 1.0]]
+            >>> print round(M[:6, :6].reduced(), 2).formated()
+            [[1.0, 0.0, 0.0, 0.0, -0.0, 0.0],
+             [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
+             [0.0, 0.0, 1.0, 0.0, -0.0, 0.0],
+             [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+             [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+             [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]
+             
+            >>> M = Matrix([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
+            >>> print M.formated()
+            [[1, 2, 3],
+             [2, 4, 6],
+             [6, 7, 8]]
+            >>> M.det()
+            0
+            >>> M.isSingular()
+            True
+            >>> print M.reduced().formated()
+            Traceback (most recent call last):
+                ...
+            ZeroDivisionError: Matrix is singular
+        """
         m = self.gauss()
         nr, nc = m.shape
         for i in range(nr-1, -1, -1):
@@ -4364,7 +5741,40 @@ class Matrix(Array):
         # print m.formated()
         return m
     
-    def determinant(self):
+    def det(self):
+        """ m.det() <==> det(m)
+        
+            Returns the determinant of m, 0 if Matrix is singular.
+            
+            >>> M = Matrix([ [100/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> print M.formated()
+            [[100, 50, 33, 25, 20, 16],
+             [50, 33, 25, 20, 16, 14],
+             [33, 25, 20, 16, 14, 12],
+             [25, 20, 16, 14, 12, 11],
+             [20, 16, 14, 12, 11, 10],
+             [16, 14, 12, 11, 10, 9]]
+            >>> M[:1, :1].det()
+            100
+            >>> M[:2, :2].det()
+            800
+            >>> M[:3, :3].det()
+            63
+            >>> M[:4, :4].det()
+            7
+            >>> M[:5, :5].det()
+            -1199
+            >>> M[:6, :6].det()
+            452.0
+            
+            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> M.det()
+            0
+        """
         assert self.is_square(), "determinant is only defined for a square Matrix"
         n = self.nrow
         if n == 1:
@@ -4407,14 +5817,89 @@ class Matrix(Array):
                 d = 0.0 
         
         return d
-              
-    det = determinant
     
-    def isSingular(self):
-        return (self.det() < eps)
+    def isSingular(self, tol=eps):
+        """ m.isSingular([tol]) --> bool
+        
+            Returns True if m is singular, ie it's determinant is smaller than the given tolerance.
+
+            >>> M = Matrix(range(1, 5), shape=(2, 2))
+            >>> print M.formated()
+            [[1, 2],
+             [3, 4]]
+            >>> M.det()
+            -2
+            >>> M.isSingular()
+            False
+            
+            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> M.det()
+            0
+            >>> M.isSingular()
+            True
+        """
+        return (abs(self.det()) <= tol)
     
     def inverse(self): 
-        assert self.is_square(), "inverse is only defined for a square Matrix, see leftinverse and rightinverse"
+        """ m.inverse() <==> inv(m)
+        
+            Returns the inverse Matrix of m, if m is invertible, will raise a ValueError otherwise.
+
+            >>> M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> print round(M, 2).formated()
+            [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
+             [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
+             [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
+             [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
+             [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
+             [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]
+            >>> print round(M[:1, :1].inverse(), 0).formated()
+            [[1.0]]
+            >>> print round(M[:2, :2].inverse(), 0).formated()
+            [[4.0, -6.0],
+             [-6.0, 12.0]]
+            >>> print round(M[:3, :3].inverse(), 0).formated()
+            [[9.0, -36.0, 30.0],
+             [-36.0, 192.0, -180.0],
+             [30.0, -180.0, 180.0]]
+            >>> print round(M[:4, :4].inverse(), 0).formated()
+            [[16.0, -120.0, 240.0, -140.0],
+             [-120.0, 1200.0, -2700.0, 1680.0],
+             [240.0, -2700.0, 6480.0, -4200.0],
+             [-140.0, 1680.0, -4200.0, 2800.0]]
+            >>> print round(M[:5, :5].inverse(), 0).formated()
+            [[25.0, -300.0, 1050.0, -1400.0, 630.0],
+             [-300.0, 4800.0, -18900.0, 26880.0, -12600.0],
+             [1050.0, -18900.0, 79380.0, -117600.0, 56700.0],
+             [-1400.0, 26880.0, -117600.0, 179200.0, -88200.0],
+             [630.0, -12600.0, 56700.0, -88200.0, 44100.0]]
+            >>> print round(M[:6, :6].inverse(), 0).formated()
+            [[36.0, -630.0, 3360.0, -7560.0, 7560.0, -2772.0],
+             [-630.0, 14700.0, -88200.0, 211680.0, -220500.0, 83160.0],
+             [3360.0, -88200.0, 564480.0, -1411200.0, 1512000.0, -582120.0],
+             [-7560.0, 211680.0, -1411200.0, 3628800.0, -3969000.0, 1552320.0],
+             [7560.0, -220500.0, 1512000.0, -3969000.0, 4410000.0, -1746360.0],
+             [-2772.0, 83160.0, -582120.0, 1552320.0, -1746360.0, 698544.0]]
+                   
+            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+            >>> M.det()
+            0
+            >>> M.isSingular()
+            True
+            >>> print M.inverse().formated()
+            Traceback (most recent call last):
+                ...
+            ValueError: Matrix is not invertible
+        """        
+        assert self.is_square(), "inverse is only defined for a square Matrix, see linverse and rinverse"
         n = self.nrow
         try :
             if n == 1 :
@@ -4444,7 +5929,22 @@ class Matrix(Array):
     
     I = property(inverse, None, None, """The inverse Matrix""")
 
-    def leftinverse(self):
+    def linverse(self):
+        """ m.linverse() --> Matrix
+            
+            Returns the left inverse matrix of m, the matrix n so that n * m = identity, if m is left-invertible,
+            otherwise will raise a ValueError.
+            If m is invertible then the left inverse of m is also it's right inverse, and it's inverse matrix.
+            
+            >>> M = Matrix([[1, 2], [3, 4], [5, 6]])           
+            >>> print M.formated()
+            [[1, 2],
+             [3, 4],
+             [5, 6]]
+            >>> print round(M.linverse(), 2).formated()
+            [[-1.33, -0.33, 0.67],
+             [1.08, 0.33, -0.42]]
+        """
         nr, nc = self.nrow, self.ncol
         assert nr >= nc, "a Matrix can have an inverse if it is square and a left inverse only if it has more rows than columns"
         if nr == nc :
@@ -4454,7 +5954,22 @@ class Matrix(Array):
             m = t * self
             return m.I * t
         
-    def rightinverse(self):
+    def rinverse(self):
+        """ m.rinverse() --> Matrix
+            
+            Returns the right inverse matrix of m, the matrix n so that m * n = identity, if m is right-invertible,
+            otherwise will raise a ValueError.
+            If m is invertible then the right inverse of m is also it's left inverse, and it's inverse matrix.
+            
+            >>> M = Matrix([[1, 2, 3], [4, 5, 6]])
+            >>> print M.formated()
+            [[1, 2, 3],
+             [4, 5, 6]]
+            >>> print round(M.rinverse(), 2).formated()
+            [[-0.94, 0.44],
+             [-0.11, 0.11],
+             [0.72, -0.22]]
+        """        
         nr, nc = self.nrow, self.ncol
         assert nc >= nr, "a Matrix can have an inverse if it is square and a right inverse only if it has more columns than rows"
         if nr == nc :
@@ -4469,8 +5984,19 @@ class Matrix(Array):
 # only on size 3 Vectors
 
 def cross(u, v):
-    """ cross(u, v) --> Vector :
-        cross product of u and v, u and v should be 3 dimensional vectors  """
+    """ cross(u, v) --> Vector
+    
+        Returns the cross product of u and v, u and v should be 3 dimensional vectors.
+        
+        >>> u = Vector(1.0, 0.0, 0.0)
+        >>> v = Vector(0.0, 1.0, 0.0)
+        >>> cross(u, v)
+        Vector([0.0, 0.0, 1.0])
+        >>> cross(u, [0.0, 1.0, 0.0])
+        Vector([0.0, 0.0, 1.0])
+        
+        Related : see Vector.cross method.
+    """
     if not isinstance(u, Vector) :
         try :
             u = Vector(u)
@@ -4479,8 +6005,19 @@ def cross(u, v):
     return u.cross(v) 
 
 def dot(u, v):
-    """ dot(u, v) --> float :
-        dot product of u and v, u and v should be Vectors of identical size"""
+    """ dot(u, v) --> float
+    
+        Returns the dot product of u and v, u and v should be Vectors of identical size.
+
+        >>> u = Vector(1.0, 0.0, 0.0)
+        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> dot(u, v)
+        0.70699999999999996
+        >>> dot(u, [0.707, 0.0, -0.707])
+        0.70699999999999996
+        
+        Related : see Vector.dot method.
+    """
     if not isinstance(u, Vector) :
         try :
             u = Vector(u)
@@ -4489,8 +6026,19 @@ def dot(u, v):
     return u.dot(v)
 
 def outer(u, v):
-    """ outer(u, v) --> Matrix :
-        outer product of vectors u and v """
+    """ outer(u, v) --> Matrix
+    
+        Returns the outer product of vectors u and v.
+
+        >>> u = Vector(1.0, 2.0, 3.0)
+        >>> v = Vector(10.0, 20.0, 30.0)
+        >>> outer(u, v)
+        Matrix([[10.0, 20.0, 30.0], [20.0, 40.0, 60.0], [30.0, 60.0, 90.0]])
+        >>> outer(u, [10.0, 20.0, 30.0])
+        Matrix([[10.0, 20.0, 30.0], [20.0, 40.0, 60.0], [30.0, 60.0, 90.0]])
+        
+        Related : see Vector.outer method.
+    """
     if not isinstance(u, Vector) :
         try :
             u = Vector(u)
@@ -4500,11 +6048,30 @@ def outer(u, v):
 
 def angle(a, b, c=None):
     """ angle(u, v) --> float
+    
         Returns the angle of rotation between u and v.
-        u and v should be 3 dimensional Vectors representing 3D vectors,
-        Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+        u and v should be 3 dimensional Vectors representing 3D vectors.
+        
+        Note: this angle is not signed, use axis to know the direction of the rotation.
+
+        >>> u = Vector(1.0, 0.0, 0.0)
+        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> angle(u, v)
+        0.78539816339744828
+        >>> angle(u, [0.707, 0.0, -0.707])
+        0.78539816339744828
+        
+        Alternatively can use the form angle(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
         it is then equivalent to angle(b-a, c-a)
-        Note that this angle is not signed, use axis to know the direction of the rotation """     
+        
+        >>> o = Vector(0.0, 1.0, 0.0, 1.0)        
+        >>> p = Vector(1.0, 1.0, 0.0, 1.0)
+        >>> q = Vector(0.707, 1.0, -0.707, 1.0)
+        >>> angle(o, p, q)
+        0.78539816339744828
+            
+        Related : see Vector.angle method.
+    """     
     if not isinstance(a, Vector) :
         try :
             a = Vector(a)
@@ -4517,11 +6084,29 @@ def angle(a, b, c=None):
 
 def axis(a, b, c=None, normalize=False):
     """ axis(u, v[, normalize=False]) --> Vector
+    
         Returns the axis of rotation from u to v as the vector n = u ^ v
         if the normalize keyword argument is set to True, n is also normalized.
-        u and v should be 3 dimensional Vectors representing 3D vectors,
-        Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
-        it is then equivalent to axis(b-a, c-a) """
+        u and v should be 3 dimensional Vectors representing 3D vectors.
+        
+        >>> u = Vector(1.0, 0.0, 0.0)
+        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> axis(u, v)
+        Vector([-0.0, 0.707, 0.0])
+        >>> axis(u, [0.707, 0.0, -0.707], normalize=True)        
+        Vector([-0.0, 1.0, 0.0])
+        
+        Alternatively can use the form axis(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+        it is then equivalent to axis(b-a, c-a).        
+        
+        >>> o = Vector(0.0, 1.0, 0.0, 1.0)        
+        >>> p = Vector(1.0, 1.0, 0.0, 1.0)
+        >>> q = Vector(0.707, 1.0, -0.707, 1.0)
+        >>> axis(o, p, q, normalize=True)
+        Vector([-0.0, 1.0, 0.0])
+        
+        Related : see Vector.axis method.
+    """
     if not isinstance(a, Vector) :
         try :
             a = Vector(a)
@@ -4534,9 +6119,27 @@ def axis(a, b, c=None, normalize=False):
 
 def cotan(a, b, c=None) :
     """ cotan(u, v) --> float :
-        Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors,
+    
+        Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors.
+
+        >>> u = Vector(1.0, 0.0, 0.0)
+        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> cotan(u, v)
+        1.0
+        >>> cotan(u, [0.707, 0.0, -0.707])   
+        1.0
+        
         Alternatively can use the form cotan(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
-        it is then equivalent to cotan(b-a, c-a) """
+        it is then equivalent to cotan(b-a, c-a).
+
+        >>> o = Vector(0.0, 1.0, 0.0, 1.0)        
+        >>> p = Vector(1.0, 1.0, 0.0, 1.0)
+        >>> q = Vector(0.707, 1.0, -0.707, 1.0)
+        >>> cotan(o, p, q)
+        1.0
+        
+        Related : see Vector.cotan method.
+    """
     if not isinstance(a, Vector) :
         try :
             a = Vector(a)
@@ -4553,7 +6156,87 @@ def cotan(a, b, c=None) :
 
 class Vector(Array):
     """
-        A generic size Vector class derived from Array, basically a 1 dimensional Array
+        A generic size Vector class derived from Array, basically a 1 dimensional Array.
+        
+        Most methods and behavior are herited from Array, with the limitation that a Matrix must have
+        exactly 2 dimensions.
+        
+        >>> V = Vector()
+        >>> V
+        Vector([])
+        >>> V = Vector([0, 1, 2])
+        >>> V
+        Vector([0, 1, 2])
+        >>> V = Vector(0, 1, 2)
+        >>> V
+        Vector([0, 1, 2])
+        >>> M = Matrix([[0], [1], [2]])
+        >>> print M.formated()   
+        [[0],
+         [1],
+         [2]]
+        >>> V = Vector(M.col[0])
+        >>> V
+        Vector([0, 1, 2])
+        
+        The Vector class has a constant ndim of 1
+        
+        >>> Vector.ndim
+        1
+        >>> V.ndim
+        1
+        >>> Vector.ndim = 2
+        Traceback (most recent call last):
+            ...
+        AttributeError: attribute ndim is a read only class attribute and cannot be modified on class Vector
+        >>> V.ndim = 2
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'Vector' object attribute 'ndim' is read-only
+            
+        It's protected against initialization or resizing to a shape that wouldn't be a Vector anymore 
+         
+        >>> V = Vector([[0, 1], [2, 3]]) 
+        Traceback (most recent call last):
+            ...
+        TypeError: cannot initialize a Vector of shape (4,) from [[0, 1], [2, 3]] of shape (2, 2),
+        as it would truncate data or reduce the number of dimensions
+            
+        >>> V.resize((2, 2))
+        Traceback (most recent call last):
+            ...
+        TypeError: new shape (2, 2) is not compatible with class Vector
+        
+        Other Array types can be cast to Vector, but truncating data or reducing dimensions is not allowed
+        to avoid silent loss of data in a conversion, use an explicit resize / trim / sub-array extraction
+
+        >>> A = Array(range(4), shape=(4,))
+        >>> V = Vector(A)
+        >>> V
+        Vector([0, 1, 2, 3])
+
+        >>> A = Array(range(4), shape=(2, 2))
+        >>> V = Vector(A)
+        Traceback (most recent call last):
+            ...
+        TypeError: cannot cast a Array of shape (2, 2) to a Vector of shape (4,),
+        as it would truncate data or reduce the number of dimensions
+        
+        As for Array, __init__ is a shallow copy, note that as Vector don't have sub-arrays,
+        shallow and deep copy amounts to the same thing.
+        
+        >>> A = Array(range(4), shape=(4,))
+        >>> V = Vector(A)
+        >>> V == A
+        False
+        >>> V is A
+        False
+        >>> V.isEquivalent(A)
+        True
+        >>> V[0] == A[0]
+        True
+        >>> V[0] is A[0]
+        True
     """
     __slots__ = ['_data', '_shape', '_size']    
     
@@ -4565,19 +6248,41 @@ class Vector(Array):
     def _setshape(self, newshape):
         self.resize(newshape)    
     # shape, ndim, size and data properties
-    shape = property(_getshape, _setshape, None, "Shape of the Vector, as Vectors are one-dimensional Arrays: v.shape = (v.size,)")    
+    shape = property(_getshape, _setshape, None, 
+                     """ v.shape : tuple of one int
+                     
+                         Shape of the Vector, as Vectors are one-dimensional Arrays: v.shape = (v.size,).
+                     
+                         It can be queried, or set to change the Vector's shape similarly to the resize method,
+                         as the only way to change a Vector's shape is to resize it.
+                         
+                         >>> V = Vector(1, 2, 3)
+                         >>> V
+                         Vector([1, 2, 3])
+                         >>> V.shape=(4)
+                         >>> V
+                         Vector([1, 2, 3, 0])
+                         >>> V.shape=(2, 2)
+                         Traceback (most recent call last):
+                             ...
+                         TypeError: new shape (2, 2) is not compatible with class Vector
+            
+                         Related : see Array.resize method.
+                     """)    
     # ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
-    size = property(lambda x : len(x), None, None, "Number of components of the Vector")
+    size = property(lambda x : len(x), None, None, "Number of components in the Vector")
     
     # common operators are herited from Arrays
            
     # overloaded operators
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
+        
             If b is a Vector, __mul__ is mapped to the dot product of the two vectors a and b,
             If b is a Matrix, __mul__ is mapped to Vector a by Matrix b multiplication (post multiplication or transformation of a by b),
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
-            multiplies every component of a by b if b is a single numeric value """
+            multiplies every component of a by b if b is a single numeric value
+        """
         if isinstance(other, Vector) :
             return self.dot(other)
         elif isinstance(other, Matrix) :
@@ -4588,10 +6293,12 @@ class Vector(Array):
             return Array.__mul__(self, other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
+        
             If b is a Vector, __rmul__ is mapped to the dot product of the two vectors a and b,
             If b is a Matrix, __rmul__ is mapped to Matrix b by Vector a multiplication,
             otherwise, returns the result of the element wise multiplication of b and a if b is convertible to Array,
-            multiplies every component of a by b if b is a single numeric value """       
+            multiplies every component of a by b if b is a single numeric value
+        """       
         if isinstance(other, Vector) :
             return self.dot(other)
         elif isinstance(other, Matrix) :
@@ -4602,7 +6309,9 @@ class Vector(Array):
             return Array.__rmul__(self, other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
-            In place multiplication of Vector a and b, see __mul__, result must fit a's type """      
+        
+            In place multiplication of Vector a and b, see __mul__, result must fit a's type
+        """      
         res = self*other
         if isinstance(res, self.__class__) :
             return self.__class__(res)        
@@ -4612,9 +6321,11 @@ class Vector(Array):
     # special operators
     def __xor__(self, other):
         """ a.__xor__(b) <==> a^b
+        
             Defines the cross product operator between two vectors,
             if b is a Matrix, a^b is equivalent to transforming a by the inverse transpose Matrix of b,
-            often used to transform normals """
+            often used to transform normals
+        """
         if isinstance(other, Vector) :
             return self.cross(other)  
         elif isinstance(other, Matrix) :
@@ -4623,7 +6334,9 @@ class Vector(Array):
             return NotImplemented
     def __ixor__(self, other):
         """ a.__xor__(b) <==> a^=b
-            Inplace cross product or transformation by inverse transpose Matrix of b is v is a Matrix """        
+        
+            Inplace cross product or transformation by inverse transpose Matrix of b is v is a Matrix
+        """        
         res = self.__xor__(other) 
         if isinstance(res, self.__class__) :
             return self.__class__(res)        
@@ -4633,8 +6346,11 @@ class Vector(Array):
     # additional methods
 
     def cross(self, other):
-        """ cross(u, v) --> Vector
-            cross product of u and v, u and v should be 3 dimensional vectors  """
+        """ u.cross(v) <==> cross(u, v)
+        
+            cross product of u and v, u and v should be 3 dimensional vectors.
+            
+        """
         try :
             nself, nother = coerce(Vector(self), other)
             assert len(nself) == len(nother) == 3
@@ -4644,16 +6360,22 @@ class Vector(Array):
                 nself[2]*nother[0] - nself[0]*nother[2],
                 nself[0]*nother[1] - nself[1]*nother[0]])         
     def dot(self, other):
-        """ dot(u, v) --> float
-            dot product of u and v, u and v should be Vectors of identical size"""
+        """ u.dot(v) <==> dot(u, v)
+        
+            dot product of u and v, u and v should be Vectors of identical size.
+            
+            
+        """
         try :
             nself, nother = coerce(Vector(self), other)
         except :
             raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))               
         return reduce(operator.add, map(operator.mul, nself, nother)) 
     def outer(self, other):
-        """ outer(u, v) --> Matrix :
-            outer product of vectors u and v """
+        """ u.outer(v) <==> outer(u, v)
+        
+            Outer product of vectors u and v
+        """
         try :
             nself, nother = coerce(Vector(self), other)
         except :
@@ -4661,7 +6383,10 @@ class Vector(Array):
         return Matrix([nother*x for x in nself]) 
     def transformAsNormal(self, other):
         """ u.transformAsNormal(m) --> Vector
-            Equivalent to transforming u by the inverse transpose Matrix of m, used to transform normals """ 
+        
+            Equivalent to transforming u by the inverse transpose Matrix of m, used to transform normals.
+            
+        """ 
         try :
             nother = Matrix(other)
         except :
@@ -4672,19 +6397,36 @@ class Vector(Array):
         
     # length methods can be more efficient than for Arrays as there is only one axis   
     def sqlength(self):
+        """ u.sqlength() --> float
+        
+            Returns the square length of u, ie u.dot(u).
+            
+        """        
         return reduce(operator.add, map(lambda x:x**2, self))         
     def length(self):
+        """ u.length() --> float
+        
+            Returns the length of u, ie sqrt(u.dot(u))
+            
+        """
         return sqrt(self.sqlength())                
     def normal(self): 
-        """ Return a normalized copy of self. Overriden to be consistant with Maya API and MEL unit command,
-            does not raise an exception if self if of zero length, instead returns a copy of self """
+        """ u.normal() --> Vector
+        
+            Returns a normalized copy of self. Overriden to be consistant with Maya API and MEL unit command,
+            does not raise an exception if self if of zero length, instead returns a copy of self
+            
+        """
         try :
             return self/self.length()
         except :
             return self
     unit = normal
     def isParallel(self, other, tol=eps):
-        """ Returns true if both arguments considered as Vector are parallel within the specified tolerance """
+        """ u.isParallel(v[, tol]) --> bool
+        
+            Returns True if both arguments considered as Vector are parallel within the specified tolerance
+        """
         try :
             nself, nother = coerce(Vector(self), other)
         except :
@@ -4692,11 +6434,15 @@ class Vector(Array):
         return (abs(nself.dot(nother) - nself.length()*nother.length()) <= tol)     
     def angle(self, other, third=None):
         """ u.angle(v) <==> angle(u, v) --> float
-            Returns the angle of rotation between u and v.
-            u and v should be 3 dimensional Vectors representing 3D vectors,
-            Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
+        
+            Returns the angle of rotation between u and v, 3 dimensional Vectors representing 3D vectors.
+            
+            Note : this angle is not signed, use axis to know the direction of the rotation            
+            
+            Alternatively can use the form a.angle(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
             it is then equivalent to angle(b-a, c-a)
-            Note that this angle is not signed, use axis to know the direction of the rotation """         
+
+        """         
         if third is not None :
             try :
                 nself, nother = coerce(Vector(self), other)
@@ -4704,8 +6450,7 @@ class Vector(Array):
                 assert len(nself) == len(nother) == len(nthird) == 4
             except :
                 raise TypeError, "angle is defined for 3 vectors of size 4 representing 3D points"
-            nself = (nother-nself)[:3]
-            nother = (nthird-nself)[:3]
+            nself, nother = (nother-nself)[:3], (nthird-nself)[:3]
         else :
             try :
                 nself, nother = coerce(Vector(self), other)
@@ -4718,12 +6463,17 @@ class Vector(Array):
         else :
             return 0.0  
     def axis(self, other, third=None, normalize=False):
-        """ u.axis(v[, normalize=False]) <==> axis(u, v[, normalize=False]) --> Vector
-            Returns the axis of rotation from u to v as the vector n = u ^ v
-            if the normalize keyword argument is set to True, n is also normalized.
-            u and v should be 3 dimensional Vectors representing 3D vectors,
+        """ u.axis(v[, normalize=False]) <==> axis(u, v[, normalize=False])
+        
+            Returns the axis of rotation from u to v as the vector n = u ^ v, u and v 
+            being 3 dimensional Vectors representing 3D vectors.
+            If the normalize keyword argument is set to True, n is also normalized.
+            
+            
             Alternatively can use the form a.axis(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
-            it is then equivalent to axis(b-a, c-a) """
+            it is then equivalent to axis(b-a, c-a).
+            
+        """
         if third is not None :
             try :
                 nself, nother = coerce(Vector(self), other)
@@ -4731,8 +6481,7 @@ class Vector(Array):
                 assert len(nself) == len(nother) == len(nthird) == 4
             except :
                 raise TypeError, "axis is defined for 3 vectors of size 4 representing 3D points"
-            nself = (nother-nself)[:3]
-            nother = (nthird-nself)[:3]
+            nself, nother = (nother-nself)[:3], (nthird-nself)[:3]
         else :
             try :
                 nself, nother = coerce(Vector(self), other)
@@ -4744,10 +6493,13 @@ class Vector(Array):
         else :
             return nself.cross(nother)
     def cotan(self, other, third=None):
-        """ u.cotan(v) <==> cotan(u, v) --> float :
-            Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors,
+        """ u.cotan(v) <==> cotan(u, v)
+        
+            Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors.
+            
             Alternatively can use the form a.cotan(b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
-            it is then equivalent to cotan(b-a, c-a) """
+            it is then equivalent to cotan(b-a, c-a)
+        """
         if third is not None :
             try :
                 nself, nother = coerce(Vector(self), other)
@@ -4755,8 +6507,7 @@ class Vector(Array):
                 assert len(nself) == len(nother) == len(nthird) == 4
             except :
                 raise TypeError, "cotan is defined for 3 vectors of size 4 representing 3D points"
-            nself = (nother-nself)[:3]
-            nother = (nthird-nself)[:3]
+            nself, nother = (nother-nself)[:3], (nthird-nself)[:3]
         else :
             try :
                 nself, nother = coerce(Vector(self), other)
@@ -4774,2009 +6525,7 @@ class Vector(Array):
         return Vector( (nself.dot(nother) /  nother.sqlength()) * nother )    
     # blend and clamp derived from Array
              
-def _testArray() :  
-
-         
-    # init and append (hstack, vstack)
-    A = Array()
-    print repr(A)
-    print A.data
-    print A.shape
-    print A.ndim
-    print A.size
-    A = Array(1)
-    print repr(A)
-    print A.data
-    print A.shape
-    print A.ndim
-    print A.size       
-    A = Array(1,2)
-    print repr(A) 
-    A = Array([1,2])
-    print repr(A) 
-    A = Array([[1,2], [3, 4]])
-    print repr(A)
-    print A.formated()
-    print A.data
-    print A.shape
-    print A.ndim
-    print A.size       
-    A[0,0] = 10
-    print A.formated() 
-    #[[10, 2],
-    # [3, 4]]    
-    A[:,1] *= 2  
-    print A.formated()
-    #[[10, 4],
-    # [3, 8]]
-    A = Array(1, shape=(2, 2))
-    print A.formated()    
-    #[[1, 1],
-    # [1, 1]]                            
-    A = Array(range(1, 5), shape=(2, 2))
-    print A.formated()    
-    #[[1, 2],
-    # [3, 4]]  
-    print A.data
-    # [Array([1, 2]), Array([3, 4])]
-    print A.tolist()
-    # [[1, 2], [3, 4]]     
-    print A.get()
-    # ((1, 2), (3, 4))
-    
-        
-    # Array([])
-    A = Array([])
-    print repr(A)
-    # Array([])
-    A.append(1)
-    print A.formated()
-    # [1]
-    print A.appended(2)
-    # [1, 2]
-    A.stack([2])
-    print A.formated()
-    # [1, 2]
-    A = Array([A])
-    print A.formated()
-    # [[1, 2]]    
-    A.append([4, 5],0)
-    print A.formated()
-    # [[1, 2],
-    # [4, 5]]
-    A.append([3, 6], 1)
-    print A.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6]]    
-    A.append([7, 8, 9])
-    print A.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9]]    
-    A.stack([[0, 0, 0]])
-    print A.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9],
-    # [0, 0, 0]]    
-    print A.stacked([[0], [0], [0], [1]], 1).formated()
-    #[[1, 2, 3, 0],
-    # [4, 5, 6, 0],
-    # [7, 8, 9, 0],
-    # [0, 0, 0, 1]]    
-    A.append([0, 0, 0, 1], 1)
-    print A.formated()
-    #[[1, 2, 3, 0],
-    # [4, 5, 6, 0],
-    # [7, 8, 9, 0],
-    # [0, 0, 0, 1]] 
-           
-    A = Array(range(1, 7), shape=(2, 3))
-    print A.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6]]    
-    B = Array(range(1, 5), shape=(2, 2))
-    print B.formated()
-    #[[1, 2],
-    # [3, 4]]    
-    A.stack(B, 1)
-    print A.formated()
-    #[[1, 2, 3, 1, 2],
-    # [4, 5, 6, 3, 4]]    
-    A.append(range(1,6), 0)
-    print A.formated()
-    #[[1, 2, 3, 1, 2],
-    # [4, 5, 6, 3, 4],
-    # [1, 2, 3, 4, 5]]    
-    B = Array(range(10), shape=(2, 5)) 
-    print B.formated()
-    #[[0, 1, 2, 3, 4],
-    # [5, 6, 7, 8, 9]]    
-    print A.stacked(B, 0).formated()
-    #[[1, 2, 3, 1, 2],
-    # [4, 5, 6, 3, 4],
-    # [1, 2, 3, 4, 5],
-    # [0, 1, 2, 3, 4],
-    # [5, 6, 7, 8, 9]]    
-    B.resize((3, 5), 1)
-    print B.formated()
-    #[[0, 1, 2, 3, 4],
-    # [5, 6, 7, 8, 9],
-    # [1, 1, 1, 1, 1]]    
-    print A.stacked(B, 1).formated()
-    #[[1, 2, 3, 1, 2, 0, 1, 2, 3, 4],
-    # [4, 5, 6, 3, 4, 5, 6, 7, 8, 9],
-    # [1, 2, 3, 4, 5, 1, 1, 1, 1, 1]]
-    
-    A = Array(range(1, 9), shape=(2, 2, 2))
-    print A.formated()
-    #[[[1, 2],
-    #  [3, 4]],
-    #
-    # [[5, 6],
-    #  [7, 8]]]    
-    A.append([9, 9], 1)
-    print A.formated()
-    #[[[1, 2],
-    #  [3, 4],
-    #  [9, 9]],
-    #
-    # [[5, 6],
-    #  [7, 8],
-    #  [9, 9]]]    
-    B = Array(range(-1, -7, -1), shape=(2, 3, 1))
-    print B.formated()
-    #[[[-1],
-    #  [-2],
-    #  [-3]],
-    #
-    # [[-4],
-    #  [-5],
-    #  [-6]]]    
-    A.stack(B, 2)
-    print A.formated()
-    #[[[1, 2, -1],
-    #  [3, 4, -2],
-    #  [9, 9, -3]],
-    #
-    # [[5, 6, -4],
-    #  [7, 8, -5],
-    #  [9, 9, -6]]]   
-    A.append([0, 0, 0], 1)
-    print A.formated()  
-    #[[[1, 2, -1],
-    #  [3, 4, -2],
-    #  [9, 9, -3],
-    #  [0, 0, 0]],
-    #
-    # [[5, 6, -4],
-    #  [7, 8, -5],
-    #  [9, 9, -6],
-    #  [0, 0, 0]]]    
-    A.append([0, 0, 0, 1], 2)
-    print A.formated()  
-    #[[[1, 2, -1, 0],
-    #  [3, 4, -2, 0],
-    #  [9, 9, -3, 0],
-    #  [0, 0, 0, 1]],
-    #
-    # [[5, 6, -4, 0],
-    #  [7, 8, -5, 0],
-    #  [9, 9, -6, 0],
-    #  [0, 0, 0, 1]]]    
-             
-    # fills and init with shape    
-    A = Array(shape=(5,)).filled([0, 1, 2])
-    print "Array.filled([0, 1, 2], 5)"
-    print A.formated() 
-    # [0, 1, 2, 0, 0]
-    A = Array(shape=(5,)).filled(2)
-    print "A = Array.filled(2, (5,))"
-    print A.formated()
-    # [2, 2, 2, 2, 2]      
-    A = Array(shape=(2, 2))
-    print "A = Array(shape=(2, 2))"
-    print A.formated()
-    # [[0, 0],
-    #  [0, 0]]
-    A = Array(shape=(2, 2)).filled(1) 
-    print "A = Array.filled(1, (2, 2))"
-    print A.formated()
-    #[[1, 1],
-    # [1, 1]]    
-    A = Array(shape=(3, 3)).filled([1, 2, 3]) 
-    print "A = Array.filled([1, 2, 3], (3, 3)) "
-    print A.formated()
-    #[[1, 2, 3],
-    # [1, 2, 3],
-    # [1, 2, 3]]    
-    A = Array(shape=(3, 3)).filled([1, 2]) 
-    print "Array.filled([1, 2], (3, 3))"
-    print A.formated()  
-    #[[1, 2, 0],
-    # [1, 2, 0],
-    # [1, 2, 0]]
-
-       
-    # copies and references
-    B = Array([[1,1,1],[4,4,3],[7,8,5]])
-    print B.formated()
-    #[[1, 1, 1],
-    # [4, 4, 3],
-    # [7, 8, 5]] 
-    # C = B   
-    C = B
-    print C.formated()
-    #[[1, 1, 1],
-    # [4, 4, 3],
-    # [7, 8, 5]] 
-    print C == B
-    # True    
-    print C is B
-    # True
-    print C[0] is B[0]
-    # True
-    # assign is a shallow copy
-    C = Array()
-    C.assign(B)   
-    print C.formated()
-    #[[1, 1, 1],
-    # [4, 4, 3],
-    # [7, 8, 5]] 
-    print C == B
-    # True    
-    print C is B
-    # False
-    print C[0] is B[0]
-    # True           
-    # init is a shallow copy
-    C = Array(B)    
-    print C.formated()
-    #[[1, 1, 1],
-    # [4, 4, 3],
-    # [7, 8, 5]]         
-    print C == B
-    # True    
-    print C is B
-    # False
-    print C[0] is B[0]
-    # True
-    
-    C = Array([B]) 
-    print C.formated()
-    #[[[1, 1, 1],
-    #  [4, 4, 3],
-    #  [7, 8, 5]]]    
-    print C[0] is B
-    # True
-    print C[0,0] is B[0]   
-    # True  
-        
-    #shallow copy
-    C = B.copy()
-    print C.formated()
-    #[[[1, 1, 1],
-    #  [4, 4, 3],
-    #  [7, 8, 5]]]       
-    print C == B
-    # True     
-    print C is B
-    # False
-    print C[0] is B[0]
-    # True
-    
-    #deep copy   
-    C = B.deepcopy()
-    print C.formated()
-    #[[[1, 1, 1],
-    #  [4, 4, 3],
-    #  [7, 8, 5]]]       
-    print C == B
-    # True     
-    print C is B
-    # False
-    print C[0] is B[0] 
-    # False
-
-        
-    # indexing     
-    A = Array([[[1,1,1],[4,4,3],[7,8,5]], [[10,10,10],[40,40,30],[70,80,50]]])
-    print A
-    print repr(A)
-    print repr(list(A))
-    print repr(A.tolist())
-    print repr(A.ravel())
-    print "A:"
-    print A.formated()
-    #[[[1, 1, 1],
-    #  [4, 4, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]    
-    print "a = A[0]:"
-    a = A[0]
-    print a.formated()
-    #[[1, 1, 1],
-    # [4, 4, 3],
-    # [7, 8, 5]]
-    a[1, 1] = 5
-    print "a[1, 1] = 5:"
-    print a.formated()
-    #[[1, 1, 1],
-    # [4, 5, 3],
-    # [7, 8, 5]]
-    print "A[0]:"
-    print A[0].formated()
-    #[[1, 1, 1],
-    # [4, 5, 3],
-    # [7, 8, 5]]
-    print "A[-1]:"
-    print A[-1].formated()
-    #[[10, 10, 10],
-    # [40, 40, 30],
-    # [70, 80, 50]]
-    print "A[0, 2, 1]:"
-    print A[0, 2, 1]
-    # 8
-    a = A[0, 2]
-    print "a = A[0, 2]:"
-    print a
-    # [7, 8, 5]
-    a[1] = 9
-    print "a[1] = 9:"
-    print a
-    # [7, 9, 5]
-    print "A[0, 2]:"
-    print A[0, 2].formated()
-    # [7, 9, 5]
-    a = A[0, 0:2]
-    print "a = A[0, 0:2]"
-    print a.formated()
-    #[[1, 1, 1],
-    # [4, 5, 3]]      
-    a[0, 1] = 2
-    print a.formated()
-    #[[1, 2, 1],
-    # [4, 5, 3]]    
-    print A[0].formated()
-    #[[1, 2, 1],
-    # [4, 5, 3],
-    # [7, 9, 5]]      
-    print "a = A[0, :, 1]:"
-    a = A[0, :, 1]
-    print a
-    # [2 5 9]
-    a[1] = 6
-    print "a[1] = 6:"
-    print a
-    # [2 6 9]
-    # not changing value because array had to be reconstructed
-    print "A[0, :]:"
-    print A[0, :].formated()
-    #[[1, 2, 1],
-    # [4, 5, 3],
-    # [7, 9, 5]]
-    # do it this way 
-    A[0, :, 1] = [2, 6, 9]
-    print "A[0, :, 1] = [2, 6, 9]"
-    print A[0, :].formated()
-    #[[1, 2, 1],
-    # [4, 6, 3],
-    # [7, 9, 5]]    
-    print "A[0, :, 1:2]:"
-    print A[0, :, 1:2].formated()
-    #[[2],
-    # [6],
-    # [9]]
-    print "A[0, 1:2, 1:2]:"
-    print A[0, 1:2, 1:2].formated()
-    #[[6]]
-    print "A[0, :, 1:3]:"
-    print A[0, :, 1:3].formated()
-    #[[2, 1],
-    # [6, 3],
-    # [9, 5]]
-    print "A[:, :, 1:3]:"
-    print A[:, :, 1:3].formated()
-    #[[[2, 1],
-    #  [6, 3],
-    #  [9, 5]],
-    #
-    # [[10, 10],
-    #  [40, 30],
-    #  [80, 50]]]
-    print "A[:, :, 1:2]:"
-    print A[:, :, 1:2].formated()
-    #[[[2],
-    #  [6],
-    #  [9]],
-    #
-    # [[10],
-    #  [40],
-    #  [80]]]
-    
-    # delete or strip items
-    print "A="
-    A = Array(xrange(1, 28), shape=(3, 3, 3))
-    print A.formated()
-    #[[[1, 2, 3],
-    #  [4, 5, 6],
-    #  [7, 8, 9]],
-    #
-    # [[10, 11, 12],
-    #  [13, 14, 15],
-    #  [16, 17, 18]],
-    #
-    # [[19, 20, 21],
-    #  [22, 23, 24],
-    #  [25, 26, 27]]]
-    B = A[0]
-    print "del A[1]"
-    del A[1]
-    print A.formated()
-    #[[[1, 2, 3],
-    #  [4, 5, 6],
-    #  [7, 8, 9]],
-    #
-    # [[19, 20, 21],
-    #  [22, 23, 24],
-    #  [25, 26, 27]]]   
-    C = A[0]
-    print B is C
-    # True
-    B = A[0][0]
-    print "del A[-1]"
-    del A[-1]
-    print A.formated()
-    #[[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9]]]      
-    C = A[0, 0]
-    print B is C
-    # True
-    print "del A[None, None, 1:3]"
-    del  A[None, None, 1:3]
-    print A.formated()
-    #[[[1],
-    # [4],
-    # [7]]]    
-    print "del A[-1]"
-    del A[-1]
-    print A.formated()    
-    # []
-    
-    print "A="
-    A = Array(xrange(1, 28), shape=(3, 3, 3))
-    print A.formated()
-    #[[[1, 2, 3],
-    #  [4, 5, 6],
-    #  [7, 8, 9]],
-    #
-    # [[10, 11, 12],
-    #  [13, 14, 15],
-    #  [16, 17, 18]],
-    #
-    # [[19, 20, 21],
-    #  [22, 23, 24],
-    #  [25, 26, 27]]]
-    B = A[0]
-    print "A.strip(1)"
-    A.strip(1)
-    print A.formated()
-    #[[[1, 2, 3],
-    #  [4, 5, 6],
-    #  [7, 8, 9]],
-    #
-    # [[19, 20, 21],
-    #  [22, 23, 24],
-    #  [25, 26, 27]]]   
-    C = A[0]
-    print B is C
-    # True
-    B = A[0][0]
-    print "A.strip(-1)"
-    A.strip(-1)
-    print A.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9]]      
-    C = A[0]
-    print B is C
-    # True
-    print "A.strip(None, slice(1,3))"
-    A.strip((None, slice(1,3)))
-    print A.formated()
-    #[[1],
-    # [4],
-    # [7]]    
-    print "A.strip(-1)"
-    A.strip(-1)
-    print A.formated()
-    #[[1],
-    # [4]]  
-    print "A.strip(-1)"
-    A.strip(-1)
-    print A.formated()   
-    #[1]   
-    print "A.strip(-1)"
-    A.strip(-1)
-    print A.formated()  
-    #[]
-    
-    # iterators
-    
-    A = Array([[[1, 1, 1], [4, 6, 3], [7, 9, 5]], [[10, 10, 10], [40, 40, 30], [70, 80, 50]]])
-    print "A:\n", A
-    # [[[1, 1, 1], [4, 6, 3], [7, 9, 5]], [[10, 10, 10], [40, 40, 30], [70, 80, 50]]]
-    print "list(A.flat):\n",list(A.flat)
-    # [1, 1, 1, 4, 6, 3, 7, 9, 5, 10, 10, 10, 40, 40, 30, 70, 80, 50]
-    print "A.flat[7]:\n", A.flat[7]
-    # 9
-    print "A.flat[2:12]:\n", A.flat[2:12]
-    # [1, 4, 6, 3, 7, 9, 5, 10, 10, 10]
-    A.flat[7] = 8
-    print "A.flat[7] = 8"
-    print A.formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]
-        
-    print "Array([a for a in A])"
-    print Array([a for a in A]).formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]    
-    print "Array([a for a in A.subiter()])"
-    print Array([a for a in A.subiter()]).formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]] 
-    print "Array([a for a in A.subiter(0)])"
-    print Array([a for a in A.subiter(0)]).formated()
-    # [1, 1, 1, 4, 6, 3, 7, 8, 5, 10, 10, 10, 40, 40, 30, 70, 80, 50]
-    print "Array([a for a in A.subiter(1)])"
-    print Array([a for a in A.subiter(1)]).formated()
-    #[[1, 1, 1],
-    # [4, 6, 3],
-    # [7, 8, 5],
-    # [10, 10, 10],
-    # [40, 40, 30],
-    # [70, 80, 50]]    
-    print "Array([a for a in A.subiter(2)])"
-    print Array([a for a in A.subiter(2)]).formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]   
-    print "Array([a for a in A.axisiter()])"
-    print Array([a for a in A.axisiter()]).formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]] 
-    print "Array([a for a in A.axisiter(0)])"
-    print Array([a for a in A.axisiter(0)]).formated() 
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]  
-    print "Array([a for a in A.axisiter(0,1)])"
-    print Array([a for a in A.axisiter(0,1)]).formated()   
-    #[[1, 1, 1],
-    # [4, 6, 3],
-    # [7, 8, 5],
-    # [10, 10, 10],
-    # [40, 40, 30],
-    # [70, 80, 50]] 
-    print "Array([a for a in A.axisiter(0,1,2)])"
-    print Array([a for a in A.axisiter(0,1,2)]).formated()   
-    # [1, 1, 1, 4, 6, 3, 7, 8, 5, 10, 10, 10, 40, 40, 30, 70, 80, 50]
-    print "Array([a for a in A.axisiter(2)])"
-    print Array([a for a in A.axisiter(2)]).formated() 
-    #[[[1, 4, 7],
-    #  [10, 40, 70]],
-    #
-    # [[1, 6, 8],
-    #  [10, 40, 80]],
-    #
-    # [[1, 3, 5],
-    #  [10, 30, 50]]]  
-    print "Array([a for a in A.axisiter(2,1)])"
-    print Array([a for a in A.axisiter(2,1)]).formated()   
-    #[[1, 10],
-    # [4, 40],
-    # [7, 70],
-    # [1, 10],
-    # [6, 40],
-    # [8, 80],
-    # [1, 10],
-    # [3, 30],
-    # [5, 50]] 
-    print "Array([a for a in A.axisiter(2,1,0)])"
-    print Array([a for a in A.axisiter(2,1,0)]).formated()   
-    #[1, 10, 4, 40, 7, 70, 1, 10, 6, 40, 8, 80, 1, 10, 3, 30, 5, 50]
-
-    # all iterator support item indexation
-    
-    print "A[0, 1, :] = [11, 66, 88]"
-    A[0, :, 1] = [11, 66, 88]
-    print A.formated()
-    #[[[1, 11, 1],
-    #  [4, 66, 3],
-    #  [7, 88, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]     
-    print "Array([a for a in A.axisiter(0,2)])"
-    print Array([a for a in A.axisiter(0,2)]).formated() 
-    #[[1, 4, 7],
-    # [11, 66, 88],
-    # [1, 3, 5],
-    # [10, 40, 70],
-    # [10, 40, 80],
-    # [10, 30, 50]]
-    print "A.axisiter(0,2)[1]"
-    print A.axisiter(0,2)[1]
-    # [11, 66, 88]
-    print "A.axisiter(0,2)[1] = [1, 6, 8]"
-    A.axisiter(0,2)[1] = [1, 6, 8]
-    print A.formated()
-    #[[[1, 1, 1],
-    #  [4, 6, 3],
-    #  [7, 8, 5]],
-    #
-    # [[10, 10, 10],
-    #  [40, 40, 30],
-    #  [70, 80, 50]]]
- 
-    
-    # count, index
-    
-    print "A[:,:,1] = 2"
-    A[:,:,1] = 2
-    print A.formated()
-    #[[[1, 2, 1],
-    #  [4, 2, 3],
-    #  [7, 2, 5]],
-    #
-    # [[10, 2, 10],
-    #  [40, 2, 30],
-    #  [70, 2, 50]]]  
-    print "A in A\n", A in A     
-    # False
-    print "A.count(A)\n", A.count(A)
-    # 0
-    print "70 in A\n", 70 in A
-    # True
-    print "A.count([4, 2, 3])\n", A.count([4, 2, 3])
-    # 1
-    print "[4, 2, 3] in A\n", [4, 2, 3] in A
-    # True
-    print "A.count(2)\n", A.count(2)
-    # 6
-    print "A.index(2)\n", A.index(2)
-    # (0, 0, 1)
-    print "A.count([7, 2, 5])\n", A.count([7, 2, 5])
-    # 1    
-    print "A.index([7, 2, 5])\n", A.index([7, 2, 5])
-    # (0, 2)
-    print "A[0,2]\n", A[0,2]
-    # [7, 2, 5]
-    print "A.index([[10, 2, 10],[40, 2, 30],[70, 2, 50]])\n", A.index([[10, 2, 10],[40, 2, 30],[70, 2, 50]])
-    # (1,)
-
-    # resising and reshaping
-    
-    print "B=Array(range(1, 17), shape=(4, 4))"
-    B = B=Array(range(1, 17), shape=(4, 4))
-    print B.formated()
-    #[[ 1  2  3  4]
-    # [ 5  6  7  8]
-    # [ 9 10 11 12]
-    # [13 14 15 16]]     
-    print "B.reshaped((2, 2, 2, 2)):"
-    print B.reshaped((2, 2, 2, 2)).formated()
-    #[[[[ 1  2]
-    #   [ 3  4]]
-    #
-    #  [[ 5  6]
-    #   [ 7  8]]]
-    #
-    #
-    # [[[ 9 10]
-    #   [11 12]]
-    #
-    #  [[13 14]
-    #   [15 16]]]] 
-    print "B.reshape((2, 2, 4)) or B.shape = (2, 2, 4)"
-    B.reshape((2, 2, 4))
-    print B.formated()
-    #[[[1, 2, 3, 4],
-    #  [5, 6, 7, 8]],
-    #
-    # [[9, 10, 11, 12],
-    #  [13, 14, 15, 16]]]       
-    print "B.resized((4, 5)):"
-    print B.resized((4, 5)).formated()
-    #[[ 1  2  3  4  5]
-    # [ 6  7  8  9 10]
-    # [11 12 13 14 15]
-    # [16  0  0  0  0]]
-    print "B.resized((4, 5), 1):"
-    print B.resized((4, 5), 1).formated()
-    #[[ 1  2  3  4  5]
-    # [ 6  7  8  9 10]
-    # [11 12 13 14 15]
-    # [16  1  1  1  1]] 
-    print "B.resize((2, 3, 3))"
-    B.resize((2, 3, 3))
-    print B.formated()
-#    [[[1, 2, 3],
-#      [4, 5, 6],
-#      [7, 8, 9]],
-#    
-#     [[10, 11, 12],
-#      [13, 14, 15],
-#      [16, 0, 0]]] 
-    print "B.resize((4, 4))"
-    B.resize((4, 4))    
-    print B.formated()
-    #[[ 1  2  3  4]
-    # [ 5  6  7  8]
-    # [ 9 10 11 12]
-    # [13 14 15 16]]
-    
-    # trim
-    
-    print "B=Array(range(1, 17), shape=(4, 4))"
-    B = B=Array(range(1, 17), shape=(4, 4))
-    print B.formated()
-    #[[ 1  2  3  4]
-    # [ 5  6  7  8]
-    # [ 9 10 11 12]
-    # [13 14 15 16]]      
-    A = B[0]
-    print "A = B[0]"
-    print A.formated()
-    # [1, 2, 3, 4]
-    print "C = B.trimmed((5, 4))"
-    C = B.trimmed((5, 4))
-    print C.formated()
-    #[[1, 2, 3, 4],
-    # [5, 6, 7, 8],
-    # [9, 10, 11, 12],
-    # [13, 14, 15, 16],
-    # [0, 0, 0, 0]]
-    print A == C[0]
-    # True
-    print A is C[0]
-    # False
-    print "C = B.trimmed((5, 5))"
-    C = B.trimmed((5, 5))
-    print C.formated()
-    #[[1, 2, 3, 4, 0],
-    # [5, 6, 7, 8, 0],
-    # [9, 10, 11, 12, 0],
-    # [13, 14, 15, 16, 0],
-    # [0, 0, 0, 0, 0]]
-    C = B.trimmed((3, 3))
-    print C.formated()
-    #[[1, 2, 3],
-    # [5, 6, 7],
-    # [9, 10, 11]]
-       
-    print "B=Array(range(1, 17), shape=(4, 4))"
-    B = B=Array(range(1, 17), shape=(4, 4))
-    print B.formated()
-    #[[ 1  2  3  4]
-    # [ 5  6  7  8]
-    # [ 9 10 11 12]
-    # [13 14 15 16]]    
-    A = B[0]
-    print "A = B[0]"
-    print A.formated()
-    # [1, 2, 3, 4]
-    print A == B[0]
-    # True
-    print A is B[0]
-    # True       
-    print "B.trim((5, 4))"
-    C = B
-    B.trim((5, 4))
-    print B.formated()
-    #[[1, 2, 3, 4],
-    # [5, 6, 7, 8],
-    # [9, 10, 11, 12],
-    # [13, 14, 15, 16],
-    # [0, 0, 0, 0]]
-    print C.formated()
-    #[[1, 2, 3, 4],
-    # [5, 6, 7, 8],
-    # [9, 10, 11, 12],
-    # [13, 14, 15, 16],
-    # [0, 0, 0, 0]]    
-    print A == B[0]
-    # True
-    print A is B[0]
-    # True  
-    print "B.trim((5, 5))"
-    B.trim((5, 5))
-    print B.formated()
-    #[[1, 2, 3, 4, 0],
-    # [5, 6, 7, 8, 0],
-    # [9, 10, 11, 12, 0],
-    # [13, 14, 15, 16, 0],
-    # [0, 0, 0, 0, 0]] 
-    print A.formated()    
-    # [1, 2, 3, 4, 0]    
-    print "B.trim((3, 2))"
-    B.trim((3, 2))
-    print B.formated()
-    #[[1, 2],
-    # [5, 6],
-    # [9, 10]]   
-    print A.formated() 
-    # [1, 2]
-    
-    # TODO : test the copy / in place similarly for reshape, append, resize, etc 
-
-    print "B=Array(range(1, 17), shape=(4, 4))"
-    B = B=Array(range(1, 17), shape=(4, 4))
-    print B.formated()
-    #[[ 1  2  3  4]
-    # [ 5  6  7  8]
-    # [ 9 10 11 12]
-    # [13 14 15 16]]      
-    print "C = Array(B, shape=(5, 5))"
-    C = Array(B, shape=(5, 5))
-    print C.formated()       
-    #[[1, 2, 3, 4, 0],
-    # [5, 6, 7, 8, 0],
-    # [9, 10, 11, 12, 0],
-    # [13, 14, 15, 16, 0],
-    # [0, 0, 0, 0, 0]]    
-    print "C = Array(B, shape=(2, 4, 4))"
-    C = Array(B, shape=(2, 4, 4))
-    print C.formated()  
-    #[[[1, 2, 3, 4],
-    #  [5, 6, 7, 8],
-    #  [9, 10, 11, 12],
-    #  [13, 14, 15, 16]],
-    #
-    # [[1, 2, 3, 4],
-    #  [5, 6, 7, 8],
-    #  [9, 10, 11, 12],
-    #  [13, 14, 15, 16]]]
-    print "C = Array(B, shape=(3, 5))"
-    C = Array(B, shape=(3, 6))
-    print C.formated()     
-    #[[1, 2, 3, 4, 5, 6],
-    # [7, 8, 9, 10, 11, 12],
-    # [13, 14, 15, 16, 0, 0]]   
-    
-    # operators
-    
-    A = Array([[[1, 2, 1], [4, 2, 3], [7, 2, 5]], [[10, 2, 10], [40, 2, 30], [70, 2, 50]]])
-    print "A = Array([[[1, 2, 1], [4, 2, 3], [7, 2, 5]], [[10, 2, 10], [40, 2, 30], [70, 2, 50]]])"
-    print A.formated()
-    #[[[1, 2, 1],
-    #  [4, 2, 3],
-    #  [7, 2, 5]],
-    #
-    # [[10, 2, 10],
-    #  [40, 2, 30],
-    #  [70, 2, 50]]]                
-    print "A = A + 2"
-    A = A + 2
-    print A.formated()
-    #[[[3, 4, 3],
-    #  [6, 4, 5],
-    #  [9, 4, 7]],
-    #
-    # [[12, 4, 12],
-    #  [42, 4, 32],
-    #  [72, 4, 52]]]  
-    print "1 + A" 
-    print (1 + A).formated()
-    #[[[4, 5, 4],
-    #  [7, 5, 6],
-    #  [10, 5, 8]],
-    #
-    # [[13, 5, 13],
-    #  [43, 5, 33],
-    #  [73, 5, 53]]]   
-    print "B = Array(range(1, 17), shape=(4, 4))"    
-    B = Array(range(1, 17), shape=(4, 4))     
-    print B.formated()
-    #[[ 1  2  3  4]
-    # [ 5  6  7  8]
-    # [ 9 10 11 12]
-    # [13 14 15 16]]        
-    print "B = 2 * B:"
-    B = 2 * B
-    print B.formated()
-    #[[2, 4, 6, 8],
-    # [10, 12, 14, 16],
-    # [18, 20, 22, 24],
-    # [26, 28, 30, 32]] 
-    print "Array(B, shape=A.shape):"
-    print Array(B, shape=A.shape).formated()
-    #[[[2, 4, 6],
-    #  [8, 10, 12],
-    #  [14, 16, 18]],
-    #
-    # [[20, 22, 24],
-    #  [26, 28, 30],
-    #  [32, 0, 0]]]          
-    print "A+B:"
-    print (A+B).formated()
-    #[[[5, 8, 9],
-    #  [14, 14, 17],
-    #  [23, 20, 25]],
-    #
-    # [[32, 26, 36],
-    #  [68, 32, 62],
-    #  [104, 4, 52]]]  
-    # always line on the larger Array to avoir truncating data       
-    print "B+A"
-    print (B+A).formated()
-    #[[[5, 8, 9],
-    #  [14, 14, 17],
-    #  [23, 20, 25]],
-    #
-    # [[32, 26, 36],
-    #  [68, 32, 62],
-    #  [104, 4, 52]]]
-    print "A-B:"
-    print (A-B).formated()
-    #[[[1, 0, -3],
-    #  [-2, -6, -7],
-    #  [-5, -12, -11]],
-    #
-    # [[-8, -18, -12],
-    #  [16, -24, 2],
-    #  [40, 4, 52]]]
-    # always line on the larger Array to avoir truncating data       
-    print "B-A"
-    print (B-A).formated()
-    #[[[-1, 0, 3],
-    #  [2, 6, 7],
-    #  [5, 12, 11]],
-    #
-    # [[8, 18, 12],
-    #  [-16, 24, -2],
-    #  [-40, -4, -52]]]
-    print "A*B"
-    print (A*B).formated()
-    #[[[6, 16, 18],
-    #  [48, 40, 60],
-    #  [126, 64, 126]],
-    #
-    # [[240, 88, 288],
-    #  [1092, 112, 960],
-    #  [2304, 0, 0]]]         
-    # smaller arrays are expanded, valid sub-arrays are repeated
-    print "A+[100, 200]:"
-    print (A+[100, 200]).formated()    
-    #[[[103, 204, 3],
-    #  [106, 204, 5],
-    #  [109, 204, 7]],
-    #
-    # [[112, 204, 12],
-    #  [142, 204, 32],
-    #  [172, 204, 52]]]  
-        
-    print "-B"
-    print (-B).formated()    
-    #[[-2, -4, -6, -8],
-    # [-10, -12, -14, -16],
-    # [-18, -20, -22, -24],
-    # [-26, -28, -30, -32]]   
-
-    print "-B/2.0"
-    print (-B/2.0).formated()    
-    #[[-1.0, -2.0, -3.0, -4.0],
-    # [-5.0, -6.0, -7.0, -8.0],
-    # [-9.0, -10.0, -11.0, -12.0],
-    # [-13.0, -14.0, -15.0, -16.0]]
-         
-    try : 
-        print A+"abc"
-    except TypeError :
-        print "A+\"abc\" will raise TypeError: unsupported operand type(s) for +: 'Array' and 'str'"  
-    
-    # overriden math functions
-    print "A = Array([[0, pi/4.0], [pi/2.0, 3.0*pi/4.0], [pi, 5.0*pi/4.0], [3.0*pi/2.0, 7.0*pi/4.0]])"
-    A = Array([[0, pi/4.0], [pi/2.0, 3.0*pi/4.0], [pi, 5.0*pi/4.0], [3.0*pi/2.0, 7.0*pi/4.0]])
-    print round(A,2).formated()
-    #[[0.0, 0.79],
-    # [1.57, 2.36],
-    # [3.14, 3.93],
-    # [4.71, 5.5]]   
-    print "degrees(A)"
-    print degrees(A).formated()
-    #[[0.0, 45.0],
-    # [90.0, 135.0],
-    # [180.0, 225.0],
-    # [270.0, 315.0]]    
-    print "sin(A)"
-    print round(sin(A), 2).formated()
-    # [[0.0, 0.71],
-    # [1.0, 0.71],
-    # [0.0, -0.71],
-    # [-1.0, -0.71]]
-    print "A = clamp(Array([[0.0,0.5,1.0],[1.5,2.0,2.5]]), 0, 1)"
-    print clamp(Array([[0.0,0.5,1.0],[1.5,2.0,2.5]]), 0.0, 1.0).formated()
-    #[[0.0, 0.5, 1.0],
-    # [1.0, 1.0, 1.0]]    
-    print "A = gamma(Array([[0.0,0.5,1.0],[1.5,2.0,2.5]]), [0.0, 1.0, 2.0]"
-    print gamma(Array([[0.0,0.5,1.0],[1.5,2.0,2.5]]), [1.0, 2.0, 3.0]).formated()
-    #[[0.0, 0.25, 1.0],
-    # [1.5, 4.0, 15.625]]
-    # complex arrays
-    print "A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]]) :"
-    A = Array([[complex(1, 2), complex(2, 3)], [complex(4, 5), complex(6, 7)]])  
-    print A.formated()
-    #[[(1+2j), (2+3j)],
-    # [(4+5j), (6+7j)]]      
-    print "A.conjugate()"
-    print A.conjugate().formated()
-    #[[(1-2j), (2-3j)],
-    # [(4-5j), (6-7j)]]    
-    print "A.real() or real(A)"
-    print A.real().formated()
-    #[[1.0, 2.0],
-    # [4.0, 6.0]]    
-    print "A.imag() or imag(A)"
-    print A.imag().formated()
-    #[[2.0, 3.0],
-    # [5.0, 7.0]]    
-    print "abs(A)"
-    print abs(A).formated() 
-    #[[2.2360679775, 3.60555127546],
-    # [6.40312423743, 9.21954445729]]
-    
-    # other methods
-
-    A = Array([[1,2,3],[4,5,6]])    
-    print A.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6]]   
-    print "A.sum() or A.sum(0,1) or sum(A) or sum(A, axis=(0,1))" 
-    print A.sum()
-    #21
-    print "A.sum(0) or sum(A, axis=0)" 
-    print A.sum(0)
-    #[5, 7, 9]
-    print sum(A, axis=0)
-    #[5, 7, 9]
-    print "A.sum(1) or sum(A, axis=1)" 
-    print A.sum(1)
-    #[6, 15]   
-    print "A.prod() or prod(A)"
-    print A.prod()
-    #720
-    print A.prod(0)
-    #[4, 10, 18]
-    print A.prod(1)    
-    #[6, 120]
-    
-    A = Array([[6,3,4],[1,5,0.5]])
-    print A.formated()
-    #[[6, 3, 4],
-    # [1, 5, 0.5]]    
-    print min(A)
-    #0.5
-    print max(A)
-    #6
-    print list(A.axisiter(0))
-    #[Array([6, 3, 4]), Array([1, 5, 0.5])]
-    print A.min(0)
-    #[1, 3, 0.5]
-    print A.max(0)
-    #[6, 5, 4]
-    print list(A.axisiter(1))
-    #[Array([6, 1]), Array([3, 5]), Array([4, 0.5])]
-    print A.min(1)
-    #[3, 0.5]
-    print A.max(1)
-    #[6, 5] 
-    
-    A = Array([[0.5,0.5,-0.707],[0.707,-0.707,0]])
-    print A.formated()  
-    print round(A.length(), 2)
-    print list(A.axisiter(0))
-    print round(A.length(0), 2)
-    print list(A.axisiter(1))
-    print round(A.length(1), 2) 
-
-    B = Array([[0.51,0.49,-0.71],[0.71,-0.70,0]])
-    
-    print sum([A, -B])
-    
-    print A.dist(B)
-    print A.dist(B,0)
-    print A.dist(B,1)
-    
-        
-    C = Array([[0.501,0.499,-0.706],[0.706,-0.708,0.01]])
-    print A.dist(C)
-    print A.isEquivalent(C, 0.015)
-    # True
-    print A.isEquivalent(B, 0.015)
-    # False
-    print A.isEquivalent(B, 0.02)
-    # True
-    
-    # boolean any and all
-    
-    A = Array([[True,True,True],[False,True,False]])
-    print A.formated()
-    print A.any()
-    # True
-    print A.all()
-    # False
-    print list(A.axisiter(0))
-    # [Array([True, True, True]), Array([False, True, False])]
-    print A.any(0)
-    # [True, True, True]
-    print A.all(0)
-    # [False  True False]
-    print list(A.axisiter(1))
-    # [Array([True, False]), Array([True, True]), Array([True, False])]
-    print A.any(1)
-    # [True, True]
-    print A.all(1)
-    # [True, False]
-               
-               
-    # transpose
-    A = Array(range(18), shape=(2,3,3))
-    print "Array(range(18), shape=(2,3,3))"
-    print A.formated()
-    #[[[0, 1, 2],
-    #  [3, 4, 5],
-    #  [6, 7, 8]],
-    #
-    # [[9, 10, 11],
-    #  [12, 13, 14],
-    #  [15, 16, 17]]]        
-    print "B=A[0]"
-    B=A[0]
-    print B.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]] 
-    print "B.transpose()"
-    print B.transpose().formated()
-    #[[0, 3, 6],
-    # [1, 4, 7],
-    # [2, 5, 8]]     
-    print "A.transpose(0,2,1)"    
-    print A.transpose(0,2,1).formated() 
-    #[[[0, 3, 6],
-    #  [1, 4, 7],
-    #  [2, 5, 8]],
-    #
-    # [[9, 12, 15],
-    #  [10, 13, 16],
-    #  [11, 14, 17]]]  
-    print "A.transpose(2,1,0)"
-    print A.transpose(2,1,0).formated()
-    #[[[0, 9],
-    #  [3, 12],
-    #  [6, 15]],
-    #
-    # [[1, 10],
-    #  [4, 13],
-    #  [7, 16]],
-    #
-    # [[2, 11],
-    #  [5, 14],
-    #  [8, 17]]]
-
-
-
-    # should fail
-    print "B = Array([[1,2,3],[4,5,6],[7,8]])"
-    try :
-        B = Array([[1,2,3],[4,5,6],[7,8]])
-    except :
-        print "Will raise a ValueError: all sub-arrays must have same shape"
-    B = Array([[1,2,3],[4,5,6],[7,8,9]])
-    print "B = Array([[1,2,3],[4,5,6],[7,8,9]])"
-    print B.formated()
-    print "B[1] = [4, 5]"
-    try :
-        B[1] = [4, 5]
-    except :
-        print "Will raise a ValueError: shape mismatch between value(s) and Array components or sub Arrays designated by the indexing"
-
-    print "end Array tests"
- 
- 
-def _testMatrix() :   
-    # Matrix and Vector
-    
-    M = Matrix()
-    print repr(M)
-    M = Matrix([])
-    print repr(M)
-    M = Matrix([0, 1, 2])
-    print M.formated()
-    # [[0, 1, 2]]
-    M = Matrix([[0, 1, 2]])
-    print M.formated()
-    # [[0, 1, 2]]
-    M = Matrix([[0], [1], [2]])
-    print M.formated()   
-    # [[0],
-    #  [1],
-    #  [2]]       
-    M = Matrix([[1, 2, 3], [4, 5, 6]])
-    print M.formated()
-    # [[1, 2, 3],
-    #  [4, 5, 6]]
-    # should fail
-    print "M = Matrix([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])"
-    try :
-        M = Matrix([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])
-        print M.formated()
-    except :
-        print "Will raise ValueError: cannot initialize a Matrix of shape (2, 6) from [[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]], some information would be lost, use an explicit resize or trim"
-    # should fail
-    print "M.resize((2, 2, 3))"
-    try :
-        M.resize((2, 2, 3))
-        print M.formated()
-    except :
-        print "Will raise TypeError: shape (2, 2, 3) is incompatible with class Matrix"
-
-    print "M = Matrix([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]])"
-    try :
-        M = Matrix([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]])
-        print M.formated()
-    except :
-        print "Will raise TypeError: shape (2, 2, 3) is incompatible with class Matrix"
-          
-    # init and append
-    print "M = Matrix([[0, 1, 2], [3, 4, 5]])"
-    M = Matrix([[0, 1, 2], [3, 4, 5]])
-    print M.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5]]    
-    print "M.append([6, 7, 8])"
-    M.append([6, 7, 8])
-    print M.formated()  
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]
-
-    # copies and references
-    B = Matrix(range(9), shape=(3, 3)) 
-    print B.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]] 
-    # C = B   
-    C = B
-    print C.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]] 
-    print C == B
-    # True    
-    print C is B
-    # True
-    print C[0] is B[0]
-    # True
-    
-    # assign
-    C = Matrix()
-    C.assign(B)   
-    print C.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]] 
-    print C == B
-    # True    
-    print C is B
-    # False
-    print C[0] is B[0]
-    # True   
-            
-    # init is a shallow copy
-    C = Matrix(B)    
-    print C.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]    
-    print C == B
-    # True    
-    print C is B
-    # False
-    print C[0] is B[0]
-    # True
-    
-    C = Array([B]) 
-    print C.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]] 
-    print C[0] == B
-    # True
-    # type is different (Matrix vs Array)    
-    print C[0] is B
-    # False
-    print C[0,0] is B[0]   
-    # True  
-        
-    #shallow copy
-    C = B.copy()
-    print C.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]    
-    print C == B
-    # True     
-    print C is B
-    # False
-    print C[0] is B[0]
-    # True
-    
-    #deep copy   
-    C = B.deepcopy()
-    print C.formated()
-    #[[1, 1, 1],
-    #  [4, 4, 3],
-    #  [7, 8, 5]]      
-    print C == B
-    # True     
-    print C is B
-    # False
-    print C[0] is B[0] 
-    # False
-        
-    # row and column
-    M = Matrix(range(9), shape=(3, 3)) 
-    print M.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]    
-    a = M[0]
-    print repr(a)
-    # Array([0, 1, 2])
-    print a is M[0]
-    # True
-    a[1] = 2
-    print a.formated()
-    # [0, 2, 2]
-    print M.formated()
-    #[[0, 2, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]
-    a = M[:,1]
-    print repr(a)
-    # [2, 4, 7]
-    print a is M[:,1]
-    # False
-    a[1] = 2
-    print a.formated()
-    # [2, 2, 7]
-    print M.formated()
-    #[[0, 2, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]       
-    a = M[0:2]
-    print a.formated()
-    #[[0, 2, 2],
-    # [3, 4, 5]]    
-    print a is M[0:2]  
-    # False
-    print a[1] is M[1]  
-    # True    
-    a[1, 1] = 2
-    print a.formated()
-    #[[0, 2, 2],
-    # [3, 2, 5]]        
-    print M.formated()
-    #[[0, 2, 2],
-    # [3, 2, 5],
-    # [6, 7, 8]]    
-       
-    M = Matrix(range(9), shape=(3, 3)) 
-    print M.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]   
-    print M.nrow
-    # 3
-    M.nrow = 4
-    print M.formated() 
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8],
-    # [0, 0, 0]]    
-    print M.ncol
-    # 3
-    M.ncol = 4
-    print M.formated()  
-    #[[0, 1, 2, 0],
-    # [3, 4, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]
-    print Array(M.row).formated()
-    #[[0, 1, 2, 0],
-    # [3, 4, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]   
-    print repr(M.row[0])
-    # Array([0, 1, 2, 0]) 
-    M.row[0][1] = 10
-    print M.formated()
-    #[[0, 10, 2, 0],
-    # [3, 4, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]    
-    M.row[0:2][1, 1] = 10
-    print M.formated()
-    #[[0, 10, 2, 0],
-    # [3, 10, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]
-    
-    # doesn't work as columns need rebuilding
-    a = M.col[0]
-    print repr(a)
-    # Array([0, 3, 6, 0])
-    a[1] = 10
-    print a.formated()
-    # [0, 10, 6, 0]
-    print M.formated()
-    #[[0, 10, 2, 0],
-    # [3, 10, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]  
-    M.col[0][1] = 10
-    print M.formated()
-    #[[0, 10, 2, 0],
-    # [3, 10, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]      
-    M.col[0] = [0, 10, 6, 0]
-    print M.formated()
-    #[[0, 10, 2, 0],
-    # [10, 10, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]  
-    M[2:, 2:] = 10
-    print M.formated()
-    #[[0, 10, 2, 0],
-    # [10, 10, 5, 0],
-    # [6, 7, 10, 10],
-    # [0, 0, 10, 10]]  
-          
-    M = Matrix(range(9), shape=(3, 3)) 
-    M.nrow, M.ncol = 4, 4
-    print M.formated()
-    #[[0, 1, 2, 0],
-    # [3, 4, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 0]]          
-    print repr(M.row[0:2])
-    # Matrix([[0, 1, 2, 0], [3, 4, 5, 0]])
-    print Array(M.col).formated() 
-    #[[0, 3, 6, 0],
-    # [1, 4, 7, 0],
-    # [2, 5, 8, 0],
-    # [0, 0, 0, 0]]    
-    print repr(M.col[-3:-1])
-    # Matrix([[1, 4, 7, 0], [2, 5, 8, 0]])
-    M.col[-1]  = [0, 0, 0, 1]
-    print M.formated()
-    #[[0, 1, 2, 0],
-    # [3, 4, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 1]] 
-    print repr(M[:3, :3])
-    # Matrix([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
-    print M[:3, :3].formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]    
-
-    M = Matrix(range(1,10), shape=(3, 3))
-    M.trim((4, 4))
-    M[3, 3] = 1
-    print M.formated()
-    #[[1, 2, 3, 0],
-    # [4, 5, 6, 0],
-    # [7, 8, 9, 0],
-    # [0, 0, 0, 1]]   
-    del M.col[3]
-    print M.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9],
-    # [0, 0, 0]]    
-    del M.row[3]
-    print M.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9]]
- 
-    # herited methods
-    
-    M = Matrix(range(0,9), shape=(3, 3))
-    print M.formated()
-    #[[0, 1, 2],
-    # [3, 4, 5],
-    # [6, 7, 8]]          
-    M.trim((4, 4))
-    M[3, 3] = 1
-    print M.formated()
-    #[[0, 1, 2, 0],
-    # [3, 4, 5, 0],
-    # [6, 7, 8, 0],
-    # [0, 0, 0, 1]]       
-    print "2+M"
-    print (2+M).formated() 
-    #[[2, 3, 4, 2],
-    # [5, 6, 7, 2],
-    # [8, 9, 10, 2],
-    # [2, 2, 2, 3]]
-    print "M/2.0"
-    print (M/2.0).formated() 
-    #[[0.0, 0.5, 1.0, 0.0],
-    # [1.5, 2.0, 2.5, 0.0],
-    # [3.0, 3.5, 4.0, 0.0],
-    # [0.0, 0.0, 0.0, 0.5]]     
-    print "M*2"
-    print (M*2).formated() 
-    #[[0, 2, 4, 0],
-    # [6, 8, 10, 0],
-    # [12, 14, 16, 0],
-    # [0, 0, 0, 2]]      
-    N = Matrix(range(1,10), shape=(3, 3))
-    print N.formated()
-    # [[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9]]         
-    print "M+N"  
-    print (M+N).formated() 
-    #[[1, 3, 5, 0],
-    # [7, 9, 11, 0],
-    # [13, 15, 17, 0],
-    # [0, 0, 0, 1]]    
-
-    #overloaded methods
-    # matrix mult
-    M = Matrix(range(1,13), shape=(4, 3))
-    N = Matrix(range(0,120,10), shape=(3, 4))
-    print "M:"
-    print M.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9],
-    # [10, 11, 12]]    
-    print "*N:"
-    print N.formated()
-    #[[0, 10, 20, 30],
-    # [40, 50, 60, 70],
-    # [80, 90, 100, 110]]    
-    print "M*N="    
-    print (M*N).formated()
-    #[[320, 380, 440, 500],
-    # [680, 830, 980, 1130],
-    # [1040, 1280, 1520, 1760],
-    # [1400, 1730, 2060, 2390]]    
-    print "N*M="
-    print (N*M).formated()
-    #[[480, 540, 600],
-    # [1360, 1580, 1800],
-    # [2240, 2620, 3000]] 
-    
-    M = Matrix(range(1,10), shape=(3, 3))
-    print "M:"
-    print M.formated()
-    #[[1, 2, 3],
-    # [4, 5, 6],
-    # [7, 8, 9],    
-    V=Vector(1, 10, 100)   
-    print "V:"
-    print repr(V)
-    # Vector([1, 10, 100])
-    print "V*M"
-    print repr(V*M)
-    # Vector([741, 852, 963])   
-    print "M*V"
-    print repr(M*V)
-    # Vector([321, 654, 987])    
-      
-    M.trim(shape=(4, 4))
-    M[3] = [0.25, 0.5, 0.75, 1]
-    print "M:"
-    print M.formated()
-    #[[1, 2, 3, 0],
-    # [4, 5, 6, 0],
-    # [7, 8, 9, 0],
-    # [0.25, 0.5, 0.75, 1]] 
-    V=Vector(1, 10, 100)   
-    print "V:"
-    print repr(V)
-    # Vector([1, 10, 100])    
-    print "V*M"
-    print repr(V*M)
-    # Vector([741.0, 852.0, 963.0])    
-    print "M*V"
-    print repr(M*V)
-    # Vector([321, 654, 987])
-    
-    P=Vector(1, 10, 100, 1)   
-    print "P:"
-    print repr(P)
-    # Vector([1, 10, 100, 1])
-    print "P*M"
-    print repr(P*M)
-    # Vector([741.25, 852.5, 963.75, 1])
-    print "M*P"
-    print repr(M*P)
-    # Vector([321, 654, 987, 81.25])
-    
-    U=Vector(1, 2, 3, 4, 5)   
-    print "U:"
-    print repr(U)
-    # Vector([1, 2, 3, 4, 5])
-    # should fail
-    print "U*M"
-    try :
-        print repr(U*M)
-    except :
-        print "Will raise ValueError: vector of size 5 and matrix of shape (4, 4) are not conformable for a Vector * Matrix multiplication"
-                              
-    # diagonal and trace
-    M = Matrix(range(1,10), shape=(3, 3))
-    M.nrow=4
-    M.ncol=4
-    M[3, 3]=1
-    print M.formated()
-    #[[1, 2, 3, 0],
-    # [4, 5, 6, 0],
-    # [7, 8, 9, 0],
-    # [0, 0, 0, 1]]    
-    print "M.diagonal()"
-    print M.diagonal()
-    #[1, 5, 9, 1]
-    print M.trace()
-    #16
-    print M.diagonal(1)
-    #[2, 6, 0]
-    print M.trace(1)
-    #8
-    print M.diagonal(3, wrap=True)
-    #[0, 4, 8, 0]
-    print M.trace(3, wrap=True)
-    #12
-
-    M = Matrix([[1, 2],[3, 4]])
-    print "M = Matrix([[1, 2],[3, 4]])"
-    print M.formated()
-    #[[1, 2],
-    # [3, 4]]    
-    print "M.adjugate()"  
-    print M.adjugate().formated()
-    #[[4, -2],
-    # [-3, 1]]         
-    print "det(M)"  
-    print det(M)
-    # -2   
-    print "M.inverse()"
-    print M.inverse().formated()
-    #[[-2.0, 1.0],
-    # [1.5, -0.5]]
-    print M.inverse().transpose().formated()
-    #[[-2.0, 1.5],
-    # [1.0, -0.5]] 
-            
-    M = Matrix([[0.5, 1, 2],[1, 1, 1],[0.5, 0.5, 2]])
-    print "M = Matrix([[0.5, 1, 2],[1, 1, 1],[0.5, 0.5, 2]])"
-    print M.formated()
-    #[[0.5, 1, 2],
-    # [1, 1, 1],
-    # [0.5, 0.5, 2]] 
-    print "M.adjugate()"
-    print M.adjugate().formated()  
-    #[[1.5, -1.0, -1],
-    # [-1.5, 0.0, 1.5],
-    # [0.0, 0.25, -0.5]]         
-    print "M.inverse()"
-    print M.inverse().round(2).formated()
-    #[[-2.0, 1.33, 1.33],
-    # [2.0, 0.0, -2.0],
-    # [0.0, -0.33, 0.67]]    
-           
-    M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])
-    print "M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])"
-    print M.formated()
-    #[[1.5, 1.5, -2.12, 0.0],
-    # [-0.29, 1.71, 1.0, 0.0],
-    # [0.85, -0.15, 0.5, 0.0],
-    # [1.0, 2.0, 3.0, 1.0]]       
-    print "M.inverse()"
-    print M.inverse().round(2).formated()
-    #[[0.17, -0.07, 0.85, 0.0],
-    # [0.17, 0.43, -0.15, 0.0],
-    # [-0.24, 0.25, 0.5, 0.0],
-    # [0.21, -1.53, -2.06, 1.0]]    
-  
-    M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
-    print "M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])"
-    print M.round(2).formated()
-    #[[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
-    # [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
-    # [0.33, 0.25, 0.2, 0.17, 0.14, 0.13],
-    # [0.25, 0.2, 0.17, 0.14, 0.13, 0.11],
-    # [0.2, 0.17, 0.14, 0.13, 0.11, 0.1],
-    # [0.17, 0.14, 0.13, 0.11, 0.1, 0.09]]    
-    print M[:2, :2].gauss().round(2).formated()
-    #[[1.0, 0.5],
-    # [0.0, 0.08]]    
-    print M[:2, :2].reduced().round(2).formated()
-    #[[1.0, 0.0],
-    # [0.0, 1.0]]    
-    print M[:2, :2].det()
-    #0.0833333333333
-    print M[:2, :2].inverse().formated()
-    #[[4.0, -6.0],
-    # [-6.0, 12.0]]    
-    
-    print M[:3, :3].gauss().round(2).formated()
-    #[[1.0, 0.5, 0.33],
-    # [0.0, 0.08, 0.09],
-    # [0.0, 0.0, -0.01]]    
-    print M[:3, :3].reduced().round(2).formated()
-    #[[1.0, 0.0, 0.0],
-    # [0.0, 1.0, -0.0],
-    # [0.0, 0.0, 1.0]]    
-    print M[:3, :3].det()
-    #0.000462962962963
-    print M[:3, :3].inverse().formated()
-    #[[9.0, -36.0, 30.0],
-    # [-36.0, 192.0, -180.0],
-    # [30.0, -180.0, 180.0]]
-         
-    print M[:4, :4].gauss().round(2).formated()
-    #[[1.0, 0.5, 0.33, 0.25],
-    # [0.0, 0.08, 0.09, 0.08],
-    # [0.0, 0.0, -0.01, -0.01],
-    # [0.0, 0.0, 0.0, 0.0]]    
-    print M[:4, :4].reduced().round(2).formated()
-    #[[1.0, 0.0, 0.0, 0.0],
-    # [0.0, 1.0, -0.0, 0.0],
-    # [0.0, 0.0, 1.0, 0.0],
-    # [0.0, 0.0, 0.0, 1.0]]    
-    print M[:4, :4].det()
-    #1.65343915344e-07
-    print M[:4, :4].inverse().round(0).formated()
-    #[[16.0, -120.0, 240.0, -140.0],
-    # [-120.0, 1200.0, -2700.0, 1680.0],
-    # [240.0, -2700.0, 6480.0, -4200.0],
-    # [-140.0, 1680.0, -4200.0, 2800.0]] 
-    
-    print M[:5, :5].gauss().round(2).formated()
-    #[[1.0, 0.5, 0.33, 0.25, 0.2],
-    # [0.0, 0.08, 0.09, 0.08, 0.08],
-    # [0.0, 0.0, -0.01, -0.01, -0.01],
-    # [0.0, 0.0, 0.0, 0.0, 0.0],
-    # [0.0, 0.0, 0.0, -0.0, -0.0]]    
-    print M[:5, :5].reduced().round(2).formated()
-    #[[1.0, 0.0, 0.0, 0.0, 0.0],
-    # [0.0, 1.0, -0.0, 0.0, -0.0],
-    # [0.0, 0.0, 1.0, 0.0, -0.0],
-    # [0.0, 0.0, 0.0, 1.0, -0.0],
-    # [0.0, 0.0, 0.0, -0.0, 1.0]]    
-    print M[:5, :5].det()
-    #3.74929513252e-12
-    print M[:5, :5].inverse().round(0).formated()
-    #[[25.0, -300.0, 1050.0, -1400.0, 630.0],
-    # [-300.0, 4800.0, -18900.0, 26880.0, -12600.0],
-    # [1050.0, -18900.0, 79380.0, -117600.0, 56700.0],
-    # [-1400.0, 26880.0, -117600.0, 179200.0, -88200.0],
-    # [630.0, -12600.0, 56700.0, -88200.0, 44100.0]]    
-    
-    print M[:6, :6].gauss().round(2).formated()
-    #[[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
-    # [0.0, 0.08, 0.09, 0.08, 0.08, 0.07],
-    # [0.0, 0.0, 0.01, 0.01, 0.01, 0.01],
-    # [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-    # [0.0, 0.0, 0.0, 0.0, -0.0, -0.0],
-    # [0.0, 0.0, 0.0, 0.0, 0.0, -0.0]]    
-    print M[:6, :6].reduced().round(2).formated()
-    #[[1.0, 0.0, 0.0, 0.0, -0.0, 0.0],
-    # [0.0, 1.0, 0.0, 0.0, 0.0, 0.0],
-    # [0.0, 0.0, 1.0, 0.0, -0.0, 0.0],
-    # [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-    # [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-    # [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]    
-    print M[:6, :6].det()
-    #5.36729988682e-18
-    print M[:6, :6].inverse().round(0).formated()
-    #[[36.0, -630.0, 3360.0, -7560.0, 7560.0, -2772.0],
-    # [-630.0, 14700.0, -88200.0, 211680.0, -220500.0, 83160.0],
-    # [3360.0, -88200.0, 564480.0, -1411200.0, 1512000.0, -582120.0],
-    # [-7560.0, 211680.0, -1411200.0, 3628800.0, -3969000.0, 1552320.0],
-    # [7560.0, -220500.0, 1512000.0, -3969000.0, 4410000.0, -1746360.0],
-    # [-2772.0, 83160.0, -582120.0, 1552320.0, -1746360.0, 698544.0]]     
-        
-    print "end tests Matrix"
-    
-def _testVector() :
- 
-    U = Vector()
-    print "U = Vector()"
-    print repr(U)
-    # Vector([]) 
-    U = Vector(1)
-    print "U = Vector(1)"
-    print repr(U)
-    # Vector([1])
-    U = Vector(1, 2)
-    print "U = Vector(1, 2)"
-    print repr(U)
-    # Vector([1, 2])          
-    U = Vector(1, 2, 3)
-    print "U = Vector(1, 2, 3)"
-    print repr(U)
-    # Vector([1, 2, 3])
-    # should fail
-    print "V = Vector([[1, 2], [3, 4]])"    
-    try :
-        V = Vector([[1, 2], [3, 4]])
-    except :
-        print "Will raise ValueError: cannot initialize a Vector of shape (4,) from [[1, 2], [3, 4]], some information would be lost, use an explicit resize or trim" 
-    print "V = Vector([[1, 2, 3]])"
-    try :
-        V = Vector([[1, 2, 3]])
-    except :
-        print "Will raise ValueError: cannot initialize a Vector of shape (3,) from [[1, 2, 3]], some information would be lost, use an explicit resize or trim" 
-      
-    # herited methods
-    
-    U = Vector(1, 2, 3)
-    print "U:"
-    print repr(U)
-    # Vector([1, 2, 3]) 
-    print repr(U+1)
-    # Vector([2, 3, 4])
-    print repr(U*2)
-    # Vector([2, 4, 6])
-    print repr(U*[10, 100, 1000])   
-    # Vector([10, 200, 3000]) 
-      
-    # overloaded methods  
-
-    U = Vector(1, 2, 3)
-    print "U:"
-    print repr(U)
-    # Vector([1, 2, 3])       
-    M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])
-    print "M = Matrix([[1.5, 1.5, -2.12, 0.0], [-0.29, 1.71, 1.0, 0.0], [0.85, -0.15, 0.5, 0.0], [1.0, 2.0, 3.0, 1.0]])"
-    print M.formated()
-    #[[1.5, 1.5, -2.12, 0.0],
-    # [-0.29, 1.71, 1.0, 0.0],
-    # [0.85, -0.15, 0.5, 0.0],
-    # [1.0, 2.0, 3.0, 1.0]]  
-    print "V = U*M[:3, :3]"
-    V = U*M[:3, :3]
-    print repr(V)
-    # Vector([3.47, 4.47, 1.38])
-    print "V = U*M"
-    V = U*M
-    print repr(V)
-    # Vector([3.47, 4.47, 1.38])   
-    print U*V
-    # 16.55
-    N = U^V
-    print repr(N)
-    # Vector([-10.65, 9.03, -2.47])
-    print repr(N.normal())
-    # Vector([-0.751072956189, 0.63682523891, -0.17419250721])
-    print U.dist(V)
-    # 3.8504804895
-    
-    print repr(M[:3, :3]*U)
-    # Vector([-1.86, 6.13, 2.05])
-    print repr(U^M[:3, :3])
-    # Vector([2.59076337407, 0.574934882789, 1.76818272891])
-    print repr((U^M[:3, :3]).normal())
-    # Vector([0.812431999034, 0.180292612136, 0.554480676809])  
-    print repr(U.normal()^M[:3, :3])
-    # Vector([0.692410636856, 0.153657810793, 0.472566712057])      
-    print repr(U*M[:3, :3].transpose().inverse())
-    # Vector([2.59076337407, 0.574934882789, 1.76818272891])
-    print repr((U*M[:3, :3].transpose().inverse()).normal())
-    # Vector([0.812431999034, 0.180292612136, 0.554480676809])
-    print repr(U.normal()*M[:3, :3].transpose().inverse())
-    # Vector([0.692410636856, 0.153657810793, 0.472566712057])
-                
-    # Vector of size 4 for Point
-    P = Vector(1, 2, 3, 1)
-    print "P = Vector(1, 2, 3, 1)"
-    print repr(P)
-    # Vector([1, 2, 3, 1])
-    print "Q = P*M"
-    Q = P*M
-    print repr(Q)
-    # Vector([4.47, 6.47, 4.38, 1.0])
-    print P.dist(Q)
-    # 5.82462015929        
-    print M.formated()
-    #[[1.5, 1.5, -2.12, 0.0],
-    # [-0.29, 1.71, 1.0, 0.0],
-    # [0.85, -0.15, 0.5, 0.0],
-    # [1.0, 2.0, 3.0, 1.0]]       
-    P*=M
-    print repr(P)
-    # Vector([4.47, 6.47, 4.38, 1.0])          
-    print  "M*=P"
-    try :
-        M*=P
-        print M.formated()
-    except :
-        print "Will raise TypeError: result of in place multiplication of Matrix by Vector is not a Matrix"
-         
-    print "end tests Vector"
-    
-def _test():
-    A = Array(0, shape=(2, 2))
-    print A.formated()
-    B = Array(1, shape=(2, 2))
-    print B.formated()
-    # prb here
-    print A.blend(B, weight=0.5).formated()
-    #[[0.5, 0.5],
-    # [0.5, 0.5]]
-    # works for the following    
-    print blend(A, B).formated()
-    print blend(A, B, weight=[x/4.0 for x in range(4)]).formated()
-    print blend(A, B, weight=[[0.0, 0.25],[0.75, 1.0]]).formated() 
-    A = Array(range(1, 10), shape=(3, 3))
-    print A.formated()
-    A[0:2, 1:3] = [[1, 1], [2, 2]]
-    print A.formated()
-    A[0:2, 1:3] = [[1], [2]]
-    print A.formated()
-    import doctest
-    doctest.testmod()
-    
-
 if __name__ == '__main__' :
-    _test()
-    # _testArray()   
-    # _testMatrix()
-    # _testVector()
+    import doctest
+    doctest.testmod() 
      
