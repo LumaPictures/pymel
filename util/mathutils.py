@@ -42,7 +42,7 @@ def round(value, ndigits=0) :
 # general remapping operations
 
 def gamma (c, g):
-    """ Gamma color correction with a single scalar gamma value g"""
+    """ Gamma color correction of c with a single scalar gamma value g"""
     return c**g 
 
 def blend (a, b, weight=0.5):
