@@ -1,5 +1,5 @@
 """
-The core module contains all of the functions which do not fall under the category of `pymel.core.windows`, `pymel.core.node`, or `ctx`.
+
 """
 
 
@@ -19,7 +19,7 @@ except ImportError:
 import sys, os, re, inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.factories as _factories
-from pymel.factories import queryflag, editflag, createflag, MetaMayaNodeWrapper
+from pymel.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
@@ -28,8 +28,6 @@ import pmtypes.path as _path
 import pymel.util.nameparse as nameparse
 
 
-"controls whether functions that return dag nodes use the long name by default"
-longNames = False
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
@@ -326,9 +324,10 @@ Modifications:
             if datatype is None:
                 # if we're using force flag and the attribute does not exist
                 # we can infer the type from the passed value
-                attr = Attribute(attr)
-                if force and not attr.exists():
-                    
+                #attr = Attribute(attr)
+                if force and not objExists(attr): #attr.exists():
+                    attrName = nameparse.parse( attr )
+                    assert attrName.isAttributeName(), "passed object is not an attribute"
                     try:
                         if isinstance( arg[0], basestring ):
                             datatype = 'stringArray'
@@ -346,7 +345,7 @@ Modifications:
                             raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
                                                 
                         print "adding", attr, datatype
-                        attr.add( dt=datatype ) 
+                        addAttr( attrName.node, ln=attrName.attribute, dt=datatype ) 
                         kwargs['type'] = datatype
                         
                     # empty array is being passed
@@ -419,17 +418,19 @@ Modifications:
         # non-iterable types
         else:
             if datatype is None:
-                attr = Attribute(attr)    
-                if force and not attr.exists(): 
+                #attr = Attribute(attr)    
+                if force and not cmds.objExists(attr): #attr.exists(): 
+                    attrName = nameparse.parse( attr )
+                    assert attrName.isAttributeName(), "passed object is not an attribute"
                     if isinstance( arg, basestring ):
-                        attr.add( dt='string' )
+                        addAttr( attrName.node, ln=attrName.attribute, dt='string' )
                         kwargs['type'] = 'string'
                     elif isinstance( arg, int ):
-                        attr.add( at='long' ) 
+                        addAttr( attrName.node, ln=attrName.attribute, at='long' ) 
                     elif isinstance( arg, float ):
-                        attr.add( at='double' ) 
+                        addAttr( attrName.node, ln=attrName.attribute, at='double' ) 
                     elif isinstance( arg, bool ):
-                        attr.add( at='bool' ) 
+                        addAttr( attrName.node, ln=attrName.attribute, at='bool' ) 
                     else:
                         raise TypeError, "%s.setAttr: %s is not a supported type for use with the force flag" % ( __name__, type(arg) )
                                         
@@ -482,23 +483,32 @@ Modifications:
         except KeyError:
             kwargs['at'] = at
     
-    # MObject Fix
-    args = map(unicode, args) 
+    # MObject stringify Fix
+    #args = map(unicode, args) 
     res = cmds.addAttr( *args, **kwargs )
     if kwargs.get( 'q', kwargs.get('query',False) ) and kwargs.get( 'dt', kwargs.get('dataType',False) ):
         res = res[0]
     
     return res
 
-def hasAttr( pyObj, attr ):
-    "convenience function for determining if an object has an attribute"
+def hasAttr( pyObj, attr, checkShape=True ):
+    """convenience function for determining if an object has an attribute.
+    If checkShape is enabled, the shape node of a transform will also be checked for the attribute."""
     if not isinstance( pyObj, PyNode ):
         raise TypeError, "hasAttr requires a PyNode instance and a string"
-    try:
+    
+    if isinstance( pyObj, Transform ):
+        try:
+            pyObj.attr(attr,checkShape=checkShape)
+            return True
+        except AttributeError: 
+            return False
+        
+    try:  
         pyObj.attr(attr)
         return True
-    except AttributeError: pass
-    return False
+    except AttributeError:
+        return False
 
 #-----------------------
 #  List Functions
@@ -582,9 +592,12 @@ Maya Bug Fix
 Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes
+    - fullPath is forced on to ensure that all returned node paths are unique
     """
+    kwargs['fullPath'] = True
+    kwargs.pop('f', None)
     # Stringify Fix
-    args = [ unicode(x) for x in args ]
+    #args = [ unicode(x) for x in args ]
     if kwargs.get( 'allDescendents', kwargs.get('ad', False) ) and kwargs.pop( 'shapes', kwargs.pop('s', False) ):        
         kwargs['fullPath'] = True
         kwargs.pop('f', None)
@@ -593,10 +606,6 @@ Modifications:
         if res is None:
             return
         return ls( res, shapes=1)
-
-    if longNames:
-        kwargs['fullPath'] = True
-        kwargs.pop('f', None)
                 
     return map(PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
 
@@ -606,9 +615,9 @@ def ls( *args, **kwargs ):
 Modifications:
     - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
     """
-    if longNames:
-        kwargs['long'] = True
-        kwargs.pop('l', None)
+
+    kwargs['long'] = True
+    kwargs.pop('l', None)
     
     if kwargs.pop('editable', False):
         allNodes = util.listForNone(cmds.ls(*args, **kwargs))
@@ -984,10 +993,13 @@ def _getPymelType(arg) :
         """
         
     def getPymelTypeFromObject(obj):
-        fnDepend = api.MFnDependencyNode( obj )      
-        mayaType = fnDepend.typeName()
-        pymelType = mayaTypeToPyNode( mayaType, DependNode )
-        return pymelType
+        try:
+            return _factories.ApiEnumsToPyComponents()[obj.apiType()]
+        except KeyError:
+            fnDepend = api.MFnDependencyNode( obj )      
+            mayaType = fnDepend.typeName()
+            pymelType = mayaTypeToPyNode( mayaType, DependNode )
+            return pymelType
     
     obj = None
     objName = None
@@ -1039,9 +1051,19 @@ def _getPymelType(arg) :
         raise ValueError, "Unable to determine Pymel type for %r" % arg         
     
     return pymelType, obj, objName
+
+
+#--------------------------
+# PyNode Exceptions
+#--------------------------
+class MayaObjectError(ValueError): pass
+class MayaNodeError(MayaObjectError): pass
+class MayaAttributeError(MayaObjectError, AttributeError): pass
+
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
+#ProxyUnicode = util.proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 class PyNode(util.ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
@@ -1054,6 +1076,7 @@ class PyNode(util.ProxyUnicode):
                               
     _node = None              # Attribute Only: stores the PyNode for the plug's node
     _apimfn = None
+    __component__ = None
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed.
         
@@ -1092,22 +1115,40 @@ class PyNode(util.ProxyUnicode):
                 argObj = args[1]
                 if not isinstance( attrNode, DependNode ):
                     attrNode = PyNode( attrNode )
+                    
                 if isinstance(argObj,basestring) :
                     # convert from string to api objects.
                     res = api.toApiObject( argObj, dagPlugs=False )
+                
+                elif isinstance( argObj, int ) or isinstance( argObj, slice ):
+                    # component
+                    argObj = attrNode
+                    res = attrNode._apiobject
                 else:
                     res = argObj   
                 pymelType, obj, name = _getPymelType( res )
                 
             else:
                 argObj = args[0]
-
-                if isinstance(argObj,basestring) :
-                    # convert from string to api objects.
-                    res = api.toApiObject( argObj, dagPlugs=True )
+                
+                # the order of the following 3 checks is important, as it is in increasing generality
+                
+                if isinstance( argObj, Attribute ):
+                    attrNode = argObj._node
+                    argObj = argObj._apiobject
+                    
+                elif isinstance( argObj, PyNode ):
+                    argObj = argObj._apiobject
+                elif hasattr( argObj, '__module__') and argObj.__module__.startswith( 'maya.OpenMaya' ) :
+                    pass
+                #elif isinstance(argObj,basestring) :
+                else:
+                    # convert to string then to api objects.
+                    res = api.toApiObject( unicode(argObj), dagPlugs=True )
                     # DagNode Plug
                     if isinstance(res, tuple):
                         # Plug or Component
+                        #print "PLUG or COMPONENT", res
                         attrNode = PyNode(res[0])
                         argObj = res[1]
                     # DependNode Plug
@@ -1118,14 +1159,12 @@ class PyNode(util.ProxyUnicode):
                     elif res:
                         argObj = res
                     else:
-                        raise ValueError, "Object does not exist: " + argObj
-                elif isinstance( argObj, Attribute ):
-                    attrNode = argObj._node
-                    argObj = argObj._apiobject
-                    
+                        raise MayaObjectError, "Object does not exist: " + argObj
+
+                        
                 pymelType, obj, name = _getPymelType( argObj )
                 
-            #print pymelType, obj, name, attr
+            #print pymelType, obj, name
             
             # Virtual (non-existent) objects will be cast to their own virtual type.
             # so, until we make that, we're rejecting them
@@ -1190,6 +1229,11 @@ class PyNode(util.ProxyUnicode):
                 return self.__apiobject__() != PyNode(other).__apiobject__()
             except (ValueError,TypeError): # could not cast to PyNode
                 return False
+
+
+    #-----------------------------------------
+    # Name Info and Manipulation
+    #-----------------------------------------
     
     def stripNamespace(self, levels=0):
         """
@@ -1235,6 +1279,8 @@ class PyNode(util.ProxyUnicode):
             name = '|' + name
         return name 
                 
+
+
                         
 #    def attr(self, attr):
 #        """access to attribute of a node. returns an instance of the Attribute class for the 
@@ -1276,10 +1322,43 @@ class PyNode(util.ProxyUnicode):
     future = listFuture
 
 _factories.PyNodeNamesToPyNodes()['PyNode'] = PyNode
+#def _MObjectIn(x):
+#    if isinstance(x,PyNode): return x.__apimobject__()
+#    return PyNode(x).__apimobject__()
+#def _MDagPathIn(x):
+#    if isinstance(x,DagNode): return x.__apimdagpath__()
+#    return PyNode(x).__apimdagpath__()
+#def _MPlugIn(x):
+#    if isinstance(x,Attribute): return x.__apimplug__()
+#    return PyNode(x).__apimplug__()
+#def _MPlugOut(self,x):
+#    try: return Attribute(self.node(), x)
+#    except: pass
+#    return Attribute(x)
+#_factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn )
+#_factories.ApiTypeRegister.register('MDagPath', DagNode, inCast=_MDagPathIn )
+#_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
-                    
+def _MObjectIn(x):
+    if isinstance(x,PyNode): return x.__apimobject__()
+    return PyNode(x).__apimobject__()
+def _MDagPathIn(x):
+    if isinstance(x,PyNode): return x.__apimdagpath__()
+    return PyNode(x).__apimdagpath__()
+def _MPlugIn(x):
+    if isinstance(x,PyNode): return x.__apimplug__()
+    return PyNode(x).__apimplug__()
+def _MPlugOut(self,x):
+    return PyNode(self.node(), x)
+    #try: return PyNode(self.node(), x)
+    #except: pass
+    #return PyNode(x)
+_factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn )
+_factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=_MDagPathIn )
+_factories.ApiTypeRegister.register('MPlug', PyNode, inCast=_MPlugIn, outCast=_MPlugOut )
+                   
 from animation import listAnimatable as _listAnimatable
-from system import namespaceInfo
+from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
 #-----------------------------------------------
 #  Global Settings
@@ -1296,6 +1375,135 @@ class Scene(util.Singleton):
 
 SCENE = Scene()
 
+
+    
+class _Component( PyNode ):
+    def __init__(self, *args, **kwargs ):
+        args = [self.node().__apimdagpath__()]
+        component = self._apiobject
+        self._range = None
+        #print "COMP", component
+        comp = False
+        if api.isValidMObjectHandle( component ): 
+            args.append(component.object() )  
+            comp = True
+        #print args
+        self.apicls.__init__(self, *args)
+        
+        if comp: 
+            pass 
+        
+        elif isinstance(component, int):
+            self._range = [component]
+            su = api.MScriptUtil()
+            self.apicls.setIndex( self, component, su.asIntPtr() )  # bug workaround
+            
+        elif isinstance(component, slice):
+            self._range = range( component.start, component.stop+1)
+            su = api.MScriptUtil()
+            self.apicls.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+            
+        elif component is not None:
+            raise TypeError, "component must be a valid MObject representing a component, an integer, or a slice"
+        
+        #self._node = node
+        self._comp = component
+        self._index = 0
+    
+    def name(self):
+        if isinstance( self._comp, int ):
+            return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._comp )
+        elif isinstance( self._comp, slice ):
+            return u'%s.%s[%s:%s]' % ( self._node, self.__componentLabel__, self._comp.start, self._comp.stop )
+        
+        return u'%s.%s[0:%s]' % (self._node, self.__componentLabel__, self.count()-1)
+      
+    def __str__(self): 
+        return str(self.name())
+    
+    def __unicode__(self): 
+        return self.name()                                
+    
+    def __iter__(self): 
+        #print "ITER"
+        #su = api.MScriptUtil()
+        #api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+        return self
+    
+    def node(self):
+        return self._node
+    
+    def next(self):
+        if self.isDone(): raise StopIteration
+        if self._range is not None:
+            try:
+                nextIndex = self._range[self._index]
+                su = api.MScriptUtil()
+                self.apicls.setIndex( self, nextIndex, su.asIntPtr() )  # bug workaround
+                self._index += 1
+                return self.__class__(self._node, nextIndex)
+            except IndexError:
+                raise StopIteration
+
+        else:
+            self.apicls.next(self)
+        return self.__class__(self._node, self.apicls.index(self) )
+#        if isinstance( self._comp, int ):
+#            _api.apicls.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
+#        elif isinstance( self._comp, slice):
+#            _api.apicls.setIndex( self, i, su.asIntPtr() )  # bug workaround
+    
+    def __len__(self): 
+        return self.count()
+            
+    def __getitem__(self, item):
+        return self.__class__(self._node, item)
+
+
+class MeshEdge( _Component ):
+    apicls = api.MItMeshEdge
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __componentLabel__ = 'e'
+    def count(self):
+        if self._range is not None:
+            return len(self._range)
+        else:
+            return self.apicls.count( self ) 
+_factories.ApiEnumsToPyComponents()[api.MFn.kMeshEdgeComponent  ] = MeshEdge
+       
+class MeshVertex( _Component ):
+    apicls = api.MItMeshVertex
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __componentLabel__ = 'vtx'
+    def count(self):
+        if self._range is not None:
+            return len(self._range)
+        else:
+            return self.apicls.count( self )
+_factories.ApiEnumsToPyComponents()[api.MFn.kMeshVertComponent ] = MeshVertex  
+  
+class MeshFace( _Component ):
+    apicls = api.MItMeshPolygon
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __componentLabel__ = 'f'
+    def count(self):
+        if self._range is not None:
+            return len(self._range)
+        else:
+            return self.apicls.count( self )
+_factories.ApiEnumsToPyComponents()[api.MFn.kMeshPolygonComponent ] = MeshFace
+
+class NurbsCurveCV( _Component ):
+    apicls = api.MItCurveCV
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __componentLabel__ = 'cv'
+    def count(self):
+        if self._range is not None:
+            return len(self._range)
+        else:
+            return self.node().numCVs()
+_factories.ApiEnumsToPyComponents()[api.MFn.kCurveCVComponent] = NurbsCurveCV
+           
 class ComponentArray(object):
     def __init__(self, name):
         self._name = name
@@ -1395,7 +1603,7 @@ class Component(object):
 
                 
 class Attribute(PyNode):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = MetaMayaTypeWrapper
     apicls = api.MPlug
     """
     Attributes
@@ -1448,11 +1656,11 @@ class Attribute(PyNode):
                 
         >>> s.rotateX.connect( s.rotateY )
     
-    there are also handy operators for L{connect<Attribute.__rshift__>} and L{disconnect<Attribute.__ne__>}
+    there are also handy operators for L{connect<Attribute.__rshift__>} and L{disconnect<Attribute.__floordiv__>}
 
         >>> c = polyCube()[0]        
         >>> s.tx >> c.tx    # connect
-        >>> s.tx <> c.tx    # disconnect
+        >>> s.tx // c.tx    # disconnect
             
     Avoiding Clashes between Attributes and Class Methods
     -----------------------------------------------------
@@ -1482,11 +1690,9 @@ class Attribute(PyNode):
     
     def __apimobject__(self):
         "Return the MObject for this attribute, if it is valid"
-        # MPlugs don't have '.object()' - use '.attribute()' or '.asMObject'
-        # ...using .attribute() because I think it's clearer...
-        obj = self.__apimplug__().attribute()
+        obj = self._apiobject.object()
         if api.isValidMObject( obj ):
-            return obj
+            return object
     
     def __apimplug__(self) :
         "Return the MPlug for this attribute, if it is valid"
@@ -1500,11 +1706,13 @@ class Attribute(PyNode):
         except AttributeError: pass
     
     def __apimfn__(self):
-        if not self._apimfn:
-            obj = self.__apimobject__()
+        if self._apimfn:
+            return self._apimfn
+        else:
+            obj = self.__apiobject__().attribute()
             if obj:
                 self._apimfn = api.MFnAttribute( obj )
-        return self._apimfn
+                return self._apimfn
                            
 #    def __init__(self, attrName):
 #        assert isinstance( api.__apiobject__(), api.MPlug )
@@ -1566,17 +1774,23 @@ class Attribute(PyNode):
         return u"%s('%s')" % (self.__class__.__name__, self.name())
 
     def __str__(self):
-        return "%s" % self.name()
+        return str(self.name())
 
     def __unicode__(self):
-        return u"%s" % self.name()
+        return self.name()
 
     def name(self):
         """ Returns the full name of that attribute(plug) """
         obj = self.__apiobject__()
         if obj:
-            return self.plugNode().name() + '.' + obj.partialName( False, True, True, False, False, True )
+            return self.plugNode().name() + '.' + self.partialName( includeNodeName=False, 
+                                                                   includeNonMandatoryIndices=True, 
+                                                                   includeInstancedIndices=True, 
+                                                                   useAlias=False, 
+                                                                   useFullAttributePath=False, 
+                                                                   useLongNames=True )
         return self._name
+    
     
     def attributeName(self):
         pass
@@ -1587,38 +1801,40 @@ class Attribute(PyNode):
     
     def plugNode(self):
         'plugNode'
-        #return PyNode( str(self).split('.')[0])
         return self._node
     
     node = plugNode
                 
-    def plugAttr(self):
+    def plugAttr(self, longName=False):
         """plugAttr
         
             >>> SCENE.persp.t.tx.plugAttr()
             't.tx'
         """
-        return '.'.join(str(self).split('.')[1:])
+        return self.partialName(useLongNames=longName, useFullAttributePath=True, 
+                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
     
-    def lastPlugAttr(self):
+    def lastPlugAttr(self, longName=False):
         """
-        
             >>> SCENE.persp.t.tx.lastPlugAttr()
             'tx'
         """
-        return Attribute.attrItemReg.split( self.name().split('.')[-1] )[0]
+        return self.partialName(useLongNames=longName, useFullAttributePath=False, 
+                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
     
-    def longName(self):
+    def longName(self, fullpath=False ):
         "attributeQuery -longName"
-        return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), longName=True)
+        return self.partialName(useLongNames=True, useFullAttributePath=fullpath, 
+                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
         
-    def shortName(self):
+    def shortName(self, fullpath=False):
         "attributeQuery -shortName"
-        return cmds.attributeQuery( self.lastPlugAttr(), node=self.node(), shortName=True)
+        return self.partialName(useLongNames=False, useFullAttributePath=fullpath, 
+                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
         
     def nodeName( self ):
-        """ Returns the node name of this attribute(plug) """
-        return self.plugNode.name()
+        'The node part of this plug as a string'
+        return self.plugNode().name()
 
        
     def array(self):
@@ -1671,28 +1887,29 @@ class Attribute(PyNode):
                     
     isConnected = cmds.isConnected
     
-            
+    ## does not work because this method cannot return a value, it is akin to +=       
     #def __irshift__(self, other):
     #    """operator for 'isConnected'
     #        sphere.tx >>= box.tx
     #    """ 
-    #    print self, other, cmds.isConnected(self, other)
     #    return cmds.isConnected(self, other)
     
 
     connect = connectAttr
         
     def __rshift__(self, other):
-        """operator for 'connectAttr'
-            sphere.tx >> box.tx
+        """
+        operator for 'connectAttr'
+            >>> sphere.tx >> box.tx
         """ 
         return connectAttr( self, other, force=True )
                 
     disconnect = disconnectAttr
     
     def __floordiv__(self, other):
-        """operator for 'disconnectAttr'
-            sphere.tx // box.tx
+        """
+        operator for 'disconnectAttr'
+            >>> sphere.tx // box.tx
         """ 
         return cmds.disconnectAttr( self, other )
                 
@@ -1783,21 +2000,9 @@ class Attribute(PyNode):
                 
     # getAttr info methods
     def type(self):
-        """
-        getAttr -type
-        
-        Modifications:
-            for message attributes, returns u"message"
-        """
-        # check if it's a message first - if we do getAttr first, and it IS
-        # message, we will get an annoying warning message
-        if self.isMessageType():
-            return u"message" 
+        "getAttr -type"
         return cmds.getAttr(self, type=True)
-
-    # because getAttr -type doesn't return anything for mesage attributes
-    def isMessageType(self):
-        return self.__apimfn__().hasObj(maya.OpenMaya.MFn.kMessageAttribute)
+ 
             
     def size(self):
         "getAttr -size"
@@ -1811,15 +2016,18 @@ class Attribute(PyNode):
 #        """ Is the attribute an element of a multi(array) attribute """
 #        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
 #        return self.__apiobject__().isElement()
-#        
+#    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement' )
+       
 #    def isKeyable(self):
 #        "getAttr -keyable"
 #        return cmds.getAttr(self, keyable=True)
-#
+#    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable'  )
+
     def setKeyable(self, state):
         "setAttr -keyable"
         return cmds.setAttr(self, keyable=state)
-#    
+#    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable'  )
+
 #    def isLocked(self):
 #        "getAttr -lock"
 #        return cmds.getAttr(self, lock=True)    
@@ -1845,19 +2053,20 @@ class Attribute(PyNode):
       
     def showInChannelBox(self, state):
         "setAttr -channelBox"
-        return cmds.setAttr(self, channelBox=state)  
-    
+        return cmds.setAttr(self, channelBox=state)    
     #showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox' )
     
-#            
+          
 #    def isCaching(self):
 #        "getAttr -caching"
 #        return cmds.getAttr(self, caching=True)
-#              
+    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
+               
     def setCaching(self, state):
         "setAttr -caching"
         return cmds.setAttr(self, caching=state)
-                
+#    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
+              
     def isSettable(self):
         "getAttr -settable"
         return cmds.getAttr(self, settable=True)
@@ -1878,13 +2087,13 @@ class Attribute(PyNode):
     
 #    isArray = _factories.wrapApiMethod( api.MPlug, 'isArray' )
     isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti' )
-#    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement' )
-#    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound' )
-#    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable'  )
-#    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable'  )
 
-    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
-#    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
+
+#    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound' )
+
+
+
+
     
 
 
@@ -2190,8 +2399,13 @@ class DependNode( PyNode ):
         try :
             return super(PyNode, self).__getattr__(attr)
         except AttributeError :
-            return self.attr(attr)
-        
+            try:
+                return self.attr(attr)
+            except MayaAttributeError, msg:
+                # since we're being called via __getattr__ we don't know whether the user was trying 
+                # to get a class method or a maya attribute, so we raise a more generic AttributeError
+                raise AttributeError, msg
+            
         #if attr.startswith('__') and attr.endswith('__'):
         #    return super(PyNode, self).__getattr__(attr)
             
@@ -2243,7 +2457,8 @@ class DependNode( PyNode ):
                 return Attribute( self.__apiobject__(), self.apicls.findPlug( self, attr, False ) )
             
         except RuntimeError:
-            raise AttributeError, "Maya node %r has no attribute %r" % ( self, attr )
+            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
+            raise MayaAttributeError, "Maya node %r has no attribute %r" % ( self, attr )
         
         # if attr.startswith('__') and attr.endswith('__'):
         #     return super(PyNode, self).__setattr__(attr, val)        
@@ -2343,12 +2558,12 @@ class DependNode( PyNode ):
         """referenceQuery -file
         Return the reference file to which this object belongs.  None if object is not referenced"""
         try:
-            return FileReference( cmds.referenceQuery( self, f=1) )
-        except:
+            return _FileReference( cmds.referenceQuery( self, f=1) )
+        except RuntimeError:
             None
 
-    isReadOnly = _factories.wrapApiMethod( api.MPlug, 'isFromReferenceFile', 'isReadOnly' )
-    isReferenced = _factories.wrapApiMethod( api.MPlug, 'isFromReferenceFile', 'isReferenced' )
+    isReadOnly = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly' )
+    isReferenced = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReferenced' )
     
 #    def isReadOnly(self):
 #       return (cmds.ls( self, ro=1) and True) or False
@@ -2447,7 +2662,12 @@ class DependNode( PyNode ):
         "attributeInfo"
         # stringify fix
         return map( lambda x: self.attr(x) , util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
-            
+ 
+ 
+ 
+    #-----------------------------------------
+    # Name Info and Manipulation
+    #-----------------------------------------
     _numPartReg = re.compile('([0-9]+)$')
     
     def stripNum(self):
@@ -2502,7 +2722,7 @@ class DagNode(Entity):
     __metaclass__ = MetaMayaNodeWrapper
     
     def __init__(self, *args, **kwargs ):
-        self.apicls.__init__(self, self._apiobject )
+        self.apicls.__init__(self, self.__apimdagpath__() )
         
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
@@ -2525,7 +2745,22 @@ class DagNode(Entity):
             return self._updateName(long)
         else :
             return self._name
+        
+
+    def longName(self):
+        'longNameOf'
+        return self.name(long=True)
+    fullPath = longName
+            
+    def shortName( self ):
+        'shortNameOf'
+        return self.name(long=False)
+
+    def nodeName( self ):
+        'basename'
+        return self.name().split('|')[-1]
     
+      
     def __apiobject__(self) :
         "get the MDagPath for this object if it is valid"
         return self.__apimdagpath__()
@@ -2633,6 +2868,14 @@ class DagNode(Entity):
 #            if obj:
 #               return self.__apimfn__().isChildOf( obj )
 
+    def isInstance(self, other):
+        if isinstance( other, PyNode ):
+            return self.__apimobject__() == other.__apimobject__()
+        else:
+            try:
+                return self.__apimobject__() == PyNode(other).__apimobject__()
+            except:
+                return False
     
     def getAllInstances(self):
         d = api.MDagPathArray()
@@ -2650,7 +2893,7 @@ class DagNode(Entity):
             return DagNode( '|'.join( self.split('|')[:-1] ) )
 
     def numChildren(self):
-        return self.__apiobject__().childCount()
+        return self.__apimdagpath__().childCount()
     
 #    def getParent(self, **kwargs):
 #        # TODO : print warning regarding removal of kwargs, test speed difference
@@ -2688,8 +2931,6 @@ class DagNode(Entity):
             return None
              
         res = PyNode( res )
-        #if not longNames:
-        #    return PyNode(res.shortName())
         return res
                     
     def getChildren(self, **kwargs ):
@@ -2708,17 +2949,6 @@ class DagNode(Entity):
     def listRelatives(self, **kwargs ):
         return listRelatives( self, **kwargs)
         
-    def longName(self):
-        'longNameOf'
-        return self.name(long=True)
-            
-    def shortName( self ):
-        'shortNameOf'
-        return self.name(long=False)
-
-    def nodeName( self ):
-        'basename'
-        return self.name().split('|')[-1]
 
        
     #-------------------------------
@@ -2728,9 +2958,25 @@ class DagNode(Entity):
     def setParent( self, *args, **kwargs ):
         'parent'
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
+
+    def addChild( self, child, **kwargs ):
+        'parent (reversed)'
+        cmds.parent( child, self, **kwargs )
+        if not isinstance( child, PyNode ):
+            child = PyNode(child)
+        return child
     
-    #addChild
-    #__or__ = addChild
+    def __or__(self, child, **kwargs):
+        """
+        operator for `addChild`. Use to easily daisy-chain together parenting operations
+        >>> s = polySphere()[0]
+        >>> c = polyCube()[0]
+        >>> t = polyTorus()[0]
+        >>> s | c | t
+        >>> print t.fullPath()
+        |pSphere1|pCube1|pTorus1
+        """
+        return self.addChild(child,**kwargs)
               
     #instance = instance
 
@@ -2784,22 +3030,6 @@ class DagNode(Entity):
         #return self.getBoundingBox(invisible).max()
 
 
-def _MObjectIn(x):
-    if isinstance(x,PyNode): return x.__apimobject__()
-    return PyNode(x).__apimobject__()
-def _MDagPathIn(x):
-    if isinstance(x,DagNode): return x.__apimdagpath__()
-    return PyNode(x).__apimdagpath__()
-def _MPlugIn(x):
-    if isinstance(x,Attribute): return x.__apimplug__()
-    return PyNode(x).__apimplug__()
-def _MPlugOut(self,x):
-    try: return Attribute(self.node(), x)
-    except: pass
-    return Attribute(x)
-_factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn )
-_factories.ApiTypeRegister.register('MDagPath', DagNode, inCast=_MDagPathIn )
-_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
 
 class Shape(DagNode):
@@ -2872,6 +3102,41 @@ class Camera(Shape):
             
 class Transform(DagNode):
     __metaclass__ = MetaMayaNodeWrapper
+#    def __getattr__(self, attr):
+#        try :
+#            return super(PyNode, self).__getattr__(attr)
+#        except AttributeError, msg:
+#            try: 
+#                return self.getShape().attr(attr)
+#            except AttributeError: 
+#                pass
+#            
+#            # it doesn't exist on the class
+#            try:
+#                return self.attr(attr)
+#            except MayaAttributeError, msg:
+#                # try the shape
+#                try: return self.getShape().attr(attr)
+#                except AttributeError: pass
+#                # since we're being called via __getattr__ we don't know whether the user was trying 
+#                # to get a class method or a maya attribute, so we raise a more generic AttributeError
+#                raise AttributeError, msg
+            
+    def attr(self, attr, checkShape=True):
+        """
+        when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
+        be returned.
+        """
+        try :
+            return DependNode.attr(self,attr)
+        except MayaAttributeError, msg:
+            if checkShape:
+                try: 
+                    return self.getShape().attr(attr)
+                except AttributeError:
+                    raise MayaAttributeError, msg
+            raise MayaAttributeError, msg
+        
 #    def __getattr__(self, attr):
 #        if attr.startswith('__') and attr.endswith('__'):
 #            return super(PyNode, self).__getattr__(attr)
@@ -3045,14 +3310,6 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-class IkHandle(Transform):
-    __metaclass__ = MetaMayaNodeWrapper
-    def jointList(self):
-        """Return the list of joints that the IkHandle is affecting."""
-        return [PyNode(x) for x in cmds.ikHandle(self, q=True, jointList=True)]
-    def endEffector(self):
-        return PyNode(cmds.ikHandle(self, q=True, endEffector=True))
-
 class FluidEmitter(Transform):
     __metaclass__ = MetaMayaNodeWrapper
     fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -3125,6 +3382,12 @@ class Constraint(Transform):
 class GeometryShape(DagNode): pass
 class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
+class CurveShape(DeformableShape): pass
+class NurbsCurve(CurveShape):
+    __metaclass__ = MetaMayaNodeWrapper
+    @property
+    def cv(self): return NurbsCurveCV(self)
+    
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
     __metaclass__ = MetaMayaNodeWrapper
@@ -3138,6 +3401,10 @@ class Mesh(SurfaceShape):
     >>>         select( face , add=1)
     
     """
+#    def __init__(self, *args, **kwargs ):      
+#        SurfaceShape.__init__(self, self._apiobject )
+#        self.vtx = MeshEdge(self.__apimobject__() )
+        
     class FaceArray(ComponentArray):
         def __init__(self, name):
             ComponentArray.__init__(self, name)
@@ -3184,8 +3451,7 @@ class Mesh(SurfaceShape):
         def toFaces(self):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )        
         faces = property(toFaces)
-
-	# TODO: add in getPos (and possibly setPos?) method
+        
     class Vertex(Component):
         def __str__(self):
             return '%s.vtx[%s]' % (self._node, self._item)
@@ -3198,72 +3464,88 @@ class Mesh(SurfaceShape):
             return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )        
         faces = property(toFaces)
     
-    def _getFaceArray(self):
-        return Mesh.FaceArray( self + '.f' )    
-    f = property(_getFaceArray)
-    faces = property(_getFaceArray)
-    
-    def _getEdgeArray(self):
-        return Mesh.EdgeArray( self + '.e' )    
-    e = property(_getEdgeArray)
-    edges = property(_getEdgeArray)
-    
-    def _getVertexArray(self):
-        return Mesh.VertexArray( self + '.vtx' )    
-    vtx = property(_getVertexArray)
-    verts = property(_getVertexArray)
-            
-    def __getattr__(self, attr):
-        try :
-            return super(PyNode, self).__getattr__(attr)
-        except AttributeError :
-            at = Attribute( '%s.%s' % (self, attr) )   
-            # if the attribute does not exist on this node try the history
-            if not at.exists():
-                try:
-                    childAttr = getattr( self.inMesh.inputs()[0], attr )
-                
-                    try:
-                        if childAttr.exists():
-                            return childAttr
-                    except AttributeError:
-                        return childAttr
-                
-                except IndexError:
-                    pass
-                """
-                try:    
-                    return getattr( self.inMesh.inputs()[0], attr)
-                except IndexError:
-                    raise AttributeError, "Attribute does not exist: %s" % at
-                """
-            return at
+#    def _getFaceArray(self):
+#        return Mesh.FaceArray( self + '.f' )    
+#    f = property(_getFaceArray)
+#    faces = property(_getFaceArray)
+#    
+#    def _getEdgeArray(self):
+#        return MeshEdge(self._node)
+#        #return Mesh.EdgeArray( self + '.e' )    
+#    e = property(_getEdgeArray)
+#    edges = property(_getEdgeArray)
+#    
+#    def _getVertexArray(self):
+#        return Mesh.VertexArray( self + '.vtx' )    
+#    vtx = property(_getVertexArray)
+#    verts = property(_getVertexArray)
 
-    def __setattr__(self, attr, val):
-        try :
-            return super(PyNode, self).__setattr__(attr, val)
-        except AttributeError :
-            at = Attribute( '%s.%s' % (self, attr) )   
-            # if the attribute does not exist on this node try the history
-            if not at.exists():
-                try:
-                    childAttr = getattr( self.inMesh.inputs()[0], attr )
-                
-                    try:
-                        if childAttr.exists():
-                            return childAttr.set(val)
-                    except AttributeError:
-                        return childAttr.set(val)
-                
-                except IndexError:
-                    pass
-                """
-                try:    
-                    return getattr( self.inMesh.inputs()[0], attr)
-                except IndexError:
-                    raise AttributeError, "Attribute does not exist: %s" % at
-                """
-            return at.set(val)
+    @property
+    def f(self): return MeshFace(self)
+    @property
+    def faces(self): return MeshFace(self)
+    
+    @property
+    def e(self): return MeshEdge(self)
+    @property
+    def edges(self): return MeshEdge(self)
+     
+    @property
+    def vtx(self): return MeshVertex(self)
+    @property
+    def verts(self): return MeshVertex(self)
+    
+#    def __getattr__(self, attr):
+#        try :
+#            return super(PyNode, self).__getattr__(attr)
+#        except AttributeError :
+#            at = Attribute( '%s.%s' % (self, attr) )   
+#            # if the attribute does not exist on this node try the history
+#            if not at.exists():
+#                try:
+#                    childAttr = getattr( self.inMesh.inputs()[0], attr )
+#                
+#                    try:
+#                        if childAttr.exists():
+#                            return childAttr
+#                    except AttributeError:
+#                        return childAttr
+#                
+#                except IndexError:
+#                    pass
+#                """
+#                try:    
+#                    return getattr( self.inMesh.inputs()[0], attr)
+#                except IndexError:
+#                    raise AttributeError, "Attribute does not exist: %s" % at
+#                """
+#            return at
+
+#    def __setattr__(self, attr, val):
+#        try :
+#            return super(PyNode, self).__setattr__(attr, val)
+#        except AttributeError :
+#            at = Attribute( '%s.%s' % (self, attr) )   
+#            # if the attribute does not exist on this node try the history
+#            if not at.exists():
+#                try:
+#                    childAttr = getattr( self.inMesh.inputs()[0], attr )
+#                
+#                    try:
+#                        if childAttr.exists():
+#                            return childAttr.set(val)
+#                    except AttributeError:
+#                        return childAttr.set(val)
+#                
+#                except IndexError:
+#                    pass
+#                """
+#                try:    
+#                    return getattr( self.inMesh.inputs()[0], attr)
+#                except IndexError:
+#                    raise AttributeError, "Attribute does not exist: %s" % at
+#                """
+#            return at.set(val)
                         
     vertexCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' )
     edgeCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' )
@@ -3886,7 +4168,7 @@ def iterNodes ( *args, **kwargs ):
         # check
         #print nameArgs
         # for names parsing, see class definition in nodes
-        curNameSpace = namespaceInfo( currentNamespace=True )    
+        curNameSpace = _namespaceInfo( currentNamespace=True )    
         for i in nameArgs.items() :
             key = i[0]
             val = i[1]
