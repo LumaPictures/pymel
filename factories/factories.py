@@ -17,6 +17,8 @@ try:
     import pymel.mayahook.pmcmds as pmcmds
 except ImportError: pass
 
+VERBOSE=False
+
 #---------------------------------------------------------------
 #        Mappings and Lists
 #---------------------------------------------------------------
@@ -1607,13 +1609,13 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArraySetter( apiTypename, length, setFunc, initFunc ):
         def setArray( array ):
-            print "set", array
+            if VERBOSE: print "set", array
             if len(array) != length:
                 raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypename )
             arrayPtr = initFunc()
             for i, val in enumerate( array ):
                 setFunc( arrayPtr, i, val )
-            print "result", arrayPtr
+            if VERBOSE: print "result", arrayPtr
             return arrayPtr
         setArray.__name__ = 'set_' + apiTypename + str(length) + 'Array'
         return setArray
@@ -1621,11 +1623,15 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArrayGetter( apiTypename, length, getFunc ):
         def getArray( array ):
-            print "get", array
+            if VERBOSE: print "get", array
             return tuple([ getFunc(array,i) for i in range(length) ] )
         getArray.__name__ = 'get_' + apiTypename + str(length) + 'Array'
         return getArray
     
+    @classmethod   
+    def isRegistered(cls, apiTypename):
+        return apiTypename in cls.types
+        
     @classmethod         
     def register(cls, apiTypename, wrappedType, inCast=None, outCast=None):
 
@@ -1731,10 +1737,10 @@ class ApiArgUtil(object):
                     #except AttributeError:
                     #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
-            print msg
+            if VERBOSE: print msg
             return False
         
-        print "%s.%s(%s): valid" % (self.apiClassName, self.methodName, ', '.join( [ '%s %s' % ( self.methodInfo['argInfo'][x]['type'], x) for x in inArgs] ) ) 
+        if VERBOSE: print "%s.%s(%s): valid" % (self.apiClassName, self.methodName, ', '.join( [ '%s %s' % ( self.methodInfo['argInfo'][x]['type'], x) for x in inArgs] ) ) 
         return True
     
 #    def castEnum(self, argtype, input ):
@@ -1800,7 +1806,7 @@ class ApiArgUtil(object):
                 default = self.methodInfo['defaults'][arg]
             except KeyError: 
                 pass
-                if self.methodName == 'translation': print "NO DEFAULT", self.methodName, arg, self.methodInfo['defaults'] 
+                if self.methodName == 'translation' and VERBOSE: print "NO DEFAULT", self.methodName, arg, self.methodInfo['defaults'] 
             else:
                 if isinstance(default, _api.Enum ):
                     # convert enums from apiName to pymelName. the default will be the readable string name
@@ -1946,7 +1952,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
             defaults = argHelper.getDefaults()
                 
             #print inArgs, defaults
-            if defaults: print "defaults", defaults
+            if defaults and VERBOSE: print "defaults", defaults
             f = interface_wrapper( f, ['self'] + inArgs, defaults )
             
             if argHelper.isStatic():
@@ -1993,7 +1999,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     #print "ADDING BASE",classdict['apicls']
                     bases = bases + (classdict['apicls'],)
                 try:
-                    print "="*40, classname, apicls, "="*40
+                    if VERBOSE: print "="*40, classname, apicls, "="*40
                     classInfo = _api.apiClassInfo[apicls.__name__]
                 except KeyError:
                     print "No api information for api class %s" % ( apicls.__name__ )
@@ -2013,11 +2019,11 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                 #print "%s.%s() successfully created" % (apicls.__name__, pymelName )
                                 classdict[pymelName] = method
                         else:
-                            print "%s.%s() skipping" % (apicls.__name__, methodName )      
+                            if VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )      
                     try:   
                         # Enumerators   
                         for enumName, enumList in classInfo['pymelEnums'].items():
-                            print "adding enum %s to class %s" % ( enumName, classname )
+                            if VERBOSE: print "adding enum %s to class %s" % ( enumName, classname )
                             #enum = util.namedtuple( enumName, enumList )
                             #classdict[enumName] = enum( *range(len(enumList)) )
                             
@@ -2028,7 +2034,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         pass   
         
         if removeAttrs:
-            print classname, "removing attributes", removeAttrs               
+            if VERBOSE: print classname, "removing attributes", removeAttrs               
         def __getattribute__(self, name):         
             if name in removeAttrs and name not in ['name']: # tmp fix
                 raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
@@ -2093,7 +2099,8 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                                
             #else :   raise TypeError, "must define 'apicls' in the class definition (which Maya API class to wrap)"
         
-        if hasattr(newcls, 'apicls'):
+        
+        if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
             ApiTypeRegister.register( newcls.apicls.__name__, newcls )   
         return newcls 
     
@@ -2112,39 +2119,8 @@ class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
         if apicls is not None:
             classdict['apicls'] = apicls
         #print "="*40, classname, apicls, "="*40
-        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
-
-class MetaMayaNodeWrapper2(type) :
-    """
-    A metaclass for creating classes based on node type.  Methods will be added to the new classes 
-    based on info parsed from the docs on their command counterparts.
-    """
-
-    def __new__(cls, classname, bases, classdict):
-
-        nodeType = util.uncapitalize(classname)
-        _api.addMayaType( nodeType )
-  
-
-#        #-------------------------
-#        #   API Methods
-#        #-------------------------
-#        apiClass = _api.toApiFunctionSet( nodeType )
-#        #if nodeType == 'transform': print 'TRANSFORM', apiClass
-#        if apiClass:
-#            classdict['__apimfnclass__'] = apiClass
-#            print "="*60, nodeType, "="*60
-#            try:
-#                for methodName in _api.apiClassInfo[apiClass.__name__]['methods'].keys():
-#                    
-#                    method = wrapApiMethod( apiClass, methodName )
-#                    if method:
-#                        #print "%s.%s() successfully created" % (apiClass.__name__, methodName )
-#                        classdict[method.__name__] = method
-#            except KeyError:
-#                print "No api information for api class %s for node %s" % ( apiClass.__name__, nodeType )
-#        #else: print "%s: NO API TYPE" % nodeType
-
+        
+        filterAttrs = ['name']
         #-------------------------
         #   MEL Methods
         #-------------------------
@@ -2172,7 +2148,10 @@ class MetaMayaNodeWrapper2(type) :
             except (AttributeError, TypeError):
                 func = getattr(cmds,nodeCmd)
             # add documentation
-            classdict['__doc__'] = 'class counterpart of mel function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
+            classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
+            classdict['__doc__'] = classdoc
+            classdict['__melcmd__'] = func
+            #setattr( newcls, '__doc__', classdoc )
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
@@ -2190,7 +2169,8 @@ class MetaMayaNodeWrapper2(type) :
                     # query command
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
-                        if methodName not in classdict:
+                        if methodName not in classdict.keys() + filterAttrs:
+                        #if not hasattr( newcls, methodName ) :
                             if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
                                 returnFunc = None
                                 
@@ -2202,10 +2182,12 @@ class MetaMayaNodeWrapper2(type) :
                                 elif flagInfo.get( 'resultNeedsUnpacking', False):
                                     returnFunc = lambda x: returnFunc(x[0])
                                 
-                                classdict[methodName] = makeQueryFlagMethod( func, flag, methodName, 
+                                newfunc = makeQueryFlagMethod( func, flag, methodName, 
                                     docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                                classdict[methodName] = newfunc
+                                #setattr( newcls, methodName, newfunc )
                             #else: print "%s: skipping %s" % ( classname, methodName )
-                        else: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
+                        elif VERBOSE:  print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
                         # if there is a corresponding query we use the 'set' prefix. 
@@ -2215,15 +2197,122 @@ class MetaMayaNodeWrapper2(type) :
                         else:
                             methodName = flag
                             
-                        if methodName not in classdict:
+                        if methodName not in classdict.keys() + filterAttrs:
+                        #if not hasattr( newcls, methodName ) :
                             if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                classdict[methodName] = makeEditFlagMethod( func, flag, methodName, 
+                                newfunc = makeEditFlagMethod( func, flag, methodName, 
                                      docstring=flagInfo['docstring'] )
-                        else: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
-                    
+                                classdict[methodName] = newfunc
+                                #setattr( newcls, methodName, newfunc )
+                        elif VERBOSE: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
+                             
+        
+        
+        
+        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
+
+class MetaMayaCommandNodeWrapper(MetaMayaNodeWrapper) :
+    """
+    A metaclass for creating classes based on node type.  Methods will be added to the new classes 
+    based on info parsed from the docs on their command counterparts.
+    """
+
+    def __new__(cls, classname, bases, classdict):
+        nodeType = util.uncapitalize(classname)
+        #_api.addMayaType( nodeType )
+        filterAttrs = ['name']
+        #-------------------------
+        #   MEL Methods
+        #-------------------------
+        try:
+            infoCmd = False
+            try:
+                nodeCmd = nodeTypeToNodeCommand[ nodeType ]
+            except KeyError:
+                try:
+                    nodeCmd = nodeTypeToInfoCommand[ nodeType ]
+                    infoCmd = True
+                except KeyError: 
+                    nodeCmd = nodeType
+            
+            #if nodeHierarchy.children( nodeType ):
+            #    print nodeType, nodeHierarchy.children( nodeType )
+            cmdInfo = cmdlist[nodeCmd]
+        except KeyError: # on cmdlist[nodeType]
+            pass
+        else:
+            try:    
+                cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
+                func = getattr(cmdModule, nodeCmd)
+
+            except (AttributeError, TypeError):
+                func = getattr(cmds,nodeCmd)
+            # add documentation
+            classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (nodeCmd, cmdInfo['description'])
+            classdict['__doc__'] = classdoc
+            #setattr( newcls, '__doc__', classdoc )
+            for flag, flagInfo in cmdInfo['flags'].items():
+                #print nodeType, flag
+                 # don't create methods for query or edit, or for flags which only serve to modify other flags
+                if flag in ['query', 'edit'] or 'modified' in flagInfo:
+                    continue
+                
+                
+                if flagInfo.has_key('modes'):
+                    # flags which are not in maya docs will have not have a modes list unless they 
+                    # have passed through testNodeCmds
+                    #print classname, nodeType, flag
+                    #continue
+                    modes = flagInfo['modes']
+    
+                    # query command
+                    if 'query' in modes:
+                        methodName = 'get' + util.capitalize(flag)
+                        if methodName not in classdict.keys() + filterAttrs:
+                        #if not hasattr( newcls, methodName ) :
+                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                                returnFunc = None
+                                
+                                if flagInfo.get( 'resultNeedsCasting', False):
+                                    returnFunc = flagInfo['args']
+                                    if flagInfo.get( 'resultNeedsUnpacking', False):
+                                        returnFunc = lambda x: returnFunc(x[0])
+                                        
+                                elif flagInfo.get( 'resultNeedsUnpacking', False):
+                                    returnFunc = lambda x: returnFunc(x[0])
+                                
+                                newfunc = makeQueryFlagMethod( func, flag, methodName, 
+                                    docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                                classdict[methodName] = newfunc
+                                #setattr( newcls, methodName, newfunc )
+                            #else: print "%s: skipping %s" % ( classname, methodName )
+                        elif VERBOSE:  print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
+                    # edit command: 
+                    if 'edit' in modes or ( infoCmd and 'create' in modes ):
+                        # if there is a corresponding query we use the 'set' prefix. 
+                        if 'query' in modes:
+                            methodName = 'set' + util.capitalize(flag)
+                        #if there is not a matching 'set' and 'get' pair, we use the flag name as the method name
+                        else:
+                            methodName = flag
+                            
+                        if methodName not in classdict.keys() + filterAttrs:
+                        #if not hasattr( newcls, methodName ) :
+                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
+                                newfunc = makeEditFlagMethod( func, flag, methodName, 
+                                     docstring=flagInfo['docstring'] )
+                                classdict[methodName] = newfunc
+                                #setattr( newcls, methodName, newfunc )
+                        elif VERBOSE: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
+                             
+        newcls = super(MetaMayaCommandNodeWrapper, cls).__new__(cls, classname, bases, classdict)
+        
+
+        
+        return newcls
 
             
-        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
+        
 
     
 def getValidApiMethods( apiClassName, api, verbose=False ):
@@ -2400,7 +2489,10 @@ class PyNodeNamesToPyNodes(util.Singleton, dict):
 
 class PyNodesToMayaTypes(util.Singleton, dict):
     """Lookup from PyNode class to maya type"""
-    
+
+class ApiEnumsToPyComponents(util.Singleton, dict):
+    """Lookup from Api Enums to Pymel Component Classes"""
+      
 class PyNodeTypesHierarchy(util.Singleton, dict):
     """child:parent lookup of the pymel classes that derive from DependNode"""
  
@@ -2428,7 +2520,7 @@ def addPyNode( module, mayaType, parentMayaType ):
             print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
             return      
         try:
-            #print "MetaMayaNodeWrapper", mayaType
+            #print "MetaMayaCommandNodeWrapper", mayaType
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {})
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
