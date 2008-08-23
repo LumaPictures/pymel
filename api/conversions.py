@@ -52,13 +52,23 @@ class ApiDocParser(object):
         for member in allFnMembers:
             if len(member) > 4 and member.startswith('set') and member[3].isupper():
                 # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
-                # 'setSomething'  -->  'something'
+                # setSomething()  &  something()  becomes  setSomething() & getSomething()
+                # setIsSomething() & isSomething() becomes setSomething() & isSomething()
                 origGetMethod = member[3].lower() + member[4:]
+                  
                 if origGetMethod in allFnMembers:
-                    newGetMethod = 'get' + member[3:]
-                    pymelNames[origGetMethod] = newGetMethod
-                    for info in self.methods[origGetMethod]:
-                        info['pymelName'] = newGetMethod 
+                    # fix set
+                    if re.match( 'is[A-Z].*', origGetMethod):
+                        newSetMethod = member[2].lower() + member[3:]
+                        pymelNames[member] = newSetMethod
+                        for info in self.methods[member]:
+                            info['pymelName'] = newSetMethod 
+                    # fix get
+                    else:
+                        newGetMethod = 'get' + member[3:]
+                        pymelNames[origGetMethod] = newGetMethod
+                        for info in self.methods[origGetMethod]:
+                            info['pymelName'] = newGetMethod 
         return pymelNames
 
                            
@@ -316,7 +326,7 @@ class ApiDocParser(object):
                     except: pass
                     
                     #if addendum.findAll( text = re.compile( '(This method is obsolete.)|(Deprecated:)') ):
-                    if addendum.dl.findAll( text=lambda text: text in ['This method is obsolete.', 'Deprecated:'] ):
+                    if addendum.dl.findAll( text=lambda text: text in ['This method is obsolete.', 'Deprecated:', 'NO SCRIPT SUPPORT.'] ):
                         self.printx( "DEPRECATED" )
                         self.currentMethod = None
                         continue
