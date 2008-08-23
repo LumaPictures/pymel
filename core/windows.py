@@ -63,6 +63,7 @@ except ImportError: pass
 
 import pymel.util as util
 import pymel.factories as _factories
+from pymel.factories import MetaMayaNodeWrapper as metaNode
 from system import Path
 
 #-----------------------------------------------
@@ -119,7 +120,7 @@ def getPanel(*args, **kwargs):
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-metaNode = _factories.MetaMayaNodeWrapper
+
 
 class UI(unicode):
     def __new__(cls, name=None, create=False, *args, **kwargs):
@@ -134,9 +135,13 @@ class UI(unicode):
             try: return cls.__melcmd__(name, ex=1)
             except: pass
         
+        # create a new node when any of these conditions occur:
+        #    name is None
+        #    create is True
+        #    parent flag is set
         parent = kwargs.get( 'parent', kwargs.get('p', None))
         if name is None or create or parent:
-            name = cls.__melcmd__()(name, *args, **kwargs)
+            name = cls.__melcmd__(name, *args, **kwargs)
         return unicode.__new__(cls,name)
     
     def __repr__(self):
