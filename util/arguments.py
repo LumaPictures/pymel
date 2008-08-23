@@ -95,7 +95,7 @@ def stringifyPyNodeArgs(function):
     def stringifiedFunc(*args, **kwargs):
         return function(*(stringify(args, classesToStringify=ProxyUnicode)),
                     **(stringify(kwargs, classesToStringify=ProxyUnicode)))
-    
+    stringifiedFunc.__module__ = function.__module__
     stringifiedFunc.__doc__ = function.__doc__
     stringifiedFunc.__name__ = function.__name__
     return stringifiedFunc 

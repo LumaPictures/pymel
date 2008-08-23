@@ -305,6 +305,9 @@ def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, *
     return executableOutput(shellCommand, **kwargs)
 
 def refreshEnviron():
+    """
+    copy the shell environment into python's environment, as stored in os.environ
+    """ 
     exclude = ['SHLVL'] 
     
     if platform.system() in ('Darwin', 'Linux'):
@@ -393,21 +396,7 @@ def parseMayaenv(envLocation=None, version=None) :
             print"Found no suitable Maya.env file"
         return False
 
-def _addEnv( env, value, put=False ):
-    sep = os.path.pathsep
-    if env not in os.environ:
-        print "adding", env, value
-        os.environ[env] = value
-    else:
-        splitEnv = os.environ[env].split(sep)
-        if value not in splitEnv:
-            splitEnv.append(value)
-            print "adding", env, value
-            os.environ[env] = sep.join( splitEnv )
-    
-    # i believe os.putenv is triggered by modifying os.environ, so this should not be necessary ?
-    if put :
-        os.putenv(env, os.environ[env])
+
 
 
 
@@ -462,7 +451,7 @@ def recurseMayaScriptPath(roots=[], verbose=False):
             except OSError: pass
     
     if varList > rootVars:
-        os.environ[envVariableName] = ':'.join( varList )
+        os.environ[envVariableName] = os.path.pathsep.join( varList )
         if verbose:
             print "\nMaya Script Path Recursion:  DONE! "
             print "#######################################"
@@ -475,7 +464,8 @@ def recurseMayaScriptPath(roots=[], verbose=False):
 
 def setMayaDefaultEnvs(version):
     """
-    sets environment variables to their maya defaults
+    Sets environment variables to their maya defaults.  This was created as an alternate solution to 
+    refreshEnviron, but is not currently in use.
     """
     
     if SYSTEM == 'Darwin':
@@ -561,7 +551,29 @@ def setMayaDefaultEnvs(version):
 # returns True if Maya is available, False either
 def mayaInit(forversion=None) :
     """ Try to init Maya standalone module, use when running pymel from an external Python inerpreter,
-    it is possible to pass the desired Maya version number to define which Maya to initialize """
+    it is possible to pass the desired Maya version number to define which Maya to initialize 
+    
+    
+    Part of the complexity of initializing maya in standalone mode is that maya does not populate os.environ when
+    parsing Maya.env.  If we initialize normally, the env's are available via maya (via the shell), but not in python
+    via os.environ.
+    
+    Note: the following example assumes that MAYA_SCRIPT_PATH is not set in your shell environment prior to launching
+    python or mayapy.
+    
+    >>> import maya.standalone
+    >>> maya.standalone.initialize()
+    >>> import maya.mel as mm
+    >>> print mm.eval("getenv MAYA_SCRIPT_PATH")   
+    /Network/Servers/sv-user.luma-pictures.com/luma .....
+    >>> import os
+    >>> 'MAYA_SCRIPT_PATH' in os.environ
+    False
+    
+    The solution lies in refreshEnviron, which copies the environment from the shell to os.environ after maya.standalone
+    initializes.
+    
+    """
 
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
     runningVersion = getRunningMayaVersion()        
@@ -644,6 +656,7 @@ def mayaInit(forversion=None) :
         try :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
+            
             refreshEnviron()
         except ImportError:
             pass
@@ -674,4 +687,7 @@ def encodeFix():
                     sys.stdout = codecs.getwriter(mayaEncode)(maya.utils.Output())
                     sys.stderr = codecs.getwriter(mayaEncode)(maya.utils.Output( error=1 ))
                 except ImportError :
-                    print "Unable to import maya.app.baseUI"    
+                    print "Unable to import maya.app.baseUI"
+
+
+ 
