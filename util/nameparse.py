@@ -923,13 +923,13 @@ class NameNumPart(NamePart):
     
     @ property
     def value(self) :
-        return int(self)
+        return int(str(self))
          
     def isAlpha(self):
         return False        
     def isNum(self):
         return True
-       
+          
 # A Name group, all the consecutive parts between two underscores
 class NameGroup(Parsed):
     """ A name group of either the NameAlphaGroup or NameNumGroup kind
@@ -959,8 +959,21 @@ class NameGroup(Parsed):
         """ The tail (trailing numbers if any) of that name group """
         if self.last.isNum() :
             return (self.last)
-
-   
+    def nextName(self):
+        tail = self.tail
+        if tail is not None:
+            padding = str(len(self.tail))
+            formatStr = '%0' + padding + 'd'
+            newval = formatStr % (tail.value+1)
+            self.setSubItem(-1, newval )
+    def prevName(self):
+        tail = self.tail
+        if tail is not None:
+            padding = str(len(self.tail))
+            formatStr = '%0' + padding + 'd'
+            newval = formatStr % (tail.value-1)
+            self.setSubItem(-1, newval )
+                 
 class NameAlphaGroup(NameGroup):
     """ A name group starting with an alphabetic part
         Rule : NameAlphaGroup  = NameAlphaPart NamePart * """ 
@@ -982,7 +995,7 @@ class NameNumGroup(NameGroup):
         return True
     def isAlpha(self):
         return False
-    
+            
 # separator for name groups               
 class NameSep(Parsed):
     """ the MayaName NameGroup separator : one or more underscores
@@ -1048,6 +1061,41 @@ class MayaName(Parsed):
         else :
             return self        
 
+    def stripNum(self):
+        """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
+        the name will be returned unchanged."""
+        try:
+            return DependNode._numPartReg.split(self)[0]
+        except:
+            return unicode(self)
+            
+    def extractNum(self):
+        """Return the trailing numbers of the node name. If no trailing numbers are found
+        an error will be raised."""
+        
+        return self.tail
+
+    def nextUniqueName(self):
+        """Increment the trailing number of the object until a unique name is found"""
+        name = self.shortName().nextName()
+        while name.exists():
+            name = name.nextName()
+        return name
+                
+    def nextName(self):
+        """Increment the trailing number of the object by 1"""
+        try:
+            self.last.nextName()
+        except AttributeError:
+            raise "could not find trailing numbers to increment"
+            
+    def prevName(self):
+        """Decrement the trailing number of the object by 1"""
+        try:
+            self.last.prevName()
+        except AttributeError:
+            raise "could not find trailing numbers to decrement"
+        
 class NamespaceSep(Parsed):
     """ The Maya Namespace separator : the colon ':' 
         Rule : NamespaceSep = r':' """
@@ -1104,9 +1152,11 @@ class Namespace(Parsed):
         return res1
     
     def append(self, namespace):
-        """Append a individual namespace (no separator).  The new namespace will be the shallowest (leftmost) namespace."""
+        """Append a namespace. Can include separator and multiple namespaces. The new namespace will be the shallowest (leftmost) namespace."""
+        if not namespace.endswith(':'): namespace += ':'
+        newparts = list(Namespace(namespace).parts)
         sub = list(self.sub)
-        self._sub = tuple( [MayaName(namespace),NamespaceSep()] +sub)
+        self._sub = tuple( newparts +sub)
     
     @property
     def separator(self):
@@ -1170,23 +1220,23 @@ class MayaShortName(Parsed):
         """ All parts of that namespace, including separators """
         return self.sub         
 
-    def getName(self):
+    def getBaseName(self):
         "Get the short node name of the object"
         return self.sub[-1]
-    def setName(self, name):
+    def setBaseName(self, name):
         """Set the name of the object.  Should not include namespace"""
         return self.setSubItem(-1, name)
-    name = property( getName, setName, doc=""" The short node name without any namespace of the Maya short object name """ )
+    basename = property( getBaseName, setBaseName, doc=""" The short node name without any namespace of the Maya short object name """ )
     
     def addPrefix(self, prefix):
         """Add a prefix to the node name. This must produce a valid maya name (no separators allowed)."""
-        self.setName( prefix + str(self.getName()) )
+        self.setBaseName( prefix + str(self.getBaseName()) )
         
     def addSuffix(self, suffix):
         """Add a suffix to the node name. This must produce a valid maya name (no separators allowed)."""
-        self.setName( str(self.getName()) + suffix )
+        self.setBaseName( str(self.getBaseName()) + suffix )
            
-    def getNamespace(self):
+    def getBaseNamespace(self):
         "Get the namespace for the current node"
         # if isinstance(self.parts[0], Namespace) :
         #    return self.parts[0]  
@@ -1195,7 +1245,7 @@ class MayaShortName(Parsed):
     def setNamespace(self, namespace):
         "Set the namespace. The provided namespace may be nested and should including a trailing colon unless it is empty."""
         self.setSubItem(0, namespace)
-    namespace = property( getNamespace, setNamespace, doc=""" The namespace name (full) of the Maya short object name """ )
+    namespace = property( getBaseNamespace, setNamespace, doc=""" The namespace name (full) of the Maya short object name """ )
         
     
     def isAbsoluteNamespace(self):
@@ -1237,7 +1287,22 @@ class DagPathSep(Parsed):
 
 class MayaNodePath(Parsed):
     """ A node name in Maya, one or more MayaShortName separated by DagPathSep, with an optional leading DagPathSep
-        Rule : MayaNodePath = DagPathSep ? MayaShortName (DagPathSep MayaShortName) * """
+        Rule : MayaNodePath = DagPathSep ? MayaShortName (DagPathSep MayaShortName) * 
+        
+        >>> obj = nameparse.parse( 'group1|pCube1|pCubeShape1' )
+        >>> obj.setNamespace( 'foo:' )
+        >>> print obj
+        foo:group1|foo:pCube1|foo:pCubeShape1
+        >>> obj.parent
+        foo:group1|foo:pCube1
+        >>> obj.node
+        foo:pCubeShape1
+        >>> obj.node.basename
+        pCubeShape1
+        >>> obj.node.namespace
+        foo:
+        
+    """
     _parser = MayaNodePathParser
     _accepts = ('DagPathSep', 'MayaShortName') 
             
@@ -1252,11 +1317,13 @@ class MayaNodePath(Parsed):
         for p in self.parts :
             if not isinstance(p, DagPathSep) :
                 result.append(p)
-        return tuple(result)                  
-    @property
+        return tuple(result)  
+               
     def shortName(self):
         """ The last short name of the path """
-        return self.nodes[-1]  
+        return self.nodes[-1]
+    node = property( shortName )
+    
     @property
     def separator(self):
         return DagPathSep()
@@ -1298,12 +1365,12 @@ class MayaNodePath(Parsed):
     def addPrefix(self, prefix):
         """Add a prefix to all nodes in the path. This must produce a valid maya name (no separators allowed)."""
         for node in self.nodes:
-            node.setName( prefix + str(node.getName()) )
+            node.setBaseName( prefix + str(node.getBaseName()) )
         
     def addSuffix(self, suffix):
         """Add a suffix to all nodes in the path. This must produce a valid maya name (no separators allowed)."""
         for node in self.nodes:
-            node.setName( str(node.getName()) + suffix )
+            node.setBaseName( str(node.getBaseName()) + suffix )
          
     def setNamespace(self, namespace):
         "Set the namespace for all nodes in this path. The provided namespace may be nested and should including a trailing colon unless it is empty."""
@@ -1326,17 +1393,26 @@ class MayaNodePath(Parsed):
                 result.append( None )
         return tuple(result)     
     
-    def popNode(self):
+    def popNode(self,index=-1):
         """Remove a node from the end of the path"""
         result = []
         parts = list(self.sub)
+        index *= 2
+        if index < 0 or isinstance( parts[0], DagPathSep): index += 1
+        
         if len(parts) <= 2:
             raise ValueError, "No more objects left to remove"
-        result = parts.pop()
-        parts.pop()
+        result1 = parts.pop(index)
+        result2 = parts.pop(index)
         self._sub = tuple(parts)
-        return result
+        return result1
     
+    def addNode(self, node):
+        """Add a node to the end of the path"""
+        parts = list(self.sub)
+        parts.extend( [ DagPathSep(), MayaShortName(node)] )
+        self._sub = tuple(parts)
+     
     def isShortName(self):
         """ True if this object node is specified as a short name (without a path) """
         return len(self.nodes) == 1  
@@ -1488,16 +1564,17 @@ class Attribute(Parsed):
         """ name(without index) of that node attribute name """
         return self.parts[0]
     @property
-    def index(self):
+    def bracketedIndex(self):
         """ Index of that node attribute name """
         if len(self.parts) > 1 :
             return self.parts[-1]
     @property
-    def indexValue(self):
+    def index(self):
         """ Int value of the index of that node attribute name """
-        if self.index :
-            return self.index.value             
-    
+        if self.bracketedIndex :
+            return self.bracketedIndex.value
+                    
+    def isCompound(self): return False
          
 class AttributePath(Parsed):
     """ The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute
@@ -1517,10 +1594,7 @@ class AttributePath(Parsed):
             if not isinstance(p, AttrSep) :
                 result.append(p)
         return tuple(result)            
-    @property
-    def attribute(self):
-        """ The last attribute name of the path """
-        return self.attributes[-1]      
+  
     @property
     def separator(self):
         return AttrSep()
@@ -1550,8 +1624,10 @@ class AttributePath(Parsed):
     @property
     def last(self):
         """ Last node attribute name of that node attribute path (leaf of the path, equivalent to self.attribute) """
-        return self.attributes[-1]       
-
+        return self.attributes[-1]    
+       
+    def isCompound(self):
+        return len(self.attributes) > 1
 
 class NodeAttribute(Parsed):
     """ The name of a Maya node and attribute (plug): a MayaNodePath followed by a AttrSep and a AttributePath
@@ -1571,17 +1647,33 @@ class NodeAttribute(Parsed):
     def separator(self):
         return AttrSep()                     
     @property
-    def node(self):
-        """ The node part of that  """
-        return self.parts[0]     
+    def nodePath(self):
+        """The node part of the plug"""
+        return self.parts[0]
+       
     @property
     def attribute(self):
-        """ All the nodes in the dag path but the last, without separators """
-        return self.parts[2]
+        """The attribute part of the plug"""
+        attr = self.parts[2]
+        if not attr.isCompound():
+            return attr.last
+        return attr
+    
+    def shortName(self):
+        """Just the node and attribute without the full dag path. Returns a copy."""
+        new = self.copy()
+        for i in range( len(new.nodePath.nodes)-1 ):
+            new.nodePath.popNode(0)
+        return new
+    
+    @property
+    def attributes(self):
+        """ All the node attribute names in that node attribute path, including the last, without separators """
+        return self.attribute.attributes
     
     def popNode(self):
         """Remove a node from the end of the path, preserving any attributes (Ex. pCube1|pCubeShape1.width --> pCube1.width)."""
-        self.node.popNode()
+        self.nodePath.popNode()
         
 #    @property
 #    def first(self):
