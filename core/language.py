@@ -33,7 +33,7 @@ class MelGlobals( util.Singleton, dict ):
     
     >>> melGlobals['gMainFileMenu']
     mainFileMenu
-    >>> # works with or without 
+    >>> # works with or without $
     >>> melGlobals['$gGridDisplayGridLinesDefault']
     1
     
@@ -102,25 +102,18 @@ class MelGlobals( util.Singleton, dict ):
             variable = '$' + variable
         return variable
     
+    def getType(self, variable):
+        variable = self._formatVariable(variable)
+        info = mel.whatIs( variable ).split()
+        if len(info)==2 and info[1] == 'variable':
+            return info[0]
+        raise TypeError, "Cannot determine type for this variable. Use melGlobals.initVar first."
+    
     def __getitem__(self, variable ):
-        variable = self._formatVariable(variable)
-        try:
-            return self.get( MelGlobals.typeMap[variable], variable )
-        except KeyError:
-            info = mel.whatIs( variable ).split()
-            if len(info)==2 and info[1] == 'variable':
-                return self.get( info[0], variable )
-            raise ValueError, "You must specify a type for this variable first using initVar"
-        
+        return self.get( variable )
+    
     def __setitem__(self, variable, value):
-        variable = self._formatVariable(variable)
-        try:
-            self.set( MelGlobals.typeMap[variable], variable, value )
-        except KeyError:
-            info = mel.whatIs( variable ).split()
-            if len(info)==2 and info[1] == 'variable':
-                return self.get( info[0], variable )
-            raise ValueError, "You must specify a type for this variable first using initVar"
+        return self.set( variable, value )
         
     def initVar( self, type, variable ):
         if type not in MelGlobals.validTypes:
@@ -129,10 +122,19 @@ class MelGlobals( util.Singleton, dict ):
         MelGlobals.typeMap[variable] = type
         return variable
     
-    def get( self, type, variable ):
-        """get a mel global variable""" 
-
+    def get( self, variable, type=None  ):
+        """get a MEL global variable.  If the type is not specified, the mel ``whatIs`` command will be used
+        to determine it.""" 
+        
+        variable = self._formatVariable(variable)
+        if type is None:
+            try:
+                type = MelGlobals.typeMap[variable]
+            except KeyError:
+                type = self.getType(variable)
+            
         variable = self.initVar(type, variable)
+        
         ret_type = type
         decl_name = variable
         
@@ -154,8 +156,15 @@ class MelGlobals( util.Singleton, dict ):
         else:
             return res
     
-    def set( self, type, variable, value ):
+    def set( self, variable, value, type=None ):
         """set a mel global variable""" 
+        variable = self._formatVariable(variable)
+        if type is None:
+            try:
+                type = MelGlobals.typeMap[variable]
+            except KeyError:
+                type = self.getType(variable)
+                
         variable = self.initVar(type, variable)
         decl_name = variable
         if type.endswith('[]'):
@@ -173,8 +182,11 @@ class MelGlobals( util.Singleton, dict ):
 melGlobals = MelGlobals()
 
 # for backward compatibility               
-getMelGlobal = melGlobals.get
-setMelGlobal = melGlobals.set
+def getMelGlobal(type, variable) :
+    return melGlobals.get(variable, type)
+def setMelGlobal(type, variable, value) :
+    return melGlobals.set(variable, value, type)
+
     
 class Catch(util.Singleton):
     """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch, you should
