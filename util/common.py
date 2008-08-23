@@ -1,12 +1,20 @@
 import os, sys, re
+from arguments import isIterable as _isIterable
 from re import escape 
 
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------
 
-# Because string 'capitalize' method is NOT equiv. to mel's capitalize
+
 def capitalize(s):
+    """
+    Because python's string 'capitalize' method is NOT equiv. to mel's capitalize
+    >>> capitalize( 'fooBar' )
+    'FooBAR'
+    >>> 'fooBAR'.capitalize()
+    'Foobar'
+    """
     return s[0].upper() + s[1:]
 
 def uncapitalize(s, preserveAcronymns=False):
@@ -85,3 +93,56 @@ def toZip( directory, zipFile ):
             z.write( fname, archiveName, zipfile.ZIP_DEFLATED )
     z.close()
     return zipFile
+
+
+
+# TODO : expand environment variables when testing if it already exists in the list
+def appendEnv( env, value ):
+    """append the value to the environment variable list ( separated by ':' on osx and linux and ';' on windows).
+    skips if it already exists in the list"""
+    sep = os.path.pathsep
+    if env not in os.environ:
+        #print "adding", env, value
+        os.environ[env] = value
+    else:
+        splitEnv = os.environ[env].split(sep)
+        if value not in splitEnv:
+            splitEnv.append(value)
+            #print "adding", env, value
+            os.environ[env] = sep.join( splitEnv )   
+    # i believe os.putenv is triggered by modifying os.environ, so this should not be necessary ?
+    #if put :
+    #    os.putenv(env, os.environ[env])
+
+def prependEnv( env, value ):
+    """prepend the value to the environment variable list (separated by ':' on osx and linux and ';' on windows). 
+    skips if it already exists in the list"""
+    sep = os.path.pathsep
+    if env not in os.environ:
+        #print "adding", env, value
+        os.environ[env] = value
+    else:
+        splitEnv = os.environ[env].split(sep)
+        if value not in splitEnv:
+            splitEnv.insert(0,value)
+            #print "adding", env, value
+            os.environ[env] = sep.join( splitEnv ) 
+              
+def getEnv( env, default=None ):
+    "get the value of an environment variable.  returns default (None) if the variable has not been previously set."
+    return os.environ.get(env, default)
+
+def getEnvs( env, default=[] ):
+    "get the value of an environment variable split into a list.  returns default ([]) if the variable has not been previously set."
+    try:
+        return os.environ[env].split(os.path.pathsep)
+    except KeyError:
+        return default
+
+def putEnv( env, value ):
+    """set the value of an environment variable.  overwrites any pre-existing value for this variable. If value is a non-string
+    iterable (aka a list or tuple), it will be joined into a string with the separator appropriate for the current system."""
+    if _isIterable(value):
+        value = os.path.pathsep.join(value)
+    os.environ[env] = value
+
