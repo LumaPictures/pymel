@@ -1459,11 +1459,13 @@ class MMatrix(Matrix):
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
         """ Wrap the MMatrix api get method """
-        ptr = self.matrix.matrix[4][4]
-        return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(self.__class__.shape[1])) for r in xrange(self.__class__.shape[0]))
+        mat = self.matrix
+        return tuple(tuple(_api.MScriptUtil.getDoubleArrayItem ( _api.MMatrix.__getitem__(mat, r), c) for c in xrange(MMatrix.shape[1])) for r in xrange(MMatrix.shape[0]))
+        # ptr = _api.MMatrix(self.matrix).matrix
+        # return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(MMatrix.shape[1])) for r in xrange(MMatrix.shape[0]))
 
     def __len__(self):
-        """ Number of components in the MVector instance, 3 for MVector, 4 for MPoint and MColor """
+        """ Number of components in the MMatrix instance """
         return self.apicls.__len__(self)
 
     # iterator override     
@@ -1674,13 +1676,13 @@ class MMatrix(Matrix):
         if isinstance(nself, MMatrix) :
             return bool(nself.apicls.isEquivalent(nself, nother, tol))
         else :
-            return bool(super(MMatrix, nself).isEquivalent(nother, tol))      
+            return bool(super(Matrix, nself).isEquivalent(nother, tol))      
     def isSingular(self) : 
         """ Returns True if the given MMatrix is singular """
         try :
             return bool(self.apicls.isSingular(self))
         except :
-            return super(MMatrix, self).isSingular()     
+            return super(Matrix, self).isSingular()     
  
     # additionnal methods
  
@@ -1750,7 +1752,7 @@ class MQuaternion(MMatrix):
         return new
         
     def __init__(self, *args, **kwargs):
-        """ __init__ method, valid for MVector, MPoint and MColor classes """
+        """ __init__ method for MQuaternion """
         cls = self.__class__
         
         if args :
@@ -2251,9 +2253,9 @@ def _testMVector() :
     print repr(2+u)
     # MVector([3.0, 2.0, 2.0])
     print repr(p+2)
-    # MPoint([3.0, 4.0, 5.0, 3.0])
+    # MPoint([3.0, 4.0, 5.0, 1.0])
     print repr(2+p)
-    # MPoint([3.0, 4.0, 5.0, 3.0])
+    # MPoint([3.0, 4.0, 5.0, 1.0])
     print repr(p + u)
     # MPoint([2.0, 2.0, 3.0, 1.0])
     print repr(Vector(1, 2, 3, 4) + u)
@@ -2933,20 +2935,27 @@ def _testMMatrix() :
     
     m = MMatrix( Matrix(range(9), shape=(3, 3)).trimmed(shape=(4, 4), value=10) )
     print m.formated()   
+    #[[0.0, 1.0, 2.0, 10.0],
+    # [3.0, 4.0, 5.0, 10.0],
+    # [6.0, 7.0, 8.0, 10.0],
+    # [10.0, 10.0, 10.0, 10.0]]    
     
     print m.get()
-    # (1.0, 20.0, 30.0)
-    print m[0]
-    1.0
+    # ((0.0, 1.0, 2.0, 10.0), (3.0, 4.0, 5.0, 10.0), (6.0, 7.0, 8.0, 10.0), (10.0, 10.0, 10.0, 10.0))
+    print repr(m[0])
+    # [0.0, 1.0, 2.0, 10.0]
     m[0] = 10
     print m.formated()
-    # MVector([10.0, 20.0, 30.0])   
+    #[[10.0, 10.0, 10.0, 10.0],
+    # [3.0, 4.0, 5.0, 10.0],
+    # [6.0, 7.0, 8.0, 10.0],
+    # [10.0, 10.0, 10.0, 10.0]]   
     print (10 in m)
     # True
     print list(m)
-    # [10.0, 20.0, 30.0]
+    # [Array([10.0, 10.0, 10.0, 10.0]), Array([3.0, 4.0, 5.0, 10.0]), Array([6.0, 7.0, 8.0, 10.0]), Array([10.0, 10.0, 10.0, 10.0])]
     print list(m.flat)
-    
+    # [10.0, 10.0, 10.0, 10.0, 3.0, 4.0, 5.0, 10.0, 6.0, 7.0, 8.0, 10.0, 10.0, 10.0, 10.0, 10.0]
     
     u = MVector.xAxis
     v = MVector.yAxis
@@ -2961,41 +2970,49 @@ def _testMMatrix() :
     # trans matrix : t: 1, 2, 3, r: 45, 90, 30, s: 0.5, 1.0, 2.0
     m = MMatrix([0.0, 4.1633363423443383e-17, -0.5, 0.0, 0.25881904510252079, 0.96592582628906831, 1.3877787807814459e-16, 0.0, 1.9318516525781366, -0.51763809020504159, 0.0, 0.0, 1.0, 2.0, 3.0, 1.0])
     print "m:"
-    print m.round(2).formated()
+    print round(m, 2).formated()
+    #[[0.0, 0.0, -0.5, 0.0],
+    # [0.26, 0.97, 0.0, 0.0],
+    # [1.93, -0.52, 0.0, 0.0],
+    # [1.0, 2.0, 3.0, 1.0]]
 
-    v=MVector(1, 2, 3)   
-    print "v:"
-    print repr(v)
+    x = MVector.xAxis
+    y = MVector.yAxis   
+    z = MVector.zAxis 
+    u = MVector(1, 2, 3)   
+    print "u:"
+    print repr(u)
     # MVector([1, 2, 3])
-    print "v*m"
-    print repr(v*m)
-    # Vector([741, 852, 963])   
-    print "m*v"
-    print repr(M*V)
-    # Vector([321, 654, 987])    
+    print "u*m"
+    print repr(u*m)
+    # MVector([6.31319304794, 0.378937381963, -0.5])   
+    print "m*u"
+    print repr(m*u)
+    # MVector([-1.5, 2.19067069768, 0.896575472168])    
     
     p=MPoint(1, 10, 100, 1)   
     print "p:"
     print repr(p)
-    # Vector([1, 10, 100, 1])
+    # MPoint([1.0, 10.0, 100.0, 1.0])
     print "p*m"
     print repr(p*m)
-    # Vector([741.25, 852.5, 963.75, 1])
+    # MPoint([196.773355709, -40.1045507576, 2.5, 1.0])
     print "m*p"
     print repr(m*p)
-    # Vector([321, 654, 987, 81.25])
+    # MPoint([-50.0, 9.91807730799, -3.24452924947, 322.0])
     
     print "v = [1, 2, 3]*m"
     v = Vector([1, 2, 3])*m
     print repr(v)
+    # Vector([6.31319304794, 0.378937381963, -0.5])
     print "v = [1, 2, 3, 1]*m"
     v = Vector([1, 2, 3, 1])*m
-    print repr(v)          
+    print repr(v)       
+    # Vector([7.31319304794, 2.37893738196, 2.5, 1.0])   
     # should fail
     print "Vector([1, 2, 3, 4, 5])*m"
     try :
         v = Vector([1, 2, 3, 4, 5])*m
-        print repr(v)
     except :
         print "Will raise ValueError: vector of size 5 and matrix of shape (4, 4) are not conformable for a Vector * Matrix multiplication"        
 
@@ -3004,56 +3021,140 @@ def _testMMatrix() :
     print "m = MMatrix(range(1, 17))"
     m = MMatrix(range(1, 17))
     print m.formated()
+    #[[1.0, 2.0, 3.0, 4.0],
+    # [5.0, 6.0, 7.0, 8.0],
+    # [9.0, 10.0, 11.0, 12.0],
+    # [13.0, 14.0, 15.0, 16.0]]    
     # element wise
     print "[1, 10, 100]*m"
     print repr([1, 10, 100]*m)
+    # MMatrix([[1.0, 20.0, 300.0, 0.0], [5.0, 60.0, 700.0, 0.0], [9.0, 100.0, 1100.0, 0.0], [13.0, 140.0, 1500.0, 0.0]])
     print "M = Matrix(range(20), shape=(4, 5))"
-    M = Matrix(range(20), shape=(4, 5))
+    M = Matrix(range(1, 21), shape=(4, 5))
     print M.formated()
+    #[[1, 2, 3, 4, 5],
+    # [6, 7, 8, 9, 10],
+    # [11, 12, 13, 14, 15],
+    # [16, 17, 18, 19, 20]]    
     print "m*M"
-    print (m*M).formated()
+    n = m*M
+    print (n).formated()
+    #[[110.0, 120.0, 130.0, 140.0, 150.0],
+    # [246.0, 272.0, 298.0, 324.0, 350.0],
+    # [382.0, 424.0, 466.0, 508.0, 550.0],
+    # [518.0, 576.0, 634.0, 692.0, 750.0]]    
+    print util.clsname(n)
+    # Matrix
     print "m*2"
-    print (m*2).formated()
+    n = m*2
+    print (n).formated()
+    #[[2.0, 4.0, 6.0, 8.0],
+    # [10.0, 12.0, 14.0, 16.0],
+    # [18.0, 20.0, 22.0, 24.0],
+    # [26.0, 28.0, 30.0, 32.0]]  
+    print util.clsname(n)  
+    # MMatrix
     print "2*m"
-    print (2*m).formated()
+    n = 2*m
+    print (n).formated()
+    #[[2.0, 4.0, 6.0, 8.0],
+    # [10.0, 12.0, 14.0, 16.0],
+    # [18.0, 20.0, 22.0, 24.0],
+    # [26.0, 28.0, 30.0, 32.0]]      
+    print util.clsname(n) 
+    # MMatrix
     print "m+2"
-    print (m+2).formated()
+    n=m+2
+    print (n).formated()
+    #[[3.0, 4.0, 5.0, 6.0],
+    # [7.0, 8.0, 9.0, 10.0],
+    # [11.0, 12.0, 13.0, 14.0],
+    # [15.0, 16.0, 17.0, 18.0]]    
+    print util.clsname(n) 
+    # MMatrix
     print "2+m"
-    print (2+m).formated()
-    
-    m.setToIdentity()
-    print m.formated()
-    m.setToProduct(m, M)
-    print m.formated()
+    n=2+m
+    print (n).formated()
+    #[[3.0, 4.0, 5.0, 6.0],
+    # [7.0, 8.0, 9.0, 10.0],
+    # [11.0, 12.0, 13.0, 14.0],
+    # [15.0, 16.0, 17.0, 18.0]]       
+    print util.clsname(n)
+    # MMatrix
+    try :
+        m.setToProduct(m, M)
+    except :
+        print """Will raise TypeError:  cannot initialize a MMatrix of shape (4, 4) from (Array([0, 1, 2, 3, 4]), Array([5, 6, 7, 8, 9]), Array([10, 11, 12, 13, 14]), Array([15, 16, 17, 18, 19])) of shape (4, 5),
+                                        as it would truncate data or reduce the number of dimensions"""
     
     
     
     print m.isEquivalent(m*M)
+    # False
     
-    print m.transpose().formated()
-    
-    
-    
+    # trans matrix : t: 1, 2, 3, r: 45, 90, 30, s: 0.5, 1.0, 2.0
+    m = MMatrix([0.0, 4.1633363423443383e-17, -0.5, 0.0, 0.25881904510252079, 0.96592582628906831, 1.3877787807814459e-16, 0.0, 1.9318516525781366, -0.51763809020504159, 0.0, 0.0, 1.0, 2.0, 3.0, 1.0])
+    print "m:"
+    print round(m, 2).formated()
+    #[[0.0, 0.0, -0.5, 0.0],
+    # [0.26, 0.97, 0.0, 0.0],
+    # [1.93, -0.52, 0.0, 0.0],
+    # [1.0, 2.0, 3.0, 1.0]]    
+    print "m.transpose():"
+    print round(m.transpose(),2).formated()
+    #[[0.0, 0.26, 1.93, 1.0],
+    # [0.0, 0.97, -0.52, 2.0],
+    # [-0.5, 0.0, 0.0, 3.0],
+    # [0.0, 0.0, 0.0, 1.0]]  
+    print "m.isSingular():"     
     print m.isSingular()
-    
-    print m.inverse()
-    
-    print m.adjoint()
-    
-    print m.adjugate()
-    
-    print m.homogenize()
-    
+    # False
+    print "m.inverse():"
+    print round(m.inverse(),2).formated()
+    #[[0.0, 0.26, 0.48, 0.0],
+    # [0.0, 0.97, -0.13, 0.0],
+    # [-2.0, 0.0, 0.0, 0.0],
+    # [6.0, -2.19, -0.22, 1.0]]   
+    print "m.adjoint():" 
+    print round(m.adjoint(),2).formated()
+    #[[0.0, 0.26, 0.48, 0.0],
+    # [0.0, 0.97, -0.13, 0.0],
+    # [-2.0, 0.0, -0.0, 0.0],
+    # [6.0, -2.19, -0.22, 1.0]]    
+    print "m.adjugate():"
+    print round(m.adjugate(),2).formated()
+    #[[0.0, 0.26, 0.48, 0.0],
+    # [0.0, 0.97, -0.13, 0.0],
+    # [-2.0, 0.0, -0.0, 0.0],
+    # [6.0, -2.19, -0.22, 1.0]]    
+    print "m.homogenize():"
+    print round(m.homogenize(),2).formated()
+    #[[0.0, 0.0, -1.0, 0.0],
+    # [0.26, 0.97, 0.0, 0.0],
+    # [0.97, -0.26, -0.0, 0.0],
+    # [1.0, 2.0, 3.0, 1.0]]    
+    print "m.det():"
     print m.det()
-    
+    # 1.0
+    print "m.det4x4():"
     print m.det4x4()
-    
+    # 1.0
+    print "m.det3x3():"
     print m.det3x3()
-    
-    print m.weighted(0.5)
-    
-    print m.blend(MMatrix.identity, 0.5)
-            
+    # 1.0
+    print "m.weighted(0.5):"
+    print round(m.weighted(0.5),2).formated()
+    #[[0.53, 0.0, -0.53, 0.0],
+    # [0.09, 0.99, 0.09, 0.0],
+    # [1.05, -0.2, 1.05, 0.0],
+    # [0.5, 1.0, 1.5, 1.0]]    
+    print "m.blend(MMatrix.identity, 0.5):"
+    print round(m.blend(MMatrix.identity, 0.5),2).formated()
+    #[[0.53, 0.0, -0.53, 0.0],
+    # [0.09, 0.99, 0.09, 0.0],
+    # [1.05, -0.2, 1.05, 0.0],
+    # [0.5, 1.0, 1.5, 1.0]]
+      
     print "end tests MMatrix"
 
 def _testMTransformationMatrix() :
@@ -3061,9 +3162,14 @@ def _testMTransformationMatrix() :
     print "MTransformationMatrix class", dir(MTransformationMatrix)
     m = MTransformationMatrix()
     print m.formated()
+    #[[1.0, 0.0, 0.0, 0.0],
+    # [0.0, 1.0, 0.0, 0.0],
+    # [0.0, 0.0, 1.0, 0.0],
+    # [0.0, 0.0, 0.0, 1.0]]    
     print m[0, 0]
+    # 1.0
     print m[0:2, 0:3]
-    print m(0, 0)
+    # [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
     print "MTransformationMatrix instance:", dir(m)
     print MTransformationMatrix.__readonly__
     print MTransformationMatrix.__slots__
@@ -3090,6 +3196,7 @@ def _testMTransformationMatrix() :
     # True
     print isinstance(m, _api.MMatrix)
     # True    
+    
     # accepted directly by API methods     
     n = _api.MMatrix()
     n = n.setToProduct(m, m)
