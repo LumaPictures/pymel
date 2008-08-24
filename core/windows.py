@@ -224,12 +224,16 @@ class TextScrollList(UI):
 
 class Callback(object):
     """
-    Enables deferred function evaulation with 'baked' arguments.
+    Enables deferred function evaluation with 'baked' arguments.
     Useful where lambdas won't work...
     Example: 
-        def addRigger(rigger):
-            ...
-            
+    
+    .. python::
+    
+        import pymel as pm
+        def addRigger(rigger, **kwargs):
+            print "adding rigger", rigger
+           
         for rigger in riggers:
             pm.menuItem(
                 label = "Add " + str(rigger),

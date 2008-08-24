@@ -2504,7 +2504,8 @@ class DependNode( PyNode ):
     #rename = rename
     def rename( self, name ):
         # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
-        return self.setName( name )
+        self.setName( name )
+        return self
     
     duplicate = duplicate
     
