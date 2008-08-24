@@ -3,7 +3,7 @@ from pymel.util.trees import *
 import pymel.util as util
 import pymel.mayahook as mayahook
 assert mayahook.mayaInit() 
-print "Maya up and running"
+#print "Maya up and running"
 import pymel.tools.py2mel as py2mel
 #from general import PyNode
 import pymel.api as _api
@@ -17,7 +17,7 @@ try:
     import pymel.mayahook.pmcmds as pmcmds
 except ImportError: pass
 
-VERBOSE=False
+VERBOSE=True
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -2004,22 +2004,39 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 except KeyError:
                     print "No api information for api class %s" % ( apicls.__name__ )
                 else:
+                    # Find out methods herited from other bases than apicls to avoid
+                    # unwanted overloading
+                    herited = {}
+                    for base in bases :
+                        if base is not apicls :
+                            # basemro = inspect.getmro(base)
+                            for attr in dir(base) :
+                                if attr not in herited :
+                                    herited[attr] = base                                
+                    
+                    if VERBOSE : print "Methods info", classInfo['methods']        
                     # Class Methods
-                    for methodName, info in classInfo['methods'].items():                  
-                        #TODO : check pymelName
-                        try:
-                            pymelName = info[0]['pymelName']
-                            removeAttrs.append(methodName)
-                        except KeyError:
-                            pymelName = methodName
-                            
-                        if pymelName not in classdict and pymelName not in ['setObject']:
-                            method = wrapApiMethod( apicls, methodName, newName=pymelName )
-                            if method:
-                                #print "%s.%s() successfully created" % (apicls.__name__, pymelName )
-                                classdict[pymelName] = method
-                        else:
-                            if VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )      
+                    for methodName, info in classInfo['methods'].items(): 
+                        # don't rewrap if already herited from a base class that is not the apicls
+                        if VERBOSE : print "Checking method %s" % (methodName)
+                        if methodName not in herited :
+                            #TODO : check pymelName
+                            try:
+                                pymelName = info[0]['pymelName']
+                                removeAttrs.append(methodName)
+                            except KeyError:
+                                pymelName = methodName
+                                
+                            if pymelName not in classdict and pymelName not in ['setObject']:
+                                if VERBOSE : print "Doing an auto wrap on %s for %s" % (pymelName, methodName)
+                                method = wrapApiMethod( apicls, methodName, newName=pymelName )
+                                if method:
+                                    if VERBOSE : print "%s.%s() successfully created" % (apicls.__name__, pymelName )
+                                    classdict[pymelName] = method
+                            else:
+                                if VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )
+                        else :
+                            if VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
                     try:   
                         # Enumerators   
                         for enumName, enumList in classInfo['pymelEnums'].items():
@@ -2047,7 +2064,6 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
             
-        # if hasattr(newcls, 'stype') :
         if hasattr(newcls, 'apicls') :
             # type (api type) used for the storage of data
             apicls  = newcls.apicls
@@ -2086,8 +2102,6 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 
                 # set class constants as readonly 
 #                readonly = newcls.__readonly__
-#                if 'stype' not in readonly :
-#                    readonly['stype'] = None
 #                if 'apicls' not in readonly :
 #                    readonly['apicls'] = None 
 #                for c in constant.keys() :
@@ -2101,7 +2115,8 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         
         
         if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
-            ApiTypeRegister.register( newcls.apicls.__name__, newcls )   
+            ApiTypeRegister.register( newcls.apicls.__name__, newcls )
+  
         return newcls 
     
 class MetaMayaNodeWrapper(MetaMayaTypeWrapper) :
