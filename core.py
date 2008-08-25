@@ -1553,12 +1553,19 @@ class FileReference(Path):
     refNode = util.cacheProperty( _getRefNode, '_refNode')
 
     def getReferenceEdits(self, **kwargs):
+        """referenceQuery -editString -onReferenceNode <self.refNode>"""
+        
+          
         kwargs.pop('editStrings',None)
         kwargs.pop('es',None)
         edits = referenceQuery(self.refNode, editStrings=True, onReferenceNode=self.refNode, **kwargs)
         return edits
     
     def removeReferenceEdits(self, editCommand=None, force=False):
+        """Remove edits from the reference.
+        @param editCommand: If specified, remove only edits of a particular type: addAttr, setAttr, connectAttr, disconnectAttr or parent
+        @param force: Unload the reference if it is not unloaded already
+        """
         if self.isLoaded():
             if not force:
                 raise Exception("Cannon remove edits while reference '%s' is loaded. Unload the reference first, or use the 'force=True' flag." % self)
@@ -1575,31 +1582,43 @@ def _safeEval(s):
     except:
         return s
 
+def _safePyNode(n):
+    n = node.PyNode(_safeEval(n))
+    return n
+
 class ReferenceEdit(str):
+    """
+Parses a reference edit command string into various components based on the edit type.
+This is the class returned by pymel's version of the 'referenceQuery' command.
+    """
+      
     def __new__(cls, editStr, fileReference=None, successful=None):
 
         self = str.__new__(cls, editStr)
         
         self.type = self.split()[0]
         self.fileReference = fileReference
-        self.namespace = self.fileReference.namespace
-        self.fullNamespace = self.fileReference.fullNamespace
+        self.namespace = fileReference and self.fileReference.namespace
+        self.fullNamespace = fileReference and self.fileReference.fullNamespace
         self.successful = successful
         return self
 
     def _getEditData(self):
-    
-        def _safePyNode(n):
-            n = node.PyNode(_safeEval(n))
-            return n
-
-        def _safeRefPyNode(n):
-            n = node.PyNode(_safeEval(n))
-            if self.namespace in n:
-                ns = self.fileReference.refNode.namespace()
-                if not ns==":":
-                    n = n.addPrefix(ns)
-            return n
+        """
+        Returns a dictionary with the relevant data for this reference edit. 
+        Each edit type will have a different set of keys.
+        """
+        if self.fileReference:
+            def _safeRefPyNode(n):
+                n = node.PyNode(_safeEval(n))
+                if self.namespace in n:
+                    ns = self.fileReference.refNode.namespace()
+                    if not ns==":":
+                        n = n.addPrefix(ns)
+                return n
+        else:
+            def _safeRefPyNode(n):
+                return node.PyNode(_safeEval(n))
         
         elements = self.split()
         elements.pop(0)
@@ -1617,6 +1636,8 @@ class ReferenceEdit(str):
             else:
                 editData['child'] = _safePyNode(elements.pop(-1))
         elif self.type=="disconnectAttr":
+            if elements[0].startswith("-"):
+                elements.append(elements.pop(0))
             refNode, otherNode = map(_safeRefPyNode, elements[:2])
             editData['sourceNode'] = refNode
             editData['targetNode'] = otherNode
@@ -1624,6 +1645,8 @@ class ReferenceEdit(str):
             editData['node'] = refNode
             del elements[:2]
         elif self.type=="connectAttr":
+            if elements[0].startswith("-"):
+                elements.append(elements.pop(0))
             refNode, otherNode = map(_safeRefPyNode, elements[:2])
             editData['sourceNode'] = refNode
             editData['targetNode'] = otherNode
@@ -1636,6 +1659,7 @@ class ReferenceEdit(str):
         return editData
     
     def remove(self, force=False):
+        """Remove the reference edit. if 'force=True' then the reference will be unloaded from the scene (if it is not already unloaded)"""
         if self.fileReference.isLoaded():
             if not force:
                 raise Exception("Cannon remove edits while reference '%s' is loaded. Unload the reference first, or use the 'force=True' flag." % self.fileReference)
