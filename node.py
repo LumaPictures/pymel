@@ -1922,7 +1922,14 @@ class Mesh(SurfaceShape):
     def verts(self):
         return self._listComponent( 'vtx', self.numVerts() )
     '''
-                    
+                 
+
+class IkHandle(Transform):
+    __metaclass__ = factories.metaNode
+    def exists(self, val=None, **kwargs):
+        return Transform.exists(self)
+    exists.__doc__ = Transform.exists.__doc__
+
 
 class Subdiv(SurfaceShape):
     __metaclass__ = factories.metaNode
