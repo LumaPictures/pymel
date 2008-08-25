@@ -96,7 +96,7 @@ def getReferences(reference=None, recursive=False):
         for x in cmds.file( q=1, reference=1):
             try:
                 ref = core.FileReference(x)
-                res[cmds.file( x, q=1, namespace=1)] = ref
+                res[ref.namespace] = ref
                 if recursive:
                     res.update( ref.subReferences() )
             except: pass
