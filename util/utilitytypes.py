@@ -3,7 +3,8 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import warnings, inspect
+import inspect
+from pwarnings import *
 
 class Singleton(object) :
     """ Singleton classes can be derived from this class,
@@ -154,7 +155,7 @@ class metaStatic(type) :
             if k.startswith('__') and k.endswith('__') :
                 # special methods, copy to newdict unless they conflict with pre-defined methods
                 if k in newdict :
-                    warnings.warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
+                    warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
                 else :
                     newdict[k] = classdict[k]
             else :
