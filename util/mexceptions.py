@@ -1,4 +1,4 @@
-# redefine format warning to avoid getting garbage at end of line when raised directly from MAya console
+# redefine format warning to avoid getting garbage at end of line when raised directly from Maya console
 # and define a UserWarning class that does only print it's message (no line or module info)
 import warnings, os.path
 
