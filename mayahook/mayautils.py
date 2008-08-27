@@ -1,4 +1,5 @@
 import re, os, os.path, sys, platform, subprocess
+import pymel.util as util
 from pymel.util.pwarnings import *
 
 import envparse
@@ -20,29 +21,31 @@ SYSTEM = platform.system()
 def source (file, searchPath=None, recurse=False) :
     """Looks for a python script in the specified path (uses system path if no path is specified)
         and executes it if it's found """
-    filepath = os.path(file)
-    filename = filepath.basename()
+    filepath = unicode(file)
+    filename = os.path.basename(filepath)
+    dirname = os.path.dirname(filepath)
+    
     if searchPath is None :
         searchPath=sys.path
     if not util.isIterable(searchPath) :
         searchPath = list((searchPath,))
     itpath = iter(searchPath)
-    #print "looking for file as: "+filepath
-    while not filepath.exists() :
+    print "looking for file as: "+filepath
+    while not os.path.exists(filepath) :
         try :
-            p = os.path(itpath.next()).realpath().abspath()
-            filepath = filepath.joinpath(p, filename)
-            #print 'looking for file as: '+filepath
+            p = os.path.abspath(os.path.realpath(itpath.next()))
+            filepath = os.path.join(p, filename)
+            print 'looking for file as: '+filepath
             if recurse and not filepath.exists() :
                 itsub = os.walk(p)
-                while not filepath.exists() :
+                while not os.path.exists(filepath) :
                     try :
                         root, dirs, files = itsub.next()
                         itdirs = iter(dirs)
-                        while not filepath.exists() :
+                        while not os.path.exists(filepath) :
                             try :
-                                filepath = filepath.joinpath(Path(root), os.path(itdirs.next()), filename)
-                                #print 'looking for file as: '+filepath
+                                filepath = os.path.join(root, itdirs.next(), filename)
+                                print 'looking for file as: '+filepath
                             except :
                                 pass
                     except :
