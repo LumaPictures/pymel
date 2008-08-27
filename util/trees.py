@@ -9,7 +9,7 @@ from __future__ import generators
 # import functools as ftools
 from collections import *
 import inspect
-import warnings
+import pwarnings
 import weakref as weak
 from copy import *
 
