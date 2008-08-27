@@ -1465,7 +1465,8 @@ class FileReference(Path):
                 except:
                     return (path, None)
                     
-            copyNumber = splitCopyNumber(path)[1]
+            path, copyNumber = splitCopyNumber(path)
+            unresolvedPath, copyNumber = splitCopyNumber(unresolvedPath)
 
             self = Path.__new__(cls, path)
             self._copyNumber = copyNumber
