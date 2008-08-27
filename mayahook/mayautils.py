@@ -1,5 +1,5 @@
-import re, os, os.path, sys, platform, subprocess, warnings
-from pymel.util import ExecutionWarning
+import re, os, os.path, sys, platform, subprocess
+from pymel.util.pwarnings import *
 
 import envparse
 
@@ -344,7 +344,7 @@ def parseMayaenv(envLocation=None, version=None) :
         if not os.environ.has_key('MAYA_APP_DIR') :
             home = os.environ.get('HOME', None)
             if not home :
-                warnings.warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env", ExecutionWarning)
+                warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env", ExecutionWarning)
                 return False
             else :
                 maya_app_dir = os.path.join(home, 'maya')
@@ -368,7 +368,7 @@ def parseMayaenv(envLocation=None, version=None) :
         try :
             envFile = open(envPath)
         except :
-            warnings.warn ("Unable to open Maya.env file %s" % envPath, ExecutionWarning)
+            warn ("Unable to open Maya.env file %s" % envPath, ExecutionWarning)
             return False
         success = False
         try :
@@ -545,8 +545,7 @@ def setMayaDefaultEnvs(version):
     scriptPaths.append( os.path.join(mayaloc, 'scripts', 'muscle') ) 
     os.environ['MAYA_SCRIPT_PATH'] =  os.path.pathsep.join( scriptPaths )
       
-
-         
+       
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
 def mayaInit(forversion=None) :
