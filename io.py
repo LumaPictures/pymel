@@ -80,16 +80,16 @@ def listReferences(type='list'):
     
     # dict
     if type in ['dict', dict]:
-        res = {}
-        for x in cmds.file( q=1, reference=1):
-            try:
-                res[cmds.file( x, q=1, namespace=1)] = core.FileReference(x)
-            except: pass
-        return res
+        return getReferencesDict()
     
     # list
-    return map( core.FileReference,cmds.file( q=1, reference=1) )
+    return core._getAllFileReferences()
 
+<<<<<<< .mine
+def getReferencesDict():
+    return dict((fr.fullNamespace, fr) for fr in core._getAllFileReferences())    
+
+=======
 def getReferences(reference=None, recursive=False):
     res = {}    
     if reference is None:
@@ -106,6 +106,7 @@ def getReferences(reference=None, recursive=False):
                 res[cmds.file( x, q=1, namespace=1)] = core.FileReference(x)
             except: pass
     return res    
+>>>>>>> .r730
     
 def createReference( *args, **kwargs ):
     """file -reference"""

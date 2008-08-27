@@ -1455,8 +1455,8 @@ class FileReference(Path):
     the proper results in maya as well. 
      """
     
-    def __new__(cls, path=None, namespace=None, refnode=None):
-        def create(path):
+    def __new__(cls, path=None, namespace=None, refnode=None, unresolvedPath=None):
+        def create(path, unresolvedPath):
             def splitCopyNumber(path):
                 """Return a tuple with the path and the copy number. Second element will be None if no copy number"""
                 buf = path.split('{')
@@ -1465,21 +1465,45 @@ class FileReference(Path):
                 except:
                     return (path, None)
                     
-            path, copyNumber = splitCopyNumber(path)
+            copyNumber = splitCopyNumber(path)[1]
+
             self = Path.__new__(cls, path)
             self._copyNumber = copyNumber
-            return self
+            self._unresolvedPath = Path(unresolvedPath)
             
-        if path:
-            return create(path)
-        if namespace:
-            for path in map( FileReference, cmds.file( q=1, reference=1) ):
-                 if path.namespace == namespace:
-                    return create(path)
-            raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
+            return self
+        
+        # find the associated file from the refnode and recurse
         if refnode:
+            refnode = node.Reference(refnode)
             path = cmds.referenceQuery( refnode, filename=1 )
-            return create(path)
+            return cls(path = path)
+
+        if unresolvedPath:
+            return create(path, unresolvedPath)
+        
+        # for path or namespace we'll need to list all referenced files both in their resolved and unresolved names
+        # so that we can keep the unresolved path
+        unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
+        resolvedFiles = cmds.file( q=1, reference=1)
+        files = zip(resolvedFiles, unresolvedFiles)
+        
+        if path:
+            d = dict(files)    # create a dictionary that will help lookup a resolved paht back to the unresolved path
+            path = cmds.file(path, q=1, expandName=1)    # force the path to its resolved form, so that we can find it in the dictionary
+            unresolvedPath = d.get(path,path)            # look-up for the unresolved path
+            return create(path, unresolvedPath)
+        
+        if namespace:
+            # the only (i could find) is to look through all referenced files and find a match for the requested namespace
+            for (fn,ufn) in files:
+                ns = cmds.file(fn, q=1, ns=1)
+                rn = node.Reference(cmds.file(fn, q=1, referenceNode=1))
+                fullNS = refnode.namespace() + ns
+                if  fullNS == namespace:
+                    return create(fn, ufn)
+            raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
+        
         raise ValueError, "Must supply at least one argument"    
 
     def subReferences(self):
@@ -1499,9 +1523,15 @@ class FileReference(Path):
     def withCopyNumber(self):
         """return this path with the copy number at the end"""
         if self._copyNumber is not None:
-            return Path( '%s{%d}' % (self, self._copyNumber) )
+            return Path( '%s{%d}' % (self._unresolvedPath, self._copyNumber) )
+        return self._unresolvedPath
+    
+    def withUnresolvedPath(self):
+        """return the path originally specified when the file was loaded into Maya; this path may contain environment variables and may not exist on disk"""
+        if self._unresolvedPath is not None:
+            return self._unresolvedPath
         return self
-            
+    
     def importContents(self):
         """file -importReference """
         return cmds.file( self.withCopyNumber(), importReference=1 )
@@ -1520,7 +1550,9 @@ class FileReference(Path):
     def    lock(self):
         """file -lockReference """
         return cmds.file( self.withCopyNumber(), lockReference=1 )
-    
+    def    replace(self, newFile):
+        """file -loadReference """
+        return io.loadReference( newFile, self.refNode)
     
     def isDeferred(self):
         """file -q -deferReference """
@@ -1575,6 +1607,12 @@ class FileReference(Path):
         if editCommand:
             kwargs['editCommand'] = editCommand
         cmds.file(cleanReference=self.refNode, **kwargs)
+
+def _getAllFileReferences():
+    unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
+    resolvedFiles = cmds.file( q=1, reference=1)
+    refs = [FileReference(path=fn, unresolvedPath=ufn) for (fn,ufn) in zip(resolvedFiles, unresolvedFiles)]
+    return refs    
 
 def _safeEval(s):
     try:
