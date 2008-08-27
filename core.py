@@ -1551,7 +1551,7 @@ class FileReference(Path):
     def    lock(self):
         """file -lockReference """
         return cmds.file( self.withCopyNumber(), lockReference=1 )
-    def    replace(self, newFile):
+    def    replaceWith(self, newFile):
         """file -loadReference """
         return io.loadReference( newFile, self.refNode)
     
