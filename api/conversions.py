@@ -7,7 +7,7 @@ from allapi import *
 from maya.cmds import ls as _ls
 #import pymel.factories as _factories
 
-import sys, inspect, warnings, timeit, time, re
+import sys, inspect, timeit, time, re
 from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict
 import pymel.util as util
 import pickle, os.path
@@ -21,7 +21,6 @@ from keyword import iskeyword as _iskeyword
 # except form core seems to be a problem
 #from pymel.mayahook.factories import NodeHierarchy
 
-print "module name", __name__
 _thisModule = sys.modules[__name__]
 #_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
