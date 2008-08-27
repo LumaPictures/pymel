@@ -7,16 +7,7 @@ import sys, os, re
 from getpass import getuser
 from socket import gethostname
 
-# to make sure Maya is up
-import pymel.mayahook as mayahook
-
-try:
-    import pymel.mayahook.pmcmds as cmds
-    import maya.mel as mm
-except ImportError:
-    pass
-
-import sys, os, re, inspect, warnings, timeit, time
+import inspect, warnings, timeit, time
 import pymel.util as util
 import pymel.factories as _factories
 from pymel.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
@@ -27,7 +18,18 @@ from pmtypes.wrappedtypes import *
 import pmtypes.path as _path
 import pymel.util.nameparse as nameparse
 
+# to make sure Maya is up
+import pymel.mayahook as mayahook
+assert mayahook.mayaInit()
 
+from maya.cmds import about as _about
+import pymel.mayahook.pmcmds as cmds
+import maya.mel as mm
+#try:
+#    import pymel.mayahook.pmcmds as cmds
+#    import maya.mel as mm
+#except ImportError:
+#    pass
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
@@ -49,14 +51,14 @@ Modifications:
     """
     if kwargs.get('apiVersion', kwargs.get('api',False)):
         try:
-            return cmds.about(api=1)
+            return _about(api=1)
         except TypeError:
             return { 
              '8.5 Service Pack 1': 200701,
              '8.5': 200700,
-             }[ cmds.about(version=1)]
+             }[ _about(version=1)]
              
-    return cmds.about(**kwargs)
+    return _about(**kwargs)
 
 # TODO: finish this, replace current Version class...
 #class newVersion( util.Singleton ):
