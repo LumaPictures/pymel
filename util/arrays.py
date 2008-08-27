@@ -3327,7 +3327,7 @@ class Array(object):
         cls = self.__class__ 
         index = self._getindex(args, default=None, expand=True)
         if index :
-            new = self.deepcopy()
+            new = Array(self.deepcopy())
             new._delete(index)
             new._cacheshape()
             return cls._convert(new)
@@ -4060,7 +4060,7 @@ class Array(object):
             True
         """
         return (not self.__eq__(other))
-           
+    __neq__ = __ne__       
     def __abs__(self):
         """ a.__abs__() <==> abs(a)
         
