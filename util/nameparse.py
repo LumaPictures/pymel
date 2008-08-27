@@ -4,7 +4,7 @@ import external.ply.yacc as yacc
 
 #from namedtuple import namedtuple
 from common import capitalize, uncapitalize
-from mexceptions import *
+from pwarnings import *
 from arguments import *
 from utilitytypes import *
 
