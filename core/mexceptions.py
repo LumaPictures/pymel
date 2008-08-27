@@ -99,19 +99,23 @@
 """
 
 import pymel.util as util
-from pymel.util.pwarnings import *
+from pymel.util.pwarnings import warn, simplefilter
+# from warnings import warn, simplefilter
 import pymel.mayahook as mayahook
 from pymel.mayahook.optionvars import *
 
 import sys, StringIO, traceback, re, inspect, os.path
 
-#import pymel.mayahook as mayahook
-
-import maya.app.python
-
 _thisModule = sys.modules[__name__]
 
-# Need to overload Maya's formatException as it raises an exception on non utf8 systems
+from maya.cmds import about as _about
+sysEncoding = sys.getdefaultencoding()
+mayaEncoding = _about(cs=True)
+exceptionEncoding = 'utf8'
+#
+## Need to overload Maya's formatException as it raises an exception on non utf8 systems
+#
+import maya.app.python
 
 def formatException( exceptionType, exceptionObject, traceBack ):
     """ Maya way of formatting expections, redefined here because of a unicode encoding error """
@@ -120,7 +124,7 @@ def formatException( exceptionType, exceptionObject, traceBack ):
     traceback.print_exception( exceptionType, exceptionObject, traceBack,
                                32, stringBuffer )
     # result = stringBuffer.getvalue().decode('utf8')
-    result = stringBuffer.getvalue().decode(sys.getdefaultencoding())
+    result = stringBuffer.getvalue().decode(exceptionEncoding)
 
     stringBuffer.close()
     
@@ -142,29 +146,7 @@ def formatException( exceptionType, exceptionObject, traceBack ):
     # return the error message
     return result
 
-
 maya.app.python.formatException = formatException
-
-#class ExecutionWarning (UserWarning) :
-#    """ Simple Warning class that doesn't print any information besides warning message """
-#
-## Overload of formatwarnings, when filename was not defined, linecache would return garbage
-#
-#def formatwarning(message, category, filename, lineno):
-#    """Redefined format warning for maya."""
-#    if issubclass(category, ExecutionWarning) :
-#        s =  unicode("%s: %s\n") % (category.__name__, message)
-#    else :
-#        s =  unicode("%s: %s\n at line: %s in %s\n") % (category.__name__, message, lineno, filename)
-#        name, ext = os.path.splitext(filename)
-#        line = None
-#        if ext == ".py" :
-#            line = unicode(warnings.linecache.getline(filename, lineno)).strip()
-#        if line and len(line) > 0 :
-#            s = s + " " + line + "\n"
-#    return s
-#
-#warnings.formatwarning = formatwarning
 
 
 # Filter User Errors, Warnings and Prints by Verbosity
@@ -325,6 +307,8 @@ def updateWarnFilters (verbose=None, stop=None) :
         assert stop in range(0, maxStop+1), ("Valid verbose stop level values are [0..%i]" % maxStop)
     # redo filters          
     # print "updating filters from %s, %s to %s, %s" % (verboseLevel(), verboseStop(), verbose, stop)
+    # catch all
+    # simplefilter(action = 'always', category=Exception)
     if stop > 0 :
         simplefilter(action = 'error', category=_verboseWarningClasses[0])
     simplefilter(action = 'always', category=_verboseWarningClasses[stop])            
@@ -342,7 +326,7 @@ def vprint (msg, level=0) :
     try :
         assert level in range(0, maxVerbose+1)
     except :
-        raise ValueError, "vprint valid level values are [0..%i]" % maxVerbose
+        raise ValueError, "vprint valid level values are [0..%i], %s invalid" % (maxVerbose, level)
     verbose = verboseLevel()
     # filters and formats according to verbose level
     if (level <= verbose) :
@@ -361,14 +345,15 @@ def vwarn (msg, level=0, stacklevel=1) :
         Note : it is also possible to set the level below which a warning will be treated as an error
         and stop execution with the 'verboseStop' function.
     """
-    maxVerbose = maxVerboseLevel() 
+    maxVerbose = maxVerboseLevel()
+    # print "verbose warning for (%s, level=%s, stacklevel=%s)" % (msg, level, stacklevel)     
     try :
         assert level in range(0, maxVerbose+1)
     except :
-        raise ValueError, "vwarn valid level values are [0..%i]" % maxVerbose
+        raise ValueError, "vwarn valid level values are [0..%i], %s invalid" % (maxVerbose, level)
     category = _verboseWarningClasses[level]
     # already filtered by the warnings mechanisms
-    # print "trying to set warnings.warn (%s, %s, %s)" % (msg, category, stacklevel)
+    # print "trying to set warnings.warn (%s, %s, %s) for level %s" % (msg, category, stacklevel+1, level)
     warn (msg, category, stacklevel+1)
         
 # do the first init warning filter
