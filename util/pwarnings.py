@@ -23,7 +23,7 @@ def formatwarning(message, category, filename, lineno):
         # print "message is ", message
         # print "lineno is ", lineno
         # print "filename is ", filename
-        s =  u"%s: %s at line: %s in %s\n" % (category.__name__, message, lineno, filename)
+        s =  u"%s: %s\n# at line: %s in %s\n" % (category.__name__, message, lineno, filename)
         name, ext = os.path.splitext(filename)
         line = ""
         if ext == ".py" :
