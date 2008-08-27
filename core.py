@@ -1500,7 +1500,7 @@ class FileReference(Path):
             for (fn,ufn) in files:
                 ns = cmds.file(fn, q=1, ns=1)
                 rn = node.Reference(cmds.file(fn, q=1, referenceNode=1))
-                fullNS = refnode.namespace() + ns
+                fullNS = rn.namespace() + ns
                 if  fullNS == namespace:
                     return create(fn, ufn)
             raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
