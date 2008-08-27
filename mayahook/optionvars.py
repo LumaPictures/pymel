@@ -1,6 +1,6 @@
 import os
 import pymel.util as util
-import pmcmds as cmds
+import maya.cmds as cmds
 #-----------------------------------------------
 #  Option Variables
 #-----------------------------------------------
