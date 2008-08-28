@@ -9,11 +9,12 @@ from re import escape
 
 def capitalize(s):
     """
-    Because python's string 'capitalize' method is NOT equiv. to mel's capitalize
-    >>> capitalize( 'fooBar' )
-    'FooBAR'
-    >>> 'fooBAR'.capitalize()
-    'Foobar'
+    Python's string 'capitalize' method is NOT equiv. to mel's capitalize, which preserves
+    capital letters.
+        >>> capitalize( 'fooBar' )
+        'FooBAR'
+        >>> 'fooBAR'.capitalize()
+        'Foobar'
     """
     return s[0].upper() + s[1:]
 
