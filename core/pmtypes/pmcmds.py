@@ -18,7 +18,7 @@ The wrapping will be switched off for 2009 and later...
 import inspect
 
 import pymel.util as util
-import mayautils
+#import mayautils
 import maya.cmds
 import warnings
 
