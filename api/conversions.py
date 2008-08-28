@@ -2,7 +2,7 @@
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 
-import pymel.mayahook as mayahook
+import pymel.mayahook.mayautils as mayahook
 from allapi import *
 from maya.cmds import ls as _ls
 #import pymel.factories as _factories
@@ -11,8 +11,7 @@ import sys, inspect, timeit, time, re
 from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict
 import pymel.util as util
 import pickle, os.path
-import pymel.util.nameparse as nameparse
-import pymel.mayahook as mayahook
+#import pymel.mayahook as mayahook
 from HTMLParser import HTMLParser
 from pymel.util.external.BeautifulSoup import BeautifulSoup
 from keyword import iskeyword as _iskeyword

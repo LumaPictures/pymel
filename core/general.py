@@ -7,14 +7,19 @@ import sys, os, re
 from getpass import getuser
 from socket import gethostname
 
+import pmtypes.pmcmds as cmds
+#import maya.cmds as cmds
+import maya.mel as mm
+
 import inspect, warnings, timeit, time
+
 import pymel.util as util
-import pymel.factories as _factories
-from pymel.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
+import pmtypes.factories as _factories
+from factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
-from pmtypes.wrappedtypes import *
+from wrappedtypes import *
 import pmtypes.path as _path
 import pymel.util.nameparse as nameparse
 
@@ -22,14 +27,9 @@ import pymel.util.nameparse as nameparse
 import pymel.mayahook as mayahook
 assert mayahook.mayaInit()
 
+
 from maya.cmds import about as _about
-import pymel.mayahook.pmcmds as cmds
 import maya.mel as mm
-#try:
-#    import pymel.mayahook.pmcmds as cmds
-#    import maya.mel as mm
-#except ImportError:
-#    pass
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
@@ -108,7 +108,7 @@ class Version( util.Singleton ):
     v85      = 200700
     v85sp1   = 200701
     v2008    = 200800
-#    v2008sp1  = 200806
+    v2008sp1  = 200806
     v2008ext2 = 200806
     v2009     = 200900
 #
@@ -1605,8 +1605,6 @@ class Component(object):
 
                 
 class Attribute(PyNode):
-    __metaclass__ = MetaMayaTypeWrapper
-    apicls = api.MPlug
     """
     Attributes
     ==========
@@ -1681,6 +1679,8 @@ class Attribute(PyNode):
         >>> s.attr('__init__').set( .5 )
         >>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()    
     """
+    __metaclass__ = MetaMayaTypeWrapper
+    apicls = api.MPlug
     attrItemReg = re.compile( '\[(\d+)\]$')
     
     def __init__(self, *args, **kwargs ):
@@ -2406,7 +2406,7 @@ class DependNode( PyNode ):
             except MayaAttributeError, msg:
                 # since we're being called via __getattr__ we don't know whether the user was trying 
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
-                raise AttributeError, msg
+                raise AttributeError, str(msg)
             
         #if attr.startswith('__') and attr.endswith('__'):
         #    return super(PyNode, self).__getattr__(attr)
@@ -3137,8 +3137,8 @@ class Transform(DagNode):
                 try: 
                     return self.getShape().attr(attr)
                 except AttributeError:
-                    raise MayaAttributeError, msg
-            raise MayaAttributeError, msg
+                    raise MayaAttributeError, str(msg)
+            raise MayaAttributeError, str(msg)
         
 #    def __getattr__(self, attr):
 #        if attr.startswith('__') and attr.endswith('__'):

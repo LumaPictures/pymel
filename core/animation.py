@@ -1,12 +1,12 @@
 
 import pymel.util as util
-import pymel.factories as _factories
+import pmtypes.factories as _factories
 import general
-try:
-    import pymel.mayahook.pmcmds as cmds
-    import maya.mel as mm
-except ImportError:
-    pass
+
+import pmtypes.pmcmds as cmds
+#import maya.cmds as cmds
+import maya.mel as mm
+
 
 
 def listAnimatable( *args, **kwargs ):

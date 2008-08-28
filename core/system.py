@@ -24,16 +24,17 @@ some of the new commands were changed slightly from their flag name to avoid nam
 also note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 """
 
-try:
-    import pymel.mayahook.pmcmds as cmds
-    import maya.OpenMaya as OpenMaya
-except ImportError: pass
+
+import pmtypes.pmcmds as cmds
+#import maya.cmds as cmds
+import maya.OpenMaya as OpenMaya
+
 
 import pymel.util as util
-import pymel.factories as _factories
-from pymel.factories import createflag, add_docs
+import pmtypes.factories as _factories
+from factories import createflag, add_docs
 from pymel.util.scanf import fscanf
-import general
+
 
 import sys
 try:
@@ -468,6 +469,7 @@ class FileReference(Path):
     
     @add_docs('referenceQuery', 'nodes')
     def nodes(self):
+        import general
         return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1, dagPath=1 ) )
     
     @add_docs('file', 'copyNumberList')
@@ -489,8 +491,9 @@ class FileReference(Path):
         #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
         # TODO : cast this to PyNode
         try:
+            import general
             return general.PyNode( cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ) )
-        except:
+        except RuntimeError:
             return None
         
     refNode = util.cacheProperty( _getRefNode, '_refNode')

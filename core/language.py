@@ -2,13 +2,14 @@
 from math import *
 from pymel.util.mathutils import *
 import system
-from pmtypes.wrappedtypes import *
+from wrappedtypes import *
 import pymel.util as util
 import maya.mel as mm
-import pymel.mayahook.pmcmds as cmds
+import pmtypes.pmcmds as cmds
+#import maya.cmds as cmds
 from pymel.mayahook.optionvars import *
 import os
-import pymel.factories as _factories
+import pmtypes.factories as _factories
 #--------------------------
 # Mel <---> Python Glue
 #--------------------------  

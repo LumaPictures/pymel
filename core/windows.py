@@ -57,13 +57,14 @@ to pass along to your function and order of definition does not matter.
 """
 
 
-try:
-    import pymel.mayahook.pmcmds as cmds
-except ImportError: pass
+
+import pmtypes.pmcmds as cmds
+#import maya.cmds as cmds
+
 
 import pymel.util as util
-import pymel.factories as _factories
-from pymel.factories import MetaMayaNodeWrapper as metaNode
+import pmtypes.factories as _factories
+from factories import MetaMayaNodeWrapper as metaNode
 from system import Path
 
 #-----------------------------------------------
@@ -454,6 +455,7 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
 def _createClassesAndFunctions():
     for funcName in _factories.uiClassList:
         classname = util.capitalize(funcName)
+        #classname = funcName[0].upper() + funcName[1:]
         if not hasattr( _thisModule, classname ):
             cls = metaNode(classname, (UI,), {})
             cls.__module__ = __name__

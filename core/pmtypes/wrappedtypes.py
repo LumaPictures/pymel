@@ -8,11 +8,10 @@ import itertools, operator, colorsys
 import warnings
 
 import pymel.util as util
-import pymel.mayahook as mayahook
 import pymel.api as _api
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
-import pymel.factories as _factories
+import factories as _factories
 
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
