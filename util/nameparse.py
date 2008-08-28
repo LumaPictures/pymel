@@ -17,7 +17,13 @@ def currentfn() :
         return sys._getframe(1).f_code.co_name
     except :
         pass
-    
+
+__all__ = ['NameParseError', 'ParsingWarning', 'NamePart', 'NameAlphaPart', 'NameNumPart', 'NameGroup', 
+           'NameAlphaGroup', 'NameNumGroup', 'NameSep', 'MayaName', 'NamespaceSep', 'Namespace', 
+           'MayaShortName', 'DagPathSep', 'MayaNodePath', 'AttrSep', 'NameIndex', 'NameRangeIndex', 
+           'Component', 'Attribute', 'AttributePath', 'NodeAttribute', 'MayaObjectName', 
+           'getBasicPartList', 'parse']
+   
 class NameParseError(Exception):
     pass
 
@@ -336,7 +342,7 @@ class Parsed(ProxyUni):
         
         if valid :  
             # create a unicode object with appropriate string value 
-            newobj =  super(Parsed, cls).__new__(newcls)#newcls, strvalue)
+            newobj =  super(Parsed, cls).__new__(newcls)
             newobj._name = strvalue
             if debug: print "NAME", newobj, type(newobj), sub#, inspect.getmro(newobj)                         
             # set instance attributes
@@ -881,13 +887,24 @@ class MayaObjectNameParser(AttributeNameParser):
                             | NodeAttribute '''
         p[0] = MayaObjectName(p[1])  
 
+
+
+
+
 # Parsed objects for Maya Names
 # TODO : build _accepts from yacc rules directly
 
 # Atomic Name element, an alphabetic or numeric word
 class NamePart(Parsed):
-    """ A name part of either the NameAlphaPart or NameNumPart kind
-        Rule : NamePart = NameAlphaPart | NameNumPart """
+    """
+    A name part of either the NameAlphaPart or NameNumPart kind
+
+        Rule : NamePart = `NameAlphaPart` | `NameNumPart`
+    
+        Composed Of: `NameAlphaPart`, `NameNumPart`
+    
+        Component Of: `NameNumGroup`   
+    """
     _parser = NamePartParser
     _accepts = ('Alpha', 'Num')
     
@@ -897,8 +914,13 @@ class NamePart(Parsed):
         return isinstance(self.sub[0], Num) 
     
 class NameAlphaPart(NamePart):
-    """ A name part made of alphabetic letters
-        Rule : NameAlphaPart = r'([a-z]+)|([A-Z]+[a-z]*)' """
+    """
+    A name part made of alphabetic letters
+    
+        Rule : NameAlphaPart = r'([a-z]+)|([A-Z]+[a-z]*)'
+     
+        Component Of: `NameNumGroup`, `NameAlphaGroup` 
+    """
     _parser = NameAlphaPartParser
     _accepts = ('Alpha', )
          
@@ -908,8 +930,12 @@ class NameAlphaPart(NamePart):
         return False
 
 class NameNumPart(NamePart):
-    """ A name part made of numbers
-        Rule : NameNumPart = r'[0-9]+' """
+    """
+    A name part made of numbers
+    
+        Rule : NameNumPart = r'[0-9]+'
+        
+    """
     _parser = NameNumPartParser
     _accepts = ('Num', )
 
@@ -932,8 +958,15 @@ class NameNumPart(NamePart):
           
 # A Name group, all the consecutive parts between two underscores
 class NameGroup(Parsed):
-    """ A name group of either the NameAlphaGroup or NameNumGroup kind
-        Rule : NameGroup = NameAlphaGroup | NameNumGroup """
+    """
+    A name group of either the NameAlphaGroup or NameNumGroup kind
+
+        Rule : NameGroup = `NameAlphaGroup` | `NameNumGroup` 
+    
+        Composed Of: `NameAlphaGroup`, `NameNumGroup`
+        
+        Component Of: `MayaName`
+    """
     _parser = NameGroupParser
     _accepts = ('NameAlphaPart', 'NameNumPart', 'NamePart')
     
@@ -975,8 +1008,15 @@ class NameGroup(Parsed):
             self.setSubItem(-1, newval )
                  
 class NameAlphaGroup(NameGroup):
-    """ A name group starting with an alphabetic part
-        Rule : NameAlphaGroup  = NameAlphaPart NamePart * """ 
+    """
+    A name group starting with an alphabetic part
+
+        Rule : NameAlphaGroup  = `NameAlphaPart` `NamePart` *
+    
+        Composed Of: `NameAlphaPart`, `NamePart`
+        
+        Component Of: `NameNumGroup`   
+    """ 
     _parser = NameAlphaGroupParser
     _accepts = ('NameAlphaPart', 'NameNumPart', 'NamePart')  
 
@@ -986,8 +1026,15 @@ class NameAlphaGroup(NameGroup):
         return True
         
 class NameNumGroup(NameGroup):
-    """ A name group starting with an alphabetic part
-        Rule : NameAlphaGroup  = NameAlphaPart NamePart * """ 
+    """
+    A name group starting with an alphabetic part
+ 
+        Rule : NameAlphaGroup  = `NameAlphaPart` `NamePart` * 
+    
+        Composed Of: `NameAlphaPart`, `NamePart`
+        
+        Component Of: `MayaName`
+    """ 
     _parser = NameNumGroupParser
     _accepts = ('NameAlphaPart', 'NameNumPart', 'NamePart')     
 
@@ -998,8 +1045,13 @@ class NameNumGroup(NameGroup):
             
 # separator for name groups               
 class NameSep(Parsed):
-    """ the MayaName NameGroup separator : one or more underscores
-        Rule : NameSep = r'_+' """
+    """
+    the MayaName NameGroup separator : one or more underscores
+
+        Rule : NameSep = r'_+' 
+        
+        Component Of: `MayaName`
+    """
     _parser = NameSepParser
     _accepts = ('Underscore',)  
     
@@ -1012,9 +1064,16 @@ class NameSep(Parsed):
 
 # a short Maya name without namespaces or attributes    
 class MayaName(Parsed):
-    """ The most basic Maya Name : several name groups separated by one or more underscores,
-        starting with a NameHead or one or more underscore, followed by zero or more NameGroup
-        Rule : MayaName = (NameSep * NameAlphaGroup) | (NameSep + NameNumGroup)  ( NameSep NameGroup ) * NameSep * """
+    """
+    The most basic Maya Name : several name groups separated by one or more underscores,
+    starting with a NameHead or one or more underscore, followed by zero or more NameGroup
+
+        Rule : MayaName = (`NameSep` * `NameAlphaGroup`) | (`NameSep` + `NameNumGroup`)  ( `NameSep` `NameGroup` ) * `NameSep` * 
+        
+        Composed Of: `NameSep`, `NameAlphaGroup`, `NameNumGroup`, `NameGroup`
+        
+        Component Of: `Namespace`, `MayaShortName`, `Attribute`
+    """
 
     _parser = MayaNameParser
     _accepts = ('NameAlphaGroup', 'NameNumGroup', 'NameGroup', 'NameSep') 
@@ -1097,8 +1156,13 @@ class MayaName(Parsed):
             raise "could not find trailing numbers to decrement"
         
 class NamespaceSep(Parsed):
-    """ The Maya Namespace separator : the colon ':' 
-        Rule : NamespaceSep = r':' """
+    """ 
+    The Maya Namespace separator : the colon ':'
+
+        Rule : NamespaceSep = r':' 
+        
+        Component Of: `Namespace`
+    """
     _parser = NamespaceSepParser
     _accepts = ('Colon',) 
     
@@ -1107,8 +1171,15 @@ class NamespaceSep(Parsed):
         return Token(':', type='Colon', pos=0)          
         
 class Namespace(Parsed):
-    """ A Maya namespace name, one or more MayaName separated by ':'
-        Rule : Namespace = NamespaceSep ? (MayaName NamespaceSep) +"""
+    """
+    A Maya namespace name, one or more MayaName separated by ':'
+
+        Rule : Namespace = `NamespaceSep` ? (`MayaName` `NamespaceSep`) +
+        
+        Composed Of: `NamespaceSep`, `MayaName`
+        
+        Component Of: `MayaShortName`
+    """
     _parser = NamespaceParser
     _accepts = ('NamespaceSep', 'MayaName', 'Empty')
     
@@ -1210,8 +1281,15 @@ class Namespace(Parsed):
             return False
                  
 class MayaShortName(Parsed):
-    """ A short node name in Maya, a Maya name, possibly preceded by a Namespace
-        Rule : MayaShortName = Namespace ? MayaName """
+    """
+    A short node name in Maya, a Maya name, possibly preceded by a Namespace
+
+        Rule : MayaShortName = `Namespace` ? `MayaName`
+        
+        Composed Of: `Namespace`, `MayaName`
+        
+        Component Of: `MayaNodePath`
+    """
     _parser = MayaShortNameParser
     _accepts = ('Namespace', 'MayaName') 
         
@@ -1276,8 +1354,13 @@ class MayaShortName(Parsed):
         return self.parts[-1]  
 
 class DagPathSep(Parsed):
-    """ The Maya long names separator : the pipe '|' 
-        Rule : DagPathSep = r'\|' """
+    """
+    The Maya long names separator : the pipe '|'
+
+        Rule : DagPathSep = r'\|' 
+        
+        Component Of: `MayaNodePath`
+    """
     _parser = DagPathSepParser
     _accepts = ('Pipe',) 
     
@@ -1286,9 +1369,16 @@ class DagPathSep(Parsed):
         return Token('|', type='Pipe', pos=0)  
 
 class MayaNodePath(Parsed):
-    """ A node name in Maya, one or more MayaShortName separated by DagPathSep, with an optional leading DagPathSep
-        Rule : MayaNodePath = DagPathSep ? MayaShortName (DagPathSep MayaShortName) * 
+    """
+    A node name in Maya, one or more MayaShortName separated by DagPathSep, with an optional leading DagPathSep
+
+        Rule : MayaNodePath = `DagPathSep` ? `MayaShortName` (`DagPathSep` `MayaShortName`) * 
+
+        Composed Of: `DagPathSep`, `MayaShortName`
         
+        Component Of: `Component`, `NodeAttribute`
+    
+    Example
         >>> obj = nameparse.parse( 'group1|pCube1|pCubeShape1' )
         >>> obj.setNamespace( 'foo:' )
         >>> print obj
@@ -1425,8 +1515,13 @@ class MayaNodePath(Parsed):
     isAbsolute = isLongName
     
 class AttrSep(Parsed):
-    """ The Maya attribute separator : the dot '.' 
-        Rule : AttrSep = r'\.' """
+    """
+    The Maya attribute separator : the dot '.'
+
+        Rule : AttrSep = r'\.'
+        
+        Component Of: `Component`, `AttributePath`, `NodeAttribute` 
+    """
     _parser = DagPathSepParser
     _accepts = ('Dot',) 
     
@@ -1435,8 +1530,13 @@ class AttrSep(Parsed):
         return Token('.', type='Dot', pos=0)  
 
 class NameIndex(Parsed):
-    """ An index specification for an attribute or a component index, in the form [<int number>] 
-        Rule : NameIndex = r'\[[0-9]+\]' """
+    """
+    An index specification for an attribute or a component index, in the form [<int number>] 
+
+        Rule : NameIndex = r'\[[0-9]+\]' 
+    
+        Component Of: `Attribute`
+    """
     _parser = NameIndexParser
     _accepts = ('Index',) 
 
@@ -1454,9 +1554,14 @@ class NameIndex(Parsed):
         return int(self.strip("[]"))  
         
 class NameRangeIndex(Parsed):
-    """ An index specification for an attribute or a component index, in the form
-        [<optional int number>:<optional int number>] 
-        Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
+    """ 
+    An index specification for an attribute or a component index, in the form::
+        [<optional int number>:<optional int number>]
+
+        Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' 
+    
+    
+    """
     _parser = NameRangeIndexParser
     _accepts = ('RangeIndex',)     
 
@@ -1523,8 +1628,13 @@ class NameRangeIndex(Parsed):
 #    
 #    
 class Component(Parsed): 
-    """ A Maya component name of any of the single, double or triple indexed kind
-        Rule : Component = SingleComponentName | DoubleComponentName | TripleComponentName """
+    """
+    A Maya component name of any of the single, double or triple indexed kind
+
+        Rule : Component = SingleComponentName | DoubleComponentName | TripleComponentName 
+
+        Component Of: `MayaObjectName`
+    """
     _parser = ComponentNameParser
     _accepts = ('MayaNodePath', 'AttrSep', 'NodeComponentName') 
 #
@@ -1550,8 +1660,15 @@ class Component(Parsed):
 # is called a plug as most scripting people are used to calling both attributes ? 
 
 class Attribute(Parsed):
-    """ The name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex
-        Rule : Attribute = MayaName NameIndex ?""" 
+    """
+    The name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex
+
+        Rule : Attribute = `MayaName` `NameIndex` ?
+    
+        Composed Of: `MayaName`, `NameIndex` 
+         
+        Component Of: `AttributePath`
+    """ 
     _parser = NodeAttributeNameParser
     _accepts = ('MayaName', 'NameIndex') 
 
@@ -1577,8 +1694,18 @@ class Attribute(Parsed):
     def isCompound(self): return False
          
 class AttributePath(Parsed):
-    """ The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute
-        Rule : AttributePath = ( Attribute AttrSep ) * Attribute """
+    """
+    The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute
+
+        Rule : AttributePath = ( `Attribute` `AttrSep` ) * `Attribute` 
+        
+        Composed Of: `Attribute`, `AttrSep` 
+         
+        Component Of: `NodeAttribute`
+    """
+    
+    
+   
     _parser = NodeAttributePathParser
     _accepts = ('AttrSep', 'Attribute') 
 
@@ -1630,8 +1757,15 @@ class AttributePath(Parsed):
         return len(self.attributes) > 1
 
 class NodeAttribute(Parsed):
-    """ The name of a Maya node and attribute (plug): a MayaNodePath followed by a AttrSep and a AttributePath
-        Rule : NodeAttribute = MayaNodePath AttrSep AttributePath """ 
+    """
+    The name of a Maya node and attribute (plug): a MayaNodePath followed by a AttrSep and a AttributePath
+
+        Rule : NodeAttribute = `MayaNodePath` `AttrSep` `AttributePath` 
+    
+        Composed Of: `MayaNodePath`, `AttrSep`, `AttributePath` 
+        
+        Component Of: `MayaObjectName`
+    """ 
     _parser = AttributeNameParser
     _accepts = ('MayaNodePath', 'AttrSep', 'AttributePath') 
  
@@ -1687,9 +1821,14 @@ class NodeAttribute(Parsed):
     
 # finally a generic catch-all
 class MayaObjectName(Parsed):      
-    """ An object name in Maya, can be a dag object name, a node name,
-        an plug name, a component name or a ui name
-        Rule : MayaObjectName = MayaNodePath | NodeAttribute | Component """
+    """
+    An object name in Maya, can be a dag object name, a node name,
+    an plug name, a component name or a ui name
+
+        Rule : MayaObjectName = `MayaNodePath` | `NodeAttribute` | `Component` 
+
+        Composed Of: `MayaNodePath`, `NodeAttribute`, `Component` 
+    """
     _parser = MayaObjectNameParser
     _accepts = ('MayaNodePath', 'NodeAttribute')     
 
@@ -1846,10 +1985,11 @@ ParserClasses(parserClasses())
 
 
 def getBasicPartList( name ):
-    """convenience function for breaking apart a maya object to the appropriate level for pymel name parsing
+    """
+    convenience function for breaking apart a maya object to the appropriate level for pymel name parsing
     
-    >>> getBasicPartList('thing|foo:bar.attr[0].child')
-    [MayaNodePath('thing|foo:bar', 0), MayaName('attr', 13), NameIndex('[0]', 17), MayaName('child', 21)]
+        >>> getBasicPartList('thing|foo:bar.attr[0].child')
+        [MayaNodePath('thing|foo:bar', 0), MayaName('attr', 13), NameIndex('[0]', 17), MayaName('child', 21)]
     """
     partList = []
     def getParts( obj ):

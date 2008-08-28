@@ -7,7 +7,7 @@ import sys as _sys
 def namedtuple(typename, field_names, verbose=False):
     """ Returns a new subclass of tuple with named fields.
 
-    >>> Point = namedtuple('Point', 'x y')
+    >>> Point = namedtuple('Point', 'x', 'y')
     >>> Point.__doc__                   # docstring for the new class
     'Point(x, y)'
     >>> p = Point(11, y=22)             # instantiate with positional args or keywords
@@ -16,7 +16,7 @@ def namedtuple(typename, field_names, verbose=False):
     >>> x, y = p                        # unpack like a regular tuple
     >>> x, y
     (11, 22)
-    >>> p.x + p.y                       # fields also accessable by name
+    >>> p.x + p.y                       # fields also accessible by name
     33
     >>> d = p._asdict()                 # convert to a dictionary
     >>> d['x']

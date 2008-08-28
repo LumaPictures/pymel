@@ -28,7 +28,7 @@ def imag (x):
 
 # overload of built-in round fn to accept complex numbers
 def round(value, ndigits=0) :
-    """ round(number[, ndigits]) -> floating point number
+    """ round(number[, ndigits]) -> float
         Round a number to a given precision in decimal digits (default 0 digits).
         This always returns a floating point number.  Precision may be negative.
         This builtin function was overloaded in mathutils to work on complex numbers,
