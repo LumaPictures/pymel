@@ -26,12 +26,7 @@ Non-Backward Compatible Changes
 		- Vector --> `MVector`
 		- Matrix --> `MMatrix`
 	- Changed and Renamed Functions:
-		- renamed Attribute.plug to `Attribute.plugAttr`
-		- renamed DagNode.node to `DagNode.nodeName`
-		- changed `sets` command so that the operating set is always the first arg		
-		- changed `DagNode.shortName` to behave like the mel script shortNameOf
-		- changed `Attribute.exists` to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
-	- Node classes no longer inherit from unicode
+	- Node classes no longer inherit from unicode: see section `API Underpinnings`
 
 ---------------------------		
 Other Additions and Changes
@@ -53,7 +48,8 @@ Other Additions and Changes
 				- `other`: for commands which are not included in the maya documentation (such as commands created by plugins)
 		
 	
-	- New Classes
+	- New Classes:
+		- `MelGlobals` class, for more streamlined access to mel global variables
 
 				
 	- Maya Bug Fixes
@@ -64,7 +60,7 @@ Other Additions and Changes
 				
 	- Other Improvements
 		- commands and classes created by plugins are now properly created on load and removed on unload
-
+		
 ========================
 Installation
 ========================
@@ -113,7 +109,7 @@ Place the mel file into your scripts directory, and the python file into your Ma
 Mel to Python**. Now all output will be reported in python, regardless of whether the input is mel or python.
 
 Problems with Maya 2008-x64 on Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+====================================
 
 If you encounter an error loading the plugin in maya 2008 on 64-bit linux, you may have to fix a few symlinks. 
 As root, or with sudo privileges do the following::
@@ -138,7 +134,7 @@ Getting Started
 ===============
 
 If you are a mel scripter but have not used python in maya yet, you should start with the Maya docs on the subject, particularly
-the section `Using Python<http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>`_. This will help you to understand 
+the section `Using Python <http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>`__. This will help you to understand 
 the differences in syntax between the two languages and how to translate between them. Another great way to learn how to translate 
 mel into python is to install the new Script Editor (instructions above). With it you can execute some mel code and watch the 
 python output in the top pane. You can toggle back and forth by checking and unchecking the "Convert Mel to Python" checkbox.
@@ -204,13 +200,11 @@ of the more common commands for creating and getting lists of objects. These mod
 class type. See `ls`, `listRelatives`, `listTransforms`, `selected`, and `listHistory`, for a few examples.  
 
 Commands that list objects return pymel classes:
-
 	>>> s = ls(type='transform')[0]
 	>>> print type(s)
 	<class 'pymel.core.general.Transform'> #
 	
 Commands that create objects are wrapped as well (see below):
-
 	>>> t = polySphere()[0]
 	>>> print t, type(t)
 	pSphere2, <class 'pymel.core.general.Transform'> #
@@ -312,12 +306,10 @@ In many cases, you won't be creating objects directly in your code, but will wan
 provides two ways of doing this. Both of them will automatically choose	the correct pymel class for your object.
 
 The `PyNode` command:
-
 	>>> PyNode( 'defaultRenderGlobals').startFrame.get()
 	# Result: 1.0 #
 
 The SCENE object:
-
 	>>> SCENE.defaultRenderGlobals.startFrame.get()
 	# Result: 1.0 #
 
@@ -364,7 +356,7 @@ PyNodes and VirtualNodes
 Previous versions of pymel allowed you to instantiate classes for objects which did not exist.  This could be useful in circumstances where
 you wished to use name formatting methods.
 
-	Old Behavior:
+Old Behavior:
 	>>> x = PyNode( '|group1|myNode1|myNodeShape1' ) # assume this object does not exist
 	>>> x.exists()
 	False
@@ -372,49 +364,13 @@ you wished to use name formatting methods.
 	>>> y.exists()
 	False
 
-Starting with this version, an error will be raised if the passed name does not represent an object in the scene.  As a result,
+Starting with this version, an exception will be raised if the passed name does not represent an object in the scene.  As a result,
 certain conventions for existence testing are no longer supported, while new ones have also been added.
 
-	No longer supported:
-	>>> if PyNode( 'fooBar' ).exists():
-	>>>     print "It Exists"
-	>>> else:
-	>>>     print "It Doesn't Exist"
-		
-	Still supported:
-	>>> if objExists( 'fooBar' ):
-	>>>     print "It Exists"
-	>>> else:
-	>>>     print "It Doesn't Exist"
-	
-	New construct:
-	>>> try:
-	>>>     PyNode( 'fooBar' ):
-	>>>     print "It Exists"
-	>>> except MayaObjectError:
-	>>>     print "It Doesn't Exist"
-
-
-	No longer supported:
-	>>> x = polySphere()[0]
-	>>> if x.myAttr.exists():
-	>>>     print "It Exists"
-	>>> else:
-	>>>     print "It Doesn't Exist"
-	
-	New construct:
-	>>> x = polySphere()[0]
-	>>> if x.hasAttr('myAttr'):
-	>>>     print "It Exists"
-	>>> else:
-	>>>     print "It Doesn't Exist"
-	
 We've added three new exceptions which can be used to test for existence errors when creating new PyNodes: `MayaObjectError`, 
-`MayaNodeError`, and `MayaAttributeError`. When an object is found not to exist, the type of error raised is based on the string 
-signature of the passed name:  if it has a period ('.'), then a `MayaAttributeError` is raised, if it doesn't have a period, then a 
-`MayaNodeError` is raised.  
+`MayaNodeError`, and `MayaAttributeError`. 
 	
-	>>> for x in [ 'fooBar.spangle', 'superMonk', 'honkyTonk' ] :
+	>>> for x in [ 'fooBar.spangle', 'superMonk' ] :
 	>>>     try:
 	>>>         PyNode( x ):
 	>>>         print "It Exists"
@@ -423,7 +379,103 @@ signature of the passed name:  if it has a period ('.'), then a `MayaAttributeEr
 	>>>     except MayaAttributeError:
 	>>>         print "The Attribute Doesn't Exist", x
 
-Both exceptions can be caught by using the parent exception `MayaObjectError`.
+Results:
+	>>> 
+	The The Node Doesn't Exist: fooBar.spangle Doesn't Exist: fooBar.spangle
+	The Node Doesn't Exist: superMonk
+
+Both exceptions can be caught by using the parent exception `MayaObjectError`. In addition `MayaAttributeError` can also be caught
+with the builtin exception `AttributeError`.
+
+Note that you will get different exceptions depending on how you access the attribute. This is because the shorthand notation can also
+be used to access functions, in which case the `MayaAttributeError` does not make sense to raise.  As mentioned above, you can always
+use AttributeError to catch both.
+
+
+Explicit notation:
+	>>> x = polySphere()[0]
+	>>> x.attr('myAttr')
+	MayaAttributeError: Maya node Transform('pSphere1') has no attribute 'myAttr'
+	
+Shorthand notation:
+	>>> x = polySphere()[0]
+	>>> x.myAttr
+	AttributeError: Maya node Transform('pSphere1') has no attribute 'myAttr'
+	
+
+Conventions for Testing Node Existence
+--------------------------------------
+
+No longer supported:
+	>>> if PyNode( 'fooBar' ).exists():
+	>>>     print "It Exists"
+	>>> else:
+	>>>     print "It Doesn't Exist"
+		
+Still supported:
+	>>> if objExists( 'fooBar' ):
+	>>>     print "It Exists"
+	>>> else:
+	>>>     print "It Doesn't Exist"
+	
+New construct:
+	>>> try:
+	>>>     PyNode( 'fooBar' ):
+	>>>     print "It Exists"
+	>>> except MayaObjectError:
+	>>>     print "It Doesn't Exist"
+
+Conventions for Testing Attribute Existence
+-------------------------------------------
+
+No longer supported:
+	>>> if PyNode( 'fooBar.spangle' ).exists():
+	>>>     print "Attribute Exists"
+	>>> else:
+	>>>     print "Attribute Doesn't Exist"
+	
+No longer supported:
+	>>> x = polySphere()[0]
+	>>> if x.myAttr.exists():
+	>>>     print "Attribute Exists"
+	>>> else:
+	>>>     print "Attribute Doesn't Exist"
+
+Still supported:
+	>>> if objExists( 'fooBar.spangle' ):
+	>>>     print "Attribute Exists"
+	>>> else:
+	>>>     print "Attribute Doesn't Exist"
+
+Still supported:
+	>>> if mel.attributeExists( 'spangle','fooBar' ):
+	>>>     print "Attribute Exists"
+	>>> else:
+	>>>     print "Attribute Doesn't Exist"
+			
+New construct:	
+	>>> x = polySphere()[0]
+	>>> if x.hasAttr('myAttr'):
+	>>>     print "Attribute Exists"
+	>>> else:
+	>>>     print "Attribute Doesn't Exist"
+
+New construct:
+	>>> try:
+	>>>     PyNode( 'fooBar.spangle' ):
+	>>>     print "Attribute Exists"
+	>>> except MayaAttributeError:
+	>>>     print "Attribute Doesn't Exist"
+
+New construct:
+	>>> x = polySphere()[0]
+	>>> try:
+	>>>     x.myAttr
+	>>>     print "Attribute Exists"
+	>>> except AttributeError:
+	>>>     print "Attribute Doesn't Exist"
+			
+
 
 Mutability and You
 ==================
@@ -439,21 +491,21 @@ string type, which, due to its immutability, could cause unintuitive results wit
 
 Old Behavior:
 	>>> orig = polySphere()[0]
-	>>> print orig, orig.exists()
-	pSphere1 1
+	>>> print "original object", orig
+	original object pSphere1
 	>>> new = orig.rename('crazySphere')
-	>>> print orig, orig.exists()
-	pSphere1 0
-	>>> print new, new.exists()
-	crazySphere 1
+	>>> print "original object %s exists? %s" % (orig, orig.exists() )
+	original object pSphere1 exists? False
+	>>> print "new object %s exists? %s" % (new, new.exists() )
+	new object crazySphere exists? True
 
 New Behavior:
 	>>> orig = polySphere()[0]
 	>>> print orig, orig.exists()
 	pSphere1 True
 	>>> orig.rename('crazySphere')
-	>>> print orig, orig.exists()
-	crazySphere True
+	>>> print "original object %s exists? %s" % (orig, orig.exists() )
+	original object crazySphere exists? True
 	
 As you can see, you no longer need to assign the result of a rename to a variable, although, for backward
 compatibility's sake, we've ensured that you still can.
@@ -531,8 +583,20 @@ Module Namespaces
 
 Another problem with maya.cmds is that importing it into the root namespace (e.g. ``from maya.cmds import *``)
 is dangerous because it will override several of python's more important built-in methods. pymel is designed
-to be safe to import into the root namespace so that scripts can be written much more concisely. 
+to be safe to import into the root namespace so that scripts can be written much more concisely. However, if you are
+a python novice, you might want to keep pymel in its own namespace, because, unlike in mel, in python you can "overwrite" functions
+if you are not careful:
 
+	>>> from pymel import *
+	>>> sphere() # create a nurbsSphere
+	# Result: [Transform('nurbsSphere1'), MakeNurbSphere('makeNurbSphere1')] # 
+	>>> sphere = 'mySphere'  # whoops, we've overwritten the sphere command with a string
+	>>> sphere()
+	# Error: 'str' object is not callable
+	# Traceback (most recent call last):
+	#   File "<maya console>", line 1, in <module>
+	# TypeError: 'str' object is not callable # 
+	
 All the functions in maya.cmds are in the pymel namespace, except the conflicting ones ( file, filter, eval,
 help, and quit). The conflicting commands can be found in the pymel.cmds namespace, along with all of the unaltered
 maya commands.  
@@ -540,9 +604,7 @@ maya commands.
 See `pymel.core.system` for more information on how the file command is implemented in pymel.
 
 Even though pymel has a handful of modules, all but `pymel.runtime` are imported directly into the main namespace. The sub-modules are provided
-for two reasons: 1) to improve the clarity of the documentation, and 2) so that, if desired, the user can edit the import commands
-in __init__.py to customize which modules are directly imported and which should remain in their own namespace 
-for organizational reasons.
+primarily to improve the clarity of the documentation.
 
 =================
 Design Philosophy
@@ -740,19 +802,19 @@ setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32
 __version__ = '0.8.0'
 
 # not maya dependant
-import util
-print "imported utils"
+#import util
+#print "imported utils"
 
 # will check for the presence of an initilized Maya / launch it
-import mayahook
+from mayahook import mayaInit as _mayaInit
 print "imported mayahook"
-assert mayahook.mayaInit() 
+assert _mayaInit() 
 
-import tools
-print "imported tools"
+#import tools
+#print "imported tools"
 #
-import factories
-print "imported factories"
+import core.pmtypes.factories as factories
+#print "imported factories"
 
 import api
 print "imported api"
@@ -762,7 +824,7 @@ print "imported core"
 
 #_module = __import__('core.other', globals(), locals(), [''])
 
-import factories
+#import factories
 _module = __import__(__name__)    
 #_factories.installCallbacks(_module)
 #cmds.loadPlugin( addCallback=pluginLoadedCallback(_module) )
