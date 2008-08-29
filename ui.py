@@ -240,6 +240,7 @@ class OptionMenu(UI):
 #===============================================================================
 
 
+
 class Callback:
     """
     Enables deferred function evaulation with 'baked' arguments.
@@ -254,13 +255,21 @@ class Callback:
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
 
+    _callData = None
+    @staticmethod
+    def _doCall():
+        (func, args, kwargs) = Callback._callData
+        Callback._callData = func(*args, **kwargs)
+
     def __init__(self,func,*args,**kwargs):
         self.func = func
         self.args = args
         self.kwargs = kwargs
     def __call__(self,*args):
-        return self.func(*self.args,**self.kwargs)
-    
+        Callback._callData = (self.func, self.args, self.kwargs)
+        core.mel.python("__import__('pymel').Callback._doCall()")
+        return Callback._callData    
+
 
 class AutoLayout(FormLayout):
     """ 
@@ -500,9 +509,64 @@ def promptForFolder():
     if folder.exists():
         return folder
 
+
+class _ListSelectLayout(FormLayout):
+    
+    args = None
+    selection = None
+    def __new__(cls, *args, **kwargs):
+        self = core.setParent(q=True)
+        self = FormLayout.__new__(cls, self)
+        return self
+    
+    def __init__(self):
+        (items, prompt, ok, cancel, default, allowMultiSelection, width, height) = _ListSelectLayout.args
+        self.ams = allowMultiSelection
+        self.items = list(items)
+        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), AutoLayout.redistribute, [
+            SLC("prompt", text, dict(l=prompt)),
+            SLC("selectionList", textScrollList, dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection)),
+            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), AutoLayout.redistribute, [
+                SLC(None, button, dict(l=ok, c=self.returnSelection)),
+                SLC(None, button, dict(l=cancel, c=Callback(layoutDialog, dismiss=""))), 
+            ]),
+        ]).create(parent=self, creation=self.__dict__)
+
+        self.selectionList.append(map(str, self.items))
+        if default:
+            if not hasattr(default,"__iter__"):
+                default = [default]
+            for i in default:    
+                self.selectionList.setSelectItem(str(i))
+        
+        width  = width  or 150
+        height = height or 200
+        self.setWidth(width)
+        self.setHeight(height)
+        for side in ["top", "right", "left", "bottom"]:
+            self.attachForm(self.topLayout, side, 0)
+            self.topLayout.attachNone(self.buttons, "top")
+            self.topLayout.attachControl(self.selectionList, "bottom", 0, self.buttons)
+
+        
+    def returnSelection(self, *args):
+        _ListSelectLayout.selection = [self.items[i-1] for i in self.selectionList.getSelectIndexedItem() or []]
+        if _ListSelectLayout.selection:        
+            if not self.ams:
+                _ListSelectLayout.selection = _ListSelectLayout.selection[0]
+            return layoutDialog(dismiss=_ListSelectLayout.selection and "True" or "")
+
+def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False):
+    """ Prompt the user to select items from a list of objects """
+    _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height)
+    ret = str(layoutDialog(title=title, ui="""python("import sys; sys.modules['%s']._ListSelectLayout()")""" % (__name__)))
+    if ret:
+        return _ListSelectLayout.selection
+
+
     
 def showsHourglass(func):
-    """Decorator - shows the hourglass cursor until the function returns"""
+    """ Decorator - shows the hourglass cursor until the function returns """
     def decoratedFunc(*args, **kwargs):
         cmds.waitCursor(st=True)
         try:

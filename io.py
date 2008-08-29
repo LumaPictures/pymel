@@ -85,28 +85,9 @@ def listReferences(type='list'):
     # list
     return core._getAllFileReferences()
 
-<<<<<<< .mine
 def getReferencesDict():
     return dict((fr.fullNamespace, fr) for fr in core._getAllFileReferences())    
 
-=======
-def getReferences(reference=None, recursive=False):
-    res = {}    
-    if reference is None:
-        for x in cmds.file( q=1, reference=1):
-            try:
-                ref = core.FileReference(x)
-                res[ref.namespace] = ref
-                if recursive:
-                    res.update( ref.subReferences() )
-            except: pass
-    else:
-        for x in cmds.file( self, q=1, reference=1):
-            try:
-                res[cmds.file( x, q=1, namespace=1)] = core.FileReference(x)
-            except: pass
-    return res    
->>>>>>> .r730
     
 def createReference( *args, **kwargs ):
     """file -reference"""
