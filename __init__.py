@@ -161,8 +161,8 @@ powerful than strings in mel:
 	>>> print new
 	monkeyShape
 		
-So, already you have object-oriented power at your fingertips. When using pymel, the `ls` command still returns a list of strings,
-but these strings are on steroids: in addition to the built-in string methods ( a method is a function that belongs to a class ), 
+So, already you have object-oriented power at your fingertips. When using pymel, the `ls` command still returns special `PyNode` classes,
+which are like strings are on steroids: in addition to the built-in string methods ( a method is a function that belongs to a class ), 
 pymel adds methods for operating on the type of object that the string represents:
 
 	>>> import pymel
@@ -318,46 +318,126 @@ API Underpinnings
 ------------------
 
 In mel, the best representation we have have of a maya node or attribute is its name.  But with the API we can do better!  
-With the new version of pymel, when creating an instance of a `PyNode` class, pymel determines the underlying API object behind the scenes.
-With this in hand, we can operate on the object itself, not just the string representing the object. 
-
-Node Comparisons
-================
+When creating an instance of a `PyNode` class, pymel determines the underlying API object behind the scenes.
+With this in hand, it can operate on the object itself, not just the string representing the object.
 
 So, what does this mean to you?  Well, let's take a common example: testing if two nodes or attributes are the
 same. In mel, to accomplish this the typical solution is to perform a string comparison 
-of their names, but there are many ways that this seemingly simple operation can go wrong. For instance, forgetting to compare the
+of the object names, but there are many ways that this seemingly simple operation can go wrong. For instance, forgetting to compare the
 full paths of dag node objects, or comparing the long name of an attribute to the short name of an attribute.  
 And what if you want to test if the nodes are instances of each other?  You'll have some pretty 
 nasty string processing ahead of you.  But since pymel uses the underlying API objects, these operations are simple
 and API-fast.
 
 		>>> from pymel import *
+		>>> # Make two instanced spheres in different groups
 		>>> sphere1, hist = polySphere()
 		>>> grp = group(sphere1)
 		>>> grp2 = instance(grp)[0]
 		>>> sphere2 = grp2.getChildren()[0]
-		>>> sphere1
+		>>> sphere1  # the original
 		group1|pSphere1 # 
-		>>> sphere2
+		>>> sphere2  # the instance
 		group2|pSphere1 # 
-		>>> sphere1 == sphere2
+		>>> sphere1 == sphere2  # they aren't the same dag objects
 		False
-		>>> sphere1.isInstance( sphere2 )
+		>>> sphere1.isInstance( sphere2 )  # but they are instances of each other
 		True
 		>>> sphere1.t == sphere1.translate
 		True
 		>>> sphere1.tx == sphere1.translate.translateX
 		True
 
-PyNodes and VirtualNodes
-========================
+New PyNode Behavior
+===================
 
-Previous versions of pymel allowed you to instantiate classes for objects which did not exist.  This could be useful in circumstances where
+PyNodes Are Not Strings
+-----------------------
+
+In previous versions of pymel, the node classes inherited from the builtin unicode string class.  With the introduction of the new API
+underpinnings, the node classes inherit from a special `ProxyUnicode` class, which has the functionality of a string object, but
+removes the immutability restriction ( see the next section `Mutability And You`_ ).  It is important to keep in mind, that although
+PyNodes *behave* like strings, they are no longer actual strings. Functions which explicity require a string, and which worked 
+with PyNodes in previous versions of pymel, might raise an error with version 0.8. For example:
+
+	>>> objs = pm.ls( type='camera')
+	>>> print ', '.join( objs )
+	TypeError: sequence item 0: expected string, Camera found
+
+The solution is simple: convert the PyNodes to strings.  The following example uses a shorthand syntax called "list comprehension" to 
+convert the list of PyNodes to a list of strings:
+
+	>>> objs = pm.ls( type='camera')
+	>>> print ', '.join( [ str(x) for x in objs ] )
+	frontShape, perspShape, sideShape, topShape
+
+	
+Mutability and You
+------------------
+
+One change that has come about due to the new API-based approach is node name mutability. You might have noticed
+when working with strings in python that they cannot be changed "in place" -- all string operations return a new string. This is
+because strings are immutable, and cannot be changed.
+
+By inheriting from a mutable `ProxyUnicode` class instead of an immutable string, we are now able to provide a design which more accurately reflects 
+how nodes work in maya --  when a node's name is changed it is still the same object with the same properties --  the name
+is simply a label or handle. In practice, this
+means that each time the name of the node is required -- such as printing, slicing, splitting, etc -- the object's current name
+is queried from the underlying API object. This ensures that if the node is renamed by the user via the UI or mel the 
+changes will always be reflected in the name returned by your PyNode class.
+
+Renaming
+~~~~~~~~
+
+In versions of pymel previous to 0.8, the node classes inherited from python's built-in unicode
+string type, which, due to its immutability, could cause unintuitive results with commands like rename.
+
+Old Behavior:
+	>>> orig = polySphere()[0]
+	>>> print "original object", orig
+	original object pSphere1
+	>>> new = orig.rename('crazySphere')
+	>>> print "original object %s exists? %s" % (orig, orig.exists() )
+	original object pSphere1 exists? False
+	>>> print "new object %s exists? %s" % (new, new.exists() )
+	new object crazySphere exists? True
+
+New Behavior:
+	>>> orig = polySphere()[0]
+	>>> print orig, orig.exists()
+	pSphere1 True
+	>>> orig.rename('crazySphere')
+	>>> print "original object %s exists? %s" % (orig, orig.exists() )
+	original object crazySphere exists? True
+	
+As you can see, you no longer need to assign the result of a rename to a variable, although, for backward
+compatibility's sake, we've ensured that you still can.
+
+Using as Keys in Dictionaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is one caveat to the mutability of node names: it can cause problems when using a pymel node as a key in a dictionary.
+The reason is that the hash ( a hash is an integer value which is used to speed up dictionary access ) generated by a pymel node
+is based on the node's name, which is subject to change.  
+
+	>>> orig = polySphere()[0]
+	>>> d = { orig :  True }
+	>>> orig.rename('crazySphere')
+	>>> print d[orig]
+	KeyError: (Transform('crazySphere'),) 
+	
+This might seem like an obvious and necessary limitation, but we are working with Autodesk to provide a node hash which persists
+even after the node is renamed, thereby providing an object-based immutability independent of name.
+
+
+Non-Existent Objects
+--------------------
+
+Previous versions of pymel allowed you to instantiate classes for nonexistent objects.  This could be useful in circumstances where
 you wished to use name formatting methods.
 
 Old Behavior:
-	>>> x = PyNode( '|group1|myNode1|myNodeShape1' ) # assume this object does not exist
+	>>> x = PyNode( '|group1|myNode1|myNodeShape1' ) # for our example, assume this object does not exist
 	>>> x.exists()
 	False
 	>>> y = x.addPrefix('foo_')
@@ -377,11 +457,8 @@ We've added three new exceptions which can be used to test for existence errors 
 	>>>     except MayaNodeError:
 	>>>         print "The Node Doesn't Exist:", x
 	>>>     except MayaAttributeError:
-	>>>         print "The Attribute Doesn't Exist", x
-
-Results:
-	>>> 
-	The The Node Doesn't Exist: fooBar.spangle Doesn't Exist: fooBar.spangle
+	>>>         print "The Attribute Doesn't Exist":, x
+	The Attribute Doesn't Exist: fooBar.spangle
 	The Node Doesn't Exist: superMonk
 
 Both exceptions can be caught by using the parent exception `MayaObjectError`. In addition `MayaAttributeError` can also be caught
@@ -404,7 +481,7 @@ Shorthand notation:
 	
 
 Conventions for Testing Node Existence
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 No longer supported:
 	>>> if PyNode( 'fooBar' ).exists():
@@ -426,7 +503,7 @@ New construct:
 	>>>     print "It Doesn't Exist"
 
 Conventions for Testing Attribute Existence
--------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 No longer supported:
 	>>> if PyNode( 'fooBar.spangle' ).exists():
@@ -476,55 +553,6 @@ New construct:
 	>>>     print "Attribute Doesn't Exist"
 			
 
-
-Mutability and You
-==================
-
-One of the biggest changes that has come about due to the new API-based approach is node name mutability. (An immutable
-object cannot have its value changed). 
-
-Renaming
---------
-
-In versions of pymel previous to 0.8, the node classes inherited from python's built-in unicode
-string type, which, due to its immutability, could cause unintuitive results with commands like rename.
-
-Old Behavior:
-	>>> orig = polySphere()[0]
-	>>> print "original object", orig
-	original object pSphere1
-	>>> new = orig.rename('crazySphere')
-	>>> print "original object %s exists? %s" % (orig, orig.exists() )
-	original object pSphere1 exists? False
-	>>> print "new object %s exists? %s" % (new, new.exists() )
-	new object crazySphere exists? True
-
-New Behavior:
-	>>> orig = polySphere()[0]
-	>>> print orig, orig.exists()
-	pSphere1 True
-	>>> orig.rename('crazySphere')
-	>>> print "original object %s exists? %s" % (orig, orig.exists() )
-	original object crazySphere exists? True
-	
-As you can see, you no longer need to assign the result of a rename to a variable, although, for backward
-compatibility's sake, we've ensured that you still can.
-
-Using as Keys in Dictionaries
------------------------------
-
-There is one caveat to the mutability of node names: it can cause problems when using a pymel node as a key in a dictionary.
-The reason is that the hash ( a hash is an integer value which is used to speed up dictionary access ) generated by a pymel node
-is based on the node's name, which is subject to change.  
-
-	>>> orig = polySphere()[0]
-	>>> d = { orig :  True }
-	>>> orig.rename('crazySphere')
-	>>> print d[orig]
-	KeyError: (Transform('crazySphere'),) 
-	
-This might seem like an obvious and necessary limitation, but we are working with Autodesk to provide a node hash which persists
-even after the node is renamed, thereby providing an object-based immutability independent of name.
 
 ------------------------------------------------------
 Delving Deeper: Chained Function and Attribute Lookups
