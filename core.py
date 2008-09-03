@@ -888,12 +888,12 @@ Modifications:
                     if isinstance( arg, basestring ):
                         attr.add( dt='string' )
                         kwargs['type'] = 'string'
+                    elif isinstance( arg, bool ):
+                        attr.add( at='bool' ) 
                     elif isinstance( arg, int ):
                         attr.add( at='long' ) 
                     elif isinstance( arg, float ):
                         attr.add( at='double' ) 
-                    elif isinstance( arg, bool ):
-                        attr.add( at='bool' ) 
                     else:
                         raise TypeError, "pymel.setAttr: %s is not a supported type for use with the force flag" % type(arg)
                                         
