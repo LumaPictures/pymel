@@ -2,7 +2,7 @@
 from math import *
 from pymel.util.mathutils import *
 import system
-from wrappedtypes import *
+from pmtypes.wrappedtypes import *
 import pymel.util as util
 import maya.mel as mm
 import pmtypes.pmcmds as cmds
@@ -354,4 +354,4 @@ def conditionExists(conditionName):
 	return conditionName in cmds.scriptJob(listConditions=True)
 	
 
-# _factories.createFunctions( __name__ )
+_factories.createFunctions( __name__ )

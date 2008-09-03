@@ -32,7 +32,7 @@ import maya.OpenMaya as OpenMaya
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from factories import createflag, add_docs
+from pmtypes.factories import createflag, add_docs
 from pymel.util.scanf import fscanf
 
 

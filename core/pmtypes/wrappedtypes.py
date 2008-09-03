@@ -221,10 +221,10 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
             readonly['cnames'] = None
         type.__setattr__(newcls, '__readonly__', readonly)      
 
-        print "created class", newcls
-        print "bases", newcls.__bases__
-        print "readonly", newcls.__readonly__
-        print "slots", newcls.__slots__
+#        print "created class", newcls
+#        print "bases", newcls.__bases__
+#        print "readonly", newcls.__readonly__
+#        print "slots", newcls.__slots__
         return newcls  
 
 # generic math function that can operate on Arrays herited from arrays

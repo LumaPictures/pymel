@@ -16,7 +16,7 @@ import maya.mel as mm
 import pmcmds
 
 
-VERBOSE=True
+VERBOSE=False
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -2034,8 +2034,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                     classdict[pymelName] = method
                             else:
                                 if VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )
-                        else :
-                            if VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
+                        elif VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
                     try:   
                         # Enumerators   
                         for enumName, enumList in classInfo['pymelEnums'].items():
@@ -2550,6 +2549,8 @@ def addPyNode( module, mayaType, parentMayaType ):
            
     PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
     PyNodesToMayaTypes()[PyNodeType] = mayaType
+    if VERBOSE:
+        print "adding %s for %s" % ( PyNodeType, pyNodeTypeName )
     PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
 
     
@@ -2577,7 +2578,7 @@ def pluginLoadedCallback( module ):
         # Commands
         if commands:
             pluginData[pluginName]['commands'] = commands
-            print "adding new commands:", commands
+            print "adding new commands:", ', '.join(commands)
             for funcName in commands:
                 #print "adding new command:", funcName
                 cmdlist[funcName] = getCmdInfoBasic( funcName )
@@ -2600,7 +2601,7 @@ def pluginLoadedCallback( module ):
             
             for mayaType in mayaTypes:
                 inheritance = getInheritance( mayaType )
-                
+                #print mayaType, inheritance
                 #print "adding new node:", mayaType, apiEnum, inheritence
                 # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                 parent = 'dependNode'

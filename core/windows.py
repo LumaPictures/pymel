@@ -64,7 +64,7 @@ import pmtypes.pmcmds as cmds
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from factories import MetaMayaNodeWrapper as metaNode
+from pmtypes.factories import MetaMayaNodeWrapper as metaNode
 from system import Path
 
 #-----------------------------------------------

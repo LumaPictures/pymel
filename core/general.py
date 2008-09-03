@@ -15,11 +15,11 @@ import inspect, warnings, timeit, time
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
+from pmtypes.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
-from wrappedtypes import *
+from pmtypes.wrappedtypes import *
 import pmtypes.path as _path
 import pymel.util.nameparse as nameparse
 
@@ -716,31 +716,35 @@ def nodeType( node, **kwargs ):
     # still don't know how to do inherited via api
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
         return cmds.nodeType( unicode(node), **kwargs )
-        
-    obj = None
-    objName = None
 
-    if isinstance(arg, DependNode) :
-        obj = arg.__apiobject__()
-    elif isinstance(arg, Attribute) :
-        obj = arg.plugNode().__apiobject__()
-    elif isinstance(arg, api.MObject) :
-        # TODO : convert MObject attributes to DependNode
-        if api.isValidMObjectHandle(api.MObjectHandle(arg)) :
-            obj = arg
-        else :
-            obj = None
-    elif isinstance(arg,basestring) :
+    if isinstance(node,basestring) :
         #obj = api.toMObject( arg.split('.')[0] )
         # don't spend the extra time converting to MObject
         return cmds.nodeType( node, **kwargs )
-    if obj:
-        if kwargs.get( 'apiType', kwargs.get( 'api', False) ):
-            return obj.apiTypeStr()
-        # default
-        try:
-            return api.MFnDependencyNode( obj ).typeName()
-        except RuntimeError: pass
+     
+    obj = None
+    objName = None
+
+    if isinstance(node, DependNode) :
+        pass
+        #obj = node.__apimobject__()
+    elif isinstance(node, Attribute) :
+        node = node.plugNode()
+#    elif isinstance(node, api.MObject) :
+#        # TODO : convert MObject attributes to DependNode
+#        if api.isValidMObjectHandle(api.MObjectHandle(arg)) :
+#            obj = arg
+#        else :
+#            obj = None
+    else:
+        raise TypeError, "Invalid input type %s" % node
+
+    if kwargs.get( 'apiType', kwargs.get( 'api', False) ):
+        return node.__apimobject__().apiTypeStr()     
+    # default
+    try:
+        return node.__apimfn__().typeName()
+    except RuntimeError: pass
         
 def group( *args, **kwargs ):
     """
