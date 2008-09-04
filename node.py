@@ -1530,11 +1530,21 @@ class Transform(DagNode):
         self.visibility.set(1)
                 
     def getShape( self, **kwargs ):
-        kwargs['shapes'] = True
+        kwargs.pop('ni', kwargs.pop('noIntermediate', None))
+        kwargs['ni'] = True
         try:
-            return self.getChildren( **kwargs )[0]            
+            return self.getShapes( **kwargs )[0]            
         except:
             pass
+    
+    def getShapes(self, **kwargs):
+        kwargs.pop('s', None)
+        kwargs['shapes'] = True
+        return self.getChildren( **kwargs )
+    
+    def getIntermediateShapes(self, **kwargs):
+        return filter(lambda n: n.io.get(), self.getShapes(**kwargs))
+        
                 
     def ungroup( self, **kwargs ):
         return cmds.ungroup( self, **kwargs )
@@ -1694,7 +1704,12 @@ class Transform(DagNode):
         return self.getBoundingBox(invisible)[0]
         
     def getBoundingBoxMax(self, invisible=False):
-        return self.getBoundingBox(invisible)[1]    
+        return self.getBoundingBox(invisible)[1]
+    
+    def getBoundingBoxSize(self, invisible=False):
+        mn, mx = self.getBoundingBox(invisible)
+        return mx-mn
+    
     
     '''        
     def centerPivots(self, **kwargs):
