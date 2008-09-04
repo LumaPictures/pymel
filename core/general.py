@@ -15,7 +15,7 @@ import inspect, warnings, timeit, time
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from pmtypes.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaCommandNodeWrapper
+from pmtypes.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
@@ -718,7 +718,7 @@ def nodeType( node, **kwargs ):
         return cmds.nodeType( unicode(node), **kwargs )
 
     if isinstance(node,basestring) :
-        #obj = api.toMObject( arg.split('.')[0] )
+        #obj = api.toMObject( node.split('.')[0] )
         # don't spend the extra time converting to MObject
         return cmds.nodeType( node, **kwargs )
      
@@ -732,8 +732,8 @@ def nodeType( node, **kwargs ):
         node = node.plugNode()
 #    elif isinstance(node, api.MObject) :
 #        # TODO : convert MObject attributes to DependNode
-#        if api.isValidMObjectHandle(api.MObjectHandle(arg)) :
-#            obj = arg
+#        if api.isValidMObjectHandle(api.MObjectHandle(node)) :
+#            obj = node
 #        else :
 #            obj = None
     else:
@@ -2327,7 +2327,7 @@ class DependNode( PyNode ):
 #            # Result: Transform('persp1')
 #        """
 #        if create:
-#            ntype = uncapitalize(cls.__name__)
+#            ntype = cls.__melnode__
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
 

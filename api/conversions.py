@@ -16,6 +16,8 @@ from HTMLParser import HTMLParser
 from pymel.util.external.BeautifulSoup import BeautifulSoup
 from keyword import iskeyword as _iskeyword
 
+VERBOSE = True
+
 # TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
 #from pymel.mayahook.factories import NodeHierarchy
@@ -512,6 +514,7 @@ def _buildMayaReservedTypes():
         These cannot be created directly from the API, thus the dgMod trick to find the corresonding Maya type won't work """
         
     reservedTypes = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
+                'entity':'kDependencyNode', \
                 'constraint':'kConstraint', 'field':'kField', \
                 'geometryShape':'kGeometric', 'shape':'kShape', 'deformFunc':'kDeformFunc', 'cluster':'kClusterFilter', \
                 'dimensionShape':'kDimension', \
@@ -521,10 +524,11 @@ def _buildMayaReservedTypes():
                 'surfaceShape': 'kSurface', 'revolvedPrimitive':'kRevolvedPrimitive', 'plane':'kPlane', 'curveShape':'kCurve', \
                 'animCurve': 'kAnimCurve', 'resultCurve':'kResultCurve', 'cacheBase':'kCacheBase', 'filter':'kFilter',
                 'blend':'kBlend', 'ikSolver':'kIkSolver', \
-                'light':'kLight', 'nonAmbientLightShapeNode':'kNonAmbientLight', 'nonExtendedLightShapeNode':'kNonExtendedLight', \
+                'light':'kLight', 'renderLight':'kLight', 'nonAmbientLightShapeNode':'kNonAmbientLight', 'nonExtendedLightShapeNode':'kNonExtendedLight', \
                 'texture2d':'kTexture2d', 'texture3d':'kTexture3d', 'textureEnv':'kTextureEnv', \
-                'plugin':'kPlugin', 'pluginNode':'kPluginDependNode', 'pluginLocator':'kPluginLocatorNode', 'pluginData':'kPluginData', \
-                'pluginDeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
+                'primitive':'kPrimitive', 'reflect':'kReflect', 'smear':'kSmear', \
+                'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
+                'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
                 'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
                 'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' }      # creating these 2 crash Maya      
 
@@ -599,32 +603,19 @@ def mayaTypeToApiType (mayaType) :
     """ Get the Maya API type from the name of a Maya type """
     try:
         return MayaTypesToApiTypes()[mayaType]
-    except:
+    except KeyError:
         apiType = 'kInvalid'
         # Reserved types must be treated specially
         if ReservedMayaTypes().has_key(mayaType) :
             # It's an abstract type            
             apiType = ReservedMayaTypes()[mayaType]
         else :
-            # we create a dummy object of this type in a dgModifier
-            # as the dgModifier.doIt() method is never called, the object
-            # is never actually created in the scene
-            obj = MObject() 
             dagMod = MDagModifier()
-            dgMod = MDGModifier()         
-            try :
-                parent = dagMod.createNode ( 'transform', MObject())
-                obj = dagMod.createNode ( mayaType, parent )
-            except :
-                
-                try :
-                    obj = dgMod.createNode ( mayaType )
-                except :
-                    pass
-             
-            apiType = obj.apiTypeStr()
-                              
-        return apiType                      
+            dgMod = MDGModifier()
+            obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
+            if isValidMObject(obj):
+                apiType = obj.apiTypeStr()
+        return apiType
 
 
 def addMayaType(mayaType, apiType=None ) :
@@ -732,31 +723,55 @@ def updateMayaTypesList() :
        
 
 def _getMObject(nodeType, dagMod, dgMod) :
-    """ Returns a queryable MObject form a give apiType """
+    """ Returns a queryable MObject from a given apiType or mayaType"""
     
-    if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
-        raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
     # cant create these nodes, some would crahs MAya also
     if ReservedApiTypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
         return None   
-    obj = MObject()
+
     if ApiTypesToMayaTypes().has_key(nodeType) :
         mayaType = ApiTypesToMayaTypes()[nodeType].keys()[0]
-        apiType = nodeType
+        #apiType = nodeType
     elif MayaTypesToApiTypes().has_key(nodeType) :
         mayaType = nodeType
-        apiType = MayaTypesToApiTypes()[nodeType]
+        #apiType = MayaTypesToApiTypes()[nodeType]
     else :
         return None    
-      
-    try :
-        parent = dagMod.createNode ( 'transform', MObject())
-        obj = dagMod.createNode ( mayaType, parent )
-    except :
+    
+    return _makeDgModGhostObject(mayaType, dagMod, dgMod)
+
+_unableToCreate = set()
+def _makeDgModGhostObject(mayaType, dagMod, dgMod):
+    # we create a dummy object of this type in a dgModifier (or dagModifier)
+    # as the dgModifier.doIt() method is never called, the object
+    # is never actually created in the scene
+    
+    # Note that you need to call the dgMod/dagMod.deleteNode method as well - if we don't,
+    # and we call this function while loading a scene (for instance, if the scene requires
+    # a plugin that isn't loaded, and defines custom node types), then the nodes are still
+    # somehow created, despite never explicitly calling doIt()
+
+    if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
+        raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
+
+    obj = MObject()
+    
+    try:
         try :
-            obj = dgMod.createNode ( mayaType )
-        except :
-            pass
+            # Try making it with dgMod FIRST - this way, we can avoid making an
+            # unneccessary transform if it is a DAG node
+            obj = dgMod.createNode ( mayaType ) 
+        except RuntimeError:
+            # DagNode
+            parent = dagMod.createNode ( 'transform', MObject())
+            obj = dagMod.createNode ( mayaType, parent )
+            dagMod.deleteNode(parent)
+        else:
+            # DependNode
+            dgMod.deleteNode(obj)
+    except:
+        #util.warn("Error trying to create ghost node for '%s'" %  mayaType)
+        _unableToCreate.add(mayaType)
     if isValidMObject(obj) :
         return obj
     else :
@@ -779,9 +794,6 @@ def _hasFn (apiType, dagMod, dgMod, parentType=None) :
     else :
         return False
     # print "need creation for %s" % apiType
-    # we create a dummy object of this type in a dgModifier
-    # as the dgModifier.doIt() method is never called, the object
-    # is never actually created in the scene
     obj = _getMObject(apiType, dagMod, dgMod, parentType) 
     if isValidMObject(obj) :
         return obj.hasFn(typeInt)
@@ -792,7 +804,7 @@ def _hasFn (apiType, dagMod, dgMod, parentType=None) :
 # Filter the given API type list to retain those that are parent of apiType
 # can pass a list of types to check for being possible parents of apiType
 # or a dictionnary of types:node to speed up testing
-def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
+def _parentFn (apiType, dagMod, dgMod, *args, **kwargs) :
     """ Checks the given API type list, or API type:MObject dictionnary to return the first parent of apiType """
     if not kwargs :
         if not args :
@@ -811,9 +823,7 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
                 if p == t :
                     return t
         return None
-    # we create a dummy object of this type in a dgModifier
-    # as the dgModifier.doIt() method is never called, the object
-    # is never actually created in the scene
+
     result = None           
     obj = kwargs.get(apiType, None)        
     if not isValidMObject(obj) :
@@ -859,11 +869,10 @@ def _parentFn (apiType, dagMod=None, dgMod=None, *args, **kwargs) :
                                  
     return result
 
-# TODO: take a look at consolidating the duplicate 'dummy object' creation code in here and in _getMObject
 def _createNodes(dagMod, dgMod, *args) :
     """pre-build a apiType:MObject, and mayaType:apiType lookup for all provided types, be careful that these MObject
         can be used only as long as dagMod and dgMod are not deleted"""
-        
+
     result = {}
     mayaResult = {}
     for mayaType in args :
@@ -884,23 +893,11 @@ def _createNodes(dagMod, dgMod, *args) :
             result[apiType] = None
       
         else :
-            obj = MObject()          
-            try :
-                # DagNode
-                parent = dagMod.createNode ( 'transform', MObject())
-                obj = dagMod.createNode ( mayaType, parent )
-            except :
-                # DependNode
-                try :
-                    obj = dgMod.createNode ( mayaType )
-                except :
-                    pass
+            obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
             if isValidMObject(obj) :
                 apiType = obj.apiTypeStr()
                 mayaResult[mayaType] = apiType
                 result[apiType] = obj
-    #            else :
-    #                result[apiType] = None
     return result, mayaResult
 
 # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
@@ -941,15 +938,23 @@ def _buildMayaTypesList() :
 
 
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def _buildApiTypeHierarchy () :
+def _buildApiTypeHierarchy (apiClassInfo=None) :
+    """
+    Used to rebuild api info from scratch.
+    
+    Set 'apiClassInfo' to a valid apiClassInfo structure to disable rebuilding of apiClassInfo
+    - this is useful for versions < 2009, as these versions cannot parse the api docs; by passing
+    in an apiClassInfo, you can rebuild all other api information.  If left at the default value
+    of 'None', then it will be rebuilt using the apiDocParser.
+    """
     def _MFnType(x) :
         if x == MFnBase :
-            return ApiEnumsToApiTypes()[ 1 ]
+            return ApiEnumsToApiTypes()[ 1 ]  # 'kBase'
         else :
             try :
                 return ApiEnumsToApiTypes()[ x().type() ]
             except :
-                return ApiEnumsToApiTypes()[ 0 ]
+                return ApiEnumsToApiTypes()[ 0 ] # 'kInvalid'
     
     #global apiTypeHierarchy, ApiTypesToApiClasses
     _buildMayaReservedTypes()
@@ -964,28 +969,27 @@ def _buildApiTypeHierarchy () :
     MFnDict = {}
     
     for x in expandArgs(MFnTree, type='list') :
-        try :
-            MFnClass = x[0]
-            ct = _MFnType(MFnClass)
-            pt = _MFnType(x[1][0])
-            if ct and pt :
-                apiTypesToApiClasses[ ct ] = MFnClass
-                #ApiTypesToApiClasses()[ ct ] = x[0]
-                MFnDict[ ct ] = pt
-
-        except IndexError:
-            pass
+        MFnClass = x[0]
+        current = _MFnType(MFnClass)
+        if current and current != 'kInvalid' and len(x[1]) > 0:
+            #Check that len(x[1]) > 0 because base python 'object' will have no parents...
+            parent = _MFnType(x[1][0])
+            if parent:
+                apiTypesToApiClasses[ current ] = MFnClass
+                #ApiTypesToApiClasses()[ current ] = x[0]
+                MFnDict[ current ] = parent
     
-    apiClassInfo = {}
-    for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
-        if not name.startswith( 'MPx' ):
-            try:
-                info = getMFnInfo( name )
-                if info is not None:
-                    #print "succeeded", name
-                    apiClassInfo[ name ] = info
-                else: print "failed to parse docs:", name
-            except (ValueError,IndexError), msg: print "failed", name, msg
+    if apiClassInfo is None:
+        apiClassInfo = {}
+        for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
+            if not name.startswith( 'MPx' ):
+                try:
+                    info = getMFnInfo( name )
+                    if info is not None:
+                        #print "succeeded", name
+                        apiClassInfo[ name ] = info
+                    else: print "failed to parse docs:", name
+                except (ValueError,IndexError), msg: print "failed", name, msg
                     
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
@@ -994,6 +998,8 @@ def _buildApiTypeHierarchy () :
     dgMod = MDGModifier()      
     #nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
     nodeDict, mayaDict = _createNodes( dagMod, dgMod, *allMayaTypes )
+    if len(_unableToCreate) > 0:
+        util.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
     
     for mayaType, apiType in mayaDict.items() :
         MayaTypesToApiTypes()[mayaType] = apiType
@@ -1023,7 +1029,14 @@ def _buildApiTypeHierarchy () :
     apiTypeHierarchy = IndexedFrozenTree(treeFromDict(MFnDict))
     return apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo
 
-def _buildApiCache():
+def _buildApiCache(rebuildAllButClassInfo=False):
+    """
+    Used to rebuild api cache, either by loading from a cache file, or rebuilding from scratch.
+    
+    Set 'rebuildAllButClassInfo' to True to force rebuilding of all info BUT apiClassInfo -
+    this is useful for versions < 2009, as these versions cannot parse the api docs; by setting
+    this to False, you can rebuild all other api information.
+    """
     #print ApiTypesToApiEnums()
     #print ApiTypesToApiClasses()
     #global ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiTypeHierarchy
@@ -1033,6 +1046,9 @@ def _buildApiCache():
     ver = mayahook.getMayaVersion(extension=False)
 
     cacheFileName = os.path.join( util.moduleDir(),  'mayaApi'+ver+'.bin'  )
+    
+    # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
+    apiClassInfo = None
     try :
         file = open(cacheFileName, mode='rb')
         #try :
@@ -1085,7 +1101,10 @@ def _buildApiCache():
 #        apiClassInfo['MFnTransform']['methods']['getRotation'][0]['args'][1] = order[:2] + tuple(['out'])
         #----------------------------------------------------
         
-        return apiTypeHierarchy, apiClassInfo
+        if not rebuildAllButClassInfo:
+            # Note that even if rebuildAllButClassInfo, we still want to load
+            # the cache file, in order to grab apiClassInfo
+            return apiTypeHierarchy, apiClassInfo
             
         #except:
         #    print "Unable to load the Maya API Hierarchy from '"+file.name+"'"       
@@ -1099,7 +1118,10 @@ def _buildApiCache():
     _buildApiTypesList()
     #apiTypesToApiEnums, apiEnumsToApiTypes = _buildApiTypesList()
     #_buildMayaTypesList()
-    apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo = _buildApiTypeHierarchy()
+    
+    if not rebuildAllButClassInfo:
+        apiClassInfo = None
+    apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo = _buildApiTypeHierarchy(apiClassInfo=apiClassInfo)
 
     
     #_buildApiTypeHierarchy()
@@ -1121,21 +1143,13 @@ def _buildApiCache():
     except :
         print "Unable to open '"+cacheFileName+"' for writing"
     
-    return apiTypeHierarchy, apiClassInfo   
-    #return ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, apiTypesToApiClasses, apiTypeHierarchy
+    return apiTypeHierarchy, apiClassInfo
 
 # Initialize the API tree
-# ApiTypeHierarchy(_buildApiTypeHierarchy())
 # initial update  
 start = time.time()
-# ApiTypeHierarchy(_buildApiTypeHierarchy())
-#_buildApiCache()
-apiTypeHierarchy, apiClassInfo = _buildApiCache()
-
-
+apiTypeHierarchy, apiClassInfo = _buildApiCache(rebuildAllButClassInfo=False)
         
-#apiTypesToApiClasses, apiTypeHierarchy = _buildApiCache()
-#ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, apiTypesToApiClasses, apiTypeHierarchy = _buildApiCache()
 # quick fix until we can get a Singleton ApiTypeHierarchy() up
 
 elapsed = time.time() - start

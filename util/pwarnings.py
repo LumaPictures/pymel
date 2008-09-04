@@ -38,7 +38,13 @@ warnings.formatwarning = formatwarning
 
 class ExecutionWarning (UserWarning) :
     """ Simple Warning class that doesn't print any information besides warning message """
-  
+    
+def warn(*args, **kwargs):
+    """ Default Maya warn which uses ExecutionWarning as the default warning class. """
+    if len(args) == 1 and not isinstance(args[0], Warning):
+        args = args + (ExecutionWarning,)
+    return warnings.warn(*args, **kwargs)
+
 if __name__ == '__main__' :
     import doctest
     doctest.testmod()   

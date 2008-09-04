@@ -64,7 +64,7 @@ import pmtypes.pmcmds as cmds
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from pmtypes.factories import MetaMayaNodeWrapper as metaNode
+from pmtypes.factories import MetaMayaUIWrapper as metaUI
 from system import Path
 
 #-----------------------------------------------
@@ -163,14 +163,14 @@ class UI(unicode):
 # customized ui classes                            
 class Window(UI):
     """pymel window class"""
-    __metaclass__ = metaNode                        
+    __metaclass__ = metaUI                        
     def show(self):
         cmds.showWindow(self)
     def delete(self):
         cmds.deleteUI(self, window=True)
                 
 class FormLayout(UI):
-    __metaclass__ = metaNode
+    __metaclass__ = metaUI
     def attachForm(self, *args):
         kwargs = {'edit':True}
         #if isinstance(list, args[0]):
@@ -196,7 +196,7 @@ class FormLayout(UI):
         cmds.formLayout(self,**kwargs)
         
 class TextScrollList(UI):
-    __metaclass__ = metaNode
+    __metaclass__ = metaUI
     def extend( self, appendList ):
         """ append a list of strings"""
         
@@ -457,7 +457,7 @@ def _createClassesAndFunctions():
         classname = util.capitalize(funcName)
         #classname = funcName[0].upper() + funcName[1:]
         if not hasattr( _thisModule, classname ):
-            cls = metaNode(classname, (UI,), {})
+            cls = metaUI(classname, (UI,), {})
             cls.__module__ = __name__
             setattr( _thisModule, classname, cls )
         else:
