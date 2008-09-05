@@ -754,27 +754,35 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
 
-    obj = MObject()
+    # Regardless of whether we're making a DG or DAG node, make a parent first - 
+    # for some reason, this ensures good cleanup (don't ask me why...??)
+    parent = dagMod.createNode ( 'transform', MObject())
     
     try:
         try :
             # Try making it with dgMod FIRST - this way, we can avoid making an
-            # unneccessary transform if it is a DAG node
-            obj = dgMod.createNode ( mayaType ) 
+            # unneccessary transform if it is a DG node
+            obj = dgMod.createNode ( mayaType )
         except RuntimeError:
             # DagNode
-            parent = dagMod.createNode ( 'transform', MObject())
             obj = dagMod.createNode ( mayaType, parent )
-            dagMod.deleteNode(parent)
+            if VERBOSE:
+                print "Made ghost DAG node of type '%s'" % mayaType
         else:
             # DependNode
+            if VERBOSE:
+                print "Made ghost DG node of type '%s'" % mayaType
             dgMod.deleteNode(obj)
     except:
-        #util.warn("Error trying to create ghost node for '%s'" %  mayaType)
-        _unableToCreate.add(mayaType)
+        obj = MObject()
+
+    dagMod.deleteNode(parent)
+
     if isValidMObject(obj) :
         return obj
     else :
+        #util.warn("Error trying to create ghost node for '%s'" %  mayaType)
+        _unableToCreate.add(mayaType)
         return None
 
 
