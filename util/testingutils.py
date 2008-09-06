@@ -1,15 +1,54 @@
-import unittest
+import sys
+from unittest import *
+
+#def makeModuleSuite(moduleName, classPrefix='Test'):
+#    """
+#    Will look for classes whose name start with the given classPrefix (default: 'Test'),
+#    and return a test suite that runs all tests on all the found classes.
+#    """ 
+#    mod = sys.modules[moduleName]
+#    testClasses  = findTestCases
+#    
+#    suite = TestSuite()
+#    for testClass in testClasses:
+#        suite.addTest(makeSuite(testClass))
+#    return suite
+#
+def addFuncToModule(func, module):
+    setattr(module, func.__name__, func) 
+    
+def setupUnittestModule(moduleName):
+    """
+    Add basic unittest functions to the given module.
+     
+    Will add a 'suite' function that returns a suite object for the module,
+    and a 'test_main' function which runs the suite.
+    
+    Will then call 'test_main' if moduleName == '__main__'
+    """
+    module = sys.modules[moduleName]
+    def suite():
+        return findTestCases(module)
+    
+    def test_main():
+        TextTestRunner(stream=sys.stdout, verbosity=2).run(suite())
+    
+    addFuncToModule(suite, module)
+    addFuncToModule(test_main, module)
+    
+    if moduleName == '__main__':
+        test_main()
 
 # Make this import / initialize pymel!
-class MayaTestRunner(unittest.TextTestRunner):
-    '''
-    Test runner for unittests that require maya.
-    '''
-    
-    # For now, just calls standard TextTestRunner with different defaults
-    def __init__
+#class MayaTestRunner(TextTestRunner):
+#    '''
+#    Test runner for unittests that require maya.
+#    '''
+#    
+#    # For now, just calls standard TextTestRunner with different defaults
+#    def __init__
 
-class TestCaseExtended(unittest.TestCase):
+class TestCaseExtended(TestCase):
     #def addTestFunc(self, function):
     def assertNoError(self, function, *args, **kwargs):
         try:
@@ -125,11 +164,10 @@ class TestCaseExtended(unittest.TestCase):
                 # if len(unmatchedResults)==0
                 if orderMatters:
                     self.assertEqual(item, unmatchedResults[0], "iterable returned '%s' when '%s' was expected" % (item, unmatchedResults[0]))
-            unmatchedResults.remove(item)
+            if item in unmatchedResults:
+                unmatchedResults.remove(item)
             
-        message = "iterable '%s' did not contain expected item" % iterable
-        if(len(unmatchedResults) != 0):
-            message += " '%s'" % unmatchedResults[0]
+        message = "iterable '%s' did not contain expected item(s): %s" % (iterable, [str(x) for x in unmatchedResults])
         self.assertEqual(len(unmatchedResults), 0, message)
 
 # TODO: move to util.math?

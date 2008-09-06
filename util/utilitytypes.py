@@ -8,7 +8,11 @@ from pwarnings import *
 
 class Singleton(object) :
     """ Singleton classes can be derived from this class,
-        you can derive from other classes as long as Singleton comes first (and class doesn't override __new__
+        you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ )
+        
+        If arguments are passed into the constructor, then a new instance will be created (and initialized using
+        the arguments); if the class is called with no arguments, then the existing instance will be returned (or
+        created if it has never been instantiated before).
 
         >>> class uniqueImmutableDict(Singleton, dict) :
         >>>     def __init__(self, value) :
@@ -20,7 +24,7 @@ class Singleton(object) :
         >>>   # You'll want to override or get rid of dict herited set item methods
     """
     def __new__(cls, *p, **k):
-        if not '_the_instance' in cls.__dict__:
+        if '_the_instance' not in cls.__dict__ or p or k:
             cls._the_instance = super(Singleton, cls).__new__(cls)
         return cls._the_instance
 
