@@ -1104,7 +1104,7 @@ class PyNode(util.ProxyUnicode):
         obj = None
         name = None
         attrNode = None
-        
+        argObj = None
         if args :
             
 
@@ -1119,20 +1119,21 @@ class PyNode(util.ProxyUnicode):
                 
                 attrNode = args[0]
                 argObj = args[1]
+                
+                #-- First Argument: Node
+                # ensure that the node object is a PyNode object
                 if not isinstance( attrNode, DependNode ):
                     attrNode = PyNode( attrNode )
-                    
-                if isinstance(argObj,basestring) :
-                    # convert from string to api objects.
-                    res = api.toApiObject( argObj, dagPlugs=False )
                 
-                elif isinstance( argObj, int ) or isinstance( argObj, slice ):
-                    # component
-                    argObj = attrNode
-                    res = attrNode._apiobject
-                else:
-                    res = argObj   
-                pymelType, obj, name = _getPymelType( res )
+#                #-- Second Argument: Plug or Component
+#                # convert from string to api objects.
+#                if isinstance(argObj,basestring) :
+#                    argObj = api.toApiObject( argObj, dagPlugs=False )
+#                    
+#                # components
+#                elif isinstance( argObj, int ) or isinstance( argObj, slice ):
+#                    argObj = attrNode._apiobject
+
                 
             else:
                 argObj = args[0]
@@ -1142,7 +1143,8 @@ class PyNode(util.ProxyUnicode):
                 if isinstance( argObj, Attribute ):
                     attrNode = argObj._node
                     argObj = argObj._apiobject
-                    
+                elif isinstance( argObj, _Component ):
+                    argObj = argObj._node._apiobject
                 elif isinstance( argObj, PyNode ):
                     argObj = argObj._apiobject
                 elif hasattr( argObj, '__module__') and argObj.__module__.startswith( 'maya.OpenMaya' ) :
@@ -1167,14 +1169,23 @@ class PyNode(util.ProxyUnicode):
                     else:
                         raise MayaObjectError, "Object does not exist: " + argObj
 
-                        
-                pymelType, obj, name = _getPymelType( argObj )
+            #-- Components
+            if isinstance( argObj, int ) or isinstance( argObj, slice ):
+                #pymelType, obj, name = _getPymelType( attrNode._apiobject )
+                obj = argObj
+                # if we are creating a component class using an int or slice, then we must specify a class type:
+                #    valid:    MeshEdge( myNode, 2 )
+                #    invalid:  PyNode( myNode, 2 )
+                assert issubclass(cls,_Component)
                 
-            #print pymelType, obj, name
+            #-- All Others
+            else:
+                pymelType, obj, name = _getPymelType( argObj )
+            #print pymelType, obj, name, attrNode
             
             # Virtual (non-existent) objects will be cast to their own virtual type.
             # so, until we make that, we're rejecting them
-            assert obj # real objects only
+            assert obj is not None# real objects only
             #assert obj or name
             
         else :
@@ -1202,6 +1213,9 @@ class PyNode(util.ProxyUnicode):
             if attrNode:
                 #print 'ATTR', attr, obj, pymelType
                 self._node = attrNode
+            #else:
+            #    self._node = PyNode(obj)
+            
             self._apiobject = obj
             return self
         else :
@@ -1212,6 +1226,15 @@ class PyNode(util.ProxyUnicode):
         be overridden on subclasses of PyNode"""
         pass
     
+    def __apimfn__(self):
+        if self._apimfn:
+            return self._apimfn
+        elif self.__apicls__:
+            obj = self.__apiobject__()
+            if obj:
+                self._apimfn = self.__apicls__(obj)
+                return self._apimfn
+                
     def __radd__(self, other):
         if isinstance(other, basestring):
             return other.__add__( self.name() )
@@ -1385,45 +1408,101 @@ SCENE = Scene()
     
 class _Component( PyNode ):
     def __init__(self, *args, **kwargs ):
-        args = [self.node().__apimdagpath__()]
+        
+        isApiComponent = False 
+        component = None
+        newargs = []
+        # the _Component class can be instantiated several ways:
+        # DagPath, Component pair: stored on self._node and self._apiobject respectively
+        if self._node:
+            newargs.append( self._node.__apimdagpath__() )
+            if api.isValidMObjectHandle( self._apiobject ): 
+                newargs.append( self._apiobject.object() )  
+                isApiComponent = True
+            
+        # DagPath: stored on self._apiobject (self._node will be None)
+        else:
+            newargs = [self._apiobject]
+            self._node = PyNode(self._apiobject)
+            self._apiobject = None
+            
+        #print "ARGS", newargs   
+        
         component = self._apiobject
-        self._range = None
-        #print "COMP", component
-        comp = False
-        if api.isValidMObjectHandle( component ): 
-            args.append(component.object() )  
-            comp = True
-        #print args
-        self.apicls.__init__(self, *args)
+        self._range = None # a list of component indices
+        self._rangeIndex = 0 # an index into the range
+        self._startIndex = 0
+        self._stopIndex = 0
+        self.isReset = True # if the iterator is at its first item
+   
+        # instantiate the api component iterator    
+        self._apimfn = self.__apicls__(*newargs )
         
-        if comp: 
-            pass 
         
+        if isApiComponent:
+            self._startIndex = self.getIndex()
+            self._stopIndex = self._startIndex + self.count()-1
+            self._range = xrange( self._startIndex, self._stopIndex+1)
+            
         elif isinstance(component, int):
+            self._startIndex = component
+            self._stopIndex = component
             self._range = [component]
             su = api.MScriptUtil()
-            self.apicls.setIndex( self, component, su.asIntPtr() )  # bug workaround
+            self.__apimfn__().setIndex( component, su.asIntPtr() )  # bug workaround
             
         elif isinstance(component, slice):
-            self._range = range( component.start, component.stop+1)
+            self._startIndex = component.start
+            self._stopIndex = component.stop
+            self._range = range( self._startIndex, self._stopIndex+1)
             su = api.MScriptUtil()
-            self.apicls.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+            self.__apimfn__().setIndex( component.start, su.asIntPtr() )  # bug workaround
             
-        elif component is not None:
+        elif component is None:
+            self._stopIndex = self.count()-1
+            
+        else:
             raise TypeError, "component must be a valid MObject representing a component, an integer, or a slice"
         
+        #print "START-STOP", self._startIndex, self._stopIndex
         #self._node = node
-        self._comp = component
-        self._index = 0
+        #self._comp = component
+        self._comp = self._apiobject
+
     
     def name(self):
-        if isinstance( self._comp, int ):
-            return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._comp )
-        elif isinstance( self._comp, slice ):
-            return u'%s.%s[%s:%s]' % ( self._node, self.__componentLabel__, self._comp.start, self._comp.stop )
+#        if isinstance( self._comp, int ):
+#            return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._comp )
+#        elif isinstance( self._comp, slice ):
+#            return u'%s.%s[%s:%s]' % ( self._node, self.__componentLabel__, self._comp.start, self._comp.stop )
+#        
+#        return u'%s.%s[0:%s]' % (self._node, self.__componentLabel__, self.count()-1)
         
-        return u'%s.%s[0:%s]' % (self._node, self.__componentLabel__, self.count()-1)
-      
+        if self._startIndex == self._stopIndex:
+            return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._startIndex )
+        
+        return u'%s.%s[%s:%s]' % (self._node, self.__componentLabel__, self._startIndex, self._stopIndex )
+    
+    
+    def __apiobject__(self):
+        return self._apiobject.object()
+    
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this attribute, if it is valid"
+        try:
+            #print "NODE", self.node()
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+        
+    def __apimfn__(self):
+        if self._apimfn:
+            return self._apimfn
+        elif self.__apicls__:
+            obj = self.__apiobject__()
+            if obj:
+                self._apimfn = self.__apicls__( self.__apimdagpath__(), self.__apiobject__() )
+                return self._apimfn
+            
     def __str__(self): 
         return str(self.name())
     
@@ -1439,21 +1518,40 @@ class _Component( PyNode ):
     def node(self):
         return self._node
     
+    def setIndex(self, index):
+        #self._range = [component]
+        su = api.MScriptUtil()
+        self.__apimfn__().setIndex( index, su.asIntPtr() )  # bug workaround
+        #self._index = index
+        return self
+    
+    def getIndex(self):
+        return self.__apimfn__().index()
+    
     def next(self):
         if self.isDone(): raise StopIteration
         if self._range is not None:
             try:
-                nextIndex = self._range[self._index]
+                nextIndex = self._range[self._rangeIndex]
                 su = api.MScriptUtil()
-                self.apicls.setIndex( self, nextIndex, su.asIntPtr() )  # bug workaround
-                self._index += 1
+                self.__apimfn__().setIndex( nextIndex, su.asIntPtr() )  # bug workaround
+                self._rangeIndex += 1
                 return self.__class__(self._node, nextIndex)
             except IndexError:
                 raise StopIteration
 
         else:
-            self.apicls.next(self)
-        return self.__class__(self._node, self.apicls.index(self) )
+            if self.isReset:
+                self.isReset = False
+            else:
+                #print "INCREMENTING"
+                self.__apimfn__().next()
+                if self.isDone(): raise StopIteration
+        #print "NEXT", self.getIndex()
+        #return self.__class__(self._node, self.__apimfn__().index() )
+        
+        #print "RETURNING"
+        return self.__class__( self, self.getIndex() )
 #        if isinstance( self._comp, int ):
 #            _api.apicls.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
 #        elif isinstance( self._comp, slice):
@@ -1463,40 +1561,62 @@ class _Component( PyNode ):
         return self.count()
             
     def __getitem__(self, item):
+        #return self.__class__(self._node, item)
         return self.__class__(self._node, item)
 
-
 class MeshEdge( _Component ):
-    apicls = api.MItMeshEdge
+    __apicls__ = api.MItMeshEdge
     __metaclass__ = _factories.MetaMayaTypeWrapper
     __componentLabel__ = 'e'
     def count(self):
         if self._range is not None:
             return len(self._range)
         else:
-            return self.apicls.count( self ) 
+            return self.__apimfn__().count() 
+    def toVertices(self):
+        index0 = self.__apimfn__().index(0)
+        index1 = self.__apimfn__().index(1)
+        return ( MeshVertex(self,index0), MeshVertex(self,index1) )
+    
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshEdgeComponent  ] = MeshEdge
        
 class MeshVertex( _Component ):
-    apicls = api.MItMeshVertex
+    __apicls__ = api.MItMeshVertex
     __metaclass__ = _factories.MetaMayaTypeWrapper
     __componentLabel__ = 'vtx'
     def count(self):
         if self._range is not None:
             return len(self._range)
         else:
-            return self.apicls.count( self )
+            return self.__apimfn__().count()
+    def setColor(self,color):
+        self.node().setVertexColor( color, self.getIndex() )
+        
+    def toEdges(self):
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedEdges(array)
+#        res = []
+#        for i in range(array.length()):
+#            val = array[i]
+#            print i, val
+#            print self, repr(self)
+#            e = MeshEdge(self,val)
+#            print e
+#            res.append( e )
+#        return res
+        return tuple([ MeshEdge(self,array[i]) for i in range(array.length())])
+    
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshVertComponent ] = MeshVertex  
   
 class MeshFace( _Component ):
-    apicls = api.MItMeshPolygon
+    __apicls__ = api.MItMeshPolygon
     __metaclass__ = _factories.MetaMayaTypeWrapper
     __componentLabel__ = 'f'
     def count(self):
         if self._range is not None:
             return len(self._range)
         else:
-            return self.apicls.count( self )
+            return self.__apimfn__().count()
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshPolygonComponent ] = MeshFace
 
 class NurbsCurveCV( _Component ):
@@ -1684,11 +1804,11 @@ class Attribute(PyNode):
         >>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()    
     """
     __metaclass__ = MetaMayaTypeWrapper
-    apicls = api.MPlug
+    __apicls__ = api.MPlug
     attrItemReg = re.compile( '\[(\d+)\]$')
     
-    def __init__(self, *args, **kwargs ):
-        self.apicls.__init__(self, self._apiobject )
+#    def __init__(self, *args, **kwargs ):
+#        self.apicls.__init__(self, self._apiobject )
     
     def __apiobject__(self) :
         "Return the default API object (MPlug) for this attribute, if it is valid"
@@ -1708,18 +1828,19 @@ class Attribute(PyNode):
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this attribute, if it is valid"
         try:
-            return self.node().__mdagpath__()
+            return self.node().__apimdagpath__()
         except AttributeError: pass
     
-    def __apimfn__(self):
-        if self._apimfn:
-            return self._apimfn
-        else:
-            obj = self.__apiobject__().attribute()
-            if obj:
-                self._apimfn = api.MFnAttribute( obj )
-                return self._apimfn
-                           
+#    def __apimfn__(self):
+#        if self._apimfn:
+#            return self._apimfn
+#        else:
+#            obj = self.__apiobject__().attribute()
+#            if obj:
+#                self._apimfn = api.MFnAttribute( obj )
+#                return self._apimfn
+
+                               
 #    def __init__(self, attrName):
 #        assert isinstance( api.__apiobject__(), api.MPlug )
         
@@ -1738,13 +1859,19 @@ class Attribute(PyNode):
     
     def attr(self, attr):
         node = self.node()
-        attrObj = node.__apimfn__().attribute(attr)
+        try:
+            attrObj = node.__apimfn__().attribute(attr)
+        except RuntimeError:
+            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
+            raise MayaAttributeError, "Maya node %r has no attribute %r" % ( self, attr )
         return Attribute( node, self.__apimplug__().child( attrObj ) )
     
     
     def __getattr__(self, attr):
-        return self.attr(attr)
-    
+        try:
+            return self.attr(attr)
+        except MayaAttributeError, e:
+            raise AttributeError, str(e)
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
@@ -2275,7 +2402,7 @@ class Attribute(PyNode):
         """attributeQuery -listChildren"""
         res = []
         for i in range(self.numChildren() ):
-            res.append( Attribute( self.node(), self.apicls.child(self, i) ) )
+            res.append( Attribute( self.node(), self.__apimfn__().child(i) ) )
         return res
     
     def getSiblings(self):
@@ -2297,7 +2424,7 @@ class Attribute(PyNode):
 #            return None
 
     def getParent(self):
-        return Attribute( self.node(), self.apicls.parent(self) )
+        return Attribute( self.node(), self.__apimfn__().parent() )
         
 '''
 class NodeAttrRelay(unicode):
@@ -2331,8 +2458,8 @@ class DependNode( PyNode ):
 #            name = createNode(ntype,n=name,ss=1)
 #        return PyNode.__new__(cls,name)
 
-    def __init__(self, *args, **kwargs ):
-        self.apicls.__init__(self, self._apiobject.object() )
+#    def __init__(self, *args, **kwargs ):
+#        self.apicls.__init__(self, self._apiobject.object() )
         
     def _updateName(self) :
         if api.isValidMObjectHandle(self._apiobject) :
@@ -2356,17 +2483,17 @@ class DependNode( PyNode ):
         if api.isValidMObjectHandle(self._apiobject) :
             return self._apiobject.object()
     
-    def __apimfn__(self):
-        if self._apimfn:
-            return self._apimfn
-        elif self.apicls:
-            obj = self.__apiobject__()
-            if obj:
-                try:
-                    self._apimfn = self.apicls(obj)
-                    return self._apimfn
-                except KeyError:
-                    pass
+#    def __apimfn__(self):
+#        if self._apimfn:
+#            return self._apimfn
+#        elif self.__apicls__:
+#            obj = self.__apiobject__()
+#            if obj:
+#                try:
+#                    self._apimfn = self.__apicls__(obj)
+#                    return self._apimfn
+#                except KeyError:
+#                    pass
 
     """
     def __init__(self, *args, **kwargs) :
@@ -2406,7 +2533,7 @@ class DependNode( PyNode ):
             return super(PyNode, self).__getattr__(attr)
         except AttributeError :
             try:
-                return self.attr(attr)
+                return DependNode.attr(self,attr)
             except MayaAttributeError, msg:
                 # since we're being called via __getattr__ we don't know whether the user was trying 
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
@@ -2447,9 +2574,9 @@ class DependNode( PyNode ):
                 for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
                     if isinstance( token, nameparse.MayaName ):
                         if isinstance( result, api.MPlug ):
-                            result = result.child( self.apicls.attribute( self, token ) )
+                            result = result.child( self.__apimfn__().attribute( token ) )
                         else:
-                            result = self.apicls.findPlug( self, token )                              
+                            result = self.__apimfn__().findPlug( token )                              
 #                                # search children for the attribute to simulate  persp.focalLength --> perspShape.focalLength
 #                                except TypeError:
 #                                    for i in range(fn.childCount()):
@@ -2460,7 +2587,7 @@ class DependNode( PyNode ):
                         result = result.elementByLogicalIndex( token.value )
                 return Attribute( self.__apiobject__(), result )
             else:
-                return Attribute( self.__apiobject__(), self.apicls.findPlug( self, attr, False ) )
+                return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
             
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
@@ -2728,8 +2855,8 @@ class Entity(DependNode):
 class DagNode(Entity):
     __metaclass__ = MetaMayaNodeWrapper
     
-    def __init__(self, *args, **kwargs ):
-        self.apicls.__init__(self, self.__apimdagpath__() )
+#    def __init__(self, *args, **kwargs ):
+#        self.apicls.__init__(self, self.__apimdagpath__() )
         
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
@@ -2781,17 +2908,17 @@ class DagNode(Entity):
         "get the MObject for this object if it is valid"
         return self.__apimdagpath__().node()
 
-    def __apimfn__(self):
-        if self._apimfn:
-            return self._apimfn
-        elif self.apicls:
-            obj = self._apiobject
-            if api.isValidMDagPath(obj):
-                try:
-                    self._apimfn = self.apicls(obj)
-                    return self._apimfn
-                except KeyError:
-                    pass
+#    def __apimfn__(self):
+#        if self._apimfn:
+#            return self._apimfn
+#        elif self.__apicls__:
+#            obj = self._apiobject
+#            if api.isValidMDagPath(obj):
+#                try:
+#                    self._apimfn = self.__apicls__(obj)
+#                    return self._apimfn
+#                except KeyError:
+#                    pass
                         
 #    def __init__(self, *args, **kwargs):
 #        if self._apiobject:
@@ -3128,16 +3255,38 @@ class Transform(DagNode):
 #                # since we're being called via __getattr__ we don't know whether the user was trying 
 #                # to get a class method or a maya attribute, so we raise a more generic AttributeError
 #                raise AttributeError, msg
-            
+ 
+    def __getattr__(self, attr):
+        """
+        Checks in the following order:
+            1. Functions on this node class
+            2. Attributes on this node class
+            3. Functions on this node class's shape
+            4. Attributes on this node class's shape
+        """
+        try :
+            # Functions through normal inheritance
+            return DependNode.__getattr__(self,attr)
+        except AttributeError, e:
+            # Functions via shape inheritance , and then, implicitly, Attributes
+            shape = self.getShape()
+            if shape:
+                try:
+                    return getattr(shape,attr)
+                except AttributeError: pass
+            raise e
+                     
     def attr(self, attr, checkShape=True):
         """
         when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
         be returned.
         """
+        print "ATTR: Transform"
         try :
             return DependNode.attr(self,attr)
         except MayaAttributeError, msg:
             if checkShape:
+                print "\tCHECKING SHAPE"
                 try: 
                     return self.getShape().attr(attr)
                 except AttributeError:
@@ -3397,7 +3546,6 @@ class NurbsCurve(CurveShape):
     
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
-    __metaclass__ = MetaMayaNodeWrapper
     """
     Cycle through faces and select those that point up in world space
     
@@ -3408,6 +3556,7 @@ class Mesh(SurfaceShape):
     >>>         select( face , add=1)
     
     """
+    __metaclass__ = MetaMayaNodeWrapper
 #    def __init__(self, *args, **kwargs ):      
 #        SurfaceShape.__init__(self, self._apiobject )
 #        self.vtx = MeshEdge(self.__apimobject__() )
@@ -3501,7 +3650,7 @@ class Mesh(SurfaceShape):
     def vtx(self): return MeshVertex(self)
     @property
     def verts(self): return MeshVertex(self)
-    
+
 #    def __getattr__(self, attr):
 #        try :
 #            return super(PyNode, self).__getattr__(attr)
