@@ -10,7 +10,7 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
     
     When passed a melVariable, the command will determine the mel type from a mel variable ( ex. '$foo' )
     
-    If exactMelType is True, the type will be converted to mel, and if no suitable mel analogue can be found, the function will return None.
+    If exactMelType is True and no suitable mel analogue can be found, the function will return None.
     If False, types which do not have an exact mel analogue will return a string representing the python type
 
     """
@@ -25,7 +25,8 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
         assert melVariable is None and pyObj is None, "Please pass only one of pyObj, pyType or melVariable"
     
         if not exactMelType:
-            if not isinstance( pyType, basestring ): pyType = pyType.__name__
+            if not isinstance( pyType, basestring ): 
+                pyType = pyType.__name__
             return typeStrMap.get(pyType, pyType)   
             
         else:
@@ -56,7 +57,7 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
         else:    
             if isIterable( pyObj ):
                 try:
-                    return getMelTypeFromPyObj( arg[0] ) + '[]'
+                    return getMelType( pyObj=arg[0], exactMelType=True ) + '[]'
                 except IndexError:
                     return 'string[]'
                 except:
