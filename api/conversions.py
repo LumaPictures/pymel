@@ -8,7 +8,7 @@ from maya.cmds import ls as _ls
 #import pymel.factories as _factories
 
 import sys, inspect, timeit, time, re
-from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict
+from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict, warn, ExecutionWarning
 import pymel.util as util
 import pickle, os.path
 #import pymel.mayahook as mayahook
@@ -178,6 +178,18 @@ class ApiDocParser(object):
                 '[]' : '__getitem__'}.get( op, None )
         return methodName
     
+    def isSetMethod(self):
+        if re.match( 'set[A-Z]', self.currentMethod ):
+            return True
+        else:
+            return False
+        
+    def isGetMethod(self):
+        if re.match( 'get[A-Z]', self.currentMethod ):
+            return True
+        else:
+            return False 
+                                
     def parse(self):            
         docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir(docloc):
@@ -263,8 +275,10 @@ class ApiDocParser(object):
                 inArgs=[]
                 outArgs=[]
                 types ={}
+                typeQualifiers={}
                 methodDoc = ''
                 
+                # Static methods
                 static = False
                 try:
                     code = proto.findAll('code')[-1].string
@@ -275,13 +289,22 @@ class ApiDocParser(object):
                 tmpTypes=[]
                 # TYPES
                 for paramtype in proto.findAll( 'td', **{'class':'paramtype'} ) :
-                    buf = [ str( x.strip() ) for x in paramtype.findAll( text=True ) if x.strip() not in ['', '*', '&', 'const', 'unsigned'] ]
+                    buf = []
+                    [ buf.extend(x.split()) for x in paramtype.findAll( text=True ) ] #if x.strip() not in ['', '*', '&', 'const', 'unsigned'] ]
+                    buf = [ str(x.strip()) for x in buf if x.strip() ]
+
+                    i=0
+                    for i, each in enumerate(buf):
+                        if each not in [ '*', '&', 'const', 'unsigned']:
+                            break
+                    self.xprint( buf, )
+                    argtype = buf.pop(i)
+                    self.xprint( buf, argtype, i )
                     
-                    buf2 = [x for x in buf[0].split() if x not in ['', '*', '&', 'const', 'unsigned'] ]
-                    argtype = self.handleEnums(buf2[0])
+                    argtype = self.handleEnums(argtype)
                     
                     #print '\targtype', argtype, buf
-                    tmpTypes.append( argtype )
+                    tmpTypes.append( (argtype, buf) )
                 
                 # ARGUMENT NAMES 
                 i = 0
@@ -291,7 +314,7 @@ class ApiDocParser(object):
                         argname = buf[0]
                         data = buf[1:]
                         
-                        type = tmpTypes[i]
+                        type, qualifiers = tmpTypes[i]
                         default=None
                         joined = ''.join(data).strip()
                         
@@ -307,23 +330,44 @@ class ApiDocParser(object):
                                     print "this is not a bracketed number", repr(brackets), joined
                             
                             if default is not None:
-                                       
-                                default = {
+                                try:  
+                                    # Constants
+                                    default = {
                                         'true' : True,
-                                        'false': False
-                                    }.get( default, self.handleEnumDefaults(default, type) )
-                                    
-                        if default is not None:
-                            defaults[argname] = default
+                                        'false': False,
+                                        'NULL' : None
+                                    }[default]
+                                except KeyError:
+                                    try:
+                                        if type in ['int', 'uint','long']:
+                                            default = int(default)
+                                        elif type in ['float', 'double']:
+                                            # '1.0 / 24.0'
+                                            if '/' in default:
+                                                default = eval(default.encode('ascii', 'ignore'))
+                                            # '1.0e-5F'  --> '1.0e-5'
+                                            elif default.endswith('F'):
+                                                default = float(default[:-1])
+                                            else:
+                                                default = float(default)
+                                        else:
+                                            default = self.handleEnumDefaults(default, type)
+                                    except ValueError:
+                                        default = self.handleEnumDefaults(default, type)
+                                # default must be set here, because 'NULL' may be set to back to None, but this is in fact the value we want
+                                self.xprint('DEFAULT', default)
+                                defaults[argname] = default
+                                
                         types[argname] = type
+                        typeQualifiers[argname] = qualifiers
                         names.append(argname)
                         i+=1
                         
                 try:
                     # ARGUMENT DIRECTION AND DOCUMENTATION
                     addendum = proto.findNextSiblings( 'div', limit=1)[0]
-                    try: self.xprint( addendum.findAll(text=True ) )
-                    except: pass
+                    #try: self.xprint( addendum.findAll(text=True ) )
+                    #except: pass
                     
                     #if addendum.findAll( text = re.compile( '(This method is obsolete.)|(Deprecated:)') ):
                     if addendum.dl.findAll( text=lambda text: text in ['This method is obsolete.', 'Deprecated:', 'NO SCRIPT SUPPORT.'] ):
@@ -346,9 +390,22 @@ class ApiDocParser(object):
                     assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), 'names and types lists are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs) 
                     
                     for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs) :
-                        if dir == '[in]': dir = 'in'
-                        elif dir == '[out]': dir = 'out'
+                        if dir == '[in]': 
+                            # attempt to correct bad in/out docs
+                            if re.search(r'\b([fF]ill|[sS]torage)|([rR]esult)', doc ):
+                                warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
+                                                                    self.apiClassName,self.currentMethod,', '.join(names), name, doc), ExecutionWarning)
+                                dir = 'out'
+                            elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float']:
+                                warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
+                                                                    self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)                                                                                        
+                                dir = 'out'
+                            else:
+                                dir = 'in'
+                        elif dir == '[out]': 
+                            dir = 'out'
                         else: raise
+                        
                         assert name in names
                         directions[name] = dir
                         docs[name] = doc
@@ -367,7 +424,7 @@ class ApiDocParser(object):
 #                print directions
 #                print docs
 
-                for argname in names:
+                for argname in names[:] :
                     type = types[argname]
                     direction = directions.get(argname, 'in')
                     doc = docs.get( argname, '')
@@ -377,17 +434,36 @@ class ApiDocParser(object):
                         defaults.pop(argname,None)
                         directions.pop(argname,None)
                         docs.pop(argname,None)
+                        idx = names.index(argname)
+                        names.pop(idx)
                     else:          
-                        data = ( argname, type, direction)
-                        if self.verbose: print data       
-                        argList.append(  data )
                         if direction == 'in':
                             inArgs.append(argname)
                         else:
                             outArgs.append(argname)
                         argInfo[ argname ] = {'type': type, 'doc': doc }
+                 
+                # correct bad outputs   
+                if self.isGetMethod() and not returnType and not outArgs:
+                    for argname in names:
+                        if '&' in typeQualifiers[argname]:
+                            doc = docs.get(argname, '')
+                            directions[argname] = 'out'
+                            idx = inArgs.index(argname)
+                            inArgs.pop(idx)
+                            outArgs.append(argname)
+
+                            warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (               
+                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc), ExecutionWarning) 
+                
+                # now that the directions are correct, make the argList
+                for argname in names:
+                    type = types[argname]
+                    direction = directions.get(argname, 'in')
+                    data = ( argname, type, direction)
+                    if self.verbose: print data       
+                    argList.append(  data )
                     
-                        
                 methodInfo = { 'argInfo': argInfo, 
                               'args' : argList, 
                               'returnType' : returnType, 
@@ -395,6 +471,7 @@ class ApiDocParser(object):
                               'outArgs' : outArgs, 
                               'doc' : methodDoc, 
                               'defaults' : defaults,
+                              #'directions' : directions,
                               'types' : types,
                               'static' : static } 
                 self.methods[self.currentMethod].append(methodInfo)
@@ -610,6 +687,10 @@ def mayaTypeToApiType (mayaType) :
             # It's an abstract type            
             apiType = ReservedMayaTypes()[mayaType]
         else :
+            # we create a dummy object of this type in a dgModifier
+            # as the dgModifier.doIt() method is never called, the object
+            # is never actually created in the scene
+            obj = MObject() 
             dagMod = MDagModifier()
             dgMod = MDGModifier()
             obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
@@ -1314,7 +1395,7 @@ def toApiObject (nodeName, dagPlugs=True):
                 if dagPlugs and isValidMDagPath(obj) : 
                     return (obj, plug)
                 return plug
-            except RuntimeError:
+            except (RuntimeError,ValueError):
                 return
     else:
         if "." in nodeName :
