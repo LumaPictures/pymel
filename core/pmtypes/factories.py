@@ -6,7 +6,7 @@ import pymel.mayahook as mayahook
 #print "Maya up and running"
 #from general import PyNode
 import pymel.api as _api
-import sys, os, inspect, pickle, re, types, os.path
+import sys, os, inspect, pickle, re, types, os.path, warnings
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 from operator import itemgetter
@@ -16,7 +16,7 @@ import maya.mel as mm
 import pmcmds
 
 
-VERBOSE=False
+VERBOSE=0
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -1609,7 +1609,8 @@ class ApiTypeRegister(object):
     def _makeApiArraySetter( type, inCast ):
         def setArray( array ):
             arrayPtr = type()
-            [ arrayPtr.append( inCast(array[x]) ) for x in array ]
+            [ arrayPtr.append( inCast(x) ) for x in array ]
+            return arrayPtr
         setArray.__name__ = 'set_' + type.__name__
         return setArray
         
@@ -1640,25 +1641,34 @@ class ApiTypeRegister(object):
         return apiTypename in cls.types
         
     @classmethod         
-    def register(cls, apiTypename, wrappedType, inCast=None, outCast=None):
+    def register(cls, apiTypename, pymelType, inCast=None, outCast=None, apiArrayItemType=None):
+        """
+        pymelType is the type to be used internally by pymel.  apiType will be hidden from the user
+        and converted to the pymel type.  
+        apiTypename is the name of an apiType as a string
+        if apiArrayItemType is set, it should be the api type that represents each item in the array"""
 
-        #apiTypename = wrappedType.__class__.__name__
+        #apiTypename = pymelType.__class__.__name__
         capType = util.capitalize( apiTypename ) 
 
         # register type
-        cls.types[apiTypename] = wrappedType
+        cls.types[apiTypename] = pymelType
         
         # register result casting
         if outCast:
             cls.outCast[apiTypename] = outCast
+        elif apiArrayItemType is not None:
+            pass
         else:
-            cls.outCast[apiTypename] = lambda self, x: wrappedType(x)
+            cls.outCast[apiTypename] = lambda self, x: pymelType(x)
             
         # register argument casting
         if inCast:
             cls.inCast[apiTypename] = inCast
+        elif apiArrayItemType is not None:
+            pass # filled out below
         else:
-            cls.inCast[apiTypename] = wrappedType
+            cls.inCast[apiTypename] = pymelType
         
         if apiTypename in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
             initFunc = getattr( cls.su, 'as' + capType + 'Ptr')
@@ -1673,30 +1683,37 @@ class ApiTypeRegister(object):
                 cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypename, i, setArrayFunc, initFunc )
                 cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypename, i, getArrayFunc )
         else:
-            try:
-                # Api types
+            try:      
                 apiType = getattr( _api, apiTypename )
-                cls.refInit[apiTypename] = apiType
-                cls.refCast[apiTypename] = wrappedType
-                try:
-                    # Api Array types
-                    arrayTypename = apiTypename + 'Array'
-                    apiArrayType = getattr( _api, arrayTypename )
-                    cls.refInit[arrayTypename] = apiArrayType
-                    cls.inCast[arrayTypename] = cls._makeApiArraySetter( apiArrayType, inCast )
-                    
-                    # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
-                    if apiArrayType == _api.MDagPathArray:
-                        cls.refCast[arrayTypename] = lambda x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
-                        cls.outCast[arrayTypename] = lambda self, x: [ wrappedType( apiType(x[i]) ) for i in range( x.length() ) ]
-                    else:
-                        cls.refCast[arrayTypename] = lambda x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
-                        cls.outCast[arrayTypename] = lambda self, x: [ wrappedType( x[i] ) for i in range( x.length() ) ]
-                        
-                except AttributeError:
-                    pass
             except AttributeError:
                 pass
+            else:
+                #-- Api Array types
+                if apiArrayItemType:
+                    
+                    cls.refInit[apiTypename] = apiType
+                    cls.inCast[apiTypename] = cls._makeApiArraySetter( apiType, apiArrayItemType )
+                    # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
+                    if apiType == _api.MDagPathArray:
+                        cls.refCast[apiTypename] = lambda x: [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.outCast[apiTypename] = lambda self, x: [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
+                    else:
+                        cls.refCast[apiTypename] = lambda x: [ pymelType( x[i] ) for i in range( x.length() ) ]
+                        cls.outCast[apiTypename] = lambda self, x: [ pymelType( x[i] ) for i in range( x.length() ) ]
+                        
+                #-- Api types
+                else:
+                    cls.refInit[apiTypename] = apiType
+                    cls.refCast[apiTypename] = pymelType
+                    try:
+                        # automatically handle array types that correspond to this api type (e.g.  MColor and MColorArray )
+                        arrayTypename = apiTypename + 'Array'
+                        apiArrayType = getattr( _api, arrayTypename )
+                        # e.g.  'MColorArray', MColor, api.MColor
+                        ApiTypeRegister.register(arrayTypename, pymelType, apiArrayItemType=apiType)
+                    except AttributeError:
+                        pass
+
 
 
 ApiTypeRegister.register('float', float)
@@ -1707,36 +1724,59 @@ ApiTypeRegister.register('short', int)
 ApiTypeRegister.register('uint', int)
 #ApiTypeRegister.register('long', int)
 ApiTypeRegister.register('MString', unicode)
-  
+ApiTypeRegister.register('MIntArray', int, apiArrayItemType=int)
+ApiTypeRegister.register('MFloatArray', float, apiArrayItemType=float)
+ApiTypeRegister.register('MDoubleArray', float, apiArrayItemType=float)
+
 class ApiArgUtil(object):
 
-    def __init__(self, apiClassName, methodName, methodInfo ):
+    def __init__(self, apiClassName, methodName, methodInfo=None, methodIndex=0 ):
+        """If methodInfo is None, then the methodIndex will be used to lookup the methodInfo from apiClassInfo"""
         self.apiClassName = apiClassName
         self.methodName = methodName
+        if methodInfo is None:
+            methodInfo = _api.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
         self.methodInfo = methodInfo
 
-
+    @staticmethod
+    def isValidEnum( enumTuple ):
+        if _api.apiClassInfo.has_key(enumTuple[0]) and \
+            _api.apiClassInfo[enumTuple[0]]['enums'].has_key(enumTuple[1]):
+            return True
+        return False
+    
     def canBeWrapped(self):
         inArgs = self.methodInfo['inArgs']
         outArgs =  self.methodInfo['outArgs']
+        defaults = self.methodInfo['defaults']
         #argList = methodInfo['args']
         returnType =  self.methodInfo['returnType']
         # ensure that we can properly cast all the args and return values
         try:
             if returnType is not None:
+                # Enum: ensure existence
                 if isinstance( returnType, tuple ):
-                    assert _api.apiClassInfo.has_key(returnType[0]) and _api.apiClassInfo[returnType[0]]['enums'].has_key(returnType[1]),'%s.%s(): invalid return enum: %s' % (self.apiClassName, self.methodName, returnType)
+                    assert self.isValidEnum(returnType), '%s.%s(): invalid return enum: %s' % (self.apiClassName, self.methodName, returnType)
+                    
+                # Other: ensure we can cast result
                 else:
-                    assert returnType in ApiTypeRegister.outCast or returnType == self.apiClassName, '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
+                    assert  returnType in ApiTypeRegister.outCast or \
+                            returnType == self.apiClassName, \
+                    '%s.%s(): invalid return type: %s' % (self.apiClassName, self.methodName, returnType)
             
             for argname, argtype, direction in self.methodInfo['args'] :
-                
+                # Enum
                 if isinstance( argtype, tuple ):
-                    assert _api.apiClassInfo.has_key(argtype[0]) and _api.apiClassInfo[argtype[0]]['enums'].has_key(argtype[1]), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype)
+                    assert self.isValidEnum(argtype), '%s.%s(): %s: invalid enum: %s' % (self.apiClassName, self.methodName, argname, argtype) 
                 
+                # Input
                 elif direction == 'in':
-                    assert argtype in ApiTypeRegister.inCast or argtype == self.apiClassName, '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
+                    assert  argtype in ApiTypeRegister.inCast or \
+                            defaults.has_key(argname) or \
+                            argtype == self.apiClassName, \
+                    '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
                 
+                # Output
                 elif direction == 'out':
                     assert argtype in ApiTypeRegister.refInit and argtype in ApiTypeRegister.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
                     #try:
@@ -1777,7 +1817,11 @@ class ApiArgUtil(object):
             try:
                 return ApiTypeRegister.inCast[argtype]( input )   
             except:
-                assert argtype == cls.__name__     
+                if input is None:
+                    # we should do a check to ensure that the default is None, but for now, just return
+                    return input
+                if argtype != cls.__name__:
+                    raise TypeError, "Cannot cast a %s to %s" % ( type(input).__name__, argtype ) 
                 return cls(input)
             
     def castResult(self, instance, result ):
@@ -1797,23 +1841,25 @@ class ApiArgUtil(object):
                     return ApiTypeRegister.outCast[returnType]( instance, result )  
                 except:
                     cls = instance.__class__
-                    assert returnType == cls.__name__
+                    if returnType != cls.__name__:
+                        raise TypeError, "Cannot cast a %s to %s" % ( type(result).__name__, returnType ) 
                     return cls(result)
                 
-    def initializeReference(self, argtype): 
+    def initReference(self, argtype): 
         return ApiTypeRegister.refInit[argtype]()
      
     def castReferenceResult(self,argtype,outArg):
         return ApiTypeRegister.refCast[ argtype ]( outArg )
     
     def getDefaults(self):
+        "get a list of defaults"
         defaults = []
         for arg in self.methodInfo['inArgs']:
             try:
                 default = self.methodInfo['defaults'][arg]
             except KeyError: 
                 pass
-                if self.methodName == 'translation' and VERBOSE: print "NO DEFAULT", self.methodName, arg, self.methodInfo['defaults'] 
+                #if self.methodName == 'translation' and VERBOSE: print "NO DEFAULT", self.methodName, arg, self.methodInfo['defaults'] 
             else:
                 if isinstance(default, _api.Enum ):
                     # convert enums from apiName to pymelName. the default will be the readable string name
@@ -1870,7 +1916,10 @@ def interface_wrapper( doer, args=[], defaults=[] ):
     return func
 
     
-def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
+def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
+    """If proxy is the True, then __apimfn__ function used to retrieve the proxy class. If None,
+    then we assume that the class being wrapped inherits from the underlying api class."""
+    
     #getattr( _api, apiClassName )
 
     apiClassName = apiClass.__name__
@@ -1900,32 +1949,36 @@ def wrapApiMethod( apiClass, methodName, newName=None, apiObject=False ):
         if argHelper.canBeWrapped() :
             # create the function 
             def f( self, *args ):
-                inCount = 0
-                i = 0
+
                 argList = []
                 outTypeList = []
                 #outTypeIndex = []
                 argInfo = methodInfo['args']
                 if len(args) != len(inArgs):
                     raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
-                
+                #print args, argInfo
+                inCount = 0
+                totalCount = 0
                 for name, argtype, direction in argInfo :
                     if direction == 'in':
                         argList.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
                         inCount +=1
                     else:
-                        val = argHelper.initializeReference(argtype) 
+                        val = argHelper.initReference(argtype) 
                         argList.append( val )
-                        outTypeList.append( (argtype, i) )
-                        #outTypeIndex.append( i )
-                    i+=1
+                        outTypeList.append( (argtype, totalCount) )
+                        #outTypeIndex.append( totalCount )
+                    totalCount+=1
                                       
                 #print "%s.%s: arglist %s" % ( apiClassName, methodName, argList)
                 
                 if argHelper.isStatic():
                     result = method( *argList )
                 else:
-                    result = method( self, *argList )
+                    if proxy:
+                        result = method( self.__apimfn__(), *argList )
+                    else:
+                        result = method( self, *argList )
                       
                 #print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
                 
@@ -1997,78 +2050,95 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
             classdict['__slots__'] = ()
         try:
             apicls = classdict['apicls']
+            proxy=False
         except KeyError:
-            pass
-        else:
-            if apicls is not None:
-                
-                if apicls not in bases:
-                    #print "ADDING BASE",classdict['apicls']
-                    bases = bases + (classdict['apicls'],)
-                try:
-                    if VERBOSE: print "="*40, classname, apicls, "="*40
-                    classInfo = _api.apiClassInfo[apicls.__name__]
-                except KeyError:
-                    print "No api information for api class %s" % ( apicls.__name__ )
-                else:
-                    # Find out methods herited from other bases than apicls to avoid
-                    # unwanted overloading
-                    herited = {}
-                    for base in bases :
-                        if base is not apicls :
-                            # basemro = inspect.getmro(base)
-                            for attr in dir(base) :
-                                if attr not in herited :
-                                    herited[attr] = base                                
-                    
-                    if VERBOSE : print "Methods info", classInfo['methods']        
-                    # Class Methods
-                    for methodName, info in classInfo['methods'].items(): 
-                        # don't rewrap if already herited from a base class that is not the apicls
-                        if VERBOSE : print "Checking method %s" % (methodName)
-                        if methodName not in herited :
-                            #TODO : check pymelName
-                            try:
-                                pymelName = info[0]['pymelName']
-                                removeAttrs.append(methodName)
-                            except KeyError:
-                                pymelName = methodName
-                                
-                            if pymelName not in classdict and pymelName not in ['setObject']:
-                                if VERBOSE : print "Doing an auto wrap on %s for %s" % (pymelName, methodName)
-                                method = wrapApiMethod( apicls, methodName, newName=pymelName )
-                                if method:
-                                    if VERBOSE : print "%s.%s() successfully created" % (apicls.__name__, pymelName )
-                                    classdict[pymelName] = method
-                            elif VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )
-                        elif VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
-                    try:   
-                        # Enumerators   
-                        for enumName, enumList in classInfo['pymelEnums'].items():
-                            if VERBOSE: print "adding enum %s to class %s" % ( enumName, classname )
-                            #enum = util.namedtuple( enumName, enumList )
-                            #classdict[enumName] = enum( *range(len(enumList)) )
-                            
-                            enum = util.Enum( *enumList )
-                            classdict[enumName] = enum
-                            
-                    except KeyError:
-                        pass   
-        
-        if removeAttrs:
-            if VERBOSE: print classname, "removing attributes", removeAttrs               
-        def __getattribute__(self, name):         
-            if name in removeAttrs and name not in ['name']: # tmp fix
-                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
-            return bases[0].__getattribute__(self, name)
+            try:
+                apicls = classdict['__apicls__']
+                proxy=True
+            except KeyError:
+                apicls = None
+
+        if apicls is not None:
             
-        classdict['__getattribute__'] = __getattribute__
+            if not proxy and apicls not in bases:
+                #print "ADDING BASE",classdict['apicls']
+                bases = bases + (classdict['apicls'],)
+            try:
+                if VERBOSE: print "="*40, classname, apicls, "="*40
+                classInfo = _api.apiClassInfo[apicls.__name__]
+            except KeyError:
+                print "No api information for api class %s" % ( apicls.__name__ )
+            else:
+                #------------------------
+                # API Wrap
+                #------------------------
+                
+                 # Find out methods herited from other bases than apicls to avoid
+                # unwanted overloading
+                herited = {}
+                for base in bases :
+                    if base is not apicls :
+                        # basemro = inspect.getmro(base)
+                        for attr in dir(base) :
+                            if attr not in herited :
+                                herited[attr] = base                                
+                
+                #if VERBOSE : print "Methods info", classInfo['methods']        
+                # Class Methods
+                for methodName, info in classInfo['methods'].items(): 
+                    # don't rewrap if already herited from a base class that is not the apicls
+                    if VERBOSE : print "Checking method %s" % (methodName)
+                    if methodName not in herited :
+                        #TODO : check pymelName
+                        try:
+                            pymelName = info[0]['pymelName']
+                            removeAttrs.append(methodName)
+                        except KeyError:
+                            pymelName = methodName
+                            
+                        if pymelName not in classdict and pymelName not in ['setObject']:
+                            if VERBOSE : print "Doing an auto wrap on %s for %s: proxy=%r" % (pymelName, methodName, proxy)
+                            method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy )
+                            if method:
+                                if VERBOSE : print "%s.%s() successfully created" % (apicls.__name__, pymelName )
+                                classdict[pymelName] = method
+                        else:
+                            if VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )
+                    elif VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
+                try:   
+                    # Enumerators   
+                    for enumName, enumList in classInfo['pymelEnums'].items():
+                        if VERBOSE: print "adding enum %s to class %s" % ( enumName, classname )
+                        #enum = util.namedtuple( enumName, enumList )
+                        #classdict[enumName] = enum( *range(len(enumList)) )
+                        
+                        enum = util.Enum( *enumList )
+                        classdict[enumName] = enum
+                        
+                except KeyError:
+                    pass   
+        
+            if not proxy:
+                if removeAttrs:
+                    if VERBOSE: print classname, "removing attributes", removeAttrs               
+                def __getattribute__(self, name): 
+                    #print name        
+                    if name in removeAttrs and name not in ['name']: # tmp fix
+                        #print "raising error"
+                        raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+                    #print "getting from", bases[0]
+                    return bases[0].__getattribute__(self, name)
+                    
+                classdict['__getattribute__'] = __getattribute__
         
 #        #return super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
       
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
-            
+        
+        #------------------------
+        # Class Constants
+        #------------------------
         if hasattr(newcls, 'apicls') :
             # type (api type) used for the storage of data
             apicls  = newcls.apicls
@@ -2238,7 +2308,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
         if apicls is not None:
-            classdict['apicls'] = apicls
+            classdict['__apicls__'] = apicls
         #print "="*40, classname, apicls, "="*40
         
         return super(MetaMayaNodeWrapper, mcl).__new__(mcl, classname, bases, classdict)
