@@ -403,7 +403,7 @@ def parseMayaenv(envLocation=None, version=None) :
 
 
 
-def recurseMayaScriptPath(roots=[], verbose=False):
+def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex='^([._])|(AE[a-zA-Z]).*'):
     """
     Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
     environment variable
@@ -413,6 +413,11 @@ def recurseMayaScriptPath(roots=[], verbose=False):
     import path
     
     envVariableName = "MAYA_SCRIPT_PATH"
+    if excludeRegex:
+        try:
+            excludeRegex = re.compile( excludeRegex )
+        except Exception, e:
+            print e
     
     #print "------------starting--------------"
     #for x in os.environ.get(envVariableName, '').split(':'): print x
@@ -447,7 +452,7 @@ def recurseMayaScriptPath(roots=[], verbose=False):
         root = path.path( rootVar )
         for f in root.walkdirs( errors='ignore'):
             try:
-                if not f.startswith( '.' ) and len(f.files("*.mel")):            
+                if (excludeRegex and not excludeRegex.search(f.name)) and len(f.files("*.mel")):            
                     if f not in varList:
                         if verbose: print "     --> Adding : ", f
                         varList.append( str(f) )
