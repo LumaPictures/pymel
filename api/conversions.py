@@ -589,7 +589,10 @@ class ReservedApiTypes(Singleton, dict) : pass
 def _buildMayaReservedTypes():
     """ Build a list of Maya reserved types.
         These cannot be created directly from the API, thus the dgMod trick to find the corresonding Maya type won't work """
-        
+
+    ReservedMayaTypes().clear()
+    ReservedApiTypes().clear()
+    
     reservedTypes = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
                 'entity':'kDependencyNode', \
                 'constraint':'kConstraint', 'field':'kField', \
@@ -998,7 +1001,8 @@ def _buildApiTypesList():
     """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with 
     an existing api type"""
     
-    global ApiTypesToApiEnums, ApiEnumsToApiTypes
+    ApiTypesToApiEnums().clear()
+    ApiEnumsToApiTypes().clear()
     
     ApiTypesToApiEnums( dict( inspect.getmembers(MFn, lambda x:type(x) is int)) )
     ApiEnumsToApiTypes( dict( (ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()) )

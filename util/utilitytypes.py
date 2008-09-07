@@ -10,10 +10,6 @@ class Singleton(object) :
     """ Singleton classes can be derived from this class,
         you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ )
         
-        If arguments are passed into the constructor, then a new instance will be created (and initialized using
-        the arguments); if the class is called with no arguments, then the existing instance will be returned (or
-        created if it has never been instantiated before).
-
         >>> class uniqueImmutableDict(Singleton, dict) :
         >>>     def __init__(self, value) :
         >>>        # will only be initialied once
@@ -23,8 +19,10 @@ class Singleton(object) :
         >>>            raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
         >>>   # You'll want to override or get rid of dict herited set item methods
     """
+    # If we wish calling the constructor to re-initialize the data,
+    # 
     def __new__(cls, *p, **k):
-        if '_the_instance' not in cls.__dict__ or p or k:
+        if '_the_instance' not in cls.__dict__:
             cls._the_instance = super(Singleton, cls).__new__(cls)
         return cls._the_instance
 

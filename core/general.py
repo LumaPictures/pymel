@@ -4024,8 +4024,8 @@ def _createPyNodes():
     # see if breadth first isn't more practical ?
     
     # reset cache
-    _factories.PyNodeTypesHierarchy({})
-    _factories.PyNodeNamesToPyNodes({})
+    _factories.PyNodeTypesHierarchy().clear()
+    _factories.PyNodeNamesToPyNodes().clear()
     
     for treeElem in _factories.nodeHierarchy.preorder():
         #print "treeElem: ", treeElem
