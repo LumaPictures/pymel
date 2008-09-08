@@ -576,14 +576,15 @@ def isValidMNodeOrPlug (obj):
 
 
 
-class ApiTypesToApiEnums(Singleton, dict) :
+class ApiTypesToApiEnums(dict) :
     """Lookup of Maya API types to corresponding MFn::Types enum"""
-    
-class ApiEnumsToApiTypes(Singleton, dict) :
+    __metaclass__ = Singleton   
+class ApiEnumsToApiTypes(dict) :
     """Lookup of MFn::Types enum to corresponding Maya API types"""
-
-class ApiTypesToApiClasses(Singleton, dict) :
+    __metaclass__ = Singleton
+class ApiTypesToApiClasses(dict) :
     """Lookup of Maya API types to corresponding MFnBase Function sets"""
+    __metaclass__ = Singleton
     
 # Reserved Maya types and API types that need a special treatment (abstract types)
 # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
@@ -597,8 +598,10 @@ class ApiTypesToApiClasses(Singleton, dict) :
 #class ReservedApiTypes(dict) :
 #   
 
-class ReservedMayaTypes(Singleton, dict) : pass
-class ReservedApiTypes(Singleton, dict) : pass
+class ReservedMayaTypes(dict) :
+    __metaclass__ = Singleton
+class ReservedApiTypes(dict) :
+    __metaclass__ = Singleton
     
 def _buildMayaReservedTypes():
     """ Build a list of Maya reserved types.
@@ -642,24 +645,26 @@ ShortMayaTypes({'all':'base', 'valid':'base', 'any':'base', 'node':'dependNode',
                 'surface':'surfaceShape', 'revolved':'revolvedPrimitive', 'deformable':'deformableShape', \
                 'curve':'curveShape' })                
                    
-class MayaTypesToApiTypes(Singleton, dict) :
+class MayaTypesToApiTypes(dict) :
     """ Lookup of currently existing Maya types as keys with their corresponding API type as values.
     Not a read only (static) dict as these can change (if you load a plugin)"""
+    __metaclass__ = Singleton
 
-
-class ApiTypesToMayaTypes(Singleton, dict) :
+class ApiTypesToMayaTypes(dict) :
     """ Lookup of currently existing Maya API types as keys with their corresponding Maya type as values.
     Not a read only (static) dict as these can change (if you load a plugin)
     In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )"""
-
+    __metaclass__ = Singleton
+    
 #: lookup tables for a direct conversion between Maya type to their MFn::Types enum
-class MayaTypesToApiEnums(Singleton, dict) :
+class MayaTypesToApiEnums(dict) :
     """Lookup from Maya types to API MFn::Types enums """
-
+    __metaclass__ = Singleton
+    
 #: lookup tables for a direct conversion between API type to their MFn::Types enum 
-class ApiEnumsToMayaTypes(Singleton, dict) :
+class ApiEnumsToMayaTypes(dict) :
     """Lookup from API MFn::Types enums to Maya types """
-
+    __metaclass__ = Singleton
  
 # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
 # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
@@ -1008,8 +1013,9 @@ def _createNodes(dagMod, dgMod, *args) :
 
 # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
 # TODO : fix that, doesn't accept the Singleton base it seems
-# class ApiTypeHierarchy(Singleton, FrozenTree) :
+# class ApiTypeHierarchy(FrozenTree) :
 #    """ Hierarchy Tree of all API Types """
+#    __metaclass__ = Singleton
 
 def _buildApiTypesList():
     """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with 
