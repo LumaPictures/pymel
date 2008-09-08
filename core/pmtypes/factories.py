@@ -287,8 +287,9 @@ class CommandDocParser(HTMLParser):
             #self.active = False
         
     
-# class MayaDocsLoc(util.Singleton) :
+# class MayaDocsLoc(str) :
 #    """ Path to the Maya docs, cached at pymel start """
+#    __metaclass__ = util.Singleton
     
 # TODO : cache doc location or it's evaluated for each getCmdInfo !    
 # MayaDocsLoc(mayahook.mayaDocsLocation()) 
@@ -2571,18 +2572,22 @@ def analyzeApiClass( apiTypeStr, apiTypeParentStr ):
             print "    [pymel]"
             for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
             
-class PyNodeNamesToPyNodes(util.Singleton, dict):
+class PyNodeNamesToPyNodes(dict):
     """ Lookup from PyNode type name as a string to PyNode type as a class"""
+    __metaclass__ = util.Singleton
 
-class PyNodesToMayaTypes(util.Singleton, dict):
+class PyNodesToMayaTypes(dict):
     """Lookup from PyNode class to maya type"""
-
-class ApiEnumsToPyComponents(util.Singleton, dict):
+    __metaclass__ = util.Singleton
+    
+class ApiEnumsToPyComponents(dict):
     """Lookup from Api Enums to Pymel Component Classes"""
-      
-class PyNodeTypesHierarchy(util.Singleton, dict):
+    __metaclass__ = util.Singleton
+    
+class PyNodeTypesHierarchy(dict):
     """child:parent lookup of the pymel classes that derive from DependNode"""
- 
+    __metaclass__ = util.Singleton
+    
 def addPyNode( module, mayaType, parentMayaType ):
     
     #print "addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module)
