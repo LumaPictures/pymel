@@ -15,7 +15,7 @@ import inspect, warnings, timeit, time
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from pmtypes.factories import queryflag, editflag, createflag, MetaMayaTypeWrapper, MetaMayaNodeWrapper
+from pmtypes.factories import queryflag, editflag, createflag, add_docs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
@@ -2014,9 +2014,9 @@ class Attribute(PyNode):
     setKey = _factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
     
     
-    #----------------------
-    # Connections
-    #----------------------    
+#----------------------
+#{ Connections
+#----------------------    
                     
     isConnected = cmds.isConnected
     
@@ -2086,10 +2086,10 @@ class Attribute(PyNode):
         self.connect( node + '.' + nodeOutAttr, force=1 )
         if inputs:
             inputs[0].connect( node + '.' + nodeInAttr )
-
-    #----------------------
-    # Modification
-    #----------------------
+#}
+#----------------------
+#{ Info and Modification
+#----------------------
     
 #    def alias(self, **kwargs):
 #        """aliasAttr"""
@@ -2238,7 +2238,12 @@ class Attribute(PyNode):
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
         except TypeError:
             return False
-            
+        
+#}
+#-------------------------- 
+#{ Ranges
+#-------------------------- 
+        
     def getSoftMin(self):
         """attributeQuery -softMin
             Returns None if softMin does not exist."""
@@ -2398,6 +2403,11 @@ class Attribute(PyNode):
 #            lambda x: Attribute( self.node() + '.' + x ), 
 #            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
 #                )
+#}
+#-------------------------- 
+#{ Relatives
+#-------------------------- 
+
     def getChildren(self):
         """attributeQuery -listChildren"""
         res = []
@@ -2425,7 +2435,7 @@ class Attribute(PyNode):
 
     def getParent(self):
         return Attribute( self.node(), self.__apimfn__().parent() )
-        
+#}      
 '''
 class NodeAttrRelay(unicode):
     
@@ -2441,6 +2451,7 @@ class NodeAttrRelay(unicode):
 '''
 
 class DependNode( PyNode ):
+
     __metaclass__ = MetaMayaNodeWrapper
     #-------------------------------
     #    Name Info and Manipulation
@@ -2473,7 +2484,13 @@ class DependNode( PyNode ):
             return self._updateName()
         else :
             return self._name  
-        
+
+    #rename = rename
+    def rename( self, name ):
+        # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
+        self.setName( name )
+        return self
+    
     def __apiobject__(self) :
         "get the default API object (MObject) for this node if it is valid"
         return self.__apimobject__()
@@ -2556,59 +2573,8 @@ class DependNode( PyNode ):
         """for compatibility with Attribute class"""
         return self
     
-    def attr(self, attr):
-        """access to attribute of a node. returns an instance of the Attribute class for the 
-        given attribute."""
-        #return Attribute( '%s.%s' % (self, attr) )
-        try :
-            if '.' in attr or '[' in attr:
-                # Compound or Multi Attribute
-                # there are a couple of different ways we can proceed: 
-                # Option 1: back out to api.toApiObject (via PyNode)
-                # return Attribute( self.__apiobject__(), self.name() + '.' + attr )
-            
-                # Option 2: nameparse.
-                # this avoids calling self.name(), which can be slow
-                nameTokens = nameparse.getBasicPartList( 'dummy.' + attr )
-                result = self.__apiobject__()
-                for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
-                    if isinstance( token, nameparse.MayaName ):
-                        if isinstance( result, api.MPlug ):
-                            result = result.child( self.__apimfn__().attribute( token ) )
-                        else:
-                            result = self.__apimfn__().findPlug( token )                              
-#                                # search children for the attribute to simulate  persp.focalLength --> perspShape.focalLength
-#                                except TypeError:
-#                                    for i in range(fn.childCount()):
-#                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( token )
-#                                        except TypeError: pass
-#                                        else:break
-                    if isinstance( token, nameparse.NameIndex ):
-                        result = result.elementByLogicalIndex( token.value )
-                return Attribute( self.__apiobject__(), result )
-            else:
-                return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
-            
-        except RuntimeError:
-            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
-            raise MayaAttributeError, "Maya node %r has no attribute %r" % ( self, attr )
-        
-        # if attr.startswith('__') and attr.endswith('__'):
-        #     return super(PyNode, self).__setattr__(attr, val)        
-        # return setAttr( '%s.%s' % (self, attr), val )
 
-#    def attr(self, attr):
-#        """access to attribute of a node. returns an instance of the Attribute class for the 
-#        given attribute."""
-#        #return Attribute( '%s.%s' % (self, attr) )
-#        try :
-#            return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
-#        except RuntimeError:
-#            raise AttributeError, "Maya node %r has no attribute %r" % ( self, attr )
-#        
-#        # if attr.startswith('__') and attr.endswith('__'):
-#        #     return super(PyNode, self).__setattr__(attr, val)        
-#        # return setAttr( '%s.%s' % (self, attr), val )
+        
         
     #--------------------------
     #    Modification
@@ -2633,19 +2599,14 @@ class DependNode( PyNode ):
     def cast( self, swapNode, **kwargs):
         """nodeCast"""
         return cmds.nodeCast( self, swapNode, *kwargs )
-    
-    #rename = rename
-    def rename( self, name ):
-        # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
-        self.setName( name )
-        return self
+
     
     duplicate = duplicate
     
-    #--------------------------
-    #    Presets
-    #--------------------------
-    
+#--------------------------
+#{    Presets
+#-------------------------- 
+   
     def savePreset(self, presetName, custom=None, attributes=[]):
         
         kwargs = {'save':True}
@@ -2667,10 +2628,11 @@ class DependNode( PyNode ):
     def listPresets(self):
         kwargs = {'list':True}
         return cmds.nodePrest( presetName, **kwargs)
-            
-    #--------------------------
-    #    Info
-    #--------------------------
+#} 
+          
+#--------------------------
+#{    Info
+#-------------------------- 
 
 #    def type(self, **kwargs):
 #        "nodetype"
@@ -2713,9 +2675,10 @@ class DependNode( PyNode ):
 #        #return getClassification( self.type() )    
 #        return self.__apimfn__().classification( self.type() )
     
-    #--------------------------
-    #    Connections
-    #--------------------------    
+#}
+#--------------------------
+#{   Connections
+#-------------------------- 
     
     def inputs(self, **kwargs):
         'listConnections -source 1 -destination 0'
@@ -2755,35 +2718,79 @@ class DependNode( PyNode ):
         """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes """
         return self.future(type='shadingEngine')
         
-        
-    #--------------------------
-    #    Attributes
-    #--------------------------        
+#}     
+#--------------------------
+#{    Attributes
+#-------------------------- 
+    def attr(self, attr):
+        """access to attribute of a node. returns an instance of the Attribute class for the 
+        given attribute."""
+        #return Attribute( '%s.%s' % (self, attr) )
+        try :
+            if '.' in attr or '[' in attr:
+                # Compound or Multi Attribute
+                # there are a couple of different ways we can proceed: 
+                # Option 1: back out to api.toApiObject (via PyNode)
+                # return Attribute( self.__apiobject__(), self.name() + '.' + attr )
+            
+                # Option 2: nameparse.
+                # this avoids calling self.name(), which can be slow
+                nameTokens = nameparse.getBasicPartList( 'dummy.' + attr )
+                result = self.__apiobject__()
+                for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
+                    if isinstance( token, nameparse.MayaName ):
+                        if isinstance( result, api.MPlug ):
+                            result = result.child( self.__apimfn__().attribute( token ) )
+                        else:
+                            result = self.__apimfn__().findPlug( token )                              
+#                                # search children for the attribute to simulate  persp.focalLength --> perspShape.focalLength
+#                                except TypeError:
+#                                    for i in range(fn.childCount()):
+#                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( token )
+#                                        except TypeError: pass
+#                                        else:break
+                    if isinstance( token, nameparse.NameIndex ):
+                        result = result.elementByLogicalIndex( token.value )
+                return Attribute( self.__apiobject__(), result )
+            else:
+                return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
+            
+        except RuntimeError:
+            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
+            raise MayaAttributeError, "Maya node %r has no attribute %r" % ( self, attr )
+               
     def hasAttr( self, attr):
         try : 
             self.attr(attr)
             return True
         except AttributeError:
             return False
-                    
+
+    @add_docs('setAttr')  
     def setAttr( self, attr, *args, **kwargs):
-        return setAttr( self.attr(attr), *args, **kwargs )
-            
+        # for now, using strings is better, because there is no MPlug support
+        return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
+    
+    @add_docs('getAttr')  
     def getAttr( self, attr, *args, **kwargs ):
-        return getAttr( self.attr(attr), *args,  **kwargs )
+        # for now, using strings is better, because there is no MPlug support
+        return getAttr( "%s.%s" % (self, attr), *args,  **kwargs )
 
-    def addAttr( self, attr, **kwargs):        
-        return addAttr( self.attr(attr), **kwargs )
-            
-    def connectAttr( self, attr, *args, **kwargs ):
-        return cmds.attr(attr).connect( *args, **kwargs )
+    @add_docs('addAttr')  
+    def addAttr( self, attr, **kwargs):
+        # for now, using strings is better, because there is no MPlug support      
+        return addAttr( "%s.%s" % (self, attr), **kwargs )
+    
+    @add_docs('connectAttr')  
+    def connectAttr( self, attr, destination, **kwargs ):
+        # for now, using strings is better, because there is no MPlug support
+        return connectAttr( "%s.%s" % (self, attr), destination, **kwargs )
+    
+    @add_docs('disconnectAttr')  
+    def disconnectAttr( self, attr, destination=None, **kwargs ):
+        # for now, using strings is better, because there is no MPlug support
+        return disconnectAttr( "%s.%s" % (self, attr), destination, **kwargs )
 
-    def disconnectAttr( self, source, destination=None, **kwargs ):
-        if destination:
-            return cmds.disconnectAttr( "%s.%s" % (self, source), destination, **kwargs )
-        else:
-            for destination in self.outputs( plugs=True ):
-                cmds.disconnectAttr( "%s.%s" % (self, source), destination, **kwargs )
                     
     listAnimatable = _listAnimatable
 
@@ -2798,10 +2805,10 @@ class DependNode( PyNode ):
         return map( lambda x: self.attr(x) , util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
  
  
- 
-    #-----------------------------------------
-    # Name Info and Manipulation
-    #-----------------------------------------
+#}
+#-----------------------------------------
+#{ Name Info and Manipulation
+#-----------------------------------------
     _numPartReg = re.compile('([0-9]+)$')
     
     def stripNum(self):
@@ -2847,12 +2854,17 @@ class DependNode( PyNode ):
             return self.__class__(formatStr % ( groups[0], (int(num) - 1) ))
         except:
             raise "could not find trailing numbers to decrement"
+#}
 
 class Entity(DependNode):
     __metaclass__ = MetaMayaNodeWrapper
     pass
 
 class DagNode(Entity):
+    """
+    :group Path Info and Modification: ``*parent*``, ``*Parent*``, ``*child*``, ``*Child*``
+    """
+    
     __metaclass__ = MetaMayaNodeWrapper
     
 #    def __init__(self, *args, **kwargs ):
@@ -2963,9 +2975,9 @@ class DagNode(Entity):
        """   
 
             
-    #--------------------------
-    #    DagNode Path Info
-    #--------------------------    
+#--------------------------------
+#{  Path Info and Modification
+#--------------------------------
     def root(self):
         'rootOf'
         return DagNode( '|' + self.longName()[1:].split('|')[0] )
@@ -3083,11 +3095,6 @@ class DagNode(Entity):
     def listRelatives(self, **kwargs ):
         return listRelatives( self, **kwargs)
         
-
-       
-    #-------------------------------
-    #    DagNode Path Modification
-    #------------------------------- 
     
     def setParent( self, *args, **kwargs ):
         'parent'
@@ -3102,16 +3109,19 @@ class DagNode(Entity):
     
     def __or__(self, child, **kwargs):
         """
-        operator for `addChild`. Use to easily daisy-chain together parenting operations
-        >>> s = polySphere()[0]
-        >>> c = polyCube()[0]
-        >>> t = polyTorus()[0]
-        >>> s | c | t
-        >>> print t.fullPath()
-        |pSphere1|pCube1|pTorus1
+        operator for `addChild`. Use to easily daisy-chain together parenting operations.
+        The operation order visually mimics the resulting dag path:
+        
+            >>> s = polySphere()[0]
+            >>> c = polyCube()[0]
+            >>> t = polyTorus()[0]
+            >>> s | c | t
+            >>> print t.fullPath()
+            |pSphere1|pCube1|pTorus1
         """
         return self.addChild(child,**kwargs)
-              
+
+#}   
     #instance = instance
 
     #--------------------------
@@ -3141,7 +3151,7 @@ class DagNode(Entity):
             cmds.makeLive(self)
 
     def getBoundingBox(self, invisible=False):
-        """xform -boundingBox and xform-boundingBoxInvisible
+        """xform -boundingBox and xform -boundingBoxInvisible
         
         returns a tuple with two MVecs: ( bbmin, bbmax )
         """

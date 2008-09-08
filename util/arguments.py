@@ -86,7 +86,7 @@ def stringify( args, recursionLimit=None, maintainDicts=True, classesToStringify
             newargs[index] = unicode(value)
     return newargs
 
-def stringifyPyNodeArgs(function):
+def stringifyPyNodeArgs(function, name=None):
     """
     Decorator which will convert any arguments which are ProxyUnicode to strings before passing to the underlying function.
     
@@ -95,9 +95,12 @@ def stringifyPyNodeArgs(function):
     def stringifiedFunc(*args, **kwargs):
         return function(*(stringify(args, classesToStringify=ProxyUnicode)),
                     **(stringify(kwargs, classesToStringify=ProxyUnicode)))
-    stringifiedFunc.__module__ = function.__module__
     stringifiedFunc.__doc__ = function.__doc__
-    stringifiedFunc.__name__ = function.__name__
+    if name:
+        stringifiedFunc.__name__ = name
+    else:
+        stringifiedFunc.__name__ = function.__name__
+    #print function, name, function.__name__
     return stringifiedFunc 
 
 def argsToPyNodes(numberedArgsToConvert='all', keywordArgsToConvert='all'):

@@ -1595,14 +1595,15 @@ class ApiTypeRegister(object):
         - outCast: for casting the result of the api method to a type that pymel expects (outCast expect two args (self, obj) )
         - refInit: for initializing types passed by reference or via pointer
         - refCast: for casting the pointers to pymel types after they have been passed to the method
-        
+  
     To register a new type call `ApiTypeRegister.register`.
     """
-    types = {}
+    types = {}  
     inCast = {}
     outCast = {}
     refInit = {}
     refCast = {}
+    doc = {}
     su = _api.MScriptUtil()
 
     @staticmethod
@@ -1652,7 +1653,7 @@ class ApiTypeRegister(object):
         capType = util.capitalize( apiTypename ) 
 
         # register type
-        cls.types[apiTypename] = pymelType
+        cls.types[apiTypename] = pymelType.__name__
         
         # register result casting
         if outCast:
@@ -1682,6 +1683,7 @@ class ApiTypeRegister(object):
                 cls.refInit[iapiTypename] = initFunc
                 cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypename, i, setArrayFunc, initFunc )
                 cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypename, i, getArrayFunc )
+                cls.types[iapiTypename] = tuple([pymelType.__name__]*i)
         else:
             try:      
                 apiType = getattr( _api, apiTypename )
@@ -1832,6 +1834,8 @@ class ApiArgUtil(object):
                 #raise NotImplementedError
                 apiClassName, enumName = returnType
                 try:
+                    # TODO : return EnumValue type
+                    # convert int result into pymel string name.
                     return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
                 except KeyError:
                     raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
@@ -1850,7 +1854,7 @@ class ApiArgUtil(object):
      
     def castReferenceResult(self,argtype,outArg):
         return ApiTypeRegister.refCast[ argtype ]( outArg )
-    
+        
     def getDefaults(self):
         "get a list of defaults"
         defaults = []
@@ -1863,13 +1867,14 @@ class ApiArgUtil(object):
             else:
                 if isinstance(default, _api.Enum ):
                     # convert enums from apiName to pymelName. the default will be the readable string name
+                    apiClassName, enumName, enumValue = default
                     try:
-                        enumList = _api.apiClassInfo[default[0]]['enums'][default[1]]
+                        enumList = _api.apiClassInfo[apiClassName]['enums'][enumName]['values']
                     except KeyError:
                         print "COULD NOT FIND ENUM", default
                     else:
-                        index = enumList.index(default[2])
-                        default = _api.apiClassInfo[default[0]]['pymelEnums'][default[1]][index]
+                        index = enumList.index(enumValue)
+                        default = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
                 defaults.append( default )
         return defaults
     
@@ -1884,7 +1889,7 @@ def interface_wrapper( doer, args=[], defaults=[] ):
         >>> ...
 
     :param doer: the function to be wrapped.
-    :parm args: a list of strings to be used as argument names, in proper order
+    :param args: a list of strings to be used as argument names, in proper order
     :param defaults: a list of default values for the arguments. must be less than or equal
         to args in length. if less than, the last element of defaults will be paired with the last element of args,
         the second-to-last with the second-to-last and so on ( see inspect.getargspec ). Arguments
@@ -1941,25 +1946,29 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
     for methodInfo in methodInfoList:
       
         #argInfo = methodInfo['argInfo']
-        inArgs = methodInfo['inArgs']
-        outArgs = methodInfo['outArgs']
+
         #argList = methodInfo['args']
         argHelper = ApiArgUtil(apiClassName, methodName, methodInfo)
         
         if argHelper.canBeWrapped() :
+            inArgs = methodInfo['inArgs']
+            outArgs = methodInfo['outArgs']
+            argList = methodInfo['args']
+            argInfo = methodInfo['argInfo']
+                    
             # create the function 
             def f( self, *args ):
 
                 argList = []
                 outTypeList = []
                 #outTypeIndex = []
-                argInfo = methodInfo['args']
+
                 if len(args) != len(inArgs):
                     raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
                 #print args, argInfo
                 inCount = 0
                 totalCount = 0
-                for name, argtype, direction in argInfo :
+                for name, argtype, direction in argList :
                     if direction == 'in':
                         argList.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
                         inCount +=1
@@ -1969,7 +1978,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                         outTypeList.append( (argtype, totalCount) )
                         #outTypeIndex.append( totalCount )
                     totalCount+=1
-                                      
+      
                 #print "%s.%s: arglist %s" % ( apiClassName, methodName, argList)
                 
                 if argHelper.isStatic():
@@ -2005,7 +2014,49 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                 f.__name__ = newName
             else:
                 f.__name__ = methodName
-            f.__doc__ = methodInfo['doc']
+            
+            def formatDocstring(type):
+                # convert
+                # "['one', 'two', 'three', ['1', '2', '3']]"
+                # to
+                # "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
+                
+                return repr(type).replace("'", "`")
+            
+            # Docstrings
+            docstring = methodInfo['doc']
+            S = '    '
+            if len(inArgs):
+                docstring += '\n\n:Parameters:\n'
+                for name in inArgs :
+                    info = argInfo[name]
+                    type = info['type']
+                    type = ApiTypeRegister.types.get(type,type)
+                    type = formatDocstring(type)
+                    
+                    docstring += S + '%s : %s\n' % (name, type )
+                    docstring += S*2 + '%s\n' % (info['doc'])  
+                    
+
+                    
+
+            results = []
+            returnType = methodInfo['returnType']
+            if returnType: 
+                rtype = ApiTypeRegister.types.get(returnType, returnType)
+                results.append( rtype )
+            for argname in outArgs:
+                rtype = argInfo[argname]['type']
+                rtype = ApiTypeRegister.types.get(rtype,rtype)
+                results.append( rtype )
+            if len(results) == 1:
+                results = results[0]
+            if results:
+                docstring += '\n\n:rtype: %s\n' %  formatDocstring(results)
+            
+            docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
+            
+            f.__doc__ = docstring
             
 
                 
@@ -2105,18 +2156,18 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         else:
                             if VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )
                     elif VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
-                try:   
+                
+                if 'pymelEnums' in classInfo:
                     # Enumerators   
                     for enumName, enumList in classInfo['pymelEnums'].items():
                         if VERBOSE: print "adding enum %s to class %s" % ( enumName, classname )
                         #enum = util.namedtuple( enumName, enumList )
                         #classdict[enumName] = enum( *range(len(enumList)) )
-                        
-                        enum = util.Enum( *enumList )
+                        # group into (key, doc) pairs
+                        enumKeyDocPairs = [ (k,classInfo['enums'][enumName]['valueDocs'][k] ) for k in enumList ]
+                        enum = util.Enum( *enumKeyDocPairs )
                         classdict[enumName] = enum
-                        
-                except KeyError:
-                    pass   
+ 
         
             if not proxy:
                 if removeAttrs:

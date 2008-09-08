@@ -25,11 +25,11 @@ VERBOSE = True
 _thisModule = sys.modules[__name__]
 #_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-Enum = util.namedtuple( 'Enum', ['parent', 'enum'] )
+#Enum = util.namedtuple( 'Enum', ['parent', 'enum'] )
 
 class Enum(tuple):
     def __str__(self): return '.'.join( [str(x) for x in self] )
-
+    def __repr__(self): return repr(str(self))
 
 class ApiDocParser(object):
     def __init__(self, apiClassName, version='2009', verbose=False):
@@ -249,16 +249,30 @@ class ApiDocParser(object):
                 self.xprint( "ENUM", returnType)
                 #print returnType, methodName    
                 try:
-                    enumList = [ str(x.contents[-1]) for x in proto.findNextSiblings( 'div', limit=1)[0].findAll( 'em') ]
+                    enumValues=[]
+                    enumDocs={}
+                    for em in proto.findNextSiblings( 'div', limit=1)[0].findAll( 'em'):
+                        value = str(em.contents[-1])
+                        enumValues.append( value )
+                        enumDocs[value] = str(em.next.next.next.next.next.contents[0]).strip()
+    
+                    #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
+                    #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )      
+                    pymelEnumList = self.getPymelEnums( enumValues )
+                    for val, pyval in zip(enumValues,pymelEnumList):
+                        enumDocs[pyval] = enumDocs[val]
+                    
+                    enumInfo = {'values' : enumValues, 
+                                'valueDocs' : enumDocs,
+                                  
+                                  #'doc' : methodDoc
+                                } 
+                    
                     #print enumList
-                    pymelEnumList = self.getPymelEnums( enumList )
-                    self.enums[self.currentMethod] = enumList
+                    
+                    self.enums[self.currentMethod] = enumInfo
                     self.pymelEnums[self.currentMethod] = pymelEnumList
                     
-                    #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
-                    #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )               
-
-                 
                 except AttributeError, msg:
                     print "FAILED ENUM", msg
                     

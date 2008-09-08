@@ -12,7 +12,8 @@ from arguments import *
 from utilitytypes import *
 from trees import *
 from arrays import *
-from Enum import *
+from enum import *
+#from enumerators import *
 import nameparse
 
 

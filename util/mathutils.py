@@ -164,4 +164,4 @@ def hermite(x=0.0, v0=0.0, v1=0.0, s0=0.0, s1=0.0) :
         res = v1
     else :
         res = hermiteInterp(x, v0, v1, s0, s1)
-    return res    
+    return res

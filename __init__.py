@@ -26,8 +26,10 @@ Non-Backward Compatible Changes
 		- Vector --> `MVector`
 		- Matrix --> `MMatrix`
 	- Changed and Renamed Functions:
+		- Attribute disconnection operator has changed from <> to //
 	- Node classes no longer inherit from unicode: see section `API Underpinnings`
 
+	
 ---------------------------		
 Other Additions and Changes
 ---------------------------

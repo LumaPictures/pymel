@@ -1,3 +1,19 @@
+"""
+.. classtree:: ProxyUni
+
+.. dotgraph:: 
+
+    main -> parse -> execute; 
+    main -> init; 
+    main -> cleanup; 
+    execute -> make_string; 
+    execute -> printf 
+    init -> make_string; 
+    main -> printf; 
+    execute -> compare; 
+
+"""
+
 import re, inspect, sys, os
 import external.ply.lex as lex
 import external.ply.yacc as yacc
@@ -18,7 +34,9 @@ def currentfn() :
     except :
         pass
 
-__all__ = ['NameParseError', 'ParsingWarning', 'NamePart', 'NameAlphaPart', 'NameNumPart', 'NameGroup', 
+__all__ = ['NameParseError', 'ParsingWarning', 
+           'ProxyUni', 'Parsed', 
+           'NamePart', 'NameAlphaPart', 'NameNumPart', 'NameGroup', 
            'NameAlphaGroup', 'NameNumGroup', 'NameSep', 'MayaName', 'NamespaceSep', 'Namespace', 
            'MayaShortName', 'DagPathSep', 'MayaNodePath', 'AttrSep', 'NameIndex', 'NameRangeIndex', 
            'Component', 'Attribute', 'AttributePath', 'NodeAttribute', 'MayaObjectName', 
@@ -125,7 +143,7 @@ class Parsed(ProxyUni):
             result._valid = False
         elif not isinstance(result, cls) :
             # parse successful but returned a different class than exected
-            errmsg = "parsing '%s' is valid, but as a %s Parsed object, and not for as a %s Parsed object as it was parsed against" % (data, result.__class__.__name__, clsname)
+            errmsg = "parsing '%s' is valid, but as a %s Parsed object, and not as a %s Parsed object as it was parsed against" % (data, result.__class__.__name__, clsname)
             result._valid = False        
         elif not result == data :
             # should return a Parsed object with the same string value as the parsed string
