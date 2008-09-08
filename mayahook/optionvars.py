@@ -22,7 +22,7 @@ class OptionVarList(tuple):
             return cmds.optionVar( floatValueAppend=[self.key,val] )
         raise TypeError, 'unsupported datatype: strings, ints, floats and their subclasses are supported'
 
-class OptionVarDict(util.Singleton):
+class OptionVarDict(object):
     """ 
     A singleton dictionary-like class for accessing and modifying optionVars.
      
@@ -40,7 +40,8 @@ class OptionVarDict(util.Singleton):
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
-
+    __metaclass__ = util.Singleton
+    
     def __contains__(self, key):
         return cmds.optionVar( exists=key )
             
@@ -102,8 +103,10 @@ class OptionVarDict(util.Singleton):
     
 optionVar = OptionVarDict()
 
-class Env(util.Singleton):
+class Env(object):
     """ A Singleton class to represent Maya current optionVars and settings """
+    __metaclass__ = util.Singleton
+    
     optionVars = OptionVarDict()
     #grid = Grid()
     #playbackOptions = PlaybackOptions()
