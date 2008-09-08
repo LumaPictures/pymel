@@ -6,26 +6,129 @@ These types can be shared by other utils modules and imported into util main nam
 import inspect
 from pwarnings import *
 
-class Singleton(object) :
-    """ Singleton classes can be derived from this class,
-        you can derive from other classes as long as Singleton comes first (and class doesn't override __new__ )
+class Singleton(type):
+    """ Metaclass for Singleton classes.
         
-        >>> class uniqueImmutableDict(Singleton, dict) :
-        >>>     def __init__(self, value) :
-        >>>        # will only be initialied once
-        >>>        if not len(self):
-        >>>            super(uniqueDict, self).update(value)
-        >>>        else :
-        >>>            raise TypeError, "'"+self.__class__.__name__+"' object does not support redefinition"
-        >>>   # You'll want to override or get rid of dict herited set item methods
-    """
-    # If we wish calling the constructor to re-initialize the data,
-    # 
-    def __new__(cls, *p, **k):
-        if '_the_instance' not in cls.__dict__:
-            cls._the_instance = super(Singleton, cls).__new__(cls)
-        return cls._the_instance
+        class DictSingleton(dict) :
+            __metaclass__ = Singleton
+        
+        DictSingleton({'A':1})
+        a = DictSingleton()
+        print a
+        b = DictSingleton({'B':2})
+        print a, b, DictSingleton()
+        print a is b and a is DictSingleton()
+        
+        class StringSingleton(str) :
+            __metaclass__ = Singleton
+        
+        StringSingleton("first")
+        a = StringSingleton()
+        print a
+        b = StringSingleton("changed")
+        print a, b, StringSingleton()
+        print a is b and a is StringSingleton()
+    """    
+    def __new__(mcl, classname, bases, classdict):
+        # redefine __new__
+        def __new__(cls, *p, **k):
+            if '_the_instance' not in cls.__dict__:
+                cls._the_instance = super(cls, cls).__new__(cls, *p, **k)
+            return cls._the_instance
+        newdict = { '__new__': __new__}
+        # define __init__ if it has not been defined in the class being created
+        def __init__(self, *p, **k):
+            cls = self.__class__
+            if p :   
+                if hasattr(self, 'clear') :
+                    self.clear()
+                else :
+                    super(cls, self).__init__()
+                super(cls, self).__init__(*p, **k)
+        if '__init__' not in classdict :
+            newdict['__init__'] = __init__
+        # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
+        for k in classdict :
+            if k in newdict :
+                warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
+            else :
+                newdict[k] = classdict[k]
 
+        newcls =  super(Singleton, mcl).__new__(mcl, classname, bases, newdict)
+        
+        return newcls
+          
+class metaStatic(Singleton) :
+    """ A static (immutable) Singleton metaclass to quickly build classes
+        holding predefined immutable dicts
+        
+        class FrozenDictSingleton(dict) :
+            __metaclass__ = metaStatic
+        
+        FrozenDictSingleton({'A':1})
+        a = FrozenDictSingleton()
+        print a
+        b = FrozenDictSingleton()
+        print a, b
+        print a is b
+        try :
+            b = FrozenDictSingleton({'B':2})
+            print b
+        except :
+            print "raise TypeError, 'FrozenDictSingleton' object does not support redefinition"
+        print a['A']
+        try :
+            a['A']=2
+            print a
+        except :
+            print "TypeError: 'FrozenDictSingleton' object does not support item assignation"
+        try :
+            a.clear()
+        except :
+            print "AttributeError: 'FrozenDictSingleton' object has no attribute 'clear'"
+        print a, b, FrozenDictSingleton()
+        print a is b and a is FrozenDictSingleton()        
+    """
+    def __new__(mcl, classname, bases, classdict):
+        """
+        """
+        _hide = ('clear', 'update', 'pop', 'popitem', '__setitem__', '__delitem__', 'append', 'extend' )
+        def __init__(self, *p, **k):
+            cls = self.__class__
+            # Can only create once)       
+            if p :
+                # Can only init once
+                if not self:
+                    return super(cls, self).__init__(*p, **k)
+                else :
+                    raise TypeError, "'"+classname+"' object does not support redefinition"
+        # prevent item assignation or deletion
+        def __setitem__(self, key, value) :
+            raise TypeError, "'%s' object does not support item assignation" % (self.__class__)         
+        def __delitem__(self, key):
+            raise TypeError, "'%s' object does not support item deletion" % (self.__class__)    
+        # Now add methods of the defined class, as long as it doesn't try to redefine
+        # __new__, __init__, __setitem__ or __delitem__
+        newdict = { '_hide':_hide, '__init__':__init__, '__setitem__':__setitem__, '__delitem__':__delitem__}
+        # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
+        for k in classdict :
+            if k in newdict :
+                warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
+            else :
+                newdict[k] = classdict[k]
+
+        newcls = super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
+        
+        # hide methods with might herit from a mutable base
+        def __getattribute__(self, name):   
+            if name in newcls._hide :
+                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+            else :
+                return super(newcls, self).__getattribute__(name)
+        type.__setattr__(newcls, '__getattribute__', __getattribute__ )   
+        
+        return newcls
+         
 try:
     from collections import defaultdict
 except:
@@ -115,56 +218,6 @@ class ModuleInterceptor(object):
                 self.callback( self.module, attr)
             except:
                 raise AttributeError, msg
-            
-class metaStatic(type) :
-    """Static singleton dictionnary metaclass to quickly build classes
-    holding predefined immutable dicts"""
-    def __new__(mcl, classname, bases, classdict):
-        # Class is a Singleton and some base class (dict or list for instance), Singleton must come first so that it's __new__
-        # method takes precedence
-        base = bases[0]
-        if Singleton not in bases :
-            bases = (Singleton,)+bases        
-        # Some predefined methods
-        def __init__(self, value=None):
-            # Can only create once)       
-            if value is not None :
-                # Can only init once
-                if not self:
-                    # Use the ancestor class dict method to init self
-                    # base.update(self, value)
-                    # self = base(value)
-                    base.__init__(self, value)
-                else :
-                    raise TypeError, "'"+classname+"' object does not support redefinition"
-        # delete the setItem methods of dict we don't want (read only dictionary)
-        def __getattribute__(self, name):         
-            remove = ('clear', 'update', 'pop', 'popitem', '__setitem__', 'append', 'extend' )
-            if name in remove :
-                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
-#            elif self.__dict__.has_key(name) :
-#                return self.__dict__[name]
-            else :
-                return base.__getattribute__(self, name)
-        # Cnnot set an item of the read only dict or list
-        def __setitem__(self,key,val) :
-            raise TypeError, "'"+classname+"' object does not support item assignation"           
-        # Now add methods of the defined class, as long as it doesn't try to redefine
-        # __new__, __init__, __getattribute__ or __setitem__
-        newdict = { '__slots__':[], '__dflts__':{}, '__init__':__init__, '__getattribute__':__getattribute__, '__setitem__':__setitem__ }
-        # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
-        for k in classdict :
-            if k.startswith('__') and k.endswith('__') :
-                # special methods, copy to newdict unless they conflict with pre-defined methods
-                if k in newdict :
-                    warn("Attribute %r is predefined in class %r of type %r and can't be overriden" % (k, classname, mcl.__name__))
-                else :
-                    newdict[k] = classdict[k]
-            else :
-                # class variables
-                newdict['__slots__'].append(k)
-                newdict['__dflts__'][k] = classdict[k]
-        return super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
 
 # read only decorator
 def readonly(f) :
