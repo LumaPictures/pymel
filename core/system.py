@@ -161,7 +161,7 @@ class WorkspaceEntryDict(object):
     has_key = __contains__
         
     
-class Workspace(util.Singleton):
+class Workspace(object):
     """
     This class is designed to lend more readability to the often confusing workspace command.
     The four types of workspace entries (objectType, fileRule, renderType, and variable) each
@@ -200,6 +200,7 @@ class Workspace(util.Singleton):
         /Users/chad/Documents/maya/projects/default/path
         
     """
+    __metaclass__ = util.Singleton
     
     objectTypes = WorkspaceEntryDict( 'objectType' )
     fileRules     = WorkspaceEntryDict( 'fileRule' )
@@ -256,7 +257,7 @@ workspace = Workspace()
 #  FileInfo Class
 #-----------------------------------------------
 
-class FileInfo( util.Singleton ):
+class FileInfo( object ):
     """
     store and get custom data specific to this file:
     
@@ -277,6 +278,7 @@ class FileInfo( util.Singleton ):
         >>> fileInfo( 'myKey', 'myData' )
         
     """
+    __metaclass__ = util.Singleton
     
     def __contains__(self, item):
         return item in self.keys()
