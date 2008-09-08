@@ -61,7 +61,7 @@ Modifications:
     return _about(**kwargs)
 
 # TODO: finish this, replace current Version class...
-#class newVersion( util.Singleton ):
+#class newVersion( object ):
 #    """
 #    Class for retrieving apiVersions, which are the best method for comparing versions,
 #    as well as other version info.
@@ -69,7 +69,8 @@ Modifications:
 #    >>> if Version.current > Version.v85:
 #    >>>     print "The current version is later than Maya 8.5"
 #    """
-#    
+#    __metaclass__ = util.Singleton
+#
 #    def __init__(self):
 #        self.refresh()
 #        
@@ -96,13 +97,14 @@ Modifications:
 #        else:
 #            pass
 
-class Version( util.Singleton ):
+class Version(object):
     """
     Class for storing apiVersions, which are the best method for comparing versions.
     
     >>> if Version.current > Version.v85:
     >>>     print "The current version is later than Maya 8.5"
     """
+    __metaclass__ = util.Singleton
     current = about(apiVersion=True)
 
     v85      = 200700
@@ -1398,7 +1400,8 @@ from system import namespaceInfo as _namespaceInfo, FileReference as _FileRefere
 #  Scene Class
 #-----------------------------------------------
 
-class Scene(util.Singleton):
+class Scene(object):
+    __metaclass__ = util.Singleton
     def __getattr__(self, obj):
         return PyNode( obj )
 
