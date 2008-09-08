@@ -684,8 +684,11 @@ def format_command(command, args, t):
 			return '%s(%s) # <---- Formatting this command failed. You will have to fix this by hand' % (command, ', '.join(args))
 
 
-class BatchData(util.Singleton):
-	def __init__(self):
+class BatchData(object):
+    """ """
+    __metaclass__ = util.Singleton
+    
+    def __init__(self):
 		self.currentFiles = []
 		self.currentModules = []
 		self.proc_to_module = {}
