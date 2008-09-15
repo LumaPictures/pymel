@@ -1423,6 +1423,26 @@ def createSurfaceShader( shadertype, name=None ):
         sg = sg.rename( name + 'SG')
     return newShader, sg
 
+
+kColors = {}
+
+def colorToIndex(color, limited=False):
+	"""Convert a color vector ([r,g,b]) to the closest indexed color. 
+	If 'limited==True' then uses the 8 'userDefined' colors using the 'displayRGBColor' command,
+	otherwise uses the 32 colors using 'colorIndex' command.
+	"""
+    global kColors
+    if not kColors:
+        # initialize color mappings
+        kColors[True] = dict((i,tuple(displayRGBColor("userDefined%s" % i, q=1, hsv=1))) for i in xrange(1,9))
+        kColors[False]= dict((i,tuple(colorIndex(i, q=1))) for i in xrange(1,32))
+    
+    color = Vector(color)
+    # create a list of pairs - (distance from color to the indexed color, the color index) - for each indexed color
+    distances = [((Vector(col) - color).mag(), idx) for (idx, col) in kColors[limited].iteritems()]    
+    # get the pair with the smallest distance
+    return min(distances)[1]
+
 #-----------------------------------------------
 #  File Classes
 #-----------------------------------------------
