@@ -1387,9 +1387,21 @@ class DagNode(Entity):
 
         kwargs = {}
         if color:
+            if isinstance(color,(list,tuple)):
+                color = colorToIndex(color, limited=True)
             kwargs['userDefined'] = color
         cmds.color(self, **kwargs)
-        
+
+    def setOverrideColor(self, color=None):
+        """Enables the Drawing Override and sets the color"""
+        if color:
+            if isinstance(color,(list,tuple)):
+                color = colorToIndex(color)
+            self.overrideEnabled.set(1)
+            self.overrideColor.set(color)
+        else:
+            self.overrideEnabled.set(0)
+                    
     def makeLive( self, state=True ):
         if not state:
             cmds.makeLive(none=True)
