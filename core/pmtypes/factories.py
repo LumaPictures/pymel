@@ -951,9 +951,10 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    ver = mayahook.getMayaVersion(extension=False)
+    short_version = mayahook.getMayaVersion(extension=False)
+    long_version = mayahook.getMayaVersion(extension=True)
         
-    newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+ver+'.bin' )
+    newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+short_version+'.bin' )
     cmdlist = {}
     try :
         file = open(newPath, mode='rb')
@@ -971,12 +972,12 @@ def buildCachedData() :
         
         print "Rebuilding the list of Maya commands..."
         
-        nodeHierarchy = _getNodeHierarchy(ver)
+        nodeHierarchy = _getNodeHierarchy(long_version)
         nodeHierarchyTree = IndexedTree(nodeHierarchy)
         uiClassList = _getUICommands()
         nodeCommandList = []
         for moduleName, longname in moduleNameShortToLong.items():
-            moduleNameShortToLong[moduleName] = getModuleCommandList( longname, ver )
+            moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
                         
         tmpCmdlist = inspect.getmembers(cmds, callable)
         cmdlist = {}
@@ -1017,7 +1018,7 @@ def buildCachedData() :
                 moduleCmds[module].append(funcName)
             
             if module != 'runtime':
-                cmdInfo = getCmdInfo(funcName, ver)
+                cmdInfo = getCmdInfo(funcName, long_version)
 
                 if module != 'windows':
                     if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
