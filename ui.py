@@ -484,12 +484,15 @@ def promptBoxGenerator(*args, **kwargs):
         if not ret: return
         yield ret    
     
-def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
-    """ Prompt for confirmation. Returns True/False """
-    ret = confirmDialog(t=title,    m=message,     b=[yes,no], 
-                           db=(defaultToYes and yes or no), 
+def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
+    """ Prompt for confirmation. Returns True/False, unless 'moreButtons' were specified, and then returns the button pressed"""
+    
+    default = kwargs.get("db", kwargs.get("defaultButton")) or yes
+
+    ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons), 
+                           db=default, 
                            ma="center", cb="No", ds="No")
-    return (ret==yes)
+    return ret if moreButtons else (ret==yes)
 
 def informBox(title, message, ok="Ok"):
     """ Information box """
