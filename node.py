@@ -1366,7 +1366,7 @@ class DagNode(Entity):
     
     def setParent( self, *args, **kwargs ):
         'parent'
-        if (not args and not kwargs) or (not args[0]):
+        if not kwargs and ((not args) or (not args[0])):
             kwargs['w'] = True
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
                 
