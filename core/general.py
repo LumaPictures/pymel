@@ -104,15 +104,24 @@ class Version(object):
     >>> if Version.current > Version.v85:
     >>>     print "The current version is later than Maya 8.5"
     """
+    #TODO: make these read-only
     __metaclass__ = util.Singleton
     current = about(apiVersion=True)
 
+    #NOTE: should this be an enum class?
     v85      = 200700
     v85sp1   = 200701
     v2008    = 200800
     v2008sp1  = 200806
     v2008ext2 = 200806
     v2009     = 200900
+    
+    #: Unlimited or Complete
+    flavor = about(product=1).split()[1]
+    
+    @classmethod
+    def isEval(cls): return about(evalVersion=1)
+
 #
 #    def isCompatible( self, apiVersion ):
 #        return self._current >= apiVersion
@@ -3479,14 +3488,15 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-class FluidEmitter(Transform):
-    __metaclass__ = MetaMayaNodeWrapper
-    fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
-    loadFluid = _factories.functionFactory( cmds.loadFluid, rename='loadFluid')
-    resampleFluid = _factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
-    saveFluid = _factories.functionFactory( cmds.saveFluid, rename='saveFluid')
-    setFluidAttr = _factories.functionFactory( cmds.setFluidAttr, rename='setFluidAttr')
-    getFluidAttr = _factories.functionFactory( cmds.getFluidAttr, rename='getFluidAttr')
+if Version.flavor == 'Unlimited':
+    class FluidEmitter(Transform):
+        __metaclass__ = MetaMayaNodeWrapper
+        fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
+        loadFluid = _factories.functionFactory( cmds.loadFluid, rename='loadFluid')
+        resampleFluid = _factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
+        saveFluid = _factories.functionFactory( cmds.saveFluid, rename='saveFluid')
+        setFluidAttr = _factories.functionFactory( cmds.setFluidAttr, rename='setFluidAttr')
+        getFluidAttr = _factories.functionFactory( cmds.getFluidAttr, rename='getFluidAttr')
     
 class RenderLayer(DependNode):
     def listMembers(self, fullNames=True):
