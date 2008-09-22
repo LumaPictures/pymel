@@ -1658,15 +1658,19 @@ class Array(object):
             # decided not to support Arrays made of a single numeric as opposed to Numpy as it's just confusing
             if len(args) == 1 :
                 args = args[0]
-            # to accommodate some herited Maya api classes
-            if hasattr(args, 'asMatrix') :
-                args = args.asMatrix()                
-            # if isinstance (args, Array) :
+            # shortcut for Array subtypes
             if type(args) in (Array, Matrix, Vector) :
                 # copy constructor
                 data = super(Array, Array).__new__(Array)
                 data.data = args
             elif hasattr(args, '__iter__') :
+                # special cases to accommodate some herited Maya api classes
+                # here classes that can convert to MMatrix and classes that don't expose
+                # all components of their api base (MPoint)
+                if hasattr(args, 'asMatrix') :
+                    args = args.asMatrix()
+                elif isinstance(args, Array) and (args.size != len(args)) : 
+                    args = list(args.data)
                 largs = []
                 subshapes = []
                 for arg in args :
@@ -3990,7 +3994,7 @@ class Array(object):
             
         # print "coerce Array"
         if type(other) == type(self) :
-            if other.shape == self.shape :
+            if len(other) == len(self) and other.shape == self.shape :
                 return self, other
         else :
             try :    
@@ -4015,6 +4019,7 @@ class Array(object):
                 try :
                     nself = c(self)
                     nother = c(other, shape=nself.shape)
+                    assert len(nself) == len(nother) and nself.shape == nother.shape
                     break;
                 except :
                     pass 
