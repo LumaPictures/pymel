@@ -272,8 +272,15 @@ class MVector(Vector) :
                 self.assign(args)
             except :
                 # special exception to the rule that you cannot drop data in Arrays __init__
-                # to allow all conversion from MVector derived classes (MPoint, MColor) to a base class           
-                if isinstance(args, MVector) or isinstance(args, _api.MVector) or isinstance(args, _api.MPoint) or isinstance(args, _api.MColor) :
+                # to allow all conversion from MVector derived classes (MPoint, MColor) to a base class 
+                # special case for MPoint to cartesianize if necessary
+                # note : we may want to premultiply MColor by the alpha in a similar way
+                if isinstance(args, _api.MPoint) and args.w != 1.0 :
+                    args = copy.deepcopy(args).cartesianize()  
+                if isinstance(args, _api.MColor) and args.a != 1.0 :
+                    # note : we may want to premultiply MColor by the alpha in a similar way
+                    pass
+                if isinstance(args, _api.MVector) or isinstance(args, _api.MPoint) or isinstance(args, _api.MColor) :
                     args = tuple(args)
                     if len(args) > len(self) :
                         args = args[slice(self.shape[0])]
@@ -300,7 +307,7 @@ class MVector(Vector) :
     # for wraps 
                           
     def _getdata(self):
-        return self
+        return self.apicls(self)
     def _setdata(self, value):
         self.assign(value) 
     def _deldata(self):
@@ -699,6 +706,17 @@ class MPoint(MVector):
 
 #    # base methods are inherited from MVector
 
+    # we only show the x, y, z components on an iter
+    def __len__(self):
+        l = len(self.data)
+        if self.w == 1.0 :
+            l -= 1
+        return l
+    def __iter__(self, *args, **kwargs):
+        """ Iterate on the api components """
+        l = len(self)
+        for c in list(self.apicls.__iter__(self.data))[:l] :
+            yield c
                
     # modified operators, when adding 2 MPoint consider second as MVector
     def __add__(self, other) :
@@ -865,7 +883,6 @@ class MPoint(MVector):
                     next = (i+1) % np
         
                     lenSq = (p - q[i]).sqlength()
-                    # w[i] = ( AM::cotangent(p,q[i],q[prev]) + AM::cotangent(p,q[i],q[next]) ) / lenSq
                     w[i] = ( q[i].cotan(p, q[prev]) + q[i].cotan(p, q[next]) ) / lenSq
                     weightSum += w[i]
     
@@ -1222,9 +1239,9 @@ class MColor(MVector):
             Returns the result of blending c1 with c2 in hsv space, using the given weight """
         c1 = list(self.hsva)
         c2 = list(other.hsva)
-        if abs(c2[0]-c1[0]) == 0.5 :
-            c1[1], c2[1] = 0.0, 0.0
-        else :
+        if abs(c2[0]-c1[0]) >= 0.5 :
+            if abs(c2[0]-c1[0]) == 0.5 :
+                c1[1], c2[1] = 0.0, 0.0
             if c1[0] > 0.5 :
                 c1[0] -= 1.0
             if c2[0] > 0.5 :
@@ -1234,21 +1251,6 @@ class MColor(MVector):
             c[0] += 1.0      
         return self.__class__(c, mode='hsv')
   
-# For row, column order, see the definition of a MTransformationMatrix in docs :
-# T  = |  1    0    0    0 |
-#      |  0    1    0    0 |
-#      |  0    0    1    0 |
-#      |  tx   ty   tz   1 |
-# and m(r, c) should return value of cell at r row and c column :
-# t = _api.MTransformationMatrix()
-# t.setTranslation(_api.MVector(1, 2, 3), _api.MSpace.kWorld)
-# m = t.asMatrix()
-# mm(3,0)
-# 1.0
-# mm(3,1)
-# 2.0
-# mm(3,2)
-# 3.0  
 
 # to specify space of transforms
 
@@ -1294,6 +1296,22 @@ class MSpace(_api.MSpace):
 
 # functions that work on Matrix (det(), inv(), ...) herited from arrays
 # and properly defer to the class methods
+
+# For row, column order, see the definition of a MTransformationMatrix in docs :
+# T  = |  1    0    0    0 |
+#      |  0    1    0    0 |
+#      |  0    0    1    0 |
+#      |  tx   ty   tz   1 |
+# and m(r, c) should return value of cell at r row and c column :
+# t = _api.MTransformationMatrix()
+# t.setTranslation(_api.MVector(1, 2, 3), _api.MSpace.kWorld)
+# m = t.asMatrix()
+# mm(3,0)
+# 1.0
+# mm(3,1)
+# 2.0
+# mm(3,2)
+# 3.0  
 
 class MMatrix(Matrix):
     """ A 4x4 transformation matrix based on api MMatrix 
@@ -1399,7 +1417,9 @@ class MMatrix(Matrix):
     def _setRotate(self, value):
         t = MTransformationMatrix(self)
         q = MQuaternion(value)
-        t.setRotationQuaternion(q.x, q.y, q.z, q.w)
+        t.rotateTo(q)
+        # values = (q.x, q.y, q.z, q.w)
+        # t.setRotationQuaternion(q.x, q.y, q.z, q.w)
         self.assign(t.asMatrix())
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this MMatrix, in transform space") 
     def _getScale(self):
@@ -1732,6 +1752,12 @@ class MTransformationMatrix(MMatrix):
         self.setScale ( p, MSpace.kTransform)        
     scale = property(_getScale, _setScale, None, "The scale expressed in this MTransformationMatrix, in transform space")  
         
+    def rotation(self) :
+        return self.apicls.rotation(self)
+ 
+    def rotation(self) :
+        return self.apicls.rotation(self) 
+    
 class MQuaternion(MMatrix):
     apicls = _api.MQuaternion
     shape = (4,)
@@ -1741,8 +1767,8 @@ class MQuaternion(MMatrix):
         shape = kwargs.get('shape', None)
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
-        # will default to class constant shape = (3,), so it's just an error check to catch invalid shapes,
-        # as no other option is actually possible on MVector, but this method could be used to allow wrapping
+        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
+        # as no other option is actually possible on MQuaternion, but this method could be used to allow wrapping
         # of Maya array classes that can have a variable number of elements
         shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
@@ -1761,6 +1787,11 @@ class MQuaternion(MMatrix):
             # MTransformationMatrix, MQuaternion, MEulerRotation api classes can convert to a rotation MQuaternion
             if hasattr(args, 'rotate') :
                 args = args.rotate
+            elif len(args) == 4 and ( isinstance(args[3], basestring) or isinstance(args[3], MEulerRotation.RotationOrder) ) :
+                quat = _api.MQuaternion()
+                quat.assign(MEulerRotation(args))
+                args = quat
+                # allow to initialize directly from 3 rotations and a rotation order
             elif len(args) == 2 and isinstance(args[0], Vector) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
                 # MQuaternion(MVector axis, float angle) as well as MQuaternion(float angle, MVector axis)
@@ -1769,7 +1800,7 @@ class MQuaternion(MMatrix):
             try :
                 self.assign(args)
             except :
-                super(Vector, self).__init__(*args)
+                super(Array, self).__init__(*args)
             
         if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
             # can also use the form <componentname>=<number>
@@ -1797,7 +1828,7 @@ class MQuaternion(MMatrix):
     def _getRotate(self):
         return self 
     def _setRotate(self, value):
-        self.assign(value)
+        self.assign(MQuaternion(value))
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this MQuaternion, in transform space") 
     def _getScale(self):
         return MVector(1.0, 1.0, 1.0)       
@@ -1870,26 +1901,97 @@ class MQuaternion(MMatrix):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()  
 
-class MEulerRotation(MQuaternion):
+class MEulerRotation(MMatrix):
     apicls = _api.MEulerRotation
     shape = (4,)   
-    cnames = ('x', 'y', 'z', 'o')   
+    cnames = ('x', 'y', 'z', 'o') 
     
-
-    def __str__(self):
-        return '(%s)' % ", ".join(map(str, self))
-    def __unicode__(self):
-        return u'(%s)' % ", ".unicode(map(str, self))    
-    def __repr__(self):
-        return '%s%s' % (self.__class__.__name__, str(self))  
-
-
-#_factories.ApiTypeRegister.register( 'MVector', MVector )
-#_factories.ApiTypeRegister.register( 'MMatrix', MMatrix )
-#_factories.ApiTypeRegister.register( 'MPoint', MPoint )
-#_factories.ApiTypeRegister.register( 'MColor', MColor )
-#_factories.ApiTypeRegister.register( 'MQuaternion', MQuaternion )
-#_factories.ApiTypeRegister.register( 'MEulerRotation', MEulerRotation )
+    class RotationOrder(dict):
+        pass
+    rotationOrder = RotationOrder({"xyz": _api.MEulerRotation.kXYZ,
+                                   "yzx": _api.MEulerRotation.kYZX,
+                                   "zxy": _api.MEulerRotation.kZXY,
+                                   "xzy": _api.MEulerRotation.kXZY,
+                                   "yxz": _api.MEulerRotation.kYXZ,
+                                   "zyx": _api.MEulerRotation.kZYX,
+                                   })  
+    
+    def __new__(cls, *args, **kwargs):
+        shape = kwargs.get('shape', None)
+        ndim = kwargs.get('ndim', None)
+        size = kwargs.get('size', None)
+        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
+        # as no other option is actually possible on MEulerRotation, but this method could be used to allow wrapping
+        # of Maya array classes that can have a variable number of elements
+        shape, ndim, size = cls._expandshape(shape, ndim, size)        
+        
+        new = cls.apicls.__new__(cls)
+        cls.apicls.__init__(new)
+        return new
+        
+    def __init__(self, *args, **kwargs):
+        """ __init__ method for MEulerRotation """
+        cls = self.__class__
+        
+        if args :
+            # allow both forms for arguments
+            if len(args)==1 and hasattr(args[0], '__iter__') :
+                args = args[0]
+            # MTransformationMatrix, MQuaternion, MEulerRotation api classes can convert to a rotation MQuaternion
+            if hasattr(args, 'rotate') :
+                euler = _api.MEulerRotation()
+                euler.assign(args.rotate)
+                args = euler
+            elif len(args) == 4 and isinstance(args[3], basestring) :
+                # allow to initialize directly from 3 rotations and a rotation order as string
+                args = (args[0], args[1], args[2], cls.rotationOrder[args[3]])           
+            elif len(args) == 2 and isinstance(args[0], Vector) and isinstance(args[1], float) :
+                # some special init cases are allowed by the api class, want to authorize
+                # MQuaternion(MVector axis, float angle) as well as MQuaternion(float angle, MVector axis)
+                args = (float(args[1]), MVector(args[0]))        
+            # shortcut when a direct api init is possible     
+            try :
+                self.assign(args)
+            except :
+                super(Array, self).__init__(*args)
+            
+        if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
+            # can also use the form <componentname>=<number>
+            l = list(self.flat)
+            setcomp = False
+            for i, c in enumerate(cls.cnames) :
+                if c in kwargs :
+                    if float(l[i]) != float(kwargs[c]) :
+                        l[i] = float(kwargs[c])
+                        setcomp = True
+            if setcomp :
+                try :
+                    self.assign(l)
+                except :
+                    msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
+                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)  
+                
+    def assign(self, value):
+        """ Wrap the MQuaternion api assign method """
+        # api MQuaternion assign accepts MMatrix, MQuaternion and MEulerRotation
+        if isinstance(value, MTransformationMatrix) :     
+            value = value.asMatrix()
+        else :
+            if not hasattr(value, '__iter__') :
+                value = (value,)
+            value = self.apicls(*value) 
+        self.apicls.assign(self, value)
+        return self
+   
+    # API get, actually not faster than pulling self[i] for such a short structure
+    def get(self):
+        """ Wrap the MQuaternion api get method """
+        ms = _api.MScriptUtil()
+        l = (0,)*self.size
+        ms.createFromDouble ( *l )
+        p = ms.asDoublePtr ()
+        self.apicls.get(self, p)
+        return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
 
 class MTime( _api.MTime ) :
     apicls = _api.MTime
@@ -2093,7 +2195,12 @@ class MBoundingBox( _api.MBoundingBox):
     h = property( _factories.wrapApiMethod( _api.MBoundingBox, 'height'  ) )
     d = property( _factories.wrapApiMethod( _api.MBoundingBox, 'depth'  ) )
 
-
+#_factories.ApiTypeRegister.register( 'MVector', MVector )
+#_factories.ApiTypeRegister.register( 'MMatrix', MMatrix )
+#_factories.ApiTypeRegister.register( 'MPoint', MPoint )
+#_factories.ApiTypeRegister.register( 'MColor', MColor )
+#_factories.ApiTypeRegister.register( 'MQuaternion', MQuaternion )
+#_factories.ApiTypeRegister.register( 'MEulerRotation', MEulerRotation )
                     
 def _testMVector() :
     
@@ -2388,119 +2495,192 @@ def _testMPoint() :
     print hasattr(MPoint, 'data')
     p = MPoint()
     print repr(p)
-    # MPoint([0.0, 0.0, 0.0, 1.0])
+    # MPoint([0.0, 0.0, 0.0])
     print "MPoint instance", dir(p)
     print hasattr(p, 'data')
     print repr(p.data)
-    # MPoint([0.0, 0.0, 0.0, 1.0])
-    p = MPoint(_api.MPoint())
-    print repr(p) 
-    # MPoint([0.0, 0.0, 0.0, 1.0])
-    p = MPoint(1)
-    print repr(p)
-    # MPoint([1.0, 1.0, 1.0, 1.0])
-    p = MPoint(1, 2)
-    print repr(p)     
-    # MPoint([1.0, 2.0, 0.0, 1.0])      
+    # <maya.OpenMaya.MPoint; proxy of <Swig Object of type 'MPoint *' at 0x84a1270> >
+    
     p = MPoint(1, 2, 3)
     print repr(p)
-    # MPoint([1.0, 2.0, 3.0, 1.0])
+    # MPoint([1.0, 2.0, 3.0])
+    v = MVector(p)
+    print repr(v)
+    # MVector([1.0, 2.0, 3.0])
+    V = Vector(p)
+    print repr(V)
+    # Vector([1.0, 2.0, 3.0, 1.0])
+    print list(p)
+    # [1.0, 2.0, 3.0]
+    print len(p)
+    # 3
+    print p.size
+    # 4
+    print p.x, p.y, p.z, p.w
+    # 1.0 2.0 3.0 1.0
+    print p[0], p[1], p[2], p[3] 
+    # 1.0 2.0 3.0 1.0     
+    p.get()
+    # 1.0 2.0 3.0 1.0
+    
+    # accepted by api
+    q = _api.MPoint()
+    print q.distanceTo(p)
+    # 3.74165738677
+ 
+    # support for non cartesian points still there
+    
+    p = MPoint(1, 2, 3, 2)
+    print repr(p)
+    # MPoint([1.0, 2.0, 3.0, 2.0])
+    v = MVector(p)
+    print repr(v)
+    # MVector([0.5, 1.0, 1.5])
+    V = Vector(p)
+    print repr(V)
+    # Vector([1.0, 2.0, 3.0, 2.0])
+    print list(p)
+    # [1.0, 2.0, 3.0, 2.0]
+    print len(p)
+    # 4
+    print p.size
+    # 4
+    print p.x, p.y, p.z, p.w
+    # 1.0 2.0 3.0 2.0
+    print p[0], p[1], p[2], p[3] 
+    # 1.0 2.0 3.0 2.0     
+    p.get()
+    # 1.0 2.0 3.0 2.0
+    
+    # accepted by api
+    q = _api.MPoint()
+    print q.distanceTo(p)
+    # 1.87082869339    
+    
+    p = MPoint(_api.MPoint())
+    print repr(p) 
+    # MPoint([0.0, 0.0, 0.0])
+    p = MPoint(1)
+    print repr(p)
+    # MPoint([1.0, 1.0, 1.0])
+    p = MPoint(1, 2)
+    print repr(p)     
+    # MPoint([1.0, 2.0, 0.0])      
+    p = MPoint(1, 2, 3)
+    print repr(p)
+    # MPoint([1.0, 2.0, 3.0])
     p = MPoint(_api.MPoint(1, 2, 3))
     print repr(p) 
-    # MPoint([1.0, 2.0, 3.0, 1.0])
+    # MPoint([1.0, 2.0, 3.0])
     p = MPoint(Vector(1, 2))
     print repr(p) 
-    # MPoint([1.0, 2.0, 0.0, 1.0])       
+    # MPoint([1.0, 2.0, 0.0])       
     p = MPoint(MVector(1, 2, 3))
     print repr(p) 
-    # MPoint([1.0, 2.0, 3.0, 1.0])      
+    # MPoint([1.0, 2.0, 3.0])      
     p = MPoint(_api.MVector(1, 2, 3))
     print repr(p) 
-    # MPoint([1.0, 2.0, 3.0, 1.0])    
+    # MPoint([1.0, 2.0, 3.0])    
     p = MPoint(Vector(1, 2, 3, 4))
     print repr(p) 
     # MPoint([1.0, 2.0, 3.0, 4.0]) 
+    print repr(MVector(p))
+    # MVector([0.25, 0.5, 0.75])
+    print repr(Vector(p))
+    # Vector([1.0, 2.0, 3.0, 4.0])
     p = MPoint(p, w=1)
     print repr(p) 
-    # MPoint([1.0, 2.0, 3.0, 1.0])    
-        
+    # MPoint([1.0, 2.0, 3.0])    
+    print repr(MVector(p))
+    # MVector([1.0, 2.0, 3.0])
+    print repr(Vector(p))
+    # Vector([1.0, 2.0, 3.0, 1.0])
+            
     p = MPoint.origin
     print repr(p)
-    # MPoint([0.0, 0.0, 0.0, 1.0])
+    # MPoint([0.0, 0.0, 0.0])
     p = MPoint.xAxis
     print repr(p) 
-    # MPoint([1.0, 0.0, 0.0, 1.0])
+    # MPoint([1.0, 0.0, 0.0])
 
     p = MPoint(1, 2, 3)
     print repr(p)
-    # MPoint([1.0, 2.0, 3.0, 1.0])
+    # MPoint([1.0, 2.0, 3.0])
     print repr(p + MVector([1, 2, 3]))
-    # MPoint([2.0, 4.0, 6.0, 1.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr(p + MPoint([1, 2, 3]))
-    # MPoint([2.0, 4.0, 6.0, 1.0])    
+    # MPoint([2.0, 4.0, 6.0])    
     print repr(p + [1, 2, 3])
-    # MPoint([2.0, 4.0, 6.0, 1.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr(p + [1, 2, 3, 1])
-    # MPoint([2.0, 4.0, 6.0, 2.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr(p + MPoint([1, 2, 3, 1]))
-    # MPoint([2.0, 4.0, 6.0, 1.0])
-    
+    # MPoint([2.0, 4.0, 6.0])
+    print repr(p + [1, 2, 3, 2])
+    # MPoint([2.0, 4.0, 6.0, 3.0])    TODO : convert to MPoint always?
+    print repr(p + MPoint([1, 2, 3, 2]))
+    # MPoint([1.5, 3.0, 4.5])
+        
     print repr(MVector([1, 2, 3]) + p)
-    # MPoint([2.0, 4.0, 6.0, 1.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr(MPoint([1, 2, 3]) + p)
-    # MPoint([2.0, 4.0, 6.0, 1.0])    
+    # MPoint([2.0, 4.0, 6.0])    
     print repr([1, 2, 3] + p)
-    # MPoint([2.0, 4.0, 6.0, 1.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr([1, 2, 3, 1] + p)
-    # MPoint([2.0, 4.0, 6.0, 2.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr(MPoint([1, 2, 3, 1]) + p)
-    # MPoint([2.0, 4.0, 6.0, 1.0])
-    
+    # MPoint([2.0, 4.0, 6.0])
+    print repr([1, 2, 3, 2] + p)
+    # MPoint([2.0, 4.0, 6.0, 3.0])
+    print repr(MPoint([1, 2, 3, 2]) + p)
+    # MPoint([1.5, 3.0, 4.5])
+        
     # various operation, on cartesian and non cartesian points
     
     print "p = MPoint(1, 2, 3)"        
     p = MPoint(1, 2, 3)
     print repr(p)  
-    # MPoint([1.0, 2.0, 3.0, 1.0])
+    # MPoint([1.0, 2.0, 3.0])
     print "p/2"
     print repr(p/2)
-    # MPoint([0.5, 1.0, 1.5, 1.0])
+    # MPoint([0.5, 1.0, 1.5])
     print "p*2"
     print repr(p*2)
-    # MPoint([2.0, 4.0, 6.0, 1.0])  
+    # MPoint([2.0, 4.0, 6.0])  
     print "q = MPoint(0.25, 0.5, 1.0)"        
-    q = MPoint(0.25, 0.5, 1.0, 1.0)
+    q = MPoint(0.25, 0.5, 1.0)
     print repr(q)  
-    # MPoint([0.25, 0.5, 1.0, 1.0])
+    # MPoint([0.25, 0.5, 1.0])
     print repr(q+2)
-    # MPoint([2.25, 2.5, 3.0, 1.0])
+    # MPoint([2.25, 2.5, 3.0])
     print repr(q/2)
-    # MPoint([0.125, 0.25, 0.5, 1.0])
+    # MPoint([0.125, 0.25, 0.5])
     print repr(p+q)
-    # MPoint([1.25, 2.5, 4.0, 1.0])
+    # MPoint([1.25, 2.5, 4.0])
     print repr(p-q)
     # MVector([0.75, 1.5, 2.0])
     print repr(q-p)
     # MVector([-0.75, -1.5, -2.0])
     print repr(p-(p-q))
-    # MPoint([0.25, 0.5, 1.0, 1.0])
+    # MPoint([0.25, 0.5, 1.0])
     print repr(MVector(p)*MVector(q))
     # 4.25
     print repr(p*q)
     # 4.25
     print repr(p/q)
-    # MPoint([4.0, 4.0, 3.0, 1.0])
+    # MPoint([4.0, 4.0, 3.0])
     
     print "p = MPoint(1, 2, 3)"        
     p = MPoint(1, 2, 3)
     print repr(p)  
-    # MPoint([1.0, 2.0, 3.0, 1.0])
+    # MPoint([1.0, 2.0, 3.0])
     print "p/2"
     print repr(p/2)
-    # MPoint([0.5, 1.0, 1.5, 1.0])
+    # MPoint([0.5, 1.0, 1.5])
     print "p*2"
     print repr(p*2) 
-    # MPoint([2.0, 4.0, 6.0, 1.0])       
+    # MPoint([2.0, 4.0, 6.0])       
     print "q = MPoint(0.25, 0.5, 1.0, 0.5)"        
     q = MPoint(0.25, 0.5, 1.0, 0.5)
     print repr(q)  
@@ -2509,13 +2689,13 @@ def _testMPoint() :
     print repr(r)
     # MPoint([0.25, 0.5, 1.0, 0.5])
     print repr(r.cartesianize())
-    # MPoint([0.5, 1.0, 2.0, 1.0])
+    # MPoint([0.5, 1.0, 2.0])
     print repr(r)
-    # MPoint([0.5, 1.0, 2.0, 1.0])
+    # MPoint([0.5, 1.0, 2.0])
     print repr(q)
     # MPoint([0.25, 0.5, 1.0, 0.5])
     print repr(q.cartesian())
-    # MPoint([0.5, 1.0, 2.0, 1.0])
+    # MPoint([0.5, 1.0, 2.0])
     r = q.deepcopy()
     print repr(r)
     # MPoint([0.25, 0.5, 1.0, 0.5])
@@ -2535,7 +2715,7 @@ def _testMPoint() :
     print repr(q)
     # MPoint([0.25, 0.5, 1.0, 0.5])      
     print MVector(q)
-    # [0.25, 0.5, 1.0]
+    # [0.5, 1.0, 2.0]
     print MVector(q.cartesian())
     # [0.5, 1.0, 2.0]     
     # ignore w
@@ -2546,16 +2726,16 @@ def _testMPoint() :
     print repr(q*2) 
     # MPoint([0.5, 1.0, 2.0, 0.5])
     print repr(q+2)             # cartesianize is done by MVector add
-    # MPoint([2.5, 3.0, 4.0, 1.0])
+    # MPoint([2.5, 3.0, 4.0])
 
     print repr(q)
     # MPoint([0.25, 0.5, 1.0, 0.5])     
     print repr(p+MVector(1, 2, 3))
-    # MPoint([2.0, 4.0, 6.0, 1.0])
+    # MPoint([2.0, 4.0, 6.0])
     print repr(q+MVector(1, 2, 3))       
-    # MPoint([1.5, 3.0, 5.0, 1.0])
+    # MPoint([1.5, 3.0, 5.0])
     print repr(q.cartesian()+MVector(1, 2, 3))       
-    # MPoint([1.5, 3.0, 5.0, 1.0])
+    # MPoint([1.5, 3.0, 5.0])
 
     print repr(p-q)
     # MVector([0.5, 1.0, 1.0])
@@ -2564,14 +2744,14 @@ def _testMPoint() :
     print repr(q-p)
     # MVector([-0.5, -1.0, -1.0])
     print repr(p-(p-q))
-    # MPoint([0.5, 1.0, 2.0, 1.0])
+    # MPoint([0.5, 1.0, 2.0])
     print repr(MVector(p)*MVector(q))
     # 4.25    
     print repr(p*q)
     # 4.25
     print repr(p/q)             # need explicit homogenize as division not handled by api
-    # MPoint([4.0, 4.0, 3.0, 2.0])
-    
+    # MPoint([4.0, 4.0, 3.0, 2.0])    TODO : what do we want here ?
+    # MVector([2.0, 2.0, 1.5])
     # additionnal methods
        
     print "p = MPoint(x=1, y=2, z=3)"        
@@ -3158,6 +3338,22 @@ def _testMMatrix() :
 
 def _testMTransformationMatrix() :
 
+    q = MQuaternion()
+    print repr(q)
+    # MQuaternion([0.0, 0.0, 0.0, 1.0])
+    q = MQuaternion(1, 2, 3, 0.5)
+    print repr(q)
+    # MQuaternion([1.0, 2.0, 3.0, 0.5])
+    q = MQuaternion(0.785, 0.785, 0.785, "xyz")
+    print repr(q)
+    # MQuaternion([0.191357439088, 0.461717715523, 0.191357439088, 0.844737481223])
+    
+    m = MMatrix()
+    m.rotate = q
+    print repr(m)
+    # MMatrix([[0.500398163355, 0.499999841466, -0.706825181105, 0.0], [-0.146587362969, 0.853529322022, 0.499999841466, 0.0], [0.853295859083, -0.146587362969, 0.500398163355, 0.0], [0.0, 0.0, 0.0, 1.0]])
+
+    
     print "MTransformationMatrix class", dir(MTransformationMatrix)
     m = MTransformationMatrix()
     print m.formated()
