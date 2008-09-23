@@ -704,6 +704,10 @@ class MPoint(MVector):
     cnames = ('x', 'y', 'z', 'w')
     shape = (4,)
 
+    def __melobject__(self):
+        """Special method for returning a mel-friendly representation. In this case, a cartesian 3D point """
+        return self.cartesian()
+    
 #    # base methods are inherited from MVector
 
     # we only show the x, y, z components on an iter
@@ -1110,6 +1114,9 @@ class MColor(MVector):
             msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", mode, args))
             raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (util.clsname(self), msg, util.clsname(self))                                 
 
+    def __melobject__(self):
+        """Special method for returning a mel-friendly representation. In this case, a 3-component color (RGB) """
+        return [self.r, self.g, self.b]
             
     # overriden operators
     
@@ -1437,7 +1444,11 @@ class MMatrix(Matrix):
         t.setScale ( p, MSpace.kTransform)        
         self.assign(t.asMatrix())
     scale = property(_getScale, _setScale, None, "The scale expressed in this MMatrix, in transform space")  
-                  
+
+    def __melobject__(self):
+        """Special method for returning a mel-friendly representation. In this case, a flat list of 16 values """
+        return [ x for x in self.flat ]
+           
     # some MMatrix derived classes can actually be represented as matrix but not stored
     # internally as such by the API
     

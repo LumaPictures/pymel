@@ -25,14 +25,6 @@ import warnings
 _thisModule = __import__(__name__, globals(), locals(), [''])
 
 
-
-def _needStringifiedCmds():
-    # for debugging purposes, this is set to always return True
-    # ...eventually, will switch off for versions >=2009
-    return True
-    # TODO: uncomment before release!
-    #return mayautils.getMayaVersion(extension=False) < 2009
-
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
@@ -45,7 +37,16 @@ def _testDecorator(function):
 def addWrappedCmd(cmdname, cmd=None):
     if cmd is None:
         cmd = getattr(maya.cmds, cmdname)
-    wrappedCmd = util.stringifyPyNodeArgs(cmd)
+
+    def wrappedCmd(*args, **kwargs):
+        return cmd(*(util.getMelRepresentation(args)),
+                    **(util.getMelRepresentation(kwargs)))
+    wrappedCmd.__doc__ = cmd.__doc__
+    
+    try:
+        wrappedCmd.__name__ = cmd.__name__
+    except TypeError:
+        wrappedCmd.__name__ = cmdname
 
     # for debugging, to make sure commands got wrapped...
     #wrappedCmd = _testDecorator(wrappedCmd)
@@ -63,8 +64,6 @@ def addAllWrappedCmds():
     for cmdname, cmd in inspect.getmembers(maya.cmds, callable):
         addWrappedCmd(cmdname, cmd)
 
-if _needStringifiedCmds():
-    addAllWrappedCmds()
-else:
-    from maya.cmds import *
+addAllWrappedCmds()
+
     

@@ -1237,6 +1237,12 @@ class PyNode(util.ProxyUnicode):
         be overridden on subclasses of PyNode"""
         pass
     
+    def __melobject__(self):
+        """Special method for returning a mel-friendly representation. For pre-2009 versions, that means the name as a string."""
+        if Version.current >= Version.v2009:
+            raise AttributeError
+        return self.name()
+    
     def __apimfn__(self):
         if self._apimfn:
             return self._apimfn
