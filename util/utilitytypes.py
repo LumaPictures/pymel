@@ -9,31 +9,57 @@ from pwarnings import *
 class Singleton(type):
     """ Metaclass for Singleton classes.
         
-        class DictSingleton(dict) :
-            __metaclass__ = Singleton
+        >>> class DictSingleton(dict) :
+        ...    __metaclass__ = Singleton
+        ...
+        >>> DictSingleton({'A':1})
+        {'A': 1}
+        >>> a = DictSingleton()
+        >>> a
+        {'A': 1}
+        >>> b = DictSingleton({'B':2})
+        >>> a, b, DictSingleton()
+        ({'B': 2}, {'B': 2}, {'B': 2})
+        >>> a is b and a is DictSingleton()
+        True
         
-        DictSingleton({'A':1})
-        a = DictSingleton()
-        print a
-        b = DictSingleton({'B':2})
-        print a, b, DictSingleton()
-        print a is b and a is DictSingleton()
+        >>> class StringSingleton(str) :
+        ...    __metaclass__ = Singleton
+        ...
+        >>> StringSingleton("first")
+        'first'
+        >>> a = StringSingleton()
+        >>> a
+        'first'
+        >>> b = StringSingleton("changed")
+        >>> a, b, StringSingleton()
+        ('first', 'first', 'first')
+        >>> a is b and a is StringSingleton()
+        True
         
-        class StringSingleton(str) :
-            __metaclass__ = Singleton
-        
-        StringSingleton("first")
-        a = StringSingleton()
-        print a
-        b = StringSingleton("changed")
-        print a, b, StringSingleton()
-        print a is b and a is StringSingleton()
+        >>> class DictSingleton2(DictSingleton):
+        ...     pass
+        ...
+        >>> DictSingleton2({'A':1})
+        {'A': 1}
+        >>> a = DictSingleton2()
+        >>> a
+        {'A': 1}
+        >>> b = DictSingleton2({'B':2})
+        >>> a, b, DictSingleton2()
+        ({'B': 2}, {'B': 2}, {'B': 2})
+        >>> a is b and a is DictSingleton2()
+        True
+               
     """    
     def __new__(mcl, classname, bases, classdict):
+        
+        # newcls =  super(Singleton, mcl).__new__(mcl, classname, bases, classdict)
+        
         # redefine __new__
         def __new__(cls, *p, **k):
             if '_the_instance' not in cls.__dict__:
-                cls._the_instance = super(cls, cls).__new__(cls, *p, **k)
+                cls._the_instance = super(newcls, cls).__new__(cls, *p, **k)
             return cls._the_instance
         newdict = { '__new__': __new__}
         # define __init__ if it has not been defined in the class being created
@@ -43,8 +69,8 @@ class Singleton(type):
                 if hasattr(self, 'clear') :
                     self.clear()
                 else :
-                    super(cls, self).__init__()
-                super(cls, self).__init__(*p, **k)
+                    super(newcls, self).__init__()
+                super(newcls, self).__init__(*p, **k)
         if '__init__' not in classdict :
             newdict['__init__'] = __init__
         # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
@@ -62,54 +88,98 @@ class metaStatic(Singleton) :
     """ A static (immutable) Singleton metaclass to quickly build classes
         holding predefined immutable dicts
         
-        class FrozenDictSingleton(dict) :
-            __metaclass__ = metaStatic
+        >>> class FrozenDictSingleton(dict) :
+        ...    __metaclass__ = metaStatic
+        ...
+        >>> FrozenDictSingleton({'A':1})
+        {'A': 1}
+        >>> a = FrozenDictSingleton()
+        >>> a
+        {'A': 1}
+        >>> b = FrozenDictSingleton()
+        >>> a, b
+        ({'A': 1}, {'A': 1})
+        >>> a is b
+        True
         
-        FrozenDictSingleton({'A':1})
-        a = FrozenDictSingleton()
-        print a
-        b = FrozenDictSingleton()
-        print a, b
-        print a is b
-        try :
-            b = FrozenDictSingleton({'B':2})
-            print b
-        except :
-            print "raise TypeError, 'FrozenDictSingleton' object does not support redefinition"
-        print a['A']
-        try :
-            a['A']=2
-            print a
-        except :
-            print "TypeError: 'FrozenDictSingleton' object does not support item assignation"
-        try :
-            a.clear()
-        except :
-            print "AttributeError: 'FrozenDictSingleton' object has no attribute 'clear'"
-        print a, b, FrozenDictSingleton()
-        print a is b and a is FrozenDictSingleton()        
+        >>> b = FrozenDictSingleton({'B':2})
+        Traceback (most recent call last):
+            ...
+        TypeError: 'FrozenDictSingleton' object does not support redefinition
+    
+        >>> a['A']
+        1
+        >>> a['A'] = 2
+        Traceback (most recent call last):
+            ...
+        TypeError: '<class '__main__.FrozenDictSingleton'>' object does not support item assignation
+        
+        >>> a.clear()
+        Traceback (most recent call last):
+            ...
+        AttributeError: 'FrozenDictSingleton' object has no attribute 'clear'
+        
+        >>> a, b, FrozenDictSingleton()
+        ({'A': 1}, {'A': 1}, {'A': 1})
+        >>> a is b and a is FrozenDictSingleton()
+        True
+        
+        >>> class StaticTest(FrozenDictSingleton):
+        ...     pass
+        ...        
+        >>> StaticTest({'A': 1})
+        {'A': 1}
+        >>> a = StaticTest()
+        >>> a
+        {'A': 1}
+        >>> b = StaticTest()
+        >>> a, b
+        ({'A': 1}, {'A': 1})
+                
+        >>> class StaticTest2( StaticTest ):
+        ...     pass
+        ...        
+        >>> StaticTest2({'B': 2})
+        {'B': 2}
+        >>> a = StaticTest2()
+        >>> a
+        {'B': 2}
+        >>> b = StaticTest2()
+        >>> a, b
+        ({'B': 2}, {'B': 2})
+                      
     """
     def __new__(mcl, classname, bases, classdict):
         """
         """
-        _hide = ('clear', 'update', 'pop', 'popitem', '__setitem__', '__delitem__', 'append', 'extend' )
+        # redefine __init__
         def __init__(self, *p, **k):
             cls = self.__class__
             # Can only create once)       
             if p :
                 # Can only init once
                 if not self:
-                    return super(cls, self).__init__(*p, **k)
+                    return super(newcls, self).__init__(*p, **k)
                 else :
                     raise TypeError, "'"+classname+"' object does not support redefinition"
+        newdict = { '__init__':__init__}       
+        # hide methods with might herit from a mutable base
+        def __getattribute__(self, name):   
+            if name in newcls._hide :
+                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
+            else :
+                return super(newcls, self).__getattribute__(name)
+        newdict['__getattribute__'] = __getattribute__  
+        _hide = ('clear', 'update', 'pop', 'popitem', '__setitem__', '__delitem__', 'append', 'extend' )
+        newdict['_hide'] = _hide
         # prevent item assignation or deletion
         def __setitem__(self, key, value) :
-            raise TypeError, "'%s' object does not support item assignation" % (self.__class__)         
+            raise TypeError, "'%s' object does not support item assignation" % (self.__class__)
+        newdict['__setitem__'] = __setitem__        
         def __delitem__(self, key):
-            raise TypeError, "'%s' object does not support item deletion" % (self.__class__)    
+            raise TypeError, "'%s' object does not support item deletion" % (self.__class__)  
+        newdict['__delitem__'] = __delitem__   
         # Now add methods of the defined class, as long as it doesn't try to redefine
-        # __new__, __init__, __setitem__ or __delitem__
-        newdict = { '_hide':_hide, '__init__':__init__, '__setitem__':__setitem__, '__delitem__':__delitem__}
         # Note: could have defined the __new__ method like it is done in Singleton but it's as easy to derive from it
         for k in classdict :
             if k in newdict :
@@ -118,14 +188,6 @@ class metaStatic(Singleton) :
                 newdict[k] = classdict[k]
 
         newcls = super(metaStatic, mcl).__new__(mcl, classname, bases, newdict)
-        
-        # hide methods with might herit from a mutable base
-        def __getattribute__(self, name):   
-            if name in newcls._hide :
-                raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
-            else :
-                return super(newcls, self).__getattribute__(name)
-        type.__setattr__(newcls, '__getattribute__', __getattribute__ )   
         
         return newcls
          
@@ -198,13 +260,15 @@ class ModuleInterceptor(object):
     callback will only be performed if the attribute does not exist on the module. Any error raised
     in the callback will cause the original AttributeError to be raised.
         
-        >>> def cb( module, attr):
-        >>>     if attr == 'this':
-        >>>         print "intercepted"
-        >>>     else:
-        >>>         raise ValueError        
-        >>> sys.modules[__name__] = ModuleInterceptor(__name__, cb)
-    
+        def cb( module, attr):
+             if attr == 'this':
+                 print "intercepted"
+             else:
+                 raise ValueError        
+        import sys
+        sys.modules[__name__] = ModuleInterceptor(__name__, cb)
+        intercepted
+        
     The class does not work when imported into the main namespace.    
     """
     def __init__(self, moduleName, callback):
@@ -343,3 +407,8 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
 
 # Needed to move this here so that pymel.utils.arguments.stringifyPyNodeArgs can use it
 ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
+
+# unit test with doctest
+if __name__ == '__main__' :
+    import doctest
+    doctest.testmod() 
