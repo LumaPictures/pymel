@@ -43,6 +43,39 @@ def convertListArgs( args ):
         return tuple(args[0])
     return args     
 
+def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
+    """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
+    
+    If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
+    will recursively searched for PyNodes to convert to unicode strings; if recursionLimit==0, only the elements
+    of args    itself will be searched for PyNodes -  if it is 1, iterables within args will have stringify called
+    on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
+    
+    In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
+    then iterables for whichoperator.isMappingType() returns true will be returned as dicts.
+    
+    """
+    if recursionLimit:
+        recursionLimit -= 1
+    
+        
+    if maintainDicts and operator.isMappingType(args):
+        newargs = dict(args)
+        argIterable = args.iteritems()
+    else:
+        newargs = list(args)
+        argIterable = enumerate(args)
+    for index, value in argIterable:
+        try:
+            newargs[index] = value.__melobject__()
+        except AttributeError:
+            if ( (not recursionLimit) or recursionLimit >= 0) and isIterable(value):
+                # ...otherwise, recurse if not at recursion limit and  it's iterable
+                newargs[index] = getMelRepresentation(value, recursionLimit, maintainDicts)
+
+    return newargs
+
+
 def stringify( args, recursionLimit=None, maintainDicts=True, classesToStringify=None):
     """Will return a list which contains each element of the iterable 'args' converted to a unicode string.
     
