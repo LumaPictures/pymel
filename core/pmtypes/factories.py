@@ -1810,7 +1810,7 @@ class ApiArgUtil(object):
             
             apiClassName, enumName = argtype
             try:
-                return _api.apiClassInfo[apiClassName]['enums'][enumName].index(input)
+                return _api.apiClassInfo[apiClassName]['enums'][enumName]['values'].index(input)
             except ValueError:
                 try:
                     return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].index(input)
@@ -1860,24 +1860,30 @@ class ApiArgUtil(object):
     def getDefaults(self):
         "get a list of defaults"
         defaults = []
+        defaultInfo = self.methodInfo['defaults']
         for arg in self.methodInfo['inArgs']:
-            try:
-                default = self.methodInfo['defaults'][arg]
-            except KeyError: 
-                pass
-                #if self.methodName == 'translation' and VERBOSE: print "NO DEFAULT", self.methodName, arg, self.methodInfo['defaults'] 
+            if arg in defaultInfo:
+                default = defaultInfo[arg]
+            
+            # set MSpace.Space enum to object space by default
+            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space':
+                default = _api.Enum(['MSpace', 'Space', 'kObject']) 
+
             else:
-                if isinstance(default, _api.Enum ):
-                    # convert enums from apiName to pymelName. the default will be the readable string name
-                    apiClassName, enumName, enumValue = default
-                    try:
-                        enumList = _api.apiClassInfo[apiClassName]['enums'][enumName]['values']
-                    except KeyError:
-                        print "COULD NOT FIND ENUM", default
-                    else:
-                        index = enumList.index(enumValue)
-                        default = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
-                defaults.append( default )
+                continue    
+
+            if isinstance(default, _api.Enum ):
+                # convert enums from apiName to pymelName. the default will be the readable string name
+                apiClassName, enumName, enumValue = default
+                try:
+                    enumList = _api.apiClassInfo[apiClassName]['enums'][enumName]['values']
+                except KeyError:
+                    print "COULD NOT FIND ENUM", default
+                else:
+                    index = enumList.index(enumValue)
+                    default = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
+            defaults.append( default )
+            
         return defaults
     
     def isStatic(self):
@@ -1961,7 +1967,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
             # create the function 
             def f( self, *args ):
 
-                argList = []
+                newargs = []
                 outTypeList = []
                 #outTypeIndex = []
 
@@ -1972,24 +1978,24 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                 totalCount = 0
                 for name, argtype, direction in argList :
                     if direction == 'in':
-                        argList.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
+                        newargs.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
                         inCount +=1
                     else:
                         val = argHelper.initReference(argtype) 
-                        argList.append( val )
+                        newargs.append( val )
                         outTypeList.append( (argtype, totalCount) )
                         #outTypeIndex.append( totalCount )
                     totalCount+=1
       
-                #print "%s.%s: arglist %s" % ( apiClassName, methodName, argList)
+                #print "%s.%s: arglist %s" % ( apiClassName, methodName, newargs)
                 
                 if argHelper.isStatic():
-                    result = method( *argList )
+                    result = method( *newargs )
                 else:
                     if proxy:
-                        result = method( self.__apimfn__(), *argList )
+                        result = method( self.__apimfn__(), *newargs )
                     else:
-                        result = method( self, *argList )
+                        result = method( self, *newargs )
                       
                 #print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
                 
@@ -2004,7 +2010,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                         result = []
                     
                     for outType, index in outTypeList:
-                        outArgVal = argList[index]
+                        outArgVal = newargs[index]
                         res = argHelper.castReferenceResult( outType, outArgVal )
                         result.append( res )
                         
@@ -2078,9 +2084,13 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     """ A metaclass to wrap Maya api types, with support for class constants """ 
 
     class ClassConstant(object):
-        """ A data descriptor for user defined constants on the class """
+        """Class constant"""
         def __init__(self, value):
             self.value = value
+        def __repr__(self):
+            return '%s.%s(%s)' % ( self.__class__.__module__,  self.__class__.__name__, repr(self.value) )
+        def __str__(self):
+            return self.__repr__()
         def __get__(self, instance, owner):
             # purposedly authorize notation MColor.blue but not MColor().blue,
             # the constants are a class property and are not defined on instances
@@ -2096,7 +2106,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(mcl, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        #print "MetaMayaTypeWrapper", classname, bases, classdict
+        if VERBOSE: print mcl, classname, bases, classdict
         removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
@@ -2189,6 +2199,12 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
         
+        # shortcut for ensuring that our class constants are the same type as the class we are creating
+        def makeClassConstant(attr):
+            try:
+                return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
+            except Exception, e:
+                util.warn( "Failed creating %s class constant (%s): %s" % (classname, attr, e) )
         #------------------------
         # Class Constants
         #------------------------
@@ -2204,7 +2220,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     # convert them to own class         
                     if isinstance(attr, apicls) :
                         if name not in constant :
-                            constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)                          
+                            constant[name] = makeClassConstant(attr)                          
                 # we'll need the api clas dict to automate some of the wrapping
                 # can't get argspec on SWIG creation function of type built-in or we could automate more of the wrapping 
                 apiDict = dict(inspect.getmembers(apicls))            
@@ -2214,7 +2230,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     # convert them to own class         
                     if isinstance(attr, apicls) :
                         if name not in constant :
-                            constant[name] = MetaMayaTypeWrapper.ClassConstant(attr)
+                            constant[name] = makeClassConstant(attr)
                 # update the constant dict with herited constants
                 mro = inspect.getmro(newcls)            
                 for cls in mro :
@@ -2222,7 +2238,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         for name, attr in cls.__dict__.iteritems() :
                             if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
                                 if not name in constant :
-                                    constant[name] = MetaMayaTypeWrapper.ClassConstant(attr.value)
+                                    constant[name] = makeClassConstant(attr.value)
                 
                 # build the protected list to make some class ifo and the constants read only class attributes
                 # new.__slots__ = ['_data', '_shape', '_ndim', '_size']
@@ -2257,7 +2273,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
     
     def __new__(mcl, classname, bases, classdict):
-        #print "MetaMayaNodeWrapper", classname, bases, classdict
+        if VERBOSE: print mcl, classname, bases, classdict
 
         #-------------------------
         #   MEL Methods
@@ -2357,6 +2373,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     def __new__(mcl, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
+        if VERBOSE: print mcl, classname, bases, classdict
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
@@ -2613,17 +2630,16 @@ def addPyNode( module, mayaType, parentMayaType ):
             print "error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)
             return      
         try:
-            #print "MetaMayaCommandNodeWrapper", mayaType
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            #print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )
+            if VERBOSE: print "could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             PyNodeType.__module__ = module.__name__
             setattr( module, pyNodeTypeName, PyNodeType )
         else:
-            #print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
+            if VERBOSE: print "created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)
             PyNodeType.__module__ = module.__name__
             setattr( module, pyNodeTypeName, PyNodeType )
            
