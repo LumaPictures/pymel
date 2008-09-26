@@ -8,6 +8,26 @@ import pmtypes.pmcmds as cmds
 import maya.mel as mm
 
 
+def currentTime( *args, **kwargs ):
+    """
+Modifications:
+    - if no args are provided, the command returns the current time -- the equivalent of::
+    
+        >>> cmds.currentTime(q=1)
+    """
+    
+    if not args and not kwargs:
+        return cmds.currentTime(q=1)
+    else:
+        return cmds.currentTime(*args, **kwargs)
+    
+def getCurrentTime():
+    """get the current time as a float"""
+    return cmds.currentTime(q=1)
+    
+def setCurrentTime( time ):
+    """set the current time """
+    return cmds.currentTime(time) 
 
 def listAnimatable( *args, **kwargs ):
     """

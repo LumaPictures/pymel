@@ -118,6 +118,12 @@ class Version(object):
     
     #: Unlimited or Complete
     flavor = about(product=1).split()[1]
+
+    @classmethod
+    def isUnlimited(cls): return cls.flavor == 'Unlimited'
+    
+    @classmethod
+    def isComplete(cls): return cls.flavor == 'Complete'
     
     @classmethod
     def isEval(cls): return about(evalVersion=1)
@@ -928,20 +934,8 @@ Modifications:
         if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
             return
 '''
-   
-def currentTime( *args, **kwargs ):
-    """
-Modifications:
-    - if no args are provided, the command returns the current time -- the equivalent of::
-    
-        >>> cmds.currentTime(q=1)
-    """
-    
-    if not args and not kwargs:
-        return cmds.currentTime(q=1)
-    else:
-        return cmds.currentTime(*args, **kwargs)
-            
+  
+        
 def getClassification( *args ):
     """
 Modifications:
@@ -954,13 +948,7 @@ Modifications:
 # New Commands
 #--------------------------
 
-def getCurrentTime():
-    """get the current time as a float"""
-    return cmds.currentTime(q=1)
-    
-def setCurrentTime( time ):
-    """set the current time """
-    return cmds.currentTime(time)
+
 
 def selected( **kwargs ):
     """ls -sl"""
@@ -1251,7 +1239,10 @@ class PyNode(util.ProxyUnicode):
             if obj:
                 self._apimfn = self.__apicls__(obj)
                 return self._apimfn
-                
+            
+    def __repr__(self):
+        return u"%s('%s')" % (self.__class__.__name__, self.name())
+               
     def __radd__(self, other):
         if isinstance(other, basestring):
             return other.__add__( self.name() )
@@ -1919,10 +1910,6 @@ class Attribute(PyNode):
             self.__dict__['_multiattrIndex'] += 1
             return attr
     '''        
- 
- 
-    def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self.name())
 
     def __str__(self):
         return str(self.name())
@@ -2469,7 +2456,7 @@ class NodeAttrRelay(unicode):
 '''
 
 class DependNode( PyNode ):
-
+    __apicls__ = api.MFnDependencyNode
     __metaclass__ = MetaMayaNodeWrapper
     #-------------------------------
     #    Name Info and Manipulation
@@ -2554,9 +2541,6 @@ class DependNode( PyNode ):
             else :
                 raise TypeError, "don't know how to make a Pymel DependencyNode out of a %s : %r" % (type(arg), arg)  
     """
-    def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self.name())
-
     def __str__(self):
         return "%s" % self.name()
 
@@ -2882,7 +2866,7 @@ class DagNode(Entity):
     """
     :group Path Info and Modification: ``*parent*``, ``*Parent*``, ``*child*``, ``*Child*``
     """
-    
+    __apicls__ = api.MFnDagNode
     __metaclass__ = MetaMayaNodeWrapper
     
 #    def __init__(self, *args, **kwargs ):
@@ -3168,28 +3152,6 @@ class DagNode(Entity):
         else:
             cmds.makeLive(self)
 
-    def getBoundingBox(self, invisible=False):
-        """xform -boundingBox and xform -boundingBoxInvisible
-        
-        returns a tuple with two MVecs: ( bbmin, bbmax )
-        """
-        kwargs = {'query' : True }    
-        if invisible:
-            kwargs['boundingBoxInvisible'] = True
-        else:
-            kwargs['boundingBox'] = True
-                    
-        res = cmds.xform( self, **kwargs )
-        return ( Vector(res[:3]), Vector(res[3:]) )
-        #return MBoundingBox( res[:3], res[3:] )
-    
-    def getBoundingBoxMin(self, invisible=False):
-        return self.getBoundingBox(invisible)[0]
-        #return self.getBoundingBox(invisible).min()
-    
-    def getBoundingBoxMax(self, invisible=False):
-        return self.getBoundingBox(invisible)[1]   
-        #return self.getBoundingBox(invisible).max()
 
 
 
@@ -3309,12 +3271,12 @@ class Transform(DagNode):
         when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
         be returned.
         """
-        print "ATTR: Transform"
+        #print "ATTR: Transform"
         try :
             return DependNode.attr(self,attr)
         except MayaAttributeError, msg:
             if checkShape:
-                print "\tCHECKING SHAPE"
+                #print "\tCHECKING SHAPE"
                 try: 
                     return self.getShape().attr(attr)
                 except AttributeError:
@@ -3474,8 +3436,30 @@ class Transform(DagNode):
     @queryflag('xform','matrix')                
     def getMatrix( self, **kwargs ): 
         return Matrix( cmds.xform( self, **kwargs ) )
-            
+      
+    #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with api.
+    def getBoundingBox(self, invisible=False):
+        """xform -boundingBox and xform -boundingBoxInvisible
+        
+        returns a tuple with two MVecs: ( bbmin, bbmax )
+        """
+        kwargs = {'query' : True }    
+        if invisible:
+            kwargs['boundingBoxInvisible'] = True
+        else:
+            kwargs['boundingBox'] = True
+                    
+        res = cmds.xform( self, **kwargs )
+        #return ( Vector(res[:3]), Vector(res[3:]) )
+        return MBoundingBox( res[:3], res[3:] )
     
+    def getBoundingBoxMin(self, invisible=False):
+        return self.getBoundingBox(invisible)[0]
+        #return self.getBoundingBox(invisible).min()
+    
+    def getBoundingBoxMax(self, invisible=False):
+        return self.getBoundingBox(invisible)[1]   
+        #return self.getBoundingBox(invisible).max()
     '''        
     def centerPivots(self, **kwargs):
         """xform -centerPivots"""
@@ -3494,7 +3478,7 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-if Version.flavor == 'Unlimited':
+if Version.isUnlimited():
     class FluidEmitter(Transform):
         __metaclass__ = MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
