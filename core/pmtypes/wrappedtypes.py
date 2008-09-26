@@ -13,6 +13,7 @@ from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import factories as _factories
 
+
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
     def __len__(self):
@@ -1768,7 +1769,100 @@ class MTransformationMatrix(MMatrix):
  
     def rotation(self) :
         return self.apicls.rotation(self) 
+
+
+class MEulerRotation(MMatrix):
+    apicls = _api.MEulerRotation
+    shape = (4,)   
+    cnames = ('x', 'y', 'z', 'o') 
     
+    class RotationOrder(dict):
+        pass
+    rotationOrder = RotationOrder({"xyz": _api.MEulerRotation.kXYZ,
+                                   "yzx": _api.MEulerRotation.kYZX,
+                                   "zxy": _api.MEulerRotation.kZXY,
+                                   "xzy": _api.MEulerRotation.kXZY,
+                                   "yxz": _api.MEulerRotation.kYXZ,
+                                   "zyx": _api.MEulerRotation.kZYX,
+                                   })  
+    
+    def __new__(cls, *args, **kwargs):
+        shape = kwargs.get('shape', None)
+        ndim = kwargs.get('ndim', None)
+        size = kwargs.get('size', None)
+        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
+        # as no other option is actually possible on MEulerRotation, but this method could be used to allow wrapping
+        # of Maya array classes that can have a variable number of elements
+        shape, ndim, size = cls._expandshape(shape, ndim, size)        
+        
+        new = cls.apicls.__new__(cls)
+        cls.apicls.__init__(new)
+        return new
+        
+    def __init__(self, *args, **kwargs):
+        """ __init__ method for MEulerRotation """
+        cls = self.__class__
+        
+        if args :
+            # allow both forms for arguments
+            if len(args)==1 and hasattr(args[0], '__iter__') :
+                args = args[0]
+            # MTransformationMatrix, MQuaternion, MEulerRotation api classes can convert to a rotation MQuaternion
+            if hasattr(args, 'rotate') :
+                euler = _api.MEulerRotation()
+                euler.assign(args.rotate)
+                args = euler
+            elif len(args) == 4 and isinstance(args[3], basestring) :
+                # allow to initialize directly from 3 rotations and a rotation order as string
+                args = (args[0], args[1], args[2], cls.rotationOrder[args[3]])           
+            elif len(args) == 2 and isinstance(args[0], Vector) and isinstance(args[1], float) :
+                # some special init cases are allowed by the api class, want to authorize
+                # MQuaternion(MVector axis, float angle) as well as MQuaternion(float angle, MVector axis)
+                args = (float(args[1]), MVector(args[0]))        
+            # shortcut when a direct api init is possible     
+            try :
+                self.assign(args)
+            except :
+                super(Array, self).__init__(*args)
+            
+        if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
+            # can also use the form <componentname>=<number>
+            l = list(self.flat)
+            setcomp = False
+            for i, c in enumerate(cls.cnames) :
+                if c in kwargs :
+                    if float(l[i]) != float(kwargs[c]) :
+                        l[i] = float(kwargs[c])
+                        setcomp = True
+            if setcomp :
+                try :
+                    self.assign(l)
+                except :
+                    msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
+                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)  
+                
+    def assign(self, value):
+        """ Wrap the MQuaternion api assign method """
+        # api MQuaternion assign accepts MMatrix, MQuaternion and MEulerRotation
+        if isinstance(value, MTransformationMatrix) :     
+            value = value.asMatrix()
+        else :
+            if not hasattr(value, '__iter__') :
+                value = (value,)
+            value = self.apicls(*value) 
+        self.apicls.assign(self, value)
+        return self
+   
+    # API get, actually not faster than pulling self[i] for such a short structure
+    def get(self):
+        """ Wrap the MQuaternion api get method """
+        ms = _api.MScriptUtil()
+        l = (0,)*self.size
+        ms.createFromDouble ( *l )
+        p = ms.asDoublePtr ()
+        self.apicls.get(self, p)
+        return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
+   
 class MQuaternion(MMatrix):
     apicls = _api.MQuaternion
     shape = (4,)
@@ -1912,97 +2006,6 @@ class MQuaternion(MMatrix):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()  
 
-class MEulerRotation(MMatrix):
-    apicls = _api.MEulerRotation
-    shape = (4,)   
-    cnames = ('x', 'y', 'z', 'o') 
-    
-    class RotationOrder(dict):
-        pass
-    rotationOrder = RotationOrder({"xyz": _api.MEulerRotation.kXYZ,
-                                   "yzx": _api.MEulerRotation.kYZX,
-                                   "zxy": _api.MEulerRotation.kZXY,
-                                   "xzy": _api.MEulerRotation.kXZY,
-                                   "yxz": _api.MEulerRotation.kYXZ,
-                                   "zyx": _api.MEulerRotation.kZYX,
-                                   })  
-    
-    def __new__(cls, *args, **kwargs):
-        shape = kwargs.get('shape', None)
-        ndim = kwargs.get('ndim', None)
-        size = kwargs.get('size', None)
-        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
-        # as no other option is actually possible on MEulerRotation, but this method could be used to allow wrapping
-        # of Maya array classes that can have a variable number of elements
-        shape, ndim, size = cls._expandshape(shape, ndim, size)        
-        
-        new = cls.apicls.__new__(cls)
-        cls.apicls.__init__(new)
-        return new
-        
-    def __init__(self, *args, **kwargs):
-        """ __init__ method for MEulerRotation """
-        cls = self.__class__
-        
-        if args :
-            # allow both forms for arguments
-            if len(args)==1 and hasattr(args[0], '__iter__') :
-                args = args[0]
-            # MTransformationMatrix, MQuaternion, MEulerRotation api classes can convert to a rotation MQuaternion
-            if hasattr(args, 'rotate') :
-                euler = _api.MEulerRotation()
-                euler.assign(args.rotate)
-                args = euler
-            elif len(args) == 4 and isinstance(args[3], basestring) :
-                # allow to initialize directly from 3 rotations and a rotation order as string
-                args = (args[0], args[1], args[2], cls.rotationOrder[args[3]])           
-            elif len(args) == 2 and isinstance(args[0], Vector) and isinstance(args[1], float) :
-                # some special init cases are allowed by the api class, want to authorize
-                # MQuaternion(MVector axis, float angle) as well as MQuaternion(float angle, MVector axis)
-                args = (float(args[1]), MVector(args[0]))        
-            # shortcut when a direct api init is possible     
-            try :
-                self.assign(args)
-            except :
-                super(Array, self).__init__(*args)
-            
-        if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
-            # can also use the form <componentname>=<number>
-            l = list(self.flat)
-            setcomp = False
-            for i, c in enumerate(cls.cnames) :
-                if c in kwargs :
-                    if float(l[i]) != float(kwargs[c]) :
-                        l[i] = float(kwargs[c])
-                        setcomp = True
-            if setcomp :
-                try :
-                    self.assign(l)
-                except :
-                    msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
-                    raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)  
-                
-    def assign(self, value):
-        """ Wrap the MQuaternion api assign method """
-        # api MQuaternion assign accepts MMatrix, MQuaternion and MEulerRotation
-        if isinstance(value, MTransformationMatrix) :     
-            value = value.asMatrix()
-        else :
-            if not hasattr(value, '__iter__') :
-                value = (value,)
-            value = self.apicls(*value) 
-        self.apicls.assign(self, value)
-        return self
-   
-    # API get, actually not faster than pulling self[i] for such a short structure
-    def get(self):
-        """ Wrap the MQuaternion api get method """
-        ms = _api.MScriptUtil()
-        l = (0,)*self.size
-        ms.createFromDouble ( *l )
-        p = ms.asDoublePtr ()
-        self.apicls.get(self, p)
-        return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
 
 class MTime( _api.MTime ) :
     apicls = _api.MTime
@@ -2062,81 +2065,81 @@ class MAngle( _api.MAngle ) :
 #            _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
 #            yield self
 
-class MItMeshEdge( _api.MItMeshEdge ):
-    apicls = _api.MItMeshEdge
-    __metaclass__ = _factories.MetaMayaTypeWrapper
-    def __init__(self, node, component=None ):
-        args = [node]
-        self._range = None
-        if _api.isValidMObject( component ): 
-            args.append(component)   
-
-        _api.MItMeshEdge.__init__(self, *args)
-        
-        if _api.isValidMObject( component ): 
-            pass 
-        elif isinstance(component, int):
-            self._range = [component]
-            su = _api.MScriptUtil()
-            _api.MItMeshEdge.setIndex( self, component, su.asIntPtr() )  # bug workaround
-            
-        elif isinstance(component, slice):
-            self._range = range( component.start, component.stop+1)
-            su = _api.MScriptUtil()
-            _api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
-            
-        elif component is not None:
-            raise TypeError, "component must be a valid MObject representing a component, an integer, or a slice"
-        
-        self._node = node
-        self._comp = component
-        self._index = 0
-        
-    def __str__(self): 
-        if isinstance( self._comp, int ):
-            return 'dummy.e[%s]' % ( self._comp )
-        elif isinstance( self._comp, slice ):
-            return 'dummy.e[%s:%s]' % ( self._comp.start, self._comp.stop )
-        
-        return 'dummy.e[0:%s]' % self.count()-1
-                                       
-    
-    def __iter__(self): 
-        print "ITER"
-        #su = _api.MScriptUtil()
-        #_api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
-        return self
-    
-    def next(self):
-        if self.isDone(): raise StopIteration
-        if self._range is not None:
-            try:
-                nextIndex = self._range[self._index]
-                su = _api.MScriptUtil()
-                _api.MItMeshEdge.setIndex( self, nextIndex, su.asIntPtr() )  # bug workaround
-                self._index += 1
-                return MItMeshEdge(self._node, nextIndex)
-            except IndexError:
-                raise StopIteration
-
-        else:
-            _api.MItMeshEdge.next(self)
-        return MItMeshEdge(self._node, _api.MItMeshEdge.index(self) )
+#class MItMeshEdge( _api.MItMeshEdge ):
+#    apicls = _api.MItMeshEdge
+#    __metaclass__ = _factories.MetaMayaTypeWrapper
+#    def __init__(self, node, component=None ):
+#        args = [node]
+#        self._range = None
+#        if _api.isValidMObject( component ): 
+#            args.append(component)   
+#
+#        _api.MItMeshEdge.__init__(self, *args)
+#        
+#        if _api.isValidMObject( component ): 
+#            pass 
+#        elif isinstance(component, int):
+#            self._range = [component]
+#            su = _api.MScriptUtil()
+#            _api.MItMeshEdge.setIndex( self, component, su.asIntPtr() )  # bug workaround
+#            
+#        elif isinstance(component, slice):
+#            self._range = range( component.start, component.stop+1)
+#            su = _api.MScriptUtil()
+#            _api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+#            
+#        elif component is not None:
+#            raise TypeError, "component must be a valid MObject representing a component, an integer, or a slice"
+#        
+#        self._node = node
+#        self._comp = component
+#        self._index = 0
+#        
+#    def __str__(self): 
 #        if isinstance( self._comp, int ):
-#            _api.MItMeshEdge.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
-#        elif isinstance( self._comp, slice):
-#            _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
-    
-    def count(self):
-        if self._range is not None:
-            return len(self._range)
-        else:
-            return _api.MItMeshEdge.count( self )
-    def __len__(self): 
-        return self.count()
-            
-    def __getitem__(self, item):
-        return MItMeshEdge(self._node, item)
+#            return 'dummy.e[%s]' % ( self._comp )
+#        elif isinstance( self._comp, slice ):
+#            return 'dummy.e[%s:%s]' % ( self._comp.start, self._comp.stop )
+#        
+#        return 'dummy.e[0:%s]' % self.count()-1
+#                                       
+#    
+#    def __iter__(self): 
+#        print "ITER"
+#        #su = _api.MScriptUtil()
+#        #_api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
+#        return self
+#    
+#    def next(self):
+#        if self.isDone(): raise StopIteration
+#        if self._range is not None:
+#            try:
+#                nextIndex = self._range[self._index]
+#                su = _api.MScriptUtil()
+#                _api.MItMeshEdge.setIndex( self, nextIndex, su.asIntPtr() )  # bug workaround
+#                self._index += 1
+#                return MItMeshEdge(self._node, nextIndex)
+#            except IndexError:
+#                raise StopIteration
+#
+#        else:
+#            _api.MItMeshEdge.next(self)
+#        return MItMeshEdge(self._node, _api.MItMeshEdge.index(self) )
+##        if isinstance( self._comp, int ):
+##            _api.MItMeshEdge.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
+##        elif isinstance( self._comp, slice):
+##            _api.MItMeshEdge.setIndex( self, i, su.asIntPtr() )  # bug workaround
+#    
+#    def count(self):
+#        if self._range is not None:
+#            return len(self._range)
+#        else:
+#            return _api.MItMeshEdge.count( self )
+#    def __len__(self): 
+#        return self.count()
+#            
+#    def __getitem__(self, item):
+#        return MItMeshEdge(self._node, item)
         
 #        su = _api.MScriptUtil()
 #        if isinstance( item, slice):
@@ -2201,6 +2204,18 @@ class MBoundingBox( _api.MBoundingBox):
         _api.MBoundingBox.__init__(self, *args)
     def __str__(self):
         return '%s(%s,%s)' % (self.__class__.__name__, self.min(), self.max())
+    def __repr__(self):
+        return str(self)
+    def __getitem__(self,item):
+        if item == 0:
+            return self.min()
+        elif item == 1:
+            return self.max()
+        raise IndexError, "Index out of range"
+    def __melobject__(self):
+        """A flat list of 6 values [minx, miny, minz, maxx, maxy, maxz]"""
+        return list(self.min()) + list(self.max())
+    
     repr = __str__
     w = property( _factories.wrapApiMethod( _api.MBoundingBox, 'width'  ) )
     h = property( _factories.wrapApiMethod( _api.MBoundingBox, 'height'  ) )
