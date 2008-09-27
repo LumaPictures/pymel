@@ -405,8 +405,9 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
     Proxy.__name__ = classname
     return Proxy
 
-# Needed to move this here so that pymel.utils.arguments.stringifyPyNodeArgs can use it
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
+# NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
+#ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=[ 'translate']) 
 
 # unit test with doctest
 if __name__ == '__main__' :
