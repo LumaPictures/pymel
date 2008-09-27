@@ -235,11 +235,13 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
 # to the class methods
                
 class MVector(Vector) :
-    """ A 3 dimensional vector class that wraps Maya's api MVector class,
+    """ 
+    A 3 dimensional vector class that wraps Maya's api MVector class
+    
         >>> v = MVector(1, 2, 3)
         >>> w = MVector(x=1, z=2)
         >>> z = MVector(MVector.xAxis, z=1)
-        """
+    """
     __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ()
     # class specific info
@@ -1322,11 +1324,13 @@ class MSpace(_api.MSpace):
 # 3.0  
 
 class MMatrix(Matrix):
-    """ A 4x4 transformation matrix based on api MMatrix 
+    """ 
+    A 4x4 transformation matrix based on api MMatrix
+    
         >>> v = self.__class__(1, 2, 3)
         >>> w = self.__class__(x=1, z=2)
         >>> z = self.__class__(_api.Mself.__class__.xAxis, z=1)
-        """    
+    """    
     __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MMatrix
     shape = (4, 4)

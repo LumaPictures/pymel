@@ -1,18 +1,24 @@
 '''
-Module which wraps the commands in maya.cmds to accept PyNode arguments.
+Module which wraps the commands in maya.cmds to accept special pymel arguments.
 
-In versions prior to 2009, some mel commands (ie, getAttr) that expect 
+There are a number of pymel objects which must be converted to a "mel-friendly"
+representation. For example, in versions prior to 2009, some mel commands (ie, getAttr) that expect 
 string arguments will only accept string instances, and simply reject
-custom objects that have a valid string representation. This module wraps
-the commands in maya.cmds, and properly stringifies any PyNode arguments
-(more exactly, and ProxyUnicode args) before passing to maya.cmds.
- 
-This is not intended to be used by the end user, but to be in implementations
-of pymel cmds, so that we don't need to remember to always stringify PyNode
-arguments before calling the underlying maya.cmds
-(or remember which cmds need stringifying).
+custom objects that have a valid string representation.  Another Example is mel's matrix inputs,
+which expects a flat list of 16 flaots, while pymel's Matrix has a more typical and appropriate
+4x4 representation.
 
-The wrapping will be switched off for 2009 and later...
+This module provides a mechanism to allow pymel objects to provide an alternative mel-representation
+if the default is not mel-compatible.  It wraps the commands in maya.cmds, and if it exists, it calls
+a __melobject__ function to get the alternate object.
+
+The wrapped commands in this module become the starting point for all commands in pymel.animation, pymel.general,
+pymel.rendering, etc.
+
+If you're having compatibility issues with your custom classes when passing them to mel commands, 
+simply add a __melobject__ function that returns a mel-friendly result and pass them to pymel's wrapped commands.
+
+
 '''
 
 import inspect

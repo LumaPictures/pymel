@@ -15,11 +15,16 @@ def capitalize(s):
         'FooBAR'
         >>> 'fooBAR'.capitalize()
         'Foobar'
+    
+    :rtype: string
     """
     return s[0].upper() + s[1:]
 
 def uncapitalize(s, preserveAcronymns=False):
-    """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'"""
+    """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'
+    :rtype: string
+    
+    """
     try:
         if preserveAcronymns and s[0:2].isupper():
             return s
@@ -28,6 +33,9 @@ def uncapitalize(s, preserveAcronymns=False):
     return s[0].lower() + s[1:]
                         
 def unescape( s ):
+    """
+    :rtype: string
+    """
     chars = [ r'"', r"'" ]
     for char in chars:
         tokens = re.split( r'(\\*)' + char,  s )
@@ -62,6 +70,9 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
     return property( fget, fset, fdel, doc)
 
 def moduleDir():
+    """
+    :rtype: string
+    """
     return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
     #return os.path.split( sys.modules[__name__].__file__ )[0]
     

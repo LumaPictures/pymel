@@ -1119,7 +1119,10 @@ def _addCmdDocs( func, cmdInfo=None ):
         return func
         
     docstring = cmdInfo['description'] + '\n\n'
-    
+
+    if func.__doc__: 
+        docstring = docstring + func.__doc__ + '\n\n'
+        
     flagDocs = cmdInfo['flags']
     if flagDocs:
         
@@ -1170,8 +1173,7 @@ def _addCmdDocs( func, cmdInfo=None ):
     if cmdInfo['example']:
         docstring += '\nExample:\n' + cmdInfo['example']
     
-    if func.__doc__: 
-        docstring = func.__doc__ + '\n' + docstring
+
     
     func.__doc__ = docstring
     return func        
@@ -2280,12 +2282,12 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         #-------------------------
         melCmdName, infoCmd = mcl.getMelCmd(classdict)
 
-        filterAttrs = ['name']
+        
 
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
-            pass
+            if VERBOSE: print "No MEL command info available for %s" % melCmdName
         else:
             try:    
                 cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
@@ -2293,11 +2295,14 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             except (AttributeError, TypeError):
                 func = getattr(cmds,melCmdName)
 
+            if VERBOSE: print "Generating methods for %s" % melCmdName
             # add documentation
             classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
             classdict['__doc__'] = classdoc
             classdict['__melcmd__'] = func
-
+            
+            filterAttrs = ['name']+classdict.keys()
+            filterAttrs += overrideMethods.get( bases[0].__name__ , [] )
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
@@ -2315,24 +2320,21 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                     # query command
                     if 'query' in modes:
                         methodName = 'get' + util.capitalize(flag)
-                        if methodName not in classdict.keys() + filterAttrs:
-                        #if not hasattr( newcls, methodName ) :
-                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                returnFunc = None
-                                
-                                if flagInfo.get( 'resultNeedsCasting', False):
-                                    returnFunc = flagInfo['args']
-                                    if flagInfo.get( 'resultNeedsUnpacking', False):
-                                        returnFunc = lambda x: returnFunc(x[0])
-                                        
-                                elif flagInfo.get( 'resultNeedsUnpacking', False):
+                        if methodName not in filterAttrs:
+                            returnFunc = None
+                            
+                            if flagInfo.get( 'resultNeedsCasting', False):
+                                returnFunc = flagInfo['args']
+                                if flagInfo.get( 'resultNeedsUnpacking', False):
                                     returnFunc = lambda x: returnFunc(x[0])
-                                
-                                newfunc = makeQueryFlagMethod( func, flag, methodName, 
-                                    docstring=flagInfo['docstring'], returnFunc=returnFunc )
-                                classdict[methodName] = newfunc
-                                #setattr( newcls, methodName, newfunc )
-                            #else: print "%s: skipping %s" % ( classname, methodName )
+                                    
+                            elif flagInfo.get( 'resultNeedsUnpacking', False):
+                                returnFunc = lambda x: returnFunc(x[0])
+                            
+                            newfunc = makeQueryFlagMethod( func, flag, methodName, 
+                                docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                            classdict[methodName] = newfunc
+                            #setattr( newcls, methodName, newfunc )
                         elif VERBOSE:  print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
@@ -2343,13 +2345,12 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         else:
                             methodName = flag
                             
-                        if methodName not in classdict.keys() + filterAttrs:
+                        if methodName not in filterAttrs:
                         #if not hasattr( newcls, methodName ) :
-                            if methodName not in overrideMethods.get( bases[0].__name__ , [] ):
-                                newfunc = makeEditFlagMethod( func, flag, methodName, 
-                                     docstring=flagInfo['docstring'] )
-                                classdict[methodName] = newfunc
-                                #setattr( newcls, methodName, newfunc )
+                            newfunc = makeEditFlagMethod( func, flag, methodName, 
+                                 docstring=flagInfo['docstring'] )
+                            classdict[methodName] = newfunc
+                            #setattr( newcls, methodName, newfunc )
                         elif VERBOSE: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                              
         return super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
@@ -2414,11 +2415,11 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         uiType= classdict.setdefault('__melui__', util.uncapitalize(classname))
-        return super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        return super(MetaMayaUIWrapper, mcl).__new__(mcl, classname, bases, classdict)
     
     @classmethod
     def getMelCmd(mcl, classdict):
-        return classdict['__melui__']
+        return classdict['__melui__'], False
         
     
 def getValidApiMethods( apiClassName, api, verbose=False ):

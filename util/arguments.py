@@ -23,12 +23,15 @@ def isScalar(obj):
 
 # TODO : this is unneeded as operator provides it, can call directly to operator methods
 def isNumeric(obj):
+    """:rtype: bool"""
     return operator.isNumberType(obj)
 
 def isSequence( obj ):
+    """:rtype: bool"""
     return operator.isSequenceType(obj)
 
 def isMapping( obj ):
+    """:rtype: bool"""
     return operator.isMappingType(obj)
 
 clsname = lambda x:type(x).__name__
@@ -36,6 +39,7 @@ clsname = lambda x:type(x).__name__
 MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
 
 def isValidMelType( typStr ):
+    """:rtype: bool"""
     return typStr in MELTYPES
    
 def convertListArgs( args ):
@@ -75,66 +79,6 @@ def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
 
     return newargs
 
-
-def stringify( args, recursionLimit=None, maintainDicts=True, classesToStringify=None):
-    """Will return a list which contains each element of the iterable 'args' converted to a unicode string.
-    
-    If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
-    will recursively searched for PyNodes to convert to unicode strings; if recursionLimit==0, only the elements
-    of args    itself will be searched for PyNodes -  if it is 1, iterables within args will have stringify called
-    on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
-    
-    In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
-    then iterables for whichoperator.isMappingType() returns true will be returned as dicts.
-    
-    If classesToStringify is None, then all arguments will be converted to unicode (except potentially for iterables,
-    as noted above) - however, if it is not None, then it should be a class or tuple of classes, and only arguments
-    which are subclasses of one of the given classes will be converted to strings.  Also, note that if classesToStringify
-    are    specified, then they will be immediately converted when encountered, even if they are themselves iterable.
-    """
-    if recursionLimit:
-        recursionLimit -= 1
-    
-    #isinstance only takes tuple sequences
-    if classesToStringify and \
-       not isinstance(classesToStringify, tuple) and \
-       isIterable(classesToStringify):
-        classesToStringify = tuple(classesToStringify)
-        
-    if maintainDicts and operator.isMappingType(args):
-        newargs = dict(args)
-        argIterable = args.iteritems()
-    else:
-        newargs = list(args)
-        argIterable = enumerate(args)
-    for index, value in argIterable:
-        if classesToStringify and isinstance(value, classesToStringify):
-            # If instance of classesToStringify, always stringify
-            newargs[index] = unicode(value)
-        elif ( (not recursionLimit) or recursionLimit >= 0) and isIterable(value):
-            # ...otherwise, recurse if not at recursion limit and  it's iterable
-            newargs[index] = stringify(value, recursionLimit, maintainDicts, classesToStringify)
-        elif not classesToStringify:
-            # ...otherwise, if not only stringifying certain classes, stringify it
-            newargs[index] = unicode(value)
-    return newargs
-
-def stringifyPyNodeArgs(function, name=None):
-    """
-    Decorator which will convert any arguments which are ProxyUnicode to strings before passing to the underlying function.
-    
-	Conceptually, this is the inverse of argsToPyNodes.
-	"""
-    def stringifiedFunc(*args, **kwargs):
-        return function(*(stringify(args, classesToStringify=ProxyUnicode)),
-                    **(stringify(kwargs, classesToStringify=ProxyUnicode)))
-    stringifiedFunc.__doc__ = function.__doc__
-    if name:
-        stringifiedFunc.__name__ = name
-    else:
-        stringifiedFunc.__name__ = function.__name__
-    #print function, name, function.__name__
-    return stringifiedFunc 
 
 def argsToPyNodes(numberedArgsToConvert='all', keywordArgsToConvert='all'):
     """
