@@ -16,7 +16,7 @@ from HTMLParser import HTMLParser
 from pymel.util.external.BeautifulSoup import BeautifulSoup
 from keyword import iskeyword as _iskeyword
 
-VERBOSE = True
+VERBOSE = 0
 
 # TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
@@ -715,6 +715,7 @@ def mayaTypeToApiType (mayaType) :
             obj = MObject() 
             dagMod = MDagModifier()
             dgMod = MDGModifier()
+            #if mayaType == 'directionalLight': print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
             obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
             if isValidMObject(obj):
                 apiType = obj.apiTypeStr()
@@ -786,43 +787,6 @@ def removeMayaType( mayaType ):
            ApiTypesToMayaTypes().pop(apiType)
            ApiTypesToApiEnums().pop(apiType)
     
-    
-    
-def updateMayaTypesList() :
-    """Updates the cached MayaTypes lists. Not currently used. """
-    start = time.time()
-    # use dict of empty keys just for faster random access
-    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
-    typeList = dict( ReservedMayaTypes().items() + [(k, None) for k in _ls(nodeTypes=True)] )
-    # remove types that no longuer exist
-    for k in MayaTypesToApiTypes().keys() :
-        if not typeList.has_key(k) :
-            # this could happen when a plugin is unloaded and some types become unregistered
-            api = MayaTypesToApiTypes()[k]
-            mtypes = ApiTypesToMayaTypes()[api]
-            mtypes.pop(k)
-            MayaTypesToApiTypes().pop(k)
-    # add new types
-    for k in typeList.keys() :
-         if not MayaTypesToApiTypes().has_key(k) :
-            # this will happen for initial building and when a plugin is loaded that registers new types
-            api = typeList[k]
-            if not api :
-                api = mayaTypeToApiType(k)
-            MayaTypesToApiTypes()[k] = api
-            # can have more than one Maya type associated with an API type (yeah..)
-            # we mark one as "default" if it's a member of the reserved type by associating it with a True value in dict
-            defType = ReservedMayaTypes().has_key(k)
-            if not ApiTypesToMayaTypes().has_key(api) :
-                ApiTypesToMayaTypes()[api] = { k : defType } #originally: dict( ((k, defType),) )
-            else :
-                ApiTypesToMayaTypes()[api][k] = defType
-    elapsed = time.time() - start
-    print "Updated Maya types list in %.2f sec" % elapsed
-
-            
-# initial update  
-#updateMayaTypesList()
        
 
 def _getMObject(nodeType, dagMod, dgMod) :
@@ -853,7 +817,6 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # and we call this function while loading a scene (for instance, if the scene requires
     # a plugin that isn't loaded, and defines custom node types), then the nodes are still
     # somehow created, despite never explicitly calling doIt()
-
     if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
 
@@ -987,16 +950,6 @@ def _createNodes(dagMod, dgMod, *args) :
     result = {}
     mayaResult = {}
     for mayaType in args :
-#        mayaType = apiType = None
-#        if ApiTypesToMayaTypes().has_key(k) :
-#            mayaType = ApiTypesToMayaTypes()[k].keys()[0]
-#            apiType = k
-#        elif MayaTypesToApiTypes().has_key(k) :
-#            mayaType = k
-#            apiType = MayaTypesToApiTypes()[k]
-#        else :
-#            continue
-#        print mayaType, apiType
         if ReservedMayaTypes().has_key(mayaType) :
             apiType = ReservedMayaTypes()[mayaType]
             #print "reserved", mayaType, apiType
@@ -1182,6 +1135,8 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         apiTypeHierarchy = data[6]
         apiClassInfo = data[7]
         
+        print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
+        
         def _setOverloadedMethod( className, methodName, index ):
             from pymel.util.arrays import reorder
             methodInfoList = apiClassInfo[className]['methods'][methodName]
@@ -1206,7 +1161,12 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         
         _setOverloadedMethod( 'MItMeshEdge','index', 1 ) # method at 0 is for returning a vertex index, while method 1 returns the edge index
         
-        
+#        for clsname, classInfo in apiClassInfo.items():
+#            for method, methodInfoList in classInfo['methods'].items():
+#                for i, methodInfo in enumerate( methodInfoList ):
+#                    for arg, type in methodInfo['types'].items():
+#                        if str(type) == 'MSpace.Space':
+#                            print clsname, method, i, 
 
 #        apiClassInfo['MFnTransform']['methods']['getRotation'].pop(0) # remove MEuler
 #        # correction to order direction
@@ -1246,7 +1206,8 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         try :
             #print "about to pickle", apiTypesToApiClasses
             #print "about to pickle", ApiEnumsToApiTypes()
-            pickle.dump( (ReservedMayaTypes(), ReservedApiTypes(), ApiTypesToApiEnums(), ApiEnumsToApiTypes(), MayaTypesToApiTypes(), 
+            print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
+            pickle.dump( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), dict(MayaTypesToApiTypes()), 
                           apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo),
                             file, 2)
             print "done"
