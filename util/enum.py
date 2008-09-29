@@ -60,7 +60,6 @@ __license__ = "Choice of GPL or Python license"
 __url__ = "http://cheeseshop.python.org/pypi/enum/"
 __version__ = "0.4.3"
 
-
 class EnumException(Exception):
     """ Base class for all exceptions in this module """
     def __init__(self):
@@ -98,7 +97,6 @@ class EnumImmutableError(TypeError, EnumException):
     def __str__(self):
         return "Enumeration does not allow modification"
 
-
 class EnumValue(object):
     """ A specific value of an enumerated type """
 
@@ -160,33 +158,32 @@ class EnumValue(object):
             assert self_type == other.enumtype
             result = cmp(self.index, other.index)
         except (AssertionError, AttributeError):
-            if isinstance(other,basestring):
+            if isinstance(other, basestring):
                 result=cmp(self.key, other)
-            elif isinstance(other,int):
+            elif isinstance(other, int):
                 result=cmp(self.index, other)   
             else:
                 result = NotImplemented
 
         return result
 
-
 class Enum(object):
     """ Enumerated type """
 
-    def __init__(self, *keys, **kwargs ):
+    def __init__(self, *keys, **kwargs):
         """ Create an enumeration instance """
 
         if not keys:
             raise EnumEmptyError()
 
-        value_type= kwargs.get( 'value_type', EnumValue)
+        value_type= kwargs.get('value_type', EnumValue)
         keys = tuple(keys)
         values = [None] * len(keys)
         docs = [None] * len(keys)
         keyDict = {}
         for i, key in enumerate(keys):
             kwargs = {}
-            if isinstance(key,tuple) or isinstance(key,list) and len(key)==2:
+            if isinstance(key, tuple) or isinstance(key, list) and len(key)==2:
                 key, doc = key
                 docs[i]=doc
                 kwargs['doc'] = doc
@@ -198,15 +195,15 @@ class Enum(object):
             except TypeError, e:
                 raise EnumBadKeyError(key)
 
-        super(Enum, self).__setattr__('_keys', keyDict )
-        super(Enum, self).__setattr__('_values', tuple(values) )
-        super(Enum, self).__setattr__('_docs', tuple(docs) )
+        super(Enum, self).__setattr__('_keys', keyDict)
+        super(Enum, self).__setattr__('_values', tuple(values))
+        super(Enum, self).__setattr__('_docs', tuple(docs))
 
     def __repr__(self):
-        return '%s(\n%s)' % ( self.__class__.__name__, ',\n'.join( [ repr(v) for v in self.values()] ) )
+        return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join([ repr(v) for v in self.values()]))
            
     def __str__(self):
-        return '%s%s' % ( self.__class__.__name__, self.keys() )
+        return '%s%s' % (self.__class__.__name__, self.keys())
 
     def __setattr__(self, name, value):
         raise EnumImmutableError(name)
@@ -262,4 +259,4 @@ class Enum(object):
     
     def keys(self):
         "return a list of keys as strings"
-        return tuple([ v.key for v in self._values ] )
+        return tuple([ v.key for v in self._values ])
