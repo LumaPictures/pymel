@@ -1273,8 +1273,14 @@ def apiEnumToType (apiEnum) :
 
 def apiTypeToEnum (apiType) :
     """ Given an API type string, returns the corresponding Maya API type enum (int),
-        as in MObject.apiTypeStr() to MObject.apiType()"""    
-    return ApiTypesToApiEnums().get(apiType, None)
+        as in MObject.apiTypeStr() to MObject.apiType()"""
+    # Is there ever a time that our dictionary would not have an entry and MFn would? I changed this
+    # because after reload of certain pymel modules, these dictionaries can go empty.
+    #return ApiTypesToApiEnums().get(apiType, None)
+    try:
+        return getattr( MFn, apiType )
+    except AttributeError:
+        pass
 
 # get the maya type from an API type
 def apiEnumToNodeType (apiTypeEnum) :
@@ -1376,8 +1382,13 @@ def toApiObject (nodeName, dagPlugs=True):
             try:
                 buf = nodeName.split('.')
                 obj = toApiObject( buf[0] )
-                plug = MFnDependencyNode(obj).findPlug( buf[-1], False )
-                if dagPlugs and isValidMDagPath(obj) : 
+                if isinstance(obj,MDagPath):
+                    mfn = MFnDagNode(obj)
+                else:
+                    mfn = MFnDependencyNode(obj)
+                plug = mfn.findPlug( buf[-1], False )
+                
+                if dagPlugs: # and isValidMDagPath(obj) : 
                     return (obj, plug)
                 return plug
             except (RuntimeError,ValueError):
