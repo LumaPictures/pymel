@@ -283,6 +283,7 @@ class CommandDocParser(HTMLParser):
         elif self.active == 'examples' and data != 'Python examples':
             #print "Example\n"
             #print data
+            data = data.replace( '\r\n', '\n' )
             self.example += data
             #self.active = False
         
@@ -414,15 +415,7 @@ def getCmdInfo( command, version='8.5', python=True ):
         example = parser.example
         example = example.rstrip()
         if python:
-            reg = re.compile(r'\bcmds\.')
-            lines = example.split('\n')
-            for i, line in enumerate(lines):
-                line = reg.sub( 'pm.', line )
-                line = line.replace( 'import maya.cmds as cmds', 'import pymel as pm' )
-                line = '    >>> ' + line
-                lines[i] = line
-                
-            example = '\n'.join( lines )
+            pass
         
         # start with basic info, gathered using mel help command, then update with info parsed from docs
         # we copy because we need access to the original basic info below
@@ -484,6 +477,114 @@ def getCmdInfo( command, version='8.5', python=True ):
         
         #raise IOError, "cannot find maya documentation directory"
 
+def fixCodeExamples():
+    saveout = sys.stdout
+    f = open( '/var/tmp/log', 'w')
+    sys.stdout = f
+    openWindows = cmds.lsUI(windows=True)
+    for command in sorted(cmdlist.keys()):
+        info = cmdlist[command]
+        try:
+            example = info['example']
+        except KeyError:
+            pass
+        else:
+            if 'import pymel' in example:
+                f.close()
+                sys.stdout = saveout
+                print "examples have already been fixed. to re-fix, first delete and recreate the commands cache"
+                return
+            
+            print
+            print "Starting command", command
+            reg = re.compile(r'\bcmds\.')
+            example = reg.sub( 'pm.', example )
+            example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
+            #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.cmds.file(new=1,f=1) #fresh scene' )
+            lines = example.split('\n')
+            newlines = []
+            statement = []
+            
+            if command.startswith('d') or command.startswith('poly') : # in moduleCmds['context'] + ['dopeSheetEditor', 'doubleProfileBirailSurface', 'dropoffLocator', 'duplicate']: #['duplicate', 'grabColor', 'renderQualityNode', 'dynExpression', 'dynExport']:
+                evaluate = False
+            elif command in []:
+                return
+            else:
+                evaluate = True
+            
+            
+            try: # some funky things can happen when executing maya code. the exception somehow occurs outside the eval/exec
+                for i, line in enumerate(lines):
+                    res = None
+                    # replace with pymel results  '# Result: 1 #'
+                    if line.startswith('# Result: '):
+                        if evaluate is False:
+                            line = line[10:-2]
+                            newlines.append(line)
+                    else:
+                        if evaluate:
+                            if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):
+                                statement.append(line)
+                            else:
+                                # evaluate the compiled statement using exec, which can do multi-line if statements and so on
+                                if statement:
+                                    try:
+                                        #print "executing", statement
+                                        exec( '\n'.join(statement) )
+                                        # reset statement
+                                        statement = []
+                                    except Exception, e:
+                                        print "stopping evaluation", str(e) # of %s on line %r" % (command, line)
+                                        evaluate = False
+                                try:
+                                    print "evaluating: %r" % line
+                                    res = eval( line )
+                                    #if res is not None: print "result", repr(repr(res))
+                                    #else: print "no result"
+                                except:
+                                    #print "failed evaluating:", str(e)
+                                    try:
+                                        exec( line )
+                                    except (Exception, TypeError), e:
+                                        print "stopping evaluation", str(e) # of %s on line %r" % (command, line)
+                                        evaluate = False
+                                                
+                        if line.startswith(' ') or line.startswith('\t'):       
+                            newlines.append('    ... ' + line)
+                        else:
+                            newlines.append('    >>> ' + line)
+                
+                        if res is not None:
+                            newlines.append( '    ' + repr(res) )
+                        
+                if evaluate:
+                    print "successful evaluation!", command
+                              
+                example = '\n'.join( newlines )
+                info['example'] = example
+            except:
+               print "COMPLETE AND UTTER FAILURE:", command
+            
+#            # cleanup opened windows
+#            for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
+#                try: cmds.deleteUI(ui, window=True)
+#                except:pass
+    f.close()
+    sys.stdout = saveout
+    print "Done Fixing Examples. Writing out fixed commands cache..."
+    short_version = mayahook.getMayaVersion(extension=False)
+    newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+short_version+'.bin' )
+    try :
+        file = open(newPath, mode='wb')
+        try :
+            pickle.dump( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds),  file, 2)
+            print "done"
+        except:
+            print "Unable to write the list of Maya commands to '"+file.name+"'"
+        file.close()
+    except :
+        print "Unable to open '"+newPath+"' for writing"
+            
 class NodeHierarchyDocParser(HTMLParser):
  
     def parse(self):
@@ -1121,7 +1222,7 @@ def _addCmdDocs( func, cmdInfo=None ):
     docstring = cmdInfo['description'] + '\n\n'
 
     if func.__doc__: 
-        docstring = docstring + func.__doc__ + '\n\n'
+        docstring += func.__doc__ + '\n\n'
         
     flagDocs = cmdInfo['flags']
     if flagDocs:
@@ -1401,7 +1502,7 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
 
     if returnFunc:
         def newfunc(*args, **kwargs): 
-            if len(args)==1:
+            if len(args)<=1:
                 kwargs[flag]=True
             elif len(args)==2:
                 kwargs[flag]=args[1]
@@ -1412,7 +1513,7 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
             return returnFunc(inFunc( *args, **kwargs ))
     else:
         def newfunc(*args, **kwargs): 
-            if len(args)==1:
+            if len(args)<=1:
                 kwargs[flag]=True
             elif len(args)==2:
                 kwargs[flag]=args[1]
@@ -1676,10 +1777,10 @@ class ApiTypeRegister(object):
             cls.inCast[apiTypename] = pymelType
         
         if apiTypename in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
-            initFunc = getattr( cls.su, 'as' + capType + 'Ptr')
-            getFunc = getattr( cls.su, 'get' + capType )
-            setArrayFunc = getattr( cls.su, 'set' + capType + 'Array')
-            getArrayFunc = getattr( cls.su, 'get' + capType + 'ArrayItem')
+            initFunc = getattr( cls.su, 'as' + capType + 'Ptr')  # initialize: su.asFloatPtr()
+            getFunc = getattr( cls.su, 'get' + capType )  # su.getFloat()
+            setArrayFunc = getattr( cls.su, 'set' + capType + 'Array')  # su.setFloatArray()
+            getArrayFunc = getattr( cls.su, 'get' + capType + 'ArrayItem') # su.getFloatArrayItem()
             cls.refInit[apiTypename] = initFunc
             cls.refCast[apiTypename] = getFunc
             for i in [2,3,4]:
@@ -1863,13 +1964,16 @@ class ApiArgUtil(object):
         "get a list of defaults"
         defaults = []
         defaultInfo = self.methodInfo['defaults']
-        for arg in self.methodInfo['inArgs']:
+        inArgs = self.methodInfo['inArgs']
+        nargs = len(inArgs)
+        for i, arg in enumerate( inArgs ):
             if arg in defaultInfo:
                 default = defaultInfo[arg]
             
-            # set MSpace.Space enum to object space by default
-            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space':
-                default = _api.Enum(['MSpace', 'Space', 'kObject']) 
+            # set MSpace.Space enum to object space by default, but only if it is the last arg or the next arg has a default ( i.e. kwargs must always come after args )
+            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
+                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
+                    default = _api.Enum(['MSpace', 'Space', 'kObject']) 
 
             else:
                 continue    
