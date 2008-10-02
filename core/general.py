@@ -103,6 +103,7 @@ class Version(object):
     
     >>> if Version.current > Version.v85:
     >>>     print "The current version is later than Maya 8.5"
+    The current version is later than Maya 8.5
     """
     #TODO: make these read-only
     __metaclass__ = util.Singleton
@@ -223,7 +224,7 @@ Modifications:
     """
     
     if destination:
-        return cmds.disconnectAttr( source, destination, **kwargs )
+        cmds.disconnectAttr( source, destination, **kwargs )
     else:
         # if disconnectingInputs, we're disconnecting inputs; otherwise, we're disconnecting outputs
         for disconnectingInputs in (True, False):
@@ -678,40 +679,40 @@ Modifications:
 #    return res
     return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
     
-    '''
-    showType = kwargs.get( 'showType', kwargs.get('st', False) )
-    kwargs['showType'] = True
-    kwargs.pop('st',None)    
-    res = []
-    if kwargs.get( 'readOnly', kwargs.get('ro', False) ):
-        
-        ro = cmds.ls(*args, **kwargs) # showType flag will be ignored
-        
-        # this was unbelievably slow
-        
-        kwargs.pop('readOnly',None)
-        kwargs.pop('ro',None)
-        all = cmds.ls(*args, **kwargs)
-        for pymel.core.node in ro:
-            try:    
-                idx = all.index(pymel.core.node)
-                all.pop(idx)
-                typ = all.pop(idx+1)
-                res.append( PyNode( pymel.core.node, typ ) ) 
-                if showType:
-                    res.append( typ )
-            except ValueError: pass
-        return res
-    else:
-        tmp = util.listForNone(cmds.ls(*args, **kwargs))
-        for i in range(0,len(tmp),2):
-            typ = tmp[i+1]
-            res.append( PyNode( tmp[i],  ) )    
-            if showType:
-                res.append( typ )
-        
-        return res
-    '''
+ 
+#    showType = kwargs.get( 'showType', kwargs.get('st', False) )
+#    kwargs['showType'] = True
+#    kwargs.pop('st',None)    
+#    res = []
+#    if kwargs.get( 'readOnly', kwargs.get('ro', False) ):
+#        
+#        ro = cmds.ls(*args, **kwargs) # showType flag will be ignored
+#        
+#        # this was unbelievably slow
+#        
+#        kwargs.pop('readOnly',None)
+#        kwargs.pop('ro',None)
+#        all = cmds.ls(*args, **kwargs)
+#        for pymel.core.node in ro:
+#            try:    
+#                idx = all.index(pymel.core.node)
+#                all.pop(idx)
+#                typ = all.pop(idx+1)
+#                res.append( PyNode( pymel.core.node, typ ) ) 
+#                if showType:
+#                    res.append( typ )
+#            except ValueError: pass
+#        return res
+#    else:
+#        tmp = util.listForNone(cmds.ls(*args, **kwargs))
+#        for i in range(0,len(tmp),2):
+#            typ = tmp[i+1]
+#            res.append( PyNode( tmp[i],  ) )    
+#            if showType:
+#                res.append( typ )
+#        
+#        return res
+
 
 def listTransforms( *args, **kwargs ):
     """
@@ -1110,6 +1111,12 @@ class PyNode(util.ProxyUnicode):
     def __new__(cls, *args, **kwargs):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed.
         
+        >>> PyNode('persp')
+        Transform('persp')
+        >>> PyNode('persp.tx')
+        Attribute('persp.translateX')
+        
+        
         For nodes:
             MObject
             MObjectHandle
@@ -1168,11 +1175,17 @@ class PyNode(util.ProxyUnicode):
                     attrNode = argObj._node
                     argObj = argObj.__apiobjects__['MPlug']
                 elif isinstance( argObj, _Component ):
-                    apidict = argObj._node.__apiobjects__
-                    argObj = apidict.get( 'MDagPath', apidict['MObjectHandle'] )
+                    try:
+                        argObj = argObj._node.__apiobjects__[ 'MDagPath']
+                    except KeyError:
+                        argObj = argObj._node.__apiobjects__['MObjectHandle'] 
+                        
                 elif isinstance( argObj, PyNode ):
-                    apidict = argObj.__apiobjects__
-                    argObj = apidict.get( 'MDagPath', apidict['MObjectHandle'] )
+                    try:
+                        argObj = argObj.__apiobjects__[ 'MDagPath']
+                    except KeyError:
+                        argObj = argObj.__apiobjects__['MObjectHandle'] 
+                        
                 elif hasattr( argObj, '__module__') and argObj.__module__.startswith( 'maya.OpenMaya' ) :
                     pass
                 #elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
@@ -1445,26 +1458,52 @@ SCENE = Scene()
 
     
 class _Component( PyNode ):
+    """
+    
+    >>> obj = polyTorus()[0]
+    >>> colors = []
+    >>> for i, vtx in enumerate(obj.vtx):
+    ...     edgs=vtx.toEdges()
+    ...     totalLen=0
+    ...     edgCnt=0
+    ...     for edg in edgs:
+    ...         edgCnt += 1
+    ...         l = edg.getLength()
+    ...         totalLen += l
+    ...     avgLen=totalLen / edgCnt
+    ...     #print avgLen
+    ...     currColor = vtx.getColor(0)
+    ...     color = MColor.black
+    ...     # only set blue if it has not been set before
+    ...     if currColor.b<=0.0:
+    ...         color.b = avgLen
+    ...     color.r = avgLen
+    ...     colors.append(color)
+    
+    """
+    
     def __init__(self, *args, **kwargs ):
         
         isApiComponent = False 
         component = None
         newargs = []
         # the _Component class can be instantiated several ways:
-        # (DagPath, Component) pair: stored on self._node and self._apiobject respectively
+        # _Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
         if self._node :
             newargs.append( self._node.__apimdagpath__() )
-            component = self.__apiobjects__['MObjectHandle']
-            if api.isValidMObjectHandle( component ): 
-                newargs.append( component.object() )  
-                isApiComponent = True
+            try:
+                component = self.__apiobjects__['MObjectHandle']
+                if api.isValidMObjectHandle( component ): 
+                    newargs.append( component.object() )  
+                    isApiComponent = True
+            except KeyError:
+                component = self.__apiobjects__['ComponentIndex']
             
-        # DagPath: stored on self._apiobject (self._node will be None)
+        # _Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
         else:
-            # TODO : fix this.  need more comments on when this case occurs
-            raise NotImplementedError
-            newargs = [self._apiobject]
-            self._node = PyNode(self._apiobject)
+            dag = self.__apiobjects__['MDagPath']
+            newargs = [dag]
+            self._node = PyNode(dag)
             
         #print "ARGS", newargs   
 
@@ -1525,7 +1564,7 @@ class _Component( PyNode ):
     
     
     def __apiobject__(self):
-        return self._apiobject.object()
+        return self.__apiobjects__['MObjectHandle'].object()
     
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this attribute, if it is valid"
@@ -1536,7 +1575,7 @@ class _Component( PyNode ):
         
     def __apimfn__(self):
         try:
-            return 
+            return self.__apiobjects__['MFn']
         except KeyError:
             if self.__apicls__:
                 obj = self.__apiobject__()
@@ -1784,11 +1823,12 @@ class Attribute(PyNode):
     Most of the time, you will access instances of the Attribute class via `DependNode` or one of its subclasses. This example demonstrates
     that the Attribute class like the `DependNode` classes are based on a unicode string, and so when printed will 
     
+        >>> from pymel import *
         >>> s = polySphere()[0]
         >>> if s.visibility.isKeyable() and not s.visibility.isLocked():
-        >>>     s.visibility = True
-        >>>     s.visibility.lock()
-        
+        ...     s.visibility = True
+        ...     s.visibility.lock()
+        ... 
         >>> print s.v.type()      # shortnames also work    
         bool
     
@@ -1826,7 +1866,11 @@ class Attribute(PyNode):
 
         >>> c = polyCube()[0]        
         >>> s.tx >> c.tx    # connect
+        >>> s.tx.outpus()
+        [Transform('pCube4')]
         >>> s.tx // c.tx    # disconnect
+        >>> s.tx.outpus()
+        []
             
     Avoiding Clashes between Attributes and Class Methods
     -----------------------------------------------------
@@ -1861,7 +1905,7 @@ class Attribute(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = self.__apiobjects__['MPlug'].object()
+            handle = self.__apiobjects__['MPlug'].attribute()
             self.__apiobjects__['MObjectHandle'] = handle
         if api.isValidMObjectHandle( handle ):
             return handle.object()
@@ -1987,7 +2031,7 @@ class Attribute(PyNode):
         """plugAttr
         
             >>> SCENE.persp.t.tx.plugAttr()
-            't.tx'
+            u't.tx'
         """
         return self.partialName(useLongNames=longName, useFullAttributePath=True, 
                                 includeNonMandatoryIndices=True, includeInstancedIndices=True)
@@ -1995,7 +2039,7 @@ class Attribute(PyNode):
     def lastPlugAttr(self, longName=False):
         """
             >>> SCENE.persp.t.tx.lastPlugAttr()
-            'tx'
+            u'tx'
         """
         return self.partialName(useLongNames=longName, useFullAttributePath=False, 
                                 includeNonMandatoryIndices=True, includeInstancedIndices=True)
@@ -2020,7 +2064,7 @@ class Attribute(PyNode):
         Returns the array (multi) attribute of the current element
             >>> n = Attribute('initialShadingGroup.groupNodes[0]')
             >>> n.array()
-            'initialShadingGroup.groupNode'
+            Attribute('initialShadingGroup.groupNodes')
         """
         try:
             return Attribute( self._node, self.__apimplug__().array() )
@@ -2078,7 +2122,8 @@ class Attribute(PyNode):
     def __rshift__(self, other):
         """
         operator for 'connectAttr'
-            >>> sphere.tx >> box.tx
+        
+            >>> SCENE.persp.tx >> SCENE.top.tx
         """ 
         return connectAttr( self, other, force=True )
                 
@@ -2087,9 +2132,12 @@ class Attribute(PyNode):
     def __floordiv__(self, other):
         """
         operator for 'disconnectAttr'
-            >>> sphere.tx // box.tx
+        
+            >>> SCENE.persp.tx >> SCENE.top.tx  # connect
+            >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
-        return cmds.disconnectAttr( self, other )
+        # no return
+        cmds.disconnectAttr( self, other )
                 
     def inputs(self, **kwargs):
         'listConnections -source 1 -destination 0'
@@ -2348,12 +2396,13 @@ class Attribute(PyNode):
         """provide a min and max value as a two-element tuple or list, or as two arguments to the
         method. To remove a limit, provide a None value.  for example:
         
+            >>> from pymel import *
             >>> s = polyCube()[0]
             >>> s.addAttr( 'new' )
             >>> s.new.setRange( -2, None ) #sets just the min to -2 and removes the max limit
             >>> s.new.setMax( 3 ) # sets just the max value and leaves the min at its previous default 
             >>> s.new.getRange()
-            [-2.0, 3.0 ]
+            [-2.0, 3.0]
             
         """
         
@@ -2481,19 +2530,7 @@ class Attribute(PyNode):
     def getParent(self):
         return Attribute( self.node(), self.__apimfn__().parent() )
 #}      
-'''
-class NodeAttrRelay(unicode):
-    
-    def __getattr__(self, attr):
-        if attr.startswith('_'):
-            return getAttr( '%s.%s' % (self, attr[1:]) )        
-        return getAttr( '%s.%s' % (self, attr) )
-    
-    def __setattr__(self, attr, val):
-        if attr.startswith('_'):
-            return setAttr( '%s.%s' % (self, attr[1:]), val )            
-        return setAttr( '%s.%s' % (self, attr), val )    
-'''
+
 
 class DependNode( PyNode ):
     __apicls__ = api.MFnDependencyNode
@@ -2589,27 +2626,29 @@ class DependNode( PyNode ):
     
     def __getattr__(self, attr):
         try :
-            return super(PyNode, self).__getattr__(attr)
+            #print "DependNode.__getattr__(%r)" % attr
+            #return super(PyNode, self).__getattr__(attr) 
+            return getattr(super(PyNode, self), attr)
         except AttributeError :
             try:
+                #print "DependNode.attr(%r)" % attr
                 return DependNode.attr(self,attr)
             except MayaAttributeError, msg:
                 # since we're being called via __getattr__ we don't know whether the user was trying 
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
                 raise AttributeError, str(msg)
             
-        #if attr.startswith('__') and attr.endswith('__'):
-        #    return super(PyNode, self).__getattr__(attr)
-            
-        #return Attribute( '%s.%s' % (self, attr) )
-        
-        #raise AttributeError, 'attribute does not exist %s' % attr
 
-#    def __setattr__(self, attr, val):
-#        try :
-#            return super(PyNode, self).__setattr__(attr, val)
-#        except AttributeError :
-#            return setAttr( '%s.%s' % (self, attr), val ) 
+    def __setattr__(self, attr, val):
+        #print "DependNode.__setattr__", attr, val
+
+        # TODO: check all nodes in hierarchy
+        if hasattr(PyNode, attr):
+            super(PyNode, self).__setattr__( attr, val )
+        else:
+            DependNode.attr(self,attr).set(val)
+
+
 
     def node(self):
         """for compatibility with Attribute class"""
@@ -2820,8 +2859,10 @@ class DependNode( PyNode ):
 
     @add_docs('addAttr')  
     def addAttr( self, attr, **kwargs):
-        # for now, using strings is better, because there is no MPlug support      
-        return addAttr( "%s.%s" % (self, attr), **kwargs )
+        # for now, using strings is better, because there is no MPlug support  
+        assert 'longName' not in kwargs and 'ln' not in kwargs
+        kwargs['longName'] = attr
+        return addAttr( unicode(self), **kwargs )
     
     @add_docs('connectAttr')  
     def connectAttr( self, attr, destination, **kwargs ):
@@ -3185,12 +3226,14 @@ class DagNode(Entity):
         operator for `addChild`. Use to easily daisy-chain together parenting operations.
         The operation order visually mimics the resulting dag path:
         
+            >>> from pymel import *
             >>> s = polySphere()[0]
             >>> c = polyCube()[0]
             >>> t = polyTorus()[0]
             >>> s | c | t
+            Transform('pTorus1')
             >>> print t.fullPath()
-            |pSphere1|pCube1|pTorus1
+            |pSphere1|pCube3|pTorus1
         """
         return self.addChild(child,**kwargs)
 
@@ -3288,6 +3331,7 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
+    #TODO: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track
     dolly = _factories.functionFactory( cmds.dolly  )
     roll = _factories.functionFactory( cmds.roll  )
     orbit = _factories.functionFactory( cmds.orbit  )
@@ -3326,6 +3370,7 @@ class Transform(DagNode):
             4. Attributes on this node class's shape
         """
         try :
+            #print "Transform.__getattr__(%r)" % attr
             # Functions through normal inheritance
             return DependNode.__getattr__(self,attr)
         except AttributeError, e:
@@ -3333,10 +3378,33 @@ class Transform(DagNode):
             shape = self.getShape()
             if shape:
                 try:
+                    #print "Transform: trying shape: getattr(%s,%s)" % (shape,attr)
                     return getattr(shape,attr)
                 except AttributeError: pass
             raise e
-                     
+        
+    def __setattr__(self, attr, val):
+        """
+        Checks in the following order:
+            1. Functions on this node class
+            2. Attributes on this node class
+            3. Functions on this node class's shape
+            4. Attributes on this node class's shape
+        """
+        try :
+            #print "Transform.__setattr__", attr, val
+            # Functions through normal inheritance
+            return DependNode.__setattr__(self,attr,val)
+        except AttributeError, e:
+            # Functions via shape inheritance , and then, implicitly, Attributes
+            #print "Trying shape"
+            shape = self.getShape()
+            if shape:
+                try:
+                    return setattr(shape,attr, val)
+                except AttributeError: pass
+            raise e
+                         
     def attr(self, attr, checkShape=True):
         """
         when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
@@ -3644,6 +3712,19 @@ class Mesh(SurfaceShape):
 #    def __init__(self, *args, **kwargs ):      
 #        SurfaceShape.__init__(self, self._apiobject )
 #        self.vtx = MeshEdge(self.__apimobject__() )
+    def __getattr__(self, attr):
+        #print "Mesh.__getattr__", attr
+        try:
+            {   'vtx'   : MeshVertex,
+                'verts' : MeshVertex,
+                'e'     : MeshEdge,
+                'edges' : MeshEdge,
+                'f'     : MeshEdge,
+                'faces' : MeshEdge
+            }[attr](self)
+        except KeyError:
+            #print "getting super", attr
+            return DependNode.__getattr__(self,attr)
         
     class FaceArray(ComponentArray):
         def __init__(self, name):
