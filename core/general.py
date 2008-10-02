@@ -2803,9 +2803,44 @@ class DependNode( PyNode ):
 #--------------------------
 #{    Attributes
 #-------------------------- 
+    @classmethod
+    def attrInfo(obj,attr):
+        """
+        Access to an attribute of a node.  This does not require an instance:
+            
+            >>> Transform.attrInfo('tx').isKeyable()
+            True
+            
+        but it can use one if needed ( for example, for dynamicallly created attributes )
+            
+            >>> Transform('persp').attrInfo('tx').isKeyable()
+            
+            
+        """
+        if inspect.isclass(obj):
+            cls = obj # keep things familiar
+            try:
+                mfn = cls.__apiobjects__['MFn']
+            except KeyError:          
+                cls.__apiobjects__['dagMod'] = api.MDagModifier()
+                cls.__apiobjects__['dgMod'] = api.MDGModifier()
+                # TODO: make something more reliable than uncapitalize
+                obj = api.conversions._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
+                                                                cls.__apiobjects__['dagMod'], 
+                                                                cls.__apiobjects__['dgMod'] )
+                mfn = cls.__apicls__(obj)
+                cls.__apiobjects__['MFn'] = mfn
+            
+        else:
+            self = obj # keep things familiar
+            mfn = self.__apimfn__()
+        
+        # TODO: create a wrapped class for MFnAttribute
+        return api.MFnAttribute( mfn.attribute(attr) )
+        
     def attr(self, attr):
-        """access to attribute of a node. returns an instance of the Attribute class for the 
-        given attribute."""
+        """access to attribute plug of a node. returns an instance of the Attribute class for the 
+        given attribute name."""
         #return Attribute( '%s.%s' % (self, attr) )
         try :
             if '.' in attr or '[' in attr:
