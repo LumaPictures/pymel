@@ -161,7 +161,7 @@ class CommandDocParser(HTMLParser):
              'index'   : int,
              'integer'  : int,
              'boolean'  : bool,
-             'script'   : callable,
+             'script'   : 'script',
              'name'     : 'PyNode',
              'select'   : 'PyNode'
             }
@@ -1303,10 +1303,12 @@ def _addFlagCmdDocs(func,cmdName,flag,docstring=''):
 
 
 
+
 def _getUICallbackFlags(flagDocs):
+    """used parsed data and naming convention to determine which flags are callbacks"""
     commandFlags = []
     for flag, data in flagDocs.items():
-        if 'command' in flag.lower():
+        if data['args'] in ['script', callable] or 'command' in flag.lower():
             commandFlags += [flag, data['shortname']]
     return commandFlags
 
@@ -1319,6 +1321,67 @@ def getUICommandsWithCallbacks():
             cmds.append( [funcName, cbFlags] )
     return cmds
 
+def fixCallbacks(inFunc, funcName=None ):
+    if funcName is None:
+        funcName = inFunc.__name__
+    
+    cmdInfo = cmdlist[funcName]
+        
+    commandFlags = _getUICallbackFlags(cmdInfo['flags'])
+    
+    if not commandFlags:
+        #commandFlags = []
+        return inFunc
+    
+    # wrap ui callback commands to ensure that the correct types are returned.
+    # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
+    if funcName.startswith('float'):
+        callbackReturnFunc = float
+    elif funcName.startswith('int'):
+        callbackReturnFunc = int
+    elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
+        callbackReturnFunc = lambda x: x == 'true'
+    else:
+        callbackReturnFunc = None
+        
+    #print funcName, inFunc.__name__, commandFlags
+
+    # need to define a seperate var here to hold
+    # the old value of newFunc, b/c 'return newFunc'
+    # would be recursive
+    beforeUiFunc = inFunc
+    
+
+    def newUiFunc( *args, **kwargs):
+        if len(args):
+            doPassSelf = kwargs.pop('passSelf', False)
+        else:
+            doPassSelf = False
+                  
+        for key in commandFlags:
+            try:
+                cb = kwargs[ key ]
+                if callable(cb):
+                    #print "fixing callback", key
+                    def callback(*cb_args):
+                        #print "callback args", args
+                        newargs = []
+                        for arg in cb_args:
+                            if callbackReturnFunc:
+                                arg = callbackReturnFunc(arg)
+                            newargs.append(arg)
+                        
+                        if doPassSelf:
+                            newargs = [ args[0] ] + newargs
+                        newargs = tuple(newargs)
+                        #print "callback newargs", newargs
+                        return cb( *newargs )
+                    kwargs[ key ] = callback
+            except KeyError: pass
+            
+        return beforeUiFunc(*args, **kwargs)  
+        
+    return  newUiFunc
 
 def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None, uiWidget=False ):
     """create a new function, apply the given returnFunc to the results (if any), 
@@ -1394,52 +1457,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         
     # 2. Perform operations which modify the execution of the function (ie, adding return funcs)
 
-    #----------------------------        
-    # UI commands with callbacks
-    #----------------------------
-    
-    if uiWidget: #funcName in moduleCmds['windows']:
-        # wrap ui callback commands to ensure that the correct types are returned.
-        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
-        if funcName.startswith('float'):
-            callbackReturnFunc = float
-        elif funcName.startswith('int'):
-            callbackReturnFunc = int
-        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-            callbackReturnFunc = lambda x: x == 'true'
-        else:
-            callbackReturnFunc = None
-        
-        if callbackReturnFunc:                
-            commandFlags = _getUICallbackFlags(cmdInfo['flags'])
-        else:
-            commandFlags = []
-                
-        #print funcName, inFunc.__name__, commandFlags
-
-        # need to define a seperate var here to hold
-        # the old value of newFunc, b/c 'return newFunc'
-        # would be recursive
-        beforeUiFunc = newFunc
-        def newUiFunc( *args, **kwargs):
-            for key in commandFlags:
-                try:
-                    cb = kwargs[ key ]
-                    if hasattr(cb, '__call__'):
-                        def callback(*args):
-                            newargs = []
-                            for arg in args:
-                                arg = callbackReturnFunc(arg)
-                                newargs.append(arg)
-                            newargs = tuple(newargs)
-                            return cb( *newargs )
-                        kwargs[ key ] = callback
-                except KeyError: pass
-            
-            return beforeUiFunc(*args, **kwargs)
-        
-        newFunc = newUiFunc
-        
     if returnFunc:
         # need to define a seperate var here to hold
         # the old value of newFunc, b/c 'return newFunc'
@@ -1464,6 +1481,59 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                     except: pass
             return res
         newFunc = newFuncWithReturnFunc
+        
+    #----------------------------        
+    # UI commands with callbacks
+    #----------------------------
+    
+    if uiWidget: #funcName in moduleCmds['windows']:
+ 
+#        # wrap ui callback commands to ensure that the correct types are returned.
+#        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
+#        if funcName.startswith('float'):
+#            callbackReturnFunc = float
+#        elif funcName.startswith('int'):
+#            callbackReturnFunc = int
+#        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
+#            callbackReturnFunc = lambda x: x == 'true'
+#        else:
+#            callbackReturnFunc = None
+#        
+#        if callbackReturnFunc or passSelf:                
+#            commandFlags = _getUICallbackFlags(cmdInfo['flags'])
+#        else:
+#            commandFlags = []
+#        
+#
+#         
+#        #print funcName, inFunc.__name__, commandFlags
+#
+#        # need to define a seperate var here to hold
+#        # the old value of newFunc, b/c 'return newFunc'
+#        # would be recursive
+#        beforeUiFunc = newFunc
+#        
+#        def newUiFunc( *args, **kwargs):
+#            for key in commandFlags:
+#                try:
+#                    cb = kwargs[ key ]
+#                    if callable(cb):
+#                        def callback(*args):
+#                            newargs = []
+#                            for arg in args:
+#                                arg = callbackReturnFunc(arg)
+#                                newargs.append(arg)
+#                            newargs = tuple(newargs)
+#                            return cb( *newargs )
+#                        kwargs[ key ] = callback
+#                except KeyError: pass
+#            
+#            return beforeUiFunc(*args, **kwargs)
+#        
+#        newFunc = newUiFunc
+        
+        newFunc = fixCallbacks( newFunc, funcName )
+
         
     # 3. Modify the function descriptors - ie, __doc__, __name__, etc
     
@@ -1501,7 +1571,7 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
         cmdName = inFunc.__name__
 
     if returnFunc:
-        def newfunc(*args, **kwargs): 
+        def wrappedMelFunc(*args, **kwargs): 
             if len(args)<=1:
                 kwargs[flag]=True
             elif len(args)==2:
@@ -1512,7 +1582,7 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
                 args = (args[0],)  
             return returnFunc(inFunc( *args, **kwargs ))
     else:
-        def newfunc(*args, **kwargs): 
+        def wrappedMelFunc(*args, **kwargs): 
             if len(args)<=1:
                 kwargs[flag]=True
             elif len(args)==2:
@@ -1524,18 +1594,18 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
             return inFunc( *args, **kwargs )
         
     if newMethodName:
-        newfunc.__name__ = newMethodName
+        wrappedMelFunc.__name__ = newMethodName
     else:
-        newfunc.__name__ = flag
+        wrappedMelFunc.__name__ = flag
                   
-    return _addFlagCmdDocs(newfunc, cmdName, flag, docstring )
+    return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring )
 
 def createflag( cmdName, flag ):
     """create flag decorator"""
     def create_decorator(method):
-        newfunc = makeCreateFlagMethod( method, flag, method.__name__, cmdName=cmdName )
-        newfunc.__module__ = method.__module__
-        return newfunc
+        wrappedMelFunc = makeCreateFlagMethod( method, flag, method.__name__, cmdName=cmdName )
+        wrappedMelFunc.__module__ = method.__module__
+        return wrappedMelFunc
     return create_decorator
 '''
 def secondaryflag( cmdName, flag ):
@@ -1551,29 +1621,29 @@ def makeQueryFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName
         cmdName = inFunc.__name__
 
     if returnFunc:
-        def newfunc(self, **kwargs):
+        def wrappedMelFunc(self, **kwargs):
             kwargs['query']=True
             kwargs[flag]=True
             return returnFunc( inFunc( self, **kwargs ) )
     else:
-        def newfunc(self, **kwargs):
+        def wrappedMelFunc(self, **kwargs):
             kwargs['query']=True
             kwargs[flag]=True 
             return inFunc( self, **kwargs )
     
     if newMethodName:
-        newfunc.__name__ = newMethodName
+        wrappedMelFunc.__name__ = newMethodName
     else:
-        newfunc.__name__ = flag
+        wrappedMelFunc.__name__ = flag
         
-    return _addFlagCmdDocs(newfunc, cmdName, flag, docstring )
+    return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring )
 
 def queryflag( cmdName, flag ):
     """query flag decorator"""
     def query_decorator(method):
-        newfunc = makeQueryFlagMethod( method, flag, method.__name__, cmdName=cmdName )
-        newfunc.__module__ = method.__module__
-        return newfunc
+        wrappedMelFunc = makeQueryFlagMethod( method, flag, method.__name__, cmdName=cmdName )
+        wrappedMelFunc.__module__ = method.__module__
+        return wrappedMelFunc
     return query_decorator
 
    
@@ -1582,7 +1652,7 @@ def makeEditFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=
     if cmdName is None:
         cmdName = inFunc.__name__
 
-    def newfunc(self, val, **kwargs): 
+    def wrappedMelFunc(self, val, **kwargs): 
         kwargs['edit']=True
         kwargs[flag]=val 
         try:
@@ -1592,18 +1662,47 @@ def makeEditFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=
             return inFunc( self, **kwargs )
         
     if newMethodName:
-        newfunc.__name__ = newMethodName
+        wrappedMelFunc.__name__ = newMethodName
     else:
-        newfunc.__name__ = flag
+        wrappedMelFunc.__name__ = flag
              
-    return _addFlagCmdDocs(newfunc, cmdName, flag, docstring )
+    return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring )
 
+
+#def makeCallbackFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdName=None):
+#
+#    if cmdName is None:
+#        cmdName = inFunc.__name__
+#
+#    inFunc = fixCallback( inFunc, cmdName, passSelf=True )
+#    
+#    def wrappedMelFunc(self, callback, passSelf=False): 
+#        kwargs = {'edit' : True }
+#        
+#        if passSelf and callable(callback):
+#            def newCallback(*args):
+#                return callback( self, *args )
+#        else:
+#            newCallback = callback
+#                        
+#        kwargs[flag]=newCallback        
+#        return inFunc( self, **kwargs )
+#
+#        
+#    if newMethodName:
+#        wrappedMelFunc.__name__ = newMethodName
+#    else:
+#        wrappedMelFunc.__name__ = flag
+#        
+#    return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring )
+            
+            
 def editflag( cmdName, flag ):
     """query flag decorator"""
     def edit_decorator(method):
-        newfunc = makeEditFlagMethod(  method, flag, method.__name__, cmdName=cmdName )
-        newfunc.__module__ = method.__module__
-        return newfunc
+        wrappedMelFunc = makeEditFlagMethod(  method, flag, method.__name__, cmdName=cmdName )
+        wrappedMelFunc.__module__ = method.__module__
+        return wrappedMelFunc
     return edit_decorator
 
 
@@ -1613,20 +1712,20 @@ def add_docs( cmdName, flag=None ):
     if flag:
         # A method generated from a flag
         def doc_decorator(method):
-            newfunc = _addFlagCmdDocs(method, cmdName, flag )
-            newfunc.__module__ = method.__module__
-            return newfunc
+            wrappedMelFunc = _addFlagCmdDocs(method, cmdName, flag )
+            wrappedMelFunc.__module__ = method.__module__
+            return wrappedMelFunc
     else:
         # A command  
         def doc_decorator(func):
             try:
                 cmdInfo = cmdlist[cmdName]
-                newfunc = _addCmdDocs(func, cmdInfo )
-                newfunc.__module__ = func.__module__
+                wrappedMelFunc = _addCmdDocs(func, cmdInfo )
+                wrappedMelFunc.__module__ = func.__module__
             except KeyError:
                 print "No documentation available %s command" % ( cmdName ) 
-                newfunc = func
-            return newfunc
+                wrappedMelFunc = func
+            return wrappedMelFunc
     
     return doc_decorator
 
@@ -2071,7 +2170,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
             argInfo = methodInfo['argInfo']
                     
             # create the function 
-            def f( self, *args ):
+            def wrappedApiFunc( self, *args ):
 
                 newargs = []
                 outTypeList = []
@@ -2125,9 +2224,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                 return result
             
             if newName:
-                f.__name__ = newName
+                wrappedApiFunc.__name__ = newName
             else:
-                f.__name__ = methodName
+                wrappedApiFunc.__name__ = methodName
             
             def formatDocstring(type):
                 # convert
@@ -2170,7 +2269,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
             
             docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
             
-            f.__doc__ = docstring
+            wrappedApiFunc.__doc__ = docstring
             
 
                 
@@ -2178,12 +2277,12 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                 
             #print inArgs, defaults
             if defaults and VERBOSE: print "defaults", defaults
-            f = interface_wrapper( f, ['self'] + inArgs, defaults )
+            wrappedApiFunc = interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
             
             if argHelper.isStatic():
-                f = classmethod(f)
+                wrappedApiFunc = classmethod(wrappedApiFunc)
                 
-            return f
+            return wrappedApiFunc
 
 
 class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
@@ -2397,7 +2496,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                 cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
                 func = getattr(cmdModule, melCmdName)
             except (AttributeError, TypeError):
-                func = getattr(cmds,melCmdName)
+                func = getattr(pmcmds,melCmdName)
 
             if VERBOSE: print "Generating methods for %s" % melCmdName
             # add documentation
@@ -2407,6 +2506,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             
             filterAttrs = ['name']+classdict.keys()
             filterAttrs += overrideMethods.get( bases[0].__name__ , [] )
+            
+            
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
@@ -2435,10 +2536,10 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             elif flagInfo.get( 'resultNeedsUnpacking', False):
                                 returnFunc = lambda x: returnFunc(x[0])
                             
-                            newfunc = makeQueryFlagMethod( func, flag, methodName, 
+                            wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
                                 docstring=flagInfo['docstring'], returnFunc=returnFunc )
-                            classdict[methodName] = newfunc
-                            #setattr( newcls, methodName, newfunc )
+                            classdict[methodName] = wrappedMelFunc
+                            #setattr( newcls, methodName, wrappedMelFunc )
                         elif VERBOSE:  print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
@@ -2451,10 +2552,14 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             
                         if methodName not in filterAttrs:
                         #if not hasattr( newcls, methodName ) :
-                            newfunc = makeEditFlagMethod( func, flag, methodName, 
-                                 docstring=flagInfo['docstring'] )
-                            classdict[methodName] = newfunc
-                            #setattr( newcls, methodName, newfunc )
+
+                            fixedFunc = fixCallbacks( func, melCmdName )
+                            
+                            wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
+                                                                 docstring=flagInfo['docstring'] )
+
+                            classdict[methodName] = wrappedMelFunc
+                            #setattr( newcls, methodName, wrappedMelFunc )
                         elif VERBOSE: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                              
         return super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
