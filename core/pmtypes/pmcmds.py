@@ -45,8 +45,13 @@ def addWrappedCmd(cmdname, cmd=None):
         cmd = getattr(maya.cmds, cmdname)
 
     def wrappedCmd(*args, **kwargs):
-        return cmd(*(util.getMelRepresentation(args)),
-                    **(util.getMelRepresentation(kwargs)))
+        res = cmd(*(util.getMelRepresentation(args)), **(util.getMelRepresentation(kwargs)))
+        
+        # edit commands should return None.  currently, some return empty strings and some return idiotic statements like 'Values Edited'.
+        if kwargs.get('edit', kwargs.get('e', False) ):
+            return None
+        return res
+    
     wrappedCmd.__doc__ = cmd.__doc__
     
     try:

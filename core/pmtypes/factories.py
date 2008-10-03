@@ -520,7 +520,7 @@ def fixCodeExamples():
                     if line.startswith('# Result: '):
                         if evaluate is False:
                             line = line[10:-2]
-                            newlines.append(line)
+                            newlines.append('    ' + line)
                     else:
                         if evaluate:
                             if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):

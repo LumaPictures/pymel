@@ -823,7 +823,10 @@ Modifications:
     return PyNode( cmds.rename( obj, newname, **kwargs ) )
     
 def createNode( *args, **kwargs):
-    return PyNode( cmds.createNode( *args, **kwargs ) )
+    res = cmds.createNode( *args, **kwargs )
+    # createNode can sometimes return None, if the shared=True and name= an object that already exists
+    if res:
+        return PyNode(res)
             
                 
 def sets( objectSet, **kwargs):
@@ -1079,18 +1082,18 @@ class MayaObjectError(ValueError):
         self.node = node
     def __str__(self):
         if self.node:
-            return 'Maya Object does not exist: %r' % self.node
-        return 'Maya Object does not exist'
+            return "Maya Object does not exist: '%s'" % self.node
+        return "Maya Object does not exist"
 class MayaNodeError(MayaObjectError):
     def __str__(self):
         if self.node:
-            return 'Maya Node does not exist: %r' % self.node
-        return 'Maya Node does not exist'
+            return "Maya Node does not exist: '%s'" % self.node
+        return "Maya Node does not exist"
 class MayaAttributeError(MayaObjectError, AttributeError):
     def __str__(self):
         if self.node:
-            return 'Maya Attribute does not exist: %r' % self.node
-        return 'Maya Attribute does not exist'
+            return "Maya Attribute does not exist: '%s'" % self.node
+        return "Maya Attribute does not exist"
 
 #--------------------------
 # Object Wrapper Classes
@@ -1206,7 +1209,10 @@ class PyNode(util.ProxyUnicode):
                     elif res:
                         argObj = res
                     else:
-                        raise MayaObjectError( argObj )
+                        if '.' in unicode(argObj):
+                            raise MayaAttributeError( argObj )
+                        else:
+                            raise MayaNodeError( argObj )
 
             #-- Components
             if isinstance( argObj, int ) or isinstance( argObj, slice ):
@@ -1987,7 +1993,7 @@ class Attribute(PyNode):
             attrObj = node.__apimfn__().attribute(attr)
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
-            raise MayaAttributeError, "Maya node %r has no attribute %r" % ( self, attr )
+            raise MayaAttributeError( '%s.%s' % (self, attr) )
         return Attribute( node, self.__apimplug__().child( attrObj ) )
     
     
@@ -1995,7 +2001,7 @@ class Attribute(PyNode):
         try:
             return self.attr(attr)
         except MayaAttributeError, e:
-            raise AttributeError, str(e)
+            raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
@@ -2819,10 +2825,10 @@ class DependNode( PyNode ):
             try:
                 #print "DependNode.attr(%r)" % attr
                 return DependNode.attr(self,attr)
-            except MayaAttributeError, msg:
+            except MayaAttributeError, e:
                 # since we're being called via __getattr__ we don't know whether the user was trying 
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
-                raise AttributeError, str(msg)
+                raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
             
 
     def __setattr__(self, attr, val):
@@ -2904,7 +2910,7 @@ class DependNode( PyNode ):
             
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
-            raise MayaAttributeError, "Maya node %r has no attribute %r" % ( self, attr )
+            raise MayaAttributeError( '%s.%s' % (self, attr) )
                
     def hasAttr( self, attr):
         try : 
@@ -3479,14 +3485,14 @@ class Transform(DagNode):
         #print "ATTR: Transform"
         try :
             return DependNode.attr(self,attr)
-        except MayaAttributeError, msg:
+        except MayaAttributeError, e:
             if checkShape:
                 #print "\tCHECKING SHAPE"
                 try: 
                     return self.getShape().attr(attr)
                 except AttributeError:
-                    raise MayaAttributeError, str(msg)
-            raise MayaAttributeError, str(msg)
+                    raise e
+            raise e
         
 #    def __getattr__(self, attr):
 #        if attr.startswith('__') and attr.endswith('__'):

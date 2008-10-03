@@ -278,8 +278,8 @@ Once you have an instance of a pymel class (usually handled automatically), you 
 maya node it represents in an object-oriented way.
 
 make the light red and get shadow samples, the old, procedural way
-	>>> directionalLight( l, edit=1, rgb=[1,0,0] ) 
-	>>> print directionalLight( l, query=1, shadowSamples=1 ) 
+	>>> spotLight( l, edit=1, rgb=[1,0,0] ) 
+	>>> print spotLight( l, query=1, shadowSamples=1 ) 
 	1
 	
 now, the object-oriented, pymel way
@@ -373,8 +373,8 @@ The solution is simple: convert the PyNodes to strings.  The following example u
 convert the list of PyNodes to a list of strings:
 
 	>>> objs = ls( type='camera')
-	>>> print ', '.join( [ str(x) for x in objs ] )
-	cameraShape1, frontShape, perspShape, sideShape, topShape
+	>>> ', '.join( [ str(x) for x in objs ] )
+	'cameraShape1, frontShape, perspShape, sideShape, topShape'
 
 	
 Mutability and You
@@ -466,14 +466,14 @@ Explicit notation:
 	>>> x.attr('myAttr')
 	Traceback (most recent call last):
 		...
-	MayaAttributeError: Maya node Transform('pSphere2') has no attribute 'myAttr'
+	MayaAttributeError: Maya Attribute does not exist: 'pSphere2.myAttr'
 	
 Shorthand notation:
 	>>> x = polySphere()[0]
 	>>> x.myAttr
 	Traceback (most recent call last):
 		...
-	AttributeError: Maya node Transform('pSphere3') has no attribute 'myAttr'
+	AttributeError: Transform('pSphere3') has no attribute or method named 'myAttr'
 	
 
 Conventions for Testing Node Existence
@@ -543,7 +543,7 @@ New construct:
 
 New construct:
 	>>> try:
-	...     PyNode( 'fooBar.spangle' ):
+	...     PyNode( 'fooBar.spangle' )
 	...     print "Attribute Exists"
 	... except MayaAttributeError:
 	...     print "Attribute Doesn't Exist"
@@ -627,7 +627,7 @@ if you are not careful:
 	>>> sphere()
 	Traceback (most recent call last):
 		...
-	TypeError: 'str' object is not callable 
+	TypeError: 'str' object is not callable
 	
 All the functions in maya.cmds are in the pymel namespace, except the conflicting ones ( file, filter, eval,
 help, and quit). The conflicting commands can be found in the pymel.cmds namespace, along with all of the unaltered
