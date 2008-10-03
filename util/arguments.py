@@ -12,6 +12,7 @@ from utilitytypes import ProxyUnicode
 # doing a hasattr(obj, '__iter__') test will fail for objects that implement __getitem__, but not __iter__, so try iter(obj)
 def isIterable( obj ):
     if isinstance(obj,basestring): return False
+    elif isinstance(obj,ProxyUnicode): return False
     try:
         iter(obj)
     except TypeError: return False
