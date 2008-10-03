@@ -1808,15 +1808,46 @@ class Component(object):
     def rotate( self, *args, **kwargs ):
         return rotate( self, *args, **kwargs )
 
-                
+class AttributeDefaults(PyNode):
+    __metaclass__ = MetaMayaTypeWrapper
+    __apicls__ = api.MFnAttribute
+    
+    def __apiobject__(self) :
+        "Return the default API object for this attribute, if it is valid"
+        return self.__apimobject__()
+    
+    def __apimobject__(self):
+        "Return the MObject for this attribute, if it is valid"
+        try:
+            handle = self.__apiobjects__['MObjectHandle']
+        except:
+            handle = self.__apiobjects__['MPlug'].attribute()
+            self.__apiobjects__['MObjectHandle'] = handle
+        if api.isValidMObjectHandle( handle ):
+            return handle.object()
+
+        raise MayaAttributeError
+    
+    def __apimplug__(self) :
+        "Return the MPlug for this attribute, if it is valid"
+        # check validity
+        #self.__apimobject__()
+        return self.__apiobjects__['MPlug']
+
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this attribute, if it is valid"
+        try:
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+                 
 class Attribute(PyNode):
     """
     Attributes
     ==========
     
     The Attribute class is your one-stop shop for all attribute related functions. Modifying attributes follows a fairly
-    simple pattern:  `setAttr` becomes L{set<Attribute.set>}, `getAttr` becomes L{get<Attribute.get>}, `connectAttr`
-    becomes L{connect<Attribute.connect>} and so on.  
+    simple pattern:  `setAttr` becomes L{set<Attribute.set>}, `getAttr` becomes `get`, `connectAttr`
+    becomes `connect` and so on.  
     
     Accessing Attributes
     --------------------
@@ -1838,7 +1869,7 @@ class Attribute(PyNode):
 
     Getting Attribute Values
     ------------------------
-    To get an attribute, you use the L{'get'<Attribute.get>} method. Keep in mind that, where applicable, the values returned will 
+    To get an attribute, you use the `get` method. Keep in mind that, where applicable, the values returned will 
     be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
     
         >>> rot = s.rotate.get()
@@ -1849,7 +1880,7 @@ class Attribute(PyNode):
 
     Setting Attributes Values
     -------------------------
-    there are several ways to set attributes in pymel.core.  maybe there's too many....
+    there are several ways to set attributes in pymel:
     
         >>> s.rotate.set([4,5,6])   # you can pass triples as a list
         >>> s.rotate.set(4,5,6)     # or not    
@@ -1862,7 +1893,7 @@ class Attribute(PyNode):
                 
         >>> s.rotateX.connect( s.rotateY )
     
-    there are also handy operators for L{connect<Attribute.__rshift__>} and L{disconnect<Attribute.__floordiv__>}
+    there are also handy operators for `Attribute.__rshift__` and `Attribute.__floordiv__`
 
         >>> c = polyCube()[0]        
         >>> s.tx >> c.tx    # connect
@@ -2623,30 +2654,6 @@ class DependNode( PyNode ):
 
     def __unicode__(self):
         return u"%s" % self.name()
-    
-    def __getattr__(self, attr):
-        try :
-            #print "DependNode.__getattr__(%r)" % attr
-            #return super(PyNode, self).__getattr__(attr) 
-            return getattr(super(PyNode, self), attr)
-        except AttributeError :
-            try:
-                #print "DependNode.attr(%r)" % attr
-                return DependNode.attr(self,attr)
-            except MayaAttributeError, msg:
-                # since we're being called via __getattr__ we don't know whether the user was trying 
-                # to get a class method or a maya attribute, so we raise a more generic AttributeError
-                raise AttributeError, str(msg)
-            
-
-    def __setattr__(self, attr, val):
-        #print "DependNode.__setattr__", attr, val
-
-        # TODO: check all nodes in hierarchy
-        if hasattr(PyNode, attr):
-            super(PyNode, self).__setattr__( attr, val )
-        else:
-            DependNode.attr(self,attr).set(val)
 
 
 
@@ -2802,18 +2809,42 @@ class DependNode( PyNode ):
 #}     
 #--------------------------
 #{    Attributes
-#-------------------------- 
-    @classmethod
-    def attrInfo(obj,attr):
+#--------------------------
+    def __getattr__(self, attr):
+        try :
+            #print "DependNode.__getattr__(%r)" % attr
+            #return super(PyNode, self).__getattr__(attr) 
+            return getattr(super(PyNode, self), attr)
+        except AttributeError :
+            try:
+                #print "DependNode.attr(%r)" % attr
+                return DependNode.attr(self,attr)
+            except MayaAttributeError, msg:
+                # since we're being called via __getattr__ we don't know whether the user was trying 
+                # to get a class method or a maya attribute, so we raise a more generic AttributeError
+                raise AttributeError, str(msg)
+            
+
+    def __setattr__(self, attr, val):
+        #print "DependNode.__setattr__", attr, val
+
+        # TODO: check all nodes in hierarchy
+        if hasattr(PyNode, attr):
+            super(PyNode, self).__setattr__( attr, val )
+        else:
+            DependNode.attr(self,attr).set(val)
+             
+    @util.universalmethod
+    def attrDefaults(obj,attr):
         """
         Access to an attribute of a node.  This does not require an instance:
             
-            >>> Transform.attrInfo('tx').isKeyable()
+            >>> Transform.attrDefaults('tx').isKeyable()
             True
             
         but it can use one if needed ( for example, for dynamicallly created attributes )
             
-            >>> Transform('persp').attrInfo('tx').isKeyable()
+            >>> Transform('persp').attrDefaults('tx').isKeyable()
             
             
         """
