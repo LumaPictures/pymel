@@ -409,6 +409,42 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=[ 'translate']) 
 
+class universalmethod(object):
+    """
+    a decorator which is similar to builtin classmethod, but which leaves the method unmodified when called
+    as a normal instance method:
+        - when the wrapped method is called as a class method, the first argument will be the class.
+        - when the wrapped method is called as an instance method, the first argument will be the instance.
+        
+        >>> import inspect
+        >>> class D(object):
+        ...    @universalmethod
+        ...    def f( obj ):
+        ...        if inspect.isclass(obj):
+        ...            print "doing something class related"
+        ...        else:
+        ...            print "doing something instance related"
+        ...
+        >>> D.f()
+        doing something class related
+        >>> d = D()
+        >>> d.f()
+        doing something instance related
+        
+    """
+
+    def __init__(self, f):
+        self.f = f
+
+    def __get__(self, instance, cls=None):
+        if cls is None:
+            cls = type(instance)
+        if instance is None:
+            instance = cls
+        def newfunc(*args):
+            return self.f(instance, *args)
+        return newfunc
+      
 # unit test with doctest
 if __name__ == '__main__' :
     import doctest
