@@ -434,9 +434,9 @@ def parseMayaenv(envLocation=None, version=None) :
 
 
 
+'^([._])|(AE[a-zA-Z]).*'
 
-
-def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex='^([._])|(AE[a-zA-Z]).*'):
+def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex='^([.])'):
     """
     Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
     environment variable

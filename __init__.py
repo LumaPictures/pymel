@@ -865,6 +865,8 @@ factories.installCallbacks(_module)
 # some submodules do 'import pymel.core.pymel.mayahook.pmcmds as cmds' -
 # this ensures that when the user does 'from pymel import *',
 # cmds is always maya.cmds
+
+# temporarily disabling this because it makes reloading and debugging difficult
 import maya.cmds as cmds
 
 def _test():

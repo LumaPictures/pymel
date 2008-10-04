@@ -478,9 +478,14 @@ def getCmdInfo( command, version='8.5', python=True ):
         #raise IOError, "cannot find maya documentation directory"
 
 def fixCodeExamples():
-    saveout = sys.stdout
-    f = open( '/var/tmp/log', 'w')
-    sys.stdout = f
+    """cycle through all examples from the maya docs, replacing maya.cmds with pymel and inserting pymel output.
+    
+    NOTE: this can only be run from gui mode
+    WARNING: back up your preferences before running 
+    
+    TODO: auto backup and restore of maya prefs 
+    """
+    
     openWindows = cmds.lsUI(windows=True)
     for command in sorted(cmdlist.keys()):
         info = cmdlist[command]
@@ -490,18 +495,26 @@ def fixCodeExamples():
             pass
         else:
             if 'import pymel' in example:
-                f.close()
-                sys.stdout = saveout
                 print "examples have already been fixed. to re-fix, first delete and recreate the commands cache"
                 return
             
             print
             print "Starting command", command
+            
+            # change from cmds to pymel
             reg = re.compile(r'\bcmds\.')
             example = reg.sub( 'pm.', example )
-            example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
-            #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.cmds.file(new=1,f=1) #fresh scene' )
+            #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
+            
             lines = example.split('\n')
+            if len(lines)==1:
+                print "removing empty example for command", command
+                info['example'] = None
+                continue
+            
+            
+            lines[0] = 'import pymel as pm     #doctest: SKIP'
+            lines.insert(1, 'pm.newFile(f=1) #fresh scene')
             newlines = []
             statement = []
             
@@ -513,7 +526,7 @@ def fixCodeExamples():
                 evaluate = True
             
             
-            try: # some funky things can happen when executing maya code. the exception somehow occurs outside the eval/exec
+            try: # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
                 for i, line in enumerate(lines):
                     res = None
                     # replace with pymel results  '# Result: 1 #'
@@ -569,8 +582,7 @@ def fixCodeExamples():
 #            for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
 #                try: cmds.deleteUI(ui, window=True)
 #                except:pass
-    f.close()
-    sys.stdout = saveout
+
     print "Done Fixing Examples. Writing out fixed commands cache..."
     short_version = mayahook.getMayaVersion(extension=False)
     newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+short_version+'.bin' )
@@ -1271,7 +1283,7 @@ def _addCmdDocs( func, cmdInfo=None ):
                 except: pass
             docstring += '        - datatype: *%s*\n' % ( typ )
         
-    if cmdInfo['example']:
+    if cmdInfo.get('example',None):
         docstring += '\nExample:\n' + cmdInfo['example']
     
 
@@ -1304,7 +1316,7 @@ def _addFlagCmdDocs(func,cmdName,flag,docstring=''):
 
 
 
-def _getUICallbackFlags(flagDocs):
+def _getCallbackFlags(flagDocs):
     """used parsed data and naming convention to determine which flags are callbacks"""
     commandFlags = []
     for flag, data in flagDocs.items():
@@ -1313,21 +1325,24 @@ def _getUICallbackFlags(flagDocs):
     return commandFlags
 
 def getUICommandsWithCallbacks():
-    # TODO : look for 'script' arg type in mel help
     cmds = []
     for funcName in moduleCmds['windows']:
-        cbFlags = _getUICallbackFlags(cmdlist[funcName]['flags'])
+        cbFlags = _getCallbackFlags(cmdlist[funcName]['flags'])
         if cbFlags:
             cmds.append( [funcName, cbFlags] )
     return cmds
 
 def fixCallbacks(inFunc, funcName=None ):
+    """ui callback functions are passed strings instead of python values. this fixes the problem and also adds an extra flag
+    to all commands with callbacks called 'passSelf'.  when set to True, an instance of the ui element will be passed
+    as the first argument."""
+    
     if funcName is None:
         funcName = inFunc.__name__
     
     cmdInfo = cmdlist[funcName]
         
-    commandFlags = _getUICallbackFlags(cmdInfo['flags'])
+    commandFlags = _getCallbackFlags(cmdInfo['flags'])
     
     if not commandFlags:
         #commandFlags = []
@@ -1500,7 +1515,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 #            callbackReturnFunc = None
 #        
 #        if callbackReturnFunc or passSelf:                
-#            commandFlags = _getUICallbackFlags(cmdInfo['flags'])
+#            commandFlags = _getCallbackFlags(cmdInfo['flags'])
 #        else:
 #            commandFlags = []
 #        
