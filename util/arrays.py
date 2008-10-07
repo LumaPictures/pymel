@@ -1,5 +1,5 @@
 """
-A generic n-dimensionnal Array class serving as base for arbitrary length Vector and Matrix classes
+A generic n-dimensionnal Array class serving as base for arbitrary length VectorN and MatrixN classes
 """
 
 # NOTE: modified and added some methods that are closer to how Numpy works, as some people pointed out
@@ -462,14 +462,14 @@ def sqlength(a, axis=None):
         Array([0.749849, 0.749849, 0.499849])
     """
     a = Vector._convert(a)
-    if isinstance(a, Vector) :
+    if isinstance(a, VectorN) :
         # axis not used but this catches invalid axis errors
-        # only valid axis for Vector is (0,)
+        # only valid axis for VectorN is (0,)
         if axis is not None :
             try :
                 axis = a._getaxis(axis, fill=True)
             except :
-                raise ValueError, "axis 0 is the only valid axis for a Vector, %s invalid" % (axis)
+                raise ValueError, "axis 0 is the only valid axis for a VectorN, %s invalid" % (axis)
         return a.sqlength()
     elif isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
@@ -521,14 +521,14 @@ def normal(a, axis=None):
          [0.816455474623, -0.816455474623, 0.0]]
     """
     a = Vector._convert(a)
-    if isinstance(a, Vector) :
+    if isinstance(a, VectorN) :
         # axis not used but this catches invalid axis errors
-        # only valid axis for Vector is (0,)
+        # only valid axis for VectorN is (0,)
         if axis is not None :
             try :
                 axis = a._getaxis(axis, fill=True)
             except :
-                raise ValueError, "axis 0 is the only valid axis for a Vector, %s invalid" % (axis)
+                raise ValueError, "axis 0 is the only valid axis for a VectorN, %s invalid" % (axis)
         return a.normal()
     elif isinstance(a, Array) :
         axis = a._getaxis(axis, fill=True)
@@ -561,9 +561,9 @@ def dist(a, b, axis=None):
         Array([0.0104403065089, 0.0122065556157, 0.003])
     """
     a = Vector._convert(a)
-    if isinstance(a, Vector) :
+    if isinstance(a, VectorN) :
         # axis not used but this catches invalid axis errors
-        # only valid axis for Vector is (0,)
+        # only valid axis for VectorN is (0,)
         if axis is not None :
             try :
                 axis = a._getaxis(axis, fill=True)
@@ -618,7 +618,7 @@ class ArrayIter(object):
         [1, 4, 7, 2, 5, 8, 3, 6, 9, 10, 13, 16, 11, 14, 17, 12, 15, 18, 19, 22, 25, 20, 23, 26, 21, 24, 27]
         
         ArrayIter iterators support __len__, __getitem__,  __setitem__ and __delitem__ methods, it can be used
-        to set whole sub-arrays in any order (for instance rows or columns in Matrix)
+        to set whole sub-arrays in any order (for instance rows or columns in MatrixN)
         
         >>> A = Array(range(1, 10), shape=(3, 3))
         >>> print A.formated()
@@ -1093,7 +1093,7 @@ class Array(object):
          [0, 0, 0]]
         
         If sub-array and requested array have same number of dimensions, padding with row / columns
-        will be used (useful for the Matrix sub-class or Array) 
+        will be used (useful for the MatrixN sub-class or Array) 
         
         >>> A = Array(range(1, 10), shape=(3, 3))
         >>> print A.formated()
@@ -1608,7 +1608,7 @@ class Array(object):
         
             Creates a new Array instance without calling __init__, the created instance will be of the
             class cls (an Array subclass) default shape (if any) and set to the class default value.
-            See Array, Matrix or Vector help for more information.
+            See Array, MatrixN or VectorN help for more information.
         """
         shape = kwargs.get('shape', None)
         ndim = kwargs.get('ndim', None)
@@ -1645,7 +1645,7 @@ class Array(object):
         """ a.__init__(...)
         
             Initializes Array a from one or more iterable, nested lists or numeric values,
-            See Array, Matrix or Vector help for more information.
+            See Array, MatrixN or VectorN help for more information.
             
             Note : __init__ from another Array acts as a shallow copy, not a deepcopy, unless
             the Array argument is resized or reshaped.
@@ -1659,7 +1659,7 @@ class Array(object):
             if len(args) == 1 :
                 args = args[0]
             # shortcut for Array subtypes
-            if type(args) in (Array, Matrix, Vector) :
+            if type(args) in (Array, MatrixN, VectorN) :
                 # copy constructor
                 data = super(Array, Array).__new__(Array)
                 data.data = args
@@ -1713,7 +1713,7 @@ class Array(object):
                     # accept expanding but not shrinking to catch casting errors
                     # will initialize self to at least an empty Array or an array of one numeric value, 
 
-                    # multiple -1 (Matrix init for instance)
+                    # multiple -1 (MatrixN init for instance)
                     shape = list(shape)
                     unknown = shape.count(-1)
                     # multiple unknown dimensions can't be expanded with the size info, we'll use the new shape instead
@@ -2291,7 +2291,7 @@ class Array(object):
         """ a.hstacked(b) <==> a.stacked(b, axis=-1)
         
             Returns the Array obtained by concatenating a and b on last axis.
-            For a 2 dimensional Array/Matrix, it stacks a and b horizontally.
+            For a 2 dimensional Array/MatrixN, it stacks a and b horizontally.
             
             >>> A = Array([[1, 2], [4, 5]])
             >>> print A.formated()
@@ -2308,7 +2308,7 @@ class Array(object):
         """ a.hstack(b) <==> a.stack(b, axis=-1)
         
             Modifies a by concatenating b at its end, as iterated on last axis.
-            For a 2 dimensional Array/Matrix, it stacks a and b horizontally.
+            For a 2 dimensional Array/MatrixN, it stacks a and b horizontally.
             
             >>> A = Array([[1, 2], [4, 5]])
             >>> print A.formated()
@@ -2325,7 +2325,7 @@ class Array(object):
         """ a.vstacked(b) <==> a.stacked(b, axis=0)
         
             Returns the Array obtained by concatenating a and b on first axis.
-            For a 2 dimensional Array/Matrix, it stacks a and b vertically.
+            For a 2 dimensional Array/MatrixN, it stacks a and b vertically.
             
             >>> A = Array([[1, 2], [3, 4]])
             >>> print A.formated()
@@ -2343,7 +2343,7 @@ class Array(object):
         """ a.vstack(b) <==> a.stack(b, axis=0)
         
             Modifies a by concatenating b at its end, as iterated on first axis.
-            For a 2 dimensional Array/Matrix, it stacks a and b vertically
+            For a 2 dimensional Array/MatrixN, it stacks a and b vertically
             
             >>> A = Array([[1, 2], [3, 4]])
             >>> print A.formated()
@@ -3847,10 +3847,10 @@ class Array(object):
             as it could be expected without this __coerce__ mechanism.
              
             When mixing Array derived types, result are cast to the first base class of either argument that accepts both shapes,
-            ie 'deepest' derived class is tried first, Matrix before Array, etc.
+            ie 'deepest' derived class is tried first, MatrixN before Array, etc.
             
             >>> A = Array(range(1, 10), shape=(3, 3))
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> print A.formated()
             [[1, 2, 3],
              [4, 5, 6],
@@ -3861,14 +3861,14 @@ class Array(object):
              [7, 8, 9]]
             >>> nA, nM = coerce(A, M)
             >>> print repr(nA)
-            Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+            MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             >>> print repr(nM) 
-            Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+            MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             >>> nM, nA = coerce(M, A)
             >>> print repr(nA)
-            Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+            MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             >>> print repr(nM) 
-            Matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+            MatrixN([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             
             This allows to implement a common behavior for element-wise arithmetics between Arrays of same
             or dissimilar shapes, Arrays and types derived from Arrays, Arrays and numerics or iterables of numerics.
@@ -3924,39 +3924,39 @@ class Array(object):
             Result is cast to the first applicable Array herited type of either operand
             
             >>> A = Array(range(9), shape=(3, 3)) 
-            >>> M = Matrix(range(10, 50, 10), shape=(2, 2))
+            >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
             >>> print (A+M).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Matrix
+            MatrixN
             >>> print (M+A).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M+A)
-            Matrix
+            MatrixN
                         
             >>> A = Array(range(10, 50, 10), shape=(2, 2)) 
-            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> M = MatrixN(range(9), shape=(3, 3))
             >>> print (A+M).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Matrix
+            MatrixN
             >>> print (M+A).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M+A)
-            Matrix
+            MatrixN
             
-            Here result is cast to Array as a Matrix can't have 3 dimensions
+            Here result is cast to Array as a MatrixN can't have 3 dimensions
             
             >>> A = Array(range(10, 190, 10), shape=(2, 3, 3)) 
-            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> M = MatrixN(range(9), shape=(3, 3))
             >>> print (A+M).formated()
             [[[10, 21, 32],
               [43, 54, 65],
@@ -3982,11 +3982,11 @@ class Array(object):
             of dimensions in either way, use an explicit conversion (trim, size, etc.) in that case :
             
             >>> A = Array(range(8), shape=(2, 2, 2)) 
-            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> M = MatrixN(range(9), shape=(3, 3))
             >>> print (A+M).formated()
             Traceback (most recent call last):
                 ...
-            TypeError: unsupported operand type(s) for +: 'Array' and 'Matrix'
+            TypeError: unsupported operand type(s) for +: 'Array' and 'MatrixN'
             
             TODO : return some more explicit messages in these cases
                      
@@ -4006,7 +4006,7 @@ class Array(object):
         
         ocls = other.__class__
         scls = self.__class__
-        # convert to most specific class if possible (Matrix before Array, etc)
+        # convert to most specific class if possible (MatrixN before Array, etc)
         if issubclass(ocls, scls) :
             mro = inspect.getmro(ocls)
         else :
@@ -4044,7 +4044,7 @@ class Array(object):
             False
             >>> Array(range(4), shape=(2, 2)) == Array(range(4), shape=(2, 2))
             True
-            >>> Array(range(4), shape=(2, 2)) == Matrix(range(4), shape=(2, 2))
+            >>> Array(range(4), shape=(2, 2)) == MatrixN(range(4), shape=(2, 2))
             False
         """
         if type(self) != type(other) :
@@ -4061,7 +4061,7 @@ class Array(object):
             True
             >>> Array(range(4), shape=(2, 2)) != Array(range(4), shape=(2, 2))
             False
-            >>> Array(range(4), shape=(2, 2)) != Matrix(range(4), shape=(2, 2))
+            >>> Array(range(4), shape=(2, 2)) != MatrixN(range(4), shape=(2, 2))
             True
         """
         return (not self.__eq__(other))
@@ -4148,21 +4148,21 @@ class Array(object):
             [[1, 3],
              [3, 5]]
             >>> A = Array(range(9), shape=(3, 3)) 
-            >>> M = Matrix(range(10, 50, 10), shape=(2, 2))
+            >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
             >>> print (A+M).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Matrix
+            MatrixN
             >>> A = Array(range(10, 50, 10), shape=(2, 2)) 
-            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> M = MatrixN(range(9), shape=(3, 3))
             >>> print (A+M).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(A+M)
-            Matrix
+            MatrixN
         """ 
         try :
             nself, nother = coerce(self, other)
@@ -4193,21 +4193,21 @@ class Array(object):
             [[1, 3],
              [3, 5]]
             >>> A = Array(range(9), shape=(3, 3)) 
-            >>> M = Matrix(range(10, 50, 10), shape=(2, 2))
+            >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
             >>> print (M+A).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M+A)
-            Matrix
+            MatrixN
             >>> A = Array(range(10, 50, 10), shape=(2, 2)) 
-            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> M = MatrixN(range(9), shape=(3, 3))
             >>> print (M+A).formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M+A)
-            Matrix
+            MatrixN
         """        
         return self.__add__(other)  
     def __iadd__(self, other):
@@ -4216,7 +4216,7 @@ class Array(object):
             In place addition of a and b, see __add__, result must fit a's type
                       
             >>> A = Array(range(9), shape=(3, 3)) 
-            >>> M = Matrix(range(10, 50, 10), shape=(2, 2))
+            >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))
             >>> A += M
             >>> print A.formated()
             [[10, 21, 2],
@@ -4225,19 +4225,19 @@ class Array(object):
             >>> print clsname(A)
             Array
             >>> A = Array(range(9), shape=(3, 3)) 
-            >>> M = Matrix(range(10, 50, 10), shape=(2, 2))            
+            >>> M = MatrixN(range(10, 50, 10), shape=(2, 2))            
             >>> M += A
             >>> print M.formated()
             [[10, 21, 2],
              [33, 44, 5],
              [6, 7, 8]]
             >>> print clsname(M)
-            Matrix
+            MatrixN
             
             Result must be castable to the type of a
                       
             >>> A = Array(range(12), shape=(2, 3, 2)) 
-            >>> M = Matrix(range(9), shape=(3, 3))
+            >>> M = MatrixN(range(9), shape=(3, 3))
             >>> B = M + A
             >>> print B.formated()
             [[[0, 2],
@@ -4252,7 +4252,7 @@ class Array(object):
             >>> M += A
             Traceback (most recent call last):
                 ...
-            TypeError: cannot cast a Array of shape (2, 3, 2) to a Matrix of shape (2, 6),
+            TypeError: cannot cast a Array of shape (2, 3, 2) to a MatrixN of shape (2, 6),
             as it would truncate data or reduce the number of dimensions
         """
         return self.__class__(self + other)
@@ -4733,7 +4733,7 @@ class Array(object):
               [10, 13, 16],
               [11, 14, 17]]]
 
-            >>> B=Matrix(range(9), shape=(3, 3))
+            >>> B=MatrixN(range(9), shape=(3, 3))
             >>> print B.formated()
             [[0, 1, 2],
              [3, 4, 5],
@@ -4870,131 +4870,131 @@ class Array(object):
         """
         return self.__class__._convert(clamp(self, low, high))
         
-# functions that work on Matrix (and just defer to Matrix methods)
+# functions that work on MatrixN (and just defer to MatrixN methods)
 
 def det(value):
     """ det(m) --> float
         
-        Returns the determinant of m, 0 if m is a singular Matrix, m must be convertible to Matrix.
+        Returns the determinant of m, 0 if m is a singular MatrixN, m must be convertible to MatrixN.
         
-        Related : see Matrix.det(self) method.
+        Related : see MatrixN.det(self) method.
     """    
-    if isinstance(value, Matrix) :
+    if isinstance(value, MatrixN) :
         return value.det()
     elif isNumeric(value) :
         return value
     else :
         try :
-            value = Matrix(value)
+            value = MatrixN(value)
         except :
-            raise TypeError, "%s not convertible to Matrix" % (clsname(value))
+            raise TypeError, "%s not convertible to MatrixN" % (clsname(value))
         return value.det()
     
 def inv(value):
-    """ inv(m) --> Matrix
+    """ inv(m) --> MatrixN
         
         Returns the inverse of m, if m is invertible, raises ZeroDivisionError otherwise.
-        m must be convertible to Matrix.
+        m must be convertible to MatrixN.
         
-        Related : see Matrix.inverse(self) method and Matrix.I property
+        Related : see MatrixN.inverse(self) method and MatrixN.I property
     """      
-    if isinstance(value, Matrix) :
+    if isinstance(value, MatrixN) :
         return value.inverse()
     elif isNumeric(value) :
         return 1.0 / value
     else :
         try :
-            value = Matrix(value)
+            value = MatrixN(value)
         except :
-            raise TypeError, "%s not convertible to Matrix" % (clsname(value))
+            raise TypeError, "%s not convertible to MatrixN" % (clsname(value))
         return value.inverse()
     
-class Matrix(Array):
-    """ A generic size Matrix class, basically a 2 dimensional Array.
+class MatrixN(Array):
+    """ A generic size MatrixN class, basically a 2 dimensional Array.
     
-        Most methods and behavior are herited from Array, with the limitation that a Matrix must have
+        Most methods and behavior are herited from Array, with the limitation that a MatrixN must have
         exactly 2 dimensions.
         
-        >>> M = Matrix()
+        >>> M = MatrixN()
         >>> M
-        Matrix([[]])
-        >>> M = Matrix([])
+        MatrixN([[]])
+        >>> M = MatrixN([])
         >>> M
-        Matrix([[]])
-        >>> M = Matrix([0, 1, 2])
+        MatrixN([[]])
+        >>> M = MatrixN([0, 1, 2])
         >>> print M.formated()
         [[0, 1, 2]]
-        >>> M = Matrix([[0, 1, 2]])
+        >>> M = MatrixN([[0, 1, 2]])
         >>> print M.formated()
         [[0, 1, 2]]
-        >>> M = Matrix([[0], [1], [2]])
+        >>> M = MatrixN([[0], [1], [2]])
         >>> print M.formated()   
         [[0],
          [1],
          [2]]
-        >>> M = Matrix([[1, 2, 3], [4, 5, 6]])
+        >>> M = MatrixN([[1, 2, 3], [4, 5, 6]])
         >>> print M.formated()
         [[1, 2, 3],
          [4, 5, 6]]
-        >>> M = Matrix(range(4), shape=(2, 2))
+        >>> M = MatrixN(range(4), shape=(2, 2))
         >>> print M.formated()
         [[0, 1],
          [2, 3]]
                   
-        The Matrix class has a constant ndim of 2
+        The MatrixN class has a constant ndim of 2
         
-        >>> Matrix.ndim
+        >>> MatrixN.ndim
         2
         >>> M.ndim
         2
-        >>> Matrix.ndim = 3
+        >>> MatrixN.ndim = 3
         Traceback (most recent call last):
             ...
-        AttributeError: attribute ndim is a read only class attribute and cannot be modified on class Matrix
+        AttributeError: attribute ndim is a read only class attribute and cannot be modified on class MatrixN
         >>> M.ndim = 3
         Traceback (most recent call last):
             ...
-        AttributeError: 'Matrix' object attribute 'ndim' is read-only
+        AttributeError: 'MatrixN' object attribute 'ndim' is read-only
             
-        It's protected against initialization or resizing to a shape that wouldn't be a Matrix anymore 
+        It's protected against initialization or resizing to a shape that wouldn't be a MatrixN anymore 
          
-        >>> M = Matrix([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]]) 
+        >>> M = MatrixN([[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]]) 
         Traceback (most recent call last):
             ...
-        TypeError: cannot initialize a Matrix of shape (2, 6) from [[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]] of shape (2, 2, 3),
+        TypeError: cannot initialize a MatrixN of shape (2, 6) from [[[0, 1, 2], [3, 4, 5]], [[6, 7, 8], [9, 10, 11]]] of shape (2, 2, 3),
         as it would truncate data or reduce the number of dimensions
             
         >>> M.resize((2, 2, 3))
         Traceback (most recent call last):
             ...
-        TypeError: new shape (2, 2, 3) is not compatible with class Matrix
+        TypeError: new shape (2, 2, 3) is not compatible with class MatrixN
         
-        Other Array types can be cast to Matrix, but truncating data or reducing dimensions is not allowed
+        Other Array types can be cast to MatrixN, but truncating data or reducing dimensions is not allowed
         to avoid silent loss of data in a conversion, use an explicit resize / trim / sub-array extraction
 
         >>> A = Array(range(9), shape=(3, 3))
-        >>> M = Matrix(A)
+        >>> M = MatrixN(A)
         >>> print M.formated()
         [[0, 1, 2],
          [3, 4, 5],
          [6, 7, 8]]
         >>> print clsname(M)
-        Matrix
+        MatrixN
         >>> A = Array([[[1, 2, 3], [4, 5, 6]], [[10, 20, 30], [40, 50, 60]]])
-        >>> M = Matrix(A)
+        >>> M = MatrixN(A)
         Traceback (most recent call last):
             ...
-        TypeError: cannot cast a Array of shape (2, 2, 3) to a Matrix of shape (2, 6),
+        TypeError: cannot cast a Array of shape (2, 2, 3) to a MatrixN of shape (2, 6),
         as it would truncate data or reduce the number of dimensions
          
-        When initializing from a 1-d Array like a Vector, dimension is upped to 2 by making it a row 
+        When initializing from a 1-d Array like a VectorN, dimension is upped to 2 by making it a row 
          
-        >>> V = Vector(1, 2, 3)
-        >>> M = Matrix(V)
+        >>> V = VectorN(1, 2, 3)
+        >>> M = MatrixN(V)
         >>> print M.formated()
         [[1, 2, 3]]
         
-        Internally, rows are stored as Array though, not Vector
+        Internally, rows are stored as Array though, not VectorN
         
         >>> M[0]
         Array([1, 2, 3])
@@ -5002,7 +5002,7 @@ class Matrix(Array):
         As for Array, __init__ is a shallow copy
         
         >>> A = Array(range(9), shape=(3, 3))
-        >>> M = Matrix(A)
+        >>> M = MatrixN(A)
         >>> M == A
         False
         >>> M is A
@@ -5016,7 +5016,7 @@ class Matrix(Array):
     """
     __slots__ = ['_data', '_shape', '_size']    
     
-    # A Matrix is a two-dimensional Array, ndim is thus stored as a class readonly attribute
+    # A MatrixN is a two-dimensional Array, ndim is thus stored as a class readonly attribute
     ndim = 2
            
     def _getshape(self):
@@ -5031,11 +5031,11 @@ class Matrix(Array):
     shape = property(_getshape, _setshape, None,
                      """ m.shape : tuple of two ints
                      
-                         Shape of the Matrix, the (nrow, ncol) tuple.
+                         Shape of the MatrixN, the (nrow, ncol) tuple.
                      
-                         It can be queried, or set to change the Matrix's shape similarly to the reshape method.
+                         It can be queried, or set to change the MatrixN's shape similarly to the reshape method.
                          
-                         >>> M = Matrix(range(1, 17), shape=(4, 4))
+                         >>> M = MatrixN(range(1, 17), shape=(4, 4))
                          >>> print M.formated()
                          [[1, 2, 3, 4],
                           [5, 6, 7, 8],
@@ -5048,21 +5048,21 @@ class Matrix(Array):
                          >>> M.shape=(2, 2, 4)
                          Traceback (most recent call last):
                              ...
-                         TypeError: new shape (2, 2, 4) is not compatible with class Matrix
+                         TypeError: new shape (2, 2, 4) is not compatible with class MatrixN
             
                          Related : see Array.reshape method.
                      """)
-    size = property(lambda x : x.shape[0]*x.shape[1], None, None, "Total size of the Matrix (number of individual components), ie nrow*ncol")
+    size = property(lambda x : x.shape[0]*x.shape[1], None, None, "Total size of the MatrixN (number of individual components), ie nrow*ncol")
 
     def is_square(self):
         """ m.is_square() --> bool
             
-            Returns True if m is a square Matrix, it has the same number of rows and columns.
+            Returns True if m is a square MatrixN, it has the same number of rows and columns.
             
-            >>> M = Matrix(range(4), shape=(2, 2))
+            >>> M = MatrixN(range(4), shape=(2, 2))
             >>> M.is_square()
             True
-            >>> M = Matrix(range(6), shape=(2, 3))
+            >>> M = MatrixN(range(6), shape=(2, 3))
             >>> M.is_square()
             False
         """           
@@ -5070,12 +5070,12 @@ class Matrix(Array):
  
     @classmethod
     def identity(cls, n):
-        """ Matrix.identity(n) --> Matrix
+        """ MatrixN.identity(n) --> MatrixN
         
-            Returns the identity Matrix of size n :
-            a square n x n Matrix of 0.0, with all diagonal components set to 1.0.
+            Returns the identity MatrixN of size n :
+            a square n x n MatrixN of 0.0, with all diagonal components set to 1.0.
             
-            >>> I = Matrix.identity(4)
+            >>> I = MatrixN.identity(4)
             >>> print I.formated()
             [[1.0, 0.0, 0.0, 0.0],
              [0.0, 1.0, 0.0, 0.0],
@@ -5086,22 +5086,22 @@ class Matrix(Array):
     
     @classmethod
     def basis(cls, u, v, normalize=False):
-        """ Matrix.basis(u, v[, normalize=False]) --> Matrix
+        """ MatrixN.basis(u, v[, normalize=False]) --> MatrixN
         
-            Returns the basis Matrix built using u, v and u^v as coordinate axis,
+            Returns the basis MatrixN built using u, v and u^v as coordinate axis,
             The a, b, n vectors are recomputed to obtain an orthogonal coordinate system as follows:
                 n = u ^ v
                 v = n ^ u
             if the normalize keyword argument is set to True, the vectors are also normalized
 
-            >>> M = Matrix.basis(Vector(0, 1, 0), Vector(0, 0, 1))
+            >>> M = MatrixN.basis(VectorN(0, 1, 0), VectorN(0, 0, 1))
             >>> print M.formated()
             [[0, 0, 1],
              [1, 0, 0],
              [0, 1, 0]]
         """
-        u = Vector(u)
-        v = Vector(v)
+        u = VectorN(u)
+        v = VectorN(v)
         assert len(u) == len(v) == 3, 'basis is only defined for two Vectors of size 3'    
         if normalize :
             u = normal(u)
@@ -5110,7 +5110,7 @@ class Matrix(Array):
         else :
             n = cross(u, v)
             v = cross(n, u)
-        return cls(Matrix(u, v, n).transpose())
+        return cls(MatrixN(u, v, n).transpose())
  
     # row and column size properties
     def _getnrow(self):
@@ -5120,11 +5120,11 @@ class Matrix(Array):
     nrow = property(_getnrow, _setnrow, None,
                     """ m.nrow : int
                     
-                        Number of rows in this Matrix.
+                        Number of rows in this MatrixN.
                     
                         It can be queried, or set to reduce / expand the matrix similarly to the trim method.
                         
-                        >>> M = Matrix(range(1, 10), shape=(3, 3))
+                        >>> M = MatrixN(range(1, 10), shape=(3, 3))
                         >>> print M.formated()
                         [[1, 2, 3],
                          [4, 5, 6],
@@ -5145,11 +5145,11 @@ class Matrix(Array):
     ncol = property(_getncol, _setncol, None,
                     """ m.ncol : int
                     
-                        Number of rows in this Matrix.
+                        Number of rows in this MatrixN.
                     
                         It can be queried, or set to reduce / expand the matrix similarly to the trim method.
                         
-                        >>> M = Matrix(range(1, 10), shape=(3, 3))
+                        >>> M = MatrixN(range(1, 10), shape=(3, 3))
                         >>> print M.formated()
                         [[1, 2, 3],
                          [4, 5, 6],
@@ -5169,10 +5169,10 @@ class Matrix(Array):
     def row(self):
         """ m.row --> ArrayIter
         
-            Iterator on the Matrix rows.
+            Iterator on the MatrixN rows.
             Being an ArrayIter, it support __len__, __getitem__, __setitem__ and __delitem__
             
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> M.nrow, M.ncol = 4, 4
             >>> M[-1, -1] = 1
             >>> print M.formated()
@@ -5183,7 +5183,7 @@ class Matrix(Array):
             >>> [r for r in M.row]
             [Array([1, 2, 3, 0]), Array([4, 5, 6, 0]), Array([7, 8, 9, 0]), Array([0, 0, 0, 1])]
             
-            The row iterator indexing works like the Matrix indexing and returns references.
+            The row iterator indexing works like the MatrixN indexing and returns references.
             
             >>> r = M.row[0]
             >>> r
@@ -5200,7 +5200,7 @@ class Matrix(Array):
             [[1, 2, 3, 0],
              [4, 5, 6, 0]]
             >>> print clsname(r)
-            Matrix
+            MatrixN
             
             >>> r == M[:2]
             True
@@ -5211,8 +5211,8 @@ class Matrix(Array):
             >>> r[0] is M[0]
             True
             
-            Results can be indexed again, using Array indexing or Matrix methods wether they're returned
-            as Array (single lines / columns) or Matrix (2 dimensionnal Array).
+            Results can be indexed again, using Array indexing or MatrixN methods wether they're returned
+            as Array (single lines / columns) or MatrixN (2 dimensionnal Array).
             
             >>> c = r.col[1]
             >>> c
@@ -5227,7 +5227,7 @@ class Matrix(Array):
             >>> M.row[0, 1]
             2
             
-            Values can be set as with Matrix indexing
+            Values can be set as with MatrixN indexing
             
             >>> M.row[:2, 1] = 10
             >>> print M.formated()
@@ -5258,10 +5258,10 @@ class Matrix(Array):
     def col(self):
         """ m.col --> ArrayIter
         
-            Iterator on the Matrix columns
+            Iterator on the MatrixN columns
             Being an ArrayIter, it support __len__, __getitem__, __setitem__ and __delitem__
             
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> M.nrow, M.ncol = 4, 4
             >>> M[-1, -1] = 1
             >>> print M.formated()
@@ -5282,14 +5282,14 @@ class Matrix(Array):
             >>> c is M[:,0]
             False
             
-            Multiple columns are returned as rows in a new Matrix
+            Multiple columns are returned as rows in a new MatrixN
             
             >>> c = M.col[:2]
             >>> print c.formated()
             [[1, 4, 7, 0],
              [2, 5, 8, 0]]
             >>> print clsname(c)
-            Matrix
+            MatrixN
             
             >>> s = M[:,:2]
             >>> print s.formated()
@@ -5298,7 +5298,7 @@ class Matrix(Array):
              [7, 8],
              [0, 0]]
             >>> print clsname(s)
-            Matrix
+            MatrixN
             
             TODO : is it what we want ? If so invert these
             
@@ -5307,8 +5307,8 @@ class Matrix(Array):
             >>> c == s.T
             False
             
-            Results can be indexed again, using Array indexing or Matrix methods wether they're returned
-            as Array (single lines / columns) or Matrix (2 dimensionnal Array).
+            Results can be indexed again, using Array indexing or MatrixN methods wether they're returned
+            as Array (single lines / columns) or MatrixN (2 dimensionnal Array).
             
             >>> r = c.row[1]
             >>> r
@@ -5375,37 +5375,37 @@ class Matrix(Array):
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
         
-            If b is a Matrix, __mul__ is mapped to matrix multiplication, if b is a Vector, to Matrix by Vector multiplication,
+            If b is a MatrixN, __mul__ is mapped to matrix multiplication, if b is a VectorN, to MatrixN by VectorN multiplication,
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value """
-        if isinstance(other, Matrix) :
+        if isinstance(other, MatrixN) :
             return self.__class__._convert( [ [ dot(row,col) for col in other.col ] for row in self.row ] )
-        elif isinstance(other, Vector) :
+        elif isinstance(other, VectorN) :
             if other.size <= self.shape[1] :
                 return other.__class__._convert( [ dot(row, other) for row in self.row ] [:other.size] )
             else :
-                raise ValueError, "matrix of shape %s and vector of size %s are not conformable for a Matrix * Vector multiplication" % (self.size, other.shape) 
+                raise ValueError, "matrix of shape %s and vector of size %s are not conformable for a MatrixN * VectorN multiplication" % (self.size, other.shape) 
         else :
             return Array.__mul__(self, other)
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
         
-            If b is a Matrix, __rmul__ is mapped to matrix multiplication, if b is a Vector, to Vector by Matrix multiplication,
+            If b is a MatrixN, __rmul__ is mapped to matrix multiplication, if b is a VectorN, to VectorN by MatrixN multiplication,
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value """        
-        if isinstance(other, Matrix) :
-            return Matrix( [ [ dot(row,col) for col in self.col ] for row in other.row ] )
-        elif isinstance(other, Vector) :
+        if isinstance(other, MatrixN) :
+            return MatrixN( [ [ dot(row,col) for col in self.col ] for row in other.row ] )
+        elif isinstance(other, VectorN) :
             if other.size <= self.shape[0] :
                 return other.__class__._convert( [ dot(col, other) for col in self.col ] [:other.size] )
             else :
-                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a Vector * Matrix multiplication" % (other.size, self.shape)           
+                raise ValueError, "vector of size %s and matrix of shape %s are not conformable for a VectorN * MatrixN multiplication" % (other.size, self.shape)           
         else :
             return Array.__rmul__(self, other)
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
         
-            In place multiplication of Matrix a and b, see __mul__, result must fit a's type """ 
+            In place multiplication of MatrixN a and b, see __mul__, result must fit a's type """ 
         res = self*other
         if isinstance(res, self.__class__) :
             return self.__class__(res)        
@@ -5417,13 +5417,13 @@ class Matrix(Array):
     def diagonal(self, offset=0, wrap=False) :
         """ m.diagonal([offset=0[, wrap=False]]) -> Array
         
-            Returns the diagonal of the Matrix with the given offset,
+            Returns the diagonal of the MatrixN with the given offset,
             i.e., the collection of elements of the form a[i,i+offset].
             If keyword wrap=True will wrap out of bounds indices
             
             Examples :
 
-            >>> M = Matrix([[1, 2], [4, 6]])
+            >>> M = MatrixN([[1, 2], [4, 6]])
             >>> print M.formated()
             [[1, 2],
              [4, 6]]
@@ -5458,7 +5458,7 @@ class Matrix(Array):
         
             Returns the sum of the components on the diagonal, obtained by calling m.diagonal(offset, wrap).
 
-            >>> M = Matrix([[1, 2], [4, 6]])
+            >>> M = MatrixN([[1, 2], [4, 6]])
             >>> print M.formated()
             [[1, 2],
              [4, 6]]
@@ -5476,30 +5476,30 @@ class Matrix(Array):
         return sum(self.diagonal(offset, wrap))
     
     def minor(self, i, j):
-        """ m.minor(i, j) --> Matrix
+        """ m.minor(i, j) --> MatrixN
         
-            Returns the Matrix obtained by deleting row i and column j from m.
+            Returns the MatrixN obtained by deleting row i and column j from m.
 
-            >>> M = Matrix([1])
+            >>> M = MatrixN([1])
             >>> M
-            Matrix([[1]])
+            MatrixN([[1]])
             >>> M.minor(0, 0)
-            Matrix([])
+            MatrixN([])
             
-            >>> M = Matrix(range(4), shape=(2, 2))
+            >>> M = MatrixN(range(4), shape=(2, 2))
             >>> print M.formated()
             [[0, 1],
              [2, 3]]
             >>> M.minor(0, 0)
-            Matrix([[3]])
+            MatrixN([[3]])
             >>> M.minor(0, 1)
-            Matrix([[2]])
+            MatrixN([[2]])
             >>> M.minor(1, 0)
-            Matrix([[1]])
+            MatrixN([[1]])
             >>> M.minor(1, 1)
-            Matrix([[0]])
+            MatrixN([[0]])
 
-            >>> M = Matrix.identity(4)
+            >>> M = MatrixN.identity(4)
             >>> M[:3, :3] = [float(i) for i in range(1, 10)]
             >>> print M.formated()
             [[1.0, 2.0, 3.0, 0.0],
@@ -5519,10 +5519,10 @@ class Matrix(Array):
         """ m.cofactor(i, j) --> float
         
             Returns the cofactor of matrix m for index (i, j), 
-            the determinant of the Matrix obtained by deleting row i and column j from m (the minor),
+            the determinant of the MatrixN obtained by deleting row i and column j from m (the minor),
             signed by (-1)**(i+j).
             
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> print M.formated()
             [[1, 2, 3],
              [4, 5, 6],
@@ -5546,13 +5546,13 @@ class Matrix(Array):
     
     # sometimes called adjoint
     def adjugate(self):
-        """ m.adjugate() --> Matrix
+        """ m.adjugate() --> MatrixN
         
-            Returns the adjugate Matrix of the square Matrix m : the Matrix of the cofactors of m.
-            It's a square Matrix of same size as m, where a component of index (i, j) is set to the value
+            Returns the adjugate MatrixN of the square MatrixN m : the MatrixN of the cofactors of m.
+            It's a square MatrixN of same size as m, where a component of index (i, j) is set to the value
             of m.cofactor(i, j).
             
-            >>> M = Matrix([ [100/(i+j) for i in xrange(1,5)] for j in xrange(4) ])
+            >>> M = MatrixN([ [100/(i+j) for i in xrange(1,5)] for j in xrange(4) ])
             >>> print M.formated()
             [[100, 50, 33, 25],
              [50, 33, 25, 20],
@@ -5573,7 +5573,7 @@ class Matrix(Array):
              [154, -775, 575, 175],
              [49, -245, 175, 63]]
         """
-        assert self.is_square(), "Adjugate Matrix can only be computed for a square Matrix"
+        assert self.is_square(), "Adjugate MatrixN can only be computed for a square MatrixN"
         n = self.nrow
         if n == 1 :
             a = self.__class__([[1]])
@@ -5592,7 +5592,7 @@ class Matrix(Array):
         
     def _gauss_jordan(self):
         nr, nc = self.shape
-        assert nc >= nr, "Matrix needs to have at least as much columns as rows to do a Gauss-Jordan elimination"            
+        assert nc >= nr, "MatrixN needs to have at least as much columns as rows to do a Gauss-Jordan elimination"            
         m = self.deepcopy()   
         nbperm = 0  
         for i in xrange(nr) :
@@ -5605,7 +5605,7 @@ class Matrix(Array):
                 m[i], m[maxr] = m[maxr], m[i]
                 nbperm += 1
             if abs(m[i,i]) < eps :
-                raise ZeroDivisionError, "Matrix is singular"
+                raise ZeroDivisionError, "MatrixN is singular"
             d = float(m[i,i])
             for j in xrange(i+1,nr) :
                 # eliminate lower rows
@@ -5618,12 +5618,12 @@ class Matrix(Array):
         return m, nbperm
 
     def gauss(self):
-        """ m.gauss() --> Matrix
+        """ m.gauss() --> MatrixN
         
             Returns the triangular matrix obtained by Gauss-Jordan elimination on m,
             will raise a ZeroDivisionError if m cannot be triangulated.
 
-            >>> M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
             >>> print round(M, 2).formated()
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
@@ -5659,7 +5659,7 @@ class Matrix(Array):
              [0.0, 0.0, 0.0, 0.0, -0.0, -0.0],
              [0.0, 0.0, 0.0, 0.0, 0.0, -0.0]]
              
-            >>> M = Matrix([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
+            >>> M = MatrixN([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
             >>> print M.formated()
             [[1, 2, 3],
              [2, 4, 6],
@@ -5671,17 +5671,17 @@ class Matrix(Array):
             >>> print M.gauss().formated()
             Traceback (most recent call last):
                 ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: MatrixN is singular
         """
         return self._gauss_jordan()[0]
 
     def reduced(self):
-        """ m.reduced() --> Matrix
+        """ m.reduced() --> MatrixN
         
             Returns the reduced row echelon form of the matrix a by Gauss-Jordan elimination,
             followed by back substitution.
             
-            >>> M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
             >>> print round(M, 2).formated()
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
@@ -5717,7 +5717,7 @@ class Matrix(Array):
              [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
              [0.0, 0.0, 0.0, 0.0, 0.0, 1.0]]
              
-            >>> M = Matrix([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
+            >>> M = MatrixN([[1, 2, 3], [2, 4, 6], [6, 7, 8]])
             >>> print M.formated()
             [[1, 2, 3],
              [2, 4, 6],
@@ -5729,7 +5729,7 @@ class Matrix(Array):
             >>> print M.reduced().formated()
             Traceback (most recent call last):
                 ...
-            ZeroDivisionError: Matrix is singular
+            ZeroDivisionError: MatrixN is singular
         """
         m = self.gauss()
         nr, nc = m.shape
@@ -5749,9 +5749,9 @@ class Matrix(Array):
     def det(self):
         """ m.det() <==> det(m)
         
-            Returns the determinant of m, 0 if Matrix is singular.
+            Returns the determinant of m, 0 if MatrixN is singular.
             
-            >>> M = Matrix([ [100/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [100/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
             >>> print M.formated()
             [[100, 50, 33, 25, 20, 16],
              [50, 33, 25, 20, 16, 14],
@@ -5772,7 +5772,7 @@ class Matrix(Array):
             >>> M[:6, :6].det()
             452.0
             
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> print M.formated()
             [[1, 2, 3],
              [4, 5, 6],
@@ -5780,7 +5780,7 @@ class Matrix(Array):
             >>> M.det()
             0
         """
-        assert self.is_square(), "determinant is only defined for a square Matrix"
+        assert self.is_square(), "determinant is only defined for a square MatrixN"
         n = self.nrow
         if n == 1:
             d = self[0,0]
@@ -5828,7 +5828,7 @@ class Matrix(Array):
         
             Returns True if m is singular, ie it's determinant is smaller than the given tolerance.
 
-            >>> M = Matrix(range(1, 5), shape=(2, 2))
+            >>> M = MatrixN(range(1, 5), shape=(2, 2))
             >>> print M.formated()
             [[1, 2],
              [3, 4]]
@@ -5837,7 +5837,7 @@ class Matrix(Array):
             >>> M.isSingular()
             False
             
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> print M.formated()
             [[1, 2, 3],
              [4, 5, 6],
@@ -5852,9 +5852,9 @@ class Matrix(Array):
     def inverse(self): 
         """ m.inverse() <==> inv(m)
         
-            Returns the inverse Matrix of m, if m is invertible, will raise a ValueError otherwise.
+            Returns the inverse MatrixN of m, if m is invertible, will raise a ValueError otherwise.
 
-            >>> M = Matrix([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
+            >>> M = MatrixN([ [1.0/(i+j) for i in xrange(1,7)] for j in xrange(6) ])
             >>> print round(M, 2).formated()
             [[1.0, 0.5, 0.33, 0.25, 0.2, 0.17],
              [0.5, 0.33, 0.25, 0.2, 0.17, 0.14],
@@ -5890,7 +5890,7 @@ class Matrix(Array):
              [7560.0, -220500.0, 1512000.0, -3969000.0, 4410000.0, -1746360.0],
              [-2772.0, 83160.0, -582120.0, 1552320.0, -1746360.0, 698544.0]]
                    
-            >>> M = Matrix(range(1, 10), shape=(3, 3))
+            >>> M = MatrixN(range(1, 10), shape=(3, 3))
             >>> print M.formated()
             [[1, 2, 3],
              [4, 5, 6],
@@ -5902,9 +5902,9 @@ class Matrix(Array):
             >>> print M.inverse().formated()
             Traceback (most recent call last):
                 ...
-            ValueError: Matrix is not invertible
+            ValueError: MatrixN is not invertible
         """        
-        assert self.is_square(), "inverse is only defined for a square Matrix, see linverse and rinverse"
+        assert self.is_square(), "inverse is only defined for a square MatrixN, see linverse and rinverse"
         n = self.nrow
         try :
             if n == 1 :
@@ -5926,22 +5926,22 @@ class Matrix(Array):
                 m = self.hstacked(id).reduced()
                 i = self.__class__(m[:, n:])
         except ZeroDivisionError :
-            raise ValueError, "Matrix is not invertible" 
+            raise ValueError, "MatrixN is not invertible" 
         
         return i
              
     inv = inverse
     
-    I = property(inverse, None, None, """The inverse Matrix""")
+    I = property(inverse, None, None, """The inverse MatrixN""")
 
     def linverse(self):
-        """ m.linverse() --> Matrix
+        """ m.linverse() --> MatrixN
             
             Returns the left inverse matrix of m, the matrix n so that n * m = identity, if m is left-invertible,
             otherwise will raise a ValueError.
             If m is invertible then the left inverse of m is also it's right inverse, and it's inverse matrix.
             
-            >>> M = Matrix([[1, 2], [3, 4], [5, 6]])           
+            >>> M = MatrixN([[1, 2], [3, 4], [5, 6]])           
             >>> print M.formated()
             [[1, 2],
              [3, 4],
@@ -5951,7 +5951,7 @@ class Matrix(Array):
              [1.08, 0.33, -0.42]]
         """
         nr, nc = self.nrow, self.ncol
-        assert nr >= nc, "a Matrix can have an inverse if it is square and a left inverse only if it has more rows than columns"
+        assert nr >= nc, "a MatrixN can have an inverse if it is square and a left inverse only if it has more rows than columns"
         if nr == nc :
             return self.I
         else :
@@ -5960,13 +5960,13 @@ class Matrix(Array):
             return m.I * t
         
     def rinverse(self):
-        """ m.rinverse() --> Matrix
+        """ m.rinverse() --> MatrixN
             
             Returns the right inverse matrix of m, the matrix n so that m * n = identity, if m is right-invertible,
             otherwise will raise a ValueError.
             If m is invertible then the right inverse of m is also it's left inverse, and it's inverse matrix.
             
-            >>> M = Matrix([[1, 2, 3], [4, 5, 6]])
+            >>> M = MatrixN([[1, 2, 3], [4, 5, 6]])
             >>> print M.formated()
             [[1, 2, 3],
              [4, 5, 6]]
@@ -5976,7 +5976,7 @@ class Matrix(Array):
              [0.72, -0.22]]
         """        
         nr, nc = self.nrow, self.ncol
-        assert nc >= nr, "a Matrix can have an inverse if it is square and a right inverse only if it has more columns than rows"
+        assert nc >= nr, "a MatrixN can have an inverse if it is square and a right inverse only if it has more columns than rows"
         if nr == nc :
             return self.I
         else :
@@ -5989,24 +5989,24 @@ class Matrix(Array):
 # only on size 3 Vectors
 
 def cross(u, v):
-    """ cross(u, v) --> Vector
+    """ cross(u, v) --> VectorN
     
         Returns the cross product of u and v, u and v should be 3 dimensional vectors.
         
-        >>> u = Vector(1.0, 0.0, 0.0)
-        >>> v = Vector(0.0, 1.0, 0.0)
+        >>> u = VectorN(1.0, 0.0, 0.0)
+        >>> v = VectorN(0.0, 1.0, 0.0)
         >>> cross(u, v)
-        Vector([0.0, 0.0, 1.0])
+        VectorN([0.0, 0.0, 1.0])
         >>> cross(u, [0.0, 1.0, 0.0])
-        Vector([0.0, 0.0, 1.0])
+        VectorN([0.0, 0.0, 1.0])
         
-        Related : see Vector.cross method.
+        Related : see VectorN.cross method.
     """
-    if not isinstance(u, Vector) :
+    if not isinstance(u, VectorN) :
         try :
-            u = Vector(u)
+            u = VectorN(u)
         except :
-            raise TypeError, "%s is not convertible to type Vector, cross product is only defined for two Vectors of size 3" % (clsname(u))  
+            raise TypeError, "%s is not convertible to type VectorN, cross product is only defined for two Vectors of size 3" % (clsname(u))  
     return u.cross(v) 
 
 def dot(u, v):
@@ -6014,41 +6014,41 @@ def dot(u, v):
     
         Returns the dot product of u and v, u and v should be Vectors of identical size.
 
-        >>> u = Vector(1.0, 0.0, 0.0)
-        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> u = VectorN(1.0, 0.0, 0.0)
+        >>> v = VectorN(0.707, 0.0, -0.707)
         >>> dot(u, v)
         0.70699999999999996
         >>> dot(u, [0.707, 0.0, -0.707])
         0.70699999999999996
         
-        Related : see Vector.dot method.
+        Related : see VectorN.dot method.
     """
-    if not isinstance(u, Vector) :
+    if not isinstance(u, VectorN) :
         try :
-            u = Vector(u)
+            u = VectorN(u)
         except :
-            raise TypeError, "%s is not convertible to type Vector, cross product is only defined for two Vectors of identical size" % (clsname(u))  
+            raise TypeError, "%s is not convertible to type VectorN, cross product is only defined for two Vectors of identical size" % (clsname(u))  
     return u.dot(v)
 
 def outer(u, v):
-    """ outer(u, v) --> Matrix
+    """ outer(u, v) --> MatrixN
     
         Returns the outer product of vectors u and v.
 
-        >>> u = Vector(1.0, 2.0, 3.0)
-        >>> v = Vector(10.0, 20.0, 30.0)
+        >>> u = VectorN(1.0, 2.0, 3.0)
+        >>> v = VectorN(10.0, 20.0, 30.0)
         >>> outer(u, v)
-        Matrix([[10.0, 20.0, 30.0], [20.0, 40.0, 60.0], [30.0, 60.0, 90.0]])
+        MatrixN([[10.0, 20.0, 30.0], [20.0, 40.0, 60.0], [30.0, 60.0, 90.0]])
         >>> outer(u, [10.0, 20.0, 30.0])
-        Matrix([[10.0, 20.0, 30.0], [20.0, 40.0, 60.0], [30.0, 60.0, 90.0]])
+        MatrixN([[10.0, 20.0, 30.0], [20.0, 40.0, 60.0], [30.0, 60.0, 90.0]])
         
-        Related : see Vector.outer method.
+        Related : see VectorN.outer method.
     """
-    if not isinstance(u, Vector) :
+    if not isinstance(u, VectorN) :
         try :
-            u = Vector(u)
+            u = VectorN(u)
         except :
-            raise TypeError, "%s is not convertible to type Vector, outer product is only defined for two Vectors" % (clsname(u))  
+            raise TypeError, "%s is not convertible to type VectorN, outer product is only defined for two Vectors" % (clsname(u))  
     return u.outer(v)        
 
 def angle(a, b, c=None):
@@ -6059,8 +6059,8 @@ def angle(a, b, c=None):
         
         Note: this angle is not signed, use axis to know the direction of the rotation.
 
-        >>> u = Vector(1.0, 0.0, 0.0)
-        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> u = VectorN(1.0, 0.0, 0.0)
+        >>> v = VectorN(0.707, 0.0, -0.707)
         >>> angle(u, v)
         0.78539816339744828
         >>> angle(u, [0.707, 0.0, -0.707])
@@ -6069,54 +6069,54 @@ def angle(a, b, c=None):
         Alternatively can use the form angle(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
         it is then equivalent to angle(b-a, c-a)
         
-        >>> o = Vector(0.0, 1.0, 0.0, 1.0)        
-        >>> p = Vector(1.0, 1.0, 0.0, 1.0)
-        >>> q = Vector(0.707, 1.0, -0.707, 1.0)
+        >>> o = VectorN(0.0, 1.0, 0.0, 1.0)        
+        >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
+        >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
         >>> angle(o, p, q)
         0.78539816339744828
             
-        Related : see Vector.angle method.
+        Related : see VectorN.angle method.
     """     
-    if not isinstance(a, Vector) :
+    if not isinstance(a, VectorN) :
         try :
-            a = Vector(a)
+            a = VectorN(a)
         except :
-            raise TypeError, "%s is not convertible to type Vector, angle is only defined for 2 vectors or 3 points" % (clsname(a)) 
+            raise TypeError, "%s is not convertible to type VectorN, angle is only defined for 2 vectors or 3 points" % (clsname(a)) 
     if c is not None :  
         return a.angle(b, c)
     else :
         return a.angle(b)
 
 def axis(a, b, c=None, normalize=False):
-    """ axis(u, v[, normalize=False]) --> Vector
+    """ axis(u, v[, normalize=False]) --> VectorN
     
         Returns the axis of rotation from u to v as the vector n = u ^ v
         if the normalize keyword argument is set to True, n is also normalized.
         u and v should be 3 dimensional Vectors representing 3D vectors.
         
-        >>> u = Vector(1.0, 0.0, 0.0)
-        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> u = VectorN(1.0, 0.0, 0.0)
+        >>> v = VectorN(0.707, 0.0, -0.707)
         >>> axis(u, v)
-        Vector([-0.0, 0.707, 0.0])
+        VectorN([-0.0, 0.707, 0.0])
         >>> axis(u, [0.707, 0.0, -0.707], normalize=True)        
-        Vector([-0.0, 1.0, 0.0])
+        VectorN([-0.0, 1.0, 0.0])
         
         Alternatively can use the form axis(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
         it is then equivalent to axis(b-a, c-a).        
         
-        >>> o = Vector(0.0, 1.0, 0.0, 1.0)        
-        >>> p = Vector(1.0, 1.0, 0.0, 1.0)
-        >>> q = Vector(0.707, 1.0, -0.707, 1.0)
+        >>> o = VectorN(0.0, 1.0, 0.0, 1.0)        
+        >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
+        >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
         >>> axis(o, p, q, normalize=True)
-        Vector([-0.0, 1.0, 0.0])
+        VectorN([-0.0, 1.0, 0.0])
         
-        Related : see Vector.axis method.
+        Related : see VectorN.axis method.
     """
-    if not isinstance(a, Vector) :
+    if not isinstance(a, VectorN) :
         try :
-            a = Vector(a)
+            a = VectorN(a)
         except :
-            raise TypeError, "%s is not convertible to type Vector, axis is only defined for 2 vectors or 3 points" % (clsname(a))   
+            raise TypeError, "%s is not convertible to type VectorN, axis is only defined for 2 vectors or 3 points" % (clsname(a))   
     if c is not None :  
         return a.axis(b, c, normalize=normalize)
     else :
@@ -6127,8 +6127,8 @@ def cotan(a, b, c=None) :
     
         Returns the cotangent of the u, v angle, u and v should be 3 dimensional Vectors representing 3D vectors.
 
-        >>> u = Vector(1.0, 0.0, 0.0)
-        >>> v = Vector(0.707, 0.0, -0.707)
+        >>> u = VectorN(1.0, 0.0, 0.0)
+        >>> v = VectorN(0.707, 0.0, -0.707)
         >>> cotan(u, v)
         1.0
         >>> cotan(u, [0.707, 0.0, -0.707])   
@@ -6137,101 +6137,101 @@ def cotan(a, b, c=None) :
         Alternatively can use the form cotan(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
         it is then equivalent to cotan(b-a, c-a).
 
-        >>> o = Vector(0.0, 1.0, 0.0, 1.0)        
-        >>> p = Vector(1.0, 1.0, 0.0, 1.0)
-        >>> q = Vector(0.707, 1.0, -0.707, 1.0)
+        >>> o = VectorN(0.0, 1.0, 0.0, 1.0)        
+        >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
+        >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
         >>> cotan(o, p, q)
         1.0
         
-        Related : see Vector.cotan method.
+        Related : see VectorN.cotan method.
     """
-    if not isinstance(a, Vector) :
+    if not isinstance(a, VectorN) :
         try :
-            a = Vector(a)
+            a = VectorN(a)
         except :
-            raise TypeError, "%s is not convertible to type Vector, cotangent product is only defined for 2 vectors or 3 points" % (clsname(a))  
+            raise TypeError, "%s is not convertible to type VectorN, cotangent product is only defined for 2 vectors or 3 points" % (clsname(a))  
     if c is not None :  
         return a.cotan(b, c)
     else :
         return a.cotan(b)
 
 #
-#    Vector Class
+#    VectorN Class
 #
 
-class Vector(Array):
+class VectorN(Array):
     """
-        A generic size Vector class derived from Array, basically a 1 dimensional Array.
+        A generic size VectorN class derived from Array, basically a 1 dimensional Array.
         
-        Most methods and behavior are herited from Array, with the limitation that a Matrix must have
+        Most methods and behavior are herited from Array, with the limitation that a MatrixN must have
         exactly 2 dimensions.
         
-        >>> V = Vector()
+        >>> V = VectorN()
         >>> V
-        Vector([])
-        >>> V = Vector([0, 1, 2])
+        VectorN([])
+        >>> V = VectorN([0, 1, 2])
         >>> V
-        Vector([0, 1, 2])
-        >>> V = Vector(0, 1, 2)
+        VectorN([0, 1, 2])
+        >>> V = VectorN(0, 1, 2)
         >>> V
-        Vector([0, 1, 2])
-        >>> M = Matrix([[0], [1], [2]])
+        VectorN([0, 1, 2])
+        >>> M = MatrixN([[0], [1], [2]])
         >>> print M.formated()   
         [[0],
          [1],
          [2]]
-        >>> V = Vector(M.col[0])
+        >>> V = VectorN(M.col[0])
         >>> V
-        Vector([0, 1, 2])
+        VectorN([0, 1, 2])
         
-        The Vector class has a constant ndim of 1
+        The VectorN class has a constant ndim of 1
         
-        >>> Vector.ndim
+        >>> VectorN.ndim
         1
         >>> V.ndim
         1
-        >>> Vector.ndim = 2
+        >>> VectorN.ndim = 2
         Traceback (most recent call last):
             ...
-        AttributeError: attribute ndim is a read only class attribute and cannot be modified on class Vector
+        AttributeError: attribute ndim is a read only class attribute and cannot be modified on class VectorN
         >>> V.ndim = 2
         Traceback (most recent call last):
             ...
-        AttributeError: 'Vector' object attribute 'ndim' is read-only
+        AttributeError: 'VectorN' object attribute 'ndim' is read-only
             
-        It's protected against initialization or resizing to a shape that wouldn't be a Vector anymore 
+        It's protected against initialization or resizing to a shape that wouldn't be a VectorN anymore 
          
-        >>> V = Vector([[0, 1], [2, 3]]) 
+        >>> V = VectorN([[0, 1], [2, 3]]) 
         Traceback (most recent call last):
             ...
-        TypeError: cannot initialize a Vector of shape (4,) from [[0, 1], [2, 3]] of shape (2, 2),
+        TypeError: cannot initialize a VectorN of shape (4,) from [[0, 1], [2, 3]] of shape (2, 2),
         as it would truncate data or reduce the number of dimensions
             
         >>> V.resize((2, 2))
         Traceback (most recent call last):
             ...
-        TypeError: new shape (2, 2) is not compatible with class Vector
+        TypeError: new shape (2, 2) is not compatible with class VectorN
         
-        Other Array types can be cast to Vector, but truncating data or reducing dimensions is not allowed
+        Other Array types can be cast to VectorN, but truncating data or reducing dimensions is not allowed
         to avoid silent loss of data in a conversion, use an explicit resize / trim / sub-array extraction
 
         >>> A = Array(range(4), shape=(4,))
-        >>> V = Vector(A)
+        >>> V = VectorN(A)
         >>> V
-        Vector([0, 1, 2, 3])
+        VectorN([0, 1, 2, 3])
 
         >>> A = Array(range(4), shape=(2, 2))
-        >>> V = Vector(A)
+        >>> V = VectorN(A)
         Traceback (most recent call last):
             ...
-        TypeError: cannot cast a Array of shape (2, 2) to a Vector of shape (4,),
+        TypeError: cannot cast a Array of shape (2, 2) to a VectorN of shape (4,),
         as it would truncate data or reduce the number of dimensions
         
-        As for Array, __init__ is a shallow copy, note that as Vector don't have sub-arrays,
+        As for Array, __init__ is a shallow copy, note that as VectorN don't have sub-arrays,
         shallow and deep copy amounts to the same thing.
         
         >>> A = Array(range(4), shape=(4,))
-        >>> V = Vector(A)
+        >>> V = VectorN(A)
         >>> V == A
         False
         >>> V is A
@@ -6245,7 +6245,7 @@ class Vector(Array):
     """
     __slots__ = ['_data', '_shape', '_size']    
     
-    #A Vector is a one-dimensional Array, ndim is thus stored as a class readonly attribute
+    #A VectorN is a one-dimensional Array, ndim is thus stored as a class readonly attribute
     ndim = 1
     
     def _getshape(self):
@@ -6256,26 +6256,26 @@ class Vector(Array):
     shape = property(_getshape, _setshape, None, 
                      """ v.shape : tuple of one int
                      
-                         Shape of the Vector, as Vectors are one-dimensional Arrays: v.shape = (v.size,).
+                         Shape of the VectorN, as Vectors are one-dimensional Arrays: v.shape = (v.size,).
                      
-                         It can be queried, or set to change the Vector's shape similarly to the resize method,
-                         as the only way to change a Vector's shape is to resize it.
+                         It can be queried, or set to change the VectorN's shape similarly to the resize method,
+                         as the only way to change a VectorN's shape is to resize it.
                          
-                         >>> V = Vector(1, 2, 3)
+                         >>> V = VectorN(1, 2, 3)
                          >>> V
-                         Vector([1, 2, 3])
+                         VectorN([1, 2, 3])
                          >>> V.shape=(4)
                          >>> V
-                         Vector([1, 2, 3, 0])
+                         VectorN([1, 2, 3, 0])
                          >>> V.shape=(2, 2)
                          Traceback (most recent call last):
                              ...
-                         TypeError: new shape (2, 2) is not compatible with class Vector
+                         TypeError: new shape (2, 2) is not compatible with class VectorN
             
                          Related : see Array.resize method.
                      """)    
-    # ndim = property(lambda x : 1, None, None, "A Vector is a one-dimensional Array")
-    size = property(lambda x : len(x), None, None, "Number of components in the Vector")
+    # ndim = property(lambda x : 1, None, None, "A VectorN is a one-dimensional Array")
+    size = property(lambda x : len(x), None, None, "Number of components in the VectorN")
     
     # common operators are herited from Arrays
            
@@ -6283,15 +6283,15 @@ class Vector(Array):
     def __mul__(self, other):
         """ a.__mul__(b) <==> a*b
         
-            If b is a Vector, __mul__ is mapped to the dot product of the two vectors a and b,
-            If b is a Matrix, __mul__ is mapped to Vector a by Matrix b multiplication (post multiplication or transformation of a by b),
+            If b is a VectorN, __mul__ is mapped to the dot product of the two vectors a and b,
+            If b is a MatrixN, __mul__ is mapped to VectorN a by MatrixN b multiplication (post multiplication or transformation of a by b),
             otherwise, returns the result of the element wise multiplication of a and b if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value
         """
-        if isinstance(other, Vector) :
+        if isinstance(other, VectorN) :
             return self.dot(other)
-        elif isinstance(other, Matrix) :
-            # will defer to Matrix rmul
+        elif isinstance(other, MatrixN) :
+            # will defer to MatrixN rmul
             return NotImplemented
         else :
             # will defer to Array.__mul__
@@ -6299,15 +6299,15 @@ class Vector(Array):
     def __rmul__(self, other):
         """ a.__rmul__(b) <==> b*a
         
-            If b is a Vector, __rmul__ is mapped to the dot product of the two vectors a and b,
-            If b is a Matrix, __rmul__ is mapped to Matrix b by Vector a multiplication,
+            If b is a VectorN, __rmul__ is mapped to the dot product of the two vectors a and b,
+            If b is a MatrixN, __rmul__ is mapped to MatrixN b by VectorN a multiplication,
             otherwise, returns the result of the element wise multiplication of b and a if b is convertible to Array,
             multiplies every component of a by b if b is a single numeric value
         """       
-        if isinstance(other, Vector) :
+        if isinstance(other, VectorN) :
             return self.dot(other)
-        elif isinstance(other, Matrix) :
-            # will defer to Matrix mul
+        elif isinstance(other, MatrixN) :
+            # will defer to MatrixN mul
             return NotImplemented
         else :
             # will defer to Array.__rmul__
@@ -6315,7 +6315,7 @@ class Vector(Array):
     def __imul__(self, other):
         """ a.__imul__(b) <==> a *= b
         
-            In place multiplication of Vector a and b, see __mul__, result must fit a's type
+            In place multiplication of VectorN a and b, see __mul__, result must fit a's type
         """      
         res = self*other
         if isinstance(res, self.__class__) :
@@ -6328,19 +6328,19 @@ class Vector(Array):
         """ a.__xor__(b) <==> a^b
         
             Defines the cross product operator between two vectors,
-            if b is a Matrix, a^b is equivalent to transforming a by the inverse transpose Matrix of b,
+            if b is a MatrixN, a^b is equivalent to transforming a by the inverse transpose MatrixN of b,
             often used to transform normals
         """
-        if isinstance(other, Vector) :
+        if isinstance(other, VectorN) :
             return self.cross(other)  
-        elif isinstance(other, Matrix) :
+        elif isinstance(other, MatrixN) :
             return self.transformAsNormal(other)
         else :
             return NotImplemented
     def __ixor__(self, other):
         """ a.__xor__(b) <==> a^=b
         
-            Inplace cross product or transformation by inverse transpose Matrix of b is v is a Matrix
+            Inplace cross product or transformation by inverse transpose MatrixN of b is v is a MatrixN
         """        
         res = self.__xor__(other) 
         if isinstance(res, self.__class__) :
@@ -6357,11 +6357,11 @@ class Vector(Array):
             
         """
         try :
-            nself, nother = coerce(Vector(self), other)
+            nself, nother = coerce(VectorN(self), other)
             assert len(nself) == len(nother) == 3
         except :
             raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors of size 3" % (clsname(other), clsname(self))     
-        return Vector([nself[1]*nother[2] - nself[2]*nother[1],
+        return VectorN([nself[1]*nother[2] - nself[2]*nother[1],
                 nself[2]*nother[0] - nself[0]*nother[2],
                 nself[0]*nother[1] - nself[1]*nother[0]])         
     def dot(self, other):
@@ -6372,7 +6372,7 @@ class Vector(Array):
             
         """
         try :
-            nself, nother = coerce(Vector(self), other)
+            nself, nother = coerce(VectorN(self), other)
         except :
             raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors of identical size" % (clsname(other), clsname(self))               
         return reduce(operator.add, map(operator.mul, nself, nother)) 
@@ -6382,20 +6382,20 @@ class Vector(Array):
             Outer product of vectors u and v
         """
         try :
-            nself, nother = coerce(Vector(self), other)
+            nself, nother = coerce(VectorN(self), other)
         except :
             raise TypeError, "%s not convertible to %s, cross product is only defined for two Vectors" % (clsname(other), clsname(self))       
-        return Matrix([nother*x for x in nself]) 
+        return MatrixN([nother*x for x in nself]) 
     def transformAsNormal(self, other):
-        """ u.transformAsNormal(m) --> Vector
+        """ u.transformAsNormal(m) --> VectorN
         
-            Equivalent to transforming u by the inverse transpose Matrix of m, used to transform normals.
+            Equivalent to transforming u by the inverse transpose MatrixN of m, used to transform normals.
             
         """ 
         try :
-            nother = Matrix(other)
+            nother = MatrixN(other)
         except :
-            raise TypeError, "%s not convertible to Matrix" % (clsname(other))                     
+            raise TypeError, "%s not convertible to MatrixN" % (clsname(other))                     
         return nother.transpose().inverse().__rmul__(self)
     
     # min, max etc methods derived from array  
@@ -6416,7 +6416,7 @@ class Vector(Array):
         """
         return sqrt(self.sqlength())                
     def normal(self): 
-        """ u.normal() --> Vector
+        """ u.normal() --> VectorN
         
             Returns a normalized copy of self. Overriden to be consistant with Maya API and MEL unit command,
             does not raise an exception if self if of zero length, instead returns a copy of self
@@ -6430,10 +6430,10 @@ class Vector(Array):
     def isParallel(self, other, tol=eps):
         """ u.isParallel(v[, tol]) --> bool
         
-            Returns True if both arguments considered as Vector are parallel within the specified tolerance
+            Returns True if both arguments considered as VectorN are parallel within the specified tolerance
         """
         try :
-            nself, nother = coerce(Vector(self), other)
+            nself, nother = coerce(VectorN(self), other)
         except :
             raise TypeError, "%s not convertible to %s, isParallel is only defined for two Vectors" % (clsname(other), clsname(self))       
         return (abs(nself.dot(nother) - nself.length()*nother.length()) <= tol)     
@@ -6450,15 +6450,15 @@ class Vector(Array):
         """         
         if third is not None :
             try :
-                nself, nother = coerce(Vector(self), other)
-                nself, nthird = coerce(Vector(self), third)
+                nself, nother = coerce(VectorN(self), other)
+                nself, nthird = coerce(VectorN(self), third)
                 assert len(nself) == len(nother) == len(nthird) == 4
             except :
                 raise TypeError, "angle is defined for 3 vectors of size 4 representing 3D points"
             nself, nother = (nother-nself)[:3], (nthird-nself)[:3]
         else :
             try :
-                nself, nother = coerce(Vector(self), other)
+                nself, nother = coerce(VectorN(self), other)
                 assert len(nself) == len(nother) == 3
             except :
                 raise TypeError, "angle is defined for 2 vectors of size 3 representing 3D vectors"       
@@ -6481,15 +6481,15 @@ class Vector(Array):
         """
         if third is not None :
             try :
-                nself, nother = coerce(Vector(self), other)
-                nself, nthird = coerce(Vector(self), third)
+                nself, nother = coerce(VectorN(self), other)
+                nself, nthird = coerce(VectorN(self), third)
                 assert len(nself) == len(nother) == len(nthird) == 4
             except :
                 raise TypeError, "axis is defined for 3 vectors of size 4 representing 3D points"
             nself, nother = (nother-nself)[:3], (nthird-nself)[:3]
         else :
             try :
-                nself, nother = coerce(Vector(self), other)
+                nself, nother = coerce(VectorN(self), other)
                 assert len(nself) == len(nother) == 3
             except :
                 raise TypeError, "axis is defined for 2 vectors of size 3 representing 3D vectors"                
@@ -6507,15 +6507,15 @@ class Vector(Array):
         """
         if third is not None :
             try :
-                nself, nother = coerce(Vector(self), other)
-                nself, nthird = coerce(Vector(self), third)
+                nself, nother = coerce(VectorN(self), other)
+                nself, nthird = coerce(VectorN(self), third)
                 assert len(nself) == len(nother) == len(nthird) == 4
             except :
                 raise TypeError, "cotan is defined for 3 vectors of size 4 representing 3D points"
             nself, nother = (nother-nself)[:3], (nthird-nself)[:3]
         else :
             try :
-                nself, nother = coerce(Vector(self), other)
+                nself, nother = coerce(VectorN(self), other)
                 assert len(nself) == len(nother) == 3
             except :
                 raise TypeError, "cotan is defined for 2 vectors of size 3 representing 3D vectors"       
@@ -6524,10 +6524,10 @@ class Vector(Array):
     def projectionOnto(self, other): 
         """Returns the projection of this vector onto other vector."""
         try :
-            nself, nother = coerce(Vector(self), other)
+            nself, nother = coerce(VectorN(self), other)
         except :
             raise NotImplemented, "%s not convertible to %s" % (clsname(other), clsname(self))     
-        return Vector( (nself.dot(nother) /  nother.sqlength()) * nother )    
+        return VectorN( (nself.dot(nother) /  nother.sqlength()) * nother )    
     # blend and clamp derived from Array
              
 if __name__ == '__main__' :
