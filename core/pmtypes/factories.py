@@ -1856,6 +1856,17 @@ class ApiTypeRegister(object):
         getArray.__name__ = 'get_' + apiTypename + str(length) + 'Array'
         return getArray
     
+    @classmethod
+    def getPymelType(cls, apiType):
+        try:
+            return cls.types[apiType]
+        except KeyError:
+            try:
+                # convert to pymel naming convetion  MTime -> Time,  MVector -> Vector
+                return re.spit( 'MIt|MFn|M', apiType)[0]
+            except IndexError:
+                raise
+            
     @classmethod   
     def isRegistered(cls, apiTypename):
         return apiTypename in cls.types
@@ -2249,6 +2260,16 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                 # to
                 # "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
                 
+                # Enums
+                
+                if isinstance(type, tuple):
+                    try:
+                        type = type.pymelName()
+                    except:
+                        try:
+                            type.pymelName( ApiTypeRegister.getPymelType( type[0] ) )
+                        except:
+                            print "could not convert enum to pymel name", type
                 return repr(type).replace("'", "`")
             
             # Docstrings
@@ -2267,7 +2288,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
                     
 
                     
-
+            # Results doc strings
             results = []
             returnType = methodInfo['returnType']
             if returnType: 

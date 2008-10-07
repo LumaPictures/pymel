@@ -30,6 +30,16 @@ _thisModule = sys.modules[__name__]
 class Enum(tuple):
     def __str__(self): return '.'.join( [str(x) for x in self] )
     def __repr__(self): return repr(str(self))
+    def pymelName(self, forceType=None):
+        parts = list(self)
+        if forceType:
+            parts[0] = forceType
+        else:
+            mfn = getattr( _thisModule, self[0] )
+            mayaTypeDict = ApiEnumsToMayaTypes()[ mfn().type() ]
+            parts[0] = util.capitalize( mayaTypeDict.keys()[0] )
+
+        return '.'.join( [str(x) for x in parts] )
 
 class ApiDocParser(object):
     def __init__(self, apiClassName, version='2009', verbose=False):
@@ -59,7 +69,7 @@ class ApiDocParser(object):
                 if origGetMethod in allFnMembers:
                     # fix set
                     if re.match( 'is[A-Z].*', origGetMethod):
-                        newSetMethod = member[2].lower() + member[3:]
+                        newSetMethod = 'set' + member[5:]
                         pymelNames[member] = newSetMethod
                         for info in self.methods[member]:
                             info['pymelName'] = newSetMethod 
