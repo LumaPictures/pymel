@@ -1,5 +1,5 @@
 import sys, unittest
-from .. import testingutils
+import testingutils
 
 class TestAssertIteration(testingutils.TestCaseExtended):
     #################################################

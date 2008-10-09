@@ -15,6 +15,9 @@ else :
     sep = os.path.pathsep
 
 SYSTEM = platform.system()
+# Note: for XP x64 and Vista, system() returns 'Microsoft'... do we want to 'standardize'?
+#if SYSTEM == 'Microsoft':
+#    SYSTEM = 'Windows'
 
 # A source commande that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it

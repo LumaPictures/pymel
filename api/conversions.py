@@ -1135,15 +1135,34 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         #print "unpickled", ApiTypesToApiClasses
         #return data
         #print data
-        ReservedMayaTypes(data[0])
-        ReservedApiTypes(data[1])
-        ApiTypesToApiEnums(data[2])
-        ApiEnumsToApiTypes(data[3])
-        MayaTypesToApiTypes(data[4])
-        apiTypesToApiClasses = data[5]
-        ApiTypesToApiClasses(data[5])
-        apiTypeHierarchy = data[6]
-        apiClassInfo = data[7]
+        if VERBOSE:
+            print "data <= %s" % cacheFileName
+            print "len(data): %d" % len(data)
+            for i, value in enumerate(data):
+                print("data[%d] class: %s" % (i, value.__class__.__name__))
+                if isinstance(value, dict):
+                    for key, val in value.iteritems():
+                        print "{%s:%s, ...}" % (key, val)
+                        break
+                elif isinstance(value, IndexedFrozenTree):
+                    print "Tops: ",
+                    print " ,".join(["%s:%s" % (top.key, top.value) for top in value.tops()])
+                print
+        
+        if len(data) == 7:
+            util.warn("Api cache file was an old version (< r654): %s" % cacheFileName)
+            # We've got a .bin from < r654...
+            apiClassInfo = data[6]
+            rebuildAllButClassInfo = True
+        else:
+            ReservedMayaTypes(data[0])
+            ReservedApiTypes(data[1])
+            ApiTypesToApiEnums(data[2])
+            ApiEnumsToApiTypes(data[3])
+            MayaTypesToApiTypes(data[4])
+            ApiTypesToApiClasses(data[5])
+            apiTypeHierarchy = data[6]
+            apiClassInfo = data[7]
         
         print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
         

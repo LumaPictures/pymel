@@ -210,7 +210,7 @@ import pymel.core.pmtypes.path as path
 from pymel.util.external.ply.lex import LexError
 import pymel.util as util
 import pymel.mayahook as mayahook
-import pymel.factories as _factories
+import pymel.core.pmtypes.factories as _factories
 import pymel
 import os
 

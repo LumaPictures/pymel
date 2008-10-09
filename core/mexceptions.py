@@ -148,7 +148,14 @@ def formatException( exceptionType, exceptionObject, traceBack ):
 
 maya.app.python.formatException = formatException
 
+def lastFormattedException():
+    """Shorthand for formatException(sys.exc_type, sys.exc_value, sys.exc_traceback)"""
+    return formatException(sys.exc_type, sys.exc_value, sys.exc_traceback)
 
+def printLastException():
+    """Shorthand for print(lastFormattedException())"""
+    print(lastFormattedException())
+    
 # Filter User Errors, Warnings and Prints by Verbosity
 
 def maxVerboseLevel() :

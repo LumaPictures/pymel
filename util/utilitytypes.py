@@ -109,10 +109,10 @@ class metaStatic(Singleton) :
     
         >>> a['A']
         1
-        >>> a['A'] = 2
+        >>> a['A'] = 2   #doctest: +ELLIPSIS
         Traceback (most recent call last):
             ...
-        TypeError: '<class '__main__.FrozenDictSingleton'>' object does not support item assignation
+        TypeError: '<class '...FrozenDictSingleton'>' object does not support item assignation
         
         >>> a.clear()
         Traceback (most recent call last):

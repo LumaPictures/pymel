@@ -854,6 +854,8 @@ print "imported api"
 from core import *
 print "imported core"
 
+from util.test import test_main, test_module
+
 #_module = __import__('core.other', globals(), locals(), [''])
 
 #import factories

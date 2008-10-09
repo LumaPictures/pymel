@@ -4,10 +4,10 @@ from operator import itemgetter as _itemgetter
 from keyword import iskeyword as _iskeyword
 import sys as _sys
 
-def namedtuple(typename, field_names, verbose=False):
+def namedtuple(typename, field_names, docAppend="", verbose=False):
     """ Returns a new subclass of tuple with named fields.
 
-    >>> Point = namedtuple('Point', 'x', 'y')
+    >>> Point = namedtuple('Point', 'x, y')
     >>> Point.__doc__                   # docstring for the new class
     'Point(x, y)'
     >>> p = Point(11, y=22)             # instantiate with positional args or keywords
@@ -27,6 +27,8 @@ def namedtuple(typename, field_names, verbose=False):
     Point(x=100, y=22)
 
     """
+    
+    docAppend = docAppend.encode('string_escape')
 
     # Parse and validate the field names.  Validation serves two purposes,
     # generating informative error messages and preventing template injection attacks.
@@ -59,7 +61,7 @@ def namedtuple(typename, field_names, verbose=False):
     reprtxt = ', '.join('%s=%%r' % name for name in field_names)
     dicttxt = ', '.join('%r: t[%d]' % (name, pos) for pos, name in enumerate(field_names))
     template = '''class %(typename)s(tuple):
-        '%(typename)s(%(argtxt)s)' \n
+        '%(typename)s(%(argtxt)s)%(docAppend)s' \n
         __slots__ = () \n
         _fields = %(field_names)r \n
         def __new__(cls, %(argtxt)s):

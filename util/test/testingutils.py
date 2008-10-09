@@ -1,5 +1,24 @@
-import sys
+import sys, os, types, doctest
 from unittest import *
+from pymel import lastFormattedException
+from pymel.util import warn
+
+TEST_MAIN_FUNC_NAME = "test_main"
+SUITE_FUNC_NAME = "suite"
+
+# TODO: add doctest.testmod() that works in maya gui
+# TODO: filter doctest output as per http://bugs.python.org/issue1611
+
+def default_test_runner(suite):
+    TextTestRunner(stream=sys.stdout, verbosity=2).run(suite)
+    
+def default_suite(module):
+    theSuite = findTestCases(module)
+    # TODO: add in automated running of doctests...
+#    doctestMod = getattr(module, 'doctestMod', False)
+#    if doctestMod:
+#        theSuite.addTest(doctest.DocTestSuite(doctestMod))
+    return theSuite
 
 #def makeModuleSuite(moduleName, classPrefix='Test'):
 #    """
@@ -15,26 +34,48 @@ from unittest import *
 #    return suite
 #
 def addFuncToModule(func, module):
-    setattr(module, func.__name__, func) 
+    if not hasattr(module, func.__name__):
+        setattr(module, func.__name__, func) 
+
+def startsWithdoubleUnderscore(testcase):
+    return testcase.__name__.startswith("__")
     
-def setupUnittestModule(moduleName):
+def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainName=TEST_MAIN_FUNC_NAME,
+                        filterTestCases=startsWithdoubleUnderscore):
     """
     Add basic unittest functions to the given module.
      
     Will add a 'suite' function that returns a suite object for the module,
     and a 'test_main' function which runs the suite.
     
+    If a filterTestCases function is given, then this is applied to all objects in the module which
+    inherit from TestCase, and if it returns true, removes them from the module dictionary,
+    so that they are not automatically loaded.
+    
+    By default, it will filter all TestCases whose name starts with a double-underscore, ie
+    '__AbstractTestCase' 
+    
     Will then call 'test_main' if moduleName == '__main__'
     """
     module = sys.modules[moduleName]
     def suite():
-        return findTestCases(module)
+        return default_suite(module)
+    suite.__name__ = suiteFuncName
     
     def test_main():
-        TextTestRunner(stream=sys.stdout, verbosity=2).run(suite())
+        return default_test_runner(suite())
+    test_main.__name__ = testMainName
     
     addFuncToModule(suite, module)
     addFuncToModule(test_main, module)
+    
+    for name in dir(module):
+        obj = getattr(module, name)
+        if (isinstance(obj, (type, types.ClassType)) and
+            issubclass(obj, TestCase) and
+            filterTestCases and
+            filterTestCases(obj)):
+            delattr(module, name)
     
     if moduleName == '__main__':
         test_main()
@@ -49,12 +90,16 @@ def setupUnittestModule(moduleName):
 #    def __init__
 
 class TestCaseExtended(TestCase):
+    # Set this to True if you want to create a TestCase that you DON'T
+    # want run (ie, an abstract class you wish to derive from, etc)
+    DO_NOT_LOAD = False
+    
     #def addTestFunc(self, function):
     def assertNoError(self, function, *args, **kwargs):
         try:
             function(*args, **kwargs)
         except:
-            self.fail()
+            self.fail("Exception raised:\n%s" % lastFormattedException())
     
     def assertIteration(self, iterable, expectedResults,
                         orderMatters=True,
@@ -170,6 +215,7 @@ class TestCaseExtended(TestCase):
         message = "iterable '%s' did not contain expected item(s): %s" % (iterable, [str(x) for x in unmatchedResults])
         self.assertEqual(len(unmatchedResults), 0, message)
 
+
 # TODO: move to util.math?
 def permutations(sequence, length=None):
     """Given a sequence, will return an iterator over the possible permutations.
@@ -194,7 +240,31 @@ def permutations(sequence, length=None):
         for i in xrange(len(sequence)):
             for subpermutation in permutations(sequence[:i] + sequence[i+1:], length - 1):
                 yield [sequence[i]] + subpermutation
+
+
+def isOneToOne(dict):
+    """
+    Tests if the given dictionary is one to one (if dict[x]==dict[y], x==y)
+    """
+    return len(set(dict.itervalues())) == len(dict)
                 
+def isEquivalenceRelation(inputs, outputs, dict):
+    """
+    Tests if the given dictionary defines an equivalence relation from between inputs and outputs.
+    
+    Technically, tests if the dict is bijective: ie, one-to-one (if dict[x]==dict[y], x==y) and
+    onto (for every y in outputs, exists an x such that dict[x] == y)
+    """
+    inputs = set(inputs)
+    output = set(outputs)
+    if len(inputs) == len(outputs) and \
+        set(dict.iterkeys()) == inputs and \
+        set(dict.itervalues()) == outputs:
+        
+        return True
+    else:
+        return False
+    
 #class VariableStringElement(object):
 #    """
 #    Used to contruct a string with variable elements for testing purposes.
@@ -257,3 +327,144 @@ def permutations(sequence, length=None):
 #                    else:
 #                        for seperator in self.seperatorPrefixes:
 #                            yield seperator + result
+
+class SuiteFromTestModule(TestSuite):
+    def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME):
+        super(SuiteFromTestModule, self).__init__()
+        self.moduleName = moduleName
+        self.suiteFuncName = suiteFuncName
+        self._importTestModule()
+        self._importSuite()
+        self._makeTestCase()
+        self.addTest(self.testCase)
+        if self.importedSuite:
+            self.addTest(self.importedSuite)
+        
+    def _importTestModule(self):
+        self._importError = None
+        try:
+            self.module = __import__(self.moduleName)
+            
+            # if moduleName is 'package.module', __import__ returns package!
+            packagePath = self.moduleName.split('.')
+            for subModule in packagePath[1:]:
+                self.module = getattr(self.module, subModule)
+        except:
+            self._importError = lastFormattedException()
+            self.module = None
+            
+    def _importSuite(self):
+        self.importedSuite = None
+        if self.module:
+            try:
+                self.suiteFunc = getattr(self.module, self.suiteFuncName)
+                self.importedSuite = suiteFunc()
+            except:
+                pass
+
+            if not self.importedSuite:
+                try:
+                    self.importedSuite = default_suite(self.module)
+                except:
+                    pass
+
+        if not isinstance(self.importedSuite, TestSuite):
+            self.importedSuite = None
+
+    def _makeTestCase(self):
+        class TestSuiteImport(TestCaseExtended):
+            def runTest(self_testcase):
+                """Try to import a test module for unittesting"""
+                self_testcase.assertTrue(self.module, "Failed to import module '%s':\n%s" % (self.moduleName, self._importError))
+                self_testcase.assertTrue(self.importedSuite, "Failed to create a test suite from module '%s'" % self.moduleName)
+        self.testCase = TestSuiteImport()
+
+# TODO: check for doctests    
+def suite():
+    suite = TestSuite()
+    for testMod in findTestModules():
+        suite.addTest(SuiteFromTestModule(testMod))
+    return suite
+    
+def test_main():
+    default_test_runner(suite())
+
+# TODO: check for doctests    
+def findPymelTestModules(module, testModulePrefix="test_"):
+    """
+    Will return the name of the test module used for testing the given module.
+    
+    If testModuleExactName is True, then module should be the name of the module
+    that contains the unittesting code, ie 'test_utilitypes'; otherwise, it should
+    be the name of a module (ie, 'utilitytypes') or the module object itself that
+    we wish to find a unittest package for.
+    """
+    if isinstance(module, types.ModuleType):
+        moduleName = module.__name__
+    else:
+        moduleName = module
+        
+
+        
+    # NOTE: For now, I'm ignoring the possibility of modules with the same name,
+    # but within different pacakges - ie, 'package.aModule' and 'nextPackage.aModule'    
+    
+    # If we were fed a package name, ie 'pymel.util.utilitytypes', get just
+    # the final name, ie 'utilitytypes'
+    shortName = moduleName.split('.')[-1]
+
+    if testModulePrefix:
+        shortName = testModulePrefix + shortName
+    
+    for testModule in findTestModules():
+        if testModule.split('.')[-1] == shortName:
+            return testModule
+    return []
+
+
+def test_module(module, testModuleExactName=False, testModulePrefix="test_"):
+    testModuleNames = findPymelTestModules(module, testModulePrefix=testModulePrefix)
+    suite = TestSuite()
+    for mod in testModuleName:
+        suite.addTest(SuiteFromTestModule(mod))
+    
+    if len(suite):
+        default_test_runner(suite)
+    else:
+        warn("Could not find a test module for '%s'" % module)
+
+#================================================================================
+# Following code modified from python 2.5.1 source code, in module:
+#   lib\test\regrtest.py
+#================================================================================
+STDTESTS = []
+NOTTESTS = []
+def findTestModules(testdir=None, stdtests=STDTESTS, nottests=NOTTESTS, package="__thisPackage__", testModulePrefix="test_"):
+    """Return a list of all applicable test modules."""
+    if package == "__thisPackage__":
+        package = ".".join(__name__.split(".")[:-1])
+    if testdir is None:
+        testdir = findtestdir()
+    names = os.listdir(testdir)
+    tests = []
+    for name in names:
+        if name[:len(testModulePrefix)] == testModulePrefix and name[-3:] == os.extsep+"py":
+            modname = name[:-3]
+            if package:
+                modname = package + "." + modname
+            if modname not in stdtests and modname not in nottests:
+                tests.append(modname)
+    tests.sort()
+    return stdtests + tests
+
+def findtestdir():
+    if __name__ == '__main__':
+        file = sys.argv[0]
+    else:
+        file = __file__
+    testdir = os.path.dirname(file) or os.curdir
+    return testdir
+
+#===============================================================================
+#  End of code originally from python 2.5.1
+#===============================================================================
