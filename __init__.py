@@ -3,9 +3,9 @@
 # created at luma pictures   www.luma-pictures.com
  
 """
-=====
-Pymel
-=====
+*******************************
+          Pymel
+*******************************
 
 Pymel makes python scripting in Maya work the way it should. Maya's command module is a direct
 translation of mel commands into python commands. The result is a very awkward and unpythonic syntax which
@@ -15,61 +15,58 @@ customizing them to operate in a more succinct and intuitive way.
 
 .. contents:: :backlinks: none
 
-=========================
+===============================
 What's New in Version 0.8
-=========================
+===============================
 
 -------------------------------
 Non-Backward Compatible Changes
 -------------------------------
-	- Renamed Classes:
-		- Vector --> `MVector`
-		- Matrix --> `MMatrix`
-	- Changed and Renamed Functions:
-		- Attribute disconnection operator has changed from <> to //
-	- Node classes no longer inherit from unicode: see section `API Underpinnings`
+    - Changed and Renamed Functions:
+        - Attribute disconnection operator has changed from <> to //
+    - Node classes no longer inherit from unicode: see section `API Underpinnings`
 
-	
----------------------------		
+    
+-------------------------------      
 Other Additions and Changes
----------------------------
-	- Module reorganization: 
-		- `core` is the primary module for maya commands and node classes
-			- Its sub-modules correspond to the groupings in the maya command documentation
-				- `animation`
-				- `effects`
-				- `general`: encompasses old 'core' and 'node' modules
-				- `language`
-				- `modeling`
-				- `rendering`
-				- `system`: previously 'io'
-				- `windows`: previously 'ui'
-			- It also contains special-purpose sub-modules
-				- `context`: previously 'ctx', contains context tools
-				- `runtime`: runtime commands
-				- `other`: for commands which are not included in the maya documentation (such as commands created by plugins)
-		
-	
-	- New Classes:
-		- `MelGlobals` class, for more streamlined access to mel global variables
+-------------------------------
+    - Module reorganization: 
+        - `core` is the primary module for maya commands and node classes
+            - Its sub-modules correspond to the groupings in the maya command documentation
+                - `animation`
+                - `effects`
+                - `general`: encompasses old 'core' and 'node' modules
+                - `language`
+                - `modeling`
+                - `rendering`
+                - `system`: previously 'io'
+                - `windows`: previously 'ui'
+            - It also contains special-purpose sub-modules
+                - `context`: previously 'ctx', contains context tools
+                - `runtime`: runtime commands
+                - `other`: for commands which are not included in the maya documentation (such as commands created by plugins)
+        
+    
+    - New Classes:
+        - `MelGlobals` class, for more streamlined access to mel global variables
 
-				
-	- Maya Bug Fixes
+                
+    - Maya Bug Fixes
 
 
-	- Pymel Bug Fixes
+    - Pymel Bug Fixes
 
-				
-	- Other Improvements
-		- commands and classes created by plugins are now properly created on load and removed on unload
-		
-========================
+                
+    - Other Improvements
+        - commands and classes created by plugins are now properly created on load and removed on unload
+        
+===============================
 Installation
-========================
+===============================
 
--------------
+-------------------------------
 Pymel Package
--------------
+-------------------------------
 
 If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your scripts directory 
 
@@ -79,22 +76,22 @@ Platform    Location
 mac         ~/Library/Preferences/Autodesk/maya/8.5/scripts
 linux       ~/maya/maya/8.5/scripts
 =========   =======================
-	
+    
 However, it is usually a good idea to create a separate directory for your python scripts so that you can organize them independently
 of your mel scripts.  You can do this by setting the PYTHONPATH environment variable in your Maya.env file. Set the PYTHONPATH environment
 variable to the directory *above* the pymel folder.  For example, if the pymel folder on your machine is C:\My Documents\python\pymel 
 then you would add this line to your Maya.env::  
 
-	PYTHONPATH = C:\My Documents\python
+    PYTHONPATH = C:\My Documents\python
 
 Next, to avoid having to import pymel every time you startup, you can create a userSetup.mel
 file, place it in your scipts directory and add this line::
 
-	python("from pymel import *");
+    python("from pymel import *");
 
 Alternately, you can create a userSetup.py file and add the line::
 
-	from pymel import *
+    from pymel import *
 
 Note that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
 
@@ -116,18 +113,18 @@ Problems with Maya 2008-x64 on Linux
 If you encounter an error loading the plugin in maya 2008 on 64-bit linux, you may have to fix a few symlinks. 
 As root, or with sudo privileges do the following::
 
-	cd /lib64
-	ls -la libssl*
+    cd /lib64
+    ls -la libssl*
 
 You might see something like the following returned::
-	
-	-rwxr-xr-x 1 root root 302552 Nov 30  2006 libssl.so.0.9.8b
-	lrwxrwxrwx 1 root root     16 Jul 16  2007 libssl.so.6 -> libssl.so.0.9.8b
+    
+    -rwxr-xr-x 1 root root 302552 Nov 30  2006 libssl.so.0.9.8b
+    lrwxrwxrwx 1 root root     16 Jul 16  2007 libssl.so.6 -> libssl.so.0.9.8b
 
 The distribution of python2.5 that comes with maya2008 expects libssl.so.4, but i have libssl.so.6.  So, I have to 
 create a symbolic link to the real library (in my case libssl.so.0.9.8b, but it may differ depending on your distribution)::
-	
-	sudo ln -s libssl.so.0.9.8b libssl.so.4
+    
+    sudo ln -s libssl.so.0.9.8b libssl.so.4
 
 The same thing must be done for libcrypto.so.4
 
@@ -138,7 +135,7 @@ Getting Started
 If you are a mel scripter but have not used python in maya yet, you should start with the Maya docs on the subject, particularly
 the section `Using Python <http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>`__. This will help you to understand 
 the differences in syntax between the two languages and how to translate between them. Another great way to learn how to translate 
-mel into python is to install the new Script Editor (instructions above). With it you can execute some mel code and watch the 
+mel into python is to install the new `Script Editor`_. With it you can execute some mel code and watch the 
 python output in the top pane. You can toggle back and forth by checking and unchecking the "Convert Mel to Python" checkbox.
 
 ----------
@@ -151,38 +148,43 @@ hiding a great deal of its power right under your nose.  Take the `ls` command f
 will return a list of strings.  These strings have a lot of built-in functionality that make them a much more 
 powerful than strings in mel:
 
-	>>> import maya.cmds
-	>>> cam = maya.cmds.ls( type='camera')[0]
-	>>> print cam
-	frontShape
-	>>> print cam[0] # indexable: get a single element of the string
-	f
-	>>> print cam[5:] # slicable: get a sub string
-	Shape
-	>>> new = cam.replace( 'front', 'monkey' )  # an example string operation
-	>>> print new
-	monkeyShape
-		
-So, already you have object-oriented power at your fingertips. When using pymel, the `ls` command still returns special `PyNode` classes,
+    >>> import maya.cmds
+    >>> cam = maya.cmds.ls( type='camera')[0]
+    >>> print cam
+    frontShape
+    >>> print cam[0] # indexable: get a single element of the string
+    f
+    >>> print cam[5:] # slicable: get a sub string
+    Shape
+    >>> new = cam.replace( 'front', 'monkey' )  # an example string operation
+    >>> print new
+    monkeyShape
+        
+So, already you have object-oriented power at your fingertips. When using pymel, the `ls` command returns special `PyNode` classes,
 which are like strings are on steroids: in addition to the built-in string methods ( a method is a function that belongs to a class ), 
-pymel adds methods for operating on the type of object that the string represents:
+pymel adds methods for operating on the type of maya object that the string represents:
 
-	>>> import pymel
-	>>> cam = pymel.ls( type='camera')[0]
-	>>> print cam
-	frontShape
-	>>> print cam[0] # indexable
-	f
-	>>> print cam[5:]  # still has the string functionality as well
-	Shape
-	>>> cam.getFocalLength()  # but it has maya node methods too
-	35.0
-	>>> new = cam.replace( 'front', 'monkey' ) # be aware that string operations return strings not pymel nodes
-	>>> print new, type(new), type(cam)
-	monkeyShape <type 'unicode'> <class 'pymel.core.general.Camera'>
-	
-The same goes for other objects when using pymel.  When getting a triple attribute like translate or rotate, maya.cmds.getAttr
+    >>> import pymel
+    >>> cam = pymel.ls( type='camera')[0]
+    >>> print cam
+    frontShape
+    >>> print cam[0] # indexable
+    f
+    >>> print cam[5:]  # still has the string functionality as well
+    Shape
+    >>> cam.getFocalLength()  # but it has maya node methods too
+    35.0
+    >>> trans = cam.getParent()
+    >>> print transf
+    front
+    
+The same goes for other types of objects.  For instance, When getting a triple attribute like translate or rotate, maya.cmds.getAttr
 will return a list with three floats.  Pymel nodes, on the other hand, return a 3-element `MVector`. 
+
+	>>> transf			# let's continue from where we left off, with the transform of the 'front' camera
+	Transform('front')
+	>>> val = transf.translate.get()
+	>>> 
 
 ======================
 Object-Oriented Design
@@ -193,24 +195,24 @@ you to write much more concise and readable python code. It also helps keep all 
 functions are paired only with the types of objects that can use them.
 
 All node classes inherit from the `DependNode` class. 
-	
+    
 Understanding the `Attribute` class is essential to using pymel to its fullest extent.
-	
+    
 In order to use the object-oriented design of pymel, you must ensure that the objects that you are working 
 with are instances of pymel classes. To make this easier, pymel contains wrapped version 
 of the more common commands for creating and getting lists of objects. These modified commands cast their results to the appropriate 
 class type. See `ls`, `listRelatives`, `listTransforms`, `selected`, and `listHistory`, for a few examples.  
 
 Commands that list objects return pymel classes:
-	>>> s = ls(type='transform')[0]
-	>>> print type(s)
-	<class 'pymel.core.general.Transform'>
-	
+    >>> s = ls(type='transform')[0]
+    >>> print type(s)
+    <class 'pymel.core.general.Transform'>
+    
 Commands that create objects are wrapped as well:
-	>>> t = polySphere()[0]
-	>>> print t, type(t)
-	pSphere1 <class 'pymel.core.general.Transform'>
-	
+    >>> t = polySphere()[0]
+    >>> print t, type(t)
+    pSphere1 <class 'pymel.core.general.Transform'>
+    
 
 --------------------
 Node Class Hierarchy
@@ -221,20 +223,20 @@ a class for every node type in the tree.  The name of the class is the node type
 pymel will return objects as instances of these classes. This allows you to use builtin python functions to inspect
 and compare your objects.  For example:
 
-	>>> dl = directionalLight()
-	>>> type(dl)
-	<class 'pymel.core.general.DirectionalLight'>
-	>>> isinstance( dl, DirectionalLight)
-	True
-	>>> isinstance( dl, Light)
-	True
-	>>> isinstance( dl, Shape)
-	True
-	>>> isinstance( dl, DagNode)
- 	True
-	>>> isinstance( dl, Mesh)
- 	False
- 	
+    >>> dl = directionalLight()
+    >>> type(dl)
+    <class 'pymel.core.general.DirectionalLight'>
+    >>> isinstance( dl, DirectionalLight)
+    True
+    >>> isinstance( dl, Light)
+    True
+    >>> isinstance( dl, Shape)
+    True
+    >>> isinstance( dl, DagNode)
+    True
+    >>> isinstance( dl, Mesh)
+    False
+     
 Many of these classes contain no methods of their own and exist only as place-holders in the hierarchy.
 However, there are certain key classes which provide important methods to all their sub-classes. A few of the more important
 include `DependNode`, `DagNode`, `Transform`, and `Constraint`.
@@ -261,31 +263,31 @@ spaceLocator        locator             Locator
 vortex              vortexField         VortexField
 ================    ================    =================
 
-	
+    
 
 This example demonstrates some basic principles. Note the relationship between the name of the object
 created, its node type, and its class type:
 
-	>>> l = spotLight()
-	>>> print "The name is", l
-	The name is spotLightShape1
-	>>> print "The maya type is", l.type()
-	The maya type is spotLight
-	>>> print "The python type is", type(l)	
-	The python type is <class 'pymel.core.general.SpotLight'>
+    >>> l = spotLight()
+    >>> print "The name is", l
+    The name is spotLightShape1
+    >>> print "The maya type is", l.type()
+    The maya type is spotLight
+    >>> print "The python type is", type(l)    
+    The python type is <class 'pymel.core.general.SpotLight'>
 
 Once you have an instance of a pymel class (usually handled automatically), you can use it to query and edit the
 maya node it represents in an object-oriented way.
 
 make the light red and get shadow samples, the old, procedural way
-	>>> spotLight( l, edit=1, rgb=[1,0,0] ) 
-	>>> print spotLight( l, query=1, shadowSamples=1 ) 
-	1
-	
+    >>> spotLight( l, edit=1, rgb=[1,0,0] ) 
+    >>> print spotLight( l, query=1, shadowSamples=1 ) 
+    1
+    
 now, the object-oriented, pymel way
-	>>> l.setRgb( [1,0,0] )
-	>>> print l.getShadowSamples()   
-	1
+    >>> l.setRgb( [1,0,0] )
+    >>> print l.getShadowSamples()   
+    1
 
 For those familiar with Mel, you can probably already tell that the DirectionalLight class can be understood as an 
 object-oriented reorganization of the directionalLight command, where you 'get' queries and you 'set' edits.  
@@ -293,28 +295,28 @@ object-oriented reorganization of the directionalLight command, where you 'get' 
 Some classes have functionality that goes beyond their command counterpart. The `Camera` class,
 for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and `cameraView` commands:
 
-	>>> camTrans, cam = camera()
-	>>> cam.setFocalLength(100)
-	>>> cam.getFov()
-	20.407947616896568
-	>>> cam.dolly( distance = -3 )
-	>>> cam.track(left=10)
-	>>> cam.addBookmark('new')
+    >>> camTrans, cam = camera()
+    >>> cam.setFocalLength(100)
+    >>> cam.getFov()
+    20.407947616896568
+    >>> cam.dolly( distance = -3 )
+    >>> cam.track(left=10)
+    >>> cam.addBookmark('new')
 
 ------------------------------
 Using Existing Objects by Name
 ------------------------------
 
 In many cases, you won't be creating objects directly in your code, but will want to gain access to an existing the object by name. Pymel
-provides two ways of doing this. Both of them will automatically choose	the correct pymel class for your object.
+provides two ways of doing this. Both of them will automatically choose    the correct pymel class for your object.
 
-The `PyNode` command:
-	>>> PyNode( 'defaultRenderGlobals').startFrame.get()
-	1.0
+The `PyNode` class:
+    >>> PyNode( 'defaultRenderGlobals').startFrame.get()
+    1.0
 
 The SCENE object:
-	>>> SCENE.defaultRenderGlobals.startFrame.get()
-	1.0
+    >>> SCENE.defaultRenderGlobals.startFrame.get()
+    1.0
 
 ------------------
 API Underpinnings
@@ -332,104 +334,114 @@ And what if you want to test if the nodes are instances of each other?  You'll h
 nasty string processing ahead of you.  But since pymel uses the underlying API objects, these operations are simple
 and API-fast.
 
-		>>> from pymel import *
-		>>> # Make two instanced spheres in different groups
-		>>> sphere1, hist = polySphere(name='mySphere')
-		>>> grp = group(sphere1)
-		>>> grp2 = instance(grp)[0]
-		>>> sphere2 = grp2.getChildren()[0]
-		>>> sphere1  # the original
-		Transform('group1|mySphere')
-		>>> sphere2  # the instance
-		Transform('group2|mySphere')
-		>>> sphere1 == sphere2  # they aren't the same dag objects
-		False
-		>>> sphere1.isInstance( sphere2 )  # but they are instances of each other
-		True
-		>>> sphere1.t == sphere1.translate
-		True
-		>>> sphere1.tx == sphere1.translate.translateX
-		True
-
-New PyNode Behavior
-===================
+        >>> from pymel import *
+        >>> # Make two instanced spheres in different groups
+        >>> sphere1, hist = polySphere(name='mySphere')
+        >>> grp = group(sphere1)
+        >>> grp2 = instance(grp)[0]
+        >>> sphere2 = grp2.getChildren()[0]
+        >>> # check out our objects
+        >>> sphere1							# the original
+        Transform('group1|mySphere')
+        >>> sphere2							# the instance
+        Transform('group2|mySphere')
+        >>> # do some tests
+        >>> sphere1 == sphere2  			# they aren't the same dag objects
+        False
+        >>> sphere1.isInstance( sphere2 )	# but they are instances of each other
+        True
+        >>> sphere1.t == sphere1.translate	# long and short names of the same attribute retreivemasss the same object
+        True
+        >>> sphere1.tx == sphere1.translate.translateX
+        True
 
 PyNodes Are Not Strings
------------------------
+=======================
 
 In previous versions of pymel, the node classes inherited from the builtin unicode string class.  With the introduction of the new API
 underpinnings, the node classes inherit from a special `ProxyUnicode` class, which has the functionality of a string object, but
-removes the immutability restriction ( see the next section `Mutability And You`_ ).  It is important to keep in mind, that although
+removes the immutability restriction ( see the next section `Mutability And You`_ ).  It is important to keep in mind that although
 PyNodes *behave* like strings, they are no longer actual strings. Functions which explicity require a string, and which worked 
-with PyNodes in previous versions of pymel, might raise an error with version 0.8. For example:
+with PyNodes in previous versions of pymel, might raise an error with version 0.8 and later. For example:
 
-	>>> objs = ls( type='camera')
-	>>> print ', '.join( objs )
-	Traceback (most recent call last):
-		...
-	TypeError: sequence item 0: expected string, Camera found
+    >>> objs = ls( type='camera')
+    >>> print ', '.join( objs )
+    Traceback (most recent call last):
+        ...
+    TypeError: sequence item 0: expected string, Camera found
 
 The solution is simple: convert the PyNodes to strings.  The following example uses a shorthand syntax called "list comprehension" to 
 convert the list of PyNodes to a list of strings:
 
-	>>> objs = ls( type='camera')
-	>>> ', '.join( [ str(x) for x in objs ] )
-	'cameraShape1, frontShape, perspShape, sideShape, topShape'
+    >>> objs = ls( type='camera')
+    >>> ', '.join( [ str(x) for x in objs ] )
+    'cameraShape1, frontShape, perspShape, sideShape, topShape'
 
-	
+Also be aware that string operations with PyNodes return strings not new PyNodes:
+
+	>>> cam = PyNode('frontShape')
+    >>> new = cam.replace( 'front', 'monkey' )
+    >>> print new, type(new), type(cam)
+    monkeyShape <type 'unicode'> <class 'pymel.core.general.Camera'>
+      
 Mutability and You
-------------------
+==================
 
 One change that has come about due to the new API-based approach is node name mutability. You might have noticed
-when working with strings in python that they cannot be changed "in place" -- all string operations return a new string. This is
+when working with strings in python that they cannot be changed "in place". In other words, all string operations return a new string. This is
 because strings are immutable, and cannot be changed.
 
 By inheriting from a mutable `ProxyUnicode` class instead of an immutable string, we are now able to provide a design which more accurately reflects 
 how nodes work in maya --  when a node's name is changed it is still the same object with the same properties --  the name
 is simply a label or handle. In practice, this
 means that each time the name of the node is required -- such as printing, slicing, splitting, etc -- the object's current name
-is queried from the underlying API object. This ensures that if the node is renamed by the user via the UI or mel the 
-changes will always be reflected in the name returned by your PyNode class.
+is queried from the underlying API object. This ensures renames performed via mel or the UI will always be reflected 
+in the name returned by your PyNode class.
 
 Renaming
-~~~~~~~~
+--------
 
 In versions of pymel previous to 0.8, the node classes inherited from python's built-in unicode
 string type, which, due to its immutability, could cause unintuitive results with commands like rename.
 The new behavior creates a more intuitve result.
 
 New Behavior:
-	>>> orig = polyCube()[0]
-	>>> print orig, orig.exists()
-	pCube1 True
-	>>> orig.rename('crazyCube')
-	Transform('crazyCube')
-	>>> print "object %s still exists? %s" % (orig, orig.exists() )
-	object crazyCube still exists? True
-	
+    >>> orig = polyCube()[0]
+    >>> print orig					# print out the starting name
+    pCube1
+    >>> orig.rename('crazyCube')	# rename it (the new name is returned)
+    Transform('crazyCube')
+    >>> print orig					# the variable 'orig' reflects the name change
+    crazyCube
+    
 As you can see, you no longer need to assign the result of a rename to a variable, although, for backward
 compatibility's sake, we've ensured that you still can.
 
 Using as Keys in Dictionaries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 There is one caveat to the mutability of node names: it can cause problems when using a pymel node as a key in a dictionary.
 The reason is that the hash ( a hash is an integer value which is used to speed up dictionary access ) generated by a pymel node
 is based on the node's name, which is subject to change.  
 
-	>>> orig = polySphere()[0]
-	>>> d = { orig :  True }
-	>>> orig.rename('crazySphere')
-	Transform('crazySphere')
-	>>> print d[orig]
-	Traceback (most recent call last):
-		...
-	KeyError: Transform('crazySphere')
-	
+    >>> orig = polySphere()[0]
+    >>> d = { orig :  True }
+    >>> orig.rename('crazySphere')
+    Transform('crazySphere')
+    >>> print d[orig]
+    Traceback (most recent call last):
+        ...
+    KeyError: Transform('crazySphere')
+    
 This might seem like an obvious and necessary limitation, but we are working with Autodesk to provide a node hash which persists
 even after the node is renamed, thereby providing an object-based immutability independent of name.
 
+Enumerators
+===========
 
+
+
+--------------------
 Non-Existent Objects
 --------------------
 
@@ -440,18 +452,18 @@ certain conventions for existence testing are no longer supported, while new one
 
 We've added three new exceptions which can be used to test for existence errors when creating new PyNodes: `MayaObjectError`, 
 `MayaNodeError`, and `MayaAttributeError`. 
-	
-	>>> for x in [ 'fooBar.spangle', 'superMonk' ] :
-	...     try:
-	...         PyNode( x )
-	...         print "It Exists"
-	...     except MayaNodeError:
-	...         print "The Node Doesn't Exist:", x
-	...     except MayaAttributeError:
-	...         print "The Attribute Doesn't Exist:", x
-	...
-	The Attribute Doesn't Exist: fooBar.spangle
-	The Node Doesn't Exist: superMonk
+    
+    >>> for x in [ 'fooBar.spangle', 'superMonk' ] :
+    ...     try:
+    ...         PyNode( x )
+    ...         print "It Exists"
+    ...     except MayaNodeError:
+    ...         print "The Node Doesn't Exist:", x
+    ...     except MayaAttributeError:
+    ...         print "The Attribute Doesn't Exist:", x
+    ...
+    The Attribute Doesn't Exist: fooBar.spangle
+    The Node Doesn't Exist: superMonk
 
 Both exceptions can be caught by using the parent exception `MayaObjectError`. In addition `MayaAttributeError` can also be caught
 with the builtin exception `AttributeError`.
@@ -462,101 +474,101 @@ use AttributeError to catch both.
 
 
 Explicit notation:
-	>>> x = polySphere()[0]
-	>>> x.attr('myAttr')
-	Traceback (most recent call last):
-		...
-	MayaAttributeError: Maya Attribute does not exist: 'pSphere2.myAttr'
-	
+    >>> x = polySphere()[0]
+    >>> x.attr('myAttr')
+    Traceback (most recent call last):
+        ...
+    MayaAttributeError: Maya Attribute does not exist: 'pSphere2.myAttr'
+    
 Shorthand notation:
-	>>> x = polySphere()[0]
-	>>> x.myAttr
-	Traceback (most recent call last):
-		...
-	AttributeError: Transform('pSphere3') has no attribute or method named 'myAttr'
-	
+    >>> x = polySphere()[0]
+    >>> x.myAttr
+    Traceback (most recent call last):
+        ...
+    AttributeError: Transform('pSphere3') has no attribute or method named 'myAttr'
+    
 
-Conventions for Testing Node Existence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-No longer supported:
-	>>> if PyNode( 'fooBar' ).exists(): #doctest: +SKIP
-	...     print "It Exists"
-	... else:
-	...     print "It Doesn't Exist"
-	It Doesn't Exist
-		
-Still supported:
-	>>> if objExists( 'fooBar' ): 
-	...     print "It Exists"
-	... else:
-	...     print "It Doesn't Exist"
-	It Doesn't Exist
-	
-New construct:
-	>>> try:
-	...     PyNode( 'fooBar' )
-	...     print "It Exists"
-	... except MayaObjectError:
-	...     print "It Doesn't Exist"
-	It Doesn't Exist
-
-Conventions for Testing Attribute Existence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Testing Node Existence
+======================
 
 No longer supported:
-	>>> if PyNode( 'fooBar.spangle' ).exists(): #doctest: +SKIP
-	...     print "Attribute Exists"
-	... else:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
-	
+    >>> if PyNode( 'fooBar' ).exists(): #doctest: +SKIP
+    ...     print "It Exists"
+    ... else:
+    ...     print "It Doesn't Exist"
+    It Doesn't Exist
+        
+Still supported:
+    >>> if objExists( 'fooBar' ): 
+    ...     print "It Exists"
+    ... else:
+    ...     print "It Doesn't Exist"
+    It Doesn't Exist
+    
+New construct:
+    >>> try:
+    ...     PyNode( 'fooBar' )
+    ...     print "It Exists"
+    ... except MayaObjectError:
+    ...     print "It Doesn't Exist"
+    It Doesn't Exist
+
+Testing Attribute Existence
+===========================
+
 No longer supported:
-	>>> x = polySphere()[0] 
-	>>> if x.myAttr.exists(): #doctest: +SKIP
-	...     print "Attribute Exists"
-	... else:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
+    >>> if PyNode( 'fooBar.spangle' ).exists(): #doctest: +SKIP
+    ...     print "Attribute Exists"
+    ... else:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
+    
+No longer supported:
+    >>> x = polySphere()[0] 
+    >>> if x.myAttr.exists(): #doctest: +SKIP
+    ...     print "Attribute Exists"
+    ... else:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
 
 Still supported:
-	>>> if objExists( 'fooBar.spangle' ):
-	...     print "Attribute Exists"
-	... else:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
+    >>> if objExists( 'fooBar.spangle' ):
+    ...     print "Attribute Exists"
+    ... else:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
 
 Still supported:
-	>>> if mel.attributeExists( 'spangle','fooBar' ):
-	...     print "Attribute Exists"
-	... else:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
-			
-New construct:	
-	>>> x = polySphere()[0]
-	>>> if x.hasAttr('myAttr'):
-	...     print "Attribute Exists"
-	... else:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
+    >>> if mel.attributeExists( 'spangle','fooBar' ):
+    ...     print "Attribute Exists"
+    ... else:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
+            
+New construct:    
+    >>> x = polySphere()[0]
+    >>> if x.hasAttr('myAttr'):
+    ...     print "Attribute Exists"
+    ... else:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
 
 New construct:
-	>>> try:
-	...     PyNode( 'fooBar.spangle' )
-	...     print "Attribute Exists"
-	... except MayaAttributeError:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
+    >>> try:
+    ...     PyNode( 'fooBar.spangle' )
+    ...     print "Attribute Exists"
+    ... except MayaAttributeError:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
 
 New construct:
-	>>> x = polySphere()[0]
-	>>> try:
-	...     x.myAttr
-	...     print "Attribute Exists"
-	... except AttributeError:
-	...     print "Attribute Doesn't Exist"
-	Attribute Doesn't Exist
+    >>> x = polySphere()[0]
+    >>> try:
+    ...     x.myAttr
+    ...     print "Attribute Exists"
+    ... except AttributeError:
+    ...     print "Attribute Doesn't Exist"
+    Attribute Doesn't Exist
 
 
 ------------------------------------------------------
@@ -566,35 +578,35 @@ Delving Deeper: Chained Function and Attribute Lookups
 Mel provides the versatility of operating on a shape node via its transform node.  For example, these two commands work
 interchangably::
 
-	camera -q -centerOfInterest persp
-	camera -q -centerOfInterest perspShape
+    camera -q -centerOfInterest persp
+    camera -q -centerOfInterest perspShape
 
 
 pymel achieves this effect by chaining function lookups.  If a called method does not exist on the Transform class, the 
 request will be passed to appropriate class of the transform's shape node, if it exists.
 The chaining goes one further for object primitives, such as spheres, cones, etc.  For example:
-	
+    
 create a sphere and return its transform
-	>>> trans = polySphere()[0]
-	>>> print type(trans)
-	<class 'pymel.core.general.Transform'>
-	
+    >>> trans = polySphere()[0]
+    >>> print type(trans)
+    <class 'pymel.core.general.Transform'>
+    
 get the transform's shape
-	>>> shape = trans.getShape()
-	>>> print type( shape )
-	<class 'pymel.core.general.Mesh'>
-	
+    >>> shape = trans.getShape()
+    >>> print type( shape )
+    <class 'pymel.core.general.Mesh'>
+    
 get the shape's history
-	>>> hist = shape.history()[1]
-	>>> type( hist )
-	<class 'pymel.core.general.PolySphere'>
-	
+    >>> hist = shape.history()[1]
+    >>> type( hist )
+    <class 'pymel.core.general.PolySphere'>
+    
 get the radius of the sphere 
-	>>> hist.getRadius()
-	1.0
-	>>> # chained lookup allows the PolySphere.getRadus method to work on the Transform class  
-	>>> trans.getRadius()
-	1.0
+    >>> hist.getRadius() 
+    1.0
+    >>> # chained lookup allows the PolySphere.getRadus method to work on the Transform class  
+    >>> trans.getRadius() #doctest: +SKIP
+    1.0
 
 the method getRadius belongs to the PolySphere class.  In this example, getRadius does not exist on the Transform class, so it passes
 the request to its shape, which is a Poly class. The method does not exist here either, so the Poly class searches for its primary
@@ -620,15 +632,15 @@ to be safe to import into the root namespace so that scripts can be written much
 a python novice, you might want to keep pymel in its own namespace, because, unlike in mel, in python you can "overwrite" functions
 if you are not careful:
 
-	>>> from pymel import *
-	>>> sphere() # create a nurbsSphere
-	[Transform('nurbsSphere1'), MakeNurbSphere('makeNurbSphere1')]
-	>>> sphere = 'mySphere'  # whoops, we've overwritten the sphere command with a string
-	>>> sphere()
-	Traceback (most recent call last):
-		...
-	TypeError: 'str' object is not callable
-	
+    >>> from pymel import *
+    >>> sphere() # create a nurbsSphere
+    [Transform('nurbsSphere1'), MakeNurbSphere('makeNurbSphere1')]
+    >>> sphere = 'mySphere'  # whoops, we've overwritten the sphere command with a string
+    >>> sphere()
+    Traceback (most recent call last):
+        ...
+    TypeError: 'str' object is not callable
+    
 All the functions in maya.cmds are in the pymel namespace, except the conflicting ones ( file, filter, eval,
 help, and quit). The conflicting commands can be found in the pymel.cmds namespace, along with all of the unaltered
 maya commands.  
@@ -644,34 +656,34 @@ Design Philosophy
 
 When approaching the reorganization of the existing commands provided by maya.cmds, pymel follows these practical guidelines:
 
-	- a value returned by a get* function or query flag should be accepted as a valid argument by the corresponding set* function or edit flag
-	- a function which returns a list should return an empty list (not None) if it finds no matches ( ex. ls, listRelatives )
-	- a function which always returns a single item should not return that item in a list or tuple ( ex. spaceLocator )
-	- wherever possible, pymel/python objects should be returned
-	- a function which provides a mapping mechanism should have a dictionary-like pymel counterpart ( ex. fileInfo, optionVar )
-	- a function which returns a list of pairs should be a 2D array, or possibly a dictionary ( ex. ls( showType=1 ), listConnections(connections=1) )
-	- the arguments provided by a ui callback should be of the appropriate type ( as a test, it should be capable of being used to set the value of the control )
+    - a value returned by a get* function or query flag should be accepted as a valid argument by the corresponding set* function or edit flag
+    - a function which returns a list should return an empty list (not None) if it finds no matches ( ex. ls, listRelatives )
+    - a function which always returns a single item should not return that item in a list or tuple ( ex. spaceLocator )
+    - wherever possible, pymel/python objects should be returned
+    - a function which provides a mapping mechanism should have a dictionary-like pymel counterpart ( ex. fileInfo, optionVar )
+    - a function which returns a list of pairs should be a 2D array, or possibly a dictionary ( ex. ls( showType=1 ), listConnections(connections=1) )
+    - the arguments provided by a ui callback should be of the appropriate type ( as a test, it should be capable of being used to set the value of the control )
 
 Pymel design rules:
 
-	- node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax ( ex. foo.bar retrieves an attribute, foo.bar() executes a function )
-	- node classes are named after the nodes they control, not the mel commands that they proxy  ( ex. Locator vs. spaceLactor )
+    - node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax ( ex. foo.bar retrieves an attribute, foo.bar() executes a function )
+    - node classes are named after the nodes they control, not the mel commands that they proxy  ( ex. Locator vs. spaceLactor )
 """
 
 
 
 """
 Version History
--0.1-	
+-0.1-    
 first public release
--0.2-	
+-0.2-    
 added Matrix class and revamped vector module
 added Transform class with xform methods, and which delegates to child attributes when necessary
 added MScene class for quick wrapping of pre-existing objects
 added Attribute.remove() method for multi instance attributes
 added menu commands to the pymel ui classes
 added rwaExport example
--0.3-	
+-0.3-    
 added duplicate command
 added instance command
 added listTransforms command
@@ -679,7 +691,7 @@ added Particle class
 added Transform.hide() and Transform.show()
 enhanced setAttr to handle stringArray datatypes more intelligently, and auto-set datatype for arrays
 added force arg to setAttr which causes non-existent attrs to be added before they are set
--0.4-		
+-0.4-        
 added a handful of classes which are automatically generated from pre-processed maya docs
 better documentaion, added docstring to many functions derived from the mel help command
 reorganized attribute limits: getMin, getMax, getSoftMin, getSoftMax, getRange, getSoftRange, and all their set* counterparts
@@ -720,15 +732,15 @@ added documentation for all commands
 added Workspace class
 added Subdiv class
 added sourceFirst keyword arg for listConnections. when sourceFirst is true and connections is also true,
-	the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
-	this puts the pairs in the order that disconnectAttr and connectAttr expect.
+    the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
+    this puts the pairs in the order that disconnectAttr and connectAttr expect.
 fixed setAttr force flag to work for instances of builtin types as well, such as Path
 added getSiblings to Dag class
 fixed Attribute.exists() to not raise an error when the node does not exist, instead it returns False like the mel command 'attributeExists'
 fixed a bug in Dag.namespaceList
 added a levels keyword to Dag.stripNamespace
 Maya Bug Fix: severe design oversight in all ui callback commands. 
-	the callbacks were being passed u'true' and u'false' instead of python booleans. (why, autodesk? why?!)
+    the callbacks were being passed u'true' and u'false' instead of python booleans. (why, autodesk? why?!)
 added Transform.getBoundingBox()
 fixed a bug in Transform: getShape() getChildren() and listRelatives() were erroring on maya 2008 
 added chained-lookup to setattr
@@ -743,11 +755,11 @@ Maya Bug Fix: pointLight, directionalLight, ambientLight, spotLight did not retu
 Maya Bug Fix: instancer node was not returning name of created shape
 added Camera.dolly, Camera.track, Camera.tumble, Camera.orbit
 enhanced addAttr to allow python types to be passed to set -at type
-			str 	--> string
-			float 	--> double
-			int		--> long
-			bool	--> bool
-			Vector	--> double3
+            str     --> string
+            float     --> double
+            int        --> long
+            bool    --> bool
+            Vector    --> double3
 added FileInfo class for accessing per-file data as a dictionary
 Maya Bug Fix: fixed getCellCmd flag of scriptTable to work with python functions, previously only worked with mel callbacks
 removed 'M' from Vector, Matrix, FileReference, and Path
@@ -792,43 +804,43 @@ Maya Bug Fix: setAttr did not work with type matrix.
 setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32Array from attribute types which are auto-detected when using force flag
 
  TODO: 
-	Factory:
-	- provide on option for creation command factory so that commands that always return a single object do not return a list
+    Factory:
+    - provide on option for creation command factory so that commands that always return a single object do not return a list
 
-	mel2py and pymelScrollFieldReporter:
-	- formatting: different spacing for negative numbers and subtraction: ( '-1', '2 - 5') 
-	- flag info : 
-		- share cache with pymel? must deal with commands whose synatx is altered (sets, move).
-		- alternative to above: cache flag info of previously used commands
-	- runtime commands
-	
-	To Debate:
-	- filter out self from listHistory command?
-	- remove deprecated commands from main namespace?: reference, equivalentTol, etc
-	- remove commands that have been subsumed under a class? ex. dolly, track, orbit have all been added to Camera	
-	- new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
-		- ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
-		- this is particularly useful for colors
-	
-	Todo:
-	- create a feature-rich listReferences command, with flags for recursionDepth, regular expression match, return type ( list, dict, tree )  (API?)
-	- create links between Reference (from node-hierarchy) and FileReference 
-	- re-write primary list commands using API
-	- add component classes for nurbs and subdiv
-	- make Transforms delegate to component classes correctly (instead of returning Attribute class)
-	- pymel preferences for breaking or maintaining backward compatibility:
-		- longNames
-		- twoDimensionalArrays (ex. ls(showType=1), fileInfo(q=1) )
-		- namespaces
-	- more module organization
-	- Path
-		- add sequence handling methods
-		- rename methods using hungarian notation/camelCase?
-	- Vector
-		- add constants.  Red, White, Up, Down, etc
-		- wrap MVector for speed
-	- develop a way to add docs to selective objects based on cached info
-	- explore the possibility of a mutable node class tied to the MObject
+    mel2py and pymelScrollFieldReporter:
+    - formatting: different spacing for negative numbers and subtraction: ( '-1', '2 - 5') 
+    - flag info : 
+        - share cache with pymel? must deal with commands whose synatx is altered (sets, move).
+        - alternative to above: cache flag info of previously used commands
+    - runtime commands
+    
+    To Debate:
+    - filter out self from listHistory command?
+    - remove deprecated commands from main namespace?: reference, equivalentTol, etc
+    - remove commands that have been subsumed under a class? ex. dolly, track, orbit have all been added to Camera    
+    - new feature for setAttr? : when sending a single value to a double3, et al, convert that to the appropriate list
+        - ex.   setAttr( 'lambert1.color', 1 )  ---> setAttr( 'lambert1.color', [1,1,1] )
+        - this is particularly useful for colors
+    
+    Todo:
+    - create a feature-rich listReferences command, with flags for recursionDepth, regular expression match, return type ( list, dict, tree )  (API?)
+    - create links between Reference (from node-hierarchy) and FileReference 
+    - re-write primary list commands using API
+    - add component classes for nurbs and subdiv
+    - make Transforms delegate to component classes correctly (instead of returning Attribute class)
+    - pymel preferences for breaking or maintaining backward compatibility:
+        - longNames
+        - twoDimensionalArrays (ex. ls(showType=1), fileInfo(q=1) )
+        - namespaces
+    - more module organization
+    - Path
+        - add sequence handling methods
+        - rename methods using hungarian notation/camelCase?
+    - Vector
+        - add constants.  Red, White, Up, Down, etc
+        - wrap MVector for speed
+    - develop a way to add docs to selective objects based on cached info
+    - explore the possibility of a mutable node class tied to the MObject
 """
 
 __version__ = '0.8.0'
@@ -868,7 +880,7 @@ factories.installCallbacks(_module)
 # this ensures that when the user does 'from pymel import *',
 # cmds is always maya.cmds
 
-# temporarily disabling this because it makes reloading and debugging difficult
+
 import maya.cmds as cmds
 
 def _test():
@@ -877,4 +889,3 @@ def _test():
 
 if __name__ == "__main__":
     _test()
-
