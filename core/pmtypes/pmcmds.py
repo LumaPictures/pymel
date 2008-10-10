@@ -30,7 +30,6 @@ import warnings
 
 _thisModule = __import__(__name__, globals(), locals(), [''])
 
-
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
@@ -44,10 +43,21 @@ def addWrappedCmd(cmdname, cmd=None):
     if cmd is None:
         cmd = getattr(maya.cmds, cmdname)
 
-    def wrappedCmd(*args, **kwargs):
-        res = cmd(*(util.getMelRepresentation(args)), **(util.getMelRepresentation(kwargs)))
+    #if cmd.__name__ == 'dummyFunc': print cmdname 
         
-        # edit commands should return None.  currently, some return empty strings and some return idiotic statements like 'Values Edited'.
+    def wrappedCmd(*args, **kwargs):
+        # we must get the cmd each time, because maya delays loading of functions until they are needed.
+        # if we don't reload we'll keep the dummyFunc around
+        new_cmd = getattr(maya.cmds, cmdname) 
+        
+        # convert args to mel-friendly representation
+        new_args = util.getMelRepresentation(args)
+        new_kwargs = util.getMelRepresentation(kwargs)
+
+        res = new_cmd(*new_args, **new_kwargs)
+        
+        # edit commands should return None.  
+        #currently, some of maya.cmds functions return empty strings and some return idiotic statements like 'Values Edited'.
         if kwargs.get('edit', kwargs.get('e', False) ):
             return None
         return res
@@ -64,6 +74,7 @@ def addWrappedCmd(cmdname, cmd=None):
 
     # so that we can identify that this is a wrapped maya command
     setattr( _thisModule, cmdname, wrappedCmd )
+    #globals()[cmdname] = wrappedCmd
     
 def removeWrappedCmd(cmdname):
     try:
