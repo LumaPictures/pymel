@@ -49,7 +49,7 @@ class MelGlobals( dict ):
         'string'    : str,
         'int'       : int,
         'float'     : float,
-        'vector'    : MVector
+        'vector'    : Vector
         }
 
 #    class MelGlobalArray1( tuple ):

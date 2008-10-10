@@ -1,7 +1,7 @@
 
 import maya.mel as _mm
 import inspect
-from pymel.util.arrays import Vector, Matrix
+from pymel.util.arrays import VectorN, MatrixN
 
 def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
     """return the mel type of the passed argument.
