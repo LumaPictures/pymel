@@ -533,7 +533,14 @@ def hasAttr( pyObj, attr, checkShape=True ):
 #-----------------------
 #  List Functions
 #-----------------------
-        
+
+def listAttr(*args, **kwargs):
+    """
+Modifications:
+    - returns an empty list when the result is None
+    """
+    return util.listForNone(cmds.listAttr(*args, **kwargs))
+      
 def listConnections(*args, **kwargs):
     """
 Modifications:
@@ -3662,7 +3669,7 @@ class Transform(DagNode):
                     
         res = cmds.xform( self, **kwargs )
         #return ( Vector(res[:3]), Vector(res[3:]) )
-        return MBoundingBox( res[:3], res[3:] )
+        return BoundingBox( res[:3], res[3:] )
     
     def getBoundingBoxMin(self, invisible=False):
         return self.getBoundingBox(invisible)[0]
