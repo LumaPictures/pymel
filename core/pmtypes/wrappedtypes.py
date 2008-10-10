@@ -1265,7 +1265,7 @@ class Color(Vector):
 
 # to specify space of transforms
 
-class MSpace(_api.MSpace):
+class Space(_api.MSpace):
     apicls = _api.MSpace
     __metaclass__ = _factories.MetaMayaTypeWrapper
     pass
@@ -2012,7 +2012,7 @@ class Quaternion(Matrix):
         return value in self.__iter__()  
 
 
-class MTime( _api.MTime ) :
+class Time( _api.MTime ) :
     apicls = _api.MTime
     __metaclass__ = _factories.MetaMayaTypeWrapper
     def __str__( self ): return str(float(self))
@@ -2020,7 +2020,7 @@ class MTime( _api.MTime ) :
     def __float__( self ): return self.as(self.apicls.uiUnit())
     def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
-class MDistance( _api.MDistance ) :
+class Distance( _api.MDistance ) :
     apicls = _api.MDistance
     __metaclass__ = _factories.MetaMayaTypeWrapper
     def __str__( self ): return str(float(self))
@@ -2028,7 +2028,7 @@ class MDistance( _api.MDistance ) :
     def __float__( self ): return self.as(self.apicls.uiUnit())
     def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
-class MAngle( _api.MAngle ) :
+class Angle( _api.MAngle ) :
     apicls = _api.MAngle
     __metaclass__ = _factories.MetaMayaTypeWrapper
     def __str__( self ): return str(float(self))
@@ -2196,7 +2196,7 @@ class MAngle( _api.MAngle ) :
 #            _api.MItMeshEdge.setIndex( self._iter, i, su.asIntPtr() )  # bug workaround
 #            yield self._iter
 
-class MBoundingBox( _api.MBoundingBox):
+class BoundingBox( _api.MBoundingBox):
     apicls = _api.MBoundingBox
     __metaclass__ = _factories.MetaMayaTypeWrapper
     def __init__(self, *args):
