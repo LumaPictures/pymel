@@ -193,43 +193,6 @@ def patchMath() :
 
 patchMath()
 
-def reorder( x, indexList=[], indexDict={} ):
-    """
-    Reorder a list based upon a list of positional indices and/or a dictionary of fromIndex:toIndex. 
-    
-    >>> l = ['zero', 'one', 'two', 'three', 'four', 'five', 'six' ]    
-    >>> reorder( l, [1, 4] ) # based on positional indices: 0-->1, 1-->4
-    ['one', 'four', 'zero', 'two', 'three', 'four', 'five', 'six' ]   
-    >>> reorder( l, [1, None, 4] ) # None can be used as a place-holder
-    ['one', 'zero', 'four', 'two', 'three', 'four', 'five', 'six' ]       
-    >>> reorder( l, [1, 4], {5:6} )  # remapping via dictionary: move the value at index 5 to index 6
-    ['one', 'four', 'zero', 'two', 'three', 'six', 'five']
-    """
-    
-    x = list(x)
-    num = len(x)
-    popCount = 0
-    indexValDict = {}
-
-    for i, index in enumerate(indexList):
-        if index is not None:
-            val = x.pop( index-popCount )
-            assert index not in indexDict, indexDict
-            indexValDict[i] = val
-            popCount += 1
-    for k, v in indexDict.items():
-        indexValDict[v] = x.pop(k-popCount)
-        popCount += 1
-
-    newlist = []
-    for i in range(num):
-        try:
-            val = indexValDict[i]
-        except KeyError:
-            val = x.pop(0)
-        newlist.append( val ) 
-    return newlist 
-
 # some other overriden math or builtin functions operating on Arrays or derived classes
 # NOTE : it's not very consistent that min and max accept a variable number of arguments and
 # sum, prod, any, all don't? But it's the way it is with the builtins
@@ -461,7 +424,7 @@ def sqlength(a, axis=None):
         >>> sqlength(A, axis=1)
         Array([0.749849, 0.749849, 0.499849])
     """
-    a = Vector._convert(a)
+    a = VectorN._convert(a)
     if isinstance(a, VectorN) :
         # axis not used but this catches invalid axis errors
         # only valid axis for VectorN is (0,)
@@ -520,7 +483,7 @@ def normal(a, axis=None):
         [[0.577408397894, 0.577408397894, -1.0],
          [0.816455474623, -0.816455474623, 0.0]]
     """
-    a = Vector._convert(a)
+    a = VectorN._convert(a)
     if isinstance(a, VectorN) :
         # axis not used but this catches invalid axis errors
         # only valid axis for VectorN is (0,)
@@ -560,7 +523,7 @@ def dist(a, b, axis=None):
         >>> dist(A, B, axis=1)
         Array([0.0104403065089, 0.0122065556157, 0.003])
     """
-    a = Vector._convert(a)
+    a = VectorN._convert(a)
     if isinstance(a, VectorN) :
         # axis not used but this catches invalid axis errors
         # only valid axis for VectorN is (0,)
@@ -3128,6 +3091,14 @@ class Array(object):
             [[1, 1, 7],
              [1, 2, 0],
              [1, 2, 0]]
+            >>> A[0:2, 1:3] = [1, 2]
+            >>> print A.formated()
+            [[1, 1, 1],
+             [1, 2, 2],
+             [1, 2, 0]]
+                          
+             TODO : accept this form as well
+             
             >>> A[0:2, 1:3] = [[1], [2]]
             >>> print A.formated()
             [[1, 1, 1],
@@ -3700,6 +3671,9 @@ class Array(object):
             1
             >>> A.count([1, 2])
             0
+            
+            TODO : like numpy count for column occurrences ?
+            
             >>> A.count([1, 4, 3])
             1
             >>> A.count([[1], [4], [3]])
@@ -3740,6 +3714,9 @@ class Array(object):
             Traceback (most recent call last):
                 ...
             ValueError: Array.index(x): x not in Array
+            
+            TODO : like numpy also search for column occurrences ?
+            
             >>> A.index([1, 4, 3])
             1
             >>> A.index([[1], [4], [3]])
@@ -5922,7 +5899,7 @@ class MatrixN(Array):
                 i = a/float(d)   
             else :
                 # by gauss-jordan elimination
-                id = Matrix.identity(n)        
+                id = MatrixN.identity(n)        
                 m = self.hstacked(id).reduced()
                 i = self.__class__(m[:, n:])
         except ZeroDivisionError :
@@ -6530,7 +6507,7 @@ class VectorN(Array):
         return VectorN( (nself.dot(nother) /  nother.sqlength()) * nother )    
     # blend and clamp derived from Array
              
-if __name__ == '__main__' :
+if __name__ == '__main__' :   
     import doctest
-    doctest.testmod() 
+    doctest.testmod(verbose=True) 
      
