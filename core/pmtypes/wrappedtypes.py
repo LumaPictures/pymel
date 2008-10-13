@@ -276,7 +276,7 @@ class Vector(VectorN) :
                 self.assign(args)
             except :
                 # special exception to the rule that you cannot drop data in Arrays __init__
-                # to allow all conversion from MVector derived classes (MPoint, MColor) to a base class 
+                # to allow all conversion from Vector derived classes (MPoint, MColor) to a base class 
                 # special case for MPoint to cartesianize if necessary
                 # note : we may want to premultiply MColor by the alpha in a similar way
                 if isinstance(args, _api.MPoint) and args.w != 1.0 :
@@ -288,7 +288,7 @@ class Vector(VectorN) :
                     args = tuple(args)
                     if len(args) > len(self) :
                         args = args[slice(self.shape[0])]
-                super(VectorN, self).__init__(*args)
+                super(Vector, self).__init__(*args)
             
         if hasattr(cls, 'cnames') and len(set(cls.cnames) & set(kwargs)) :  
             # can also use the form <componentname>=<number>
@@ -420,7 +420,6 @@ class Vector(VectorN) :
         try :
             return self.__class__._convert(self.apicls.__add__(self, other))
         except :
-            # return self.__class__._convert(super(MVector, self).__add__(other)) 
             return self.__class__._convert(super(Vector, self).__add__(other)) 
     def __radd__(self, other) :
         """ u.__radd__(v) <==> v+u
@@ -568,17 +567,17 @@ class Vector(VectorN) :
             return super(Vector, self).dist(other)
     def length(self):
         """ Return the length of the vector """
-        return MVector.apicls.length(Vector(self))
+        return Vector.apicls.length(Vector(self))
     def sqlength(self):
         """ Return the square length of the vector """
         return self.dot(self)          
     def normal(self): 
         """ Return a normalized copy of self """ 
-        return self.__class__(MVector.apicls.normal(Vector(self)))
+        return self.__class__(Vector.apicls.normal(Vector(self)))
     def normalize(self):
         """ Performs an in place normalization of self """
         if type(self) is Vector :
-            MVector.apicls.normalize(self)
+            Vector.apicls.normalize(self)
         else :
             self.assign(v.normal())
         
@@ -589,7 +588,7 @@ class Vector(VectorN) :
             Returns the Quaternion that represents the rotation of the Vector u into the Vector v
             around their mutually perpendicular axis. It amounts to rotate u by angle(u, v) around axis(u, v) """
         if isinstance(other, Vector) :
-            return Quaternion(MVector.apicls.rotateTo(Vector(self), Vector(other)))
+            return Quaternion(Vector.apicls.rotateTo(Vector(self), Vector(other)))
         else :
             raise TypeError, "%r is not a Vector instance" % other
     def rotateBy(self, *args):
@@ -618,19 +617,19 @@ class Vector(VectorN) :
             post multiplying it by the inverse transpose of the transformation matrix.
             This method will apply the proper transformation to the vector as if it were a normal. """
         if isinstance(other, Matrix) :
-            return self.__class__._convert(MVector.apicls.transformAsNormal(Vector(self), Matrix(other)))
+            return self.__class__._convert(Vector.apicls.transformAsNormal(Vector(self), Matrix(other)))
         else :
             return self.__class__._convert(super(Vector, self).transformAsNormal(other))
     def dot(self, other):
         """ dot product of two vectors """
         if isinstance(other, Vector) :
-            return MVector.apicls.__mul__(Vector(self), Vector(other))
+            return Vector.apicls.__mul__(Vector(self), Vector(other))
         else :
             return super(Vector, self).dot(other)       
     def cross(self, other):
         """ cross product, only defined for two 3D vectors """
         if isinstance(other, Vector) :
-            return self.__class__._convert(MVector.apicls.__xor__(Vector(self), Vector(other)))
+            return self.__class__._convert(Vector.apicls.__xor__(Vector(self), Vector(other)))
         else :
             return self.__class__._convert(super(Vector, self).cross(other))              
     def axis(self, other, normalize=False):
@@ -639,9 +638,9 @@ class Vector(VectorN) :
             if the normalize keyword argument is set to True, n is also normalized """
         if isinstance(other, Vector) :
             if normalize :
-                return self.__class__._convert(MVector.apicls.__xor__(Vector(self), Vector(other)).normal())
+                return self.__class__._convert(Vector.apicls.__xor__(Vector(self), Vector(other)).normal())
             else :
-                return self.__class__._convert(MVector.apicls.__xor__(Vector(self), Vector(other)))
+                return self.__class__._convert(Vector.apicls.__xor__(Vector(self), Vector(other)))
         else :
             return self.__class__._convert(super(Vector, self).axis(other, normalize)) 
     def angle(self, other):
@@ -649,7 +648,7 @@ class Vector(VectorN) :
             Returns the angle (in radians) between the two vectors u and v
             Note that this angle is not signed, use axis to know the direction of the rotation """
         if isinstance(other, Vector) :
-            return MVector.apicls.angle(Vector(self), Vector(other))
+            return Vector.apicls.angle(Vector(self), Vector(other))
         else :
             return super(Vector, self).angle(other)  
         
@@ -741,7 +740,7 @@ class Point(Vector):
         try :
             return self.__class__._convert(self.apicls.__add__(self, other))
         except :
-            return self.__class__._convert(super(VectorN, self).__add__(other)) 
+            return self.__class__._convert(super(Vector, self).__add__(other)) 
     def __radd__(self, other) :
         """ u.__radd__(v) <==> v+u
             Returns the result of the addition of u and v if v is convertible to a VectorN (element-wise addition),
@@ -967,20 +966,20 @@ class Color(Vector):
     rgb = property(_getrgb, _setrgb, None, "The r,g,b Color components""")
     
     def _gethsva(self):
-        return tuple(MColor.rgbtohsv(self))
+        return tuple(Color.rgbtohsv(self))
     def _sethsva(self, value):
         if not hasattr(value, '__iter__') :
             # the way api interprets a single value
             # value = (None, None, None, value)
             value = (value,)*4
-        l = list(MColor.rgbtohsv(self))
+        l = list(Color.rgbtohsv(self))
         for i, v in enumerate(value[:4]) :
             if v is not None :
                 l[i] = float(v)
-        self.assign(*MColor.hsvtorgb(self))   
+        self.assign(*Color.hsvtorgb(self))   
     hsva = property(_gethsva, _sethsva, None, "The h,s,v,a Color components""") 
     def _gethsv(self):
-        return tuple(MColor.rgbtohsv(self))[:3]
+        return tuple(Color.rgbtohsv(self))[:3]
     def _sethsv(self, value):
         if not hasattr(value, '__iter__') :
             value = (value,)*3
@@ -1058,7 +1057,7 @@ class Color(Vector):
                 quantize = float(quantize)
             except :
                 raise ValueError, "quantize must be a numeric value, not %s" % (util.clsname(quantize)) 
-        # can be initilized with a single argument (other MColor, MVector, Vector)
+        # can be initilized with a single argument (other Color, Vector, VectorN)
         if len(args)==1 :
             args = args[0]              
         # we dont rely much on Color api as it doesn't seem totally finished, and do some things directly here               
@@ -1139,7 +1138,7 @@ class Color(Vector):
         try :
             return self.__class__._convert(self.apicls.__add__(self, other))
         except :
-            return self.__class__._convert(super(VectorN, self).__add__(other)) 
+            return self.__class__._convert(super(Vector, self).__add__(other)) 
     def __radd__(self, other) :
         """ c.__radd__(d) <==> d+c
             Returns the result of the addition of MColors c and d if d is convertible to a Color,
@@ -1170,7 +1169,7 @@ class Color(Vector):
         try :
             return self.__class__._convert(self.apicls.__sub__(self, other))
         except :
-            return self.__class__._convert(super(VectorN, self).__sub__(other)) 
+            return self.__class__._convert(super(Vector, self).__sub__(other)) 
     def __rsub__(self, other) :
         """ c.__rsub__(d) <==> d-c
             Returns the result of the substraction of Color c from d if d is convertible to a Color,
@@ -1397,7 +1396,7 @@ class Matrix(MatrixN):
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
 
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
-    # here, there is no _data attribute as we subclass api.MVector directly, thus v.data is v
+    # here, there is no _data attribute as we subclass api.Vector directly, thus v.data is v
     # for wraps 
 
     def _getdata(self):
@@ -1496,7 +1495,7 @@ class Matrix(MatrixN):
     def get(self):
         """ Wrap the Matrix api get method """
         mat = self.matrix
-        return tuple(tuple(_api.MScriptUtil.getDoubleArrayItem ( _api.MMatrix.__getitem__(mat, r), c) for c in xrange(MMatrix.shape[1])) for r in xrange(MMatrix.shape[0]))
+        return tuple(tuple(_api.MScriptUtil.getDoubleArrayItem ( _api.MMatrix.__getitem__(mat, r), c) for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
         # ptr = _api.Matrix(self.matrix).matrix
         # return tuple(tuple(_api.MScriptUtil.getDouble2ArrayItem ( ptr, r, c) for c in xrange(Matrix.shape[1])) for r in xrange(Matrix.shape[0]))
 
@@ -1640,7 +1639,7 @@ class Matrix(MatrixN):
             return self.__class__(self.__mul__(other))
         except :
             return NotImplemented  
-    # __xor__ will defer to MVector __xor__ 
+    # __xor__ will defer to Vector __xor__ 
 
     # API added methods
 
@@ -3043,7 +3042,7 @@ def _testMMatrix() :
     m.shape = (4, 4)
     m.shape = 2
     
-    print dir(MSpace)
+    print dir(Space)
        
     m = Matrix.identity    
     # inherits from MatrixN --> Array
@@ -3409,7 +3408,7 @@ def _testMTransformationMatrix() :
     m.shape = (4, 4)
     m.shape = 2
     
-    print dir(MSpace)
+    print dir(Space)
        
     m = TransformationMatrix.identity    
     # inherits from MatrixN --> Array
