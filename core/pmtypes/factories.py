@@ -1097,12 +1097,15 @@ def loadCache( filePrefix, description=''):
 
  
 def writeCache( data, filePrefix, description=''):
+    print "writing cache"
+    
     short_version = mayahook.getMayaVersion(extension=False)   
     newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
 
     if description:
         description = ' ' + description
-        
+    
+    print "Saving%s to '%s'" % ( description, newPath )
     try :
         file = open(newPath, mode='wb')
         try :
@@ -1226,8 +1229,9 @@ def loadApiToMelBridge():
     return bridge
 
 def saveApiToMelBridge():
-    writeCache( apiToMelBridge, 'mayaApiMelBridge', 'the api-mel bridge' )
-                      
+    writeCache( apiToMelData, 'mayaApiMelBridge', 'the api-mel bridge' )
+
+           
 #---------------------------------------------------------------
         
 cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
