@@ -18,7 +18,7 @@ from keyword import iskeyword as _iskeyword
 
 VERBOSE = 0
 
-# TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere
+# TODO : would need this shared as a Singleton class, but importing from pymel.mayahook.factories anywhere 
 # except form core seems to be a problem
 #from pymel.mayahook.factories import NodeHierarchy
 
@@ -42,6 +42,7 @@ class Enum(tuple):
         return '.'.join( [str(x) for x in parts] )
 
 class ApiDocParser(object):
+    
     def __init__(self, apiClassName, version='2009', verbose=False):
         self.enums = {}
         self.pymelEnums = {}
@@ -51,37 +52,72 @@ class ApiDocParser(object):
         self.verbose = verbose
         self.version = version
         self.badEnums = []
-
-    def xprint(self, *args):
-        if self.verbose:
-            print self.apiClassName + '.' + self.currentMethod + ':', ' '.join( [ str(x) for x in args ] )
-
+    
+    def xprint(self, *args): 
+        if self.verbose or VERBOSE:
+            print self.apiClassName + '.' + self.currentMethod + ':', ' '.join( [ str(x) for x in args ] ) 
+           
     def getPymelMethodNames(self):
+
+        
+        setReg = re.compile('set([A-Z].*)')
+        
         allFnMembers = self.methods.keys()
         pymelNames = {}
+        pairs = {}
+        pairsList = []
+        
+        def addSetGetPair(setmethod, getMethod):
+            pairsList.append( (setMethod,getMethod) )
+            # pair 'set' with 'is/get'
+            pairs[setMethod] = getMethod
+            for info in self.methods[setMethod]:
+                info['inverse'] = getMethod
+                
+            # pair 'is/get' with 'set'
+            pairs[getMethod] = setMethod  
+            for info in self.methods[getMethod]:
+                info['inverse'] = setMethod  
+        
         for member in allFnMembers:
-            if len(member) > 4 and member.startswith('set') and member[3].isupper():
+            m = setReg.match(member)
+            if m:
                 # MFn api naming convention usually uses setValue(), value() convention for its set and get methods, respectively
                 # setSomething()  &  something()  becomes  setSomething() & getSomething()
                 # setIsSomething() & isSomething() becomes setSomething() & isSomething()
-                origGetMethod = member[3].lower() + member[4:]
-
+                basename = m.group(1)
+                origGetMethod = util.uncapitalize(basename)
+                setMethod = member  # for name clarity  
                 if origGetMethod in allFnMembers:
                     # fix set
                     if re.match( 'is[A-Z].*', origGetMethod):
-                        newSetMethod = 'set' + member[5:]
-                        pymelNames[member] = newSetMethod
-                        for info in self.methods[member]:
-                            info['pymelName'] = newSetMethod
+                        newSetMethod = 'set' + origGetMethod[2:] # remove 'is' #member[5:]
+                        pymelNames[setMethod] = newSetMethod
+                        for info in self.methods[setMethod]:
+                            info['pymelName'] = newSetMethod        
+                        addSetGetPair( setMethod, origGetMethod)
+                          
+                        
                     # fix get
                     else:
-                        newGetMethod = 'get' + member[3:]
+                        newGetMethod = 'g' + setMethod[1:] # remove 's'
                         pymelNames[origGetMethod] = newGetMethod
                         for info in self.methods[origGetMethod]:
-                            info['pymelName'] = newGetMethod
-        return pymelNames
+                            info['pymelName'] = newGetMethod 
+                        addSetGetPair( setMethod, origGetMethod)
+                           
 
+                else:
+                    getMethod = 'get' + basename
+                    isMethod = 'is' + basename 
+                    if getMethod in allFnMembers:
+                        addSetGetPair( setMethod, getMethod )
+                    elif isMethod in allFnMembers:
+                        addSetGetPair( setMethod, isMethod )
+                                      
+        return pymelNames, pairsList
 
+                           
     def getClassFilename(self):
         filename = 'class'
         for tok in re.split( '([A-Z][a-z]+)', self.apiClassName ):
@@ -91,7 +127,7 @@ class ApiDocParser(object):
                 else:
                     filename += tok
         return filename
-
+    
     def getPymelEnums(self, enumList):
         """remove all common prefixes from list of enum values"""
         if len(enumList) > 1:
@@ -109,16 +145,16 @@ class ApiDocParser(object):
                 elif enum[0].isdigit():
                     joinedEnums[i] = 'k' + enum
                     self.xprint( "bad enum", enum )
-
+                    
                     #print joinedEnums
                     #print enumList
                     #break
-
+                
             #print "enums", joinedEnums
             return joinedEnums
-
+        
         return enumList
-
+                           
     def handleEnums( self, type ):
         missingTypes = ['MUint64']
         otherTypes = ['void', 'char',
@@ -130,17 +166,17 @@ class ApiDocParser(object):
                     'long', 'long2', 'long3',
                     'MString', 'MStringArray']
         notTypes = ['MCallbackId']
-
+        
         if type is None: return type
-
+        
         # the enum is on another class
         if '::' in type:
             type = Enum( type.split( '::') )
-
+            
         # the enum is on this class
         elif type in self.enums:
             type = Enum( [self.apiClassName, type] )
-
+            
         elif type[0].isupper() and 'Ptr' not in type and not hasattr( _thisModule, type ) and type not in otherTypes+missingTypes+notTypes:
             type = Enum( [self.apiClassName, type] )
             if type not in self.badEnums:
@@ -149,32 +185,32 @@ class ApiDocParser(object):
         else:
             type = str(type)
         return type
-
+    
     def handleEnumDefaults( self, default, type ):
 
         if default is None: return default
-
+        
         if isinstance( type, Enum ):
-
+            
             # the enum is on another class
             if '::' in default:
                 apiClass, enumConst = default.split( '::')
                 assert apiClass == type[0]
             else:
                 enumConst = default
-
+                  
             return Enum([type[0], type[1], enumConst])
-
+                
         return default
-
+    
     def getOperatorName(self, methodName):
         op = methodName[8:]
         #print "operator", methodName, op
         if op == '=':
             methodName = None
         else:
-
-            methodName = {
+            
+            methodName = { 
                 '*=' : '__rmult__',
                 '*'  : '__mul__',
                 '+=' : '__radd__',
@@ -187,33 +223,33 @@ class ApiDocParser(object):
                 '!=' : '__neq__',
                 '[]' : '__getitem__'}.get( op, None )
         return methodName
-
+    
     def isSetMethod(self):
         if re.match( 'set[A-Z]', self.currentMethod ):
             return True
         else:
             return False
-
+        
     def isGetMethod(self):
         if re.match( 'get[A-Z]', self.currentMethod ):
             return True
         else:
-            return False
-
-    def parse(self):
+            return False 
+                                
+    def parse(self):            
         docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir(docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
         file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
         f = open( file )
-
+    
         soup = BeautifulSoup( f.read(), convertEntities='html' )
         f.close()
+          
 
+        for proto in soup.body.findAll( 'div', **{'class':'memproto'} ): 
 
-        for proto in soup.body.findAll( 'div', **{'class':'memproto'} ):
-
-
+        
             # NAME AND RETURN TYPE
             memb = proto.findAll( 'td', **{'class':'memname'} )[0]
             buf = [ x.strip() for x in memb.findAll( text=True )]
@@ -232,32 +268,32 @@ class ApiDocParser(object):
                 if len(buf) > 1:
                     returnType += buf[0]
                     methodName = buf[1]
-
+            
             methodName = methodName.split('::')[-1]
-
+            
             # convert operators to python special methods
             if methodName.startswith('operator'):
                 methodName = self.getOperatorName(methodName)
-
+                
                 if methodName is None: continue
-
+            
             # no MStatus in python
             if returnType in ['MStatus', 'void']:
                 returnType = None
             else:
                 returnType = self.handleEnums(returnType)
-
+            
             # convert to unicode
             self.currentMethod = str(methodName)
-
+            
             #constructors and destructors
             if self.currentMethod.startswith('~') or self.currentMethod == self.apiClassName:
                 continue
-
+            
             # ENUMS
             if returnType == 'enum':
                 self.xprint( "ENUM", returnType)
-                #print returnType, methodName
+                #print returnType, methodName    
                 try:
                     enumValues=[]
                     enumDocs={}
@@ -265,31 +301,31 @@ class ApiDocParser(object):
                         value = str(em.contents[-1])
                         enumValues.append( value )
                         enumDocs[value] = str(em.next.next.next.next.next.contents[0]).strip()
-
+    
                     #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
-                    #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )
+                    #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )      
                     pymelEnumList = self.getPymelEnums( enumValues )
                     for val, pyval in zip(enumValues,pymelEnumList):
                         enumDocs[pyval] = enumDocs[val]
-
-                    enumInfo = {'values' : enumValues,
+                    
+                    enumInfo = {'values' : enumValues, 
                                 'valueDocs' : enumDocs,
-
+                                  
                                   #'doc' : methodDoc
-                                }
-
+                                } 
+                    
                     #print enumList
-
+                    
                     self.enums[self.currentMethod] = enumInfo
                     self.pymelEnums[self.currentMethod] = pymelEnumList
-
+                    
                 except AttributeError, msg:
                     print "FAILED ENUM", msg
-
+                    
             # ARGUMENTS
             else:
                 self.xprint( "RETURN", returnType)
-
+                
                 argInfo={}
                 argList=[]
                 defaults={}
@@ -301,15 +337,15 @@ class ApiDocParser(object):
                 types ={}
                 typeQualifiers={}
                 methodDoc = ''
-
+                
                 # Static methods
                 static = False
                 try:
                     code = proto.findAll('code')[-1].string
-                    if code and code.strip() == '[static]':
+                    if code and code.strip() == '[static]': 
                         static = True
-                except IndexError: pass
-
+                except IndexError: pass    
+                
                 tmpTypes=[]
                 # TYPES
                 for paramtype in proto.findAll( 'td', **{'class':'paramtype'} ) :
@@ -324,37 +360,37 @@ class ApiDocParser(object):
                     self.xprint( buf, )
                     argtype = buf.pop(i)
                     self.xprint( buf, argtype, i )
-
+                    
                     argtype = self.handleEnums(argtype)
-
+                    
                     #print '\targtype', argtype, buf
                     tmpTypes.append( (argtype, buf) )
-
-                # ARGUMENT NAMES
+                
+                # ARGUMENT NAMES 
                 i = 0
                 for paramname in  proto.findAll( 'td', **{'class':'paramname'} )  :
                     buf = [ x.strip() for x in paramname.findAll( text=True ) if x.strip() not in['',','] ]
                     if buf:
                         argname = buf[0]
                         data = buf[1:]
-
+                        
                         type, qualifiers = tmpTypes[i]
                         default=None
                         joined = ''.join(data).strip()
-
+                        
                         if joined:
                             # break apart into index and defaults :  '[3] = NULL'
                             brackets, default = re.search( '([^=]*)(?:\s*=\s*(.*))?', joined ).groups()
-
-                            if brackets:
+                            
+                            if brackets:                         
                                 numbuf = re.split( r'\[|\]', brackets)
                                 if len(numbuf) > 1:
                                     type = type + numbuf[1]
                                 else:
                                     print "this is not a bracketed number", repr(brackets), joined
-
+                            
                             if default is not None:
-                                try:
+                                try:  
                                     # Constants
                                     default = {
                                         'true' : True,
@@ -381,67 +417,70 @@ class ApiDocParser(object):
                                 # default must be set here, because 'NULL' may be set to back to None, but this is in fact the value we want
                                 self.xprint('DEFAULT', default)
                                 defaults[argname] = default
-
+                                
                         types[argname] = type
                         typeQualifiers[argname] = qualifiers
                         names.append(argname)
                         i+=1
-
+                        
                 try:
                     # ARGUMENT DIRECTION AND DOCUMENTATION
                     addendum = proto.findNextSiblings( 'div', limit=1)[0]
                     #try: self.xprint( addendum.findAll(text=True ) )
                     #except: pass
-
+                    
                     #if addendum.findAll( text = re.compile( '(This method is obsolete.)|(Deprecated:)') ):
                     if addendum.dl.findAll( text=lambda text: text in ['This method is obsolete.', 'Deprecated:', 'NO SCRIPT SUPPORT.'] ):
-                        self.printx( "DEPRECATED" )
+                        self.xprint( "DEPRECATED" )
                         self.currentMethod = None
                         continue
-
+                    
                     methodDoc = ' '.join( addendum.p.findAll( text=True ) )
-
+                    
                     extraInfo = addendum.dl.table
                     assert extraInfo
                     tmpDirs = extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
 
                     tmpNames = [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
-
+                    
                     tmpDocs = []
                     for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in extraInfo.findAll( 'td' )]:
                         if doc: tmpDocs.append( ''.join(doc) )
-
-                    assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), 'names and types lists are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs)
-
+                        
+                    assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), 'names and types lists are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs) 
+                    assert sorted(tmpNames) == sorted(typeQualifiers.keys()) == sorted(typeQualifiers.keys()), 'name list mismatch %s %s %s' %  (sorted(tmpNames), sorted(typeQualifiers.keys()), sorted(typeQualifiers.keys()) )
+                    
+                    #self.xprint(  sorted(tmpNames), sorted(typeQualifiers.keys()), sorted(typeQualifiers.keys()) )
+                    
                     for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs) :
-                        if dir == '[in]':
+                        if dir == '[in]': 
                             # attempt to correct bad in/out docs
-                            if re.search(r'\b([fF]ill|[sS]torage)|([rR]esult)', doc ):
+                            if re.search(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)', doc ):
                                 warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
                                                                     self.apiClassName,self.currentMethod,', '.join(names), name, doc), ExecutionWarning)
                                 dir = 'out'
                             elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float']:
                                 warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
-                                                                    self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)
+                                                                    self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)                                                                                        
                                 dir = 'out'
                             else:
                                 dir = 'in'
-                        elif dir == '[out]':
+                        elif dir == '[out]': 
                             dir = 'out'
                         else: raise
-
+                        
                         assert name in names
                         directions[name] = dir
                         docs[name] = doc
+                        
+                                               
 
-
-
-
+                        
                 except (AttributeError, AssertionError), msg:
                     #print "FAILED", msg
                     pass
 
-
+                 
 #                print names
 #                print types
 #                print defaults
@@ -452,7 +491,7 @@ class ApiDocParser(object):
                     type = types[argname]
                     direction = directions.get(argname, 'in')
                     doc = docs.get( argname, '')
-
+                    
                     if type == 'MStatus':
                         types.pop(argname)
                         defaults.pop(argname,None)
@@ -460,14 +499,14 @@ class ApiDocParser(object):
                         docs.pop(argname,None)
                         idx = names.index(argname)
                         names.pop(idx)
-                    else:
+                    else:          
                         if direction == 'in':
                             inArgs.append(argname)
                         else:
                             outArgs.append(argname)
                         argInfo[ argname ] = {'type': type, 'doc': doc }
-
-                # correct bad outputs
+                 
+                # correct bad outputs   
                 if self.isGetMethod() and not returnType and not outArgs:
                     for argname in names:
                         if '&' in typeQualifiers[argname]:
@@ -477,68 +516,69 @@ class ApiDocParser(object):
                             inArgs.pop(idx)
                             outArgs.append(argname)
 
-                            warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (
-                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc), ExecutionWarning)
-
+                            warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (               
+                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc), ExecutionWarning) 
+                
                 # now that the directions are correct, make the argList
                 for argname in names:
                     type = types[argname]
                     direction = directions.get(argname, 'in')
                     data = ( argname, type, direction)
-                    if self.verbose: print data
+                    if self.verbose: print data       
                     argList.append(  data )
-
-                methodInfo = { 'argInfo': argInfo,
-                              'args' : argList,
-                              'returnType' : returnType,
-                              'inArgs' : inArgs,
-                              'outArgs' : outArgs,
-                              'doc' : methodDoc,
+                    
+                methodInfo = { 'argInfo': argInfo, 
+                              'args' : argList, 
+                              'returnType' : returnType, 
+                              'inArgs' : inArgs, 
+                              'outArgs' : outArgs, 
+                              'doc' : methodDoc, 
                               'defaults' : defaults,
                               #'directions' : directions,
                               'types' : types,
-                              'static' : static }
+                              'static' : static } 
                 self.methods[self.currentMethod].append(methodInfo)
-
+                
                 # reset
                 self.currentMethod=None
-
-        pymelNames = self.getPymelMethodNames()
-
-
-        return { 'methods' : dict(self.methods),
+                
+        pymelNames, invertibles = self.getPymelMethodNames()
+        
+                   
+        return { 'methods' : dict(self.methods), 
                  'enums' : self.enums,
                  'pymelEnums' : self.pymelEnums,
-                 'pymelMethods' :  pymelNames
+                 'pymelMethods' :  pymelNames,
+                 'invertibles' : invertibles
                 }
-
+        
 def getMFnInfo( apiClassName ):
     parser = ApiDocParser(apiClassName )
     try:
         classInfo = parser.parse()
-    except IOError, msg:
+    except IOError, msg: 
         #print "Error parsing docs: %s" % msg
         pass
     else:
 
-
+        
 #        for methodName, methodInfoList in classInfo['methods'].items():
 #              for i, methodInfo in enumerate( methodInfoList ):
 #                  #try: print methodInfo['pymelName'], methodName
 #                  #except: pass
 #                  newMethodName = methodInfo.get('pymelName', methodName)
-#                  if newMethodName.startswith('get') and len(newMethodName)>3:
+#                  if newMethodName.startswith('get') and len(newMethodName)>3:              
 #                      outputs = []
 #                      returnType = methodInfo['returnType']
 #                      if returnType:
 #                          outputs.append( returnType )
 #                      outputs += methodInfo['outArgs']
 #                      if not outputs:
-#                           print "no outputs", apiClassName, methodName, i
-        return classInfo
+#                           print "no outputs", apiClassName, methodName, i 
+        return classInfo 
 
 
-
+                          
 # fast convenience tests on API objects
 def isValidMObjectHandle (obj):
     if isinstance(obj, MObjectHandle) :
@@ -551,7 +591,7 @@ def isValidMObject (obj):
         return not obj.isNull()
     else :
         return False
-
+    
 def isValidMPlug (obj):
     if isinstance(obj, MPlug) :
         return not obj.isNull()
@@ -559,10 +599,10 @@ def isValidMPlug (obj):
         return False
 
 def isValidMDagPath (obj):
-    if isinstance(obj, MDagPath) :
+    if isinstance(obj, MDagPath) : 
         # when the underlying MObject is no longer valid, dag.isValid() will still return true,
         # but obj.fullPathName() will be an empty string
-        return obj.isValid() and obj.fullPathName()
+        return obj.isValid() and obj.fullPathName() 
     else :
         return False
 
@@ -577,7 +617,7 @@ def isValidMDagNode (obj):
         return obj.hasFn(MFn.kDagNode)
     else :
         return False
-
+    
 def isValidMNodeOrPlug (obj):
     return isValidMPlug (obj) or isValidMNode (obj)
 
@@ -588,14 +628,14 @@ def isValidMNodeOrPlug (obj):
 
 class ApiTypesToApiEnums(dict) :
     """Lookup of Maya API types to corresponding MFn::Types enum"""
-    __metaclass__ = Singleton
+    __metaclass__ = Singleton   
 class ApiEnumsToApiTypes(dict) :
     """Lookup of MFn::Types enum to corresponding Maya API types"""
     __metaclass__ = Singleton
 class ApiTypesToApiClasses(dict) :
     """Lookup of Maya API types to corresponding MFnBase Function sets"""
     __metaclass__ = Singleton
-
+    
 # Reserved Maya types and API types that need a special treatment (abstract types)
 # TODO : parse docs to get these ? Pity there is no kDeformableShape to pair with 'deformableShape'
 # strangely createNode ('cluster') works but dgMod.createNode('cluster') doesn't
@@ -606,20 +646,20 @@ class ApiTypesToApiClasses(dict) :
 #    __metaclass__ =  metaStatic
 ## Inverse lookup
 #class ReservedApiTypes(dict) :
-#
+#   
 
 class ReservedMayaTypes(dict) :
     __metaclass__ = Singleton
 class ReservedApiTypes(dict) :
     __metaclass__ = Singleton
-
+    
 def _buildMayaReservedTypes():
     """ Build a list of Maya reserved types.
         These cannot be created directly from the API, thus the dgMod trick to find the corresonding Maya type won't work """
 
     ReservedMayaTypes().clear()
     ReservedApiTypes().clear()
-
+    
     reservedTypes = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
                 'entity':'kDependencyNode', \
                 'constraint':'kConstraint', 'field':'kField', \
@@ -637,24 +677,24 @@ def _buildMayaReservedTypes():
                 'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
                 'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
                 'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
-                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' }      # creating these 2 crash Maya
+                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' }      # creating these 2 crash Maya      
 
     # filter to make sure all these types exist in current version (some are Maya2008 only)
     ReservedMayaTypes ( dict( (item[0], item[1]) for item in filter(lambda i:i[1] in ApiTypesToApiEnums(), reservedTypes.iteritems()) ) )
     # build reverse dict
     ReservedApiTypes ( dict( (item[1], item[0]) for item in ReservedMayaTypes().iteritems() ) )
-
+    
     return ReservedMayaTypes(), ReservedApiTypes()
 
 # some handy aliases / shortcuts easier to remember and use than actual Maya type name
 class ShortMayaTypes(dict) :
     __metaclass__ =  metaStatic
-
+    
 ShortMayaTypes({'all':'base', 'valid':'base', 'any':'base', 'node':'dependNode', 'dag':'dagNode', \
                 'deformer':'geometryFilter', 'weightedDeformer':'weightGeometryFilter', 'geometry':'geometryShape', \
                 'surface':'surfaceShape', 'revolved':'revolvedPrimitive', 'deformable':'deformableShape', \
-                'curve':'curveShape' })
-
+                'curve':'curveShape' })                
+                   
 class MayaTypesToApiTypes(dict) :
     """ Lookup of currently existing Maya types as keys with their corresponding API type as values.
     Not a read only (static) dict as these can change (if you load a plugin)"""
@@ -665,17 +705,17 @@ class ApiTypesToMayaTypes(dict) :
     Not a read only (static) dict as these can change (if you load a plugin)
     In the case of a plugin a single API 'kPlugin' type corresponds to a tuple of types )"""
     __metaclass__ = Singleton
-
+    
 #: lookup tables for a direct conversion between Maya type to their MFn::Types enum
 class MayaTypesToApiEnums(dict) :
     """Lookup from Maya types to API MFn::Types enums """
     __metaclass__ = Singleton
-
-#: lookup tables for a direct conversion between API type to their MFn::Types enum
+    
+#: lookup tables for a direct conversion between API type to their MFn::Types enum 
 class ApiEnumsToMayaTypes(dict) :
     """Lookup from API MFn::Types enums to Maya types """
     __metaclass__ = Singleton
-
+ 
 # Cache API types hierarchy, using MFn classes hierarchy and additionnal trials
 # TODO : do the same for Maya types, but no clue how to inspect them apart from parsing docs
 
@@ -700,7 +740,7 @@ ReservedApiHierarchy({ 'kNamedObject':'kBase', 'kDependencyNode':'kNamedObject',
                     'kPlugin':'kBase', 'kPluginDependNode':'kDependencyNode', 'kPluginLocatorNode':'kLocator', \
                     'kPluginDeformerNode':'kGeometryFilt', 'kPluginConstraintNode':'kConstraint', 'kPluginData':'kData', \
                     'kUnknown':'kDependencyNode', 'kUnknownDag':'kDagNode', 'kUnknownTransform':'kTransform',\
-                    'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' })
+                    'kXformManip':'kTransform', 'kMoveVertexManip':'kXformManip' })  
 
 apiTypeHierarchy = {}
 
@@ -716,13 +756,13 @@ def mayaTypeToApiType (mayaType) :
         apiType = 'kInvalid'
         # Reserved types must be treated specially
         if ReservedMayaTypes().has_key(mayaType) :
-            # It's an abstract type
+            # It's an abstract type            
             apiType = ReservedMayaTypes()[mayaType]
         else :
             # we create a dummy object of this type in a dgModifier
             # as the dgModifier.doIt() method is never called, the object
             # is never actually created in the scene
-            obj = MObject()
+            obj = MObject() 
             dagMod = MDagModifier()
             dgMod = MDGModifier()
             #if mayaType == 'directionalLight': print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
@@ -733,8 +773,8 @@ def mayaTypeToApiType (mayaType) :
 
 
 def addMayaType(mayaType, apiType=None ) :
-    """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for.
-
+    """ Add a type to the MayaTypes lists. Fill as many dictionary caches as we have info for. 
+    
         - MayaTypesToApiTypes
         - ApiTypesToMayaTypes
         - ApiTypesToApiEnums
@@ -745,32 +785,32 @@ def addMayaType(mayaType, apiType=None ) :
 
 
     if apiType is None:
-        apiType = mayaTypeToApiType(mayaType)
+        apiType = mayaTypeToApiType(mayaType)    
     if apiType is not 'kInvalid' :
-
+        
         apiEnum = getattr( MFn, apiType )
-
+        
         defType = ReservedMayaTypes().has_key(mayaType)
-
+        
         MayaTypesToApiTypes()[mayaType] = apiType
         if not ApiTypesToMayaTypes().has_key(apiType) :
             ApiTypesToMayaTypes()[apiType] = { mayaType : defType }
         else :
             ApiTypesToMayaTypes()[apiType][mayaType] = defType
-
+        
         # these are static and are build elsewhere
         #ApiTypesToApiEnums()[apiType] = apiEnum
         #ApiEnumsToApiTypes()[apiEnum] = apiType
-
+        
         MayaTypesToApiEnums()[mayaType] = apiEnum
         if not ApiEnumsToMayaTypes().has_key(apiEnum) :
             ApiEnumsToMayaTypes()[apiEnum] = { mayaType : None }
         else:
-            ApiEnumsToMayaTypes()[apiEnum][mayaType] = None
+            ApiEnumsToMayaTypes()[apiEnum][mayaType] = None 
 
 def removeMayaType( mayaType ):
-    """ Remove a type from the MayaTypes lists.
-
+    """ Remove a type from the MayaTypes lists. 
+    
         - MayaTypesToApiTypes
         - ApiTypesToMayaTypes
         - ApiTypesToApiEnums
@@ -796,15 +836,15 @@ def removeMayaType( mayaType ):
         if not types:
            ApiTypesToMayaTypes().pop(apiType)
            ApiTypesToApiEnums().pop(apiType)
-
-
+    
+       
 
 def _getMObject(nodeType, dagMod, dgMod) :
     """ Returns a queryable MObject from a given apiType or mayaType"""
-
+    
     # cant create these nodes, some would crahs MAya also
     if ReservedApiTypes().has_key(nodeType) or ReservedMayaTypes().has_key(nodeType) :
-        return None
+        return None   
 
     if ApiTypesToMayaTypes().has_key(nodeType) :
         mayaType = ApiTypesToMayaTypes()[nodeType].keys()[0]
@@ -813,8 +853,8 @@ def _getMObject(nodeType, dagMod, dgMod) :
         mayaType = nodeType
         #apiType = MayaTypesToApiTypes()[nodeType]
     else :
-        return None
-
+        return None    
+    
     return _makeDgModGhostObject(mayaType, dagMod, dgMod)
 
 _unableToCreate = set()
@@ -822,7 +862,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
-
+    
     # Note that you need to call the dgMod/dagMod.deleteNode method as well - if we don't,
     # and we call this function while loading a scene (for instance, if the scene requires
     # a plugin that isn't loaded, and defines custom node types), then the nodes are still
@@ -830,10 +870,10 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
 
-    # Regardless of whether we're making a DG or DAG node, make a parent first -
+    # Regardless of whether we're making a DG or DAG node, make a parent first - 
     # for some reason, this ensures good cleanup (don't ask me why...??)
     parent = dagMod.createNode ( 'transform', MObject())
-
+    
     try:
         try :
             # Try making it with dgMod FIRST - this way, we can avoid making an
@@ -878,12 +918,12 @@ def _hasFn (apiType, dagMod, dgMod, parentType=None) :
     else :
         return False
     # print "need creation for %s" % apiType
-    obj = _getMObject(apiType, dagMod, dgMod, parentType)
+    obj = _getMObject(apiType, dagMod, dgMod, parentType) 
     if isValidMObject(obj) :
         return obj.hasFn(typeInt)
     else :
         return False
-
+ 
 
 # Filter the given API type list to retain those that are parent of apiType
 # can pass a list of types to check for being possible parents of apiType
@@ -908,8 +948,8 @@ def _parentFn (apiType, dagMod, dgMod, *args, **kwargs) :
                     return t
         return None
 
-    result = None
-    obj = kwargs.get(apiType, None)
+    result = None           
+    obj = kwargs.get(apiType, None)        
     if not isValidMObject(obj) :
         # print "need creation for %s" % apiType
         obj = _getMObject(apiType, dagMod, dgMod)
@@ -937,10 +977,10 @@ def _parentFn (apiType, dagMod, dgMod, *args, **kwargs) :
                                 if not stored :
                                     if ReservedApiTypes().has_key(q) :
                                         isFirst = not ReservedApiHierarchy().get(q, None) == p
-                                    else :
+                                    else :                                    
                                         stored = _getMObject(q, dagMod, dgMod)
                                         if not kwargs.get(q, None) :
-                                            kwargs[q] = stored          # update it if we had to create
+                                            kwargs[q] = stored          # update it if we had to create                                        
                                 if stored :
                                     isFirst = not stored.hasFn(ip)
                             if not isFirst :
@@ -950,7 +990,7 @@ def _parentFn (apiType, dagMod, dgMod, *args, **kwargs) :
                             break
             else :
                 result = parents[0]
-
+                                 
     return result
 
 def _createNodes(dagMod, dgMod, *args) :
@@ -965,7 +1005,7 @@ def _createNodes(dagMod, dgMod, *args) :
             #print "reserved", mayaType, apiType
             mayaResult[mayaType] = apiType
             result[apiType] = None
-
+      
         else :
             obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
             if isValidMObject(obj) :
@@ -981,19 +1021,19 @@ def _createNodes(dagMod, dgMod, *args) :
 #    __metaclass__ = Singleton
 
 def _buildApiTypesList():
-    """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with
+    """the list of api types is static.  even when a plugin registers a new maya type, it will be associated with 
     an existing api type"""
-
+    
     ApiTypesToApiEnums().clear()
     ApiEnumsToApiTypes().clear()
-
+    
     ApiTypesToApiEnums( dict( inspect.getmembers(MFn, lambda x:type(x) is int)) )
     ApiEnumsToApiTypes( dict( (ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()) )
 
-    #apiTypesToApiEnums = dict( inspect.getmembers(MFn, lambda x:type(x) is int))
-    #apiEnumsToApiTypes = dict( (ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys())
+    #apiTypesToApiEnums = dict( inspect.getmembers(MFn, lambda x:type(x) is int)) 
+    #apiEnumsToApiTypes = dict( (ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()) 
     #return apiTypesToApiEnums, apiEnumsToApiTypes
-
+    
 # Initialises MayaTypes for a faster later access
 def _buildMayaTypesList() :
     """Updates the cached MayaTypes lists """
@@ -1001,7 +1041,7 @@ def _buildMayaTypesList() :
 
     # api types/enums dicts must be created before reserved type bc they are used for filtering
     _buildMayaReservedTypes()
-
+    
     # use dict of empty keys just for faster random access
     # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
     # add new types
@@ -1017,7 +1057,7 @@ def _buildMayaTypesList() :
 def _buildApiTypeHierarchy (apiClassInfo=None) :
     """
     Used to rebuild api info from scratch.
-
+    
     Set 'apiClassInfo' to a valid apiClassInfo structure to disable rebuilding of apiClassInfo
     - this is useful for versions < 2009, as these versions cannot parse the api docs; by passing
     in an apiClassInfo, you can rebuild all other api information.  If left at the default value
@@ -1031,19 +1071,19 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
                 return ApiEnumsToApiTypes()[ x().type() ]
             except :
                 return ApiEnumsToApiTypes()[ 0 ] # 'kInvalid'
-
+    
     #global apiTypeHierarchy, ApiTypesToApiClasses
     _buildMayaReservedTypes()
-
+    
     allMayaTypes = ReservedMayaTypes().keys() + _ls(nodeTypes=True)
-
+    
     apiTypesToApiClasses = {}
-
+    
     # all of maya OpenMaya api is now imported in module api's namespace
     MFnClasses = inspect.getmembers(_thisModule, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
     MFnTree = inspect.getclasstree( [x[1] for x in MFnClasses] )
     MFnDict = {}
-
+    
     for x in expandArgs(MFnTree, type='list') :
         MFnClass = x[0]
         current = _MFnType(MFnClass)
@@ -1054,7 +1094,7 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
                 apiTypesToApiClasses[ current ] = MFnClass
                 #ApiTypesToApiClasses()[ current ] = x[0]
                 MFnDict[ current ] = parent
-
+    
     if apiClassInfo is None:
         apiClassInfo = {}
         for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
@@ -1066,21 +1106,21 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
                         apiClassInfo[ name ] = info
                     else: print "failed to parse docs:", name
                 except (ValueError,IndexError), msg: print "failed", name, msg
-
+                    
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
     # Make it faster by pre-creating the nodes used to test
     dagMod = MDagModifier()
-    dgMod = MDGModifier()
+    dgMod = MDGModifier()      
     #nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
     nodeDict, mayaDict = _createNodes( dagMod, dgMod, *allMayaTypes )
     if len(_unableToCreate) > 0:
         util.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
-
+    
     for mayaType, apiType in mayaDict.items() :
         MayaTypesToApiTypes()[mayaType] = apiType
         addMayaType( mayaType, apiType )
-
+    
     # Fix? some MFn results are not coherent with the hierarchy presented in the docs :
     MFnDict.pop('kWire', None)
     MFnDict.pop('kBlendShape', None)
@@ -1095,9 +1135,9 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
                 #print "Found parent: %s in %.2f sec" % (p, endParent-startParent)
                 MFnDict[k] = p
             else :
-                #print "Found none in %.2f sec" % (endParent-startParent)
-                pass
-
+                #print "Found none in %.2f sec" % (endParent-startParent)     
+                pass         
+                                       
     # print MFnDict.keys()
     # make a Tree from that child:parent dictionnary
 
@@ -1108,7 +1148,7 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
 def _buildApiCache(rebuildAllButClassInfo=False):
     """
     Used to rebuild api cache, either by loading from a cache file, or rebuilding from scratch.
-
+    
     Set 'rebuildAllButClassInfo' to True to force rebuilding of all info BUT apiClassInfo -
     this is useful for versions < 2009, as these versions cannot parse the api docs; by setting
     this to False, you can rebuild all other api information.
@@ -1116,13 +1156,13 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     #print ApiTypesToApiEnums()
     #print ApiTypesToApiClasses()
     #global ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiTypeHierarchy
-
+    
     #global ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses#, apiTypeHierarchy
-
+         
     ver = mayahook.getMayaVersion(extension=False)
 
     cacheFileName = os.path.join( util.moduleDir(),  'mayaApi'+ver+'.bin'  )
-
+    
     # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
     apiClassInfo = None
     try :
@@ -1148,7 +1188,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
                     print "Tops: ",
                     print " ,".join(["%s:%s" % (top.key, top.value) for top in value.tops()])
                 print
-
+        
         if len(data) == 7:
             util.warn("Api cache file was an old version (< r654): %s" % cacheFileName)
             # We've got a .bin from < r654...
@@ -1163,14 +1203,13 @@ def _buildApiCache(rebuildAllButClassInfo=False):
             ApiTypesToApiClasses(data[5])
             apiTypeHierarchy = data[6]
             apiClassInfo = data[7]
-
+        
         print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
-
+        
         def _setOverloadedMethod( className, methodName, index ):
-            from pymel.util.arguments import reorder
             methodInfoList = apiClassInfo[className]['methods'][methodName]
-            apiClassInfo[className]['methods'][methodName] = reorder( methodInfoList, [index] )
-
+            apiClassInfo[className]['methods'][methodName] = util.reorder( methodInfoList, [index] )
+            
         def _setArgDefault( className, methodName, argName, default ):
             methodInfoList = apiClassInfo[className]['methods'][methodName]
             for i, methodInfo in enumerate( methodInfoList ):
@@ -1187,47 +1226,47 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         _setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kObject']) )
         _setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
         #print "AFTER", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
-
+        
         _setOverloadedMethod( 'MItMeshEdge','index', 1 ) # method at 0 is for returning a vertex index, while method 1 returns the edge index
-
+        
 #        for clsname, classInfo in apiClassInfo.items():
 #            for method, methodInfoList in classInfo['methods'].items():
 #                for i, methodInfo in enumerate( methodInfoList ):
 #                    for arg, type in methodInfo['types'].items():
 #                        if str(type) == 'MSpace.Space':
-#                            print clsname, method, i,
+#                            print clsname, method, i, 
 
 #        apiClassInfo['MFnTransform']['methods']['getRotation'].pop(0) # remove MEuler
 #        # correction to order direction
 #        order = apiClassInfo['MFnTransform']['methods']['getRotation'][0]['args'][1]
 #        apiClassInfo['MFnTransform']['methods']['getRotation'][0]['args'][1] = order[:2] + tuple(['out'])
         #----------------------------------------------------
-
+        
         if not rebuildAllButClassInfo:
             # Note that even if rebuildAllButClassInfo, we still want to load
             # the cache file, in order to grab apiClassInfo
             return apiTypeHierarchy, apiClassInfo
-
+            
         #except:
-        #    print "Unable to load the Maya API Hierarchy from '"+file.name+"'"
+        #    print "Unable to load the Maya API Hierarchy from '"+file.name+"'"       
         file.close()
     except (IOError, OSError, IndexError):
         print "Unable to open '"+cacheFileName+"' for reading the Maya API Hierarchy"
-
+    
     print "Rebuilding the API Caches..."
-
+    
     # fill out the data structures
     _buildApiTypesList()
     #apiTypesToApiEnums, apiEnumsToApiTypes = _buildApiTypesList()
     #_buildMayaTypesList()
-
+    
     if not rebuildAllButClassInfo:
         apiClassInfo = None
     apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo = _buildApiTypeHierarchy(apiClassInfo=apiClassInfo)
 
-
+    
     #_buildApiTypeHierarchy()
-
+    
     #ApiTypesToApiClasses( apiTypesToApiClasses )
 
     try :
@@ -1236,7 +1275,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
             #print "about to pickle", apiTypesToApiClasses
             #print "about to pickle", ApiEnumsToApiTypes()
             print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
-            pickle.dump( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), dict(MayaTypesToApiTypes()),
+            pickle.dump( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), dict(MayaTypesToApiTypes()), 
                           apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo),
                             file, 2)
             print "done"
@@ -1245,14 +1284,14 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         file.close()
     except :
         print "Unable to open '"+cacheFileName+"' for writing"
-
+    
     return apiTypeHierarchy, apiClassInfo
 
 # Initialize the API tree
-# initial update
+# initial update  
 start = time.time()
 apiTypeHierarchy, apiClassInfo = _buildApiCache(rebuildAllButClassInfo=False)
-
+        
 # quick fix until we can get a Singleton ApiTypeHierarchy() up
 
 elapsed = time.time() - start
@@ -1265,7 +1304,7 @@ def toApiTypeStr( obj ):
         return ApiEnumsToApiTypes().get( obj, None )
     elif isinstance( obj, basestring ):
         return MayaTypesToApiTypes().get( obj, None)
-
+    
 def toApiTypeEnum( obj ):
     try:
         return ApiTypesToApiEnums()[obj]
@@ -1277,14 +1316,14 @@ def toMayaType( obj ):
         return ApiEnumsToMayaTypes().get( obj, None )
     elif isinstance( obj, basestring ):
         return ApiTypesToMayaTypes().get( obj, None)
-
+    
 def toApiFunctionSet( obj ):
     if isinstance( obj, basestring ):
         try:
             return ApiTypesToApiClasses()[ obj ]
         except KeyError:
             return ApiTypesToApiClasses().get( MayaTypesToApiTypes().get( obj, None ) )
-
+         
     elif isinstance( obj, int ):
         try:
             return ApiTypesToApiClasses()[ ApiEnumsToApiTypes()[ obj ] ]
@@ -1297,7 +1336,7 @@ def toApiFunctionSet( obj ):
 # conversion API enum int to API type string and back
 def apiEnumToType (apiEnum) :
     """ Given an API type enum int, returns the corresponding Maya API type string,
-        as in MObject.apiType() to MObject.apiTypeStr() """
+        as in MObject.apiType() to MObject.apiTypeStr() """    
     return ApiEnumsToApiTypes().get(apiEnum, None)
 
 def apiTypeToEnum (apiType) :
@@ -1341,7 +1380,7 @@ def apiToNodeType (*args) :
         that can be matched """
     result = []
     for a in args :
-        if type(a) is int :
+        if type(a) is int :         
             result.append(_apiEnumToNodeType(a))
         else :
             result.append(_apiTypeToNodeType(a))
@@ -1364,23 +1403,23 @@ def apiToNodeType (*args) :
 #            >>> api.objType (obj, api=True, inherited=True)
 #            >>> # Result: ['kBase', 'kDependencyNode', 'kDagNode', 'kMesh'] #
 #            >>> api.objType (obj, api=False, inherited=True)
-#            >>> # Result: ['dependNode', 'entity', 'dagNode', 'shape', 'geometryShape', 'deformableShape', 'controlPoint', 'surfaceShape', 'mesh'] #
+#            >>> # Result: ['dependNode', 'entity', 'dagNode', 'shape', 'geometryShape', 'deformableShape', 'controlPoint', 'surfaceShape', 'mesh'] # 
 #        Note that unfortunatly API and Node types do not exactly match in their hierarchy in Maya
 #    """
 #    result = obj.apiType()
 #    if api :
 #        result = apiEnumToType (result)
 #        if inherited :
-#            result = [k.value for k in ApiTypeHierarchy().path(result)]
+#            result = [k.value for k in ApiTypeHierarchy().path(result)]    
 #    else :
 #        result = apiEnumToNodeType (result)
 #        if inherited :
-#            result =  [k.value for k in NodeHierarchy().path(result)]
+#            result =  [k.value for k in NodeHierarchy().path(result)]   
 #    return result
-
+            
 # returns a MObject for an existing node
 def toMObject (nodeName):
-    """ Get the API MObject given the name of an existing node """
+    """ Get the API MObject given the name of an existing node """ 
     sel = MSelectionList()
     obj = MObject()
     result = None
@@ -1388,24 +1427,24 @@ def toMObject (nodeName):
         sel.add( nodeName )
         sel.getDependNode( 0, obj )
         if isValidMObject(obj) :
-            result = obj
+            result = obj 
     except :
         pass
     return result
 
 def toApiObject (nodeName, dagPlugs=True):
     """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name of an existing node, attribute, components selection
-
+    
     if dagPlugs is True, plug result will be a tuple of type (MDagPath, MPlug)
-
-    """
+    
+    """ 
     sel = MSelectionList()
     try:
         sel.add( nodeName )
     except:
         if "." in nodeName :
             # Compound Attributes
-            #  sometimes the index might be left off somewhere in a compound attribute
+            #  sometimes the index might be left off somewhere in a compound attribute 
             # (ex 'Nexus.auxiliary.input' instead of 'Nexus.auxiliary[0].input' )
             #  but we can still get a representative plug. this will return the equivalent of 'Nexus.auxiliary[-1].input'
             try:
@@ -1416,8 +1455,8 @@ def toApiObject (nodeName, dagPlugs=True):
                 else:
                     mfn = MFnDependencyNode(obj)
                 plug = mfn.findPlug( buf[-1], False )
-
-                if dagPlugs: # and isValidMDagPath(obj) :
+                
+                if dagPlugs: # and isValidMDagPath(obj) : 
                     return (obj, plug)
                 return plug
             except (RuntimeError,ValueError):
@@ -1438,7 +1477,7 @@ def toApiObject (nodeName, dagPlugs=True):
                         return (dag, plug)
                     except RuntimeError: pass
                 return plug
-
+            
             except RuntimeError:
                 # Components
                 dag = MDagPath()
@@ -1453,14 +1492,14 @@ def toApiObject (nodeName, dagPlugs=True):
                 sel.getDagPath( 0, dag )
                 #if not isValidMDagPath(dag) : return
                 return dag
-
+         
             except RuntimeError:
                 # Objects
                 obj = MObject()
-                sel.getDependNode( 0, obj )
-                #if not isValidMObject(obj) : return
+                sel.getDependNode( 0, obj )          
+                #if not isValidMObject(obj) : return     
                 return obj
-
+        
 #    # TODO : components
 #    if "." in nodeName :
 #        # build up to the final MPlug
@@ -1494,15 +1533,15 @@ def toApiObject (nodeName, dagPlugs=True):
 #                        result = result.child( fn.attribute( token ) )
 #                    else:
 #                        result = fn.findPlug( token )
-#
+#                            
 #                if isinstance( token, nameparse.NameIndex ):
 #                    result = result.elementByLogicalIndex( token.value )
-#
+#        
 #
 #    return result
 
 def toMDagPath (nodeName):
-    """ Get an API MDagPAth to the node, given the name of an existing dag node """
+    """ Get an API MDagPAth to the node, given the name of an existing dag node """ 
     obj = toMObject (nodeName)
     if obj :
         dagFn = MFnDagNode (obj)
@@ -1530,7 +1569,7 @@ def toMPlug (plugName):
 # I see no way of querying the name of something that isn't a kDependency node or a MPlug
 # TODO : add components support, short/ long name support where applies
 def MObjectName( obj ):
-    """ Get the name of an existing MPlug, MDagPath or MObject representing a dependency node"""
+    """ Get the name of an existing MPlug, MDagPath or MObject representing a dependency node""" 
     if isValidMPlug (obj) :
         return obj.name()
     elif isValidMNode (obj) :
@@ -1545,12 +1584,12 @@ def MObjectName( obj ):
 
 # names to MObjects function (expected to be faster to share one selectionList)
 def nameToMObject( *args ):
-    """ Get the API MObjects given names of existing nodes """
-    sel = MSelectionList()
+    """ Get the API MObjects given names of existing nodes """ 
+    sel = MSelectionList() 
     for name in args :
         sel.add( name )
-    result = []
-    obj = MObject()
+    result = []            
+    obj = MObject()            
     for i in range(sel.length()) :
         try :
             sel.getDependNode( i, obj )
@@ -1564,8 +1603,8 @@ def nameToMObject( *args ):
         return result[0]
     else :
         return tuple(result)
-
-
+    
+    
 # wrap of api iterators
 
 def MItNodes( *args, **kwargs ):
@@ -1574,9 +1613,9 @@ def MItNodes( *args, **kwargs ):
         if no types are specified, all nodes of the scene will be iterated on
         the types are specified as Maya API types """
     typeFilter = MIteratorType()
-    if args :
+    if args : 
         if len(args) == 1 :
-            typeFilter.setFilterType ( args[0] )
+            typeFilter.setFilterType ( args[0] ) 
         else :
             # annoying argument conversion for Maya API non standard C types
             scriptUtil = MScriptUtil()
@@ -1586,10 +1625,10 @@ def MItNodes( *args, **kwargs ):
         # we will iterate on dependancy nodes, not dagPaths or plugs
         typeFilter.setObjectType ( MIteratorType.kMObject )
     # create iterator with (possibly empty) typeFilter
-    iterObj = MItDependencyNodes ( typeFilter )
+    iterObj = MItDependencyNodes ( typeFilter )     
     while not iterObj.isDone() :
         yield (iterObj.thisNode())
-        iterObj.next()
+        iterObj.next()   
 
 
 # Iterators on nodes connections using MItDependencyGraph (ie listConnections/ listHistory)
@@ -1611,10 +1650,10 @@ def MItGraph (nodeOrPlug, *args, **kwargs):
         prune : if True will stop the iteration on nodes than do not fit the types list,
                 if False these nodes will be traversed but not returned
                 default is False (do not prune) """
-#    startObj = MObject()
+#    startObj = MObject() 
 #    startPlug = MPlug()
     startObj = None
-    startPlug = None
+    startPlug = None   
     if isValidMPlug(nodeOrPlug):
         startPlug = nodeOrPlug
     elif isValidMNode(nodeOrPlug) :
@@ -1625,10 +1664,10 @@ def MItGraph (nodeOrPlug, *args, **kwargs):
     breadth = kwargs.get('breadth', False)
     plug = kwargs.get('plug', False)
     prune = kwargs.get('prune', False)
-    if args :
+    if args : 
         typeFilter = MIteratorType()
         if len(args) == 1 :
-            typeFilter.setFilterType ( args[0] )
+            typeFilter.setFilterType ( args[0] ) 
         else :
             # annoying argument conversion for Maya API non standard C types
             scriptUtil = MScriptUtil()
@@ -1646,7 +1685,7 @@ def MItGraph (nodeOrPlug, *args, **kwargs):
     else :
         direction = MItDependencyGraph.kDownstream
     if breadth :
-        traversal = MItDependencyGraph.kBreadthFirst
+        traversal = MItDependencyGraph.kBreadthFirst 
     else :
         traversal =  MItDependencyGraph.kDepthFirst
     if plug :
@@ -1657,7 +1696,7 @@ def MItGraph (nodeOrPlug, *args, **kwargs):
     if prune :
         iterObj.enablePruningOnFilter()
     else :
-        iterObj.disablePruningOnFilter()
+        iterObj.disablePruningOnFilter() 
     # iterates and yields MObjects
     while not iterObj.isDone() :
         yield (iterObj.thisNode())
@@ -1682,7 +1721,7 @@ def MItDag (root = None, *args, **kwargs) :
                 default is False (do not prune) """
     # startObj = MObject()
     # startPath = MDagPath()
-    startObj = startPath = None
+    startObj = startPath = None  
     if isValidMDagPath (root) :
         startPath = root
     elif isValidMDagNode (root) :
@@ -1694,10 +1733,10 @@ def MItDag (root = None, *args, **kwargs) :
     prune = kwargs.get('prune', False)
     path = kwargs.get('path', False)
     allPaths = kwargs.get('allPaths', False)
-    if args :
+    if args : 
         typeFilter = MIteratorType()
         if len(args) == 1 :
-            typeFilter.setFilterType ( args[0] )
+            typeFilter.setFilterType ( args[0] ) 
         else :
             # annoying argument conversion for Maya API non standard C types
             scriptUtil = MScriptUtil()
@@ -1711,17 +1750,17 @@ def MItDag (root = None, *args, **kwargs) :
             typeFilter.setObjectType ( MIteratorType.kMObject )
     # create iterator with (possibly empty) filter list and flags
     if breadth :
-        traversal = MItDag.kBreadthFirst
+        traversal = MItDag.kBreadthFirst 
     else :
         traversal =  MItDag.kDepthFirst
     iterObj = MItDag ( typeFilter, traversal )
     if root is not None :
         iterObj.reset ( typeFilter, startObj, startPath, traversal )
-
+ 
     if underworld :
         iterObj.traverseUnderWorld (True)
     else :
-        iterObj.traverseUnderWorld (False)
+        iterObj.traverseUnderWorld (False) 
     # iterates and yields MObject or MDagPath
     # handle prune ?
 
@@ -1731,7 +1770,7 @@ def MItDag (root = None, *args, **kwargs) :
     # could use a dict but it requires "obj1 is obj2" and not only "obj1 == obj2" to return true to
     # dic = {}
     # dic[obj1]=True
-    # dic.has_key(obj2)
+    # dic.has_key(obj2) 
     instance = []
     # code doesn't look nice but Im putting the tests out of the iter loops to loose as little speed as possible,
     # will certainly define functions for each case
@@ -1767,7 +1806,7 @@ def MItDag (root = None, *args, **kwargs) :
                 dPath = MDagPath()
                 iterObj.getPath(dPath)
                 yield dPath
-            iterObj.next()
+            iterObj.next()                           
     else :
         while not iterObj.isDone() :
             obj = iterObj.currentItem()
@@ -1778,5 +1817,5 @@ def MItDag (root = None, *args, **kwargs) :
             else :
                 yield obj
             iterObj.next()
-
-
+    
+    
