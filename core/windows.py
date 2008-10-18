@@ -64,7 +64,7 @@ import pmtypes.pmcmds as cmds
 
 import pymel.util as util
 import pmtypes.factories as _factories
-from pmtypes.factories import MetaMayaUIWrapper as metaUI
+from pmtypes.factories import MetaMayaUIWrapper
 from system import Path
 
 #-----------------------------------------------
@@ -151,11 +151,14 @@ class UI(unicode):
         kwargs['long'] = True
         return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
     def getParent(self):
-        return UI( '|'.join( self.split('|')[:-1] ) )
+        return UI( '|'.join( unicode(self).split('|')[:-1] ) )
     def type(self):
         return objectTypeUI(self)
     def shortName(self):
-        return self.split('|')[-1]
+        return unicode(self).split('|')[-1]
+    def name(self):
+        return unicode(self)
+    
     delete = _factories.functionFactory( 'deleteUI', _thisModule, rename='delete' )
     rename = _factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
     type = _factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
@@ -163,14 +166,14 @@ class UI(unicode):
 # customized ui classes                            
 class Window(UI):
     """pymel window class"""
-    __metaclass__ = metaUI                        
+    __metaclass__ = MetaMayaUIWrapper                        
     def show(self):
         cmds.showWindow(self)
     def delete(self):
         cmds.deleteUI(self, window=True)
                 
 class FormLayout(UI):
-    __metaclass__ = metaUI
+    __metaclass__ = MetaMayaUIWrapper
     def attachForm(self, *args):
         kwargs = {'edit':True}
         #if isinstance(list, args[0]):
@@ -196,7 +199,7 @@ class FormLayout(UI):
         cmds.formLayout(self,**kwargs)
         
 class TextScrollList(UI):
-    __metaclass__ = metaUI
+    __metaclass__ = MetaMayaUIWrapper
     def extend( self, appendList ):
         """ append a list of strings"""
         
@@ -247,6 +250,10 @@ class Callback(object):
         self.kwargs = kwargs
     def __call__(self,*args):
         return self.func(*self.args,**self.kwargs)
+    
+class CallbackWithArgs(Callback):
+    def __call__(self,*args):
+        return self.func(*(self.args + args), **self.kwargs)
     
 class AutoLayout(FormLayout):
     """ 
@@ -454,15 +461,18 @@ def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
                         
 def _createClassesAndFunctions():
     for funcName in _factories.uiClassList:
+        
+        # Create Class
         classname = util.capitalize(funcName)
         #classname = funcName[0].upper() + funcName[1:]
         if not hasattr( _thisModule, classname ):
-            cls = metaUI(classname, (UI,), {})
+            cls = MetaMayaUIWrapper(classname, (UI,), {})
             cls.__module__ = __name__
             setattr( _thisModule, classname, cls )
         else:
             cls = getattr( _thisModule, classname )
     
+        # Create Function
         #funcName = util.uncapitalize( classname )
         func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
         if func:
