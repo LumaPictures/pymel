@@ -1,8 +1,6 @@
 from testingutils import TestCaseExtended, setupUnittestModule
 from pymel.util import utilitytypes
 
-doctestMod = utilitytypes
-
 aDict = {'A':1, 'a':2}
 bDict = {'B':3, 'b':4}
 

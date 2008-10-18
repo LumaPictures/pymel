@@ -1,38 +1,79 @@
 import sys, os, types, doctest
+from StringIO import StringIO
 from unittest import *
+
 from pymel import lastFormattedException
 from pymel.util import warn
 
 TEST_MAIN_FUNC_NAME = "test_main"
 SUITE_FUNC_NAME = "suite"
 
-# TODO: add doctest.testmod() that works in maya gui
-# TODO: filter doctest output as per http://bugs.python.org/issue1611
+def doctestFriendly(func):
+    """
+    Decorator which prepares maya to run doctests.
+    """
+    def prepForDoctest(*args, **kwargs):
+        result = None
+        if (sys.displayhook != sys.__displayhook__
+            or sys.stdout != sys.__stdout__):
+            save_displayhook = sys.displayhook
+            # reset doctest.master, so we don't get spammed with
+            # *** DocTestRunner.merge: '...' in both testers; summing outcomes.
+            # messages...
+            try:
+                savedMaster = doctest.master
+            except AttributeError:
+                savedMaster = None
 
-def default_test_runner(suite):
-    TextTestRunner(stream=sys.stdout, verbosity=2).run(suite)
+            # Note - for python 2.4 (ie, maya 8.5) compatability, can't use
+            # try/except/raise - must separate
+            try:
+                sys.displayhook = sys.__displayhook__
+                doctest.master = None
+                try:
+                    result = func(*args, **kwargs)
+                except:
+                    raise
+            finally:
+                sys.displayhook = save_displayhook
+                doctest.master = savedMaster
+        else:
+            result = func(*args, **kwargs)
+        return result
+    return prepForDoctest
+        
+@doctestFriendly
+def doctestmod(*args, **kwargs):
+    """
+    Wrapper for doctest.testmod that works in maya gui.
+    """
+    return doctest.testmod(*args, **kwargs)
+
+class MayaTestRunner(TextTestRunner):
+    def __init__(self, stream=sys.stdout, descriptions=True, verbosity=2):
+        super(MayaTestRunner, self).__init__(stream=stream,
+                                             descriptions=descriptions,
+                                             verbosity=verbosity)
+    
+    @doctestFriendly
+    def run(self, *args, **kwargs):
+        super(MayaTestRunner, self).run(*args, **kwargs)
     
 def default_suite(module):
+    """
+    Creates a suite out of all found unittests AND doctests found in the module.
+    """
     theSuite = findTestCases(module)
-    # TODO: add in automated running of doctests...
-#    doctestMod = getattr(module, 'doctestMod', False)
-#    if doctestMod:
-#        theSuite.addTest(doctest.DocTestSuite(doctestMod))
+    try:
+        doctests = doctest.DocTestSuite(module)
+    except ValueError:
+        # will raise a value error if it found no tests...
+        pass
+    else:
+        if doctests.countTestCases():
+            theSuite.addTest(doctests)
     return theSuite
 
-#def makeModuleSuite(moduleName, classPrefix='Test'):
-#    """
-#    Will look for classes whose name start with the given classPrefix (default: 'Test'),
-#    and return a test suite that runs all tests on all the found classes.
-#    """ 
-#    mod = sys.modules[moduleName]
-#    testClasses  = findTestCases
-#    
-#    suite = TestSuite()
-#    for testClass in testClasses:
-#        suite.addTest(makeSuite(testClass))
-#    return suite
-#
 def addFuncToModule(func, module):
     if not hasattr(module, func.__name__):
         setattr(module, func.__name__, func) 
@@ -63,7 +104,7 @@ def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainNam
     suite.__name__ = suiteFuncName
     
     def test_main():
-        return default_test_runner(suite())
+        return MayaTestRunner().run(suite())
     test_main.__name__ = testMainName
     
     addFuncToModule(suite, module)
@@ -265,69 +306,6 @@ def isEquivalenceRelation(inputs, outputs, dict):
     else:
         return False
     
-#class VariableStringElement(object):
-#    """
-#    Used to contruct a string with variable elements for testing purposes.
-#    
-#    As an example, if 'Maya 2008 Extension 2 x64, Cut Number 200802242349' is a
-#    complete maya version string, the various elements might be 'versionNum',
-#    'extension', 'bits', and 'cut'.
-#    
-#    To make the 'cut' VariableStringElement, we might call the constructor as
-#    follows:
-#    
-#        cut = VariableStringElement([200802242349, '200802242349-whee',
-#                                       '200700000000-0000'],
-#                                      prefixes=["Cut Number "],
-#                                      seperatorPrefixes=[", "])
-#    
-#    then calling 'for x in cut.iterValues(firstElement=False): print x' would yield:
-#    
-#        ', Cut Number 200802242349'
-#        ', Cut Number 200802242349-whee'
-#        ', Cut Number 200700000000-0000'
-#        
-#    You may also 'nest' VariableStringElement objects, ie:
-#    """
-#    
-#    def __init__(values, prefixes=("",), suffixes=("",),
-#                 seperatorPrefixes=(" ",)):
-#        """
-#        values - a sequence of the possible values for the variable portion of
-#            the element
-#        prefix - possible values for the string that will be prefixed to the
-#            value
-#        suffix - possible values for the string that will be appended to the
-#            value
-#        seperatorPrefix - if this VersionStringElement is NOT the first in the
-#            complete maya string, this holds the possible values to be placed
-#            before the element, to seperate it from the previous
-#            VersionStringElement
-#        """ 
-#        
-#        self.values = values
-#        self.prefixes = prefixes
-#        self.suffixes = suffixes
-#        self.seperatorPrefixes = seperatorPrefixes
-#        
-#    def iterValues(firstElement=False):
-#        """
-#        An iterator function which will yield all the possible values for this
-#           VersionStringElement.
-#
-#        If firstElement is True, then the possible values for seperatorPrefixes
-#            will not be attached to the front of the returned string; otherwise,
-#            they will be.
-#        """
-#        for value in self.values:
-#            for prefix in self.prefixes:
-#                for suffix in self.suffixes:
-#                    result = prefix + value + suffix
-#                    if firstElement: yield result
-#                    else:
-#                        for seperator in self.seperatorPrefixes:
-#                            yield seperator + result
-
 class SuiteFromTestModule(TestSuite):
     def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME):
         super(SuiteFromTestModule, self).__init__()
@@ -363,48 +341,46 @@ class SuiteFromTestModule(TestSuite):
                 pass
 
             if not self.importedSuite:
-                try:
-                    self.importedSuite = default_suite(self.module)
-                except:
-                    pass
+                self.importedSuite = default_suite(self.module)
 
-        if not isinstance(self.importedSuite, TestSuite):
+        print self.importedSuite
+        if (not isinstance(self.importedSuite, TestSuite)
+            or not self.importedSuite.countTestCases()):
             self.importedSuite = None
 
     def _makeTestCase(self):
         class TestSuiteImport(TestCaseExtended):
             def runTest(self_testcase):
-                """Try to import a test module for unittesting"""
                 self_testcase.assertTrue(self.module, "Failed to import module '%s':\n%s" % (self.moduleName, self._importError))
-                self_testcase.assertTrue(self.importedSuite, "Failed to create a test suite from module '%s'" % self.moduleName)
+                #self_testcase.assertTrue(self.importedSuite, "Failed to create a test suite from module '%s'" % self.moduleName)
+            runTest.__doc__ = """Try to import module '%s'""" % self.moduleName
         self.testCase = TestSuiteImport()
 
-# TODO: check for doctests    
 def suite():
     suite = TestSuite()
     for testMod in findTestModules():
         suite.addTest(SuiteFromTestModule(testMod))
     return suite
     
-def test_main():
-    default_test_runner(suite())
 
-# TODO: check for doctests    
 def findPymelTestModules(module, testModulePrefix="test_"):
     """
-    Will return the name of the test module used for testing the given module.
+    Will return the name of test modules used for unit testing the given module.
     
     If testModuleExactName is True, then module should be the name of the module
     that contains the unittesting code, ie 'test_utilitypes'; otherwise, it should
     be the name of a module (ie, 'utilitytypes') or the module object itself that
     we wish to find a unittest package for.
+    
+    The return results will include the given module.
     """
+    foundMods = []
     if isinstance(module, types.ModuleType):
         moduleName = module.__name__
     else:
         moduleName = module
-        
 
+    foundMods.append(moduleName)
         
     # NOTE: For now, I'm ignoring the possibility of modules with the same name,
     # but within different pacakges - ie, 'package.aModule' and 'nextPackage.aModule'    
@@ -418,20 +394,23 @@ def findPymelTestModules(module, testModulePrefix="test_"):
     
     for testModule in findTestModules():
         if testModule.split('.')[-1] == shortName:
-            return testModule
-    return []
+            foundMods.append(testModule)
+    return foundMods
 
 
-def test_module(module, testModuleExactName=False, testModulePrefix="test_"):
-    testModuleNames = findPymelTestModules(module, testModulePrefix=testModulePrefix)
-    suite = TestSuite()
-    for mod in testModuleName:
-        suite.addTest(SuiteFromTestModule(mod))
-    
-    if len(suite):
-        default_test_runner(suite)
+def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_"):
+    if not module:
+        theSuite = suite()
     else:
-        warn("Could not find a test module for '%s'" % module)
+        testModuleNames = findPymelTestModules(module, testModulePrefix=testModulePrefix)
+        theSuite = TestSuite()
+        for mod in testModuleNames:
+            theSuite.addTest(SuiteFromTestModule(mod))
+        
+    if theSuite.countTestCases():
+        MayaTestRunner().run(theSuite)
+    else:
+        print("Could not find any tests for '%s'" % module)
 
 #================================================================================
 # Following code modified from python 2.5.1 source code, in module:

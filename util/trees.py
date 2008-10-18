@@ -41,29 +41,26 @@ A tree module that can wrap either pure python tree implementation or the networ
 >>> # now refers to that parent element
 >>>  
 
->>> # Check that adding a tree to an empty tree works
+>>> # Empty tree testing
 >>> emptyTree = Tree()
 >>> emptyTree.add(myTree)
 >>> emptyTree == myTree
 True
 
->>> # Truth testing
 >>> emptyTree = Tree()
 >>> print bool(emptyTree)  # It's empty, so it's false
 False
->>> otherEmptyTree = Tree()            # If we add an empty tree to another
->>> otherEmptyTree.parent = emptyTree  # they both now are the same tree
-
->>> emptyTree.hasChilds()  # We've added a child...
+>>> otherEmptyTree = Tree()            
+>>> otherEmptyTree.parent = emptyTree  # If we add an empty tree to another...
+>>> otherEmptyTree == emptyTree        # They're both now the same tree
 True
->>> print bool(emptyTree)  # ...but the tree is still empty, since the children are all empty
-False
->>> emptySubTree.add('a')
->>> print bool(emptySubTree) # If we add something to the subtree, though..
-True
->>> print bool(emptyTree) # ...both it and the parent are now non-empty
-True
->>> 
+>>> emptyTree.value = 3        # If we change the value of one...
+>>> otherEmptyTree.value       # ...it should change on the other
+3
+>>> otherEmptyTree.add(4)      # Similarly, adding a child to one...
+>>> emptyTree.view()           # ...should add it on the other
++3
+\--4
 
 
 
@@ -579,6 +576,7 @@ class MetaTree(type):
             |--a
             \--b
             >>> myTree = Tree((1,[2,('foo', ['bar'])])) # tree with subtrees
+            >>> myTree.view()
             +1
             |--2
             \-+foo
