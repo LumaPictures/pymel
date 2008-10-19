@@ -144,12 +144,12 @@ def getEnv( env, default=None ):
     "get the value of an environment variable.  returns default (None) if the variable has not been previously set."
     return os.environ.get(env, default)
 
-def getEnvs( env, default=[] ):
+def getEnvs( env, default = None ):
     "get the value of an environment variable split into a list.  returns default ([]) if the variable has not been previously set."
     try:
         return os.environ[env].split(os.path.pathsep)
     except KeyError:
-        return default
+        return list() if default is None else default
 
 def putEnv( env, value ):
     """set the value of an environment variable.  overwrites any pre-existing value for this variable. If value is a non-string
