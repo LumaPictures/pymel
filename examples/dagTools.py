@@ -1,7 +1,7 @@
 import sys, inspect, warnings, timeit, time
 import re
 # based on pymel
-from pymel import node
+from pymel import *
 from pymel import api
 
 

@@ -1,5 +1,9 @@
-import sys, os, inspect, unittest
-from dagTools import *
+import sys, os, os.path, inspect, unittest
+from pymel.examples.dagTools import *
+import pymel.util as util
+from pymel.util.trees import *
+
+# TODO: check this out, get it working!
 
 # Test case: several tests that share the same setup (here same Maya scene for testing for instance)
 # Warning: unittest runs test in their name alphabetic order, so if a specific order is desire it must
@@ -72,7 +76,8 @@ class testCase_typeChecking(unittest.TestCase):
        
 class testCase_hierarchyTrees(unittest.TestCase):
     def setUp(self):
-        cmds.file ("./skel.ma", f=True, typ="mayaAscii",o=True)
+
+        cmds.file(os.path.join(util.moduleDir(), "examples", "skel.ma"), f=True, typ="mayaAscii",o=True)
         select ('FBX_Hips', replace=True, hierarchy=True)
         self.sel = ls(selection=True)
         self.tree = Tree(Joint('FBX_Hips'), Tree(Joint('FBX_Spine'), Tree(Joint('FBX_Spine1'), Tree(Joint('FBX_Spine2'), Tree(Joint('FBX_Spine3'), Tree(Joint('FBX_Neck'), Tree(Joint('FBX_Neck1'), Tree(Joint('FBX_Head'), \

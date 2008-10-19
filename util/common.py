@@ -11,7 +11,7 @@ def capitalize(s):
     """
     Python's string 'capitalize' method is NOT equiv. to mel's capitalize, which preserves
     capital letters.
-        >>> capitalize( 'fooBar' )
+        >>> capitalize( 'fooBAR' )
         'FooBAR'
         >>> 'fooBAR'.capitalize()
         'Foobar'
@@ -71,10 +71,10 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
 
 def moduleDir():
     """
+    Returns the base pymel directory.
     :rtype: string
     """
     return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
-    #return os.path.split( sys.modules[__name__].__file__ )[0]
     
 def timer( command='pass', number=10, setup='import pymel' ):
     import timeit

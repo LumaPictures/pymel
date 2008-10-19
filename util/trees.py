@@ -2,24 +2,22 @@
 A tree module that can wrap either pure python tree implementation or the networkx library if present
 
 >>> # Create a tree from nested sequences:
->>> myTree = Tree(('a', ('ab', 'aa', 3), {}))
+>>> myTree = Tree('a', ('ab', 'aa', 3, {}))
 >>> print myTree
-('a', ('ab', 'aa', '3'), '{}')
+('a', ('ab', 'aa', '3', '{}'))
 >>> print myTree.formatted()
-+
-|-+a
-| |--ab
-| |--aa
-| \--3
-\--{}
++: a
+|--: ab
+|--: aa
+|--: 3
+\--: {}
 >>> myTree.sort()
 >>> print myTree.formatted()
-+
-|--{}
-\-+a
-  |--3
-  |--aa
-  \--ab
++: a
+|--: 3
+|--: {}
+|--: aa
+\--: ab
 >>>
 >>> # Forests
 >>> # -------
@@ -32,10 +30,11 @@ A tree module that can wrap either pure python tree implementation or the networ
 2
 3
 >>> print myForest.formatted()
-+
-|--1
-|--2
-\--3
+-: 1
+<BLANKLINE>
+-: 2
+<BLANKLINE>
+-: 3
 >>>
 >>> # If we set the parent of a forest to an existing tree, the forest
 >>> # now refers to that parent element
@@ -59,8 +58,8 @@ True
 3
 >>> otherEmptyTree.add(4)      # Similarly, adding a child to one...
 >>> emptyTree.view()           # ...should add it on the other
-+3
-\--4
++: 3
+\--: 4
 
 
 
@@ -500,8 +499,10 @@ class MetaTree(type):
                 
         # set and __setitem__  
 
-        # Changed because it was too inconsistant, and confusing: ie, if we do:
-        # myTree = Tree(list1, list2)
+        # Changed to not allow sequences to follow each other, as it was too
+        # ambiguous/confusing, and ikely not what the user intended - ie, if
+        # we do:
+        # >>> myTree = Tree(list1, list2)
         # ...chances are, I'm not going to want to have to check what the values are of
         # list1 in order to know where in the tree list2 will be placed.
         #
@@ -525,43 +526,37 @@ class MetaTree(type):
         # |--3
         # \--4
         #
-        # Ie, the depth at which list2 is placed is dependant on list1.
-        # Likely not what we want...
-        # Not to mention problems with what we would do if we
-        # wanted a list (or tuple) as the value of a tree node...
+        # Thus, the depth at which list2 is placed is dependant on list1.
+        # Likely not what we want... therefore, lists may now only follow
+        # non-list values - entering the previous examples will now result in an
+        # error.
+        # To create the same structures, you would do:
+        # >>> tree1 = Tree(1, 2, (3,4))
+        # >>> print tree1.formatted()
+        # >>> tree2 = Tree(1, ('a','b'), 3, 4)
+        # >>> print tree2.formatted()
                 
         # init, this can be overriden in class definition
         def __init__(self, *args, **kwargs):
             """
-            Initializer - every arg is taken to be a node of a tree.
+            Initializer - non-sequences are values, sequeneces are children of previous value.
             
-            If there is only one node (ie, arg), then a tree is returned, with
-            the single node as it's single root - if there are multiple nodes,
-            then a forest is returned, with each node representing a root.
-
-            Each node (ie, arg) must be either a non-iterable,
-            or an iterable with exactly one or two elements.
-
-            If the node is a non-iterable, then it is taken to be the value for
-            that node, and the node has no children.
-
-            If the tree node is an iterable with one element, that element
-            is taken to be the value for that node, and the node has no
-            children.  This is similar to the case above, except that it
-            allows the value to itself be an iterable.
-
-            If the node is an iterable with two items, the first item
-            is taken as the value for the node, and the second as the children
-            for that node.
-
-            Items specifying children of a node must either have a boolean
-            value of False (in which case the node has no children), or else
-            be an iterable.  If an iterable, each element of the iterable
-            defines a child node, and must conform to the syntax for a node.
+            The args represent tree nodes, where a node is specified by either another tree
+            object, or a non sequence representing the value of that node, optionally followed
+            by a sequence representing the children of that node.
             
-            The only restriction on items specifying the value for a node
-            is that it may not be None.
+            Values cannot be None, and when specifying the elements in a child sequence, they
+            must fit the same rules for valid tree nodes given above.
             
+            Invalid arguments (ie, two sequences following each other) will raise a ValueError.
+            
+            If there is only one node (ie, only one non-sequence arg, optionally followed by
+            a list of children), then a tree is returned, with the single node as it's
+            single root.
+
+            If there are multiple nodes, then a forest is returned, with each node
+            representing a root.
+
             Now, some examples:
 
             >>> myTree = Tree()  # makes an empty tree
@@ -570,23 +565,81 @@ class MetaTree(type):
             >>> myTree = Tree(1)
             >>> print repr(myTree) # different ways of stringifying...
             Tree(1)
-            >>> myTree = Tree((1,('a','b')))  # make a tree with children
+            >>> myTree = Tree(1,('a','b'))  # make a tree with children
             >>> print myTree.formatted()
-            +1
-            |--a
-            \--b
-            >>> myTree = Tree((1,[2,('foo', ['bar'])])) # tree with subtrees
+            +: 1
+            |--: a
+            \--: b
+            >>> myTree = Tree(1,(2,'foo', ('bar',))) # tree with a subtree
             >>> myTree.view()
-            +1
-            |--2
-            \-+foo
-              \--bar
-            >>> myTree = Tree(1,2)   # make a forest
-            >>> myTree.view()        # view() is just shortcut for:
+            +: 1
+            |--: 2
+            \-+: foo
+              \--: bar
+            >>> myForrest = Tree(1,2)   # make a forest
+            >>> myForrest.view()        # view() is just shortcut for:
             ...                      # print treeInst.formatted()
-            +
-            |--1
-            \--2
+            -: 1
+            <BLANKLINE>
+            -: 2
+            >>> otherForrest = Tree('root1', myForrest, 'root4', ('kid1', 'kid2'))
+            >>> otherForrest.view()
+            -: root1
+            <BLANKLINE>
+            -: 1
+            <BLANKLINE>
+            -: 2
+            <BLANKLINE>
+            +: root4
+            |--: kid1
+            \--: kid2
+
+            ...Note that a tree object, even if a forrest, will never be taken
+            to represent the children of the previous arg - ie, the previous
+            example did NOT result in:
+            +: root1
+            |--: 1
+            \--: 2
+            <BLANKLINE>
+            +: root4
+            |--: kid1
+            \--: kid2
+              
+            This means that giving multiple forrest objects will effectively merge
+            them into a larger forest:
+            
+            >>> forrest1 = Tree(1, 2)
+            >>> forrest1.view()
+            -: 1
+            <BLANKLINE>
+            -: 2
+            >>> forrest2 = Tree('foo', 'bar')
+            >>> forrest2.view()
+            -: foo
+            <BLANKLINE>
+            -: bar
+            >>> forrest3 = Tree(forrest1, forrest2)
+            >>> forrest3.view()
+            -: 1
+            <BLANKLINE>
+            -: 2
+            <BLANKLINE>
+            -: foo
+            <BLANKLINE>
+            -: bar
+            
+            Trying to give 2 sequences in a row results in a ValueError:
+            
+            >>> Tree('root1', (1,2), (3,4))
+            Traceback (most recent call last):
+              ...
+            ValueError: Child sequence must immediately follow a non-sequence value when initializing a tree
+            
+            Similarly, trying to use 'None' as a tree value gives an error:
+            >>> Tree(None, (1,2))
+            Traceback (most recent call last):
+              ...
+            ValueError: None cannot be a tree element
             """
             # TODO: make it conform!
             parent = kwargs.get('parent', None)
@@ -595,14 +648,15 @@ class MetaTree(type):
             else :
                 pRef = None
             roots = []
+            previousWasValue = False
             for arg in args :
-                childs = []
+                isValue = False
                 if isTree(arg) :
                     # we need to do a shallow copy if it's not the same tree type, or not already a subtree of self
                     if isinstance(arg, self.__class__) and arg.parent is self :
                         avalue = arg.value
                         if avalue : 
-                            roots += [arg]                                                      # one item in childs : the subtree
+                            roots += [arg]                                        # one item in childs : the subtree
                         else :
                             roots += [c for c in arg.childs()]                    # all childs of subtree in childs
                     else :                    
@@ -613,30 +667,38 @@ class MetaTree(type):
                             roots += [self.__class__(c, parent=self) for c in arg.childs()]                    # all childs of subtree in childs             
                 elif isSequence(arg) :
                     # we use sequences to encapsulate childs
+
+                    # Check if the previous argument was a value,
+                    # to see if this is a valid child list
+                    if not previousWasValue:
+                        raise ValueError('Child sequence must immediately follow a non-sequence value when initializing a tree')
+
+                    childs = []                    
                     d = {'parent':self}
                     sub = self.__class__(*arg, **d)
                     if sub.value :
                         childs = [sub]
                     else :
                         childs = list(sub.childs())
+                    # add resulting childs if any
+                    if childs :
+                        # parent to previous entry, childs are already self.__class__ copies
+                        # coming from a sequence expansion                  
+                        for c in childs :
+                            c._pRef = weak.ref(roots[-1])
+                        roots[-1]._subtrees = self.__class__._toSubtree(childs)                 
                 elif arg is not None :
+                    isValue = True
                     # argument at top level is a root
                     sub = self.__class__()
                     sub._pRef = pRef
                     sub._value = arg
                     roots.append(sub)
+
                 else :
                     raise ValueError, "None cannot be a tree element"
-                # add resulting childs if any
-                if childs :
-                    # parent to previous entry if previous entry has no childs, childs are already self.__class__ copies
-                    # coming from a sequence expansion                  
-                    if roots and not roots[-1].hasChilds() :
-                        for c in childs :
-                            c._pRef = weak.ref(roots[-1])
-                        roots[-1]._subtrees = self.__class__._toSubtree(childs)                 
-                    else :
-                        roots += childs
+                previousWasValue = isValue
+
                 
             if not roots :
                 self._pRef = None
@@ -1108,33 +1170,43 @@ class MetaTree(type):
             noBranchChar = "| "
             endBranchChar = "\-"  # Ideally, would look ike '+' with no left or bottom arm
             emptyBranchChar = "  "
-            hasChildrenChar = "+" # Ideally, would look like '+' with no top arm
-            noChildrenChar = "-" 
+            hasChildrenChar = "+: " # Ideally, would look like '+' with no top arm
+            noChildrenChar = "-: "
+            treeSep = ''
             lines = []
             if self :
-                lines.append("")
                 value = self.value
-                if value is not None:
-                    lines[0] = str(value)
+
                 children = tuple(self.childs())
-                if children:
-                    lines[0] = hasChildrenChar + lines[0]
-                    for childNum, child in enumerate(children):
-                        childLines = child.formatted(returnList=True)
-                        if len(childLines)>0:
-                            if childNum < (len(children) - 1):
-                                # We've got a "middle" child - use 'hasBranchChar' and 'noBranchChar'
-                                childPrefix = hasBranchChar
-                                grandChildPrefix = noBranchChar
-                            else:
-                                # We've got an "end" child - use 'endBranchChar' and 'emptyBranchChar'
-                                childPrefix = endBranchChar
-                                grandChildPrefix = emptyBranchChar
-                            lines.append(childPrefix + childLines[0])
-                            for grandChild in childLines[1:]:
-                                lines.append(grandChildPrefix + grandChild)
-                else:
-                    lines[0] = noChildrenChar + lines[0]
+                
+                if value is not None:
+                    if children:
+                        valuePrefix = hasChildrenChar
+                    else:
+                        valuePrefix = noChildrenChar
+                    lines.append(valuePrefix + str(value))
+                    
+                for childNum, child in enumerate(children):
+                    childLines = child.formatted(returnList=True)
+                    if len(childLines)>0:
+                        if value is None:
+                            # we've got a forest - print all children 'as is'
+                            childPrefix = grandChildPrefix = ""
+                        elif childNum < (len(children) - 1):
+                            # We've got a "middle" child - use 'hasBranchChar' and 'noBranchChar'
+                            childPrefix = hasBranchChar
+                            grandChildPrefix = noBranchChar
+                        else:
+                            # We've got an "end" child - use 'endBranchChar' and 'emptyBranchChar'
+                            childPrefix = endBranchChar
+                            grandChildPrefix = emptyBranchChar
+                        lines.append(childPrefix + childLines[0])
+                        for grandChild in childLines[1:]:
+                            lines.append(grandChildPrefix + grandChild)
+                    if value is None and childNum < (len(children) - 1):
+                        # if we have a forest, add a treeSep between trees
+                        lines.append(treeSep)
+                    
             if returnList:
                 return lines
             else:
@@ -1402,18 +1474,18 @@ def treeFromChildLink (isExactChildFn, *args):
     >>> a = treeFromChildLink (isDirectChild, *lst)
     >>> a.sort()
     >>> print a.formatted()
-    +
-    |-+a
-    | |-+aa
-    | | \--aab
-    | \-+ab
-    |   \--aba
-    \-+b
-      |-+ba
-      | \--bab
-      \-+bb
-        |--bba
-        \--bbb
+    +: a
+    |-+: aa
+    | \--: aab
+    \-+: ab
+      \--: aba
+    <BLANKLINE>
+    +: b
+    |-+: ba
+    | \--: bab
+    \-+: bb
+      |--: bba
+      \--: bbb
     >>>
     >>> # A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
     >>>
@@ -1476,18 +1548,18 @@ def treeFromIsChild(isChildFn, *elements):
     >>> a = treeFromIsChild (isChild, *lst)
     >>> a.sort()
     >>> print a.formatted()
-    +
-    |-+a
-    | |-+aa
-    | | \--aab
-    | \-+ab
-    |   \--aba
-    \-+b
-      |-+ba
-      | \--bab
-      \-+bb
-        |--bba
-        \--bbb
+    +: a
+    |-+: aa
+    | \--: aab
+    \-+: ab
+      \--: aba
+    <BLANKLINE>
+    +: b
+    |-+: ba
+    | \--: bab
+    \-+: bb
+      |--: bba
+      \--: bbb
     """
     newTree = Tree()
     
@@ -1533,6 +1605,55 @@ def treeFromIsChild(isChildFn, *elements):
         childForest.parent = newSubTree
         
     return newTree
+
+class DirTree(Tree):
+    """
+    A tree structure describing a directory hierarchy.
+    """
+    def __init__(self, dir=None):
+        """
+        Creates a DirTree rooted at the given directory
+        
+        Can be initialized by passing in a single argument, which
+        if supplied, must be a path to a directory that exists
+        on the filesystem. 
+
+        If the given directory does not exist on the filesystem,
+        a ValueError is raised.
+        
+        >>> myDirTree = DirTree()
+        >>> myDirTree.value = 'root'
+        >>> myDirTree.add('foo')
+        >>> myDirTree.add('bar', parent='foo')
+        >>> myDirTree.add('other')
+        >>> myDirTree.view()
+        +: root
+        |-+: foo
+        | \--: bar
+        \--: other
+        """
+        if not os.path.isdir(dir):
+            raise ValueError("%s is not a valid directory" % dir)
+            
+        super(DirTree, self).__init__()
+        
+        if dir:
+            basename = ""
+            while not basename and dir:
+                dir, basename = os.path.split(dir)
+            self.value = basename
+            for entry in os.listdir(dir):
+                path = os.path.join(dir, entry)
+                if os.path.isdir(path):
+                    subTree = _pymelDirTree_recurse(path)
+                    self.add(subTree)
+    
+    def dirPath(self, *args, **kwargs):
+        """
+        Returns a string representing the directory path from the root to this element.
+        """
+        dirs = [dir.value for dir in self.path()]
+        return os.path.join(dirs)
 
 # unit test with doctest
 if __name__ == '__main__' :

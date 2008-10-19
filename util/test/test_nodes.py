@@ -54,7 +54,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         cube = polyCube()[0]
         torus = polyTorus()[0]
         sphere | cube | torus
-        print torus.fullpath()
+        print torus.fullPath()
         
     #def test05_dagNode_getParent(self):
     def test_instances(self):

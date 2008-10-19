@@ -3,6 +3,7 @@ from StringIO import StringIO
 from unittest import *
 
 from pymel import lastFormattedException
+import pymel.util
 from pymel.util import warn
 
 TEST_MAIN_FUNC_NAME = "test_main"
@@ -343,7 +344,6 @@ class SuiteFromTestModule(TestSuite):
             if not self.importedSuite:
                 self.importedSuite = default_suite(self.module)
 
-        print self.importedSuite
         if (not isinstance(self.importedSuite, TestSuite)
             or not self.importedSuite.countTestCases()):
             self.importedSuite = None
@@ -356,6 +356,7 @@ class SuiteFromTestModule(TestSuite):
             runTest.__doc__ = """Try to import module '%s'""" % self.moduleName
         self.testCase = TestSuiteImport()
 
+# TODO: find ALL doctest-able modules as well!
 def suite():
     suite = TestSuite()
     for testMod in findTestModules():
@@ -399,6 +400,24 @@ def findPymelTestModules(module, testModulePrefix="test_"):
 
 
 def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_"):
+    """
+    Run pymel unittests / doctests
+    
+    To run tests for a module, use pymel_test(module),
+    where module can be the full module path string:
+    >>> pymel_test('pymel.core.pmtypes.pmcmds')  #doctest: +ELLIPSIS
+    ...
+    
+    ...or it can be an actual module object:
+    >>> import pymel.tools.mel2py as mel2py
+    >>> pymel_test(mel2py) #doctest: +ELLIPSIS
+    ...
+
+    If pymel_test is given no arguments, it runs all known tests:
+    >>> pymel_test() #doctest: +ELLIPSIS
+    ...
+    """
+
     if not module:
         theSuite = suite()
     else:
