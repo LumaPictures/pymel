@@ -66,6 +66,7 @@ import pymel.util as util
 import pmtypes.factories as _factories
 from pmtypes.factories import MetaMayaUIWrapper
 from system import Path
+from language import mel
 
 #-----------------------------------------------
 #  Enhanced UI Commands
@@ -93,34 +94,50 @@ Maya Bug Fix:
     - fixed getCellCmd to work with python functions, previously only worked with mel callbacks
         IMPORTANT: you cannot use the print statement within the getCellCmd callback function or your values will not be returned to the table
     """
-    cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',False) )
+    cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
+    cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
+    
+    uiName = cmds.scriptTable( *args, **kwargs )
+    
+    kwargs.clear()
     if cb:
         if hasattr(cb, '__call__'):        
-            uiName = cmds.scriptTable( *args, **kwargs )
             procName = 'getCellMel%d' % len(scriptTableCmds.keys())
-            procCmd = "global proc string %s( int $row, int $column ){return python(\"pymel.scriptTableCmds['%s'](\" + $row + \",\" + $column + \")\");}" %  (procName,uiName) 
-            #print procCmd
-            mm.eval( procCmd )            
-            scriptTableCmds[uiName] = cb
+            key = '%s_%s' % (uiName,procName)
+            procCmd = """global proc string %s( int $row, int $column ) {
+                            return python("__import__('%s').scriptTableCmds['%s'](" + $row + "," + $column + ")");}
+                      """ %  (procName,__name__,key) 
+            mel.eval( procCmd )
+            scriptTableCmds[key] = cb
             
             # create a scriptJob to clean up the dictionary of functions
-            popCmd = "python(\"scriptTableCmds.pop('%s',None)\")" % uiName 
-            #print popCmd
-            cmds.scriptJob( uiDeleted=(uiName, "python(\"pymel.scriptTableCmds.pop('%s',None)\")" % uiName ) )
+            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key,None)))
+            cb = procName
+        kwargs['getCellCmd'] = cb 
+    if cc:
+        if hasattr(cc, '__call__'):        
+            procName = 'cellChangedCmd%d' % len(scriptTableCmds.keys())
+            key = '%s_%s' % (uiName,procName)
+            procCmd = """global proc int %s( int $row, int $column, string $val) {
+                            return python("__import__('%s').scriptTableCmds['%s'](" + $row + "," + $column + ",'" + $val + "')");}
+                      """ %  (procName,__name__,key)
+            mel.eval( procCmd )
+            scriptTableCmds[key] = cc
+            
+            # create a scriptJob to clean up the dictionary of functions
+            cmds.scriptJob(uiDeleted=(uiName, lambda *x: scriptTableCmds.pop(key,None)))
+            cc = procName
+        kwargs['cellChangedCmd'] = cc
 
-            return cmds.scriptTable( uiName, e=1, getCellCmd=procName )
-        else:
-            kwargs['getCellCmd'] = cb    
-    
-    cmds.scriptTable( *args, **kwargs )
+    if kwargs:
+        cmds.scriptTable( uiName, e=1, **kwargs)    
+    return ScriptTable(uiName)
     
 def getPanel(*args, **kwargs):
     return util.listForNone( cmds.getPanel(*args, **kwargs ) )
 
 
-
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
-
 
 
 class UI(unicode):
@@ -163,6 +180,52 @@ class UI(unicode):
     rename = _factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
     type = _factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
      
+
+def _createClassesAndFunctions():
+    for funcName in _factories.uiClassList:
+        
+        # Create Class
+        classname = util.capitalize(funcName)
+        #classname = funcName[0].upper() + funcName[1:]
+        if not hasattr( _thisModule, classname ):
+            cls = MetaMayaUIWrapper(classname, (UI,), {})
+            cls.__module__ = __name__
+            setattr( _thisModule, classname, cls )
+        else:
+            cls = getattr( _thisModule, classname )
+    
+        # Create Function
+        #funcName = util.uncapitalize( classname )
+        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
+        if func:
+            func.__module__ = __name__
+            #cls.__melcmd__ = func
+            setattr( _thisModule, funcName, func )
+        else:
+            print "ui command not created", funcName
+            
+    moduleShortName = __name__.split('.')[-1]
+    for funcName in _factories.moduleCmds[ moduleShortName ] :
+        if funcName not in _factories.uiClassList:
+            #print "bad stuff", funcName
+            #func = None
+            func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
+            if func:
+                func.__module__ = __name__
+                setattr( _thisModule, funcName, func )
+            
+_createClassesAndFunctions()
+
+
+def PyUI(strObj, type=None):
+    try:
+        if not type:
+            type = objectTypeUI(strObj)
+        return getattr(_thisModule, util.capitalize(type) )(strObj)
+    except AttributeError:
+        return UI(strObj)
+
+
 # customized ui classes                            
 class Window(UI):
     """pymel window class"""
@@ -198,6 +261,11 @@ class FormLayout(UI):
         kwargs['attachPosition'] = [args]
         cmds.formLayout(self,**kwargs)
         
+    def vDistribute(self,*ratios):
+        AutoLayout(self, orientation=AutoLayout.VERTICAL, ratios=ratios).redistribute()
+    def hDistribute(self,*ratios):
+        AutoLayout(self, orientation=AutoLayout.HORIZONTAL, ratios=ratios).redistribute()
+        
 class TextScrollList(UI):
     __metaclass__ = MetaMayaUIWrapper
     def extend( self, appendList ):
@@ -219,7 +287,22 @@ class TextScrollList(UI):
     def selectAll(self):
         """select all items"""
         numberOfItems = self.getNumberOfItems()
-        self.getSelectIndexedItem(range(1,numberOfItems+1))
+        self.selectIndexedItems(range(1,numberOfItems+1))
+
+class OptionMenu(UI):
+    __metaclass__ = MetaMayaUIWrapper
+    def addMenuItems( self, items, title=None):
+        """ Add the specified item list to the OptionMenu, with an optional 'title' item """ 
+        if title:
+            menuItem(l = title, en = 0,parent = self)
+        for item in items:
+            menuItem(l = item, parent = self)
+            
+    def clear(self):  
+        """ Clear all menu items from this OptionMenu """
+        for t in self.getItemListLong() or []:
+            cmds.deleteUI(t)
+    addItems = addMenuItems
 
     
 #===============================================================================
@@ -244,17 +327,25 @@ class Callback(object):
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
 
+	# This implementation of the Callback object uses private members
+	# to store static call information so that the call can be made through
+	# a mel call, thus making the entire function call undoable
+    _callData = None
+    @staticmethod
+    def _doCall():
+        (func, args, kwargs) = Callback._callData
+        Callback._callData = func(*args, **kwargs)
+
     def __init__(self,func,*args,**kwargs):
         self.func = func
         self.args = args
         self.kwargs = kwargs
     def __call__(self,*args):
-        return self.func(*self.args,**self.kwargs)
-    
-class CallbackWithArgs(Callback):
-    def __call__(self,*args):
-        return self.func(*(self.args + args), **self.kwargs)
-    
+        Callback._callData = (self.func, self.args, self.kwargs)
+        mel.python("__import__('pymel').Callback._doCall()")
+        return Callback._callData    
+
+
 class AutoLayout(FormLayout):
     """ 
     Automatically distributes child controls in either a
@@ -302,11 +393,17 @@ class AutoLayout(FormLayout):
     def redistribute(self,*ratios):
         """ Redistribute the child controls based on the given ratios.
             If not ratios are given (or not enough), 1 will be used 
-            win=Window(create=1)
-            win.show()
-            al=AutoLayout(create=1,parent=win)
-            [pm.Button(create=1,l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
-            al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
+		    
+		    Example: 
+    
+		    .. python::
+    
+        		import pymel as pm
+	            win=window()
+    	        win.show()
+        	    al=AutoLayout(create=1,parent=win)
+            	[pm.button(l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
+	            al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
         """
         
         children = self.getChildArray()
@@ -344,6 +441,8 @@ class AutoLayout(FormLayout):
 
 
 def autoLayout(*args, **kwargs):
+    __doc__ = AutoLayout.__doc__
+    
     kw = {}
     for k in kwargs.keys():
         if k in ["orientation", "spacing", "reversed", "ratios"]:
@@ -354,10 +453,14 @@ def autoLayout(*args, **kwargs):
     return AutoLayout(formLayout(*args, **kwargs),**kw)
 
 def horizontalLayout(*args, **kwargs):
+    __doc__ = AutoLayout.__doc__
+    
     kwargs["orientation"] = AutoLayout.HORIZONTAL
     return autoLayout(*args, **kwargs)
 
 def verticalLayout(*args, **kwargs):
+    __doc__ = AutoLayout.__doc__
+    
     kwargs["orientation"] = AutoLayout.VERTICAL
     return autoLayout(*args, **kwargs)
 
@@ -406,7 +509,7 @@ class SmartLayoutCreator:
         assert childCreators is None or isinstance(childCreators,list), childCreators
         self.__dict__.update(vars())
         
-    def create(self, creation=None, parent=None):
+    def create(self, creation=None, parent=None, debug=False, depth=0):
         """ 
         Create the ui elements defined in this SLC. 
         Named elements will be inserted into the 'creation' dictionary, which is also the return value of this function.
@@ -417,16 +520,26 @@ class SmartLayoutCreator:
             creation = {}
         childCreators = self.childCreators or []
         if parent and self.uiFunc: self.kwargs["parent"] = parent
+        
+        if debug:
+            print ">>"*depth  + "uiFunc: %s" % self.uiFunc
         self.me = self.uiFunc and self.uiFunc(**self.kwargs) or parent
         
         if self.name:
             creation[self.name] = self.me
-        [child.create(creation=creation,parent=self.me) for child in childCreators]
-        if self.postFunc: self.postFunc(self.me)
+        if debug:
+            print ">>"*depth  + "result: (%s) - %s" % (self.name, self.me)
+
+        [child.create(creation=creation,parent=self.me,debug=debug,depth=depth+1) for child in childCreators]
+        
+        if self.postFunc: 
+            self.postFunc(self.me)
+            if debug:
+                print ">>"*depth + "postFunc: %s" % self.postFunc 
         return creation
 
 SLC = SmartLayoutCreator
-        
+
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
     dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
                 SLC("label", text, {"l":label,"al":align}),
@@ -452,48 +565,21 @@ def promptBoxGenerator(*args, **kwargs):
         if not ret: return
         yield ret    
     
-def confirmBox(title, message, yes="Yes", no="No", defaultToYes=True):
-    """ Prompt for confirmation. Returns True/False """
-    ret = confirmDialog(t=title,    m=message,     b=[yes,no], 
-                           db=(defaultToYes and yes or no), 
-                           ma="center", cb="No", ds="No")
-    return (ret==yes)
-                        
-def _createClassesAndFunctions():
-    for funcName in _factories.uiClassList:
-        
-        # Create Class
-        classname = util.capitalize(funcName)
-        #classname = funcName[0].upper() + funcName[1:]
-        if not hasattr( _thisModule, classname ):
-            cls = MetaMayaUIWrapper(classname, (UI,), {})
-            cls.__module__ = __name__
-            setattr( _thisModule, classname, cls )
-        else:
-            cls = getattr( _thisModule, classname )
+def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
+    """ Prompt for confirmation. Returns True/False, unless 'moreButtons' were specified, and then returns the button pressed"""
     
-        # Create Function
-        #funcName = util.uncapitalize( classname )
-        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
-        if func:
-            func.__module__ = __name__
-            #cls.__melcmd__ = func
-            setattr( _thisModule, funcName, func )
-        else:
-            print "ui command not created", funcName
-            
-    moduleShortName = __name__.split('.')[-1]
-    for funcName in _factories.moduleCmds[ moduleShortName ] :
-        if funcName not in _factories.uiClassList:
-            #print "bad stuff", funcName
-            #func = None
-            func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
-            if func:
-                func.__module__ = __name__
-                setattr( _thisModule, funcName, func )
-            
-_createClassesAndFunctions()
+    default = kwargs.get("db", kwargs.get("defaultButton")) or yes
 
+    ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons), 
+                           db=default, 
+                           ma="center", cb="No", ds="No")
+    return ret if moreButtons else (ret==yes)
+
+def informBox(title, message, ok="Ok"):
+    """ Information box """
+    confirmDialog(t=title, m=message, b=["Ok"], db="Ok")
+    
+    
 def promptForFolder():
     """ Prompt the user for a folder path """
     
@@ -529,6 +615,108 @@ def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs )
     if ret:
         return Path( ret )
+
+
+class _ListSelectLayout(FormLayout):
+    
+    args = None
+    selection = None
+    def __new__(cls, *args, **kwargs):
+        self = core.setParent(q=True)
+        self = FormLayout.__new__(cls, self)
+        return self
+    
+    def __init__(self):
+        (items, prompt, ok, cancel, default, allowMultiSelection, width, height) = _ListSelectLayout.args
+        self.ams = allowMultiSelection
+        self.items = list(items)
+        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), AutoLayout.redistribute, [
+            SLC("prompt", text, dict(l=prompt)),
+            SLC("selectionList", textScrollList, dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection)),
+            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), AutoLayout.redistribute, [
+                SLC(None, button, dict(l=ok, c=self.returnSelection)),
+                SLC(None, button, dict(l=cancel, c=Callback(layoutDialog, dismiss=""))), 
+            ]),
+        ]).create(parent=self, creation=self.__dict__)
+
+        self.selectionList.append(map(str, self.items))
+        if default:
+            if not hasattr(default,"__iter__"):
+                default = [default]
+            for i in default:    
+                self.selectionList.setSelectItem(str(i))
+        
+        width  = width  or 150
+        height = height or 200
+        self.setWidth(width)
+        self.setHeight(height)
+        for side in ["top", "right", "left", "bottom"]:
+            self.attachForm(self.topLayout, side, 0)
+            self.topLayout.attachNone(self.buttons, "top")
+            self.topLayout.attachControl(self.selectionList, "bottom", 0, self.buttons)
+
+        
+    def returnSelection(self, *args):
+        _ListSelectLayout.selection = [self.items[i-1] for i in self.selectionList.getSelectIndexedItem() or []]
+        if _ListSelectLayout.selection:        
+            if not self.ams:
+                _ListSelectLayout.selection = _ListSelectLayout.selection[0]
+            return layoutDialog(dismiss=_ListSelectLayout.selection and "True" or "")
+
+def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False):
+    """ Prompt the user to select items from a list of objects """
+    _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height)
+    ret = str(layoutDialog(title=title, ui="""python("import sys; sys.modules['%s']._ListSelectLayout()")""" % (__name__)))
+    if ret:
+        return _ListSelectLayout.selection
+
+
+    
+def showsHourglass(func):
+    """ Decorator - shows the hourglass cursor until the function returns """
+    def decoratedFunc(*args, **kwargs):
+        cmds.waitCursor(st=True)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            cmds.waitCursor(st=False)
+    decoratedFunc.__doc__ = func.__doc__
+    decoratedFunc.__name__ = func.__name__
+    return decoratedFunc
+    
+class MelToPythonWindow(Window):
+
+    def __new__(cls, name=None):
+        self = window(title=name or "Mel To Python")
+        return Window.__new__(cls, self)
+
+    def convert(w):
+        from pymel.tools.mel2py import mel2pyStr
+        if cmds.cmdScrollFieldExecuter(w.mel,q=1,hasSelection=1):
+            cmds.cmdScrollFieldExecuter(w.mel,e=1,copySelection=1)
+            cmds.cmdScrollFieldExecuter(w.python,e=1,clear=1)
+            cmds.cmdScrollFieldExecuter(w.python,e=1,pasteSelection=1)
+            mel = cmds.cmdScrollFieldExecuter(w.python,q=1,text=1)
+        else:
+            mel = cmds.cmdScrollFieldExecuter(w.mel,q=1,text=1)
+        try:
+            py = mel2pyStr(mel)
+        except Exception, e:
+            confirmDialog(t="Mel To Python",m="Conversion Error:\n%s" % e,b=["Ok"], db="Ok")
+        else:
+            cmds.cmdScrollFieldExecuter(w.python,e=1,text=py)
+    
+
+    def __init__(self):
+        SLC(None, horizontalLayout, dict(ratios=[1,.1,1]), AutoLayout.redistribute, [
+              SLC("mel", cmds.cmdScrollFieldExecuter, {}),
+              SLC("button", button, dict(l="->", c=lambda *x: self.convert(), bgc=[.5,.7,1])),
+              SLC("python", cmds.cmdScrollFieldExecuter, dict(st="python"))
+              ]).create(self.__dict__,parent=self)
+        
+        self.setWidthHeight([600,800])
+        self.show()
+
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
@@ -590,14 +778,9 @@ class VectorFieldGrp( FloatFieldGrp ):
         return Vector( [x,y,z] )
 
 
-def PyUI(strObj, type=None):
-    try:
-        if not type:
-            type = objectTypeUI(strObj)
-        return getattr(_thisModule, util.capitalize(type) )(strObj)
-    except AttributeError:
-        return UI(strObj)
     
+def getMainProgressBar():
+    return ProgressBar(melGlobals['gMainProgressBar'])    
     
 
                         
