@@ -1030,9 +1030,8 @@ Modifications:
     lsFilters["noIntermediate"] = kwargs.pop('noIntermediate',kwargs.pop('ni',False))
     lsFilters["shapes"] = shapes = kwargs.pop('shapes',kwargs.pop('s',False))
     allDescendents = kwargs.get('allDescendents',kwargs.get('ad',False))
-    if allDescendents or shapes: 
-        kwargs['fullPath'] = True
-        kwargs.pop('f', None)
+    kwargs['fullPath'] = True
+    kwargs.pop('f', None)
     ret = map(node.PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
     ret = ls(ret, **lsFilters)
     return ret
@@ -1427,10 +1426,9 @@ def createSurfaceShader( shadertype, name=None ):
 kColors = {}
 
 def colorToIndex(color, limited=False):
-	"""Convert a color vector ([r,g,b]) to the closest indexed color. 
-	If 'limited==True' then uses the 8 'userDefined' colors using the 'displayRGBColor' command,
-	otherwise uses the 32 colors using 'colorIndex' command.
-	"""
+    """Convert a color vector ([r,g,b]) to the closest indexed color. 
+    If 'limited==True' then uses the 8 'userDefined' colors using the 'displayRGBColor' command,
+    otherwise uses the 32 colors using 'colorIndex' command."""
     global kColors
     if not kColors:
         # initialize color mappings
