@@ -1223,7 +1223,7 @@ def loadApiToMelBridge():
 
     bridge = loadCache( 'mayaApiMelBridge', 'the api-mel bridge' )
     if bridge is not None:
-        return brdige
+        return bridge
     
     bridge = util.defaultdict(dict)
     return bridge
