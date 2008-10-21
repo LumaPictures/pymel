@@ -222,7 +222,7 @@ class Enum(object):
         if isinstance(index, int):
             return self.getKey(index)
         elif isinstance(index, basestring):
-            return self.getValue(index)
+            return self.getIndex(index)
         raise TypeError, "Requires a string key to retrieve the enum index, or an integer index to retrieve the enum key"
     
     def __setitem__(self, index, value):
