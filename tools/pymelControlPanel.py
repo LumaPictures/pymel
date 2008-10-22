@@ -9,10 +9,6 @@ It controls:
     preference for overloaded methods (since currently only one overloaded method is supported)
     renaming of apiMethod
 
-TODO:
-    setup proper disabling of mel methods.  currently api methods take precedence over mel methods 
-    because they are created first, but if the api method and mel method have different names, then 
-    both will still get created. 
 
 """
  
@@ -34,12 +30,19 @@ class PymelControlPanel(object):
         # Center Column: Api Methods
         apiForm = formLayout()
         scroll = scrollLayout()
+        #apiMethodForm = formLayout()
         self.apiMethodCol = columnLayout('apiMethodCol', rowSpacing=12)
-        setParent('..')
+        #apiMethodForm.attachForm( self.apiMethodCol, 'top', 2 )
+        #apiMethodForm.attachForm( self.apiMethodCol, 'bottom', 2 )
+        #apiMethodForm.attachForm( self.apiMethodCol, 'right', 2 )
+        #apiMethodForm.attachForm( self.apiMethodCol, 'left', 2 )
         
-        setParent('..')
+        setParent('..') # column
+        #setParent('..') # form
+        setParent('..') # scroll
         status = helpLine(h=60)
-        setParent('..')
+        setParent('..') # form
+        
         apiForm.attachForm( status, 'bottom', 5 )
         apiForm.attachForm( status, 'left', 5 )
         apiForm.attachForm( status, 'right', 5 )
@@ -181,22 +184,26 @@ class ClassFrame(object):
             row = MethodRow( self, self.className, self.apiClassName, method, self.classInfo[method] )
 
             self.rows[method] = row
-
+        
+        
     def updateMelNames(self, melMethods):
         for rowName, row in self.rows.items():
             row.updateMelNames( melMethods )
             
     def buildUI(self):
-
-        self.frame = frameLayout(collapsable=True, label='%s (%s)' % (self.className, self.apiClassName), 
+        frame_width = 400
+        #self.form = formLayout()
+        self.frame = frameLayout(collapsable=True, label='%s (%s)' % (self.className, self.apiClassName),
+                            width = frame_width,
                             labelAlign='top')
-        columnLayout()
+        
+        col = columnLayout(visible=False )
         
         invertibles = api.apiClassInfo[self.apiClassName]['invertibles']
         usedMethods = []
         
         for setMethod, getMethod in invertibles:
-            frameLayout(labelVisible=False, collapsable=False)
+            frameLayout(labelVisible=False, collapsable=False, width = frame_width)
             columnLayout()
             self.rows[setMethod].buildUI()
             self.rows[getMethod].buildUI()
@@ -207,9 +214,15 @@ class ClassFrame(object):
         for methodName in sorted( self.classInfo.keys() ):
             if methodName not in usedMethods: 
                 self.rows[methodName].buildUI()
-           
-        setParent('..') # frame
+        
+        #self.form.attachForm( self.frame, 'left', 2)
+        #self.form.attachForm( self.frame, 'right', 2)
+        #self.form.attachForm( self.frame, 'top', 2)
+        #self.form.attachForm( self.frame, 'bottom', 2)
+        col.setVisible(True)
         setParent('..') # column
+        setParent('..') # frame
+        #setParent('..') # form
         return self.frame
     
 
@@ -240,22 +253,48 @@ class MethodRow(object):
         
         # useName mode
         if not self.data.has_key( 'useName' ):
-            self.data['useName'] = True
+            self.data['useName'] = 'API'
+        else:
+            # correct old values
+            useNameVal = self.data['useName']
+            if useNameVal == True:
+                self.data['useName'] = 'API'
+            elif useNameVal == False:
+                self.data['useName'] = 'MEL'  
+            elif useNameVal not in ['MEL', 'API']:
+                self.data['useName'] = str(useNameVal)
+        
+        # correct old values
+        if self.data.has_key('overloadPrecedence'):
+            self.data['overloadIndex'] = self.data.pop('overloadPrecedence')
+        
+        # correct old values
+        if self.data.has_key('melName'):
+            self.data['melName'] = str(self.data['melName'])
             
-        val = self.data.get('overloadPrecedence', 0)
+                        
+        val = self.data.get('overloadIndex', 0)
         # ensure we don't use a value that is not valid
         for val in range(val, len(enabledArray)+1):
             try:
                 if enabledArray[val]:
                     break
-            except IndexError:
+            except IndexError: # went too far, so none are valid
                 val = None
         if val is None:
             # nothing valid
-            self.data.pop('overloadPrecedence', None)
+            self.data.pop('overloadIndex', None)
         else:
-            self.data['overloadPrecedence'] = val
+            self.data['overloadIndex'] = val
  
+    def crossReference(self, melName):
+        """ create an entry for the melName which points to the data being tracked for the api name"""
+        
+        factories.apiToMelData[ (self.className, melName ) ] = self.data
+        
+    def uncrossReference(self, melName):
+        factories.apiToMelData.pop( (self.className, melName ) )
+          
     def updateMelNames(self, melMethods): 
         # melName   
         if not self.data.has_key( 'melName' ):
@@ -264,33 +303,28 @@ class MethodRow(object):
                 methreg = method.replace('*', '.{0,1}') + '$'
                 #print self.methodName, methreg
                 if re.match( methreg, self.methodName ):
-                    match = method
+                    match = str(method)
                     break
             if match:
                 self.data['melName'] = match
-        
+                self.crossReference( match )
+            
     def buildUI(self):
         
         
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
-        self.frame = frameLayout(labelVisible=False, collapsable=False)
+        self.frame = frameLayout(w=400, labelVisible=False, collapsable=False)
         columnLayout()
         enabledArray = []
         self.rows = []
         self.overloadPrecedenceColl = None
+        self.enabledChBx = checkBox(label=self.methodName, 
+                    changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
         if isOverloaded:
             rowSpacing = [180, 20, 400]
-            i = 0
-            row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing )
-            self.rows.append(row)
-            self.enabledChBx = checkBox(label=self.methodName, 
-                    changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
-            self.overloadPrecedenceColl = radioCollection()
-            self.createAnnotation(i)
-            
-            setParent('..')    
-            for i in range(1, len(self.methodInfoList) ) :
+            self.overloadPrecedenceColl = radioCollection() 
+            for i in range(0, len(self.methodInfoList) ) :
                 row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing )
                 self.rows.append(row)
                 text(label='')
@@ -299,33 +333,36 @@ class MethodRow(object):
                 setParent('..') 
         else:
             row = rowLayout( self.methodName + '_rowMain', nc=2, cw2=[200, 400] )
-            self.enabledChBx = checkBox(label=self.methodName, 
-                    changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
+            #self.enabledChBx = checkBox(label=self.methodName, changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
+            text(label='')
             self.createAnnotation(0)
             setParent('..')  
-            
-        self.row = rowLayout( self.methodName + '_rowSettings', nc=4, cw4=[200, 160, 180, 160] )
-        self.rows.append(row)
+        
+        separator(w=800, h=24) 
+        
+          
+        #self.row = rowLayout( self.methodName + '_rowSettings', nc=4, cw4=[200, 160, 180, 160] )
+        #self.rows.append(row)
+        layout = { 'columnAlign'  : [1,'right'], 
+                   'columnAttach' : [1,'right',5] }
+        self.row = rowLayout( self.methodName + '_rowSettings', nc=2, cw2=[200, 220], **layout )
+        self.rows.append(self.row)
         
         # create ui elements
-        text(label='')
+        text(label='Mel Equivalent')
 
-        
-#        self.melNameOptMenu = optionMenu(w=150, changeCommand=CallbackWithArgs( MethodRow.melNameCB, self ))
-#        menuItem(label='[None]', parent=self.melNameOptMenu ) 
-#        for melMethod in melMethods:
-#            menuItem(label=melMethod, parent=self.melNameOptMenu )
-#        setParent(menu=1)
-
-        self.melNameTextField = textField(w=150, editable=False)
+        self.melNameTextField = textField(w=170, editable=False)
         self.melNameOptMenu = popupMenu(parent=self.melNameTextField, 
                                         button=1,
                                         postMenuCommand=Callback( MethodRow.populateMelNameMenu, self ) )
+        setParent('..')
         
-        #textField()
-        #button(label='<')
+        self.row2 = rowLayout( self.methodName + '_rowSettings2', nc=3, cw3=[200, 180, 240], **layout )
+        self.rows.append(self.row2)
+
+        text(label='Use Name')
         self.nameMode = radioButtonGrp(label='', nrb=3, cw4=[1,50,50,50], labelArray3=['api', 'mel', 'other'] )
-        self.altNameText = textField(enable=False)
+        self.altNameText = textField(w=170, enable=False)
         self.altNameText.changeCommand( CallbackWithArgs( MethodRow.alternateNameCB, self ) )
         self.nameMode.onCommand( Callback( MethodRow.nameTypeCB, self ) ) 
         
@@ -349,33 +386,38 @@ class MethodRow(object):
         
         self.enabledChBx.setValue( self.data['enabled'] )
         self.row.setEnable( self.data['enabled'] )
+        self.row2.setEnable( self.data['enabled'] )
         
         name = self.data['useName']
-        if name == True :
+        if name == 'API' :
             self.nameMode.setSelect( 1 )
             self.altNameText.setEnable(False)
-        elif name == False :
+        elif name == 'MEL' :
             self.nameMode.setSelect( 2 )
             self.altNameText.setEnable(False)
-        elif isinstance( name, basestring ) :
+        else :
             self.nameMode.setSelect( 3 )
             self.altNameText.setText(name)
             self.altNameText.setEnable(True)
-        else:
-            raise  
+ 
         
         if self.overloadPrecedenceColl:
             items = self.overloadPrecedenceColl.getCollectionItemArray()
-            val = self.data.get('overloadPrecedence', 0)
-            # ensure we don't use a value that is not valid
-            for val in range(val, len(enabledArray)+1):
-                try:
-                    if enabledArray[val]:
-                        break
-                except IndexError:
-                    val = None
-            if val is not None:
-                self.overloadPrecedenceColl.setSelect( items[ val ] )  
+            try:
+                val = self.data['overloadIndex']
+                self.overloadPrecedenceColl.setSelect( items[ val ] ) 
+            except:
+                pass
+            
+#            # ensure we don't use a value that is not valid
+#            for val in range(val, len(enabledArray)+1):
+#                try:
+#                    if enabledArray[val]:
+#                        break
+#                except IndexError:
+#                    val = None
+#            if val is not None:
+#                self.overloadPrecedenceColl.setSelect( items[ val ] )  
             
         setParent('..')
         
@@ -390,19 +432,19 @@ class MethodRow(object):
     def nameTypeCB(self ):
         selected = self.nameMode.getSelect()
         if selected == 1:
-            val = True
+            val = 'API'
             self.altNameText.setEnable(False)
         elif selected == 2:
-            val = False
+            val = 'MEL'
             self.altNameText.setEnable(False)
         else:
-            val = self.altNameText.getText()
+            val = str(self.altNameText.getText())
             self.altNameText.setEnable(True)
             
         self.data['useName'] = val
         
     def alternateNameCB(self, *args ):
-        self.data['useName'] = args[0]
+        self.data['useName'] = str(args[0])
         
 #    def formatAnnotation(self, apiClassName, methodName ):
 #        defs = []
@@ -416,17 +458,20 @@ class MethodRow(object):
     
     def overloadPrecedenceCB(self, i):
         if i == 0: # no precedence
-            self.data.pop('overloadPrecedence',None)
+            self.data.pop('overloadIndex',None)
         else:
-            self.data['overloadPrecedence'] = i
+            self.data['overloadIndex'] = i
     
     def melNameCB(self, newMelName):
-        oldMelName = self.melNameTextField.getText()
+        oldMelName = str(self.melNameTextField.getText())
+        if oldMelName:
+            self.uncrossReference( oldMelName )
         if newMelName == '[None]':
             self.data.pop('melName',None)
             self.parent.parent.unassignMelMethod( oldMelName )
             self.melNameTextField.setText('')
         else:
+            self.crossReference( newMelName )
             self.data['melName'] = newMelName
             self.parent.parent.assignMelMethod( newMelName )
             self.melNameTextField.setText(newMelName)
@@ -436,7 +481,7 @@ class MethodRow(object):
 
         menuItem(parent=self.melNameOptMenu, label='[None]', command=Callback( MethodRow.melNameCB, self, '[None]' ))
         for method in self.parent.parent.unassignedMelMethodLister.getAllItems():
-            menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameCB, self, method ))
+            menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameCB, self, str(method) ))
     
     def getEnabledArray(self):
         """returns an array of booleans that correspond to each method and whether they can be wrapped"""
@@ -502,5 +547,6 @@ def cacheResults():
                         defaultButton='Yes')
     print res
     if res == 'Yes':
+        print "---"
         factories.saveApiToMelBridge()
-    
+        print "---"
