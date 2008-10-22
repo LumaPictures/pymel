@@ -2461,6 +2461,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
             # purposedly authorize notation MColor.blue but not MColor().blue,
             # the constants are a class property and are not defined on instances
             if instance is None :
+                # note that conversion to the correct type is done here
                 return owner(self.value)
             else :
                 raise AttributeError, "Class constants on %s are only defined on the class" % (owner.__name__)
@@ -2570,15 +2571,14 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     
                 classdict['__getattribute__'] = __getattribute__
         
-#        #return super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
-      
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
         
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
             try:
-                return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
+                # return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
+                return MetaMayaTypeWrapper.ClassConstant(attr)
             except Exception, e:
                 util.warn( "Failed creating %s class constant (%s): %s" % (classname, attr, e) )
         #------------------------
