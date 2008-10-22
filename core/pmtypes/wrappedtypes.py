@@ -242,6 +242,10 @@ class Vector(VectorN) :
         >>> v = Vector(1, 2, 3)
         >>> w = Vector(x=1, z=2)
         >>> z = Vector(Vector.xAxis, z=1)
+        
+        >>> v = Vector(1, 2, 3, unit='meters')
+        >>> print v
+        [100.0, 200.0, 300.0]
     """
     __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ()
@@ -305,7 +309,12 @@ class Vector(VectorN) :
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
-
+        
+        # units handling
+        unit = kwargs.get('unit', None)
+        if unit is not None :
+            self.assign([Distance(x, unit) for x in self])
+            
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
     # here, there is no _data attribute as we subclass api.MVector directly, thus v.data is v
     # for wraps 
@@ -1325,11 +1334,23 @@ class Space(_api.MSpace):
 
 class Matrix(MatrixN):
     """ 
-    A 4x4 transformation matrix based on api Matrix
+        A 4x4 transformation matrix based on api Matrix
     
-        >>> v = self.__class__(1, 2, 3)
-        >>> w = self.__class__(x=1, z=2)
-        >>> z = self.__class__(_api.Mself.__class__.xAxis, z=1)
+        >>> i = Matrix()
+        >>> print i.formated()
+        [[1.0, 0.0, 0.0, 0.0],
+         [0.0, 1.0, 0.0, 0.0],
+         [0.0, 0.0, 1.0, 0.0],
+         [0.0, 0.0, 0.0, 1.0]]
+         
+        >>> v = Matrix(1, 2, 3)
+        >>> print v.formated()
+        [[1.0, 2.0, 3.0, 0.0],
+         [1.0, 2.0, 3.0, 0.0],
+         [1.0, 2.0, 3.0, 0.0],
+         [1.0, 2.0, 3.0, 0.0]]
+
+        
     """    
     __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MMatrix
@@ -2019,13 +2040,234 @@ class Time( _api.MTime ) :
     def __float__( self ): return self.as(self.apicls.uiUnit())
     def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
-class Distance( _api.MDistance ) :
+#class Distance( _api.MDistance ) :
+#    apicls = _api.MDistance
+#    __metaclass__ = _factories.MetaMayaTypeWrapper
+#    def __str__( self ): return str(float(self))
+#    def __int__( self ): return int(float(self))
+#    def __float__( self ): return self.as(self.apicls.uiUnit())
+#    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+
+class Distance( float ) :
+    """
+    
+        >>> Distance.getInternalUnit()
+        'centimeters'
+        >>> Distance.setUIUnit('meters')
+        >>> Distance.getUIUnit()
+        'meters'
+     
+        >>> d = Distance(12)
+        >>> d.unit
+        'meters'
+        >>> print d
+        1200.0
+        >>> str(d)
+        '1200.0'
+        >>> print repr(d)
+        Distance(12.0, unit='meters')
+        >>> print d.asUnit()
+        12.0
+        >>> print d.asInternal()
+        1200.0
+        
+        >>> Distance.setUIUnit('centimeters')
+        >>> Distance.getUIUnit()
+        'centimeters'
+        >>> d = Distance(12)
+        >>> d.unit
+        'centimeters'
+        >>> print d
+        12.0
+        >>> str(d)
+        '12.0'
+        >>> print repr(d)
+        Distance(12.0, unit='centimeters')
+        >>> print d.asUnit()
+        12.0
+        >>> print d.asInternal()
+        12.0
+                        
+        >>> d = Distance(12, 'feet')      
+        >>> print d
+        365.76
+        >>> str(d)
+        '365.76'
+        >>> print repr(d)
+        Distance(12.0, unit='feet')
+        >>> d.unit
+        'feet'
+        >>> print d.asUnit()
+        12.0
+        >>> Distance.setUIUnit('meters')
+        >>> Distance.getUIUnit()
+        'meters'
+        >>> print d.asUI()
+        3.6576
+        >>> Distance.getInternalUnit()
+        'centimeters'
+        >>> print d.asInternal()
+        365.76
+
+        >>> print d.asFeet()
+        12.0        
+        >>> print d.asMeters()
+        3.6576
+        >>> print d.asCentimeters()
+        365.76
+        
+        >>> Distance.setUIUnit()
+        >>> Distance.getUIUnit()
+        'centimeters'
+    """    
     apicls = _api.MDistance
-    __metaclass__ = _factories.MetaMayaTypeWrapper
-    def __str__( self ): return str(float(self))
-    def __int__( self ): return int(float(self))
-    def __float__( self ): return self.as(self.apicls.uiUnit())
-    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+    __slots__ = ['unit', 'data', 'value', '_data', '_unit']
+    units = util.Enum('invalid', 'inches', 'feet', 'yards', 'miles',
+                     'millimeters', 'centimeters', 'kilometers', 'meters')
+
+    @classmethod
+    def getUIUnit(cls):
+        """
+            Returns the global UI units currently in use for that type
+        """        
+        return cls.sUnit(cls.apicls.uiUnit())
+    @classmethod
+    def setUIUnit(cls, unit=None):
+        """
+            Sets the global UI units currently to use for that type
+        """
+        if unit is None :
+            cls.apicls.setUIUnit(cls.apicls.internalUnit())
+        else :   
+            cls.apicls.setUIUnit(cls.kUnit(unit))
+
+    @classmethod
+    def getInternalUnit(cls):
+        """
+            Returns the inernal units currently in use for that type
+        """        
+        return cls.sUnit(cls.apicls.internalUnit())
+    
+    @classmethod
+    def uiToInternal (cls, value) :
+        d = cls(value, cls.getUIUnit())
+        return d.asInternal()
+        
+    @classmethod
+    def kUnit(cls, unit=None):
+        """
+            Converts a string unit name to the internal int unit enum representation
+        """
+        if unit :
+            if unit in cls.units :
+                if isinstance(unit, int) :
+                    return int(unit)
+                else :
+                    return cls.units[str(unit)]
+            else :
+                raise ValueError, "%s has no unit named %s" % (cls.__name__, unit)
+        else :
+            return cls.apicls.uiUnit()
+
+    @classmethod
+    def sUnit(cls, unit=None) :
+        """
+            Converts an internal int unit enum representation tp the string unit name
+        """        
+        if unit :
+            if unit in cls.units :
+                if isinstance(unit, int) :
+                    return str(cls.units[unit])
+                else :
+                    return str(unit)
+            else :
+                raise ValueError, "%s has no unit of index %s" % (cls.__name__, unit)                
+        else :
+            return str(cls.unit[cls.apicls.uiUnit()])
+        
+    def getUnit(self):
+        """
+            Returns the units currently in effect for this instance
+        """
+        return self.__class__.sUnit(self._unit)    
+    def setUnit(self, unit=None) :
+        """
+            Sets the units currently in effect for this instance
+        """
+        self._unit = self.__class__.kUnit(unit)
+    unit = property(getUnit, setUnit, None, "The units currently in effect for this instance")
+
+    def getValue(self):
+        """
+            Returns the value of the current instance in the currently set units
+        """
+        return self._data.value() 
+    def setValue(self, value) :
+        """
+            Sets the value of the current instance in the currently set units
+        """
+        self._data.setValue(float(value))
+    value = property(getValue, setValue, None, "The value of that instance expressed in its currently set units")
+
+    def getData(self):
+        """
+            Returns the api data stored in that instance
+        """
+        return self._data
+    def setData(self, data) :
+        """
+            Sets the api data stored in that instance
+        """
+        self._data = self.apicls(data)    
+    data = property(getData, setData, None, "The api data stored in that instance")
+
+    def __new__(cls, value, unit=None) :
+        unit = cls.kUnit(unit)
+        data = cls.apicls(value, unit)
+        # the float representation uses internal units so that arithmetics work
+        newobj = float.__new__(cls, data.as(cls.apicls.internalUnit()))
+        # newobj = float.__new__(cls, data.as(unit))
+        newobj._data = data
+        newobj._unit = unit
+        return newobj
+   
+    def assign(self, *args):
+        if isinstance (args, self.__class__) :
+            args = (args._data, args._unit)
+        self._data.assign(*args)
+
+    def __repr__(self) :
+        return '%s(%s, unit=%r)' % ( self.__class__.__name__, self.asUnit(), self.unit ) 
+     
+    def as(self, unit) :
+        return self.apicls.as(self._data, self.__class__.kUnit(unit))
+
+    def asUnit(self) :
+        return self.as(self.unit)
+
+    def asUI(self) :
+        return self.as(self.__class__.getUIUnit())
+
+    def asInternal(self) :
+        return self.as(self.__class__.getInternalUnit())
+
+    def asMillimeter(self) :
+        return self.as('millimeter')
+    def asCentimeters(self) :
+        return self.as('centimeters')
+    def asKilometers(self) :
+        return self.as('kilometers')
+    def asMeters(self) :
+        return self.as('meters')
+
+    def asInches(self) :
+        return self.as('inches')
+    def asFeet(self) :
+        return self.as('feet')
+    def asYards(self) :
+        return self.as('yards')
+    def asMiles(self) :
+        return self.as('miles')
 
 class Angle( _api.MAngle ) :
     apicls = _api.MAngle
@@ -3448,7 +3690,29 @@ def _testMTransformationMatrix() :
     
     print "end tests TransformationMatrix"
     
-if __name__ == '__main__' :
+if __name__ == '__main__' : 
+    print Distance.getInternalUnit()
+    # centimeters
+    print Distance.getUIUnit()
+    # centimeters
+    Distance.setUIUnit('meters')
+    print Distance.getUIUnit()
+    # meters 
+    d = Distance(12)
+    print d.unit
+    # meters
+    print d
+    1200.0
+    print repr(d)
+    Distance(12.0, unit='meters')
+    print d.asUnit()
+    12.0
+    print d.asInternal() 
+    1200.0
+    
+    import doctest
+    doctest.testmod(verbose=True) 
+        
     _testMVector()   
     _testMPoint()
     _testMColor()
