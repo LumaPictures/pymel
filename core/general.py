@@ -19,7 +19,7 @@ from pmtypes.factories import queryflag, editflag, createflag, add_docs, MetaMay
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
-from pmtypes.wrappedtypes import *
+import pmtypes.wrappedtypes as typ
 import pmtypes.path as _path
 import pymel.util.nameparse as nameparse
 
@@ -250,15 +250,15 @@ Maya Bug Fix:
     - maya pointlessly returned vector results as a tuple wrapped in 
         a list ( ex.  '[(1,2,3)]' ). This command unpacks the vector for you.
 Modifications:
-    - casts double3 datatypes to Vector
-    - casts matrix datatypes to Matrix
+    - casts double3 datatypes to `Vector`
+    - casts matrix datatypes to `Matrix`
     - casts vectorArrays from a flat array of floats to an array of Vectors
     - when getting a multi-attr, maya would raise an error, but pymel will return a list of
          values for the multi-attr
     - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
     """
     def listToMat( l ):
-        return Matrix(
+        return typ.Matrix(
             [     [    l[0], l[1], l[2], l[3]    ],
             [    l[4], l[5], l[6], l[7]    ],
             [    l[8], l[9], l[10], l[11]    ],
@@ -267,7 +267,7 @@ Modifications:
     def listToVec( l ):
         vecRes = []
         for i in range( 0, len(res), 3):
-            vecRes.append( Vector( res[i:i+3] ) )
+            vecRes.append( typ.Vector( res[i:i+3] ) )
         return vecRes
 
     # stringify fix
@@ -280,7 +280,7 @@ Modifications:
             if isinstance(res[0], tuple):
                 res = res[0]
                 if cmds.getAttr( attr, type=1) == 'double3':
-                    return Vector(list(res))
+                    return typ.Vector(list(res))
             #elif cmds.getAttr( attr, type=1) == 'matrix':
             #    return listToMat(res)
             else:
@@ -292,18 +292,22 @@ Modifications:
                 except KeyError: pass
         return res
     
-    # perhaps it errored because it's a multi attribute
-    except RuntimeError, msg:
+    # perhaps it errored because it's a mixed compound, or a multi attribute
+    except RuntimeError, e:
         try:
             attr = Attribute(attr)
-            if attr.isMulti():
+            # mixed compound takes precedence, because by default, compound attributes are returned by getAttr, but
+            # mixed compounds cannot be expressed in a mel array.
+            if attr.isCompound():
+                return [child.get() for child in attr.getChildren() ]
+            elif attr.isMulti():
                 return [attr[i].get() for i in range(attr.size())]
-            raise RuntimeError, msg
-        except AttributeError, msg:
+            raise e
+        except AttributeError, e:
             if default is not None:
                 return default
             else:
-                raise AttributeError, msg
+                raise e
 
     
 # getting and setting                    
@@ -466,7 +470,9 @@ Modifications:
     attr = unicode(attr)   
 
     try:
-        cmds.setAttr( attr, *args, **kwargs)
+        #print args, kwargs
+        # NOTE: chaanged *args to args to get array types to work. this may be a change between 8.5 and 2008, because i swear i've tested this before
+        cmds.setAttr( attr, args, **kwargs)
     except TypeError, msg:
         val = kwargs.pop( 'type', kwargs.pop('typ', False) )
         typ = addAttr( attr, q=1, at=1)
@@ -1949,7 +1955,7 @@ class Attribute(PyNode):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = self.__apiobjects__['MPlug'].attribute()
+            handle = api.MObjectHandle( self.__apiobjects__['MPlug'].attribute() )
             self.__apiobjects__['MObjectHandle'] = handle
         if api.isValidMObjectHandle( handle ):
             return handle.object()
@@ -1997,11 +2003,16 @@ class Attribute(PyNode):
     def attr(self, attr):
         node = self.node()
         try:
-            attrObj = node.__apimfn__().attribute(attr)
+            plug = self.__apimplug__()
+            # if this plug is an array we can't properly get the child plug
+            if plug.isArray():
+                return node.attr(attr)
+            else:
+                attrObj = node.__apimfn__().attribute(attr)
+                return Attribute( node, plug.child( attrObj ) )
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
             raise MayaAttributeError( '%s.%s' % (self, attr) )
-        return Attribute( node, self.__apimplug__().child( attrObj ) )
     
     
     def __getattr__(self, attr):
@@ -2045,6 +2056,28 @@ class Attribute(PyNode):
     def __unicode__(self):
         return self.name()
 
+    def __eq__(self, other):
+        thisPlug = self.__apimplug__()
+        try:
+            thisIndex = thisPlug.logicalIndex()
+        except RuntimeError:
+            thisIndex = None
+            
+        if not isinstance(other,Attribute):
+            try:
+                other = PyNode(other)
+            except (ValueError,TypeError): # could not cast to PyNode
+                return False
+            
+        otherPlug = other.__apimplug__()
+        # foo.bar[10] and foo.bar[20] and foo.bar eval to the same object in api.  i don't think this is very intuitive.
+        try:
+            otherIndex = otherPlug.logicalIndex()
+        except RuntimeError:
+            otherIndex = None  
+        return thisPlug == otherPlug and thisIndex == otherIndex
+
+            
     def name(self):
         """ Returns the full name of that attribute(plug) """
         obj = self.__apiobject__()
@@ -2251,7 +2284,7 @@ class Attribute(PyNode):
 #        """xform -translation"""
 #        kwargs['translation'] = True
 #        kwargs['query'] = True
-#        return Vector( cmds.xform( self, **kwargs ) )
+#        return typ.Vector( cmds.xform( self, **kwargs ) )
         
     #----------------------
     # Info Methods
@@ -2900,8 +2933,15 @@ class DependNode( PyNode ):
                 for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
                     if isinstance( token, nameparse.MayaName ):
                         if isinstance( result, api.MPlug ):
-                            result = result.child( self.__apimfn__().attribute( token ) )
-                        else:
+                            # you can't get a child plug from a multi/array plug.
+                            # if result is currently 'defaultLightList1.lightDataArray' (an array)
+                            # and we're trying to get the next plug, 'lightDirection', then we need a dummy index.
+                            # the following line will reuslt in 'defaultLightList1.lightDataArray[-1].lightDirection'
+                            if result.isArray():
+                                result = self.__apimfn__().findPlug( token )  
+                            else:
+                                result = result.child( self.__apimfn__().attribute( token ) )
+                        else: # Node
                             result = self.__apimfn__().findPlug( token )                              
 #                                # search children for the attribute to simulate  persp.focalLength --> perspShape.focalLength
 #                                except TypeError:
@@ -2913,7 +2953,8 @@ class DependNode( PyNode ):
                         result = result.elementByLogicalIndex( token.value )
                 return Attribute( self.__apiobject__(), result )
             else:
-                return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) )
+                # NOTE: not sure if this should be True or False
+                return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) ) 
             
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
@@ -3620,40 +3661,40 @@ class Transform(DagNode):
 
     @queryflag('xform','scale') 
     def getScaleOld( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','rotation')        
     def getRotationOld( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','translation') 
     def getTranslationOld( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','scalePivot') 
     def getScalePivotOld( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','rotatePivot')        
     def getRotatePivotOld( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','pivots') 
     def getPivots( self, **kwargs ):
         res = cmds.xform( self, **kwargs )
-        return ( Vector( res[:3] ), Vector( res[3:] )  )
+        return ( typ.Vector( res[:3] ), typ.Vector( res[3:] )  )
     
     @queryflag('xform','rotateAxis') 
     def getRotateAxis( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
         
     @queryflag('xform','shear')                          
     def getShearOld( self, **kwargs ):
-        return Vector( cmds.xform( self, **kwargs ) )
+        return typ.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','matrix')                
     def getMatrix( self, **kwargs ): 
-        return Matrix( cmds.xform( self, **kwargs ) )
+        return typ.Matrix( cmds.xform( self, **kwargs ) )
       
     #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with api.
     def getBoundingBox(self, invisible=False):
@@ -3668,7 +3709,7 @@ class Transform(DagNode):
             kwargs['boundingBox'] = True
                     
         res = cmds.xform( self, **kwargs )
-        #return ( Vector(res[:3]), Vector(res[3:]) )
+        #return ( typ.Vector(res[:3]), typ.Vector(res[3:]) )
         return BoundingBox( res[:3], res[3:] )
     
     def getBoundingBoxMin(self, invisible=False):
@@ -3833,7 +3874,7 @@ class Mesh(SurfaceShape):
             return '%s.f[%s]' % (self._node, self._item)
     
         def getNormal(self):
-            return Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
+            return typ.Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
         normal = property(getNormal)
         
         def toEdges(self):
