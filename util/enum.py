@@ -223,7 +223,8 @@ class Enum(object):
             return self.getKey(index)
         elif isinstance(index, basestring):
             return self.getIndex(index)
-        raise TypeError, "Requires a string key to retrieve the enum index, or an integer index to retrieve the enum key"
+        
+        raise ValueError, "invalid key or index: %s" % key
     
     def __setitem__(self, index, value):
         raise EnumImmutableError(index)
@@ -246,12 +247,63 @@ class Enum(object):
         return is_member
     
     def getIndex(self, key):
-        "get an index value from a key"
-        return self._keys[key]
+        """
+        get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
+        be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
+        
+            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles',  'millimeters', 'centimeters', 'kilometers', 'meters')
+            >>> units.getIndex('inches')
+            1
+            >>> units.getIndex(3)
+            3
+            >>> units.getIndex('hectares')
+            Traceback (most recent call last):
+              ...
+            KeyError: 'hectares'
+            >>> units.getIndex(10)
+            Traceback (most recent call last):
+              ...
+            TypeError: invalid key: 10
+        """
+        
+        if isinstance(key, int):
+            if key in self:
+                return key
+            
+        elif isinstance(key, basestring):
+            return self._keys[key]
+        
+        raise TypeError, "invalid key: %r" % key
     
     def getKey(self, index):
-        "get a key from an index value"
-        return self._values[index]
+        """
+        get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
+        be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.
+        
+            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles',  'millimeters', 'centimeters', 'kilometers', 'meters')
+            >>> units.getKey(2)
+            EnumValue(2, 'feet')
+            >>> units.getKey('inches')
+            EnumValue(1, 'inches')
+            >>> units.getKey(10)
+            Traceback (most recent call last):
+              ...
+            IndexError: tuple index out of range
+            >>> units.getKey('hectares')
+            Traceback (most recent call last):
+              ...
+            TypeError: invalid index: 'hectares'
+        """
+        
+        if isinstance(index, int):
+            return self._values[index]
+        
+        elif isinstance(index, basestring):
+            try:
+                return self.getKey( self.getIndex(index) )
+            except:
+                pass
+        raise TypeError, "invalid index: %r" % index
     
     def values(self):
         "return a list of `EnumValue`s"
