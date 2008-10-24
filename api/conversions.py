@@ -1224,7 +1224,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         #apiClassInfo['MFnTransform']['methods']['getTranslation'][0]['defaults']['space']=Enum(['MSpace', 'Space', 'kObject'])
         #print "BEFORE", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
         _setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kObject']) )
-        _setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
+        #_setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
         #print "AFTER", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
         
         _setOverloadedMethod( 'MItMeshEdge','index', 1 ) # method at 0 is for returning a vertex index, while method 1 returns the edge index
@@ -1399,10 +1399,10 @@ def apiToNodeType (*args) :
 #def objType (obj, api=True, inherited=True):
 #    """ Returns the API or Node type name of MObject obj, and optionnally
 #        the list of types it inherits from.
-#            >>> obj = api.toMObject ('pCubeShape1')
-#            >>> api.objType (obj, api=True, inherited=True)
+#            >>> obj = toMObject ('pCubeShape1')
+#            >>> objType (obj, api=True, inherited=True)
 #            >>> # Result: ['kBase', 'kDependencyNode', 'kDagNode', 'kMesh'] #
-#            >>> api.objType (obj, api=False, inherited=True)
+#            >>> objType (obj, api=False, inherited=True)
 #            >>> # Result: ['dependNode', 'entity', 'dagNode', 'shape', 'geometryShape', 'deformableShape', 'controlPoint', 'surfaceShape', 'mesh'] # 
 #        Note that unfortunatly API and Node types do not exactly match in their hierarchy in Maya
 #    """
@@ -1505,10 +1505,10 @@ def toApiObject (nodeName, dagPlugs=True):
 #        # build up to the final MPlug
 #        nameTokens = nameparse.getBasicPartList( nodeName )
 #        if dag.isValid():
-#            fn = api.MFnDagNode(dag)
+#            fn = MFnDagNode(dag)
 #            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
 #                if isinstance( token, nameparse.MayaName ):
-#                    if isinstance( result, api.MPlug ):
+#                    if isinstance( result, MPlug ):
 #                        result = result.child( fn.attribute( token ) )
 #                    else:
 #                        try:
@@ -1516,7 +1516,7 @@ def toApiObject (nodeName, dagPlugs=True):
 #                        except TypeError:
 #                            for i in range(fn.childCount()):
 #                                try:
-#                                    result = api.MFnDagNode( fn.child(i) ).findPlug( token )
+#                                    result = MFnDagNode( fn.child(i) ).findPlug( token )
 #                                except TypeError:
 #                                    pass
 #                                else:
@@ -1526,10 +1526,10 @@ def toApiObject (nodeName, dagPlugs=True):
 #            if dagMatters:
 #                result = (dag, result)
 #        else:
-#            fn = api.MFnDependencyNode(obj)
+#            fn = MFnDependencyNode(obj)
 #            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
 #                if isinstance( token, nameparse.MayaName ):
-#                    if isinstance( result, api.MPlug ):
+#                    if isinstance( result, MPlug ):
 #                        result = result.child( fn.attribute( token ) )
 #                    else:
 #                        result = fn.findPlug( token )
@@ -1818,4 +1818,193 @@ def MItDag (root = None, *args, **kwargs) :
                 yield obj
             iterObj.next()
     
+           
+def getPlugValue( plug ):
+    """given an MPlug, get its value"""
+
+    #if plug.isArray():
+    #    raise TypeError, "array plugs of this type are not supported"
     
+    obj = plug.attribute()
+    apiType = obj.apiType()
+
+    if apiType in [ MFn.kAttribute2Double, MFn.kAttribute2Float, MFn.kAttribute2Short, MFn.kAttribute2Int,
+                    MFn.kAttribute3Double, MFn.kAttribute3Float, MFn.kAttribute3Short, MFn.kAttribute3Int,
+                    MFn.kAttribute4Double,
+                    MFn.kCompoundAttribute ] :
+        res = []
+        for i in range(plug.numChildren()):
+            res.append( getPlugValue( plug.child(i) ) )
+        return tuple(res)
+
+    elif apiType in [ MFn.kDoubleLinearAttribute, MFn.kFloatLinearAttribute ] :
+        return plug.asMDistance()
+
+    elif apiType in [ MFn.kDoubleAngleAttribute, MFn.kFloatAngleAttribute ] :
+        return plug.asMAngle()
+
+    elif apiType == MFn.kTimeAttribute:
+        return plug.asMTime()
+
+    elif apiType == MFn.kNumericAttribute:
+        #return getNumericPlugValue(plug)
+        nAttr = MFnNumericAttribute(obj)
+        dataType = nAttr.unitType()
+        if dataType == MFnNumericData.kBoolean:
+            return plug.asBool()
+        
+        elif dataType in [ MFnNumericData.kShort, MFnNumericData.kInt, MFnNumericData.kLong, MFnNumericData.kByte] :
+            return plug.asInt()
+        
+        elif dataType in [ MFnNumericData.kFloat, MFnNumericData.kDouble, MFnNumericData.kAddr] :
+            return plug.asDouble()
+        raise "unknown numeric attribute type: %s" % dataType
+    
+    elif apiType == MFn.kEnumAttribute:
+        return plug.asInt()
+    
+    elif apiType == MFn.kTypedAttribute:
+        tAttr = MFnTypedAttribute( obj )
+        dataType = tAttr.attrType()
+        
+        
+        if dataType == MFnData.kInvalid:
+            return None
+        
+        elif dataType == MFnData.kString:
+            return plug.asString()
+        
+        elif dataType == MFnData.kNumeric:
+            
+            # all of the dynamic mental ray attributes fail here, but i have no idea why they are numeric attrs and not message attrs.
+            # cmds.getAttr returns None, so we will too.
+            try:
+                dataObj = plug.asMObject()
+            except:
+                return
+            
+            try:
+                numFn = MFnNumericData( dataObj )
+            except RuntimeError:
+                if plug.isArray():
+                    raise TypeError, "numeric arrays are not supported"
+                else:
+                    raise TypeError, "attribute type is numeric, but its data cannot be interpreted numerically"
+            dataType = numFn.numericType()
+                    
+            if dataType == MFnNumericData.kBoolean:
+                return plug.asBool()
+            
+            elif dataType in [ MFnNumericData.kShort, MFnNumericData.kInt, MFnNumericData.kLong, MFnNumericData.kByte] :
+                return plug.asInt()
+            
+            elif dataType in [ MFnNumericData.kFloat, MFnNumericData.kDouble, MFnNumericData.kAddr] :
+                return plug.asDouble()
+            
+            elif dataType == MFnNumericData.k2Short :
+                su1 = MScriptUtil()
+                ptr1 = su1.asShortPtr()
+                su2= MScriptUtil()
+                ptr2 = su2.asShortPtr()
+                
+                numFn.getData2Short(ptr1,ptr2)
+                return ( MScriptUtil(ptr1).asShort(), MScriptUtil(ptr2).asShort() )
+            
+            elif dataType in [ MFnNumericData.k2Int, MFnNumericData.k2Long ]:
+                su1 = MScriptUtil()
+                ptr1 = su1.asIntPtr()
+                su2= MScriptUtil()
+                ptr2 = su2.asIntPtr()
+                
+                numFn.getData2Int(ptr1,ptr2)
+                return ( MScriptUtil(ptr1).asInt(), MScriptUtil(ptr2).asInt() )
+        
+            elif dataType == MFnNumericData.k2Float :
+                su1 = MScriptUtil()
+                ptr1 = su1.asFloatPtr()
+                su2= MScriptUtil()
+                ptr2 = su2.asFloatPtr()
+                
+                numFn.getData2Float(ptr1,ptr2)
+                return ( MScriptUtil(ptr1).asFloat(), MScriptUtil(ptr2).asFloat() )
+             
+            elif dataType == MFnNumericData.k2Double :
+                su1 = MScriptUtil()
+                ptr1 = su1.asDoublePtr()
+                su2= MScriptUtil()
+                ptr2 = su2.asDoublePtr()
+                
+                numFn.getData2Double(ptr1,ptr2)
+                return ( MScriptUtil(ptr1).asDouble(), MScriptUtil(ptr2).asDouble() )
+        
+            elif dataType == MFnNumericData.k3Float:
+                su1 = MScriptUtil()
+                ptr1 = su1.asFloatPtr()
+                su2= MScriptUtil()
+                ptr2 = su2.asFloatPtr()
+                su3= MScriptUtil()
+                ptr3 = su2.asFloatPtr()
+                 
+                numFn.getData3Float(ptr1,ptr2,ptr3)
+                return ( MScriptUtil(ptr1).asFloat(), MScriptUtil(ptr2).asFloat(), MScriptUtil(ptr3).asFloat() )
+            
+            elif dataType ==  MFnNumericData.k3Double:
+                su1 = MScriptUtil()
+                ptr1 = su1.asDoublePtr()
+                su2= MScriptUtil()
+                ptr2 = su2.asDoublePtr()
+                su3= MScriptUtil()
+                ptr3 = su2.asDoublePtr()
+                  
+                numFn.getData3Double(ptr1,ptr2,ptr3)
+                return ( MScriptUtil(ptr1).asDouble(), MScriptUtil(ptr2).asDouble(), MScriptUtil(ptr3).asDouble() )
+            
+        
+            
+            elif dataType == MFnNumericData.kChar :
+                return plug.asChar()
+            
+            raise TypeError, "Unsupported numeric attribute: %s" % dataType
+        
+        elif dataType == MFnData.kMatrix :
+            return MFnMatrixData( plug.asMObject() ).matrix()
+        
+        elif dataType == MFnData.kDoubleArray :
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            return MFnDoubleArrayData( dataObj ).array()
+        
+        elif dataType == MFnData.kIntArray :
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            return MFnIntArrayData( dataObj ).array()
+        
+        elif dataType == MFnData.kPointArray :
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            return MFnPointArrayData( dataObj ).array()
+        
+        elif dataType == MFnData.kVectorArray :
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            return MFnVectorArrayData( dataObj ).array()
+        
+        elif dataType == MFnData.kStringArray :
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            return MFnStringArrayData( dataObj ).array()
+        raise TypeError, "Unsupported typed attribute: %s" % dataType
+    
+    raise TypeError, "Unsupported Type: %s" % ApiEnumsToApiTypes().get( apiType, '' )
+
+        
