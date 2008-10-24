@@ -1214,7 +1214,7 @@ def buildCachedData() :
                 else:
                     cmdlist[funcName] = (funcName, args, () )
             '''
-            writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
+        writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
              
     return (cmdlist,nodeHierarchyTree,uiClassList,nodeCommandList,moduleCmds)
 
@@ -2279,7 +2279,7 @@ def interface_wrapper( doer, args=[], defaults=[] ):
     return func
 
     
-def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
+def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
     """If proxy is the True, then __apimfn__ function used to retrieve the proxy class. If None,
     then we assume that the class being wrapped inherits from the underlying api class."""
     
@@ -2289,6 +2289,11 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True ):
     try:
         # there may be more than one method signatures per method name
         methodInfoList = _api.apiClassInfo[apiClassName]['methods'][methodName]
+        if overloadIndex is not None:
+            methodInfoList = [ methodInfoList[overloadIndex] ] # a list with one element
+        
+            
+            
     except KeyError:
         print "could not find method:", apiClassName, methodName
         return
@@ -2529,16 +2534,29 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     if apiToMelData.has_key( (classname,pymelName) ):
                         #apiToMelMap['api'][classname].append( pymelName )
                         data = apiToMelData[(classname,pymelName)]
+                        nameType = data['useName']
+                        if nameType == 'API':
+                            pass
+                        elif nameType == 'MEL':
+                            pymelName = data['melName']
+                        else:
+                            pymelName = nameType
+                        
+                        
+                        overloadIndex = data.get( 'overloadIndex', None )
                     else:
                         # set defaults
                         data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
                         apiToMelData[(classname,pymelName)] = data
+                        overloadIndex = None
                     
-                    if methodName not in herited:
+                    assert isinstance( pymelName, str ), "%s.%s: %r is not a valid name" % ( classname, methodName, pymelName)
+                       
+                    if pymelName not in herited:
                         if data['enabled']:                        
                             if pymelName not in classdict:
                                 if VERBOSE : print "Doing an auto wrap on %s for %s: proxy=%r" % (pymelName, methodName, proxy)
-                                method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy )
+                                method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex )
                                 if method:
                                     if VERBOSE : print "%s.%s() successfully created" % (apicls.__name__, pymelName )
                                     classdict[pymelName] = method
@@ -2675,7 +2693,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             # add documentation
             classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
             classdict['__doc__'] = classdoc
-            classdict['__melcmd__'] = func
+            classdict['__melcmd__'] = staticmethod(func)
             
             
             
@@ -2703,24 +2721,25 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         apiToMelMap['mel'][classname].append( methodName )
                         
                         if methodName not in filterAttrs and not hasattr(newcls, methodName):
-
-                            returnFunc = None
-                            
-                            if flagInfo.get( 'resultNeedsCasting', False):
-                                returnFunc = flagInfo['args']
-                                if flagInfo.get( 'resultNeedsUnpacking', False):
+                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)]['enabled']:
+                                returnFunc = None
+                                
+                                if flagInfo.get( 'resultNeedsCasting', False):
+                                    returnFunc = flagInfo['args']
+                                    if flagInfo.get( 'resultNeedsUnpacking', False):
+                                        returnFunc = lambda x: returnFunc(x[0])
+                                        
+                                elif flagInfo.get( 'resultNeedsUnpacking', False):
                                     returnFunc = lambda x: returnFunc(x[0])
-                                    
-                            elif flagInfo.get( 'resultNeedsUnpacking', False):
-                                returnFunc = lambda x: returnFunc(x[0])
-                            
-                            
-                            wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
-                                docstring=flagInfo['docstring'], returnFunc=returnFunc )
-                            
-                            if VERBOSE: print "adding mel derived method %s.%s()" % (classname, methodName)
-                            classdict[methodName] = wrappedMelFunc
-                            #setattr( newcls, methodName, wrappedMelFunc )
+                                
+                                
+                                wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
+                                    docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                                
+                                if VERBOSE: print "adding mel derived method %s.%s()" % (classname, methodName)
+                                classdict[methodName] = wrappedMelFunc
+                                #setattr( newcls, methodName, wrappedMelFunc )
+                            elif VERBOSE:  print "skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)
                         elif VERBOSE:  print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
@@ -2735,14 +2754,15 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                            
                         if methodName not in filterAttrs and not hasattr(newcls, methodName):
                         #if not hasattr( newcls, methodName ) :
-
-                            fixedFunc = fixCallbacks( func, melCmdName )
-                            
-                            wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
-                                                                 docstring=flagInfo['docstring'] )
-                            if VERBOSE: print "adding mel derived method %s.%s()" % (classname, methodName)
-                            classdict[methodName] = wrappedMelFunc
-                            #setattr( newcls, methodName, wrappedMelFunc )
+                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)]['enabled']:
+                                fixedFunc = fixCallbacks( func, melCmdName )
+                                
+                                wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
+                                                                     docstring=flagInfo['docstring'] )
+                                if VERBOSE: print "adding mel derived method %s.%s()" % (classname, methodName)
+                                classdict[methodName] = wrappedMelFunc
+                                #setattr( newcls, methodName, wrappedMelFunc )
+                            elif VERBOSE:  print "skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)
                         elif VERBOSE: print "skipping mel derived method %s.%s(): already exists" % (classname, methodName)
         
         for name, attr in classdict.iteritems() :
