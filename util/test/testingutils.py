@@ -335,11 +335,9 @@ class SuiteFromTestModule(TestSuite):
     def _importSuite(self):
         self.importedSuite = None
         if self.module:
-            try:
-                self.suiteFunc = getattr(self.module, self.suiteFuncName)
+            suiteFunc = getattr(self.module, self.suiteFuncName, None)
+            if callable(suiteFunc):
                 self.importedSuite = suiteFunc()
-            except:
-                pass
 
             if not self.importedSuite:
                 self.importedSuite = default_suite(self.module)
