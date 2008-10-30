@@ -48,6 +48,7 @@ class ApiDocParser(object):
         self.pymelEnums = {}
         self.methods=util.defaultdict(list)
         self.apiClassName = apiClassName
+        self.apiClass = getattr(_thisModule, self.apiClassName)
         self.currentMethod=None
         self.verbose = verbose
         self.version = version
@@ -128,9 +129,10 @@ class ApiDocParser(object):
                     filename += tok
         return filename
     
-    def getPymelEnums(self, enumList):
+    def getPymelEnums(self, enumDict):
         """remove all common prefixes from list of enum values"""
-        if len(enumList) > 1:
+        if len(enumDict) > 1:
+            enumList = enumDict.keys()
             splitEnums = [ [ y for y in re.split( '([A-Z0-9][a-z0-9]*)', x ) if y ] for x in enumList ]
             splitEnumsCopy = splitEnums[:]
             for partList in zip( *splitEnumsCopy ):
@@ -149,11 +151,13 @@ class ApiDocParser(object):
                     #print joinedEnums
                     #print enumList
                     #break
+            
+            pymelEnumDict = dict( [ (k2,enumDict[k1]) for k1, k2 in zip( enumList, joinedEnums ) ] )
                 
             #print "enums", joinedEnums
-            return joinedEnums
+            return pymelEnumDict
         
-        return enumList
+        return enumDict
                            
     def handleEnums( self, type ):
         missingTypes = ['MUint64']
@@ -295,12 +299,17 @@ class ApiDocParser(object):
                 self.xprint( "ENUM", returnType)
                 #print returnType, methodName    
                 try:
-                    enumValues=[]
+                    enumValues={}
                     enumDocs={}
                     for em in proto.findNextSiblings( 'div', limit=1)[0].findAll( 'em'):
-                        value = str(em.contents[-1])
-                        enumValues.append( value )
-                        enumDocs[value] = str(em.next.next.next.next.next.contents[0]).strip()
+                        enumKey = str(em.contents[-1])
+                        try:
+                            enumVal = getattr(self.apiClass, enumKey)
+                        except:
+                            warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod), ExecutionWarning)
+                            enumVal = None
+                        enumValues[ enumKey ] = enumVal
+                        enumDocs[enumKey] = str(em.next.next.next.next.next.contents[0]).strip()
     
                     #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
                     #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )      
@@ -308,7 +317,7 @@ class ApiDocParser(object):
                     for val, pyval in zip(enumValues,pymelEnumList):
                         enumDocs[pyval] = enumDocs[val]
                     
-                    enumInfo = {'values' : enumValues, 
+                    enumInfo = {'values' : util.Enum(enumValues), 
                                 'valueDocs' : enumDocs,
                                   
                                   #'doc' : methodDoc
@@ -317,7 +326,7 @@ class ApiDocParser(object):
                     #print enumList
                     
                     self.enums[self.currentMethod] = enumInfo
-                    self.pymelEnums[self.currentMethod] = pymelEnumList
+                    self.pymelEnums[self.currentMethod] = util.Enum(pymelEnumList)
                     
                 except AttributeError, msg:
                     print "FAILED ENUM", msg
@@ -1858,7 +1867,7 @@ def getPlugValue( plug ):
         
         elif dataType in [ MFnNumericData.kFloat, MFnNumericData.kDouble, MFnNumericData.kAddr] :
             return plug.asDouble()
-        raise "unknown numeric attribute type: %s" % dataType
+        raise "%s: unknown numeric attribute type: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
     
     elif apiType == MFn.kEnumAttribute:
         return plug.asInt()
@@ -1887,9 +1896,9 @@ def getPlugValue( plug ):
                 numFn = MFnNumericData( dataObj )
             except RuntimeError:
                 if plug.isArray():
-                    raise TypeError, "numeric arrays are not supported"
+                    raise TypeError, "%s: numeric arrays are not supported" % plug.partialName(True, True, True, False, True, True)
                 else:
-                    raise TypeError, "attribute type is numeric, but its data cannot be interpreted numerically"
+                    raise TypeError, "%s: attribute type is numeric, but its data cannot be interpreted numerically" % plug.partialName(True, True, True, False, True, True)
             dataType = numFn.numericType()
                     
             if dataType == MFnNumericData.kBoolean:
@@ -1964,7 +1973,7 @@ def getPlugValue( plug ):
             elif dataType == MFnNumericData.kChar :
                 return plug.asChar()
             
-            raise TypeError, "Unsupported numeric attribute: %s" % dataType
+            raise TypeError, "%s: Unsupported numeric attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
         
         elif dataType == MFnData.kMatrix :
             return MFnMatrixData( plug.asMObject() ).matrix()
@@ -2003,8 +2012,8 @@ def getPlugValue( plug ):
             except RuntimeError:
                 return []
             return MFnStringArrayData( dataObj ).array()
-        raise TypeError, "Unsupported typed attribute: %s" % dataType
+        raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
     
-    raise TypeError, "Unsupported Type: %s" % ApiEnumsToApiTypes().get( apiType, '' )
+    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), ApiEnumsToApiTypes().get( apiType, '' ))
 
         

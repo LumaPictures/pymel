@@ -2104,6 +2104,23 @@ class ApiArgUtil(object):
 #            input = 'k' + util.capitalize(input)
 #            return _api.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
     
+    def getInputTypes(self):
+        inArgs = self.methodInfo['inArgs']
+        types = self.methodInfo['types']
+        return [str(types[x]) for x in inArgs ]
+
+    def getOutputTypes(self):
+        ret = self.methodInfo['returnType']
+        if ret is None:
+            ret = []
+        else:
+            ret = [str(ret)]
+            
+        outArgs =  self.methodInfo['outArgs']
+        types = self.methodInfo['types']
+        return ret + [str(types[x]) for x in outArgs ]
+    
+         
     def getPrototype(self, className=True, methodName=True, outputs=False, defaults=False):
         inArgs = self.methodInfo['inArgs']
         outArgs =  self.methodInfo['outArgs']
@@ -2115,7 +2132,7 @@ class ApiArgUtil(object):
             arg = str(types[x]) + ' ' + x
             if defaults:
                 try:
-                    print self.methodInfo['defaults'][x]
+                    #print self.methodInfo['defaults'][x]
                     arg += '=' + str(self.methodInfo['defaults'][x])
                 except KeyError: pass
             args.append( arg )
@@ -2143,15 +2160,18 @@ class ApiArgUtil(object):
     def castInput(self, argtype, input, cls):
         # enums
         if isinstance( argtype, tuple ):
-            if isinstance( input, int):
-                return input
+            # convert enum as a string or int to an int
+            
+            #if isinstance( input, int):
+            #    return input
             
             apiClassName, enumName = argtype
+            
             try:
-                return _api.apiClassInfo[apiClassName]['enums'][enumName]['values'].index(input)
+                return _api.apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
             except ValueError:
                 try:
-                    return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].index(input)
+                    return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
                 except ValueError:
                     raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
                 
@@ -2177,7 +2197,8 @@ class ApiArgUtil(object):
                 #raise NotImplementedError
                 apiClassName, enumName = returnType
                 try:
-                    # TODO : return EnumValue type
+                    # TODO: return EnumValue type
+                    
                     # convert int result into pymel string name.
                     return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
                 except KeyError:
@@ -2230,7 +2251,7 @@ class ApiArgUtil(object):
                 except KeyError:
                     print "COULD NOT FIND ENUM", default
                 else:
-                    index = enumList.index(enumValue)
+                    index = enumList.getIndex(enumValue)
                     default = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
             defaults.append( default )
             
@@ -2253,6 +2274,8 @@ def interface_wrapper( doer, args=[], defaults=[] ):
         the second-to-last with the second-to-last and so on ( see inspect.getargspec ). Arguments
         which get a default become keyword arguments.
     """
+    
+
     # TODO: ensure doer has only an *args parameter
     
     name = doer.__name__
@@ -2264,15 +2287,20 @@ def interface_wrapper( doer, args=[], defaults=[] ):
         raise TypeError, "The number of defaults cannot exceed the number of arguments"
     for i, arg in enumerate(args):
         if i >= offset:
-            kwargs.append( '%s=%r' % (arg, defaults[i-offset]) )
+            default = defaults[i-offset]
+            if isinstance( default, util.EnumValue ):
+                defaultStr = str(default)
+            else:
+                defaultStr = repr(default)
+            kwargs.append( '%s=%r' % (arg, defaultStr ) )
         else:
             kwargs.append( str(arg) )
 
     defStr = """def %s( %s ): 
         return %s(%s)""" % (name, ','.join(kwargs), storageName, ','.join(args) )
         
-
     exec( defStr ) in g
+
     func = g[name]
     func.__doc__ = doer.__doc__
     func.__module__ = doer.__module__
@@ -2534,7 +2562,12 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     if apiToMelData.has_key( (classname,pymelName) ):
                         #apiToMelMap['api'][classname].append( pymelName )
                         data = apiToMelData[(classname,pymelName)]
-                        nameType = data['useName']
+                        try:
+                            nameType = data['useName']
+                        except KeyError:
+                            warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
+                            nameType = 'API'
+                             
                         if nameType == 'API':
                             pass
                         elif nameType == 'MEL':
@@ -2562,18 +2595,20 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                     classdict[pymelName] = method
                             elif VERBOSE: print "%s.%s() skipping" % (apicls.__name__, methodName )
                         elif VERBOSE : print "Method %s has been manually disabled, skipping" % (methodName) 
-                    elif VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[methodName])    
+                    elif VERBOSE : print "Method %s already herited from %s, skipping" % (methodName, herited[pymelName])    
                 
                 if 'pymelEnums' in classInfo:
-                    # Enumerators   
+                    # Enumerators
+                    
                     for enumName, enumList in classInfo['pymelEnums'].items():
                         if VERBOSE: print "adding enum %s to class %s" % ( enumName, classname )
-                        #enum = util.namedtuple( enumName, enumList )
-                        #classdict[enumName] = enum( *range(len(enumList)) )
-                        # group into (key, doc) pairs
-                        enumKeyDocPairs = [ (k,classInfo['enums'][enumName]['valueDocs'][k] ) for k in enumList ]
-                        enum = util.Enum( *enumKeyDocPairs )
-                        classdict[enumName] = enum
+#                        #enum = util.namedtuple( enumName, enumList )
+#                        #classdict[enumName] = enum( *range(len(enumList)) )
+#                        # group into (key, doc) pairs
+#                        enumKeyDocPairs = [ (k,classInfo['enums'][enumName]['valueDocs'][k] ) for k in enumList ]
+#                        enum = util.Enum( *enumKeyDocPairs )
+#                        classdict[enumName] = enum
+                        classdict[enumName] = enumList
  
         
             if not proxy:

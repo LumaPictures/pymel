@@ -19,7 +19,7 @@ from pmtypes.factories import queryflag, editflag, createflag, add_docs, MetaMay
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
-import pmtypes.wrappedtypes as typ
+import pmtypes.wrappedtypes as _types
 import pmtypes.path as _path
 import pymel.util.nameparse as nameparse
 
@@ -258,7 +258,7 @@ Modifications:
     - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
     """
     def listToMat( l ):
-        return typ.Matrix(
+        return _types.Matrix(
             [     [    l[0], l[1], l[2], l[3]    ],
             [    l[4], l[5], l[6], l[7]    ],
             [    l[8], l[9], l[10], l[11]    ],
@@ -267,7 +267,7 @@ Modifications:
     def listToVec( l ):
         vecRes = []
         for i in range( 0, len(res), 3):
-            vecRes.append( typ.Vector( res[i:i+3] ) )
+            vecRes.append( _types.Vector( res[i:i+3] ) )
         return vecRes
 
     # stringify fix
@@ -280,7 +280,7 @@ Modifications:
             if isinstance(res[0], tuple):
                 res = res[0]
                 if cmds.getAttr( attr, type=1) == 'double3':
-                    return typ.Vector(list(res))
+                    return _types.Vector(list(res))
             #elif cmds.getAttr( attr, type=1) == 'matrix':
             #    return listToMat(res)
             else:
@@ -309,7 +309,8 @@ Modifications:
             else:
                 raise e
 
-    
+          
+
 # getting and setting                    
 def setAttr( attr, *args, **kwargs):
     """
@@ -330,6 +331,12 @@ Modifications:
             - Vector    S{->} double3
             - Matrix    S{->} matrix
             - [str]        S{->} stringArray
+     
+           
+    >>> addAttr( 'persp', longName= 'testDoubleArray', dataType='doubleArray') 
+    >>> setAttr( 'persp.testDoubleArray', [0,1,2])
+    >>> setAttr( 'defaultRenderGlobals.preMel', 'sfff')
+    
     """
     datatype = kwargs.get( 'type', kwargs.get( 'typ', None) )
     
@@ -383,9 +390,9 @@ Modifications:
                     kwargs['type'] = datatype
                 
                 else:
-                    if isinstance( arg, Vector):
+                    if isinstance( arg, _types.Vector):
                         datatype = 'double3'
-                    elif isinstance( arg, Matrix ):
+                    elif isinstance( arg, _types.Matrix ):
                         datatype = 'matrix'
                     else:        
                         datatype = getAttr( attr, type=1)
@@ -398,7 +405,6 @@ Modifications:
                         # done and it might cause more problems
                         if datatype.endswith('Array'):
                             kwargs['type'] = datatype
-        
             
             # string arrays:
             #    first arg must be the length of the array being set
@@ -471,8 +477,8 @@ Modifications:
 
     try:
         #print args, kwargs
-        # NOTE: chaanged *args to args to get array types to work. this may be a change between 8.5 and 2008, because i swear i've tested this before
-        cmds.setAttr( attr, args, **kwargs)
+        # NOTE: changed *args to args to get array types to work. this may be a change between 8.5 and 2008, because i swear i've tested this before
+        cmds.setAttr( attr, *args, **kwargs)
     except TypeError, msg:
         val = kwargs.pop( 'type', kwargs.pop('typ', False) )
         typ = addAttr( attr, q=1, at=1)
@@ -2284,7 +2290,7 @@ class Attribute(PyNode):
 #        """xform -translation"""
 #        kwargs['translation'] = True
 #        kwargs['query'] = True
-#        return typ.Vector( cmds.xform( self, **kwargs ) )
+#        return _types.Vector( cmds.xform( self, **kwargs ) )
         
     #----------------------
     # Info Methods
@@ -3661,40 +3667,40 @@ class Transform(DagNode):
 
     @queryflag('xform','scale') 
     def getScaleOld( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','rotation')        
     def getRotationOld( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','translation') 
     def getTranslationOld( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','scalePivot') 
     def getScalePivotOld( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','rotatePivot')        
     def getRotatePivotOld( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
  
     @queryflag('xform','pivots') 
     def getPivots( self, **kwargs ):
         res = cmds.xform( self, **kwargs )
-        return ( typ.Vector( res[:3] ), typ.Vector( res[3:] )  )
+        return ( _types.Vector( res[:3] ), _types.Vector( res[3:] )  )
     
     @queryflag('xform','rotateAxis') 
     def getRotateAxis( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
         
     @queryflag('xform','shear')                          
     def getShearOld( self, **kwargs ):
-        return typ.Vector( cmds.xform( self, **kwargs ) )
+        return _types.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','matrix')                
     def getMatrix( self, **kwargs ): 
-        return typ.Matrix( cmds.xform( self, **kwargs ) )
+        return _types.Matrix( cmds.xform( self, **kwargs ) )
       
     #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with api.
     def getBoundingBox(self, invisible=False):
@@ -3709,7 +3715,7 @@ class Transform(DagNode):
             kwargs['boundingBox'] = True
                     
         res = cmds.xform( self, **kwargs )
-        #return ( typ.Vector(res[:3]), typ.Vector(res[3:]) )
+        #return ( _types.Vector(res[:3]), _types.Vector(res[3:]) )
         return BoundingBox( res[:3], res[3:] )
     
     def getBoundingBoxMin(self, invisible=False):
@@ -3874,7 +3880,7 @@ class Mesh(SurfaceShape):
             return '%s.f[%s]' % (self._node, self._item)
     
         def getNormal(self):
-            return typ.Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
+            return _types.Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
         normal = property(getNormal)
         
         def toEdges(self):

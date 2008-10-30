@@ -41,6 +41,8 @@ class OptionVarDict(object):
         False
     """
     __metaclass__ = util.Singleton
+    def __call__(self, *args, **kwargs):
+        return cmds.optionVar(*args, **kwargs)
     
     def __contains__(self, key):
         return cmds.optionVar( exists=key )

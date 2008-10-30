@@ -47,6 +47,8 @@ original arguments used to create the enumeration::
     'fri'
     >>> shirt_colour.index
     2
+    
+
 """
 
 __author_name__ = "Ben Finney"
@@ -59,6 +61,8 @@ __copyright__ = "Copyright © %s %s" % (
 __license__ = "Choice of GPL or Python license"
 __url__ = "http://cheeseshop.python.org/pypi/enum/"
 __version__ = "0.4.3"
+
+import operator
 
 class EnumException(Exception):
     """ Base class for all exceptions in this module """
@@ -170,34 +174,45 @@ class EnumValue(object):
 class Enum(object):
     """ Enumerated type """
 
-    def __init__(self, *keys, **kwargs):
+    def __init__(self, *args, **kwargs):
         """ Create an enumeration instance """
 
-        if not keys:
+        if not args:
             raise EnumEmptyError()
 
+        if len(args)==1 and operator.isMappingType(args[0]):
+            keys = args[0]
+            reverse = dict( [ (v,k) for k,v in keys.items() ] )
+            keygen = [ ( v, reverse[v]) for v in sorted(reverse.keys()) ]
+            values = {}
+        else:
+            keys = args
+            keygen = enumerate( keys )
+            values = [None] * len(keys)
+            
         value_type= kwargs.get('value_type', EnumValue)
-        keys = tuple(keys)
-        values = [None] * len(keys)
-        docs = [None] * len(keys)
+        #keys = tuple(keys)
+        
+        docs = {}
         keyDict = {}
-        for i, key in enumerate(keys):
+        for val, key in keygen:
+            #print val, key
             kwargs = {}
             if isinstance(key, tuple) or isinstance(key, list) and len(key)==2:
                 key, doc = key
-                docs[i]=doc
+                docs[val]=doc
                 kwargs['doc'] = doc
-            value = value_type(self, i, key, **kwargs)
-            values[i] = value
-            keyDict[key] = i
+            value = value_type(self, val, key, **kwargs)
+            values[val] = value
+            keyDict[key] = val
             try:
                 super(Enum, self).__setattr__(key, value)
             except TypeError, e:
                 raise EnumBadKeyError(key)
 
         super(Enum, self).__setattr__('_keys', keyDict)
-        super(Enum, self).__setattr__('_values', tuple(values))
-        super(Enum, self).__setattr__('_docs', tuple(docs))
+        super(Enum, self).__setattr__('_values', values)
+        super(Enum, self).__setattr__('_docs', docs)
 
     def __repr__(self):
         return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join([ repr(v) for v in self.values()]))
@@ -251,7 +266,7 @@ class Enum(object):
         get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
         be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
         
-            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles',  'millimeters', 'centimeters', 'kilometers', 'meters')
+            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters')
             >>> units.getIndex('inches')
             1
             >>> units.getIndex(3)
@@ -263,24 +278,26 @@ class Enum(object):
             >>> units.getIndex(10)
             Traceback (most recent call last):
               ...
-            TypeError: invalid key: 10
+            ValueError: invalid key: 10
         """
+        try:
+            if isinstance(key, int):
+                if key in self._values:
+                    return key
+                else:
+                    raise ValueError, "invalid enumerator index %r" % key
+            else:
+                return self._keys[str(key)]
         
-        if isinstance(key, int):
-            if key in self:
-                return key
-            
-        elif isinstance(key, basestring):
-            return self._keys[key]
-        
-        raise TypeError, "invalid key: %r" % key
+        except:
+            raise ValueError, "invalid enumerator key: %r" % key
     
     def getKey(self, index):
         """
         get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
         be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.
         
-            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles',  'millimeters', 'centimeters', 'kilometers', 'meters')
+            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters')
             >>> units.getKey(2)
             EnumValue(2, 'feet')
             >>> units.getKey('inches')
@@ -292,23 +309,30 @@ class Enum(object):
             >>> units.getKey('hectares')
             Traceback (most recent call last):
               ...
-            TypeError: invalid index: 'hectares'
+            TypeError: invalid enumerator index: 'hectares'
         """
-        
-        if isinstance(index, int):
-            return self._values[index]
-        
-        elif isinstance(index, basestring):
-            try:
-                return self.getKey( self.getIndex(index) )
-            except:
-                pass
-        raise TypeError, "invalid index: %r" % index
+        try:
+            if isinstance(index, int):
+                return self._values[index]
+    
+            else:
+                if str(index) in self._keys:
+                    return index
+                else:
+                   raise ValueError, "invalid enumerator key %r" % index 
+        except:
+            raise ValueError, "invalid enumerator index: %r" % index
     
     def values(self):
         "return a list of `EnumValue`s"
-        return self._values
+        if operator.isMappingType(self._values):
+            return tuple([ self._values[k] for k in sorted(self._values.keys()) ])
+        else:
+            return self._values
     
     def keys(self):
         "return a list of keys as strings"
-        return tuple([ v.key for v in self._values ])
+        if operator.isMappingType(self._values):
+            return tuple([ self._values[k].key for k in sorted(self._values.keys()) ])
+        else:
+            return tuple([ v.key for v in self._values ])

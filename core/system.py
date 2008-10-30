@@ -1,10 +1,10 @@
 
 """
-The io module contains functions relating to files and references.
+The system module contains functions relating to files and references.
 
-In particular, the io module contains the functionality of maya.cmds.file. The file command should not be imported into
+In particular, the system module contains the functionality of maya.cmds.file. The file command should not be imported into
 the default namespace because it conflicts with python's builtin file class. Since the file command has so many flags, 
-I decided to kill two birds with one stone: by breaking the file command down into multiple functions -- one for each 
+we decided to kill two birds with one stone: by breaking the file command down into multiple functions -- one for each 
 primary flag -- the resulting functions are more readable and allow the file command's functionality to be used directly
 within the pymel namespace.   
 

@@ -49,11 +49,11 @@ def addWrappedCmd(cmdname, cmd=None):
         # we must get the cmd each time, because maya delays loading of functions until they are needed.
         # if we don't reload we'll keep the dummyFunc around
         new_cmd = getattr(maya.cmds, cmdname) 
-        
+        #print args, kwargs
         # convert args to mel-friendly representation
         new_args = util.getMelRepresentation(args)
         new_kwargs = util.getMelRepresentation(kwargs)
-
+        #print new_args, new_kwargs
         res = new_cmd(*new_args, **new_kwargs)
         
         # edit commands should return None.  

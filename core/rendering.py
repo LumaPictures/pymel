@@ -10,7 +10,9 @@ import maya.mel as mm
 
 
 def shadingNode( *args, **kwargs):
-    return general.PyNode( cmds.shadingNode( *args, **kwargs ) )
+    res = cmds.shadingNode( *args, **kwargs )
+    if res is not None:
+        return general.PyNode( res )
 
 def createSurfaceShader( shadertype, name=None ):
     classification = general.getClassification( shadertype )

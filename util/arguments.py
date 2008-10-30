@@ -63,13 +63,16 @@ def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
     if recursionLimit:
         recursionLimit -= 1
     
-        
+      
     if maintainDicts and operator.isMappingType(args):
         newargs = dict(args)
         argIterable = args.iteritems()
+        isList = False
     else:
         newargs = list(args)
         argIterable = enumerate(args)
+        isList = True
+        
     for index, value in argIterable:
         try:
             newargs[index] = value.__melobject__()
@@ -77,7 +80,8 @@ def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
             if ( (not recursionLimit) or recursionLimit >= 0) and isIterable(value):
                 # ...otherwise, recurse if not at recursion limit and  it's iterable
                 newargs[index] = getMelRepresentation(value, recursionLimit, maintainDicts)
-
+    if isList:
+        newargs = tuple(newargs)
     return newargs
 
 

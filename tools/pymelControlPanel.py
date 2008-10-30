@@ -15,7 +15,7 @@ It controls:
 from pymel import *
 import inspect, re, os, pickle
 
-
+frame_width = 800
           
 class PymelControlPanel(object):
     def __init__(self):
@@ -80,6 +80,7 @@ class PymelControlPanel(object):
         
         # key is a tuple of (class, method)
         self.classList = sorted( list( set( [ key[0] for key in factories.apiToMelData.keys()] ) ) )
+        
         self.classScrollList.extend( self.classList )
         self.classScrollList.selectCommand( lambda: self.apiClassList_selectCB() )
         self.classFrames={}
@@ -145,7 +146,7 @@ class PymelControlPanel(object):
                  
     def buildClassColumn(self, className ):
         """
-        Cycle through all of the processed `ClassFrame`s and build their UI's
+        Build an info column for a class.  This column will include processed `ClassFrame`s for it and its parent classes
         """
         setParent(self.apiMethodCol)
         self.apiMethodCol.clear()
@@ -156,11 +157,13 @@ class PymelControlPanel(object):
         melMethods = self.getMelMethods(className) 
         self.unassignedMelMethodLister.extend( melMethods )
         
+        filter = set( ['double', 'MVector'] )
+        
         for clsName, apiClsName in getClassHierarchy(className):
             if apiClsName:
                 #print cls
                 try:
-                    frame = self.classFrames[clsName].buildUI()
+                    self.classFrames[clsName].buildUI(filter)
                     #if i != len(mro)-1:
                     #    frame.setCollapse(True)  
                 except KeyError:
@@ -190,8 +193,9 @@ class ClassFrame(object):
         for rowName, row in self.rows.items():
             row.updateMelNames( melMethods )
             
-    def buildUI(self):
-        frame_width = 400
+    def buildUI(self, filter=None):
+        
+        count = 0
         #self.form = formLayout()
         self.frame = frameLayout(collapsable=True, label='%s (%s)' % (self.className, self.apiClassName),
                             width = frame_width,
@@ -203,17 +207,23 @@ class ClassFrame(object):
         usedMethods = []
         
         for setMethod, getMethod in invertibles:
-            frameLayout(labelVisible=False, collapsable=False, width = frame_width)
-            columnLayout()
-            self.rows[setMethod].buildUI()
-            self.rows[getMethod].buildUI()
+            frame = frameLayout(labelVisible=False, collapsable=False, width = frame_width)
+            col2 = columnLayout()
+            pairCount = 0
+            pairCount += self.rows[setMethod].buildUI(filter)
+            pairCount += self.rows[getMethod].buildUI(filter)
             usedMethods += [setMethod, getMethod]
+            if pairCount == 0:
+                #deleteUI(col2)
+                frame.setVisible(False)
+                frame.setHeight(1)
             setParent('..') # frame 
             setParent('..') # column
+            count += pairCount
         
         for methodName in sorted( self.classInfo.keys() ):
             if methodName not in usedMethods: 
-                self.rows[methodName].buildUI()
+                count += self.rows[methodName].buildUI(filter)
         
         #self.form.attachForm( self.frame, 'left', 2)
         #self.form.attachForm( self.frame, 'right', 2)
@@ -223,7 +233,7 @@ class ClassFrame(object):
         setParent('..') # column
         setParent('..') # frame
         #setParent('..') # form
-        return self.frame
+        return count
     
 
 class MethodRow(object):
@@ -309,18 +319,28 @@ class MethodRow(object):
                 self.data['melName'] = match
                 self.crossReference( match )
             
-    def buildUI(self):
+    def buildUI(self, filter=None):
         
-        
+        if filter:
+            match = False
+            for info in self.methodInfoList:
+                argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, info )
+                if filter.intersection( argUtil.getInputTypes() + argUtil.getOutputTypes() ):
+                    match = True
+                    break
+            if match == False:
+                return False
+            
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
-        self.frame = frameLayout(w=400, labelVisible=False, collapsable=False)
+        self.frame = frameLayout(w=frame_width, labelVisible=False, collapsable=False)
         columnLayout()
         enabledArray = []
         self.rows = []
         self.overloadPrecedenceColl = None
         self.enabledChBx = checkBox(label=self.methodName, 
                     changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
+        
         if isOverloaded:
             rowSpacing = [180, 20, 400]
             self.overloadPrecedenceColl = radioCollection() 
@@ -424,6 +444,7 @@ class MethodRow(object):
         setParent('..') # frame
         setParent('..') # column
     
+        return True
         
     def enableCB(self, *args ):
         self.data['enabled'] = args[0]
@@ -514,26 +535,31 @@ class MethodRow(object):
                 
 
 def getClassHierarchy( className):
-    pymelClass = getattr(core.general, className)
+    try:
+        pymelClass = getattr(core.general, className)
+    except AttributeError:
+        print "could not find class", className
+        pass
+    else:
+            
+        mro = list( inspect.getmro(pymelClass) )
+        mro.reverse()
         
-    mro = list( inspect.getmro(pymelClass) )
-    mro.reverse()
     
-
-    for i, cls in enumerate(mro):
-        #if cls.__name__ not in ['object']:             
-        try:
-            apiClass = cls.__dict__[ '__apicls__']
-            apiClassName = apiClass.__name__   
-        except KeyError:
+        for i, cls in enumerate(mro):
+            #if cls.__name__ not in ['object']:             
             try:
-                apiClass = cls.__dict__[ 'apicls']
+                apiClass = cls.__dict__[ '__apicls__']
                 apiClassName = apiClass.__name__   
             except KeyError:
-                #print "could not determine api class for", cls.__name__
-                apiClassName = None
-                
-        yield cls.__name__, apiClassName    
+                try:
+                    apiClass = cls.__dict__[ 'apicls']
+                    apiClassName = apiClass.__name__   
+                except KeyError:
+                    #print "could not determine api class for", cls.__name__
+                    apiClassName = None
+                    
+            yield cls.__name__, apiClassName    
 
         
         

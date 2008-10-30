@@ -316,7 +316,7 @@ class Vector(VectorN) :
             self.assign([Distance(x, unit) for x in self])
             
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
-    # here, there is no _data attribute as we subclass api.MVector directly, thus v.data is v
+    # here, there is no _data attribute as we subclass _api.MVector directly, thus v.data is v
     # for wraps 
                           
     def _getdata(self):
@@ -386,7 +386,7 @@ class Vector(VectorN) :
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
 
-    # as api.Vector has no __setitem__ method, so need to reassign the whole Vector
+    # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
         """ Set component i value on self """
         v = VectorN(self)
@@ -616,6 +616,37 @@ class Vector(VectorN) :
                 return self.__class__(self.apicls.rotateBy(self, EulerRotation(*args)))
         else :
             return self
+    
+#    def as(self, unit) :
+#        #kUnit = Distance.kUnit(unit)
+#        return self.__class__( [ Distance(x).as(unit) for x in self ]  )
+#
+#    def asUnit(self) :
+#        return self.as(self.unit)
+#
+#    def asUI(self) :
+#        return self.as(Distance.getUIUnit())
+#
+#    def asInternal(self) :
+#        return self.as(Distance.getInternalUnit())
+#
+#    def asMillimeter(self) :
+#        return self.as('millimeter')
+#    def asCentimeters(self) :
+#        return self.as('centimeters')
+#    def asKilometers(self) :
+#        return self.as('kilometers')
+#    def asMeters(self) :
+#        return self.as('meters')
+#
+#    def asInches(self) :
+#        return self.as('inches')
+#    def asFeet(self) :
+#        return self.as('feet')
+#    def asYards(self) :
+#        return self.as('yards')
+#    def asMiles(self) :
+#        return self.as('miles')
     
     # additional api methods that work on Vector only, but can also be delegated to VectorN
       
@@ -1417,7 +1448,7 @@ class Matrix(MatrixN):
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
 
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
-    # here, there is no _data attribute as we subclass api.Vector directly, thus v.data is v
+    # here, there is no _data attribute as we subclass _api.Vector directly, thus v.data is v
     # for wraps 
 
     def _getdata(self):
@@ -1495,7 +1526,7 @@ class Matrix(MatrixN):
     # overloads for assign and get though standard way should be to use the data property
     # to access stored values                                                                    
     def assign(self, value):
-        # don't accept instances as assign works on exact api.Matrix type
+        # don't accept instances as assign works on exact _api.Matrix type
         data = None
         if type(value) == self.apicls or type(value) == type(self) :
             data = value
@@ -1546,7 +1577,7 @@ class Matrix(MatrixN):
     def __getslice__(self, start, end):
         return self.__getitem__(slice(start, end))
 
-    # as api.Matrix has no __setitem__ method
+    # as _api.Matrix has no __setitem__ method
     def __setitem__(self, index, value):
         """ m.__setitem__(index, value) <==> m[index] = value
             Set value of component index on self
@@ -2014,7 +2045,7 @@ class Quaternion(Matrix):
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
 
-    # as api.Vector has no __setitem__ method, so need to reassign the whole Vector
+    # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
         """ Set component i value on self """
         v = VectorN(self)
@@ -2032,14 +2063,111 @@ class Quaternion(Matrix):
         return value in self.__iter__()  
 
 
-class Time( _api.MTime ) :
-    apicls = _api.MTime
-    __metaclass__ = _factories.MetaMayaTypeWrapper
-    def __str__( self ): return str(float(self))
-    def __int__( self ): return int(float(self))
-    def __float__( self ): return self.as(self.apicls.uiUnit())
-    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+class Unit(float):
+    __slots__ = ['unit', 'data', 'value', '_unit']
+    @classmethod
+    def getUIUnit(cls):
+        """
+            Returns the global UI units currently in use for that type
+        """        
+        return cls.sUnit(cls.apicls.uiUnit())
+    @classmethod
+    def setUIUnit(cls, unit=None):
+        """
+            Sets the global UI units currently to use for that type
+        """
+        if unit is None :
+            cls.apicls.setUIUnit(cls.apicls.internalUnit())
+        else :   
+            cls.apicls.setUIUnit(cls.kUnit(unit))
 
+    @classmethod
+    def getInternalUnit(cls):
+        """
+            Returns the inernal units currently in use for that type
+        """        
+        return cls.sUnit(cls.apicls.internalUnit())
+    
+    @classmethod
+    def uiToInternal (cls, value) :
+        d = cls(value, cls.getUIUnit())
+        return d.asInternal()
+        
+    @classmethod
+    def kUnit(cls, unit=None):
+        """
+            Converts a string unit name to the internal int unit enum representation
+        """
+        if unit :
+            return cls.Unit.getIndex(unit)
+        else :
+            return cls.apicls.uiUnit()
+
+    @classmethod
+    def sUnit(cls, unit=None) :
+        """
+            Converts an internal int unit enum representation tp the string unit name
+        """        
+        if unit :
+            return cls.Unit.getKey(unit)              
+        else :
+            return str(cls.unit[cls.apicls.uiUnit()])
+        
+    def getUnit(self):
+        """
+            Returns the units currently in effect for this instance
+        """
+        return self.__class__.sUnit(self._unit)    
+    def setUnit(self, unit=None) :
+        """
+            Sets the units currently in effect for this instance
+        """
+        self._unit = self.__class__.kUnit(unit)
+    unit = property(getUnit, setUnit, None, "The units currently in effect for this instance")
+
+    def __new__(cls, value, unit=None) :
+        #unit = cls.kUnit(unit)
+        #data = cls.apicls(value, unit)
+        # the float representation uses internal units so that arithmetics work
+        #newobj = float.__new__(cls, data.as(cls.apicls.internalUnit()))
+        #newobj = float.__new__(cls, data.as(unit))
+        newobj = float.__new__(cls, value)
+        #ewobj._data = data
+        newobj._unit = unit
+        return newobj
+   
+    def assign(self, *args):
+        if isinstance (args, self.__class__) :
+            args = (args._data, args._unit)
+        self._data.assign(*args)
+
+    def __repr__(self) :
+        return '%s(%s, unit=%r)' % ( self.__class__.__name__, self, self.unit ) 
+     
+    def as(self, unit) :
+        return self.apicls.as(self, self.__class__.kUnit(unit))
+
+    def asUnit(self) :
+        return self.as(self.unit)
+
+    def asUI(self) :
+        return self.as(self.__class__.getUIUnit())
+
+    def asInternal(self) :
+        return self.as(self.__class__.getInternalUnit())
+     
+#class Time( _api.MTime ) :
+#    apicls = _api.MTime
+#    __metaclass__ = _factories.MetaMayaTypeWrapper
+#    def __str__( self ): return str(float(self))
+#    def __int__( self ): return int(float(self))
+#    def __float__( self ): return self.as(self.apicls.uiUnit())
+#    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+
+class Time(Unit):
+    apicls = _api.MTime
+    Unit = _api.apiClassInfo['MTime']['pymelEnums']['Unit']
+    
 #class Distance( _api.MDistance ) :
 #    apicls = _api.MDistance
 #    __metaclass__ = _factories.MetaMayaTypeWrapper
@@ -2048,7 +2176,8 @@ class Time( _api.MTime ) :
 #    def __float__( self ): return self.as(self.apicls.uiUnit())
 #    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
-class Distance( float ) :
+
+class Distance( Unit ) :
     """
     
         >>> Distance.getInternalUnit()
@@ -2121,135 +2250,35 @@ class Distance( float ) :
         'centimeters'
     """    
     apicls = _api.MDistance
-    __slots__ = ['unit', 'data', 'value', '_data', '_unit']
-    units = util.Enum('invalid', 'inches', 'feet', 'yards', 'miles',
-                     'millimeters', 'centimeters', 'kilometers', 'meters')
+    Unit = _api.apiClassInfo['MDistance']['pymelEnums']['Unit']
 
-    @classmethod
-    def getUIUnit(cls):
-        """
-            Returns the global UI units currently in use for that type
-        """        
-        return cls.sUnit(cls.apicls.uiUnit())
-    @classmethod
-    def setUIUnit(cls, unit=None):
-        """
-            Sets the global UI units currently to use for that type
-        """
-        if unit is None :
-            cls.apicls.setUIUnit(cls.apicls.internalUnit())
-        else :   
-            cls.apicls.setUIUnit(cls.kUnit(unit))
 
-    @classmethod
-    def getInternalUnit(cls):
-        """
-            Returns the inernal units currently in use for that type
-        """        
-        return cls.sUnit(cls.apicls.internalUnit())
-    
-    @classmethod
-    def uiToInternal (cls, value) :
-        d = cls(value, cls.getUIUnit())
-        return d.asInternal()
-        
-    @classmethod
-    def kUnit(cls, unit=None):
-        """
-            Converts a string unit name to the internal int unit enum representation
-        """
-        if unit :
-            if unit in cls.units :
-                if isinstance(unit, int) :
-                    return int(unit)
-                else :
-                    return cls.units[str(unit)]
-            else :
-                raise ValueError, "%s has no unit named %s" % (cls.__name__, unit)
-        else :
-            return cls.apicls.uiUnit()
 
-    @classmethod
-    def sUnit(cls, unit=None) :
-        """
-            Converts an internal int unit enum representation tp the string unit name
-        """        
-        if unit :
-            if unit in cls.units :
-                if isinstance(unit, int) :
-                    return str(cls.units[unit])
-                else :
-                    return str(unit)
-            else :
-                raise ValueError, "%s has no unit of index %s" % (cls.__name__, unit)                
-        else :
-            return str(cls.unit[cls.apicls.uiUnit()])
-        
-    def getUnit(self):
-        """
-            Returns the units currently in effect for this instance
-        """
-        return self.__class__.sUnit(self._unit)    
-    def setUnit(self, unit=None) :
-        """
-            Sets the units currently in effect for this instance
-        """
-        self._unit = self.__class__.kUnit(unit)
-    unit = property(getUnit, setUnit, None, "The units currently in effect for this instance")
+#    def getValue(self):
+#        """
+#            Returns the value of the current instance in the currently set units
+#        """
+#        return self._data.value() 
+#    def setValue(self, value) :
+#        """
+#            Sets the value of the current instance in the currently set units
+#        """
+#        self._data.setValue(float(value))
+#    value = property(getValue, setValue, None, "The value of that instance expressed in its currently set units")
+#
+#    def getData(self):
+#        """
+#            Returns the api data stored in that instance
+#        """
+#        return self._data
+#    def setData(self, data) :
+#        """
+#            Sets the api data stored in that instance
+#        """
+#        self._data = self.apicls(data)    
+#    data = property(getData, setData, None, "The api data stored in that instance")
 
-    def getValue(self):
-        """
-            Returns the value of the current instance in the currently set units
-        """
-        return self._data.value() 
-    def setValue(self, value) :
-        """
-            Sets the value of the current instance in the currently set units
-        """
-        self._data.setValue(float(value))
-    value = property(getValue, setValue, None, "The value of that instance expressed in its currently set units")
 
-    def getData(self):
-        """
-            Returns the api data stored in that instance
-        """
-        return self._data
-    def setData(self, data) :
-        """
-            Sets the api data stored in that instance
-        """
-        self._data = self.apicls(data)    
-    data = property(getData, setData, None, "The api data stored in that instance")
-
-    def __new__(cls, value, unit=None) :
-        unit = cls.kUnit(unit)
-        data = cls.apicls(value, unit)
-        # the float representation uses internal units so that arithmetics work
-        newobj = float.__new__(cls, data.as(cls.apicls.internalUnit()))
-        # newobj = float.__new__(cls, data.as(unit))
-        newobj._data = data
-        newobj._unit = unit
-        return newobj
-   
-    def assign(self, *args):
-        if isinstance (args, self.__class__) :
-            args = (args._data, args._unit)
-        self._data.assign(*args)
-
-    def __repr__(self) :
-        return '%s(%s, unit=%r)' % ( self.__class__.__name__, self.asUnit(), self.unit ) 
-     
-    def as(self, unit) :
-        return self.apicls.as(self._data, self.__class__.kUnit(unit))
-
-    def asUnit(self) :
-        return self.as(self.unit)
-
-    def asUI(self) :
-        return self.as(self.__class__.getUIUnit())
-
-    def asInternal(self) :
-        return self.as(self.__class__.getInternalUnit())
 
     def asMillimeter(self) :
         return self.as('millimeter')
@@ -2269,15 +2298,18 @@ class Distance( float ) :
     def asMiles(self) :
         return self.as('miles')
 
-class Angle( _api.MAngle ) :
-    apicls = _api.MAngle
-    __metaclass__ = _factories.MetaMayaTypeWrapper
-    def __str__( self ): return str(float(self))
-    def __int__( self ): return int(float(self))
-    def __float__( self ): return self.as(self.apicls.uiUnit())
-    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
+#class Angle( _api.MAngle ) :
+#    apicls = _api.MAngle
+#    __metaclass__ = _factories.MetaMayaTypeWrapper
+#    def __str__( self ): return str(float(self))
+#    def __int__( self ): return int(float(self))
+#    def __float__( self ): return self.as(self.apicls.uiUnit())
+#    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
    
-
+class Angle( Unit ):
+    apicls = _api.MAngle
+    Unit = _api.apiClassInfo['MAngle']['pymelEnums']['Unit']
+    
 #class MItMeshEdge( _api.MItMeshEdge ):
 #    apicls = _api.MItMeshEdge
 #    __metaclass__ = _factories.MetaMayaTypeWrapper
@@ -2288,7 +2320,7 @@ class Angle( _api.MAngle ) :
 #    def next(self):
 #        if self.isDone(): raise StopIteration
 #        _api.MItMeshEdge.next(self)
-#        return api.MItMeshEdge.index(self)
+#        return _api.MItMeshEdge.index(self)
 #    def __len__(self): return self.count()
 #    def __getitem__(self, item):
 #        su = _api.MScriptUtil()
@@ -2418,7 +2450,7 @@ class Angle( _api.MAngle ) :
 #    def next(self):
 #        if self._iter.isDone(): raise StopIteration
 #        _api.MItMeshEdge.next(self._iter)
-#        return api.MItMeshEdge.index(self._iter)
+#        return _api.MItMeshEdge.index(self._iter)
 #    def __getitem__(self, item):
 #        if isinstance( item, slice):
 #            self.__iter__()
@@ -2473,7 +2505,248 @@ class BoundingBox( _api.MBoundingBox):
 #_factories.ApiTypeRegister.register( 'Color', Color )
 #_factories.ApiTypeRegister.register( 'Quaternion', Quaternion )
 #_factories.ApiTypeRegister.register( 'EulerRotation', EulerRotation )
+
+
+def getPlugValue( plug ):
+    """given an MPlug, get its value as a pymel-style object"""
+
+    #if plug.isArray():
+    #    raise TypeError, "array plugs of this type are not supported"
+    
+    obj = plug.attribute()
+    apiType = obj.apiType()
+
+    # Float Pairs
+    if apiType in [ _api.MFn.kAttribute2Double, _api.MFn.kAttribute2Float ] :
+        res = []
+        for i in range(plug.numChildren()):
+            res.append( getPlugValue( plug.child(i) ) )
+        if isinstance(res[0],Distance): return Vector(res)
+        return res
+    
+    # Integer Groups
+    elif apiType in [ _api.MFn.kAttribute2Short, _api.MFn.kAttribute2Int, _api.MFn.kAttribute3Short, _api.MFn.kAttribute3Int ] :
+        res = []
+        for i in range(plug.numChildren()):
+            res.append( getPlugValue( plug.child(i) ) )
+        return res
+    
+    # Float Groups
+    elif apiType in [  _api.MFn.kAttribute3Double, _api.MFn.kAttribute3Float, _api.MFn.kAttribute4Double ] :
+        res = []
+        for i in range(plug.numChildren()):
+            res.append( getPlugValue( plug.child(i) ) )
+
+        if isinstance(res[0],Distance): 
+            return Vector(res)
+        elif _api.MFnAttribute(obj).isUsedAsColor(): 
+            return Color(res)
+        return res
+
+    # Compound
+    elif apiType in [ _api.MFn.kCompoundAttribute ] :
+        res = []
+        for i in range(plug.numChildren()):
+            res.append( getPlugValue( plug.child(i) ) )
+        return tuple(res)
+    
+    # Distance
+    elif apiType in [ _api.MFn.kDoubleLinearAttribute, _api.MFn.kFloatLinearAttribute ] :
+        val = plug.asMDistance()
+        unit = _api.MDistance.uiUnit()
+        return Distance( val.as( unit ), unit )
+
+    # Angle
+    elif apiType in [ _api.MFn.kDoubleAngleAttribute, _api.MFn.kFloatAngleAttribute ] :
+        val = plug.asMAngle()
+        unit = _api.MAngle.uiUnit()
+        return Angle( val.as( unit ), unit )
+
+    # Time
+    elif apiType == _api.MFn.kTimeAttribute:
+        val = plug.asMTime()
+        unit = _api.MTime.uiUnit()
+        return Time( val.as( unit ), unit )
+
+    elif apiType == _api.MFn.kNumericAttribute:
+        nAttr = _api.MFnNumericAttribute(obj)
+        dataType = nAttr.unitType()
+        if dataType == _api.MFnNumericData.kBoolean:
+            return plug.asBool()
+        
+        elif dataType in [ _api.MFnNumericData.kShort, _api.MFnNumericData.kInt, _api.MFnNumericData.kLong, _api.MFnNumericData.kByte] :
+            return plug.asInt()
+        
+        elif dataType in [ _api.MFnNumericData.kFloat, _api.MFnNumericData.kDouble, _api.MFnNumericData.kAddr] :
+            return plug.asDouble()
+        raise "%s: unknown numeric attribute type: %s" % (plug.partialName(True, True, True, False, True, True), dataType)
+    
+    elif apiType == _api.MFn.kEnumAttribute:
+        # TODO : use EnumValue class?
+        return plug.asInt()
+    
+    elif apiType == _api.MFn.kTypedAttribute:
+        tAttr = _api.MFnTypedAttribute( obj )
+        dataType = tAttr.attrType()
+        
+        
+        if dataType == _api.MFnData.kInvalid: # 0
+            return None
+        
+        elif dataType == _api.MFnData.kNumeric: # 1
+            
+            # all of the dynamic mental ray attributes fail here, but i have no idea why they are numeric attrs and not message attrs.
+            # cmds.getAttr returns None, so we will too.
+            try:
+                dataObj = plug.asMObject()
+            except:
+                return
+            
+            try:
+                numFn = _api.MFnNumericData( dataObj )
+            except RuntimeError:
+                if plug.isArray():
+                    raise TypeError, "%s: numeric arrays are not supported" % plug.partialName(True, True, True, False, True, True)
+                else:
+                    raise TypeError, "%s: attribute type is numeric, but its data cannot be interpreted numerically" % plug.partialName(True, True, True, False, True, True)
+            dataType = numFn.numericType()
                     
+            if dataType == _api.MFnNumericData.kBoolean:
+                return plug.asBool()
+            
+            elif dataType in [ _api.MFnNumericData.kShort, _api.MFnNumericData.kInt, _api.MFnNumericData.kLong, _api.MFnNumericData.kByte] :
+                return plug.asInt()
+            
+            elif dataType in [ _api.MFnNumericData.kFloat, _api.MFnNumericData.kDouble, _api.MFnNumericData.kAddr] :
+                return plug.asDouble()
+            
+            elif dataType == _api.MFnNumericData.k2Short :
+                su1 = _api.MScriptUtil()
+                ptr1 = su1.asShortPtr()
+                su2= _api.MScriptUtil()
+                ptr2 = su2.asShortPtr()
+                
+                numFn.getData2Short(ptr1,ptr2)
+                return ( _api.MScriptUtil(ptr1).asShort(), _api.MScriptUtil(ptr2).asShort() )
+            
+            elif dataType in [ _api.MFnNumericData.k2Int, _api.MFnNumericData.k2Long ]:
+                su1 = _api.MScriptUtil()
+                ptr1 = su1.asIntPtr()
+                su2= _api.MScriptUtil()
+                ptr2 = su2.asIntPtr()
+                
+                numFn.getData2Int(ptr1,ptr2)
+                return ( _api.MScriptUtil(ptr1).asInt(), _api.MScriptUtil(ptr2).asInt() )
+        
+            elif dataType == _api.MFnNumericData.k2Float :
+                su1 = _api.MScriptUtil()
+                ptr1 = su1.asFloatPtr()
+                su2= _api.MScriptUtil()
+                ptr2 = su2.asFloatPtr()
+                
+                numFn.getData2Float(ptr1,ptr2)
+                return ( _api.MScriptUtil(ptr1).asFloat(), _api.MScriptUtil(ptr2).asFloat() )
+             
+            elif dataType == _api.MFnNumericData.k2Double :
+                su1 = _api.MScriptUtil()
+                ptr1 = su1.asDoublePtr()
+                su2= _api.MScriptUtil()
+                ptr2 = su2.asDoublePtr()
+                
+                numFn.getData2Double(ptr1,ptr2)
+                return ( _api.MScriptUtil(ptr1).asDouble(), _api.MScriptUtil(ptr2).asDouble() )
+        
+            elif dataType == _api.MFnNumericData.k3Float:
+                su1 = _api.MScriptUtil()
+                ptr1 = su1.asFloatPtr()
+                su2= _api.MScriptUtil()
+                ptr2 = su2.asFloatPtr()
+                su3= _api.MScriptUtil()
+                ptr3 = su2.asFloatPtr()
+                 
+                numFn.getData3Float(ptr1,ptr2,ptr3)
+                return ( _api.MScriptUtil(ptr1).asFloat(), _api.MScriptUtil(ptr2).asFloat(), _api.MScriptUtil(ptr3).asFloat() )
+            
+            elif dataType ==  _api.MFnNumericData.k3Double:
+                su1 = _api.MScriptUtil()
+                ptr1 = su1.asDoublePtr()
+                su2= _api.MScriptUtil()
+                ptr2 = su2.asDoublePtr()
+                su3= _api.MScriptUtil()
+                ptr3 = su2.asDoublePtr()
+                  
+                numFn.getData3Double(ptr1,ptr2,ptr3)
+                return ( _api.MScriptUtil(ptr1).asDouble(), _api.MScriptUtil(ptr2).asDouble(), _api.MScriptUtil(ptr3).asDouble() )
+            
+        
+            
+            elif dataType == _api.MFnNumericData.kChar :
+                return plug.asChar()
+            
+            raise TypeError, "%s: Unsupported numeric attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
+
+        elif dataType == _api.MFnData.kString: # 4
+            return plug.asString()
+        
+        elif dataType == _api.MFnData.kMatrix : # 5
+            return Matrix( _api.MFnMatrixData( plug.asMObject() ).matrix() )
+
+        elif dataType == _api.MFnData.kStringArray : # 6
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            array = _api.MFnStringArrayData( dataObj ).array()
+            return [ array[i] for i in range(array.length()) ]
+        
+        elif dataType == _api.MFnData.kDoubleArray : # 7
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            array = _api.MFnDoubleArrayData( dataObj ).array()
+            return [ array[i] for i in range(array.length()) ]
+        
+        elif dataType == _api.MFnData.kIntArray : # 8
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            array = _api.MFnIntArrayData( dataObj ).array()
+            return [ array[i] for i in range(array.length()) ]
+        
+        elif dataType == _api.MFnData.kPointArray : # 9
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            array = _api.MFnPointArrayData( dataObj ).array()
+            return [ Point(array[i]) for i in range(array.length()) ]
+        
+        elif dataType == _api.MFnData.kVectorArray : # 10
+            try:
+                dataObj = plug.asMObject()
+            except RuntimeError:
+                return []
+            array = _api.MFnVectorArrayData( dataObj ).array()
+            return [ Vector(array[i]) for i in range(array.length()) ]
+        
+        # this block crashes maya under certain circumstances
+#        elif dataType == _api.MFnData.kComponentList : # 11
+#            try:
+#                dataObj = plug.asMObject()
+#            except RuntimeError:
+#                return []
+#            array = _api.MFnComponentListData( dataObj )
+#            return array
+#            #return [ Vector(array[i]) for i in range(array.length()) ]
+        
+        raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
+    
+    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _api.ApiEnumsToApiTypes().get( apiType, '' ))
+
+    
+                       
 def _testMVector() :
     
     print "Vector class:", dir(Vector)
