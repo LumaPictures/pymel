@@ -1456,6 +1456,43 @@ class Path(pathClass):
         return cmds.file( self, q=1, type=1 )
         
 
+callbacks = None
+_deferReferenceUpdates = False
+def deferReferenceUpdates(state):
+    _deferReferenceUpdates = state
+
+
+def refererencesUpdated(*args):
+    if _deferReferenceUpdates:
+        return
+    refreshFileReferences()
+
+def refreshFileReferences():
+    FileReference._refs.clear()
+    del FileReference._files[:]
+    
+    unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
+    resolvedFiles = cmds.file( q=1, reference=1)
+    
+    FileReference._files = zip(resolvedFiles, unresolvedFiles)
+    
+    for (fn,ufn) in FileReference._files:
+        ns = cmds.file(fn, q=1, ns=1)
+        rn = node.Reference(cmds.file(fn, q=1, referenceNode=1))
+        fullNS = (rn.namespace() + ns).strip(":")
+        fr = FileReference(path=fn, unresolvedPath=ufn)
+        FileReference._refs["ns:%s" % fullNS] = fr
+        FileReference._refs["rn:%s" % rn] = fr
+        FileReference._refs["fn:%s" % fn.replace("/","\\")] = fr
+        FileReference._refs["fn:%s" % fn.replace("\\","/")] = fr
+
+
+_callbacks = []
+def _setupFileReferenceCallbacks():
+    global _callbacks
+    messages = ['kAfterReference', 'kAfterRemoveReference', 'kAfterImportReference', 'kAfterExportReference', 'kSceneUpdate']
+    for msg in messages:
+        _callbacks.append(OpenMaya.MSceneMessage.addCallback(getattr(OpenMaya.MSceneMessage,msg), refererencesUpdated, None))
 
 class FileReference(Path):
     """A class for manipulating references which inherits Path and path.  you can create an 
@@ -1473,6 +1510,8 @@ class FileReference(Path):
     the proper results in maya as well. 
      """
     
+    _refs = {}
+    _files = []
     def __new__(cls, path=None, namespace=None, refnode=None, unresolvedPath=None):
         def create(path, unresolvedPath):
             def splitCopyNumber(path):
@@ -1491,39 +1530,27 @@ class FileReference(Path):
             self._unresolvedPath = Path(unresolvedPath)
             
             return self
-        
-        # find the associated file from the refnode and recurse
-        if refnode:
-            refnode = node.Reference(refnode)
-            path = cmds.referenceQuery( refnode, filename=1 )
-            return cls(path = path)
 
         if unresolvedPath:
             return create(path, unresolvedPath)
         
-        # for path or namespace we'll need to list all referenced files both in their resolved and unresolved names
-        # so that we can keep the unresolved path
-        unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
-        resolvedFiles = cmds.file( q=1, reference=1)
-        files = zip(resolvedFiles, unresolvedFiles)
+        # find the associated file from the refnode
+        attempts=2
+        while attempts:
+            try:
+                if refnode:
+                    ret = FileReference._refs["rn:%s" % refnode]
+                elif path:
+                    ret = FileReference._refs["fn:%s" % path]
+                elif namespace:
+                    ret = FileReference._refs["ns:%s" % namespace]
+                ret.__class__ = cls
+                return ret
+            except KeyError:
+                refreshFileReferences()
+                attempts -= 1
         
-        if path:
-            d = dict(files)    # create a dictionary that will help lookup a resolved paht back to the unresolved path
-            path = cmds.file(path, q=1, expandName=1)    # force the path to its resolved form, so that we can find it in the dictionary
-            unresolvedPath = d.get(path,path)            # look-up for the unresolved path
-            return create(path, unresolvedPath)
-        
-        if namespace:
-            # the only (i could find) is to look through all referenced files and find a match for the requested namespace
-            for (fn,ufn) in files:
-                ns = cmds.file(fn, q=1, ns=1)
-                rn = node.Reference(cmds.file(fn, q=1, referenceNode=1))
-                fullNS = (rn.namespace() + ns).strip(":")
-                if  fullNS == namespace:
-                    return create(fn, ufn)
-            raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
-        
-        raise ValueError, "Must supply at least one argument"    
+        raise ValueError("Could not find FileReference (args: %s)" % [path, namespace, refnode, unresolvedPath])    
 
     def subReferences(self):
         namespace = self.namespace + ':'
@@ -1627,11 +1654,6 @@ class FileReference(Path):
             kwargs['editCommand'] = editCommand
         cmds.file(cleanReference=self.refNode, **kwargs)
 
-def _getAllFileReferences():
-    unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
-    resolvedFiles = cmds.file( q=1, reference=1)
-    refs = [FileReference(path=fn, unresolvedPath=ufn) for (fn,ufn) in zip(resolvedFiles, unresolvedFiles)]
-    return refs    
 
 def _safeEval(s):
     try:
@@ -1724,11 +1746,9 @@ This is the class returned by pymel's version of the 'referenceQuery' command.
         cmds.referenceEdit(self.editData['node'], removeEdits=True, successfulEdits=True, failedEdits=True, editCommand=self.type)
 
     editData = util.cacheProperty(_getEditData,"_editData") 
-        
 
 
-
-
+_setupFileReferenceCallbacks()
 
 
 
@@ -1746,7 +1766,3 @@ def _createFunctions():
         setattr( _thisModule, funcName, getattr( cmds, funcName) )
 _createFunctions()
 
-
-
-
-#factories.createFunctions( _thisModule, None )
