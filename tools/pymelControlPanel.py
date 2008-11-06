@@ -342,15 +342,12 @@ class MethodRow(object):
                     changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
         
         if isOverloaded:
-            rowSpacing = [180, 20, 400]
+            
             self.overloadPrecedenceColl = radioCollection() 
-            for i in range(0, len(self.methodInfoList) ) :
-                row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing )
-                self.rows.append(row)
-                text(label='')
+            for i in range( len(self.methodInfoList) ) :
+
                 self.createAnnotation(i)
-                
-                setParent('..') 
+
         else:
             row = rowLayout( self.methodName + '_rowMain', nc=2, cw2=[200, 400] )
             #self.enabledChBx = checkBox(label=self.methodName, changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
@@ -513,19 +510,75 @@ class MethodRow(object):
         return array
             
     def createAnnotation(self, i ):
+        rowSpacing = [180, 20, 400]
+        
         defs = []
         #try:
         argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, i )
         proto = argUtil.getPrototype( className=False, outputs=True, defaults=False )
 
         enable = argUtil.canBeWrapped()
+        
+        row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing )
+        self.rows.append(row)
+        text(label='')
+                
         if self.overloadPrecedenceColl is not None:
+            # toggle for overloaded methods
             radioButton(label='', collection=self.overloadPrecedenceColl,
                                 enable = enable,
                                 onCommand=Callback( MethodRow.overloadPrecedenceCB, self, i ))
         text(   l=proto, 
                 annotation = self.methodInfoList[i]['doc'],
                 enable = enable)
+        
+        setParent('..')
+        
+        
+        
+        inArgs = self.methodInfo['inArgs']
+        outArgs =  self.methodInfo['outArgs']
+        returnType =  self.methodInfo['returnType']
+        types = self.methodInfo['types']
+        args = []
+        
+        rowSpacing = [220, 150, 150] 
+        for x in inArgs:
+            type = str(types[x])
+            label = type + ' ' + x
+#            rowLayout( nc=3, cw3=rowSpacing )
+#            tf = textField( l=label )
+#            try:
+#                #print self.methodInfo['defaults'][x]
+#                defaultVal = self.methodInfo['defaults'][x]
+#                tf.setText( repr(defaultVal) )
+#            except KeyError: pass
+            
+            if type in ['double', 'MVector']:
+                optionMenuGrp(l=label, nc=2, cw2=[220,150] )
+                for unit in ['Unitless', 'Linear', 'Angular', 'Time']:
+                    menuItem(l=unit)
+                setParent('..')
+
+        
+        results = []
+        if returnType:
+            results.append( ('result', returnType) )
+        for x in outArgs:
+            results.append( (x, types[x]) )
+        
+        for name, type in results:
+            label = type + ' ' + name
+
+#            rowLayout( nc=3, cw3=rowSpacing )
+#            text( l=label )
+
+            if type in ['double', 'MVector']:
+                optionMenuGrp(l=label, nc=2, cw2=[220,150] )
+                for unit in ['Unitless', 'Linear', 'Angular', 'Time']:
+                    menuItem(l=unit)
+                setParent('..')
+            
         return enable      
 #            methodInfo = api.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName][overloadNum] 
 #            args = ', '.join( [ '%s %s' % (x[1],x[0]) for x in methodInfo['args'] ] )
