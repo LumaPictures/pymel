@@ -445,9 +445,13 @@ class FileReference(Path):
     def unload(self):
         return cmds.file( self.withCopyNumber(), unloadReference=1 )
        
-    @createflag('file', 'loadReference')
-    def load(self, **kwargs):
-        return cmds.file( self.withCopyNumber(), **kwargs )
+    @add_docs('file', 'loadReference')
+    def load(self, newFile=None, **kwargs):
+        if not newFile:
+            args = ()
+        else:
+            args = (newFile,)
+        return cmds.file( loadReference=self.refNode,*args, **kwargs )
     
     @add_docs('file', 'cleanReference')
     def clean(self, **kwargs):
