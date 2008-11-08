@@ -157,7 +157,8 @@ class PymelControlPanel(object):
         melMethods = self.getMelMethods(className) 
         self.unassignedMelMethodLister.extend( melMethods )
         
-        filter = set( ['double', 'MVector'] )
+        #filter = set( ['double', 'MVector'] )
+        filter = []
         
         for clsName, apiClsName in getClassHierarchy(className):
             if apiClsName:
@@ -331,10 +332,14 @@ class MethodRow(object):
             if match == False:
                 return False
             
+        self.layout = { 'columnAlign'  : [1,'right'], 
+                   'columnAttach' : [1,'right',8] }
+         
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
-        self.frame = frameLayout(w=frame_width, labelVisible=False, collapsable=False)
-        columnLayout()
+        self.frame = frameLayout( w=frame_width, labelVisible=False, collapsable=False)
+        col = columnLayout()
+        
         enabledArray = []
         self.rows = []
         self.overloadPrecedenceColl = None
@@ -349,20 +354,21 @@ class MethodRow(object):
                 self.createAnnotation(i)
 
         else:
-            row = rowLayout( self.methodName + '_rowMain', nc=2, cw2=[200, 400] )
+            #row = rowLayout( self.methodName + '_rowMain', nc=2, cw2=[200, 400] )
             #self.enabledChBx = checkBox(label=self.methodName, changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
-            text(label='')
+            #text(label='')
             self.createAnnotation(0)
-            setParent('..')  
+            #setParent('..')  
         
-        separator(w=800, h=24) 
+        setParent(col)
+        separator(w=800, h=6) 
         
           
         #self.row = rowLayout( self.methodName + '_rowSettings', nc=4, cw4=[200, 160, 180, 160] )
         #self.rows.append(row)
-        layout = { 'columnAlign'  : [1,'right'], 
-                   'columnAttach' : [1,'right',5] }
-        self.row = rowLayout( self.methodName + '_rowSettings', nc=2, cw2=[200, 220], **layout )
+
+        
+        self.row = rowLayout( self.methodName + '_rowSettings', nc=2, cw2=[200, 220], **self.layout )
         self.rows.append(self.row)
         
         # create ui elements
@@ -374,7 +380,7 @@ class MethodRow(object):
                                         postMenuCommand=Callback( MethodRow.populateMelNameMenu, self ) )
         setParent('..')
         
-        self.row2 = rowLayout( self.methodName + '_rowSettings2', nc=3, cw3=[200, 180, 240], **layout )
+        self.row2 = rowLayout( self.methodName + '_rowSettings2', nc=3, cw3=[200, 180, 240], **self.layout )
         self.rows.append(self.row2)
 
         text(label='Use Name')
@@ -510,7 +516,10 @@ class MethodRow(object):
         return array
             
     def createAnnotation(self, i ):
-        rowSpacing = [180, 20, 400]
+        
+        #setUITemplate('attributeEditorTemplate', pushTemplate=1)
+        
+        rowSpacing = [30, 20, 400]
         
         defs = []
         #try:
@@ -519,6 +528,8 @@ class MethodRow(object):
 
         enable = argUtil.canBeWrapped()
         
+        
+        # main info row
         row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing )
         self.rows.append(row)
         text(label='')
@@ -528,64 +539,59 @@ class MethodRow(object):
             radioButton(label='', collection=self.overloadPrecedenceColl,
                                 enable = enable,
                                 onCommand=Callback( MethodRow.overloadPrecedenceCB, self, i ))
-        text(   l=proto, 
+        text(   l='', #l=proto, 
                 annotation = self.methodInfoList[i]['doc'],
                 enable = enable)
         
         setParent('..')
         
         
-        
-        inArgs = self.methodInfo['inArgs']
-        outArgs =  self.methodInfo['outArgs']
-        returnType =  self.methodInfo['returnType']
-        types = self.methodInfo['types']
+        inArgs = self.methodInfoList[i]['inArgs']
+        outArgs =  self.methodInfoList[i]['outArgs']
+        returnType =  self.methodInfoList[i]['returnType']
+        types = self.methodInfoList[i]['types']
         args = []
-        
-        rowSpacing = [220, 150, 150] 
-        for x in inArgs:
-            type = str(types[x])
-            label = type + ' ' + x
-#            rowLayout( nc=3, cw3=rowSpacing )
-#            tf = textField( l=label )
-#            try:
-#                #print self.methodInfo['defaults'][x]
-#                defaultVal = self.methodInfo['defaults'][x]
-#                tf.setText( repr(defaultVal) )
-#            except KeyError: pass
-            
-            if type in ['double', 'MVector']:
-                optionMenuGrp(l=label, nc=2, cw2=[220,150] )
-                for unit in ['Unitless', 'Linear', 'Angular', 'Time']:
-                    menuItem(l=unit)
-                setParent('..')
 
         
-        results = []
+        for arg in inArgs:
+            type = str(types[arg])
+            self._makeArgRow(type, arg, False, self.methodInfoList[i]['argInfo'][arg]['doc'] )
+        
         if returnType:
-            results.append( ('result', returnType) )
-        for x in outArgs:
-            results.append( (x, types[x]) )
-        
-        for name, type in results:
-            label = type + ' ' + name
-
-#            rowLayout( nc=3, cw3=rowSpacing )
-#            text( l=label )
-
-            if type in ['double', 'MVector']:
-                optionMenuGrp(l=label, nc=2, cw2=[220,150] )
-                for unit in ['Unitless', 'Linear', 'Angular', 'Time']:
-                    menuItem(l=unit)
-                setParent('..')
+            self._makeArgRow( returnType, 'result', True, self.methodInfoList[i]['returnInfo']['doc'] )
             
+        for arg in outArgs:
+            type = str(types[arg])
+            self._makeArgRow(type, arg, True, self.methodInfoList[i]['argInfo'][arg]['doc'] )
+        
+        separator(w=800, h=14) 
+               
         return enable      
 #            methodInfo = api.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName][overloadNum] 
 #            args = ', '.join( [ '%s %s' % (x[1],x[0]) for x in methodInfo['args'] ] )
 #            return  '( %s ) --> ' % ( args )
         #except:
         #    print "could not find documentation for", apiClassName, methodName
-                
+
+    def _makeArgRow(self, type, arg, result, annotation=''):
+        COL1_WIDTH = 260
+        COL2_WIDTH = 100
+        rowLayout( nc=3, cw3=[COL1_WIDTH,COL2_WIDTH, 150], **self.layout )
+        if result:
+            label = '(out) ' + type
+        else:
+            label = '(in) ' + type
+        
+        text( l=label, ann=annotation )
+        text( l=arg, ann=annotation )
+    
+        if type in ['double', 'MVector']:
+            optionMenu(l='', ann=annotation)
+            for unit in ['Unitless', 'Linear', 'Angular', 'Time']:
+                menuItem(l=unit)
+        else:
+            text( l='', ann=annotation )
+        setParent('..')           
 
 def getClassHierarchy( className):
     try:
@@ -619,6 +625,8 @@ def getClassHierarchy( className):
 
         
 def cacheResults():
+    return 
+
     res = confirmDialog( title='Cache Results?',
                          message="Would you like to write your changes to disk? If you choose 'No' your changes will be lost when you restart Maya.",
                         button=['Yes','No'],
