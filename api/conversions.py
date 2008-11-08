@@ -253,7 +253,8 @@ class ApiDocParser(object):
 
         for proto in soup.body.findAll( 'div', **{'class':'memproto'} ): 
 
-        
+            returnDoc = ''
+            
             # NAME AND RETURN TYPE
             memb = proto.findAll( 'td', **{'class':'memname'} )[0]
             buf = [ x.strip() for x in memb.findAll( text=True )]
@@ -481,8 +482,18 @@ class ApiDocParser(object):
                         assert name in names
                         directions[name] = dir
                         docs[name] = doc
-                        
-                                               
+                    
+                    
+                    # Documentation for Return Values
+                    if returnType:
+                        try:   
+                            returnDocBuf = addendum.findAll( 'dl', limit=1, **{'class':'return'} )[0].findAll( text=True )
+                        except IndexError:
+                            pass
+                        else:
+                            if returnDocBuf:
+                                returnDoc = ''.join( returnDocBuf[1:] ).strip('\n')
+                            self.xprint(  'RETRUN_DOC', returnDoc  )         
 
                         
                 except (AttributeError, AssertionError), msg:
@@ -537,6 +548,7 @@ class ApiDocParser(object):
                     argList.append(  data )
                     
                 methodInfo = { 'argInfo': argInfo, 
+                              'returnInfo' : { 'type' : returnType, 'doc' : returnDoc },
                               'args' : argList, 
                               'returnType' : returnType, 
                               'inArgs' : inArgs, 
