@@ -245,8 +245,8 @@ class Mel(object):
         >>> # run the script
         >>> mel.myScript("firstArg", [1.0, 2.0, 3.0])
         
-    The advantages of pymel over mel.eval are more readily apparent when we want to pass a python object
-    to our mel procedure:
+    The above is a very simplistic example. The advantages of pymel over mel.eval are more readily
+    apparent when we want to pass a python object to our mel procedure:
     
     default:        
         >>> import cmds as cmds
@@ -256,21 +256,26 @@ class Mel(object):
             
     pymel:
         >>> from pymel import *
-        >>> node = DependNode("lambert1")
+        >>> node = PyNode("lambert1")
         >>> mel.myScript( node.type(), node.color.get() )
     
-    from this you can see how pymel.core.mel allows you to pass any python object directly to your mel script as if 
+    In this you can see how `pymel.core.mel` allows you to pass any python object directly to your mel script as if 
     it were a python function, with no need for formatting arguments.
     """
             
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
             return self.__dict__[command]
-        def _call(*args):
+        def _call(*args, **kwargs):
         
-            strArgs = map( pythonToMel, args)
-                            
-            cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
+            strArgs = [pythonToMel(arg) for arg in args]
+            
+            if kwargs:
+                strFlags = [ '-%s %s' % ( key, pythonToMel(val) ) for key, val in kwargs.items() ]
+                cmd = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
+                
+            else:
+                cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
             #print cmd
             try:
                 return mm.eval(cmd)
