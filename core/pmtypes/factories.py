@@ -2565,7 +2565,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         try:
                             nameType = data['useName']
                         except KeyError:
-                            warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
+                            util.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
                             nameType = 'API'
                              
                         if nameType == 'API':
