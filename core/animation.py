@@ -37,6 +37,10 @@ Modifications:
     """
     return map( general.PyNode, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
 
+
+def deformer(*args, **kwargs):
+    return map( PyNode, cmds.deformer(*args, **kwargs) )
+    
 def joint(*args, **kwargs):
     """
 Maya Bug Fix:
