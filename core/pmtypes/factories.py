@@ -6,7 +6,7 @@ import pymel.mayahook as mayahook
 #print "Maya up and running"
 #from general import PyNode
 import pymel.api as _api
-import sys, os, inspect, pickle, re, types, os.path, warnings
+import sys, os, inspect, pickle, re, types, os.path, warnings, keyword
 #from networkx.tree import *
 from HTMLParser import HTMLParser
 from operator import itemgetter
@@ -314,10 +314,6 @@ class FlagInfo(object):
         self.docstring = docstring
         self.modes = modes
 
-pythonReservedWords = ['and', 'del', 'from', 'not', 'while', 'as', 'elif', 'global', 'or', 
-                       'with', 'assert', 'else', 'if', 'pass', 'yield', 'break', 'except', 
-                       'import', 'print', 'class', 'exec', 'in', 'raise', 'continue', 
-                       'finally', 'is', 'return', 'def', 'for', 'lambda', 'try']
   
 def getCmdInfoBasic( command ):
     typemap = {    
@@ -375,10 +371,10 @@ def getCmdInfoBasic( command ):
                     shortname = str(tokens[0][1:])
 
                     
-                    if longname in pythonReservedWords:                       
+                    if longname in keyword.kwlist:                       
                         removedFlags[ longname ] = shortname 
                         longname = shortname
-                    elif shortname in pythonReservedWords:
+                    elif shortname in keyword.kwlist:
                         removedFlags[ shortname ] = longname 
                         shortname = longname
                     #sometimes the longname is empty, so we'll use the shortname for both
@@ -1077,46 +1073,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     if newObjs:
         cmds.delete( newObjs ) 
     return cmdInfo
-
-def loadCache( filePrefix, description=''):
-    short_version = mayahook.getMayaVersion(extension=False)   
-    newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
-    
-    if description:
-        description = ' ' + description
-    try :
-        file = open(newPath, mode='rb')
-        try :
-            return pickle.load(file)
-        except :
-            print "Unable to load%s from '%s'" % (description,file.name)
-        
-        file.close()
-    except :
-        print "Unable to open '%s' for reading%s" % ( newPath, description )
-
- 
-def writeCache( data, filePrefix, description=''):
-    print "writing cache"
-    
-    short_version = mayahook.getMayaVersion(extension=False)   
-    newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
-
-    if description:
-        description = ' ' + description
-    
-    print "Saving%s to '%s'" % ( description, newPath )
-    try :
-        file = open(newPath, mode='wb')
-        try :
-            pickle.dump( data, file, 2)
-            print "done"
-        except:
-            print "Unable to write%s to '%s'" % (description,file.name)
-        file.close()
-    except :
-        print "Unable to open '%s' for writing%s" % ( newPath, description )
-                   
+  
        
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
@@ -1130,7 +1087,7 @@ def buildCachedData() :
     long_version = mayahook.getMayaVersion(extension=True)
     
     
-    data = loadCache( 'mayaCmdsList', 'the list of Maya commands' )
+    data = mayahook.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
     
     if data is not None:
         cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
@@ -1214,30 +1171,41 @@ def buildCachedData() :
                 else:
                     cmdlist[funcName] = (funcName, args, () )
             '''
-        writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
+        mayahook.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
              
     return (cmdlist,nodeHierarchyTree,uiClassList,nodeCommandList,moduleCmds)
 
 
 def loadApiToMelBridge():
 
-    bridge = loadCache( 'mayaApiMelBridge', 'the api-mel bridge' )
-    if bridge is not None:
-        return bridge
+    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge' )
+    if data is not None:
+        # temporary fix, because we converted from one item in the cache, to now having two
+        if isinstance(data, util.defaultdict):
+            return data, {}
+        
+        return data
     
+    # no bridge cache exists. create default
     bridge = util.defaultdict(dict)
-    return bridge
+    
+    # no api overrides exist. create default
+    overrides = {}
+    
+    return bridge, overrides
 
 def saveApiToMelBridge():
-    writeCache( apiToMelData, 'mayaApiMelBridge', 'the api-mel bridge' )
+    mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge' )
 
            
 #---------------------------------------------------------------
         
 cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
 
-apiToMelData = loadApiToMelBridge()
+apiToMelData, apiClassOverrides = loadApiToMelBridge()
 
+# FIXME
+#: stores a dcitionary of pymel classnames and their methods.  i'm not sure if the 'api' portion is being used any longer
 apiToMelMap = { 
                'mel' : util.defaultdict(list),
                'api' : util.defaultdict(list)
@@ -2028,17 +1996,33 @@ ApiTypeRegister.register('MDoubleArray', float, apiArrayItemType=float)
 
 class ApiArgUtil(object):
 
-    def __init__(self, apiClassName, methodName, methodInfo=None, methodIndex=0 ):
+    def __init__(self, apiClassName, methodName, methodIndex=0 ):
         """If methodInfo is None, then the methodIndex will be used to lookup the methodInfo from apiClassInfo"""
         self.apiClassName = apiClassName
         self.methodName = methodName
-        if methodInfo is None:
-            methodInfo = _api.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
-        elif isinstance( methodInfo, int):
-            methodIndex = methodInfo
-            methodInfo = _api.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
-        self.methodInfo = methodInfo
+        self.methodInfo = _api.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
 
+    def iterArgs(self, inputs=True, outputs=True, infoKeys=[]):
+        res = []
+        for argname, argtype, direction in self.methodInfo['args']:
+            
+            if direction == 'in':
+                if not inputs: 
+                    continue
+            else:
+                if not outputs: 
+                    continue
+
+            if infoKeys:
+                arg_res = [argname]
+                argInfo = self.methodInfo['argInfo'][argname]
+                for key in infoKeys:
+                    arg_res.append( argInfo[key] ) 
+            else:
+                arg_res = argname
+            res.append( arg_res )
+        return res
+        
     @staticmethod
     def isValidEnum( enumTuple ):
         if _api.apiClassInfo.has_key(enumTuple[0]) and \
@@ -2188,7 +2172,20 @@ class ApiArgUtil(object):
                 if argtype != cls.__name__:
                     raise TypeError, "Cannot cast a %s to %s" % ( type(input).__name__, argtype ) 
                 return cls(input)
-            
+
+    def unitConvert(self,result, instance=None):   
+        # units
+        unit = self.methodInfo['returnInfo'].get('unitType',None)
+        #print unit
+        #returnType in ['MPoint'] or 
+        if unit == 'linear':
+            unitCast = ApiTypeRegister.outCast['MDistance']
+            result = [ unitCast(instance,val) for val in result ]
+        elif unit == 'angular':
+            unitCast = ApiTypeRegister.outCast['MAngle']
+            result = [ unitCast(instance,val) for val in result ]
+        return result
+               
     def castResult(self, instance, result ):
         returnType = self.methodInfo['returnType']
         if returnType:
@@ -2205,25 +2202,35 @@ class ApiArgUtil(object):
                     raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
     
             else:
-                try:
-                    f = ApiTypeRegister.outCast[returnType]
-                    if f is None:
-                        return result
-                    return f( instance, result )  
-                except:
-                    cls = instance.__class__
-                    if returnType != cls.__name__:
-                        raise TypeError, "Cannot cast a %s to %s" % ( type(result).__name__, returnType ) 
-                    return cls(result)
+                #try:
+                f = ApiTypeRegister.outCast[returnType]
+                if f is None:
+                    return result
                 
+                result = self.unitConvert(result, instance)
+                
+                return f( instance, result )  
+#                except:
+#                    cls = instance.__class__
+#                    if returnType != cls.__name__:
+#                        raise TypeError, "Cannot cast a %s to %s" % ( type(result).__name__, returnType ) 
+#                    return cls(result)
+    
+
+         
     def initReference(self, argtype): 
         return ApiTypeRegister.refInit[argtype]()
      
     def castReferenceResult(self,argtype,outArg):
         f = ApiTypeRegister.refCast[ argtype ]
+        print "castReferenceResult"
+        print f
         if f is None:
             return outArg
-        return f( outArg )
+        result = f( outArg )
+
+        return self.unitConvert(result)
+    
         
     def getDefaults(self):
         "get a list of defaults"
@@ -2235,10 +2242,14 @@ class ApiArgUtil(object):
             if arg in defaultInfo:
                 default = defaultInfo[arg]
             
-            # set MSpace.Space enum to object space by default, but only if it is the last arg or the next arg has a default ( i.e. kwargs must always come after args )
+            # FIXME : these defaults should probably not be set here since this is supposed to be 
+            # a "dumb" registry of data.  perhaps move them to the controlPanel
+            
+            # set MSpace.Space enum to object space by default, but only if it is the last arg or 
+            # the next arg has a default ( i.e. kwargs must always come after args )
             elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
                 (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-                    default = _api.Enum(['MSpace', 'Space', 'kObject']) 
+                    default = _api.Enum(['MSpace', 'Space', 'kObject'])  # should be kPostTransform?  this is what xform defaults to...
 
             else:
                 continue    
@@ -2334,12 +2345,12 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
     if newName is None:
         newName = methodInfoList[0].get('pymelName',None)
     
-    for methodInfo in methodInfoList:
+    for i, methodInfo in enumerate( methodInfoList ):
       
         #argInfo = methodInfo['argInfo']
 
         #argList = methodInfo['args']
-        argHelper = ApiArgUtil(apiClassName, methodName, methodInfo)
+        argHelper = ApiArgUtil(apiClassName, methodName, i)
         
         if argHelper.canBeWrapped() :
             inArgs = methodInfo['inArgs']
@@ -3182,13 +3193,18 @@ def pluginLoadedCallback( module ):
             
             for mayaType in mayaTypes:
                 inheritance = getInheritance( mayaType )
-                #print mayaType, inheritance
-                #print "adding new node:", mayaType, apiEnum, inheritence
-                # some nodes in the hierarchy for this node might not exist, so we cycle through all 
-                parent = 'dependNode'
-                for node in inheritance:
-                    addPyNode( module, node, parent )
-                    parent = node
+                
+                # Bug work around for haggi on python_inside_maya
+                if not util.isIterable(inheritance):
+                    util.warn( "could not get inheritance for mayaType %s" % mayaType)
+                else:
+                    #print mayaType, inheritance
+                    #print "adding new node:", mayaType, apiEnum, inheritence
+                    # some nodes in the hierarchy for this node might not exist, so we cycle through all 
+                    parent = 'dependNode'
+                    for node in inheritance:
+                        addPyNode( module, node, parent )
+                        parent = node
                     
     return pluginLoadedCB
 
