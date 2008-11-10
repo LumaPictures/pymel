@@ -324,8 +324,8 @@ class MethodRow(object):
         
         if filter:
             match = False
-            for info in self.methodInfoList:
-                argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, info )
+            for i, info in enumerate( self.methodInfoList):
+                argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, i )
                 if filter.intersection( argUtil.getInputTypes() + argUtil.getOutputTypes() ):
                     match = True
                     break
@@ -510,11 +510,12 @@ class MethodRow(object):
     def getEnabledArray(self):
         """returns an array of booleans that correspond to each method and whether they can be wrapped"""
         array = []
-        for info in self.methodInfoList:
-            argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, info )
+        for i, info in enumerate( self.methodInfoList ):
+            argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, i )
             array.append( argUtil.canBeWrapped() )
         return array
-            
+
+           
     def createAnnotation(self, i ):
         
         #setUITemplate('attributeEditorTemplate', pushTemplate=1)
@@ -545,25 +546,23 @@ class MethodRow(object):
         
         setParent('..')
         
-        
-        inArgs = self.methodInfoList[i]['inArgs']
-        outArgs =  self.methodInfoList[i]['outArgs']
+        try:
+            argList = factories.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][i]['args']
+        except (KeyError, IndexError):
+            argList = self.methodInfoList[i]['args']
+            
         returnType =  self.methodInfoList[i]['returnType']
         types = self.methodInfoList[i]['types']
         args = []
-
-        
-        for arg in inArgs:
+  
+        for arg , type, direction in argList:
             type = str(types[arg])
-            self._makeArgRow(type, arg, False, self.methodInfoList[i]['argInfo'][arg]['doc'] )
-        
-        if returnType:
-            self._makeArgRow( returnType, 'result', True, self.methodInfoList[i]['returnInfo']['doc'] )
+            assert arg != 'return'
+            self._makeArgRow( i, type, arg, direction, self.methodInfoList[i]['argInfo'][arg]['doc'] )
             
-        for arg in outArgs:
-            type = str(types[arg])
-            self._makeArgRow(type, arg, True, self.methodInfoList[i]['argInfo'][arg]['doc'] )
-        
+        if returnType:
+            self._makeArgRow( i, returnType, 'return', 'return', self.methodInfoList[i]['returnInfo']['doc'] )
+          
         separator(w=800, h=14) 
                
         return enable      
@@ -572,28 +571,118 @@ class MethodRow(object):
 #            return  '( %s ) --> ' % ( args )
         #except:
         #    print "could not find documentation for", apiClassName, methodName
-
-    def _makeArgRow(self, type, arg, result, annotation=''):
-        COL1_WIDTH = 260
-        COL2_WIDTH = 100
-        rowLayout( nc=3, cw3=[COL1_WIDTH,COL2_WIDTH, 150], **self.layout )
-        if result:
-            label = '(out) ' + type
-        else:
-            label = '(in) ' + type
         
-        text( l=label, ann=annotation )
-        text( l=arg, ann=annotation )
+        
+    def setUnitType(self, methodIndex, argName, unitType ):
+        
+        if self.apiClassName not in factories.apiClassOverrides:
+            factories.apiClassOverrides[self.apiClassName] = { 'methods' : {} }
+        
+        methodOverrides = factories.apiClassOverrides[self.apiClassName]['methods']
+        
+        if self.apiMethodName not in methodOverrides:
+            methodOverrides[self.apiMethodName] = {}
+        
+        if argName == 'return':
+            if methodIndex not in methodOverrides[self.apiMethodName]:
+                methodOverrides[self.apiMethodName][methodIndex] = { 'returnInfo' : {} }
+                
+            methodOverrides[self.apiMethodName][methodIndex]['returnInfo']['unitType'] = unitType 
+            
+        else:
+            if methodIndex not in methodOverrides[self.apiMethodName]:
+                methodOverrides[self.apiMethodName][methodIndex] = { 'argInfo' : {} }
+                
+            if argName not in methodOverrides[self.apiMethodName][methodIndex]['argInfo']:
+                methodOverrides[self.apiMethodName][methodIndex]['argInfo'][argName] = {}
     
-        if type in ['double', 'MVector']:
-            optionMenu(l='', ann=annotation)
-            for unit in ['Unitless', 'Linear', 'Angular', 'Time']:
+            methodOverrides[self.apiMethodName][methodIndex]['argInfo'][argName]['unitType'] = unitType 
+            
+    def setDirection(self, methodIndex, argName, direction ):
+        
+        if self.apiClassName not in factories.apiClassOverrides:
+            factories.apiClassOverrides[self.apiClassName] = { 'methods' : {} }
+        
+        methodOverrides = factories.apiClassOverrides[self.apiClassName]['methods']
+        
+        if self.apiMethodName not in methodOverrides:
+            methodOverrides[self.apiMethodName] = {}
+        
+        if methodIndex not in methodOverrides[self.apiMethodName]:
+            methodOverrides[self.apiMethodName][methodIndex] = { }
+        
+        try:
+            argList = methodOverrides[self.apiMethodName][methodIndex]['args']
+            
+        except KeyError:
+            argList = self.methodInfoList[methodIndex]['args']
+        
+        newArgList = []
+        inArgs = []
+        outArgs = []
+        for i_argName, i_argType, i_direction in argList:
+            if i_argName == argName:
+                argInfo = ( i_argName, i_argType, direction ) 
+            else:
+                argInfo = ( i_argName, i_argType, i_direction ) 
+            
+            if argInfo[2] == 'in':
+                inArgs.append( i_argName )
+            else:
+                outArgs.append( i_argName )
+            newArgList.append( argInfo )
+                              
+            methodOverrides[self.apiMethodName][methodIndex] = { }
+
+        methodOverrides[self.apiMethodName][methodIndex]['args'] = newArgList
+        methodOverrides[self.apiMethodName][methodIndex]['inArgs'] = inArgs
+        methodOverrides[self.apiMethodName][methodIndex]['outArgs'] = outArgs
+        
+    def _makeArgRow(self, methodIndex, type, argName, direction, annotation=''):
+        COL1_WIDTH = 260
+        COL2_WIDTH = 120
+        rowLayout( nc=4, cw4=[COL1_WIDTH,COL2_WIDTH, 70, 150], **self.layout )
+
+        label = str(type)
+
+        text( l=label, ann=annotation )
+        text( l=argName, ann=annotation )
+    
+        if direction == 'return':
+            text( l='(result)' )
+        else:
+            direction_om = optionMenu(l='', w=60, ann=annotation, cc=CallbackWithArgs( MethodRow.setDirection, self, methodIndex, argName ) )
+            for unit in ['in', 'out']:
                 menuItem(l=unit)
+            direction_om.setValue(direction)
+               
+        if self._isPotentialUnitType(type) :
+            om = optionMenu(l='', ann=annotation, cc=CallbackWithArgs( MethodRow.setUnitType, self, methodIndex, argName ) )
+            for unit in ['unitless', 'linear', 'angular', 'time']:
+                menuItem(l=unit)
+            if argName == 'return':
+                try:
+                    value = factories.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['returnInfo']['unitType']
+                except KeyError:
+                    pass
+            else:
+                try:
+                    value = factories.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['argInfo'][argName]['unitType']
+                except KeyError:
+                    pass
+            try:
+                om.setValue(value)
+            except: pass
+            
         else:
             text( l='', ann=annotation )
-        setParent('..')           
+        setParent('..')
+    
+    def _isPotentialUnitType(self, type):
+        type = str(type)
+        return type == 'MVector' or type.startswith('double')
 
-def getClassHierarchy( className):
+def getClassHierarchy( className ):
     try:
         pymelClass = getattr(core.general, className)
     except AttributeError:
@@ -604,7 +693,6 @@ def getClassHierarchy( className):
         mro = list( inspect.getmro(pymelClass) )
         mro.reverse()
         
-    
         for i, cls in enumerate(mro):
             #if cls.__name__ not in ['object']:             
             try:
@@ -625,7 +713,7 @@ def getClassHierarchy( className):
 
         
 def cacheResults():
-    return 
+    #return 
 
     res = confirmDialog( title='Cache Results?',
                          message="Would you like to write your changes to disk? If you choose 'No' your changes will be lost when you restart Maya.",
@@ -635,5 +723,11 @@ def cacheResults():
     print res
     if res == 'Yes':
         print "---"
+        
+        # update apiClasIfno with the sparse data stored in apiClassOverrides
+        util.merge( factories.apiClassOverrides, api.apiClassInfo, allowDictToListMerging=True )
+        api.saveApiCache()
         factories.saveApiToMelBridge()
+        
+        
         print "---"
