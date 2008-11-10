@@ -363,3 +363,30 @@ def reorder( x, indexList=[], indexDict={} ):
             val = x.pop(0)
         newlist.append( val ) 
     return newlist 
+
+
+def merge( from_dict, to_dict, allowDictToListMerging=False ):
+    """
+    recursively update to_dict with values from from_dict.  if allowDictToListMerging is
+    True, then if to_dict contains a list, from_dict can contain a dictionary with int
+    keys which can be used to sparsely update the list".
+    """
+     
+    if allowDictToListMerging and isinstance(to_dict, list ):
+        contains = lambda key: isinstance(key,int) and key in range(len(to_dict))
+        isList = True
+    else:
+        contains = lambda key: key in to_dict
+        isList = False
+
+    for key, from_val in from_dict.iteritems():
+        #print key, from_val
+        if contains(key):
+            to_val = to_dict[key]
+            if isMapping(from_val) and ( isMapping(to_val) or (allowDictToListMerging and isinstance(to_val, list )) ):
+                merge( from_val, to_val, allowDictToListMerging )
+            else:
+                to_dict[key] = from_val
+        else:
+            to_dict[key] = from_val
+
