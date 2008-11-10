@@ -14,7 +14,7 @@ from operator import itemgetter
 import maya.cmds as cmds
 import maya.mel as mm
 import pmcmds
-
+from maya.utils import executeDeferred as _executeDeferred
 
 
 VERBOSE=0
@@ -3159,10 +3159,32 @@ def removePyNode( module, mayaType ):
 
 #: dictionary of plugins and the nodes and commands they register   
 pluginData = {}
-    
+
+                    
 def pluginLoadedCallback( module ):
                 
     def pluginLoadedCB(pluginName):
+        
+        def addPluginPyNodes(mayaTypes):
+            pluginData[pluginName]['dependNodes'] = mayaTypes
+            print "adding new nodes:", ', '.join( mayaTypes )
+            
+            for mayaType in mayaTypes:
+                
+                inheritance = getInheritance( mayaType )
+                
+                # Bug work around for haggi on python_inside_maya
+                if not util.isIterable(inheritance):
+                    util.warn( "could not get inheritance for mayaType %s" % mayaType)
+                else:
+                    #print mayaType, inheritance
+                    #print "adding new node:", mayaType, apiEnum, inheritence
+                    # some nodes in the hierarchy for this node might not exist, so we cycle through all 
+                    parent = 'dependNode'
+                    for node in inheritance:
+                        addPyNode( module, node, parent )
+                        parent = node
+                
         print "Plugin loaded", pluginName
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
         pluginData[pluginName] = {}
@@ -3188,23 +3210,7 @@ def pluginLoadedCallback( module ):
         mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
         #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
         if mayaTypes :
-            pluginData[pluginName]['dependNodes'] = mayaTypes
-            print "adding new nodes:", ', '.join( mayaTypes )
-            
-            for mayaType in mayaTypes:
-                inheritance = getInheritance( mayaType )
-                
-                # Bug work around for haggi on python_inside_maya
-                if not util.isIterable(inheritance):
-                    util.warn( "could not get inheritance for mayaType %s" % mayaType)
-                else:
-                    #print mayaType, inheritance
-                    #print "adding new node:", mayaType, apiEnum, inheritence
-                    # some nodes in the hierarchy for this node might not exist, so we cycle through all 
-                    parent = 'dependNode'
-                    for node in inheritance:
-                        addPyNode( module, node, parent )
-                        parent = node
+            _executeDeferred( addPluginPyNodes, mayaTypes )
                     
     return pluginLoadedCB
 
