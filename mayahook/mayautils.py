@@ -1,6 +1,8 @@
 import re, os, os.path, sys, platform, subprocess
 import pymel.util as util
 from pymel.util.pwarnings import *
+import pickle
+
 
 import envparse
 
@@ -737,5 +739,43 @@ def encodeFix():
                 except ImportError :
                     print "Unable to import maya.app.baseUI"
 
+def loadCache( filePrefix, description=''):
+    short_version = getMayaVersion(extension=False)   
+    newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
+    
+    if description:
+        description = ' ' + description
+    try :
+        file = open(newPath, mode='rb')
+        try :
+            return pickle.load(file)
+        except :
+            print "Unable to load%s from '%s'" % (description,file.name)
+        
+        file.close()
+    except :
+        print "Unable to open '%s' for reading%s" % ( newPath, description )
 
+ 
+def writeCache( data, filePrefix, description=''):
+    print "writing cache"
+    
+    short_version = getMayaVersion(extension=False)   
+    newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
+
+    if description:
+        description = ' ' + description
+    
+    print "Saving%s to '%s'" % ( description, newPath )
+    try :
+        file = open(newPath, mode='wb')
+        try :
+            pickle.dump( data, file, 2)
+            print "done"
+        except:
+            print "Unable to write%s to '%s'" % (description,file.name)
+        file.close()
+    except :
+        print "Unable to open '%s' for writing%s" % ( newPath, description )
+                 
  
