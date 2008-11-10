@@ -141,7 +141,7 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 
 class UI(unicode):
-    def __new__(cls, name=None, create=False, *args, **kwargs):
+    def __new__(cls, name=None, create=False, **kwargs):
         """
         Provides the ability to create the UI Element when creating a class
         
@@ -153,15 +153,21 @@ class UI(unicode):
             try: return cls.__melcmd__(name, ex=1)
             except: pass
         
-        # create a new node when any of these conditions occur:
-        #    name is None
-        #    create is True
-        #    parent flag is set
-        parent = kwargs.get( 'parent', kwargs.get('p', None))
-        if name is None or create or parent:
-            name = cls.__melcmd__(name, *args, **kwargs)
+
+        if cls._isBeingCreated(name, create, kwargs):
+            name = cls.__melcmd__(name, **kwargs)
         return unicode.__new__(cls,name)
-    
+
+    @staticmethod
+    def _isBeingCreated( name, create, kwargs):
+        """
+        create a new node when any of these conditions occur:
+           name is None
+           create is True
+           parent flag is set
+        """
+        return not name or create or kwargs.get( 'parent', kwargs.get('p', None))
+        
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self)
     def getChildren(self, **kwargs):
@@ -180,52 +186,6 @@ class UI(unicode):
     rename = _factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
     type = _factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
      
-
-def _createClassesAndFunctions():
-    for funcName in _factories.uiClassList:
-        
-        # Create Class
-        classname = util.capitalize(funcName)
-        #classname = funcName[0].upper() + funcName[1:]
-        if not hasattr( _thisModule, classname ):
-            cls = MetaMayaUIWrapper(classname, (UI,), {})
-            cls.__module__ = __name__
-            setattr( _thisModule, classname, cls )
-        else:
-            cls = getattr( _thisModule, classname )
-    
-        # Create Function
-        #funcName = util.uncapitalize( classname )
-        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
-        if func:
-            func.__module__ = __name__
-            #cls.__melcmd__ = func
-            setattr( _thisModule, funcName, func )
-        else:
-            print "ui command not created", funcName
-            
-    moduleShortName = __name__.split('.')[-1]
-    for funcName in _factories.moduleCmds[ moduleShortName ] :
-        if funcName not in _factories.uiClassList:
-            #print "bad stuff", funcName
-            #func = None
-            func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
-            if func:
-                func.__module__ = __name__
-                setattr( _thisModule, funcName, func )
-            
-_createClassesAndFunctions()
-
-
-def PyUI(strObj, type=None):
-    try:
-        if not type:
-            type = objectTypeUI(strObj)
-        return getattr(_thisModule, util.capitalize(type) )(strObj)
-    except AttributeError:
-        return UI(strObj)
-
-
 # customized ui classes                            
 class Window(UI):
     """pymel window class"""
@@ -309,6 +269,7 @@ class OptionMenu(UI):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
+
 class Callback(object):
     """
     Enables deferred function evaluation with 'baked' arguments.
@@ -344,8 +305,14 @@ class Callback(object):
         Callback._callData = (self.func, self.args, self.kwargs)
         mel.python("__import__('pymel').Callback._doCall()")
         return Callback._callData    
-
-
+    
+class CallbackWithArgs(Callback):
+    def __call__(self,*args):
+        Callback._callData = (self.func, self.args + args, self.kwargs)
+        mel.python("__import__('pymel').Callback._doCall()")
+        return Callback._callData    
+        
+    
 class AutoLayout(FormLayout):
     """ 
     Automatically distributes child controls in either a
@@ -573,13 +540,64 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons), 
                            db=default, 
                            ma="center", cb="No", ds="No")
-    return ret if moreButtons else (ret==yes)
+    if moreButtons:
+        return ret 
+    else:
+        (ret==yes)
 
 def informBox(title, message, ok="Ok"):
     """ Information box """
     confirmDialog(t=title, m=message, b=["Ok"], db="Ok")
     
+
+class PopupError( Exception ): 
+    """Raise this exception in your scripts to cause a promptDialog to be opened displaying the error message.
+    After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened."""
     
+    def __init__(self, msg):
+        self.msg = msg
+        if not cmds.about(batch=1):
+            ret = confirmDialog( t='Error', m=msg, b='OK', db='OK')
+    def __str__(self):
+        return self.msg
+
+
+                     
+def _createClassesAndFunctions():
+    for funcName in _factories.uiClassList:
+        
+        # Create Class
+        classname = util.capitalize(funcName)
+        #classname = funcName[0].upper() + funcName[1:]
+        if not hasattr( _thisModule, classname ):
+            cls = MetaMayaUIWrapper(classname, (UI,), {})
+            cls.__module__ = __name__
+            setattr( _thisModule, classname, cls )
+        else:
+            cls = getattr( _thisModule, classname )
+    
+        # Create Function
+        #funcName = util.uncapitalize( classname )
+        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
+        if func:
+            func.__module__ = __name__
+            #cls.__melcmd__ = func
+            setattr( _thisModule, funcName, func )
+        else:
+            print "ui command not created", funcName
+            
+    moduleShortName = __name__.split('.')[-1]
+    for funcName in _factories.moduleCmds[ moduleShortName ] :
+        if funcName not in _factories.uiClassList:
+            #print "bad stuff", funcName
+            #func = None
+            func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
+            if func:
+                func.__module__ = __name__
+                setattr( _thisModule, funcName, func )
+            
+_createClassesAndFunctions()
+
 def promptForFolder():
     """ Prompt the user for a folder path """
     
@@ -777,7 +795,199 @@ class VectorFieldGrp( FloatFieldGrp ):
         
         return Vector( [x,y,z] )
 
+class ValueControlGrp( UI ):
+    def __new__(cls, name=None, create=False, dataType=None, **kwargs):
+        
 
+        if cls._isBeingCreated(name, create, kwargs):
+            assert dataType
+            if not isinstance(dataType, basestring):
+                try:
+                    dataType = dataType.__name__
+                except AttributeError:
+                    dataType = str(dataType)
+            
+            dataType = dataType.lower()
+            kwargs.pop('dt',None)
+            kwargs['docTag'] = dataType
+#            kwargs.pop('nf', None)
+#            kwargs['numberOfFields'] = 3
+#            name = cmds.floatFieldGrp( name, *args, **kwargs)
+
+        #labelStr = kwargs.pop( 'label', kwargs.pop('l', str(dataType) ) )
+        if dataType in ["bool"]:
+            ctrl = CheckBoxGrp
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1
+            #if hasDefault: ctrl.setValue1( int(default) )
+            
+        elif dataType in ["int"]:
+            ctrl = IntFieldGrp
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1
+            #if hasDefault: ctrl.setValue1( int(default) )
+                
+        elif dataType in ["float"]:
+            ctrl = FloatFieldGrp
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1
+            #if hasDefault: ctrl.setValue1( float(default) )
+            
+        elif dataType in ["vector", "Vector"]:
+            ctrl = VectorFieldGrp
+            getter = ctrl.getVector
+            setter = ctrl.setValue1
+            #if hasDefault: ctrl.setVector( default )
+            
+        elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
+            ctrl = PathButtonGrp
+            getter = ctrl.getPath
+            setter = ctrl.setPath
+            #if hasDefault: ctrl.setText( default.__repr__() )
+                                
+        elif dataType in ["string", "unicode", "str"]:
+            ctrl = TextFieldGrp
+            getter = ctrl.getText
+            setter = ctrl.setText
+            #if hasDefault: ctrl.setText( str(default) )
+        else:
+             raise TypeError  
+#        else:
+#            ctrl = TextFieldGrp( l=labelStr )
+#            getter = makeEvalGetter( ctrl.getText )
+#            #setter = ctrl.setValue1
+#            #if hasDefault: ctrl.setText( default.__repr__() )
+        cls.__melcmd__ = staticmethod( ctrl.__melcmd__ )        
+        self = ctrl.__new__( cls, name, create, **kwargs )
+        self.getter = getter
+        self.ctrlClass = ctrl
+        return self
+    
+    def getValue(self):
+        return self.getter(self)
+    
+def valueControlGrp(name=None, create=False, dataType=None, slider=True, **kwargs):
+        
+        # the options below are only valid for certain control types.  they can always be passed to valueControlGrp, but
+        # they will be ignore if not applicable to the control for this dataType.  this allows you to create a
+        # preset configuration and pass it to the valueControlGrp for every dataType -- no need for creating switches, afterall
+        # that's the point of this function
+        
+        sliderArgs = [ 'sliderSteps', 'ss', 'dragCommand', 'dc' ]
+        fieldArgs = [ 'field', 'f', 'fieldStep', 'fs', 'fieldMinValue', 'fmn', 'fieldMaxValue', 'fmx' ]
+        fieldSliderArgs = ['step', 's', 'minValue', 'min', 'maxValue', 'max', 'extraLabel', 'el'] + sliderArgs, + fieldArgs
+        floatFieldArgs = ['precision', 'pre']
+        verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
+        
+        if UI._isBeingCreated(name, create, kwargs):
+            assert dataType, "You must pass a dataType when creating a new control"
+            if not isinstance(dataType, basestring):
+                try:
+                    dataType = dataType.__name__
+                except AttributeError:
+                    dataType = str(dataType)
+        else:
+            # control command lets us get basic info even when we don't know the ui type
+            dataType = control( name, q=1, docTag=1)
+            assert dataType
+
+        
+        #dataType = dataType.lower()
+        kwargs.pop('dt',None)
+        kwargs['docTag'] = dataType
+            
+        if dataType in ["bool"]:
+            # remove field/slider kwargs
+            for arg in fieldSliderArgs + floatFieldArgs: 
+                kwargs.pop(arg, None)
+            ctrl = CheckBoxGrp( name, create, **kwargs )
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1
+            #if hasDefault: ctrl.setValue1( int(default) )
+            
+        elif dataType in ["int"]:
+            if slider:
+                # turn the field on by default
+                if 'field' not in kwargs and 'f' not in kwargs:
+                    kwargs['field'] = True
+                ctrl = IntSliderdGrp( name, create, **kwargs )
+                getter = ctrl.getValue
+                setter = ctrl.setValue
+            else:
+                # remove field/slider kwargs
+                for arg in fieldSliderArgs + floatFieldArgs: 
+                    kwargs.pop(arg, None)
+                ctrl = IntFieldGrp( name, create, **kwargs )
+                getter = ctrl.getValue1
+                setter = ctrl.setValue1
+            #if hasDefault: ctrl.setValue1( int(default) )
+                
+        elif dataType in ["float"]:
+            if slider:
+                # turn the field on by default
+                if 'field' not in kwargs and 'f' not in kwargs:
+                    kwargs['field'] = True
+                ctrl = FloatSliderdGrp( name, create, **kwargs )
+                getter = ctrl.getValue
+                setter = ctrl.setValue
+            else:
+                # remove field/slider kwargs
+                for arg in fieldSliderArgs: 
+                    kwargs.pop(arg, None)
+                ctrl = FloatFieldGrp( name, create, **kwargs )
+                getter = ctrl.getValue1
+                setter = ctrl.setValue1
+            #if hasDefault: ctrl.setValue1( float(default) )
+            
+        elif dataType in ["vector", "Vector"]:
+            # remove field/slider kwargs
+            for arg in fieldSliderArgs + floatFieldArgs: 
+                kwargs.pop(arg, None)
+            ctrl = VectorFieldGrp( name, create, **kwargs )
+            getter = ctrl.getVector
+            setter = ctrl.setValue1
+            #if hasDefault: ctrl.setVector( default )
+            
+        elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
+            # remove field/slider kwargs
+            for arg in fieldSliderArgs + floatFieldArgs: 
+                kwargs.pop(arg, None)
+            ctrl = PathButtonGrp( name, create, **kwargs )
+            getter = ctrl.getPath
+            setter = ctrl.setPath
+            #if hasDefault: ctrl.setText( default.__repr__() )
+                                
+        elif dataType in ["string", "unicode", "str"]:
+            # remove field/slider kwargs
+            for arg in fieldSliderArgs + floatFieldArgs: 
+                kwargs.pop(arg, None)
+            ctrl = TextFieldGrp( name, create, **kwargs )
+            getter = ctrl.getText
+            setter = ctrl.setText
+            #if hasDefault: ctrl.setText( str(default) )
+        else:
+             raise TypeError  
+#        else:
+#            ctrl = TextFieldGrp( l=labelStr )
+#            getter = makeEvalGetter( ctrl.getText )
+#            #setter = ctrl.setValue1
+#            #if hasDefault: ctrl.setText( default.__repr__() )
+  
+        #new = ctrl( name, create, **kwargs )
+        ctrl.getValue = getter
+        ctrl.setValue = setter
+        ctrl.dataType = ctrl.getDocTag
+        # TODO : remove setDocTag
+        return ctrl
+    
+
+def PyUI(strObj, type=None):
+    try:
+        if not type:
+            type = objectTypeUI(strObj)
+        return getattr(_thisModule, util.capitalize(type) )(strObj)
+    except AttributeError:
+        return UI(strObj)
     
 def getMainProgressBar():
     return ProgressBar(melGlobals['gMainProgressBar'])    
