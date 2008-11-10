@@ -1173,29 +1173,14 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     Set 'rebuildAllButClassInfo' to True to force rebuilding of all info BUT apiClassInfo -
     this is useful for versions < 2009, as these versions cannot parse the api docs; by setting
     this to False, you can rebuild all other api information.
-    """
-    #print ApiTypesToApiEnums()
-    #print ApiTypesToApiClasses()
-    #global ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiTypeHierarchy
-    
-    #global ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses#, apiTypeHierarchy
-         
-    ver = mayahook.getMayaVersion(extension=False)
+    """        
 
-    cacheFileName = os.path.join( util.moduleDir(),  'mayaApi'+ver+'.bin'  )
-    
     # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
     apiClassInfo = None
-    try :
-        file = open(cacheFileName, mode='rb')
-        #try :
-        #ReservedMayaTypes, ReservedApiTypes
-        #ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiTypeHierarchy = pickle.load(file)
-        data = pickle.load(file)
-        #ReservedMayaTypes, ReservedApiTypes, ApiTypesToApiEnums, ApiEnumsToApiTypes, ApiTypesToApiClasses, apiTypeHierarchy = data
-        #print "unpickled", ApiTypesToApiClasses
-        #return data
-        #print data
+    
+    data = mayahook.loadCache( 'mayaApi', 'the API cache' )
+    if data is not None:
+
         if VERBOSE:
             print "data <= %s" % cacheFileName
             print "len(data): %d" % len(data)
@@ -1210,22 +1195,16 @@ def _buildApiCache(rebuildAllButClassInfo=False):
                     print " ,".join(["%s:%s" % (top.key, top.value) for top in value.tops()])
                 print
         
-        if len(data) == 7:
-            util.warn("Api cache file was an old version (< r654): %s" % cacheFileName)
-            # We've got a .bin from < r654...
-            apiClassInfo = data[6]
-            rebuildAllButClassInfo = True
-        else:
-            ReservedMayaTypes(data[0])
-            ReservedApiTypes(data[1])
-            ApiTypesToApiEnums(data[2])
-            ApiEnumsToApiTypes(data[3])
-            MayaTypesToApiTypes(data[4])
-            ApiTypesToApiClasses(data[5])
-            apiTypeHierarchy = data[6]
-            apiClassInfo = data[7]
+        ReservedMayaTypes(data[0])
+        ReservedApiTypes(data[1])
+        ApiTypesToApiEnums(data[2])
+        ApiEnumsToApiTypes(data[3])
+        MayaTypesToApiTypes(data[4])
+        ApiTypesToApiClasses(data[5])
+        apiTypeHierarchy = data[6]
+        apiClassInfo = data[7]
         
-        print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
+        #print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
         
         def _setOverloadedMethod( className, methodName, index ):
             methodInfoList = apiClassInfo[className]['methods'][methodName]
@@ -1244,7 +1223,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         # add default to type
         #apiClassInfo['MFnTransform']['methods']['getTranslation'][0]['defaults']['space']=Enum(['MSpace', 'Space', 'kObject'])
         #print "BEFORE", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
-        _setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kObject']) )
+        _setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kPostTransform']) )
         #_setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
         #print "AFTER", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
         
@@ -1268,11 +1247,6 @@ def _buildApiCache(rebuildAllButClassInfo=False):
             # the cache file, in order to grab apiClassInfo
             return apiTypeHierarchy, apiClassInfo
             
-        #except:
-        #    print "Unable to load the Maya API Hierarchy from '"+file.name+"'"       
-        file.close()
-    except (IOError, OSError, IndexError):
-        print "Unable to open '"+cacheFileName+"' for reading the Maya API Hierarchy"
     
     print "Rebuilding the API Caches..."
     
@@ -1285,26 +1259,12 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         apiClassInfo = None
     apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo = _buildApiTypeHierarchy(apiClassInfo=apiClassInfo)
 
-    
-    #_buildApiTypeHierarchy()
-    
-    #ApiTypesToApiClasses( apiTypesToApiClasses )
-
-    try :
-        file = open(cacheFileName, mode='wb')
-        try :
-            #print "about to pickle", apiTypesToApiClasses
-            #print "about to pickle", ApiEnumsToApiTypes()
-            print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
-            pickle.dump( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), dict(MayaTypesToApiTypes()), 
-                          apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo),
-                            file, 2)
-            print "done"
-        except:
-            print "Unable to write the Maya API Cache to '"+file.name+"'"
-        file.close()
-    except :
-        print "Unable to open '"+cacheFileName+"' for writing"
+    mayahook.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
+                           dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), 
+                           dict(MayaTypesToApiTypes()), 
+                           apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo 
+                          )
+                         , 'mayaApi', 'the API cache' )
     
     return apiTypeHierarchy, apiClassInfo
 
@@ -1319,6 +1279,14 @@ elapsed = time.time() - start
 print "Initialized API Cache in in %.2f sec" % elapsed
 
 # TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
+
+def saveApiCache():
+    mayahook.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
+                           dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), 
+                           dict(MayaTypesToApiTypes()), 
+                           dict(ApiTypesToApiClasses()), apiTypeHierarchy, apiClassInfo 
+                          )
+                         , 'mayaApi', 'the API cache' )
 
 def toApiTypeStr( obj ):
     if isinstance( obj, int ):
