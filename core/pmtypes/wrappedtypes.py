@@ -2126,7 +2126,9 @@ class Unit(float):
     unit = property(getUnit, setUnit, None, "The units currently in effect for this instance")
 
     def __new__(cls, value, unit=None) :
-        #unit = cls.kUnit(unit)
+        unit = cls.kUnit(unit)
+        if isinstance(value, cls.apicls) or isinstance(value, cls):
+            value = value.as(unit)
         #data = cls.apicls(value, unit)
         # the float representation uses internal units so that arithmetics work
         #newobj = float.__new__(cls, data.as(cls.apicls.internalUnit()))
@@ -2134,6 +2136,7 @@ class Unit(float):
         newobj = float.__new__(cls, value)
         #ewobj._data = data
         newobj._unit = unit
+        newobj._data = cls.apicls(value, unit)
         return newobj
    
     def assign(self, *args):
@@ -2145,7 +2148,7 @@ class Unit(float):
         return '%s(%s, unit=%r)' % ( self.__class__.__name__, self, self.unit ) 
      
     def as(self, unit) :
-        return self.apicls.as(self, self.__class__.kUnit(unit))
+        return self._data.as( self.__class__.kUnit(unit) )
 
     def asUnit(self) :
         return self.as(self.unit)
@@ -2499,13 +2502,15 @@ class BoundingBox( _api.MBoundingBox):
     h = property( _factories.wrapApiMethod( _api.MBoundingBox, 'height'  ) )
     d = property( _factories.wrapApiMethod( _api.MBoundingBox, 'depth'  ) )
 
-#_factories.ApiTypeRegister.register( 'Vector', Vector )
-#_factories.ApiTypeRegister.register( 'Matrix', Matrix )
-#_factories.ApiTypeRegister.register( 'Point', Point )
-#_factories.ApiTypeRegister.register( 'Color', Color )
-#_factories.ApiTypeRegister.register( 'Quaternion', Quaternion )
-#_factories.ApiTypeRegister.register( 'EulerRotation', EulerRotation )
-
+#_factories.ApiTypeRegister.register( 'MVector', Vector )
+#_factories.ApiTypeRegister.register( 'MMatrix', Matrix )
+#_factories.ApiTypeRegister.register( 'MPoint', Point )
+#_factories.ApiTypeRegister.register( 'MColor', Color )
+#_factories.ApiTypeRegister.register( 'MQuaternion', Quaternion )
+#_factories.ApiTypeRegister.register( 'MEulerRotation', EulerRotation )
+_factories.ApiTypeRegister.register( 'MTime', Time )
+_factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda instance, result: Distance(result,'centimeters').asUI() )
+_factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUI()  )
 
 def getPlugValue( plug ):
     """given an MPlug, get its value as a pymel-style object"""
