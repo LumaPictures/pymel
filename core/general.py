@@ -351,7 +351,6 @@ Modifications:
         
         # vector, matrix, and arrays
         if util.isIterable(arg):
-                                
             if datatype is None:
                 # if we're using force flag and the attribute does not exist
                 # we can infer the type from the passed value
@@ -464,7 +463,7 @@ Modifications:
                     else:
                         raise TypeError, "%s.setAttr: %s is not a supported type for use with the force flag" % ( __name__, type(arg) )
                                         
-                elif isinstance(arg,basestring):
+                elif isinstance(arg,basestring) or isinstance(arg,util.ProxyUnicode):
                     kwargs['type'] = 'string'
 
     if datatype == 'matrix':
