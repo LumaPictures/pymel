@@ -3164,26 +3164,6 @@ pluginData = {}
 def pluginLoadedCallback( module ):
                 
     def pluginLoadedCB(pluginName):
-        
-        def addPluginPyNodes(mayaTypes):
-            pluginData[pluginName]['dependNodes'] = mayaTypes
-            print "adding new nodes:", ', '.join( mayaTypes )
-            
-            for mayaType in mayaTypes:
-                
-                inheritance = getInheritance( mayaType )
-                
-                # Bug work around for haggi on python_inside_maya
-                if not util.isIterable(inheritance):
-                    util.warn( "could not get inheritance for mayaType %s" % mayaType)
-                else:
-                    #print mayaType, inheritance
-                    #print "adding new node:", mayaType, apiEnum, inheritence
-                    # some nodes in the hierarchy for this node might not exist, so we cycle through all 
-                    parent = 'dependNode'
-                    for node in inheritance:
-                        addPyNode( module, node, parent )
-                        parent = node
                 
         print "Plugin loaded", pluginName
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
@@ -3192,7 +3172,7 @@ def pluginLoadedCallback( module ):
         # Commands
         if commands:
             pluginData[pluginName]['commands'] = commands
-            print "adding new commands:", ', '.join(commands)
+            print "pymel: adding new commands:", ', '.join(commands)
             for funcName in commands:
                 #print "adding new command:", funcName
                 cmdlist[funcName] = getCmdInfoBasic( funcName )
@@ -3202,7 +3182,7 @@ def pluginLoadedCallback( module ):
                     if func:
                         setattr( module, funcName, func )
                     else:
-                        print "failed to create function"
+                        util.warn( "pymel: failed to create function" )
                 except Exception, msg:
                     print "exception", msg
         
@@ -3210,8 +3190,46 @@ def pluginLoadedCallback( module ):
         mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
         #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
         if mayaTypes :
-            _executeDeferred( addPluginPyNodes, mayaTypes )
+            
+            def addPluginPyNodes(*args):
+                try:
+                    id = pluginData[pluginName]['callbackId']
+                    _api.MEventMessage.removeCallback( id )
+                except KeyError:
+                    print "could not find callback id!"
+                
+                pluginData[pluginName]['dependNodes'] = mayaTypes
+                print "adding new nodes:", ', '.join( mayaTypes )
+                
+                for mayaType in mayaTypes:
                     
+                    inheritance = getInheritance( mayaType )
+                    
+                    # Bug work around for haggi on python_inside_maya
+                    if not util.isIterable(inheritance):
+                        util.warn( "could not get inheritance for mayaType %s" % mayaType)
+                    else:
+                        #print mayaType, inheritance
+                        #print "adding new node:", mayaType, apiEnum, inheritence
+                        # some nodes in the hierarchy for this node might not exist, so we cycle through all 
+                        parent = 'dependNode'
+                        for node in inheritance:
+                            addPyNode( module, node, parent )
+                            parent = node
+            
+            #if _api.MFileIO.isReadingFile():
+            #    print "reading"
+            if _api.MFileIO.isOpeningFile():
+                #print "opening"
+                id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
+                pluginData[pluginName]['callbackId'] = id
+                # scriptJob not respected in batch mode, had to use api
+                #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 ) 
+            else:
+                addPluginPyNodes()
+                # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
+                pluginData[pluginName]['callbackId'] = None
+                
     return pluginLoadedCB
 
 def pluginUnloadedCallback( module ):               
@@ -3223,18 +3241,18 @@ def pluginUnloadedCallback( module ):
         else:
             # Commands
             commands = data.pop('commands', [])
-            print "removing commands:", ', '.join( commands )
+            print "pymel: removing commands:", ', '.join( commands )
             for command in commands:
                 #print "removing command", command
                 try:
                     pmcmds.removeWrappedCmd(command)
                     module.__dict__.pop(command)
                 except KeyError:
-                    print "Failed to remove %s from module %s" % (command, module.__name__) 
+                    util.warn( "pymel: Failed to remove %s from module %s" % (command, module.__name__) )
                             
             # Nodes
             nodes = data.pop('dependNodes', [])
-            print "removing nodes:", ', '.join( nodes )
+            print "pymel: removing nodes:", ', '.join( nodes )
             for node in nodes:
                 removePyNode( module, node )
     return pluginUnloadedCB
