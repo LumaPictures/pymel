@@ -368,9 +368,9 @@ Modifications:
                         #    datatype = 'doubleArray'    
                         elif isinstance( arg[0], list ):
                             datatype = 'vectorArray'
-                        elif isinstance( arg, Vector):
+                        elif isinstance( arg, _types.Vector):
                             datatype = 'double3'
-                        elif isinstance( arg, Matrix ):
+                        elif isinstance( arg,  _types.Matrix ):
                             datatype = 'matrix'
                         else:
                             raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
@@ -508,7 +508,7 @@ Modifications:
                 float: 'double',
                 int: 'long',
                 bool: 'bool',
-                Vector: 'double3',
+                _types.Vector: 'double3',
                 str: 'string',
                 unicode: 'string'
             }[at]
@@ -738,8 +738,12 @@ def listTransforms( *args, **kwargs ):
 Modifications:
     - returns wrapped classes
     """
-
-    res = cmds.listRelatives(  cmds.ls(*args, **kwargs), p=1, path=1 )
+    kwargs['ni']=True
+    res = cmds.ls(*args, **kwargs)
+    if not res:
+        return res
+    res = cmds.listRelatives(  res, p=1, path=1 )
+    #res = list(set(res)) # ruins the order, but prevents dupes, which can happend when a transform has more than one shape
     return map( PyNode, res ) #, ['transform']*len(res) )
 
 
@@ -834,10 +838,10 @@ Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
     """
     # added catch to use object name explicitly when object is a Pymel Node
-    if isinstance( newname, PyNode ):
-        newname = newname.name()
-    if isinstance (obj, PyNode) :
-        obj = obj.name()
+    if isinstance( newname, DagNode ):
+        newname = newname.nodeName()
+    if isinstance (obj, DagNode) :
+        obj = obj.nodeName()
         
     return PyNode( cmds.rename( obj, newname, **kwargs ) )
     
@@ -3716,7 +3720,7 @@ class Transform(DagNode):
                     
         res = cmds.xform( self, **kwargs )
         #return ( _types.Vector(res[:3]), _types.Vector(res[3:]) )
-        return BoundingBox( res[:3], res[3:] )
+        return _types.BoundingBox( res[:3], res[3:] )
     
     def getBoundingBoxMin(self, invisible=False):
         return self.getBoundingBox(invisible)[0]
