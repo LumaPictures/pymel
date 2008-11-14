@@ -12,10 +12,12 @@ It controls:
 
 """
  
+
 from pymel import *
-import inspect, re, os, pickle
+import inspect, re, os
 
 frame_width = 800
+VERBOSE = True
           
 class PymelControlPanel(object):
     def __init__(self):
@@ -31,7 +33,8 @@ class PymelControlPanel(object):
         apiForm = formLayout()
         scroll = scrollLayout()
         #apiMethodForm = formLayout()
-        self.apiMethodCol = columnLayout('apiMethodCol', rowSpacing=12)
+        #self.apiMethodCol = columnLayout('apiMethodCol', rowSpacing=12)
+        self.apiMethodCol = tabLayout('apiMethodCol')
         #apiMethodForm.attachForm( self.apiMethodCol, 'top', 2 )
         #apiMethodForm.attachForm( self.apiMethodCol, 'bottom', 2 )
         #apiMethodForm.attachForm( self.apiMethodCol, 'right', 2 )
@@ -163,14 +166,18 @@ class PymelControlPanel(object):
         for clsName, apiClsName in getClassHierarchy(className):
             if apiClsName:
                 #print cls
-                try:
-                    self.classFrames[clsName].buildUI(filter)
+                if clsName in self.classFrames:
+                    print "building UI for", clsName
+                    frame = self.classFrames[clsName].buildUI(filter)
+                    self.apiMethodCol.setTabLabel( [frame, clsName] )
+
+                        #frame.setVisible(False)
                     #if i != len(mro)-1:
                     #    frame.setCollapse(True)  
-                except KeyError:
+                else:
                     print "skipping", clsName
                     
-        self.classFrames[className].frame.setCollapse(False)     
+        #self.classFrames[className].frame.setCollapse(False)     
                 
 
         
@@ -198,7 +205,7 @@ class ClassFrame(object):
         
         count = 0
         #self.form = formLayout()
-        self.frame = frameLayout(collapsable=True, label='%s (%s)' % (self.className, self.apiClassName),
+        self.frame = frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
                             width = frame_width,
                             labelAlign='top')
         
@@ -234,7 +241,8 @@ class ClassFrame(object):
         setParent('..') # column
         setParent('..') # frame
         #setParent('..') # form
-        return count
+        #print self.frame, count
+        return self.frame
     
 
 class MethodRow(object):
