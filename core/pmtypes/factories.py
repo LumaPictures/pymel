@@ -1178,7 +1178,7 @@ def buildCachedData() :
 
 def loadApiToMelBridge():
 
-    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge' )
+    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
     if data is not None:
         # temporary fix, because we converted from one item in the cache, to now having two
         if isinstance(data, util.defaultdict):
@@ -1195,7 +1195,7 @@ def loadApiToMelBridge():
     return bridge, overrides
 
 def saveApiToMelBridge():
-    mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge' )
+    mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
 
            
 #---------------------------------------------------------------
@@ -2141,8 +2141,9 @@ class ApiArgUtil(object):
                 proto += ' --> (%s)' % ', '.join( [str(x) for x in results] )
         return proto
     
-    def castInput(self, argtype, input, cls):
+    def castInput(self, argName, input, cls):
         # enums
+        argtype = self.methodInfo['types'][argName]
         if isinstance( argtype, tuple ):
             # convert enum as a string or int to an int
             
@@ -2160,32 +2161,64 @@ class ApiArgUtil(object):
                     raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
                 
         elif input is not None:
-            try:
-                f = ApiTypeRegister.inCast[argtype]
-                if f is None:
-                    return input
-                return f( input )   
-            except:
-                if input is None:
-                    # we should do a check to ensure that the default is None, but for now, just return
-                    return input
-                if argtype != cls.__name__:
-                    raise TypeError, "Cannot cast a %s to %s" % ( type(input).__name__, argtype ) 
-                return cls(input)
+#            try:
+            
+            f = ApiTypeRegister.inCast[argtype]
+            if f is None:
+                return input
 
-    def unitConvert(self,result, instance=None):   
+            input = self.toInternalUnits(argName, input)
+            return f( input )   
+#            except:
+#                if input is None:
+#                    # we should do a check to ensure that the default is None, but for now, just return
+#                    return input
+#                if argtype != cls.__name__:
+#                    raise TypeError, "Cannot cast a %s to %s" % ( type(input).__name__, argtype ) 
+#                return cls(input)
+
+    def fromInternalUnits(self, result, instance=None):   
         # units
         unit = self.methodInfo['returnInfo'].get('unitType',None)
+        returnType = self.methodInfo['returnInfo']['type']
         #print unit
         #returnType in ['MPoint'] or 
-        if unit == 'linear':
+        if unit == 'linear' or returnType == 'MPoint':
             unitCast = ApiTypeRegister.outCast['MDistance']
             result = [ unitCast(instance,val) for val in result ]
+        # maybe this should not be hardwired here
+        elif returnType == 'MPoint':
+            #print "linear"
+            unitCast = ApiTypeRegister.outCast['MDistance']
+            result = [ unitCast(instance,result[0]), unitCast(instance,result[1]), unitCast(instance,result[2]) ] 
         elif unit == 'angular':
+            #print "angular"
             unitCast = ApiTypeRegister.outCast['MAngle']
             result = [ unitCast(instance,val) for val in result ]
         return result
-               
+
+    def toInternalUnits(self, arg, input ):   
+        # units
+        info = self.methodInfo['argInfo'][arg]
+        unit = info.get('unitType',None)
+        if unit == 'linear':
+            #print "setting linear"
+            unitCast = ApiTypeRegister.inCast['MDistance']
+            if util.isIterable(input):
+                input = [ unitCast(val).asInternal() for val in input ]
+            else:
+                input = unitCast(input).asInternal()
+                
+        elif unit == 'angular':
+            #print "setting angular"
+            unitCast = ApiTypeRegister.inCast['MAngle']
+            if util.isIterable(input):
+                input = [ unitCast(val).asInternal() for val in input ]
+            else:
+                input = unitCast(input).asInternal()
+                
+        return input
+            
     def castResult(self, instance, result ):
         returnType = self.methodInfo['returnType']
         if returnType:
@@ -2207,7 +2240,7 @@ class ApiArgUtil(object):
                 if f is None:
                     return result
                 
-                result = self.unitConvert(result, instance)
+                result = self.fromInternalUnits(result, instance)
                 
                 return f( instance, result )  
 #                except:
@@ -2227,9 +2260,11 @@ class ApiArgUtil(object):
         print f
         if f is None:
             return outArg
-        result = f( outArg )
+        
+        result = self.fromInternalUnits(outArg)
+        return f( result )
 
-        return self.unitConvert(result)
+        
     
         
     def getDefaults(self):
@@ -2249,7 +2284,7 @@ class ApiArgUtil(object):
             # the next arg has a default ( i.e. kwargs must always come after args )
             elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
                 (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-                    default = _api.Enum(['MSpace', 'Space', 'kObject'])  # should be kPostTransform?  this is what xform defaults to...
+                    default = _api.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
 
             else:
                 continue    
@@ -2372,7 +2407,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 totalCount = 0
                 for name, argtype, direction in argList :
                     if direction == 'in':
-                        newargs.append( argHelper.castInput( argtype, args[inCount], self.__class__ ) )
+                        newargs.append( argHelper.castInput( name, args[inCount], self.__class__ ) )
                         inCount +=1
                     else:
                         val = argHelper.initReference(argtype) 
@@ -3194,7 +3229,8 @@ def pluginLoadedCallback( module ):
             def addPluginPyNodes(*args):
                 try:
                     id = pluginData[pluginName]['callbackId']
-                    _api.MEventMessage.removeCallback( id )
+                    if id is not None:
+                        _api.MEventMessage.removeCallback( id )
                 except KeyError:
                     print "could not find callback id!"
                 
@@ -3226,9 +3262,10 @@ def pluginLoadedCallback( module ):
                 # scriptJob not respected in batch mode, had to use api
                 #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 ) 
             else:
-                addPluginPyNodes()
                 # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
                 pluginData[pluginName]['callbackId'] = None
+                addPluginPyNodes()
+
                 
     return pluginLoadedCB
 

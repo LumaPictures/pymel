@@ -739,8 +739,11 @@ def encodeFix():
                 except ImportError :
                     print "Unable to import maya.app.baseUI"
 
-def loadCache( filePrefix, description=''):
-    short_version = getMayaVersion(extension=False)   
+def loadCache( filePrefix, description='', useVersion=True):
+    if useVersion:
+        short_version = getMayaVersion(extension=False)   
+    else:
+        short_version = ''
     newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
     
     if description:
@@ -757,10 +760,13 @@ def loadCache( filePrefix, description=''):
         print "Unable to open '%s' for reading%s" % ( newPath, description )
 
  
-def writeCache( data, filePrefix, description=''):
+def writeCache( data, filePrefix, description='', useVersion=True):
     print "writing cache"
     
-    short_version = getMayaVersion(extension=False)   
+    if useVersion:
+        short_version = getMayaVersion(extension=False)   
+    else:
+        short_version = ''
     newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
 
     if description:
