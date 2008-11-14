@@ -1294,9 +1294,9 @@ class PyNode(util.ProxyUnicode):
         pass
     
     def __melobject__(self):
-        """Special method for returning a mel-friendly representation. For pre-2009 versions, that means the name as a string."""
-        if Version.current >= Version.v2009:
-            raise AttributeError
+        """Special method for returning a mel-friendly representation. """
+        #if Version.current >= Version.v2009:
+        #    raise AttributeError
         return self.name()
     
     def __apimfn__(self):
@@ -2655,8 +2655,8 @@ class DependNode( PyNode ):
     #rename = rename
     def rename( self, name ):
         # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
-        self.setName( name )
-        return self
+        #self.setName( name ) # no undo support
+        return rename(self, name)
     
     def __apiobject__(self) :
         "get the default API object (MObject) for this node if it is valid"
@@ -2664,9 +2664,12 @@ class DependNode( PyNode ):
     
     def __apimobject__(self) :
         "get the MObject for this node if it is valid"
-        handle = self.__apiobjects__['MObjectHandle']
+        handle = self.__apihandle__()
         if api.isValidMObjectHandle( handle ) :
             return handle.object()
+        
+    def __apihandle__(self) :
+        return self.__apiobjects__['MObjectHandle']
     
 #    def __apimfn__(self):
 #        if self._apimfn:
@@ -2710,7 +2713,9 @@ class DependNode( PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-
+    if Version.current >= Version.v2009:
+        def __hash__(self):
+            return self.__apihandle__().hashCode()
 
     def node(self):
         """for compatibility with Attribute class"""
@@ -3151,14 +3156,17 @@ class DagNode(Entity):
 #                else:
 #                    print 'produced valid MDagPath with no name: %s(%s)' % ( argObj.apiTypeStr(), api.MFnDependencyNode(argObj).name() )
 
-            
-    def __apimobject__(self) :
-        "get the MObject for this object if it is valid"
+    def __apihandle__(self) :
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
             handle = api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
             self.__apiobjects__['MObjectHandle'] = handle
+        return handle
+    
+    def __apimobject__(self) :
+        "get the MObject for this object if it is valid"
+        handle = self.__apihandle__()
         if api.isValidMObjectHandle( handle ):
             return handle.object()
         raise MayaNodeError( self._name )
