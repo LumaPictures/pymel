@@ -1873,34 +1873,67 @@ class Attribute(PyNode):
     Attributes
     ==========
     
-    The Attribute class is your one-stop shop for all attribute related functions. Modifying attributes follows a fairly
-    simple pattern:  `setAttr` becomes L{set<Attribute.set>}, `getAttr` becomes `get`, `connectAttr`
-    becomes `connect` and so on.  
+    The Attribute class is your one-stop shop for all attribute related functions. Those of us who are familiar with MEL
+    have become familiar with all the separate commands for operating on attributes.  This class gathers them all into one
+    place.
+    
+    For the most part, the names of the class methods equivalents to the maya.cmds functions follow a fairly simple pattern:
+    `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
+    
+        >>> from pymel import *
+        >>> persp = PyNode('persp')
+        >>> if persp.visibility.isKeyable() and not s.visibility.isLocked():
+        ...     persp.visibility.set( True )
+        ...     persp.visibility.lock()
+        ... 
+        >>> print persp.v.type()      # shortnames also work    
+        bool
     
     Accessing Attributes
     --------------------
-    Most of the time, you will access instances of the Attribute class via `DependNode` or one of its subclasses. This example demonstrates
-    that the Attribute class like the `DependNode` classes are based on a unicode string, and so when printed will 
     
-        >>> from pymel import *
-        >>> s = polySphere()[0]
-        >>> if s.visibility.isKeyable() and not s.visibility.isLocked():
-        ...     s.visibility = True
-        ...     s.visibility.lock()
-        ... 
-        >>> print s.v.type()      # shortnames also work    
-        bool
+    You can access an attribute class in three ways.  The first two require that you already have a PyNode object.
     
-    Note that when the attribute is created there is currently no check for whether or not the attribute exists, just as there is 
-    no check when creating instances of DependNode classes. This is both for speed and also because it can be useful to get a virtual
-    representation of an object or attribute before it exists. 
+    Shorthand
+    ~~~~~~~~~
+    
+    The shorthand method is the most visually appealing and readable: you simply access the maya attribute as a normal python attribute: 
 
+
+        >>> persp.visibility
+        Attribute('persp.visibility') # long name access
+        >>> persp.v
+        Attribute('persp.visibility') # short name access
+        
+    Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
+    If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`, or
+    `Attribute.partialName`.
+    
+    The shorthand syntax may have the most readability,  but it has the drawaback that if the attribute that you wish to acess has the same
+    name as one of the attributes or methods of the python class then it will fail. T
+    
+    attr Method
+    ~~~~~~~~~~~
+    The attr method is the safest way the access an attribute, and can even be used to access attributes that conflict with 
+    python's own special methods, which would fail using shorthand syntax. This method is passed a string which
+    is the name of the attribute to be accessed. 
+        
+        >>> persp.attr('visibility')
+        Attribute('persp.visibility')
+    
+    This gives it the added advantage of being capable of recieving attributes which 
+    are determine at runtime:        
+        
+        >>> for axis in ['translateX', 'translateY', 'translateZ']: 
+        ...     persp.attr( axis ).lock()          
+
+    
     Getting Attribute Values
     ------------------------
     To get an attribute, you use the `get` method. Keep in mind that, where applicable, the values returned will 
     be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
     
-        >>> rot = s.rotate.get()
+        >>> rot = persp.rotate.get()
         >>> print rot
         [0.0, 0.0, 0.0]
         >>> print type(rot) # rotation is returned as a vector class
@@ -1910,43 +1943,27 @@ class Attribute(PyNode):
     -------------------------
     there are several ways to set attributes in pymel:
     
-        >>> s.rotate.set([4,5,6])   # you can pass triples as a list
-        >>> s.rotate.set(4,5,6)     # or not    
-        >>> s.rotate = [4,5,6]      # my personal favorite
+        >>> spersp.rotate.set([4,5,6])   # you can pass triples as a list
+        >>> persp.rotate.set(4,5,6)     # or not    
+        >>> persp.rotate = [4,5,6]      # and finally, shorthand
 
     Connecting Attributes
     ---------------------
-    Since the Attribute class inherits the builtin string, you can just pass the Attribute to the `connect` method. The string formatting
-    is handled for you.
+    As you might expect, connecting attributes is pretty straightforward.
                 
-        >>> s.rotateX.connect( s.rotateY )
+        >>> persp.rotateX.connect( s.rotateY )
     
-    there are also handy operators for `Attribute.__rshift__` and `Attribute.__floordiv__`
+    there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
 
         >>> c = polyCube()[0]        
-        >>> s.tx >> c.tx    # connect
-        >>> s.tx.outpus()
+        >>> persp.tx >> c.tx    # connect
+        >>> persp.tx.outpus()
         [Transform('pCube4')]
-        >>> s.tx // c.tx    # disconnect
-        >>> s.tx.outpus()
+        >>> persp.tx // c.tx    # disconnect
+        >>> persp.tx.outpus()
         []
             
-    Avoiding Clashes between Attributes and Class Methods
-    -----------------------------------------------------
-    All of the examples so far have shown the shorthand syntax for accessing an attribute. The shorthand syntax has the most readability, 
-    but it has the drawaback that if the attribute that you wish to acess has the same name as one of the class methods of the node
-    then an error will be raised. There is an alternatives which will avoid this pitfall.
-            
-    attr Method
-    ~~~~~~~~~~~
-    The attr method is the safest way the access an attribute, and can even be used to access attributes that conflict with 
-    python's own special methods, and which would fail using shorthand syntax. This method is passed a string which
-    is the name of the attribute to be accessed. This gives it the added advantage of being capable of recieving attributes which 
-    are determine at runtime: 
-    
-        >>> s.addAttr('__init__')
-        >>> s.attr('__init__').set( .5 )
-        >>> for axis in ['X', 'Y', 'Z']: s.attr( 'translate' + axis ).lock()    
+
     """
     __metaclass__ = MetaMayaTypeWrapper
     __apicls__ = api.MPlug

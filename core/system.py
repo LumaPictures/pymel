@@ -18,10 +18,11 @@ you can do this:
     
 some of the new commands were changed slightly from their flag name to avoid name clashes and to add to readability:
 
-    >>> importFile( expFile )
+    >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> createReference( expFile )
 
-also note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
+Also, note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
+
 """
 
 

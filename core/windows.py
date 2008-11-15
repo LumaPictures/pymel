@@ -879,15 +879,15 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     """
     This function allows for a simplified interface for automatically creating UI's to control numeric values. 
     
-    A dictionary of keywords shared by all controls can be created and passed to this function and non-applicable settings
-    will be ignore.  For example, 'precision' will be ignored by all non-float UI and 'sliderSteps' will be ignore by all
-    non-slider UIs.
+    A dictionary of keywords shared by all controls can be created and passed to this function and settings which don't pertain
+    to the element being created will will be ignore.  For example, 'precision' will be ignored by all non-float UI and 
+    'sliderSteps' will be ignore by all non-slider UIs.
         
     :Parameters:
         dataType : string or class type
-            The dataType that the created UI should control.  It can be an actual type or the string name of the type. 
+            The dataType that the UI should control.  It can be a type object or the string name of the type. 
             For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to 
-            control an array, you can pass in value with a integer suffix representing the array length. ex. 'bool3'
+            control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
         
         numberOfControls : int
             A parameter for specifying the number of controls per control group.  For example, for a checkBoxGrp, numberOfControls
@@ -895,9 +895,9 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             
         slider : bool
             Specify whether or not sliders should be used for int and float controls. Ignored for other 
-            types and for int and float arrays
+            types, as well as for int and float arrays
         
-        value : multiple
+        value : int, int list, bool, bool list, float, float list, string, unicode, Path, Vector, 
             The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate 
             number of elements.
       
