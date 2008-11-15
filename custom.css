@@ -14,18 +14,67 @@
  *     either class='epydoc' or class='toc' (CSS styles for both
  *     defined below).
  */
-body                        { background: #ffffff; color: #000000; }
-a:link                      { color: #0000ff; }
-a:visited                   { color: #204080; }
+body                        {
+	background: #ffffff;
+	color: #000000;
+	font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
+	font-size: 14px;
+	letter-spacing: -0.01em;
+	color: black;
+	padding: 0;
+}
+a {
+    color: #CA7900;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #2491CF;
+}
+
 dt                          { font-weight: bold; }
-h1                          {
-	font-size: +150%;
+
+h1 {
+    margin: 0;
+    padding: 0.7em 0 0.3em 0;
+    font-size: 1.5em;
+    color: #11557C;
 }
-h2                          {
-	font-size: +125%;
+
+h2 {
+    margin: 1.3em 0 0.2em 0;
+    font-size: 1.35em;
+    padding: 0;
 }
-h3                          { font-size: +110%;
-                              font-weight: bold; }
+
+h3 {
+    margin: 1em 0 -0.3em 0;
+    font-size: 1.2em;
+}
+
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    color: black!important;
+}
+
+h1 a.anchor, h2 a.anchor, h3 a.anchor, h4 a.anchor, h5 a.anchor, h6 a.anchor {
+    display: none;
+    margin: 0 0 0 0.3em;
+    padding: 0 0.2em 0 0.2em;
+    color: #aaa!important;
+}
+
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor,
+h5:hover a.anchor, h6:hover a.anchor {
+    display: inline;
+}
+
+h1 a.anchor:hover, h2 a.anchor:hover, h3 a.anchor:hover, h4 a.anchor:hover,
+h5 a.anchor:hover, h6 a.anchor:hover {
+    color: #777;
+    background-color: #eee;
+}
+                              
+                              
 code                        { font-size: 100%; }
  
 /* Page Header & Footer
@@ -44,14 +93,25 @@ h2.epydoc                   { font-size: +130%; font-weight: bold; }
 h3.epydoc                   { font-size: +115%; font-weight: bold; }
 td h3.epydoc                { font-size: +115%; font-weight: bold;
                               margin-bottom: 0; }
-table.navbar                { background: #a0c0ff; color: #000000;
-                              border: 2px groove #c0d0d0; }
+table.navbar                {
+	/*background: #a0c0ff;
+	color: #000000;*/
+	border: 2px groove #c0d0d0;
+	padding-bottom: 0.4em;
+	padding-top: 0.4em;
+	padding-right: 0.4em;
+	margin-bottom: 0.5em;
+	margin-top: 0.5em;
+	background-color: #e8f0f8;
+}
 table.navbar table          { color: #000000; }
-th.navbar-select            { background: #70b0ff;
-                              color: #000000; } 
+/*th.navbar-select            { 
+							background: #70b0ff;
+                             color: #000000; } */
+/*                            
 table.navbar a              { text-decoration: none; }  
 table.navbar a:link         { color: #0000ff; }
-table.navbar a:visited      { color: #204080; }
+table.navbar a:visited      { color: #204080; }*/
 span.breadcrumbs            { font-size: 85%; font-weight: bold; }
 span.options                { font-size: 70%; }
 span.codelink               { font-size: 85%; }
@@ -65,12 +125,17 @@ td.footer                   { font-size: 85%; }
  *   - Summary tables that contain user-defined groups mark those
  *     groups using 'group header' rows.
  */
-td.table-header             { background: #70b0ff; color: #000000;
+td.table-header             { background:#e8f0f8;/*  #70b0ff; */
+						color: #000000;
                               border: 1px solid #608090; }
 td.table-header table       { color: #000000; }
 td.table-header table a:link      { color: #0000ff; }
 td.table-header table a:visited   { color: #204080; }
-span.table-header           { font-size: 120%; font-weight: bold; }
+span.table-header           {
+	font-size: 120%;
+	font-weight: bold;
+	color: #222222;
+}
 th.group-header             { background: #c0e0f8; color: #000000;
                               text-align: left; font-style: italic; 
                               font-size: 115%; 
@@ -84,15 +149,21 @@ th.group-header             { background: #c0e0f8; color: #000000;
  *   - CSS styles for the table's header and group headers are
  *     defined above, under 'Table Headers'
  */
-table.summary               { border-collapse: collapse;
-                              background: #e8f0f8; color: #000000;
-                              border: 1px solid #608090;
-                              margin-bottom: 0.5em; }
-td.summary                  { border: 1px solid #608090; }
-code.summary-type           { font-size: 85%; }
-table.summary a:link        { color: #0000ff; }
-table.summary a:visited     { color: #204080; }
+table.summary               {
+	border-collapse: collapse;
+	background: #FFFFFF;/* #e8f0f8;*/
+	color: #000000;
+	border: 1px solid #608090;
+	margin-bottom: 0.5em;
+}
+td.summary                  { border: 1px solid #608090; 
 
+}
+code.summary-type           { font-size: 85%; }
+/*table.summary a:link        { color: #0000ff; }
+table.summary a:visited     { color: #204080; }*/
+table.summary a { color: #CA7900; }
+table.summary a:hover {   color: #2491CF; }
 
 /* Details Tables (functions, variables, etc)
  *   - Each object is described in its own div.
@@ -101,9 +172,11 @@ table.summary a:visited     { color: #204080; }
  *     is defined above, under 'Table Headers').
  */
 table.details               { border-collapse: collapse;
-                              background: #e8f0f8; color: #000000;
+                              background: #FFFFFF; /**#e8f0f8; */
+							  color: #000000;
                               border: 1px solid #608090;
-                              margin: .2em 0 0 0; }
+                              margin: .2em 0 0 0;
+							  font-size: 90%; }
 table.details table         { color: #000000; }
 table.details a:link        { color: #0000ff; }
 table.details a:visited     { color: #204080; }
@@ -143,7 +216,7 @@ table.metadata-index a:visited  { color: #204080; }
  *   - .summary-sig* is used for the signature in the summary 
  *     table, and when listing property accessor functions.
  * */
-.sig-name                   { color: #006080; }
+.sig-name                   { font-size: 110%; color: #006080; }
 .sig-arg                    { color: #008060; }
 .sig-default                { color: #602000; }
 .summary-sig                { font-family: monospace; }
@@ -152,6 +225,9 @@ table.summary a.summary-sig-name:link
                             { color: #006080; font-weight: bold; }
 table.summary a.summary-sig-name:visited
                             { color: #006080; font-weight: bold; }
+table.summary a:hover
+                            { text-decoration: underline; }						
+							
 .summary-sig-arg            { color: #006040; }
 .summary-sig-default        { color: #501800; }
 
@@ -162,8 +238,11 @@ table.summary
      a.summary-name:link    { color: #006080; font-weight: bold;
                               font-family: monospace; }
 table.summary
-    a.summary-name:visited  { color: #006080; font-weight: bold;
-                              font-family: monospace; }
+    a.summary-name:visited  {
+	color: #006080;
+	font-weight: bold;
+	font-family: monospace;
+}
 
 /* Variable values
  *   - In the 'variable details' sections, each varaible's value is
@@ -198,7 +277,17 @@ pre.variable                { padding: .5em; margin: 0;
  *   - Used by class pages to display the base class hierarchy.
  */
 pre.base-tree               { font-size: 80%; margin: 0; }
+pre {
+    line-height: 120%;
+}
 
+pre a {
+    color: inherit;
+    text-decoration: underline;
+}
+div.body a {
+    text-decoration: underline;
+}
 /* Frames-based table of contents headers
  *   - Consists of two frames: one for selecting modules; and
  *     the other listing the contents of the selected module.
