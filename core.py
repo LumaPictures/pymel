@@ -1487,6 +1487,14 @@ def refreshFileReferences():
         FileReference._refs["fn:%s" % fn.replace("\\","/")] = fr
 
 
+def _getAllFileReferences():
+    ret =  [v for (k,v) in FileReference._refs.iteritems() if k.startswith("ns:")]
+    if not ret:
+        refreshFileReferences()
+        ret =  [v for (k,v) in FileReference._refs.iteritems() if k.startswith("ns:")]
+    return ret
+        
+
 _callbacks = []
 def _setupFileReferenceCallbacks():
     global _callbacks
