@@ -508,9 +508,32 @@ def promptForFolder():
     def getfolder(*args):
         folder[0] = args[0]
     ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
-    folder = path.path(folder[0])
+    folder = Path(folder[0])
     if folder.exists():
         return folder
+
+def promptForPath():
+    """ Prompt the user for a folder path """
+    
+    if cmds.about(linux=1):
+        return fileDialog(mode=0)
+    
+    else:
+        # a little trick that allows us to change the top-level 'folder' variable from 
+        # the nested function ('getfolder') - use a single-element list, and change its content
+        
+        folder = [None]
+        def getfolder(*args):
+            folder[0] = args[0]
+        ret = cmds.fileBrowserDialog(m=0, fc=getfolder, an="Get File")
+        folder = Path(folder[0])
+        if folder.exists():
+            return folder
+    
+def fileDialog(*args, **kwargs):
+    ret = cmds.fileDialog(*args, **kwargs )
+    if ret:
+        return Path( ret )
 
 
 class _ListSelectLayout(FormLayout):
