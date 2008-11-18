@@ -1256,6 +1256,28 @@ class PyNode(util.ProxyUnicode):
             #assert obj or name
             
         else :
+            # create node if possible
+            if issubclass(cls,DependNode):
+                #print "creating dependNode"
+                if not cls.__melcmd_isinfo__:
+                    try:
+                        res = cls.__melcmd__()
+                        #print res
+                        if isinstance(res,cls):
+                            return res
+                        elif isinstance(res,list):
+                            # we only want to return a single object
+                            for x in res:
+                                if isinstance(x,cls):
+                                    return x
+    
+                    except:
+                        pass
+                
+                try:
+                    return createNode( cls.__melnode__ )
+                except:
+                    pass
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
         
         # print "type:", pymelType
@@ -1873,12 +1895,13 @@ class Attribute(PyNode):
     Attributes
     ==========
     
-    The Attribute class is your one-stop shop for all attribute related functions. Those of us who are familiar with MEL
+    The Attribute class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
     have become familiar with all the separate commands for operating on attributes.  This class gathers them all into one
-    place.
+    place. If you ever forget what the method you want is named, just ask for help by typing `help(Attribute)`.  
     
     For the most part, the names of the class methods equivalents to the maya.cmds functions follow a fairly simple pattern:
     `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
+    Here's a simple example showing how the Attribute class is used in context.
     
         >>> from pymel import *
         >>> persp = PyNode('persp')
@@ -1899,7 +1922,8 @@ class Attribute(PyNode):
     
     The shorthand method is the most visually appealing and readable: you simply access the maya attribute as a normal python attribute: 
 
-
+        >>> persp  # continue from where we left off above
+        Transform('persp')
         >>> persp.visibility
         Attribute('persp.visibility') # long name access
         >>> persp.v
@@ -1909,28 +1933,37 @@ class Attribute(PyNode):
     If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`, or
     `Attribute.partialName`.
     
-    The shorthand syntax may have the most readability,  but it has the drawaback that if the attribute that you wish to acess has the same
-    name as one of the attributes or methods of the python class then it will fail. T
+    The shorthand syntax has the most readability,  but it has the drawaback that if the attribute that you wish to acess has the same
+    name as one of the attributes or methods of the python class then it will fail. 
     
     attr Method
     ~~~~~~~~~~~
-    The attr method is the safest way the access an attribute, and can even be used to access attributes that conflict with 
-    python's own special methods, which would fail using shorthand syntax. This method is passed a string which
+    The attr method is the safest way to access an attribute, and can even be used to access attributes that conflict with 
+    python methods, which would fail using shorthand syntax. This method is passed a string which
     is the name of the attribute to be accessed. 
         
         >>> persp.attr('visibility')
         Attribute('persp.visibility')
     
-    This gives it the added advantage of being capable of recieving attributes which 
-    are determine at runtime:        
+    Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
         
         >>> for axis in ['translateX', 'translateY', 'translateZ']: 
         ...     persp.attr( axis ).lock()          
-
+    
+    Direct Instantiation
+    ~~~~~~~~~~~~~~~~~~~~
+    The last way of getting an attribute is by directly instiating the class. You can pass the attribute name as a string, or if you have one handy,
+    pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
+    class, which will determine the appropriate class automaticallly.
+    
+        >>> at = Attribute( 'persp.visibility' )
+        >>> PyNode( 'persp.translate' )
+        Attribute( 'persp.translate' )
+    
     
     Getting Attribute Values
     ------------------------
-    To get an attribute, you use the `get` method. Keep in mind that, where applicable, the values returned will 
+    To get the value of an attribute, you use the `get` method. Keep in mind that, where applicable, the values returned will 
     be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
     
         >>> rot = persp.rotate.get()
@@ -1943,7 +1976,7 @@ class Attribute(PyNode):
     -------------------------
     there are several ways to set attributes in pymel:
     
-        >>> spersp.rotate.set([4,5,6])   # you can pass triples as a list
+        >>> persp.rotate.set([4,5,6])   # you can pass triples as a list
         >>> persp.rotate.set(4,5,6)     # or not    
         >>> persp.rotate = [4,5,6]      # and finally, shorthand
 
@@ -1951,7 +1984,7 @@ class Attribute(PyNode):
     ---------------------
     As you might expect, connecting attributes is pretty straightforward.
                 
-        >>> persp.rotateX.connect( s.rotateY )
+        >>> persp.rotateX.connect( persp.rotateY )
     
     there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
 
@@ -2919,7 +2952,7 @@ class DependNode( PyNode ):
             >>> Transform.attrDefaults('tx').isKeyable()
             True
             
-        but it can use one if needed ( for example, for dynamicallly created attributes )
+        but it can use one if needed ( for example, for dynamically created attributes )
             
             >>> Transform('persp').attrDefaults('tx').isKeyable()
             
@@ -2928,7 +2961,7 @@ class DependNode( PyNode ):
         if inspect.isclass(obj):
             cls = obj # keep things familiar
             try:
-                mfn = cls.__apiobjects__['MFn']
+                nodeMfn = cls.__apiobjects__['MFn']
             except KeyError:          
                 cls.__apiobjects__['dagMod'] = api.MDagModifier()
                 cls.__apiobjects__['dgMod'] = api.MDGModifier()
@@ -2936,15 +2969,15 @@ class DependNode( PyNode ):
                 obj = api.conversions._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
                                                                 cls.__apiobjects__['dagMod'], 
                                                                 cls.__apiobjects__['dgMod'] )
-                mfn = cls.__apicls__(obj)
-                cls.__apiobjects__['MFn'] = mfn
+                nodeMfn = cls.__apicls__(obj)
+                cls.__apiobjects__['MFn'] = nodeMfn
             
         else:
             self = obj # keep things familiar
-            mfn = self.__apimfn__()
+            nodeMfn = self.__apimfn__()
         
         # TODO: create a wrapped class for MFnAttribute
-        return api.MFnAttribute( mfn.attribute(attr) )
+        return api.MFnAttribute( nodeMfn.attribute(attr) )
         
     def attr(self, attr):
         """access to attribute plug of a node. returns an instance of the Attribute class for the 
@@ -4417,7 +4450,7 @@ def toMayaType( obj, default=None ):
         return api.ApiEnumsToMayaTypes().get( obj, default )
     elif isinstance( obj, basestring ):
         return api.ApiTypesToMayaTypes().get( obj, default)
-    elif isinstance( obj, PyNode ):
+    elif issubclass( obj, PyNode ):
         return _factories.PyNodesToMayaTypes().get( obj, default )
     
 def toApiFunctionSet( obj, default=None ):

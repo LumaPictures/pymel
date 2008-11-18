@@ -2775,7 +2775,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
             classdict['__doc__'] = classdoc
             classdict['__melcmd__'] = staticmethod(func)
-            
+            classdict['__melcmd_isinfo__'] = infoCmd
             
             
             filterAttrs = ['name']+classdict.keys()
