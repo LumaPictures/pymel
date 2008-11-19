@@ -251,7 +251,7 @@ def suite():
     if testMayaCmds:
         return allSuite
     else:
-        return wrapppedCmdsSuite
+        return wrappedCmdsSuite
 
 def main():
     unittest.TextTestRunner(stream=sys.stdout, verbosity=2).run(suite())

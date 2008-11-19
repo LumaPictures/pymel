@@ -308,7 +308,7 @@ def isEquivalenceRelation(inputs, outputs, dict):
         return False
     
 class SuiteFromTestModule(TestSuite):
-    def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME):
+    def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME, addSelfTest=True):
         super(SuiteFromTestModule, self).__init__()
         self.moduleName = moduleName
         self.suiteFuncName = suiteFuncName
@@ -333,24 +333,36 @@ class SuiteFromTestModule(TestSuite):
             self.module = None
             
     def _importSuite(self):
-        self.importedSuite = None
-        if self.module:
-            suiteFunc = getattr(self.module, self.suiteFuncName, None)
-            if callable(suiteFunc):
-                self.importedSuite = suiteFunc()
-
-            if not self.importedSuite:
-                self.importedSuite = default_suite(self.module)
-
-        if (not isinstance(self.importedSuite, TestSuite)
-            or not self.importedSuite.countTestCases()):
+        self._importSuiteError = None
+        try:
+            self.importedSuite = None
+            if self.module:
+                suiteFunc = getattr(self.module, self.suiteFuncName, None)
+                if isinstance(suiteFunc, TestSuite):
+                    self.importedSuite = suiteFunc
+                elif callable(suiteFunc):
+                    self.importedSuite = suiteFunc()
+    
+                if not self.importedSuite:
+                    self.importedSuite = default_suite(self.module)
+    
+            if not isinstance(self.importedSuite, TestSuite):
+                self._importSuiteError = "Imported object '%s' (from %s.%s) was not a TestSuite object" % (self.importedSuite, self.module, self.suiteFuncName)
+            elif not self.importedSuite.countTestCases():
+                self._importSuiteError = "Imported suite (from %s.%s) had no test cases" % (self.module.__name__, self.suiteFuncName)
+                # TODO: remp
+                print self.suiteFuncName
+        except:
+            self._importSuiteError = lastFormattedException()
+            
+        if self._importSuiteError:
             self.importedSuite = None
 
     def _makeTestCase(self):
         class TestSuiteImport(TestCaseExtended):
-            def runTest(self_testcase):
-                self_testcase.assertTrue(self.module, "Failed to import module '%s':\n%s" % (self.moduleName, self._importError))
-                #self_testcase.assertTrue(self.importedSuite, "Failed to create a test suite from module '%s'" % self.moduleName)
+            def runTest(testCase_self):
+                testCase_self.assertTrue(self.module, "Failed to import module '%s':\n%s" % (self.moduleName, self._importError))
+                testCase_self.assertTrue(self.importedSuite, "Failed to create a test suite from module '%s':\n%s" % (self.moduleName, self._importSuiteError))
             runTest.__doc__ = """Try to import module '%s'""" % self.moduleName
         self.testCase = TestSuiteImport()
 
@@ -434,7 +446,7 @@ def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_")
 #   lib\test\regrtest.py
 #================================================================================
 STDTESTS = []
-NOTTESTS = []
+NOTTESTS = ["pymel.util.test.test_conversions"] # Nothing in it right now...
 def findTestModules(testdir=None, stdtests=STDTESTS, nottests=NOTTESTS, package="__thisPackage__", testModulePrefix="test_"):
     """Return a list of all applicable test modules."""
     if package == "__thisPackage__":
