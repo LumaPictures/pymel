@@ -35,6 +35,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.grp3 = instance(self.grp1)[0]
         self.sphere3, self.cube3 = self.grp3.getChildren()
         
+        self.newobjs = []
+        
     def test01_attribute_parent_equality(self):
         self.assertEqual( self.sphere2.t.tx.parent(), self.sphere2.t )
         
@@ -57,8 +59,27 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         print torus.fullPath()
         
     #def test05_dagNode_getParent(self):
-    def test_instances(self):
+    def test06_instances(self):
         self.assert_( self.sphere1.isInstance( self.sphere3) )   
+    
+    
+    def test07_linearUnits(self):
+        startLinear = currentUnit( q=1, linear=1)
+        at = self.sphere1.translate
+        currentUnit(linear='meter')
+        realValue = Vector([3.0,2.0,1.0])
+        setAttr( at, realValue )
+        gotValue = at.get( )
+        print realValue, gotValue
+        self.assertEqual( realValue, gotValue )
+        at.set( realValue )
+        gotValue = getAttr( at )
+        self.assertEqual( realValue, gotValue )
+        currentUnit(linear=startLinear)
+    
+    def test_classCreation(self):
+        self.newobjs.append( Joint() )
+        self.newobjs.append( Transform() )
         
     def tearDown(self):
         # cleaning
