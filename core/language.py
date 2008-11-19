@@ -224,9 +224,9 @@ catch = Catch()
 #--------------------------
     
 class Mel(object):
-    """This class is a necessity for calling mel scripts from python. It allows scripts to be called
-    in a cleaner fashion, by automatically formatting python arguments into a string 
-    which is executed via maya.mel.eval().  An instance of this class is already created for you 
+    """This class is a convenience for calling mel scripts from python, but if you are like me, you'll quickly find that it
+    is a necessity. It allows mel scripts to be called as if they were python functions: it automatically formats python
+    arguments into a command string which is executed via maya.mel.eval().  An instance of this class is already created for you 
     when importing pymel and is called mel.  
     
     
@@ -245,7 +245,7 @@ class Mel(object):
         >>> # run the script
         >>> mel.myScript("firstArg", [1.0, 2.0, 3.0])
         
-    The above is a very simplistic example. The advantages of pymel over mel.eval are more readily
+    The above is a very simplistic example. The advantages of pymel.mel over maya.mel.eval are more readily
     apparent when we want to pass a python object to our mel procedure:
     
     default:        
@@ -260,7 +260,7 @@ class Mel(object):
         >>> mel.myScript( node.type(), node.color.get() )
     
     In this you can see how `pymel.core.mel` allows you to pass any python object directly to your mel script as if 
-    it were a python function, with no need for formatting arguments.
+    it were a python function, with no need for formatting arguments.  The resulting code is much more readable.
     """
             
     def __getattr__(self, command):
