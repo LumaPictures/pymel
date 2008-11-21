@@ -757,10 +757,6 @@ def nodeType( node, **kwargs ):
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
         return cmds.nodeType( unicode(node), **kwargs )
 
-    if isinstance(node,basestring) :
-        #obj = api.toMObject( node.split('.')[0] )
-        # don't spend the extra time converting to MObject
-        return cmds.nodeType( node, **kwargs )
      
     obj = None
     objName = None
@@ -777,8 +773,12 @@ def nodeType( node, **kwargs ):
 #        else :
 #            obj = None
     else:
-        raise TypeError, "Invalid input %r." % node
-
+    #if isinstance(node,basestring) :
+        #obj = api.toMObject( node.split('.')[0] )
+        # don't spend the extra time converting to MObject
+        return cmds.nodeType( unicode(node), **kwargs )
+        #raise TypeError, "Invalid input %r." % node
+        
     if kwargs.get( 'apiType', kwargs.get( 'api', False) ):
         return node.__apimobject__().apiTypeStr()     
     # default
