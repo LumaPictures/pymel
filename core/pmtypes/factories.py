@@ -3253,10 +3253,8 @@ def pluginLoadedCallback( module ):
                             addPyNode( module, node, parent )
                             parent = node
             
-            #if _api.MFileIO.isReadingFile():
-            #    print "reading"
-            if _api.MFileIO.isOpeningFile():
-                #print "opening"
+            if _api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile():
+                #print "pymel: Installing temporary plugin-loaded callback"
                 id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
                 pluginData[pluginName]['callbackId'] = id
                 # scriptJob not respected in batch mode, had to use api
