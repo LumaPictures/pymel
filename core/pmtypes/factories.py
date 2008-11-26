@@ -487,9 +487,9 @@ def fixCodeExamples():
     
     manipOptions = cmds.manipOptions( q=1, handleSize=1, scale=1 )
     animOptions = []
-    animOptions.append( cmds.animDisplay( timeCode=True ) )
-    animOptions.append( cmds.animDisplay( timeCodeOffset="02:01:25:12" ) )
-    animOptions.append( cmds.animDisplay( modelUpdate="interactive" ) )
+    animOptions.append( cmds.animDisplay( q=1, timeCode=True ) )
+    animOptions.append( cmds.animDisplay( q=1, timeCodeOffset=True )  )
+    animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
     
     openWindows = cmds.lsUI(windows=True)
     for command in sorted(cmdlist.keys()):
@@ -517,8 +517,8 @@ def fixCodeExamples():
                 info['example'] = None
                 continue
             
-            
-            lines[0] = 'import pymel as pm' #     #doctest: +SKIP'
+            DOC_TEST_SKIP = ' #doctest: +SKIP'
+            lines[0] = 'import pymel as pm' + DOC_TEST_SKIP 
             #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
             # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
             cmds.file(new=1,f=1)
@@ -561,7 +561,8 @@ def fixCodeExamples():
                                         print "stopping evaluation", str(e) # of %s on line %r" % (command, line)
                                         evaluate = False
                                 try:
-                                    print "evaluating: %r" % line
+                                    if VERBOSE:
+                                        print "evaluating: %r" % line
                                     res = eval( line )
                                     #if res is not None: print "result", repr(repr(res))
                                     #else: print "no result"
@@ -574,9 +575,9 @@ def fixCodeExamples():
                                         evaluate = False
                                                 
                         if line.startswith(' ') or line.startswith('\t'):       
-                            newlines.append('    ... ' + line)
+                            newlines.append('    ... ' + line  )
                         else:
-                            newlines.append('    >>> ' + line)
+                            newlines.append('    >>> ' + line + DOC_TEST_SKIP )
                 
                         if res is not None:
                             newlines.append( '    ' + repr(res) )
@@ -1994,14 +1995,38 @@ ApiTypeRegister.register('MIntArray', int, apiArrayItemType=int)
 ApiTypeRegister.register('MFloatArray', float, apiArrayItemType=float)
 ApiTypeRegister.register('MDoubleArray', float, apiArrayItemType=float)
 
-class ApiArgUtil(object):
+class ApiArgUtil(object): 
 
     def __init__(self, apiClassName, methodName, methodIndex=0 ):
         """If methodInfo is None, then the methodIndex will be used to lookup the methodInfo from apiClassInfo"""
         self.apiClassName = apiClassName
         self.methodName = methodName
+        
+        
+        if methodIndex is None:
+            try:
+                methodInfoList = _api.apiClassInfo[apiClassName]['methods'][methodName]
+            except KeyError:
+                raise TypeError, "method %s of %s cannot be found" % (methodName, apiClassName)  
+            else:
+                for i, methodInfo in enumerate( methodInfoList ):
+                  
+                    #argInfo = methodInfo['argInfo']
+            
+                    #argList = methodInfo['args']
+                    argHelper = ApiArgUtil(apiClassName, methodName, i)
+                    
+                    if argHelper.canBeWrapped() :
+                        methodIndex = i  
+                        break
+                
+                # if it is still None then we didn't find anything
+                if methodIndex is None:
+                    raise TypeError, "method %s of %s cannot be wrapped" % (methodName, apiClassName)  
+        
         self.methodInfo = _api.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
-
+        self.methodIndex = methodIndex
+        
     def iterArgs(self, inputs=True, outputs=True, infoKeys=[]):
         res = []
         for argname, argtype, direction in self.methodInfo['args']:
@@ -2022,7 +2047,28 @@ class ApiArgUtil(object):
                 arg_res = argname
             res.append( arg_res )
         return res
-        
+
+    def inArgs(self):
+        return self.methodInfo['inArgs']
+    
+    def outArgs(self):
+        return self.methodInfo['outArgs']
+
+    def argList(self):
+        return self.methodInfo['args']
+    
+    def argInfo(self):
+        return self.methodInfo['argInfo']
+    
+    def getGetterInfo(self):
+
+        try:
+            inverse, isgetter = self.methodInfo['inverse']
+            if isgetter:
+                return ApiArgUtil( self.apiClassName, inverse, self.methodIndex )
+        except:
+            pass
+                  
     @staticmethod
     def isValidEnum( enumTuple ):
         if _api.apiClassInfo.has_key(enumTuple[0]) and \
@@ -2104,7 +2150,15 @@ class ApiArgUtil(object):
         types = self.methodInfo['types']
         return ret + [str(types[x]) for x in outArgs ]
     
-         
+    def getReturnType(self):
+        return self.methodInfo['returnType']
+    
+    def getPymelName(self):
+        return self.methodInfo.get('pymelName',self.methodName)
+
+    def getClassDocs(self):
+        return self.methodInfo['doc']
+    
     def getPrototype(self, className=True, methodName=True, outputs=False, defaults=False):
         inArgs = self.methodInfo['inArgs']
         outArgs =  self.methodInfo['outArgs']
@@ -2305,7 +2359,126 @@ class ApiArgUtil(object):
     
     def isStatic(self):
         return self.methodInfo['static']
+
+class ApiUndo:
+
+    __metaclass__ = util.Singleton
+
+    def __init__( self ):
+        self.node_name = '__pymelUndoNode'
+        self.cb_enabled = False
+        self.undo_queue = []
+        self.redo_queue = []
+
+
+    def _attrChanged(self, msg, plug, otherPlug, data):
+        if self.cb_enabled \
+           and (msg & _api.MNodeMessage.kAttributeSet != 0) \
+           and (plug == self.cmdCountAttr):
+
+            if _api.MGlobal.isUndoing():
+                cmdObj = self.undo_queue.pop()
+                cmdObj.undoIt()
+                self.redo_queue.append(cmdObj)
+
+            elif _api.MGlobal.isRedoing():
+                cmdObj = self.redo_queue.pop()
+                cmdObj.redoIt()
+                self.undo_queue.append(cmdObj)
+
+
+    def _createNode( self ):
+        """
+        Create the undo node.
+
+        Any type of node will do. I've chosen a 'facade' node since it
+        doesn't have too much overhead and won't get deleted if the user
+        optimizes the scene.
+
+        Note that we don't want to use Maya commands here because they
+        would pollute Maya's undo queue, so we use API calls instead.
+        """
+        self.flushUndo()
+
+        dgmod = _api.MDGModifier()
+        self.undoNode = dgmod.createNode('facade')
+        dgmod.renameNode(self.undoNode, self.node_name)
+        dgmod.doIt()
+
+        # Add an attribute to keep a count of the commands in the stack.
+        attrFn = _api.MFnNumericAttribute()
+        self.cmdCountAttr = attrFn.create( 'cmdCount', 'cc',
+                                           _api.MFnNumericData.kInt
+                                           )
+
+        nodeFn = _api.MFnDependencyNode(self.undoNode)
+        self.node_name = nodeFn.name()
+        nodeFn.addAttribute(self.cmdCountAttr)
+
+        nodeFn.setDoNotWrite(True)
+        nodeFn.setLocked(True)
+
+        # Set up a callback to keep track of changes to the counts.
+        try:
+            _api.MMessage.removeCallback( self.cbid )
+        except:
+            pass
+
+        self.cbid = _api.MNodeMessage.addAttributeChangedCallback(
+            self.undoNode, self._attrChanged )
+
+    def append(self, cmdObj ):
+        self.cb_enabled = False
+
+        if not cmds.objExists( self.node_name ):
+            self._createNode()
+
+        # Increment the undo node's command count. We want this to go into
+        # Maya's undo queue because changes to this attr will trigger our own
+        # undo/redo code.
+        count = cmds.getAttr(self.node_name + '.cmdCount')
+        cmds.setAttr(self.node_name + '.cmdCount', count + 1)
+
+        # Append the command to the end of the undo queue.
+        self.undo_queue.append(cmdObj)
+
+        # Clear the redo queue.
+        self.redo_queue = []
+
+        # Re-enable the callback.
+        self.cb_enabled = True
     
+    def execute( self, cmdObj, args ):
+        self.cb_enabled = False
+
+        if not cmds.objExists( self.node_name ):
+            self._createNode()
+
+        # Increment the undo node's command count. We want this to go into
+        # Maya's undo queue because changes to this attr will trigger our own
+        # undo/redo code.
+        count = cmds.getAttr(self.node_name + '.cmdCount')
+        cmds.setAttr(self.node_name + '.cmdCount', count + 1)
+
+        # Execute the command object's 'doIt' method.
+        res = cmdObj.doIt(args)
+
+        # Append the command to the end of the undo queue.
+        self.undo_queue.append(cmdObj)
+
+        # Clear the redo queue.
+        self.redo_queue = []
+
+        # Re-enable the callback.
+        self.cb_enabled = True
+        return res
+
+    def flushUndo( self, *args ):
+        self.undo_queue = []
+        self.redo_queue = []
+
+apiUndo = ApiUndo()
+       
 def interface_wrapper( doer, args=[], defaults=[] ):
     """
     A wrapper which allows factories to create functions with
@@ -2361,168 +2534,238 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
     apiClassName = apiClass.__name__
     try:
-        # there may be more than one method signatures per method name
-        methodInfoList = _api.apiClassInfo[apiClassName]['methods'][methodName]
-        if overloadIndex is not None:
-            methodInfoList = [ methodInfoList[overloadIndex] ] # a list with one element
-        
-            
-            
-    except KeyError:
-        print "could not find method:", apiClassName, methodName
-        return
-    
-    try:
         method = getattr( apiClass, methodName )
     except AttributeError:
         return
     
-    if newName is None:
-        newName = methodInfoList[0].get('pymelName',None)
+    argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
     
-    for i, methodInfo in enumerate( methodInfoList ):
-      
-        #argInfo = methodInfo['argInfo']
+    if newName is None:
+        pymelName = argHelper.getPymelName()
+    else:
+        pymelName = newName
+          
+    if argHelper.canBeWrapped() :
+        inArgs = argHelper.inArgs()
+        outArgs = argHelper.outArgs()
+        argList = argHelper.argList()
+        argInfo = argHelper.argInfo()
 
-        #argList = methodInfo['args']
-        argHelper = ApiArgUtil(apiClassName, methodName, i)
-        
-        if argHelper.canBeWrapped() :
-            inArgs = methodInfo['inArgs']
-            outArgs = methodInfo['outArgs']
-            argList = methodInfo['args']
-            argInfo = methodInfo['argInfo']
-                    
-            # create the function 
-            def wrappedApiFunc( self, *args ):
 
-                newargs = []
-                outTypeList = []
-                #outTypeIndex = []
-
-                if len(args) != len(inArgs):
-                    raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
-                #print args, argInfo
-                inCount = 0
-                totalCount = 0
-                for name, argtype, direction in argList :
-                    if direction == 'in':
-                        newargs.append( argHelper.castInput( name, args[inCount], self.__class__ ) )
-                        inCount +=1
-                    else:
-                        val = argHelper.initReference(argtype) 
-                        newargs.append( val )
-                        outTypeList.append( (argtype, totalCount) )
-                        #outTypeIndex.append( totalCount )
-                    totalCount+=1
-      
-                #print "%s.%s: arglist %s" % ( apiClassName, methodName, newargs)
-                
-                if argHelper.isStatic():
-                    result = method( *newargs )
-                else:
-                    try:
-                        if proxy:
-                            result = method( self.__apimfn__(), *newargs )
-                        else:
-                            result = method( self, *newargs )
-                    except RuntimeError:
-                        print newargs
-                        raise
-                #print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
-                
-                result = argHelper.castResult( self, result ) 
-                
-                #print methodName, "result (post)", result
-                 
-                if len(outArgs):
-                    if result is not None:
-                        result = [result]
-                    else:
-                        result = []
-                    
-                    for outType, index in outTypeList:
-                        outArgVal = newargs[index]
-                        res = argHelper.castReferenceResult( outType, outArgVal )
-                        result.append( res )
-                        
-                    if len(result) == 1:
-                        result = result[0]
-                return result
+        getterArgHelper = argHelper.getGetterInfo()
+        if argHelper.hasOutput() :
+            getterArgList = []
+            # query method ( getter )
+            #if argHelper.getGetterInfo() is not None:
+            if getterArgHelper is not None:
+                util.warn( "%s.%s has an inverse 'getter' %s, but it has outputs, which is not allowed for a 'setter'" % ( 
+                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
             
-            if newName:
-                wrappedApiFunc.__name__ = newName
+        else:
+            # edit method ( setter )
+            if getterArgHelper is None:
+                util.warn( "%s.%s has no inverse 'getter': undo will not be supported" % ( apiClassName, methodName ) )
+                getterArgList = []
             else:
-                wrappedApiFunc.__name__ = methodName
+                getterArgList = getterArgHelper.inArgs()
             
-            def formatDocstring(type):
-                # convert
-                # "['one', 'two', 'three', ['1', '2', '3']]"
-                # to
-                # "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
-                
-                # Enums
-                # this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
-                # import api directly, we have to do a string name comparison
-                if type.__class__.__name__ == 'Enum':
-                    try:
-                        type = type.pymelName()
-                    except:
-                        try:
-                            type = type.pymelName( ApiTypeRegister.getPymelType( type[0] ) )
-                        except:
-                            print "Could not determine pymel name for", type
-                            pass
+#        getterArgHelper = argHelper.getGetterInfo()
+#        if getterArgHelper is not None:
+#            if argHelper.hasOutput() :
+#                util.warn( "%s.%s has an inverse 'getter' %s, but it has outputs, which is not allowed for a 'setter'" % ( 
+#                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
+#                getterArgList = []
+#            else:
+#                getterArgList = getterArgHelper.inArgs()
+#        else:
+#            getterArgList = []
 
-                return repr(type).replace("'", "`")
-            
-            # Docstrings
-            docstring = methodInfo['doc']
-            S = '    '
-            if len(inArgs):
-                docstring += '\n\n:Parameters:\n'
-                for name in inArgs :
-                    info = argInfo[name]
-                    type = info['type']
-                    type = ApiTypeRegister.types.get(type,type)
-                    type = formatDocstring(type)
-                    
-                    docstring += S + '%s : %s\n' % (name, type )
-                    docstring += S*2 + '%s\n' % (info['doc'])  
-                    
+        
+        # create the function 
+        def wrappedApiFunc( self, *args ):
 
-                    
-            # Results doc strings
-            results = []
-            returnType = methodInfo['returnType']
-            if returnType: 
-                rtype = ApiTypeRegister.types.get(returnType, returnType)
-                results.append( rtype )
-            for argname in outArgs:
-                rtype = argInfo[argname]['type']
-                rtype = ApiTypeRegister.types.get(rtype,rtype)
-                results.append( rtype )
-            if len(results) == 1:
-                results = results[0]
-            if results:
-                docstring += '\n\n:rtype: %s\n' %  formatDocstring(results)
-            
-            docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
-            
-            wrappedApiFunc.__doc__ = docstring
-            
+            newargs = []
+            outTypeList = []
 
-                
-            defaults = argHelper.getDefaults()
-                
-            #print inArgs, defaults
-            if defaults and VERBOSE: print "defaults", defaults
-            wrappedApiFunc = interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
             
+            #outTypeIndex = []
+
+            if len(args) != len(inArgs):
+                raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
+            #print args, argInfo
+            inCount = 0
+            totalCount = 0
+            
+            
+#            if argHelper.isStatic():
+#                pass
+#            else:
+#                if proxy:
+#                    newargs.append( self.__apimfn__() )
+#                else:
+#                    newargs.append( self)
+                    
+            getterArgs = []
+            undoArgs = []
+            missingUndoIndices = []
+                   
+            for name, argtype, direction in argList :
+                if direction == 'in':
+                    arg = args[inCount]
+                    # gather up args that are required to get the current value we are about to set
+                    if name in getterArgList:
+                        getterArgs.append(arg)
+                        undoArgs.append(arg)
+                    else:
+                        missingUndoIndices.append(len(undoArgs))
+                        undoArgs.append(None)
+                    newargs.append( argHelper.castInput( name, arg, self.__class__ ) )
+                    inCount +=1
+                else:
+                    val = argHelper.initReference(argtype) 
+                    newargs.append( val )
+                    outTypeList.append( (argtype, totalCount) )
+                    #outTypeIndex.append( totalCount )
+                totalCount+=1
+  
+            #print "%s.%s: arglist %s" % ( apiClassName, methodName, newargs)
+            
+            # get the value we are about to set
+            if getterArgHelper is not None:
+                getter = getattr( self, getterArgHelper.getPymelName() )
+                setter = getattr( self, pymelName )
+                
+                getterResult = getter( *getterArgs )
+                if not isinstance( getterResult, tuple ):
+                    getterResult = (getterResult,)
+                
+                print getterResult
+                print missingUndoIndices
+                assert len(missingUndoIndices) == len(getterResult)
+                for i, index in enumerate(missingUndoIndices):
+                    undoArgs[index] = getterResult[i]
+
+                print undoArgs
+                
+                class Undo(object):
+                    @staticmethod
+                    def redoIt():
+                        setter(*newargs)
+                    @staticmethod
+                    def undoIt():
+                        setter(*undoArgs)
+                        
+                apiUndo.append(Undo)
+                # undoIt = setter + undoArgs
+                # redoIt = setter + newargs
+                
             if argHelper.isStatic():
-                wrappedApiFunc = classmethod(wrappedApiFunc)
+                pass
+            else:
+                if proxy:
+                    newargs.insert(0, self.__apimfn__() )
+                else:
+                    newargs.insert(0, self)
+                        
+            try:
+                result = method( *newargs )
+            except RuntimeError:
+                print newargs
+                raise
+            #print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
+            
+            result = argHelper.castResult( self, result ) 
+            
+            #print methodName, "result (post)", result
+             
+            if len(outArgs):
+                if result is not None:
+                    result = [result]
+                else:
+                    result = []
                 
-            return wrappedApiFunc
+                for outType, index in outTypeList:
+                    outArgVal = newargs[index]
+                    res = argHelper.castReferenceResult( outType, outArgVal )
+                    result.append( res )
+                    
+                if len(result) == 1:
+                    result = result[0]
+                else:
+                    result = tuple(result)
+            return result
+        
+        wrappedApiFunc.__name__ = pymelName
+
+        
+        def formatDocstring(type):
+            # convert
+            # "['one', 'two', 'three', ['1', '2', '3']]"
+            # to
+            # "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
+            
+            # Enums
+            # this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
+            # import api directly, we have to do a string name comparison
+            if type.__class__.__name__ == 'Enum':
+                try:
+                    type = type.pymelName()
+                except:
+                    try:
+                        type = type.pymelName( ApiTypeRegister.getPymelType( type[0] ) )
+                    except:
+                        print "Could not determine pymel name for", type
+                        pass
+
+            return repr(type).replace("'", "`")
+        
+        # Docstrings
+        docstring = argHelper.getClassDocs()
+        S = '    '
+        if len(inArgs):
+            docstring += '\n\n:Parameters:\n'
+            for name in inArgs :
+                info = argInfo[name]
+                type = info['type']
+                type = ApiTypeRegister.types.get(type,type)
+                type = formatDocstring(type)
+                
+                docstring += S + '%s : %s\n' % (name, type )
+                docstring += S*2 + '%s\n' % (info['doc'])  
+                
+
+                
+        # Results doc strings
+        results = []
+        returnType = argHelper.getReturnType()
+        if returnType: 
+            rtype = ApiTypeRegister.types.get(returnType, returnType)
+            results.append( rtype )
+        for argname in outArgs:
+            rtype = argInfo[argname]['type']
+            rtype = ApiTypeRegister.types.get(rtype,rtype)
+            results.append( rtype )
+        if len(results) == 1:
+            results = results[0]
+        if results:
+            docstring += '\n\n:rtype: %s\n' %  formatDocstring(results)
+        
+        docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
+        
+        wrappedApiFunc.__doc__ = docstring
+        
+
+            
+        defaults = argHelper.getDefaults()
+            
+        #print inArgs, defaults
+        if defaults and VERBOSE: print "defaults", defaults
+        wrappedApiFunc = interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
+        
+        if argHelper.isStatic():
+            wrappedApiFunc = classmethod(wrappedApiFunc)
+            
+        return wrappedApiFunc
 
 
 class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :

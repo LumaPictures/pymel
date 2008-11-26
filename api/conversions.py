@@ -73,12 +73,12 @@ class ApiDocParser(object):
             # pair 'set' with 'is/get'
             pairs[setMethod] = getMethod
             for info in self.methods[setMethod]:
-                info['inverse'] = getMethod
+                info['inverse'] = (getMethod, True)
                 
             # pair 'is/get' with 'set'
             pairs[getMethod] = setMethod  
             for info in self.methods[getMethod]:
-                info['inverse'] = setMethod  
+                info['inverse'] = (setMethod, False)  
         
         for member in allFnMembers:
             m = setReg.match(member)
@@ -1221,9 +1221,9 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         #  Api Class
         #----------------------------------------------------
         # add default to type
-        #apiClassInfo['MFnTransform']['methods']['getTranslation'][0]['defaults']['space']=Enum(['MSpace', 'Space', 'kObject'])
-        #print "BEFORE", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
-        _setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kPostTransform']) )
+        #_setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kPostTransform']) )
+        #_setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kWorld']) )
+        
         #_setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
         #print "AFTER", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
         
