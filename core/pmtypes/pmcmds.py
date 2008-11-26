@@ -56,15 +56,14 @@ def addWrappedCmd(cmdname, cmd=None):
         #print new_args, new_kwargs
         res = new_cmd(*new_args, **new_kwargs)
         
-        # edit commands should return None.  
-        # currently, some of maya.cmds functions return empty strings and some return idiotic statements like 'Values Edited'.
-        # however, for UI's in particular, people use the edit command to get a pymel class for existing objects.  in general, 
-        # it may be messy but we shouldn't risk pissing people off
-#        try:
-#            if new_cmd.__module__ != 'windows' and kwargs.get('edit', kwargs.get('e', False) ): 
-#                return None
-#        except AttributeError:
-#            pass
+        # when editing, some of maya.cmds functions return empty strings and some return idiotic statements like 'Values Edited'.
+        # however, for UI's in particular, people use the edit command to get a pymel class for existing objects. 
+        # return None when we get an empty string
+        try:
+            if res=='' and kwargs.get('edit', kwargs.get('e', False) ): 
+                return None
+        except AttributeError:
+            pass
         return res
     
     wrappedCmd.__doc__ = cmd.__doc__
