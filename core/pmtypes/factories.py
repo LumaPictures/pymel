@@ -2239,16 +2239,26 @@ class ApiArgUtil(object):
         #returnType in ['MPoint'] or 
         if unit == 'linear' or returnType == 'MPoint':
             unitCast = ApiTypeRegister.outCast['MDistance']
-            result = [ unitCast(instance,val) for val in result ]
+            if util.isIterable(result):
+                result = [ unitCast(instance,val) for val in result ]
+            else:
+                result = unitCast(instance,result)
+            
         # maybe this should not be hardwired here
+        # the main reason it is hardwired is because we don't want to convert the w component, which we
+        # would do if we iterated normally
         elif returnType == 'MPoint':
             #print "linear"
             unitCast = ApiTypeRegister.outCast['MDistance']
             result = [ unitCast(instance,result[0]), unitCast(instance,result[1]), unitCast(instance,result[2]) ] 
+
         elif unit == 'angular':
             #print "angular"
             unitCast = ApiTypeRegister.outCast['MAngle']
-            result = [ unitCast(instance,val) for val in result ]
+            if util.isIterable(result):
+                result = [ unitCast(instance,val) for val in result ]
+            else:
+                result = unitCast(instance,result)
         return result
 
     def toInternalUnits(self, arg, input ):   
@@ -2311,7 +2321,7 @@ class ApiArgUtil(object):
     def castReferenceResult(self,argtype,outArg):
         f = ApiTypeRegister.refCast[ argtype ]
         print "castReferenceResult"
-        print f
+        print f, argtype, outArg
         if f is None:
             return outArg
         
@@ -2558,13 +2568,13 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             # query method ( getter )
             #if argHelper.getGetterInfo() is not None:
             if getterArgHelper is not None:
-                util.warn( "%s.%s has an inverse 'getter' %s, but it has outputs, which is not allowed for a 'setter'" % ( 
+                util.warn( "%s.%s has an inverse %s, but it has outputs, which is not allowed for a 'setter'" % ( 
                                                                             apiClassName, methodName, getterArgHelper.methodName ) )
             
         else:
             # edit method ( setter )
             if getterArgHelper is None:
-                util.warn( "%s.%s has no inverse 'getter': undo will not be supported" % ( apiClassName, methodName ) )
+                util.warn( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
                 getterArgList = []
             else:
                 getterArgList = getterArgHelper.inArgs()
@@ -2636,16 +2646,16 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 setter = getattr( self, pymelName )
                 
                 getterResult = getter( *getterArgs )
-                if not isinstance( getterResult, tuple ):
+                if not isinstance( getterResult, list ):
                     getterResult = (getterResult,)
                 
-                print getterResult
-                print missingUndoIndices
+                #print getterResult
+                #print missingUndoIndices
                 assert len(missingUndoIndices) == len(getterResult)
                 for i, index in enumerate(missingUndoIndices):
                     undoArgs[index] = getterResult[i]
 
-                print undoArgs
+                #print undoArgs
                 
                 class Undo(object):
                     @staticmethod
@@ -2659,19 +2669,32 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 # undoIt = setter + undoArgs
                 # redoIt = setter + newargs
                 
-            if argHelper.isStatic():
-                pass
-            else:
-                if proxy:
-                    newargs.insert(0, self.__apimfn__() )
-                else:
-                    newargs.insert(0, self)
-                        
             try:
-                result = method( *newargs )
+                if argHelper.isStatic():
+                    result = method( *newargs )
+                else:
+                    if proxy:
+                        result = method( self.__apimfn__(), *newargs )
+                    else:
+                        result = method( self, *newargs )
+                
             except RuntimeError:
                 print newargs
                 raise
+                          
+#            if argHelper.isStatic():
+#                pass
+#            else:
+#                if proxy:
+#                    newargs.insert(0, self.__apimfn__() )
+#                else:
+#                    newargs.insert(0, self)
+#                
+#            try:
+#                result = method( *newargs )
+#            except RuntimeError:
+#                print newargs
+#                raise
             #print "%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )
             
             result = argHelper.castResult( self, result ) 
@@ -2692,7 +2715,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 if len(result) == 1:
                     result = result[0]
                 else:
-                    result = tuple(result)
+                    result = result
             return result
         
         wrappedApiFunc.__name__ = pymelName
@@ -3025,6 +3048,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             filterAttrs += overrideMethods.get( bases[0].__name__ , [] )
             #filterAttrs += newcls.__dict__.keys()
             
+            parentClasses = [ x.__name__ for x in inspect.getmro( newcls ) ]
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
@@ -3044,7 +3068,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         methodName = 'get' + util.capitalize(flag)
                         apiToMelMap['mel'][classname].append( methodName )
                         
-                        if methodName not in filterAttrs and not hasattr(newcls, methodName):
+                        if methodName not in filterAttrs and \
+                                ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
                             if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)]['enabled']:
                                 returnFunc = None
                                 
@@ -3076,8 +3101,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         
                         apiToMelMap['mel'][classname].append( methodName )
                            
-                        if methodName not in filterAttrs and not hasattr(newcls, methodName):
-                        #if not hasattr( newcls, methodName ) :
+                        if methodName not in filterAttrs and \
+                                ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
                             if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)]['enabled']:
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
@@ -3103,7 +3128,16 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         """
         return util.uncapitalize(classname), False
     
-      
+    @classmethod
+    def isMelMethod(mcl, methodName, parentClassList):
+        """
+        Deteremine if the passed method name exists on a parent class as a mel method
+        """
+        for classname in parentClassList:
+            if methodName in apiToMelMap['mel'][classname]:
+                return True
+        return False
+     
 class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
