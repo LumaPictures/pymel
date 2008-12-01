@@ -1261,7 +1261,7 @@ class PyNode(util.ProxyUnicode):
                 #print "creating dependNode"
                 if not cls.__melcmd_isinfo__:
                     try:
-                        res = cls.__melcmd__()
+                        res = cls.__melcmd__(**kwargs)
                         #print res
                         if isinstance(res,cls):
                             return res
@@ -1275,7 +1275,7 @@ class PyNode(util.ProxyUnicode):
                         pass
                 
                 try:
-                    return createNode( cls.__melnode__ )
+                    return createNode( cls.__melnode__, **kwargs )
                 except:
                     pass
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
@@ -1499,6 +1499,18 @@ from system import namespaceInfo as _namespaceInfo, FileReference as _FileRefere
 #-----------------------------------------------
 
 class Scene(object):
+    """
+    The Scene class provides an attribute-based method for retrieving `PyNode` instances of
+    nodes in the current scene.
+    
+        >>> thisScene = Scene()
+        >>> thisScene.persp
+        Camera('persp')
+        >>> thisScene.persp.t
+        Attribute('persp.translate')
+    
+    An instance of this class is provided for you with the name SCENE. 
+    """
     __metaclass__ = util.Singleton
     def __getattr__(self, obj):
         return PyNode( obj )
