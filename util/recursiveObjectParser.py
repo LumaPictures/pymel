@@ -51,7 +51,7 @@ class Parsed(ProxyUni):
     _parser = None
     _accepts = ()
     _name = None
-    
+    classes = {}
 #class Parsed(unicode):
 #   
 #    _parser = None
@@ -100,7 +100,7 @@ class Parsed(ProxyUni):
         except :
             # default rule
             parsername = cls.__name__+"Parser"
-            parser = ParserClasses.get(parsername, None)
+            parser = Parser.classes.get(parsername, None)
             cls._parser = parser                
             warnings.warn ("could not read '_parser' for %s, building Parser name %s from Parsed class name %s" % (cls, parsername, clsname), UserWarning)
 
@@ -113,9 +113,9 @@ class Parsed(ProxyUni):
                     if not issubclass (parser, Parser):
                         raise ValueError, "Parser %s specified in Parsed class %s is not a Parser class" % (parsername, cls.__name__)    
                 # parser is a string
-                elif parser in ParserClasses :
+                elif parser in Parser.classes :
                     parsername = parser
-                    parser = ParserClasses[parsername]
+                    parser = Parser.classes[parsername]
                 else :
                     raise ValueError, "Invalid Parser specification %r in Parsed class %s" % (parser, cls.__name__)
                 
@@ -251,7 +251,7 @@ class Parsed(ProxyUni):
             if ptype is not None :
                 if verbose():
                     print "__new__ called on Parsed/Token %s with type %r" % (cls.__name__, ptype)
-                newcls = ParsedClasses.get(ptype, None)
+                newcls = Parsed.classes.get(ptype, None)
                 # can only specify an existing subclass of cls
                 if newcls is None :
                     raise TypeError, "Type %s does not correspond to any existing Parsed sub-class (%s does not exist)" % (ptype, cls.__name__  )
@@ -440,6 +440,8 @@ class Parsed(ProxyUni):
 
 class Parser(object):
     """ Abstract Base class for all name parsers """
+    classes = {}
+    
     def __new__(cls, *args, **kwargs):
         # this class is an abstract base class for all Parser classes, cannot be built directly
         
@@ -450,46 +452,36 @@ class Parser(object):
                 raise TypeError, "must specify a Parser class" 
             elif isinstance(ptype, Parser) and not ptype is Parser :
                 parsercls = ptype   
-            elif ptype in ParserClasses :
-                parsercls = ParserClasses[ptype]
+            elif ptype in Parser.classes :
+                parsercls = Parser.classes[ptype]
             else :
                 raise TypeError, "invalid Parser type: %s" % ptype            
         else :
             # subclasses of Parser
             parsercls = cls
         
-        # need to build the tokens and precedence tuples from inherited declarations
-        # gather tokens and rules definition from Parser class members (own and inherited)
-        parsercls.tokensDict = {}
-        parsercls.rulesDict = {}
-        for m in inspect.getmembers(parsercls) :
-            if m[0].startswith('t_') and m[0] != 't_error' :
-                k = m[0][2:]
-                if isinstance(m[1], basestring) :
-                    v = m[1]
-                elif inspect.isfunction(m[1]) or inspect.ismethod(m[1]) :
-                    v = m[1].__doc__
-                else :
-                    raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % m[0]
-                k = m[0][2:]
-                parsercls.tokensDict[k] = m[1]                      
-            elif m[0].startswith('p_') and inspect.ismethod(m[1]) and m[0] != 'p_error' :
-                k = m[0][2:]
-                parsercls.rulesDict[k] = m[1]
+#        if 'tokensDict' in parsercls.__dict__ and 'rulesDict' in parsercls.__dict__:
+#            rulesDict = parsercls.rulesDict
+#            tokensDict = parsercls.tokensDict
+#        else:
+        rulesDict, tokensDict = Parser.getRulesAndTokens( inspect.getmembers(parsercls) )
+                
+        tokens = tuple(tokensDict.keys())
+        rules = list(rulesDict.keys())
+        # Sort them by line number of declaration as it's how the yacc builder works to order rules
+        # TODO : some more explicit rule order handling (when precedence isn't an option) ?
+        rules.sort(lambda x,y: cmp(rulesDict[x].func_code.co_firstlineno,rulesDict[y].func_code.co_firstlineno))   
+        # print "sorted rules:", [(r, parsercls.rulesDict[r].func_code.co_firstlineno) for r in rules]
+        rules = tuple(rules)
+        
+        parsercls.tokens = tokens
+        parsercls.rules = rules
         
         # class must have a start attribute for __init__, start can be None though
         # must not inherit start as parsed would not parse own class new rules
         if not 'start' in parsercls.__dict__ :
-            parsercls.start = None          
-                
-        parsercls.tokens = tuple(parsercls.tokensDict.keys())
-        rules = list(parsercls.rulesDict.keys())
-        # Sort them by line number of declaration as it's how the yacc builder works to order rules
-        # TODO : some more explicit rule order handling (when precedence isn't an option) ?
-        rules.sort(lambda x,y: cmp(parsercls.rulesDict[x].func_code.co_firstlineno,parsercls.rulesDict[y].func_code.co_firstlineno))   
-        # print "sorted rules:", [(r, parsercls.rulesDict[r].func_code.co_firstlineno) for r in rules]
-        parsercls.rules = tuple(rules)
-     
+            parsercls.start = None     
+            
         # TODO : same for precedence rules
         return super(Parser, cls).__new__(parsercls, *args, **kwargs)
                             
@@ -516,7 +508,29 @@ class Parser(object):
         #yacc.errok(). This resets the parser state so it doesn't think it's in error-recovery mode. This will prevent an error token from being generated and will reset the internal error counters so that the next syntax error will call p_error() again.
         #yacc.token(). This returns the next token on the input stream.
         #yacc.restart(). This discards the entire parsing stack and resets the parser to its initial state.  
-        
+
+    @staticmethod
+    def getRulesAndTokens( list2d ):
+        # need to build the tokens and precedence tuples from inherited declarations
+        # gather tokens and rules definition from Parser class members (own and inherited)
+        tokensDict = {}
+        rulesDict = {}
+        for m in list2d:
+            if m[0].startswith('t_') and m[0] != 't_error' :
+                k = m[0][2:]
+                if isinstance(m[1], basestring) :
+                    v = m[1]
+                elif inspect.isfunction(m[1]) or inspect.ismethod(m[1]) :
+                    v = m[1].__doc__
+                else :
+                    raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % m[0]
+                k = m[0][2:]
+                tokensDict[k] = m[1]                      
+            elif m[0].startswith('p_') and inspect.ismethod(m[1]) and m[0] != 'p_error' :
+                k = m[0][2:]
+                rulesDict[k] = m[1]
+        return rulesDict, tokensDict
+                
     def build(self,**kwargs):
         debug = kwargs.get('debug', verbose())
         start = kwargs.get('start', self.__class__.start)  
@@ -612,6 +626,21 @@ def isParserClass (x) :
         return issubclass(x, Parser)
     except :
         return False   
+    
+def _printClassTree(cls):
+    def _printTree(data, level):
+        if isinstance(data, tuple):
+            level += 1
+            for d in data:
+                _printTree(d, level)
+        else:
+            print data
+            
+    print cls
+    tree = inspect.getclasstree(cls)
+    print tree
+    _printTree( tree )
+
 
 class autoparsed(type):
     """metaclass for dramatically reducing setup syntax for simple hierarchies"""
@@ -619,7 +648,7 @@ class autoparsed(type):
                
         
         newcls = super(autoparsed, mcl).__new__(mcl, classname, bases, classdict)
-        
+        module = __import__( newcls.__module__, globals(), locals(), [''] )
         #print "autoparsed", newcls
 
         if issubclass(newcls, Parsed):
@@ -641,7 +670,7 @@ class autoparsed(type):
                         attrname = 'p_%s_%02d' % ( classname, i+1)
                         parserdict[ attrname ] = rule
                 else:
-                    # parser already exists. use it.
+                    # parser already exists. use it, but use __dict__, not inherited info
                     parserdict = parsercls.__dict__
                     
                 # a dictionary of updates to be made to the parser
@@ -651,14 +680,21 @@ class autoparsed(type):
                 if 'start' not in parserdict:
                     updatedict['start'] = classname
     
+                # gather up all the tokens and rules and store them separately
+                tokensDict = {}
+                rulesDict = {}
                 accepts_set= set(classdict.get('_accepts', []) )
                 for name, obj in parserdict.items() :
                     # print "class %s has attribute %s" % (parsercls.__name__, m)
+                    
+                    # RULES
                     if name.startswith('p_') :
-                        k = name[2:]
+                        shortname = name[2:]
+                        # shorthand syntax: needs to be converted to a function
                         if isinstance(obj, basestring) :
                             v = obj
                             needsWrapping = True
+                        # regular syntax: already a function
                         elif inspect.isfunction(obj) or inspect.ismethod(obj) :
                             v = inspect.getdoc(obj)
                             needsWrapping = False
@@ -675,60 +711,108 @@ class autoparsed(type):
                         if len(colonSplit) ==2 and colonSplit[0] != '':
                             pipeSplit = [ x.strip() for x in colonSplit[1].split('|') ]
                             for grp in pipeSplit:
+                                # be sure to filter out ourselves
                                 accepts += [ x for x in grp.split() if classNameReg.match(x) and x!=classname ]
                         
+                        # add the classes involved in the rules
                         accepts_set.update( accepts )
                         
+                        # create the function
                         if needsWrapping:
                             def p_func(self, p):
                                 p[0] = newcls( *p[1:len(p)] )
                             p_func.__name__ = name
                             p_func.__doc__ = v
-                            print "overwriting %s._parser.%s with yacc function: %r" % ( classname, name, v)
+                            if verbose():
+                                print "overwriting %s._parser.%s with yacc function: %r" % ( classname, name, v)
                             updatedict[name] = p_func
+                            rulesDict[name] = p_func
     #                        k = m[0][2:]
     #                        if k in tokensDict :
     #                            warnings.warn("Token %s redefined in Parser %s" % (k, parser), UserWarning)
     #                        tokensDict[k] = v
+                        else:
+                            rulesDict[name] = obj
+                            
+                    # TOKENS
+                    if name.startswith('t_') and name != 't_error' :
+                        shortname = name[2:]
+                        if isinstance(obj, basestring) :
+                            v = obj
+                        elif inspect.isfunction(obj) or inspect.ismethod(obj) :
+                            v = obj.__doc__
+                        else :
+                            raise SyntaxError, "Token definition %s defines neither a string nor a function, unable to parse" % name
+                        tokensDict[name] = obj
+                
+                
                 print "%s accepts: %s" % (newcls.__name__, list(accepts_set) )
+
+                # find bases
+                bases = []
+                for parsedname in accepts_set:
+                    parsedcls = getattr( module, parsedname )
+                    try:
+                        parser = parsedcls._parser
+                    except AttributeError:
+                        try:
+                            parser = getattr( module, parsedname + 'Parser' )
+                        except AttributeError:
+                            raise SyntaxError, "Cannot find parser class for parsed class %s. It should be explicitly or automatically created as %s._parser or be named %sParser" % (parsedname, parsedname, parsedname )
+                    bases.append( parser )
+                
+                newbases = []
+                for i in bases:
+                    issuperclass = False
+                    #parents = inspect.getmro(i)
+                    for j in bases:
+                        if i in inspect.getmro(j)[1:]:
+                            issuperclass = True
+                            break
+                    if not issuperclass:
+                        newbases.append(i)
+                
+                newbases = sorted( newbases, key=lambda x: len(inspect.getmro(x)), reverse=True)  
+
+                #print "%s bases" % newcls.__name__
+
+                for base in newbases:
+                    #print base
+                    #print '\t', base.tokensDict
+                    #print '\t', base.rulesDict
+                    tokensDict.update( base.tokensDict )
+                    rulesDict.update( base.rulesDict )
+                updatedict.update( tokensDict )   
+                updatedict.update( rulesDict )   
+                    
+                    #for i, parent in enumerate(inspect.getmro(base)):
+                    #    print '\t'*i, parent
+                #print inspect.getclasstree(bases)
+#                    for base in newbases:
+#                        _printClassTree( base )
+  
                 if rules is not None:
                     #time to make the parser
                     # we use the Rules in the 'accepts' list to determine the bases of this parser class
                     #print "module", newcls.__module__
-                    module = __import__( newcls.__module__, globals(), locals(), [''] )
+                    
                     #print module
                     
-                    # find bases
-                    bases = []
-                    for parsedname in accepts_set:
-                        parsedcls = getattr( module, parsedname )
-                        try:
-                            parser = parsedcls._parser
-                        except AttributeError:
-                            try:
-                                parser = getattr( module, parsedname + 'Parser' )
-                            except AttributeError:
-                                raise SyntaxError, "Cannot find parser class for parsed class %s. It should be explicitly or automatically created as %s._parser or be named %sParser" % (parsedname, parsedname, parsedname )
-                        bases.append( parser )
-                    bases
-                    newbases = []
-                    for i in bases:
-                        issuperclass = False
-                        #parents = inspect.getmro(i)
-                        for j in bases:
-                            if i in inspect.getmro(j)[1:]:
-                                issuperclass = True
-                                break
-                        if not issuperclass:
-                            newbases.append(i)
-                            
+      
                     # TODO : filter out bases that are superclasses of other bases: we only need one set
                     
-                    parserdict.update( updatedict )
+                    
                     parserName = classname + 'Parser'
                     #newbases = sorted( newbases, key = lambda x: x.__name__)
-                    print "bases", newbases
-                    parsercls = type( parserName, tuple(newbases), parserdict )
+
+
+                    updatedict['tokensDict'] = tokensDict
+                    updatedict['rulesDict'] = rulesDict
+                    parserdict.update( updatedict )
+
+
+                    #parsercls = type( parserName, tuple(newbases), parserdict )
+                    parsercls = type( parserName, (Parser,), parserdict )
                     parsercls.__module__ = module.__name__
                     setattr( newcls, '_parser', parsercls)
                 else:   
@@ -740,6 +824,7 @@ class autoparsed(type):
             elif issubclass( newcls, Token ):
                 token = classdict.get('_token',None)
                 if token is not None:
+ 
                     #print "automatically setting up token class for %s" % newcls.__name__
                     
                     tokenBasename = classname + '_Token'
@@ -748,6 +833,8 @@ class autoparsed(type):
                     parserName = classname + 'Parser'
                     parserdict = {}
                     parserdict[tokenName] = token
+                    parserdict['tokensDict'] = {tokenName:token}
+                    
                     doc = '''%s : %s ''' % ( classname, tokenBasename )
                     #class _parser( Parser ): pass
                     
@@ -756,8 +843,10 @@ class autoparsed(type):
                     rule.__name__ = ruleName
                     rule.__doc__ = doc
                     parserdict[ruleName] = rule
+                    parserdict['rulesDict'] = {ruleName:rule}
                     
-                    parsercls = type( parserName, (Parser,), parserdict )       
+                    parsercls = type( parserName, (Parser,), parserdict )
+                    parsercls.__module__ = module.__name__   
                     #setattr( _parser, tokenName, token )
                     #setattr( _parser, ruleName, rule )
                     setattr( newcls, '_parser', parsercls )
@@ -785,26 +874,26 @@ def _getTokens(parsercls):
 #_addedTokenClasses =_createTokenClasses(debug=verbose())
 
 # Build a dict of all existing Parser and Parsed classes in this module
-class ParsedClasses(dict) :
-    __metaclass__ =  metaStatic
+#class Parsed.classes(dict) :
+#    __metaclass__ =  metaStatic
 
     
 #def parsedClasses(module):  
 #    return dict(inspect.getmembers(module, isParsedClass))
 ## Stores it at import so that the inspect method isn't recalled at each query
-#ParsedClasses(ParsedClasses)
+#Parsed.classes(Parsed.classes)
 
-class ParserClasses(dict) :
-    __metaclass__ =  metaStatic
+#class Parser.classes(dict) :
+#    __metaclass__ =  metaStatic
 
 
-ParsedClasses = {}
-ParserClasses = {} 
+Parsed.classes = {}
+Parser.classes = {} 
        
 #def parserClasses(module): 
 #    return dict(inspect.getmembers(module, isParserClass))
 ## Stores it at import so that the inspect method isn't recalled at each query
-#ParserClasses(ParserClasses)
+#Parser.classes(Parser.classes)
 
 # cache out a dictionary of all Parsed and Parser classes, and create token classes
 def process(module=None):
@@ -845,7 +934,7 @@ def process(module=None):
             
             parser = name
             parsercls = obj
-            #parsercls = ParserClasses[parser]
+         
 
         # find Parsers that are stored on Parsed classes as _parser
         elif isParsedClass(obj):
@@ -854,36 +943,34 @@ def process(module=None):
                 if isParserClass(obj._parser):
                     tokensDict.update( _getTokens(obj._parser) )
                     
-#    for token in tokensDict :
-#        pattern = tokensDict[token]
-#        parsedName = token
-#        parserName = token+"Parser"
-#        #if debug : 
-#        print "adding classes %s and %s for token %s of pattern r'%s'" % (parsedName, parserName, token, pattern)         
-#        class ThisToken(Token):
-#            """ Token stub class """   
-#        class ThisTokenParser(TokenParser):
-#            """ Token Parser stub class """      
-#        # set the Token Parser class attributes
-#        ThisTokenParser.__name__ = parserName
-#        #ThisTokenParser.__doc__ = "Parser for token %s=%r" % (token, pattern)
-#        ThisTokenParser.__module__ = __name__
-#        ThisTokenParser._pattern = pattern 
-#        ThisTokenParser._type = token   
-#        # set the Token class attributes
-#        ThisToken.__name__ = parsedName
-#        # ThisToken.__doc__ = "Parser for token %s=%r" % (token, pattern)
-#        ThisToken.__module__ = __name__
-#        ThisToken._parser = ThisTokenParser        
-#        # add to the module
-#        module_dict[parsedName] = ThisToken
-#        module_dict[parserName] = ThisTokenParser
-#        parsedDict[parsedName] = ThisToken
-#        parserDict[parserName] = ThisTokenParser   
-          
-    #ParserClasses( parserDict )
-    #ParsedClasses( parsedDict  )
-    ParserClasses = parserDict 
-    ParsedClasses = parsedDict 
+    for token in tokensDict :
+        pattern = tokensDict[token]
+        parsedName = token
+        parserName = token+"Parser"
+        #if debug : 
+        print "adding classes %s and %s for token %s of pattern r'%s'" % (parsedName, parserName, token, pattern)         
+        class ThisToken(Token):
+            """ Token stub class """   
+        class ThisTokenParser(TokenParser):
+            """ Token Parser stub class """      
+        # set the Token Parser class attributes
+        ThisTokenParser.__name__ = parserName
+        #ThisTokenParser.__doc__ = "Parser for token %s=%r" % (token, pattern)
+        ThisTokenParser.__module__ = __name__
+        ThisTokenParser._pattern = pattern 
+        ThisTokenParser._type = token   
+        # set the Token class attributes
+        ThisToken.__name__ = parsedName
+        # ThisToken.__doc__ = "Parser for token %s=%r" % (token, pattern)
+        ThisToken.__module__ = __name__
+        ThisToken._parser = ThisTokenParser        
+        # add to the module
+        module_dict[parsedName] = ThisToken
+        module_dict[parserName] = ThisTokenParser
+        parsedDict[parsedName] = ThisToken
+        parserDict[parserName] = ThisTokenParser   
+    
+    Parser.classes = parserDict 
+    Parsed.classes = parsedDict 
     
         

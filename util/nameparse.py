@@ -838,24 +838,24 @@ class MayaNodePath(Parsed):
         
     """
     
-    class _parser(DagPathSepParser, MayaShortNameParser):
-        """ a Parser for Maya node name, an optional leading DagPathSep followed by one or more
-            MayaShortName separated by DagPathSep """
-                  
-        start = 'MayaNodePath'
-        
-        def p_node_concat(self, p) :
-            ''' MayaNodePath : MayaNodePath DagPathSep MayaShortName '''
-            p[0] = p[1] + MayaNodePath(p[2], p[3])
-        def p_node(self, p) :
-            ''' MayaNodePath : DagPathSep MayaShortName
-                                    | MayaShortName '''
-            if len(p) == 3 :
-                p[0] = MayaNodePath(p[1], p[2])
-            else :
-                p[0] = MayaNodePath(p[1]) 
+#    class _parser(DagPathSepParser, MayaShortNameParser):
+#        """ a Parser for Maya node name, an optional leading DagPathSep followed by one or more
+#            MayaShortName separated by DagPathSep """
+#                  
+#        start = 'MayaNodePath'
+#        
+#        def p_node_concat(self, p) :
+#            ''' MayaNodePath : MayaNodePath DagPathSep MayaShortName '''
+#            p[0] = p[1] + MayaNodePath(p[2], p[3])
+#        def p_node(self, p) :
+#            ''' MayaNodePath : DagPathSep MayaShortName
+#                                    | MayaShortName '''
+#            if len(p) == 3 :
+#                p[0] = MayaNodePath(p[1], p[2])
+#            else :
+#                p[0] = MayaNodePath(p[1]) 
 
-    #_parser = parser
+    _parser = MayaNodePathParser
     _accepts = ('DagPathSep', 'MayaShortName') 
                 
     @property
