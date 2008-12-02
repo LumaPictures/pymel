@@ -381,7 +381,7 @@ class Mel(object):
         
         try:
             res = api.MCommandResult()
-            api.MGlobal.executeCommand( cmd, res, True, True )
+            api.MGlobal.executeCommand( cmd, res, False, True )
         except:
             api.MMessage.removeCallback( id )
             msg = '\n'.join( errors)
