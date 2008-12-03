@@ -365,7 +365,7 @@ def reorder( x, indexList=[], indexDict={} ):
     return newlist 
 
 
-def merge( from_dict, to_dict, allowDictToListMerging=False ):
+def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
     """
     recursively update to_dict with values from from_dict.  if allowDictToListMerging is
     True, then if to_dict contains a list, from_dict can contain a dictionary with int
@@ -384,7 +384,7 @@ def merge( from_dict, to_dict, allowDictToListMerging=False ):
         if contains(key):
             to_val = to_dict[key]
             if isMapping(from_val) and ( isMapping(to_val) or (allowDictToListMerging and isinstance(to_val, list )) ):
-                merge( from_val, to_val, allowDictToListMerging )
+                mergeCascadingDicts( from_val, to_val, allowDictToListMerging )
             else:
                 to_dict[key] = from_val
         else:
