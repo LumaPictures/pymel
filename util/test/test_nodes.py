@@ -63,18 +63,39 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assert_( self.sphere1.isInstance( self.sphere3) )   
     
     
-    def test07_linearUnits(self):
+    def test07_units(self):
         startLinear = currentUnit( q=1, linear=1)
-        at = self.sphere1.translate
+        
+        cam = PyNode('persp')
+        # change units from default
         currentUnit(linear='meter')
-        realValue = Vector([3.0,2.0,1.0])
-        setAttr( at, realValue )
-        gotValue = at.get( )
-        print realValue, gotValue
-        self.assertEqual( realValue, gotValue )
-        at.set( realValue )
-        gotValue = getAttr( at )
-        self.assertEqual( realValue, gotValue )
+        
+        testPairs = [ ('translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),
+                      ('shutterAngle', 'getShutterAngle', 'setShutterAngle', 144.0 ),
+                      ('focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),
+                     ]
+        
+        for attrName, getMethodName, setMethodName, realValue in testPairs:
+            at = cam.attr(attrName)
+            getter = getattr( cam, getMethodName )
+            setter = getattr( cam, setMethodName )
+            
+            # set attribute using "safe" method
+            at.set( realValue )
+            # get attribute using wrapped api method
+            gotValue = getter()
+            print realValue, gotValue
+            # compare
+            self.assertEqual( realValue, gotValue )
+            
+            # set using wrapped api method
+            setter( realValue )
+            # get attribute using "safe" method
+            gotValue = at.get()
+            # compare
+            self.assertEqual( realValue, gotValue )
+        
+        # reset units
         currentUnit(linear=startLinear)
     
     def test_classCreation(self):
