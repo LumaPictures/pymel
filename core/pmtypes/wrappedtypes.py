@@ -1827,29 +1827,32 @@ class TransformationMatrix(Matrix):
         return self.apicls.rotation(self) 
 
 
-class EulerRotation(Matrix):
+class EulerRotation(Vector):
+    #__metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MEulerRotation
-    shape = (4,)   
-    cnames = ('x', 'y', 'z', 'o') 
+    shape = (3,)   
+    cnames = ('x', 'y', 'z') 
     
-    class RotationOrder(dict):
-        pass
-    rotationOrder = RotationOrder({"xyz": _api.MEulerRotation.kXYZ,
-                                   "yzx": _api.MEulerRotation.kYZX,
-                                   "zxy": _api.MEulerRotation.kZXY,
-                                   "xzy": _api.MEulerRotation.kXZY,
-                                   "yxz": _api.MEulerRotation.kYXZ,
-                                   "zyx": _api.MEulerRotation.kZYX,
-                                   })  
-    
+    RotationOrder = _api.apiClassInfo['MEulerRotation']['pymelEnums']['RotationOrder']
+ 
+    @property
+    def order(self):
+        return self.RotationOrder[self.data.order]
+        
     def __new__(cls, *args, **kwargs):
-        shape = kwargs.get('shape', None)
-        ndim = kwargs.get('ndim', None)
-        size = kwargs.get('size', None)
-        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
-        # as no other option is actually possible on EulerRotation, but this method could be used to allow wrapping
-        # of Maya array classes that can have a variable number of elements
-        shape, ndim, size = cls._expandshape(shape, ndim, size)        
+#        shape = kwargs.get('shape', None)
+#        ndim = kwargs.get('ndim', None)
+#        size = kwargs.get('size', None)
+#        
+#        # len(api.MEulerRotation()) is 4.  this is not correct. it should be only 3 (the fourth element is always just the third element repeated)
+#        # this is not a nice fix, but the only way i can see for now
+#        if shape == 4:
+#            shape = 3
+#            size = 3
+#        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
+#        # as no other option is actually possible on EulerRotation, but this method could be used to allow wrapping
+#        # of Maya array classes that can have a variable number of elements
+#        shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
         new = cls.apicls.__new__(cls)
         cls.apicls.__init__(new)
@@ -1861,16 +1864,20 @@ class EulerRotation(Matrix):
         
         if args :
             # allow both forms for arguments
-            if len(args)==1 and hasattr(args[0], '__iter__') :
+            if len(args)==1 and hasattr(args[0], '__iter__') and not isinstance(args[0], self.apicls):
                 args = args[0]
+                # len(api.MEulerRotation()) is 4.  this is not correct. it should be only 3 (the fourth element is always just the third element repeated)
+                # this is not a nice fix, but the only way i can see until Autodesk fixes this bug
+                if len(args)==4:
+                    args = list(args)[:3]
             # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
             if hasattr(args, 'rotate') :
                 euler = _api.MEulerRotation()
                 euler.assign(args.rotate)
                 args = euler
-            elif len(args) == 4 and isinstance(args[3], basestring) :
+            elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
                 # allow to initialize directly from 3 rotations and a rotation order as string
-                args = (args[0], args[1], args[2], cls.rotationOrder[args[3]])           
+                args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3]))           
             elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
                 # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
@@ -1896,7 +1903,20 @@ class EulerRotation(Matrix):
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)  
-                
+    
+    def __iter__(self):
+        for i in range(self.size):
+            #yield Angle(self[i], 'radians').asUI()
+            yield self[i]
+            
+    def __len__(self):
+       
+       # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
+       return self.size
+     
+    def __getitem__(self, i):
+        return Angle( super(Vector, self).__getitem__(i), 'radians' ).asUI()
+        
     def assign(self, value):
         """ Wrap the Quaternion api assign method """
         # api Quaternion assign accepts Matrix, Quaternion and EulerRotation
@@ -1918,6 +1938,7 @@ class EulerRotation(Matrix):
         p = ms.asDoublePtr ()
         self.apicls.get(self, p)
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
+   
    
 class Quaternion(Matrix):
     apicls = _api.MQuaternion

@@ -1630,9 +1630,9 @@ class Array(object):
                 # special cases to accommodate some herited Maya api classes
                 # here classes that can convert to MMatrix and classes that don't expose
                 # all components of their api base (MPoint)
-                if hasattr(args, 'asMatrix') :
-                    args = args.asMatrix()
-                elif isinstance(args, Array) and (args.size != len(args)) : 
+                #if hasattr(args, 'asMatrix') :
+                #    args = args.asMatrix()
+                if isinstance(args, Array) and (args.size != len(args)) : 
                     args = list(args.data)
                 largs = []
                 subshapes = []
