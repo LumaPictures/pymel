@@ -761,12 +761,17 @@ def setManualDefaults():
                     ('MFnTransform', 0, 'setLimit', 'limitValue'),
                      ]
     for className, methodIndex, setter, getter in invertibles:
-        curr = getCascadingDictValue( factories.apiClassOverrides, ('MPlug', 'invertibles' ), [] )
+        # append to the class-level invertibles list
+        curr = getCascadingDictValue( api.apiClassInfo, (className, 'invertibles' ), [] )
         pair = (setter, getter)
         if pair not in curr:
             curr.append( pair )
+            
+        setCascadingDictValue( factories.apiClassOverrides, (className, 'invertibles'), curr )    
+        
+        # add the individual method entries
         setCascadingDictValue( factories.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
-        setCascadingDictValue( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, True) )
+        setCascadingDictValue( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
         
 def cacheResults():
     #return 
