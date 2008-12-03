@@ -162,7 +162,7 @@ class PymelControlPanel(object):
         
         #filter = set( ['double', 'MVector'] )
         filter = []
-        
+        count = 0
         for clsName, apiClsName in getClassHierarchy(className):
             if apiClsName:
                 #print cls
@@ -170,13 +170,14 @@ class PymelControlPanel(object):
                     print "building UI for", clsName
                     frame = self.classFrames[clsName].buildUI(filter)
                     self.apiMethodCol.setTabLabel( [frame, clsName] )
-
+                    count+=1
                         #frame.setVisible(False)
                     #if i != len(mro)-1:
                     #    frame.setCollapse(True)  
                 else:
                     print "skipping", clsName
-                    
+        self.apiMethodCol.setSelectTabIndex(count)
+                   
         #self.classFrames[className].frame.setCollapse(False)     
                 
 
@@ -209,12 +210,17 @@ class ClassFrame(object):
                             width = frame_width,
                             labelAlign='top')
         
-        col = columnLayout(visible=False )
+        tab = tabLayout()
+        
         
         invertibles = api.apiClassInfo[self.apiClassName]['invertibles']
         usedMethods = []
         
+        
+        pairedCol = columnLayout(visible=False )
+        tab.setTabLabel( [pairedCol, 'Paired'] )
         for setMethod, getMethod in invertibles:
+            setParent(pairedCol) # column
             frame = frameLayout(labelVisible=False, collapsable=False, width = frame_width)
             col2 = columnLayout()
             pairCount = 0
@@ -225,10 +231,13 @@ class ClassFrame(object):
                 #deleteUI(col2)
                 frame.setVisible(False)
                 frame.setHeight(1)
-            setParent('..') # frame 
-            setParent('..') # column
             count += pairCount
         
+        pairedCol.setVisible(True)
+        
+        setParent(tab) # column
+        unpairedCol = columnLayout(visible=False )
+        tab.setTabLabel( [unpairedCol, 'Unpaired'] )
         for methodName in sorted( self.classInfo.keys() ):
             if methodName not in usedMethods: 
                 count += self.rows[methodName].buildUI(filter)
@@ -237,10 +246,10 @@ class ClassFrame(object):
         #self.form.attachForm( self.frame, 'right', 2)
         #self.form.attachForm( self.frame, 'top', 2)
         #self.form.attachForm( self.frame, 'bottom', 2)
-        col.setVisible(True)
+        unpairedCol.setVisible(True)
         setParent('..') # column
         setParent('..') # frame
-        #setParent('..') # form
+        setParent('..') # tab
         #print self.frame, count
         return self.frame
     
@@ -716,9 +725,48 @@ def getClassHierarchy( className ):
                     
             yield cls.__name__, apiClassName    
 
-        
-        
+          
+def setCascadingDictValue( dict, keys, value ):
+    
+    currentDict = dict
+    for key in keys[:-1]:
+        if key not in currentDict:
+            currentDict[key] = {}
+        currentDict = currentDict[key]
+    currentDict[keys[-1]] = value                
 
+def getCascadingDictValue( dict, keys, default={} ):
+    
+    currentDict = dict
+    for key in keys[:-1]:
+        if key not in currentDict:
+            currentDict[key] = {}
+        currentDict = currentDict[key]
+    try:
+        return currentDict[keys[-1]]
+    except KeyError:
+        return default        
+
+
+def setManualDefaults():
+    # set some defaults
+    setCascadingDictValue( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
+    setCascadingDictValue( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
+    setCascadingDictValue( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
+    
+    # add some manual invertibles
+    invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
+                    ('MPlug', 0, 'setChannelBox', 'isChannelBoxFlagSet'),
+                    ('MFnTransform', 0, 'enableLimit', 'isLimited'),
+                    ('MFnTransform', 0, 'setLimit', 'limitValue'),
+                     ]
+    for className, methodIndex, setter, getter in invertibles:
+        curr = getCascadingDictValue( factories.apiClassOverrides, ('MPlug', 'invertibles' ), [] )
+        pair = (setter, getter)
+        if pair not in curr:
+            curr.append( pair )
+        setCascadingDictValue( factories.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
+        setCascadingDictValue( factories.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, True) )
         
 def cacheResults():
     #return 
@@ -731,11 +779,16 @@ def cacheResults():
     print res
     if res == 'Yes':
         print "---"
-        
+        print "adding manual defaults"
+        setManualDefaults()
+        print "merging dictionaries"
         # update apiClasIfno with the sparse data stored in apiClassOverrides
-        util.merge( factories.apiClassOverrides, api.apiClassInfo, allowDictToListMerging=True )
+        util.mergeCascadingDicts( factories.apiClassOverrides, api.apiClassInfo, allowDictToListMerging=True )
+        print "saving api cache"
         api.saveApiCache()
+        print "saving bridge"
         factories.saveApiToMelBridge()
         
         
         print "---"
+
