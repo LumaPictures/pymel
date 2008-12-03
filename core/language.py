@@ -302,7 +302,7 @@ class Mel(object):
     
     
     """
-            
+          
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
             return self.__dict__[command]
@@ -366,7 +366,10 @@ class Mel(object):
     @staticmethod        
     def eval( cmd ):
         # should return a value, like mm.eval
-        #return mm.eval( cmd )    
+        #return mm.eval( cmd )   
+        # get this before installing the callback
+        undoState = cmds.undoInfo(q=1, state=1)
+         
         global errors
         errors = []
         def errorCallback( nativeMsg, messageType, data ):
@@ -375,15 +378,19 @@ class Mel(object):
                 if nativeMsg:
                     errors +=  [ nativeMsg ]
         
-        # setup the callback
-        id = api.MCommandMessage.addCommandOutputCallback( errorCallback, None )
+        # setup the callback:
+        # assigning ids to a list avoids the swig memory leak warning, which would scare a lot of people even though 
+        # it is harmless.  hoping we get a real solution to this so that we don't have to needlessly accumulate this data
+        id = api.MCommandMessage.addCommandOutputCallback( errorCallback, None ) 
         
         
         try:
             res = api.MCommandResult()
-            api.MGlobal.executeCommand( cmd, res, False, True )
+            api.MGlobal.executeCommand( cmd, res, False, undoState )
         except:
+            # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )
+            id.disown()
             msg = '\n'.join( errors)
             if 'Cannot find procedure' in msg:
                 e = UnknownMelProcedure
@@ -395,7 +402,10 @@ class Mel(object):
                 e = MelError
             raise e, "Error occurred during execution of MEL script: %s" % ( msg )
         else:   
+            # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )
+            id.disown()
+            
             resType = res.resultType()
             
             if resType == api.MCommandResult.kInvalid:
