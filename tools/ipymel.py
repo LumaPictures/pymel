@@ -143,7 +143,7 @@ else:
 			return res
 	
 	
-	ip.set_hook('complete_command', pymel_node_completer , re_key = ".+\s+" )
+	ip.set_hook('complete_command', pymel_node_completer , re_key = ".+(\s+|\()" )
 	#ip.set_hook('complete_command', pymel_node_completer, str_key = "dag" ) # for testing
 	
 	ip.ex("from pymel import *")
