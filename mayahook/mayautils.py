@@ -1,8 +1,11 @@
 import re, os, os.path, sys, platform, subprocess
 import pymel.util as util
 from pymel.util.pwarnings import *
-import pickle
-
+try:
+    import cPickle as pickle
+except:
+    print "using pickle instead of cPickle: load performance will be affected"
+    import pickle
 
 import envparse
 
@@ -635,7 +638,7 @@ def mayaInit(forversion=None) :
         else :
             print "Maya is already initialized as version %s, initializing it for a different version %s" % (runningVersion, forversion)
     elif runningVersion :
-        print "Maya is already initialized as version %s" % (runningVersion)
+        #print "Maya is already initialized as version %s" % (runningVersion)
         return True
                 
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
