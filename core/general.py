@@ -2177,7 +2177,7 @@ class Attribute(PyNode):
 
             
     def name(self, includeNode=True, longName=True, fullAttrPath=False, fullDagPath=False):
-        """ Returns the full name of that attribute(plug) """
+        """ Returns the name of the attribute (plug) """
         obj = self.__apiobject__()
         if obj:
             name = ''
@@ -2190,12 +2190,13 @@ class Attribute(PyNode):
                 name += '.'
          
             
-            return name + self.partialName( includeNodeName=False, 
-                                                       includeNonMandatoryIndices=True, 
-                                                       includeInstancedIndices=True, 
-                                                       useAlias=False, 
-                                                       useFullAttributePath=fullAttrPath, 
-                                                       useLongNames=longName )
+            return name + self.partialName(    includeNodeName=False, 
+                                               includeNonMandatoryIndices=True, 
+                                               includeInstancedIndices=True, 
+                                               useAlias=False, 
+                                               useFullAttributePath=fullAttrPath, 
+                                               useLongNames=longName 
+                                            )
         raise MayaObjectError(self._name)
     
     

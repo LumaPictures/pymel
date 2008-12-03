@@ -2575,7 +2575,8 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         else:
             # edit method ( setter )
             if getterArgHelper is None:
-                util.warn( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
+                if VERBOSE:
+                    util.warn( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
                 getterArgList = []
             else:
                 getterArgList = getterArgHelper.inArgs()
@@ -3586,21 +3587,23 @@ def installCallbacks(module):
     import pymel.tools.py2mel as py2mel
     global pluginLoadedCB
     if pluginLoadedCB is None:
-        print "adding pluginLoaded callback"
+        if VERBOSE:
+            print "adding pluginLoaded callback"
         pluginLoadedCB = pluginLoadedCallback(module)
         cmds.loadPlugin( addCallback=pluginLoadedCB )
         
-    else:
+    elif VERBOSE:
         print "pluginLoaded callback already exists"
     
     global pluginUnloadedCB
     if pluginUnloadedCB is None:
-        print "adding pluginUnloaded callback"
+        if VERBOSE:
+            print "adding pluginUnloaded callback"
         pluginUnloadedCB = pluginUnloadedCallback(module)
         #unloadPlugin has a bug which prevents it from using python objects, so we use our mel wrapper instead
 #        unloadCBStr = py2mel.py2melProc( pluginUnloadedCB, procName='pluginUnloadedProc' )
 #        cmds.unloadPlugin( addCallback=unloadCBStr )
-    else:
+    elif VERBOSE:
         print "pluginUnloaded callback already exists"
 
     # add commands and nodes for plugins loaded prior to importing pymel

@@ -947,8 +947,8 @@ def process(module=None):
         pattern = tokensDict[token]
         parsedName = token
         parserName = token+"Parser"
-        #if debug : 
-        print "adding classes %s and %s for token %s of pattern r'%s'" % (parsedName, parserName, token, pattern)         
+        if verbose() : 
+            print "adding classes %s and %s for token %s of pattern r'%s'" % (parsedName, parserName, token, pattern)         
         class ThisToken(Token):
             """ Token stub class """   
         class ThisTokenParser(TokenParser):
