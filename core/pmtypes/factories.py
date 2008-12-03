@@ -1871,7 +1871,7 @@ class ApiTypeRegister(object):
     def _makeArrayGetter( apiTypename, length, getFunc ):
         def getArray( array ):
             if VERBOSE: print "get", array
-            return tuple([ getFunc(array,i) for i in range(length) ] )
+            return [ getFunc(array,i) for i in range(length) ]
         getArray.__name__ = 'get_' + apiTypename + str(length) + 'Array'
         return getArray
     
@@ -2320,8 +2320,9 @@ class ApiArgUtil(object):
      
     def castReferenceResult(self,argtype,outArg):
         f = ApiTypeRegister.refCast[ argtype ]
-        print "castReferenceResult"
-        print f, argtype, outArg
+        if VERBOSE:
+            print "castReferenceResult"
+            print f, argtype, outArg
         if f is None:
             return outArg
         
@@ -2518,10 +2519,10 @@ def interface_wrapper( doer, args=[], defaults=[] ):
         if i >= offset:
             default = defaults[i-offset]
             if isinstance( default, util.EnumValue ):
-                defaultStr = str(default)
+                defaultStr = repr( str(default) )
             else:
                 defaultStr = repr(default)
-            kwargs.append( '%s=%r' % (arg, defaultStr ) )
+            kwargs.append( '%s=%s' % (arg, defaultStr ) )
         else:
             kwargs.append( str(arg) )
 
@@ -2578,7 +2579,8 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 getterArgList = []
             else:
                 getterArgList = getterArgHelper.inArgs()
-            
+          
+        numGetterArgs = len(getterArgList)  
 #        getterArgHelper = argHelper.getGetterInfo()
 #        if getterArgHelper is not None:
 #            if argHelper.hasOutput() :
@@ -2615,19 +2617,22 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 #                else:
 #                    newargs.append( self)
                     
-            getterArgs = []
-            undoArgs = []
-            missingUndoIndices = []
+            getterArgs = []  # args required to get the current state before setting it
+            undoArgs = []  # args required to reset back to the original (starting) state  ( aka "undo" )
+            missingUndoIndices = [] # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
                    
             for name, argtype, direction in argList :
                 if direction == 'in':
                     arg = args[inCount]
-                    # gather up args that are required to get the current value we are about to set
+
                     if name in getterArgList:
+                        # gather up args that are required to get the current value we are about to set.
+                        # these args are shared between getter and setter pairs
                         getterArgs.append(arg)
                         undoArgs.append(arg)
-                    else:
-                        missingUndoIndices.append(len(undoArgs))
+                    elif inCount < numGetterArgs:
+                        # store the indices for 
+                        missingUndoIndices.append(inCount)
                         undoArgs.append(None)
                     newargs.append( argHelper.castInput( name, arg, self.__class__ ) )
                     inCount +=1
@@ -2646,12 +2651,14 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 setter = getattr( self, pymelName )
                 
                 getterResult = getter( *getterArgs )
-                if not isinstance( getterResult, list ):
+                # when a command returns results normally and passes additional outputs by reference, the result is returned as a tuple
+                # otherwise, always as a list
+                if not isinstance( getterResult, tuple ):
                     getterResult = (getterResult,)
                 
                 #print getterResult
                 #print missingUndoIndices
-                assert len(missingUndoIndices) == len(getterResult)
+                assert len(missingUndoIndices) == len(getterResult), "%s : %s" % ( missingUndoIndices, getterResult )
                 for i, index in enumerate(missingUndoIndices):
                     undoArgs[index] = getterResult[i]
 
@@ -2715,7 +2722,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 if len(result) == 1:
                     result = result[0]
                 else:
-                    result = result
+                    result = tuple(result)
             return result
         
         wrappedApiFunc.__name__ = pymelName
@@ -2737,7 +2744,8 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     try:
                         type = type.pymelName( ApiTypeRegister.getPymelType( type[0] ) )
                     except:
-                        print "Could not determine pymel name for", type
+                        if VERBOSE:
+                            print "Could not determine pymel name for", type
                         pass
 
             return repr(type).replace("'", "`")
@@ -3048,7 +3056,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             filterAttrs += overrideMethods.get( bases[0].__name__ , [] )
             #filterAttrs += newcls.__dict__.keys()
             
-            parentClasses = [ x.__name__ for x in inspect.getmro( newcls ) ]
+            parentClasses = [ x.__name__ for x in inspect.getmro( newcls )[1:] ]
             for flag, flagInfo in cmdInfo['flags'].items():
                 #print nodeType, flag
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
