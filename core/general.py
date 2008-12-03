@@ -102,7 +102,7 @@ class Version(object):
     Class for storing apiVersions, which are the best method for comparing versions.
     
     >>> if Version.current > Version.v85:
-    >>>     print "The current version is later than Maya 8.5"
+    ...     print "The current version is later than Maya 8.5"
     The current version is later than Maya 8.5
     """
     #TODO: make these read-only
@@ -908,7 +908,7 @@ Modifications
         if size == 1 or (size==2 and kwargs.get( 'nodesOnly', kwargs.get('no',False) )  ) :
             return map( PyNode, util.listForNone(cmds.sets( *args, **kwargs )) )
             
-    return cmds.sets( *args, **kwargs )
+    return PyNode(cmds.sets( *args, **kwargs ))
     
     '''
     #try:
@@ -950,7 +950,7 @@ Modifications
     #print "creation"
     return ObjectSet(cmds.sets( *elements, **kwargs ))
     '''
-'''
+
 def delete(*args, **kwargs):
     """
 Modifications:
@@ -959,7 +959,7 @@ Modifications:
     if kwargs.pop('quiet',False):
         if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
             return
-'''
+
   
         
 def getClassification( *args ):
@@ -1352,10 +1352,12 @@ class PyNode(util.ProxyUnicode):
        
     def __ne__(self, other):
         if isinstance(other,PyNode):
-            return self.__apiobject__() != other.__apiobject__()
+            # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
+            return not self.__apiobject__() == other.__apiobject__()
         else:
             try:
-                return self.__apiobject__() != PyNode(other).__apiobject__()
+                # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
+                return not self.__apiobject__() == PyNode(other).__apiobject__()
             except (ValueError,TypeError): # could not cast to PyNode
                 return False
 
@@ -1505,11 +1507,11 @@ class Scene(object):
     
         >>> thisScene = Scene()
         >>> thisScene.persp
-        Camera('persp')
+        Transform('persp')
         >>> thisScene.persp.t
         Attribute('persp.translate')
     
-    An instance of this class is provided for you with the name SCENE. 
+    An instance of this class is provided for you with the name `SCENE`. 
     """
     __metaclass__ = util.Singleton
     def __getattr__(self, obj):
@@ -1521,7 +1523,7 @@ SCENE = Scene()
     
 class _Component( PyNode ):
     """
-    
+    >>> from pymel import *
     >>> obj = polyTorus()[0]
     >>> colors = []
     >>> for i, vtx in enumerate(obj.vtx):
@@ -1535,7 +1537,7 @@ class _Component( PyNode ):
     ...     avgLen=totalLen / edgCnt
     ...     #print avgLen
     ...     currColor = vtx.getColor(0)
-    ...     color = MColor.black
+    ...     color = Color.black
     ...     # only set blue if it has not been set before
     ...     if currColor.b<=0.0:
     ...         color.b = avgLen
@@ -1789,19 +1791,21 @@ class ComponentArray(object):
     #    return 0
         
     def __iter__(self):
-        """iterator for multi-attributes
-        
-            >>> for attr in SCENE.Nexus1.attrInfo(multi=1)[0]: print attr
-            
-        """
+#        """iterator for multi-attributes
+#        
+#            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]: 
+#            ...     print attr
+#            
+#        """
         return self
                 
     def next(self):
-        """iterator for multi-attributes
-        
-            >>> for attr in SCENE.Nexus1.attrInfo(multi=1)[0]: print attr
-            
-        """
+#        """iterator for multi-attributes
+#        
+#            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]: 
+#            ...    print attr
+#            
+#        """
         if self._iterIndex >= len(self):
             raise StopIteration
         else:                        
@@ -1818,16 +1822,16 @@ class ComponentArray(object):
             else:
                 return '%s:%s' % ( item.start, item.stop ) 
         
-        '''    
-        if isinstance( item, tuple ):            
-            return [ Component('%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
-            
-        elif isinstance( item, slice ):
-            return Component('%s[%s]' % (self, formatSlice(item) ) )
+ 
+#        if isinstance( item, tuple ):            
+#            return [ Component('%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
+#            
+#        elif isinstance( item, slice ):
+#            return Component('%s[%s]' % (self, formatSlice(item) ) )
+#
+#        else:
+#            return Component('%s[%s]' % (self, item) )
 
-        else:
-            return Component('%s[%s]' % (self, item) )
-        '''
         if isinstance( item, tuple ):            
             return [ self.returnClass( self._node, formatSlice(x) ) for x in  item ]
             
@@ -1908,45 +1912,45 @@ class Attribute(PyNode):
     ==========
     
     The Attribute class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
-    have become familiar with all the separate commands for operating on attributes.  This class gathers them all into one
-    place. If you ever forget what the method you want is named, just ask for help by typing `help(Attribute)`.  
+    have become familiar with all the many commands for operating on attributes.  This class gathers them all into one
+    place. If you forget or are unsure of the right method name, just ask for help by typing `help(Attribute)`.  
     
-    For the most part, the names of the class methods equivalents to the maya.cmds functions follow a fairly simple pattern:
+    For the most part, the names of the class equivalents to the maya.cmds functions follow a fairly simple pattern:
     `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
     Here's a simple example showing how the Attribute class is used in context.
     
         >>> from pymel import *
-        >>> persp = PyNode('persp')
-        >>> if persp.visibility.isKeyable() and not s.visibility.isLocked():
-        ...     persp.visibility.set( True )
-        ...     persp.visibility.lock()
+        >>> cam = PyNode('persp')
+        >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
+        ...     cam.visibility.set( True )
+        ...     cam.visibility.lock()
         ... 
-        >>> print persp.v.type()      # shortnames also work    
+        >>> print cam.v.type()      # shortnames also work    
         bool
     
     Accessing Attributes
     --------------------
     
-    You can access an attribute class in three ways.  The first two require that you already have a PyNode object.
+    You can access an attribute class in three ways.  The first two require that you already have a `PyNode` object.
     
     Shorthand
     ~~~~~~~~~
     
-    The shorthand method is the most visually appealing and readable: you simply access the maya attribute as a normal python attribute: 
+    The shorthand method is the most visually appealing and readable -- you simply access the maya attribute as a normal python attribute --
+    but it has one major drawback: **if the attribute that you wish to acess has the same name as one of the attributes or methods of the 
+    python class then it will fail**. 
 
-        >>> persp  # continue from where we left off above
+        >>> cam  # continue from where we left off above
         Transform('persp')
-        >>> persp.visibility
-        Attribute('persp.visibility') # long name access
-        >>> persp.v
-        Attribute('persp.visibility') # short name access
+        >>> cam.visibility # long name access
+        Attribute('persp.visibility')
+        >>> cam.v # short name access
+        Attribute('persp.visibility')
         
     Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
-    If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`, or
-    `Attribute.partialName`.
-    
-    The shorthand syntax has the most readability,  but it has the drawaback that if the attribute that you wish to acess has the same
-    name as one of the attributes or methods of the python class then it will fail. 
+    If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`,
+    `Attribute.plugAttr`, or `Attribute.lastPlugAttr`.
+
     
     attr Method
     ~~~~~~~~~~~
@@ -1954,58 +1958,59 @@ class Attribute(PyNode):
     python methods, which would fail using shorthand syntax. This method is passed a string which
     is the name of the attribute to be accessed. 
         
-        >>> persp.attr('visibility')
+        >>> cam.attr('visibility')
         Attribute('persp.visibility')
     
     Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
         
         >>> for axis in ['translateX', 'translateY', 'translateZ']: 
-        ...     persp.attr( axis ).lock()          
+        ...     cam.attr( axis ).lock()          
     
     Direct Instantiation
     ~~~~~~~~~~~~~~~~~~~~
-    The last way of getting an attribute is by directly instiating the class. You can pass the attribute name as a string, or if you have one handy,
+    The last way of getting an attribute is by directly instantiating the class. You can pass the attribute name as a string, or if you have one handy,
     pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
     class, which will determine the appropriate class automaticallly.
     
-        >>> at = Attribute( 'persp.visibility' )
-        >>> PyNode( 'persp.translate' )
-        Attribute( 'persp.translate' )
+        >>> Attribute( 'persp.visibility' ) # explicitly request an Attribute
+        Attribute('persp.visibility')
+        >>> PyNode( 'persp.translate' ) # let PyNode figure it out for you
+        Attribute('persp.translate')
     
     
     Getting Attribute Values
     ------------------------
     To get the value of an attribute, you use the `get` method. Keep in mind that, where applicable, the values returned will 
-    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as `Vector`.
+    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
     
-        >>> rot = persp.rotate.get()
+        >>> rot = cam.rotate.get()
         >>> print rot
         [0.0, 0.0, 0.0]
         >>> print type(rot) # rotation is returned as a vector class
-        <class 'pymel.core.vector.Vector'>
+        <class 'pymel.core.pmtypes.wrappedtypes.Vector'>
 
     Setting Attributes Values
     -------------------------
     there are several ways to set attributes in pymel:
     
-        >>> persp.rotate.set([4,5,6])   # you can pass triples as a list
-        >>> persp.rotate.set(4,5,6)     # or not    
-        >>> persp.rotate = [4,5,6]      # and finally, shorthand
+        >>> cam.rotate.set([4,5,6])   # you can pass triples as a list
+        >>> cam.rotate.set(4,5,6)     # or not    
+        >>> cam.rotate = [4,5,6]      # and finally, shorthand
 
     Connecting Attributes
     ---------------------
     As you might expect, connecting attributes is pretty straightforward.
                 
-        >>> persp.rotateX.connect( persp.rotateY )
+        >>> cam.rotateX.connect( cam.rotateY )
     
     there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
 
         >>> c = polyCube()[0]        
-        >>> persp.tx >> c.tx    # connect
-        >>> persp.tx.outpus()
+        >>> cam.tx >> c.tx    # connect
+        >>> cam.tx.outputs()
         [Transform('pCube4')]
-        >>> persp.tx // c.tx    # disconnect
-        >>> persp.tx.outpus()
+        >>> cam.tx // c.tx    # disconnect
+        >>> cam.tx.outputs()
         []
             
 
@@ -2095,31 +2100,53 @@ class Attribute(PyNode):
     def __call__(self, *args, **kwargs):
         raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
     
-    '''
+    
     def __iter__(self):
-        """iterator for multi-attributes
+        """
+        iterator for multi-attributes
         
-            >>> for attr in SCENE.Nexus1.attrInfo(multi=1)[0]: print attr
-            
+            >>> at = PyNode( 'defaultLightSet.dagSetMembers' )
+            >>> SpotLight()
+            SpotLight('spotLightShape1')
+            >>> SpotLight()
+            SpotLight('spotLightShape2')
+            >>> SpotLight()
+            SpotLight('spotLightShape3')
+            >>> for x in at: print x
+            ... 
+            defaultLightSet.dagSetMembers[0]
+            defaultLightSet.dagSetMembers[1]
         """
         if self.isMulti():
             return self
+            #return self[0]
         else:
             raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
             
     def next(self):
-        """iterator for multi-attributes
-        
-            >>> for attr in SCENE.Nexus1.attrInfo(multi=1)[0]: print attr
-            
         """
-        if self.__dict__['_multiattrIndex'] >= self.size():
+        iterator for multi-attributes
+        
+
+        """
+#        index = self.index()
+#        size = self.size()
+        index = self.__dict__.get('_iterIndex', 0)
+        try:
+            size = self.__dict__['_iterSize']
+        except KeyError:
+            size = self.size()
+            self.__dict__['_iterSize'] = size
+            
+        if index >= size:
+            self.__dict__.pop('_iterIndex')
+            self.__dict__.pop('_iterSize')
             raise StopIteration
-        else:            
-            attr = Attribute('%s[%s]' % (self, self.__dict__['_multiattrIndex']) )
-            self.__dict__['_multiattrIndex'] += 1
-            return attr
-    '''        
+
+        else:
+            self.__dict__['_iterIndex'] = index+1
+            return self[index]
+          
 
     def __str__(self):
         return str(self.name())
@@ -2149,24 +2176,34 @@ class Attribute(PyNode):
         return thisPlug == otherPlug and thisIndex == otherIndex
 
             
-    def name(self):
+    def name(self, includeNode=True, longName=True, fullAttrPath=False, fullDagPath=False):
         """ Returns the full name of that attribute(plug) """
         obj = self.__apiobject__()
         if obj:
-            return self.plugNode().name() + '.' + self.partialName( includeNodeName=False, 
-                                                                   includeNonMandatoryIndices=True, 
-                                                                   includeInstancedIndices=True, 
-                                                                   useAlias=False, 
-                                                                   useFullAttributePath=False, 
-                                                                   useLongNames=True )
-        return self._name
+            name = ''
+            node = self.plugNode()
+            if includeNode:
+                if isinstance(node, DagNode):
+                    name = node.name(fullDagPath)
+                else:
+                    name = node.name()
+                name += '.'
+         
+            
+            return name + self.partialName( includeNodeName=False, 
+                                                       includeNonMandatoryIndices=True, 
+                                                       includeInstancedIndices=True, 
+                                                       useAlias=False, 
+                                                       useFullAttributePath=fullAttrPath, 
+                                                       useLongNames=longName )
+        raise MayaObjectError(self._name)
     
     
-    def attributeName(self):
-        pass
-    
-    def attributeNames(self):
-        pass
+#    def attributeName(self):
+#        pass
+#    
+#    def attributeNames(self):
+#        pass
       
     
     def plugNode(self):
@@ -2175,32 +2212,57 @@ class Attribute(PyNode):
     
     node = plugNode
                 
-    def plugAttr(self, longName=False):
-        """plugAttr
-        
-            >>> SCENE.persp.t.tx.plugAttr()
+    def plugAttr(self, longName=False, fullPath=False):
+        """        
+            >>> at = SCENE.persp.t.tx
+            >>> at.plugAttr(longName=False, fullPath=False)
+            u'tx'
+            >>> at.plugAttr(longName=False, fullPath=True)
             u't.tx'
+            >>> at.plugAttr(longName=True, fullPath=True)
+            u'translate.translateX'
         """
-        return self.partialName(useLongNames=longName, useFullAttributePath=True, 
-                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
+        return self.name(includeNode=False,
+                         longName=longName,
+                         fullAttrPath=fullPath)
+        
     
     def lastPlugAttr(self, longName=False):
         """
-            >>> SCENE.persp.t.tx.lastPlugAttr()
+            >>> at = SCENE.persp.t.tx
+            >>> at.lastPlugAttr(longName=False)
             u'tx'
+            >>> at.lastPlugAttr(longName=True)
+            u'translateX'
         """
-        return self.partialName(useLongNames=longName, useFullAttributePath=False, 
-                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
+        return self.name(includeNode=False,
+                         longName=longName,
+                         fullAttrPath=False)
+
     
-    def longName(self, fullpath=False ):
-        "attributeQuery -longName"
-        return self.partialName(useLongNames=True, useFullAttributePath=fullpath, 
-                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
+    def longName(self, fullPath=False ):
+        """        
+            >>> at = SCENE.persp.t.tx
+            >>> at.longName(fullPath=False)
+            u'translateX'
+            >>> at.longName(fullPath=True)
+            u'translate.translateX'
+        """
+        return self.name(includeNode=False,
+                         longName=True,
+                         fullAttrPath=fullPath)
         
-    def shortName(self, fullpath=False):
-        "attributeQuery -shortName"
-        return self.partialName(useLongNames=False, useFullAttributePath=fullpath, 
-                                includeNonMandatoryIndices=True, includeInstancedIndices=True)
+    def shortName(self, fullPath=False):
+        """        
+            >>> at = SCENE.persp.t.tx
+            >>> at.shortName(fullPath=False)
+            u'tx'
+            >>> at.shortName(fullPath=True)
+            u't.tx'
+        """
+        return self.name(includeNode=False,
+                         longName=False,
+                         fullAttrPath=fullPath)
         
     def nodeName( self ):
         'The node part of this plug as a string'
@@ -2385,6 +2447,9 @@ class Attribute(PyNode):
             return self.__apiobject__().numElements()
         except RuntimeError:
             pass
+     
+    def __len__(self):
+         return self.size()
         
 #    def isElement(self):
 #        """ Is the attribute an element of a multi(array) attribute """
@@ -2397,9 +2462,9 @@ class Attribute(PyNode):
 #        return cmds.getAttr(self, keyable=True)
 #    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable'  )
 
-    def setKeyable(self, state):
-        "setAttr -keyable"
-        return cmds.setAttr(self, keyable=state)
+#    def setKeyable(self, state):
+#        "setAttr -keyable"
+#        return cmds.setAttr(self, keyable=state)
 #    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable'  )
 
 #    def isLocked(self):
@@ -2407,9 +2472,9 @@ class Attribute(PyNode):
 #        return cmds.getAttr(self, lock=True)    
 #    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked'  )
 
-    def setLocked(self, state):
-        "setAttr -locked"
-        return cmds.setAttr(self, lock=state)
+#    def setLocked(self, state):
+#        "setAttr -locked"
+#        return cmds.setAttr(self, lock=state)
 #    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked'  )  
    
     def lock(self):
@@ -2423,23 +2488,23 @@ class Attribute(PyNode):
 #    def isInChannelBox(self):
 #        "getAttr -channelBox"
 #        return cmds.getAttr(self, channelBox=True)    
-    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox' )  
-      
-    def showInChannelBox(self, state):
-        "setAttr -channelBox"
-        return cmds.setAttr(self, channelBox=state)    
+#    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox' )  
+#      
+#    def showInChannelBox(self, state):
+#        "setAttr -channelBox"
+#        return cmds.setAttr(self, channelBox=state)    
     #showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox' )
     
           
 #    def isCaching(self):
 #        "getAttr -caching"
 #        return cmds.getAttr(self, caching=True)
-    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
-               
-    def setCaching(self, state):
-        "setAttr -caching"
-        return cmds.setAttr(self, caching=state)
-#    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
+#    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
+#               
+#    def setCaching(self, state):
+#        "setAttr -caching"
+#        return cmds.setAttr(self, caching=state)
+##    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
               
     def isSettable(self):
         "getAttr -settable"
@@ -3019,7 +3084,7 @@ class DependNode( PyNode ):
                                 result = result.child( self.__apimfn__().attribute( token ) )
                         else: # Node
                             result = self.__apimfn__().findPlug( token )                              
-#                                # search children for the attribute to simulate  persp.focalLength --> perspShape.focalLength
+#                                # search children for the attribute to simulate  cam.focalLength --> perspShape.focalLength
 #                                except TypeError:
 #                                    for i in range(fn.childCount()):
 #                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( token )
@@ -3337,12 +3402,25 @@ class DagNode(Entity):
             except:
                 return False
     
-    def getAllInstances(self):
+    def getAllInstances(self, includeSelf=True):
+        """
+            >>> delete(ls(type='mesh'), quiet=1)
+            >>> s = polyCube()[0]
+            >>> instance(s)
+            [Transform('pCube2')]
+            >>> instance(s)
+            [Transform('pCube3')]
+            >>> s.getShape().getAllInstances()
+            [Mesh('pCube1|pCubeShape1'), Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
+            >>> s.getShape().getAllInstances(includeSelf=False)
+            [Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
+        
+        """
         d = api.MDagPathArray()
         self.__apimfn__().getAllPaths(d)
-        #result = [ PyNode(d[i]) for i in range(d.length()) ]
-        #print [ x.exists() for x in result ]
-        result = [ PyNode( api.MDagPath(d[i])) for i in range(d.length()) ]
+        thisDagPath = self.__apimdagpath__()
+        result = [ PyNode( api.MDagPath(d[i])) for i in range(d.length()) if includeSelf or not d[i] == thisDagPath ]
+        
         return result
 
     def firstParent(self):
@@ -4157,6 +4235,7 @@ class ObjectSet(Entity):
     
     create some sets
     
+        >>> from pymel import *
         >>> sphere = polySphere()
         >>> cube = polyCube()
         >>> s = sets( cube )
@@ -4247,15 +4326,15 @@ class ObjectSet(Entity):
 #
 #    def __gt__(self, s):
 #        return self.issuperset(s)
-#                    
-#    def __sub__(self, s):
-#        return self.difference(s)
-#
-#    def __isub__(self, s):
-#        return self.difference_update(s)                        
-#
-#    def __xor__(self, s):
-#        return self.symmetric_difference(s)
+                    
+    def __sub__(self, s):
+        return self.difference(s)
+
+    def __isub__(self, s):
+        return self.difference_update(s)                        
+
+    def __xor__(self, s):
+        return self.symmetric_difference(s)
         
     def add(self, element):
         return sets( self, add=[element] )
