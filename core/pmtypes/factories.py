@@ -2565,7 +2565,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
         getterArgHelper = argHelper.getGetterInfo()
         if argHelper.hasOutput() :
-            getterArgList = []
+            getterInArgs = []
             # query method ( getter )
             #if argHelper.getGetterInfo() is not None:
             if getterArgHelper is not None:
@@ -2577,21 +2577,21 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             if getterArgHelper is None:
                 if VERBOSE:
                     util.warn( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
-                getterArgList = []
+                getterInArgs = []
             else:
-                getterArgList = getterArgHelper.inArgs()
+                getterInArgs = getterArgHelper.inArgs()
           
-        numGetterArgs = len(getterArgList)  
+        #numGetterArgs = len(getterInArgs)  
 #        getterArgHelper = argHelper.getGetterInfo()
 #        if getterArgHelper is not None:
 #            if argHelper.hasOutput() :
 #                util.warn( "%s.%s has an inverse 'getter' %s, but it has outputs, which is not allowed for a 'setter'" % ( 
 #                                                                            apiClassName, methodName, getterArgHelper.methodName ) )
-#                getterArgList = []
+#                getterInArgs = []
 #            else:
-#                getterArgList = getterArgHelper.inArgs()
+#                getterInArgs = getterArgHelper.inArgs()
 #        else:
-#            getterArgList = []
+#            getterInArgs = []
 
         
         # create the function 
@@ -2625,16 +2625,16 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             for name, argtype, direction in argList :
                 if direction == 'in':
                     arg = args[inCount]
-
-                    if name in getterArgList:
+                    undoArgs.append(arg)
+                    if name in getterInArgs:
                         # gather up args that are required to get the current value we are about to set.
                         # these args are shared between getter and setter pairs
                         getterArgs.append(arg)
-                        undoArgs.append(arg)
-                    elif inCount < numGetterArgs:
+                        #undoArgs.append(arg)
+                    else:
                         # store the indices for 
                         missingUndoIndices.append(inCount)
-                        undoArgs.append(None)
+                        #undoArgs.append(None)
                     newargs.append( argHelper.castInput( name, arg, self.__class__ ) )
                     inCount +=1
                 else:
@@ -2659,9 +2659,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 
                 #print getterResult
                 #print missingUndoIndices
-                assert len(missingUndoIndices) == len(getterResult), "%s : %s" % ( missingUndoIndices, getterResult )
-                for i, index in enumerate(missingUndoIndices):
-                    undoArgs[index] = getterResult[i]
+                #assert len(missingUndoIndices) == len(getterResult), "%s : %s" % ( missingUndoIndices, getterResult )
+                for index, result in zip(missingUndoIndices, getterResult ):
+                    undoArgs[index] = result
 
                 #print undoArgs
                 
