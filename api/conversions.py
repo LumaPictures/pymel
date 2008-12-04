@@ -245,6 +245,9 @@ class ApiDocParser(object):
         if not os.path.isdir(docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
         file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
+        
+        print "parsing file" , file 
+        
         f = open( file )
     
         soup = BeautifulSoup( f.read(), convertEntities='html' )
@@ -367,9 +370,7 @@ class ApiDocParser(object):
                     for i, each in enumerate(buf):
                         if each not in [ '*', '&', 'const', 'unsigned']:
                             break
-                    self.xprint( buf, )
                     argtype = buf.pop(i)
-                    self.xprint( buf, argtype, i )
                     
                     argtype = self.handleEnums(argtype)
                     
@@ -447,57 +448,77 @@ class ApiDocParser(object):
                     
                     methodDoc = ' '.join( addendum.p.findAll( text=True ) )
                     
-                    extraInfo = addendum.dl.table
-                    assert extraInfo
-                    tmpDirs = extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
-
-                    tmpNames = [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
-                    
+                    tmpDirs = []
+                    tmpNames = []
                     tmpDocs = []
-                    for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in extraInfo.findAll( 'td' )]:
-                        if doc: tmpDocs.append( ''.join(doc) )
+                    
+                    #extraInfo = addendum.dl.table
+                    extraInfos = addendum.findAll('table')
+                    
+                    if extraInfos:
+                        #print "NUMBER OF TABLES", len(extraInfos)
+                        for extraInfo in extraInfos:
+                            tmpDirs += extraInfo.findAll( text=lambda text: text in ['[in]', '[out]'] )
+            
+                            #tmpNames += [ em.findAll( text=True, limit=1 )[0] for em in extraInfo.findAll( 'em') ]
+                            tmpNames = []
+                            for tr in extraInfo.findAll( 'tr'):
+                                assert tr, "could not find name tr"
+                                em = tr.findNext( 'em' )
+                                assert tr, "could not find name em"
+                                name = em.findAll( text=True, limit=1 )[0]
+                                tmpNames.append(name)
+                            
+#                            for td in extraInfo.findAll( 'td' ):
+#                                assert td, "could not find doc td"
+#                                for doc in td.findAll( text=lambda text: text.strip(), recursive=False) :
+#                                    if doc: tmpDocs.append( ''.join(doc) )
+                                    
+                            for doc in [td.findAll( text=lambda text: text.strip(), recursive=False) for td in extraInfo.findAll( 'td' )]:
+                                if doc: tmpDocs.append( ''.join(doc) )
+                            
+                                  
+                        assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), 'names and types lists are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs) 
+                        assert sorted(tmpNames) == sorted(typeQualifiers.keys()), 'name list mismatch %s %s' %  (sorted(tmpNames), sorted(typeQualifiers.keys()) )
                         
-                    assert len(tmpDirs) == len(tmpNames) == len(tmpDocs), 'names and types lists are of unequal lengths: %s vs. %s vs. %s' % (tmpDirs, tmpNames, tmpDocs) 
-                    assert sorted(tmpNames) == sorted(typeQualifiers.keys()) == sorted(typeQualifiers.keys()), 'name list mismatch %s %s %s' %  (sorted(tmpNames), sorted(typeQualifiers.keys()), sorted(typeQualifiers.keys()) )
-                    
-                    #self.xprint(  sorted(tmpNames), sorted(typeQualifiers.keys()), sorted(typeQualifiers.keys()) )
-                    
-                    for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs) :
-                        if dir == '[in]': 
-                            # attempt to correct bad in/out docs
-                            if re.search(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)', doc ):
-                                warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
-                                                                    self.apiClassName,self.currentMethod,', '.join(names), name, doc), ExecutionWarning)
+                        #self.xprint(  sorted(tmpNames), sorted(typeQualifiers.keys()), sorted(typeQualifiers.keys()) )
+                        
+                        for name, dir, doc in zip(tmpNames, tmpDirs, tmpDocs) :
+                            if dir == '[in]': 
+                                # attempt to correct bad in/out docs
+                                if re.search(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)', doc ):
+                                    warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, doc), ExecutionWarning)
+                                    dir = 'out'
+                                elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float']:
+                                    warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)                                                                                        
+                                    dir = 'out'
+                                else:
+                                    dir = 'in'
+                            elif dir == '[out]': 
                                 dir = 'out'
-                            elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float']:
-                                warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
-                                                                    self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)                                                                                        
-                                dir = 'out'
+                            else: raise
+                            
+                            assert name in names
+                            directions[name] = dir
+                            docs[name] = doc
+                        
+                        
+                        # Documentation for Return Values
+                        if returnType:
+                            try:   
+                                returnDocBuf = addendum.findAll( 'dl', limit=1, **{'class':'return'} )[0].findAll( text=True )
+                            except IndexError:
+                                pass
                             else:
-                                dir = 'in'
-                        elif dir == '[out]': 
-                            dir = 'out'
-                        else: raise
-                        
-                        assert name in names
-                        directions[name] = dir
-                        docs[name] = doc
-                    
-                    
-                    # Documentation for Return Values
-                    if returnType:
-                        try:   
-                            returnDocBuf = addendum.findAll( 'dl', limit=1, **{'class':'return'} )[0].findAll( text=True )
-                        except IndexError:
-                            pass
-                        else:
-                            if returnDocBuf:
-                                returnDoc = ''.join( returnDocBuf[1:] ).strip('\n')
-                            self.xprint(  'RETRUN_DOC', returnDoc  )         
+                                if returnDocBuf:
+                                    returnDoc = ''.join( returnDocBuf[1:] ).strip('\n')
+                                self.xprint(  'RETURN_DOC', repr(returnDoc)  )         
 
                         
                 except (AttributeError, AssertionError), msg:
-                    #print "FAILED", msg
+                    self.xprint( "FAILED", str(msg) )
                     pass
 
                  
@@ -544,7 +565,7 @@ class ApiDocParser(object):
                     type = types[argname]
                     direction = directions.get(argname, 'in')
                     data = ( argname, type, direction)
-                    if self.verbose: print data       
+                    if self.verbose: self.xprint( "ARG", data )       
                     argList.append(  data )
                     
                 methodInfo = { 'argInfo': argInfo, 
