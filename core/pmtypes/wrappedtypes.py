@@ -1827,8 +1827,8 @@ class TransformationMatrix(Matrix):
         return self.apicls.rotation(self) 
 
 
-class EulerRotation(Vector):
-    #__metaclass__ = MetaMayaArrayTypeWrapper
+class EulerRotation(Array):
+    __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MEulerRotation
     shape = (3,)   
     cnames = ('x', 'y', 'z') 
@@ -1915,8 +1915,34 @@ class EulerRotation(Vector):
        return self.size
      
     def __getitem__(self, i):
-        return Angle( super(Vector, self).__getitem__(i), 'radians' ).asUI()
-        
+        return Angle( self._getitem(i), 'radians' ).asUI()
+    
+    # faster to override __getitem__ cause we know Vector only has one dimension
+    def _getitem(self, i):
+        """ Get component i value from self """
+        if hasattr(i, '__iter__') :
+            i = list(i)
+            if len(i) == 1 :
+                i = i[0]
+            else :
+                raise IndexError, "class %s instance %s has only %s dimension(s), index %s is out of bounds" % (util.clsname(self), self, self.ndim, i)
+        if isinstance(i, slice) :
+            return _toCompOrArrayInstance(list(self)[i], VectorN)
+            try :
+                return _toCompOrArrayInstance(list(self)[i], VectorN)
+            except :
+                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+        else :
+            if i < 0 :
+                i = self.size + i
+            if i<self.size and not i<0 :
+                if hasattr(self.apicls, '__getitem__') :
+                    return self.apicls.__getitem__(self, i)
+                else :
+                    return list(self)[i]
+            else :
+                raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i) 
+             
     def assign(self, value):
         """ Wrap the Quaternion api assign method """
         # api Quaternion assign accepts Matrix, Quaternion and EulerRotation
@@ -1939,7 +1965,154 @@ class EulerRotation(Vector):
         self.apicls.get(self, p)
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
    
-   
+    def __contains__(self, value):
+        """ True if at least one of the vector components is equal to the argument """
+        return value in self.__iter__()  
+    
+    # common operators without an api equivalent are herited from VectorN
+    
+    # operators using the Maya API when applicable, but that can delegate to VectorN
+    
+    def __eq__(self, other):
+        """ u.__eq__(v) <==> u == v
+            Equivalence test """
+        try :
+            return bool(self.apicls.__eq__(self, other))
+        except :
+            return bool(super(EulerRotation, self).__eq__(other))        
+    def __ne__(self, other):
+        """ u.__ne__(v) <==> u != v
+            Equivalence test """
+        return (not self.__eq__(other))      
+    def __neg__(self):
+        """ u.__neg__() <==> -u
+            The unary minus operator. Negates the value of each of the components of u """        
+        return self.__class__(self.apicls.__neg__(self)) 
+    def __add__(self, other) :
+        """ u.__add__(v) <==> u+v
+            Returns the result of the addition of u and v if v is convertible to a VectorN (element-wise addition),
+            adds v to every component of u if v is a scalar """ 
+        try :
+            return self.__class__._convert(self.apicls.__add__(self, other))
+        except :
+            return self.__class__._convert(super(EulerRotation, self).__add__(other)) 
+    def __radd__(self, other) :
+        """ u.__radd__(v) <==> v+u
+            Returns the result of the addition of u and v if v is convertible to a VectorN (element-wise addition),
+            adds v to every component of u if v is a scalar """
+        try :
+            return self.__class__._convert(self.apicls.__radd__(self, other))
+        except :
+            return self.__class__._convert(super(EulerRotation, self).__radd__(other))  
+    def __iadd__(self, other):
+        """ u.__iadd__(v) <==> u += v
+            In place addition of u and v, see __add__ """
+        try :
+            return self.__class__(self.__add__(other))
+        except :
+            return NotImplemented   
+    def __sub__(self, other) :
+        """ u.__sub__(v) <==> u-v
+            Returns the result of the substraction of v from u if v is convertible to a VectorN (element-wise substration),
+            substract v to every component of u if v is a scalar """        
+        try :
+            return self.__class__._convert(self.apicls.__sub__(self, other))
+        except :
+            return self.__class__._convert(super(EulerRotation, self).__sub__(other))   
+    def __rsub__(self, other) :
+        """ u.__rsub__(v) <==> v-u
+            Returns the result of the substraction of u from v if v is convertible to a VectorN (element-wise substration),
+            replace every component c of u by v-c if v is a scalar """        
+        try :
+            return self.__class__._convert(self.apicls.__rsub__(self, other))
+        except :
+            return self.__class__._convert(super(EulerRotation, self).__rsub__(other))      
+    def __isub__(self, other):
+        """ u.__isub__(v) <==> u -= v
+            In place substraction of u and v, see __sub__ """
+        try :
+            return self.__class__(self.__sub__(other))
+        except :
+            return NotImplemented     
+    def __div__(self, other):
+        """ u.__div__(v) <==> u/v
+            Returns the result of the division of u by v if v is convertible to a VectorN (element-wise division),
+            divide every component of u by v if v is a scalar """  
+        try :
+            return self.__class__._convert(self.apicls.__div__(self, other))
+        except :
+            return self.__class__._convert(super(EulerRotation, self).__div__(other))    
+    def __rdiv__(self, other):
+        """ u.__rdiv__(v) <==> v/u
+            Returns the result of of the division of v by u if v is convertible to a VectorN (element-wise division),
+            invert every component of u and multiply it by v if v is a scalar """
+        try :
+            return self.__class__._convert(self.apicls.__rdiv__(self, other))
+        except :
+            return self.__class__._convert(super(EulerRotation, self).__rdiv__(other))    
+    def __idiv__(self, other):
+        """ u.__idiv__(v) <==> u /= v
+            In place division of u by v, see __div__ """        
+        try :
+            return self.__class__(self.__div__(other))
+        except :
+            return NotImplemented           
+    # action depends on second object type
+    def __mul__(self, other) :
+        """ u.__mul__(v) <==> u*v
+            The multiply '*' operator is mapped to the dot product when both objects are Vectors,
+            to the transformation of u by matrix v when v is a MatrixN,
+            to element wise multiplication when v is a sequence,
+            and multiplies each component of u by v when v is a numeric type. """
+        try :
+            res = self.apicls.__mul__(self, other)
+        except :
+            res = super(EulerRotation, self).__mul__(other)
+        if util.isNumeric(res) :
+            return res
+        else :
+            return self.__class__._convert(res)          
+    def __rmul__(self, other):
+        """ u.__rmul__(v) <==> v*u
+            The multiply '*' operator is mapped to the dot product when both objects are Vectors,
+            to the left side multiplication (pre-multiplication) of u by matrix v when v is a MatrixN,
+            to element wise multiplication when v is a sequence,
+            and multiplies each component of u by v when v is a numeric type. """
+        try :
+            res = self.apicls.__rmul__(self, other)
+        except :
+            res = super(EulerRotation, self).__rmul__(other)
+        if util.isNumeric(res) :
+            return res
+        else :
+            return self.__class__._convert(res)
+    def __imul__(self, other):
+        """ u.__imul__(v) <==> u *= v
+            Valid for EulerRotation * Matrix multiplication, in place transformation of u by Matrix v
+            or EulerRotation by scalar multiplication only """
+        try :
+            return self.__class__(self.__mul__(other))
+        except :
+            return NotImplemented         
+    # special operators
+#    def __xor__(self, other):
+#        """ u.__xor__(v) <==> u^v
+#            Defines the cross product operator between two 3D vectors,
+#            if v is a MatrixN, u^v is equivalent to u.transformAsNormal(v) """
+#        if isinstance(other, VectorN) :
+#            return self.cross(other)
+#        elif isinstance(other, MatrixN) :
+#            return self.transformAsNormal(other)
+#        else :
+#            return NotImplemented
+#    def __ixor__(self, other):
+#        """ u.__xor__(v) <==> u^=v
+#            Inplace cross product or transformation by inverse transpose of v is v is a MatrixN """
+#        try :        
+#            return self.__class__(self.__xor__(other))
+#        except :
+#            return NotImplemented        
+          
 class Quaternion(Matrix):
     apicls = _api.MQuaternion
     shape = (4,)
