@@ -206,7 +206,10 @@ class Window(UI):
                 
 def formLayout(*args, **kwargs):
     kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
-    return FormLayout(cmds.formLayout(*args, **kwargs), **kw)
+    ret = cmds.formLayout(*args, **kwargs)
+    if not (set(['q','query','e','edit']) & set(kwargs)):
+        ret = FormLayout(ret, **kw)
+    return ret
                 
 class FormLayout(UI):
     __metaclass__ = MetaMayaUIWrapper
@@ -271,7 +274,7 @@ class FormLayout(UI):
             If not ratios are given (or not enough), 1 will be used 
         """
         
-        children = self.getChildren()
+        children = self.getChildArray()
         if not children:
             return
         if self.reversed: children.reverse()
