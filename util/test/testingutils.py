@@ -1,4 +1,4 @@
-import sys, os, types, doctest
+import sys, os, types, doctest, modulefinder
 from StringIO import StringIO
 from unittest import *
 
@@ -50,6 +50,10 @@ def doctestmod(*args, **kwargs):
     """
     return doctest.testmod(*args, **kwargs)
 
+#def isDocTestable(path):
+#    finder = moduleFinder.ModuleFinder()
+#    finder.find_all_submodules(path)
+
 class MayaTestRunner(TextTestRunner):
     def __init__(self, stream=sys.stdout, descriptions=True, verbosity=2):
         super(MayaTestRunner, self).__init__(stream=stream,
@@ -60,30 +64,15 @@ class MayaTestRunner(TextTestRunner):
     def run(self, *args, **kwargs):
         super(MayaTestRunner, self).run(*args, **kwargs)
     
-def default_suite(module):
-    """
-    Creates a suite out of all found unittests AND doctests found in the module.
-    """
-    theSuite = findTestCases(module)
-    try:
-        doctests = doctest.DocTestSuite(module)
-    except ValueError:
-        # will raise a value error if it found no tests...
-        pass
-    else:
-        if doctests.countTestCases():
-            theSuite.addTest(doctests)
-    return theSuite
-
 def addFuncToModule(func, module):
     if not hasattr(module, func.__name__):
         setattr(module, func.__name__, func) 
 
-def startsWithdoubleUnderscore(testcase):
+def startsWithDoubleUnderscore(testcase):
     return testcase.__name__.startswith("__")
     
 def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainName=TEST_MAIN_FUNC_NAME,
-                        filterTestCases=startsWithdoubleUnderscore):
+                        filterTestCases=startsWithDoubleUnderscore):
     """
     Add basic unittest functions to the given module.
      
@@ -100,15 +89,15 @@ def setupUnittestModule(moduleName, suiteFuncName = SUITE_FUNC_NAME, testMainNam
     Will then call 'test_main' if moduleName == '__main__'
     """
     module = sys.modules[moduleName]
-    def suite():
-        return default_suite(module)
-    suite.__name__ = suiteFuncName
+    def theSuite():
+        return findTestCases(module)
+    theSuite.__name__ = suiteFuncName
     
     def test_main():
-        return MayaTestRunner().run(suite())
+        return MayaTestRunner().run(theSuite())
     test_main.__name__ = testMainName
     
-    addFuncToModule(suite, module)
+    addFuncToModule(theSuite, module)
     addFuncToModule(test_main, module)
     
     for name in dir(module):
@@ -306,75 +295,133 @@ def isEquivalenceRelation(inputs, outputs, dict):
         return True
     else:
         return False
-    
-class SuiteFromTestModule(TestSuite):
-    def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME, addSelfTest=True):
-        super(SuiteFromTestModule, self).__init__()
-        self.moduleName = moduleName
-        self.suiteFuncName = suiteFuncName
-        self._importTestModule()
-        self._importSuite()
-        self._makeTestCase()
-        self.addTest(self.testCase)
-        if self.importedSuite:
-            self.addTest(self.importedSuite)
-        
-    def _importTestModule(self):
+
+class SuiteFromModule(TestSuite):
+    def __init__(self, module, testImport=True):
+        """
+        Set testImport to True to have the suite automatically contain a test case that
+        checks if we were able to find any tests in the given module.
+        """
+        super(SuiteFromModule, self).__init__()
         self._importError = None
+        
+        if isinstance(module, basestring):
+            self.moduleName = module
+            self.module = self._importTestModule()
+        elif isinstance(module, types.ModuleType):
+            self.moduleName = module.__name__
+            self.module = module
+                
+        if self._importError is None and self.module:
+            try:
+                importedSuite = self._importSuite()
+                if not importedSuite.countTestCases():
+                    self._importError = "Imported suite (from %s.%s) had no test cases" % (self.module.__name__, self.suiteFuncName)
+            except:
+                self._importError = lastFormattedException()
+            
+        if not self._importError:
+            self.addTest(importedSuite)
+        
+        if testImport:
+            self.addTest(self._makeImportTestCase())
+
+    def _importTestModule(self):
+        module = None
         try:
-            self.module = __import__(self.moduleName)
+            module = __import__(self.moduleName)
             
             # if moduleName is 'package.module', __import__ returns package!
             packagePath = self.moduleName.split('.')
             for subModule in packagePath[1:]:
-                self.module = getattr(self.module, subModule)
+                module = getattr(module, subModule)
         except:
             self._importError = lastFormattedException()
-            self.module = None
-            
-    def _importSuite(self):
-        self._importSuiteError = None
-        try:
-            self.importedSuite = None
-            if self.module:
-                suiteFunc = getattr(self.module, self.suiteFuncName, None)
-                if isinstance(suiteFunc, TestSuite):
-                    self.importedSuite = suiteFunc
-                elif callable(suiteFunc):
-                    self.importedSuite = suiteFunc()
-    
-                if not self.importedSuite:
-                    self.importedSuite = default_suite(self.module)
-    
-            if not isinstance(self.importedSuite, TestSuite):
-                self._importSuiteError = "Imported object '%s' (from %s.%s) was not a TestSuite object" % (self.importedSuite, self.module, self.suiteFuncName)
-            elif not self.importedSuite.countTestCases():
-                self._importSuiteError = "Imported suite (from %s.%s) had no test cases" % (self.module.__name__, self.suiteFuncName)
-                # TODO: remp
-                print self.suiteFuncName
-        except:
-            self._importSuiteError = lastFormattedException()
-            
-        if self._importSuiteError:
-            self.importedSuite = None
+            module = None
+        return module
 
-    def _makeTestCase(self):
+    def _importSuite(self):
+        return TestSuite()
+
+    def _makeImportTestCase(suite_self):
         class TestSuiteImport(TestCaseExtended):
             def runTest(testCase_self):
-                testCase_self.assertTrue(self.module, "Failed to import module '%s':\n%s" % (self.moduleName, self._importError))
-                testCase_self.assertTrue(self.importedSuite, "Failed to create a test suite from module '%s':\n%s" % (self.moduleName, self._importSuiteError))
-            runTest.__doc__ = """Try to import module '%s'""" % self.moduleName
-        self.testCase = TestSuiteImport()
+                testCase_self.assertTrue(suite_self._importError is None, "Failed to create a test suite from module '%s':\n%s" % (suite_self.moduleName, suite_self._importError))
+            runTest.__doc__ = """Try to create a %s from module '%s'""" % (suite_self.__class__.__name__, suite_self.moduleName)
+        return TestSuiteImport()
 
-# TODO: find ALL doctest-able modules as well!
-def suite():
-    suite = TestSuite()
-    for testMod in findTestModules():
-        suite.addTest(SuiteFromTestModule(testMod))
-    return suite
     
+class UnittestSuiteFromModule(SuiteFromModule):
+    def __init__(self, moduleName, suiteFuncName=SUITE_FUNC_NAME, **kwargs):
+        self.suiteFuncName = suiteFuncName
+        super(UnittestSuiteFromModule, self).__init__(moduleName, **kwargs)
 
-def findPymelTestModules(module, testModulePrefix="test_"):
+    def _importSuite(self):
+        theSuite = None
+        suiteFunc = getattr(self.module, self.suiteFuncName, None)
+        if isinstance(suiteFunc, TestSuite):
+            theSuite = suiteFunc
+        elif callable(suiteFunc):
+            theSuite = suiteFunc()
+
+        if not theSuite:
+            theSuite = findTestCases(self.module)
+        if not theSuite:
+            theSuite = TestSuite()
+        return theSuite
+        
+
+
+class DoctestSuiteFromModule(SuiteFromModule):
+    def __init__(self, moduleName, packageRecurse=False, alreadyRecursed = None, **kwargs):
+        if alreadyRecursed is None:
+            alreadyRecursed = []
+        self.alreadyRecursed = alreadyRecursed
+        self.packageRecurse = packageRecurse
+        super(DoctestSuiteFromModule, self).__init__(moduleName, **kwargs)
+
+    def _importSuite(self):
+        theSuite = None
+            
+        if self.module not in self.alreadyRecursed:
+            self.alreadyRecursed.append(self.module)
+            try:
+                theSuite = doctest.DocTestSuite(self.module)
+            except ValueError:
+                # will raise a value error if it found no tests...
+                theSuite = None            
+             
+            if self.packageRecurse:
+                # if the module is a pacakge, for each directory in it's search path...
+                for path in getattr(self.module, '__path__', []):
+                    
+                    # ...add all submodules!
+                    for name in os.listdir(path):
+                        newPath = os.path.join(path, name)
+                        basename, ext = os.path.splitext(name)
+                        if ( (os.path.isfile(newPath) and ext in ('.py', '.pyo', '.pyc') and basename != '__init__')
+                             or (os.path.isdir(newPath) and os.path.isfile(os.path.join(newPath, '__init__.py'))) ):
+                            newModuleName = self.moduleName + "." + basename
+                            
+                            newSuite = DoctestSuiteFromModule(newModuleName, testImport=False, packageRecurse=True, alreadyRecursed=self.alreadyRecursed)
+                            if newSuite.countTestCases():
+                                theSuite.addTest(newSuite)
+        if not theSuite:
+            theSuite = TestSuite()
+        return theSuite
+
+
+def suite():
+    theSuite = TestSuite()
+    unittestMods = findUnittestModules()
+    for testMod in unittestMods:
+        theSuite.addTest(UnittestSuiteFromModule(testMod))
+    doctests = DoctestSuiteFromModule('pymel', packageRecurse=True)
+    if doctests.countTestCases():
+        theSuite.addTest(doctests)
+    return theSuite
+
+def findUnittestModulesFor(module, testModulePrefix="test_"):
     """
     Will return the name of test modules used for unit testing the given module.
     
@@ -390,8 +437,6 @@ def findPymelTestModules(module, testModulePrefix="test_"):
         moduleName = module.__name__
     else:
         moduleName = module
-
-    foundMods.append(moduleName)
         
     # NOTE: For now, I'm ignoring the possibility of modules with the same name,
     # but within different pacakges - ie, 'package.aModule' and 'nextPackage.aModule'    
@@ -403,7 +448,7 @@ def findPymelTestModules(module, testModulePrefix="test_"):
     if testModulePrefix:
         shortName = testModulePrefix + shortName
     
-    for testModule in findTestModules():
+    for testModule in findUnittestModules(testdir=findtestdir(), prefix=testModulePrefix):
         if testModule.split('.')[-1] == shortName:
             foundMods.append(testModule)
     return foundMods
@@ -423,23 +468,28 @@ def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_")
     >>> pymel_test(mel2py) #doctest: +ELLIPSIS
     ...
 
-    If pymel_test is given no arguments, it runs all known tests:
-    >>> pymel_test() #doctest: +ELLIPSIS
-    ...
+    If pymel_test is given no arguments, it runs all known tests.
     """
 
     if not module:
         theSuite = suite()
     else:
-        testModuleNames = findPymelTestModules(module, testModulePrefix=testModulePrefix)
+        testModuleNames = findUnittestModulesFor(module, testModulePrefix=testModulePrefix)
         theSuite = TestSuite()
         for mod in testModuleNames:
-            theSuite.addTest(SuiteFromTestModule(mod))
+            theSuite.addTest(UnittestSuiteFromModule(mod))
+            
+        doctests = DoctestSuiteFromModule(module)
+        if doctests.countTestCases():
+            theSuite.addTest(doctests)
         
     if theSuite.countTestCases():
         MayaTestRunner().run(theSuite)
     else:
-        print("Could not find any tests for '%s'" % module)
+        output = "Could not find any tests"
+        if module:
+            output += ("for '%s'" % module)
+        print(output) 
 
 #================================================================================
 # Following code modified from python 2.5.1 source code, in module:
@@ -447,7 +497,7 @@ def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_")
 #================================================================================
 STDTESTS = []
 NOTTESTS = ["pymel.util.test.test_conversions"] # Nothing in it right now...
-def findTestModules(testdir=None, stdtests=STDTESTS, nottests=NOTTESTS, package="__thisPackage__", testModulePrefix="test_"):
+def findUnittestModules(testdir=None, stdtests=STDTESTS, nottests=NOTTESTS, package="__thisPackage__", prefix="test_", recursive=False):
     """Return a list of all applicable test modules."""
     if package == "__thisPackage__":
         package = ".".join(__name__.split(".")[:-1])
@@ -455,13 +505,32 @@ def findTestModules(testdir=None, stdtests=STDTESTS, nottests=NOTTESTS, package=
         testdir = findtestdir()
     names = os.listdir(testdir)
     tests = []
+
     for name in names:
-        if name[:len(testModulePrefix)] == testModulePrefix and name[-3:] == os.extsep+"py":
-            modname = name[:-3]
-            if package:
-                modname = package + "." + modname
-            if modname not in stdtests and modname not in nottests:
-                tests.append(modname)
+        path = os.path.join(testdir, name)
+        if os.path.isfile(path):
+            if name[-3:] == os.extsep+"py" and name.startswith(prefix):
+                modname = name[:-3]
+                if package:
+                    modname = package + "." + modname
+                if modname not in stdtests and modname not in nottests:
+                    tests.append(modname)
+        elif recursive and os.path.isdir(path):
+            isPackage = False
+            packageFileBase = '__init__'
+            for ext in ('py', 'pyc', 'pyo'):
+                packagePath = os.path.join(path, packageFileBase + os.extsep + ext)
+                if os.path.isfile(packagePath):
+                    isPackage = True
+                    break
+            if isPackage:
+                packageName = package + "." + name
+                tests.extend(findUnittestModules(testDir=path,
+                                             stdtests=[],
+                                             nottests=nottests,
+                                             package=packageName,
+                                             testModulePrefix=testModulePrefix,
+                                             recursive=recursive))
     tests.sort()
     return stdtests + tests
 
