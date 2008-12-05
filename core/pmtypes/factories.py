@@ -1400,7 +1400,13 @@ def fixCallbacks(inFunc, funcName=None ):
     
 
     def newUiFunc( *args, **kwargs):
-        if len(args):
+        if kwargs.pop('slc',kwargs.pop('defer',False)):
+            import pymel.core.windows
+            if args:
+                kwargs['name'] = args[0]
+            return getattr(pymel.core.windows, util.capitalize(funcName or inFunc.__name__))(slc=True,**kwargs)
+        
+        if args:
             doPassSelf = kwargs.pop('passSelf', False)
         else:
             doPassSelf = False

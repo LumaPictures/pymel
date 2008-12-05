@@ -150,14 +150,18 @@ class UI(unicode):
             >>> n.__repr__()
             # Result: Window('myWindow')
         """
-        def exists():
-            try: return cls.__melcmd__(name, ex=1)
-            except: pass
-        
 
-        if cls._isBeingCreated(name, create, kwargs):
-            name = cls.__melcmd__(name, **kwargs)
-        return unicode.__new__(cls,name)
+        slc = kwargs.pop("slc",kwargs.pop("defer",None))
+
+        if slc:
+            self = unicode.__new__(cls,name)
+            self.slc = SmartLayoutCreator2(name=name, uiFunc=cls.__melcmd__, **kwargs)
+            self.create = self.slc.create
+            return self
+        else:
+            if cls._isBeingCreated(name, create, kwargs):
+                name = cls.__melcmd__(name, **kwargs)
+            return unicode.__new__(cls,name)
 
     @staticmethod
     def _isBeingCreated( name, create, kwargs):
@@ -169,6 +173,10 @@ class UI(unicode):
         """
         return not name or create or kwargs.get( 'parent', kwargs.get('p', None))
         
+    def exists():
+        try: return cls.__melcmd__(name, ex=1)
+        except: pass
+        
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self)
     def getChildren(self, **kwargs):
@@ -177,7 +185,7 @@ class UI(unicode):
     def getParent(self):
         return UI( '|'.join( unicode(self).split('|')[:-1] ) )
     def type(self):
-        return objectTypeUI(self)
+        return cmds.objectTypeUI(self)
     def shortName(self):
         return unicode(self).split('|')[-1]
     def name(self):
@@ -196,14 +204,14 @@ class Window(UI):
     def delete(self):
         cmds.deleteUI(self, window=True)
                 
+def formLayout(*args, **kwargs):
+    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+    return FormLayout(cmds.formLayout(*args, **kwargs), **kw)
+                
 class FormLayout(UI):
     __metaclass__ = MetaMayaUIWrapper
     def attachForm(self, *args):
         kwargs = {'edit':True}
-        #if isinstance(list, args[0]):
-        #    kwargs['attachForm'] = args
-        #    return self.applyArgs(**kwargs)
-            
         kwargs['attachForm'] = [args]
         cmds.formLayout(self,**kwargs)
         
@@ -222,10 +230,89 @@ class FormLayout(UI):
         kwargs['attachPosition'] = [args]
         cmds.formLayout(self,**kwargs)
         
+
+    """ 
+    Automatically distributes child controls in either a
+    horizontal or vertical layout. Call 'redistribute' once done
+    adding child controls.
+    """
+    HORIZONTAL, VERTICAL = range(2)
+
+    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None, **kwargs):
+        """ 
+        spacing - absolute space between controls
+        orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
+        """
+        UI.__init__(self, **kwargs)
+        self.spacing = spacing
+        self.ori = orientation
+        self.reversed = reversed
+        self.ratios = ratios and list(ratios) or []
+    
+    def flip(self):
+        """Flip the orientation of the layout """
+        self.ori = 1-self.ori
+        self.redistribute(*self.ratios)
+    
+    def reverse(self):
+        """Reverse the children order """
+        self.reversed = not self.reversed
+        self.ratios.reverse()
+        self.redistribute(*self.ratios)
+        
+    def reset(self):
+        self.ratios = []
+        self.reversed = False
+        self.redistribute()
+        
+    sides = [["top","bottom"],["left","right"]]
+    def redistribute(self,*ratios):
+        """ Redistribute the child controls based on the given ratios.
+            If not ratios are given (or not enough), 1 will be used 
+        """
+        
+        children = self.getChildren()
+        if not children:
+            return
+        if self.reversed: children.reverse()
+        
+        ratios = list(ratios) or self.ratios or []
+        ratios += [1]*(len(children)-len(ratios))
+        self.ratios = ratios
+        total = sum(ratios)        
+        for i in range(len(children)):
+            child = children[i]
+            for side in self.sides[self.ori]:
+                self.attachForm(child,side,self.spacing)
+
+            if i==0:
+                self.attachForm(child,
+                    self.sides[1-self.ori][0],
+                    self.spacing)
+            else:
+                self.attachControl(child,
+                    self.sides[1-self.ori][0],
+                    self.spacing,
+                    children[i-1])
+            
+            if ratios[i]:
+                self.attachPosition(children[i],
+                    self.sides[1-self.ori][1],
+                    self.spacing,
+                    float(sum(ratios[:i+1]))/float(total)*100)
+            else:
+                self.attachNone(children[i],
+                    self.sides[1-self.ori][1])
+                
+    def afterCreate(self, *args, **kwargs):
+        self.redistribute()
+    
     def vDistribute(self,*ratios):
-        AutoLayout(self, orientation=AutoLayout.VERTICAL, ratios=ratios).redistribute()
+        self.orientation=VERTICAL
+        self.redistribute(*ratios)
     def hDistribute(self,*ratios):
-        AutoLayout(self, orientation=AutoLayout.HORIZONTAL, ratios=ratios).redistribute()
+        self.orientation=HORIZONTAL
+        self.redistribute(*ratios)
         
 class TextScrollList(UI):
     __metaclass__ = MetaMayaUIWrapper
@@ -308,129 +395,14 @@ class Callback(object):
         return Callback._callData    
     
 class CallbackWithArgs(Callback):
-    def __call__(self,*args):
-        Callback._callData = (self.func, self.args + args, self.kwargs)
+    def __call__(self,*args,**kwargs):
+        kwargsFinal = self.kwargs.copy()
+        kwargsFinal.update(kwargs)
+        Callback._callData = (self.func, self.args + args, kwargsFinal)
         mel.python("__import__('pymel').Callback._doCall()")
         return Callback._callData    
         
     
-class AutoLayout(FormLayout):
-    """ 
-    Automatically distributes child controls in either a
-    horizontal or vertical layout. Call 'redistribute' once done
-    adding child controls.
-    """
-    HORIZONTAL, VERTICAL = range(2)
-    sides = [["top","bottom"],["left","right"]]
-
-    
-    #def __new__(cls,  *args, **kwargs):
-    #    kwargs.pop("orientation",None)
-    #    kwargs.pop("spacing",None)
-    #    kwargs.pop("reversed",None)
-    #    kwargs.pop("ratios",None)
-    #    return FormLayout.__new__(cls, *args, **kwargs)
-    
-        
-    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None):
-        """ 
-        spacing - absolute space between controls
-        orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
-        """
-        self.spacing = spacing
-        self.ori = orientation
-        self.reversed = reversed
-        self.ratios = ratios and list(ratios) or []
-    
-    def flip(self):
-        """Flip the orientation of the layout """
-        self.ori = 1-self.ori
-        self.redistribute(*self.ratios)
-    
-    def reverse(self):
-        """Reverse the children order """
-        self.reversed = not self.reversed
-        self.ratios.reverse()
-        self.redistribute(*self.ratios)
-        
-    def reset(self):
-        self.ratios = []
-        self.reversed = False
-        self.redistribute()
-        
-    def redistribute(self,*ratios):
-        """ Redistribute the child controls based on the given ratios.
-            If not ratios are given (or not enough), 1 will be used 
-		    
-		    Example: 
-    
-		    .. python::
-    
-        		import pymel as pm
-	            win=window()
-    	        win.show()
-        	    al=AutoLayout(create=1,parent=win)
-            	[pm.button(l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
-	            al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
-        """
-        
-        children = self.getChildArray()
-        if not children:
-            return
-        if self.reversed: children.reverse()
-        
-        ratios = list(ratios) or self.ratios or []
-        ratios += [1]*(len(children)-len(ratios))
-        self.ratios = ratios
-        total = sum(ratios)        
-        for i in range(len(children)):
-            child = children[i]
-            for side in self.sides[self.ori]:
-                self.attachForm(child,side,self.spacing)
-
-            if i==0:
-                self.attachForm(child,
-                    self.sides[1-self.ori][0],
-                    self.spacing)
-            else:
-                self.attachControl(child,
-                    self.sides[1-self.ori][0],
-                    self.spacing,
-                    children[i-1])
-            
-            if ratios[i]:
-                self.attachPosition(children[i],
-                    self.sides[1-self.ori][1],
-                    self.spacing,
-                    float(sum(ratios[:i+1]))/float(total)*100)
-            else:
-                self.attachNone(children[i],
-                    self.sides[1-self.ori][1])
-
-
-def autoLayout(*args, **kwargs):
-    __doc__ = AutoLayout.__doc__
-    
-    kw = {}
-    for k in kwargs.keys():
-        if k in ["orientation", "spacing", "reversed", "ratios"]:
-            v = kwargs.pop(k,None)
-            if v is not None:
-                kw[k] = v
-    
-    return AutoLayout(formLayout(*args, **kwargs),**kw)
-
-def horizontalLayout(*args, **kwargs):
-    __doc__ = AutoLayout.__doc__
-    
-    kwargs["orientation"] = AutoLayout.HORIZONTAL
-    return autoLayout(*args, **kwargs)
-
-def verticalLayout(*args, **kwargs):
-    __doc__ = AutoLayout.__doc__
-    
-    kwargs["orientation"] = AutoLayout.VERTICAL
-    return autoLayout(*args, **kwargs)
 
 
 
@@ -471,13 +443,23 @@ class SmartLayoutCreator:
                             
     """
     def __init__(self, name=None, uiFunc=None, kwargs=None, postFunc=None, childCreators=None):
+        """
+        @param name: None, or a name for this gui element. This will be the key under-which 
+            the gui object will be stored in the 'creation' dictionary.
+        @param uiFunc: A pointer to the function that would build this ui element.
+        @param kwargs: A dictionary of arguments for the ui function.
+        @param postFunc: Optional - a function that would be invoked once this ui elemnt and all of its children have been created. 
+            A single argument is passed to the function which is this ui element
+        @param childCreators: Optional - A list of child SLC objects that would create additional child-elements under this ui-element
+            Examples: buttons within a layout, menu-items within menus, popup-menus on any other ui elements, etc.
+        """  
         assert (uiFunc is None) or callable(uiFunc), uiFunc
         assert kwargs is None or isinstance(kwargs,dict), kwargs
         assert postFunc is None or callable(postFunc), postFunc
         assert childCreators is None or isinstance(childCreators,list), childCreators
         self.__dict__.update(vars())
         
-    def create(self, creation=None, parent=None, debug=False, depth=0):
+    def create(self, creation=None, parent=None, debug=False):
         """ 
         Create the ui elements defined in this SLC. 
         Named elements will be inserted into the 'creation' dictionary, which is also the return value of this function.
@@ -487,26 +469,40 @@ class SmartLayoutCreator:
         if creation is None:
             creation = {}
         childCreators = self.childCreators or []
+        if self.kwargs is None:
+            self.kwargs = dict()
         if parent and self.uiFunc: self.kwargs["parent"] = parent
         
+        if debug and not isinstance(debug,basestring):
+            debug = "\t"
+        
         if debug:
-            print ">>"*depth  + "uiFunc: %s" % self.uiFunc
+            print debug + "> uiFunc: %s" % self.uiFunc.__name__,
         self.me = self.uiFunc and self.uiFunc(**self.kwargs) or parent
         
         if self.name:
             creation[self.name] = self.me
         if debug:
-            print ">>"*depth  + "result: (%s) - %s" % (self.name, self.me)
+            print (" : %-50s" % self.me) + (" - %r" % self.name if self.name else "")
 
-        [child.create(creation=creation,parent=self.me,debug=debug,depth=depth+1) for child in childCreators]
+        [child.create(creation=creation,parent=self.me,debug=debug and debug+"\t") for child in childCreators]
         
+        if hasattr(self.me,'afterCreate'):
+            self.me.afterCreate()
+            
         if self.postFunc: 
             self.postFunc(self.me)
             if debug:
-                print ">>"*depth + "postFunc: %s" % self.postFunc 
+                print debug + "< postFunc: %s" % self.postFunc 
         return creation
 
 SLC = SmartLayoutCreator
+
+class SmartLayoutCreator2(SmartLayoutCreator):
+    def __init__(self, uiFunc=None, name=None, childCreators=None, postFunc=None, **kwargs):
+        SmartLayoutCreator.__init__(self,name, uiFunc, kwargs, postFunc, childCreators)
+        
+SLT = SmartLayoutCreator2
 
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
     dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
@@ -540,11 +536,11 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
 
     ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons), 
                            db=default, 
-                           ma="center", cb="No", ds="No")
+                           ma="center", cb=no, ds=no)
     if moreButtons:
         return ret 
     else:
-        (ret==yes)
+        return (ret==yes)
 
 def informBox(title, message, ok="Ok"):
     """ Information box """
@@ -556,11 +552,9 @@ class PopupError( Exception ):
     After the user presses 'OK', the exception will be raised as normal. In batch mode the promptDialog is not opened."""
     
     def __init__(self, msg):
-        self.msg = msg
+        Exception.__init__(self, msg)
         if not cmds.about(batch=1):
-            ret = confirmDialog( t='Error', m=msg, b='OK', db='OK')
-    def __str__(self):
-        return self.msg
+            ret = informBox('Error', msg)
 
 
                      
@@ -703,39 +697,6 @@ def showsHourglass(func):
     decoratedFunc.__name__ = func.__name__
     return decoratedFunc
     
-class MelToPythonWindow(Window):
-
-    def __new__(cls, name=None):
-        self = window(title=name or "Mel To Python")
-        return Window.__new__(cls, self)
-
-    def convert(w):
-        from pymel.tools.mel2py import mel2pyStr
-        if cmds.cmdScrollFieldExecuter(w.mel,q=1,hasSelection=1):
-            cmds.cmdScrollFieldExecuter(w.mel,e=1,copySelection=1)
-            cmds.cmdScrollFieldExecuter(w.python,e=1,clear=1)
-            cmds.cmdScrollFieldExecuter(w.python,e=1,pasteSelection=1)
-            mel = cmds.cmdScrollFieldExecuter(w.python,q=1,text=1)
-        else:
-            mel = cmds.cmdScrollFieldExecuter(w.mel,q=1,text=1)
-        try:
-            py = mel2pyStr(mel)
-        except Exception, e:
-            confirmDialog(t="Mel To Python",m="Conversion Error:\n%s" % e,b=["Ok"], db="Ok")
-        else:
-            cmds.cmdScrollFieldExecuter(w.python,e=1,text=py)
-    
-
-    def __init__(self):
-        SLC(None, horizontalLayout, dict(ratios=[1,.1,1]), AutoLayout.redistribute, [
-              SLC("mel", cmds.cmdScrollFieldExecuter, {}),
-              SLC("button", button, dict(l="->", c=lambda *x: self.convert(), bgc=[.5,.7,1])),
-              SLC("python", cmds.cmdScrollFieldExecuter, dict(st="python"))
-              ]).create(self.__dict__,parent=self)
-        
-        self.setWidthHeight([600,800])
-        self.show()
-
 
 
 def pathButtonGrp( name=None, *args, **kwargs ):
@@ -1138,7 +1099,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 def PyUI(strObj, type=None):
     try:
         if not type:
-            type = objectTypeUI(strObj)
+            type = cmds.objectTypeUI(strObj)
         return getattr(_thisModule, util.capitalize(type) )(strObj)
     except AttributeError:
         return UI(strObj)
