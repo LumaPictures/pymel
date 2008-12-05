@@ -463,12 +463,17 @@ def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_")
     >>> pymel_test('pymel.core.pmtypes.pmcmds')  #doctest: +ELLIPSIS
     ...
     
+    
     ...or it can be an actual module object:
     >>> import pymel.tools.mel2py as mel2py
     >>> pymel_test(mel2py) #doctest: +ELLIPSIS
     ...
+    
+    If a module is specified, it will run doctests contained in the given module, as well as
+    unittests in pymel.util.test.test_module (if it exists).
 
-    If pymel_test is given no arguments, it runs all known tests.
+    If pymel_test is given no arguments, it runs all known unittests in modules of the form
+    pymel.util.test.test_*, and all pymel doctests!
     """
 
     if not module:
