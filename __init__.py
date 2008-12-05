@@ -52,14 +52,12 @@ Other Additions and Changes
                 - `context`: previously 'ctx', contains context tools
                 - `runtime`: runtime commands
                 - `other`: for commands which are not included in the maya documentation (such as commands created by plugins)
-        
+         - `util`: non-pymel dependent utilities
+         - `tools`: extensions, integrations, and pymel-dependent tools
     
     - New Classes:
         - The `MelGlobals` class adds dictionary-like access to mel global variables
         - The `Version` class simplifies cross platform comparison of versions of maya
-                
-    - Maya Bug Fixes
-
       
     - General Improvements
         - Commands and classes created by plugins are now added to pymel namespace on load and removed on unload
@@ -138,25 +136,88 @@ create a symbolic link to the real library (in my case libssl.so.0.9.8b, but it 
 
 The same thing must be done for libcrypto.so.4
 
-
-=================
-Design Philosophy
-=================
+=======================================
+    Design Philosophy
+=======================================
 
 When approaching the reorganization of the existing commands provided by maya.cmds, pymel follows these practical guidelines:
 
-    - a value returned by a get* function or query flag should be accepted as a valid argument by the corresponding set* function or edit flag
-    - a function which returns a list should return an empty list (not None) if it finds no matches ( ex. ls, listRelatives )
-    - a function which always returns a single item should not return that item in a list or tuple ( ex. spaceLocator )
+    - a value returned by a query flag should be accepted as a valid argument by the corresponding edit flag
+    - a function which returns a list should return an empty list (not None) if it finds no matches 
+        ( ex. `ls`, `listRelatives` )
+    - a function which always returns a single item should not return that item in a list or tuple 
+        ( ex. `spaceLocator` )
     - wherever possible, pymel/python objects should be returned
-    - a function which provides a mapping mechanism should have a dictionary-like pymel counterpart ( ex. fileInfo, optionVar )
-    - a function which returns a list of pairs should be a 2D array, or possibly a dictionary ( ex. ls( showType=1 ), listConnections(connections=1) )
-    - the arguments provided by a ui callback should be of the appropriate type ( as a test, it should be capable of being used to set the value of the control )
+    - a function which provides a mapping mechanism should have a dictionary-like pymel counterpart 
+        ( ex. `fileInfo`, `optionVar` )
+    - a function which returns a list of pairs should be a 2D array, or possibly a dictionary 
+        ( ex. ls( showType=1 ), listConnections(connections=1) )
+    - the arguments provided by a ui callback should be of the appropriate type 
+        ( as a test, it should be capable of being used to set the value of the control )
+    - if a function's purpose is to query and edit maya nodes, that node should be passed as an argument, not a keyword
+        ( ex. `sets` )
 
-Pymel design rules:
+In constructing the PyNode classes, pymel follows these design rules:
 
-    - node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax ( ex. foo.bar retrieves an attribute, foo.bar() executes a function )
-    - node classes are named after the nodes they control, not the mel commands that they proxy  ( ex. Locator vs. spaceLactor )
+    - node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax
+        ( ex. foo.bar retrieves an Attribute class, foo.bar() executes a function )
+    - node classes are named after the nodes they control, not the mel commands that they proxy  
+        ( ex. Locator vs. spaceLactor )
+    - a value returned by a get* function should be accepted as a valid argument by the corresponding set* function
+
+
+=======================================
+    Background
+=======================================
+
+    ..digraph
+        maya [shape=polygon,sides=5,peripheries=3,label="Maya C++\nCodebase"]
+        c_api [shape=box,label="C++ API"]
+        mel_c [shape=box,label="MEL Codebase"]
+        MEL [label="Maya Embedded Language"]
+        maya_cmds [label="maya.cmds"]
+        py_api [label="Python API"]
+        maya -> c_api
+        c_api -> mel_c
+        maya -> mel_c
+        mel_c -> MEL [style=dotted]
+        mel_c -> maya_cmds [style=dotted]
+        maya_cmds -> pymel
+        c_api -> py_api [label="swig"]
+        py_api -> pymel
+        
+MEL is a procedural language, meaning it provides the ability encapsulating code
+into reusable "procedures".  (This is probably old news to you, but
+bear with me, there's a midly entertaining analogy coming up ). The term "procedural programming" is 
+mentioned primarily in the context of disguishing something from the newer, object-oriented paradigm. There's still a place for procedural
+programming, and if you have used MEL much you know you can get pretty far with it,
+but once you've gotten comfortable with python's object-oriented design, you will never go back. 
+
+Object-oriented programming adds another level of organization by creating logical grouping of procedures/functions/methods
+which are accessed from a common "object".  A quick browse through the documentation of the hundreds of MEL
+commands will give you an idea why these groupings are a good idea.  MEL is like a toolchest, a wardrobe, and
+a kitchen set all dumped into a bathtub -- everything in there is useful, but you've really got to know what
+you're looking for to get anything done.  Through the use of classes and modules, python makes sure that
+everything is in its right place.
+
+So now that python is availabe in maya all of our problems are solved, right?  Not quite.  The root of the problem
+is that maya.cmds is just a python interface to the same underlying MEL codebase so it inherits all of its problems.
+And since it was never intended to be python in the first place, the syntax that results from this MEL/Python hybrid
+tends to be awkward, especially to those used to python idioms. 
+
+The C++ API also has a python interface but it too suffers from awkward and unpythonic idioms.  Unlike MEL, Maya's C++ API 
+benefits from the fact that it was object-oriented to begin with, but from a scripters' standpoint, it's tortuously verbose and cryptic.
+Certainly nothing you would want to write an entire pipeline in.
+
+Enter Pymel.  The reasons for pymel's existence are threefold:
+
+    # to fix bugs in maya.cmds
+    # to modify the behavior of maya.cmds to improve workflow and make it more pythonic ( like returning an empty list instead of None )
+    # to provide a complete object-oriented design for working with nodes, attributes, and other maya structures
+
+If you're still not sure you're ready to make the jump to the object-oriented programming, the first two points alone
+are reason enough to use pymel, but the object-oriented design is where pymel really shines, especially with this
+new release.  The new pymel strikes a balance between the complicated yet powerful API, and limited but unruly and unorganized MEL. 
 
 
 =======================================
@@ -170,13 +231,16 @@ mel into python is to install the new `Script Editor`_. With it you can execute 
 python output in the top pane. You can toggle back and forth by checking and unchecking the "Convert Mel to Python" checkbox.
 
 
+
 ---------------------------------------
 The Basics
 ---------------------------------------
 
-In its current incarnation, pymel is designed with a great deal of backward compatibility in mind, so that the maya.cmds
-module and the pymel module can usually be used interchangably with the same code.  However, a closer look reveals pymel is actually
-hiding a great deal of its power right under your nose.  Take the `ls` command for example.  `maya.cmds.ls` 
+
+If you have a background in MEL, the functions in maya.cmds should be familiar to you
+
+
+Take the `ls` command for example.  `maya.cmds.ls` 
 will return a list of strings.  These strings have a lot of built-in functionality that make them a much more 
 powerful than strings in mel:
 
@@ -193,22 +257,26 @@ powerful than strings in mel:
     monkeyShape
         
 So, already you have object-oriented power at your fingertips. When using pymel, the `ls` command returns special `PyNode` classes,
-which are like strings are on steroids: in addition to the built-in string methods ( a method is a function that belongs to a class ), 
+which are like strings on steroids: in addition to the built-in string methods ( a method is a function that belongs to a class ), 
 pymel adds methods for operating on the type of maya object that the string represents:
 
     >>> import pymel
     >>> cam = pymel.ls( type='camera')[0]
     >>> print cam
     frontShape
+    >>> # still has the string functionality as well
     >>> print cam[0] # indexable
     f
-    >>> print cam[5:]  # still has the string functionality as well
+    >>> print cam[5:]  
     Shape
     >>> cam.getFocalLength()  # but it has maya node methods too
     35.0
     >>> trans = cam.getParent()
     >>> print trans
     front
+
+However, a closer look reveals pymel is actually
+hiding a great deal of its power right under your nose. 
 
 ---------------------------------------
 Attributes
@@ -217,12 +285,12 @@ Attributes
 The same goes for other types of objects.  For instance, When getting a triple attribute like translate or rotate, maya.cmds.getAttr
 will return a list with three floats.  Pymel nodes, on the other hand, return a 3-element `Vector`. 
 
-	>>> trans			# let's continue from where we left off, with the transform of the 'front' camera
-	Transform('front')
-	>>> val = trans.translate.get()
-	>>> val
-	Vector([0.0, 0.0, 100.1])
-	
+    >>> trans            # let's continue from where we left off, with the transform of the 'front' camera
+    Transform('front')
+    >>> val = trans.translate.get()
+    >>> val
+    Vector([0.0, 0.0, 100.1])
+    
 ---------------------------------------
 Using Existing Objects by Name
 ---------------------------------------
@@ -258,7 +326,7 @@ functions are paired only with the types of objects that can use them.
 In order to use the object-oriented design of pymel, you must ensure that the objects that you are working 
 with are instances of pymel classes. To make this easier, pymel contains wrapped version 
 of the more common commands for creating and getting lists of objects. These modified commands cast their results to the appropriate 
-class type. See `ls`, `listRelatives`, `listTransforms`, `selected`, and `listHistory`, for a few examples.  
+`PyNode` class type. See `ls`, `listRelatives`, `listTransforms`, `selected`, and `listHistory`, for a few examples.  
 
 Commands that list objects return pymel classes:
     >>> s = ls(type='transform')[0]
@@ -375,7 +443,7 @@ interchangably::
 pymel achieves this effect by chaining function lookups.  If a called method does not exist on the Transform class, the 
 request will be passed to appropriate class of the transform's shape node, if it exists.
 
-    # get the persp camera as a PyNode
+    >>> #get the persp camera as a PyNode
     >>> trans = PyNode('persp')
     >>> print type(trans)
     <class 'pymel.core.general.Transform'>
@@ -390,34 +458,6 @@ request will be passed to appropriate class of the transform's shape node, if it
     cam.getCenterOfInterest()
     44.82186966202994
 
-The chaining goes one further for object primitives, such as spheres, cones, etc.  For example:
-    
-create a sphere and return its transform
-    >>> trans = polySphere()[0]
-    >>> print type(trans)
-    <class 'pymel.core.general.Transform'>
-    
-get the transform's shape
-    >>> shape = trans.getShape()
-    >>> print type( shape )
-    <class 'pymel.core.general.Mesh'>
-    
-get the shape's history
-    >>> hist = shape.history()[1]
-    >>> type( hist )
-    <class 'pymel.core.general.PolySphere'>
-    
-get the radius of the sphere 
-    >>> hist.getRadius() 
-    1.0
-    >>> # chained lookup allows the PolySphere.getRadus method to work on the Transform class  
-    >>> trans.getRadius() #doctest: +SKIP
-    1.0
-
-the method getRadius belongs to the PolySphere class.  In this example, getRadius does not exist on the Transform class, so it passes
-the request to its shape, which is a Poly class. The method does not exist here either, so the Poly class searches for its primary
-construction history node, which is the polySphere node.  This node is cast to a PolySphere class which has the desired getRadius method,
-which is then called.   
 
 
 =======================================
@@ -451,15 +491,24 @@ and API-fast.
         >>> sphere2                            # the instance
         Transform('group2|mySphere')
         >>> # do some tests
-        >>> sphere1 == sphere2              # they aren't the same dag objects
+        >>> # they aren't the same dag objects
+        >>> sphere1 == sphere2              
         False
-        >>> sphere1.isInstance( sphere2 )    # but they are instances of each other
+        >>> # they are instances of each other
+        >>> sphere1.isInstanceOf( sphere2 )    
         True
-        >>> sphere1.t == sphere1.translate    # long and short names retreive the same attribute
+        >>> sphere1.getAllInstances()
+        [Transform('group1|mySphere'), Transform('group2|mySphere')]
+        >>> 
+        >>> # long and short names retrieve the same attribute
+        >>> sphere1.t == sphere1.translate    
         True
         >>> sphere1.tx == sphere1.translate.translateX
         True
-
+        >>> # the same attrs on different nodes/instances are still the same 
+        >>> sphere1.t == sphere2.t    
+        True
+        
 ---------------------------------------
 PyNodes Are Not Strings
 ---------------------------------------
