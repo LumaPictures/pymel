@@ -554,7 +554,6 @@ class Parser(object):
         if self.lexer is None : 
             lextab=self.__class__.__name__+"_lex"
             lkwargs = {'debug':debug, 'lextab':lextab }
-            print self
             self.lexer = lex.lex(object=self, **lkwargs)
         if self.parser is None :
             tabmodule=self.__class__.__name__+"_yacc_"+start
