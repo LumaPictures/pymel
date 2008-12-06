@@ -365,6 +365,19 @@ class Mel(object):
     
     @staticmethod        
     def eval( cmd ):
+        """
+        evaluate a string as a mel command and return the result. 
+        
+        Behaves like maya.mel.eval, with several improvments:
+            - returns pymel `Vector` and `Matrix` classes
+            - when an error is encountered a `MelError` exception is raised, along with the line number (if enabled) and exact mel error.
+        
+        >>> mel.eval( 'attributeExists("persp", "translate")' )
+        0
+        >>> mel.eval( 'interToUI( "fooBarSpangle" )' )
+        u'Foo Bar Spangle'
+        
+        """
         # should return a value, like mm.eval
         #return mm.eval( cmd )   
         # get this before installing the callback
@@ -413,8 +426,7 @@ class Mel(object):
             elif resType == api.MCommandResult.kInt:
                 result = api.MScriptUtil().asIntPtr()
                 res.getResult(result)
-                api.MScriptUtil(result).asInt()
-                return result  
+                return api.MScriptUtil(result).asInt()
             elif resType == api.MCommandResult.kIntArray:
                 result = api.MIntArray()
                 res.getResult(result)
@@ -422,8 +434,7 @@ class Mel(object):
             elif resType == api.MCommandResult.kDouble:
                 result = api.MScriptUtil().asDoublePtr()
                 res.getResult(result)
-                api.MScriptUtil(result).asDouble()
-                return result  
+                return api.MScriptUtil(result).asDouble()
             elif resType == api.MCommandResult.kDoubleArray:
                 result = api.MDoubleArray()
                 res.getResult(result)
