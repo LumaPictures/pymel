@@ -103,6 +103,9 @@ class OptionVarDict(object):
         cmds.optionVar( remove=key )
         return val
     
+    def __delitem__(self,key):
+        self.pop(key)
+    
 optionVar = OptionVarDict()
 
 class Env(object):
