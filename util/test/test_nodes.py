@@ -50,7 +50,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.sphere1.primaryVisibility.set(1)
         shape = self.sphere1.getShape()
         self.assertEqual( self.sphere1.primaryVisibility, shape.primaryVisibility )
-    
+        
+        
     def test05_dagNode_addParent(self):
         sphere = polySphere()[0]
         cube = polyCube()[0]
@@ -60,8 +61,16 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         
     #def test05_dagNode_getParent(self):
     def test06_instances(self):
-        self.assert_( self.sphere1.isInstance( self.sphere3) )   
+        self.assert_( self.sphere1.isInstanced() )   
+        self.assert_( self.sphere1.isInstanceOf( self.sphere3 ) )   
     
+    def test_parentsAndChildren(self):
+        shape = self.sphere1.getShape()
+        self.assertEqual( shape, self.sphere1.childAtIndex(0) )
+        shape.hasParent( self.sphere1 )
+        self.assert_( shape.hasParent(self.sphere1) )
+        self.assert_( self.sphere1.hasChild(shape) )
+        
     
     def test07_units(self):
         startLinear = currentUnit( q=1, linear=1)
@@ -70,21 +79,24 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         # change units from default
         currentUnit(linear='meter')
         
-        testPairs = [ ('translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),
-                      ('shutterAngle', 'getShutterAngle', 'setShutterAngle', 144.0 ),
-                      ('focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),
+        testPairs = [ ('translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),  # Distance Vector
+                      ('shutterAngle', 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
+                      ('focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
+                      ('penumbraAngle', 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
+                      
                      ]
-        
+        print
         for attrName, getMethodName, setMethodName, realValue in testPairs:
             at = cam.attr(attrName)
             getter = getattr( cam, getMethodName )
             setter = getattr( cam, setMethodName )
-            
+            print repr(at)
+            print "Real Value:", repr(realValue)
             # set attribute using "safe" method
             at.set( realValue )
             # get attribute using wrapped api method
             gotValue = getter()
-            print realValue, gotValue
+            print "Got Value:", repr(gotValue)
             # compare
             self.assertEqual( realValue, gotValue )
             
