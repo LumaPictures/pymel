@@ -1,4 +1,9 @@
 """
+The general module contains the node class hierarchy, such as `PyNode`, `DependNode`, `Transform`, and `Attribute`.
+
+:group Exceptions: ``*Error``
+
+:group Utility: Version, Scene
 
 """
 
@@ -524,7 +529,10 @@ Modifications:
 
 def hasAttr( pyObj, attr, checkShape=True ):
     """convenience function for determining if an object has an attribute.
-    If checkShape is enabled, the shape node of a transform will also be checked for the attribute."""
+    If checkShape is enabled, the shape node of a transform will also be checked for the attribute.
+    
+    :rtype: `bool` list
+    """
     if not isinstance( pyObj, PyNode ):
         raise TypeError, "hasAttr requires a PyNode instance and a string"
     
@@ -563,6 +571,8 @@ Modifications:
     - added sourceFirst keyword arg. when sourceFirst is true and connections is also true, 
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
         this puts the pairs in the order that disconnectAttr and connectAttr expect.
+        
+    :rtype: `PyNode` list
     """
     def makePairs(l):
         if l is None:
@@ -601,6 +611,9 @@ def listHistory( *args, **kwargs ):
 Modifications:
     - returns an empty list when the result is None
     - added a much needed 'type' filter
+    
+    :rtype: `DependNode` list
+    
     """
     
     if 'type' in kwargs:
@@ -614,6 +627,9 @@ def listFuture( *args, **kwargs ):
 Modifications:
     - returns an empty list when the result is None
     - added a much needed 'type' filter
+    
+    :rtype: `DependNode` list
+    
     """
     kwargs['future'] = True
     if 'type' in kwargs:
@@ -631,6 +647,8 @@ Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes
     - fullPath is forced on to ensure that all returned node paths are unique
+    
+    :rtype: `DependNode` list
     """
     kwargs['fullPath'] = True
     kwargs.pop('f', None)
@@ -652,6 +670,8 @@ def ls( *args, **kwargs ):
     """
 Modifications:
     - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
+    
+    :rtype: `PyNode` list
     """
 
     kwargs['long'] = True
@@ -736,6 +756,8 @@ def listTransforms( *args, **kwargs ):
     """
 Modifications:
     - returns wrapped classes
+    
+    :rtype: `Transform` list
     """
     kwargs['ni']=True
     res = cmds.ls(*args, **kwargs)
@@ -752,7 +774,9 @@ Modifications:
 #-----------------------
 
 def nodeType( node, **kwargs ):
-    
+    """
+    :rtype: `unicode`
+    """
     # still don't know how to do inherited via api
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
         return cmds.nodeType( unicode(node), **kwargs )
@@ -966,6 +990,8 @@ def getClassification( *args ):
     """
 Modifications:
     - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
+    
+    :rtype: `unicode` list
     """
     return cmds.getClassification(*args)[0].split(':')
     
@@ -1333,6 +1359,9 @@ class PyNode(util.ProxyUnicode):
                     return mfn
             
     def __repr__(self):
+        """
+        :rtype: `unicode`
+        """
         return u"%s('%s')" % (self.__class__.__name__, self.name())
                
     def __radd__(self, other):
@@ -1342,6 +1371,9 @@ class PyNode(util.ProxyUnicode):
             raise TypeError, "cannot concatenate '%s' and '%s' objects" % ( other.__class__.__name__, self.__class__.__name__)
 
     def __eq__(self, other):
+        """
+        :rtype: `bool`
+        """
         if isinstance(other,PyNode):
             return self.__apiobject__() == other.__apiobject__()
         else:
@@ -1351,6 +1383,9 @@ class PyNode(util.ProxyUnicode):
                 return False
        
     def __ne__(self, other):
+        """
+        :rtype: `bool`
+        """
         if isinstance(other,PyNode):
             # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
             return not self.__apiobject__() == other.__apiobject__()
@@ -1371,6 +1406,8 @@ class PyNode(util.ProxyUnicode):
         Returns the object's name with its namespace removed.  The calling instance is unaffected.
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
         The default is 0 which will remove all namespaces.
+        
+        :rtype: `unicode`
         """
         
         nodes = []
@@ -1387,19 +1424,32 @@ class PyNode(util.ProxyUnicode):
 
     def swapNamespace(self, prefix):
         """Returns the object's name with its current namespace replaced with the provided one.  
-        The calling instance is unaffected."""    
+        The calling instance is unaffected.
+        
+        :rtype: `unicode`
+        """    
         return self.addPrefix( self.stripNamespace(), prefix+':' )
             
     def namespaceList(self):
-        """Useful for cascading references.  Returns all of the namespaces of the calling object as a list"""
+        """Useful for cascading references.  Returns all of the namespaces of the calling object as a list
+        
+        :rtype: `unicode` list
+        """
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
             
     def namespace(self):
-        """Returns the namespace of the object with trailing colon included"""
+        """Returns the namespace of the object with trailing colon included
+        
+        :rtype: `unicode`
+        
+        """
         return ':'.join(self.namespaceList()) + ':'
         
     def addPrefix(self, prefix):
-        """Returns the object's name with a prefix added to the beginning of the name"""
+        """Returns the object's name with a prefix added to the beginning of the name
+        
+        :rtype: `unicode`
+        """
         name = self
         leadingSlash = False
         if name.startswith('|'):
@@ -1999,16 +2049,17 @@ class Attribute(PyNode):
 
     Connecting Attributes
     ---------------------
-    As you might expect, connecting attributes is pretty straightforward.
+    As you might expect, connecting and disconnecting attributes is pretty straightforward.
                 
         >>> cam.rotateX.connect( cam.rotateY )
+        >>> cam.rotateX.disconnect( cam.rotateY )
     
     there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
 
-        >>> c = polyCube()[0]        
+        >>> c = polyCube(name='testCube')[0]        
         >>> cam.tx >> c.tx    # connect
         >>> cam.tx.outputs()
-        [Transform('pCube4')]
+        [Transform('testCube')]
         >>> cam.tx // c.tx    # disconnect
         >>> cam.tx.outputs()
         []
@@ -2077,6 +2128,9 @@ class Attribute(PyNode):
     #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex' )
     
     def attr(self, attr):
+        """
+        :rtype: `Attribute`
+        """
         node = self.node()
         try:
             plug = self.__apimplug__()
@@ -2149,12 +2203,21 @@ class Attribute(PyNode):
           
 
     def __str__(self):
+        """
+        :rtype: `str`
+        """
         return str(self.name())
 
     def __unicode__(self):
+        """
+        :rtype: `unicode`
+        """
         return self.name()
 
     def __eq__(self, other):
+        """
+        :rtype: `bool`
+        """
         thisPlug = self.__apimplug__()
         try:
             thisIndex = thisPlug.logicalIndex()
@@ -2175,9 +2238,17 @@ class Attribute(PyNode):
             otherIndex = None  
         return thisPlug == otherPlug and thisIndex == otherIndex
 
-            
+    def __ne__(self, other):
+        """
+        :rtype: `bool`
+        """
+        return not self.__eq__(other)
+           
     def name(self, includeNode=True, longName=True, fullAttrPath=False, fullDagPath=False):
-        """ Returns the name of the attribute (plug) """
+        """ Returns the name of the attribute (plug)
+        
+        :rtype: `unicode`
+        """
         obj = self.__apiobject__()
         if obj:
             name = ''
@@ -2208,7 +2279,10 @@ class Attribute(PyNode):
       
     
     def plugNode(self):
-        'plugNode'
+        """plugNode
+        
+        :rtype: `DependNode`
+        """
         return self._node
     
     node = plugNode
@@ -2222,6 +2296,8 @@ class Attribute(PyNode):
             u't.tx'
             >>> at.plugAttr(longName=True, fullPath=True)
             u'translate.translateX'
+        
+        :rtype: `unicode`
         """
         return self.name(includeNode=False,
                          longName=longName,
@@ -2235,6 +2311,8 @@ class Attribute(PyNode):
             u'tx'
             >>> at.lastPlugAttr(longName=True)
             u'translateX'
+        
+        :rtype: `unicode`
         """
         return self.name(includeNode=False,
                          longName=longName,
@@ -2248,6 +2326,8 @@ class Attribute(PyNode):
             u'translateX'
             >>> at.longName(fullPath=True)
             u'translate.translateX'
+        
+        :rtype: `unicode`
         """
         return self.name(includeNode=False,
                          longName=True,
@@ -2260,13 +2340,18 @@ class Attribute(PyNode):
             u'tx'
             >>> at.shortName(fullPath=True)
             u't.tx'
+        
+        :rtype: `unicode`
         """
         return self.name(includeNode=False,
                          longName=False,
                          fullAttrPath=fullPath)
         
     def nodeName( self ):
-        'The node part of this plug as a string'
+        """The node part of this plug as a string
+        
+        :rtype: `unicode`
+        """
         return self.plugNode().name()
 
        
@@ -2276,6 +2361,8 @@ class Attribute(PyNode):
             >>> n = Attribute('initialShadingGroup.groupNodes[0]')
             >>> n.array()
             Attribute('initialShadingGroup.groupNodes')
+            
+        :rtype: `Attribute`
         """
         try:
             return Attribute( self._node, self.__apimplug__().array() )
@@ -2306,6 +2393,9 @@ class Attribute(PyNode):
         cmds.addAttr( self, e=1, en=":".join(enumList) )
     
     def getEnums(self):
+        """
+        :rtype: `unicode` list
+        """
         return cmds.addAttr( self, q=1, en=1 ).split(':')    
             
     # getting and setting                    
@@ -2425,6 +2515,9 @@ class Attribute(PyNode):
     #----------------------
     
     def isDirty(self, **kwargs):
+        """
+        :rtype: `bool`
+        """
         return cmds.isDirty(self, **kwargs)
         
     def affects( self, **kwargs ):
@@ -2437,12 +2530,19 @@ class Attribute(PyNode):
                 
     # getAttr info methods
     def type(self):
-        "getAttr -type"
+        """
+        getAttr -type
+        
+        :rtype: `unicode`
+        """
         return cmds.getAttr(self, type=True)
  
             
     def size(self):
-        "getAttr -size"
+        """getAttr -size
+        
+        :rtype: `bool`
+        """
         #return cmds.getAttr(self, size=True)    
         try:
             return self.__apiobject__().numElements()
@@ -2450,7 +2550,10 @@ class Attribute(PyNode):
             pass
      
     def __len__(self):
-         return self.size()
+        """
+        :rtype: `unicode`
+        """
+        return self.size()
         
 #    def isElement(self):
 #        """ Is the attribute an element of a multi(array) attribute """
@@ -2508,16 +2611,27 @@ class Attribute(PyNode):
 ##    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
               
     def isSettable(self):
-        "getAttr -settable"
+        """getAttr -settable
+        
+        :rtype: `bool`
+        """
         return cmds.getAttr(self, settable=True)
     
     # attributeQuery info methods
     def isHidden(self):
-        "attributeQuery -hidden"
+        """
+        attributeQuery -hidden
+        
+        :rtype: `bool`
+        """
         return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), hidden=True)
         
     def isConnectable(self):
-        "attributeQuery -connectable"
+        """
+        attributeQuery -connectable
+        
+        :rtype: `bool`
+        """
         return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)    
 
     
@@ -2540,7 +2654,10 @@ class Attribute(PyNode):
     
     
     def exists(self):
-        "attributeQuery -exists"
+        """attributeQuery -exists
+        
+        :rtype: `bool`
+        """
         try:
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
         except TypeError:
@@ -2553,32 +2670,47 @@ class Attribute(PyNode):
         
     def getSoftMin(self):
         """attributeQuery -softMin
-            Returns None if softMin does not exist."""
+            Returns None if softMin does not exist.
+        
+        :rtype: `float`  
+        """
         if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMinExists=True):
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMin=True)[0]    
             
     def getSoftMax(self):
         """attributeQuery -softMax
-            Returns None if softMax does not exist."""
+            Returns None if softMax does not exist.
+            
+        :rtype: `float`      
+        """
         if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMaxExists=True):
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMax=True)[0]
     
     def getMin(self):
         """attributeQuery -min
-            Returns None if min does not exist."""
+            Returns None if min does not exist.
+        
+        :rtype: `float`  
+        """
         if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), minExists=True):
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), min=True)[0]
             
     def getMax(self):
         """attributeQuery -max
-            Returns None if max does not exist."""
+            Returns None if max does not exist.
+            
+        :rtype: `float`  
+        """
         if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), maxExists=True):
             return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), max=True)[0]
     
     def getSoftRange(self):
         """attributeQuery -softRange
             returns a two-element list containing softMin and softMax. if the attribute does not have
-            a softMin or softMax the corresponding element in the list will be set to None."""
+            a softMin or softMax the corresponding element in the list will be set to None.
+         
+        :rtype: [`float`, `float`]     
+        """
         softRange = []
         softRange.append( self.getSoftMin() )
         softRange.append( self.getSoftMax() )
@@ -2588,7 +2720,10 @@ class Attribute(PyNode):
     def getRange(self):
         """attributeQuery -range
             returns a two-element list containing min and max. if the attribute does not have
-            a softMin or softMax the corresponding element will be set to None."""
+            a softMin or softMax the corresponding element will be set to None.
+        
+        :rtype: `float`      
+        """
         range = []
         range.append( self.getMin() )
         range.append( self.getMax() )
@@ -2717,14 +2852,20 @@ class Attribute(PyNode):
 #-------------------------- 
 
     def getChildren(self):
-        """attributeQuery -listChildren"""
+        """attributeQuery -listChildren
+        
+        :rtype: `Attribute` list  
+        """
         res = []
         for i in range(self.numChildren() ):
             res.append( Attribute( self.node(), self.__apimfn__().child(i) ) )
         return res
     
     def getSiblings(self):
-        """attributeQuery -listSiblings"""
+        """attributeQuery -listSiblings
+        
+        :rtype: `Attribute` list  
+        """
         return map( 
             lambda x: Attribute( self.node() + '.' + x ), 
             util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listSiblings=True) )
@@ -2742,6 +2883,9 @@ class Attribute(PyNode):
 #            return None
 
     def getParent(self):
+        """
+        :rtype: `Attribute`  
+        """
         return Attribute( self.node(), self.__apimfn__().parent() )
 #}      
 
@@ -2775,6 +2919,10 @@ class DependNode( PyNode ):
         return self._name 
 
     def name(self, update=True) :
+        """
+        :rtype: `unicode`
+        """
+        
         if update or self._name is None:
             return self._updateName()
         else :
@@ -2782,6 +2930,9 @@ class DependNode( PyNode ):
 
     #rename = rename
     def rename( self, name ):
+        """
+        :rtype: `DependNode`
+        """
         # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
         #self.setName( name ) # no undo support
         return rename(self, name)
@@ -2846,7 +2997,11 @@ class DependNode( PyNode ):
             return self.__apihandle__().hashCode()
 
     def node(self):
-        """for compatibility with Attribute class"""
+        """for compatibility with Attribute class
+        
+        :rtype: `DependNode`
+        
+        """
         return self
     
 
@@ -2928,14 +3083,18 @@ class DependNode( PyNode ):
          
     def referenceFile(self):
         """referenceQuery -file
-        Return the reference file to which this object belongs.  None if object is not referenced"""
+        Return the reference file to which this object belongs.  None if object is not referenced
+        
+        :rtype: `FileReference`
+        
+        """
         try:
             return _FileReference( cmds.referenceQuery( self, f=1) )
         except RuntimeError:
             None
 
     isReadOnly = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly' )
-    isReferenced = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReferenced' )
+    #isReferenced = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReferenced' )
     
 #    def isReadOnly(self):
 #       return (cmds.ls( self, ro=1) and True) or False
@@ -2957,7 +3116,10 @@ class DependNode( PyNode ):
 #-------------------------- 
     
     def inputs(self, **kwargs):
-        'listConnections -source 1 -destination 0'
+        """listConnections -source 1 -destination 0
+        
+        :rtype: `PyNode` list
+        """
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
@@ -2965,7 +3127,10 @@ class DependNode( PyNode ):
         return listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
-        'listConnections -source 0 -destination 1'
+        """listConnections -source 0 -destination 1
+        
+        :rtype: `PyNode` list
+        """
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
@@ -2974,7 +3139,10 @@ class DependNode( PyNode ):
         return listConnections(self, **kwargs)                            
 
     def sources(self, **kwargs):
-        'listConnections -source 1 -destination 0'
+        """listConnections -source 1 -destination 0
+        
+        :rtype: `PyNode` list
+        """
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
@@ -2982,7 +3150,10 @@ class DependNode( PyNode ):
         return listConnections(self, **kwargs)
     
     def destinations(self, **kwargs):
-        'listConnections -source 0 -destination 1'
+        """listConnections -source 0 -destination 1
+        
+        :rtype: `PyNode` list
+        """
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
@@ -2991,7 +3162,10 @@ class DependNode( PyNode ):
         return listConnections(self, **kwargs)    
         
     def shadingGroups(self):
-        """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes """
+        """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes 
+        
+        :rtype: `DependNode` list
+        """
         return self.future(type='shadingEngine')
         
 #}     
@@ -3059,7 +3233,10 @@ class DependNode( PyNode ):
         
     def attr(self, attr):
         """access to attribute plug of a node. returns an instance of the Attribute class for the 
-        given attribute name."""
+        given attribute name.
+        
+        :rtype: `Attribute`
+        """
         #return Attribute( '%s.%s' % (self, attr) )
         try :
             if '.' in attr or '[' in attr:
@@ -3103,6 +3280,9 @@ class DependNode( PyNode ):
             raise MayaAttributeError( '%s.%s' % (self, attr) )
                
     def hasAttr( self, attr):
+        """
+        :rtype: `bool`
+        """
         try : 
             self.attr(attr)
             return True
@@ -3140,12 +3320,19 @@ class DependNode( PyNode ):
     listAnimatable = _listAnimatable
 
     def listAttr( self, **kwargs):
-        "listAttr"
+        """listAttr
+        
+        :rtype: `Attribute` list
+        
+        """
         # stringify fix
         return map( lambda x: self.attr(x), util.listForNone(cmds.listAttr(self.name(), **kwargs)))
 
     def attrInfo( self, **kwargs):
-        "attributeInfo"
+        """attributeInfo
+        
+        :rtype: `Attribute` list
+        """
         # stringify fix
         return map( lambda x: self.attr(x) , util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
  
@@ -3158,7 +3345,10 @@ class DependNode( PyNode ):
     
     def stripNum(self):
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
-        the name will be returned unchanged."""
+        the name will be returned unchanged.
+        
+        :rtype: `unicode`
+        """
         try:
             return DependNode._numPartReg.split(self)[0]
         except:
@@ -3166,7 +3356,10 @@ class DependNode( PyNode ):
             
     def extractNum(self):
         """Return the trailing numbers of the node name. If no trailing numbers are found
-        an error will be raised."""
+        an error will be raised.
+        
+        :rtype: `unicode`
+        """
         
         try:
             return DependNode._numPartReg.split(self)[1]
@@ -3174,14 +3367,20 @@ class DependNode( PyNode ):
             raise "No trailing numbers to extract on object ", self
 
     def nextUniqueName(self):
-        """Increment the trailing number of the object until a unique name is found"""
+        """Increment the trailing number of the object until a unique name is found
+        
+        :rtype: `unicode`
+        """
         name = self.shortName().nextName()
         while name.exists():
             name = name.nextName()
         return name
                 
     def nextName(self):
-        """Increment the trailing number of the object by 1"""
+        """Increment the trailing number of the object by 1
+        
+        :rtype: `unicode`
+        """
         try:
             groups = DependNode._numPartReg.split(self)
             num = groups[1]
@@ -3191,7 +3390,10 @@ class DependNode( PyNode ):
             raise "could not find trailing numbers to increment"
             
     def prevName(self):
-        """Decrement the trailing number of the object by 1"""
+        """Decrement the trailing number of the object by 1
+        
+        :rtype: `unicode`
+        """
         try:
             groups = DependNode._numPartReg.split(self)
             num = groups[1]
@@ -3241,16 +3443,25 @@ class DagNode(Entity):
         
 
     def longName(self):
-        'longNameOf'
+        """longNameOf
+        
+        :rtype: `unicode`
+        """
         return self.name(long=True)
     fullPath = longName
             
     def shortName( self ):
-        'shortNameOf'
+        """shortNameOf
+        
+        :rtype: `unicode`
+        """
         return self.name(long=False)
 
     def nodeName( self ):
-        'basename'
+        """basename
+        
+        :rtype: `unicode`
+        """
         return self.name().split('|')[-1]
     
       
@@ -3359,7 +3570,10 @@ class DagNode(Entity):
 #{  Path Info and Modification
 #--------------------------------
     def root(self):
-        'rootOf'
+        """rootOf
+        
+        :rtype: `unicode`
+        """
         return DagNode( '|' + self.longName()[1:].split('|')[0] )
 
 #    def hasParent(self, parent ):
@@ -3394,7 +3608,10 @@ class DagNode(Entity):
 #            if obj:
 #               return self.__apimfn__().isChildOf( obj )
 
-    def isInstance(self, other):
+    def isInstanceOf(self, other):
+        """
+        :rtype: `bool`
+        """
         if isinstance( other, PyNode ):
             return self.__apimobject__() == other.__apimobject__()
         else:
@@ -3405,16 +3622,18 @@ class DagNode(Entity):
     
     def getAllInstances(self, includeSelf=True):
         """
-            >>> delete(ls(type='mesh'), quiet=1)
-            >>> s = polyCube()[0]
-            >>> instance(s)
-            [Transform('pCube2')]
-            >>> instance(s)
-            [Transform('pCube3')]
-            >>> s.getShape().getAllInstances()
-            [Mesh('pCube1|pCubeShape1'), Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
-            >>> s.getShape().getAllInstances(includeSelf=False)
-            [Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
+        :rtype: `DagNode` list
+        
+        >>> delete(ls(type='mesh'), quiet=1)
+        >>> s = polyCube()[0]
+        >>> instance(s)
+        [Transform('pCube2')]
+        >>> instance(s)
+        [Transform('pCube3')]
+        >>> s.getShape().getAllInstances()
+        [Mesh('pCube1|pCubeShape1'), Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
+        >>> s.getShape().getAllInstances(includeSelf=False)
+        [Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
         
         """
         d = api.MDagPathArray()
@@ -3425,14 +3644,22 @@ class DagNode(Entity):
         return result
 
     def firstParent(self):
-        'firstParentOf'
+        """firstParentOf
+        
+        :rtype: `DagNode`
+        """
         try:
             return DagNode( '|'.join( self.longName().split('|')[:-1] ) )
         except TypeError:
             return DagNode( '|'.join( self.split('|')[:-1] ) )
 
-    def numChildren(self):
-        return self.__apimdagpath__().childCount()
+#    def numChildren(self):
+#        """
+#        see also `childCount`
+#        
+#        :rtype: `int`
+#        """
+#        return self.__apimdagpath__().childCount()
     
 #    def getParent(self, **kwargs):
 #        # TODO : print warning regarding removal of kwargs, test speed difference
@@ -3455,7 +3682,13 @@ class DagNode(Entity):
              
     def getParent(self, **kwargs):
         """unlike the firstParent command which determines the parent via string formatting, this 
-        command uses the listRelatives command"""
+        command uses the listRelatives command
+        
+        see also `parentAtIndex`
+        
+        :rtype: `DagNode`
+        
+        """
         
         kwargs['parent'] = True
         kwargs.pop('p',None)
@@ -3472,12 +3705,20 @@ class DagNode(Entity):
         return res
                     
     def getChildren(self, **kwargs ):
+        """
+        see also `childAtIndex`
+        
+        :rtype: `DagNode` list
+        """
         kwargs['children'] = True
         kwargs.pop('c',None)
 
         return listRelatives( self, **kwargs)
         
     def getSiblings(self, **kwargs ):
+        """
+        :rtype: `DagNode` list
+        """
         #pass
         try:
             return [ x for x in self.getParent().getChildren() if x != self]
@@ -3485,6 +3726,9 @@ class DagNode(Entity):
             return []
                 
     def listRelatives(self, **kwargs ):
+        """
+        :rtype: `PyNode` list
+        """
         return listRelatives( self, **kwargs)
         
     
@@ -3493,7 +3737,10 @@ class DagNode(Entity):
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
 
     def addChild( self, child, **kwargs ):
-        'parent (reversed)'
+        """parent (reversed)
+        
+        :rtype: `DagNode`
+        """
         cmds.parent( child, self, **kwargs )
         if not isinstance( child, PyNode ):
             child = PyNode(child)
@@ -3512,6 +3759,8 @@ class DagNode(Entity):
             Transform('pTorus1')
             >>> print t.fullPath()
             |pSphere1|pCube3|pTorus1
+            
+        :rtype: `DagNode`
         """
         return self.addChild(child,**kwargs)
 
@@ -3523,13 +3772,16 @@ class DagNode(Entity):
     #--------------------------    
 
     def isDisplaced(self):
-        """Returns whether any of this object's shading groups have a displacement shader input"""
+        """Returns whether any of this object's shading groups have a displacement shader input
+        
+        :rtype: `bool`
+        """
         for sg in self.shadingGroups():
             if len( sg.attr('displacementShader').inputs() ):
                 return True
         return False
 
-    def setColor( self, color=None ):
+    def setObjectColor( self, color=None ):
         """This command sets the dormant wireframe color of the specified objects to an integer
         representing one of the user defined colors, or, if set to None, to the default class color"""
 
@@ -3687,6 +3939,8 @@ class Transform(DagNode):
         """
         when checkShape is enabled, if the attribute does not exist the transform but does on the shape, then the shape's attribute will
         be returned.
+        
+        :rtype: `Attribute`
         """
         #print "ATTR: Transform"
         try :
@@ -3766,6 +4020,9 @@ class Transform(DagNode):
         self.visibility.set(1)
                 
     def getShape( self, **kwargs ):
+        """
+        :rtype: `DagNode`
+        """
         kwargs['shapes'] = True
         try:
             return self.getChildren( **kwargs )[0]            
@@ -3858,7 +4115,9 @@ class Transform(DagNode):
     def getBoundingBox(self, invisible=False):
         """xform -boundingBox and xform -boundingBoxInvisible
         
-        returns a tuple with two MVecs: ( bbmin, bbmax )
+        :rtype: `BoundingBox`
+        
+        
         """
         kwargs = {'query' : True }    
         if invisible:
@@ -3871,10 +4130,16 @@ class Transform(DagNode):
         return _types.BoundingBox( res[:3], res[3:] )
     
     def getBoundingBoxMin(self, invisible=False):
+        """
+        :rtype: `Vector`
+        """
         return self.getBoundingBox(invisible)[0]
         #return self.getBoundingBox(invisible).min()
     
     def getBoundingBoxMax(self, invisible=False):
+        """
+        :rtype: `Vector`
+        """
         return self.getBoundingBox(invisible)[1]   
         #return self.getBoundingBox(invisible).max()
     '''        
@@ -4489,10 +4754,10 @@ def _createPyNodes():
 
 
 # Initialize Pymel classes to API types lookup
-startTime = time.time()
+#startTime = time.time()
 _createPyNodes()
-elapsed = time.time() - startTime
-print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
+#elapsed = time.time() - startTime
+#print "Initialized Pymel PyNodes types list in %.2f sec" % elapsed
 
 
 def isValidMayaType (arg):
