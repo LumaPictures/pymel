@@ -25,6 +25,26 @@ VERBOSE=0
 
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
+class PyNodeNamesToPyNodes(dict):
+    """ Lookup from PyNode type name as a string to PyNode type as a class"""
+    __metaclass__ = util.Singleton
+
+class PyNodesToMayaTypes(dict):
+    """Lookup from PyNode class to maya type"""
+    __metaclass__ = util.Singleton
+
+class ApiClassNamesToPyNodeNames(dict):
+    """Lookup from PyNode class to maya type"""
+    __metaclass__ = util.Singleton
+    
+class ApiEnumsToPyComponents(dict):
+    """Lookup from Api Enums to Pymel Component Classes"""
+    __metaclass__ = util.Singleton
+    
+class PyNodeTypesHierarchy(dict):
+    """child:parent lookup of the pymel classes that derive from DependNode"""
+    __metaclass__ = util.Singleton
+    
 #: creation commands whose names do not match the type of node they return require this dict
 #: to resolve which command the class should wrap 
 nodeTypeToNodeCommand = {
@@ -1198,7 +1218,7 @@ def loadApiToMelBridge():
 def saveApiToMelBridge():
     mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
 
-           
+                                  
 #---------------------------------------------------------------
         
 cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
@@ -1211,6 +1231,31 @@ apiToMelMap = {
                'mel' : util.defaultdict(list),
                'api' : util.defaultdict(list)
                }
+
+def _getApiOverrideNameAndData(classname, pymelName):
+    if apiToMelData.has_key( (classname,pymelName) ):
+
+        data = apiToMelData[(classname,pymelName)]
+        try:
+            nameType = data['useName']
+        except KeyError:
+            util.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
+            nameType = 'API'
+             
+        if nameType == 'API':
+            pass
+        elif nameType == 'MEL':
+            pymelName = data['melName']
+        else:
+            pymelName = nameType
+    else:
+        # set defaults
+        data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
+        apiToMelData[(classname,pymelName)] = data
+
+    
+    #overloadIndex = data.get( 'overloadIndex', None )
+    return pymelName, data
 
 # quick fix until we make a util.Singleton of nodeHierarchy
 def NodeHierarchy() :
@@ -2159,9 +2204,15 @@ class ApiArgUtil(object):
     def getReturnType(self):
         return self.methodInfo['returnType']
     
-    def getPymelName(self):
-        return self.methodInfo.get('pymelName',self.methodName)
-
+    def getPymelName(self ):
+        pymelName = self.methodInfo.get('pymelName',self.methodName)
+        try:
+            pymelClassName = ApiClassNamesToPyNodeNames()[self.apiClassName]
+            pymelName, data = _getApiOverrideNameAndData( pymelClassName, pymelName )
+        except KeyError:
+            pass
+        return pymelName
+    
     def getClassDocs(self):
         return self.methodInfo['doc']
     
@@ -2849,6 +2900,8 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 apicls = None
 
         if apicls is not None:
+            #print "ADDING %s to %s" % (apicls.__name__, classname)
+            ApiClassNamesToPyNodeNames()[apicls.__name__] = classname
             
             if not proxy and apicls not in bases:
                 #print "ADDING BASE",classdict['apicls']
@@ -2885,30 +2938,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     except KeyError:
                         pymelName = methodName
                     
-                    # can't use try accept, because it's a defaultdict
-                    if apiToMelData.has_key( (classname,pymelName) ):
-                        #apiToMelMap['api'][classname].append( pymelName )
-                        data = apiToMelData[(classname,pymelName)]
-                        try:
-                            nameType = data['useName']
-                        except KeyError:
-                            util.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
-                            nameType = 'API'
-                             
-                        if nameType == 'API':
-                            pass
-                        elif nameType == 'MEL':
-                            pymelName = data['melName']
-                        else:
-                            pymelName = nameType
+                    pymelName, data = _getApiOverrideNameAndData( classname, pymelName )
                         
-                        
-                        overloadIndex = data.get( 'overloadIndex', None )
-                    else:
-                        # set defaults
-                        data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
-                        apiToMelData[(classname,pymelName)] = data
-                        overloadIndex = None
+                    overloadIndex = data.get( 'overloadIndex', None )
                     
                     assert isinstance( pymelName, str ), "%s.%s: %r is not a valid name" % ( classname, methodName, pymelName)
                        
@@ -3166,12 +3198,13 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
+
         if apicls is not None:
             classdict['__apicls__'] = apicls
         #print "="*40, classname, apicls, "="*40
         
         return super(MetaMayaNodeWrapper, mcl).__new__(mcl, classname, bases, classdict)
-        
+
     @classmethod
     def getMelCmd(mcl, classdict):
         """
@@ -3413,21 +3446,6 @@ def analyzeApiClass( apiTypeStr ):
 #            print "    [pymel]"
 #            for x in sorted( pyMembers.difference( allFnMembers ) ): print '    ', x
             
-class PyNodeNamesToPyNodes(dict):
-    """ Lookup from PyNode type name as a string to PyNode type as a class"""
-    __metaclass__ = util.Singleton
-
-class PyNodesToMayaTypes(dict):
-    """Lookup from PyNode class to maya type"""
-    __metaclass__ = util.Singleton
-    
-class ApiEnumsToPyComponents(dict):
-    """Lookup from Api Enums to Pymel Component Classes"""
-    __metaclass__ = util.Singleton
-    
-class PyNodeTypesHierarchy(dict):
-    """child:parent lookup of the pymel classes that derive from DependNode"""
-    __metaclass__ = util.Singleton
     
 def addPyNode( module, mayaType, parentMayaType ):
     
