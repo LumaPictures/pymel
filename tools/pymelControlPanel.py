@@ -759,6 +759,7 @@ def setManualDefaults():
                     ('MPlug', 0, 'setChannelBox', 'isChannelBoxFlagSet'),
                     ('MFnTransform', 0, 'enableLimit', 'isLimited'),
                     ('MFnTransform', 0, 'setLimit', 'limitValue'),
+                    ('MFnTransform', 0, 'set', 'transformation'),
                      ]
     for className, methodIndex, setter, getter in invertibles:
         # append to the class-level invertibles list
