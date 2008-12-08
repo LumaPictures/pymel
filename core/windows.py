@@ -1,13 +1,12 @@
 
 """
-The ui module contains functions which are used to create ui elements, as well as their class counterparts.
+The windows module contains functions which are used to create UI elements, as well as their class counterparts (previously 'ui').
 
 Pymel UIs
 =========
 
-pymel adds more readability to ui building while also maintaining backward compatibility.  Every ui command in maya.cmds
-is a class in pymel, which can behave like a command or like a class. More documentation on this to come, but for now
-check out pipeGen.py in examples directory
+pymel adds more readability to UI building while also maintaining backward compatibility.  Like nodes and 
+`PyNode`s, every ui command in maya.cmds has a class counterpart in pymel derived from the base class `PyUI`. 
 
 Command Callbacks
 -----------------

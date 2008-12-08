@@ -1,3 +1,4 @@
+"""functions related to fx"""
 
 import pmtypes.factories as _factories
 import general

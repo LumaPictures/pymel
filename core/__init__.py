@@ -1,3 +1,5 @@
+"The primary module for maya commands and node classes"
+
 #import pymel.mayahook as mayahook
 
 from general import *

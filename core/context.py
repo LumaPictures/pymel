@@ -1,5 +1,5 @@
 """
-The ctx module contains all context commands.
+Contains all context commands (previously 'ctx').
 """
 
 import pmtypes.factories as _factories

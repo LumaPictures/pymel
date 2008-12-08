@@ -1,3 +1,4 @@
+"""functions related to rendering"""
 
 import pymel.util as util
 import pmtypes.factories as _factories

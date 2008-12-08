@@ -1,5 +1,7 @@
 """
-The general module contains the node class hierarchy, such as `PyNode`, `DependNode`, `Transform`, and `Attribute`.
+Contains the node class hierarchy and general node and attribute functions.
+
+Some important nodes in this module include `PyNode`, `DependNode`, `Transform`, and `Attribute`.
 
 :group Exceptions: ``*Error``
 
@@ -2013,7 +2015,7 @@ class Attribute(PyNode):
     
     Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
         
-        >>> for axis in ['translateX', 'translateY', 'translateZ']: 
+        >>> for axis in ['scaleX', 'scaleY', 'scaleZ']: 
         ...     cam.attr( axis ).lock()          
     
     Direct Instantiation
@@ -2022,31 +2024,56 @@ class Attribute(PyNode):
     pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
     class, which will determine the appropriate class automaticallly.
     
-        >>> Attribute( 'persp.visibility' ) # explicitly request an Attribute
+    explicitly request an Attribute:
+    
+        >>> Attribute( 'persp.visibility' ) 
         Attribute('persp.visibility')
-        >>> PyNode( 'persp.translate' ) # let PyNode figure it out for you
+        
+    let PyNode figure it out for you:
+    
+        >>> PyNode( 'persp.translate' ) 
         Attribute('persp.translate')
     
-    
-    Getting Attribute Values
-    ------------------------
-    To get the value of an attribute, you use the `get` method. Keep in mind that, where applicable, the values returned will 
-    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
-    
-        >>> rot = cam.rotate.get()
-        >>> print rot
-        [0.0, 0.0, 0.0]
-        >>> print type(rot) # rotation is returned as a vector class
-        <class 'pymel.core.pmtypes.wrappedtypes.Vector'>
 
     Setting Attributes Values
     -------------------------
-    there are several ways to set attributes in pymel:
     
-        >>> cam.rotate.set([4,5,6])   # you can pass triples as a list
-        >>> cam.rotate.set(4,5,6)     # or not    
-        >>> cam.rotate = [4,5,6]      # and finally, shorthand
+    To set the value of an attribute, you use the `Attribute.set` method.
+    
+        >>> cam.translateX.set(0)
+        
+    to set an attribute that expects a double3, you can use any iterable with 3 elements:
+    
+        >>> cam.translate.set([4,5,6])
+        >>> cam.translate.set(Vector([4,5,6]))
 
+    Getting Attribute Values
+    ------------------------
+    To get the value of an attribute, you use the `Attribute.get` method. Keep in mind that, where applicable, the values returned will 
+    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
+    
+        >>> t = cam.translate.get()
+        >>> print t
+        [4.0, 5.0, 6.0]
+        >>> # translation is returned as a vector class
+        >>> print type(t) 
+        <class 'pymel.core.pmtypes.wrappedtypes.Vector'>
+        
+    `set` is flexible in the types that it will accept, but `get` will always return the same type 
+    for a given attribute. This can be a potential source of confusion:
+        
+        >>> value = [4,5,6]
+        >>> cam.translate.set(value)
+        >>> result = cam.translate.get()
+        >>> value == result
+        False
+        >>> # why is this? because result is a Vector and value is a list
+        >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
+        >>> result == Vector(value)
+        True
+        >>> result.isEquivalent(value)
+        True
+    
     Connecting Attributes
     ---------------------
     As you might expect, connecting and disconnecting attributes is pretty straightforward.
@@ -2405,7 +2432,7 @@ class Attribute(PyNode):
     
     
 #----------------------
-#{ Connections
+#xxx{ Connections
 #----------------------    
                     
     isConnected = cmds.isConnected
@@ -2482,7 +2509,7 @@ class Attribute(PyNode):
             inputs[0].connect( node + '.' + nodeInAttr )
 #}
 #----------------------
-#{ Info and Modification
+#xxx{ Info and Modification
 #----------------------
     
 #    def alias(self, **kwargs):
@@ -2549,11 +2576,6 @@ class Attribute(PyNode):
         except RuntimeError:
             pass
      
-    def __len__(self):
-        """
-        :rtype: `unicode`
-        """
-        return self.size()
         
 #    def isElement(self):
 #        """ Is the attribute an element of a multi(array) attribute """
@@ -2665,7 +2687,7 @@ class Attribute(PyNode):
         
 #}
 #-------------------------- 
-#{ Ranges
+#xxx{ Ranges
 #-------------------------- 
         
     def getSoftMin(self):
@@ -2848,7 +2870,7 @@ class Attribute(PyNode):
 #                )
 #}
 #-------------------------- 
-#{ Relatives
+#xxx{ Relatives
 #-------------------------- 
 
     def getChildren(self):
@@ -3035,7 +3057,7 @@ class DependNode( PyNode ):
     duplicate = duplicate
     
 #--------------------------
-#{    Presets
+#xxx{    Presets
 #-------------------------- 
    
     def savePreset(self, presetName, custom=None, attributes=[]):
@@ -3062,7 +3084,7 @@ class DependNode( PyNode ):
 #} 
           
 #--------------------------
-#{    Info
+#xxx{    Info
 #-------------------------- 
 
 #    def type(self, **kwargs):
@@ -3112,7 +3134,7 @@ class DependNode( PyNode ):
     
 #}
 #--------------------------
-#{   Connections
+#xxx{   Connections
 #-------------------------- 
     
     def inputs(self, **kwargs):
@@ -3170,7 +3192,7 @@ class DependNode( PyNode ):
         
 #}     
 #--------------------------
-#{    Attributes
+#xxx{    Attributes
 #--------------------------
     def __getattr__(self, attr):
         try :
@@ -3339,7 +3361,7 @@ class DependNode( PyNode ):
  
 #}
 #-----------------------------------------
-#{ Name Info and Manipulation
+#xxx{ Name Info and Manipulation
 #-----------------------------------------
     _numPartReg = re.compile('([0-9]+)$')
     
@@ -3567,7 +3589,7 @@ class DagNode(Entity):
 
             
 #--------------------------------
-#{  Path Info and Modification
+#xxx{  Path Info and Modification
 #--------------------------------
     def root(self):
         """rootOf
@@ -3624,16 +3646,17 @@ class DagNode(Entity):
         """
         :rtype: `DagNode` list
         
+        >>> from pymel import *
         >>> delete(ls(type='mesh'), quiet=1)
-        >>> s = polyCube()[0]
+        >>> s = polyPlane()[0]
         >>> instance(s)
-        [Transform('pCube2')]
+        [Transform('pPlane2')]
         >>> instance(s)
-        [Transform('pCube3')]
+        [Transform('pPlane3')]
         >>> s.getShape().getAllInstances()
-        [Mesh('pCube1|pCubeShape1'), Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
+        [Mesh('pPlane1|pPlaneShape1'), Mesh('pPlane2|pPlaneShape1'), Mesh('pPlane3|pPlaneShape1')]
         >>> s.getShape().getAllInstances(includeSelf=False)
-        [Mesh('pCube2|pCubeShape1'), Mesh('pCube3|pCubeShape1')]
+        [Mesh('pPlane2|pPlaneShape1'), Mesh('pPlane3|pPlaneShape1')]
         
         """
         d = api.MDagPathArray()
@@ -3752,13 +3775,13 @@ class DagNode(Entity):
         The operation order visually mimics the resulting dag path:
         
             >>> from pymel import *
-            >>> s = polySphere()[0]
-            >>> c = polyCube()[0]
-            >>> t = polyTorus()[0]
+            >>> s = polySphere(name='sphere')[0]
+            >>> c = polyCube(name='cube')[0]
+            >>> t = polyTorus(name='torus')[0]
             >>> s | c | t
-            Transform('pTorus1')
+            Transform('torus')
             >>> print t.fullPath()
-            |pSphere1|pCube3|pTorus1
+            |sphere|cube|torus
             
         :rtype: `DagNode`
         """

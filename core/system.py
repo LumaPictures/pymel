@@ -1,6 +1,6 @@
 
 """
-The system module contains functions relating to files and references.
+The system module contains functions relating to files and references (previously 'io').
 
 In particular, the system module contains the functionality of maya.cmds.file. The file command should not be imported into
 the default namespace because it conflicts with python's builtin file class. Since the file command has so many flags, 
@@ -41,7 +41,7 @@ import sys
 try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
-except ImportError:
+except:
     import pmtypes.path
     pathClass = pmtypes.path.path
     

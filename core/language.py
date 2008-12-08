@@ -8,7 +8,7 @@ import maya.mel as mm
 import pmtypes.pmcmds as cmds
 #import maya.cmds as cmds
 from pymel.mayahook.optionvars import *
-import os
+import os, inspect
 import pmtypes.factories as _factories
 import pymel.api as api
 import pmtypes.wrappedtypes as _types
@@ -28,6 +28,91 @@ def pythonToMel(arg):
     # we cannot simply test if arg is an instance of basestring because PyNodes are not  
     return '"%s"' % cmds.encodeString(str(arg))
 
+
+def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
+    """return the name of the closest mel type equivalent for the given python object. 
+    mel has no true boolean or matrix types, but it often reserves special treatment for them in other ways.
+    To control the handling of these types, use `allowBool` and `allowMatrix`. 
+    For python iterables, the first element in the array is used to determine the type. for empty lists, 'string[]' is
+    returned.
+    
+    :Parameters:
+        pyObj
+            can be either a class or an instance.
+        exactOnly : bool
+            If True and no suitable mel analog can be found, the function will return None.
+            If False, types which do not have an exact mel analog will return the python type name as a string
+        allowBool : bool
+            if True and a bool type is passed, 'bool' will be returned. otherwise 'int'.
+        allowMatrix : bool
+             if True and a `Matrix` type is passed, 'matrix' will be returned. otherwise 'int[]'.
+    
+    :rtype: str
+    
+        >>> from pymel import *
+        >>> getMelType( 1 )
+        'int'
+        >>> p = SCENE.persp
+        >>> getMelType( p.translate.get() )
+        'vector'
+        >>> getMelType( Matrix )
+        'int[]'
+        >>> getMelType( Matrix, allowMatrix=True )
+        'matrix'
+        >>> getMelType( True )
+        'int'
+        >>> getMelType( True, allowBool=True)
+        'bool'
+        >>> # make a dummy class
+        >>> class MyClass(object): pass
+        >>> getMelType( MyClass )
+        None
+        >>> getMelType( MyClass, exactOnly=False )
+        'MyClass'
+    
+    """
+ 
+    if inspect.isclass(pyObj):
+
+        if issubclass( pyObj, basestring ) : return 'string'
+        elif allowBool and issubclass( pyObj, bool ) : return 'bool'
+        elif issubclass( pyObj, int ) : return 'int'
+        elif issubclass( pyObj, float ) : return 'float'         
+        elif issubclass( pyObj, _types.VectorN ) : return 'vector'
+        elif issubclass( pyObj, _types.MatrixN ) : 
+            if allowMatrix: 
+                return 'matrix'
+            else:
+                return 'int[]'
+            
+        elif not exactOnly:
+            return pyObj.__name__
+            
+    else:
+
+        if isIterable( pyObj ):
+            try:
+                return getMelType( pyObj=arg[0], exactOnly=True ) + '[]'
+            except IndexError:
+                # TODO : raise warning
+                return 'string[]'
+            except:
+                return
+        if isinstance( pyObj, basestring ) : return 'string'
+        elif allowBool and isinstance( pyObj, bool ) : return 'bool'
+        elif isinstance( pyObj, int ) : return 'int'
+        elif isinstance( pyObj, float ) : return 'float'         
+        elif isinstance( pyObj, _types.VectorN ) : return 'vector'
+        elif isinstance( pyObj, _types.MatrixN ) : 
+            if allowMatrix: 
+                return 'matrix'
+            else:
+                return 'int[]'
+            
+        elif not exactOnly:
+            typeStr = type(pyObj).__name__
+
+         
 # TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ): 
 # using append or extend will not update the mel variable 
 class MelGlobals( dict ):
