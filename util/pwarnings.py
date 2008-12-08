@@ -14,7 +14,7 @@ import warnings
 from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
 # from warnings import simplefilter, warn
 
-def formatwarning(message, category, filename, lineno):
+def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
     if issubclass(category, ExecutionWarning) :
         s =  u"%s: %s\n" % (category.__name__, message)

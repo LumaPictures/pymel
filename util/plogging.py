@@ -63,6 +63,31 @@ def stdOutsRedirected(func):
     stdOutsRedirectedFunction.__doc__ = func.__doc__
     stdOutsRedirectedFunction.func_name = func.func_name
     return stdOutsRedirectedFunction
+
+
+__issuedDeprecationWarnings = {}
+def deprecated(funcOrMessage):
+    def deprecated2(func):
+        info = dict(
+            name = func.__name__,
+            module = func.__module__)
+        def deprecationLoggedFunc(*args, **kwargs):
+            c = __issuedDeprecationWarnings.get(func.__name__,0)
+            if not c:
+                logger.warning(message % info)
+            __issuedDeprecationWarnings[func.__name__] = c+1
+            return func(*args, **kwargs)
+        deprecationLoggedFunc.__name__ = func.__name__
+        deprecationLoggedFunc.__module__ = func.__module__
+        deprecationLoggedFunc.__doc__ = func.__doc__
+        return deprecationLoggedFunc
+    if isinstance(funcOrMessage,basestring):
+        message = funcOrMessage
+        return deprecated2
+    else:
+        message = "The function '%s.%s' is deprecated and will be unavailable in future pymel versions" % (funcOrMessage.__module__, funcOrMessage.__name__)
+        return deprecated2(funcOrMessage)
+        
             
 #===============================================================================
 # INIT TO USER'S PREFERENCE
