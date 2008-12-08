@@ -20,11 +20,12 @@ append new element
 ~~~~~~~~~~~~~~~~~~
 
 MEL::
-
+    string $strArray[];
     $strArray[`size $strArray`] = "foo";
     
 Python
-    >>> strArray.append("foo")
+    >>> strArray = []                #doctest: SKIP
+    >>> strArray.append("foo")       #doctest: SKIP
 
 assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,7 +35,7 @@ MEL::
     strArray[`size $strArray`-3] = "foo";
     
 Python    
-    >>> strArray[-3] = "foo"
+    >>> strArray[-3] = "foo"        #doctest: SKIP
 
 However, since the translator does not track values of variables, it does not know if any given index is out of
 range or not. so, the following would raise a 'list assignment index out of range' error when converted to
@@ -50,7 +51,7 @@ for(init; condition; update)
 
     the closest equivalent to this in python is something akin to:
 
-        >>> for i in range(start, end)
+        >>> for i in range(start, end):    #doctest: SKIP
         
     in order for this type of for loop to be translated into a python for loop it must meet several requirements:
     
@@ -86,11 +87,11 @@ for(init; condition; update)
     if these conditions are not met, the for loop will be converted into a while loop:
     
         >>> i=0
-        >>> while 1:
-        >>>     if not ( (i - 2)<10 ):
-        >>>         break            
-        >>>     print i            
-        >>>     i+=1
+        >>> while 1:                        #doctest: SKIP
+        ...     if not ( (i - 2)<10 ):
+        ...         break            
+        ...     print i            
+        ...     i+=1
             
 
 Inconveniences
@@ -118,51 +119,7 @@ to tell the translator which global variables to share with the mel environment 
 methods described above) and which to not.  for instance, in my case, it is desirable for all of maya's global 
 variables to be initialized from their mel value but for our in-house variables not to be, since the latter are often
 used to pass values within a single script. see below for the actual regular expressions used to accomplish this.
-                        
-                        
-Command Callbacks
------------------
-
-one common point of confusion is command callbacks with ui elements. There are several different ways to handle 
-command callbacks on user interface widgets:  
-                        
-Function Name as String
-~~~~~~~~~~~~~~~~~~~~~~~
-
-maya will try to execute this as a python command, but unless you know the namespace it will
-be imported into, the function will not be recognized. notice how the namespace must be hardwired
-into the command:
-
-    >>> button( c="myCommand" )
-
-or
-
-    >>> button( c="myModule.myCommand" )
-
-this method is not recommended.
-
-Function Object
-~~~~~~~~~~~~~~~  
-
-When using this method, you pass an actual function object (without the parentheses). The callback function
-has to be defined before it is referenced by the command flag.  also, keep in mind many ui widgets such as radioButtonGrp
-pass args to the function (to mimic the "myCommand #1" functionality in mel), which your function must accommodate. The
-tricky part is that different ui elements pass differing numbers of args to their callbacks, and some pass none at all.
-This is why it is best for your command to use the *args syntax to accept any quantity of args, and then deal with them
-in the function.
-
-    >>> def myCommand( *args ): print args # this definition must come first
-
-    >>> button( c=myCommand )
-                
-Lambda Functions
-~~~~~~~~~~~~~~~~
-In my experience this is the best way to handle most command callbacks.  You can choose exactly which args you want
-to pass along to your function and order of definition does not matter.
-
-    >>> button( c= lambda *args: myCommand(args[0]) )
-
-    >>> def myCommand( arg ): print "running", arg 
+                         
 
                         
                         
@@ -316,7 +273,7 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
     """
     convert a string representing mel code into a string representing python code
     
-        >>> import pymel.mel2py as mel2py
+        >>> import pymel.tools.mel2py as mel2py
         >>> print mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;')
         paneLayout('test',configuration="top3",e=1)
         
