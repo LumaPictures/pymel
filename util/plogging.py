@@ -1,5 +1,6 @@
 import sys
 import maya.cmds as cmds
+from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical
 from logging import *
 
 #===============================================================================
