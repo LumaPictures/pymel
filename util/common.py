@@ -153,7 +153,11 @@ def getEnvs( env, default = None ):
     try:
         return os.environ[env].split(os.path.pathsep)
     except KeyError:
-        return list() if default is None else default
+        if default is None:
+            return list()
+        else:
+            return default
+
 
 def putEnv( env, value ):
     """set the value of an environment variable.  overwrites any pre-existing value for this variable. If value is a non-string
