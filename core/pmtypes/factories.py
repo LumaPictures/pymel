@@ -207,6 +207,7 @@ class CommandDocParser(HTMLParser):
             data = data.replace( 'Flag can appear in Edit mode of command', '' )
             data = data.replace( 'Flag can appear in Query mode of command', '' )
             data = data.replace( '\r\n', ' ' ).lstrip()
+            data = data.replace( '\n', ' ' ).lstrip()
             data = data.strip('{}\t')
             data = data.replace('*', '\*') # for reStructuredText
             self.flags[self.currFlag]['docstring'] += data
@@ -296,7 +297,9 @@ class CommandDocParser(HTMLParser):
                     else:
                         self.startFlag(data)
         elif self.active == 'command':
-            data = data.replace( '\r\n', ' ' ).lstrip()
+            data = data.replace( '\r\n', ' ' )
+            data = data.replace( '\n', ' ' )
+            data = data.lstrip()
             data = data.strip('{}')
             data = data.replace('*', '\*') # for reStructuredText
             if '{' not in data and '}' not in data:                
@@ -368,12 +371,14 @@ def getCmdInfoBasic( command ):
                 line = line.replace( '(Query Arg Mandatory)', '' )
                 line = line.replace( '(Query Arg Optional)', '' )
                 tokens = line.split()
+                
                 try:
                     tokens.remove('(multi-use)')
                 except:
                     pass
                 #print tokens
-                if len(tokens) > 1:
+                if len(tokens) > 1 and tokens[0].startswith('-'):
+                    
                     
                     args = [ typemap.get(x.lower(), util.uncapitalize(x) ) for x in tokens[2:] ]
                     numArgs = len(args)
@@ -610,10 +615,10 @@ def fixCodeExamples():
             except:
                print "COMPLETE AND UTTER FAILURE:", command
             
-#            # cleanup opened windows
-#            for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
-#                try: cmds.deleteUI(ui, window=True)
-#                except:pass
+            # cleanup opened windows
+            for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
+                try: cmds.deleteUI(ui, window=True)
+                except:pass
 
     print "Done Fixing Examples. Writing out fixed commands cache..."
     
@@ -931,6 +936,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             if flag in ['query', 'edit']:
                 continue
             
+            assert flag != 'ype', "%s has bad flag" % funcName
+
             # special case for constraints
             if constrObj and flag in ['weight']:
                 flagargs = [constrObj] + args
@@ -3608,6 +3615,9 @@ pluginLoadedCB = None
 pluginUnloadedCB = None
 
 def installCallbacks(module):
+    """install the callbacks that trigger new nodes and commands to be added to pymel when a 
+    plugin loads.  This is called from pymel.__init__
+    """
     import pymel.tools.py2mel as py2mel
     global pluginLoadedCB
     if pluginLoadedCB is None:
