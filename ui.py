@@ -62,6 +62,7 @@ try:
 except ImportError: pass
 
 import factories, util, core, path
+Path = path.path
 
     
 #-----------------------------------------------
@@ -195,6 +196,11 @@ class FormLayout(UI):
         AutoLayout(self, orientation=AutoLayout.VERTICAL, ratios=ratios).redistribute()
     def hDistribute(self,*ratios):
         AutoLayout(self, orientation=AutoLayout.HORIZONTAL, ratios=ratios).redistribute()
+        
+class FrameLayout(UI):
+    __metaclass__ = factories.metaNode
+    
+
         
 class TextScrollList(UI):
     __metaclass__ = factories.metaNode
@@ -501,22 +507,14 @@ def informBox(title, message, ok="Ok"):
     
 def promptForFolder():
     """ Prompt the user for a folder path """
-    
-    # a little trick that allows us to change the top-level 'folder' variable from 
-    # the nested function ('getfolder') - use a single-element list, and change its content
-    folder = [None]
-    def getfolder(*args):
-        folder[0] = args[0]
-    ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
-    folder = Path(folder[0])
-    if folder.exists():
-        return folder
+    return promptForPath(mode=4)
 
-def promptForPath():
+
+def promptForPath(**kwargs):
     """ Prompt the user for a folder path """
     
     if cmds.about(linux=1):
-        return fileDialog(mode=0)
+        return Path(fileDialog(**kwargs))
     
     else:
         # a little trick that allows us to change the top-level 'folder' variable from 
@@ -525,7 +523,12 @@ def promptForPath():
         folder = [None]
         def getfolder(*args):
             folder[0] = args[0]
-        ret = cmds.fileBrowserDialog(m=0, fc=getfolder, an="Get File")
+        
+        kwargs.pop('fileCommand',None)
+        kwargs['fc'] = getfolder
+        
+        kwargs['an'] = kwargs.pop('an', kwargs.pop('actionName', "Select File"))
+        ret = cmds.fileBrowserDialog(**kwargs)
         folder = Path(folder[0])
         if folder.exists():
             return folder
@@ -537,7 +540,7 @@ def fileDialog(*args, **kwargs):
 
 
 class _ListSelectLayout(FormLayout):
-    
+    """This Layout Class is specifically designed to be used by the promptFromList function"""
     args = None
     selection = None
     def __new__(cls, *args, **kwargs):
@@ -589,6 +592,39 @@ def promptFromList(items, title="Selector", prompt="Select from list:", ok="Sele
     if ret:
         return _ListSelectLayout.selection
 
+
+class TextLayout(FrameLayout):
+    
+    def __new__(cls, name=None, parent=None, text=None):
+        self = frameLayout(labelVisible=bool(name), label=name or "Text Window", parent=parent)
+        return FrameLayout.__new__(cls, self)
+
+    def __init__(self, parent, text=None):
+        
+        SLC("topForm", verticalLayout, dict(), AutoLayout.redistribute, [
+            SLC("txtInfo", scrollField, {"editable":False}),
+        ]).create(self.__dict__, parent=self, debug=False)
+        self.setText(text)
+        
+    def setText(self, text=""):
+        from pprint import pformat
+        if not isinstance(text, basestring):
+            text = pformat(text)
+        self.txtInfo.setText(text)
+        self.txtInfo.setInsertionPosition(1)
+        
+def textWindow(title, text, size=None):
+
+        self = window("TextWindow#",title=title)
+        try:
+            self.main = TextLayout(parent=self, text=text)
+            self.setWidthHeight(size or [300,300])
+            self.setText = self.main.setText
+            self.show()
+            return self
+        except:
+            deleteUI(self)
+            raise
 
     
 def showsHourglass(func):
