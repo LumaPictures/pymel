@@ -5,7 +5,7 @@
     >>> import sys
     >>> sys.stderr = sys.stdout   
     >>> warn("An ExecutionWarning", ExecutionWarning) #doctest: +ELLIPSIS
-    /...ExecutionWarning: An ExecutionWarning...
+    ExecutionWarning: An ExecutionWarning
     
 """
 

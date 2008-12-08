@@ -1192,15 +1192,17 @@ def treeFromChildLink (isExactChildFn, *args):
     """
     This function will build a tree from the provided sequence and a comparison function in the form:
         cmp(a,b): returns True if a is a direct child of b, False else
-    >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'a', 'b', 'bb', 'ab', 'bab', 'bba']
-    >>> def isChild(s1, s2) :
-    >>> return s1.startswith(s2) and len(s1)==len(s2)+1
-    >>> a = treeFromChildLink (isChild, *lst)
-    >>> print a[0].formatted()
-    A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
-    >>> def isChild(s1, s2) :
-    >>>     return s1.startswith(s2) 
-    >>> forest = treeFromChildLink (isChild, lst)    
+        
+        >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'a', 'b', 'bb', 'ab', 'bab', 'bba']
+        >>> def isChild(s1, s2) :
+        ...     return s1.startswith(s2) and len(s1)==len(s2)+1
+        >>> a = treeFromChildLink (isChild, *lst)
+        >>> print a[0].formatted()
+        A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
+        >>> def isChild(s1, s2) :
+        ...     return s1.startswith(s2) 
+        >>> forest = treeFromChildLink (isChild, lst)
+    
     """    
     deq = deque()
     for arg in args :

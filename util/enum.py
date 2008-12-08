@@ -24,8 +24,6 @@ of the string arguments. Each value is also available as an attribute
 named from the corresponding string argument::
 
     >>> pizza_night = Weekdays[4]
-    >>> Weekdays['fri']
-    4
     >>> shirt_colour = Colours.green
 
 The values are constants that can be compared with values from
@@ -47,8 +45,6 @@ original arguments used to create the enumeration::
     'fri'
     >>> shirt_colour.index
     2
-    
-
 """
 
 __author_name__ = "Ben Finney"
@@ -62,7 +58,7 @@ __license__ = "Choice of GPL or Python license"
 __url__ = "http://cheeseshop.python.org/pypi/enum/"
 __version__ = "0.4.3"
 
-import operator
+import operator
 
 class EnumException(Exception):
     """ Base class for all exceptions in this module """
@@ -77,12 +73,6 @@ class EnumEmptyError(AssertionError, EnumException):
     def __str__(self):
         return "Enumerations cannot be empty"
 
-#class EnumLookupError(KeyError, IndexError, EnumException):
-#    """ Raised when attempting to create an empty enumeration """
-#
-#    def __str__(self):
-#        return "Invalid Enumerator Key or Index"
-    
 class EnumBadKeyError(TypeError, EnumException):
     """ Raised when creating an Enum with non-string keys """
 
@@ -110,7 +100,7 @@ class EnumValue(object):
         self.__index = index
         self.__key = key
         self.__doc = doc
-        
+
     def __get_enumtype(self):
         return self.__enumtype
     enumtype = property(__get_enumtype)
@@ -123,7 +113,7 @@ class EnumValue(object):
         return "%s" % (self.key)
     def __int__(self):
         return self.index
-    
+
     def __get_index(self):
         return self.__index
     index = property(__get_index)
@@ -141,6 +131,7 @@ class EnumValue(object):
                 repr(self.__key),
             )
         
+
     def __hash__(self):
         return hash(self.__index)
 
@@ -171,6 +162,7 @@ class EnumValue(object):
 
         return result
 
+
 class Enum(object):
     """ Enumerated type """
 
@@ -219,7 +211,7 @@ class Enum(object):
            
     def __str__(self):
         return '%s%s' % (self.__class__.__name__, self.keys())
-
+        
     def __setattr__(self, name, value):
         raise EnumImmutableError(name)
 
@@ -230,17 +222,8 @@ class Enum(object):
         return len(self._values)
 
     def __getitem__(self, index):
-        """
-        get an index value from a key
-        or get a key from an index value
-        """
-        if isinstance(index, int):
-            return self.getKey(index)
-        elif isinstance(index, basestring):
-            return self.getIndex(index)
-        
-        raise ValueError, "invalid key or index: %s" % key
-    
+        return self._values[index]
+
     def __setitem__(self, index, value):
         raise EnumImmutableError(index)
 
@@ -274,23 +257,24 @@ class Enum(object):
             >>> units.getIndex('hectares')
             Traceback (most recent call last):
               ...
-            KeyError: 'hectares'
+            ValueError: invalid enumerator key: 'hectares'
             >>> units.getIndex(10)
             Traceback (most recent call last):
               ...
-            ValueError: invalid key: 10
+            ValueError: invalid enumerator index: 10
         """
-        try:
-            if isinstance(key, int):
-                if key in self._values:
-                    return key
-                else:
-                    raise ValueError, "invalid enumerator index %r" % key
+        if isinstance(key, int):
+            # got a potential index : checking if it's valid
+            if key in self._values:
+                return key
             else:
+                raise ValueError, "invalid enumerator index: %r" % key
+        else:
+            # got a key: retrieving index
+            try:
                 return self._keys[str(key)]
-        
-        except:
-            raise ValueError, "invalid enumerator key: %r" % key
+            except:
+                raise ValueError, "invalid enumerator key: %r" % key
     
     def getKey(self, index):
         """
@@ -299,29 +283,32 @@ class Enum(object):
         
             >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters')
             >>> units.getKey(2)
-            EnumValue(2, 'feet')
+            'feet'
             >>> units.getKey('inches')
-            EnumValue(1, 'inches')
+            'inches'
             >>> units.getKey(10)
             Traceback (most recent call last):
               ...
-            IndexError: tuple index out of range
+            ValueError: invalid enumerator index: 10
             >>> units.getKey('hectares')
             Traceback (most recent call last):
               ...
-            TypeError: invalid enumerator index: 'hectares'
+            ValueError: invalid enumerator key: 'hectares'
         """
-        try:
-            if isinstance(index, int):
-                return self._values[index]
-    
+ 
+        if isinstance(index, int):
+            # got an index: retrieving key
+            try:
+                return self._values[index].key
+            except:
+                raise ValueError, "invalid enumerator index: %r" % index
+        else:
+            # got a potential key : checking if it's valid
+            if str(index) in self._keys:
+                return index
             else:
-                if str(index) in self._keys:
-                    return index
-                else:
-                   raise ValueError, "invalid enumerator key %r" % index 
-        except:
-            raise ValueError, "invalid enumerator index: %r" % index
+               raise ValueError, "invalid enumerator key: %r" % index 
+
     
     def values(self):
         "return a list of `EnumValue`s"

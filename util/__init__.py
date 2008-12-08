@@ -1,6 +1,7 @@
 
-"Util contains functions and classes which are required by pymel.  These helper utilities do not require pymel to operate and can be useful in other code."
-
+"""
+General utilities which are pymel-independent."
+"""
 import sys, codecs, os, os.path, re, platform
 
 from collections import *

@@ -823,17 +823,18 @@ class MayaNodePath(Parsed):
         Component Of: `Component`, `NodeAttribute`
     
     Example
+        >>> import pymel.util.nameparse as nameparse
         >>> obj = nameparse.parse( 'group1|pCube1|pCubeShape1' )
         >>> obj.setNamespace( 'foo:' )
         >>> print obj
         foo:group1|foo:pCube1|foo:pCubeShape1
-        >>> obj.parent
+        >>> print obj.parent
         foo:group1|foo:pCube1
-        >>> obj.node
+        >>> print obj.node
         foo:pCubeShape1
-        >>> obj.node.basename
+        >>> print obj.node.basename
         pCubeShape1
-        >>> obj.node.namespace
+        >>> print obj.node.namespace
         foo:
         
     """
@@ -1379,7 +1380,7 @@ def getBasicPartList( name ):
     convenience function for breaking apart a maya object to the appropriate level for pymel name parsing
     
         >>> getBasicPartList('thing|foo:bar.attr[0].child')
-        [MayaNodePath('thing|foo:bar', 0), MayaName('attr', 13), NameIndex('[0]', 17), MayaName('child', 21)]
+        [MayaNodePath('thing|foo:bar', 0), MayaName('attr', 14), NameIndex('[0]', 18), MayaName('child', 22)]
     """
     partList = []
     def getParts( obj ):
