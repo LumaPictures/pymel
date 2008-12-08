@@ -1,1 +1,4 @@
-"Modules which extend the core features of pymel. These modules are usually dependent on pymel, but pymel is not dependent on them."
+"""
+Extensions, integrations, and pymel-dependent tools.
+
+"""

@@ -10,8 +10,8 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
     
     When passed a melVariable, the command will determine the mel type from a mel variable ( ex. '$foo' )
     
-    If exactMelType is True and no suitable mel analogue can be found, the function will return None.
-    If False, types which do not have an exact mel analogue will return a string representing the python type
+    If exactMelType is True and no suitable mel analog can be found, the function will return None.
+    If False, types which do not have an exact mel analog will return the type name as a string
 
     """
 
@@ -22,10 +22,11 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
                            }
  
     if pyType is not None:
-        assert melVariable is None and pyObj is None, "Please pass only one of pyObj, pyType or melVariable"
-    
+        assert melVariable is None and pyObj is None, "Pass only one of pyObj, pyType or melVariable"
+        #assert inspect.isclass(pyType), "pyType must be passed a class. got %s" % type(pyType) 
         if not exactMelType:
             if not isinstance( pyType, basestring ): 
+                
                 pyType = pyType.__name__
             return typeStrMap.get(pyType, pyType)   
             
@@ -38,7 +39,7 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
             elif issubclass( pyObj, Matrix ) : return 'matrix'
             
     elif melVariable is not None:
-        assert pyType is None and pyObj is None, "Please pass only one of pyObj, pyType or melVariable"
+        assert pyType is None and pyObj is None, "Pass only one of pyObj, pyType or melVariable"
         if not melVariable.startswith('$'): melVariable = '$' + melVariable
          
         buf = _mm.eval( 'whatIs "%s"' % melVariable ).split()
@@ -97,7 +98,7 @@ def getMelArgs( function, exactMelType=True ):
         function
         This can be a callable python object or the full, dotted path to the callable object as a string.  
         
-        If a string representing the python object is passed, it should include all packages and sub-modules, along 
+        If a string representing the python function is passed, it should include all packages and sub-modules, along 
         with the function's name:  'path.to.myFunc'
         
     """
@@ -217,9 +218,11 @@ def py2melProc( function, returnType='', procName=None, evaluateInputs=True ):
         you to pass a more complex python objects as an argument. For example:
         
         In python:         
-            >>> import pymel
-            >>> def myFunc( arg ): for x in arg: print x
-            >>> pymel.util.melToPythonWrapper( myFunc, procName='myFuncWrapper', evaluateInputs=True )
+            >>> import pymel.tools.py2mel as py2mel
+            >>> def myFunc( arg ): 
+            ...    for x in arg:
+            ...       print x
+            >>> py2mel.py2melProc( myFunc, procName='myFuncWrapper', evaluateInputs=True )
         
         Then, in mel::
             // execute the mel-to-python wrapper procedure
