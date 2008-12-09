@@ -644,11 +644,7 @@ def mayaInit(forversion=None) :
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
     sep = os.path.pathsep
     mayaVersion = getMayaVersion(installed=True, extension=True)
-    mayaVersionToPythonVersion = { '8.5' : '2.4',
-                      '2008' : '2.5'}
     shortVersion = parseVersionStr(mayaVersion, extension=True)
-	# Retrieve the correct python version, with a default of 2.5
-    pythonVersion = mayaVersionToPythonVersion.get(shortVersion, '2.5')
                       
     envVersion = os.environ.get('MAYA_ENV_VERSION', None)
     
@@ -711,6 +707,10 @@ def mayaInit(forversion=None) :
             maya.standalone.initialize(name="python")
             
             refreshEnviron()
+            import maya.mel
+            try:
+                maya.mel.eval( 'source "userSetup.mel"')
+            except RuntimeError: pass
         except ImportError, msg:
             warn("Unable to import maya.standalone to start Maya: "+msg, UserWarning)
 
