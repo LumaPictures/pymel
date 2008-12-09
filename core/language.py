@@ -1,4 +1,6 @@
-
+"""
+Functions and classes related to scripting, including MelGlobals, Mel
+"""
 from math import *
 from pymel.util.mathutils import *
 import system
@@ -16,7 +18,13 @@ import pmtypes.wrappedtypes as _types
 #--------------------------
 # Mel <---> Python Glue
 #--------------------------  
-  
+
+MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
+
+def isValidMelType( typStr ):
+    """:rtype: bool"""
+    return typStr in MELTYPES
+
 def pythonToMel(arg):
     """convert a python object to a string representing an equivalent value in mel"""
     if util.isNumeric(arg):
@@ -186,45 +194,51 @@ class MelGlobals( dict ):
     
     
     typeMap = {}
-    validTypes = util.MELTYPES
-    def _formatVariable(self, variable):
+    validTypes = MELTYPES
+
+    
+    def __getitem__(self, variable ):
+        return self.__class__.get( variable )
+    
+    def __setitem__(self, variable, value):
+        return self.__class__.set( variable, value )
+
+    @classmethod
+    def _formatVariable(cls, variable):
         # TODO : add validity check
         if not variable.startswith( '$'):
             variable = '$' + variable
         return variable
     
-    def getType(self, variable):
-        variable = self._formatVariable(variable)
+    @classmethod
+    def getType(cls, variable):
+        variable = cls._formatVariable(variable)
         info = mel.whatIs( variable ).split()
         if len(info)==2 and info[1] == 'variable':
             return info[0]
         raise TypeError, "Cannot determine type for this variable. Use melGlobals.initVar first."
-    
-    def __getitem__(self, variable ):
-        return self.get( variable )
-    
-    def __setitem__(self, variable, value):
-        return self.set( variable, value )
-        
-    def initVar( self, type, variable ):
+      
+    @classmethod   
+    def initVar( cls, type, variable ):
         if type not in MelGlobals.validTypes:
             raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MelGlobals.validTypes ] )
-        variable = self._formatVariable(variable)
+        variable = cls._formatVariable(variable)
         MelGlobals.typeMap[variable] = type
         return variable
     
-    def get( self, variable, type=None  ):
+    @classmethod
+    def get( cls, variable, type=None  ):
         """get a MEL global variable.  If the type is not specified, the mel ``whatIs`` command will be used
         to determine it.""" 
         
-        variable = self._formatVariable(variable)
+        variable = cls._formatVariable(variable)
         if type is None:
             try:
                 type = MelGlobals.typeMap[variable]
             except KeyError:
-                type = self.getType(variable)
+                type = cls.getType(variable)
             
-        variable = self.initVar(type, variable)
+        variable = cls.initVar(type, variable)
         
         ret_type = type
         decl_name = variable
@@ -247,16 +261,17 @@ class MelGlobals( dict ):
         else:
             return res
     
-    def set( self, variable, value, type=None ):
+    @classmethod
+    def set( cls, variable, value, type=None ):
         """set a mel global variable""" 
-        variable = self._formatVariable(variable)
+        variable = cls._formatVariable(variable)
         if type is None:
             try:
                 type = MelGlobals.typeMap[variable]
             except KeyError:
-                type = self.getType(variable)
+                type = cls.getType(variable)
                 
-        variable = self.initVar(type, variable)
+        variable = cls.initVar(type, variable)
         decl_name = variable
         if type.endswith('[]'):
             type = type[:-2]
@@ -266,7 +281,8 @@ class MelGlobals( dict ):
         #print cmd
         mm.eval( cmd  )
     
-    def keys(self):
+    @classmethod
+    def keys(cls):
         """list all global variables"""
         return mel.env()
     
