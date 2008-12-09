@@ -79,7 +79,7 @@ class OptionVarDict(object):
             if isinstance( val[0], float):
                 cmds.optionVar( floatValue=[key,val[0]] ) # force to this datatype
                 for elem in val[1:]:
-                    if not isinstance( elem, foat):
+                    if not isinstance( elem, float):
                         raise TypeError, 'all elements in list must be of the same datatype'
                     cmds.optionVar( floatValueAppend=[key,elem] )
                 return
