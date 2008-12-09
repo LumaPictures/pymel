@@ -13,28 +13,30 @@ import os.path
 import warnings
 from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
 # from warnings import simplefilter, warn
+import logging
+logger = logging.getLogger(__name__)
 
 def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
     if issubclass(category, ExecutionWarning) :
-        s =  u"%s: %s\n" % (category.__name__, message)
+        s =  u"%s: %s" % (category.__name__, message)
     else :
-        # print "category is", category.__name__
-        # print "message is ", message
-        # print "lineno is ", lineno
-        # print "filename is ", filename
-        s =  u"%s: %s\n# at line: %s in %s\n" % (category.__name__, message, lineno, filename)
+        s =  u"%s: %s # at line: %s in %s" % (category.__name__, message, lineno, filename)
         name, ext = os.path.splitext(filename)
         line = ""
         if ext == ".py" :
             line = unicode(linecache.getline(filename, lineno)).strip()
-        if len(line) > 0 :
-            # print "adding line %s" % line
-            s = s + u"#\t" + line + u"\n"
-        # print "s:\n", s
+            if line:
+                s += (u"#\t %s" % line)
     return s
 
 warnings.formatwarning = formatwarning
+
+def showwarning(message, category, filename, lineno, file=None, line=None):
+    msg = warnings.formatwarning(message, category, filename, lineno, line)
+    logger.warning(msg + (" >> %r" % file if file else ""))
+    
+warnings.showwarning = showwarning
 
 class ExecutionWarning (UserWarning) :
     """ Simple Warning class that doesn't print any information besides warning message """
@@ -44,6 +46,28 @@ def warn(*args, **kwargs):
     if len(args) == 1 and not isinstance(args[0], Warning):
         args = args + (ExecutionWarning,)
     return warnings.warn(*args, **kwargs)
+
+def deprecated(funcOrMessage):  # the decorator can either recieve parameters or the function directly
+    def deprecated2(func):
+        info = dict(
+            name = func.__name__,
+            module = func.__module__)
+        
+        def deprecationLoggedFunc(*args, **kwargs):
+            warn(message % info, DeprecationWarning)
+            return func(*args, **kwargs)
+        
+        deprecationLoggedFunc.__name__ = func.__name__
+        deprecationLoggedFunc.__module__ = func.__module__
+        deprecationLoggedFunc.__doc__ = func.__doc__
+        return deprecationLoggedFunc
+    # check if the decorator got a 'message' parameter
+    if isinstance(funcOrMessage, basestring):
+        message = funcOrMessage
+        return deprecated2
+    else:
+        message = "The function '%s.%s' is deprecated and will become unavailable in future pymel versions" % (funcOrMessage.__module__, funcOrMessage.__name__)
+        return deprecated2(funcOrMessage)
 
 if __name__ == '__main__' :
     import doctest

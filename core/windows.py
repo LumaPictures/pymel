@@ -67,6 +67,8 @@ from pmtypes.factories import MetaMayaUIWrapper
 from system import Path
 from language import mel
 import re
+import logging
+logger = logging.getLogger(__name__)
 
 #-----------------------------------------------
 #  Enhanced UI Commands
@@ -149,17 +151,23 @@ class UI(unicode):
             >>> n.__repr__()
             # Result: Window('myWindow')
         """
-
-        slc = kwargs.pop("slc",kwargs.pop("defer",None))
+        logger.info("UI: %s, %s, %s, %r" % (cls, name, create, kwargs))
+        slc = kwargs.pop("slc",kwargs.pop("defer",kwargs.get('childCreators')))
 
         if slc:
             self = unicode.__new__(cls,name)
-            self.slc = SmartLayoutCreator2(name=name, uiFunc=cls.__melcmd__, **kwargs)
+            postFunc = kwargs.pop('postFunc',None)
+            childCreators = kwargs.pop('childCreators',None)
+            self.slc = SmartLayoutCreator(
+                            name, 
+                            getattr(_thisModule, util.uncapitalize(cls.__name__)), 
+                            kwargs, postFunc, childCreators)
             self.create = self.slc.create
             return self
         else:
             if cls._isBeingCreated(name, create, kwargs):
                 name = cls.__melcmd__(name, **kwargs)
+                logger.info("UI: created... %s" % name)
             return unicode.__new__(cls,name)
 
     @staticmethod
@@ -202,14 +210,18 @@ class Window(UI):
         cmds.showWindow(self)
     def delete(self):
         cmds.deleteUI(self, window=True)
+    
+    def __aftercreate__(self):
+        self.show()
                 
 def formLayout(*args, **kwargs):
     kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+    logger.debug("kw: %r" % kw)
     ret = cmds.formLayout(*args, **kwargs)
-    if not (set(['q','query','e','edit']) & set(kwargs)):
+    if not (set(['q','query','e','edit']) & set(kwargs)):   # check if in query or edit mode
         ret = FormLayout(ret, **kw)
     return ret
-                
+
 class FormLayout(UI):
     __metaclass__ = MetaMayaUIWrapper
     def attachForm(self, *args):
@@ -238,18 +250,22 @@ class FormLayout(UI):
     horizontal or vertical layout. Call 'redistribute' once done
     adding child controls.
     """
-    HORIZONTAL, VERTICAL = range(2)
+    enumOrientation = util.enum.Enum('HORIZONTAL', 'VERTICAL')
+    HORIZONTAL = enumOrientation.HORIZONTAL
+    VERTICAL = enumOrientation.VERTICAL
+    
 
-    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None, **kwargs):
+    def __init__(self, name=None, orientation='VERTICAL', spacing=2, reversed=False, ratios=None, **kwargs):
         """ 
         spacing - absolute space between controls
         orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
         """
         UI.__init__(self, **kwargs)
         self.spacing = spacing
-        self.ori = orientation
+        self.ori = self.enumOrientation.getIndex(orientation)
         self.reversed = reversed
         self.ratios = ratios and list(ratios) or []
+        logger.info("Ratios: %r, %r" % (self.ratios, kwargs))
     
     def flip(self):
         """Flip the orientation of the layout """
@@ -279,9 +295,11 @@ class FormLayout(UI):
         if self.reversed: children.reverse()
         
         ratios = list(ratios) or self.ratios or []
+        logger.debug('%r - %r' % (self,ratios))
         ratios += [1]*(len(children)-len(ratios))
         self.ratios = ratios
-        total = sum(ratios)        
+        total = sum(ratios)       
+         
         for i in range(len(children)):
             child = children[i]
             for side in self.sides[self.ori]:
@@ -306,16 +324,30 @@ class FormLayout(UI):
                 self.attachNone(children[i],
                     self.sides[1-self.ori][1])
                 
-    def afterCreate(self, *args, **kwargs):
+    def __aftercreate__(self, *args, **kwargs):
         self.redistribute()
     
     def vDistribute(self,*ratios):
-        self.orientation=VERTICAL
-        self.redistribute(*ratios)
-    def hDistribute(self,*ratios):
-        self.orientation=HORIZONTAL
+        self.ori = VERTICAL.index
         self.redistribute(*ratios)
         
+    def hDistribute(self,*ratios):
+        self.ori = HORIZONTAL.index
+        self.redistribute(*ratios)
+
+# for backwards compatiblity
+AutoLayout = FormLayout        
+
+def verticalLayout(*args, **kwargs):
+    kwargs['orientation'] = 'VERTICAL'
+    return formLayout(*args, **kwargs)
+
+def horizontalLayout(*args, **kwargs):
+    kwargs['orientation'] = 'HORIZONTAL'
+    return formLayout(*args, **kwargs)
+
+
+
 class TextScrollList(UI):
     __metaclass__ = MetaMayaUIWrapper
     def extend( self, appendList ):
@@ -444,6 +476,8 @@ class SmartLayoutCreator:
         slcEx = SLCExample()
                             
     """
+    debug = False
+    
     def __init__(self, name=None, uiFunc=None, kwargs=None, postFunc=None, childCreators=None):
         """
         @param name: None, or a name for this gui element. This will be the key under-which 
@@ -475,36 +509,34 @@ class SmartLayoutCreator:
             self.kwargs = dict()
         if parent and self.uiFunc: self.kwargs["parent"] = parent
         
-        if debug and not isinstance(debug,basestring):
+        if (self.debug or debug) and not isinstance(debug,basestring):
             debug = "\t"
         
         if debug:
-            print debug + "> uiFunc: %s" % self.uiFunc.__name__,
+            log = debug + "> uiFunc: %r(%r)" % (self.uiFunc, self.kwargs)
         self.me = self.uiFunc and self.uiFunc(**self.kwargs) or parent
         
         if self.name:
             creation[self.name] = self.me
         if debug:
-            print (" : %-50s" % self.me) + (" - %r" % self.name if self.name else "")
+            log += (" : %-50r" % self.me) + (" - %r" % self.name if self.name else "")
+            logger.debug(log)
 
         [child.create(creation=creation,parent=self.me,debug=debug and debug+"\t") for child in childCreators]
         
-        if hasattr(self.me,'afterCreate'):
-            self.me.afterCreate()
-            
         if self.postFunc: 
             self.postFunc(self.me)
             if debug:
-                print debug + "< postFunc: %s" % self.postFunc 
+                logger.debug(debug + "< postFunc: %s" % self.postFunc) 
+        elif hasattr(self.me,'__aftercreate__'):
+            self.me.__aftercreate__()
+            if debug:
+                logger.debug(debug + "< postFunc: %s" % self.me.__aftercreate__) 
         return creation
 
 SLC = SmartLayoutCreator
 
-class SmartLayoutCreator2(SmartLayoutCreator):
-    def __init__(self, uiFunc=None, name=None, childCreators=None, postFunc=None, **kwargs):
-        SmartLayoutCreator.__init__(self,name, uiFunc, kwargs, postFunc, childCreators)
-        
-SLT = SmartLayoutCreator2
+
 
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
     dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
@@ -531,6 +563,7 @@ def promptBoxGenerator(*args, **kwargs):
         if not ret: return
         yield ret    
     
+@util.pwarnings.deprecated    
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     """ Prompt for confirmation. Returns True/False, unless 'moreButtons' were specified, and then returns the button pressed"""
     
@@ -637,7 +670,7 @@ class _ListSelectLayout(FormLayout):
     args = None
     selection = None
     def __new__(cls, *args, **kwargs):
-        self = core.setParent(q=True)
+        self = cmds.setParent(q=True)
         self = FormLayout.__new__(cls, self)
         return self
     
@@ -685,7 +718,39 @@ def promptFromList(items, title="Selector", prompt="Select from list:", ok="Sele
     if ret:
         return _ListSelectLayout.selection
 
+class TextLayout(FrameLayout):
+    """A frame-layout with a textfield inside, used by the 'textWindow' function"""
+    
+    def __new__(cls, name=None, parent=None, text=None):
+        self = frameLayout(labelVisible=bool(name), label=name or "Text Window", parent=parent)
+        return FrameLayout.__new__(cls, self)
 
+    def __init__(self, parent, text=None):
+        
+        SLC("topForm", verticalLayout, dict(), AutoLayout.redistribute, [
+            SLC("txtInfo", scrollField, {"editable":False}),
+        ]).create(self.__dict__, parent=self, debug=False)
+        self.setText(text)
+        
+    def setText(self, text=""):
+        from pprint import pformat
+        if not isinstance(text, basestring):
+            text = pformat(text)
+        self.txtInfo.setText(text)
+        self.txtInfo.setInsertionPosition(1)
+        
+def textWindow(title, text, size=None):
+
+        self = window("TextWindow#",title=title)
+        try:
+            self.main = TextLayout(parent=self, text=text)
+            self.setWidthHeight(size or [300,300])
+            self.setText = self.main.setText
+            self.show()
+            return self
+        except:
+            deleteUI(self)
+            raise
     
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """

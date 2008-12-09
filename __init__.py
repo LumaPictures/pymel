@@ -1155,6 +1155,8 @@ import api
 from core import *
 #print "imported core"
 
+import mayahook.plogging as plogging
+from mayahook.plogging import getLogger
 from util.test import pymel_test
 
 #_module = __import__('core.other', globals(), locals(), [''])
