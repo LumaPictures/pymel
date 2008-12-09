@@ -106,10 +106,10 @@ class Version(object):
     @staticmethod
     def fullName():
         return MGlobal.mayaVersion()
-    @clsmethod
+    @classmethod
     def installName(cls):
         return parseVersionStr(cls.fullName(), extension=True)
-    @clsmethod
+    @classmethod
     def shortName(cls):
         return parseVersionStr(cls.fullName(), extension=False)
     
