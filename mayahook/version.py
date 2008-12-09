@@ -119,7 +119,10 @@ class Version(object):
     
     @classmethod
     def flavor(cls):
-        return cmds.about(product=1).split()[1]
+        try:
+            return cmds.about(product=1).split()[1]
+        except AttributeError:
+            raise RuntimeError, "This method cannot be used until maya is fully initialized"
 
     @classmethod
     def isUnlimited(cls): return cls.flavor() == 'Unlimited'
