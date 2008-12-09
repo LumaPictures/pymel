@@ -32,6 +32,7 @@ import pymel.util.nameparse as nameparse
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
+from pymel.mayahook import Version
 assert mayahook.mayaInit()
 
 
@@ -67,78 +68,7 @@ Modifications:
              
     return _about(**kwargs)
 
-# TODO: finish this, replace current Version class...
-#class newVersion( object ):
-#    """
-#    Class for retrieving apiVersions, which are the best method for comparing versions,
-#    as well as other version info.
-#    
-#    >>> if Version.current > Version.v85:
-#    >>>     print "The current version is later than Maya 8.5"
-#    """
-#    __metaclass__ = util.Singleton
-#
-#    def __init__(self):
-#        self.refresh()
-#        
-#    def refresh(self):
-#        """Refreshes the stored version information."""
-#        # Basically, should only need to be called if _fromStringProcessing is True, 
-#        # and maya has since been initialized.
-#        if mayaIsRunning():
-#            # Since about(apiVersion=True) will work on all version after 8.5,
-#            # and 8.5 is the first version with python support, if the command fails,
-#            # we know it is 8.5
-#            try:
-#                self.current = about(apiVersion=True)
-#            except TypeError:
-#                # Since about(apiVersion=True) will work on all version after 8.5,
-#                # and 8.5 is the first version with python support, if the command fails,
-#                # we know it is 8.5
-#                self.current = {
-#                 '8.5 Service Pack 1': 200701,
-#                 '8.5': 200700,
-#                }[ cmds.about(version=1)]
-#
-#            self.versionNum = self.current // 100;
-#        else:
-#            pass
 
-class Version(object):
-    """
-    Class for storing apiVersions, which are the best method for comparing versions.
-    
-    >>> if Version.current > Version.v85:
-    ...     print "The current version is later than Maya 8.5"
-    The current version is later than Maya 8.5
-    """
-    #TODO: make these read-only
-    __metaclass__ = util.Singleton
-    current = about(apiVersion=True)
-
-    #NOTE: should this be an enum class?
-    v85      = 200700
-    v85sp1   = 200701
-    v2008    = 200800
-    v2008sp1  = 200806
-    v2008ext2 = 200806
-    v2009     = 200900
-    
-    #: Unlimited or Complete
-    flavor = about(product=1).split()[1]
-
-    @classmethod
-    def isUnlimited(cls): return cls.flavor == 'Unlimited'
-    
-    @classmethod
-    def isComplete(cls): return cls.flavor == 'Complete'
-    
-    @classmethod
-    def isEval(cls): return about(evalVersion=1)
-
-#
-#    def isCompatible( self, apiVersion ):
-#        return self._current >= apiVersion
           
 #-----------------------
 #  Object Manipulation

@@ -15,3 +15,5 @@ from other import *
 from mexceptions import *
 # from mcallbacks import *
 import runtime
+
+from pymel.mayahook import OptionVarDict, optionVar, Version
