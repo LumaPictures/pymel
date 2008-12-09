@@ -529,7 +529,6 @@ def fixCodeExamples():
                 logger.info(("examples have already been fixed. to re-fix, first delete and recreate the commands cache"))
                 return
             
-            print
             logger.info(("Starting command", command))
             
             # change from cmds to pymel
@@ -1486,8 +1485,7 @@ def fixCallbacks(inFunc, funcName=None ):
             
         ret = beforeUiFunc(*args, **kwargs)
         if not (set(['q','query','e','edit']) & set(kwargs)):
-            print kwargs
-            ret = getattr(pymel.core.windows, util.capitalize(funcName or inFunc.__name__))(ret, **kwargs)
+            ret = getattr(pymel.core.windows, util.capitalize(funcName or inFunc.__name__))(ret)
         return ret   
     
     if funcName:
