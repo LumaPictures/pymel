@@ -13,7 +13,14 @@ from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import factories as _factories
 
-
+# in python2.6/maya2010 'as' becomes a keyword. 
+# TODO:  add a version check: 
+#from pymel.mayahook import Version
+#if Version.current => Version.v2010:
+#    AS_UNITS = 'asUnits'
+#else:
+AS_UNITS = 'as'
+        
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
     def __len__(self):
@@ -140,10 +147,10 @@ _patchMEulerRotation()
 
 # the meta class of metaMayaWrapper
 class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
-    """ A metaclass to wrap Maya array type classes such _as Vector, Matrix """ 
+    """ A metaclass to wrap Maya array type classes such as Vector, Matrix """ 
              
     def __new__(mcl, classname, bases, classdict):
-        """ Create a new wrapping class for a Maya api type, such _as Vector or Matrix """
+        """ Create a new wrapping class for a Maya api type, such as Vector or Matrix """
             
         if 'shape' in classdict :
             # fixed shape means also fixed ndim and size
@@ -259,7 +266,7 @@ class Vector(VectorN) :
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
         # will default to class constant shape = (3,), so it's just an error check to catch invalid shapes,
-        # _as no other option is actually possible on Vector, but this method could be used to allow wrapping
+        # as no other option is actually possible on Vector, but this method could be used to allow wrapping
         # of Maya array classes that can have a variable number of elements
         shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
@@ -316,7 +323,7 @@ class Vector(VectorN) :
             self.assign([Distance(x, unit) for x in self])
             
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
-    # here, there is no _data attribute _as we subclass _api.MVector directly, thus v.data is v
+    # here, there is no _data attribute as we subclass _api.MVector directly, thus v.data is v
     # for wraps 
                           
     def _getdata(self):
@@ -336,7 +343,7 @@ class Vector(VectorN) :
                                                  
     def assign(self, value):
         """ Wrap the Vector api assign method """
-        # don't accept instances _as assign works on exact types
+        # don't accept instances as assign works on exact types
         if type(value) != self.apicls and type(value) != type(self) :
             if not hasattr(value, '__iter__') :
                 value = (value,)
@@ -386,7 +393,7 @@ class Vector(VectorN) :
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
 
-    # _as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
+    # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
         """ Set component i value on self """
         v = VectorN(self)
@@ -550,7 +557,7 @@ class Vector(VectorN) :
     # wrap of other API MVector methods, we use the api method if possible and delegate to Vector else   
     
     def isEquivalent(self, other, tol=None):
-        """ Returns true if both arguments considered _as Vector are equal within the specified tolerance """
+        """ Returns true if both arguments considered as Vector are equal within the specified tolerance """
         if tol is None :
             tol = _api.MVector_kTol
         try :
@@ -562,7 +569,7 @@ class Vector(VectorN) :
         else :
             return bool(super(Vector, nself).isEquivalent(nother, tol))            
     def isParallel(self, other, tol=None):
-        """ Returns true if both arguments considered _as Vector are parallel within the specified tolerance """
+        """ Returns true if both arguments considered as Vector are parallel within the specified tolerance """
         if tol is None :
             tol = _api.MVector_kTol        
         try :
@@ -617,45 +624,45 @@ class Vector(VectorN) :
         else :
             return self
     
-#    def _as(self, unit) :
+#    def asUnits(self, unit) :
 #        #kUnit = Distance.kUnit(unit)
-#        return self.__class__( [ Distance(x)._as(unit) for x in self ]  )
+#        return self.__class__( [ Distance(x).asUnits(unit) for x in self ]  )
 #
 #    def asUnit(self) :
-#        return self._as(self.unit)
+#        return self.asUnits(self.unit)
 #
 #    def asUI(self) :
-#        return self._as(Distance.getUIUnit())
+#        return self.asUnits(Distance.getUIUnit())
 #
 #    def asInternal(self) :
-#        return self._as(Distance.getInternalUnit())
+#        return self.asUnits(Distance.getInternalUnit())
 #
 #    def asMillimeter(self) :
-#        return self._as('millimeter')
+#        return self.asUnits('millimeter')
 #    def asCentimeters(self) :
-#        return self._as('centimeters')
+#        return self.asUnits('centimeters')
 #    def asKilometers(self) :
-#        return self._as('kilometers')
+#        return self.asUnits('kilometers')
 #    def asMeters(self) :
-#        return self._as('meters')
+#        return self.asUnits('meters')
 #
 #    def asInches(self) :
-#        return self._as('inches')
+#        return self.asUnits('inches')
 #    def asFeet(self) :
-#        return self._as('feet')
+#        return self.asUnits('feet')
 #    def asYards(self) :
-#        return self._as('yards')
+#        return self.asUnits('yards')
 #    def asMiles(self) :
-#        return self._as('miles')
+#        return self.asUnits('miles')
     
     # additional api methods that work on Vector only, but can also be delegated to VectorN
       
     def transformAsNormal(self, other):
-        """ Returns the vector transformed by the matrix _as a normal
-            Normal vectors are not transformed in the same way _as position vectors or points.
-            If this vector is treated _as a normal vector then it needs to be transformed by
+        """ Returns the vector transformed by the matrix as a normal
+            Normal vectors are not transformed in the same way as position vectors or points.
+            If this vector is treated as a normal vector then it needs to be transformed by
             post multiplying it by the inverse transpose of the transformation matrix.
-            This method will apply the proper transformation to the vector _as if it were a normal. """
+            This method will apply the proper transformation to the vector as if it were a normal. """
         if isinstance(other, Matrix) :
             return self.__class__._convert(Vector.apicls.transformAsNormal(Vector(self), Matrix(other)))
         else :
@@ -674,7 +681,7 @@ class Vector(VectorN) :
             return self.__class__._convert(super(Vector, self).cross(other))              
     def axis(self, other, normalize=False):
         """ u.axis(v) <==> angle(u, v) --> Vector
-            Returns the axis of rotation from u to v _as the vector n = u ^ v
+            Returns the axis of rotation from u to v as the vector n = u ^ v
             if the normalize keyword argument is set to True, n is also normalized """
         if isinstance(other, Vector) :
             if normalize :
@@ -765,7 +772,7 @@ class Point(Vector):
         for c in list(self.apicls.__iter__(self.data))[:l] :
             yield c
                
-    # modified operators, when adding 2 Point consider second _as Vector
+    # modified operators, when adding 2 Point consider second as Vector
     def __add__(self, other) :
         """ u.__add__(v) <==> u+v
             Returns the result of the addition of u and v if v is convertible to a VectorN (element-wise addition),
@@ -842,7 +849,7 @@ class Point(Vector):
     # additionnal methods
     
     def isEquivalent(self, other, tol=None):
-        """ Returns true if both arguments considered _as Point are equal within the specified tolerance """
+        """ Returns true if both arguments considered as Point are equal within the specified tolerance """
         if tol is None :
             tol = _api.MPoint_kTol
         try :
@@ -855,7 +862,7 @@ class Point(Vector):
             return bool(super(Point, nself).isEquivalent(nother, tol))  
     def axis(self, start, end, normalize=False):
         """ a.axis(b, c) --> Vector
-            Returns the axis of rotation from point b to c around a _as the vector n = (b-a)^(c-a)
+            Returns the axis of rotation from point b to c around a as the vector n = (b-a)^(c-a)
             if the normalize keyword argument is set to True, n is also normalized """
         return Vector.axis(start-self, end-self, normalize=normalize)
     def angle(self, start, end):
@@ -910,7 +917,7 @@ class Point(Vector):
                 l = (q[next]-q[i]).sqlength()
                 if e <= (tol * l) :
                     if l < tol :
-                        # p is on a 0 length edge, point and next point are on top of each other, _as is p then
+                        # p is on a 0 length edge, point and next point are on top of each other, as is p then
                         w[i] = 0.5
                         w[next] = 0.5
                     else :
@@ -918,7 +925,7 @@ class Point(Vector):
                         di = (p-q[i]).length()
                         w[next] = float(di / sqrt(l))
                         w[i] = 1.0 - w[next]
-                    # in both case update the weights sum and mark p _as being on an edge,
+                    # in both case update the weights sum and mark p as being on an edge,
                     # problem is solved
                     weightSum += 1.0
                     pOnEdge = True
@@ -954,7 +961,7 @@ class FloatPoint(Point) :
     
 class Color(Vector):
     """ A 4 dimensional vector class that wraps Maya's api Color class,
-        It stores the r, g, b, a components of the color, _as normalized (Python) floats
+        It stores the r, g, b, a components of the color, as normalized (Python) floats
         """        
     apicls = _api.MColor
     cnames = ('r', 'g', 'b', 'a')
@@ -1063,7 +1070,7 @@ class Color(Vector):
         # can't mix them
         if hsvflag and rgbflag :
             raise ValueError, "can not mix r,g,b and h,s,v keyword arguments in a %s declaration" % util.clsname(self)
-        # if no mode specified, guess from what keyword arguments where used, else use 'rgb' _as default
+        # if no mode specified, guess from what keyword arguments where used, else use 'rgb' as default
         if mode is None :
             if hsvflag :
                 mode = 'hsv'
@@ -1074,7 +1081,7 @@ class Color(Vector):
             raise ValueError, "Can not use h,s,v keyword arguments while specifying %s mode in %s" % (mode, util.clsname(self))
         elif mode is not 'rgb' and rgbflag :
             raise ValueError, "Can not use r,g,b keyword arguments while specifying %s mode in %s" % (mode, util.clsname(self))
-        # NOTE: do not try to use mode with _api.Color, it seems bugged _as of 2008
+        # NOTE: do not try to use mode with _api.Color, it seems bugged as of 2008
             #import colorsys
             #colorsys.rgb_to_hsv(0.0, 0.0, 1.0)
             ## Result: (0.66666666666666663, 1.0, 1.0) # 
@@ -1100,17 +1107,17 @@ class Color(Vector):
         # can be initilized with a single argument (other Color, Vector, VectorN)
         if len(args)==1 :
             args = args[0]              
-        # we dont rely much on Color api _as it doesn't seem totally finished, and do some things directly here               
+        # we dont rely much on Color api as it doesn't seem totally finished, and do some things directly here               
         if isinstance(args, self.__class__) or isinstance(args, self.apicls) :
-            # alternatively could be just ignored / output _as warning
+            # alternatively could be just ignored / output as warning
             if quantize :
-                raise ValueError, "Can not quantize a Color argument, a Color is always stored internally _as float color" % (mode, util.clsname(self))
+                raise ValueError, "Can not quantize a Color argument, a Color is always stored internally as float color" % (mode, util.clsname(self))
             if mode == 'rgb' :
                 args = VectorN(args)
             elif mode == 'hsv' :
                 args = VectorN(cls.rgbtohsv(args))
         else :
-            # single alpha value, _as understood by api will break coerce behavior in operations
+            # single alpha value, as understood by api will break coerce behavior in operations
             # where other operand is a scalar
             #if not hasattr(args, '__iter__') :
             #    args = VectorN(0.0, 0.0, 0.0, args)
@@ -1319,7 +1326,7 @@ class Space(_api.MSpace):
 #    kWorld
 #transform in world space
 #    kObject
-#Same _as pre-transform space
+#Same as pre-transform space
 #    kLast 
 
 # sadly TransformationMatrix.RotationOrder and EulerRotation.RotationOrder don't match
@@ -1400,7 +1407,7 @@ class Matrix(MatrixN):
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
         # will default to class constant shape = (4, 4), so it's just an error check to catch invalid shapes,
-        # _as no other option is actually possible on Matrix, but this method could be used to allow wrapping
+        # as no other option is actually possible on Matrix, but this method could be used to allow wrapping
         # of Maya array classes that can have a variable number of elements
         shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
@@ -1448,7 +1455,7 @@ class Matrix(MatrixN):
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
 
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
-    # here, there is no _data attribute _as we subclass _api.Vector directly, thus v.data is v
+    # here, there is no _data attribute as we subclass _api.Vector directly, thus v.data is v
     # for wraps 
 
     def _getdata(self):
@@ -1506,8 +1513,8 @@ class Matrix(MatrixN):
         """Special method for returning a mel-friendly representation. In this case, a flat list of 16 values """
         return [ x for x in self.flat ]
            
-    # some Matrix derived classes can actually be represented _as matrix but not stored
-    # internally _as such by the API
+    # some Matrix derived classes can actually be represented as matrix but not stored
+    # internally as such by the API
     
     def asMatrix(self, percent=None):
         "The matrix representation for this Matrix/TransformationMatrix/Quaternion/EulerRotation instance"
@@ -1526,7 +1533,7 @@ class Matrix(MatrixN):
     # overloads for assign and get though standard way should be to use the data property
     # to access stored values                                                                    
     def assign(self, value):
-        # don't accept instances _as assign works on exact _api.Matrix type
+        # don't accept instances as assign works on exact _api.Matrix type
         data = None
         if type(value) == self.apicls or type(value) == type(self) :
             data = value
@@ -1577,7 +1584,7 @@ class Matrix(MatrixN):
     def __getslice__(self, start, end):
         return self.__getitem__(slice(start, end))
 
-    # _as _api.Matrix has no __setitem__ method
+    # as _api.Matrix has no __setitem__ method
     def __setitem__(self, index, value):
         """ m.__setitem__(index, value) <==> m[index] = value
             Set value of component index on self
@@ -1749,13 +1756,13 @@ class Matrix(MatrixN):
             return super(Matrix, self[:4,:4]).det()    
     def det3x3(self):
         """ Returns the determinant of the upper left 3x3 submatrix of this Matrix instance,
-            it's the same _as doing det(m[0:3, 0:3]) """
+            it's the same as doing det(m[0:3, 0:3]) """
         try :
             return self.apicls.det3x3(self)
         except :
             return super(Matrix, self[:3,:3]).det()          
     def isEquivalent(self, other, tol=_api.MVector_kTol):
-        """ Returns true if both arguments considered _as Matrix are equal within the specified tolerance """
+        """ Returns true if both arguments considered as Matrix are equal within the specified tolerance """
         try :
             nself, nother = coerce(self, other)
         except :
@@ -1775,7 +1782,7 @@ class Matrix(MatrixN):
  
     def blend(self, other, weight=0.5):
         """ Returns a 0.0-1.0 scalar weight blend between self and other Matrix,
-            blend mixes Matrix _as transformation matrices """
+            blend mixes Matrix as transformation matrices """
         if isinstance(other, Matrix) :
             return self.__class__(self.weighted(1.0-weight)*other.weighted(weight))
         else :
@@ -1850,7 +1857,7 @@ class EulerRotation(Array):
 #            shape = 3
 #            size = 3
 #        # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
-#        # _as no other option is actually possible on EulerRotation, but this method could be used to allow wrapping
+#        # as no other option is actually possible on EulerRotation, but this method could be used to allow wrapping
 #        # of Maya array classes that can have a variable number of elements
 #        shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
@@ -1876,11 +1883,11 @@ class EulerRotation(Array):
                 euler.assign(args.rotate)
                 args = euler
             elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
-                # allow to initialize directly from 3 rotations and a rotation order _as string
+                # allow to initialize directly from 3 rotations and a rotation order as string
                 args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3]))           
             elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
-                # Quaternion(Vector axis, float angle) _as well _as Quaternion(float angle, Vector axis)
+                # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
                 args = (float(args[1]), Vector(args[0]))        
             # shortcut when a direct api init is possible     
             try :
@@ -1911,7 +1918,7 @@ class EulerRotation(Array):
             
     def __len__(self):
        
-       # api incorrectly returns 4. this might make sense if it did not simply return z a second time _as the fourth element
+       # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
        return self.size
      
     def __getitem__(self, i):
@@ -2123,7 +2130,7 @@ class Quaternion(Matrix):
         ndim = kwargs.get('ndim', None)
         size = kwargs.get('size', None)
         # will default to class constant shape = (4,), so it's just an error check to catch invalid shapes,
-        # _as no other option is actually possible on Quaternion, but this method could be used to allow wrapping
+        # as no other option is actually possible on Quaternion, but this method could be used to allow wrapping
         # of Maya array classes that can have a variable number of elements
         shape, ndim, size = cls._expandshape(shape, ndim, size)        
         
@@ -2149,7 +2156,7 @@ class Quaternion(Matrix):
                 # allow to initialize directly from 3 rotations and a rotation order
             elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
-                # Quaternion(Vector axis, float angle) _as well _as Quaternion(float angle, Vector axis)
+                # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
                 args = (float(args[1]), Vector(args[0]))        
             # shortcut when a direct api init is possible     
             try :
@@ -2239,7 +2246,7 @@ class Quaternion(Matrix):
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
 
-    # _as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
+    # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
         """ Set component i value on self """
         v = VectorN(self)
@@ -2321,12 +2328,14 @@ class Unit(float):
 
     def __new__(cls, value, unit=None) :
         unit = cls.kUnit(unit)
-        if isinstance(value, cls.apicls) or isinstance(value, cls):
-            value = value._as(unit)
+        if isinstance(value, cls.apicls):
+            value = getattr(value, AS_UNITS)(unit)
+        elif isinstance(value, cls):
+            value = value.asUnits(unit)
         #data = cls.apicls(value, unit)
         # the float representation uses internal units so that arithmetics work
-        #newobj = float.__new__(cls, data._as(cls.apicls.internalUnit()))
-        #newobj = float.__new__(cls, data._as(unit))
+        #newobj = float.__new__(cls, data.asUnits(cls.apicls.internalUnit()))
+        #newobj = float.__new__(cls, data.asUnits(unit))
         newobj = float.__new__(cls, value)
         #ewobj._data = data
         newobj._unit = unit
@@ -2341,24 +2350,25 @@ class Unit(float):
     def __repr__(self) :
         return '%s(%s, unit=%r)' % ( self.__class__.__name__, self, self.unit ) 
      
-    def _as(self, unit) :
-        return self._data._as( self.__class__.kUnit(unit) )
+    def asUnits(self, unit) :
+        # in python2.6/maya2010 'as' becomes a keyword.
+        return getattr( self._data, AS_UNITS )( self.__class__.kUnit(unit) )
 
     def asUnit(self) :
-        return self._as(self.unit)
+        return self.asUnits(self.unit)
 
     def asUI(self) :
-        return self._as(self.__class__.getUIUnit())
+        return self.asUnits(self.__class__.getUIUnit())
 
     def asInternal(self) :
-        return self._as(self.__class__.getInternalUnit())
+        return self.asUnits(self.__class__.getInternalUnit())
      
 #class Time( _api.MTime ) :
 #    apicls = _api.MTime
 #    __metaclass__ = _factories.MetaMayaTypeWrapper
 #    def __str__( self ): return str(float(self))
 #    def __int__( self ): return int(float(self))
-#    def __float__( self ): return self._as(self.apicls.uiUnit())
+#    def __float__( self ): return self.asUnits(self.apicls.uiUnit())
 #    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
 class Time(Unit):
@@ -2370,7 +2380,7 @@ class Time(Unit):
 #    __metaclass__ = _factories.MetaMayaTypeWrapper
 #    def __str__( self ): return str(float(self))
 #    def __int__( self ): return int(float(self))
-#    def __float__( self ): return self._as(self.apicls.uiUnit())
+#    def __float__( self ): return self.asUnits(self.apicls.uiUnit())
 #    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
 
 
@@ -2478,29 +2488,29 @@ class Distance( Unit ) :
 
 
     def asMillimeter(self) :
-        return self._as('millimeter')
+        return self.asUnits('millimeter')
     def asCentimeters(self) :
-        return self._as('centimeters')
+        return self.asUnits('centimeters')
     def asKilometers(self) :
-        return self._as('kilometers')
+        return self.asUnits('kilometers')
     def asMeters(self) :
-        return self._as('meters')
+        return self.asUnits('meters')
 
     def asInches(self) :
-        return self._as('inches')
+        return self.asUnits('inches')
     def asFeet(self) :
-        return self._as('feet')
+        return self.asUnits('feet')
     def asYards(self) :
-        return self._as('yards')
+        return self.asUnits('yards')
     def asMiles(self) :
-        return self._as('miles')
+        return self.asUnits('miles')
 
 #class Angle( _api.MAngle ) :
 #    apicls = _api.MAngle
 #    __metaclass__ = _factories.MetaMayaTypeWrapper
 #    def __str__( self ): return str(float(self))
 #    def __int__( self ): return int(float(self))
-#    def __float__( self ): return self._as(self.apicls.uiUnit())
+#    def __float__( self ): return self.asUnits(self.apicls.uiUnit())
 #    def __repr__(self): return '%s(%s)' % ( self.__class__.__name__, float(self) )
    
 class Angle( Unit ):
@@ -2707,7 +2717,7 @@ _factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda insta
 _factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUI()  )
 
 def getPlugValue( plug ):
-    """given an MPlug, get its value _as a pymel-style object"""
+    """given an MPlug, get its value as a pymel-style object"""
 
     #if plug.isArray():
     #    raise TypeError, "array plugs of this type are not supported"
@@ -2753,19 +2763,22 @@ def getPlugValue( plug ):
     elif apiType in [ _api.MFn.kDoubleLinearAttribute, _api.MFn.kFloatLinearAttribute ] :
         val = plug.asMDistance()
         unit = _api.MDistance.uiUnit()
-        return Distance( val._as( unit ), unit )
+        # as becomes a keyword in python 2.6
+        return Distance( getattr(val, AS_UNITS)( unit ), unit )
 
     # Angle
     elif apiType in [ _api.MFn.kDoubleAngleAttribute, _api.MFn.kFloatAngleAttribute ] :
         val = plug.asMAngle()
         unit = _api.MAngle.uiUnit()
-        return Angle( val._as( unit ), unit )
+        # as becomes a keyword in python 2.6
+        return Angle( getattr(val, AS_UNITS), unit )
 
     # Time
     elif apiType == _api.MFn.kTimeAttribute:
         val = plug.asMTime()
         unit = _api.MTime.uiUnit()
-        return Time( val._as( unit ), unit )
+        # as becomes a keyword in python 2.6
+        return Time( getattr(val, AS_UNITS), unit )
 
     elif apiType == _api.MFn.kNumericAttribute:
         nAttr = _api.MFnNumericAttribute(obj)
@@ -2977,7 +2990,7 @@ def _testMVector() :
     # True
     print isinstance(u, Array)
     # True
-    # _as well _as _api.Vector
+    # as well as _api.Vector
     print isinstance(u, _api.MVector)
     # True
     # accepted directly by API methods
@@ -3493,7 +3506,7 @@ def _testMPoint() :
     # 4.25    
     print repr(p*q)
     # 4.25
-    print repr(p/q)             # need explicit homogenize _as division not handled by api
+    print repr(p/q)             # need explicit homogenize as division not handled by api
     # Point([4.0, 4.0, 3.0, 2.0])    TODO : what do we want here ?
     # Vector([2.0, 2.0, 1.5])
     # additionnal methods
@@ -3707,7 +3720,7 @@ def _testMColor() :
     print "e * 2.0"               # mult by scalar float is defined in api for colors and also multiplies alpha
     print repr(e*2.0)
     # Color([1.0, 1.0, 1.0, 0.5])    
-    print "e / 2.0"               # _as is divide, that ignores alpha now for some reason
+    print "e / 2.0"               # as is divide, that ignores alpha now for some reason
     print repr(e/2.0)
     # Color([0.25, 0.25, 0.25, 0.25])
     print "e+Vector(1, 2, 3)"
@@ -3715,7 +3728,7 @@ def _testMColor() :
     # Color([1.5, 2.5, 3.5, 0.25])
     # how to handle operations on colors ?
     # here behaves like api but does it make any sense
-    # for colors _as it is now ?
+    # for colors as it is now ?
     print "c+c"
     print repr(c+c)
     # Color([0.5, 1.0, 2.0, 1.0])
@@ -3764,7 +3777,7 @@ def _testMMatrix() :
     # True
     print isinstance(m, Array)
     # True
-    # _as well _as _api.Matrix
+    # as well as _api.Matrix
     print isinstance(m, _api.MMatrix)
     # True
     # accepted directly by API methods     
@@ -3799,7 +3812,7 @@ def _testMMatrix() :
     # True
     print isinstance(m, Array)
     # True
-    # _as well _as _api.Matrix
+    # as well as _api.Matrix
     print isinstance(m, _api.MMatrix)
     # True
     # accepted directly by API methods     
@@ -4008,7 +4021,7 @@ def _testMMatrix() :
         m.setToProduct(m, M)
     except :
         print """Will raise TypeError:  cannot initialize a Matrix of shape (4, 4) from (Array([0, 1, 2, 3, 4]), Array([5, 6, 7, 8, 9]), Array([10, 11, 12, 13, 14]), Array([15, 16, 17, 18, 19])) of shape (4, 5),
-                                        _as it would truncate data or reduce the number of dimensions"""
+                                        as it would truncate data or reduce the number of dimensions"""
     
     
     
@@ -4130,7 +4143,7 @@ def _testMTransformationMatrix() :
     # True
     print isinstance(m, Array)
     # True
-    # _as well _as _api.TransformationMatrix and _api.Matrix
+    # as well as _api.TransformationMatrix and _api.Matrix
     print isinstance(m, _api.MTransformationMatrix)
     # True
     print isinstance(m, _api.MMatrix)
