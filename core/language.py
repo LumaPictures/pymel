@@ -438,8 +438,8 @@ class Mel(object):
         #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
         mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
     
-    @staticmethod
-    def source( script, language='mel' ):
+    @classmethod
+    def source( cls, script, language='mel' ):
         """use this to source mel or python scripts.
         language : 'mel', 'python'
             When set to 'python', the source command will look for the python equivalent of this mel file, if
@@ -449,7 +449,7 @@ class Mel(object):
         """
         
         if language == 'mel':
-            mm.eval( """source "%s";""" % script )
+            cls.eval( """source "%s";""" % script )
             
         elif language == 'python':
             script = _path.path( script )
