@@ -5,5 +5,3 @@ from version import *
 #assert mayaInit() 
 
 import plogging
-plogging.setupLevelPreferenceHook()
-#print "Maya up and running"
