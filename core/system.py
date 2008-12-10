@@ -232,20 +232,20 @@ class Workspace(object):
 
     @classmethod
     def getPath(self):
-        return pymel.core.system.Path(cmds.workspace( q=1, fn=1 ))
+        return Path(cmds.workspace( q=1, fn=1 ))
     
     @classmethod
     def chdir(self, newdir):
         return cmds.workspace( dir=newdir )
     @classmethod
     def getcwd(self):
-        return pymel.core.system.Path(cmds.workspace( q=1, dir=1 ))
+        return Path(cmds.workspace( q=1, dir=1 ))
     @classmethod
     def mkdir(self, newdir):
         return cmds.workspace( cr=newdir )
 
     name = property( lambda x: cmds.workspace( q=1, act=1 ) )        
-    path = property( lambda x: pymel.core.system.Path(cmds.workspace( q=1, fn=1 ) ) )
+    path = property( lambda x: Path(cmds.workspace( q=1, fn=1 ) ) )
             
     def __call__(self, *args, **kwargs):
         """provides backward compatibility with cmds.workspace by allowing an instance
