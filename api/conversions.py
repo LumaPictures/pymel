@@ -2,7 +2,9 @@
 
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 
-import pymel.mayahook.mayautils as mayahook
+import pymel.mayahook as mayahook
+logger = mayahook.getLogger(__name__)
+
 from allapi import *
 
 #import pymel.factories as _factories
@@ -925,12 +927,10 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         except RuntimeError:
             # DagNode
             obj = dagMod.createNode ( mayaType, parent )
-            if VERBOSE:
-                print "Made ghost DAG node of type '%s'" % mayaType
+            logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
         else:
             # DependNode
-            if VERBOSE:
-                print "Made ghost DG node of type '%s'" % mayaType
+            logger.debug( "Made ghost DG node of type '%s'" % mayaType )
             dgMod.deleteNode(obj)
     except:
         obj = MObject()

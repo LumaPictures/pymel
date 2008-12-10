@@ -788,3 +788,34 @@ def writeCache( data, filePrefix, description='', useVersion=True):
         logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
                  
  
+def executeDeferred(func):
+    """
+    This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
+    function does a simple check to see if we're in batch or interactive mode.  In interactive it runs maya.utils.executeDeferred,
+    and if we're in batch mode, it just executes the function.
+    
+    Use this function in your userSetup.py file if:
+        1. you are importing pymel there
+        2. you want to execute some code that relies on maya.cmds
+        3. you want your userSetup.py to work in both interactive and standalone mode
+    
+     example userSetup.py file:
+     
+        >>> from pymel import *
+        >>> def delayedStartup():
+        ...    print "executing a command"
+        ...    pymel.about(apiVersion=1)
+        ...
+        >>> pymel.mayahook.executeDeferred( delayedStartup )
+       
+    Takes a single parameter which should be a callable function.
+    
+    """
+    import maya.utils
+    import maya.OpenMaya
+    if maya.OpenMaya.MGlobal.mayaState() == maya.OpenMaya.MGlobal.kInteractive:
+        maya.utils.executeDeferred()
+    else:
+        func()
+    
+    

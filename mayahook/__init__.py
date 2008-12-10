@@ -5,3 +5,4 @@ from version import *
 #assert mayaInit() 
 
 import plogging
+from plogging import getLogger

@@ -128,14 +128,14 @@ def _setupLevelPreferenceHook():
     setLevelHook.__name__ = func.__name__
     mainLogger.setLevel = setLevelHook
     
-    
+    # if we are in batch mode and pymel is imported very early, it will still register as interactive at this point
     if MGlobal.mayaState() == MGlobal.kInteractive and sys.stdout.__class__ == file:
         # stdout has not yet been replaced by maya's custom stream that redirects to the output window.
         # we need to put a callback in place that lets us get maya.Output stream as our StreamHandler.
-        mainLogger.info( 'setting up callback to redirect logger StreamHandler' )
+        mainLogger.debug( 'setting up callback to redirect logger StreamHandler' )
         global _callbackId
         _callbackId = MEventMessage.addEventCallback( 'SceneOpened', redirectLoggerToMayaOutput )
-
+        
 
 
 def redirectLoggerToMayaOutput(*args):
@@ -145,17 +145,18 @@ def redirectLoggerToMayaOutput(*args):
     MMessage.removeCallback( _callbackId )
     _callbackId.disown()
     
-    if sys.stdout.__class__ == file:
-        mainLogger.warning( 'could not fix sys.stdout' )
-    else:
-        mainLogger.debug( 'fixing sys.stdout' )
-    
-        _fixMayaOutput()
-        newHandler = StreamHandler(sys.stdout)
-        newHandler.setFormatter(formatter)
-    #    newHandler.setLevel( mainLogger.getEffectiveLevel() )
-        mainLogger.addHandler( newHandler )
-        mainLogger.removeHandler(console)
+    if MGlobal.mayaState() == MGlobal.kInteractive:
+        if sys.stdout.__class__ == file:
+            mainLogger.warning( 'could not fix sys.stdout %s' %  MGlobal.mayaState())
+        else:
+            mainLogger.debug( 'fixing sys.stdout' )
+        
+            _fixMayaOutput()
+            newHandler = StreamHandler(sys.stdout)
+            newHandler.setFormatter(formatter)
+        #    newHandler.setLevel( mainLogger.getEffectiveLevel() )
+            mainLogger.addHandler( newHandler )
+            mainLogger.removeHandler(console)
 
 _setupLevelPreferenceHook()
 
