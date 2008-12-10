@@ -1,3 +1,5 @@
+"Contains the `Version` class for easily comparing versions of Maya with the current running version."
+
 import pymel.util as util
 import re
 from maya.OpenMaya import MGlobal

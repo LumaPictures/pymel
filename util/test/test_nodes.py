@@ -35,7 +35,12 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.grp3 = instance(self.grp1)[0]
         self.sphere3, self.cube3 = self.grp3.getChildren()
         
+        self.light = spotLight()
         self.newobjs = []
+
+    def tearDown(self):
+        # cleaning
+        delete(self.grp1,self.grp2, self.grp3, self.light, self.newobjs )
         
     def test01_attribute_parent_equality(self):
         self.assertEqual( self.sphere2.t.tx.parent(), self.sphere2.t )
@@ -75,21 +80,22 @@ class testCase_nodesAndAttributes(unittest.TestCase):
     def test07_units(self):
         startLinear = currentUnit( q=1, linear=1)
         
-        cam = PyNode('persp')
+        #cam = PyNode('persp')
         # change units from default
         currentUnit(linear='meter')
         
-        testPairs = [ ('translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),  # Distance Vector
-                      ('shutterAngle', 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
-                      ('focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
-                      ('penumbraAngle', 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
+        testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),  # Distance Vector
+                      ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
+                      ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
+                      ('%s.penumbraAngle' % self.light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
                       
                      ]
         print
         for attrName, getMethodName, setMethodName, realValue in testPairs:
-            at = cam.attr(attrName)
-            getter = getattr( cam, getMethodName )
-            setter = getattr( cam, setMethodName )
+            at = PyNode(attrName)
+            node = at.node()
+            getter = getattr( node, getMethodName )
+            setter = getattr( node, setMethodName )
             print repr(at)
             print "Real Value:", repr(realValue)
             # set attribute using "safe" method
@@ -110,13 +116,19 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         # reset units
         currentUnit(linear=startLinear)
     
+    def test_components(self):
+        import pymel.examples.setVertexColor
+        pymel.examples.setVertexColor.doIt( self.sphere1 )
+
+    def test_examples(self):
+        import pymel.examples.example1
+        import pymel.examples.example2
+        
     def test_classCreation(self):
         self.newobjs.append( Joint() )
         self.newobjs.append( Transform() )
         
-    def tearDown(self):
-        # cleaning
-        delete(self.grp1,self.grp2, self.grp3)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 unittest.TextTestRunner(verbosity=2).run(suite)

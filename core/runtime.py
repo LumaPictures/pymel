@@ -1,6 +1,5 @@
 """
-Runtime commands.  
-These commands are kept in their own namespace because they may conflict with other functions and classes.
+Runtime commands. These are kept in their own namespace to prevent conflict with other functions and classes.
 """
 
 import pmtypes.factories as _factories

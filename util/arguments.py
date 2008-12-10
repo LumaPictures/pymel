@@ -36,81 +36,39 @@ def isMapping( obj ):
     return operator.isMappingType(obj)
 
 clsname = lambda x:type(x).__name__
-
-MELTYPES = ['string', 'string[]', 'int', 'int[]', 'float', 'float[]', 'vector', 'vector[]']
-
-def isValidMelType( typStr ):
-    """:rtype: bool"""
-    return typStr in MELTYPES
    
 def convertListArgs( args ):
     if len(args) == 1 and isIterable(args[0]):
         return tuple(args[0])
     return args     
 
-def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
-    """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
-    
-    If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
-    will recursively searched for PyNodes to convert to unicode strings; if recursionLimit==0, only the elements
-    of args    itself will be searched for PyNodes -  if it is 1, iterables within args will have stringify called
-    on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
-    
-    In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
-    then iterables for whichoperator.isMappingType() returns true will be returned as dicts.
-    
-    """
-    if recursionLimit:
-        recursionLimit -= 1
-    
-      
-    if maintainDicts and operator.isMappingType(args):
-        newargs = dict(args)
-        argIterable = args.iteritems()
-        isList = False
-    else:
-        newargs = list(args)
-        argIterable = enumerate(args)
-        isList = True
-        
-    for index, value in argIterable:
-        try:
-            newargs[index] = value.__melobject__()
-        except AttributeError:
-            if ( (not recursionLimit) or recursionLimit >= 0) and isIterable(value):
-                # ...otherwise, recurse if not at recursion limit and  it's iterable
-                newargs[index] = getMelRepresentation(value, recursionLimit, maintainDicts)
-    if isList:
-        newargs = tuple(newargs)
-    return newargs
 
-
-def argsToPyNodes(numberedArgsToConvert='all', keywordArgsToConvert='all'):
-    """
-    Decorator generator used to convert arguments into PyNodes.
-    
-    Conceptually, this is the inverse of stringifyPyNodeArgs.
-    
-    If numberedArgsToConvert is the default (the string 'all'), then all non-keyword arguments are converted to PyNodes;
-    otherwise, it should be a list of indices indicating which non-keyword arguments should be converted.
-    
-    If keywordArgsToConvert is the default (the string 'all'), then all keyword arguments are converted to PyNodes;
-    otherwise, it should be a list of keywords indicating which keyword arguments should be converted.
-    """
-    def argsToPyNodesDecorator(function):
-        """Decorator used to convert arguments into PyNodes"""
-        def funcWithPyNodes(*args, **kwargs):
-            args = list(args)
-            from pymel import PyNode
-            for i in xrange(len(args)):
-                if numberedArgsToConvert == 'all' or (i in numberedArgsToConvert):
-                    args[i] =  PyNode(args[i])
-            for keywordArg in kwargs:
-                if keywordArgsToConvert == 'all' or (keywordArg in keywordArgsToConvert):
-                    kwargs[keywordArg] = PyNode(kwargs[keywordArg])
-            return function(*args, **kwargs)
-        return funcWithPyNodes
-    return argsToPyNodesDecorator
+#def argsToPyNodes(numberedArgsToConvert='all', keywordArgsToConvert='all'):
+#    """
+#    Decorator generator used to convert arguments into PyNodes.
+#    
+#    Conceptually, this is the inverse of stringifyPyNodeArgs.
+#    
+#    If numberedArgsToConvert is the default (the string 'all'), then all non-keyword arguments are converted to PyNodes;
+#    otherwise, it should be a list of indices indicating which non-keyword arguments should be converted.
+#    
+#    If keywordArgsToConvert is the default (the string 'all'), then all keyword arguments are converted to PyNodes;
+#    otherwise, it should be a list of keywords indicating which keyword arguments should be converted.
+#    """
+#    def argsToPyNodesDecorator(function):
+#        """Decorator used to convert arguments into PyNodes"""
+#        def funcWithPyNodes(*args, **kwargs):
+#            args = list(args)
+#            from pymel import PyNode
+#            for i in xrange(len(args)):
+#                if numberedArgsToConvert == 'all' or (i in numberedArgsToConvert):
+#                    args[i] =  PyNode(args[i])
+#            for keywordArg in kwargs:
+#                if keywordArgsToConvert == 'all' or (keywordArg in keywordArgsToConvert):
+#                    kwargs[keywordArg] = PyNode(kwargs[keywordArg])
+#            return function(*args, **kwargs)
+#        return funcWithPyNodes
+#    return argsToPyNodesDecorator
          
 def expandArgs( *args, **kwargs ) :
     """ \'Flattens\' the arguments list: recursively replaces any iterable argument in *args by a tuple of its

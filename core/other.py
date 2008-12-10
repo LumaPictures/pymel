@@ -1,5 +1,5 @@
 """
-Commands which are not included in the maya documentation (such as commands created by plugins)
+Functions which are not listed in the maya documentation, such as commands created by plugins
 """
 
 import pmtypes.pmcmds as cmds

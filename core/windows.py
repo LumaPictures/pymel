@@ -1,6 +1,6 @@
 
 """
-The windows module contains functions which are used to create UI elements, as well as their class counterparts (previously 'ui').
+Functions for creating UI elements, as well as their class counterparts.
 
 Pymel UIs
 =========

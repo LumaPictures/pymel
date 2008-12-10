@@ -1,5 +1,5 @@
 """
-Functions and classes related to scripting, including MelGlobals, Mel
+Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
 from math import *
 from pymel.util.mathutils import *

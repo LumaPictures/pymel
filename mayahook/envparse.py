@@ -1,3 +1,5 @@
+"Parser for Maya.env"
+
 import sys, os
 #import external.ply.lex as lex
 from pymel.util.external import lex

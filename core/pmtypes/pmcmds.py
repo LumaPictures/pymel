@@ -37,7 +37,44 @@ def _testDecorator(function):
     newFunc.__name__ =  function.__name__
     newFunc.__doc__ =  function.__doc__
     return newFunc
+  
+
+def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
+    """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
+    
+    If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
+    will recursively searched for PyNodes to convert to unicode strings; if recursionLimit==0, only the elements
+    of args    itself will be searched for PyNodes -  if it is 1, iterables within args will have stringify called
+    on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
+    
+    In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
+    then iterables for whichoperator.isMappingType() returns true will be returned as dicts.
+    
+    """
+    if recursionLimit:
+        recursionLimit -= 1
+    
+      
+    if maintainDicts and util.isMapping(args):
+        newargs = dict(args)
+        argIterable = args.iteritems()
+        isList = False
+    else:
+        newargs = list(args)
+        argIterable = enumerate(args)
+        isList = True
         
+    for index, value in argIterable:
+        try:
+            newargs[index] = value.__melobject__()
+        except AttributeError:
+            if ( (not recursionLimit) or recursionLimit >= 0) and util.isIterable(value):
+                # ...otherwise, recurse if not at recursion limit and  it's iterable
+                newargs[index] = getMelRepresentation(value, recursionLimit, maintainDicts)
+    if isList:
+        newargs = tuple(newargs)
+    return newargs
+
 
 def addWrappedCmd(cmdname, cmd=None):
     if cmd is None:
@@ -51,8 +88,8 @@ def addWrappedCmd(cmdname, cmd=None):
         new_cmd = getattr(maya.cmds, cmdname) 
         #print args, kwargs
         # convert args to mel-friendly representation
-        new_args = util.getMelRepresentation(args)
-        new_kwargs = util.getMelRepresentation(kwargs)
+        new_args = getMelRepresentation(args)
+        new_kwargs = getMelRepresentation(kwargs)
         #print new_args, new_kwargs
         res = new_cmd(*new_args, **new_kwargs)
         

@@ -41,16 +41,21 @@ Non-Backward Compatible Changes
 ---------------------------------------    
 Other Additions and Changes
 ---------------------------------------
-    - Module reorganization
-        .. packagetree:: pymel
 
-    - API Hybridization: the Node hierarchy now automatically derives many of its methods from API MFn classes
+Module reorganization:
+
+.. packagetree:: pymel
+    :style: uml
+
+    
+API Hybridization: 
+        - the Node hierarchy now automatically derives many of its methods from API MFn classes
  
-    - New Classes
+New Classes:
         - The `MelGlobals` class adds dictionary-like access to mel global variables
         - The `Version` class simplifies comparison of Maya versions
         
-    - General Improvements
+General Improvements:
         - Commands and classes created by plugins are now added to pymel namespace on load and removed on unload
         - Name-independent dictionary hashing for nodes in maya 2009: see section `Using PyNodes as Keys in Dictionaries`_
         - Added `DagNode.addChild` as well an addChild operator ( | ) for DAG objects: `DagNode.__or__`
@@ -117,8 +122,11 @@ OSX and Linux
     1. Install IPython.  I recommend downloading the tarball, not the egg file. uzip the tar.gz and put the subdirectory named IPython somewhere on your PYTHONPATH
     2. Ensure that the maya bin directory is on your system PATH
     3. Open a terminal, cd into pymel/tools and run::
+    
         chmod 777 ipymel
+        
     4. now run::
+    
         ./ipymel
     
 It's easiest if you either add the pymel/tools directory to your system PATH variable or if you copy ipymel to somewhere on your PATH like /usr/local/bin. Once
@@ -164,18 +172,18 @@ When approaching the reorganization of the existing commands provided by maya.cm
 
     - a value returned by a query flag should be accepted as a valid argument by the corresponding edit flag
     - a function which returns a list should return an empty list (not None) if it finds no matches 
-        ( ex. `ls`, `listRelatives` )
+        - ( ex. `ls`, `listRelatives` )
     - a function which always returns a single item should not return that item in a list or tuple 
-        ( ex. `spaceLocator` )
+        - ( ex. `spaceLocator` )
     - wherever possible, pymel/python objects should be returned
     - a function which provides a mapping mechanism should have a dictionary-like pymel counterpart 
-        ( ex. `fileInfo`, `optionVar` )
+        - ( ex. `fileInfo`, `optionVar` )
     - a function which returns a list of pairs should be a 2D array, or possibly a dictionary 
-        ( ex. ls( showType=1 ), listConnections(connections=1) )
+        - ( ex. ls( showType=1 ), listConnections(connections=1) )
     - the arguments provided by a ui callback should be of the appropriate type 
-        ( as a test, it should be capable of being used to set the value of the control )
+        - ( as a test, it should be capable of being used to set the value of the control )
     - if a function's purpose is to query and edit maya nodes, that node should be passed as an argument, not a keyword
-        ( ex. `sets` )
+        - ( ex. `sets` )
 
 ---------------------------------------
 Object-Oriented
@@ -184,19 +192,15 @@ Object-Oriented
 In constructing the PyNode classes, pymel follows these design rules:
 
     - node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax
-        ( ex. foo.bar retrieves an Attribute class, foo.bar() executes a function )
+        - ( ex. foo.bar retrieves an Attribute class, foo.bar() executes a function )
     - node classes are named after the nodes they control, not the mel commands that they proxy  
-        ( ex. Locator vs. spaceLactor )
+        - ( ex. Locator vs. spaceLactor )
     - a value returned by a get* function should be accepted as a valid argument by the corresponding set* function
 
 
 =======================================
     Background
 =======================================
-
-.. packagetree:: pymel
-    :dir: down
-    :style: tree
     
 .. digraph:: title
      a -> b -> c
@@ -1130,6 +1134,7 @@ __version__ = '0.8.0'
 # not maya dependant
 #import util
 #print "imported utils"
+
 
 import sys
 

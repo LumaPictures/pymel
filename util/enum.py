@@ -49,7 +49,7 @@ original arguments used to create the enumeration::
 
 __author_name__ = "Ben Finney"
 __author_email__ = "ben+python@benfinney.id.au"
-__author__ = "%s <%s>" % (__author_name__, __author_email__)
+#__author__ = "%s <%s>" % (__author_name__, __author_email__) # confuses epydoc
 __date__ = "2007-01-24"
 __copyright__ = "Copyright © %s %s" % (
     __date__.split('-')[0], __author_name__

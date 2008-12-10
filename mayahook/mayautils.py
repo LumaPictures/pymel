@@ -1,3 +1,8 @@
+"""
+Maya-related functions, which are useful to both `api` and `core`, including `mayaInit` which ensures
+that maya is initialized in standalone mode.
+"""
+
 import re, os, os.path, sys, platform, subprocess
 import pymel.util as util
 from pymel.util.pwarnings import *

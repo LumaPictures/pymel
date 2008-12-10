@@ -1,7 +1,5 @@
 """
-Contains the node class hierarchy and general node and attribute functions.
-
-Some important nodes in this module include `PyNode`, `DependNode`, `Transform`, and `Attribute`.
+Contains general node and attribute functions, as well as the `PyNode` class hierarchy, including `DependNode`, `Transform`, and `Attribute`.
 
 :group Exceptions: ``*Error``
 

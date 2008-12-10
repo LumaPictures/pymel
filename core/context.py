@@ -1,5 +1,5 @@
 """
-Contains all context commands (previously 'ctx').
+Contains all context command functions (previously 'ctx').
 """
 
 import pmtypes.factories as _factories

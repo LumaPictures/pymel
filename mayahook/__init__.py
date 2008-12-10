@@ -1,3 +1,5 @@
+"Low-level maya and pymel utilities"
+
 from mayautils import *
 #from envparse import *
 from optionvars import *

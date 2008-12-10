@@ -1,5 +1,5 @@
 """
-simple and commonly used utilities
+Commonly used utilities
 """
 
 import os, sys, re

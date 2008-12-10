@@ -1,3 +1,4 @@
+"""functions related to modeling"""
 
 import pmtypes.factories as _factories
 import general

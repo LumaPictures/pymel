@@ -1891,6 +1891,7 @@ class ApiTypeRegister(object):
     outCast = {}
     refInit = {}
     refCast = {}
+    arrayItemTypes = {}
     doc = {}
     su = _api.MScriptUtil()
 
@@ -1904,25 +1905,25 @@ class ApiTypeRegister(object):
         return setArray
         
     @staticmethod
-    def _makeArraySetter( apiTypename, length, setFunc, initFunc ):
+    def _makeArraySetter( apiTypeName, length, setFunc, initFunc ):
         def setArray( array ):
             logger.debug("set %s", array)
             if len(array) != length:
-                raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypename )
+                raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypeName )
             arrayPtr = initFunc()
             for i, val in enumerate( array ):
                 setFunc( arrayPtr, i, val )
             logger.debug("result %s", arrayPtr)
             return arrayPtr
-        setArray.__name__ = 'set_' + apiTypename + str(length) + 'Array'
+        setArray.__name__ = 'set_' + apiTypeName + str(length) + 'Array'
         return setArray
 
     @staticmethod
-    def _makeArrayGetter( apiTypename, length, getFunc ):
+    def _makeArrayGetter( apiTypeName, length, getFunc ):
         def getArray( array ):
             logger.debug("get %s", array)
             return [ getFunc(array,i) for i in range(length) ]
-        getArray.__name__ = 'get_' + apiTypename + str(length) + 'Array'
+        getArray.__name__ = 'get_' + apiTypeName + str(length) + 'Array'
         return getArray
     
     @classmethod
@@ -1947,85 +1948,87 @@ class ApiTypeRegister(object):
 
             
     @classmethod   
-    def isRegistered(cls, apiTypename):
-        return apiTypename in cls.types
+    def isRegistered(cls, apiTypeName):
+        return apiTypeName in cls.types
         
     @classmethod         
-    def register(cls, apiTypename, pymelType, inCast=None, outCast=None, apiArrayItemType=None):
+    def register(cls, apiTypeName, pymelType, inCast=None, outCast=None, apiArrayItemType=None):
         """
         pymelType is the type to be used internally by pymel.  apiType will be hidden from the user
         and converted to the pymel type.  
-        apiTypename is the name of an apiType as a string
+        apiTypeName is the name of an apiType as a string
         if apiArrayItemType is set, it should be the api type that represents each item in the array"""
 
-        #apiTypename = pymelType.__class__.__name__
-        capType = util.capitalize( apiTypename ) 
+        #apiTypeName = pymelType.__class__.__name__
+        capType = util.capitalize( apiTypeName ) 
 
         # register type
-        cls.types[apiTypename] = pymelType.__name__
+        cls.types[apiTypeName] = pymelType.__name__
         
+        if apiArrayItemType:
+            cls.arrayItemTypes[apiTypeName] = apiArrayItemType
         # register result casting
         if outCast:
-            cls.outCast[apiTypename] = outCast
+            cls.outCast[apiTypeName] = outCast
         elif apiArrayItemType is not None:
             pass
         else:
-            cls.outCast[apiTypename] = lambda self, x: pymelType(x)
+            cls.outCast[apiTypeName] = lambda self, x: pymelType(x)
             
         # register argument casting
         if inCast:
-            cls.inCast[apiTypename] = inCast
+            cls.inCast[apiTypeName] = inCast
         elif apiArrayItemType is not None:
             pass # filled out below
         else:
-            cls.inCast[apiTypename] = pymelType
+            cls.inCast[apiTypeName] = pymelType
         
-        if apiTypename in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
+        if apiTypeName in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
             initFunc = getattr( cls.su, 'as' + capType + 'Ptr')  # initialize: su.asFloatPtr()
             getFunc = getattr( cls.su, 'get' + capType )  # su.getFloat()
             setArrayFunc = getattr( cls.su, 'set' + capType + 'Array')  # su.setFloatArray()
             getArrayFunc = getattr( cls.su, 'get' + capType + 'ArrayItem') # su.getFloatArrayItem()
-            cls.refInit[apiTypename] = initFunc
-            cls.refCast[apiTypename] = getFunc
+            cls.refInit[apiTypeName] = initFunc
+            cls.refCast[apiTypeName] = getFunc
             for i in [2,3,4]:
-                iapiTypename = apiTypename + str(i)
+                iapiTypename = apiTypeName + str(i)
                 cls.refInit[iapiTypename] = initFunc
-                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypename, i, setArrayFunc, initFunc )
-                cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypename, i, getArrayFunc )
+                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypeName, i, setArrayFunc, initFunc )
+                cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypeName, i, getArrayFunc )
                 cls.types[iapiTypename] = tuple([pymelType.__name__]*i)
         else:
             try:      
-                apiType = getattr( _api, apiTypename )
+                apiType = getattr( _api, apiTypeName )
             except AttributeError:
                 if apiArrayItemType:
-                    cls.refInit[apiTypename] = list
-                    cls.inCast[apiTypename] = lambda x: [ apiArrayItemType(y) for y in x ] 
-                    cls.refCast[apiTypename] = None
-                    cls.outCast[apiTypename] = None
+                    cls.refInit[apiTypeName] = list
+                    cls.inCast[apiTypeName] = lambda x: [ apiArrayItemType(y) for y in x ] 
+                    cls.refCast[apiTypeName] = None
+                    cls.outCast[apiTypeName] = None
 
             else:
                 #-- Api Array types
                 if apiArrayItemType:
                     
-                    cls.refInit[apiTypename] = apiType
-                    cls.inCast[apiTypename] = cls._makeApiArraySetter( apiType, apiArrayItemType )
+                    cls.refInit[apiTypeName] = apiType
+                    cls.inCast[apiTypeName] = cls._makeApiArraySetter( apiType, apiArrayItemType )
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiType == _api.MDagPathArray:
-                        cls.refCast[apiTypename] = lambda x:       [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
-                        cls.outCast[apiTypename] = lambda self, x: [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.refCast[apiTypeName] = lambda x:       [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.outCast[apiTypeName] = lambda self, x: [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
                     else:
-                        cls.refCast[apiTypename] = lambda x:       [ pymelType( x[i] ) for i in range( x.length() ) ]
-                        cls.outCast[apiTypename] = lambda self, x: [ pymelType( x[i] ) for i in range( x.length() ) ]
+                        cls.refCast[apiTypeName] = lambda x:       [ pymelType( x[i] ) for i in range( x.length() ) ]
+                        cls.outCast[apiTypeName] = lambda self, x: [ pymelType( x[i] ) for i in range( x.length() ) ]
                         
                 #-- Api types
                 else:
-                    cls.refInit[apiTypename] = apiType
-                    cls.refCast[apiTypename] = pymelType
+                    cls.refInit[apiTypeName] = apiType
+                    cls.refCast[apiTypeName] = pymelType
                     try:
                         # automatically handle array types that correspond to this api type (e.g.  MColor and MColorArray )
-                        arrayTypename = apiTypename + 'Array'
+                        arrayTypename = apiTypeName + 'Array'
                         apiArrayType = getattr( _api, arrayTypename )
-                        # e.g.  'MColorArray', MColor, api.MColor
+                        # e.g.  'MColorArray', Color, api.MColor
                         ApiTypeRegister.register(arrayTypename, pymelType, apiArrayItemType=apiType)
                     except AttributeError:
                         pass
@@ -2784,7 +2787,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         wrappedApiFunc.__name__ = pymelName
 
         
-        def formatDocstring(type):
+        def formatDocstring(type, isList):
             # convert
             # "['one', 'two', 'three', ['1', '2', '3']]"
             # to
@@ -2802,7 +2805,10 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     except:
                         logger.debug("Could not determine pymel name for %r" % repr(type))
 
-            return repr(type).replace("'", "`")
+            doc = repr(type).replace("'", "`")
+            if isList:
+                doc += ' list'
+            return doc
         
         # Docstrings
         docstring = argHelper.getClassDocs()
@@ -2813,7 +2819,8 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 info = argInfo[name]
                 type = info['type']
                 type = ApiTypeRegister.types.get(type,type)
-                type = formatDocstring(type)
+                isList = type in ApiTypeRegister.arrayItemTypes.keys()
+                type = formatDocstring(type, isList)
                 
                 docstring += S + '%s : %s\n' % (name, type )
                 docstring += S*2 + '%s\n' % (info['doc'])  
@@ -2823,6 +2830,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         # Results doc strings
         results = []
         returnType = argHelper.getReturnType()
+        isList = False
         if returnType: 
             rtype = ApiTypeRegister.types.get(returnType, returnType)
             results.append( rtype )
@@ -2832,8 +2840,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             results.append( rtype )
         if len(results) == 1:
             results = results[0]
+            isList = results in ApiTypeRegister.arrayItemTypes.keys()
         if results:
-            docstring += '\n\n:rtype: %s\n' %  formatDocstring(results)
+            docstring += '\n\n:rtype: %s\n' %  formatDocstring(results, isList)
         
         docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
         

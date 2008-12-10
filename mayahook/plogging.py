@@ -1,4 +1,4 @@
-
+"pymel logging functions"
 import maya
 from maya.OpenMaya import MGlobal, MEventMessage, MMessage
 import sys
