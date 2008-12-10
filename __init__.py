@@ -1131,32 +1131,29 @@ __version__ = '0.8.0'
 #import util
 #print "imported utils"
 
-#class A(object):
-#    pass
-#
-#class B(A): pass
-#
-#class C(A): pass
+import sys
+
+import mayahook
+import mayahook.plogging as plogging
+plogging.mainLogger.debug( 'imported mayahook' )
+
+import api
+plogging.mainLogger.debug( 'imported api' )
+
 
 # will check for the presence of an initilized Maya / launch it
 from mayahook import mayaInit as _mayaInit
-#print "imported mayahook"
 assert _mayaInit() 
 
 #import tools
 #print "imported tools"
 #
 import core.pmtypes.factories as factories
-#print "imported factories"
-
-import api
-#print "imported api"
+plogging.mainLogger.debug( 'imported factories' )
 
 from core import *
-#print "imported core"
+plogging.mainLogger.debug( 'imported core' )
 
-import mayahook.plogging as plogging
-from mayahook.plogging import getLogger
 from util.test import pymel_test
 
 #_module = __import__('core.other', globals(), locals(), [''])
