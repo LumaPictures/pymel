@@ -151,7 +151,7 @@ class UI(unicode):
             >>> n.__repr__()
             # Result: Window('myWindow')
         """
-        logger.info("UI: %s, %s, %s, %r" % (cls, name, create, kwargs))
+        logger.debug("UI: %s, %s, %s, %r" % (cls, name, create, kwargs))
         slc = kwargs.pop("slc",kwargs.pop("defer",kwargs.get('childCreators')))
 
         if slc:
@@ -167,7 +167,7 @@ class UI(unicode):
         else:
             if cls._isBeingCreated(name, create, kwargs):
                 name = cls.__melcmd__(name, **kwargs)
-                logger.info("UI: created... %s" % name)
+                logger.debug("UI: created... %s" % name)
             return unicode.__new__(cls,name)
 
     @staticmethod
@@ -214,13 +214,13 @@ class Window(UI):
     def __aftercreate__(self):
         self.show()
                 
-def formLayout(*args, **kwargs):
-    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
-    logger.debug("kw: %r" % kw)
-    ret = cmds.formLayout(*args, **kwargs)
-    if not (set(['q','query','e','edit']) & set(kwargs)):   # check if in query or edit mode
-        ret = FormLayout(ret, **kw)
-    return ret
+#def formLayout(*args, **kwargs):
+#    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+#    logger.debug("kw: %r" % kw)
+#    ret = cmds.formLayout(*args, **kwargs)
+#    if not (set(['q','query','e','edit']) & set(kwargs)):   # check if in query or edit mode
+#        ret = FormLayout(ret, **kw)
+#    return ret
 
 class FormLayout(UI):
     __metaclass__ = MetaMayaUIWrapper
@@ -265,7 +265,7 @@ class FormLayout(UI):
         self.ori = self.enumOrientation.getIndex(orientation)
         self.reversed = reversed
         self.ratios = ratios and list(ratios) or []
-        logger.info("Ratios: %r, %r" % (self.ratios, kwargs))
+        logger.debug("Ratios: %r, %r" % (self.ratios, kwargs))
     
     def flip(self):
         """Flip the orientation of the layout """
@@ -519,7 +519,7 @@ class SmartLayoutCreator:
         if self.name:
             creation[self.name] = self.me
         if debug:
-            log += (" : %-50r" % self.me) + (" - %r" % self.name if self.name else "")
+            #log += (" : %-50r" % self.me) + (" - %r" % self.name if self.name else "")
             logger.debug(log)
 
         [child.create(creation=creation,parent=self.me,debug=debug and debug+"\t") for child in childCreators]
