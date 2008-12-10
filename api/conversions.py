@@ -4,7 +4,7 @@
 
 import pymel.mayahook.mayautils as mayahook
 from allapi import *
-from maya.cmds import ls as _ls
+
 #import pymel.factories as _factories
 
 import sys, inspect, timeit, time, re
@@ -15,6 +15,7 @@ import pickle, os.path
 from HTMLParser import HTMLParser
 from pymel.util.external.BeautifulSoup import BeautifulSoup
 from keyword import iskeyword as _iskeyword
+
 
 VERBOSE = 0
 
@@ -1076,23 +1077,23 @@ def _buildApiTypesList():
     #apiEnumsToApiTypes = dict( (ApiTypesToApiEnums()[k], k) for k in ApiTypesToApiEnums().keys()) 
     #return apiTypesToApiEnums, apiEnumsToApiTypes
     
-# Initialises MayaTypes for a faster later access
-def _buildMayaTypesList() :
-    """Updates the cached MayaTypes lists """
-    start = time.time()
-
-    # api types/enums dicts must be created before reserved type bc they are used for filtering
-    _buildMayaReservedTypes()
-    
-    # use dict of empty keys just for faster random access
-    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
-    # add new types
-    print "reserved types", ReservedMayaTypes()
-    for mayaType, apiType in ReservedMayaTypes().items() + [(k, None) for k in _ls(nodeTypes=True)]:
-         #if not MayaTypesToApiTypes().has_key(mayaType) :
-         addMayaType( mayaType, apiType )
-    elapsed = time.time() - start
-    print "Updated Maya types list in %.2f sec" % elapsed
+## Initialises MayaTypes for a faster later access
+#def _buildMayaTypesList() :
+#    """Updates the cached MayaTypes lists """
+#    start = time.time()
+#    from maya.cmds import ls as _ls
+#    # api types/enums dicts must be created before reserved type bc they are used for filtering
+#    _buildMayaReservedTypes()
+#    
+#    # use dict of empty keys just for faster random access
+#    # the nodes returned by ls will be added by createPyNodes and pluginLoadedCB
+#    # add new types
+#    print "reserved types", ReservedMayaTypes()
+#    for mayaType, apiType in ReservedMayaTypes().items() + [(k, None) for k in _ls(nodeTypes=True)]:
+#         #if not MayaTypesToApiTypes().has_key(mayaType) :
+#         addMayaType( mayaType, apiType )
+#    elapsed = time.time() - start
+#    print "Updated Maya types list in %.2f sec" % elapsed
 
 
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
