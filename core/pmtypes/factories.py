@@ -19,7 +19,6 @@ import maya.mel as mm
 import pmcmds
 from maya.utils import executeDeferred as _executeDeferred
 
-
 #---------------------------------------------------------------
 #        Mappings and Lists
 #---------------------------------------------------------------
@@ -162,7 +161,7 @@ class CommandDocParser(HTMLParser):
         HTMLParser.__init__(self)
     
     def startFlag(self, data):
-        #logger.debug((self, data))
+        #logger.debug(self, data)
         #assert data == self.currFlag
         self.iData = 0
         self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
@@ -223,7 +222,7 @@ class CommandDocParser(HTMLParser):
             if not self.flags[self.currFlag]['modes']:
                 self.emptyModeFlags.append(self.currFlag)
             elif self.emptyModeFlags:
-                    #logger.debug(("past empty flags:", self.command, self.emptyModeFlags, self.currFlag))
+                    #logger.debug("past empty flags:", self.command, self.emptyModeFlags, self.currFlag)
                     basename = re.match( '([a-zA-Z]+)', self.currFlag ).groups()[0]
                     modes = self.flags[self.currFlag]['modes']
                     self.emptyModeFlags.reverse()
@@ -236,17 +235,17 @@ class CommandDocParser(HTMLParser):
                     self.emptyModeFlags = []
         except KeyError, msg:
             pass
-            #logger.debug((self.currFlag, msg))
+            #logger.debug(self.currFlag, msg)
         
     def handle_starttag(self, tag, attrs):
-        #logger.debug(("begin: %s tag: %s" % (tag, attrs)))
+        #logger.debug("begin: %s tag: %s" % (tag, attrs))
         if not self.active:
             if tag == 'a':
                 if attrs[0][1] == 'hFlags':
-                    #logger.debug(('ACTIVE'))
+                    #logger.debug('ACTIVE')
                     self.active = 'flag'
                 elif attrs[0][1] == 'hExamples':
-                    #logger.debug(("start examples"))
+                    #logger.debug("start examples")
                     self.active = 'examples'
         elif tag == 'a' and attrs[0][0] == 'name':
             self.endFlag()
@@ -254,19 +253,19 @@ class CommandDocParser(HTMLParser):
             newFlag = newFlag.lstrip('-')
             self.currFlag = newFlag      
             self.iData = 0
-            #logger.debug(("NEW FLAG", attrs))
+            #logger.debug("NEW FLAG", attrs)
             #self.currFlag = attrs[0][1][4:]
             
     
         elif tag == 'img' and len(attrs) > 4:
-            #logger.debug(("MODES", attrs[1][1]))
+            #logger.debug("MODES", attrs[1][1])
             self.flags[self.currFlag]['modes'].append(attrs[1][1])
         elif tag == 'h2':
             self.active = False
                 
     def handle_endtag(self, tag):
         #if tag == 'p' and self.active == 'command': self.active = False
-        #logger.debug(("end: %s" % tag))
+        #logger.debug("end: %s" % tag)
         if not self.active:
             if tag == 'p':
                 if self.pcount == 3:
@@ -291,7 +290,7 @@ class CommandDocParser(HTMLParser):
                     return
                     
                 if data and stripped and stripped not in ['(',')', '=', '], [']:
-                    #logger.debug(("DATA", data))
+                    #logger.debug("DATA", data)
             
                     if self.currFlag in self.flags:                
                         self.addFlagData(data)
@@ -305,11 +304,11 @@ class CommandDocParser(HTMLParser):
             data = data.replace('*', '\*') # for reStructuredText
             if '{' not in data and '}' not in data:                
                 self.description += data
-            #logger.debug((data))
+            #logger.debug(data)
             #self.active = False
         elif self.active == 'examples' and data != 'Python examples':
-            #logger.debug(("Example\n"))
-            #logger.debug((data))
+            #logger.debug("Example\n")
+            #logger.debug(data)
             data = data.replace( '\r\n', '\n' )
             self.example += data
             #self.active = False
@@ -363,10 +362,10 @@ def getCmdInfoBasic( command ):
         # certain commands on certain platforms have an empty first line
         if not synopsis:
             synopsis = lines.pop(0)
-        #logger.debug((synopsis))
+        #logger.debug(synopsis)
         if lines:
             lines.pop(0) # 'Flags'
-            #logger.debug((lines))
+            #logger.debug(lines)
             
             for line in lines:
                 line = line.replace( '(Query Arg Mandatory)', '' )
@@ -377,7 +376,7 @@ def getCmdInfoBasic( command ):
                     tokens.remove('(multi-use)')
                 except:
                     pass
-                #logger.debug((tokens))
+                #logger.debug(tokens)
                 if len(tokens) > 1 and tokens[0].startswith('-'):
                     
                     
@@ -412,7 +411,7 @@ def getCmdInfoBasic( command ):
         
     #except:
     #    pass
-        #logger.debug(("could not retrieve command info for", command))
+        #logger.debug("could not retrieve command info for", command)
     res = { 'flags': flags, 'shortFlags': shortFlags, 'description' : '', 'example': '', 'type' : 'other' }
     if removedFlags:
         res['removedFlags'] = removedFlags 
@@ -449,12 +448,12 @@ def getCmdInfo( command, version='8.5', python=True ):
         
         if command in secondaryFlags:
             for secondaryFlag, defaultValue, modifiedList in secondaryFlags[command]:
-                #logger.debug((command, "2nd", secondaryFlag))
+                #logger.debug(command, "2nd", secondaryFlag)
                 flags[secondaryFlag]['modified'] = modifiedList
-                #logger.debug((sorted(modifiedList)))
-                #logger.debug((sorted(parser.flags.keys())))
+                #logger.debug(sorted(modifiedList))
+                #logger.debug(sorted(parser.flags.keys()))
                 for primaryFlag in modifiedList:
-                    #logger.debug((command, "1st", primaryFlag))
+                    #logger.debug(command, "1st", primaryFlag)
                     if 'secondaryFlags' in parser.flags[primaryFlag]:
                          flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
                     else:
@@ -477,7 +476,7 @@ def getCmdInfo( command, version='8.5', python=True ):
 #                    if ( isinstance(docArgs, str) and '|' in docArgs) or (docArgs == str and helpArgs == callable):
 #                        flagData['args'] = helpArgs
 #                    else:
-#                        logger.info((command, flag, docArgs, helpArgs))
+#                        logger.info(command, flag, docArgs, helpArgs)
 #                else:
 #                    flagData['args'] = basicFlagData['args']
                     
@@ -497,7 +496,7 @@ def getCmdInfo( command, version='8.5', python=True ):
     
     
     except IOError:
-        #logger.debug(("could not find docs for %s" % command))
+        #logger.debug("could not find docs for %s" % command)
         return basicInfo
         
         #raise IOError, "cannot find maya documentation directory"
@@ -526,10 +525,10 @@ def fixCodeExamples():
             pass
         else:
             if 'import pymel' in example:
-                logger.info(("examples have already been fixed. to re-fix, first delete and recreate the commands cache"))
+                logger.info("examples have already been fixed. to re-fix, first delete and recreate the commands cache")
                 return
             
-            logger.info(("Starting command", command))
+            logger.info("Starting command %s", command)
             
             # change from cmds to pymel
             reg = re.compile(r'\bcmds\.')
@@ -538,7 +537,7 @@ def fixCodeExamples():
             
             lines = example.split('\n')
             if len(lines)==1:
-                logger.info(("removing empty example for command", command))
+                logger.info("removing empty example for command %s", command)
                 info['example'] = None
                 continue
             
@@ -578,24 +577,24 @@ def fixCodeExamples():
                                 # evaluate the compiled statement using exec, which can do multi-line if statements and so on
                                 if statement:
                                     try:
-                                        #logger.debug(("executing", statement))
+                                        #logger.debug("executing %s", statement)
                                         exec( '\n'.join(statement) )
                                         # reset statement
                                         statement = []
                                     except Exception, e:
-                                        logger.info(("stopping evaluation", str(e)))# of %s on line %r" % (command, line)
+                                        logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
                                         evaluate = False
                                 try:
                                     logger.debug("evaluating: %r" % line)
                                     res = eval( line )
-                                    #if res is not None: logger.info(("result", repr(repr(res))))
-                                    #else: logger.info(("no result"))
+                                    #if res is not None: logger.info("result", repr(repr(res)))
+                                    #else: logger.info("no result")
                                 except:
-                                    #logger.debug(("failed evaluating:", str(e)))
+                                    #logger.debug("failed evaluating:", str(e))
                                     try:
                                         exec( line )
                                     except (Exception, TypeError), e:
-                                        logger.info(("stopping evaluation", str(e)))# of %s on line %r" % (command, line)
+                                        logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
                                         evaluate = False
                                                 
                         if line.startswith(' ') or line.startswith('\t'):       
@@ -607,19 +606,19 @@ def fixCodeExamples():
                             newlines.append( '    ' + repr(res) )
                         
                 if evaluate:
-                    logger.info(("successful evaluation!", command))
+                    logger.info("successful evaluation! %s", command)
                               
                 example = '\n'.join( newlines )
                 info['example'] = example
             except:
-               logger.info(("COMPLETE AND UTTER FAILURE:", command))
+               logger.info("COMPLETE AND UTTER FAILURE: %s", command)
             
             # cleanup opened windows
             for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
                 try: cmds.deleteUI(ui, window=True)
                 except:pass
 
-    logger.info(("Done Fixing Examples. Writing out fixed commands cache..."))
+    logger.info("Done Fixing Examples. Writing out fixed commands cache...")
     
     # restore manipulators and anim options
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
@@ -633,12 +632,12 @@ def fixCodeExamples():
         file = open(newPath, mode='wb')
         try :
             pickle.dump( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds),  file, 2)
-            logger.info(("done"))
+            logger.info("done")
         except:
-            logger.info(("Unable to write the list of Maya commands to '"+file.name+"'"))
+            logger.info("Unable to write the list of Maya commands to '"+file.name+"'")
         file.close()
     except :
-        logger.info(("Unable to open '"+newPath+"' for writing"))
+        logger.info("Unable to open '"+newPath+"' for writing")
            
 class NodeHierarchyDocParser(HTMLParser):
  
@@ -659,48 +658,48 @@ class NodeHierarchyDocParser(HTMLParser):
         
         HTMLParser.__init__(self)
     def handle_starttag(self, tag, attrs):
-        #logger.debug((tag, attrs))
+        #logger.debug(tag, attrs)
         self.currentTag = tag
     
     def handle_data(self, data):
-        logger.info(("data", data))
+        logger.info("data %s", data)
         if self.currentTag == 'tt':
             self.depth = data.count('>')
-            #logger.debug(("lastDepth", self.lastDepth, "depth", self.depth))
+            #logger.debug("lastDepth", self.lastDepth, "depth", self.depth)
             
         elif self.currentTag == 'a':
             data = data.lstrip()
 
             if self.depth == 0:
                 if self.tree is None:
-                    #logger.debug(("starting brand new tree", self.depth, data))
+                    #logger.debug("starting brand new tree: %s %s", self.depth, data)
                     self.tree = [data]
                 else:
-                    #logger.debug(("skipping", data))
+                    #logger.debug("skipping %s", data)
                     return
                     
             elif self.depth == self.lastDepth and self.depth > 0:                
-                #logger.debug(("adding to current level", self.depth, data))
+                #logger.debug("adding to current level", self.depth, data)
                 self.tree[ self.depth ].append( data )
                 
             elif self.depth > self.lastDepth:
-                #logger.debug(("starting new level", self.depth, data))
+                #logger.debug("starting new level: %s %s", self.depth, data)
                 self.tree.append( [data] )
                     
             elif self.depth < self.lastDepth:
 
                     for i in range(0, self.lastDepth-self.depth):
                         branch = self.tree.pop()
-                        #logger.debug(("closing level", self.lastDepth, self.depth, self.tree[-1]))
+                        #logger.debug("closing level", self.lastDepth, self.depth, self.tree[-1])
                         currTree = self.tree[-1]
                         #if isinstance(currTree, list):
                         currTree.append( branch )
                         #else:
-                        #    logger.info(("skipping", data))
+                        #    logger.info("skipping", data)
                         #    self.close()
                         #    return
                                 
-                    #logger.debug(("adding to level", self.depth, data))
+                    #logger.debug("adding to level", self.depth, data)
                     self.tree[ self.depth ].append( data )
             else:
                 return
@@ -719,12 +718,12 @@ class NodeHierarchyDocParser(HTMLParser):
             data = data.lstrip()
             
             if self.depth == self.lastDepth:                
-                #logger.debug(("adding to level", self.depth, data))
+                #logger.debug("adding to level", self.depth, data)
                 self.tree.add_leaf( self.currentLeaves[ self.depth-1 ], data )
                 self.currentLeaves[ self.depth ] = data
                 
             elif self.depth > self.lastDepth:
-                #logger.debug(("starting new level", self.depth, data))
+                #logger.debug("starting new level", self.depth, data)
                 try:
                     self.tree.add_leaf( self.currentLeaves[ self.depth-1 ], data )
                     
@@ -737,10 +736,10 @@ class NodeHierarchyDocParser(HTMLParser):
             elif self.depth < self.lastDepth:
                 for i in range(0, self.lastDepth-self.depth):
                     self.currentLeaves.pop()
-                    #logger.debug(("closing level", self.lastDepth))
+                    #logger.debug("closing level", self.lastDepth)
                     #self.tree[-1].append( branch )
                 
-                #logger.debug(("adding to level", self.depth, data))
+                #logger.debug("adding to level", self.depth, data)
                 self.tree.add_leaf( self.currentLeaves[ self.depth-1 ], data )        
                 self.currentLeaves[ self.depth ] = data
     '''
@@ -750,7 +749,7 @@ def printTree( tree, depth=0 ):
         if util.isIterable(branch):
             printTree( branch, depth+1)
         else:
-            logger.info(('> '*depth, branch))
+            logger.info('> '*depth, branch)
             
 def _getNodeHierarchy( version='8.5' ): 
     parser = NodeHierarchyDocParser(version)
@@ -780,17 +779,17 @@ class CommandModuleDocParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         try:
             attrs = attrs[0]
-            #logger.debug((attrs))
+            #logger.debug(attrs)
             if tag == 'a' and attrs[0]=='href': 
                 cmd = attrs[1].split("'")[1].split('.')[0]
                 self.cmdList.append( cmd )
-                #logger.debug((cmd))
+                #logger.debug(cmd)
         except IndexError: return
         
     #def handle_data(self, data):
-    #    #logger.debug((self.currentTag, data))
+    #    #logger.debug(self.currentTag, data)
     #    if self.currentTag == 'a':
-    #        logger.info((data))
+    #        logger.info(data)
 
 def _getUICommands():
     f = open( os.path.join( util.moduleDir() , 'misc/commandsUI') , 'r') 
@@ -853,17 +852,17 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     module = cmds
     
     if verbose:
-        logger.info((funcName.center( 50, '=')))
+        logger.info(funcName.center( 50, '='))
     
     if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
         if verbose:
-            logger.info(("skipping"))
+            logger.info("skipping")
         return cmdInfo
         
     try:
         func = getattr(module, funcName)
     except AttributeError:
-        logger.info(("could not find function %s in modules %s" % (funcName, module.__name__)))
+        logger.info("could not find function %s in modules %s" % (funcName, module.__name__))
         return cmdInfo
     
     # get the current list of objects in the scene so we can cleanup later, after we make nodes
@@ -897,9 +896,9 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             
             if isinstance(obj, list):
                 if verbose:
-                    logger.info(("Return", obj))
+                    logger.info("Return %s", obj)
                 if len(obj) == 1:
-                    logger.info(("%s: args need unpacking" % funcName))
+                    logger.info("%s: args need unpacking" % funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
                 obj = obj[-1]
                 
@@ -915,7 +914,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 
     except (TypeError,RuntimeError, ValueError), msg:
         if verbose:
-            logger.info(("failed creation:", msg))
+            logger.info("failed creation: %s", msg)
         
     else:
         
@@ -948,7 +947,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 testModes = False
             except KeyError, msg:
                 #raise KeyError, '%s: %s' % (flag, msg)
-                #logger.debug((flag, "Testing modes"))
+                #logger.debug(flag, "Testing modes")
                 flagInfo['modes'] = []
                 modes = []
                 testModes = True
@@ -966,7 +965,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 cmd = _formatCmd(funcName, flagargs, kwargs)
                 try:
                     val = func( *flagargs, **kwargs )
-                    #logger.debug((val))
+                    #logger.debug(val)
                     resultType = _objectToType(val)
                     
                     # ensure symmetry between edit and query commands:
@@ -996,36 +995,36 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                             val = argtype(val)
                         else:
                             # no valid corrctions found
-                            logger.info((cmd))
-                            logger.info(("\treturn mismatch"))
-                            logger.info(('\tresult:', val.__repr__()))
-                            logger.info(('\tpredicted type: ', argtype))
-                            logger.info(('\tactual type:    ', resultType))
+                            logger.info(cmd)
+                            logger.info("\treturn mismatch")
+                            logger.info('\tresult: %s', val.__repr__())
+                            logger.info('\tpredicted type: %s', argtype)
+                            logger.info('\tactual type:    %s', resultType)
                             # value is no good. reset to None, so that a default will be generated for edit
                             val = None
                     
                     elif verbose:
-                        logger.info((cmd))
-                        logger.info(("\tsucceeded"))
-                        logger.info(('\tresult:', val.__repr__()))
-                        logger.info(('\tresult type:    ', resultType))
+                        logger.info(cmd)
+                        logger.info("\tsucceeded")
+                        logger.info('\tresult: %s', val.__repr__())
+                        logger.info('\tresult type:    %s', resultType)
                         
                 except TypeError, msg:
                     # flag is no longer supported                         
                     if str(msg).startswith( 'Invalid flag' ):
                         #if verbose:
-                        logger.info(("removing flag", funcName, flag, msg))
+                        logger.info("removing flag %s %s %s", funcName, flag, msg)
                         shortname = flagInfo['shortname']
                         flagInfo.pop(flag,None)
                         flagInfo.pop(shortname,None)
                         modes = [] # stop edit from running
                     else:
-                        logger.info((cmd))
+                        logger.info(cmd)
                         logger.info(("\t", str(msg).rstrip('\n')))
                     val = None
                     
                 except RuntimeError, msg:
-                    logger.info((cmd))
+                    logger.info(cmd)
                     logger.info(("\t", str(msg).rstrip('\n') ))
                     val = None
                 else:
@@ -1035,7 +1034,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             # EDIT
             if 'edit' in modes or testModes == True:
                 
-                #logger.debug(("Args:", argtype))
+                #logger.debug("Args:", argtype)
                 try:
                     # we use the value returned from query above as defaults for putting back in as edit args
                     # but if the return was empty we need to produce something to test on.  
@@ -1066,31 +1065,31 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     cmd = _formatCmd(funcName, args, kwargs)
                     val = func( *args, **kwargs )
                     if verbose:
-                        logger.info((cmd))
-                        logger.info(("\tsucceeded"))
-                        #logger.debug(('\t', val.__repr__()))
-                        #logger.debug(('\t', argtype, type(val)))
-                    #logger.debug(("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype'])))
+                        logger.info(cmd)
+                        logger.info("\tsucceeded")
+                        #logger.debug('\t%s', val.__repr__())
+                        #logger.debug('\t%s %s', argtype, type(val))
+                    #logger.debug("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype']))
                 except TypeError, msg:                                                        
                     if str(msg).startswith( 'Invalid flag' ):
                         #if verbose:
                         # flag is no longer supported  
-                        logger.info(("removing flag", funcName, flag, msg))
+                        logger.info("removing flag %s %s %s", funcName, flag, msg)
                         shortname = flagInfo['shortname']
                         flagInfo.pop(flag,None)
                         flagInfo.pop(shortname,None)
                     else:
-                        logger.info((cmd))
+                        logger.info(cmd)
                         logger.info(("\t", str(msg).rstrip('\n')))
-                        logger.info(("\tpredicted arg:", argtype))
+                        logger.info("\tpredicted arg: %s", argtype)
                         if not 'query' in modes:
-                            logger.info(("\tedit only"))
+                            logger.info("\tedit only")
                 except RuntimeError, msg:
-                    logger.info((cmd))
+                    logger.info(cmd)
                     logger.info(("\t", str(msg).rstrip('\n')))
-                    logger.info(("\tpredicted arg:", argtype))
+                    logger.info("\tpredicted arg: %s", argtype)
                     if not 'query' in modes:
-                        logger.info(("\tedit only"))
+                        logger.info("\tedit only")
                 else:
                     flagInfo['modes'].append('edit')
     
@@ -1122,7 +1121,7 @@ def buildCachedData() :
     
     else: # or not isinstance(cmdlist,list):        
         cmdlist = {}
-        logger.info(("Rebuilding the list of Maya commands..."))
+        logger.info("Rebuilding the list of Maya commands...")
         
         nodeHierarchy = _getNodeHierarchy(long_version)
         nodeHierarchyTree = IndexedTree(nodeHierarchy)
@@ -1278,9 +1277,9 @@ def getInheritance( mayaType ):
     try:
         cmds.undoInfo( state=0)
         res = cmds.createNode( mayaType, parent=None )
-        #logger.debug(("created node: ", res))
+        #logger.debug("created node: %s", res)
         parent = cmds.nodeType( res, inherited=1)
-        #logger.debug(("parents: ", parent))
+        #logger.debug("parents: %s", parent)
         
         # TODO: this will sometimes fail to get an inheritance when a file
         # is imported, and it requires an unloaded plugin... debug this
@@ -1442,7 +1441,7 @@ def fixCallbacks(inFunc, funcName=None ):
     else:
         callbackReturnFunc = None
         
-    #logger.debug((funcName, inFunc.__name__, commandFlags))
+    #logger.debug(funcName, inFunc.__name__, commandFlags)
 
     # need to define a seperate var here to hold
     # the old value of newFunc, b/c 'return newFunc'
@@ -1451,13 +1450,7 @@ def fixCallbacks(inFunc, funcName=None ):
     
 
     def newUiFunc( *args, **kwargs):
-        import pymel.core.windows
-        if kwargs.pop('slc',kwargs.pop('defer',False)):
-            if args:
-                kwargs['name'] = args[0]
-            return getattr(pymel.core.windows, util.capitalize(funcName or inFunc.__name__))(slc=True,**kwargs)
-        
-        if args:
+        if len(args):
             doPassSelf = kwargs.pop('passSelf', False)
         else:
             doPassSelf = False
@@ -1466,9 +1459,9 @@ def fixCallbacks(inFunc, funcName=None ):
             try:
                 cb = kwargs[ key ]
                 if callable(cb):
-                    #logger.debug(("fixing callback", key))
+                    #print "fixing callback", key
                     def callback(*cb_args):
-                        #logger.debug(("callback args", args))
+                        #print "callback args", args
                         newargs = []
                         for arg in cb_args:
                             if callbackReturnFunc:
@@ -1478,15 +1471,12 @@ def fixCallbacks(inFunc, funcName=None ):
                         if doPassSelf:
                             newargs = [ args[0] ] + newargs
                         newargs = tuple(newargs)
-                        #logger.debug(("callback newargs", newargs))
+                        #print "callback newargs", newargs
                         return cb( *newargs )
                     kwargs[ key ] = callback
             except KeyError: pass
             
-        ret = beforeUiFunc(*args, **kwargs)
-        if not (set(['q','query','e','edit']) & set(kwargs)):
-            ret = getattr(pymel.core.windows, util.capitalize(funcName or inFunc.__name__))(ret)
-        return ret   
+        return beforeUiFunc(*args, **kwargs)   
     
     if funcName:
         newUiFunc.__name__ = funcName
@@ -1512,7 +1502,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             try:       
                 inFunc = getattr(module, funcName)
             except AttributeError:
-                #if funcName == 'lsThroughFilter': logger.info(("function %s not found in module %s" % ( funcName, module.__name__)))
+                #if funcName == 'lsThroughFilter': logger.info("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
         
         if not inFunc:
@@ -1520,7 +1510,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                 # import from pymel.mayahook.pmcmds
                 inFunc = getattr(pmcmds,funcName)
                 #inFunc = getattr(cmds,funcName)
-                #if funcName == 'lsThroughFilter': logger.info(("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__)))
+                #if funcName == 'lsThroughFilter': logger.info("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
                 util.warn('Cannot find function %s' % funcNameOrObject)
                 return
@@ -1618,7 +1608,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 #        
 #
 #         
-#        #logger.debug((funcName, inFunc.__name__, commandFlags))
+#        #logger.debug(funcName, inFunc.__name__, commandFlags)
 #
 #        # need to define a seperate var here to hold
 #        # the old value of newFunc, b/c 'return newFunc'
@@ -1916,13 +1906,13 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArraySetter( apiTypename, length, setFunc, initFunc ):
         def setArray( array ):
-            logger.debug(("set", array))
+            logger.debug("set %s", array)
             if len(array) != length:
                 raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypename )
             arrayPtr = initFunc()
             for i, val in enumerate( array ):
                 setFunc( arrayPtr, i, val )
-            logger.debug(("result", arrayPtr))
+            logger.debug("result %s", arrayPtr)
             return arrayPtr
         setArray.__name__ = 'set_' + apiTypename + str(length) + 'Array'
         return setArray
@@ -1930,7 +1920,7 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArrayGetter( apiTypename, length, getFunc ):
         def getArray( array ):
-            logger.debug(("get", array))
+            logger.debug("get %s", array)
             return [ getFunc(array,i) for i in range(length) ]
         getArray.__name__ = 'get_' + apiTypename + str(length) + 'Array'
         return getArray
@@ -1942,14 +1932,14 @@ class ApiTypeRegister(object):
         and then fall back to naming convention for types that haven't been registered yet. Perhaps pre-register
         the names? """
         try:
-            #logger.debug(("getting %s from dict" % apiType))
+            #logger.debug("getting %s from dict" % apiType)
             return cls.types[apiType]
         except KeyError:
             try:
                 # convert to pymel naming convetion  MTime -> Time,  MVector -> Vector
-                #logger.debug(("getting pymelName", apiType))
+                #logger.debug("getting pymelName %s", apiType)
                 buf = re.split( '(?:MIt)|(?:MFn)|(?:M)', apiType)
-                #logger.debug((buf))
+                #logger.debug(buf)
                 assert buf[1]
                 return buf[1]
             except IndexError:
@@ -2180,10 +2170,10 @@ class ApiArgUtil(object):
                     #except AttributeError:
                     #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
-            logger.debug((msg))
+            logger.debug(msg)
             return False
         
-        logger.debug(("%s: valid" % self.getPrototype()))
+        logger.debug("%s: valid" % self.getPrototype())
         return True
     
 #    def castEnum(self, argtype, input ):
@@ -2236,7 +2226,7 @@ class ApiArgUtil(object):
             arg = str(types[x]) + ' ' + x
             if defaults:
                 try:
-                    #logger.debug((self.methodInfo['defaults'][x]))
+                    #logger.debug(self.methodInfo['defaults'][x])
                     arg += '=' + str(self.methodInfo['defaults'][x])
                 except KeyError: pass
             args.append( arg )
@@ -2301,7 +2291,7 @@ class ApiArgUtil(object):
         # units
         unit = self.methodInfo['returnInfo'].get('unitType',None)
         returnType = self.methodInfo['returnInfo']['type']
-        #logger.debug((unit))
+        #logger.debug(unit)
         #returnType in ['MPoint'] or 
         if unit == 'linear' or returnType == 'MPoint':
             unitCast = ApiTypeRegister.outCast['MDistance']
@@ -2314,12 +2304,12 @@ class ApiArgUtil(object):
         # the main reason it is hardwired is because we don't want to convert the w component, which we
         # would do if we iterated normally
         elif returnType == 'MPoint':
-            #logger.debug(("linear"))
+            #logger.debug("linear")
             unitCast = ApiTypeRegister.outCast['MDistance']
             result = [ unitCast(instance,result[0]), unitCast(instance,result[1]), unitCast(instance,result[2]) ] 
 
         elif unit == 'angular':
-            #logger.debug(("angular"))
+            #logger.debug("angular")
             unitCast = ApiTypeRegister.outCast['MAngle']
             if util.isIterable(result):
                 result = [ unitCast(instance,val) for val in result ]
@@ -2332,7 +2322,7 @@ class ApiArgUtil(object):
         info = self.methodInfo['argInfo'][arg]
         unit = info.get('unitType',None)
         if unit == 'linear':
-            #logger.debug(("setting linear"))
+            #logger.debug("setting linear")
             unitCast = ApiTypeRegister.inCast['MDistance']
             if util.isIterable(input):
                 input = [ unitCast(val).asInternal() for val in input ]
@@ -2340,7 +2330,7 @@ class ApiArgUtil(object):
                 input = unitCast(input).asInternal()
                 
         elif unit == 'angular':
-            #logger.debug(("setting angular"))
+            #logger.debug("setting angular")
             unitCast = ApiTypeRegister.inCast['MAngle']
             if util.isIterable(input):
                 input = [ unitCast(val).asInternal() for val in input ]
@@ -2387,7 +2377,7 @@ class ApiArgUtil(object):
     def castReferenceResult(self,argtype,outArg):
         f = ApiTypeRegister.refCast[ argtype ]
         logger.debug("castReferenceResult")
-        logger.debug(f, argtype, outArg)
+        logger.debug( "%s %s %s", f, argtype, outArg)
         if f is None:
             return outArg
         
@@ -2425,7 +2415,7 @@ class ApiArgUtil(object):
                 try:
                     enumList = _api.apiClassInfo[apiClassName]['enums'][enumName]['values']
                 except KeyError:
-                    logger.info(("COULD NOT FIND ENUM", default))
+                    logger.warning("Could not find enumerator %s", default)
                 else:
                     index = enumList.getIndex(enumValue)
                     default = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
@@ -2497,11 +2487,12 @@ class ApiUndo:
         # Set up a callback to keep track of changes to the counts.
         try:
             _api.MMessage.removeCallback( self.cbid )
+            self.cbid.disown()
         except:
             pass
 
-        self.cbid = _api.MNodeMessage.addAttributeChangedCallback(
-            self.undoNode, self._attrChanged )
+        self.cbid = _api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
+        
 
     def append(self, cmdObj ):
         self.cb_enabled = False
@@ -2669,7 +2660,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
             if len(args) != len(inArgs):
                 raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
-            #logger.debug((args, argInfo))
+            #logger.debug(args, argInfo)
             inCount = 0
             totalCount = 0
             
@@ -2708,7 +2699,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     #outTypeIndex.append( totalCount )
                 totalCount+=1
   
-            #logger.debug(("%s.%s: arglist %s" % ( apiClassName, methodName, newargs)))
+            #logger.debug("%s.%s: arglist %s" % ( apiClassName, methodName, newargs))
             
             # get the value we are about to set
             if getterArgHelper is not None:
@@ -2721,13 +2712,13 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 if not isinstance( getterResult, tuple ):
                     getterResult = (getterResult,)
                 
-                #logger.debug((getterResult))
-                #logger.debug((missingUndoIndices))
+                #logger.debug(getterResult)
+                #logger.debug(missingUndoIndices)
                 #assert len(missingUndoIndices) == len(getterResult), "%s : %s" % ( missingUndoIndices, getterResult )
                 for index, result in zip(missingUndoIndices, getterResult ):
                     undoArgs[index] = result
 
-                #logger.debug((undoArgs))
+                #logger.debug(undoArgs)
                 
                 class Undo(object):
                     @staticmethod
@@ -2751,7 +2742,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                         result = method( self, *newargs )
                 
             except RuntimeError:
-                logger.info((newargs))
+                logger.info(newargs)
                 raise
                           
 #            if argHelper.isStatic():
@@ -2765,7 +2756,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 #            try:
 #                result = method( *newargs )
 #            except RuntimeError:
-#                logger.info((newargs))
+#                logger.info(newargs)
 #                raise
             #logger.debug(("%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )))
             
@@ -2852,7 +2843,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             
         defaults = argHelper.getDefaults()
             
-        #logger.debug((inArgs, defaults))
+        #logger.debug(inArgs, defaults)
         if defaults: logger.debug("defaults: %s" % defaults)
         wrappedApiFunc = interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
         
@@ -2889,7 +2880,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(mcl, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        logger.debug((mcl, classname, bases, classdict))
+        logger.debug( (mcl, classname, bases, classdict) )
         removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
@@ -2905,17 +2896,17 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 apicls = None
 
         if apicls is not None:
-            #logger.debug(("ADDING %s to %s" % (apicls.__name__, classname)))
+            #logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
             ApiClassNamesToPyNodeNames()[apicls.__name__] = classname
             
             if not proxy and apicls not in bases:
-                #logger.debug(("ADDING BASE",classdict['apicls']))
+                #logger.debug("ADDING BASE",classdict['apicls'])
                 bases = bases + (classdict['apicls'],)
             try:
-                logger.debug(("="*40, classname, apicls, "="*40))
+                logger.debug((classname, apicls))
                 classInfo = _api.apiClassInfo[apicls.__name__]
             except KeyError:
-                logger.info(("No api information for api class %s" % ( apicls.__name__ )))
+                logger.info("No api information for api class %s" % ( apicls.__name__ ))
             else:
                 #------------------------
                 # API Wrap
@@ -2965,7 +2956,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     # Enumerators
                     
                     for enumName, enumList in classInfo['pymelEnums'].items():
-                        logger.debug(("adding enum %s to class %s" % ( enumName, classname )))
+                        logger.debug("adding enum %s to class %s" % ( enumName, classname ))
 #                        #enum = util.namedtuple( enumName, enumList )
 #                        #classdict[enumName] = enum( *range(len(enumList)) )
 #                        # group into (key, doc) pairs
@@ -2977,13 +2968,13 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         
             if not proxy:
                 if removeAttrs:
-                    logger.debug((classname, "removing attributes", removeAttrs               ))
+                    logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
                 def __getattribute__(self, name): 
-                    #logger.debug((name        ))
+                    #logger.debug(name )
                     if name in removeAttrs and name not in EXCLUDE_METHODS: # tmp fix
-                        #logger.debug(("raising error"))
+                        #logger.debug("raising error")
                         raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
-                    #logger.debug(("getting from", bases[0]))
+                    #logger.debug("getting from", bases[0])
                     return bases[0].__getattribute__(self, name)
                     
                 classdict['__getattribute__'] = __getattribute__
@@ -3066,7 +3057,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
     
     def __new__(mcl, classname, bases, classdict):
-        logger.debug((mcl, classname, bases, classdict))
+        logger.debug( (mcl, classname, bases, classdict) )
 
         newcls = super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
         
@@ -3080,7 +3071,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
-            logger.debug(("No MEL command info available for %s" % melCmdName))
+            logger.debug("No MEL command info available for %s" % melCmdName)
         else:
             try:    
                 cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
@@ -3088,7 +3079,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             except (AttributeError, TypeError):
                 func = getattr(pmcmds,melCmdName)
 
-            logger.debug(("Generating methods for %s" % melCmdName))
+            logger.debug("Generating methods for %s" % melCmdName)
             # add documentation
             classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
             classdict['__doc__'] = classdoc
@@ -3102,7 +3093,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             
             parentClasses = [ x.__name__ for x in inspect.getmro( newcls )[1:] ]
             for flag, flagInfo in cmdInfo['flags'].items():
-                ##logger.debug((nodeType, flag))
+                ##logger.debug(nodeType, flag)
                  # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
                     continue
@@ -3111,7 +3102,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                 if flagInfo.has_key('modes'):
                     # flags which are not in maya docs will have not have a modes list unless they 
                     # have passed through testNodeCmds
-                    ##logger.debug((classname, nodeType, flag))
+                    ##logger.debug(classname, nodeType, flag)
                     #continue
                     modes = flagInfo['modes']
     
@@ -3137,7 +3128,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
                                     docstring=flagInfo['docstring'], returnFunc=returnFunc )
                                 
-                                logger.debug(("adding mel derived method %s.%s()" % (classname, methodName)))
+                                logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
                                 #setattr( newcls, methodName, wrappedMelFunc )
                             else: logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
@@ -3160,11 +3151,11 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
                                                                      docstring=flagInfo['docstring'] )
-                                logger.debug(("adding mel derived method %s.%s()" % (classname, methodName)))
+                                logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
                                 #setattr( newcls, methodName, wrappedMelFunc )
-                            else: logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        else: logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            else: logger.debug(("Skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                        else: logger.debug(("Skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
         
         for name, attr in classdict.iteritems() :
             type.__setattr__(newcls, name, attr) 
@@ -3199,14 +3190,14 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     def __new__(mcl, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        logger.debug((mcl, classname, bases, classdict))
+        logger.debug( (mcl, classname, bases, classdict) )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
 
         if apicls is not None:
             classdict['__apicls__'] = apicls
-        #logger.debug(("="*40, classname, apicls, "="*40))
+        #logger.debug("="*40, classname, apicls, "="*40)
         
         return super(MetaMayaNodeWrapper, mcl).__new__(mcl, classname, bases, classdict)
 
@@ -3273,7 +3264,7 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
     validMethods = []
     for method, methodInfoList in methods.items():
         for methodInfo in methodInfoList:
-            #logger.debug((method, methodInfoList))
+            #logger.debug(method, methodInfoList)
             if not methodInfo['outArgs']:
                 returnType = methodInfo['returnType']
                 if returnType in validTypes:
@@ -3281,7 +3272,7 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
                     types = []
                     for x in methodInfo['inArgs']:
                         type = methodInfo['argInfo'][x]['type']
-                        #logger.debug((x, type))
+                        #logger.debug(x, type)
                         types.append( type )
                         if type in validTypes:
                             count+=1
@@ -3315,7 +3306,7 @@ def readClassAnalysis( filename ):
             else:
                 pass
     f.close()
-    logger.info((info))
+    logger.info(info)
     return info
 
 def fixClassAnalysis( filename ):
@@ -3347,7 +3338,7 @@ def fixClassAnalysis( filename ):
             else:
                 pass
     f.close()
-    logger.info((info))
+    logger.info(info)
     return info
 
 def analyzeApiClass( apiTypeStr ):
@@ -3361,19 +3352,19 @@ def analyzeApiClass( apiTypeStr ):
     except KeyError:
         mayaType = None
         pymelType = None
-        #logger.debug(("no Fn", elem.key, pymelType))
+        #logger.debug("no Fn", elem.key, pymelType)
 
     try:
         apiClass = _api.ApiTypesToApiClasses()[ apiTypeStr ]
     except KeyError:
         
-        logger.info(("no Fn", apiTypeStr))
+        logger.info("no Fn %s", apiTypeStr)
         return
     
     apiClassName = apiClass.__name__
     parentApiClass = inspect.getmro( apiClass )[1]
      
-    logger.info(("CLASS", apiClassName, mayaType))
+    logger.info("CLASS %s %s", apiClassName, mayaType)
 
     # get all pymelName lookups for this class and its bases
     pymelMethodNames = {}
@@ -3406,9 +3397,9 @@ def analyzeApiClass( apiTypeStr ):
 #            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
 #            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers and not x[0].startswith('_') ])
 #            
-#            logger.info(("CLASS", apiClass.__name__, mayaType))
+#            logger.info("CLASS", apiClass.__name__, mayaType)
 #            parentApiClass = inspect.getmro( apiClass )[1]
-#            #logger.debug((parentApiClass))
+#            #logger.debug(parentApiClass)
 #            
 #            pymelMethodNames = {}
 #            # get all pymelName lookups for this class and its bases
@@ -3427,17 +3418,17 @@ def analyzeApiClass( apiTypeStr ):
 #            sharedCurrent = fnMembers.intersection( pyMembers )
 #            sharedOnAll = allFnMembers.intersection( pyMembers )
 #            sharedOnOther = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
-##            logger.info(("    [shared_leaf]"))
+##            logger.info("    [shared_leaf]")
 ##            for x in sorted( sharedCurrent ): 
-##                if x in reversePymelNames: logger.info(('    ', reversePymelNames[x], x ))
-##                else: logger.info(('    ', x))
+##                if x in reversePymelNames: logger.info('    ', reversePymelNames[x], x )
+##                else: logger.info('    ', x)
 #                
-##            logger.info(("    [shared_all]"))
+##            logger.info("    [shared_all]")
 ##            for x in sorted( sharedOnOther ): 
-##                if x in reversePymelNames: logger.info(('    ', reversePymelNames[x], x ))
-##                else: logger.info(('    ', x))
+##                if x in reversePymelNames: logger.info('    ', reversePymelNames[x], x )
+##                else: logger.info('    ', x)
 #            
-#            logger.info(("    [api]"))
+#            logger.info("    [api]")
 #            for x in sorted( fnMembers ): 
 #                if x in sharedCurrent:
 #                    prefix = '+   '
@@ -3445,16 +3436,16 @@ def analyzeApiClass( apiTypeStr ):
 ##                    prefix = '-   '
 #                else:
 #                    prefix = '    '
-#                if x in reversePymelNames: logger.info((prefix, reversePymelNames[x], x ))
-#                else: logger.info((prefix, x))
+#                if x in reversePymelNames: logger.info(prefix, reversePymelNames[x], x )
+#                else: logger.info(prefix, x)
 #            
-#            logger.info(("    [pymel]"))
-#            for x in sorted( pyMembers.difference( allFnMembers ) ): logger.info(('    ', x))
+#            logger.info("    [pymel]")
+#            for x in sorted( pyMembers.difference( allFnMembers ) ): logger.info('    ', x)
             
     
 def addPyNode( module, mayaType, parentMayaType ):
     
-    #logger.debug(("addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module)))
+    #logger.debug("addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module))
     # unicode is not liked by metaNode
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
@@ -3468,30 +3459,30 @@ def addPyNode( module, mayaType, parentMayaType ):
                 raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
         except :
             ParentPyNode = getattr( module, parentPyNodeTypeName )
-        #logger.debug(("already exists:", pyNodeTypeName, ))
+        #logger.debug("already exists:", pyNodeTypeName, )
     else:
         try:
             ParentPyNode = getattr( module, parentPyNodeTypeName )
         except AttributeError:
-            logger.info(("error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__)))
+            logger.info("error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__))
             return      
         try:
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            logger.debug(("could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )))
+            logger.debug(("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )))
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             PyNodeType.__module__ = module.__name__
             setattr( module, pyNodeTypeName, PyNodeType )
         else:
-            logger.debug(("created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
+            logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
             PyNodeType.__module__ = module.__name__
             setattr( module, pyNodeTypeName, PyNodeType )
            
     PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
     PyNodesToMayaTypes()[PyNodeType] = mayaType
-    logger.debug(("adding %s for %s" % ( PyNodeType, pyNodeTypeName )))
+    logger.debug("Adding %s for %s" % ( PyNodeType, pyNodeTypeName ))
     PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
 
     
@@ -3514,16 +3505,16 @@ def pluginLoadedCallback( module ):
                 
     def pluginLoadedCB(pluginName):
                 
-        logger.info(("Plugin loaded", pluginName))
+        logger.info("Plugin loaded %s", pluginName)
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
         pluginData[pluginName] = {}
         
         # Commands
         if commands:
             pluginData[pluginName]['commands'] = commands
-            logger.info(("pymel: adding new commands:", ', '.join(commands)))
+            logger.info("adding new commands: %s", ', '.join(commands))
             for funcName in commands:
-                #logger.debug(("adding new command:", funcName))
+                #logger.debug("adding new command:", funcName)
                 cmdlist[funcName] = getCmdInfoBasic( funcName )
                 pmcmds.addWrappedCmd(funcName)
                 func = functionFactory( funcName )
@@ -3531,9 +3522,9 @@ def pluginLoadedCallback( module ):
                     if func:
                         setattr( module, funcName, func )
                     else:
-                        util.warn( "pymel: failed to create function" )
+                        util.warn( "failed to create function" )
                 except Exception, msg:
-                    logger.info(("exception", msg))
+                    logger.info("exception", msg)
         
         # Nodes          
         mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
@@ -3545,11 +3536,12 @@ def pluginLoadedCallback( module ):
                     id = pluginData[pluginName]['callbackId']
                     if id is not None:
                         _api.MEventMessage.removeCallback( id )
+                        id.disown()
                 except KeyError:
-                    logger.info(("could not find callback id!"))
+                    logger.info("could not find callback id!")
                 
                 pluginData[pluginName]['dependNodes'] = mayaTypes
-                logger.info(("adding new nodes:", ', '.join( mayaTypes )))
+                logger.info("adding new nodes: %s", ', '.join( mayaTypes ))
                 
                 for mayaType in mayaTypes:
                     
@@ -3559,8 +3551,8 @@ def pluginLoadedCallback( module ):
                     if not util.isIterable(inheritance):
                         util.warn( "could not get inheritance for mayaType %s" % mayaType)
                     else:
-                        #logger.debug((mayaType, inheritance))
-                        #logger.debug(("adding new node:", mayaType, apiEnum, inheritence))
+                        #logger.debug(mayaType, inheritance)
+                        #logger.debug("adding new node:", mayaType, apiEnum, inheritence)
                         # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                         parent = 'dependNode'
                         for node in inheritance:
@@ -3568,7 +3560,7 @@ def pluginLoadedCallback( module ):
                             parent = node
             
             if _api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile():
-                #logger.debug(("pymel: Installing temporary plugin-loaded callback"))
+                #logger.debug("pymel: Installing temporary plugin-loaded callback")
                 id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
                 pluginData[pluginName]['callbackId'] = id
                 # scriptJob not respected in batch mode, had to use api
@@ -3583,25 +3575,25 @@ def pluginLoadedCallback( module ):
 
 def pluginUnloadedCallback( module ):               
     def pluginUnloadedCB(pluginName):
-        logger.info(("Plugin unloaded", pluginName))
+        logger.info("Plugin unloaded", pluginName)
         try:
             data = pluginData.pop(pluginName)
         except KeyError: pass
         else:
             # Commands
             commands = data.pop('commands', [])
-            logger.info(("pymel: removing commands:", ', '.join( commands )))
+            logger.info("Removing commands: %s", ', '.join( commands ))
             for command in commands:
-                #logger.debug(("removing command", command))
+                #logger.debug("removing command", command)
                 try:
                     pmcmds.removeWrappedCmd(command)
                     module.__dict__.pop(command)
                 except KeyError:
-                    util.warn( "pymel: Failed to remove %s from module %s" % (command, module.__name__) )
+                    util.warn( "Failed to remove %s from module %s" % (command, module.__name__) )
                             
             # Nodes
             nodes = data.pop('dependNodes', [])
-            logger.info(("pymel: removing nodes:", ', '.join( nodes )))
+            logger.info("Removing nodes: %s", ', '.join( nodes ))
             for node in nodes:
                 removePyNode( module, node )
     return pluginUnloadedCB
@@ -3618,26 +3610,26 @@ def installCallbacks(module):
     import pymel.tools.py2mel as py2mel
     global pluginLoadedCB
     if pluginLoadedCB is None:
-        logger.debug("adding pluginLoaded callback")
+        logger.debug("Adding pluginLoaded callback")
         pluginLoadedCB = pluginLoadedCallback(module)
         cmds.loadPlugin( addCallback=pluginLoadedCB )
         
     else:
-        logger.debug("pluginLoaded callback already exists")
+        logger.debug("PluginLoaded callback already exists")
     
     global pluginUnloadedCB
     if pluginUnloadedCB is None:
-        logger.debug("adding pluginUnloaded callback")
+        logger.debug("Adding pluginUnloaded callback")
         pluginUnloadedCB = pluginUnloadedCallback(module)
         #unloadPlugin has a bug which prevents it from using python objects, so we use our mel wrapper instead
 #        unloadCBStr = py2mel.py2melProc( pluginUnloadedCB, procName='pluginUnloadedProc' )
 #        cmds.unloadPlugin( addCallback=unloadCBStr )
     else:
-        logger.debug("pluginUnloaded callback already exists")
+        logger.debug("PluginUnloaded callback already exists")
 
     # add commands and nodes for plugins loaded prior to importing pymel
     preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
     if preLoadedPlugins:
-        logger.info(("Updating pymel with pre-loaded plugins:", ', '.join( preLoadedPlugins )))
+        logger.info("Updating pymel with pre-loaded plugins: %s", ', '.join( preLoadedPlugins ))
         for plugin in preLoadedPlugins:
             pluginLoadedCB( plugin )
