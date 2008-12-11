@@ -9,6 +9,7 @@ import pymel.util as util
 #from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
 
 
+import maya.app.python
 
 #===============================================================================
 # DEFAULT FORMAT SETUP

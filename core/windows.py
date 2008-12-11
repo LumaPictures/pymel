@@ -57,13 +57,13 @@ to pass along to your function and order of definition does not matter.
 
 
 
-import pmtypes.pmcmds as cmds
+import pmcmds as cmds
 #import maya.cmds as cmds
 
 
 import pymel.util as util
-import pmtypes.factories as _factories
-from pmtypes.factories import MetaMayaUIWrapper
+import factories as _factories
+from factories import MetaMayaUIWrapper
 from system import Path
 from language import mel
 import re

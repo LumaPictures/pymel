@@ -5,6 +5,6 @@ from mayautils import *
 from optionvars import *
 from version import *
 #assert mayaInit() 
-
+import mexceptions
 import plogging
 from plogging import getLogger

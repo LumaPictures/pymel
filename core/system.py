@@ -26,14 +26,14 @@ Also, note that the 'type' flag is set automatically for you when your path incl
 """
 
 
-import pmtypes.pmcmds as cmds
+import pmcmds as cmds
 #import maya.cmds as cmds
 import maya.OpenMaya as OpenMaya
 
 
 import pymel.util as util
-import pmtypes.factories as _factories
-from pmtypes.factories import createflag, add_docs
+import factories as _factories
+from factories import createflag, add_docs
 from pymel.util.scanf import fscanf
 
 
@@ -42,8 +42,8 @@ try:
     from luma.filepath import filepath as Filepath
     pathClass = Filepath
 except:
-    import pmtypes.path
-    pathClass = pmtypes.path.path
+    import pymel.util.path
+    pathClass = pymel.util.path.path
     
 
 

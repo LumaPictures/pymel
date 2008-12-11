@@ -1,11 +1,12 @@
 """
-Functions which are not listed in the maya documentation, such as commands created by plugins
+Functions which are not listed in the maya documentation, such as commands created by plugins, 
+as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `AttributeName`.
 """
 
-import pmtypes.pmcmds as cmds
+import pmcmds as cmds
 import re
 
-import pmtypes.factories as _factories
+import factories as _factories
 _factories.createFunctions( __name__ )
 
 

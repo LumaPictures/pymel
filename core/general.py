@@ -12,20 +12,20 @@ import sys, os, re
 from getpass import getuser
 from socket import gethostname
 
-import pmtypes.pmcmds as cmds
+import pmcmds as cmds
 #import maya.cmds as cmds
 import maya.mel as mm
 
 import inspect, warnings, timeit, time
 
 import pymel.util as util
-import pmtypes.factories as _factories
-from pmtypes.factories import queryflag, editflag, createflag, add_docs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
+import factories as _factories
+from factories import queryflag, editflag, createflag, add_docs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
-import pmtypes.wrappedtypes as _types
-import pmtypes.path as _path
+import pmtypes as _types
+import pymel.util.path as _path
 import pymel.util.nameparse as nameparse
 
 # to make sure Maya is up
@@ -1985,7 +1985,7 @@ class Attribute(PyNode):
         [4.0, 5.0, 6.0]
         >>> # translation is returned as a vector class
         >>> print type(t) 
-        <class 'pymel.core.pmtypes.wrappedtypes.Vector'>
+        <class 'pymel.core.pmtypes.Vector'>
         
     `set` is flexible in the types that it will accept, but `get` will always return the same type 
     for a given attribute. This can be a potential source of confusion:
@@ -2125,6 +2125,7 @@ class Attribute(PyNode):
             ... 
             defaultLightSet.dagSetMembers[0]
             defaultLightSet.dagSetMembers[1]
+            defaultLightSet.dagSetMembers[2]
         """
         if self.isMulti():
             return self
@@ -2134,29 +2135,46 @@ class Attribute(PyNode):
             
     def next(self):
         """
-        iterator for multi-attributes
-        
-
+        iterator for multi-attributes.  Iterates over the sparse array, so if an idex has not been set
+        or connected, it will be skipped.
         """
 #        index = self.index()
 #        size = self.size()
-        index = self.__dict__.get('_iterIndex', 0)
         try:
-            size = self.__dict__['_iterSize']
-        except KeyError:
-            size = self.size()
-            self.__dict__['_iterSize'] = size
+            index = self.__dict__['_iterIndex']
+            size, indices = self.__dict__['_iterIndices']
             
+        except KeyError:
+            #size = self.size()
+            try:
+                size, indices = self._getArrayIndices()
+            except RuntimeError:
+                raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
+            index = 0
+            self.__dict__['_iterIndices'] = size, indices
+
         if index >= size:
             self.__dict__.pop('_iterIndex')
-            self.__dict__.pop('_iterSize')
+            self.__dict__.pop('_iterIndices')
             raise StopIteration
 
         else:
             self.__dict__['_iterIndex'] = index+1
-            return self[index]
-          
-
+            return self[indices[index]]
+    
+    def getArrayIndices(self):
+        """
+        Get all set or connected array indices. Returns None if this is not an array Attribute
+        """
+        try:
+            self._getArrayIndices()[1]
+        except RuntimeError: pass
+    
+    def numElements(self):
+        try:
+            self._getArrayIndices()[0]
+        except RuntimeError: pass
+        
     def __str__(self):
         """
         :rtype: `str`
@@ -2816,27 +2834,19 @@ class Attribute(PyNode):
         
         :rtype: `Attribute` list  
         """
-        return map( 
-            lambda x: Attribute( self.node() + '.' + x ), 
-            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listSiblings=True) )
-                )
-
-        
-#    def getParent(self):
-#        """attributeQuery -listParent"""    
-#        
-#        if self.count('.') > 1:
-#            return Attribute('.'.join(self.split('.')[:-1]))
-#        try:
-#            return Attribute( self.node() + '.' + cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listParent=True)[0] )
-#        except TypeError:
-#            return None
+        try:
+            return self.getParent().getChildren()
+        except:
+            pass
 
     def getParent(self):
         """
         :rtype: `Attribute`  
         """
-        return Attribute( self.node(), self.__apimfn__().parent() )
+        try:
+            return Attribute( self.node(), self.__apimfn__().parent() )
+        except:
+            pass
 #}      
 
 

@@ -1,8 +1,8 @@
 """functions related to modeling"""
 
-import pmtypes.factories as _factories
+import factories as _factories
 import general
-import pmtypes.pmcmds as cmds
+import pmcmds as cmds
 
 def pointPosition( *args, **kwargs ):
     return general.MPoint( cmds.pointPosition(*args, **kwargs) )

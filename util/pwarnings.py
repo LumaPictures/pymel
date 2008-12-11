@@ -1,7 +1,7 @@
 """
-    Redefine format warning to avoid getting garbage at end of line when raised directly from Maya console
-    and define a UserWarning class that does only print it's message (no line or module info)
-    
+Redefine format warning to avoid getting garbage at end of line when raised directly from Maya console
+and define a UserWarning class that does only print it's message (no line or module info)
+
     >>> import sys
     >>> sys.stderr = sys.stdout   
     >>> warn("An ExecutionWarning", ExecutionWarning) #doctest: +ELLIPSIS

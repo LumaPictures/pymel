@@ -1153,13 +1153,14 @@ assert _mayaInit()
 #import tools
 #print "imported tools"
 #
-import core.pmtypes.factories as factories
+import core.factories as factories
 plogging.mainLogger.debug( 'imported factories' )
 
 from core import *
 plogging.mainLogger.debug( 'imported core' )
 
-from util.test import pymel_test
+# should not spend startup time with tests unless we are debugging
+#from util.test import pymel_test
 
 #_module = __import__('core.other', globals(), locals(), [''])
 

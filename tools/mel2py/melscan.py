@@ -4,8 +4,8 @@ from pymel.util.external.ply import *
 from pymel.util import unescape
 import pymel
 import pymel.util as util
-import pymel.core.pmtypes.factories as factories
-import pymel.core.pmtypes.path as path
+import pymel.core.factories as factories
+import pymel.util.path as path
 
 tokens = mellex.tokens
 def p_translation_unit(t):

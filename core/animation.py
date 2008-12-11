@@ -1,10 +1,10 @@
 """functions related to animation"""
 
 import pymel.util as util
-import pmtypes.factories as _factories
+import factories as _factories
 import general
 
-import pmtypes.pmcmds as cmds
+import pmcmds as cmds
 #import maya.cmds as cmds
 import maya.mel as mm
 

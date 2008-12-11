@@ -163,11 +163,11 @@ quickly as i can.
 
 
 from melparse import *
-import pymel.core.pmtypes.path as path
+import pymel.util.path as path
 from pymel.util.external.ply.lex import LexError
 import pymel.util as util
 import pymel.mayahook as mayahook
-import pymel.core.pmtypes.factories as _factories
+import pymel.core.factories as _factories
 import pymel
 import os
 

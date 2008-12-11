@@ -2,7 +2,7 @@ import sys, os, types, doctest, modulefinder
 from StringIO import StringIO
 from unittest import *
 
-from pymel import lastFormattedException
+from pymel.mayahook.mexceptions import lastFormattedException
 import pymel.util
 from pymel.util import warn
 
@@ -460,7 +460,7 @@ def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_")
     
     To run tests for a module, use pymel_test(module),
     where module can be the full module path string:
-    >>> pymel_test('pymel.core.pmtypes.pmcmds')  #doctest: +ELLIPSIS
+    >>> pymel_test('pymel.core.pmcmds')  #doctest: +ELLIPSIS
     ...
     
     

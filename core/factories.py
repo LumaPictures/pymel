@@ -1,4 +1,6 @@
-
+"""
+Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
+"""
 
 from pymel.util.trees import *
 import pymel.util as util
