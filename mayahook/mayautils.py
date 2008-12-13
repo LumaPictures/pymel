@@ -819,7 +819,7 @@ def executeDeferred(func):
     import maya.utils
     import maya.OpenMaya
     if maya.OpenMaya.MGlobal.mayaState() == maya.OpenMaya.MGlobal.kInteractive:
-        maya.utils.executeDeferred()
+        maya.utils.executeDeferred(func)
     else:
         func()
     
