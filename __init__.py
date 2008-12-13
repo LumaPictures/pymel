@@ -910,10 +910,10 @@ Manipulating Names of Non-Existent Objects
 
 One advantage of the old way of dealing with non-existent objects was that you could use the name parsing methods of the PyNode
 classes to manipulate the object's name until you found what you were looking for.  To allow for this, we've added
-several classes which operate on non-existent nodes, except they contain only methods for string parsing and existence testing.
+several classes which operate on non-existent nodes and contain only methods for string parsing and existence testing.
 These nodes can be found in the `other` module and are named `NameParser`, `AttributeName`, `DependNodeName`, and `DagNodeName`.
 
-Also, there is a new fully-featured maya name parsing module, `util.nameparser`, which is based on Python Lex Yacc.  It parses maya
+Also, there is a new fully-featured maya name parsing module, `util.nameparser`, which is based on a fast parser called Python Lex Yacc.  It parses maya
 object names into hierarchical name tokens, accessible via cascading class attributes.
 
 
@@ -950,8 +950,21 @@ primarily to improve the clarity of the documentation.
 
 To use maya functions in an external python interpreter, maya provides a handy executable called mayapy.  You can find it in the maya bin 
 directory.  Pymel has some more tricks up its sleeves in this arena as well.  When pymel detects that it is being imported in an external
-interpreter it automatically initializes maya.standalone and adds variables to your environment from your Maya.env file, steps which you 
-would normally have to manage yourself.
+interpreter it performs these operations:
+
+    1. initializes maya.standalone ( which triggers importing userSetup.py )
+    2. parses your Maya.env and adds variables to your environment
+    3. sources userSetup.mel
+     
+These are all steps you would normally have to do yourself. Because of these improvements, working in this standalone environment 
+is nearly identical to working in interactive mode, except of course you can't create windows.  However, there are two caveats
+that you must be aware of.  
+
+    - scriptJobs do not work: use callbacks derived from `api.MMessage` instead
+    - maya.cmds is not available in userSetup.py (and thus any function in pymel that relies on maya.cmds)
+
+The second one might seem a little tricky, but we've already come up with the solution: a utility function called `pymel.mayahook.executeDeferred`.
+Jump to the docs for the function for more information on how to use it.
 
 
 """
