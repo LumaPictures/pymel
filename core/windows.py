@@ -338,13 +338,19 @@ class FormLayout(UI):
 # for backwards compatiblity
 AutoLayout = FormLayout        
 
+def autoLayout(*args, **kwargs):
+    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+    ret = formLayout(*args, **kwargs)
+    ret.__init__(**kw)
+    return ret
+
 def verticalLayout(*args, **kwargs):
     kwargs['orientation'] = 'VERTICAL'
-    return formLayout(*args, **kwargs)
+    return autoLayout(*args, **kwargs)
 
 def horizontalLayout(*args, **kwargs):
     kwargs['orientation'] = 'HORIZONTAL'
-    return formLayout(*args, **kwargs)
+    return autoLayout(*args, **kwargs)
 
 
 
