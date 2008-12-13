@@ -2535,8 +2535,9 @@ def p_error(t):
 # Build the grammar
 
 lexer = lex.lex(module=mellex)
-
-parser = yacc.yacc(method='''LALR''', debug=0 )
+parserspath = os.path.dirname(__file__)
+parserspath = os.path.join(parserspath, 'parsers')
+parser = yacc.yacc(method='''LALR''', debug=0, outputdir=parserspath )
 
 
 class MelParser(object):
