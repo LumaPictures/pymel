@@ -6,7 +6,8 @@ import logging
 from logging import *
 import pymel.util as util
 
-#from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
+# The oython 2.6 version of 'logging' hids these functions, so we need to import explcitly
+from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
 
 
 import maya.app.python
@@ -155,7 +156,7 @@ def redirectLoggerToMayaOutput(*args):
             _fixMayaOutput()
             newHandler = StreamHandler(sys.stdout)
             newHandler.setFormatter(formatter)
-        #    newHandler.setLevel( mainLogger.getEffectiveLevel() )
+            #newHandler.setLevel( mainLogger.getEffectiveLevel() )
             mainLogger.addHandler( newHandler )
             mainLogger.removeHandler(console)
 
