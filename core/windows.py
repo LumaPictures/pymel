@@ -210,17 +210,8 @@ class Window(UI):
         cmds.showWindow(self)
     def delete(self):
         cmds.deleteUI(self, window=True)
-    
     def __aftercreate__(self):
         self.show()
-                
-#def formLayout(*args, **kwargs):
-#    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
-#    logger.debug("kw: %r" % kw)
-#    ret = cmds.formLayout(*args, **kwargs)
-#    if not (set(['q','query','e','edit']) & set(kwargs)):   # check if in query or edit mode
-#        ret = FormLayout(ret, **kw)
-#    return ret
 
 class FormLayout(UI):
     __metaclass__ = MetaMayaUIWrapper
@@ -541,8 +532,36 @@ class SmartLayoutCreator:
         return creation
 
 SLC = SmartLayoutCreator
+class SmartLayoutCreator2(SmartLayoutCreator):
+    def __init__(self, uiFunc=None, name=None, childCreators=None, postFunc=None, **kwargs):
+        SmartLayoutCreator.__init__(self,name, uiFunc, kwargs, postFunc, childCreators)
+        
+SLT = SmartLayoutCreator2
+"""
+SLT gives a cleaner interface to SLC. 
 
+The arguments are the gui function, an optional access 'name', and any keyword arguments acceptable by the Maya equivalent of that function. 
+Finally, the optional 'childCreators' accepts a list of additional SLTs that would be nested under the parent gui element.
+As before, SLT returns a dictionary which contains the 'named' gui elements for easy access.
+The 'SLT.create' method accepts a dictionary into which it will put the named elements, so this can normally be 'self.__dict__' if a gui is initialized from within a class method.
+See '_ListSelectLayout' below.
 
+Example:
+        res = SLT(window, 'win', title='SLT Example', childCreators=[
+            SLT(verticalLayout, ratios=[0,0,1,1,1], bgc=[.5,.5,.5], childCreators=[
+                SLT(text, l='Label 1', childCreators=[
+                    SLT(popupMenu, b=3, childCreators=[
+                        SLT(menuItem, l='Example 1'),
+                        SLT(menuItem, l='Example 2'),
+                    ])
+                ]),
+                SLT(textField, tx="Test"),
+            ] + [SLT(button, name='btn%s' % i, l='Button %s'%i) for i in "ABC"])
+        ]).create()
+        
+        res['btnA'].backgroundColor([1,.5,.5])
+        map(res['btnA'].setVisible,[0,1])
+"""
 
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
     dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
