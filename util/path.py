@@ -1,18 +1,5 @@
 """ path.py - An object representing a path to a file or directory.
 
-Example:
-
-from path import path
-d = path('/home/guido/bin')
-for f in d.files('*.py'):
-    f.chmod(0755)
-
-This module requires Python 2.2 or later.
-
-
-URL:     http://www.jorendorff.com/articles/python/path
-Author:  Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)
-Date:    7 Mar 2004
 """
 
 
@@ -61,17 +48,6 @@ try:
 except AttributeError:
     pass
 
-# Pre-2.3 workaround for booleans
-try:
-    True, False
-except NameError:
-    True, False = 1, 0
-
-# Pre-2.3 workaround for basestring.
-try:
-    basestring
-except NameError:
-    basestring = (str, unicode)
 
 # Universal newline support
 _textmode = 'r'
@@ -82,7 +58,55 @@ if hasattr(file, 'newlines'):
 class TreeWalkWarning(Warning):
     pass
 
-class path(_base):
+
+class PathBase(_base):
+    pass
+
+_externalFuncs = [
+    (os, 
+        ['chroot', 'startfile', 'rmdir', 'removedirs', 'remove', 'renames', 'rename',
+         'utime', 'chmod', 'chown', 'statvfs', 'pathconf', 'access', 'stat', 'lstat',
+            ]),
+    (os.path, 
+        ['getctime', 'getsize', 'getmtime', 'getatime', 'samefile', 'exists', 'isdir',
+         'isfile','islink','ismount','isabs','basename',
+         '*abspath','*normcase','*normpath','*realpath','*expanduser','*expandvars','*dirname'
+            ]),
+    (shutil, 
+        ['copyfile', 'copymode', 'copystat', 'copy', 'copy2', 'copytree', 'move', 'rmtree']),
+    ]
+
+class _CastToPath():
+    
+    def __init__(self,func):
+        self.func = func
+        self.doc = func.__doc__
+        self.name = func.__name__
+    
+    def __call__(self,*args, **kwargs):
+        return path(self.func(*args, **kwargs))
+    
+    def __str__(self): return str(self.func)     
+    def __repr__(self): return repr(self.func)
+    __doc__ = property(lambda self: self.func.__doc__)     
+
+for (module, funcs) in _externalFuncs:
+    for func in funcs:
+        if func.startswith("*"):
+            recast = True
+            func = func[1:]
+        if hasattr(module, func):
+            funcObj = getattr(module,func)
+            docstr = funcObj.__doc__ 
+            if recast:
+                funcObj = _CastToPath(funcObj)
+            setattr(PathBase,func,funcObj)
+            if func.startswith("get"):
+                prop = func.replace("get","")
+                setattr(PathBase, prop, property(funcObj, None, None, docstr) )
+
+
+class path(PathBase):
     """ Represents a filesystem path.
 
     For documentation on individual methods, consult their
@@ -96,19 +120,11 @@ class path(_base):
 
     # Adding a path and a string yields a path.
     def __add__(self, more):
-        try:
-            resultStr = _base.__add__(self, more)
-        except TypeError:  #Python bug
-            resultStr = NotImplemented
-        if resultStr is NotImplemented:
-            return resultStr
+        resultStr = _base.__add__(self, more)
         return self.__class__(resultStr)
 
     def __radd__(self, other):
-        if isinstance(other, basestring):
-            return self.__class__(other.__add__(self))
-        else:
-            return NotImplemented
+        return self.__class__(_base(other).__add__(self))
 
     # The / operator joins paths.
     def __div__(self, rel):
@@ -122,23 +138,10 @@ class path(_base):
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
 
+    @classmethod
     def getcwd(cls):
         """ Return the current working directory as a path object. """
         return cls(_getcwd())
-    getcwd = classmethod(getcwd)
-
-
-    # --- Operations on path strings.
-
-    isabs = os.path.isabs
-    def abspath(self):       return self.__class__(os.path.abspath(self))
-    def normcase(self):      return self.__class__(os.path.normcase(self))
-    def normpath(self):      return self.__class__(os.path.normpath(self))
-    def realpath(self):      return self.__class__(os.path.realpath(self))
-    def expanduser(self):    return self.__class__(os.path.expanduser(self))
-    def expandvars(self):    return self.__class__(os.path.expandvars(self))
-    def dirname(self):       return self.__class__(os.path.dirname(self))
-    basename = os.path.basename
     
     def expand(self):
         """ Clean up a filename by calling expandvars(),
@@ -162,14 +165,14 @@ class path(_base):
         return self.__class__(drive)
 
     parent = property(
-        dirname, None, None,
+        PathBase.dirname, None, None,
         """ This path's parent directory, as a new path object.
 
         For example, path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
         """)
 
     name = property(
-        basename, None, None,
+        PathBase.basename, None, None,
         """ The name of this file or directory without the full path.
 
         For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
@@ -229,19 +232,6 @@ class path(_base):
         """
         return self.splitext()[0]
 
-    if hasattr(os.path, 'splitunc'):
-        def splitunc(self):
-            unc, rest = os.path.splitunc(self)
-            return self.__class__(unc), rest
-
-        def _get_uncshare(self):
-            unc, r = os.path.splitunc(self)
-            return self.__class__(unc)
-
-        uncshare = property(
-            _get_uncshare, None, None,
-            """ The UNC mount point for this path.
-            This is empty for paths on local drives. """)
 
     def joinpath(self, *args):
         """ Join two or more path components, adding a separator
@@ -804,110 +794,6 @@ class path(_base):
             f.close()
         return m.digest()
 
-    # --- Methods for querying the filesystem.
-
-    exists = os.path.exists
-    isdir = os.path.isdir
-    isfile = os.path.isfile
-    islink = os.path.islink
-    ismount = os.path.ismount
-
-    if hasattr(os.path, 'samefile'):
-        samefile = os.path.samefile
-
-    getatime = os.path.getatime
-    atime = property(
-        getatime, None, None,
-        """ Last access time of the file. """)
-
-    getmtime = os.path.getmtime
-    mtime = property(
-        getmtime, None, None,
-        """ Last-modified time of the file. """)
-
-    if hasattr(os.path, 'getctime'):
-        getctime = os.path.getctime
-        ctime = property(
-            getctime, None, None,
-            """ Creation time of the file. """)
-
-    getsize = os.path.getsize
-    size = property(
-        getsize, None, None,
-        """ Size of the file, in bytes. """)
-
-    if hasattr(os, 'access'):
-        def access(self, mode):
-            """ Return true if current user has access to this path.
-
-            mode - One of the constants os.F_OK, os.R_OK, os.W_OK, os.X_OK
-            """
-            return os.access(self, mode)
-
-    def stat(self):
-        """ Perform a stat() system call on this path. """
-        return os.stat(self)
-
-    def lstat(self):
-        """ Like path.stat(), but do not follow symbolic links. """
-        return os.lstat(self)
-
-    def get_owner(self):
-        r""" Return the name of the owner of this file or directory.
-
-        This follows symbolic links.
-
-        On Windows, this returns a name of the form ur'DOMAIN\User Name'.
-        On Windows, a group can own a file or directory.
-        """
-        if os.name == 'nt':
-            if win32security is None:
-                raise Exception("path.owner requires win32all to be installed")
-            desc = win32security.GetFileSecurity(
-                self, win32security.OWNER_SECURITY_INFORMATION)
-            sid = desc.GetSecurityDescriptorOwner()
-            account, domain, typecode = win32security.LookupAccountSid(None, sid)
-            return domain + u'\\' + account
-        else:
-            if pwd is None:
-                raise NotImplementedError("path.owner is not implemented on this platform.")
-            st = self.stat()
-            return pwd.getpwuid(st.st_uid).pw_name
-
-    owner = property(
-        get_owner, None, None,
-        """ Name of the owner of this file or directory. """)
-
-    if hasattr(os, 'statvfs'):
-        def statvfs(self):
-            """ Perform a statvfs() system call on this path. """
-            return os.statvfs(self)
-
-    if hasattr(os, 'pathconf'):
-        def pathconf(self, name):
-            return os.pathconf(self, name)
-
-
-    # --- Modifying operations on files and directories
-
-    def utime(self, times):
-        """ Set the access and modified times of this file. """
-        os.utime(self, times)
-
-    def chmod(self, mode):
-        os.chmod(self, mode)
-
-    if hasattr(os, 'chown'):
-        def chown(self, uid, gid):
-            os.chown(self, uid, gid)
-
-    def rename(self, new):
-        os.rename(self, new)
-
-    def renames(self, new):
-        os.renames(self, new)
-
-
     # --- Create/delete operations on directories
 
     def mkdir(self, mode=0777):
@@ -916,14 +802,9 @@ class path(_base):
     def makedirs(self, mode=0777):
         os.makedirs(self, mode)
 
-    def rmdir(self):
-        os.rmdir(self)
 
-    def removedirs(self):
-        os.removedirs(self)
-
-
-    # --- Modifying operations on files
+# These we can probably remove for the purpose of using the path module within pymel.             
+class pathAdvanced(path):
 
     def touch(self):
         """ Set the access/modified times of this file to the current time.
@@ -933,12 +814,8 @@ class path(_base):
         os.close(fd)
         os.utime(self, None)
 
-    def remove(self):
-        os.remove(self)
-
     def unlink(self):
         os.unlink(self)
-
 
     # --- Links
 
@@ -972,26 +849,44 @@ class path(_base):
                 return (self.parent / p).abspath()
 
 
-    # --- High-level functions from shutil
+    def get_owner(self):
+        r""" Return the name of the owner of this file or directory.
 
-    copyfile = shutil.copyfile
-    copymode = shutil.copymode
-    copystat = shutil.copystat
-    copy = shutil.copy
-    copy2 = shutil.copy2
-    copytree = shutil.copytree
-    if hasattr(shutil, 'move'):
-        move = shutil.move
-    rmtree = shutil.rmtree
+        This follows symbolic links.
 
+        On Windows, this returns a name of the form ur'DOMAIN\User Name'.
+        On Windows, a group can own a file or directory.
+        """
+        if os.name == 'nt':
+            if win32security is None:
+                raise Exception("path.owner requires win32all to be installed")
+            desc = win32security.GetFileSecurity(
+                self, win32security.OWNER_SECURITY_INFORMATION)
+            sid = desc.GetSecurityDescriptorOwner()
+            account, domain, typecode = win32security.LookupAccountSid(None, sid)
+            return domain + u'\\' + account
+        else:
+            if pwd is None:
+                raise NotImplementedError("path.owner is not implemented on this platform.")
+            st = self.stat()
+            return pwd.getpwuid(st.st_uid).pw_name
 
-    # --- Special stuff from os
+    owner = property(
+        get_owner, None, None,
+        """ Name of the owner of this file or directory. """)
 
-    if hasattr(os, 'chroot'):
-        def chroot(self):
-            os.chroot(self)
+    if hasattr(os.path, 'splitunc'):
+        def splitunc(self):
+            unc, rest = os.path.splitunc(self)
+            return self.__class__(unc), rest
 
-    if hasattr(os, 'startfile'):
-        def startfile(self):
-            os.startfile(self)
+        def _get_uncshare(self):
+            unc, r = os.path.splitunc(self)
+            return self.__class__(unc)
 
+        uncshare = property(
+            _get_uncshare, None, None,
+            """ The UNC mount point for this path.
+            This is empty for paths on local drives. """)    
+    
+            
