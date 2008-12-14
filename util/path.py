@@ -55,8 +55,17 @@ if hasattr(file, 'newlines'):
     _textmode = 'U'
 
 
-class TreeWalkWarning(Warning):
+class PathWalkWarning(Warning):
     pass
+
+def _handleException(exc, mode, warningObject):
+    if errors == 'ignore':
+        return
+    elif errors == 'warn':
+        warnings.warn(warningObject.__class__(warningObject.message % dict(exc=exc)))
+    else:
+        raise exc
+
 
 
 class PathBase(_base):
@@ -80,7 +89,7 @@ class _CastToPath():
     
     def __init__(self,func):
         self.func = func
-        self.doc = func.__doc__
+        self.__doc__ = func.__doc__
         self.name = func.__name__
     
     def __call__(self,*args, **kwargs):
@@ -88,10 +97,10 @@ class _CastToPath():
     
     def __str__(self): return str(self.func)     
     def __repr__(self): return repr(self.func)
-    __doc__ = property(lambda self: self.func.__doc__)     
 
 for (module, funcs) in _externalFuncs:
     for func in funcs:
+        recast = False
         if func.startswith("*"):
             recast = True
             func = func[1:]
@@ -374,16 +383,9 @@ class path(PathBase):
 
         try:
             childList = self.listdir()
-        except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-            else:
-                raise
+        except Exception, exc:
+            _handleException(exc,errors,
+                PathWalkWarning("Unable to list directory '%s': %%(exc)s"))
 
         for child in childList:
             if pattern is None or child.fnmatch(pattern):
@@ -391,16 +393,7 @@ class path(PathBase):
             try:
                 isdir = child.isdir()
             except Exception:
-                if errors == 'ignore':
-                    isdir = False
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (child, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                    isdir = False
-                else:
-                    raise
+                _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s"))
 
             if isdir:
                 for item in child.walk(pattern, errors):
@@ -425,15 +418,7 @@ class path(PathBase):
         try:
             dirs = self.dirs(realpath=realpath)
         except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-            else:
-                raise
+            _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s"))
         
         parent_realpath = None
         for child in dirs:
@@ -470,30 +455,14 @@ class path(PathBase):
         try:
             childList = self.listdir()
         except Exception:
-            if errors == 'ignore':
-                return
-            elif errors == 'warn':
-                warnings.warn(
-                    "Unable to list directory '%s': %s"
-                    % (self, sys.exc_info()[1]),
-                    TreeWalkWarning)
-            else:
-                raise
+            _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s"))
 
         for child in childList:
             try:
                 isfile = child.isfile()
                 isdir = not isfile and child.isdir()
             except:
-                if errors == 'ignore':
-                    return
-                elif errors == 'warn':
-                    warnings.warn(
-                        "Unable to access '%s': %s"
-                        % (self, sys.exc_info()[1]),
-                        TreeWalkWarning)
-                else:
-                    raise
+                _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s"))
 
             if isfile:
                 if pattern is None or child.fnmatch(pattern):
