@@ -67,8 +67,8 @@ from factories import MetaMayaUIWrapper
 from system import Path
 from language import mel
 import re
-import logging
-logger = logging.getLogger(__name__)
+import pymel.mayahook.plogging as plogging
+logger = plogging.getLogger(__name__)
 
 #-----------------------------------------------
 #  Enhanced UI Commands
