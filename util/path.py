@@ -21,22 +21,9 @@
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs
+import sys, pwarnings, os, fnmatch, glob, shutil, codecs
 
-__version__ = '2.1'
 __all__ = ['path']
-
-# Platform-specific support for path.owner
-if os.name == 'nt':
-    try:
-        import win32security
-    except ImportError:
-        win32security = None
-else:
-    try:
-        import pwd
-    except ImportError:
-        pwd = None
 
 # Pre-2.3 support.  Are unicode filenames supported?
 _base = str
@@ -54,6 +41,8 @@ _textmode = 'r'
 if hasattr(file, 'newlines'):
     _textmode = 'U'
 
+class FunctionUnavailableWarning(Warning):
+    pass
 
 class PathWalkWarning(Warning):
     pass
@@ -65,8 +54,6 @@ def _handleException(exc, mode, warningObject):
         warnings.warn(warningObject.__class__(warningObject.message % dict(exc=exc)))
     else:
         raise exc
-
-
 
 class PathBase(_base):
     pass
@@ -98,6 +85,11 @@ class _CastToPath():
     def __str__(self): return str(self.func)     
     def __repr__(self): return repr(self.func)
 
+# Dynamically build the PathBase class from the definitions above.
+# - functions are inserted as methods from their respective modules;
+# - functions prefixed with 'get' are also inserted as class properties
+# - functions prefixed wtih an asterisk ('*') are wrapped with a _CastToPath object,
+#   which converts the result into a new path object    
 for (module, funcs) in _externalFuncs:
     for func in funcs:
         recast = False
@@ -113,6 +105,10 @@ for (module, funcs) in _externalFuncs:
             if func.startswith("get"):
                 prop = func.replace("get","")
                 setattr(PathBase, prop, property(funcObj, None, None, docstr) )
+        else:
+            pwarnings.warn(FunctionUnavailableWarning(
+                "Could not add '%s' from module '%s' to the 'path' class" % 
+                (func, module.__name__)))
 
 
 class path(PathBase):
@@ -771,9 +767,23 @@ class path(PathBase):
     def makedirs(self, mode=0777):
         os.makedirs(self, mode)
 
+#===============================================================================
+# These we can probably remove for the purpose of using the path module within pymel. 
+#===============================================================================
 
-# These we can probably remove for the purpose of using the path module within pymel.             
-class pathAdvanced(path):
+# Platform-specific support for PathAdvanced.owner
+if os.name == 'nt':
+    try:
+        import win32security
+    except ImportError:
+        win32security = None
+else:
+    try:
+        import pwd
+    except ImportError:
+        pwd = None
+
+class PathAdvanced(path):
 
     def touch(self):
         """ Set the access/modified times of this file to the current time.
