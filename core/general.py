@@ -1193,7 +1193,8 @@ class PyNode(util.ProxyUnicode):
                             raise MayaNodeError( argObj )
 
             #-- Components
-            if isinstance( argObj, int ) or isinstance( argObj, slice ):
+            if isinstance( argObj, (int,slice) ) or \
+                    (isinstance( argObj, (list,tuple) ) and len(argObj) and isinstance(argObj[0],slice)):
                 #pymelType, obj, name = _getPymelType( attrNode._apiobject )
                 obj = {'ComponentIndex' : argObj }
                 # if we are creating a component class using an int or slice, then we must specify a class type:
@@ -1525,8 +1526,34 @@ class _Component( PyNode ):
     ...     colors.append(color)
     
     """
+    @staticmethod
+    def _formatSlice(startIndex, stopIndex, step):
+        if startIndex == stopIndex:
+            sliceStr = '%s' % startIndex
+        elif step:
+            sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
+        else:
+            sliceStr = '%s:%s' % (startIndex, stopIndex)
+        return sliceStr 
     
+    @staticmethod
+    def _getRange(start, stop, step):
+        if step is not None:   
+            indices = range( start, stop+1, step)
+        else:
+            indices = range( start, stop+1)
+            
+        return indices
+    
+    @staticmethod
+    def _getMayaSlice( array ):
+        """given an MIntArray, convert to a maya-formatted slice"""
+        
+        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( [ array[i] for i in range( array.length() ) ] ) ]
+          
     def __init__(self, *args, **kwargs ):
+        
+
         
         isApiComponent = False 
         component = None
@@ -1554,8 +1581,10 @@ class _Component( PyNode ):
         # DEFAULTS
         self._range = None # a list of component indices
         self._rangeIndex = 0 # an index into the range
-        self._startIndex = 0
-        self._stopIndex = 0
+        self._sliceStr = ''
+        self._slices = None
+        
+        stopIndex = 0
         self.isReset = True # if the iterator is at its first item
    
         # instantiate the api component iterator    
@@ -1563,29 +1592,67 @@ class _Component( PyNode ):
         
         
         if isApiComponent:
-            self._startIndex = self.getIndex()
-            self._stopIndex = self._startIndex + self.count()-1
-            self._range = xrange( self._startIndex, self._stopIndex+1)
+            startIndex = self.getIndex()
+            stopIndex = startIndex + self.count()-1
+            if startIndex == stopIndex:
+                self._sliceStr = '%s' % startIndex
+            else:
+                self._sliceStr = '%s:%s' % (startIndex, stopIndex)
+            self._slices = [ slice(startIndex, stopIndex) ]   
+            self._range = xrange( startIndex, stopIndex+1)
             
         elif isinstance(component, int):
-            self._startIndex = component
-            self._stopIndex = component
+            self._sliceStr = '%s' % component
             self._range = [component]
             su = api.MScriptUtil()
             self.__apimfn__().setIndex( component, su.asIntPtr() )  # bug workaround
+            self._slices = [ slice(component) ]  
             
         elif isinstance(component, slice):
-            self._startIndex = component.start
-            self._stopIndex = component.stop
-            self._range = range( self._startIndex, self._stopIndex+1)
+            startIndex = component.start
+            stopIndex = component.stop
+            step = component.step
+            
+            self._slices = [ component ]  
+            self._sliceStr = self._formatSlice( startIndex, stopIndex, step)
+            self._range = self._getRange( startIndex, stopIndex, step)
+            
             su = api.MScriptUtil()
-            self.__apimfn__().setIndex( component.start, su.asIntPtr() )  # bug workaround
+            self.__apimfn__().setIndex( startIndex, su.asIntPtr() )  # bug workaround
             
+        elif isinstance(component, (list,tuple) ) and len(component) and isinstance( component[0], slice ):
+    
+            indices = []
+            sliceStrs = []
+            self._range = []
+            self._slices = component
+            for x in component:
+                if isinstance(x, int):
+                    startIndex = x
+                    stopIndex = x
+                    step = None
+                else:
+                    startIndex = x.start
+                    stopIndex = x.stop
+                    step = x.step
+                
+                sliceStr = self._formatSlice( startIndex, stopIndex, step)
+                indices = self._getRange( startIndex, stopIndex, step)
+                
+                sliceStrs.append( sliceStr )
+                self._range += indices
+            
+            self._sliceStr = ','.join(sliceStrs)
+            su = api.MScriptUtil()
+            self.__apimfn__().setIndex( self._range[0], su.asIntPtr() )  # bug workaround
+              
         elif component is None:
-            self._stopIndex = self.count()-1
-            
+            startIndex = 0
+            stopIndex = self.count()-1
+            self._sliceStr = '%s:%s' % (startIndex, stopIndex)
+            self._slices = [ slice(startIndex, stopIndex) ]
         else:
-            raise TypeError, "component must be an MObject, an integer, or a slice"
+            raise TypeError, "component must be an MObject, an integer, a slice, or a tuple of slices"
         
         #print "START-STOP", self._startIndex, self._stopIndex
         #self._node = node
@@ -1601,12 +1668,20 @@ class _Component( PyNode ):
 #        
 #        return u'%s.%s[0:%s]' % (self._node, self.__componentLabel__, self.count()-1)
         
-        if self._startIndex == self._stopIndex:
-            return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._startIndex )
-        
-        return u'%s.%s[%s:%s]' % (self._node, self.__componentLabel__, self._startIndex, self._stopIndex )
-    
-    
+        return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._sliceStr )
+
+    def __melobject__(self):
+        """convert components with pymel extended slices into a list of maya.cmds compatible names"""
+        ranges = []
+        for slice in self._slices:
+            if slice.step in [None,1]:
+                ranges.append( self._formatSlice( slice.start, slice.stop, slice.step ) )
+            else:
+                # maya cannot do steps
+                ranges +=  [ str(x) for x in self._getRange( slice.start, slice.stop, slice.step ) ]
+                
+        return [ u'%s.%s[%s]' % ( self._node, self.__componentLabel__, range ) for range in ranges ]
+                
     def __apiobject__(self):
         return self.__apiobjects__['MObjectHandle'].object()
     
@@ -1633,11 +1708,9 @@ class _Component( PyNode ):
     
     def __unicode__(self): 
         return self.name()                                
+        
     
     def __iter__(self): 
-        #print "ITER"
-        #su = api.MScriptUtil()
-        #api.MItMeshEdge.setIndex( self, component.start, su.asIntPtr() )  # bug workaround
         return self
     
     def node(self):
@@ -1720,17 +1793,18 @@ class MeshVertex( _Component ):
     def toEdges(self):
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-#        res = []
-#        for i in range(array.length()):
-#            val = array[i]
-#            print i, val
-#            print self, repr(self)
-#            e = MeshEdge(self,val)
-#            print e
-#            res.append( e )
-#        return res
-        return tuple([ MeshEdge(self,array[i]) for i in range(array.length())])
+        return MeshEdge( self, self._getMayaSlice(array) )
+
+    def toFaces(self):
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedFaces(array)
+        return MeshFace( self, self._getMayaSlice(array) )
     
+    def toFaces(self):
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedFaces(array)
+        return MeshFace( self, self._getMayaSlice(array) ) 
+ 
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshVertComponent ] = MeshVertex  
   
 class MeshFace( _Component ):
