@@ -400,14 +400,14 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
             try:            
                 setattr(  Proxy, methodName, _methodWrapper(method) )
             except AttributeError:
-                print "error making", methodName
+                print "proxyClass: error adding proxy method %s.%s" % (classname, methodName)
                 
     Proxy.__name__ = classname
     return Proxy
 
 # NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=[ 'translate']) 
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=[ 'translate', '__doc__', '__getslice__']) 
 
 class universalmethod(object):
     """
