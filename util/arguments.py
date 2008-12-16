@@ -348,3 +348,109 @@ def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
         else:
             to_dict[key] = from_val
 
+
+def sequenceToSlice( intList ):
+    """convert a sequence of integers into a slice object"""
+    slices = []
+
+    if intList:
+        intList = sorted(intList)
+        start = intList[0]
+        stop = None
+        step = None
+        lastStep = None
+        lastVal = start
+        for curr in intList[1:]:
+            curr = int(curr)
+            thisStep = curr - lastVal
+            assert thisStep > 0, "cannot have duplicate values. pass a set to be safe"
+            
+#            print 
+#            print "%s -> %s" % (lastVal, curr)
+#            print "thisStep", thisStep
+#            print "lastStep", lastStep
+#            print "step", step
+#            print "lastVal", lastVal
+#            print (start, stop, step)
+#            print slices
+            
+            if lastStep is None:
+                # we're here bc the last iteration was the beginning of a new slice
+                pass
+            elif thisStep == lastStep:
+                # we found 2 in a row, they are the beginning of a new slice
+                # setting step indicates we've found a pattern
+                #print "found a pattern on", thisStep
+                step = thisStep
+            else:
+                if step is not None:
+                    # since step is set we know a pattern has been found (at least two in a row with same step)
+                    # we also know that the current value is not part of this pattern, so end the old slice at the last value
+                    if step == 1:
+                        newslice = slice(start, lastVal+1, None)
+                    else:
+                        newslice = slice(start, lastVal+1, step)
+                    thisStep = None
+                    start = curr
+                else:
+                    if lastStep == 1:
+                        newslice = slice(start, lastVal+1, lastStep )
+                        thisStep = None
+                        start = curr
+                    else:
+                        newslice = slice(start, stop+1 )
+                        start = lastVal
+                    
+#                print "adding", newslice
+                slices.append( newslice )   
+                # start the new
+                
+                stop = None
+                step = None
+                
+                       
+#            else:
+#                if thisStep != step:
+#                    # new slice
+#                    slices.append( slice(start, stop+1, step) )
+#                    start = curr
+#                    stop = None
+#                    step = thisStep
+
+            #step = lastStep
+            lastStep = thisStep
+            
+            
+            stop = lastVal
+            lastVal = curr
+            
+#        print 
+#        print "%s" % (lastVal)
+#        print "lastStep", lastStep
+#        print "step", step
+#        print "lastVal", lastVal
+#        print (start, stop, step)
+#        print slices
+
+        
+        if step is not None:
+            # end the old slice
+            newslice = slice(start, lastVal+1, step)
+            #print "adding", newslice 
+            slices.append( newslice )
+        else:
+#            slices.append( slice(start, stop+1 ) )
+#            if lastVal != stop:
+#                slices.append( slice(lastVal, lastVal+1 ) )
+
+            if lastStep == 1:
+                slices.append( slice(start, lastVal+1, lastStep ) )
+
+            else:
+                slices.append( slice(start, start+1 ) )
+                if lastStep is not None:
+                    slices.append( slice(lastVal, lastVal+1 ) )
+                
+    return slices   
+            
+            
