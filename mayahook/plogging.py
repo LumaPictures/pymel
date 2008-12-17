@@ -5,7 +5,7 @@ import sys
 import logging
 from logging import *
 import pymel.util as util
-
+import maya.utils
 # The oython 2.6 version of 'logging' hids these functions, so we need to import explcitly
 from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
 
@@ -131,21 +131,21 @@ def _setupLevelPreferenceHook():
     mainLogger.setLevel = setLevelHook
     
     # if we are in batch mode and pymel is imported very early, it will still register as interactive at this point
-    if MGlobal.mayaState() == MGlobal.kInteractive and sys.stdout.__class__ == file:
+    if MGlobal.mayaState() == MGlobal.kInteractive and sys.stdout.__class__ == file and hasattr(maya.utils, 'executeDeferred'):
         # stdout has not yet been replaced by maya's custom stream that redirects to the output window.
         # we need to put a callback in place that lets us get maya.Output stream as our StreamHandler.
         mainLogger.debug( 'setting up callback to redirect logger StreamHandler' )
-        global _callbackId
-        _callbackId = MEventMessage.addEventCallback( 'SceneOpened', redirectLoggerToMayaOutput )
-        
+#        global _callbackId
+#        _callbackId = MEventMessage.addEventCallback( 'SceneOpened', redirectLoggerToMayaOutput )
+        maya.utils.executeDeferred( redirectLoggerToMayaOutput )
 
 
 def redirectLoggerToMayaOutput(*args):
     "run when pymel is imported very early in the load process"
     
-    global _callbackId
-    MMessage.removeCallback( _callbackId )
-    _callbackId.disown()
+#    global _callbackId
+#    MMessage.removeCallback( _callbackId )
+#    _callbackId.disown()
     
     if MGlobal.mayaState() == MGlobal.kInteractive:
         if sys.stdout.__class__ == file:
