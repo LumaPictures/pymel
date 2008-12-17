@@ -1272,6 +1272,10 @@ class PyNode(util.ProxyUnicode):
         be overridden on subclasses of PyNode"""
         pass
     
+    @util.deprecated( 'Convert to string first using str() or PyNode.name().' )
+    def __getitem__(self, item):
+        return util.ProxyUnicode.__getitem__(self,item)
+    
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. """
         #if Version.current >= Version.v2009:
@@ -1504,6 +1508,39 @@ SCENE = Scene()
     
 class _Component( PyNode ):
     """
+    Abstract base class for pymel components, such as `MeshEdge`, `MeshVertex`, and `MeshFace`.
+    
+    Provides support for extended slice notation. Typical maya ranges express a start and stop value separated
+    by a colon.  Extended slices, add a step parameter and can also represent multiple ranges separated by commas.
+    Thus, a single component object can represent any collection of indices.
+    
+        >>> p = polySphere( name='theMoon' )[0]
+        >>> p.vtx[0].connectedEdges()
+        MeshEdge('theMoonShape.e[0,19,380,740]')
+    
+    This includes start, stop, and step values.
+    
+        >>> # do every other edge between 0 and 10
+        >>> for e in p.e[0:10:2]: print e
+        ... 
+        theMoonShape.e[0]
+        theMoonShape.e[2]
+        theMoonShape.e[4]
+        theMoonShape.e[6]
+        theMoonShape.e[8]
+        theMoonShape.e[10]
+
+    To be compatible with Maya's range notation, these slices are inclusive of the stop index.
+    
+        >>> # face at index 8 will be included in the sequence
+        >>> for f in p.f[4:8]: print f  
+        ... 
+        theMoonShape.f[4]
+        theMoonShape.f[5]
+        theMoonShape.f[6]
+        theMoonShape.f[7]
+        theMoonShape.f[8]
+
     >>> from pymel import *
     >>> obj = polyTorus()[0]
     >>> colors = []
@@ -1524,6 +1561,8 @@ class _Component( PyNode ):
     ...         color.b = avgLen
     ...     color.r = avgLen
     ...     colors.append(color)
+    
+    
     
     """
     @staticmethod
@@ -1549,7 +1588,11 @@ class _Component( PyNode ):
     def _getMayaSlice( array ):
         """given an MIntArray, convert to a maya-formatted slice"""
         
-        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( [ array[i] for i in range( array.length() ) ] ) ]
+        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( array ) ]
+
+    
+    def isComplete(self):
+        return self._range is None
           
     def __init__(self, *args, **kwargs ):
         
@@ -1708,8 +1751,7 @@ class _Component( PyNode ):
     
     def __unicode__(self): 
         return self.name()                                
-        
-    
+     
     def __iter__(self): 
         return self
     
@@ -1759,22 +1801,75 @@ class _Component( PyNode ):
         return self.count()
             
     def __getitem__(self, item):
-        #return self.__class__(self._node, item)
-        return self.__class__(self._node, item)
+        if self.isComplete():
+            #return self.__class__(self._node, item)
+            return self.__class__(self._node, item)
+        else:
+            assert isinstance(item, (int,slice) ), "Extended slice syntax only allowed on a complete range, such as when using Mesh('obj').vtx"
+            return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
 
+        
 class MeshEdge( _Component ):
     __apicls__ = api.MItMeshEdge
     __metaclass__ = _factories.MetaMayaTypeWrapper
     __componentLabel__ = 'e'
     def count(self):
+        """
+        :rtype: int
+        """
         if self._range is not None:
             return len(self._range)
         else:
             return self.__apimfn__().count() 
-    def toVertices(self):
+
+    def connectedEdges(self):
+        """
+        :rtype: `MeshEdge` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedEdges(array)
+        return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+
+    def connectedFaces(self):
+        """
+        :rtype: `MeshFace` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedFaces(array)
+        return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+    
+    @util.deprecated("Use 'connectedFaces' instead.")
+    def toFaces(self):
+        """
+        :rtype: `MeshFace` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedFaces(array)
+        return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+
+    def connectedVertices(self):
+        """
+        :rtype: `MeshVertex` list
+        """
+        
         index0 = self.__apimfn__().index(0)
         index1 = self.__apimfn__().index(1)
         return ( MeshVertex(self,index0), MeshVertex(self,index1) )
+
+    def isConnectedTo(self, component):
+        """
+        :rtype: bool
+        """
+        if isinstance(component,MeshFace):
+            return self.isConnectedToFace( component.getIndex() )
+        if isinstance(component,MeshEdge):
+            return self.isConnectedToEdge( component.getIndex() )
+        if isinstance(component,MeshVertex):
+            index0 = self.__apimfn__().index(0)
+            index1 = self.__apimfn__().index(1)
+            return component.getIndex() in [index0, index1]
+
+        raise TypeError, 'type %s is not supported' % type(component)
     
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshEdgeComponent  ] = MeshEdge
        
@@ -1787,24 +1882,69 @@ class MeshVertex( _Component ):
             return len(self._range)
         else:
             return self.__apimfn__().count()
+    
     def setColor(self,color):
         self.node().setVertexColor( color, self.getIndex() )
-        
-    def toEdges(self):
+
+    def connectedEdges(self):
+        """
+        :rtype: `MeshEdge` list
+        """
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, self._getMayaSlice(array) )
-
-    def toFaces(self):
-        array = api.MIntArray()
-        self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, self._getMayaSlice(array) )
+        return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    def toFaces(self):
+    @util.deprecated("Use 'connectedEdges' instead.") 
+    def toEdges(self):
+        """
+        :rtype: `MeshEdge` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedEdges(array)
+        return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+
+    def connectedFaces(self):
+        """
+        :rtype: `MeshFace` list
+        """
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, self._getMayaSlice(array) ) 
+        return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+    
+    @util.deprecated("Use 'connectedFaces' instead.")
+    def toFaces(self):
+        """
+        :rtype: `MeshFace` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedFaces(array)
+        return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+    
+    def connectedVertices(self):
+        """
+        :rtype: `MeshVertex` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedVertices(array)
+        return MeshVertex( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
  
+    def isConnectedTo(self, component):
+        """
+        pass a component of type `MeshVertex`, `MeshEdge`, `MeshFace`, with a single element
+        
+        :rtype: bool
+        """
+        if isinstance(component,MeshFace):
+            return self.isConnectedToFace( component.getIndex() )
+        if isinstance(component,MeshEdge):
+            return self.isConnectedToEdge( component.getIndex() )
+        if isinstance(component,MeshVertex):
+            array = api.MIntArray()
+            self.__apimfn__().getConnectedVertices(array)
+            return component.getIndex() in [ array[i] for i in range( array.length() ) ]
+
+        raise TypeError, 'type %s is not supported' % type(component)
+            
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshVertComponent ] = MeshVertex  
   
 class MeshFace( _Component ):
@@ -1812,10 +1952,70 @@ class MeshFace( _Component ):
     __metaclass__ = _factories.MetaMayaTypeWrapper
     __componentLabel__ = 'f'
     def count(self):
+        """
+        :rtype: int
+        """
         if self._range is not None:
             return len(self._range)
         else:
             return self.__apimfn__().count()
+        
+
+    def connectedEdges(self):
+        """
+        :rtype: `MeshEdge` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedEdges(array)
+        return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+    
+    @util.deprecated("Use 'connectedEdges' instead.") 
+    def toEdges(self):
+        """
+        :rtype: `MeshEdge` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedEdges(array)
+        return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+
+    def connectedFaces(self):
+        """
+        :rtype: `MeshFace` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedFaces(array)
+        return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+    
+    @util.deprecated("Use 'connectedVertices' instead.")
+    def toVertices(self):
+        """
+        :rtype: `MeshVertex` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedVertices(array)
+        return MeshVertex( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+    
+    def connectedVertices(self):
+        """
+        :rtype: `MeshVertex` list
+        """
+        array = api.MIntArray()
+        self.__apimfn__().getConnectedVertices(array)
+        return MeshVertex( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+
+    def isConnectedTo(self, component):
+        """
+        :rtype: bool
+        """
+        if isinstance(component,MeshFace):
+            return self.isConnectedToFace( component.getIndex() )
+        if isinstance(component,MeshEdge):
+            return self.isConnectedToEdge( component.getIndex() )
+        if isinstance(component,MeshVertex):
+            return self.isConnectedToVertex( component.getIndex() )
+
+        raise TypeError, 'type %s is not supported' % type(component)
+    
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshPolygonComponent ] = MeshFace
 
 class NurbsCurveCV( _Component ):
@@ -3328,6 +3528,17 @@ class DependNode( PyNode ):
         # for now, using strings is better, because there is no MPlug support
         return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
+    @add_docs('setAttr')  
+    def setDynamicAttr( self, attr, *args, **kwargs):
+        """
+        same as `DependNode.setAttr` with the force flag set to True.  This causes
+        the attribute to be created based on the passed input value.
+        """
+        
+        # for now, using strings is better, because there is no MPlug support
+        kwargs['force'] = True
+        return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
+    
     @add_docs('getAttr')  
     def getAttr( self, attr, *args, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
@@ -4303,66 +4514,7 @@ class Mesh(SurfaceShape):
         except KeyError:
             #print "getting super", attr
             return DependNode.__getattr__(self,attr)
-        
-    class FaceArray(ComponentArray):
-        def __init__(self, name):
-            ComponentArray.__init__(self, name)
-            self.returnClass = Mesh.Face
-            
-        def __len__(self):
-            return cmds.polyEvaluate(self.node(), face=True)
-    
-    class EdgeArray(ComponentArray):
-        def __init__(self, name):
-            ComponentArray.__init__(self, name)
-            self.returnClass = Mesh.Edge
-        def __len__(self):
-            return cmds.polyEvaluate(self.node(), edge=True)
-    
-    class VertexArray(ComponentArray):
-        def __init__(self, name):
-            ComponentArray.__init__(self, name)
-            self.returnClass = Mesh.Vertex
-            
-        def __len__(self):
-            return cmds.polyEvaluate(self.node(), vertex=True)
-        
-    class Face(Component):
-        def __str__(self):
-            return '%s.f[%s]' % (self._node, self._item)
-    
-        def getNormal(self):
-            return _types.Vector( map( float, cmds.polyInfo( self._node, fn=1 )[self._item].split()[2:] ))        
-        normal = property(getNormal)
-        
-        def toEdges(self):
-            return map( self._node.e.__getitem__, cmds.polyInfo( str(self), faceToEdge=1)[0].split()[2:] )        
-        edges = property(toEdges)
-        
-        def toVertices(self):
-            return map( self._node.vtx.__getitem__, cmds.polyInfo( str(self), faceToVertex=1)[0].split()[2:] )        
-        vertices = property(toVertices)
-        
-    class Edge(Component):
-        def __str__(self):
-            return '%s.e[%s]' % (self._node, self._item)
-            
-        def toFaces(self):
-            return map( self._node.e.__getitem__, cmds.polyInfo( str(self), edgeToFace=1)[0].split()[2:] )        
-        faces = property(toFaces)
-        
-    class Vertex(Component):
-        def __str__(self):
-            return '%s.vtx[%s]' % (self._node, self._item)
-            
-        def toEdges(self):
-            return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToEdge=1)[0].split()[2:] )        
-        edges = property(toEdges)
-        
-        def toFaces(self):
-            return map( self._node.e.__getitem__, cmds.polyInfo( str(self), vertexToFace=1)[0].split()[2:] )        
-        faces = property(toFaces)
-    
+         
 #    def _getFaceArray(self):
 #        return Mesh.FaceArray( self + '.f' )    
 #    f = property(_getFaceArray)
@@ -4446,11 +4598,13 @@ class Mesh(SurfaceShape):
 #                """
 #            return at.set(val)
                         
-    vertexCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' )
-    edgeCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' )
-    faceCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' )
-    uvcoordCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' )
-    triangleCount = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' )
+    vertexCount =  util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ), "Use 'numVertices' instead." )
+    edgeCount =    util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ), "Use 'numEdges' instead." )
+    faceCount =    util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ), "Use 'numFaces' instead." )
+    uvcoordCount = util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ), "Use 'numUVs' instead." )
+    triangleCount = util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ), "Use 'numTriangles' instead." )
+    
+    numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' )
     #area = _factories.makeCreateFlagMethod( 'area', cmds.polyEvaluate, 'area' )
     
     #def area(self):
