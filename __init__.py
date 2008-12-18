@@ -54,6 +54,7 @@ API Hybridization:
 New Classes:
         - The `MelGlobals` class adds dictionary-like access to mel global variables
         - The `Version` class simplifies comparison of Maya versions
+        - New mesh component classes `MeshVertex`, `MeshEdge`, and `MeshFace` add many new methods, as well as extended slice syntax
         
 General Improvements:
         - Commands and classes created by plugins are now added to pymel namespace on load and removed on unload
@@ -71,15 +72,7 @@ Installation
 Pymel Package
 ---------------------------------------
 
-If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your scripts directory 
-
-=========   =======================
-Platform    Location
-=========   =======================
-mac         ~/Library/Preferences/Autodesk/maya/8.5/scripts
-linux       ~/maya/maya/8.5/scripts
-=========   =======================
-    
+If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your maya scripts directory.     
 However, it is usually a good idea to create a separate directory for your python scripts so that you can organize them independently
 of your mel scripts.  You can do this by setting the PYTHONPATH environment variable in your Maya.env file. Set the PYTHONPATH environment
 variable to the directory *above* the pymel folder.  For example, if the pymel folder on your machine is C:\My Documents\python\pymel 
@@ -96,7 +89,6 @@ Alternately, you can create a userSetup.py file and add the line::
 
     from pymel import *
 
-Note that if you have your PYTHONPATH set in a shell resource file, this value will override your Maya.env value.
 
 ---------------------------------------
 Script Editor
@@ -281,7 +273,7 @@ method in 'foo.bar' ),
 pymel adds methods for operating on the specific type of maya object that the string represents. 
 
 Let's use one of these camera objects to get some information:
-
+        
     >>> # assign the first camera to a variable
     >>> cam = ls(type='camera')[0]
     >>> cam
@@ -786,9 +778,15 @@ Non-Existent Objects
 =======================================
 
 Previous versions of pymel allowed you to instantiate classes for nonexistent objects.  This could be useful in circumstances where
-you wished to use name formatting methods.
-Starting with this version, an exception will be raised if the passed name does not represent an object in the scene.  As a result,
-certain conventions for existence testing are no longer supported, while new ones have also been added.
+you wished to use name formatting methods, and was also part of several PyMEL idioms, including PyNode.exists(). 
+
+Starting with this version, an exception will be raised if the passed name does not represent an object in the scene. This has several advantages:
+
+    1. you will never accidentally attempt to work with a node or attribute that does not exist
+    2. it brings PyMEL's attribute handling more in line with pythonic rules, where attributes must exist before accessing them
+    3. it prevents the awkward situation of having an object for which only a handful of methods will actually work
+    
+The side-effect, however, is that certain conventions for existence testing are no longer supported, while new ones have also been added.
 
 We've added three new exceptions which can be used to test for existence errors when creating new PyNodes: `MayaObjectError`, 
 `MayaNodeError`, and `MayaAttributeError`. 
@@ -903,6 +901,19 @@ New construct:
     ... except AttributeError:
     ...     print "Attribute Doesn't Exist"
     Attribute Doesn't Exist
+    
+---------------------------------------
+Other Pymel Idioms
+---------------------------------------
+Two other pymel idioms have been removed as a result of this change: 
+
+`Attribute.add` is now:
+
+    >>> PyNode('persp').addAttr( 'myNewFloatAttr', at=float )
+
+`Attribute.set` with the force flag (which would create the attribute if it did not exist) is now:
+    
+    >>> PyNode('persp').setDynamicAttr( 'myNewIntAttr', 2 )
 
 --------------------------------------------
 Manipulating Names of Non-Existent Objects
