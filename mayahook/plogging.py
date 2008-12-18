@@ -1,16 +1,21 @@
 "pymel logging functions"
 import maya
 from maya.OpenMaya import MGlobal, MEventMessage, MMessage
-import sys
+import sys, os
+
 import logging
+import logging.config
 from logging import *
-import pymel.util as util
-import maya.utils
 # The oython 2.6 version of 'logging' hids these functions, so we need to import explcitly
 from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
 
 
+logging.config.fileConfig(os.path.join(os.path.dirname(__file__),"logging.conf"))
+
+import pymel.util as util
+import maya.utils
 import maya.app.python
+
 
 #===============================================================================
 # DEFAULT FORMAT SETUP
@@ -31,7 +36,9 @@ def _fixMayaOutput():
 #    basicConfig(format='%(levelname)10s | %(name)-25s:\t\t%(message)s ' ) #,stream=logStream)
 
 _fixMayaOutput()
-console = logging.StreamHandler(sys.stdout)
+
+# taken care of by logging.conf
+# console = logging.StreamHandler(sys.stdout)
 
 
 # for some idiotic reason maya does not use a fixed-width font in their script editor, so even spacing won't matter 90% of the time
@@ -39,11 +46,15 @@ console = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter('pymel.%(module)s : %(levelname)s : %(message)s')
 #formatter = logging.Formatter('%(levelname)s : (pymel.%(module)s) : %(message)s')
 
-console.setFormatter(formatter)
+# taken care of by logging.conf
+# console.setFormatter(formatter)
 
-mainLogger = logging.getLogger('pymel')
+mainLogger = logging.root
 
-mainLogger.addHandler(console)
+# taken care of by logging.conf
+# mainLogger.addHandler(console)
+
+pymelLogger = logging.getLogger("pymel")
 
 # keep as an enumerator so that we can keep the order
 logLevels = util.Enum( dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )
@@ -89,7 +100,6 @@ def stdOutsRedirected(func):
     stdOutsRedirectedFunction.func_name = func.func_name
     return stdOutsRedirectedFunction
 
-
 #===============================================================================
 # INIT TO USER'S PREFERENCE
 #===============================================================================
@@ -105,36 +115,36 @@ def _setupLevelPreferenceHook():
     levelName = MGlobal.optionVarStringValue( LOGLEVEL_OPTVAR )
     if levelName:
         level =  min( logging.WARNING, nameToLevel(levelName) ) # no more than WARNING level
-        mainLogger.setLevel(level)
-        mainLogger.info("setting logLevel to preference: %s (%d)" % (levelName, level) )
+        pymelLogger.setLevel(level)
+        pymelLogger.info("setting logLevel to preference: %s (%d)" % (levelName, level) )
     else:
-        mainLogger.info("setting logLevel to default: %s" % (levelName ) )
-        mainLogger.setLevel(logging.INFO) 
+        pymelLogger.info("setting logLevel to default: %s" % (levelName ) )
+        pymelLogger.setLevel(logging.INFO)
         
-    func = mainLogger.setLevel
+    func = pymelLogger.setLevel
     def setLevelHook(level, *args, **kwargs):
         
         levelName = levelToName(level)
         level = nameToLevel(level)
         ret = func(level, *args, **kwargs)
-        mainLogger.info("Log Level Changed to '%s'" % levelName)
+        pymelLogger.info("Log Level Changed to '%s'" % levelName)
         try:
             # save the preference as a string name, for human readability
             # we need to use MGlobal because cmds.optionVar might not exist yet
             MGlobal.setOptionVarValue( LOGLEVEL_OPTVAR, levelName )
         except Exception, e:
-            mainLogger.warning("Log Level could not be saved to the user-prefs ('%s')" % e)
+            pymelLogger.warning("Log Level could not be saved to the user-prefs ('%s')" % e)
         return ret
  
     setLevelHook.__doc__ = func.__doc__
     setLevelHook.__name__ = func.__name__
-    mainLogger.setLevel = setLevelHook
+    pymelLogger.setLevel = setLevelHook
     
     # if we are in batch mode and pymel is imported very early, it will still register as interactive at this point
     if MGlobal.mayaState() == MGlobal.kInteractive and sys.stdout.__class__ == file and hasattr(maya.utils, 'executeDeferred'):
         # stdout has not yet been replaced by maya's custom stream that redirects to the output window.
         # we need to put a callback in place that lets us get maya.Output stream as our StreamHandler.
-        mainLogger.debug( 'setting up callback to redirect logger StreamHandler' )
+        pymelLogger.debug( 'setting up callback to redirect logger StreamHandler' )
 #        global _callbackId
 #        _callbackId = MEventMessage.addEventCallback( 'SceneOpened', redirectLoggerToMayaOutput )
         maya.utils.executeDeferred( redirectLoggerToMayaOutput )
@@ -149,16 +159,16 @@ def redirectLoggerToMayaOutput(*args):
     
     if MGlobal.mayaState() == MGlobal.kInteractive:
         if sys.stdout.__class__ == file:
-            mainLogger.warning( 'could not fix sys.stdout %s' %  MGlobal.mayaState())
+            pymelLogger.warning( 'could not fix sys.stdout %s' %  MGlobal.mayaState())
         else:
-            mainLogger.debug( 'fixing sys.stdout' )
+            pymelLogger.debug( 'fixing sys.stdout' )
         
             _fixMayaOutput()
             newHandler = StreamHandler(sys.stdout)
             newHandler.setFormatter(formatter)
             #newHandler.setLevel( mainLogger.getEffectiveLevel() )
             mainLogger.addHandler( newHandler )
-            mainLogger.removeHandler(console)
+            # mainLogger.removeHandler(console)
 
 _setupLevelPreferenceHook()
 

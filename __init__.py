@@ -1164,10 +1164,11 @@ import sys
 
 import mayahook
 import mayahook.plogging as plogging
-plogging.mainLogger.debug( 'imported mayahook' )
+logger = plogging.getLogger(__name__)
+logger.debug( 'imported mayahook' )
 
 import api
-plogging.mainLogger.debug( 'imported api' )
+logger.debug( 'imported api' )
 
 
 # will check for the presence of an initilized Maya / launch it
@@ -1178,10 +1179,10 @@ assert _mayaInit()
 #print "imported tools"
 #
 import core.factories as factories
-plogging.mainLogger.debug( 'imported factories' )
+logger.debug( 'imported factories' )
 
 from core import *
-plogging.mainLogger.debug( 'imported core' )
+logger.debug( 'imported core' )
 
 # should not spend startup time with tests unless we are debugging
 #from util.test import pymel_test
