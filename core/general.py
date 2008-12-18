@@ -4598,11 +4598,11 @@ class Mesh(SurfaceShape):
 #                """
 #            return at.set(val)
                         
-    vertexCount =  util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ), "Use 'numVertices' instead." )
-    edgeCount =    util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ), "Use 'numEdges' instead." )
-    faceCount =    util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ), "Use 'numFaces' instead." )
-    uvcoordCount = util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ), "Use 'numUVs' instead." )
-    triangleCount = util.deprecated( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ), "Use 'numTriangles' instead." )
+    vertexCount =  util.deprecated( "Use 'numVertices' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ) )
+    edgeCount =    util.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ) )
+    faceCount =    util.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ) )
+    uvcoordCount = util.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ) )
+    triangleCount = util.deprecated("Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ) )
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' )
     #area = _factories.makeCreateFlagMethod( 'area', cmds.polyEvaluate, 'area' )
