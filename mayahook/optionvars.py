@@ -6,9 +6,15 @@ import maya.cmds as cmds
 #-----------------------------------------------
 
 class OptionVarList(tuple):
-    def __init__(self, key, val):
-        self.key = key
+    
+    def __new__(cls, val, key):
+        self = tuple.__new__(cls, val)
+        return self
+    
+    def __init__(self, val, key):
         tuple.__init__(self, val)
+        self.key = key    
+        
     
     def appendVar( self, val ):
         """ values appended to the OptionVarList with this method will be added to the Maya optionVar at the key denoted by self.key.
@@ -21,6 +27,8 @@ class OptionVarList(tuple):
         if isinstance( val, float):
             return cmds.optionVar( floatValueAppend=[self.key,val] )
         raise TypeError, 'unsupported datatype: strings, ints, floats and their subclasses are supported'
+
+    append = appendVar
 
 class OptionVarDict(object):
     """ 
@@ -50,7 +58,7 @@ class OptionVarDict(object):
     def __getitem__(self,key):
         val = cmds.optionVar( q=key )
         if isinstance(val, list):
-            val = OptionVarList( key, val )
+            val = OptionVarList( val, key )
         return val
     def __setitem__(self,key,val):
         if isinstance( val, basestring):
@@ -59,7 +67,7 @@ class OptionVarDict(object):
             return cmds.optionVar( intValue=[key,int(val)] )
         if isinstance( val, float):
             return cmds.optionVar( floatValue=[key,val] )
-        if isinstance( val, list ):
+        if isinstance( val, (list,tuple) ):
             if len(val) == 0:
                 return cmds.optionVar( clearArray=key )
             if isinstance( val[0], basestring):
