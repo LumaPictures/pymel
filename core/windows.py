@@ -100,7 +100,9 @@ Maya Bug Fix:
     cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
     
     uiName = cmds.scriptTable( *args, **kwargs )
-    
+    if "q" in kwargs or "query" in kwargs:
+        return uiName
+
     kwargs.clear()
     if cb:
         if hasattr(cb, '__call__'):        
@@ -151,7 +153,6 @@ class UI(unicode):
             >>> n.__repr__()
             # Result: Window('myWindow')
         """
-        logger.debug("UI: %s, %s, %s, %r" % (cls, name, create, kwargs))
         slc = kwargs.pop("slc",kwargs.pop("defer",kwargs.get('childCreators')))
 
         if slc:
@@ -160,7 +161,7 @@ class UI(unicode):
             childCreators = kwargs.pop('childCreators',None)
             self.slc = SmartLayoutCreator(
                             name, 
-                            getattr(_thisModule, util.uncapitalize(cls.__name__)), 
+                            cls, 
                             kwargs, postFunc, childCreators)
             self.create = self.slc.create
             return self
@@ -245,6 +246,16 @@ class FormLayout(UI):
     HORIZONTAL = enumOrientation.HORIZONTAL
     VERTICAL = enumOrientation.VERTICAL
     
+    def __new__(cls, name=None, **kwargs):
+        if not 'slc' in kwargs:
+            kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+        else:
+            kw = {}
+        self = UI.__new__(cls, name, **kwargs)
+        kwargs.update(kw)
+        cls.__init__(self, name, **kwargs)
+        return self
+        
 
     def __init__(self, name=None, orientation='VERTICAL', spacing=2, reversed=False, ratios=None, **kwargs):
         """ 
@@ -588,7 +599,6 @@ def promptBoxGenerator(*args, **kwargs):
         if not ret: return
         yield ret    
     
-@util.pwarnings.deprecated    
 def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     """ Prompt for confirmation. Returns True/False, unless 'moreButtons' were specified, and then returns the button pressed"""
     
@@ -666,11 +676,12 @@ def promptForFolder():
     if folder.exists():
         return folder
 
-def promptForPath():
+       
+def promptForPath(**kwargs):
     """ Prompt the user for a folder path """
     
     if cmds.about(linux=1):
-        return fileDialog(mode=0)
+        return Path(fileDialog(**kwargs))
     
     else:
         # a little trick that allows us to change the top-level 'folder' variable from 
@@ -679,10 +690,16 @@ def promptForPath():
         folder = [None]
         def getfolder(*args):
             folder[0] = args[0]
-        ret = cmds.fileBrowserDialog(m=0, fc=getfolder, an="Get File")
+        
+        kwargs.pop('fileCommand',None)
+        kwargs['fc'] = getfolder
+        
+        kwargs['an'] = kwargs.pop('an', kwargs.pop('actionName', "Select File"))
+        ret = cmds.fileBrowserDialog(**kwargs)
         folder = Path(folder[0])
         if folder.exists():
-            return folder
+            return folder        
+        
     
 def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs )
@@ -699,7 +716,7 @@ class _ListSelectLayout(FormLayout):
         self = FormLayout.__new__(cls, self)
         return self
     
-    def __init__(self):
+    def __init__(self, *args ,**kwargs):
         (items, prompt, ok, cancel, default, allowMultiSelection, width, height) = _ListSelectLayout.args
         self.ams = allowMultiSelection
         self.items = list(items)
@@ -773,9 +790,8 @@ def textWindow(title, text, size=None):
             self.setText = self.main.setText
             self.show()
             return self
-        except:
+        finally:
             deleteUI(self)
-            raise
     
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
