@@ -188,7 +188,7 @@ class ApiDocParser(object):
             type = Enum( [self.apiClassName, type] )
             if type not in self.badEnums:
                 self.badEnums.append(type)
-                if self.verbose: print "Suspected Bad Enum:", type
+                logger.warn( "Suspected Bad Enum: %s", type )
         else:
             type = str(type)
         return type
@@ -249,7 +249,7 @@ class ApiDocParser(object):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
         file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
         
-        print "parsing file" , file 
+        logger.info( "parsing file %s" , file )
         
         f = open( file )
     
@@ -324,7 +324,7 @@ class ApiDocParser(object):
                     for val, pyval in zip(enumValues,pymelEnumList):
                         enumDocs[pyval] = enumDocs[val]
                     
-                    enumInfo = {'values' : util.Enum(enumValues), 
+                    enumInfo = {'values' : util.Enum(self.currentMethod, enumValues), 
                                 'valueDocs' : enumDocs,
                                   
                                   #'doc' : methodDoc
@@ -333,10 +333,10 @@ class ApiDocParser(object):
                     #print enumList
                     
                     self.enums[self.currentMethod] = enumInfo
-                    self.pymelEnums[self.currentMethod] = util.Enum(pymelEnumList)
+                    self.pymelEnums[self.currentMethod] = util.Enum(self.currentMethod, pymelEnumList)
                     
                 except AttributeError, msg:
-                    print "FAILED ENUM", msg
+                    logger.error( "FAILED ENUM: %s", msg )
                     
             # ARGUMENTS
             else:
@@ -1118,7 +1118,10 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     #global apiTypeHierarchy, ApiTypesToApiClasses
     _buildMayaReservedTypes()
     
-    allMayaTypes = ReservedMayaTypes().keys() + _ls(nodeTypes=True)
+    if not mayahook.mayaIsRunning():
+        mayahook.mayaInit()
+    import maya.cmds
+    allMayaTypes = ReservedMayaTypes().keys() + maya.cmds.ls(nodeTypes=True)
     
     apiTypesToApiClasses = {}
     
@@ -1147,8 +1150,10 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
                     if info is not None:
                         #print "succeeded", name
                         apiClassInfo[ name ] = info
-                    else: print "failed to parse docs:", name
-                except (ValueError,IndexError), msg: print "failed", name, msg
+                    else: 
+                        logger.warn( "failed to parse docs: %s", name )
+                except (ValueError,IndexError), msg: 
+                    logger.warn( "failed %s %s" % ( name, msg ) )
                     
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
@@ -1158,7 +1163,7 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     #nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
     nodeDict, mayaDict = _createNodes( dagMod, dgMod, *allMayaTypes )
     if len(_unableToCreate) > 0:
-        util.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
+        logger.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
     
     for mayaType, apiType in mayaDict.items() :
         MayaTypesToApiTypes()[mayaType] = apiType
@@ -1202,20 +1207,6 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     
     data = mayahook.loadCache( 'mayaApi', 'the API cache' )
     if data is not None:
-
-        if VERBOSE:
-            print "data <= %s" % cacheFileName
-            print "len(data): %d" % len(data)
-            for i, value in enumerate(data):
-                print("data[%d] class: %s" % (i, value.__class__.__name__))
-                if isinstance(value, dict):
-                    for key, val in value.iteritems():
-                        print "{%s:%s, ...}" % (key, val)
-                        break
-                elif isinstance(value, IndexedFrozenTree):
-                    print "Tops: ",
-                    print " ,".join(["%s:%s" % (top.key, top.value) for top in value.tops()])
-                print
         
         ReservedMayaTypes(data[0])
         ReservedApiTypes(data[1])
@@ -1270,7 +1261,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
             return apiTypeHierarchy, apiClassInfo
             
     
-    print "Rebuilding the API Caches..."
+    logger.info( "Rebuilding the API Caches..." )
     
     # fill out the data structures
     _buildApiTypesList()
@@ -1292,13 +1283,13 @@ def _buildApiCache(rebuildAllButClassInfo=False):
 
 # Initialize the API tree
 # initial update  
-start = time.time()
+_start = time.time()
 apiTypeHierarchy, apiClassInfo = _buildApiCache(rebuildAllButClassInfo=False)
         
 # quick fix until we can get a Singleton ApiTypeHierarchy() up
 
-elapsed = time.time() - start
-print "Initialized API Cache in in %.2f sec" % elapsed
+_elapsed = time.time() - _start
+logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
 
 # TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
