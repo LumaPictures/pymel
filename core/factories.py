@@ -19,7 +19,6 @@ from operator import itemgetter
 import maya.cmds as cmds
 import maya.mel as mm
 import pmcmds
-from maya.utils import executeDeferred as _executeDeferred
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -1365,10 +1364,10 @@ def _addCmdDocs( func, cmdInfo=None ):
                 try:
                     typ = typ.__name__
                 except: pass
-            docstring += '        - datatype: *%s*\n' % ( typ )
+            docstring += '        - datatype: %s\n' % ( typ )
         
-    if cmdInfo.get('example',None):
-        docstring += '\nExample:\n' + cmdInfo['example']
+    #if cmdInfo.get('example',None):
+    #    docstring += '\nExample:\n' + cmdInfo['example']
     
 
     
@@ -2175,7 +2174,7 @@ class ApiArgUtil(object):
                     #except AttributeError:
                     #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
-            logger.debug(msg)
+            logger.debug( str(msg) )
             return False
         
         logger.debug("%s: valid" % self.getPrototype())
@@ -2789,7 +2788,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         wrappedApiFunc.__name__ = pymelName
 
         
-        def formatDocstring(type, isList):
+        def formatDocstring(type):
             # convert
             # "['one', 'two', 'three', ['1', '2', '3']]"
             # to
@@ -2798,17 +2797,22 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             # Enums
             # this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
             # import api directly, we have to do a string name comparison
-            if type.__class__.__name__ == 'Enum':
+            
+            if not isinstance(type, list):
+                pymelType = ApiTypeRegister.types.get(type,type)
+            else:
+                pymelType = type
+            if pymelType.__class__.__name__ == 'Enum':
                 try:
-                    type = type.pymelName()
+                    pymelType = pymelType.pymelName()
                 except:
                     try:
-                        type = type.pymelName( ApiTypeRegister.getPymelType( type[0] ) )
+                        pymelType = pymelType.pymelName( ApiTypeRegister.getPymelType( pymelType[0] ) )
                     except:
-                        logger.debug("Could not determine pymel name for %r" % repr(type))
+                        logger.debug("Could not determine pymel name for %r" % repr(pymelType))
 
-            doc = repr(type).replace("'", "`")
-            if isList:
+            doc = repr(pymelType).replace("'", "`")
+            if type in ApiTypeRegister.arrayItemTypes.keys():
                 doc += ' list'
             return doc
         
@@ -2820,11 +2824,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             for name in inArgs :
                 info = argInfo[name]
                 type = info['type']
-                type = ApiTypeRegister.types.get(type,type)
-                isList = type in ApiTypeRegister.arrayItemTypes.keys()
-                type = formatDocstring(type, isList)
+                typeStr = formatDocstring(type)
                 
-                docstring += S + '%s : %s\n' % (name, type )
+                docstring += S + '%s : %s\n' % (name, typeStr )
                 docstring += S*2 + '%s\n' % (info['doc'])  
                 
 
@@ -2832,19 +2834,19 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         # Results doc strings
         results = []
         returnType = argHelper.getReturnType()
-        isList = False
         if returnType: 
-            rtype = ApiTypeRegister.types.get(returnType, returnType)
+            rtype = formatDocstring(returnType)
             results.append( rtype )
         for argname in outArgs:
             rtype = argInfo[argname]['type']
-            rtype = ApiTypeRegister.types.get(rtype,rtype)
+            rtype = formatDocstring(rtype)
             results.append( rtype )
+        
         if len(results) == 1:
             results = results[0]
-            isList = results in ApiTypeRegister.arrayItemTypes.keys()
-        if results:
-            docstring += '\n\n:rtype: %s\n' %  formatDocstring(results, isList)
+            docstring += '\n\n:rtype: %s\n' % results
+        elif results:
+            docstring += '\n\n:rtype: (%s)\n' %  ', '.join(results)
         
         docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
         
@@ -2952,15 +2954,17 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     assert isinstance( pymelName, str ), "%s.%s: %r is not a valid name" % ( classname, methodName, pymelName)
                        
                     if pymelName not in herited:
-                        if data['enabled']:                        
-                            if pymelName not in classdict:
-                                logger.debug("Doing an auto wrap on %s for %s: proxy=%r" % (pymelName, methodName, proxy))
-                                method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex )
-                                if method:
-                                    logger.debug("%s.%s() successfully created" % (apicls.__name__, pymelName ))
-                                    classdict[pymelName] = method
-                            else: logger.debug("%s.%s() skipping" % (apicls.__name__, methodName ))
-                        else: logger.debug("Method %s has been manually disabled, skipping" % (methodName))
+                        if overloadIndex is not None:
+                            if data.get('enabled', True):                        
+                                if pymelName not in classdict:
+                                    logger.debug("Doing an auto wrap on %s for %s: proxy=%r" % (pymelName, methodName, proxy))
+                                    method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex )
+                                    if method:
+                                        logger.debug("%s.%s() successfully created" % (apicls.__name__, pymelName ))
+                                        classdict[pymelName] = method
+                                else: logger.debug("%s.%s() skipping" % (apicls.__name__, methodName ))
+                            else: logger.debug("Method %s has been manually disabled, skipping" % (methodName))
+                        else: logger.debug("Method %s has no wrappable methods, skipping" % (methodName))
                     else: logger.debug("Method %s already herited from %s, skipping" % (methodName, herited[pymelName]))
                 
                 if 'pymelEnums' in classInfo:
@@ -3124,7 +3128,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
-                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)]['enabled']:
+                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)].get('enabled',True):
                                 returnFunc = None
                                 
                                 if flagInfo.get( 'resultNeedsCasting', False):
@@ -3157,7 +3161,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                            
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
-                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)]['enabled']:
+                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)].get('enabled', True):
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
@@ -3244,8 +3248,8 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         # the name of the PyNode, uncapitalized
         uiType= classdict.setdefault('__melui__', util.uncapitalize(classname))
         
-       # TODO: implement a option at the cmdlist level that triggers listForNone 
-       # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
+        # TODO: implement a option at the cmdlist level that triggers listForNone 
+        # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
         
         
         if 'Layout' in classname:

@@ -120,15 +120,17 @@ class EnumValue(object):
 
     def __repr__(self):
         if self.__doc:
-            return "EnumValue(%s, %s, %s)" % (
-                repr(self.__index),
-                repr(self.__key),
-                repr(self.__doc),
+            return "EnumValue(%r, %r, %r, %r, %r)" % (
+                self.__enumtype._name,                      
+                self.__index,
+                self.__key,
+                self.__doc,
             )
         else:
-            return "EnumValue(%s, %s)" % (
-                repr(self.__index),
-                repr(self.__key),
+            return "EnumValue(%r, %r, %r)" % (
+                self.__enumtype._name,  
+                self.__index,
+                self.__key,
             )
         
 
@@ -166,19 +168,17 @@ class EnumValue(object):
 class Enum(object):
     """ Enumerated type """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, name, keys, **kwargs):
         """ Create an enumeration instance """
 
-        if not args:
+        if not keys:
             raise EnumEmptyError()
 
-        if len(args)==1 and operator.isMappingType(args[0]):
-            keys = args[0]
+        if operator.isMappingType(keys):
             reverse = dict( [ (v,k) for k,v in keys.items() ] )
             keygen = [ ( v, reverse[v]) for v in sorted(reverse.keys()) ]
             values = {}
         else:
-            keys = args
             keygen = enumerate( keys )
             values = [None] * len(keys)
             
@@ -205,6 +205,7 @@ class Enum(object):
         super(Enum, self).__setattr__('_keys', keyDict)
         super(Enum, self).__setattr__('_values', values)
         super(Enum, self).__setattr__('_docs', docs)
+        super(Enum, self).__setattr__('_name', name)
 
     def __repr__(self):
         return '%s(\n%s)' % (self.__class__.__name__, ',\n'.join([ repr(v) for v in self.values()]))

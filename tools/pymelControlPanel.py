@@ -16,7 +16,7 @@ It controls:
 from pymel import *
 import inspect, re, os
 
-frame_width = 800
+FRAME_WIDTH = 800
 VERBOSE = True
           
 class PymelControlPanel(object):
@@ -207,7 +207,7 @@ class ClassFrame(object):
         count = 0
         #self.form = formLayout()
         self.frame = frameLayout(collapsable=False, label='%s (%s)' % (self.className, self.apiClassName),
-                            width = frame_width,
+                            width = FRAME_WIDTH,
                             labelAlign='top')
         
         tab = tabLayout()
@@ -221,7 +221,7 @@ class ClassFrame(object):
         tab.setTabLabel( [pairedCol, 'Paired'] )
         for setMethod, getMethod in invertibles:
             setParent(pairedCol) # column
-            frame = frameLayout(labelVisible=False, collapsable=False, width = frame_width)
+            frame = frameLayout(labelVisible=False, collapsable=False, width = FRAME_WIDTH)
             col2 = columnLayout()
             pairCount = 0
             pairCount += self.rows[setMethod].buildUI(filter)
@@ -270,12 +270,17 @@ class MethodRow(object):
         # DEFAULT VALUES
         
 
-
+        # correct old values
+        # we no longer store positive values, only negative -- meaning methods will be enabled by default
+        if not self.data == True or sum(enabledArray) == 0:
+            self.data.pop('enabled', None)
+        
+        
         # enabled
-        if not self.data.has_key( 'enabled' ):
-            self.data['enabled'] = True
+#        if not self.data.has_key( 'enabled' ):
+#            self.data['enabled'] = True
          
-        if self.methodName in factories.EXCLUDE_METHODS or sum(enabledArray) == 0:
+        if self.methodName in factories.EXCLUDE_METHODS : # or sum(enabledArray) == 0:
             self.data['enabled']  = False
         
         
@@ -298,22 +303,27 @@ class MethodRow(object):
         
         # correct old values
         if self.data.has_key('melName'):
-            self.data['melName'] = str(self.data['melName'])
+            self.data['melName'] = str(self.data['melName']) 
+        
+        
+        overloadId = self.data.get('overloadIndex', 0)
+        if overloadId is None:
+            # in a previous test, it was determined there were no wrappable overload methods,
+            # but there may be now.  try again.
+            overloadId = 0
             
-                        
-        val = self.data.get('overloadIndex', 0)
         # ensure we don't use a value that is not valid
-        for val in range(val, len(enabledArray)+1):
+        for i in range(overloadId, len(enabledArray)+1):
             try:
-                if enabledArray[val]:
+                if enabledArray[i]:
                     break
             except IndexError: # went too far, so none are valid
-                val = None
-        if val is None:
-            # nothing valid
-            self.data.pop('overloadIndex', None)
-        else:
-            self.data['overloadIndex'] = val
+                overloadId = None
+#        if val is None:
+#            # nothing valid
+#            self.data.pop('overloadIndex', None)
+#        else:
+        self.data['overloadIndex'] = overloadId
  
     def crossReference(self, melName):
         """ create an entry for the melName which points to the data being tracked for the api name"""
@@ -354,7 +364,7 @@ class MethodRow(object):
          
         #print className, self.methodName, melMethods
         isOverloaded = len(self.methodInfoList)>1
-        self.frame = frameLayout( w=frame_width, labelVisible=False, collapsable=False)
+        self.frame = frameLayout( w=FRAME_WIDTH, labelVisible=False, collapsable=False)
         col = columnLayout()
         
         enabledArray = []
@@ -422,11 +432,13 @@ class MethodRow(object):
             # and make this frame read-only
             menuItem( label=melName, parent=self.melNameOptMenu )
             self.melNameOptMenu.setValue( melName )
+            print self.methodName, "making frame read-only"
             self.frame.setEnable(False)
         
-        self.enabledChBx.setValue( self.data['enabled'] )
-        self.row.setEnable( self.data['enabled'] )
-        self.row2.setEnable( self.data['enabled'] )
+        isEnabled = self.data.get('enabled', True)
+        self.enabledChBx.setValue( isEnabled )
+        self.row.setEnable( isEnabled )
+        self.row2.setEnable( isEnabled )
         
         name = self.data['useName']
         if name == 'API' :
@@ -445,7 +457,12 @@ class MethodRow(object):
             items = self.overloadPrecedenceColl.getCollectionItemArray()
             try:
                 val = self.data['overloadIndex']
-                self.overloadPrecedenceColl.setSelect( items[ val ] ) 
+                
+                if val is None:
+                    print self.methodName, "no wrappable methods"
+                    self.frame.setEnable( False )
+                else:
+                    self.overloadPrecedenceColl.setSelect( items[ val ] )
             except:
                 pass
             
@@ -467,7 +484,10 @@ class MethodRow(object):
         return True
         
     def enableCB(self, *args ):
-        self.data['enabled'] = args[0]
+        if args[0] == False:
+            self.data['enabled'] = False
+        else:
+            self.data.pop('enabled', None)
         self.row.setEnable( args[0] )
 
     def nameTypeCB(self ):
@@ -548,7 +568,7 @@ class MethodRow(object):
         
         
         # main info row
-        row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing )
+        row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing, enable=enable )
         self.rows.append(row)
         text(label='')
                 
