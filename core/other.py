@@ -121,7 +121,7 @@ class AttributeName(NameParser):
         self.__dict__['_multiattrIndex'] = 0
         
     def __getitem__(self, item):
-       return AttributeName('%s[%s]' % (self, item) )
+        return AttributeName('%s[%s]' % (self, item) )
 
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
