@@ -1,7 +1,7 @@
 from recursiveObjectParser import *
 
 __all__ = [#'NameParseError', 'ParsingWarning', 
-           #'ProxyUni', 'Parsed', 
+           #'ProxyUni', 'NameParsed', 
            'NamePart', 'NameAlphaPart', 'NameNumPart', 'NameGroup', 
            'NameAlphaGroup', 'NameNumGroup', 'NameSep', 'MayaName', 'NamespaceSep', 'Namespace', 
            'MayaShortName', 'DagPathSep', 'MayaNodePath', 'AttrSep', 'NameIndex', 'NameRangeIndex', 
@@ -15,7 +15,7 @@ __all__ = [#'NameParseError', 'ParsingWarning',
 # lineno of function declaration to order the rules
 # TODO : modify Yacc to take mro of class then relative line no or use decorators ?
 
-# no parsed class for this, the Parsers and Parsed class for each token (e.g. t_Alpha and --> Alpha, AlphaParser) will be created automatically anyway
+# no parsed class for this, the Parsers and NameParsed class for each token (e.g. t_Alpha and --> Alpha, AlphaParser) will be created automatically anyway
 class NameBaseParser(Parser):
     """ Base for name parser with common tokens """
     t_Alpha    = r'([a-z]+)|([A-Z]+[a-z]*)'
@@ -266,7 +266,7 @@ class NameRangeIndexParser(Parser):
                  )  
 
 class SingleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
-    """ A Parsed for the reserved single indexed components names:
+    """ A NameParsed for the reserved single indexed components names:
         vtx, 
         Rule : NameIndex = r'\[[0-9]*:[0-9]*\]' """
 
@@ -332,14 +332,23 @@ class MayaObjectNameParser(AttributeNameParser):
         p[0] = MayaObjectName(p[1])  
 
 
+class NameParsed(Parsed):
+    
+    def isNodeName(self):
+        """ True if this dag path name is absolute (starts with '|') """
+        return type(self) == MayaNodePath  
+    def isAttributeName(self):
+        """ True if this object is specified including one or more dag parents """
+        return type(self) == NodeAttribute   
+    def isComponentName(self):
+        """ True if this object is specified as an absolute dag path (starting with '|') """
+        return type(self) == Component
 
-
-
-# Parsed objects for Maya Names
+# NameParsed objects for Maya Names
 # TODO : build _accepts from yacc rules directly
 
 # Atomic Name element, an alphabetic or numeric word
-class NamePart(Parsed):
+class NamePart(NameParsed):
     """
     A name part of either the NameAlphaPart or NameNumPart kind
 
@@ -356,6 +365,7 @@ class NamePart(Parsed):
         return isinstance(self.sub[0], Alpha)       
     def isNum(self):  
         return isinstance(self.sub[0], Num) 
+
     
 class NameAlphaPart(NamePart):
     """
@@ -401,7 +411,7 @@ class NameNumPart(NamePart):
         return True
           
 # A Name group, all the consecutive parts between two underscores
-class NameGroup(Parsed):
+class NameGroup(NameParsed):
     """
     A name group of either the NameAlphaGroup or NameNumGroup kind
 
@@ -488,7 +498,7 @@ class NameNumGroup(NameGroup):
         return False
             
 # separator for name groups               
-class NameSep(Parsed):
+class NameSep(NameParsed):
     """
     the MayaName NameGroup separator : one or more underscores
 
@@ -507,7 +517,7 @@ class NameSep(Parsed):
         return NameSep()
 
 # a short Maya name without namespaces or attributes    
-class MayaName(Parsed):
+class MayaName(NameParsed):
     """
     The most basic Maya Name : several name groups separated by one or more underscores,
     starting with a NameHead or one or more underscore, followed by zero or more NameGroup
@@ -564,13 +574,13 @@ class MayaName(Parsed):
         else :
             return self        
 
-    def stripNum(self):
-        """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
-        the name will be returned unchanged."""
-        try:
-            return DependNode._numPartReg.split(self)[0]
-        except:
-            return unicode(self)
+#    def stripNum(self):
+#        """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
+#        the name will be returned unchanged."""
+#        try:
+#            return DependNode._numPartReg.split(self)[0]
+#        except:
+#            return unicode(self)
             
     def extractNum(self):
         """Return the trailing numbers of the node name. If no trailing numbers are found
@@ -599,7 +609,7 @@ class MayaName(Parsed):
         except AttributeError:
             raise "could not find trailing numbers to decrement"
         
-class NamespaceSep(Parsed):
+class NamespaceSep(NameParsed):
     """ 
     The Maya Namespace separator : the colon ':'
 
@@ -614,7 +624,7 @@ class NamespaceSep(Parsed):
     def default(cls):  
         return Token(':', type='Colon', pos=0)          
         
-class Namespace(Parsed):
+class Namespace(NameParsed):
     """
     A Maya namespace name, one or more MayaName separated by ':'
 
@@ -724,7 +734,7 @@ class Namespace(Parsed):
         else :
             return False
                  
-class MayaShortName(Parsed):
+class MayaShortName(NameParsed):
     """
     A short node name in Maya, a Maya name, possibly preceded by a Namespace
 
@@ -797,7 +807,7 @@ class MayaShortName(Parsed):
         """ All parts of that name group """
         return self.parts[-1]  
 
-class DagPathSep(Parsed):
+class DagPathSep(NameParsed):
     """
     The Maya long names separator : the pipe '|'
 
@@ -812,7 +822,7 @@ class DagPathSep(Parsed):
     def default(cls):  
         return Token('|', type='Pipe', pos=0)  
 
-class MayaNodePath(Parsed):
+class MayaNodePath(NameParsed):
     """
     A node name in Maya, one or more MayaShortName separated by DagPathSep, with an optional leading DagPathSep
 
@@ -977,7 +987,7 @@ class MayaNodePath(Parsed):
         return isinstance(self.parts[0], DagPathSep)
     isAbsolute = isLongName
     
-class AttrSep(Parsed):
+class AttrSep(NameParsed):
     """
     The Maya attribute separator : the dot '.'
 
@@ -992,7 +1002,7 @@ class AttrSep(Parsed):
     def default(cls):  
         return Token('.', type='Dot', pos=0)  
 
-class NameIndex(Parsed):
+class NameIndex(NameParsed):
     """
     An index specification for an attribute or a component index, in the form [<int number>] 
 
@@ -1016,7 +1026,7 @@ class NameIndex(Parsed):
         """ Index of that node attribute name """
         return int(self.strip("[]"))  
         
-class NameRangeIndex(Parsed):
+class NameRangeIndex(NameParsed):
     """ 
     An index specification for an attribute or a component index, in the form::
         [<optional int number>:<optional int number>]
@@ -1072,7 +1082,7 @@ class NameRangeIndex(Parsed):
                     
 # components
 
-#class NodeComponentName(Parsed): 
+#class NodeComponentName(NameParsed): 
 #    """ A Maya component name of any of the single, double or triple indexed kind """
 #    _parser = NodeComponentNameParser
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
@@ -1090,7 +1100,7 @@ class NameRangeIndex(Parsed):
 #    _accepts = ('MayaName', 'NameIndex', 'NameRangeIndex') 
 #    
 #    
-class Component(Parsed): 
+class Component(NameParsed): 
     """
     A Maya component name of any of the single, double or triple indexed kind
 
@@ -1122,7 +1132,7 @@ class Component(Parsed):
 # Decided to avoid the API denomination where attributes exist on nodes and a specific node+attribute association
 # is called a plug as most scripting people are used to calling both attributes ? 
 
-class Attribute(Parsed):
+class Attribute(NameParsed):
     """
     The name of a Maya attribute on a Maya node, a MayaName with an optional NameIndex
 
@@ -1156,7 +1166,7 @@ class Attribute(Parsed):
                     
     def isCompound(self): return False
          
-class AttributePath(Parsed):
+class AttributePath(NameParsed):
     """
     The full path of a Maya attribute on a Maya node, as one or more AttrSep ('.') separated Attribute
 
@@ -1219,7 +1229,7 @@ class AttributePath(Parsed):
     def isCompound(self):
         return len(self.attributes) > 1
 
-class NodeAttribute(Parsed):
+class NodeAttribute(NameParsed):
     """
     The name of a Maya node and attribute (plug): a MayaNodePath followed by a AttrSep and a AttributePath
 
@@ -1283,7 +1293,7 @@ class NodeAttribute(Parsed):
 
     
 # finally a generic catch-all
-class MayaObjectName(Parsed):      
+class MayaObjectName(NameParsed):      
     """
     An object name in Maya, can be a dag object name, a node name,
     an plug name, a component name or a ui name
@@ -1347,8 +1357,8 @@ class MayaObjectName(Parsed):
         """ True if this object is specified as an absolute dag path (starting with '|') """
         return self.type == Component
                        
-# Empty special Parsed class
-class Empty(Parsed):
+# Empty special NameParsed class
+class Empty(NameParsed):
     _parser = EmptyParser
     _accepts = () 
 
@@ -1402,7 +1412,7 @@ def parse( name ):
     """main entry point for parsing a maya node name"""
     return MayaObjectName(name).object
 
-# restrict visibility to Parsed classes :
+# restrict visibility to NameParsed classes :
 # __all__ = ParsedClasses().keys()
 # print "nameparse.py exporting: ", __all__
 #print "end here"

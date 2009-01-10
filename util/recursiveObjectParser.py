@@ -422,16 +422,6 @@ class Parsed(ProxyUni):
             result = cls(unicode(self)+unicode(other))
         
         return result
-    
-    def isNodeName(self):
-        """ True if this dag path name is absolute (starts with '|') """
-        return type(self) == MayaNodePath  
-    def isAttributeName(self):
-        """ True if this object is specified including one or more dag parents """
-        return type(self) == NodeAttribute   
-    def isComponentName(self):
-        """ True if this object is specified as an absolute dag path (starting with '|') """
-        return type(self) == Component
                              
     def __repr__(self):
         return u"%s('%s', %s)" % (self.__class__.__name__, self, self.pos)
