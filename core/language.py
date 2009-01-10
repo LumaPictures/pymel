@@ -1,6 +1,7 @@
 """
 Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
+import sys
 from math import *
 from pymel.util.mathutils import *
 import system
@@ -97,9 +98,9 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
             
     else:
 
-        if isIterable( pyObj ):
+        if util.isIterable( pyObj ):
             try:
-                return getMelType( pyObj=arg[0], exactOnly=True ) + '[]'
+                return getMelType( pyObj[0], exactOnly=True ) + '[]'
             except IndexError:
                 # TODO : raise warning
                 return 'string[]'
