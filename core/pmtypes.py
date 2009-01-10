@@ -578,7 +578,7 @@ class Vector(VectorN) :
             return super(Vector, self).isParallel(other, tol)
     def distanceTo(self, other):
         try :
-            return MPoint.apicls.distanceTo(Point(self), Point(other))
+            return self.apicls.distanceTo(Point(self), Point(other))
         except :
             return super(Vector, self).dist(other)
     def length(self):
@@ -1476,10 +1476,10 @@ class Matrix(MatrixN):
     
     def _getTranslate(self):
         t = TransformationMatrix(self)
-        return Vector(t.getTranslation(MSpace.kTransform))     
+        return Vector(t.getTranslation( _api.MSpace.kTransform) )     
     def _setTranslate(self, value):
         t = TransformationMatrix(self)
-        t.setTranslation ( Vector(value), MSpace.kTransform )
+        t.setTranslation ( Vector(value), _api.MSpace.kTransform )
         self.assign(t.asMatrix())
     translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this Matrix, in transform space") 
     def _getRotate(self):
@@ -1498,14 +1498,14 @@ class Matrix(MatrixN):
         ms = _api.MScriptUtil()
         ms.createFromDouble ( 1.0, 1.0, 1.0 )
         p = ms.asDoublePtr ()
-        t.getScale (p, MSpace.kTransform);
+        t.getScale (p, _api.MSpace.kTransform);
         return Vector([ms.getDoubleArrayItem (p, i) for i in range(3)])        
     def _setScale(self, value):
         t = TransformationMatrix(self)
         ms = _api.MScriptUtil()
         ms.createFromDouble (*Vector(value))
         p = ms.asDoublePtr ()
-        t.setScale ( p, MSpace.kTransform)        
+        t.setScale ( p, _api.MSpace.kTransform)        
         self.assign(t.asMatrix())
     scale = property(_getScale, _setScale, None, "The scale expressed in this Matrix, in transform space")  
 
@@ -1602,7 +1602,7 @@ class Matrix(MatrixN):
         """ Cannot delete from a class with a fixed shape """
         raise TypeError, "deleting %s from an instance of class %s will make it incompatible with class shape" % (index, clsname(self))
 
-    def __delslice__(self, start):
+    def __delslice__(self, start, end):
         self.__delitem__(slice(start, end))           
     
     # TODO : wrap double Matrix:: operator() (unsigned int row, unsigned int col ) const 
@@ -1804,9 +1804,9 @@ class TransformationMatrix(Matrix):
     apicls = _api.MTransformationMatrix 
 
     def _getTranslate(self):
-        return Vector(self.getTranslation(MSpace.kTransform))     
+        return Vector(self.getTranslation(_api.MSpace.kTransform))     
     def _setTranslate(self, value):
-        self.setTranslation ( Vector(value), MSpace.kTransform )
+        self.setTranslation ( Vector(value), _api.MSpace.kTransform )
     translate = property(_getTranslate, _setTranslate, None, "The translation expressed in this TransformationMatrix, in transform space") 
     def _getRotate(self):
         return Quaternion(self.rotation())  
@@ -1818,13 +1818,13 @@ class TransformationMatrix(Matrix):
         ms = _api.MScriptUtil()
         ms.createFromDouble ( 1.0, 1.0, 1.0 )
         p = ms.asDoublePtr ()
-        self.getScale (p, MSpace.kTransform);
+        self.getScale (p, _api.MSpace.kTransform);
         return Vector([ms.getDoubleArrayItem (p, i) for i in range(3)])        
     def _setScale(self, value):
         ms = _api.MScriptUtil()
         ms.createFromDouble (*Vector(value))
         p = ms.asDoublePtr ()
-        self.setScale ( p, MSpace.kTransform)        
+        self.setScale ( p, _api.MSpace.kTransform)        
     scale = property(_getScale, _setScale, None, "The scale expressed in this TransformationMatrix, in transform space")  
         
     def rotation(self) :
@@ -1918,8 +1918,8 @@ class EulerRotation(Array):
             
     def __len__(self):
        
-       # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
-       return self.size
+        # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
+        return self.size
      
     def __getitem__(self, i):
         return Angle( self._getitem(i), 'radians' ).asUI()
@@ -2716,6 +2716,7 @@ _factories.ApiTypeRegister.register( 'MTime', Time )
 _factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda instance, result: Distance(result,'centimeters').asUI() )
 _factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUI()  )
 
+        
 def getPlugValue( plug ):
     """given an MPlug, get its value as a pymel-style object"""
 
