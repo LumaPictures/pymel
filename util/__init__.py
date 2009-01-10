@@ -14,6 +14,7 @@ from utilitytypes import *
 from trees import *
 from arrays import *
 from enum import *
+from path import *
 #from enumerators import *
 import nameparse
 
