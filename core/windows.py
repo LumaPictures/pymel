@@ -65,7 +65,7 @@ import pymel.util as util
 import factories as _factories
 from factories import MetaMayaUIWrapper
 from system import Path
-from language import mel
+from language import mel, melGlobals
 import re
 import pymel.mayahook.plogging as plogging
 _logger = plogging.getLogger(__name__)
@@ -242,7 +242,7 @@ class FormLayout(UI):
     horizontal or vertical layout. Call 'redistribute' once done
     adding child controls.
     """
-    enumOrientation = util.enum.Enum('HORIZONTAL', 'VERTICAL')
+    enumOrientation = util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
     HORIZONTAL = enumOrientation.HORIZONTAL
     VERTICAL = enumOrientation.VERTICAL
     
@@ -1186,7 +1186,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         setter = ctrl.setText
         #if hasDefault: ctrl.setText( str(default) )
     else:
-         raise TypeError, "Unsupported dataType: %s" % dataType
+        raise TypeError, "Unsupported dataType: %s" % dataType
 #        else:
 #            ctrl = TextFieldGrp( l=labelStr )
 #            getter = makeEvalGetter( ctrl.getText )
