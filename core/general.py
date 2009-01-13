@@ -16,7 +16,7 @@ import pmcmds as cmds
 #import maya.cmds as cmds
 import maya.mel as mm
 
-import inspect, warnings, timeit, time
+import inspect, timeit, time
 
 import pymel.util as util
 import factories as _factories
@@ -27,6 +27,9 @@ import pymel.api as api
 import pmtypes as _types
 import pymel.util.path as _path
 import pymel.util.nameparse as nameparse
+import pymel.util.pwarnings as pwarnings
+import logging
+_logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
@@ -244,7 +247,8 @@ Modifications:
             else:
                 raise e
 
-          
+class AmbiguityWarning(Warning):
+    pass
 
 # getting and setting                    
 def setAttr( attr, *args, **kwargs):
@@ -296,20 +300,25 @@ Modifications:
                     try:
                         if isinstance( arg[0], basestring ):
                             datatype = 'stringArray'
-                        #elif isinstance( arg[0], int ):
-                        #    datatype = 'Int32Array'
-                        #elif isinstance( arg[0], float ):
-                        #    datatype = 'doubleArray'    
                         elif isinstance( arg[0], list ):
                             datatype = 'vectorArray'
                         elif isinstance( arg, _types.Vector):
                             datatype = 'double3'
                         elif isinstance( arg,  _types.Matrix ):
                             datatype = 'matrix'
+                        elif isinstance( arg[0], int ):
+                            datatype = 'Int32Array'
+                        elif isinstance( arg[0], float ):
+                            datatype = 'doubleArray'
+                            if len(arg)==3:
+                                pwarnings.warn(AmbiguityWarning(
+                                    "The supplied value will be interperted as a 'doubleArray' and not as a 'double3' (vector). "
+                                    "Supply an explicit 'datatype' argument to avoid this warning."
+                                    ))
                         else:
                             raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
-                                                
-                        print "adding", attr, datatype
+
+                        _logger.debug("adding %r as %r", attr, datatype)
                         addAttr( attrName.node, ln=attrName.attribute, dt=datatype ) 
                         kwargs['type'] = datatype
                         
@@ -920,6 +929,7 @@ Modifications:
     if kwargs.pop('quiet',False):
         if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
             return
+    cmds.delete(*args, **kwargs)
 
   
         
@@ -4604,12 +4614,12 @@ class Mesh(SurfaceShape):
 #                    raise AttributeError, "Attribute does not exist: %s" % at
 #                """
 #            return at.set(val)
-                        
-    vertexCount =  util.deprecated( "Use 'numVertices' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ) )
-    edgeCount =    util.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ) )
-    faceCount =    util.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ) )
-    uvcoordCount = util.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ) )
-    triangleCount = util.deprecated("Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ) )
+                       
+    vertexCount =  util.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
+    edgeCount =    util.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
+    faceCount =    util.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
+    uvcoordCount = util.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
+    triangleCount = util.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' )
     #area = _factories.makeCreateFlagMethod( 'area', cmds.polyEvaluate, 'area' )
@@ -4942,7 +4952,7 @@ def _createPyNodes():
         parentMayaType = treeElem.parent.key
         #print "superNodeType: ", superNodeType, type(superNodeType)
         if parentMayaType is None:
-            print "could not find parent node", mayaType
+            _logger.warning("could not find parent node: %s", mayaType)
             continue
         
         _factories.addPyNode( _thisModule, mayaType, parentMayaType )
@@ -5040,7 +5050,7 @@ def MSelectionPyNode ( sel ):
                 pynode = PyNode( obj )
                 result.append(pynode)                
             except :
-                warnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
+                pwarnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
     return result      
         
         
@@ -5079,12 +5089,12 @@ def _optToDict(*args, **kwargs ):
                     # already there, do nothing
                     pass
                 else :
-                    warnings.warn("%s=%s contradicts %s=%s, both ignored" % (key, val, key, result[key]))
+                    pwarnings.warn("%s=%s contradicts %s=%s, both ignored" % (key, val, key, result[key]))
                     del result[key]
             else :
                 result[key] = val
         else :
-            warnings.warn("'%r' has an invalid type for this keyword argument (valid types: %s)" % (n, types))
+            pwarnings.warn("'%r' has an invalid type for this keyword argument (valid types: %s)" % (n, types))
     return result                 
             
 
@@ -5216,14 +5226,14 @@ def iterNodes (  *args, **kwargs ):
                 if p not in sel :
                     nodes.pop(p)
                     
-    print "selected nodes:", nodes        
+    _logger.debug("selected nodes: %s", nodes)        
     # Add a conditions with a check for contradictory conditions
     def _addCondition(cDic, key, val):
         # check for duplicates
         if key is not None : 
             if cDic.has_key(key) and vDic[key] != val :
                 # same condition with opposite value contradicts existing condition
-                warnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
+                pwarnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
                 del cDic[key]
             else :
                 cDic[key] = val
@@ -5245,7 +5255,7 @@ def iterNodes (  *args, **kwargs ):
                 nameArgs = [nameArgs]    
             nameArgs = _optToDict(*nameArgs)
         # check
-        print nameArgs
+        logging.debug("nameArgs: %s", nameArgs)
         # for names parsing, see class definition in nodes
         curNameSpace = _namespaceInfo( currentNamespace=True )    
         for i in nameArgs.items() :
@@ -5413,12 +5423,10 @@ def iterNodes (  *args, **kwargs ):
             else :
                 raise ValueError, "Invalid/unknown type condition '%s'" % key 
         # check
-        print " API type keys: "
-        for r in cAPITypes.keys() :
-            print "%s:%r" % (r, cAPITypes[r])
-        print " Ext type keys: "   
-        for r in cExtTypes.keys() :
-            print "%s:%r" % (r, cExtTypes[r])
+        _logger.debug(" API type keys: ")
+        map(_logger.debug, map(str, cAPITypes.items()))   
+        _logger.debug(" Ext type keys: ")
+        map(_logger.debug, map(str, cExtTypes.items()))   
         
         # if we check for the presence (positive condition) of API types and API types only we can 
         # use the API MIteratorType for faster filtering, it's not applicable if we need to prune
@@ -5436,10 +5444,10 @@ def iterNodes (  *args, **kwargs ):
         else :
             cAPIPostTypes = cAPITypes
         # check
-        print " API filter: "
-        print cAPIFilter  
-        print " API post types "
-        print cAPIPostTypes
+        _logger.debug(" API filter: ")
+        _logger.debug(cAPIFilter)  
+        _logger.debug(" API post types ")
+        _logger.debug(cAPIPostTypes)
                           
     # conditions on pre-defined properties (visible, ghost, etc) for compatibility with ls
     validProperties = {'visible':1, 'ghost':2, 'templated':3, 'intermediate':4}    
@@ -5599,7 +5607,7 @@ def iterNodes (  *args, **kwargs ):
         if result and len(names)!=0 :
             result = False
             for creg, cval in names.items() :
-                print "match %s on %s" % (creg.pattern, pyobj.name(update=False))
+                _logger.debug("match %s on %s" % (creg.pattern, pyobj.name(update=False)))
                 if creg.match(pyobj.name(update=False)) is not None :
                     result = cval
                     break
