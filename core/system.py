@@ -36,7 +36,8 @@ import factories as _factories
 from factories import createflag, add_docs
 import pymel.util as util
 from pymel.util.scanf import fscanf
-
+import logging
+_logger = logging.getLogger(__name__)
 
 import sys
 try:
@@ -370,8 +371,92 @@ class CurrentFile(Path):
     @add_docs( 'file', 'sceneName')
     def name(self):
         return Path( OpenMaya.MFileIO.currentFile() ) 
+
+
+
   
         
+#===============================================================================
+# FileReference
+#===============================================================================
+
+
+# For the sake of speeding up the process of identifying File References in the scene
+# and properly associating with their respective namespace/reference-node/fullpath,
+# a set of API callbacks is set-up which triggers a file-reference cache refresh.
+
+# This callback mechanism can be suspended temporarily, which is useful when a process
+# needs to change the state of several references at once (loading/unloading, adding/removing).
+# Use the 'deferReferenceUpdates' function or the 'suspendReferenceUpdates' decorator
+
+callbacks = None
+_deferReferenceUpdates = False
+def deferReferenceUpdates(state):
+    logging.info("%s Reference Updates" % ("SUSPENDING " if state else "Enabling"))
+    _deferReferenceUpdates = state
+
+def suspendReferenceUpdates(func):
+    def suspendedRefUpdateFunc(*args, **kw):
+        deferReferenceUpdates(True)
+        try:
+            ret = func(*args, **kw)
+        finally:
+            deferReferenceUpdates(False)
+        return ret
+    suspendedRefUpdateFunc.__name__ = func.__name__
+    suspendedRefUpdateFunc.__doc__ = func.__doc__
+    suspendedRefUpdateFunc.__module__ = func.__module__
+    return suspendedRefUpdateFunc
+
+def refererencesUpdated(*args):
+    if _deferReferenceUpdates:
+        return
+    refreshFileReferences()
+
+def refreshFileReferences():
+    import other
+    FileReference._allRefs.clear()
+    del FileReference._allFiles[:]
+    
+    unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
+    resolvedFiles = cmds.file( q=1, reference=1)
+    
+    _logger.info("Refreshing %s references..." % len(resolvedFiles))
+    FileReference._allFiles = zip(resolvedFiles, unresolvedFiles)
+    
+    for (fn,ufn) in FileReference._allFiles:
+        ns = cmds.file(fn, q=1, ns=1)
+        rn = other.DependNodeName(cmds.file(fn, q=1, referenceNode=1))
+        fullNS = (rn.namespace() + ns).strip(":")
+        fr = FileReference(path=fn, unresolvedPath=ufn)
+        
+        _logger.debug("Found %r" % fr)
+        
+        # The FileReference Object is inserted into the dictionray under multiple keys 
+        # so that it can be easily found using a full-namespace, a reference-node name, or a filepath
+        FileReference._allRefs["ns:%s" % fullNS] = fr
+        FileReference._allRefs["rn:%s" % rn] = fr
+        FileReference._allRefs["fn:%s" % fn.replace("/","\\")] = fr
+        FileReference._allRefs["fn:%s" % fn.replace("\\","/")] = fr
+
+
+def _getAllFileReferences():
+    ret =  [v for (k,v) in FileReference._allRefs.iteritems() if k.startswith("ns:")]
+    if not ret:
+        refreshFileReferences()
+        ret =  [v for (k,v) in FileReference._allRefs.iteritems() if k.startswith("ns:")]
+    return ret
+        
+
+_callbacks = []
+def _setupFileReferenceCallbacks():
+    global _callbacks
+    messages = ['kAfterReference', 'kAfterRemoveReference', 'kAfterImportReference', 'kAfterExportReference', 'kSceneUpdate']
+    for msg in messages:
+        _logger.debug("Setting up File-Reference Callback: %s" % msg)
+        _callbacks.append(OpenMaya.MSceneMessage.addCallback(getattr(OpenMaya.MSceneMessage,msg), refererencesUpdated, None))
+
+
 class FileReference(Path):
     """A class for manipulating references which inherits Path and path.  you can create an 
     instance by supplying the path to a reference file, its namespace, or its reference node to the 
@@ -387,9 +472,13 @@ class FileReference(Path):
     the path will automatically be suffixed with the copy number before being passed to maya commands, thus ensuring 
     the proper results in maya as well. 
     """
-    
-    def __new__(cls, path=None, namespace=None, refnode=None):
-        def create(path):
+
+    _allRefs = {}
+    _allFiles = []
+        
+    def __new__(cls, path=None, namespace=None, refnode=None, unresolvedPath=None):
+        def create(path, unresolvedPath):
+            """Actually create the FileReference object"""
             def splitCopyNumber(path):
                 """Return a tuple with the path and the copy number. Second element will be None if no copy number"""
                 buf = path.split('{')
@@ -399,30 +488,44 @@ class FileReference(Path):
                     return (path, None)
                     
             path, copyNumber = splitCopyNumber(path)
+            unresolvedPath, copyNumber = splitCopyNumber(unresolvedPath)
+
             self = Path.__new__(cls, path)
             self._copyNumber = copyNumber
-            return self
+            self._unresolvedPath = Path(unresolvedPath)
             
-        if path:
-            return create(path)
-        if namespace:
-            for path in map( FileReference, cmds.file( q=1, reference=1) ):
-                 if path.namespace == namespace:
-                    return create(path)
-            raise ValueError, "Namespace '%s' does not match any found in scene" % namespace
-        if refnode:
-            path = cmds.referenceQuery( refnode, filename=1 )
-            return create(path)
-        raise ValueError, "Must supply at least one argument"    
+            return self
+
+        if unresolvedPath:
+            return create(path, unresolvedPath)
+        
+        # find the associated file from the refnode
+        attempts=2  # try twice (refresh if failed the first time)
+        while attempts:
+            try:
+                if refnode:
+                    ret = FileReference._allRefs["rn:%s" % refnode]
+                elif path:
+                    ret = FileReference._allRefs["fn:%s" % path]
+                elif namespace:
+                    ret = FileReference._allRefs["ns:%s" % namespace]
+                return create(ret, ret._unresolvedPath)
+            except KeyError:
+                refreshFileReferences()
+                attempts -= 1
+        
+        raise ValueError("Could not find FileReference (args: %s)" % [path, namespace, refnode, unresolvedPath])    
+   
 
     def subReferences(self):
         namespace = self.namespace + ':'
         res = {}
-        try:
-            for x in cmds.file( self, q=1, reference=1):
-                res[namespace + cmds.file( x, q=1, namespace=1)] = pymel.FileReference(x)
-        except: pass
-        return res    
+        for x in cmds.file( self, q=1, reference=1):
+            try:
+                res[namespace + cmds.file( x, q=1, namespace=1)] = FileReference(x)
+            except Exception, e:
+                mel.warning("Could not get namespace for '%s': %s" % (x,e))  
+        return res  
         
     @add_docs('namespace', 'exists')    
     def namespaceExists(self):
@@ -453,6 +556,10 @@ class FileReference(Path):
         else:
             args = (newFile,)
         return cmds.file( loadReference=self.refNode,*args, **kwargs )
+    
+    @add_docs('file', 'loadReference')
+    def replaceWith(self, newFile):
+        return self.load(newFile)   
     
     @add_docs('file', 'cleanReference')
     def clean(self, **kwargs):
@@ -487,13 +594,19 @@ class FileReference(Path):
     @add_docs('file', 'selectAll')
     def selectAll(self):
         return cmds.file( self.withCopyNumber(), selectAll=1 )
-            
+    
     def _getNamespace(self):
         return cmds.file( self.withCopyNumber(), q=1, ns=1)
+    
     def _setNamespace(self, namespace):
         return cmds.file( self.withCopyNumber(), e=1, ns=namespace)    
-    namespace = property( _getNamespace, _setNamespace )
+    
+    namespace = property(_getNamespace, _setNamespace)
 
+    @property
+    def fullNamespace(self):
+        return "%s%s" % (self.refNode.namespace(), self.namespace)
+    
     def _getRefNode(self):
         #return node.DependNode(cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ))
         # TODO : cast this to PyNode
@@ -522,6 +635,166 @@ class FileReference(Path):
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
         return Path(cmds.file( exportPath, rfn=self.refNode, exportSelectedAnimFromReference=1))
+
+
+    def getReferenceEdits(self, **kwargs):
+        """referenceQuery -editString -onReferenceNode <self.refNode>"""
+          
+        kwargs.pop('editStrings',None)
+        kwargs.pop('es',None)
+        edits = referenceQuery(self.refNode, editStrings=True, onReferenceNode=self.refNode, **kwargs)
+        return edits
+    
+    def removeReferenceEdits(self, editCommand=None, force=False):
+        """Remove edits from the reference.
+        @param editCommand: If specified, remove only edits of a particular type: addAttr, setAttr, connectAttr, disconnectAttr or parent
+        @param force: Unload the reference if it is not unloaded already
+        """
+
+        if self.isLoaded():
+            self.unload()
+        
+        kwargs = {}
+        if editCommand:
+            kwargs['editCommand'] = editCommand
+        cmds.file(cleanReference=self.refNode, **kwargs)
+
+
+def referenceQuery(*args, **kwargs):
+    """When queried for 'es/editStrings', returned a list of ReferenceEdit objects"""
+    if kwargs.get("editStrings", kwargs.get("es")):
+        from general import PyNode, MayaNodeError
+        
+        try:
+            target = PyNode(args[0])
+            if target.type()=='reference':
+                fr = FileReference(refnode=target)
+            else:
+                fr = target.referenceFile()
+        except MayaNodeError:
+            target = path(target)
+            if target.isfile():
+                fr = FileReference(path=target)
+                
+        failedEdits = kwargs.pop('failedEdits', kwargs.pop('fld', None))
+        successfulEdits = kwargs.pop('successfulEdits', kwargs.pop('scs', None))
+        modes = []
+        if failedEdits is None and successfulEdits is None:
+            modes = [True, False]
+        else:
+            if failedEdits:     modes.append(False)
+            if successfulEdits: modes.append(True)
+                    
+        allEdits = []
+        for mode in modes:
+            edits = cmds.referenceQuery(fr,
+                                        failedEdits = not mode, 
+                                        successfulEdits = mode, 
+                                        **kwargs)
+            allEdits.extend(ReferenceEdit(edit, fr, mode) for edit in edits)
+        return allEdits
+    else:
+        return cmds.referenceQuery(*args, **kwargs)
+
+import general, other
+
+def _safeEval(s):
+    try:
+        return eval(s)
+    except:
+        return s
+
+def _safePyNode(n):
+    try:
+        return general.PyNode(_safeEval(n))
+    except:
+        if "." in n:
+            return other.AttributeName(n)
+        else:
+            return other.DependNodeName(n)
+
+class ReferenceEdit(str):
+    """
+    Parses a reference edit command string into various components based on the edit type.
+    This is the class returned by pymel's version of the 'referenceQuery' command.
+    """
+      
+    def __new__(cls, editStr, fileReference=None, successful=None):
+
+        self = str.__new__(cls, editStr)
+        
+        self.type = self.split()[0]
+        self.fileReference = fileReference
+        self.namespace = fileReference and self.fileReference.namespace
+        self.fullNamespace = fileReference and self.fileReference.fullNamespace
+        self.successful = successful
+        return self
+
+    def _getEditData(self):
+        """
+        Returns a dictionary with the relevant data for this reference edit. 
+        Each edit type will have a different set of keys.
+        """
+        if self.fileReference:
+            def _safeRefPyNode(n):
+                n = _safePyNode(_safeEval(n))
+                if self.namespace in n:
+                    ns = self.fileReference.refNode.namespace()
+                    if not ns==":":
+                        n = n.addPrefix(ns)
+                return n
+        else:
+            def _safeRefPyNode(n):
+                return _safePyNode(_safeEval(n))
+        
+        elements = self.split()
+        elements.pop(0)
+        editData = {}
+        if self.type=="addAttr":
+            editData['node'] = _safeRefPyNode(elements.pop(-1))
+            editData['attribute'] = elements.pop(1)
+        elif self.type=="setAttr":
+            editData['node'] = _safeRefPyNode(elements.pop(0))
+            editData['value'] = " ".join(elements)
+        elif self.type=="parent":
+            editData['node'] = _safeRefPyNode(elements.pop(-1))
+            if elements[-1]=="-w":
+                editData['child'] = '<World>'
+            else:
+                editData['child'] = _safePyNode(elements.pop(-1))
+        elif self.type=="disconnectAttr":
+            if elements[0].startswith("-"):
+                elements.append(elements.pop(0))
+            refNode, otherNode = map(_safeRefPyNode, elements[:2])
+            editData['sourceNode'] = refNode
+            editData['targetNode'] = otherNode
+            otherNode, refNode = sorted([otherNode, refNode], key=lambda  n: self.namespace in n)
+            editData['node'] = refNode
+            del elements[:2]
+        elif self.type=="connectAttr":
+            if elements[0].startswith("-"):
+                elements.append(elements.pop(0))
+            refNode, otherNode = map(_safeRefPyNode, elements[:2])
+            editData['sourceNode'] = refNode
+            editData['targetNode'] = otherNode
+            otherNode, refNode = sorted([otherNode, refNode], key=lambda  n: self.namespace in n)
+            editData['node'] = refNode
+            del elements[:2]
+        else:
+            editData['node'] = _safeRefPyNode(elements.pop(0))
+        editData['parameters'] = map(str, elements)
+        return editData
+    
+    def remove(self, force=False):
+        """Remove the reference edit. if 'force=True' then the reference will be unloaded from the scene (if it is not already unloaded)"""
+        if self.fileReference.isLoaded():
+            if not force:
+                raise Exception("Cannon remove edits while reference '%s' is loaded. Unload the reference first, or use the 'force=True' flag." % self.fileReference)
+            self.fileReference.unload()
+        cmds.referenceEdit(self.editData['node'], removeEdits=True, successfulEdits=True, failedEdits=True, editCommand=self.type)
+
+    editData = util.cacheProperty(_getEditData,"_editData") 
+
 
 # TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave
 
@@ -606,7 +879,7 @@ def saveAs(exportPath, **kwargs):
         except: pass
     return Path(cmds.file(**kwargs) )
 
-
+_setupFileReferenceCallbacks()
 
 #createReference = _factories.makecreateflagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
 #loadReference = _factories.makecreateflagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
