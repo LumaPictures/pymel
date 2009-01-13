@@ -68,7 +68,7 @@ from system import Path
 from language import mel
 import re
 import pymel.mayahook.plogging as plogging
-logger = plogging.getLogger(__name__)
+_logger = plogging.getLogger(__name__)
 
 #-----------------------------------------------
 #  Enhanced UI Commands
@@ -168,7 +168,7 @@ class UI(unicode):
         else:
             if cls._isBeingCreated(name, create, kwargs):
                 name = cls.__melcmd__(name, **kwargs)
-                logger.debug("UI: created... %s" % name)
+                _logger.debug("UI: created... %s" % name)
             return unicode.__new__(cls,name)
 
     @staticmethod
@@ -267,7 +267,7 @@ class FormLayout(UI):
         self.ori = self.enumOrientation.getIndex(orientation)
         self.reversed = reversed
         self.ratios = ratios and list(ratios) or []
-        logger.debug("Ratios: %r, %r" % (self.ratios, kwargs))
+        _logger.debug("Ratios: %r, %r" % (self.ratios, kwargs))
     
     def flip(self):
         """Flip the orientation of the layout """
@@ -297,7 +297,7 @@ class FormLayout(UI):
         if self.reversed: children.reverse()
         
         ratios = list(ratios) or self.ratios or []
-        logger.debug('%r - %r' % (self,ratios))
+        _logger.debug('%r - %r' % (self,ratios))
         ratios += [1]*(len(children)-len(ratios))
         self.ratios = ratios
         total = sum(ratios)       
@@ -528,18 +528,18 @@ class SmartLayoutCreator:
             creation[self.name] = self.me
         if debug:
             #log += (" : %-50r" % self.me) + (" - %r" % self.name if self.name else "")
-            logger.debug(log)
+            _logger.debug(log)
 
         [child.create(creation=creation,parent=self.me,debug=debug and debug+"\t") for child in childCreators]
         
         if self.postFunc: 
             self.postFunc(self.me)
             if debug:
-                logger.debug(debug + "< postFunc: %s" % self.postFunc) 
+                _logger.debug(debug + "< postFunc: %s" % self.postFunc) 
         elif hasattr(self.me,'__aftercreate__'):
             self.me.__aftercreate__()
             if debug:
-                logger.debug(debug + "< postFunc: %s" % self.me.__aftercreate__) 
+                _logger.debug(debug + "< postFunc: %s" % self.me.__aftercreate__) 
         return creation
 
 SLC = SmartLayoutCreator
@@ -803,6 +803,7 @@ def showsHourglass(func):
             cmds.waitCursor(st=False)
     decoratedFunc.__doc__ = func.__doc__
     decoratedFunc.__name__ = func.__name__
+    decoratedFunc.__module__ = func.__module__
     return decoratedFunc
     
 
@@ -1214,8 +1215,5 @@ def PyUI(strObj, type=None):
     
 def getMainProgressBar():
     return ProgressBar(melGlobals['gMainProgressBar'])    
-    
 
-                        
-                        
-                                
+     
