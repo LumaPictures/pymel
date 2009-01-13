@@ -57,7 +57,7 @@ mainLogger = logging.root
 pymelLogger = logging.getLogger("pymel")
 
 # keep as an enumerator so that we can keep the order
-logLevels = util.Enum( dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )
+logLevels = util.Enum( 'logLevels', dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )
 
 
 global _callbackId
