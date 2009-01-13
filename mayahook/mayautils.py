@@ -7,12 +7,12 @@ import re, os, os.path, sys, platform, subprocess
 import pymel.util as util
 from pymel.util.pwarnings import *
 import plogging
-logger = plogging.getLogger(__name__)
+_logger = plogging.getLogger(__name__)
 
 try:
     import cPickle as pickle
 except:
-    logger.warning("using pickle instead of cPickle: load performance will be affected")
+    _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
 
 import envparse
@@ -46,12 +46,12 @@ def source (file, searchPath=None, recurse=False) :
     if not util.isIterable(searchPath) :
         searchPath = list((searchPath,))
     itpath = iter(searchPath)
-    logger.debug("looking for file as: "+filepath)
+    _logger.debug("looking for file as: "+filepath)
     while not os.path.exists(filepath) :
         try :
             p = os.path.abspath(os.path.realpath(itpath.next()))
             filepath = os.path.join(p, filename)
-            logger.debug('looking for file as: '+filepath)
+            _logger.debug('looking for file as: '+filepath)
             if recurse and not filepath.exists() :
                 itsub = os.walk(p)
                 while not os.path.exists(filepath) :
@@ -61,7 +61,7 @@ def source (file, searchPath=None, recurse=False) :
                         while not os.path.exists(filepath) :
                             try :
                                 filepath = os.path.join(root, itdirs.next(), filename)
-                                logger.debug('looking for file as: '+filepath)
+                                _logger.debug('looking for file as: '+filepath)
                             except :
                                 pass
                     except :
@@ -70,7 +70,7 @@ def source (file, searchPath=None, recurse=False) :
             raise ValueError, "File '"+filename+"' not found in path"
             # In case the raise exception is replaced by a warning don't forget to return here
             return
-    # logger.debug("Executing: "+filepath)
+    # _logger.debug("Executing: "+filepath)
     return execfile(filepath)
 
 def parseVersionStr(versionStr, extension=False):
@@ -408,7 +408,7 @@ def parseMayaenv(envLocation=None, version=None) :
             version = getMayaVersion(extension=True)
             if version is None:
                 # if run from Maya provided mayapy / python interpreter, can guess version
-                logger.debug("Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir)
+                _logger.debug("Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir)
         # look first for Maya.env in 'version' subdir of MAYA_APP_DIR, then directly in MAYA_APP_DIR
         if version and os.path.isfile(os.path.join(maya_app_dir, version, name)) :
             envPath = os.path.join(maya_app_dir, version, name)
@@ -428,11 +428,11 @@ def parseMayaenv(envLocation=None, version=None) :
             envVars = envparse.parse(envTxt)
             # update env vars
             for v in envVars :
-                #logger.debug("%s was set or modified" % v)
+                #_logger.debug("%s was set or modified" % v)
                 os.environ[v] = envVars[v]
             # add to syspath
             if envVars.has_key('PYTHONPATH') :
-                #logger.debug("sys.path will be updated")
+                #_logger.debug("sys.path will be updated")
                 plist = os.environ['PYTHONPATH'].split(sep)
                 for p in plist :
                     if not p in sys.path :
@@ -470,7 +470,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
     try:
         excludeRegex = re.compile( regex )
     except Exception, e:
-        logger.error(e)
+        _logger.error(e)
     
     #print "------------starting--------------"
     #for x in os.environ.get(envVariableName, '').split(':'): print x
@@ -498,8 +498,8 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
         
     varList = rootVars[:]
     
-    logger.debug("###############################")
-    logger.debug("  Recursing Maya Script Path :")
+    _logger.debug("###############################")
+    _logger.debug("  Recursing Maya Script Path :")
     for rootVar in rootVars:
         root = path.path( rootVar )
         # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
@@ -507,17 +507,17 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
             try:
                 if (excludeRegex and not excludeRegex.match(f.name)) and len(f.files("*.mel")):            
                     if f not in varList:
-                        logger.debug("     --> Adding : %s" % f)
+                        _logger.debug("     --> Adding : %s" % f)
                         varList.append( str(f) )
             except OSError: pass
     
     if varList > rootVars:
         os.environ[envVariableName] = os.path.pathsep.join( varList )
-        logger.debug("Maya Script Path Recursion:  DONE! ")
-        logger.debug("#######################################")
+        _logger.debug("Maya Script Path Recursion:  DONE! ")
+        _logger.debug("#######################################")
     else:
-        logger.debug("Maya Script Path Recursion: Nothing To do")
-        logger.debug("#######################################")
+        _logger.debug("Maya Script Path Recursion: Nothing To do")
+        _logger.debug("#######################################")
 
 
 
@@ -641,9 +641,9 @@ def mayaInit(forversion=None) :
             # maya is initialized and its the version we want. we're done
             return True
         else :
-            logger.debug("Maya is already initialized as version %s, initializing it for a different version %s" % (runningVersion, forversion))
+            _logger.debug("Maya is already initialized as version %s, initializing it for a different version %s" % (runningVersion, forversion))
     elif runningVersion :
-        #logger.debug("Maya is already initialized as version %s" % (runningVersion))
+        #_logger.debug("Maya is already initialized as version %s" % (runningVersion))
         return True
                 
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
@@ -745,7 +745,7 @@ def encodeFix():
                     sys.stdout = codecs.getwriter(mayaEncode)(maya.utils.Output())
                     sys.stderr = codecs.getwriter(mayaEncode)(maya.utils.Output( error=1 ))
                 except ImportError :
-                    logger.debug("Unable to import maya.app.baseUI")
+                    _logger.debug("Unable to import maya.app.baseUI")
 
 def loadCache( filePrefix, description='', useVersion=True):
     if useVersion:
@@ -761,15 +761,15 @@ def loadCache( filePrefix, description='', useVersion=True):
         try :
             return pickle.load(file)
         except :
-            logger.debug("Unable to load%s from '%s'" % (description,file.name))
+            _logger.debug("Unable to load%s from '%s'" % (description,file.name))
         
         file.close()
     except :
-        logger.debug("Unable to open '%s' for reading%s" % ( newPath, description ))
+        _logger.debug("Unable to open '%s' for reading%s" % ( newPath, description ))
 
  
 def writeCache( data, filePrefix, description='', useVersion=True):
-    logger.debug("writing cache")
+    _logger.debug("writing cache")
     
     if useVersion:
         short_version = getMayaVersion(extension=False)   
@@ -780,17 +780,17 @@ def writeCache( data, filePrefix, description='', useVersion=True):
     if description:
         description = ' ' + description
     
-    logger.debug("Saving%s to '%s'" % ( description, newPath ))
+    _logger.debug("Saving%s to '%s'" % ( description, newPath ))
     try :
         file = open(newPath, mode='wb')
         try :
             pickle.dump( data, file, 2)
-            logger.debug("done")
+            _logger.debug("done")
         except:
-            logger.debug("Unable to write%s to '%s'" % (description,file.name))
+            _logger.debug("Unable to write%s to '%s'" % (description,file.name))
         file.close()
     except :
-        logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
+        _logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
                  
  
 def executeDeferred(func):
