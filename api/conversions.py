@@ -3,7 +3,7 @@
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 
 import pymel.mayahook as mayahook
-logger = mayahook.getLogger(__name__)
+_logger = mayahook.getLogger(__name__)
 
 from allapi import *
 
@@ -188,7 +188,7 @@ class ApiDocParser(object):
             type = Enum( [self.apiClassName, type] )
             if type not in self.badEnums:
                 self.badEnums.append(type)
-                logger.warn( "Suspected Bad Enum: %s", type )
+                _logger.warn( "Suspected Bad Enum: %s", type )
         else:
             type = str(type)
         return type
@@ -249,7 +249,7 @@ class ApiDocParser(object):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
         file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
         
-        logger.info( "parsing file %s" , file )
+        _logger.info( "parsing file %s" , file )
         
         f = open( file )
     
@@ -336,7 +336,7 @@ class ApiDocParser(object):
                     self.pymelEnums[self.currentMethod] = util.Enum(self.currentMethod, pymelEnumList)
                     
                 except AttributeError, msg:
-                    logger.error( "FAILED ENUM: %s", msg )
+                    _logger.error( "FAILED ENUM: %s", msg )
                     
             # ARGUMENTS
             else:
@@ -927,10 +927,10 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         except RuntimeError:
             # DagNode
             obj = dagMod.createNode ( mayaType, parent )
-            logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
+            _logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
         else:
             # DependNode
-            logger.debug( "Made ghost DG node of type '%s'" % mayaType )
+            _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
             dgMod.deleteNode(obj)
     except:
         obj = MObject()
@@ -1151,9 +1151,9 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
                         #print "succeeded", name
                         apiClassInfo[ name ] = info
                     else: 
-                        logger.warn( "failed to parse docs: %s", name )
+                        _logger.warn( "failed to parse docs: %s", name )
                 except (ValueError,IndexError), msg: 
-                    logger.warn( "failed %s %s" % ( name, msg ) )
+                    _logger.warn( "failed %s %s" % ( name, msg ) )
                     
     # print MFnDict.keys()
     # Fixes for types that don't have a MFn by faking a node creation and testing it
@@ -1163,7 +1163,7 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     #nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
     nodeDict, mayaDict = _createNodes( dagMod, dgMod, *allMayaTypes )
     if len(_unableToCreate) > 0:
-        logger.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
+        _logger.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
     
     for mayaType, apiType in mayaDict.items() :
         MayaTypesToApiTypes()[mayaType] = apiType
@@ -1261,7 +1261,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
             return apiTypeHierarchy, apiClassInfo
             
     
-    logger.info( "Rebuilding the API Caches..." )
+    _logger.info( "Rebuilding the API Caches..." )
     
     # fill out the data structures
     _buildApiTypesList()
@@ -1289,7 +1289,7 @@ apiTypeHierarchy, apiClassInfo = _buildApiCache(rebuildAllButClassInfo=False)
 # quick fix until we can get a Singleton ApiTypeHierarchy() up
 
 _elapsed = time.time() - _start
-logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
+_logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
 
 # TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
