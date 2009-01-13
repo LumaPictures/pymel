@@ -14,7 +14,7 @@ import warnings
 from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
 # from warnings import simplefilter, warn
 import logging
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
@@ -34,7 +34,7 @@ warnings.formatwarning = formatwarning
 
 def showwarning(message, category, filename, lineno, file=None, line=None):
     msg = warnings.formatwarning(message, category, filename, lineno, line)
-    logger.warning(msg + (" >> %r" % file if file else ""))
+    _logger.warning(msg + (" >> %r" % file if file else ""))
     
 warnings.showwarning = showwarning
 
