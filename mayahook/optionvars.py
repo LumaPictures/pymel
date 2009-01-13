@@ -53,58 +53,53 @@ class OptionVarDict(object):
         return cmds.optionVar(*args, **kwargs)
     
     def __contains__(self, key):
+        return self.has_key(key)
+        
+    def has_key(self, key):
         return cmds.optionVar( exists=key )
-            
+                
     def __getitem__(self,key):
         val = cmds.optionVar( q=key )
         if isinstance(val, list):
             val = OptionVarList( val, key )
         return val
-    def __setitem__(self,key,val):
-        if isinstance( val, basestring):
-            return cmds.optionVar( stringValue=[key,val] )
-        if isinstance( val, int) or isinstance( val, bool):
-            return cmds.optionVar( intValue=[key,int(val)] )
-        if isinstance( val, float):
-            return cmds.optionVar( floatValue=[key,val] )
-        if isinstance( val, (list,tuple) ):
-            if len(val) == 0:
-                return cmds.optionVar( clearArray=key )
-            if isinstance( val[0], basestring):
-                cmds.optionVar( stringValue=[key,val[0]] ) # force to this datatype
-                for elem in val[1:]:
-                    if not isinstance( elem, basestring):
-                        raise TypeError, 'all elements in list must be of the same datatype'
-                    cmds.optionVar( stringValueAppend=[key,elem] )
-                return
-            if isinstance( val[0], int):
-                cmds.optionVar(  intValue=[key,val[0]] ) # force to this datatype
-                for elem in val[1:]:
-                    if not isinstance( elem, int):
-                        raise TypeError,  'all elements in list must be of the same datatype'
-                    cmds.optionVar( intValueAppend=[key,elem] )
-                return
-            if isinstance( val[0], float):
-                cmds.optionVar( floatValue=[key,val[0]] ) # force to this datatype
-                for elem in val[1:]:
-                    if not isinstance( elem, float):
-                        raise TypeError, 'all elements in list must be of the same datatype'
-                    cmds.optionVar( floatValueAppend=[key,elem] )
-                return
-
-        raise TypeError, 'unsupported datatype: strings, ints, float, lists, and their subclasses are supported'            
-
-    def keys(self):
-        return cmds.optionVar( list=True )
 
     def get(self, key, default=None):
         if self.has_key(key):
             return self[key]
         else:
             return default
-        
-    def has_key(self, key):
-        return cmds.optionVar( exists=key )
+    
+    def __setitem__(self,key,val):
+        if isinstance( val, basestring):
+            return cmds.optionVar( stringValue=[key,val] )
+        if isinstance( val, (int, bool)):
+            return cmds.optionVar( intValue=[key,int(val)] )
+        if isinstance( val, float):
+            return cmds.optionVar( floatValue=[key,val] )
+        if isinstance( val, (list,tuple) ):
+            if len(val) == 0:
+                return cmds.optionVar( clearArray=key )
+            listType = type(val[0])
+            if issubclass( listType , basestring):
+                flag = 'stringValue'
+            elif issubclass( listType , int):
+                flag = 'intValue'
+            elif issubclass( listType , float):
+                flag  = 'floatValue'
+            else:
+                raise TypeError, ('%r is unsupported; Only strings, ints, float, lists, and their subclasses are supported' % listType)
+            
+            cmds.optionVar(**{flag:[key,val[0]]}) # force to this datatype
+            flag += "Append"
+            for elem in val[1:]:
+                if not isinstance( elem, listType):
+                    raise TypeError, 'all elements in list must be of the same datatype'
+                cmds.optionVar( **{flag:[key,elem]} )
+
+    def keys(self):
+        return cmds.optionVar( list=True )
+
 
     def pop(self, key):
         val = cmds.optionVar( q=key )
