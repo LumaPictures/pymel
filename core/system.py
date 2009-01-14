@@ -747,6 +747,10 @@ class ReferenceEdit(str):
             def _safeRefPyNode(n):
                 return _safePyNode(_safeEval(n))
         
+        import pymel.tools.mel2py as mel2py
+        pyCmd = "".join(mel2py.mel2pyStr(self + ";").splitlines()[1:])  # chop off the 'import pymel' line
+        args, kwargs = eval("dummy" + "".join(pyCmd.partition("(")[1:]), {}, dict(dummy=lambda *x,**y: (x, y)))
+
         elements = self.split()
         elements.pop(0)
         editData = {}
@@ -783,6 +787,10 @@ class ReferenceEdit(str):
         else:
             editData['node'] = _safeRefPyNode(elements.pop(0))
         editData['parameters'] = map(str, elements)
+        
+        editData['args'] = args
+        editData['kwargs'] = kwargs
+        
         return editData
     
     def remove(self, force=False):
