@@ -79,9 +79,11 @@ Maya Bug Fix:
     """
     cb = kwargs.pop('getCellCmd', kwargs.pop('gcc',None) )
     cc = kwargs.pop('cellChangedCmd', kwargs.pop('ccc',None) )
-    
+
     uiName = cmds.scriptTable( *args, **kwargs )
-    
+    if "q" in kwargs or "query" in kwargs:
+        return uiName
+        
     kwargs.clear()
     if cb:
         if hasattr(cb, '__call__'):        
@@ -113,7 +115,8 @@ Maya Bug Fix:
         kwargs['cellChangedCmd'] = cc
 
     if kwargs:
-        cmds.scriptTable( uiName, e=1, **kwargs)    
+        cmds.scriptTable( uiName, e=1, **kwargs)
+    
     return ScriptTable(uiName)
     
 
