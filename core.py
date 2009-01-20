@@ -1468,30 +1468,30 @@ def refererencesUpdated(*args):
     refreshFileReferences()
 
 def refreshFileReferences():
-    FileReference._refs.clear()
-    del FileReference._files[:]
+    FileReference._allRefs.clear()
+    del FileReference._allFiles[:]
     
     unresolvedFiles = cmds.file( q=1, reference=1, unresolvedName=1)
     resolvedFiles = cmds.file( q=1, reference=1)
     
-    FileReference._files = zip(resolvedFiles, unresolvedFiles)
+    FileReference._allFiles = zip(resolvedFiles, unresolvedFiles)
     
-    for (fn,ufn) in FileReference._files:
+    for (fn,ufn) in FileReference._allFiles:
         ns = cmds.file(fn, q=1, ns=1)
         rn = node.Reference(cmds.file(fn, q=1, referenceNode=1))
         fullNS = (rn.namespace() + ns).strip(":")
         fr = FileReference(path=fn, unresolvedPath=ufn)
-        FileReference._refs["ns:%s" % fullNS] = fr
-        FileReference._refs["rn:%s" % rn] = fr
-        FileReference._refs["fn:%s" % fn.replace("/","\\")] = fr
-        FileReference._refs["fn:%s" % fn.replace("\\","/")] = fr
+        FileReference._allRefs["ns:%s" % fullNS] = fr
+        FileReference._allRefs["rn:%s" % rn] = fr
+        FileReference._allRefs["fn:%s" % fn.replace("/","\\")] = fr
+        FileReference._allRefs["fn:%s" % fn.replace("\\","/")] = fr
 
 
 def _getAllFileReferences():
-    ret =  [v for (k,v) in FileReference._refs.iteritems() if k.startswith("ns:")]
+    ret =  [v for (k,v) in FileReference._allRefs.iteritems() if k.startswith("ns:")]
     if not ret:
         refreshFileReferences()
-        ret =  [v for (k,v) in FileReference._refs.iteritems() if k.startswith("ns:")]
+        ret =  [v for (k,v) in FileReference._allRefs.iteritems() if k.startswith("ns:")]
     return ret
         
 
@@ -1518,8 +1518,8 @@ class FileReference(Path):
     the proper results in maya as well. 
      """
     
-    _refs = {}
-    _files = []
+    _allRefs = {}
+    _allFiles = []
     def __new__(cls, path=None, namespace=None, refnode=None, unresolvedPath=None):
         def create(path, unresolvedPath):
             def splitCopyNumber(path):
@@ -1543,17 +1543,16 @@ class FileReference(Path):
             return create(path, unresolvedPath)
         
         # find the associated file from the refnode
-        attempts=2
+        attempts=2  # try twice (refresh if failed the first time)
         while attempts:
             try:
                 if refnode:
-                    ret = FileReference._refs["rn:%s" % refnode]
+                    ret = FileReference._allRefs["rn:%s" % refnode]
                 elif path:
-                    ret = FileReference._refs["fn:%s" % path]
+                    ret = FileReference._allRefs["fn:%s" % path]
                 elif namespace:
-                    ret = FileReference._refs["ns:%s" % namespace]
-                ret.__class__ = cls
-                return ret
+                    ret = FileReference._allRefs["ns:%s" % namespace]
+                return create(ret, ret._unresolvedPath)
             except KeyError:
                 refreshFileReferences()
                 attempts -= 1

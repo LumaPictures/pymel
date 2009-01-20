@@ -195,10 +195,115 @@ class FormLayout(UI):
         kwargs['attachPosition'] = [args]
         cmds.formLayout(self,**kwargs)
         
-    def vDistribute(self,*ratios):
-        AutoLayout(self, orientation=AutoLayout.VERTICAL, ratios=ratios).redistribute()
-    def hDistribute(self,*ratios):
-        AutoLayout(self, orientation=AutoLayout.HORIZONTAL, ratios=ratios).redistribute()
+    """ 
+    Automatically distributes child controls in either a
+    horizontal or vertical layout. Call 'redistribute' once done
+    adding child controls.
+    """
+    HORIZONTAL, VERTICAL = range(2)
+    sides = [["top","bottom"],["left","right"]]
+
+    
+    def __new__(cls, name=None, **kwargs):
+        if not 'slc' in kwargs:
+            kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+        else:
+            kw = {}
+        self = UI.__new__(cls, name, **kwargs)
+        kwargs.update(kw)
+#        print cls
+#        cls.__init__(self, name=name, **kwargs)
+        return self
+    
+        
+    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None, **kwargs):
+        """ 
+        spacing - absolute space between controls
+        orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
+        """
+        UI.__init__(self, **kwargs)
+        self.spacing = spacing
+        self.ori = orientation
+        self.reversed = reversed
+        self.ratios = ratios and list(ratios) or []
+    
+    def flip(self):
+        """Flip the orientation of the layout """
+        self.ori = 1-self.ori
+        self.redistribute(*self.ratios)
+    
+    def reverse(self):
+        """Reverse the children order """
+        self.reversed = not self.reversed
+        self.ratios.reverse()
+        self.redistribute(*self.ratios)
+        
+    def reset(self):
+        self.ratios = []
+        self.reversed = False
+        self.redistribute()
+        
+    def redistribute(self,*ratios):
+        """ Redistribute the child controls based on the given ratios.
+            If not ratios are given (or not enough), 1 will be used 
+            win=window()
+            win.show()
+            al=AutoLayout(create=1,parent=win)
+            [pm.button(l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
+            al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
+        """
+        
+        children = self.getChildArray()
+        if not children:
+            return
+        if self.reversed: children.reverse()
+        
+        ratios = list(ratios) or self.ratios or []
+        ratios += [1]*(len(children)-len(ratios))
+        self.ratios = ratios
+        total = sum(ratios)        
+        for i in range(len(children)):
+            child = children[i]
+            for side in self.sides[self.ori]:
+                self.attachForm(child,side,self.spacing)
+
+            if i==0:
+                self.attachForm(child,
+                    self.sides[1-self.ori][0],
+                    self.spacing)
+            else:
+                self.attachControl(child,
+                    self.sides[1-self.ori][0],
+                    self.spacing,
+                    children[i-1])
+            
+            if ratios[i]:
+                self.attachPosition(children[i],
+                    self.sides[1-self.ori][1],
+                    self.spacing,
+                    float(sum(ratios[:i+1]))/float(total)*100)
+            else:
+                self.attachNone(children[i],
+                    self.sides[1-self.ori][1])
+
+# for backwards compatiblity
+AutoLayout = FormLayout
+
+def autoLayout(*args, **kwargs):
+    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+    ret = formLayout(*args, **kwargs)
+    ret.__init__(**kw)
+    return ret
+
+def verticalLayout(*args, **kwargs):
+    kwargs['orientation'] = FormLayout.VERTICAL
+    return autoLayout(*args, **kwargs)
+
+def horizontalLayout(*args, **kwargs):
+    kwargs['orientation'] = FormLayout.HORIZONTAL
+    return autoLayout(*args, **kwargs)
+
+
         
 class FrameLayout(UI):
     __metaclass__ = factories.metaNode
@@ -280,120 +385,6 @@ class Callback:
         return Callback._callData    
 
 
-class AutoLayout(FormLayout):
-    """ 
-    Automatically distributes child controls in either a
-    horizontal or vertical layout. Call 'redistribute' once done
-    adding child controls.
-    """
-    HORIZONTAL, VERTICAL = range(2)
-    sides = [["top","bottom"],["left","right"]]
-
-    
-    #def __new__(cls,  *args, **kwargs):
-    #    kwargs.pop("orientation",None)
-    #    kwargs.pop("spacing",None)
-    #    kwargs.pop("reversed",None)
-    #    kwargs.pop("ratios",None)
-    #    return FormLayout.__new__(cls, *args, **kwargs)
-    
-        
-    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None):
-        """ 
-        spacing - absolute space between controls
-        orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
-        """
-        self.spacing = spacing
-        self.ori = orientation
-        self.reversed = reversed
-        self.ratios = ratios and list(ratios) or []
-    
-    def flip(self):
-        """Flip the orientation of the layout """
-        self.ori = 1-self.ori
-        self.redistribute(*self.ratios)
-    
-    def reverse(self):
-        """Reverse the children order """
-        self.reversed = not self.reversed
-        self.ratios.reverse()
-        self.redistribute(*self.ratios)
-        
-    def reset(self):
-        self.ratios = []
-        self.reversed = False
-        self.redistribute()
-        
-    def redistribute(self,*ratios):
-        """ Redistribute the child controls based on the given ratios.
-            If not ratios are given (or not enough), 1 will be used 
-            win=window()
-            win.show()
-            al=AutoLayout(create=1,parent=win)
-            [pm.button(l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
-            al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
-        """
-        
-        children = self.getChildArray()
-        if not children:
-            return
-        if self.reversed: children.reverse()
-        
-        ratios = list(ratios) or self.ratios or []
-        ratios += [1]*(len(children)-len(ratios))
-        self.ratios = ratios
-        total = sum(ratios)        
-        for i in range(len(children)):
-            child = children[i]
-            for side in self.sides[self.ori]:
-                self.attachForm(child,side,self.spacing)
-
-            if i==0:
-                self.attachForm(child,
-                    self.sides[1-self.ori][0],
-                    self.spacing)
-            else:
-                self.attachControl(child,
-                    self.sides[1-self.ori][0],
-                    self.spacing,
-                    children[i-1])
-            
-            if ratios[i]:
-                self.attachPosition(children[i],
-                    self.sides[1-self.ori][1],
-                    self.spacing,
-                    float(sum(ratios[:i+1]))/float(total)*100)
-            else:
-                self.attachNone(children[i],
-                    self.sides[1-self.ori][1])
-
-
-def autoLayout(*args, **kwargs):
-    __doc__ = AutoLayout.__doc__
-    
-    kw = {}
-    for k in kwargs.keys():
-        if k in ["orientation", "spacing", "reversed", "ratios"]:
-            v = kwargs.pop(k,None)
-            if v is not None:
-                kw[k] = v
-    
-    return AutoLayout(formLayout(*args, **kwargs),**kw)
-
-def horizontalLayout(*args, **kwargs):
-    __doc__ = AutoLayout.__doc__
-    
-    kwargs["orientation"] = AutoLayout.HORIZONTAL
-    return autoLayout(*args, **kwargs)
-
-def verticalLayout(*args, **kwargs):
-    __doc__ = AutoLayout.__doc__
-    
-    kwargs["orientation"] = AutoLayout.VERTICAL
-    return autoLayout(*args, **kwargs)
-
-
-
 class SmartLayoutCreator:
     """
     Create a set of layouts and controls using a nested data structure.
@@ -467,6 +458,12 @@ class SmartLayoutCreator:
         return creation
 
 SLC = SmartLayoutCreator
+class SmartLayoutCreator2(SmartLayoutCreator):
+    def __init__(self, uiFunc=None, name=None, childCreators=None, postFunc=None, **kwargs):
+        SmartLayoutCreator.__init__(self,name, uiFunc, kwargs, postFunc, childCreators)
+        
+SLT = SmartLayoutCreator2
+
 
 def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
     dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
