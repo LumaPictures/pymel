@@ -188,11 +188,23 @@ class AttributeName(NameParser):
         
     def getParent(self):
         """
+        Returns the parent attribute
         """    
-        
         if self.count('.') > 1:
             return AttributeName('.'.join(self.split('.')[:-1]))
 
+    def addAttr( self, **kwargs):    
+        kwargs['longName'] = self.plugAttr()
+        kwargs.pop('ln', None )
+        return addAttr( self.node(), **kwargs )
+    
+    def setAttr(self, *args, **kwargs):
+        from pymel.core.general import setAttr
+        return setAttr(self, *args, **kwargs)
+        
+    set = setAttr
+    add = addAttr
+    
 
 class DependNodeName( NameParser ):
     #-------------------------------
@@ -206,7 +218,7 @@ class DependNodeName( NameParser ):
             
     def exists(self, **kwargs):
         "objExists"
-        return self.objExists(**kwargs)
+        return cmds.objExists(**kwargs)
 
             
     _numPartReg = re.compile('([0-9]+)$')
