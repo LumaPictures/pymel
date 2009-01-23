@@ -1,27 +1,10 @@
-""" path.py - An object representing a path to a file or directory.
-
+"""
+path - An object representing a path to a file or directory.
 """
 
 
-# TODO
-#   - Tree-walking functions don't avoid symlink loops.  Matt Harrison sent me a patch for this.
-#   - Tree-walking functions can't ignore errors.  Matt Harrison asked for this.
-#
-#   - Two people asked for path.chdir().  This just seems wrong to me,
-#     I dunno.  chdir() is moderately evil anyway.
-#
-#   - Bug in write_text().  It doesn't support Universal newline mode.
-#   - Better error message in listdir() when self isn't a
-#     directory. (On Windows, the error message really sucks.)
-#   - Make sure everything has a good docstring.
-#   - Add methods for regex find and replace.
-#   - guess_content_type() method?
-#   - Perhaps support arguments to touch().
-#   - Could add split() and join() methods that generate warnings.
-
-from __future__ import generators
-
 import sys, pwarnings, os, fnmatch, glob, shutil, codecs
+import common
 
 __all__ = ['path']
 
@@ -72,18 +55,17 @@ _externalFuncs = [
         ['copyfile', 'copymode', 'copystat', 'copy', 'copy2', 'copytree', 'move', 'rmtree']),
     ]
 
-class _CastToPath():
+@common.decorator
+def _castToPath(func):
+    def castToPathFunc(path, *args, **kwargs):
+        return _pathClass(func(path, *args, **kwargs))
+    return castToPathFunc
     
-    def __init__(self,func):
-        self.func = func
-        self.__doc__ = func.__doc__
-        self.name = func.__name__
-    
-    def __call__(self,*args, **kwargs):
-        return path(self.func(*args, **kwargs))
-    
-    def __str__(self): return str(self.func)     
-    def __repr__(self): return repr(self.func)
+@common.decorator
+def _makeBindable(func):
+    def bindableFunc(path, *args, **kwargs):
+        return func(path, *args, **kwargs)
+    return bindableFunc
 
 # Dynamically build the PathBase class from the definitions above.
 # - functions are inserted as methods from their respective modules;
@@ -91,24 +73,26 @@ class _CastToPath():
 # - functions prefixed wtih an asterisk ('*') are wrapped with a _CastToPath object,
 #   which converts the result into a new path object    
 for (module, funcs) in _externalFuncs:
-    for func in funcs:
+    for funcName in funcs:
         recast = False
-        if func.startswith("*"):
+        if funcName.startswith("*"):
             recast = True
-            func = func[1:]
-        if hasattr(module, func):
-            funcObj = getattr(module,func)
+            funcName = funcName[1:]
+        if hasattr(module, funcName):
+            funcObj = getattr(module,funcName)
             docstr = funcObj.__doc__ 
             if recast:
-                funcObj = _CastToPath(funcObj)
-            setattr(PathBase,func,funcObj)
-            if func.startswith("get"):
-                prop = func.replace("get","")
+                funcObj = _castToPath(funcObj)
+            if "builtin" in str(type(funcObj)):         # this is needed for builtin functions
+                funcObj = _makeBindable(funcObj)        # since they don't auto convert to class methods
+            setattr(PathBase,funcName,funcObj)
+            if funcName.startswith("get"):
+                prop = funcName.replace("get","")
                 setattr(PathBase, prop, property(funcObj, None, None, docstr) )
         else:
             pwarnings.warn(FunctionUnavailableWarning(
                 "Could not add '%s' from module '%s' to the 'path' class" % 
-                (func, module.__name__)))
+                (funcName, module.__name__)))
 
 
 class path(PathBase):
@@ -157,49 +141,55 @@ class path(PathBase):
         """
         return self.expandvars().expanduser().normpath()
 
-    def _get_namebase(self):
-        base, ext = os.path.splitext(self.name)
-        return base
-
-    def _get_ext(self):
-        f, ext = os.path.splitext(_base(self))
-        return ext
-
-    def _get_drive(self):
-        drive, r = os.path.splitdrive(self)
-        return self.__class__(drive)
-
-    parent = property(
-        PathBase.dirname, None, None,
-        """ This path's parent directory, as a new path object.
+    @property
+    def drive(self):
+        """
+        The drive specifier, for example 'C:'.
+        This is always empty on systems that don't use drive specifiers.
+        """
+        drv, r = os.path.splitdrive(self)
+        return self.__class__(drv)
+    
+    @property
+    def parent(self):
+        """
+        This path's parent directory, as a new path object.
 
         For example, path('/usr/local/lib/libpython.so').parent == path('/usr/local/lib')
-        """)
+        """
+        return PathBase.dirname(self)
 
-    name = property(
-        PathBase.basename, None, None,
-        """ The name of this file or directory without the full path.
+
+    @property
+    def name(self):
+        """
+        The name of this file or directory without the full path.
 
         For example, path('/usr/local/lib/libpython.so').name == 'libpython.so'
-        """)
+        """
+        return PathBase.basename(self)
+        
 
-    namebase = property(
-        _get_namebase, None, None,
-        """ The same as path.name, but with one file extension stripped off.
+    @property
+    def namebase(self):
+        """
+        The same as path.name, but with one file extension stripped off.
 
         For example, path('/home/guido/python.tar.gz').name     == 'python.tar.gz',
         but          path('/home/guido/python.tar.gz').namebase == 'python.tar'
-        """)
+        """
+        base, ext = os.path.splitext(self.name)
+        return base
 
-    ext = property(
-        _get_ext, None, None,
-        """ The file extension, for example '.py'. """)
 
-    drive = property(
-        _get_drive, None, None,
-        """ The drive specifier, for example 'C:'.
-        This is always empty on systems that don't use drive specifiers.
-        """)
+    @property
+    def ext(self):
+        """
+        The file extension, for example '.py'.
+        """
+        f, extn = os.path.splitext(_base(self))
+        return extn
+
 
     def splitpath(self):
         """ p.splitpath() -> Return (p.parent, p.name). """
@@ -743,13 +733,8 @@ class path(PathBase):
         f = self.open('rb')
         try:
             m = None
-            try:
-                # fix for python 2.5 - module md5 is deprecated and now part of new hashlib
-                import hashlib
-                m = hashlib.md5()
-            except ImportError:
-                import md5
-                m = md5.new()
+            import hashlib
+            m = hashlib.md5()
             while True:
                 d = f.read(8192)
                 if not d:
@@ -868,4 +853,4 @@ class PathAdvanced(path):
             """ The UNC mount point for this path.
             This is empty for paths on local drives. """)    
     
-            
+_pathClass = path            
