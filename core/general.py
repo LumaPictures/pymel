@@ -300,7 +300,7 @@ Modifications:
                     try:
                         if isinstance( arg[0], basestring ):
                             datatype = 'stringArray'
-                        elif isinstance( arg[0], list ):
+                        elif isinstance( arg[0], (list,_types.Vector) ):
                             datatype = 'vectorArray'
                         elif isinstance( arg, _types.Vector):
                             datatype = 'double3'
@@ -821,7 +821,7 @@ def createNode( *args, **kwargs):
         return PyNode(res)
             
                 
-def sets( objectSet, **kwargs):
+def sets( *args, **kwargs):
     """
 Modifications
     - resolved confusing syntax: operating set is always the first and only arg::
@@ -851,7 +851,7 @@ Modifications
     'flatten', 'fl'
     ]
     
-    args = (objectSet,)
+    #args = (objectSet,)
     
     #     this:
     #        sets('myShadingGroup', forceElement=1)
@@ -2525,7 +2525,7 @@ class Attribute(PyNode):
                 name += '.'
          
             
-            return name + self.partialName(    includeNodeName=False, 
+            return name + self._partialName(    includeNodeName=False, 
                                                includeNonMandatoryIndices=True, 
                                                includeInstancedIndices=True, 
                                                useAlias=False, 
@@ -3297,19 +3297,19 @@ class DependNode( PyNode ):
         if custom:
             kwargs['custom'] = custom
             
-        return cmds.nodePrest( presetName, **kwargs)
+        return cmds.nodePreset( presetName, **kwargs)
         
     def loadPreset(self, presetName):
         kwargs = {'load':True}
-        return cmds.nodePrest( presetName, **kwargs)
+        return cmds.nodePreset( presetName, **kwargs)
         
     def deletePreset(self, presetName):
         kwargs = {'delete':True}
-        return cmds.nodePrest( presetName, **kwargs)
+        return cmds.nodePreset( presetName, **kwargs)
         
     def listPresets(self):
         kwargs = {'list':True}
-        return cmds.nodePrest( presetName, **kwargs)
+        return cmds.nodePreset( **kwargs)
 #} 
           
 #--------------------------
@@ -4331,7 +4331,7 @@ class Transform(DagNode):
     @editflag('xform','rotateAxis')                                
     def setMatrix( self, val, **kwargs ):
         """xform -scale"""
-        if isinstance(val, Matrix):
+        if isinstance(val, _types.Matrix):
             val = val.toList()
     
         kwargs['matrix'] = val
@@ -4449,7 +4449,7 @@ class RenderLayer(DependNode):
     def listAdjustments(self):
         return map( PyNode, util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
       
-    def addAdjustments(self, members):
+    def addAdjustments(self, members, noRecurse):
         return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
 
     def removeAdjustments(self, members ):
@@ -4683,194 +4683,555 @@ class Particle(DeformableShape):
     def pointCount(self):
         return cmds.particle( self, q=1,count=1)
     num = pointCount
-    
-class ObjectSet(Entity):
-    """
-    this is currently a work in progress.  my goal is to create a class for doing set operations in maya that is
-    compatiable with python's powerful built-in set class.  
-    
-    each operand has its own method equivalent. 
-    
-    these will return the results of the operation as python sets containing lists of pymel node classes::
-    
-        s&t     s.intersection(t)
-        s|t     s.union(t)
-        s^t     s.symmetric_difference(t)
-        s-t     s.difference(t)
-    
-    the following will alter the contents of the maya set::
-        
-        s&=t    s.intersection_update(t)
-        s|=t    s.update(t)
-        s^=t    s.symmetric_difference_update(t)
-        s-=t    s.difference_update(t)        
-    
-    create some sets
-    
-        >>> from pymel import *
-        >>> sphere = polySphere()
-        >>> cube = polyCube()
-        >>> s = sets( cube )
-        >>> s.update( ls( type='camera') )
-        >>> t = sets( sphere )
-        >>> t.add( 'perspShape' )
 
-        >>> print s|t  # union
+class SelectionSet( api.MSelectionList):
+    apicls = api.MSelectionList
+    __metaclass__ = _factories.MetaMayaTypeWrapper
 
-        >>> u = sets( s&t ) # intersection
-        >>> print u.elements(), s.elements()
-        >>> if u < s: print "%s is a sub-set of %s" % (u, s)
-        
-    place a set inside another, take1
-    
-        >>> # like python's built-in set, the add command expects a single element
-        >>> s.add( t )
-
-    place a set inside another, take2
-    
-        >>> # like python's built-in set, the update command expects a set or a list
-        >>> t.update([u])
-
-        >>> # put the sets back where they were
-        >>> s.remove(t)
-        >>> t.remove(u)
-
-    now put the **contents** of a set into another set
-    
-        >>> t.update(u)
-
-    mixed operation between pymel.core.ObjectSet and built-in set
-        
-        >>> v = set(['polyCube3', 'pSphere3'])
-        >>> print s.intersection(v)
-        >>> print v.intersection(s)  # not supported yet
-        >>> u.clear()
-
-        >>> delete( s )
-        >>> delete( t )
-        >>> delete( u )
-    """
+    def __init__(self, objs):
+        """ can be initialized from a list of objects, another SelectionSet, an MSelectionList, or an ObjectSet"""
+        if isinstance(objs, api.MSelectionList ):
+            api.MSelectionList.__init__(self, objs)
             
-    def _elements(self):
-        """ used internally to get a list of elements without casting to node classes"""
-        return sets( self, q=True)
-    #-----------------------
-    # Maya Methods
-    #-----------------------
-    def elements(self):
-        return set( map( PyNode, self._elements() ) )
+        elif isinstance(objs, ObjectSet ):
+            api.MSelectionList.__init__(self, objs.asSelectionSet() )
+            
+        else:
+            api.MSelectionList.__init__(self)
+            for obj in objs:
+                if isinstance(obj, (DependNode, DagNode) ):
+                    self.apicls.add( self, obj.__apiobject__() )
+                elif isinstance(obj, Attribute):
+                    self.apicls.add( self, obj.__apiobject__(), True )
+    #            elif isinstance(obj, _Component):
+    #                sel.add( obj.__apiobject__(), True )
+                elif isinstance( obj, basestring ):
+                    self.apicls.add( self, obj )
+                else:
+                    raise TypeError
+        
+    def __melobject__(self):
+        return list(self)
+    
+    def __len__(self):
+        """:rtype: `int` """
+        return self.apicls.length(self)
+    
+    def __contains__(self, item):
+        """:rtype: `bool` """
+        if isinstance(item, (DependNode, DagNode, Attribute) ):
+            return self.apicls.hasItem(self, item.__apiobject__())
+        elif isinstance(item, _Component):
+            raise NotImplementedError, 'Components not yet supported'
+        else:
+            return self.apicls.hasItem(self, PyNode(item).__apiobject__())
 
-    def subtract(self, set2):
-        return sets( self, subtract=set2 )
-    
-    def flatten(self):
-        return sets( flatten=self )
-    
-#    #-----------------------
-#    # Python ObjectSet Methods
-#    #-----------------------
-#    def __and__(self, s):
-#        return self.intersection(s)
-#
-#    def __iand__(self, s):
-#        return self.intersection_update(s)
-#                    
-#    def __contains__(self, element):
-#        return element in self._elements()
-#
-#    #def __eq__(self, s):
-#    #    return s == self._elements()
-#
-#    #def __ne__(self, s):
-#    #    return s != self._elements()
-#            
-#    def __or__(self, s):
-#        return self.union(s)
-#
-#    def __ior__(self, s):
-#        return self.update(s)
-#                                    
-#    def __len__(self, s):
-#        return len(self._elements())
-#
-#    def __lt__(self, s):
-#        return self.issubset(s)
-#
-#    def __gt__(self, s):
-#        return self.issuperset(s)
+    def __repr__(self):
+        """:rtype: `str` """
+        names = []
+        self.apicls.getSelectionStrings( self, names )
+        return '%s(%s)' % ( self.__class__.__name__, names )
+
+        
+    def __getitem__(self, index):
+        """:rtype: `PyNode` """
+        if index >= len(self):
+            raise IndexError, "index out of range"
+        
+        plug = api.MPlug()
+        obj = api.MObject()
+        dag = api.MDagPath()
+        try:
+            self.apicls.getPlug( self, index, plug )
+            return PyNode( plug )
+        except RuntimeError:
+            try:
+                self.apicls.getDependNode( self, index, obj )
+                return PyNode( obj )
+            except RuntimeError:
+                try:
+                    self.apicls.getDagPath( self, index, dag )
+                    return PyNode( dag )
+                except:
+                    pass
+                
+    def __setitem__(self, index, item):
+        
+        if isinstance(item, (DependNode, DagNode, Attribute) ):
+            return self.apicls.replace(self, index, item.__apiobject__())
+        elif isinstance(item, _Component):
+            raise NotImplementedError, 'Components not yet supported'
+        else:
+            return self.apicls.replace(self, PyNode(item).__apiobject__())
+        
+    def __and__(self, s):
+        "operator for `SelectionSet.getIntersection`"
+        return self.getIntersection(s)
+
+    def __iand__(self, s):
+        "operator for `SelectionSet.intersection`"
+        return self.intersection(s)
+       
+    def __or__(self, s):
+        "operator for `SelectionSet.getUnion`"
+        return self.getUnion(s)
+
+    def __ior__(self, s):
+        "operator for `SelectionSet.union`"
+        return self.union(s)
+
+    def __lt__(self, s):
+        "operator for `SelectionSet.isSubSet`"
+        return self.isSubSet(s)
+
+    def __gt__(self, s):
+        "operator for `SelectionSet.isSuperSet`"
+        return self.isSuperSet(s)
                     
     def __sub__(self, s):
-        return self.difference(s)
+        "operator for `SelectionSet.getDifference`"
+        return self.getDifference(s)
 
     def __isub__(self, s):
-        return self.difference_update(s)                        
-
+        "operator for `SelectionSet.difference`"
+        return self.difference(s)       
+    
     def __xor__(self, s):
-        return self.symmetric_difference(s)
-        
-    def add(self, element):
-        return sets( self, add=[element] )
-    
-    def clear(self):
-        return sets( self, clear=True )
-    
-    def copy(self ):
-        return sets( self, copy=True )
-    
-    def difference(self, elements):
-        if isinstance(elements,basestring):
-            elements = cmds.sets( elements, q=True)
-        return list(set(self.elements()).difference(elements))
-        
-        '''
-        if isinstance(s, ObjectSet) or isinstance(s, str):
-            return sets( s, subtract=self )
-        
-        s = sets( s )
-        res = sets( s, subtract=self )
-        cmds.delete(s)
-        return res'''
-    
-    def difference_update(self, elements ):
-        return sets( self, remove=elements)
-    
-    def discard( self, element ):
-        try:
-            return self.remove(element)
-        except TypeError:
-            pass
+        "operator for `SelectionSet.symmetricDifference`"
+        return self.getSymmetricDifference(s)
 
-    def intersection(self, elements):
-        if isinstance(elements,basestring):
-            elements = cmds.sets( elements, q=True)
-        return set(self.elements()).intersection(elements)
+    def __ixor__(self, s):
+        "operator for `SelectionSet.symmetricDifference`"
+        return self.symmetricDifference(s)     
+     
+    def add(self, item):
+        
+        if isinstance(item, (DependNode, DagNode, Attribute) ):
+            return self.apicls.add(self, item.__apiobject__())
+        elif isinstance(item, _Component):
+            raise NotImplementedError, 'Components not yet supported'
+        else:
+            return self.apicls.add(self, PyNode(item).__apiobject__())
+        
+     
+    def pop(self, index):
+        """:rtype: `PyNode` """
+        if index >= len(self):
+            raise IndexError, "index out of range"
+        return self.apicls.remove(self, index )
     
-    def intersection_update(self, elements):
+
+    def isSubSet(self, other):
+        """:rtype: `bool`"""
+        if isinstance(other, ObjectSet):
+            other = other.asSelectionSet()
+        return set(self).issubset(other)
+    
+    def isSuperSet(self, other, flatten=True ):
+        """:rtype: `bool`"""
+        if isinstance(other, ObjectSet):
+            other = other.asSelectionSet()
+        return set(self).issuperset(other)
+    
+    def getIntersection(self, other):
+        """:rtype: `SelectionSet`"""
+        # diff = self-other
+        # intersect = self-diff
+        diff = self.getDifference(other)
+        return self.getDifference(diff)
+    
+    def intersection(self, other):
+        diff = self.getDifference(other)
+        self.difference(diff)
+        
+    def getDifference(self, other):
+        """:rtype: `SelectionSet`"""
+        # create a new SelectionSet so that we don't modify our current one
+        newSet = SelectionSet( self )
+        newSet.difference(other)
+        return newSet
+    
+    def difference(self, other):
+        if not isinstance( other, api.MSelectionList ):
+            other = SelectionSet( other )
+        self.apicls.merge( self, other, api.MSelectionList.kRemoveFromList )
+    
+    def getUnion(self, other):
+        """:rtype: `SelectionSet`"""
+        newSet = SelectionSet( self )
+        newSet.union(other)
+        return newSet
+    
+    def union(self, other):
+        if not isinstance( other, api.MSelectionList ):
+            other = SelectionSet( other )
+        self.apicls.merge( self, other, api.MSelectionList.kMergeNormal )
+        
+        
+    def getSymmetricDifference(self, other):
+        """Also known as XOR
+        :rtype: `SelectionSet`"""
+        # create a new SelectionSet so that we don't modify our current one
+        newSet = SelectionSet( self )
+        newSet.symmetricDifference(other)
+        return newSet
+    
+    def symmetricDifference(self, other):
+        if not isinstance( other, api.MSelectionList ):
+            other = SelectionSet( other )
+        self.apicls.merge( self, other, api.MSelectionList.kXOR )
+
+    def asObjectSet(self):
+        return sets( self )
+#    def intersect(self, other):
+#        self.apicls.merge( other, api.MSelectionList.kXORWithList )
+    
+
+       
+class ObjectSet(Entity):
+    """
+    The ObjectSet class and `SelectionSet` class work together.  Both classes have a very similar interface,
+    the primary difference is that the ObjectSet class represents connections to an objectSet node, while the
+    `SelectionSet` class is a generic set, akin to pythons built-in `set`. 
+ 
+    
+    create some sets:
+    
+        >>> from pymel import *
+        >>> s = sets()  # create an empty set
+        >>> s.union( ls( type='camera') )  # add some cameras to it
+        >>> s.members()  # get members as a list
+        [Camera('perspShape'), Camera('topShape'), Camera('frontShape'), Camera('sideShape')]
+        >>> s.asSelectionSet() # or as a SelectionSet
+        SelectionSet([u'perspShape', u'topShape', u'frontShape', u'sideShape'])
+        
+    Operations between sets result in `SelectionSet` objects:
+    
+        >>> t = sets()  # create another set
+        >>> t.add( 'perspShape' )  # add the persp camera shape to it
+        >>> s.getIntersections(t)
+        SelectionSet([u'perspShape'])
+        >>> s.getDifference(t)
+        SelectionSet([u'topShape', u'frontShape', u'sideShape'])
+        >>> s.isSuperSet(t)
+        True
+        
+             
+        
+    """
+
+  
+#        >>> u = sets( s&t ) # intersection
+#        >>> print u.elements(), s.elements()
+#        >>> if u < s: print "%s is a sub-set of %s" % (u, s)
+#        
+#    place a set inside another, take1
+#    
+#        >>> # like python's built-in set, the add command expects a single element
+#        >>> s.add( t )
+#
+#    place a set inside another, take2
+#    
+#        >>> # like python's built-in set, the update command expects a set or a list
+#        >>> t.update([u])
+#
+#        >>> # put the sets back where they were
+#        >>> s.remove(t)
+#        >>> t.remove(u)
+#
+#    now put the **contents** of a set into another set
+#    
+#        >>> t.update(u)
+#
+#    mixed operation between pymel.core.ObjectSet and built-in set
+#        
+#        >>> v = set(['polyCube3', 'pSphere3'])
+#        >>> print s.intersection(v)
+#        >>> print v.intersection(s)  # not supported yet
+#        >>> u.clear()
+#
+#        >>> delete( s )
+#        >>> delete( t )
+#        >>> delete( u )
+#        
+#        
+#    these will return the results of the operation as python sets containing lists of pymel node classes::
+#    
+#        s&t     # s.intersection(t)
+#        s|t     # s.union(t)
+#        s^t     # s.symmetric_difference(t)
+#        s-t     # s.difference(t)
+#    
+#    the following will alter the contents of the maya set::
+#        
+#        s&=t    # s.intersection_update(t)
+#        s|=t    # s.update(t)
+#        s^=t    # s.symmetric_difference_update(t)
+#        s-=t    # s.difference_update(t) 
+#            
+#    def _elements(self):
+#        """ used internally to get a list of elements without casting to node classes"""
+#        return sets( self, q=True)
+#    #-----------------------
+#    # Maya Methods
+#    #-----------------------
+#    def elements(self):
+#        return set( map( PyNode, self._elements() ) )
+#
+#    def subtract(self, set2):
+#        return sets( self, subtract=set2 )
+#    
+    __metaclass__ = MetaMayaNodeWrapper
+    #-----------------------
+    # Python ObjectSet Methods
+    #-----------------------
+                    
+    def __contains__(self, item):
+        """:rtype: `bool` """
+        if isinstance(item, (DependNode, DagNode, Attribute) ):
+            return self.__apimfn__().isMember(item.__apiobject__())
+        elif isinstance(item, _Component):
+            raise NotImplementedError, 'Components not yet supported'
+        else:
+            return self.__apimfn__().isMember(PyNode(item).__apiobject__())
+
+    def __getitem__(self, index):
+        return self.asSelectionSet()[index]
+                                       
+    def __len__(self, s):
+        """:rtype: `int`"""
+        return len(self.asSelectionSet())
+
+
+    #def __eq__(self, s):
+    #    return s == self._elements()
+
+    #def __ne__(self, s):
+    #    return s != self._elements()
+         
+    def __and__(self, s):
+        "operator for `ObjectSet.getIntersection`"
+        return self.getIntersection(s)
+
+    def __iand__(self, s):
+        "operator for `ObjectSet.intersection`"
+        return self.intersection(s)
+       
+    def __or__(self, s):
+        "operator for `ObjectSet.getUnion`"
+        return self.getUnion(s)
+
+    def __ior__(self, s):
+        "operator for `ObjectSet.union`"
+        return self.union(s)
+
+    def __lt__(self, s):
+        "operator for `ObjectSet.isSubSet`"
+        return self.isSubSet(s)
+
+    def __gt__(self, s):
+        "operator for `ObjectSet.isSuperSet`"
+        return self.isSuperSet(s)
+                    
+    def __sub__(self, s):
+        "operator for `ObjectSet.getDifference`"
+        return self.getDifference(s)
+
+    def __isub__(self, s):
+        "operator for `ObjectSet.difference`"
+        return self.difference(s)                  
+    
+    def __xor__(self, s):
+        "operator for `ObjectSet.symmetricDifference`"
+        return self.getSymmetricDifference(s)
+
+    def __ixor__(self, s):
+        "operator for `ObjectSet.symmetricDifference`"
+        return self.symmetricDifference(s)     
+#        
+#    def add(self, element):
+#        return sets( self, add=[element] )
+#    
+#    def clear(self):
+#        return sets( self, clear=True )
+#    
+#    def copy(self ):
+#        return sets( self, copy=True )
+#    
+#    def difference(self, elements):
+#        if isinstance(elements,basestring):
+#            elements = cmds.sets( elements, q=True)
+#        return list(set(self.elements()).difference(elements))
+#        
+#        '''
+#        if isinstance(s, ObjectSet) or isinstance(s, str):
+#            return sets( s, subtract=self )
+#        
+#        s = sets( s )
+#        res = sets( s, subtract=self )
+#        cmds.delete(s)
+#        return res'''
+#    
+#    def difference_update(self, elements ):
+#        return sets( self, remove=elements)
+#    
+#    def discard( self, element ):
+#        try:
+#            return self.remove(element)
+#        except TypeError:
+#            pass
+#
+#    def intersection(self, elements):
+#        if isinstance(elements,basestring):
+#            elements = cmds.sets( elements, q=True)
+#        return set(self.elements()).intersection(elements)
+#    
+#    def intersection_update(self, elements):
+#        self.clear()
+#        sets( self, add=self.intersections(elements) )
+#            
+#    def issubset(self, set2):
+#        return sets( self, isMember=set2)
+#
+#    def issuperset(self, set2):
+#        return sets( self, isMember=set2)
+#            
+#    def remove( self, element ):
+#        return sets( self, remove=[element])
+#
+#    def symmetric_difference(self, elements):
+#        if isinstance(elements,basestring):
+#            elements = cmds.sets( elements, q=True)
+#        return set(self.elements()).symmetric_difference(elements)
+#            
+#    def union( self, elements ):
+#        if isinstance(elements,basestring):
+#            elements = cmds.sets( elements, q=True)
+#        return set(self.elements()).union(elements)
+#    
+#    def update( self, set2 ):        
+#        sets( self, forceElement=set2 )
+    
+    def members(self, flatten=False):
+        """return members as a list
+        :rtype: `list`
+        """
+        return list( self.asSelectionSet(flatten) )
+
+    def flattened(self):
+        """return a flattened list of members.  equivalent to `ObjectSet.members(flatten=True)`
+        :rtype: `list`
+        """
+        return self.members(flatten=True)
+    
+    def resetTo(self, newContents ):
+        """clear and set the members to the passed list/set"""
         self.clear()
-        sets( self, add=self.intersections(elements) )
-            
-    def issubset(self, set2):
-        return sets( self, isMember=set2)
-
-    def issuperset(self, set2):
-        return sets( self, isMember=set2)
-            
-    def remove( self, element ):
-        return sets( self, remove=[element])
-
-    def symmetric_difference(self, elements):
-        if isinstance(elements,basestring):
-            elements = cmds.sets( elements, q=True)
-        return set(self.elements()).symmetric_difference(elements)
-            
-    def union( self, elements ):
-        if isinstance(elements,basestring):
-            elements = cmds.sets( elements, q=True)
-        return set(self.elements()).union(elements)
-    
-    def update( self, set2 ):        
-        sets( self, forceElement=set2 )
+        self.addMembers( newContents )
         
+    def add(self, item):
+        if isinstance(item, (DependNode, DagNode, Attribute) ):
+            return self.__apimfn__().addMember(item.__apiobject__())
+        elif isinstance(item, _Component):
+            raise NotImplementedError
+        else:
+            return self.__apimfn__().addMember(PyNode(item).__apiobject__())
+
+    def remove(self, item):
+        if isinstance(item, (DependNode, DagNode, Attribute) ):
+            return self.__apimfn__().removeMember(item.__apiobject__())
+        elif isinstance(item, _Component):
+            raise NotImplementedError
+        else:
+            return self.__apimfn__().removeMember(PyNode(item).__apiobject__())
+          
+    def isSubSet(self, other):
+        """:rtype: `bool`"""
+        return self.asSelectionSet().isSubSet(other)
+    
+    def isSuperSet(self, other ):
+        """:rtype: `bool`"""
+        return self.asSelectionSet().isSuperSet(other)
+    
+    def isEqual(self, other ):
+        """
+        do not use __eq__ to test equality of set contents. __eq__ will only tell you if 
+        the passed object is the same node, not if this set and the passed set
+        have the same contents.
+        :rtype: `bool` 
+        """
+        return self.asSelectionSet() == SelectionSet(other)
+    
+    
+    def getDifference(self, other):
+        """:rtype: `SelectionSet`"""
+        sel = self.asSelectionSet()
+        sel.difference(other)
+        return sel
+    
+    def difference(self, other):
+        sel = self.getDifference(other)
+        self.resetTo(sel)
+
+    def getSymmetricDifference(self, other):
+        """also known as XOR
+        :rtype: `SelectionSet`
+        """
+        sel = self.getSymmetricDifference()
+        sel.difference(other)
+        return sel
+    
+    def symmetricDifference(self, other):
+        sel = self.symmetricDifference(other)
+        self.resetTo(sel)
+        
+    def getIntersection(self, other):
+        """:rtype: `SelectionSet`"""
+        if isinstance(other, ObjectSet):
+            return self._getIntersection(other)
+        
+        #elif isinstance(other, SelectionSet) or hasattr(other, '__iter__'):
+        selSet = self.asSelectionSet()
+        selSet.intersection(other)
+        return selSet
+        
+        #raise TypeError, 'Cannot perform intersection with non-iterable type %s' % type(other)
+
+    def intersection(self, other):
+        sel = self.getIntersection(other)
+        self.resetTo(sel)
+        
+        
+    def getUnion(self, other):
+        """:rtype: `SelectionSet`"""
+        if isinstance(other, ObjectSet):
+            return self._getUnion(other)
+        
+        selSet = self.asSelectionSet()
+        selSet.union(other)
+        return selSet
+
+    def union(self, other):
+        self.addMembers(other)
+               
+#    def difference(self, other):
+#        sel = self.getDifference(other)
+#        self.clear()
+#        self.update(sel)
+#    
+#    def getDifference(self, other):
+#        if isinstance(other, ObjectSet):
+#            return self._getDifference(other)
+#        elif hasattr(other, '__iter__'):
+#            return SelectionSet( set( self.asSelectionSet(False) ).difference(other) )
+#        
+#    def symmetricDifference(self, other):
+#        pass
+#    
+#    def getSymmetricDifference(self, other):
+#        pass
+    
+    
         #if isinstance(s, str):
         #    items = ObjectSet(  )
             
@@ -4999,38 +5360,17 @@ def toApiTypeStr( obj, default=None ):
         return api.MayaTypesToApiTypes().get( mayaType, default)
     
 def toApiTypeEnum( obj, default=None ):
-    if isinstance( obj, basestring ):
-        try:
-            return api.ApiTypesToApiEnums()[obj]
-        except KeyError:
-            return api.MayaTypesToApiEnums().get(obj,default)
-    elif isinstance( obj, PyNode ):
-        mayaType = _factories.PyNodesToMayaTypes().get( obj, None )
-        return api.MayaTypesToApiEnum().get( mayaType, default)  
+    if isinstance( obj, PyNode ):
+        obj = _factories.PyNodesToMayaTypes().get( obj, None )
+    return api.toApiTypeEnum(obj)
 
 def toMayaType( obj, default=None ):
-    if isinstance( obj, int ):
-        return api.ApiEnumsToMayaTypes().get( obj, default )
-    elif isinstance( obj, basestring ):
-        return api.ApiTypesToMayaTypes().get( obj, default)
-    elif issubclass( obj, PyNode ):
+    if issubclass( obj, PyNode ):
         return _factories.PyNodesToMayaTypes().get( obj, default )
-    
-def toApiFunctionSet( obj, default=None ):
-    if isinstance( obj, basestring ):
-        try:
-            return api.ApiTypesToApiClasses()[ obj ]
-        except KeyError:
-            return api.ApiTypesToApiClasses().get( api.MayaTypesToApiTypes.get( obj, default ) ) 
-    elif isinstance( obj, int ):
-        try:
-            return api.apiTypesToApiClasses[ api.ApiEnumsToApiTypes()[ obj ] ]
-        except KeyError:
-            return default
-
+    return api.toMayaType(obj)
 
 # Selection list to PyNodes
-def MSelectionPyNode ( sel ):
+def MSelectionToList ( sel ):
     length = sel.length()
     dag = api.MDagPath()
     comp = api.MObject()
@@ -5053,11 +5393,30 @@ def MSelectionPyNode ( sel ):
                 pwarnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
     return result      
         
-        
+def listToMSelection( objs ):
+    sel = api.MSelectionList()
+    for obj in objs:
+        if isinstance(obj, DependNode):
+            sel.add( obj.__apiobject__() )
+        elif isinstance(obj, Attribute):
+            sel.add( obj.__apiobject__(), True )
+        elif isinstance(obj, _Component):
+            pass
+            #sel.add( obj.__apiobject__(), True )
+        else:
+            raise TypeError
+
+#_factories.ApiTypeRegister.register( 'MSelectionList', list, 
+#                                    inCast=listToMSelection, 
+#                                    outCast=lambda self,x: MSelectionToList(x) ) 
+
+_factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )  
 def activeSelectionPyNode () :
     sel = api.MSelectionList()
     api.MGlobal.getActiveSelectionList ( sel )   
-    return MSelectionPyNode ( sel )
+    return MSelectionToList ( sel )
+
+
 
 def _optToDict(*args, **kwargs ):
     result = {}
@@ -5290,7 +5649,7 @@ def iterNodes (  *args, **kwargs ):
                         raise ValueError, "'%s' uses inexistent nameSpace '%s'" % (key, nameSpace)
                     # namespace thing needs a fix
                     key = r"("+name+r")"                    
-                except NameParseError, e :
+                except nameparse.NameParseError, e :
                     # TODO : bad formed name, ignore it
                     pass
             try :
