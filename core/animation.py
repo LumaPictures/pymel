@@ -38,6 +38,12 @@ Modifications:
     """
     return map( general.PyNode, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
 
+def keyframe( *args, **kwargs ):
+    """
+Modifications:
+    - returns an empty list when the result is None
+    """
+    util.listForNone( cmds.keyframe(*args, **kwargs) )
 
 def deformer(*args, **kwargs):
     return map( PyNode, cmds.deformer(*args, **kwargs) )
