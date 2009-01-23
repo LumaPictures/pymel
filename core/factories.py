@@ -3109,7 +3109,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             parentClasses = [ x.__name__ for x in inspect.getmro( newcls )[1:] ]
             for flag, flagInfo in cmdInfo['flags'].items():
                 ##logger.debug(nodeType, flag)
-                 # don't create methods for query or edit, or for flags which only serve to modify other flags
+                # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
                     continue
                 
@@ -3128,6 +3128,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
+                            
+                            # 'enabled' refers to whether the API version of this method will be used.
+                            # if the method is enabled that means we skip it here. 
                             if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)].get('enabled',True):
                                 returnFunc = None
                                 
@@ -3139,14 +3142,13 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 elif flagInfo.get( 'resultNeedsUnpacking', False):
                                     returnFunc = lambda x: returnFunc(x[0])
                                 
-                                
                                 wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
                                     docstring=flagInfo['docstring'], returnFunc=returnFunc )
                                 
                                 logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
                                 #setattr( newcls, methodName, wrappedMelFunc )
-                            else: logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                            else: logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
                         else: logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):

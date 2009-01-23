@@ -16,6 +16,8 @@ It controls:
 from pymel import *
 import inspect, re, os
 
+logger = mayahook.plogging.getLogger(__name__)
+
 FRAME_WIDTH = 800
 VERBOSE = True
           
@@ -97,12 +99,14 @@ class PymelControlPanel(object):
             
     @staticmethod    
     def getMelMethods(className):
+        """get all mel-derived methods for this class"""
         reg = re.compile('(.*[a-z])([XYZ])$')
         newlist = []
         origlist = factories.apiToMelMap['mel'][className]
         for method in origlist:
             m = reg.search(method)
             if m:
+                # strip off the XYZ component and replace with *
                 newname = m.group(1) + '*'
                 if newname not in newlist:
                     newlist.append(newname)
@@ -138,15 +142,22 @@ class PymelControlPanel(object):
         `MethodRow` instances, but the creation of UI elements is delayed until a particular
         configuration is requested via `buildClassColumn`.
         """
+        logger.info( 'processing all classes...' )
         for className in self.classList:
             melMethods = self.getMelMethods(className)
+            logger.debug( '%s: mel methods: %s' % (className, melMethods) )
             for clsName, apiClsName in getClassHierarchy(className):
                 if apiClsName and apiClsName not in ['list']:
                     if clsName not in self.classFrames:
                         frame = ClassFrame( self, clsName, apiClsName)
                         self.classFrames[clsName] = frame 
-                    self.classFrames[clsName].updateMelNames( melMethods )
-                 
+                    # temporarily disable the melName updating until we figure out how to deal
+                    # with base classes that are the parents of many others, and which therefore end up with
+                    # methods derived from many different mel commands, which are only applicable for the inherited classes
+                    # not for the base class on its own.  ( see ObjectSet and Character, for an example, specifically 'getIntersection' method )
+                    #self.classFrames[clsName].updateMelNames( melMethods )
+        logger.info( 'done processing classes' )
+        
     def buildClassColumn(self, className ):
         """
         Build an info column for a class.  This column will include processed `ClassFrame`s for it and its parent classes
@@ -167,7 +178,7 @@ class PymelControlPanel(object):
             if apiClsName:
                 #print cls
                 if clsName in self.classFrames:
-                    print "building UI for", clsName
+                    logger.debug( "building UI for %s", clsName )
                     frame = self.classFrames[clsName].buildUI(filter)
                     self.apiMethodCol.setTabLabel( [frame, clsName] )
                     count+=1
@@ -175,7 +186,7 @@ class PymelControlPanel(object):
                     #if i != len(mro)-1:
                     #    frame.setCollapse(True)  
                 else:
-                    print "skipping", clsName
+                    logger.debug( "skipping %s", clsName )
         self.apiMethodCol.setSelectTabIndex(count)
                    
         #self.classFrames[className].frame.setCollapse(False)     
@@ -199,6 +210,7 @@ class ClassFrame(object):
         
         
     def updateMelNames(self, melMethods):
+        logger.debug( '%s: updating melNames' % self.className )
         for rowName, row in self.rows.items():
             row.updateMelNames( melMethods )
             
@@ -272,8 +284,10 @@ class MethodRow(object):
 
         # correct old values
         # we no longer store positive values, only negative -- meaning methods will be enabled by default
-        if not self.data == True or sum(enabledArray) == 0:
-            self.data.pop('enabled', None)
+#        if 'enabled' in self.data and ( self.data['enabled'] == True  or sum(enabledArray) == 0 ):
+#            logger.debug( '%s.%s: enabled array: %s' % ( self.className, self.methodName, enabledArray ) )
+#            logger.debug( '%s.%s: removing enabled entry' % ( self.className, self.methodName) )
+#            self.data.pop('enabled', None)
         
         
         # enabled
@@ -303,6 +317,7 @@ class MethodRow(object):
         
         # correct old values
         if self.data.has_key('melName'):
+            #logger.debug( "correcting melName %s %s %s" % (self.className, self.methodName, str(self.data['melName']) ) )
             self.data['melName'] = str(self.data['melName']) 
         
         
@@ -344,6 +359,7 @@ class MethodRow(object):
                     match = str(method)
                     break
             if match:
+                logger.debug( "%s.%s: adding melName %s" % ( self.className, self.methodName, match ) )
                 self.data['melName'] = match
                 self.crossReference( match )
             
@@ -432,7 +448,7 @@ class MethodRow(object):
             # and make this frame read-only
             menuItem( label=melName, parent=self.melNameOptMenu )
             self.melNameOptMenu.setValue( melName )
-            print self.methodName, "making frame read-only"
+            logger.debug( "making %s frame read-only" % self.methodName )
             self.frame.setEnable(False)
         
         isEnabled = self.data.get('enabled', True)
@@ -459,7 +475,7 @@ class MethodRow(object):
                 val = self.data['overloadIndex']
                 
                 if val is None:
-                    print self.methodName, "no wrappable methods"
+                    logger.info( "no wrappable options for method %s" % self.methodName ) 
                     self.frame.setEnable( False )
                 else:
                     self.overloadPrecedenceColl.setSelect( items[ val ] )
@@ -484,6 +500,7 @@ class MethodRow(object):
         return True
         
     def enableCB(self, *args ):
+        logger.debug( 'setting enabled to %s' % args[0] )
         if args[0] == False:
             self.data['enabled'] = False
         else:
@@ -491,6 +508,7 @@ class MethodRow(object):
         self.row.setEnable( args[0] )
 
     def nameTypeCB(self ):
+        logger.info( 'setting name type' )
         selected = self.nameMode.getSelect()
         if selected == 1:
             val = 'API'
@@ -501,7 +519,8 @@ class MethodRow(object):
         else:
             val = str(self.altNameText.getText())
             self.altNameText.setEnable(True)
-            
+        
+        logger.debug( 'data %s' % self.data )   
         self.data['useName'] = val
         
     def alternateNameCB(self, *args ):
@@ -518,20 +537,20 @@ class MethodRow(object):
 #            print "could not find documentation for", apiClassName, methodName
     
     def overloadPrecedenceCB(self, i):
-        if i == 0: # no precedence
-            self.data.pop('overloadIndex',None)
-        else:
-            self.data['overloadIndex'] = i
+        logger.debug( 'overloadPrecedenceCB' )
+        self.data['overloadIndex'] = i
     
     def melNameCB(self, newMelName):
         oldMelName = str(self.melNameTextField.getText())
         if oldMelName:
             self.uncrossReference( oldMelName )
         if newMelName == '[None]':
+            print "removing melName"
             self.data.pop('melName',None)
             self.parent.parent.unassignMelMethod( oldMelName )
             self.melNameTextField.setText('')
         else:
+            print "adding melName", newMelName
             self.crossReference( newMelName )
             self.data['melName'] = newMelName
             self.parent.parent.assignMelMethod( newMelName )
@@ -541,9 +560,12 @@ class MethodRow(object):
         self.melNameOptMenu.deleteAllItems()
 
         menuItem(parent=self.melNameOptMenu, label='[None]', command=Callback( MethodRow.melNameCB, self, '[None]' ))
-        for method in self.parent.parent.unassignedMelMethodLister.getAllItems():
-            menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameCB, self, str(method) ))
-    
+        # need to add a listForNone to this in windows
+        items = self.parent.parent.unassignedMelMethodLister.getAllItems()
+        if items:
+            for method in items:
+                menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameCB, self, str(method) ))
+        
     def getEnabledArray(self):
         """returns an array of booleans that correspond to each method and whether they can be wrapped"""
         array = []
@@ -723,7 +745,7 @@ def getClassHierarchy( className ):
     try:
         pymelClass = getattr(core.general, className)
     except AttributeError:
-        print "could not find class", className
+        logger.warning( "could not find class %s" % className )
         pass
     else:
             
@@ -770,9 +792,11 @@ def getCascadingDictValue( dict, keys, default={} ):
 
 def setManualDefaults():
     # set some defaults
+    # TODO : allow these defaults to be controlled via the UI
     setCascadingDictValue( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
     setCascadingDictValue( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
     setCascadingDictValue( factories.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
+    setCascadingDictValue( factories.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
     
     # add some manual invertibles
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
