@@ -5,7 +5,7 @@ Commonly used utilities
 import os, sys, re
 from arguments import isIterable as _isIterable
 from re import escape 
-
+from path import path
 #-----------------------------------------------
 #  Pymel Internals
 #-----------------------------------------------
