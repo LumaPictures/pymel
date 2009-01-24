@@ -12,6 +12,8 @@ from modeling import *
 from rendering import *
 from language import *
 from other import *
+
+from pmtypes import *
 #from mexceptions import *
 # from mcallbacks import *
 import runtime
