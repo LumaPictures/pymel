@@ -1,4 +1,4 @@
-import pymel as pm
+import pymel 
 import logging, logging.handlers
 import sys
 logger = logging.getLogger(__name__)
@@ -23,13 +23,13 @@ def refreshLoggerHierarchy():
                 v.parent.children = [v]
                 
 def initMenu():
-    m = LoggingMenu(parent=pm.getMelGlobal("string","gMainWindow"))
+    m = LoggingMenu(parent=pymel.getMelGlobal("string","gMainWindow"))
 
 
-class LoggingMenu(pm.Menu):
+class LoggingMenu(pymel.Menu):
 
     def refreshLoggingMenu(self):
-        pm.Menu(self.menuLoggerTree).deleteAllItems(1)
+        pymel.Menu(self.menuLoggerTree).deleteAllItems(1)
         self.buildSubMenu(self.menuLoggerTree, logging.root)
 
     def changeLevel(self, item, level):
@@ -38,46 +38,46 @@ class LoggingMenu(pm.Menu):
 
     def buildLevelMenu(self, parent, item):
         for level in logLevelNames:
-            pm.menuItem(p=parent, l=(">%s<" if levelsDict[item.level]==level else "%s") % level, c=pm.Callback(self.changeLevel, item, level))
+            pymel.menuItem(p=parent, l=(">%s<" if levelsDict[item.level]==level else "%s") % level, c=pymel.Callback(self.changeLevel, item, level))
 
     def buildSubMenu(self, parent, logger):
-        levelsMenu = pm.menuItem(l="%s <%s>" % (logger.name, levelsDict[logger.level]),p=parent, sm=True)
+        levelsMenu = pymel.menuItem(l="%s <%s>" % (logger.name, levelsDict[logger.level]),p=parent, sm=True)
         self.buildLevelMenu(levelsMenu, logger)
-        pm.menuItem(d=1,p=parent)
+        pymel.menuItem(d=1,p=parent)
         try:
             if logger.children:
-                pm.menuItem(l="Child-Loggers:",p=parent,en=0)
+                pymel.menuItem(l="Child-Loggers:",p=parent,en=0)
                 for item in logger.children:
-                    subMenu = pm.menuItem(l=item.name, sm=True, p=parent, tearOff=True, aob=True)
-                    subMenu.postMenuCommand(pm.Callback(self.buildSubMenu, parent=subMenu, logger=item))
+                    subMenu = pymel.menuItem(l=item.name, sm=True, p=parent, tearOff=True, aob=True)
+                    subMenu.postMenuCommand(pymel.Callback(self.buildSubMenu, parent=subMenu, logger=item))
                     subMenu.setPostMenuCommandOnce(True)
         except: pass
-        pm.menuItem(d=1,p=parent)
+        pymel.menuItem(d=1,p=parent)
         if logger.handlers:
-            pm.menuItem(l="Streams:",p=parent,en=0)
+            pymel.menuItem(l="Streams:",p=parent,en=0)
             for item in logger.handlers:
-                levelsMenu = pm.menuItem(l="%s <%s>" % (item.__class__.__name__, levelsDict[item.level]), p=parent, sm=True, aob=True)
+                levelsMenu = pymel.menuItem(l="%s <%s>" % (item.__class__.__name__, levelsDict[item.level]), p=parent, sm=True, aob=True)
                 self.buildLevelMenu(levelsMenu, item)
-                pm.menuItem(d=1,p=levelsMenu)
-                pm.menuItem(l="Set Formatter", p=levelsMenu, c=pm.Callback(self.setFormatter, item))
-                pm.menuItem(l="Remove", p=parent, ob=True, c=pm.Callback(logger.removeHandler, item))
-        pm.menuItem(l="<New Stream...>", p=parent, c=lambda *x: self.addHandler(logger))
+                pymel.menuItem(d=1,p=levelsMenu)
+                pymel.menuItem(l="Set Formatter", p=levelsMenu, c=pymel.Callback(self.setFormatter, item))
+                pymel.menuItem(l="Remove", p=parent, ob=True, c=pymel.Callback(logger.removeHandler, item))
+        pymel.menuItem(l="<New Stream...>", p=parent, c=lambda *x: self.addHandler(logger))
 
     def setFormatter(self, handler):
         tips = """
         name, levelno, levelname, pathname, filename, module, lineno, funcName, created, 
         asctime, msecs, relativeCreated, thread, threadName, process, message
         """
-        fmt = pm.promptBox("Logging","Set Format:\n" + tips, "Set", "Cancel", tx=logging.BASIC_FORMAT)
+        fmt = pymel.promptBox("Logging","Set Format:\n" + tips, "Set", "Cancel", tx=logging.BASIC_FORMAT)
         if fmt:     
             handler.setFormatter(logging.Formatter(fmt))
         
     def addHandler(self, logger):
-        mode = pm.confirmBox("Logging","Handler Type:", "File", "Script Editor", "Console", "Log Server", "Cancel")
+        mode = pymel.confirmBox("Logging","Handler Type:", "File", "Script Editor", "Console", "Log Server", "Cancel")
         if mode=="Cancel":
             return
         elif mode=="File":
-            f = pm.fileDialog(mode=1, dm="Log File: *.log")
+            f = pymel.fileDialog(mode=1, dm="Log File: *.log")
             if not f:
                 return
             handler = logging.FileHandler(f)
@@ -87,11 +87,11 @@ class LoggingMenu(pm.Menu):
             handler = logging.StreamHandler(sys.__stderr__)
         elif mode=="Log Server":
             from logServer import SocketHandler, kHostName
-            server = pm.promptBox("Logging","Log Server Address:", "Connect", "Cancel", tx="%s:%s" % (kHostName, logging.handlers.DEFAULT_TCP_LOGGING_PORT))
+            server = pymel.promptBox("Logging","Log Server Address:", "Connect", "Cancel", tx="%s:%s" % (kHostName, logging.handlers.DEFAULT_TCP_LOGGING_PORT))
             host, sep, port = server.partition(":")
             handler = SocketHandler(host, int(port))
             
-        level = pm.confirmBox("Logging","Log Level:", *logLevelNames)
+        level = pymel.confirmBox("Logging","Log Level:", *logLevelNames)
         if not level:
             return
         handler.setLevel(levelsDict[level])
@@ -99,11 +99,11 @@ class LoggingMenu(pm.Menu):
         logger.addHandler(handler)
         logger.info("Added %s-Handler to Logger '%s' at level %s" % (mode, logger.name, level))
 
-    def __new__(cls, name="menuLogging", parent=None):
-        if pm.menu(name, ex=1):
-            pm.deleteUI(name)
-        self = pm.menu("menuLogging", l='Logging Control', aob=True, p=parent)
-        return pm.Menu.__new__(cls, self)
+    def __new__(cls, name="pymelLoggingControl", parent=None):
+        if pymel.menu(name, ex=1):
+            pymel.deleteUI(name)
+        self = pymel.menu(name, l='Logging Control', aob=True, p=parent)
+        return pymel.Menu.__new__(cls, self)
 
     def __init__(self, name=None, parent=None):
         self.postMenuCommand(self.refresh)
@@ -113,7 +113,7 @@ class LoggingMenu(pm.Menu):
         self.deleteAllItems(1)
         if logging.root.handlers:
             self.buildLevelMenu(self, logging.root.handlers[0])
-        pm.menuItem(d=1, p=self)
-        self.menuLoggerTree = pm.menuItem(p=self, l="Logger Tree", sm=True, aob=True)
+        pymel.menuItem(d=1, p=self)
+        self.menuLoggerTree = pymel.menuItem(p=self, l="Logger Tree", sm=True, aob=True)
         self.menuLoggerTree.postMenuCommand(self.refreshLoggingMenu)
         
