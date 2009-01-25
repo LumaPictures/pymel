@@ -30,7 +30,7 @@ import pmcmds as cmds
 #import maya.cmds as cmds
 import maya.OpenMaya as OpenMaya
 
-
+from pymel.util.decoration import decorator
 import pymel.util as util
 import factories as _factories
 from factories import createflag, add_docs
@@ -395,6 +395,7 @@ def deferReferenceUpdates(state):
     logging.info("%s Reference Updates" % ("SUSPENDING " if state else "Enabling"))
     _deferReferenceUpdates = state
 
+@decorator
 def suspendReferenceUpdates(func):
     def suspendedRefUpdateFunc(*args, **kw):
         deferReferenceUpdates(True)
