@@ -267,7 +267,6 @@ class FormLayout(UI):
         self.ori = self.enumOrientation.getIndex(orientation)
         self.reversed = reversed
         self.ratios = ratios and list(ratios) or []
-        _logger.debug("Ratios: %r, %r" % (self.ratios, kwargs))
     
     def flip(self):
         """Flip the orientation of the layout """
@@ -297,7 +296,6 @@ class FormLayout(UI):
         if self.reversed: children.reverse()
         
         ratios = list(ratios) or self.ratios or []
-        _logger.debug('%r - %r' % (self,ratios))
         ratios += [1]*(len(children)-len(ratios))
         self.ratios = ratios
         total = sum(ratios)       
