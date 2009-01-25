@@ -23,7 +23,7 @@ def refreshLoggerHierarchy():
                 v.parent.children = [v]
                 
 def initMenu():
-    m = LoggingMenu(parent=pymel.getMelGlobal("string","gMainWindow"))
+    return LoggingMenu(parent=pymel.getMelGlobal("string","gMainWindow"))
 
 
 class LoggingMenu(pymel.Menu):
@@ -48,7 +48,7 @@ class LoggingMenu(pymel.Menu):
             if logger.children:
                 pymel.menuItem(l="Child-Loggers:",p=parent,en=0)
                 for item in logger.children:
-                    subMenu = pymel.menuItem(l=item.name, sm=True, p=parent, tearOff=True, aob=True)
+                    subMenu = pymel.menuItem(l=item.name, sm=True, p=parent, tearOff=True, aob=True, pmo=True)
                     subMenu.postMenuCommand(pymel.Callback(self.buildSubMenu, parent=subMenu, logger=item))
                     subMenu.setPostMenuCommandOnce(True)
         except: pass
