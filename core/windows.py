@@ -633,7 +633,10 @@ def _createClassesAndFunctions():
         classname = util.capitalize(funcName)
         #classname = funcName[0].upper() + funcName[1:]
         if not hasattr( _thisModule, classname ):
-            cls = MetaMayaUIWrapper(classname, (UI,), {})
+            try:
+                cls = MetaMayaUIWrapper(classname, (UI,), {})
+            except AttributeError:
+                _logger.warning("Could not resolve '%s' - skipping..." % classname)
             cls.__module__ = __name__
             setattr( _thisModule, classname, cls )
         else:
