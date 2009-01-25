@@ -6,16 +6,27 @@ import sys, os
 import logging
 import logging.config
 from logging import *
-# The oython 2.6 version of 'logging' hids these functions, so we need to import explcitly
+# The python 2.6 version of 'logging' hids these functions, so we need to import explcitly
 from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
 
+configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
+if not os.path.isfile(configFile):
+    configFile = os.path.join(os.path.dirname(__file__),"logging.conf")
 
-logging.config.fileConfig(os.path.join(os.path.dirname(__file__),"logging.conf"))
+if sys.version_info >= (2,6):
+    logging.config.fileConfig(configFile, disable_existing_loggers=0)
+else:
+    logging.config.fileConfig(configFile)
+    # The fileConfig function disables old-loggers, so we need to re-enable them
+    for k,v in sorted(logging.root.manager.loggerDict.iteritems()):
+        if hasattr(v, 'disabled') and v.disabled:
+            v.disabled = 0
+    
 
 import pymel.util as util
 import maya.utils
 import maya.app.python
-
+from pymel.util.decoration import decorator
 
 #===============================================================================
 # DEFAULT FORMAT SETUP
@@ -73,6 +84,7 @@ def levelToName(level):
 #===============================================================================
 def timed(level=DEBUG):
     import time
+    @decorator
     def timedWithLevel(func):
         logger = getLogger(func.__module__)
         def timedFunction(*arg, **kwargs):
@@ -82,11 +94,10 @@ def timed(level=DEBUG):
             strSecs = time.strftime("%M:%S.", time.localtime(t)) + ("%.3f" % t).split(".")[-1]
             logger.log(level, 'Function %s(...) - finished in %s seconds' % (func.func_name, strSecs))
             return res
-        timedFunction.__doc__ = func.__doc__
-        timedFunction.func_name = func.func_name
         return timedFunction
     return timedWithLevel
 
+@decorator
 def stdOutsRedirected(func):
     def stdOutsRedirectedFunction(*arg, **kwargs):
         redirectStandardOutputs(root)
@@ -96,8 +107,6 @@ def stdOutsRedirected(func):
         finally:
             (sys.stdout, sys.stderr) = origs
         return ret
-    stdOutsRedirectedFunction.__doc__ = func.__doc__
-    stdOutsRedirectedFunction.func_name = func.func_name
     return stdOutsRedirectedFunction
 
 #===============================================================================
