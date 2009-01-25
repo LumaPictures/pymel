@@ -13,6 +13,7 @@ import os.path
 import warnings
 from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
 # from warnings import simplefilter, warn
+from pymel.util.decoration import decorator
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -52,6 +53,7 @@ def deprecated(funcOrMessage):
     
     If passed a message, the message will be appended to the standard deprecation warning and should serve to further
     clarify why the function is being deprecated and/or suggest an alternative function"""
+    @decorator
     def deprecated2(func):
         info = dict(
             name = func.__name__,

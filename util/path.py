@@ -4,7 +4,7 @@ path - An object representing a path to a file or directory.
 
 
 import sys, pwarnings, os, fnmatch, glob, shutil, codecs
-import common
+from pymel.util.decoration import decorator
 
 __all__ = ['path']
 
@@ -55,13 +55,13 @@ _externalFuncs = [
         ['copyfile', 'copymode', 'copystat', 'copy', 'copy2', 'copytree', 'move', 'rmtree']),
     ]
 
-@common.decorator
+@decorator
 def _castToPath(func):
     def castToPathFunc(path, *args, **kwargs):
         return _pathClass(func(path, *args, **kwargs))
     return castToPathFunc
     
-@common.decorator
+@decorator
 def _makeBindable(func):
     def bindableFunc(path, *args, **kwargs):
         return func(path, *args, **kwargs)
