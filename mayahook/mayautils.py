@@ -74,9 +74,31 @@ def source (file, searchPath=None, recurse=False) :
     return execfile(filepath)
 
 def parseVersionStr(versionStr, extension=False):
+    """
+    >>> mayahook.parseVersionStr('2008 Service Pack1 x64')
+    '2008'
+    >>> mayahook.parseVersionStr('2008 Service Pack1 x64', extension=True)
+    '2008-x64'
+    >>> mayahook.parseVersionStr('2008x64', extension=True)
+    '2008-x64'
+    >>> mayahook.parseVersionStr('8.5', extension=True)
+    '8.5'
+   >>> mayahook.parseVersionStr('2008 Extension 2')
+    '2008'
+    >>> mayahook.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
+    '2009'
+    >>> mayahook.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
+    '2008'
+
+    """
     # problem with service packs addition, must be able to match things such as :
     # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
-    ma = re.search( "((?:maya)?(?P<base>[\d.]+)(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
+
+    # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
+    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid 
+    # the regular expression might be getting unwieldy
+    
+    ma = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
     version = ma.group('base')
     
     if extension and (ma.group('ext') is not None) :
@@ -115,6 +137,8 @@ def getMayaLocation(version=None):
 def getRunningMayaVersionString():
     """ Returns the version string (from 'about(version=True)' ) of the currently running version of maya, or None
     if no version is initialized.
+    
+    :rtype: str or None
     """
 
     try :
@@ -125,7 +149,10 @@ def getRunningMayaVersionString():
 
 def mayaIsRunning():
     """
-    Returns True if a version of maya is running / initialized, False otherwise."""
+    Returns True if a version of maya is running / initialized, False otherwise.
+    
+    :rtype: bool
+    """
     
     # Implementation is essentially just a wrapper for getRunningMayaVersionString -
     # this function was included for clearer / more readable code
@@ -177,6 +204,8 @@ def getMayaVersion(running=True, installed=True, extension=True):
     # ...try the path if maya.cmds is not loaded (ie, getMayaLocation)
     # ...then, for non-standard installation directories, call the maya binary for the version.
     # we try this as a last resort because of potential load-time slowdowns
+    
+
     fns = []
     if running :
         fns.append(getRunningMayaVersionString)
@@ -295,12 +324,15 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
     giving the executable, or a list where the first element is the executable and the rest
     are arguments. 
     
-    convertNewlines: if True, will replace os-specific newlines (ie, '\r\n' on Windows) with
-        the standard '\n' newline
+    :Parameters:
+        convertNewlines : bool
+            if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
+            the standard \\n newline
         
-    stripTrailingNewline: if True, and the output from the executable contains a final newline,
-        it is removed from the return value
-        Note: the newline that is stripped is the one given by os.linesep, not '\n'
+        stripTrailingNewline : bool
+            if True, and the output from the executable contains a final newline,
+            it is removed from the return value
+            Note: the newline that is stripped is the one given by os.linesep, not \\n
     
     kwargs are passed onto subprocess.Popen
     
@@ -329,12 +361,15 @@ def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True
 def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, **kwargs):
     """Will return the text output of running a given shell command.
     
-    convertNewlines: if True, will replace os-specific newlines (ie, '\r\n' on Windows) with
-        the standard '\n' newline
+    :Parameters:
+        convertNewlines : bool
+            if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
+            the standard \\n newline
         
-    stripTrailingNewline: if True, and the output from the shell contains a final newline,
-        it is removed from the return value
-        Note: the newline that is stripped is the one given by os.linesep, not '\n'
+        stripTrailingNewline : bool
+            if True, and the output from the executable contains a final newline,
+            it is removed from the return value
+            Note: the newline that is stripped is the one given by os.linesep, not \\n
     
     With default arguments, behaves like commands.getoutput(shellCommand),
     except it works on windows as well.
@@ -456,8 +491,19 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
     """
     Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
     environment variable
-    :param roots: a single path or list of paths to recurse. if left to its default, will use the current 
-        MAYA_SCRIPT_PATH values as the roots.
+    
+    :Parameters:
+        roots
+            a single path or list of paths to recurse. if left to its default, will use the current 
+            MAYA_SCRIPT_PATH values
+            
+        verobse : bool
+            verbose on or off
+            
+        excludeRegex : str
+            string to be compiled to a regular expression of paths to skip.  This regex only needs to match
+            the folder name
+        
     """
     import path
     
@@ -761,11 +807,11 @@ def loadCache( filePrefix, description='', useVersion=True):
         try :
             return pickle.load(file)
         except :
-            _logger.debug("Unable to load%s from '%s'" % (description,file.name))
+            _logger.info("Unable to load%s from '%s'" % (description,file.name))
         
         file.close()
     except :
-        _logger.debug("Unable to open '%s' for reading%s" % ( newPath, description ))
+        _logger.info("Unable to open '%s' for reading%s" % ( newPath, description ))
 
  
 def writeCache( data, filePrefix, description='', useVersion=True):
@@ -804,14 +850,15 @@ def executeDeferred(func):
         2. you want to execute some code that relies on maya.cmds
         3. you want your userSetup.py to work in both interactive and standalone mode
     
-     example userSetup.py file:
+    Example userSetup.py file:
      
-        >>> from pymel import *
-        >>> def delayedStartup():
-        ...    print "executing a command"
-        ...    pymel.about(apiVersion=1)
-        ...
-        >>> pymel.mayahook.executeDeferred( delayedStartup )
+    .. python::
+    
+        from pymel import *
+        def delayedStartup():
+           print "executing a command"
+           pymel.about(apiVersion=1)
+        pymel.mayahook.executeDeferred( delayedStartup )
        
     Takes a single parameter which should be a callable function.
     
