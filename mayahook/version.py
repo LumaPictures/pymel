@@ -4,6 +4,7 @@ import pymel.util as util
 import re
 from maya.OpenMaya import MGlobal
 import maya.cmds as cmds
+from mayautils import parseVersionStr
 __all__ = ['Version']
 
 # TODO: finish this, replace current Version class...
@@ -57,15 +58,6 @@ def _getApiVersion():
          '8.5': 200700,
          }[ MGlobal.mayaVersion() ]
 
-def parseVersionStr(versionStr, extension=False):
-    # problem with service packs addition, must be able to match things such as :
-    # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
-    ma = re.search( "((?:maya)?(?P<base>[\d.]+)(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
-    version = ma.group('base')
-    
-    if extension and (ma.group('ext') is not None) :
-        version += "-"+ma.group('ext')
-    return version
 
 
 class Version(object):
