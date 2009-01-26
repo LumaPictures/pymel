@@ -43,20 +43,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
     To control the handling of these types, use `allowBool` and `allowMatrix`. 
     For python iterables, the first element in the array is used to determine the type. for empty lists, 'string[]' is
     returned.
-    
-    :Parameters:
-        pyObj
-            can be either a class or an instance.
-        exactOnly : bool
-            If True and no suitable mel analog can be found, the function will return None.
-            If False, types which do not have an exact mel analog will return the python type name as a string
-        allowBool : bool
-            if True and a bool type is passed, 'bool' will be returned. otherwise 'int'.
-        allowMatrix : bool
-             if True and a `Matrix` type is passed, 'matrix' will be returned. otherwise 'int[]'.
-    
-    :rtype: str
-    
+
         >>> from pymel import *
         >>> getMelType( 1 )
         'int'
@@ -77,6 +64,20 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         None
         >>> getMelType( MyClass, exactOnly=False )
         'MyClass'
+        
+    :Parameters:
+        pyObj
+            can be either a class or an instance.
+        exactOnly : bool
+            If True and no suitable mel analog can be found, the function will return None.
+            If False, types which do not have an exact mel analog will return the python type name as a string
+        allowBool : bool
+            if True and a bool type is passed, 'bool' will be returned. otherwise 'int'.
+        allowMatrix : bool
+             if True and a `Matrix` type is passed, 'matrix' will be returned. otherwise 'int[]'.
+    
+    :rtype: str
+
     
     """
  
@@ -335,7 +336,7 @@ class MelConversionError(MelError,TypeError):
     """Error raised when MEL cannot process a conversion or cast between data types"""
     pass
 
-class UnknownMelProcedure(MelError,NameError):
+class UnknownProcedureError(MelError,NameError):
     """The called mel procedure does not exist or has not been sourced"""
     pass
 
@@ -507,7 +508,7 @@ class Mel(object):
             id.disown()
             msg = '\n'.join( errors)
             if 'Cannot find procedure' in msg:
-                e = UnknownMelProcedure
+                e = UnknownProcedureError
             elif 'Wrong number of arguments' in msg:
                 e = MelArgumentError
             elif 'Cannot convert data' in msg or 'Cannot cast data' in msg:
