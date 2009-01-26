@@ -24,6 +24,15 @@ from pwarnings import *
 from arguments import *
 from utilitytypes import *
 
+def _getOutputDir():
+    outdir = os.path.dirname(__file__)
+    if os.access( outdir, os.W_OK ):
+        return outdir
+    else:
+        return util.getTempDir()
+
+
+
 # increase from 0 to 1 or 2 for more debug feedback
 def verbose() :
     return 0
@@ -52,6 +61,8 @@ class Parsed(ProxyUni):
     _accepts = ()
     _name = None
     classes = {}
+    _outputdir = _getOutputDir()
+    
 #class Parsed(unicode):
 #   
 #    _parser = None
@@ -525,8 +536,7 @@ class Parser(object):
         debug = kwargs.get('debug', verbose())
         start = kwargs.get('start', self.__class__.start)  
         outputdir = kwargs.get('outputdir', 'parsers')
-        parserspath = os.path.dirname(__file__)
-        parserspath = os.path.join(parserspath, outputdir)
+        parserspath = os.path.join(self._outputdir, outputdir)
         if debug :
             print "nameparse parsers path", parserspath
         outputdir = None 
