@@ -1,23 +1,16 @@
 '''
-Module which wraps the commands in maya.cmds to accept special pymel arguments.
+This module wraps maya.cmds to accept special pymel arguments.
 
 There are a number of pymel objects which must be converted to a "mel-friendly"
-representation. For example, in versions prior to 2009, some mel commands (ie, getAttr) that expect 
-string arguments will only accept string instances, and simply reject
-custom objects that have a valid string representation.  Another Example is mel's matrix inputs,
-which expects a flat list of 16 flaots, while pymel's Matrix has a more typical and appropriate
+representation. For example, in versions prior to 2009, some mel commands (ie, getAttr) which expect
+string arguments will simply reject custom classes, even if they have a valid string representation.  
+Another Example is mel's matrix inputs, which expects a flat list of 16 flaots, while pymel's Matrix has a more typical
 4x4 representation.
 
-This module provides a mechanism to allow pymel objects to provide an alternative mel-representation
-if the default is not mel-compatible.  It wraps the commands in maya.cmds, and if it exists, it calls
-a __melobject__ function to get the alternate object.
-
-The wrapped commands in this module become the starting point for all commands in pymel.animation, pymel.general,
-pymel.rendering, etc.
-
-If you're having compatibility issues with your custom classes when passing them to mel commands, 
+If you're having compatibility issues with your custom classes when passing them to maya.cmds, 
 simply add a __melobject__ function that returns a mel-friendly result and pass them to pymel's wrapped commands.
 
+The wrapped commands in this module are the starting point for any other pymel customizations.
 
 '''
 
@@ -28,6 +21,7 @@ import pymel.util as util
 import maya.cmds
 import warnings
 
+__all__ = ['getMelRepresentation']
 _thisModule = __import__(__name__, globals(), locals(), [''])
 
 def _testDecorator(function):
@@ -42,13 +36,16 @@ def _testDecorator(function):
 def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
     """Will return a list which contains each element of the iterable 'args' converted to a mel-friendly representation.
     
-    If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
-    will recursively searched for PyNodes to convert to unicode strings; if recursionLimit==0, only the elements
-    of args    itself will be searched for PyNodes -  if it is 1, iterables within args will have stringify called
-    on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
-    
-    In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
-    then iterables for whichoperator.isMappingType() returns true will be returned as dicts.
+    :Parameters:
+        recursionLimit : int or None
+            If an element of args is itself iterable, recursionLimit specifies the depth to which iterable elements
+            will recursively search for objects to convert; if ``recursionLimit==0``, only the elements
+            of args itself will be searched for PyNodes -  if it is 1, iterables within args will have getMelRepresentation called
+            on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
+            
+        maintainDicts : bool
+            In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
+            then iterables for which ``operator.isMappingType()`` returns True will be returned as dicts.
     
     """
     if recursionLimit:
@@ -123,10 +120,10 @@ def removeWrappedCmd(cmdname):
     except NameError:
         warnings.warn("%s not found in %s" % (cmdname, __name__))
     
-def addAllWrappedCmds():
+def _addAllWrappedCmds():
     for cmdname, cmd in inspect.getmembers(maya.cmds, callable):
         addWrappedCmd(cmdname, cmd)
 
-addAllWrappedCmds()
+_addAllWrappedCmds()
 
     
