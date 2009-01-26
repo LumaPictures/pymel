@@ -25,7 +25,6 @@ from factories import queryflag, editflag, createflag, add_docs, MetaMayaTypeWra
 import pymel.api as api
 #from pmtypes.ranges import *
 import pmtypes as _types
-import pymel.util.path as _path
 import pymel.util.nameparse as nameparse
 import pymel.util.pwarnings as pwarnings
 import logging
@@ -42,8 +41,6 @@ import maya.mel as mm
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
-
-
 
 #-----------------------------------------------
 #  Enhanced Commands
@@ -1093,7 +1090,6 @@ class MayaAttributeError(MayaObjectError, AttributeError):
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
-#ProxyUnicode = util.proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 class PyNode(util.ProxyUnicode):
     """ Abstract class that is base for all pymel nodes classes, will try to detect argument type if called directly
@@ -1172,7 +1168,7 @@ class PyNode(util.ProxyUnicode):
                 if isinstance( argObj, Attribute ):
                     attrNode = argObj._node
                     argObj = argObj.__apiobjects__['MPlug']
-                elif isinstance( argObj, _Component ):
+                elif isinstance( argObj, Component ):
                     try:
                         argObj = argObj._node.__apiobjects__[ 'MDagPath']
                     except KeyError:
@@ -1217,7 +1213,7 @@ class PyNode(util.ProxyUnicode):
                 # if we are creating a component class using an int or slice, then we must specify a class type:
                 #    valid:    MeshEdge( myNode, 2 )
                 #    invalid:  PyNode( myNode, 2 )
-                assert issubclass(cls,_Component)
+                assert issubclass(cls,Component)
                 
             #-- All Others
             else:
@@ -1265,7 +1261,6 @@ class PyNode(util.ProxyUnicode):
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
             # TODO : can add object creation option in the __init__ if desired
             
-            #if issubclass(pymelType, cls):
             newcls = cls
         else :
             newcls = pymelType
@@ -1276,8 +1271,6 @@ class PyNode(util.ProxyUnicode):
             if attrNode:
                 #print 'ATTR', attr, obj, pymelType
                 self._node = attrNode
-            #else:
-            #    self._node = PyNode(obj)
             
             self.__apiobjects__ = obj
             return self
@@ -1288,11 +1281,9 @@ class PyNode(util.ProxyUnicode):
         """this  prevents the api class which is the second base, from being automatically instantiated. This __init__ should
         be overridden on subclasses of PyNode"""
         pass
-    
-    @util.deprecated( 'Convert to string first using str() or PyNode.name().' )
-    def __getitem__(self, item):
-        return util.ProxyUnicode.__getitem__(self,item)
-    
+ 
+                         
+                          
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. """
         #if Version.current >= Version.v2009:
@@ -1348,6 +1339,11 @@ class PyNode(util.ProxyUnicode):
             except (ValueError,TypeError): # could not cast to PyNode
                 return False
 
+    def __nonzero__(self):
+        """
+        :rtype: `bool`
+        """
+        return self.exists()
 
     #-----------------------------------------
     # Name Info and Manipulation
@@ -1454,7 +1450,29 @@ class PyNode(util.ProxyUnicode):
                 
     future = listFuture
 
+def _deprecatePyNode():
+    strDeprecateDecorator = util.deprecated( 'Convert to string first using str() or PyNode.name().', 'PyNode' )
+    
+    def makeDeprecatedMethod(method):
+        def f(self, *args):
+            proxyMethod = getattr( util.ProxyUnicode, method )
+            return proxyMethod(self,*args)
+        
+        f.__doc__ = "deprecated\n"
+        f.__name__ = method
+        g = strDeprecateDecorator(f)
+        setattr( PyNode, method, g)
+        
+
+    for method in ['__contains__',  '__ge__', '__gt__', '__le__', '__lt__', '__len__', 
+                             '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__',  ]: #'__reduce__' '__radd__', 
+        makeDeprecatedMethod( method )                   
+
+
+_deprecatePyNode()            
+                         
 _factories.PyNodeNamesToPyNodes()['PyNode'] = PyNode
+
 #def _MObjectIn(x):
 #    if isinstance(x,PyNode): return x.__apimobject__()
 #    return PyNode(x).__apimobject__()
@@ -1523,7 +1541,7 @@ SCENE = Scene()
 
 
     
-class _Component( PyNode ):
+class Component( PyNode ):
     """
     Abstract base class for pymel components, such as `MeshEdge`, `MeshVertex`, and `MeshFace`.
     
@@ -1618,8 +1636,8 @@ class _Component( PyNode ):
         isApiComponent = False 
         component = None
         newargs = []
-        # the _Component class can be instantiated several ways:
-        # _Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
+        # the Component class can be instantiated several ways:
+        # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
         if self._node :
             newargs.append( self._node.__apimdagpath__() )
             try:
@@ -1630,7 +1648,7 @@ class _Component( PyNode ):
             except KeyError:
                 component = self.__apiobjects__['ComponentIndex']
             
-        # _Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
+        # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
         else:
             dag = self.__apiobjects__['MDagPath']
             newargs = [dag]
@@ -1722,13 +1740,13 @@ class _Component( PyNode ):
     
     def name(self):
 #        if isinstance( self._comp, int ):
-#            return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._comp )
+#            return u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, self._comp )
 #        elif isinstance( self._comp, slice ):
-#            return u'%s.%s[%s:%s]' % ( self._node, self.__componentLabel__, self._comp.start, self._comp.stop )
+#            return u'%s.%s[%s:%s]' % ( self._node, self._ComponentLabel__, self._comp.start, self._comp.stop )
 #        
-#        return u'%s.%s[0:%s]' % (self._node, self.__componentLabel__, self.count()-1)
+#        return u'%s.%s[0:%s]' % (self._node, self._ComponentLabel__, self.count()-1)
         
-        return u'%s.%s[%s]' % ( self._node, self.__componentLabel__, self._sliceStr )
+        return u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, self._sliceStr )
 
     def __melobject__(self):
         """convert components with pymel extended slices into a list of maya.cmds compatible names"""
@@ -1740,7 +1758,7 @@ class _Component( PyNode ):
                 # maya cannot do steps
                 ranges +=  [ str(x) for x in self._getRange( slice.start, slice.stop, slice.step ) ]
                 
-        return [ u'%s.%s[%s]' % ( self._node, self.__componentLabel__, range ) for range in ranges ]
+        return [ u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, range ) for range in ranges ]
                 
     def __apiobject__(self):
         return self.__apiobjects__['MObjectHandle'].object()
@@ -1826,10 +1844,10 @@ class _Component( PyNode ):
             return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
 
         
-class MeshEdge( _Component ):
+class MeshEdge( Component ):
     __apicls__ = api.MItMeshEdge
     __metaclass__ = _factories.MetaMayaTypeWrapper
-    __componentLabel__ = 'e'
+    _ComponentLabel__ = 'e'
     def count(self):
         """
         :rtype: int
@@ -1890,10 +1908,10 @@ class MeshEdge( _Component ):
     
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshEdgeComponent  ] = MeshEdge
        
-class MeshVertex( _Component ):
+class MeshVertex( Component ):
     __apicls__ = api.MItMeshVertex
     __metaclass__ = _factories.MetaMayaTypeWrapper
-    __componentLabel__ = 'vtx'
+    _ComponentLabel__ = 'vtx'
     def count(self):
         if self._range is not None:
             return len(self._range)
@@ -1964,10 +1982,10 @@ class MeshVertex( _Component ):
             
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshVertComponent ] = MeshVertex  
   
-class MeshFace( _Component ):
+class MeshFace( Component ):
     __apicls__ = api.MItMeshPolygon
     __metaclass__ = _factories.MetaMayaTypeWrapper
-    __componentLabel__ = 'f'
+    _ComponentLabel__ = 'f'
     def count(self):
         """
         :rtype: int
@@ -2035,10 +2053,10 @@ class MeshFace( _Component ):
     
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshPolygonComponent ] = MeshFace
 
-class NurbsCurveCV( _Component ):
+class NurbsCurveCV( Component ):
     apicls = api.MItCurveCV
     __metaclass__ = _factories.MetaMayaTypeWrapper
-    __componentLabel__ = 'cv'
+    _ComponentLabel__ = 'cv'
     def count(self):
         if self._range is not None:
             return len(self._range)
@@ -2124,6 +2142,7 @@ class ComponentArray(object):
     node = plugNode
                 
 class Component(object):
+    """Abstract base class for component types like vertices, edges, and faces"""
     def __init__(self, node, item):
         self._item = item
         self._node = node
@@ -2347,15 +2366,6 @@ class Attribute(PyNode):
             return self.node().__apimdagpath__()
         except AttributeError: pass
     
-#    def __apimfn__(self):
-#        if self._apimfn:
-#            return self._apimfn
-#        else:
-#            obj = self.__apiobject__().attribute()
-#            if obj:
-#                self._apimfn = api.MFnAttribute( obj )
-#                return self._apimfn
-
                                
 #    def __init__(self, attrName):
 #        assert isinstance( api.__apiobject__(), api.MPlug )
@@ -2366,9 +2376,6 @@ class Attribute(PyNode):
 #        # TODO : MObject support
 #        self.__dict__['_multiattrIndex'] = 0
 #        
-#    def __getitem__(self, item):
-#       #return Attribute('%s[%s]' % (self, item) )
-#       return Attribute( self._node, self.__apiobject__().elementByLogicalIndex(item) )
 
     __getitem__ = _factories.wrapApiMethod( api.MPlug, 'elementByLogicalIndex', '__getitem__' )
     #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex' )
@@ -2452,19 +2459,6 @@ class Attribute(PyNode):
         else:
             self.__dict__['_iterIndex'] = index+1
             return self[indices[index]]
-    
-    def getArrayIndices(self):
-        """
-        Get all set or connected array indices. Returns None if this is not an array Attribute
-        """
-        try:
-            self._getArrayIndices()[1]
-        except RuntimeError: pass
-    
-    def numElements(self):
-        try:
-            self._getArrayIndices()[0]
-        except RuntimeError: pass
         
     def __str__(self):
         """
@@ -2513,7 +2507,7 @@ class Attribute(PyNode):
         
         :rtype: `unicode`
         """
-        obj = self.__apiobject__()
+        obj = self.__apimplug__()
         if obj:
             name = ''
             node = self.plugNode()
@@ -2525,12 +2519,12 @@ class Attribute(PyNode):
                 name += '.'
          
             
-            return name + self._partialName(    includeNodeName=False, 
-                                               includeNonMandatoryIndices=True, 
-                                               includeInstancedIndices=True, 
-                                               useAlias=False, 
-                                               useFullAttributePath=fullAttrPath, 
-                                               useLongNames=longName 
+            return name + obj.partialName(    False, #includeNodeName
+                                              True, #includeNonMandatoryIndices
+                                              True, #includeInstancedIndices
+                                              False, #useAlias
+                                              fullAttrPath, #useFullAttributePath
+                                              longName #useLongNames 
                                             )
         raise MayaObjectError(self._name)
     
@@ -2621,10 +2615,24 @@ class Attribute(PyNode):
        
     def array(self):
         """
-        Returns the array (multi) attribute of the current element
+        Returns the array (multi) attribute of the current element:
+        
             >>> n = Attribute('initialShadingGroup.groupNodes[0]')
+            >>> n.isElement()
+            True
             >>> n.array()
             Attribute('initialShadingGroup.groupNodes')
+
+        This method will raise an error for attributes which are not elements of
+        an array:
+            
+            >>> m = Attribute('initialShadingGroup.groupNodes')
+            >>> m.isElement()
+            False
+            >>> n.array()
+            Traceback (most recent call last):
+            ...
+            TypeError: initialShadingGroup.groupNodes is not an array (multi) attribute
             
         :rtype: `Attribute`
         """
@@ -2636,7 +2644,7 @@ class Attribute(PyNode):
             #else :
             #    raise TypeError, "%s is not a multi attribute" % self
         except:
-            raise TypeError, "%s is not a multi attribute" % self
+            raise TypeError, "%s is not an array (multi) attribute" % self
 
 
     # TODO : do not list all children elements by default, allow to do 
@@ -2644,12 +2652,97 @@ class Attribute(PyNode):
     #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
 
     def elements(self):
+        """
+        ``listAttr -multi``
+        
+        Return a list of strings representing all the attributes in the array
+        """
+        
         return cmds.listAttr(self.array(), multi=True)
+    
 #    def item(self):
 #        try: 
 #            return int(Attribute.attrItemReg.search(self).group(1))
 #        except: return None
+
+    def getArrayIndices(self):
+        """
+        Get all set or connected array indices. Raises an error if this is not an array Attribute
         
+        :rtype: `int` list
+        """
+        try:
+            return self._getArrayIndices()[1]
+        except RuntimeError:
+            raise TypeError, "%s is not an array (multi) attribute" % self
+    
+    def numElements(self):
+        """
+        The number of elements in an array attribute. Raises an error if this is not an array Attribute
+        
+        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
+        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
+        
+            >>> dls = SCENE.defaultLightSet
+            >>> dls.dagSetMembers.numElements()
+            0
+            >>> dls.dagSetMembers.size()
+            0
+            >>> SpotLight() # create a light, which adds to the lightSet
+            SpotLight('spotLightShape1')
+            >>> dls.dagSetMembers.numElements()
+            1
+            >>> dls.dagSetMembers.size()  # should be 1
+            0
+            >>> SpotLight() # create another light, which adds to the lightSet
+            SpotLight('spotLightShape2')
+            >>> dls.dagSetMembers.numElements()
+            2
+            >>> dls.dagSetMembers.size() # should be 2
+            1
+        
+        :rtype: `int`
+        """
+        
+        try:
+            return self._getArrayIndices()[0]
+        except RuntimeError:
+            raise TypeError, "%s is not an array (multi) attribute" % self
+
+    @util.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
+    def size(self):
+        """
+        The number of elements in an array attribute. Returns None if not an array element.
+        
+        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
+        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
+        
+            >>> dls = SCENE.defaultLightSet
+            >>> dls.dagSetMembers.numElements()
+            0
+            >>> dls.dagSetMembers.size()
+            0
+            >>> SpotLight() # create a light, which adds to the lightSet
+            SpotLight('spotLightShape1')
+            >>> dls.dagSetMembers.numElements()
+            1
+            >>> dls.dagSetMembers.size()  # should be 1
+            0
+            >>> SpotLight() # create another light, which adds to the lightSet
+            SpotLight('spotLightShape2')
+            >>> dls.dagSetMembers.numElements()
+            2
+            >>> dls.dagSetMembers.size() # should be 2
+            1
+            
+        :rtype: `int`
+        """
+        #return cmds.getAttr(self, size=True)    
+        try:
+            return self.__apiobject__().numElements()
+        except RuntimeError:
+            pass
+                
     item = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'item' )
     index = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'index' )
     
@@ -2705,7 +2798,14 @@ class Attribute(PyNode):
         cmds.disconnectAttr( self, other )
                 
     def inputs(self, **kwargs):
-        'listConnections -source 1 -destination 0'
+        """
+        ``listConnections -source 1 -destination 0``
+        
+        see `Attribute.connections` for the full ist of flags.
+        
+        :rtype: `PyNode` list
+        """
+        
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
@@ -2714,7 +2814,14 @@ class Attribute(PyNode):
         return listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
-        'listConnections -source 0 -destination 1'
+        """
+        ``listConnections -source 0 -destination 1``
+        
+        see `Attribute.connections` for the full ist of flags.
+        
+        :rtype: `PyNode` list
+        """
+        
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
@@ -2800,45 +2907,7 @@ class Attribute(PyNode):
         :rtype: `unicode`
         """
         return cmds.getAttr(self, type=True)
- 
-            
-    def size(self):
-        """getAttr -size
-        
-        :rtype: `bool`
-        """
-        #return cmds.getAttr(self, size=True)    
-        try:
-            return self.__apiobject__().numElements()
-        except RuntimeError:
-            pass
-     
-        
-#    def isElement(self):
-#        """ Is the attribute an element of a multi(array) attribute """
-#        #return (Attribute.attrItemReg.search(str(self).split('.')[-1]) is not None)
-#        return self.__apiobject__().isElement()
-#    isElement = _factories.wrapApiMethod( api.MPlug, 'isElement' )
-       
-#    def isKeyable(self):
-#        "getAttr -keyable"
-#        return cmds.getAttr(self, keyable=True)
-#    isKeyable = _factories.wrapApiMethod( api.MPlug, 'isKeyable'  )
-
-#    def setKeyable(self, state):
-#        "setAttr -keyable"
-#        return cmds.setAttr(self, keyable=state)
-#    setKeyable = _factories.wrapApiMethod( api.MPlug, 'setKeyable'  )
-
-#    def isLocked(self):
-#        "getAttr -lock"
-#        return cmds.getAttr(self, lock=True)    
-#    isLocked = _factories.wrapApiMethod( api.MPlug, 'isLocked'  )
-
-#    def setLocked(self, state):
-#        "setAttr -locked"
-#        return cmds.setAttr(self, lock=state)
-#    setLocked = _factories.wrapApiMethod( api.MPlug, 'setLocked'  )  
+    
    
     def lock(self):
         "setAttr -locked 1"
@@ -2848,26 +2917,6 @@ class Attribute(PyNode):
         "setAttr -locked 0"
         return self.setLocked(False)
     
-#    def isInChannelBox(self):
-#        "getAttr -channelBox"
-#        return cmds.getAttr(self, channelBox=True)    
-#    isInChannelBox = _factories.wrapApiMethod( api.MPlug, 'isChannelBoxFlagSet', 'isInChannelBox' )  
-#      
-#    def showInChannelBox(self, state):
-#        "setAttr -channelBox"
-#        return cmds.setAttr(self, channelBox=state)    
-    #showInChannelBox = _factories.wrapApiMethod( api.MPlug, 'setChannelBox', 'showInChannelBox' )
-    
-          
-#    def isCaching(self):
-#        "getAttr -caching"
-#        return cmds.getAttr(self, caching=True)
-#    isCaching = _factories.wrapApiMethod( api.MPlug, 'isCachingFlagSet', 'isCaching'  )
-#               
-#    def setCaching(self, state):
-#        "setAttr -caching"
-#        return cmds.setAttr(self, caching=state)
-##    setCaching = _factories.wrapApiMethod( api.MPlug, 'setCaching'  )
               
     def isSettable(self):
         """getAttr -settable
@@ -2894,23 +2943,8 @@ class Attribute(PyNode):
         return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)    
 
     
-#    def isMulti(self):
-#        "attributeQuery -multi"
-#        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), multi=True)    
-    
-#    isArray = _factories.wrapApiMethod( api.MPlug, 'isArray' )
     isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti' )
 
-
-#    isCompound = _factories.wrapApiMethod( api.MPlug, 'isCompound' )
-
-
-
-
-    
-
-
-    
     
     def exists(self):
         """attributeQuery -exists
@@ -3201,42 +3235,7 @@ class DependNode( PyNode ):
     def __apihandle__(self) :
         return self.__apiobjects__['MObjectHandle']
     
-#    def __apimfn__(self):
-#        if self._apimfn:
-#            return self._apimfn
-#        elif self.__apicls__:
-#            obj = self.__apiobject__()
-#            if obj:
-#                try:
-#                    self._apimfn = self.__apicls__(obj)
-#                    return self._apimfn
-#                except KeyError:
-#                    pass
 
-    """
-    def __init__(self, *args, **kwargs) :
-        if args :
-            arg = args[0]
-            if len(args) > 1 :
-                comp = args[1]        
-            if isinstance(arg, DependNode) :
-                self._name = unicode(arg.name())
-                self._apiobject = api.MObjectHandle(arg.object())
-            elif api.isValidMObject(arg) or api.isValidMObjectHandle(arg) :
-                self._apiobject = api.MObjectHandle(arg)
-                self._updateName()
-            elif isinstance(arg, basestring) :
-                obj = api.toMObject (arg)
-                if obj :
-                    # actual Maya object creation
-                    self._apiobject = api.MObjectHandle(obj)
-                    self._updateName()
-                else :
-                    # non existent object
-                    self._name = arg 
-            else :
-                raise TypeError, "don't know how to make a Pymel DependencyNode out of a %s : %r" % (type(arg), arg)  
-    """
     def __str__(self):
         return "%s" % self.name()
 
@@ -3261,8 +3260,6 @@ class DependNode( PyNode ):
     #--------------------------
     #    Modification
     #--------------------------
-#    def isLocked(self):
-#        return self.__apimfn__().isLocked()
       
     def lock( self, **kwargs ):
         'lockNode -lock 1'
@@ -3315,22 +3312,8 @@ class DependNode( PyNode ):
 #--------------------------
 #xxx{    Info
 #-------------------------- 
-
-#    def type(self, **kwargs):
-#        "nodetype"
-#        obj = self.object()  
-#        if obj :
-#            return nodeType(obj)
-#        else :     
-#            return self.cmds.nodeType(**kwargs)
     type = nodeType
             
-    
-#    def hasUniqueName(self):
-#        return self.__apimfn__().hasUniqueName()   
-#
-#    def isDefaultNode(self):
-#        return self.__apimfn__().isDefaultNode()  
          
     def referenceFile(self):
         """referenceQuery -file
@@ -3345,21 +3328,11 @@ class DependNode( PyNode ):
             None
 
     isReadOnly = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly' )
-    #isReferenced = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReferenced' )
-    
-#    def isReadOnly(self):
-#       return (cmds.ls( self, ro=1) and True) or False
-#
-#                
-#    def isReferenced(self):
-#        """referenceQuery -isNodeReferenced
-#        Return True or False if the node is referenced"""    
-#        return cmds.referenceQuery( self, isNodeReferenced=1)
             
-#    def classification(self):
-#        'getClassification'
-#        #return getClassification( self.type() )    
-#        return self.__apimfn__().classification( self.type() )
+    def classification(self):
+        'getClassification'
+        #return getClassification( self.type() )    
+        #return self.__apimfn__().classification( self.type() )
     
 #}
 #--------------------------
@@ -3459,7 +3432,7 @@ class DependNode( PyNode ):
             
             >>> Transform('persp').attrDefaults('tx').isKeyable()
             
-            
+        Note: this is still experimental.   
         """
         if inspect.isclass(obj):
             cls = obj # keep things familiar
@@ -3483,7 +3456,8 @@ class DependNode( PyNode ):
         return api.MFnAttribute( nodeMfn.attribute(attr) )
         
     def attr(self, attr):
-        """access to attribute plug of a node. returns an instance of the Attribute class for the 
+        """
+        access to attribute plug of a node. returns an instance of the Attribute class for the 
         given attribute name.
         
         :rtype: `Attribute`
@@ -3532,6 +3506,7 @@ class DependNode( PyNode ):
                
     def hasAttr( self, attr):
         """
+        check if the node has the given maya attribute.
         :rtype: `bool`
         """
         try : 
@@ -4703,7 +4678,7 @@ class SelectionSet( api.MSelectionList):
                     self.apicls.add( self, obj.__apiobject__() )
                 elif isinstance(obj, Attribute):
                     self.apicls.add( self, obj.__apiobject__(), True )
-    #            elif isinstance(obj, _Component):
+    #            elif isinstance(obj, Component):
     #                sel.add( obj.__apiobject__(), True )
                 elif isinstance( obj, basestring ):
                     self.apicls.add( self, obj )
@@ -4721,7 +4696,7 @@ class SelectionSet( api.MSelectionList):
         """:rtype: `bool` """
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.apicls.hasItem(self, item.__apiobject__())
-        elif isinstance(item, _Component):
+        elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
             return self.apicls.hasItem(self, PyNode(item).__apiobject__())
@@ -4759,7 +4734,7 @@ class SelectionSet( api.MSelectionList):
         
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.apicls.replace(self, index, item.__apiobject__())
-        elif isinstance(item, _Component):
+        elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
             return self.apicls.replace(self, PyNode(item).__apiobject__())
@@ -4808,7 +4783,7 @@ class SelectionSet( api.MSelectionList):
         
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.apicls.add(self, item.__apiobject__())
-        elif isinstance(item, _Component):
+        elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
             return self.apicls.add(self, PyNode(item).__apiobject__())
@@ -4990,7 +4965,7 @@ class ObjectSet(Entity):
         """:rtype: `bool` """
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.__apimfn__().isMember(item.__apiobject__())
-        elif isinstance(item, _Component):
+        elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
             return self.__apimfn__().isMember(PyNode(item).__apiobject__())
@@ -5132,7 +5107,7 @@ class ObjectSet(Entity):
     def add(self, item):
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.__apimfn__().addMember(item.__apiobject__())
-        elif isinstance(item, _Component):
+        elif isinstance(item, Component):
             raise NotImplementedError
         else:
             return self.__apimfn__().addMember(PyNode(item).__apiobject__())
@@ -5140,7 +5115,7 @@ class ObjectSet(Entity):
     def remove(self, item):
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.__apimfn__().removeMember(item.__apiobject__())
-        elif isinstance(item, _Component):
+        elif isinstance(item, Component):
             raise NotImplementedError
         else:
             return self.__apimfn__().removeMember(PyNode(item).__apiobject__())
@@ -5400,7 +5375,7 @@ def listToMSelection( objs ):
             sel.add( obj.__apiobject__() )
         elif isinstance(obj, Attribute):
             sel.add( obj.__apiobject__(), True )
-        elif isinstance(obj, _Component):
+        elif isinstance(obj, Component):
             pass
             #sel.add( obj.__apiobject__(), True )
         else:
