@@ -16,7 +16,6 @@ from pymel.util import unescape
 import pymel
 import pymel.util as util
 import pymel.core.factories as factories
-import pymel.util.path as path
 import melscan
 
 try:
@@ -336,7 +335,7 @@ def findModule( moduleName ):
 #			script_to_module[name] = moduleName
 #			return moduleName
 def fileInlist( file, fileList ):
-	file = path.path(file)
+	file = util.path(file)
 	for dir in fileList:
 		try:
 			if file.samefile( dir ): 
@@ -369,7 +368,7 @@ def _melProc_to_pyModule( t, procedure ):
 		if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
 			
 			
-			melfile = path.path( buf[1].lstrip() )
+			melfile = util.path( buf[1].lstrip() )
 			melfile = melfile.realpath()
 			translating = melfile in batchData.currentFiles
 			
@@ -2535,9 +2534,9 @@ def p_error(t):
 # Build the grammar
 
 lexer = lex.lex(module=mellex)
-parserspath = os.path.dirname(__file__)
-parserspath = os.path.join(parserspath, 'parsers')
-parser = yacc.yacc(method='''LALR''', debug=0, outputdir=parserspath )
+
+_outputdir = util.getTempDir()
+parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir )
 
 
 class MelParser(object):
@@ -2629,7 +2628,7 @@ class MelParser(object):
 			
 		return translatedStr
 	
-scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan)
+scanner = yacc.yacc(method='''LALR''', debug=0, module=melscan, outputdir=_outputdir)
 
 
 

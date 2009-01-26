@@ -1,9 +1,10 @@
 
 """
+==========================
 Mel To Python Translator
-========================
+==========================
 
-Convert mel scripts into python scripts
+Convert mel scripts into python scripts.
 
 
 Known Limitations
@@ -163,7 +164,6 @@ quickly as i can.
 
 
 from melparse import *
-import pymel.util.path as path
 from pymel.util.external.ply.lex import LexError
 import pymel.util as util
 import pymel.mayahook as mayahook
@@ -214,7 +214,7 @@ def _getInputFiles( arg ):
         if passed a file, ensure it is a mel file
         if passed a procedure name, find its file
         """
-        filepath = path.path(filepath)
+        filepath = util.path(filepath)
         if filepath.isfile():
             if filepath.ext == '.mel':
                 return [ filepath.realpath() ]
@@ -227,7 +227,7 @@ def _getInputFiles( arg ):
         else:
             # see if it's a procedure that we can derive a path from
             try:
-                melfile = path.path( pymel.mel.whatIs( filepath ).split(': ')[-1] )
+                melfile = util.path( pymel.mel.whatIs( filepath ).split(': ')[-1] )
                 return [melfile.realpath()]
             except Exception, msg:
                 print "Could not determine mel file from input '%s': %s" % (filepath, msg)
@@ -244,8 +244,28 @@ def _getInputFiles( arg ):
     return results
 
 def melInfo( input ):
+    """
+    Get information about procedures in a mel file. 
+    
+        >>> import pymel.tools.mel2py as mel2py
+        >>> mel2py.melInfo('attributeExists')
+        (['attributeExists'], {'attributeExists': {'returnType': 'int', 'args': [('string', '$attr'), ('string', '$node')]}}, {})
+    
+    :Parameters:
+        input
+            can be a mel file or a sourced mel procedure
+            
+    :return:  
+        A 3-element tuple:
+            1. the list of procedures in the order the are defined
+            2. a dictionary of global procedures, with the following entries:
+                - returnType: mel type to be returned
+                - args: a list of (type, variable_name) pairs
+            3. a dictionary of local procedures, formatted the same as with globals
 
-    filepath = path.path(input)
+            
+    """
+    filepath = util.path(input)
     if filepath.isfile():
         if filepath.ext == '.mel':
            filepath = filepath.realpath()
@@ -259,7 +279,7 @@ def melInfo( input ):
     else:
         # see if it's a procedure that we can derive a path from
         try:
-            filepath = path.path( pymel.mel.whatIs( filepath ).split(': ')[-1] )
+            filepath = util.path( pymel.mel.whatIs( filepath ).split(': ')[-1] )
             filepath = filepath.realpath()
         except Exception, msg:
             print "Could not determine mel file from input '%s': %s" % (filepath, msg)
@@ -277,11 +297,28 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
         >>> print mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;')
         paneLayout('test',configuration="top3",e=1)
         
-    Note that when converting single lines, the lines must end in a semi-colon, otherwise it is techincally
+    Note that when converting single lines, the lines must end in a semi-colon, otherwise it is technically
     invalid syntax.
     
-    The currentModule argument is the name of the module that the hypothetical code is executing in. In most cases you will
-    leave it at its default, the __main__ namespace.
+    :Parameters:
+        data : str
+            string representing coe to convert
+
+        currentModule : str
+            the name of the module that the hypothetical code is executing in. In most cases you will
+            leave it at its default, the __main__ namespace.
+            
+        pymelNamespace : str
+            the namespace into which pymel will be imported.  the default is '', which means ``from pymel import *``
+            
+        forceCompatibility : bool
+            If True, the translator will attempt to use non-standard python types in order to produce
+            python code which more exactly reproduces the behavior of the original mel file, but which
+            will produce "uglier" code.  Use this option if you wish to produce the most reliable code
+            without any manual cleanup.
+            
+        verbosity : int
+            Set to non-zero for a *lot* of feedback
     
     """
     
@@ -295,28 +332,34 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
 
 
 def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, verbosity=0 , test=False):
-    """batch convert an entire directory
+    """
+    Batch convert an entire directory
     
-    input
-        May be a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure.
-        If only the name of the mel file is    passed, mel2py will attempt to determine the location 
-        of the file using the 'whatIs' mel command,
-        which relies on the script already being sourced by maya.
-    
-    outputDir
-        Directory where resulting python files will be written to
-    
-    verbosity
-        Set to True for a *lot* of feedback
-    
-    test
-        After translation, attempt to import the modules to test for errors
+    :Parameters:
+        input
+            May be a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure.
+            If only the name of the mel file is passed, mel2py will attempt to determine the location 
+            of the file using the 'whatIs' mel command, which relies on the script already being sourced by maya.
+
+        outputDir : str
+            Directory where resulting python files will be written to
+
+        pymelNamespace : str
+            the namespace into which pymel will be imported.  the default is '', which means ``from pymel import *``
+            
+        forceCompatibility : bool
+            If True, the translator will attempt to use non-standard python types in order to produce
+            python code which more exactly reproduces the behavior of the original mel file, but which
+            will produce "uglier" code.  Use this option if you wish to produce the most reliable code
+            without any manual cleanup.
+            
+        verbosity : int
+            Set to non-zero for a *lot* of feedback
         
-    forceCompatibility
-    	If True, the translator will attempt to use non-standard python types in order to produce
-    	python code which more exactly reproduces the behavior of the original mel file, but which
-    	will produce "uglier" code.  Use this option if you wish to produce the most reliable code
-    	without any manual cleanup.
+        test : bool
+            After translation, attempt to import the modules to test for errors
+            
+
     """
 
 
@@ -336,20 +379,6 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
         
     print batchData.currentFiles
     
-    #if outputDir is None:
-    #	if len(batchData.currentFiles)==1:
-    #    outputDir = os.getcwd()
-        
-    """
-    for f in currentFiles:
-        try:
-            mel2py( f, outputDir, False, True, verbosity )
-        except:
-            pass
-    global global_procs
-    print 'Found %d procedures'    % len(global_procs)
-    """
-    
     importCnt = 0
     succeeded = []
     for melfile, moduleName in zip(batchData.currentFiles, batchData.currentModules):
@@ -359,7 +388,7 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
         
         if melfile in batchData.scriptPath_to_moduleText:
             print "Using pre-converted mel script", melfile
-            converted = sbatchData.criptPath_to_moduleText[melfile]
+            converted = batchData.scriptPath_to_moduleText[melfile]
         
         else:
             data = melfile.bytes()
@@ -376,7 +405,7 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
         else:
         	currOutDir = outputDir
         	
-        pyfile = path.path(currOutDir + os.sep + moduleName + '.py')    
+        pyfile = util.path(currOutDir + os.sep + moduleName + '.py')    
         print "Writing converted python script: %s" % pyfile
         pyfile.write_bytes(converted)
         succeeded.append( pyfile )
@@ -414,10 +443,11 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
     
     
 def findMelOnlyCommands():
-    """Using documentation, find commands which were not ported to python.
+    """
+    Using maya's documentation, find commands which were not ported to python.
     """
 
-    docs = path.path( _factories.mayaDocsLocation() )
+    docs = util.path( _factories.mayaDocsLocation() )
     melCmds = set([ x.namebase for x in ( docs / 'Commands').files('*.html') ])
     pyCmds = set([ x.namebase for x in ( docs / 'CommandsPython').files('*.html') ])
     result = []
