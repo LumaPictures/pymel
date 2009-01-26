@@ -15,6 +15,7 @@ def capitalize(s):
     """
     Python's string 'capitalize' method is NOT equiv. to mel's capitalize, which preserves
     capital letters.
+    
         >>> capitalize( 'fooBAR' )
         'FooBAR'
         >>> 'fooBAR'.capitalize()
@@ -26,6 +27,7 @@ def capitalize(s):
 
 def uncapitalize(s, preserveAcronymns=False):
     """preserveAcronymns enabled ensures that 'NTSC' does not become 'nTSC'
+    
     :rtype: string
     
     """
@@ -149,7 +151,11 @@ def getEnv( env, default=None ):
     return os.environ.get(env, default)
 
 def getEnvs( env, default = None ):
-    "get the value of an environment variable split into a list.  returns default ([]) if the variable has not been previously set."
+    """
+    get the value of an environment variable split into a list.  returns default ([]) if the variable has not been previously set.
+    
+    :rtype: list
+    """
     try:
         return os.environ[env].split(os.path.pathsep)
     except KeyError:
@@ -165,3 +171,21 @@ def putEnv( env, value ):
     if _isIterable(value):
         value = os.path.pathsep.join(value)
     os.environ[env] = value
+    
+    
+def getTempDir():
+    """get a temporary directory using TMPDIR and TEMP env vars, and test to ensure it is writable
+    
+    :rtype: string
+    """
+    try:
+        tempdir = os.environ['TMPDIR'] 
+    except KeyError:
+        try:
+            tempdir = os.environ['TEMP']
+        except KeyError:
+            raise OSError, "Could not find a temp directory. Please ensure that environment variable TMPDIR or TEMP points to a writable directory"
+
+    if not os.access(tempdir, os.W_OK):
+        raise OSError, "Temp dir %s is not writable. Please ensure that environment variable TMPDIR or TEMP points to a writable directory" % tempdir
+    return tempdir
