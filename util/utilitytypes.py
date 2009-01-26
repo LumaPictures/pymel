@@ -408,8 +408,6 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
 # NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=[ 'translate', '__doc__', '__getslice__', 
-                        '__contains__', '__eq__', '__ne__', '__ge__', '__gt__', '__le__', '__lt__', '__len__', 
-                         '__mod__', '__mul__', '_add__', '__rmod__', '__rmul__', '__radd__', '__reduce__'
                         ]) 
 
 class universalmethod(object):
