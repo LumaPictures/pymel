@@ -48,11 +48,15 @@ def warn(*args, **kwargs):
         args = args + (ExecutionWarning,)
     return warnings.warn(*args, **kwargs)
 
-def deprecated(funcOrMessage):  
-    """the decorator can either recieve parameters or the function directly.
+def deprecated(funcOrMessage, className=None):  
+    """the decorator can either receve parameters or the function directly.
     
     If passed a message, the message will be appended to the standard deprecation warning and should serve to further
-    clarify why the function is being deprecated and/or suggest an alternative function"""
+    clarify why the function is being deprecated and/or suggest an alternative function
+    
+    the className parameter is optional and should be included if the function is a method, since the name of the class
+    cannot be automatically determined. 
+    """
     @decorator
     def deprecated2(func):
         info = dict(
@@ -68,7 +72,11 @@ def deprecated(funcOrMessage):
         deprecationLoggedFunc.__doc__ = func.__doc__
         return deprecationLoggedFunc
     
-    basemessage = message = "The function '%(module)s.%(name)s' is deprecated and will become unavailable in future pymel versions"
+    if className:
+        objName = '%(module)s.' + className + '.%(name)s'
+    else:
+        objName = '%(module)s.%(name)s'
+    basemessage = message = "The function '" + objName + "' is deprecated and will become unavailable in future pymel versions"
     # check if the decorator got a 'message' parameter
     if isinstance(funcOrMessage, basestring):
         message = basemessage + '. ' + funcOrMessage
