@@ -29,7 +29,8 @@ def _getOutputDir():
     if os.access( outdir, os.W_OK ):
         return outdir
     else:
-        return util.getTempDir()
+        import common
+        return common.getTempDir()
 
 
 
