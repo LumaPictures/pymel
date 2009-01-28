@@ -1171,34 +1171,10 @@ def buildCachedData() :
              
     return (cmdlist,nodeHierarchyTree,uiClassList,nodeCommandList,moduleCmds)
 
-
-def loadApiToMelBridge():
-
-    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
-    if data is not None:
-        # temporary fix, because we converted from one item in the cache, to now having two
-        if isinstance(data, util.defaultdict):
-            return data, {}
-        
-        return data
-    
-    # no bridge cache exists. create default
-    bridge = util.defaultdict(dict)
-    
-    # no api overrides exist. create default
-    overrides = {}
-    
-    return bridge, overrides
-
-def saveApiToMelBridge():
-    mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
-
                                   
 #---------------------------------------------------------------
         
 cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()
-
-apiToMelData, apiClassOverrides = loadApiToMelBridge()
 
 # FIXME
 #: stores a dcitionary of pymel classnames and their methods.  i'm not sure if the 'api' portion is being used any longer
@@ -1208,9 +1184,9 @@ apiToMelMap = {
                }
 
 def _getApiOverrideNameAndData(classname, pymelName):
-    if apiToMelData.has_key( (classname,pymelName) ):
+    if _api.apiToMelData.has_key( (classname,pymelName) ):
 
-        data = apiToMelData[(classname,pymelName)]
+        data = _api.apiToMelData[(classname,pymelName)]
         try:
             nameType = data['useName']
         except KeyError:
@@ -1226,7 +1202,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
     else:
         # set defaults
         data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
-        apiToMelData[(classname,pymelName)] = data
+        _api.apiToMelData[(classname,pymelName)] = data
 
     
     #overloadIndex = data.get( 'overloadIndex', None )
@@ -1732,7 +1708,7 @@ def editflag( cmdName, flag ):
     return edit_decorator
 
 
-def add_docs( cmdName, flag=None ):
+def addMelDocs( cmdName, flag=None ):
     """decorator for adding docs"""
     
     if flag:
@@ -2717,15 +2693,16 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
         
         def formatDocstring(type):
-            # convert
-            # "['one', 'two', 'three', ['1', '2', '3']]"
-            # to
-            # "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
+            """
+            convert
+            "['one', 'two', 'three', ['1', '2', '3']]"
+            to
+            "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
             
-            # Enums
-            # this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
-            # import api directly, we have to do a string name comparison
-            
+            Enums
+            this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
+            import api directly, we have to do a string name comparison
+            """
             if not isinstance(type, list):
                 pymelType = ApiTypeRegister.types.get(type,type)
             else:
@@ -3061,7 +3038,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here. 
-                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)].get('enabled',True):
+                            if not _api.apiToMelData.has_key((classname,methodName)) or not _api.apiToMelData[(classname,methodName)].get('enabled',True):
                                 returnFunc = None
                                 
                                 if flagInfo.get( 'resultNeedsCasting', False):
@@ -3093,7 +3070,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                            
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
-                            if not apiToMelData.has_key((classname,methodName)) or not apiToMelData[(classname,methodName)].get('enabled', True):
+                            if not _api.apiToMelData.has_key((classname,methodName)) or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 

@@ -20,7 +20,7 @@ import inspect, timeit, time
 
 import pymel.util as util
 import factories as _factories
-from factories import queryflag, editflag, createflag, add_docs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
+from factories import queryflag, editflag, createflag, addMelDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
@@ -3515,12 +3515,12 @@ class DependNode( PyNode ):
         except AttributeError:
             return False
 
-    @add_docs('setAttr')  
+    @addMelDocs('setAttr')  
     def setAttr( self, attr, *args, **kwargs):
         # for now, using strings is better, because there is no MPlug support
         return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
-    @add_docs('setAttr')  
+    @addMelDocs('setAttr')  
     def setDynamicAttr( self, attr, *args, **kwargs):
         """
         same as `DependNode.setAttr` with the force flag set to True.  This causes
@@ -3531,24 +3531,24 @@ class DependNode( PyNode ):
         kwargs['force'] = True
         return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
-    @add_docs('getAttr')  
+    @addMelDocs('getAttr')  
     def getAttr( self, attr, *args, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
         return getAttr( "%s.%s" % (self, attr), *args,  **kwargs )
 
-    @add_docs('addAttr')  
+    @addMelDocs('addAttr')  
     def addAttr( self, attr, **kwargs):
         # for now, using strings is better, because there is no MPlug support  
         assert 'longName' not in kwargs and 'ln' not in kwargs
         kwargs['longName'] = attr
         return addAttr( unicode(self), **kwargs )
     
-    @add_docs('connectAttr')  
+    @addMelDocs('connectAttr')  
     def connectAttr( self, attr, destination, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
         return connectAttr( "%s.%s" % (self, attr), destination, **kwargs )
     
-    @add_docs('disconnectAttr')  
+    @addMelDocs('disconnectAttr')  
     def disconnectAttr( self, attr, destination=None, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
         return disconnectAttr( "%s.%s" % (self, attr), destination, **kwargs )

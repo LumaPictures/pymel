@@ -1,6 +1,6 @@
 
 """
-Functions relating to files, references, and system calls.
+Functions and classes relating to files, references, and system calls.
 
 In particular, the system module contains the functionality of maya.cmds.file. The file command should not be imported into
 the default namespace because it conflicts with python's builtin file class. Since the file command has so many flags, 
@@ -33,7 +33,7 @@ import maya.OpenMaya as OpenMaya
 from pymel.util.decoration import decorator
 import pymel.util as util
 import factories as _factories
-from factories import createflag, add_docs
+from factories import createflag, addMelDocs
 import pymel.util as util
 from pymel.util.scanf import fscanf
 import logging
@@ -72,7 +72,7 @@ def feof( fileid ):
     return pos == end
 
 
-@add_docs( 'file', 'sceneName')
+@addMelDocs( 'file', 'sceneName')
 def sceneName():
     return Path( OpenMaya.MFileIO.currentFile() )    
 
@@ -356,19 +356,19 @@ class CurrentFile(Path):
     setRenameToSave = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'renameToSave', 'setRenameToSave'))
     anyModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'anyModified'))
     @classmethod
-    @add_docs( 'file', 'lockFile')
+    @addMelDocs( 'file', 'lockFile')
     def lock(self):
         return cmds.file( lockFile=True)
     
     @classmethod
-    @add_docs( 'file', 'lockFile')
+    @addMelDocs( 'file', 'lockFile')
     def unlock(self):
         return cmds.file( lockFile=False)  
     isModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'modified', 'isModified'))
     setModified = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'modified', 'setModified'))
     
     @classmethod
-    @add_docs( 'file', 'sceneName')
+    @addMelDocs( 'file', 'sceneName')
     def name(self):
         return Path( OpenMaya.MFileIO.currentFile() ) 
 
@@ -528,7 +528,7 @@ class FileReference(Path):
                 mel.warning("Could not get namespace for '%s': %s" % (x,e))  
         return res  
         
-    @add_docs('namespace', 'exists')    
+    @addMelDocs('namespace', 'exists')    
     def namespaceExists(self):
         return cmds.namespace(ex=self.namespace)
       
@@ -546,11 +546,11 @@ class FileReference(Path):
     def remove(self, **kwargs):
         return cmds.file( self.withCopyNumber(), **kwargs )
        
-    @add_docs('file', 'unloadReference')
+    @addMelDocs('file', 'unloadReference')
     def unload(self):
         return cmds.file( self.withCopyNumber(), unloadReference=1 )
        
-    @add_docs('file', 'loadReference')
+    @addMelDocs('file', 'loadReference')
     def load(self, newFile=None, **kwargs):
         if not newFile:
             args = ()
@@ -558,41 +558,41 @@ class FileReference(Path):
             args = (newFile,)
         return cmds.file( loadReference=self.refNode,*args, **kwargs )
     
-    @add_docs('file', 'loadReference')
+    @addMelDocs('file', 'loadReference')
     def replaceWith(self, newFile):
         return self.load(newFile)   
     
-    @add_docs('file', 'cleanReference')
+    @addMelDocs('file', 'cleanReference')
     def clean(self, **kwargs):
         return cmds.file( cleanReference=self.refNode, **kwargs )
     
-    @add_docs('file', 'lockReference')
+    @addMelDocs('file', 'lockReference')
     def lock(self):
         return cmds.file( self.withCopyNumber(), lockReference=1 )
     
-    @add_docs('file', 'lockReference')
+    @addMelDocs('file', 'lockReference')
     def unlock(self):
         return cmds.file( self.withCopyNumber(), lockReference=0 )
     
-    @add_docs('file', 'deferReference')     
+    @addMelDocs('file', 'deferReference')     
     def isDeferred(self):
         return cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
        
-    @add_docs('file', 'deferReference')
+    @addMelDocs('file', 'deferReference')
     def isLoaded(self):
         return not cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
     
-    @add_docs('referenceQuery', 'nodes')
+    @addMelDocs('referenceQuery', 'nodes')
     def nodes(self):
         import general
         return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1, dagPath=1 ) )
     
-    @add_docs('file', 'copyNumberList')
+    @addMelDocs('file', 'copyNumberList')
     def copyNumberList(self):
         """returns a list of all the copy numbers of this file"""
         return cmds.file( self, q=1, copyNumberList=1 )
       
-    @add_docs('file', 'selectAll')
+    @addMelDocs('file', 'selectAll')
     def selectAll(self):
         return cmds.file( self.withCopyNumber(), selectAll=1 )
     
@@ -619,18 +619,18 @@ class FileReference(Path):
         
     refNode = util.cacheProperty( _getRefNode, '_refNode')
     
-    @add_docs('file', 'usingNamespaces')
+    @addMelDocs('file', 'usingNamespaces')
     def isUsingNamespaces(self):
         return cmds.file( self.withCopyNumber(), q=1, usingNamespaces=1 )
 
-    @add_docs('file', 'exportAnimFromReference')    
+    @addMelDocs('file', 'exportAnimFromReference')    
     def exportAnim( self, exportPath, **kwargs ):
         if 'type' not in kwargs:
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
         return Path(cmds.file( exportPath, rfn=self.refNode, exportAnimFromReference=1))
           
-    @add_docs('file', 'exportSelectedAnimFromReference')    
+    @addMelDocs('file', 'exportSelectedAnimFromReference')    
     def exportSelectedAnim( self, exportPath, **kwargs ):
         if 'type' not in kwargs:
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
@@ -850,14 +850,14 @@ def exportSelectedAnim( exportPath, **kwargs ):
         except: pass
     return Path(cmds.file(exportPath, **kwargs))
 
-@add_docs('file', 'exportAnimFromReference')    
+@addMelDocs('file', 'exportAnimFromReference')    
 def exportAnimFromReference( exportPath, **kwargs ):
     if 'type' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     return Path(cmds.file( *args, **kwargs))
       
-@add_docs('file', 'exportSelectedAnimFromReference')    
+@addMelDocs('file', 'exportSelectedAnimFromReference')    
 def exportSelectedAnimFromReference( exportPath, **kwargs ):
     if 'type' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
@@ -876,7 +876,7 @@ def newFile( *args, **kwargs ):
 def openFile( *args, **kwargs ):
     return Path(cmds.file(*args, **kwargs))    
 
-@add_docs('file', 'rename')
+@addMelDocs('file', 'rename')
 def renameFile( *args, **kwargs ):
     return Path(cmds.file(rename=args[0]))
 

@@ -1202,6 +1202,8 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     this to False, you can rebuild all other api information.
     """        
 
+    apiToMelData, apiClassOverrides = loadApiToMelBridge()
+    
     # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
     apiClassInfo = None
     
@@ -1217,48 +1219,11 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         apiTypeHierarchy = data[6]
         apiClassInfo = data[7]
         
-        #print "MayaTypesToApiTypes", "directionalLight" in MayaTypesToApiTypes().keys(), len(MayaTypesToApiTypes().keys())
-        
-        def _setOverloadedMethod( className, methodName, index ):
-            methodInfoList = apiClassInfo[className]['methods'][methodName]
-            apiClassInfo[className]['methods'][methodName] = util.reorder( methodInfoList, [index] )
-            
-        def _setArgDefault( className, methodName, argName, default ):
-            methodInfoList = apiClassInfo[className]['methods'][methodName]
-            for i, methodInfo in enumerate( methodInfoList ):
-                try:
-                    methodInfoList[i]['defaults'][argName] = default
-                except KeyError: pass
-            apiClassInfo[className]['methods'][methodName] = methodInfoList
-        #----------------------------------------------------
-        #  Api Class
-        #----------------------------------------------------
-        # add default to type
-        #_setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kPostTransform']) )
-        #_setArgDefault('MFnTransform','getTranslation', 'space', Enum(['MSpace', 'Space', 'kWorld']) )
-        
-        #_setOverloadedMethod( 'MFnTransform','getRotation', 1 ) #  MEuler
-        #print "AFTER", apiClassInfo['MFnTransform']['methods']['getRotation'][0]
-        
-        _setOverloadedMethod( 'MItMeshEdge','index', 1 ) # method at 0 is for returning a vertex index, while method 1 returns the edge index
-        
-#        for clsname, classInfo in apiClassInfo.items():
-#            for method, methodInfoList in classInfo['methods'].items():
-#                for i, methodInfo in enumerate( methodInfoList ):
-#                    for arg, type in methodInfo['types'].items():
-#                        if str(type) == 'MSpace.Space':
-#                            print clsname, method, i, 
-
-#        apiClassInfo['MFnTransform']['methods']['getRotation'].pop(0) # remove MEuler
-#        # correction to order direction
-#        order = apiClassInfo['MFnTransform']['methods']['getRotation'][0]['args'][1]
-#        apiClassInfo['MFnTransform']['methods']['getRotation'][0]['args'][1] = order[:2] + tuple(['out'])
-        #----------------------------------------------------
         
         if not rebuildAllButClassInfo:
             # Note that even if rebuildAllButClassInfo, we still want to load
             # the cache file, in order to grab apiClassInfo
-            return apiTypeHierarchy, apiClassInfo
+            return apiTypeHierarchy, apiClassInfo, apiToMelData, apiClassOverrides
             
     
     _logger.info( "Rebuilding the API Caches..." )
@@ -1272,6 +1237,10 @@ def _buildApiCache(rebuildAllButClassInfo=False):
         apiClassInfo = None
     apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo = _buildApiTypeHierarchy(apiClassInfo=apiClassInfo)
 
+    # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
+    _logger.info( 'merging in dictionary of manual api overrides')
+    util.mergeCascadingDicts( apiClassOverrides, apiClassInfo, allowDictToListMerging=True )
+
     mayahook.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
                            dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), 
                            dict(MayaTypesToApiTypes()), 
@@ -1279,17 +1248,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
                           )
                          , 'mayaApi', 'the API cache' )
     
-    return apiTypeHierarchy, apiClassInfo
-
-# Initialize the API tree
-# initial update  
-_start = time.time()
-apiTypeHierarchy, apiClassInfo = _buildApiCache(rebuildAllButClassInfo=False)
-        
-# quick fix until we can get a Singleton ApiTypeHierarchy() up
-
-_elapsed = time.time() - _start
-_logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
+    return apiTypeHierarchy, apiClassInfo, apiToMelData, apiClassOverrides
 
 # TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
@@ -1300,6 +1259,40 @@ def saveApiCache():
                            dict(ApiTypesToApiClasses()), apiTypeHierarchy, apiClassInfo 
                           )
                          , 'mayaApi', 'the API cache' )
+
+def loadApiToMelBridge():
+
+    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
+    if data is not None:
+        # temporary fix, because we converted from one item in the cache, to now having two
+        if isinstance(data, util.defaultdict):
+            return data, {}
+        
+        return data
+    
+    # no bridge cache exists. create default
+    bridge = util.defaultdict(dict)
+    
+    # no api overrides exist. create default
+    overrides = {}
+    
+    return bridge, overrides
+
+def saveApiToMelBridge():
+    mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
+
+
+#-------------------------------------------------------------------------------------
+
+_start = time.time()
+apiTypeHierarchy, apiClassInfo, apiToMelData, apiClassOverrides = _buildApiCache(rebuildAllButClassInfo=False)
+
+    
+_elapsed = time.time() - _start
+_logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
+
+#-------------------------------------------------------------------------------------
+
 
 def toApiTypeStr( obj ):
     if isinstance( obj, int ):
