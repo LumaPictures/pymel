@@ -7,25 +7,35 @@ Compatible with both maya8.5 and maya2008
 Project Goals
 ======================
 
-    - Create an **open-source** python module for maya that is **intuitive** to mel users and python users alike
-    - **Fix bugs** and design limitations in maya.cmds and maya.mel
-    - Keep code **concise** and **readable**
-    - **Add organization** through class hierarchy and sub-modules
-    - Provide **documentation** accessible via html and the builtin help() function
+    - Create an open-source python module for Maya that is intuitive to MEL users and python users alike
+    - Fix bugs and design limitations in Maya's python modues, maya.cmds and maya.mel
+    - Keep code concise and readable
+    - Add organization through class hierarchy and sub-modules
+    - Provide documentation accessible via html and the builtin help() function
     - Make it "just work"
- 
+
+======================
+What's New
+======================
+
+Pymel 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten 
+to use the python API as their foundation, increasing speed and flexibility of the object-oriented design.  
+
+For those looking to master python in a production environment, pymel is more than a module for Maya scripting, 
+it is a wealth of knowledge -- a self-contained pipeline demonstrating advanced python concepts like function factories, 
+metaclasses, and decorators, as well as essential practices such as html-parsing, pickling, logging, and unit testing.
+
 ======================
 Powerful new classes
 ======================
 
 **Node classes** for every node type
 
-
 >>> camTrans, cam = camera()
 >>> cam.setFocalLength(100) 
 >>> cam.getHorizontalFieldOfView()
 20.4079476169
->>> cam.dolly( distance=-3 )
+>>> cam.dolly( -3 )
 >>> cam.track(left=10)
 >>> cam.addBookmark('new')
 >>> isinstance( cam, Shape )
