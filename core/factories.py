@@ -1393,9 +1393,26 @@ def fixCallbacks(inFunc, funcName=None ):
     # the old value of newFunc, b/c 'return newFunc'
     # would be recursive
     beforeUiFunc = inFunc
-    
+
+    def _makeCallback( origCallback, args, doPassSelf ):
+        """this function is used to make the callback, so that we can ensure the origCallback gets
+        "pinned" down"""
+        #print "fixing callback", key
+        def callback(*cb_args):
+            newargs = []
+            for arg in cb_args:
+                if callbackReturnFunc:
+                    arg = callbackReturnFunc(arg)
+                newargs.append(arg)
+            
+            if doPassSelf:
+                newargs = [ args[0] ] + newargs
+            newargs = tuple(newargs)
+            return origCallback( *newargs )
+        return callback
 
     def newUiFunc( *args, **kwargs):
+            
         if len(args):
             doPassSelf = kwargs.pop('passSelf', False)
         else:
@@ -1405,21 +1422,7 @@ def fixCallbacks(inFunc, funcName=None ):
             try:
                 cb = kwargs[ key ]
                 if callable(cb):
-                    #print "fixing callback", key
-                    def callback(*cb_args):
-                        #print "callback args", args
-                        newargs = []
-                        for arg in cb_args:
-                            if callbackReturnFunc:
-                                arg = callbackReturnFunc(arg)
-                            newargs.append(arg)
-                        
-                        if doPassSelf:
-                            newargs = [ args[0] ] + newargs
-                        newargs = tuple(newargs)
-                        #print "callback newargs", newargs
-                        return cb( *newargs )
-                    kwargs[ key ] = callback
+                    kwargs[ key ] = _makeCallback( cb, args, doPassSelf )
             except KeyError: pass
             
         return beforeUiFunc(*args, **kwargs)   
