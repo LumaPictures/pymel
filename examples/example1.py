@@ -1,6 +1,7 @@
 """
 
-Pymel makes python within Maya the way it should be-- readable, concise, and object-oriented. Pymel builds on the maya.cmds module by organizing many of its commands into a class hierarchy, and by customizing them to operate in a more succinct and intuitive way.
+PyMEL makes python within Maya the way it should be-- readable, concise, and object-oriented. PyMEL integrates the python API with the maya.cmds
+module by organizing many of its commands into a class hierarchy, and by customizing them to operate in a more succinct and intuitive way.
 Compatible with both maya8.5 and maya2008
 
 ======================
@@ -15,18 +16,80 @@ Project Goals
     - Make it "just work"
 
 ======================
+Production Proven
+======================
+
+Since its release over a year ago PyMEL has accumulated an impressive resume, in both feature films and games: 
+
+    - DreamWorks: *Fung Fu Panda*, *Shrek 4*, *Monsters Vs Aliens*, and *How to Train Your Dragon*
+    - Luma Pictures: *Pirates of the Carribean: At World's End*, *Harry Potter 6*, and *Wolverine*
+    - ImageMovers Digital: Robert Zemeckis' upcoming *A Christman Carol*
+    - Bungie Studios:
+    
+======================
 What's New
 ======================
 
-Pymel 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten 
-to use the python API as their foundation, increasing speed and flexibility of the object-oriented design.  
+PyMEL 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten 
+from the ground up to use the python API as their foundation, increasing the speed and fidelity of PyMEL's object-oriented design.  
 
-For those looking to master python in a production environment, pymel is more than a module for Maya scripting, 
-it is a wealth of knowledge -- a self-contained pipeline demonstrating advanced python concepts like function factories, 
-metaclasses, and decorators, as well as essential practices such as html-parsing, pickling, logging, and unit testing.
+
+    - New and improved math classes: 
+    - Hundreds of new node methods: API integration has introduced a wealth of new useful object methods.
+    - Improved standalone support: unlike the maya module, PyMEL behaves the same in standalone as it does in an interactive session
+    - More organization:
+    - Expanded documentation:
+    
+--------------------------
+For the Novice
+--------------------------
+
+Object-oriented programming, like that provided by PyMEL, is more intuitive to learn because the functionality of an object is directly
+associated with the object itself.  For an artist beginning to learn programming in Maya, the first question you might ask is "what can I do with this node?"  
+Using a procedural approach, like that offered by MEL or maya.cmds, you'll have to dig through the hundreds of MEL commands looking for the one that you want. 
+For a camera node, the ``camera`` MEL command is easy to find, but did you find ``orbit``, ``track``,
+``dolly``, and ``tumble``, which also work on cameras?  In PyMEL, all you have to do is type ``help(Camera)`` in the python script editor 
+to find out all the things a camera node can do, or just look up the Camera class in the PyMEL docs.
+
+
+--------------------------
+For the MEL Scripter
+--------------------------
+
+When we say PyMEL is concise and easy to read, we mean it.
+
+MEL:
+
+.. python::
+
+    string $sel[] = `ls -sl`;
+    string $shapes[] = `listRelatives -s $sel[0]`;
+    string $conn[] = `listConnections -s 1 -d 0 $shapes[0]`;
+    setAttr ( $conn[0] + ".radius") 3;
+
+PyMEL
+
+.. python::
+    
+    selected()[0].getShape().inputs()[0].radius.set(3)      
+
+-----------------------------
+For the Technical Director
+-----------------------------
+
+For those looking to master python in a production environment, PyMEL is more than a module for Maya scripting, 
+it is a repository of python prowess -- a self-contained pipeline demonstrating 
+advanced python concepts like function factories, metaclasses, and decorators, as well as essential production practices such as parsing, pickling, logging, and unit testing.
+
+For those who are already masters of python and who naturally expect more out of a python package, PyMEL is for you, too.  It was written in real production environments by 
+programmers with a vision for how to seamlessly integrate the API and MEL.
+
+PyMEL is released under the Open BSD license, which means it has no strings attached:  your studio can use, contribute to, and modify this
+module without any concerns over its open-source nature.
+
 
 ======================
-Powerful new classes
+Powerful Classes
 ======================
 
 **Node classes** for every node type
@@ -47,7 +110,7 @@ An **Attribute class** organizes all the attribute commands in one place
 .. python::
     
     if s.visibility.isKeyable() and not s.visibility.isLocked():
-        s.visibility = True
+        s.visibility.set( True )
         s.visibility.lock()
         print s.visibility.type()
 
@@ -87,26 +150,26 @@ Manage optionVars as a python dictionary
 Do More with Less Code
 ==========================
 
-If you've tried working with the default maya.cmds and maya.mel modules, you know that they add a lot of awkward syntax that can slow you down. Pymel streamlines this syntax in many ways.
+If you've tried working with the default maya.cmds and maya.mel modules, you know that they add a lot of awkward syntax that can slow you down. PyMEL streamlines this syntax in many ways.
 
-Safe to import into the main namespace, so you don't have to prefix all your commands
+PyMEL is safe to import into the main namespace, so you don't have to prefix all your commands
 
 .. python::
 
     # default
     cmds.select( cmds.ls() )
     
-    # pymel
+    # PyMEL
     select( ls() )
 
-Customized **operators** for succinct scripting
+PyMEL provides customized **operators** for succinct scripting
 
 .. python::
 
     for source, dest in s.connections( connections=1, sourceFirst=1):
         source // dest # disconnection operator
 
-Call Mel procedures as if they were python commands: no more annoying string formatting
+You can call MEL procedures as if they were python commands: no more annoying string formatting
 
 .. python::
 
@@ -115,16 +178,9 @@ Call Mel procedures as if they were python commands: no more annoying string for
     # default
     maya.mel.eval( 'stringArrayRemoveDuplicates( {"'+'","'.join(values)+'"})')
     
-    # pymel
+    # PyMEL
     mel.stringArrayRemoveDuplicates( values )
 
-Enhanced Commands with intelligent defaults and new flags
-
-.. python::
-
-    # force flag: set the attribute; if it does not exist, create it.
-    # (attr. type is auto-determined based on the input type)
-    s.inputList.set( s.inputs(), force=1)
 
 
 ==========================
@@ -219,7 +275,7 @@ MEL
     
 
 --------------------------
-pymel
+PyMEL
 --------------------------
 
 .. python::

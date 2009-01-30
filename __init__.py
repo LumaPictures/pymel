@@ -24,25 +24,11 @@ What's New in Version 0.8
 ---------------------------------------    
 Licensing Change
 ---------------------------------------
+
 pymel is now offered under the New BSD license.
 
----------------------------------------
-Non-Backward Compatible Changes
----------------------------------------
-    - Attribute disconnection operator has changed from ``<>`` to ``//``
-        ``<>`` operator corresponds to __ne__ method, whose other operator is '!=' and we need that to mean 'not equal'.
-    - Node classes no longer inherit from unicode: see `PyNodes Are Not Strings`_
-        This allows node classes to reflect name changes such as parenting or renaming, a key aspect of the API integration
-    - Instantiation of non-existent PyNode objects now results in an exception: see `Non-Existent Objects`_
-        Also a side-effect of the API integration.  Prevents mistakes and produces cleaner code with use of new exception classes
-    - _BaseObj has been replaced with `PyNode` class, which operates like the old PyNode function
-        Provides more intuitive relationship between PyNode() and node classes
-    - removed method-chaining between shapes and their history
-        Chaining transforms to shapes is used throughout Maya, but the addition chaining of shapes to their history can produce
-        confusing and unexpected results.
-     
 ---------------------------------------    
-Other Additions and Changes
+Additions and Changes
 ---------------------------------------
 
 Module reorganization:
@@ -66,6 +52,23 @@ General Improvements:
         - The `Mel` class now prints mel errors and line numbers when an exception is raised
         - The `Mel` class returns pymel Vectors and Matrices
         - `DependNode` subclasses can be used to create new nodes
+
+---------------------------------------
+Non-Backward Compatible Changes
+---------------------------------------
+    - Attribute disconnection operator has changed from ``<>`` to ``//``
+        ``<>`` operator corresponds to __ne__ method, whose other operator is '!=' and we need that to mean 'not equal'.
+    - Node classes no longer inherit from unicode: see `PyNodes Are Not Strings`_
+        This allows node classes to reflect name changes such as parenting or renaming, a key aspect of the API integration
+    - Instantiation of non-existent PyNode objects now results in an exception: see `Non-Existent Objects`_
+        Also a side-effect of the API integration.  Prevents mistakes and produces more pythonic code with use of new exception classes
+    - _BaseObj has been replaced with `PyNode` class, which operates like the old PyNode function
+        Provides more intuitive relationship between PyNode() and node classes
+    - removed method-chaining between shapes and their history
+        Chaining transforms to shapes is used throughout Maya, but the additional chaining of shapes to their history can produce
+        unexpected results that are difficult to troubleshoot
+    - redesigned `ObjectSet` class
+
 
 =======================================
 Installation
@@ -235,7 +238,7 @@ The C++ API also has a python wrap but it too suffers from awkward and unpythoni
 benefits from the fact that it was object-oriented to begin with, but from a scripters' standpoint, it's tortuously verbose and cryptic.
 Certainly nothing you would want to write an entire pipeline with.
 
-Enter Pymel.  The reasons for pymel's existence are threefold:
+Enter Pymel.  The primary reasons for pymel's existence are threefold:
 
     1. to fix bugs in maya.cmds
     2. to modify the behavior of maya.cmds to improve workflow and make it more pythonic ( like returning an empty list instead of None )
@@ -544,16 +547,35 @@ with PyNodes in previous versions of pymel, might raise an error with version 0.
         ...
     TypeError: sequence item 0: expected string, Camera found
 
-The solution is simple: convert the PyNodes to strings.  The following example uses a shorthand syntax called "list comprehension" to 
+The solution is simple: convert the PyNodes to strings.  The following example uses a shorthand python expression called "list comprehension" to 
 convert the list of PyNodes to a list of strings:
 
     >>> objs = ls( type='camera')
     >>> ', '.join( [ str(x) for x in objs ] )
     'cameraShape1, frontShape, perspShape, sideShape, topShape'
 
-Also be aware that string operations with PyNodes return strings not new PyNodes:
-
+Similarly, if you are trying to concatenate your PyNode with another string, you will need to cast it to a string (same as you would have
+to do with an int)::
+    
     >>> cam = PyNode('frontShape')
+    >>> print "The node " + str(cam) + " is a camera"
+   
+Alternately, you can use % string formatting syntax::
+
+    >>> print "The node %s is a camera" % cam
+    
+By default the shortest unique name of the node is used. If you want more control over how the name is printed, use the various methods for retrieving the
+name as a string::
+
+    >>> cam.shortName() # shortest unique
+    u'frontShape'
+    >>> cam.nodeName() # just the node, same as unique in this case
+    u'frontShape'
+    >>> cam.longName() # full dag path
+    u'|frontShape'
+
+Finally, be aware that string operations with PyNodes return strings not new PyNodes:
+
     >>> new = cam.replace( 'front', 'monkey' )
     >>> print new, type(new), type(cam)
     monkeyShape <type 'unicode'> <class 'pymel.core.general.Camera'>
