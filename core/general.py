@@ -921,9 +921,10 @@ Modifications
 def delete(*args, **kwargs):
     """
 Modifications:
-    - added quiet keyword: the command will not fail on an empty list, and will not print warnings for read-only objects
+    - added 'safe' keyword: the command will not fail on an empty list
     """
-    if kwargs.pop('quiet',False):
+    if kwargs.pop('safe',False):
+        # empty list
         if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
             return
     cmds.delete(*args, **kwargs)
@@ -1305,7 +1306,7 @@ class PyNode(util.ProxyUnicode):
         """
         :rtype: `unicode`
         """
-        return u"%s('%s')" % (self.__class__.__name__, self.name())
+        return u"%s(%r)" % (self.__class__.__name__, self.name())
                
     def __radd__(self, other):
         if isinstance(other, basestring):
@@ -3680,7 +3681,8 @@ class DagNode(Entity):
         
 
     def longName(self):
-        """longNameOf
+        """
+        The full dag path to the object, including leading pipe ( | )
         
         :rtype: `unicode`
         """
@@ -3688,14 +3690,16 @@ class DagNode(Entity):
     fullPath = longName
             
     def shortName( self ):
-        """shortNameOf
+        """
+        The shortest unique name.
         
         :rtype: `unicode`
         """
         return self.name(long=False)
 
     def nodeName( self ):
-        """basename
+        """
+        Just the name of the node, without any dag path
         
         :rtype: `unicode`
         """
@@ -4047,19 +4051,22 @@ class Shape(DagNode):
         
 class Camera(Shape):
     __metaclass__ = MetaMayaNodeWrapper
+    @util.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
         fov = 2.0 * atan (fov)
         fov = 57.29578 * fov
         return fov
-        
+    
+    @util.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
     def setFov(self, fov):
         aperture = self.horizontalFilmAperture.get()
         focal = tan (0.00872665 * fov);
         focal = (0.5 * aperture) / (focal * 0.03937);
         self.focalLength.set(focal)
     
+    @util.deprecated('Use getAspectRatio instead', 'Camera' )  
     def getFilmAspect(self):
         return self.horizontalFilmAperture.get()/ self.verticalFilmAperture.get()
 
@@ -4099,9 +4106,26 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
-    #TODO: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track
-    dolly = _factories.functionFactory( cmds.dolly  )
-    roll = _factories.functionFactory( cmds.roll  )
+    
+    def dolly(self, distance, relative=True):
+        kwargs['distance'] = distance
+        if relative:
+            kwargs['relative'] = True
+        else:
+            kwargs['absolute'] = True
+        cmds.dolly(self, **kwargs)
+
+    def roll(self, degree, relative=True):
+        kwargs['degree'] = degree
+        if relative:
+            kwargs['relative'] = True
+        else:
+            kwargs['absolute'] = True
+        cmds.roll(self, **kwargs)
+
+    #TODO: the functionFactory is causing these methods to have their docs doubled-up,  in both pymel.track, and pymel.Camera.track     
+    #dolly = _factories.functionFactory( cmds.dolly  )
+    #roll = _factories.functionFactory( cmds.roll  )
     orbit = _factories.functionFactory( cmds.orbit  )
     track = _factories.functionFactory( cmds.track )
     tumble = _factories.functionFactory( cmds.tumble ) 
