@@ -79,8 +79,11 @@ class NameParser(unicode):
             
     def namespace(self):
         """Returns the namespace of the object with trailing colon included"""
-        return ':'.join(self.namespaceList()) + ':'
-        
+        nsList = self.namespaceList()
+        if nsList:
+            return  ':'.join(nsList) + ':'
+        return ''
+    
     def addPrefix(self, prefix):
         'addPrefixToName'
         name = self
