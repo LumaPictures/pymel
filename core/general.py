@@ -20,7 +20,7 @@ import inspect, timeit, time
 
 import pymel.util as util
 import factories as _factories
-from factories import queryflag, editflag, createflag, addMelDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
+from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 #from pymel.api.wrappedtypes import * # wrappedtypes must be imported first
 import pymel.api as api
 #from pmtypes.ranges import *
@@ -467,7 +467,7 @@ def hasAttr( pyObj, attr, checkShape=True ):
     """convenience function for determining if an object has an attribute.
     If checkShape is enabled, the shape node of a transform will also be checked for the attribute.
     
-    :rtype: `bool` list
+    :rtype: `bool`
     """
     if not isinstance( pyObj, PyNode ):
         raise TypeError, "hasAttr requires a PyNode instance and a string"
@@ -1075,17 +1075,17 @@ class MayaObjectError(ValueError):
         self.node = node
     def __str__(self):
         if self.node:
-            return "Maya Object does not exist: '%s'" % self.node
+            return "Maya Object does not exist: %r" % self.node
         return "Maya Object does not exist"
 class MayaNodeError(MayaObjectError):
     def __str__(self):
-        if self.node:
-            return "Maya Node does not exist: '%s'" % self.node
+        if self.node is not None:
+            return "Maya Node does not exist: %r" % self.node
         return "Maya Node does not exist"
 class MayaAttributeError(MayaObjectError, AttributeError):
     def __str__(self):
-        if self.node:
-            return "Maya Attribute does not exist: '%s'" % self.node
+        if self.node is not None:
+            return "Maya Attribute does not exist: %r" % self.node
         return "Maya Attribute does not exist"
 
 #--------------------------
@@ -1201,7 +1201,12 @@ class PyNode(util.ProxyUnicode):
                     elif res:
                         argObj = res
                     else:
-                        if '.' in unicode(argObj):
+                        try:
+                            strArg = unicode(argObj)
+                        except:
+                            strArg = ''
+                            
+                        if '.' in strArg:
                             raise MayaAttributeError( argObj )
                         else:
                             raise MayaNodeError( argObj )
@@ -1387,12 +1392,16 @@ class PyNode(util.ProxyUnicode):
         return self.lstrip('|').rstrip('|').split('|')[-1].split(':')[:-1]
             
     def namespace(self):
-        """Returns the namespace of the object with trailing colon included
+        """Returns the namespace of the object with trailing colon included.  See `DependNode.parentNamespace` for 
+        a variant which does not include the trailing colon.
         
         :rtype: `unicode`
         
         """
-        return ':'.join(self.namespaceList()) + ':'
+        ns = self.parentNamespace()
+        if ns:
+            ns += ':'
+        return ns
         
     def addPrefix(self, prefix):
         """Returns the object's name with a prefix added to the beginning of the name
@@ -1793,7 +1802,7 @@ class Component( PyNode ):
     
     def node(self):
         return self._node
-    
+
     def setIndex(self, index):
         #self._range = [component]
         su = api.MScriptUtil()
@@ -1849,6 +1858,8 @@ class MeshEdge( Component ):
     __apicls__ = api.MItMeshEdge
     __metaclass__ = _factories.MetaMayaTypeWrapper
     _ComponentLabel__ = 'e'
+    
+    
     def count(self):
         """
         :rtype: int
@@ -2656,7 +2667,10 @@ class Attribute(PyNode):
         """
         ``listAttr -multi``
         
-        Return a list of strings representing all the attributes in the array
+        Return a list of strings representing all the attributes in the array.
+        
+        If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
+        See `Attribute.__iter__`.
         """
         
         return cmds.listAttr(self.array(), multi=True)
@@ -3332,7 +3346,7 @@ class DependNode( PyNode ):
             
     def classification(self):
         'getClassification'
-        #return getClassification( self.type() )    
+        return getClassification( self.type() )    
         #return self.__apimfn__().classification( self.type() )
     
 #}
@@ -3646,9 +3660,11 @@ class Entity(DependNode):
     pass
 
 class DagNode(Entity):
+ 
+    #:group Path Info and Modification: ``*parent*``, ``*Parent*``, ``*child*``, ``*Child*``
     """
-    :group Path Info and Modification: ``*parent*``, ``*Parent*``, ``*child*``, ``*Child*``
     """
+    
     __apicls__ = api.MFnDagNode
     __metaclass__ = MetaMayaNodeWrapper
     
@@ -4106,7 +4122,7 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
-    
+    @addMelDocs('dolly')
     def dolly(self, distance, relative=True):
         kwargs['distance'] = distance
         if relative:
@@ -4115,6 +4131,7 @@ class Camera(Shape):
             kwargs['absolute'] = True
         cmds.dolly(self, **kwargs)
 
+    @addMelDocs('roll')
     def roll(self, degree, relative=True):
         kwargs['degree'] = degree
         if relative:
@@ -4130,7 +4147,7 @@ class Camera(Shape):
     track = _factories.functionFactory( cmds.track )
     tumble = _factories.functionFactory( cmds.tumble ) 
     
-            
+
 class Transform(DagNode):
     __metaclass__ = MetaMayaNodeWrapper
 #    def __getattr__(self, attr):
@@ -4293,39 +4310,40 @@ class Transform(DagNode):
                 
     def ungroup( self, **kwargs ):
         return cmds.ungroup( self, **kwargs )
-    '''
-    @editflag('xform','scale')      
-    def setScale( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
+    
+
+#    @editflag('xform','scale')      
+#    def setScale( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
 
     @editflag('xform','rotation')             
-    def setRotation( self, val, **kwargs ):
+    def setRotationOld( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
         
     @editflag('xform','translation')  
-    def setTranslation( self, val, **kwargs ):
+    def setTranslationOld( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
 
     @editflag('xform','scalePivot')  
-    def setScalePivot( self, val, **kwargs ):
+    def setScalePivotOld( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
         
     @editflag('xform','rotatePivot')         
-    def setRotatePivot( self, val, **kwargs ):
+    def setRotatePivotOld( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
  
-    @editflag('xform','pivots')         
-    def setPivots( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
+#    @editflag('xform','pivots')         
+#    def setPivots( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
         
     @editflag('xform','rotateAxis')  
-    def setRotateAxis( self, val, **kwargs ):
+    def setRotateAxisOld( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
         
     @editflag('xform','shear')                                 
-    def setShearing( self, val, **kwargs ):
+    def setShearingOld( self, val, **kwargs ):
         cmds.xform( self, **kwargs )
-    '''
+
     
     @editflag('xform','rotateAxis')                                
     def setMatrix( self, val, **kwargs ):
@@ -4336,26 +4354,102 @@ class Transform(DagNode):
         kwargs['matrix'] = val
         cmds.xform( self, **kwargs )
 
-    @queryflag('xform','scale') 
-    def getScaleOld( self, **kwargs ):
+#    @queryflag('xform','scale') 
+#    def getScaleOld( self, **kwargs ):
+#        return _types.Vector( cmds.xform( self, **kwargs ) )
+
+    def _getSpaceArg(self, space, kwargs):
+        if kwargs.pop( 'worldSpace', kwargs.pop('ws', False) ):
+            space = 'world'
+        elif kwargs.pop( 'objectSpace', kwargs.pop('os', False) ):
+            space = 'object'
+        if kwargs:
+            raise ValueError, "unknown keyword argument(s) %s" % ','.join( kwargs.keys() )
+        return space
+    
+    @queryflag('xform','translation') 
+    def getTranslationOld( self, **kwargs ):
         return _types.Vector( cmds.xform( self, **kwargs ) )
+
+    @addApiDocs( api.MFnTransform, 'setTranslation' )
+    def setTranslation(self, vector, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._setTranslation(vector, space=space)
+    
+    @addApiDocs( api.MFnTransform, 'getTranslation' )
+    def getTranslation(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._getTranslation(space=space)
+
+    
+    @queryflag('xform','rotatePivot')        
+    def getRotatePivotOld( self, **kwargs ):
+        return _types.Vector( cmds.xform( self, **kwargs ) )
+
+    @addApiDocs( api.MFnTransform, 'setRotatePivot' )
+    def setRotatePivot(self, point, space='world', balance=True, **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._setRotatePivot(point, space=space, balance=balance) 
+    
+    @addApiDocs( api.MFnTransform, 'rotatePivot' )
+    def getRotatePivot(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._getRotatePivot(space=space)
+
+    @addApiDocs( api.MFnTransform, 'setRotatePivotTranslation' )
+    def setRotatePivotTranslation(self, vector, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._setRotatePivotTranslation(vector, space=space)
+    
+    @addApiDocs( api.MFnTransform, 'rotatePivotTranslation' )
+    def getRotatePivotTranslation(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._getRotatePivotTranslation(space=space)
+
  
     @queryflag('xform','rotation')        
     def getRotationOld( self, **kwargs ):
         return _types.Vector( cmds.xform( self, **kwargs ) )
 
-    @queryflag('xform','translation') 
-    def getTranslationOld( self, **kwargs ):
-        return _types.Vector( cmds.xform( self, **kwargs ) )
+    @addApiDocs( api.MFnTransform, 'getRotation' )
+    def setRotation(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        quat = api.MQuaternion()
+        self.__apimfn__().getRotation(quat, _types.Spaces.getIndex(space) )
+        return _types.EulerRotation( quat.asEulerRotation() )
+      
+    @addApiDocs( api.MFnTransform, 'getRotation' )
+    def getRotation(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        quat = api.MQuaternion()
+        self.__apimfn__().getRotation(quat, _types.Spaces.getIndex(space) )
+        return _types.EulerRotation( quat.asEulerRotation() )
 
+    
     @queryflag('xform','scalePivot') 
     def getScalePivotOld( self, **kwargs ):
         return _types.Vector( cmds.xform( self, **kwargs ) )
- 
-    @queryflag('xform','rotatePivot')        
-    def getRotatePivotOld( self, **kwargs ):
-        return _types.Vector( cmds.xform( self, **kwargs ) )
- 
+
+    @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
+    def setScalePivot(self, point, space='world', balance=True, **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._setScalePivotTranslation(point, space=space, balance=balance)
+    
+    @addApiDocs( api.MFnTransform, 'scalePivot' )
+    def getScalePivot(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._getScalePivot(space=space)
+
+    @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
+    def setScalePivotTranslation(self, vector, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._setScalePivotTranslation(vector, space=space)
+          
+    @addApiDocs( api.MFnTransform, 'scalePivotTranslation' )
+    def getScalePivotTranslation(self, space='world', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        return self._getScalePivotTranslation(space=space)
+    
     @queryflag('xform','pivots') 
     def getPivots( self, **kwargs ):
         res = cmds.xform( self, **kwargs )
@@ -4504,6 +4598,10 @@ class NurbsCurve(CurveShape):
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
     """
+    The Mesh class provides wrapped access to many API methods for querying and modifying meshes.  Be aware that 
+    modifying meshes using API commands outside of the context of a plugin is still somewhat uncharted territory,
+    so proceed at our own risk. 
+    
     Cycle through faces and select those that point up in world space
     
     >>> s = PyNode('pSphere1')
@@ -4620,24 +4718,15 @@ class Mesh(SurfaceShape):
     uvcoordCount = util.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
     triangleCount = util.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
     
-    numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' )
-    #area = _factories.makeCreateFlagMethod( 'area', cmds.polyEvaluate, 'area' )
-    
-    #def area(self):
-    #    return cmds.polyEvaluate(self, area=True)
-        
-    #def worldArea(self):
-    #    return cmds.polyEvaluate(self, worldArea=True)
-    
-    '''
-    def _listComponent( self, compType, num ):
-        for i in range(0, num):
-             yield Attribute( '%s.vtx[%s]' % (self, i) )
-    
-    def verts(self):
-        return self._listComponent( 'vtx', self.numVerts() )
-    '''
-                    
+    numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
+    numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
+    numSelectedFaces = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'faceComponent', 'numSelectedFaces' )
+    numSelectedEdges = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edgeComponent', 'numSelectedEdges' )
+    numSelectedVertices = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertexComponent', 'numSelectedVertices' )
+     
+    area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
+    worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
+           
 
 class Subdiv(SurfaceShape):
     __metaclass__ = MetaMayaNodeWrapper
@@ -5127,7 +5216,8 @@ class ObjectSet(Entity):
         """clear and set the members to the passed list/set"""
         self.clear()
         self.addMembers( newContents )
-        
+    
+
     def add(self, item):
         if isinstance(item, (DependNode, DagNode, Attribute) ):
             return self.__apimfn__().addMember(item.__apiobject__())

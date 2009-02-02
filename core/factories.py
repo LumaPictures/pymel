@@ -83,7 +83,7 @@ nodeTypeToNodeCommand = {
 #: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
 #: these commands require special treatment during class generation because, for them the 'create' mode is the same as other node's 'edit' mode
 nodeTypeToInfoCommand = {
-    'mesh' : 'polyEvaluate',
+    #'mesh' : 'polyEvaluate',
     'transform' : 'xform'
 }
 
@@ -2326,9 +2326,9 @@ class ApiArgUtil(object):
             
             # set MSpace.Space enum to object space by default, but only if it is the last arg or 
             # the next arg has a default ( i.e. kwargs must always come after args )
-            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
-                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-                    default = _api.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
+#            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
+#                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
+#                    default = _api.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
 
             else:
                 continue    
@@ -2470,7 +2470,7 @@ class ApiUndo:
 
 apiUndo = ApiUndo()
        
-def interface_wrapper( doer, args=[], defaults=[] ):
+def interface_wrapper( doer, args=[], defaults=[], runtimeArgs=False, runtimeKwargs=False ):
     """
     A wrapper which allows factories to create functions with
     precise inputs arguments, instead of using the argument catchall:
@@ -2505,7 +2505,12 @@ def interface_wrapper( doer, args=[], defaults=[] ):
             kwargs.append( '%s=%s' % (arg, defaultStr ) )
         else:
             kwargs.append( str(arg) )
-
+            
+    if runtimeArgs:
+        kwargs.append( '*args' )
+    elif runtimeKwargs:
+        kwargs.append( '**kwargs' )
+        
     defStr = """def %s( %s ): 
         return %s(%s)""" % (name, ','.join(kwargs), storageName, ','.join(args) )
         
@@ -2530,6 +2535,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         return
     
     argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
+    undoable = True # controls whether we print a warning in the docs
     
     if newName is None:
         pymelName = argHelper.getPymelName()
@@ -2557,6 +2563,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             if getterArgHelper is None:
                 _logger.debug( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
                 getterInArgs = []
+                undoable = False
             else:
                 getterInArgs = getterArgHelper.inArgs()
           
@@ -2693,77 +2700,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             return result
         
         wrappedApiFunc.__name__ = pymelName
-
         
-        def formatDocstring(type):
-            """
-            convert
-            "['one', 'two', 'three', ['1', '2', '3']]"
-            to
-            "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
-            
-            Enums
-            this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
-            import api directly, we have to do a string name comparison
-            """
-            if not isinstance(type, list):
-                pymelType = ApiTypeRegister.types.get(type,type)
-            else:
-                pymelType = type
-            if pymelType.__class__.__name__ == 'Enum':
-                try:
-                    pymelType = pymelType.pymelName()
-                except:
-                    try:
-                        pymelType = pymelType.pymelName( ApiTypeRegister.getPymelType( pymelType[0] ) )
-                    except:
-                        _logger.debug("Could not determine pymel name for %r" % repr(pymelType))
-
-            doc = repr(pymelType).replace("'", "`")
-            if type in ApiTypeRegister.arrayItemTypes.keys():
-                doc += ' list'
-            return doc
-        
-        # Docstrings
-        docstring = argHelper.getClassDocs()
-        S = '    '
-        if len(inArgs):
-            docstring += '\n\n:Parameters:\n'
-            for name in inArgs :
-                info = argInfo[name]
-                type = info['type']
-                typeStr = formatDocstring(type)
-                
-                docstring += S + '%s : %s\n' % (name, typeStr )
-                docstring += S*2 + '%s\n' % (info['doc'])  
-                
-
-                
-        # Results doc strings
-        results = []
-        returnType = argHelper.getReturnType()
-        if returnType: 
-            rtype = formatDocstring(returnType)
-            results.append( rtype )
-        for argname in outArgs:
-            rtype = argInfo[argname]['type']
-            rtype = formatDocstring(rtype)
-            results.append( rtype )
-        
-        if len(results) == 1:
-            results = results[0]
-            docstring += '\n\n:rtype: %s\n' % results
-        elif results:
-            docstring += '\n\n:rtype: (%s)\n' %  ', '.join(results)
-        
-        docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
-        if getterArgHelper is None:
-            docstring += '\n**Undo is not currently supported for this method**\n'
-            
-        wrappedApiFunc.__doc__ = docstring
-        
-
-            
+        wrappedApiFunc = _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex, undoable )
+   
         defaults = argHelper.getDefaults()
             
         #_logger.debug(inArgs, defaults)
@@ -2775,6 +2714,101 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             
         return wrappedApiFunc
 
+
+
+def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=False):
+    """decorator for adding API docs"""
+    
+    def doc_decorator(func):
+        return _addApiDocs( func, apiClass, methodName, overloadIndex, undoable)
+        
+    return doc_decorator
+
+def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoable=True):
+
+    apiClassName = apiClass.__name__
+    
+    argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
+    inArgs = argHelper.inArgs()
+    outArgs = argHelper.outArgs()
+    argList = argHelper.argList()
+    argInfo = argHelper.argInfo()
+        
+    def formatDocstring(type):
+        """
+        convert
+        "['one', 'two', 'three', ['1', '2', '3']]"
+        to
+        "[`one`, `two`, `three`, [`1`, `2`, `3`]]"
+        
+        Enums
+        this is a little convoluted: we only want api.conversion.Enum classes here, but since we can't
+        import api directly, we have to do a string name comparison
+        """
+        if not isinstance(type, list):
+            pymelType = ApiTypeRegister.types.get(type,type)
+        else:
+            pymelType = type
+        if pymelType.__class__.__name__ == 'Enum':
+            try:
+                pymelType = pymelType.pymelName()
+            except:
+                try:
+                    pymelType = pymelType.pymelName( ApiTypeRegister.getPymelType( pymelType[0] ) )
+                except:
+                    _logger.debug("Could not determine pymel name for %r" % repr(pymelType))
+
+        doc = repr(pymelType).replace("'", "`")
+        if type in ApiTypeRegister.arrayItemTypes.keys():
+            doc += ' list'
+        return doc
+    
+    # Docstrings
+    docstring = argHelper.getClassDocs()
+    docstring = docstring.replace( 'centimeter', 'linear unit' )
+    docstring = docstring.replace( 'radian', 'angular unit' )
+    
+    S = '    '
+    if len(inArgs):
+        docstring += '\n\n:Parameters:\n'
+        for name in inArgs :
+            info = argInfo[name]
+            type = info['type']
+            typeStr = formatDocstring(type)
+            
+            docstring += S + '%s : %s\n' % (name, typeStr )
+            docstring += S*2 + '%s\n' % (info['doc'])  
+            
+
+            
+    # Results doc strings
+    results = []
+    returnType = argHelper.getReturnType()
+    if returnType: 
+        rtype = formatDocstring(returnType)
+        results.append( rtype )
+    for argname in outArgs:
+        rtype = argInfo[argname]['type']
+        rtype = formatDocstring(rtype)
+        results.append( rtype )
+    
+    if len(results) == 1:
+        results = results[0]
+        docstring += '\n\n:rtype: %s\n' % results
+    elif results:
+        docstring += '\n\n:rtype: (%s)\n' %  ', '.join(results)
+    
+    docstring += '\nDerived from api method `%s.%s.%s`\n' % (apiClass.__module__, apiClassName, methodName) 
+    if not undoable:
+        docstring += '\n**Undo is not currently supported for this method**\n'
+    
+    if wrappedApiFunc.__doc__:
+        wrappedApiFunc.__doc__ += '\n'
+    else:
+        wrappedApiFunc.__doc__ = ''
+    wrappedApiFunc.__doc__ += docstring
+    
+    return wrappedApiFunc
 
 class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     """ A metaclass to wrap Maya api types, with support for class constants """ 
@@ -3439,7 +3473,7 @@ def pluginLoadedCallback( module ):
         # Commands
         if commands:
             pluginData[pluginName]['commands'] = commands
-            _logger.info("adding new commands: %s", ', '.join(commands))
+            _logger.debug("adding new commands: %s", ', '.join(commands))
             for funcName in commands:
                 #_logger.debug("adding new command:", funcName)
                 cmdlist[funcName] = getCmdInfoBasic( funcName )
@@ -3449,9 +3483,9 @@ def pluginLoadedCallback( module ):
                     if func:
                         setattr( module, funcName, func )
                     else:
-                        util.warn( "failed to create function" )
+                        _logger.warning( "failed to create function" )
                 except Exception, msg:
-                    _logger.info("exception", msg)
+                    _logger.warning("exception", msg)
         
         # Nodes          
         mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
@@ -3465,10 +3499,10 @@ def pluginLoadedCallback( module ):
                         _api.MEventMessage.removeCallback( id )
                         id.disown()
                 except KeyError:
-                    _logger.info("could not find callback id!")
+                    _logger.warning("could not find callback id!")
                 
                 pluginData[pluginName]['dependNodes'] = mayaTypes
-                _logger.info("adding new nodes: %s", ', '.join( mayaTypes ))
+                _logger.debug("adding new nodes: %s", ', '.join( mayaTypes ))
                 
                 for mayaType in mayaTypes:
                     
