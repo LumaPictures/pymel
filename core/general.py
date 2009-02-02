@@ -921,12 +921,13 @@ Modifications
 def delete(*args, **kwargs):
     """
 Modifications:
-    - added 'safe' keyword: the command will not fail on an empty list
+    - the command will not fail on an empty list
     """
-    if kwargs.pop('safe',False):
+    #if kwargs.pop('safe',False):
         # empty list
-        if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
-            return
+    if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
+        return
+    
     cmds.delete(*args, **kwargs)
 
   
@@ -3168,6 +3169,7 @@ class Attribute(PyNode):
         for i in range(self.numChildren() ):
             res.append( Attribute( self.node(), self.__apimfn__().child(i) ) )
         return res
+    children = getChildren
     
     def getSiblings(self):
         """attributeQuery -listSiblings
@@ -3178,7 +3180,8 @@ class Attribute(PyNode):
             return self.getParent().getChildren()
         except:
             pass
-
+    siblings = getSiblings
+    
     def getParent(self):
         """
         :rtype: `Attribute`  
@@ -3187,6 +3190,8 @@ class Attribute(PyNode):
             return Attribute( self.node(), self.__apimfn__().parent() )
         except:
             pass
+    
+    parent = getParent
 #}      
 
 
