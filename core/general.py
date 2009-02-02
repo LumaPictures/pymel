@@ -5068,12 +5068,7 @@ class ObjectSet(Entity):
 #    #-----------------------
 #    # Maya Methods
 #    #-----------------------
-#    def elements(self):
-#        return set( map( PyNode, self._elements() ) )
-#
-#    def subtract(self, set2):
-#        return sets( self, subtract=set2 )
-#    
+
     __metaclass__ = MetaMayaNodeWrapper
     #-----------------------
     # Python ObjectSet Methods
@@ -5141,7 +5136,11 @@ class ObjectSet(Entity):
     def __ixor__(self, s):
         "operator for `ObjectSet.symmetricDifference`"
         return self.symmetricDifference(s)     
-#        
+
+#
+#    def subtract(self, set2):
+#        return sets( self, subtract=set2 )
+#       
 #    def add(self, element):
 #        return sets( self, add=[element] )
 #    
@@ -5183,11 +5182,6 @@ class ObjectSet(Entity):
 #        self.clear()
 #        sets( self, add=self.intersections(elements) )
 #            
-#    def issubset(self, set2):
-#        return sets( self, isMember=set2)
-#
-#    def issuperset(self, set2):
-#        return sets( self, isMember=set2)
 #            
 #    def remove( self, element ):
 #        return sets( self, remove=[element])
@@ -5211,6 +5205,8 @@ class ObjectSet(Entity):
         """
         return list( self.asSelectionSet(flatten) )
 
+    elements = util.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )( members ) 
+    
     def flattened(self):
         """return a flattened list of members.  equivalent to `ObjectSet.members(flatten=True)`
         :rtype: `list`
@@ -5243,9 +5239,14 @@ class ObjectSet(Entity):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSubSet(other)
     
+    issubset = util.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
+    
+    
     def isSuperSet(self, other ):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSuperSet(other)
+    
+    issuperset = util.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
     
     def isEqual(self, other ):
         """
@@ -5307,7 +5308,9 @@ class ObjectSet(Entity):
 
     def union(self, other):
         self.addMembers(other)
-               
+     
+    update = util.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
+              
 #    def difference(self, other):
 #        sel = self.getDifference(other)
 #        self.clear()
