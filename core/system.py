@@ -42,8 +42,8 @@ _logger = logging.getLogger(__name__)
 
 import sys
 try:
-    from luma.filepath import filepath as Filepath
-    pathClass = Filepath
+    import luma
+    pathClass = luma.Filepath
 except:
     pathClass = util.path
 
@@ -342,37 +342,18 @@ class CurrentFile(Path):
 #===============================================================================
 
 
-
-def listReferences(type='list'):
-    """file -q -reference
-    By default returns a list of reference files as FileReference classes. The optional type argument can be passed a 'dict'
-    (or dict object) to return the references as a dictionary with namespaces as keys and References as values.
-    
-    Untested: multiple references with no namespace...
+def iterReferences( parentReference=None, recursive=False, namespaces=False, refNodes=False, references=True ):
     """
-    
-    # dict
-    if type in ['dict', dict]:
-        res = {}
-        try:
-            for x in cmds.file( q=1, reference=1):
-                res[cmds.file( x, q=1, namespace=1)] = FileReference(x)
-        except: pass
-        return res
-    
-    # list
-    return map( FileReference,cmds.file( q=1, reference=1) )
-
-def iterReferences( parentReference=None, recursive=True, namespaces=True, refNodes=False, references=True ):
-    """
-    returns references in the scene as a list of value tuples. the values in the tuples can be namespaces, refNodes (as PyNodes),
-    and/or references (as FileReferences)
+    returns references in the scene as a list of value tuples. The values in the tuples can be namespaces, refNodes (as PyNodes),
+    and/or references (as FileReferences), and are controlled by their respective keywords.  If only one of the three options is True, 
+    the result will not be a list of value tuples, but will simply be a list of values. 
     
     :param parentReference: a reference to get sub-references from. If None (default), the current scene is used.
     :type parentReference: string, `Path`, or `FileReference`
     
     :param recursive: recursively determine all references and sub-references
     :type recursive: bool
+    
     
     """
     import general
@@ -398,8 +379,11 @@ def iterReferences( parentReference=None, recursive=True, namespaces=True, refNo
             row.append( refNode )
         if references:
             row.append( FileReference(refNode) )
-        #print "yielding"
-        yield tuple(row)
+        if len(row) == 1:
+            row = row[0]
+        else:
+            row = tuple(row)
+        yield row
         if recursive:
             for x in iterReferences(parentReference=ref, recursive=True, namespaces=namespaces, refNodes=refNodes, references=references):
                 #print "yield sub"
@@ -407,6 +391,13 @@ def iterReferences( parentReference=None, recursive=True, namespaces=True, refNo
         #print "for done"
     #print "done"
 
+def listReferences( parentReference=None, recursive=False, namespaces=False, refNodes=False, references=True ):
+    """
+    Like iterReferences, except returns a list instead of an iterator.
+    
+    """
+    return list(iterReferences( parentReference=parentReference, recursive=recursive, namespaces=namespaces, refNodes=refNodes, references=references ))
+listReferences.__doc__ += iterReferences.__doc__
 
 #def getReferences( reference=None, recursive=False, namespaces=True, refNodes=False, asDict=True ):
 #    """
@@ -703,7 +694,20 @@ class FileReference(object):
     @addMelDocs('namespace', 'exists')    
     def namespaceExists(self):
         return cmds.namespace(ex=self.namespace)
-     
+ 
+    def _getNamespace(self): return cmds.file( self.withCopyNumber(), q=1, ns=1)
+    def _setNamespace(self, namespace):return cmds.file( self.withCopyNumber(), e=1, ns=namespace)    
+    namespace = property(_getNamespace, _setNamespace)
+
+    @property
+    def fullNamespace(self):
+        return "%s%s" % (self.refNode.namespace(), self.namespace)
+    
+    @property
+    def refNode(self):
+        return self._refNode
+    
+    @property
     def path(self):
         # TODO: check in cache to see if this has changed
 #        if not ReferenceCache.callbacksEnabled or Version.current < Version.v2009:
@@ -808,29 +812,6 @@ class FileReference(object):
     def selectAll(self):
         return cmds.file( self.withCopyNumber(), selectAll=1 )
     
-    def _getNamespace(self):
-        return cmds.file( self.withCopyNumber(), q=1, ns=1)
-    
-    def _setNamespace(self, namespace):
-        return cmds.file( self.withCopyNumber(), e=1, ns=namespace)    
-    
-    namespace = property(_getNamespace, _setNamespace)
-
-    @property
-    def fullNamespace(self):
-        return "%s%s" % (self.refNode.namespace(), self.namespace)
-    
-    def _getRefNode(self):
-        # since the refNode is a PyNode, it's name will reflect any renames performed on the node
-#        if self._refNode is None:
-#            try:
-#                import general
-#                self._refNode = general.PyNode( cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ) )
-#            except RuntimeError:
-#                pass
-        return self._refNode
-        
-    refNode = property( _getRefNode, '_refNode')
     
     @addMelDocs('file', 'usingNamespaces')
     def isUsingNamespaces(self):
