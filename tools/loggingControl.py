@@ -23,14 +23,16 @@ def refreshLoggerHierarchy():
                 v.parent.children = [v]
                 
 def initMenu():
-    return LoggingMenu(parent=pymel.getMelGlobal("string","gMainWindow"))
+    return LoggingMenu(parent=pymel.melGlobals["gMainWindow"])
+
+
 
 
 class LoggingMenu(pymel.Menu):
 
     def refreshLoggingMenu(self):
-        pymel.Menu(self.menuLoggerTree).deleteAllItems(1)
-        self.buildSubMenu(self.menuLoggerTree, logging.root)
+        #pymel.Menu(self).deleteAllItems(1)
+        self.buildSubMenu(self, logging.root)
 
     def changeLevel(self, item, level):
         logger.debug("Setting %s log level to %s" % (item, level))
@@ -38,15 +40,15 @@ class LoggingMenu(pymel.Menu):
 
     def buildLevelMenu(self, parent, item):
         for level in logLevelNames:
-            pymel.menuItem(p=parent, l=(">%s<" if levelsDict[item.level]==level else "%s") % level, c=pymel.Callback(self.changeLevel, item, level))
+            pymel.menuItem(p=parent, checkBox=levelsDict[item.level]==level, l=level, c=pymel.Callback(self.changeLevel, item, level))
 
     def buildSubMenu(self, parent, logger):
-        levelsMenu = pymel.menuItem(l="%s <%s>" % (logger.name, levelsDict[logger.level]),p=parent, sm=True)
-        self.buildLevelMenu(levelsMenu, logger)
+        #levelsMenu = pymel.menuItem(l="%s <%s>" % (logger.name, levelsDict[logger.level]),p=parent, sm=True)
+        self.buildLevelMenu(parent, logger)
         pymel.menuItem(d=1,p=parent)
         try:
             if logger.children:
-                pymel.menuItem(l="Child-Loggers:",p=parent,en=0)
+                pymel.menuItem(l="Child Loggers:",p=parent,en=0)
                 for item in logger.children:
                     subMenu = pymel.menuItem(l=item.name, sm=True, p=parent, tearOff=True, aob=True, pmo=True)
                     subMenu.postMenuCommand(pymel.Callback(self.buildSubMenu, parent=subMenu, logger=item))
@@ -111,9 +113,12 @@ class LoggingMenu(pymel.Menu):
     def refresh(self):
         refreshLoggerHierarchy()
         self.deleteAllItems(1)
-        if logging.root.handlers:
-            self.buildLevelMenu(self, logging.root.handlers[0])
-        pymel.menuItem(d=1, p=self)
-        self.menuLoggerTree = pymel.menuItem(p=self, l="Logger Tree", sm=True, aob=True)
-        self.menuLoggerTree.postMenuCommand(self.refreshLoggingMenu)
+#        if logging.root.handlers:
+#            self.buildLevelMenu(self, logging.root.handlers[0])
+        pymel.menuItem(l="Root Logger:",p=self,en=0)
+        #pymel.menuItem(divider=1, p=self)
+        #self.menuLoggerTree = pymel.menuItem(p=self, l="Logger Tree", sm=True, aob=True)
+        self.refreshLoggingMenu()
+        #self.menuLoggerTree.postMenuCommand(self.refreshLoggingMenu)
+        
         
