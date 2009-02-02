@@ -363,12 +363,13 @@ def listReferences(type='list'):
     # list
     return map( FileReference,cmds.file( q=1, reference=1) )
 
-def getReferences( reference=None, recursive=False, namespaces=True, refNodes=False, asDict=True ):
+def iterReferences( parentReference=None, recursive=True, namespaces=True, refNodes=False, references=True ):
     """
-    returns references in the scene as (namespace, FileReference) pairs
+    returns references in the scene as a list of value tuples. the values in the tuples can be namespaces, refNodes (as PyNodes),
+    and/or references (as FileReferences)
     
-    :param reference: a reference to get sub-references from. If None (default), the current scene is used.
-    :type reference: string, `Path`, or `FileReference`
+    :param parentReference: a reference to get sub-references from. If None (default), the current scene is used.
+    :type parentReference: string, `Path`, or `FileReference`
     
     :param recursive: recursively determine all references and sub-references
     :type recursive: bool
@@ -380,28 +381,74 @@ def getReferences( reference=None, recursive=False, namespaces=True, refNodes=Fa
 #        assert not (namespaces and refNodes)
         
     res = []   
-    if reference is None:
+    if parentReference is None:
         refs = zip( cmds.file( q=1, reference=1), cmds.file( q=1, reference=1, unresolvedName=1) )
     else:
-        refs = zip( cmds.file( reference, q=1, reference=1), cmds.file( reference, q=1, reference=1, unresolvedName=1) )
-        
+        refs = zip( cmds.file( parentReference, q=1, reference=1), cmds.file( parentReference, q=1, reference=1, unresolvedName=1) )
+    #print "reference", parentReference
     for ref, unresolvedRef in refs:
         row = []
         
         refNode = cmds.file( ref, q=1, referenceNode=1) 
+        refNode = general.PyNode( refNode )
         
-        fileRef = FileReference(ref, unresolvedPath=unresolvedRef)
         if namespaces:
-            row.append( other.DependNodeName( refNode ).namespace() + cmds.file( ref, q=1, namespace=1)  )
+            row.append( refNode.namespace() + cmds.file( ref, q=1, namespace=1)  )
         if refNodes:
-            row.append( general.PyNode( refNode ) )
-        row.append( fileRef )
-        res.append( row ) 
+            row.append( refNode )
+        if references:
+            row.append( FileReference(refNode) )
+        #print "yielding"
+        yield tuple(row)
         if recursive:
-            res += getReferences(reference=ref, recursive=True, namespaces=namespaces, refNodes=refNodes)
+            for x in iterReferences(parentReference=ref, recursive=True, namespaces=namespaces, refNodes=refNodes, references=references):
+                #print "yield sub"
+                yield x
+        #print "for done"
+    #print "done"
 
-    return res
 
+#def getReferences( reference=None, recursive=False, namespaces=True, refNodes=False, asDict=True ):
+#    """
+#    returns references in the scene as (namespace, FileReference) pairs
+#    
+#    :param reference: a reference to get sub-references from. If None (default), the current scene is used.
+#    :type reference: string, `Path`, or `FileReference`
+#    
+#    :param recursive: recursively determine all references and sub-references
+#    :type recursive: bool
+#    
+#    """
+#    import general
+#    import other
+##    if asDict:
+##        assert not (namespaces and refNodes)
+#        
+#    res = []   
+#    if reference is None:
+#        refs = zip( cmds.file( q=1, reference=1), cmds.file( q=1, reference=1, unresolvedName=1) )
+#    else:
+#        refs = zip( cmds.file( reference, q=1, reference=1), cmds.file( reference, q=1, reference=1, unresolvedName=1) )
+#        
+#    for ref, unresolvedRef in refs:
+#        row = []
+#        print ref, cmds.file( ref, q=1, namespace=1)
+#        refNode = cmds.file( ref, q=1, referenceNode=1) 
+#        
+#        fileRef = FileReference(ref, unresolvedPath=unresolvedRef)
+#        if namespaces:
+#            row.append( other.DependNodeName( refNode ).namespace() + cmds.file( ref, q=1, namespace=1)  )
+#        if refNodes:
+#            row.append( general.PyNode( refNode ) )
+#        row.append( fileRef )
+#        res.append( row ) 
+#        if recursive:
+#            res += getReferences(reference=ref, recursive=True, namespaces=namespaces, refNodes=refNodes)
+#
+#    return res
+
+def getReferences(parentReference=None, recursive=False):
+    return dict( iterReferences( parentReference=parentReference, recursive=recursive, namespaces=True, refNodes=False ) )
 
 @decorator
 def suspendReferenceUpdates(func):
@@ -520,7 +567,36 @@ class ReferenceCache(object):
             _logger.debug("Setting up File-Reference Callback: %s" % msg)
             cls._callbacks.append( OpenMaya.MSceneMessage.addCallback(getattr(OpenMaya.MSceneMessage,msg), refererencesUpdated, None) )
 
-
+    @classmethod
+    def getPaths(cls, path=None, namespace=None):
+        
+        # there's no guarantee that:
+        #  the namespace has not changed since the last cache refresh
+        #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
+        if not cls.callbacksEnabled or namespace: # or ( refnode and Version.current < Version.v2009 ):
+            # force refresh (only need to try once)
+            attempts=1
+            cls.refresh()
+        else:
+            # try twice (refresh if failed the first time)
+            attempts = 2
+            
+        while attempts:
+            try:
+                if path:
+                    resolvedPath, unresolvedPath = cls.byFullPath[path]
+#                elif refnode:
+#                    refnode = general.PyNode(refnode)
+#                    data = ReferenceCache.byRefNode[refnode]
+                elif namespace:
+                    resolvedPath, unresolvedPath = cls.byNamespace[namespace]
+                
+                return resolvedPath, unresolvedPath               
+            except KeyError:
+                attempts -= 1
+                if attempts:
+                    ReferenceCache.refresh()
+        raise ValueError("Could not find FileReference (args: %s)" % [path, namespace])    
 
 class FileReference(object):
     """
@@ -540,75 +616,74 @@ class FileReference(object):
     """
 
 
-    def __init__(self, path=None, namespace=None, refnode=None, unresolvedPath=None):
-        def create(path, unresolvedPath ):
-            """Actually create the FileReference object"""
-            def splitCopyNumber(path):
-                """Return a tuple with the path and the copy number. Second element will be None if no copy number"""
-                buf = path.split('{')
-                try:
-                    return ( buf[0], int(buf[1][:-1]) )
-                except:
-                    return (path, None)
-                    
-            path, copyNumber = splitCopyNumber(path)
-            unresolvedPath, copyNumber2 = splitCopyNumber(unresolvedPath)
-            assert copyNumber == copyNumber2, "copy number of %s is not the same as %s" % ( path, unresolvedPath )
-            self._file = Path(path)
-            self._copyNumber = copyNumber
-            self._unresolvedPath = Path(unresolvedPath)
-            #self._refNode = refNode
-            #return self
-
-        # Direct mappings:
-        # refNode --> refFile:  MFileIO.getReferenceFileByNode( refNode )
-        # refFile --> refNode:  cmds.file( refFile, q=1, referenceNode=1)
-        # refFile --> namespace:  refNode.namespace() + cmds.file( refFile, q=1, namespace=1)
-        
+    def __init__(self, pathOrRefNode=None, namespace=None, refnode=None, unresolvedPath=None):
         import general
-        if unresolvedPath:
-            # check to ensure it's legit
-            assert path in ReferenceCache.byFullPath
-            return create(path, unresolvedPath)
-        
-        if refnode:
-            refNode = general.PyNode(refnode)
-            path = OpenMaya.MFileIO.getReferenceFileByNode( refNode.__apimobject__() )
-            self._refNode = refNode
-            # continue on to the cache section so we can get the unresolved path
+        self._refNode = None
+        if pathOrRefNode:
+            if isinstance(pathOrRefNode, basestring) and '.' in pathOrRefNode:
+                self._refNode = general.PyNode( cmds.referenceQuery( pathOrRefNode, referenceNode=1 ) )
+            elif isinstance( pathOrRefNode, general.Reference ):
+                self._refNode = pathOrRefNode
+            else:
+                self._refNode = general.PyNode( pathOrRefNode )
             
-        
-        # there's no guarantee that:
-        #  the namespace has not changed since the last cache refresh
-        #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
-        if not ReferenceCache.callbacksEnabled or namespace: # or ( refnode and Version.current < Version.v2009 ):
-            # force refresh (only need to try once)
-            attempts=1
-            ReferenceCache.refresh()
-        else:
-            # try twice (refresh if failed the first time)
-            attempts = 2
+        elif namespace:
+            namespace = namespace.rstrip(':')
+            for iNamespace, iRefNode in iterReferences(namespaces=True, recursive=True, refNodes=True, references=False): 
+                if namespace == iNamespace:
+                    self._refNode = iRefNode
+                    break
+            if self._refNode is None:
+                raise "Could not find a reference with the namespace %r" % namespace
             
-        while attempts:
-            try:
-                if path:
-                    data = ReferenceCache.byFullPath[path]
-#                elif refnode:
-#                    refnode = general.PyNode(refnode)
-#                    data = ReferenceCache.byRefNode[refnode]
-                elif namespace:
-                    data = ReferenceCache.byNamespace[namespace]
-                
-                create( *data )                    
-                return
-            except KeyError:
-                attempts -= 1
-                if attempts:
-                    ReferenceCache.refresh()
-                
-
+        elif refnode:
+            self._refNode = general.PyNode( refnode )
         
-        raise ValueError("Could not find FileReference (args: %s)" % [path, namespace, refnode, unresolvedPath])    
+        assert self._refNode.type() == 'reference'
+        
+#        def create(path, unresolvedPath ):
+#            """Actually create the FileReference object"""
+#            def splitCopyNumber(path):
+#                """Return a tuple with the path and the copy number. Second element will be None if no copy number"""
+#                buf = path.split('{')
+#                try:
+#                    return ( buf[0], int(buf[1][:-1]) )
+#                except:
+#                    return (path, None)
+#                    
+#            path, copyNumber = splitCopyNumber(path)
+#            unresolvedPath, copyNumber2 = splitCopyNumber(unresolvedPath)
+#            assert copyNumber == copyNumber2, "copy number of %s is not the same as %s" % ( path, unresolvedPath )
+#            self._file = Path(path)
+#            self._copyNumber = copyNumber
+#            self._unresolvedPath = Path(unresolvedPath)
+#            #self._refNode = refNode
+#            #return self
+#
+#        # Direct mappings:
+#        # refNode --> refFile:  MFileIO.getReferenceFileByNode( refNode )
+#        # refFile --> refNode:  cmds.file( refFile, q=1, referenceNode=1)
+#        # refFile --> namespace:  refNode.namespace() + cmds.file( refFile, q=1, namespace=1)
+#        self._refNode = None   
+#        
+#        import general
+#        if unresolvedPath:
+#            # check to ensure it's legit
+#            assert path in ReferenceCache.byFullPath,  "%s is not a valid reference file" % path
+#            return create(path, unresolvedPath)
+#        
+#        if refnode:
+#            refNode = general.PyNode(refnode)
+#            self._refNode = refNode
+#            # refNode is all we need for now. we can get anything else from this when it is asked for
+#            return
+#
+#            
+#        
+#        resolvedPath, unresolvedPath = ReferenceCache.getPaths( path, namespace )
+#        create( resolvedPath, unresolvedPath )
+        
+        
    
     def __melobject__(self):
         return self.withCopyNumber()
@@ -630,31 +705,54 @@ class FileReference(object):
     def namespaceExists(self):
         return cmds.namespace(ex=self.namespace)
      
-    def file(self):
+    def path(self):
         # TODO: check in cache to see if this has changed
 #        if not ReferenceCache.callbacksEnabled or Version.current < Version.v2009:
 #            ReferenceCache.refresh()
 #            
 #        return ReferenceCache[ self.refNode ]._file
-        return self._file
+        
+        #path = self.withCopyNumber().split('{')[0]
+        path = cmds.referenceQuery( self.refNode, filename=1, withoutCopyNumber=1 )
+        return Path(path)
      
     def withCopyNumber(self):
-        """return this path with the copy number at the end"""
-        if self._copyNumber is not None:
-            return u'%s{%d}' % (self.file(), self._copyNumber)
-        return unicode( self.file() )
+        """return the with the copy number at the end"""
+        # the file path is subject to change
+        path = cmds.referenceQuery( self.refNode, filename=1 )
+        return path
+        
+#        if self._copyNumber is not None:
+#            return u'%s{%d}' % (self.path(), self._copyNumber)
+#        return unicode( self.path() )
     
-    @createflag('file', 'importReference')
-    def importContents(self, **kwargs):
-        return cmds.file( self.withCopyNumber(), **kwargs )
-       
-    @createflag('file', 'removeReference')
-    def remove(self, **kwargs):
-        return cmds.file( self.withCopyNumber(), **kwargs )
-       
+    def unresolvedPath(self):
+        path = cmds.referenceQuery( self.refNode, filename=1, unresolvedName=1, withoutCopyNumber=1 )
+        return Path(path)
+        
+#    @createflag('file', 'importReference')
+#    def importContents(self, **kwargs):
+#        return cmds.file( self.withCopyNumber(), **kwargs )
+
+    @addMelDocs('file', 'importReference')
+    def importContents(self):
+        return cmds.file( rfn=self.refNode, importReference=1 )
+      
+#    @createflag('file', 'removeReference')
+#    def remove(self, **kwargs):
+#        return cmds.file( self.withCopyNumber(), **kwargs )
+
+    @addMelDocs('file', 'removeReference')
+    def remove(self):
+        return cmds.file( rfn=self.refNode, removeReference=1 )
+           
+#    @addMelDocs('file', 'unloadReference')
+#    def unload(self):
+#        return cmds.file( self.withCopyNumber(), unloadReference=1 )
+
     @addMelDocs('file', 'unloadReference')
     def unload(self):
-        return cmds.file( self.withCopyNumber(), unloadReference=1 )
+        return cmds.file( rfn=self.refNode, unloadReference=1 )
        
     @addMelDocs('file', 'loadReference')
     def load(self, newFile=None, **kwargs):
@@ -680,18 +778,27 @@ class FileReference(object):
     def unlock(self):
         return cmds.file( self.withCopyNumber(), lockReference=0 )
     
+#    @addMelDocs('file', 'deferReference')     
+#    def isDeferred(self):
+#        return cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
+
     @addMelDocs('file', 'deferReference')     
     def isDeferred(self):
-        return cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
-       
+        return cmds.file( rfn=self.refNodes, q=1, deferReference=1 )
+
+#    @addMelDocs('file', 'deferReference')
+#    def isLoaded(self):
+#        return not cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
+
+          
     @addMelDocs('file', 'deferReference')
     def isLoaded(self):
-        return not cmds.file( self.withCopyNumber(), q=1, deferReference=1 )
-    
+        return not cmds.file( rfn=self.refNode, q=1, deferReference=1 )
+        
     @addMelDocs('referenceQuery', 'nodes')
     def nodes(self):
         import general
-        return map( general.PyNode, cmds.referenceQuery( self.withCopyNumber(), nodes=1, dagPath=1 ) )
+        return map( general.PyNode, cmds.referenceQuery( self.refNode, nodes=1, dagPath=1 ) )
     
     @addMelDocs('file', 'copyNumberList')
     def copyNumberList(self):
@@ -715,12 +822,13 @@ class FileReference(object):
         return "%s%s" % (self.refNode.namespace(), self.namespace)
     
     def _getRefNode(self):
-        if self._refNode is None:
-            try:
-                import general
-                self._refNode = general.PyNode( cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ) )
-            except RuntimeError:
-                pass
+        # since the refNode is a PyNode, it's name will reflect any renames performed on the node
+#        if self._refNode is None:
+#            try:
+#                import general
+#                self._refNode = general.PyNode( cmds.referenceQuery( self.withCopyNumber(), referenceNode=1 ) )
+#            except RuntimeError:
+#                pass
         return self._refNode
         
     refNode = property( _getRefNode, '_refNode')
@@ -996,7 +1104,7 @@ def saveAs(exportPath, **kwargs):
         except: pass
     return Path(cmds.file(**kwargs) )
 
-ReferenceCache.setupFileReferenceCallbacks()
+#ReferenceCache.setupFileReferenceCallbacks()
 
 #createReference = _factories.makecreateflagCmd( 'createReference', cmds.file, 'reference', __name__, returnFunc=FileReference )
 #loadReference = _factories.makecreateflagCmd( 'loadReference', cmds.file, 'loadReference',  __name__, returnFunc=FileReference )
