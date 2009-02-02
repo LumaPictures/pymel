@@ -787,7 +787,7 @@ class FileReference(object):
 
     @addMelDocs('file', 'deferReference')     
     def isDeferred(self):
-        return cmds.file( rfn=self.refNodes, q=1, deferReference=1 )
+        return cmds.file( rfn=self.refNode, q=1, deferReference=1 )
 
 #    @addMelDocs('file', 'deferReference')
 #    def isLoaded(self):
