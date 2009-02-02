@@ -459,9 +459,6 @@ def suspendReferenceUpdates(func):
         finally:
             ReferenceCache.deferReferenceUpdates(False)
         return ret
-    suspendedRefUpdateFunc.__name__ = func.__name__
-    suspendedRefUpdateFunc.__doc__ = func.__doc__
-    suspendedRefUpdateFunc.__module__ = func.__module__
     return suspendedRefUpdateFunc
     
 class ReferenceCache(object):
@@ -565,7 +562,9 @@ class ReferenceCache(object):
         messages = ['kAfterReference', 'kAfterRemoveReference', 'kAfterImportReference', 'kAfterExportReference', 'kSceneUpdate']
         for msg in messages:
             _logger.debug("Setting up File-Reference Callback: %s" % msg)
-            cls._callbacks.append( OpenMaya.MSceneMessage.addCallback(getattr(OpenMaya.MSceneMessage,msg), refererencesUpdated, None) )
+            cb = OpenMaya.MSceneMessage.addCallback(getattr(OpenMaya.MSceneMessage,msg), refererencesUpdated, None)
+            cb.disown()     # suppresses those swig 'memory leak' warnings
+            cls._callbacks.append(cb)
 
     @classmethod
     def getPaths(cls, path=None, namespace=None):
