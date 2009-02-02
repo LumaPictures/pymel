@@ -470,7 +470,7 @@ def pymel_test(module=None, testModuleExactName=False, testModulePrefix="test_")
     ...
     
     If a module is specified, it will run doctests contained in the given module, as well as
-    unittests in pymel.util.test.test_module (if it exists).
+    unittests in pymel.util.test.test_moduleName (if it exists).
 
     If pymel_test is given no arguments, it runs all known unittests in modules of the form
     pymel.util.test.test_*, and all pymel doctests!

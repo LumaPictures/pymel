@@ -40,7 +40,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
     def tearDown(self):
         # cleaning
-        delete(self.grp1,self.grp2, self.grp3, self.light, self.newobjs )
+        delete(self.grp1,self.grp2, self.grp3, self.light, *self.newobjs )
         
     def test01_attribute_parent_equality(self):
         self.assertEqual( self.sphere2.t.tx.parent(), self.sphere2.t )
@@ -86,6 +86,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         
         testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),  # Distance Vector
                       ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
+                      ('persp.verticalShake' , 'getVerticalShake', 'setVerticalShake', 1.0 ),  # Unitless
                       ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
                       ('%s.penumbraAngle' % self.light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
                       
@@ -128,6 +129,18 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.newobjs.append( Joint() )
         self.newobjs.append( Transform() )
         
+#    def test_transform(self):
+#        s, h = polySphere()
+#        g = group(s)
+#        s.setTranslation( [0,10,20] )
+#        s.getTranslation(objectSpace=1)
+#        # Result: [0.0, 10.0, 20.0] # 
+#        s.getTranslation('object')
+#        # Result: [0.0, 10.0, 20.0] # 
+#        s.getTranslation(worldSpace=1)
+#        # Result: [10.0, 10.0, 20.0] # 
+#        s.getTranslation('world')
+#        # Result: [10.0, 10.0, 20.0] # 
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)

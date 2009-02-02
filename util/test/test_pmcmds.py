@@ -2,7 +2,7 @@ import unittest, sys
 
 import maya.cmds
 from testingutils import TestCaseExtended, setupUnittestModule
-from pymel.core.pmtypes import pmcmds
+import pymel.core.pmcmds as pmcmds
 
 class Mylist(object):
     def __init__(self, list):

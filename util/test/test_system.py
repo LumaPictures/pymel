@@ -18,7 +18,7 @@ class testCase_references(unittest.TestCase):
         self.sphereRef1 = createReference( sphereFile, namespace='sphere1' )
         self.sphereRef2 = createReference( sphereFile, namespace='sphere2' )
         self.cubeRef1 = createReference( cubeFile, namespace='cube1' )
-        
+
     
     
     def tearDown(self):
