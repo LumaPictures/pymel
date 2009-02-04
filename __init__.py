@@ -272,6 +272,11 @@ To get started we need to import pymel.
 This brings everything in pymel into the main namespace, meaning that you won't have to prefix the maya commands with the
 module name.  For more information on the pros and cons of this see `Module Namespaces`_.
 
+Before we proceed let's make sure we have a clean scene so that you'll get the same results as me::
+
+    >>> newFile( f=1 )
+    Path('untitled')
+    
 ---------------------------------------
 The Basics
 ---------------------------------------
@@ -552,17 +557,19 @@ convert the list of PyNodes to a list of strings:
 
     >>> objs = ls( type='camera')
     >>> ', '.join( [ str(x) for x in objs ] )
-    'cameraShape1, frontShape, perspShape, sideShape, topShape'
+    'frontShape, perspShape, sideShape, topShape'
 
 Similarly, if you are trying to concatenate your PyNode with another string, you will need to cast it to a string (same as you would have
 to do with an int)::
     
     >>> cam = PyNode('frontShape')
     >>> print "The node " + str(cam) + " is a camera"
+    The node frontShape is a camera
    
 Alternately, you can use % string formatting syntax::
 
     >>> print "The node %s is a camera" % cam
+    The node frontShape is a camera
     
 By default the shortest unique name of the node is used. If you want more control over how the name is printed, use the various methods for retrieving the
 name as a string::
@@ -572,7 +579,7 @@ name as a string::
     >>> cam.nodeName() # just the node, same as unique in this case
     u'frontShape'
     >>> cam.longName() # full dag path
-    u'|frontShape'
+    u'|front|frontShape'
 
 Finally, be aware that string operations with PyNodes return strings not new PyNodes:
 

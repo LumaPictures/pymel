@@ -1,0 +1,2 @@
+
+nosetests --with-doctest -v pymel --exclude '(windows)|(ipymel)'
