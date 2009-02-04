@@ -1,6 +1,7 @@
 import os
 import pymel.util as util
 import maya.cmds as cmds
+from getpass import getuser
 #-----------------------------------------------
 #  Option Variables
 #-----------------------------------------------
@@ -36,15 +37,15 @@ class OptionVarDict(object):
      
         >>> from pymel import *
         >>> optionVar['test'] = 'dooder'
-        >>> print optionVar['test'] 
+        >>> optionVar['test'] 
         u'dooder'
         
         >>> if 'numbers' not in env.optionVars:
-        >>>     optionVar['numbers'] = [1,24,7]
+        ...     optionVar['numbers'] = [1,24,7]
         >>> optionVar['numbers'].appendVar( 9 )
         >>> numArray = optionVar.pop('numbers') 
         >>> print numArray
-        [1,24,7,9]
+        [1, 24, 7, 9]
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
@@ -56,7 +57,7 @@ class OptionVarDict(object):
         return self.has_key(key)
         
     def has_key(self, key):
-        return cmds.optionVar( exists=key )
+        return bool( cmds.optionVar( exists=key ) )
                 
     def __getitem__(self,key):
         val = cmds.optionVar( q=key )

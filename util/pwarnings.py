@@ -49,7 +49,7 @@ def warn(*args, **kwargs):
     return warnings.warn(*args, **kwargs)
 
 def deprecated(funcOrMessage, className=None):  
-    """the decorator can either receve parameters or the function directly.
+    """the decorator can either receive parameters or the function directly.
     
     If passed a message, the message will be appended to the standard deprecation warning and should serve to further
     clarify why the function is being deprecated and/or suggest an alternative function
@@ -57,7 +57,7 @@ def deprecated(funcOrMessage, className=None):
     the className parameter is optional and should be included if the function is a method, since the name of the class
     cannot be automatically determined. 
     """
-    @decorator
+    #@decorator
     def deprecated2(func):
         info = dict(
             name = func.__name__,
@@ -69,7 +69,9 @@ def deprecated(funcOrMessage, className=None):
         
         deprecationLoggedFunc.__name__ = func.__name__
         deprecationLoggedFunc.__module__ = func.__module__
-        deprecationLoggedFunc.__doc__ = func.__doc__
+        deprecationLoggedFunc.__doc__ = message % info + '\n'
+        if func.__doc__:
+             deprecationLoggedFunc.__doc__ += '\n' +  func.__doc__
         return deprecationLoggedFunc
     
     if className:

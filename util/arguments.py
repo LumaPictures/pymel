@@ -75,23 +75,23 @@ def expandArgs( *args, **kwargs ) :
     preorder(default) :
     
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1 )
-        >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] )
-        >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
+        ('a', 'b', 'c', 'd', 'e', 'f', 'g')
         
     postorder :
     
-        >>> util.expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1)
-        >>> ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
-        >>> util.expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True)
-        >>> ('c', 'd', 'b', 'a', 'f', 'g', 'e')
+        >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1)
+        ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
+        >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True)
+        ('c', 'd', 'b', 'a', 'f', 'g', 'e')
         
     breadth :
     
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True)
-        >>> ('a', 'e', 'b', ['c', 'd'], 'f', 'g') 
+        ('a', 'e', 'b', ['c', 'd'], 'f', 'g')
         >>> expandArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], breadth=True)
-        >>> ('a', 'e', 'b', 'f', 'g', 'c', 'd') 
+        ('a', 'e', 'b', 'f', 'g', 'c', 'd')
         
         
     Note that with default depth (unlimited) and order (preorder), if passed a pymel Tree
@@ -197,23 +197,23 @@ def iterateArgs( *args, **kwargs ) :
     preorder(default) :
     
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1 ))
-        >>> ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
+        ('a', 'b', ['c', 'd'], 'e', 'f', 'g')
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'] ))
-        >>> ('a', 'b', 'c', 'd', 'e', 'f', 'g')
+        ('a', 'b', 'c', 'd', 'e', 'f', 'g')
         
     postorder :
     
-        >>> tuple(k for k in util.iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1 ))
-        >>> ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
-        >>> tuple(k for k in util.iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True))
-        >>> ('c', 'd', 'b', 'a', 'f', 'g', 'e')   
+        >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True, limit=1 ))
+        ('b', ['c', 'd'], 'a', 'f', 'g', 'e')
+        >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], postorder=True))
+        ('c', 'd', 'b', 'a', 'f', 'g', 'e')
          
     breadth :
     
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], limit=1, breadth=True))
-        >>> ('a', 'e', 'b', ['c', 'd'], 'f', 'g') 
+        ('a', 'e', 'b', ['c', 'd'], 'f', 'g')
         >>> tuple(k for k in iterateArgs( 'a', ['b', ['c', 'd']], 'e', ['f', 'g'], breadth=True))
-        >>> ('a', 'e', 'b', 'f', 'g', 'c', 'd')   
+        ('a', 'e', 'b', 'f', 'g', 'c', 'd')
        
     Note that with default depth (-1 for unlimited) and order (preorder), if passed a pymel Tree
     result will be the equivalent of using a preorder iterator : iter(theTree) """
@@ -303,11 +303,11 @@ def reorder( x, indexList=[], indexDict={} ):
     """
     Reorder a list based upon a list of positional indices and/or a dictionary of fromIndex:toIndex. 
     
-        >>> l = ['zero', 'one', 'two', 'three', 'four', 'five', 'six' ]    
+        >>> l = ['zero', 'one', 'two', 'three', 'four', 'five', 'six']
         >>> reorder( l, [1, 4] ) # based on positional indices: 0-->1, 1-->4
-        ['one', 'four', 'zero', 'two', 'three', 'four', 'five', 'six' ]   
+        ['one', 'four', 'zero', 'two', 'three', 'five', 'six']
         >>> reorder( l, [1, None, 4] ) # None can be used as a place-holder
-        ['one', 'zero', 'four', 'two', 'three', 'four', 'five', 'six' ]       
+        ['one', 'zero', 'four', 'two', 'three', 'five', 'six']
         >>> reorder( l, [1, 4], {5:6} )  # remapping via dictionary: move the value at index 5 to index 6
         ['one', 'four', 'zero', 'two', 'three', 'six', 'five']
     """

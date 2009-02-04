@@ -837,7 +837,7 @@ def cacheResults():
         print "saving api cache"
         api.saveApiCache()
         print "saving bridge"
-        factories.saveApiToMelBridge()
+        api.saveApiToMelBridge()
         
         
         print "---"

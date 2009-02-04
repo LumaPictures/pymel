@@ -60,8 +60,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         'bool'
         >>> # make a dummy class
         >>> class MyClass(object): pass
-        >>> getMelType( MyClass )
-        None
+        >>> getMelType( MyClass ) # returns None
         >>> getMelType( MyClass, exactOnly=False )
         'MyClass'
         
@@ -98,8 +97,13 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
             return pyObj.__name__
             
     else:
-
-        if util.isIterable( pyObj ):
+        if isinstance( pyObj, _types.VectorN ) : return 'vector'
+        elif isinstance( pyObj, _types.MatrixN ) : 
+            if allowMatrix: 
+                return 'matrix'
+            else:
+                return 'int[]'
+        elif util.isIterable( pyObj ):
             try:
                 return getMelType( pyObj[0], exactOnly=True ) + '[]'
             except IndexError:
@@ -111,12 +115,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         elif allowBool and isinstance( pyObj, bool ) : return 'bool'
         elif isinstance( pyObj, int ) : return 'int'
         elif isinstance( pyObj, float ) : return 'float'         
-        elif isinstance( pyObj, _types.VectorN ) : return 'vector'
-        elif isinstance( pyObj, _types.MatrixN ) : 
-            if allowMatrix: 
-                return 'matrix'
-            else:
-                return 'int[]'
+
             
         elif not exactOnly:
             typeStr = type(pyObj).__name__
@@ -139,8 +138,10 @@ class MelGlobals( dict ):
     creating new variables requires the use of the initVar function to specify the type
     
     >>> melGlobals.initVar( 'string', 'gMyStrVar' )
+    '$gMyStrVar'
     >>> melGlobals['gMyStrVar'] = 'fooey'
     
+    The variable will now be accessible within MEL as a global string.
     """
     __metaclass__ = util.Singleton
     melTypeToPythonType = {
@@ -195,7 +196,7 @@ class MelGlobals( dict ):
     
     
     typeMap = {}
-    validTypes = MELTYPES
+    VALID_TYPES = MELTYPES
 
     
     def __getitem__(self, variable ):
@@ -221,8 +222,8 @@ class MelGlobals( dict ):
       
     @classmethod   
     def initVar( cls, type, variable ):
-        if type not in MelGlobals.validTypes:
-            raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MelGlobals.validTypes ] )
+        if type not in MELTYPES:
+            raise TypeError, "type must be a valid mel type: %s" % ', '.join( [ "'%s'" % x for x in MELTYPES ] )
         variable = cls._formatVariable(variable)
         MelGlobals.typeMap[variable] = type
         return variable
@@ -302,8 +303,8 @@ class Catch(object):
         result of the function in catch.result.
         
         >>> if not catch( lambda: myFunc( "somearg" ) ):
-        >>>    result = catch.result
-        >>>    print "succeeded:", result
+        ...    result = catch.result
+        ...    print "succeeded:", result
         
         """
     __metaclass__ = util.Singleton
@@ -370,10 +371,10 @@ class Mel(object):
     apparent when we want to pass a python object to our mel procedure:
     
     default:        
-        >>> import cmds as cmds
+        >>> import maya.cmds as cmds
         >>> node = "lambert1"
         >>> color = cmds.getAttr( node + ".color" )[0]
-        >>> mel.eval('myScript("%s",{%f,%f,%f})' % (cmds.nodeType(node), color[0], color[1], color[2])    
+        >>> mel.eval('myScript("%s",{%f,%f,%f})' % (cmds.nodeType(node), color[0], color[1], color[2])   ) 
             
     pymel:
         >>> from pymel import *
@@ -391,10 +392,9 @@ class Mel(object):
         >>> mel.eval( '''global proc myScript( string $stringArg, float $floatArray[] ){ 
         ...     float $donuts = `ls -type camera`;}''')
         >>> mel.myScript( 'foo', [] )
-        Error: line 2: Cannot convert data of type string[] to type float.
         Traceback (most recent call last):
             ...
-        pymel.core.language.MelConversionError: Error occurred during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
+        MelConversionError: Error occurred during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
 
     
     Notice that the error raised is a `MelConversionError`.  There are several MEL exceptions that may be raised,

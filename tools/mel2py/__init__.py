@@ -25,8 +25,8 @@ MEL::
     $strArray[`size $strArray`] = "foo";
     
 Python
-    >>> strArray = []                #doctest: SKIP
-    >>> strArray.append("foo")       #doctest: SKIP
+    >>> strArray = []                #doctest: +SKIP
+    >>> strArray.append("foo")       #doctest: +SKIP
 
 assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +36,7 @@ MEL::
     strArray[`size $strArray`-3] = "foo";
     
 Python    
-    >>> strArray[-3] = "foo"        #doctest: SKIP
+    >>> strArray[-3] = "foo"        #doctest: +SKIP
 
 However, since the translator does not track values of variables, it does not know if any given index is out of
 range or not. so, the following would raise a 'list assignment index out of range' error when converted to
@@ -52,7 +52,7 @@ for(init; condition; update)
 
     the closest equivalent to this in python is something akin to:
 
-        >>> for i in range(start, end):    #doctest: SKIP
+        >>> for i in range(start, end):    #doctest: +SKIP
         
     in order for this type of for loop to be translated into a python for loop it must meet several requirements:
     
@@ -88,7 +88,7 @@ for(init; condition; update)
     if these conditions are not met, the for loop will be converted into a while loop:
     
         >>> i=0
-        >>> while 1:                        #doctest: SKIP
+        >>> while 1:                        #doctest: +SKIP
         ...     if not ( (i - 2)<10 ):
         ...         break            
         ...     print i            
@@ -295,7 +295,9 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
     
         >>> import pymel.tools.mel2py as mel2py
         >>> print mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;')
+        from pymel import *
         paneLayout('test',configuration="top3",e=1)
+        <BLANKLINE>
         
     Note that when converting single lines, the lines must end in a semi-colon, otherwise it is technically
     invalid syntax.

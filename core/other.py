@@ -136,7 +136,7 @@ class AttributeName(NameParser):
         Returns the array (multi) AttributeName of the current element
             >>> n = AttributeName('lambert1.groupNodes[0]')
             >>> n.array()
-            'lambert1.groupNode'
+            AttributeName('lambert1.groupNodes')
         """
         try:
             return AttributeName(AttributeName.attrItemReg.split( self )[0])
@@ -165,7 +165,7 @@ class AttributeName(NameParser):
     
     def lastPlugAttr(self):
         """
-        >>> NameParser('foo:bar.spangle.banner').plugAttr()
+        >>> NameParser('foo:bar.spangle.banner').lastPlugAttr()
         u'banner'
         
         """

@@ -766,6 +766,7 @@ class Point(Vector):
         if self.w == 1.0 :
             l -= 1
         return l
+    
     def __iter__(self, *args, **kwargs):
         """ Iterate on the api components """
         l = len(self)
@@ -1315,6 +1316,15 @@ class Space(_api.MSpace):
     apicls = _api.MSpace
     __metaclass__ = _factories.MetaMayaTypeWrapper
     pass
+
+# fix the Space enumerator
+keys = Space.Space._keys.copy()
+print keys
+val = keys.pop('postTransform', None)
+if val:
+    keys['object'] = val
+    Space.Space = util.Enum( 'Space', keys )
+Spaces = Space.Space
 
 #kInvalid
 #    kTransform
@@ -1884,7 +1894,8 @@ class EulerRotation(Array):
                 args = euler
             elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
                 # allow to initialize directly from 3 rotations and a rotation order as string
-                args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3]))           
+                args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3])) 
+                          
             elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
                 # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
@@ -1913,7 +1924,6 @@ class EulerRotation(Array):
     
     def __iter__(self):
         for i in range(self.size):
-            #yield Angle(self[i], 'radians').asUI()
             yield self[i]
             
     def __len__(self):
@@ -2149,11 +2159,13 @@ class Quaternion(Matrix):
             # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
             if hasattr(args, 'rotate') :
                 args = args.rotate
-            elif len(args) == 4 and ( isinstance(args[3], basestring) or isinstance(args[3], EulerRotation.RotationOrder) ) :
+                
+            elif len(args) == 4 and ( isinstance(args[3], basestring) or isinstance(args[3], int) ): # isinstance(args[3], EulerRotation.RotationOrder) ) :
                 quat = _api.MQuaternion()
                 quat.assign(EulerRotation(args))
                 args = quat
                 # allow to initialize directly from 3 rotations and a rotation order
+            
             elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
                 # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
@@ -2221,6 +2233,9 @@ class Quaternion(Matrix):
         self.apicls.get(self, p)
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
 
+#    def __getitem__(self,i):
+#        return Angle( self._getitem(i), 'radians' ).asUI()
+    
     # faster to override __getitem__ cause we know Quaternion only has one dimension
     def __getitem__(self, i):
         """ Get component i value from self """
@@ -2240,11 +2255,17 @@ class Quaternion(Matrix):
                 i = self.size + i
             if i<self.size and not i<0 :
                 if hasattr(self.apicls, '__getitem__') :
-                    return self.apicls.__getitem__(self, i)
+                    res = self.apicls.__getitem__(self, i)
                 else :
-                    return list(self)[i]
+                    res = list(self)[i]
+                # 4th component is not unitized
+                if i == 3:
+                    return res
+                else:
+                    return Angle( res, 'radians' ).asUI()
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
+
 
     # as _api.Vector has no __setitem__ method, so need to reassign the whole Vector
     def __setitem__(self, i, a):
@@ -2253,12 +2274,20 @@ class Quaternion(Matrix):
         v.__setitem__(i, a)
         self.assign(v) 
    
-    # iterator override
-     
-    # TODO : support for optional __iter__ arguments           
-    def __iter__(self, *args, **kwargs):
-        """ Iterate on the api components """
-        return self.apicls.__iter__(self.data)   
+    def __iter__(self):
+        for i in range(self.size):
+            yield self[i]
+            
+    def __len__(self):
+       
+        # api incorrectly returns 4. this might make sense if it did not simply return z a second time as the fourth element
+        return self.size
+#    
+#    # TODO : support for optional __iter__ arguments           
+#    def __iter__(self, *args, **kwargs):
+#        """ Iterate on the api components """
+#        return self.apicls.__iter__(self.data) 
+      
     def __contains__(self, value):
         """ True if at least one of the vector components is equal to the argument """
         return value in self.__iter__()  

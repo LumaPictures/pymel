@@ -321,7 +321,7 @@ global proc myMelScript( string $type, float $val[] )
 """)
 
 
-
+cmds.file( newFile=1, force=1)
 objs = cmds.ls( type= 'transform') 
 if objs is not None:                    # returns None when it finds no matches
     for x in objs:
@@ -341,7 +341,7 @@ if objs is not None:                    # returns None when it finds no matches
         # add and set a string array attribute with the history of this transform's shape
         if not mm.eval( 'attributeExists "newAt" "%s"' % x): 
             cmds.addAttr(  x, ln='newAt', dataType='stringArray')
-        shape = cmds.listRelatives( x, s=1 )
+        shape = cmds.listRelatives( x, s=1, f=1 )
         if shape is not None:
             history = cmds.listHistory( shape[0] )
         else:
@@ -366,8 +366,8 @@ if objs is not None:                    # returns None when it finds no matches
 #        Default Python
 #---------------------------------------------------------------------
 
-
 from pymel import *                   # safe to import into main namespace
+newFile( force=1 )
 for x in ls( type='transform'):
     print x.longName()                # object oriented design
     

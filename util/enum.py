@@ -16,8 +16,8 @@ An enumeration object is created with a sequence of string arguments
 to the Enum() constructor::
 
     >>> from enum import Enum
-    >>> Colours = Enum('red', 'blue', 'green')
-    >>> Weekdays = Enum('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')
+    >>> Colours = Enum('Colours', ['red', 'blue', 'green'])
+    >>> Weekdays = Enum('Weekdays', ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
 
 The return value is an immutable sequence object with a value for each
 of the string arguments. Each value is also available as an attribute

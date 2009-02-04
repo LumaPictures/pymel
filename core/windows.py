@@ -56,19 +56,12 @@ this as a python function. Here's a simple example:
     showWindow()
 
 This example works fine if you run it from the script editor, but if you save it into a module, say ``myModule``, and then import that
-module as normal...
+module as normal ( e.g. ``import myModule`` ), it will cease to work (assuming you haven't already run it from the script edtior).  
+This is because the *namespace* of the function has changed. It can no longer be found as ``buttonPressed``, because from 
+Maya's perspective, its new location is ``myModule.buttonPressed``.
 
-    >>> import myModule
-    
-...it will cease to work (assuming you haven't already run it from the script edtior).  This is because the *namespace* of the
-function has changed. It can no longer be found as ``buttonPressed``, because from Maya's perspective, its new location is 
-``myModule.buttonPressed``.
-
-There are several solutions to this.  First, you can import the contents of ``myModule`` directly into the main namespace:
-
-    >>> from myModule import *
-
-This will allow ``buttonPressed`` to be accessed without the namespace. Alterately, you can change your script 
+There are several solutions to this.  First, you can import the contents of ``myModule`` directly into the main namespace ( e.g. 
+``from myModule import *`` ). This will allow ``buttonPressed`` to be accessed without the namespace. Alterately, you can change your script 
 and prefix the function with the module it will be imported from:
 
 .. python::
@@ -275,7 +268,7 @@ Pymel provides an extended FormLayout class, which handles the details of attach
     >>> win = window(title="My Window")
     >>> layout = formLayout()
     >>> for i in range(5):
-    >>>     button(label="button %s" % i)
+    ...     button(label="button %s" % i)
     >>> win.show()
 
 
@@ -289,7 +282,7 @@ you can explicitly override this (note that both commands still return a FormLay
     >>> win = window(title="My Window")
     >>> layout = horizontalLayout()
     >>> for i in range(5):
-    >>>     button(label="button %s" % i)
+    ...     button(label="button %s" % i)
     >>> layout.redistribute()    # now will redistribute horizontally
     >>> win.show()
 
@@ -305,7 +298,7 @@ You can also specify the ratios at creation time, as well as the spacing between
     >>> win = window(title="My Window")
     >>> layout = horizontalLayout(ratios=[1,0,2], spacing=10)
     >>> for i in range(5):
-    >>>     button(label="button %s" % i)
+    ...     button(label="button %s" % i)
     >>> layout.redistribute()    # now will redistribute horizontally
     >>> win.show()
     

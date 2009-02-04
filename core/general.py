@@ -5,6 +5,7 @@ Contains general node and attribute functions, as well as the `PyNode` class hie
 
 :group Utility: Version, Scene
 
+
 """
 
 
@@ -1220,7 +1221,7 @@ class PyNode(util.ProxyUnicode):
                 # if we are creating a component class using an int or slice, then we must specify a class type:
                 #    valid:    MeshEdge( myNode, 2 )
                 #    invalid:  PyNode( myNode, 2 )
-                assert issubclass(cls,Component)
+                assert issubclass(cls,Component), "%s is not a Component class" % cls.__name__
                 
             #-- All Others
             else:
@@ -1560,6 +1561,7 @@ class Component( PyNode ):
     by a colon.  Extended slices, add a step parameter and can also represent multiple ranges separated by commas.
     Thus, a single component object can represent any collection of indices.
     
+        >>> from pymel import *
         >>> p = polySphere( name='theMoon' )[0]
         >>> p.vtx[0].connectedEdges()
         MeshEdge(u'theMoonShape.e[0,19,380,740]')
@@ -2154,8 +2156,12 @@ class ComponentArray(object):
 
     node = plugNode
                 
-class Component(object):
-    """Abstract base class for component types like vertices, edges, and faces"""
+class _Component(object):
+    """
+    Abstract base class for component types like vertices, edges, and faces.
+    
+    This class is deprecated.
+    """
     def __init__(self, node, item):
         self._item = item
         self._node = node
@@ -2642,7 +2648,7 @@ class Attribute(PyNode):
             >>> m = Attribute(u'initialShadingGroup.groupNodes')
             >>> m.isElement()
             False
-            >>> n.array()
+            >>> m.array()
             Traceback (most recent call last):
             ...
             TypeError: initialShadingGroup.groupNodes is not an array (multi) attribute
@@ -2699,6 +2705,10 @@ class Attribute(PyNode):
         Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
+            >>> from pymel import *
+            >>> newFile(f=1)
+            Path('untitled')
+            >>> 
             >>> dls = SCENE.defaultLightSet
             >>> dls.dagSetMembers.numElements()
             0
@@ -2733,6 +2743,10 @@ class Attribute(PyNode):
         Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
+            >>> from pymel import *
+            >>> newFile(f=1)
+            Path('untitled')
+            >>>
             >>> dls = SCENE.defaultLightSet
             >>> dls.dagSetMembers.numElements()
             0
@@ -2797,7 +2811,8 @@ class Attribute(PyNode):
         """
         operator for 'connectAttr'
         
-            >>> SCENE.persp.tx >> SCENE.top.tx
+            >>> SCENE.persp.tx >> SCENE.top.tx  # connect
+            >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
         return connectAttr( self, other, force=True )
                 
@@ -3887,7 +3902,9 @@ class DagNode(Entity):
         :rtype: `DagNode` list
         
         >>> from pymel import *
-        >>> delete(ls(type='mesh'), quiet=1)
+        >>> newFile(f=1)
+        Path('untitled')
+        >>>
         >>> s = polyPlane()[0]
         >>> instance(s)
         [Transform(u'pPlane2')]
@@ -4129,6 +4146,7 @@ class Camera(Shape):
     
     @addMelDocs('dolly')
     def dolly(self, distance, relative=True):
+        kwargs = {}
         kwargs['distance'] = distance
         if relative:
             kwargs['relative'] = True
@@ -4138,6 +4156,7 @@ class Camera(Shape):
 
     @addMelDocs('roll')
     def roll(self, degree, relative=True):
+        Camera(u'frontShape')
         kwargs['degree'] = degree
         if relative:
             kwargs['relative'] = True
@@ -4609,11 +4628,12 @@ class Mesh(SurfaceShape):
     
     Cycle through faces and select those that point up in world space
     
-    >>> s = PyNode('pSphere1')
+    >>> from pymel import *
+    >>> s = polyTorus()[0]
     >>> for face in s.faces:
-    >>>     if face.normal.objectToWorld(s).y > 0:
-    >>>         print face
-    >>>         select( face , add=1)
+    ...     if face.getNormal('world').y > 0:
+    ...         print face
+    ...         select( face , add=1)
     
     """
     __metaclass__ = MetaMayaNodeWrapper
@@ -4761,7 +4781,7 @@ class Particle(DeformableShape):
         def __len__(self):
             return cmds.particle(self.node(), q=1,count=1)        
         
-    class Point(Component):
+    class Point(_Component):
         def __str__(self):
             return '%s.pt[%s]' % (self._node, self._item)
         def __getattr__(self, attr):
@@ -4991,6 +5011,8 @@ class ObjectSet(Entity):
     create some sets:
     
         >>> from pymel import *
+        >>> newFile(f=1)
+        >>> 
         >>> s = sets()  # create an empty set
         >>> s.union( ls( type='camera') )  # add some cameras to it
         >>> s.members()  # get members as a list
@@ -5002,7 +5024,7 @@ class ObjectSet(Entity):
     
         >>> t = sets()  # create another set
         >>> t.add( 'perspShape' )  # add the persp camera shape to it
-        >>> s.getIntersections(t)
+        >>> s.getIntersection(t)
         SelectionSet([u'perspShape'])
         >>> s.getDifference(t)
         SelectionSet([u'topShape', u'frontShape', u'sideShape'])
