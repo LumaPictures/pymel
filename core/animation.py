@@ -14,7 +14,7 @@ def currentTime( *args, **kwargs ):
 Modifications:
     - if no args are provided, the command returns the current time -- the equivalent of::
     
-        >>> cmds.currentTime(q=1)
+        >>> cmds.currentTime(q=1) #doctest: +SKIP
     """
     
     if not args and not kwargs:

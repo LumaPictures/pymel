@@ -1108,9 +1108,9 @@ class PyNode(util.ProxyUnicode):
         """ Catch all creation for PyNode classes, creates correct class depending on type passed.
         
         >>> PyNode('persp')
-        Transform('persp')
+        Transform(u'persp')
         >>> PyNode('persp.tx')
-        Attribute('persp.translateX')
+        Attribute(u'persp.translateX')
         
         
         For nodes:
@@ -1259,7 +1259,7 @@ class PyNode(util.ProxyUnicode):
         
         # print "type:", pymelType
         # print "PyNode __new__ : called with obj=%r, cls=%r, on object of type %s" % (obj, cls, pymelType)
-        # if an explicit class was given (ie: pyObj=DagNode('pCube1')) just check if actual type is compatible
+        # if an explicit class was given (ie: pyObj=DagNode(u'pCube1')) just check if actual type is compatible
         # if none was given (ie generic pyObj=PyNode('pCube1')) then use the class corresponding to the type we found
         newcls = None
             
@@ -1538,9 +1538,9 @@ class Scene(object):
     
         >>> thisScene = Scene()
         >>> thisScene.persp
-        Transform('persp')
+        Transform(u'persp')
         >>> thisScene.persp.t
-        Attribute('persp.translate')
+        Attribute(u'persp.translate')
     
     An instance of this class is provided for you with the name `SCENE`. 
     """
@@ -1562,7 +1562,7 @@ class Component( PyNode ):
     
         >>> p = polySphere( name='theMoon' )[0]
         >>> p.vtx[0].connectedEdges()
-        MeshEdge('theMoonShape.e[0,19,380,740]')
+        MeshEdge(u'theMoonShape.e[0,19,380,740]')
     
     This includes start, stop, and step values.
     
@@ -1851,7 +1851,7 @@ class Component( PyNode ):
             #return self.__class__(self._node, item)
             return self.__class__(self._node, item)
         else:
-            assert isinstance(item, (int,slice) ), "Extended slice syntax only allowed on a complete range, such as when using Mesh('obj').vtx"
+            assert isinstance(item, (int,slice) ), "Extended slice syntax only allowed on a complete range, such as when using Mesh(u'obj').vtx"
             return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
 
         
@@ -2087,7 +2087,7 @@ class ComponentArray(object):
         return self._name
         
     def __repr__(self):
-        return "ComponentArray('%s')" % self
+        return "ComponentArray(u'%s')" % self
     
     #def __len__(self):
     #    return 0
@@ -2126,13 +2126,13 @@ class ComponentArray(object):
         
  
 #        if isinstance( item, tuple ):            
-#            return [ Component('%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
+#            return [ Component(u'%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
 #            
 #        elif isinstance( item, slice ):
-#            return Component('%s[%s]' % (self, formatSlice(item) ) )
+#            return Component(u'%s[%s]' % (self, formatSlice(item) ) )
 #
 #        else:
-#            return Component('%s[%s]' % (self, item) )
+#            return Component(u'%s[%s]' % (self, item) )
 
         if isinstance( item, tuple ):            
             return [ self.returnClass( self._node, formatSlice(x) ) for x in  item ]
@@ -2244,11 +2244,11 @@ class Attribute(PyNode):
     python class then it will fail**. 
 
         >>> cam  # continue from where we left off above
-        Transform('persp')
+        Transform(u'persp')
         >>> cam.visibility # long name access
-        Attribute('persp.visibility')
+        Attribute(u'persp.visibility')
         >>> cam.v # short name access
-        Attribute('persp.visibility')
+        Attribute(u'persp.visibility')
         
     Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
     If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`,
@@ -2262,7 +2262,7 @@ class Attribute(PyNode):
     is the name of the attribute to be accessed. 
         
         >>> cam.attr('visibility')
-        Attribute('persp.visibility')
+        Attribute(u'persp.visibility')
     
     Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
         
@@ -2278,12 +2278,12 @@ class Attribute(PyNode):
     explicitly request an Attribute:
     
         >>> Attribute( 'persp.visibility' ) 
-        Attribute('persp.visibility')
+        Attribute(u'persp.visibility')
         
     let PyNode figure it out for you:
     
         >>> PyNode( 'persp.translate' ) 
-        Attribute('persp.translate')
+        Attribute(u'persp.translate')
     
 
     Setting Attributes Values
@@ -2337,7 +2337,7 @@ class Attribute(PyNode):
         >>> c = polyCube(name='testCube')[0]        
         >>> cam.tx >> c.tx    # connect
         >>> cam.tx.outputs()
-        [Transform('testCube')]
+        [Transform(u'testCube')]
         >>> cam.tx // c.tx    # disconnect
         >>> cam.tx.outputs()
         []
@@ -2427,11 +2427,11 @@ class Attribute(PyNode):
         
             >>> at = PyNode( 'defaultLightSet.dagSetMembers' )
             >>> SpotLight()
-            SpotLight('spotLightShape1')
+            SpotLight(u'spotLightShape1')
             >>> SpotLight()
-            SpotLight('spotLightShape2')
+            SpotLight(u'spotLightShape2')
             >>> SpotLight()
-            SpotLight('spotLightShape3')
+            SpotLight(u'spotLightShape3')
             >>> for x in at: print x
             ... 
             defaultLightSet.dagSetMembers[0]
@@ -2630,16 +2630,16 @@ class Attribute(PyNode):
         """
         Returns the array (multi) attribute of the current element:
         
-            >>> n = Attribute('initialShadingGroup.groupNodes[0]')
+            >>> n = Attribute(u'initialShadingGroup.groupNodes[0]')
             >>> n.isElement()
             True
             >>> n.array()
-            Attribute('initialShadingGroup.groupNodes')
+            Attribute(u'initialShadingGroup.groupNodes')
 
         This method will raise an error for attributes which are not elements of
         an array:
             
-            >>> m = Attribute('initialShadingGroup.groupNodes')
+            >>> m = Attribute(u'initialShadingGroup.groupNodes')
             >>> m.isElement()
             False
             >>> n.array()
@@ -2705,13 +2705,13 @@ class Attribute(PyNode):
             >>> dls.dagSetMembers.size()
             0
             >>> SpotLight() # create a light, which adds to the lightSet
-            SpotLight('spotLightShape1')
+            SpotLight(u'spotLightShape1')
             >>> dls.dagSetMembers.numElements()
             1
             >>> dls.dagSetMembers.size()  # should be 1
             0
             >>> SpotLight() # create another light, which adds to the lightSet
-            SpotLight('spotLightShape2')
+            SpotLight(u'spotLightShape2')
             >>> dls.dagSetMembers.numElements()
             2
             >>> dls.dagSetMembers.size() # should be 2
@@ -2739,13 +2739,13 @@ class Attribute(PyNode):
             >>> dls.dagSetMembers.size()
             0
             >>> SpotLight() # create a light, which adds to the lightSet
-            SpotLight('spotLightShape1')
+            SpotLight(u'spotLightShape1')
             >>> dls.dagSetMembers.numElements()
             1
             >>> dls.dagSetMembers.size()  # should be 1
             0
             >>> SpotLight() # create another light, which adds to the lightSet
-            SpotLight('spotLightShape2')
+            SpotLight(u'spotLightShape2')
             >>> dls.dagSetMembers.numElements()
             2
             >>> dls.dagSetMembers.size() # should be 2
@@ -3207,7 +3207,7 @@ class DependNode( PyNode ):
 #        
 #            >>> n = pm.Transform("persp",create=True)
 #            >>> n.__repr__()
-#            # Result: Transform('persp1')
+#            # Result: Transform(u'persp1')
 #        """
 #        if create:
 #            ntype = cls.__melnode__
@@ -3450,7 +3450,7 @@ class DependNode( PyNode ):
             
         but it can use one if needed ( for example, for dynamically created attributes )
             
-            >>> Transform('persp').attrDefaults('tx').isKeyable()
+            >>> Transform(u'persp').attrDefaults('tx').isKeyable()
             
         Note: this is still experimental.   
         """
@@ -3890,13 +3890,13 @@ class DagNode(Entity):
         >>> delete(ls(type='mesh'), quiet=1)
         >>> s = polyPlane()[0]
         >>> instance(s)
-        [Transform('pPlane2')]
+        [Transform(u'pPlane2')]
         >>> instance(s)
-        [Transform('pPlane3')]
+        [Transform(u'pPlane3')]
         >>> s.getShape().getAllInstances()
-        [Mesh('pPlane1|pPlaneShape1'), Mesh('pPlane2|pPlaneShape1'), Mesh('pPlane3|pPlaneShape1')]
+        [Mesh(u'pPlane1|pPlaneShape1'), Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
         >>> s.getShape().getAllInstances(includeSelf=False)
-        [Mesh('pPlane2|pPlaneShape1'), Mesh('pPlane3|pPlaneShape1')]
+        [Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
         
         """
         d = api.MDagPathArray()
@@ -4019,7 +4019,7 @@ class DagNode(Entity):
             >>> c = polyCube(name='cube')[0]
             >>> t = polyTorus(name='torus')[0]
             >>> s | c | t
-            Transform('torus')
+            Transform(u'torus')
             >>> print t.fullPath()
             |sphere|cube|torus
             
@@ -4994,7 +4994,7 @@ class ObjectSet(Entity):
         >>> s = sets()  # create an empty set
         >>> s.union( ls( type='camera') )  # add some cameras to it
         >>> s.members()  # get members as a list
-        [Camera('perspShape'), Camera('topShape'), Camera('frontShape'), Camera('sideShape')]
+        [Camera(u'perspShape'), Camera(u'topShape'), Camera(u'frontShape'), Camera(u'sideShape')]
         >>> s.asSelectionSet() # or as a SelectionSet
         SelectionSet([u'perspShape', u'topShape', u'frontShape', u'sideShape'])
         

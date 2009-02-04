@@ -281,7 +281,7 @@ based on some critera, create them, or just get them by name.  Let's start by li
 same way that we would with maya.cmds.
 
     >>> ls(type='camera')
-    [Camera('frontShape'), Camera('perspShape'), Camera('sideShape'), Camera('topShape')]
+    [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
 
 Notice that the names of the returned nodes are preceded by the node type, `Camera`.  When using pymel, commands don't return strings
 as they do in MEL and maya.cmds.  Instead they return `PyNode` classes which correspond to the type of object or UI.
@@ -294,7 +294,7 @@ Let's use one of these camera objects to get some information:
     >>> # assign the first camera to a variable
     >>> cam = ls(type='camera')[0]
     >>> cam
-    Camera('frontShape')
+    Camera(u'frontShape')
     >>> # get some information
     >>> cam.getAspectRatio()
     1.5
@@ -306,7 +306,7 @@ Now let's create a node:
 
     >>> objs = polyPlane()
     >>> objs
-    [Transform('pPlane1'), PolyPlane('polyPlane1')]
+    [Transform(u'pPlane1'), PolyPlane(u'polyPlane1')]
 
 You can see that, like the `ls` command, the `polyPlane` command also returns `PyNode` classes.  As in MEL, it returns a list: the
 first object is the tranform of the plane, and the second is the construction history (if construction history is turned on). Now
@@ -316,7 +316,7 @@ let's get the shape of the transform:
     >>> plane = objs[0]
     >>> shape = plane.getShape()
     >>> shape
-    Mesh('pPlaneShape1')
+    Mesh(u'pPlaneShape1')
     
 So, we can clearly see that the shape is a Mesh. Let's explore the `Mesh` object a little. We can get the name as a string, 
 formatted in different ways (the u in front of the string denotes that it is a unicode string, meaning it can represent international
@@ -334,7 +334,7 @@ We can also get information specific to this mesh:
     >>> shape.numVertices()
     121
     >>> shape.vtx[0]
-    MeshVertex('pPlaneShape1.vtx[0]')
+    MeshVertex(u'pPlaneShape1.vtx[0]')
 
 On the last line you see that vertices have their own class as well, `MeshVertex`.
 
@@ -344,11 +344,11 @@ Getting Help
 
 If you are ever unsure of what method to use, just use the builtin python help command on the node class (the capitalized node type):
 
-    >>> help(Camera)   #doctest: SKIP
+    >>> help(Camera)   #doctest: +SKIP
 
 You can do the same thing for any command in pymel as well.
 
-    >>> help(ls)   #doctest: SKIP
+    >>> help(ls)   #doctest: +SKIP
 
 
 ---------------------------------------
@@ -360,7 +360,7 @@ object.  Just like nodes, attributes have their own class with methods that enco
 operating on them.
 
     >>> plane.translateX
-    Attribute('pPlane1.translateX')
+    Attribute(u'pPlane1.translateX')
 
 To get and set attributes:
 
@@ -387,25 +387,25 @@ same flags as the procedural command `listConnections`.
 
     >>> # below we get incoming and outgoing connections
     >>> shape.connections()
-    [ShadingEngine('initialShadingGroup'), PolyPlane('polyPlane1')]
+    [ShadingEngine(u'initialShadingGroup'), PolyPlane(u'polyPlane1')]
     >>> # 'inputs' is a shorcut to connections(source=True)
     >>> shape.inputs()
-    [PolyPlane('polyPlane1')]
+    [PolyPlane(u'polyPlane1')]
     >>> # 'outputs' is a shorcut to connections(source=False)
     >>> shape.outputs()
-    [ShadingEngine('initialShadingGroup')]
+    [ShadingEngine(u'initialShadingGroup')]
 
 Notice that when we enable the ``plugs`` flag that the result becomes an `Attribute`
 
     >>> shape.inputs(plugs=1)
-    [Attribute('polyPlane1.output')]
+    [Attribute(u'polyPlane1.output')]
 
 Here's another handy feature of python: it supports 2D arrays, meaning you can put lists inside lists.  Pymel takes advantage of
 that in many situations, including when we use the ``connections`` flag, which causes `listConnections` to list source-destination
 pairs.
 
     >>> shape.connections(c=1, p=1)
-    [(Attribute('pPlaneShape1.instObjGroups[0]'), Attribute('initialShadingGroup.dagSetMembers[0]')), (Attribute('pPlaneShape1.inMesh'), Attribute('polyPlane1.output'))]
+    [(Attribute(u'pPlaneShape1.instObjGroups[0]'), Attribute(u'initialShadingGroup.dagSetMembers[0]')), (Attribute(u'pPlaneShape1.inMesh'), Attribute(u'polyPlane1.output'))]
 
 This is particularly useful for looping:
 
@@ -509,9 +509,9 @@ and API-fast.
         >>> sphere2 = grp2.getChildren()[0]
         >>> # check out our objects
         >>> sphere1                            # the original
-        Transform('group1|mySphere')
+        Transform(u'group1|mySphere')
         >>> sphere2                            # the instance
-        Transform('group2|mySphere')
+        Transform(u'group2|mySphere')
         >>> # do some tests
         >>> # they aren't the same dag objects
         >>> sphere1 == sphere2              
@@ -520,7 +520,7 @@ and API-fast.
         >>> sphere1.isInstanceOf( sphere2 )    
         True
         >>> sphere1.getAllInstances()
-        [Transform('group1|mySphere'), Transform('group2|mySphere')]
+        [Transform(u'group1|mySphere'), Transform(u'group2|mySphere')]
         >>> 
         >>> # long and short names retrieve the same attribute
         >>> sphere1.t == sphere1.translate    
@@ -607,7 +607,7 @@ New Behavior:
     >>> print orig                    # print out the starting name
     myCube
     >>> orig.rename('crazyCube')    # rename it (the new name is returned)
-    Transform('crazyCube')
+    Transform(u'crazyCube')
     >>> print orig                    # the variable 'orig' reflects the name change
     crazyCube
     
@@ -627,11 +627,11 @@ is based on the node's name, which is subject to change.
     >>> orig = polySphere()[0]         #doctest: +SKIP
     >>> d = { orig :  True }           #doctest: +SKIP
     >>> orig.rename('crazySphere')     #doctest: +SKIP
-    Transform('crazySphere')
+    Transform(u'crazySphere')
     >>> print d[orig]                  #doctest: +SKIP
     Traceback (most recent call last):
         ...
-    KeyError: Transform('crazySphere')
+    KeyError: Transform(u'crazySphere')
     
 
 Maya 2009 and Later
@@ -670,10 +670,10 @@ to track changes to a file.
     >>>
     >>> # make some changes
     >>> s.rename('monkey')
-    Transform('monkey')
+    Transform(u'monkey')
     >>> delete(c)
     >>> polyTorus()
-    [Transform('pTorus1'), PolyTorus('polyTorus1')]
+    [Transform(u'pTorus1'), PolyTorus(u'polyTorus1')]
     >>>
     >>> diff() # print out what's changed since we ran 'store()'
     renamed: nurbsSphere1 ---> monkey
@@ -869,7 +869,7 @@ Shorthand notation:
     >>> x.myAttr
     Traceback (most recent call last):
         ...
-    AttributeError: Transform('moon') has no attribute or method named 'myAttr'
+    AttributeError: Transform(u'moon') has no attribute or method named 'myAttr'
     
 ---------------------------------------
 Testing Node Existence
