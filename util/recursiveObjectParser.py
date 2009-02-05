@@ -62,7 +62,6 @@ class Parsed(ProxyUni):
     _accepts = ()
     _name = None
     classes = {}
-    _outputdir = _getOutputDir()
     
 #class Parsed(unicode):
 #   
@@ -443,7 +442,7 @@ class Parsed(ProxyUni):
 class Parser(object):
     """ Abstract Base class for all name parsers """
     classes = {}
-    
+    _outputdir = _getOutputDir()
     def __new__(cls, *args, **kwargs):
         # this class is an abstract base class for all Parser classes, cannot be built directly
         
