@@ -824,9 +824,23 @@ def sets( *args, **kwargs):
 Modifications
     - resolved confusing syntax: operating set is always the first and only arg::
     
-        sets( 'blinn1SG', forceElement=['pSphere1', 'pCube1'] )
-        sets( 'blinn1SG', flatten=True )
-        
+        >>> from pymel import *
+        >>> shdr, sg = createSurfaceShader( 'blinn' )
+        >>> shdr
+        DependNode(u'blinn1')
+        >>> sg
+        ShadingEngine(u'blinn1SG')
+        >>> s,h = polySphere()
+        >>> s
+        Transform(u'pSphere1')
+        >>> sets( sg, forceElement=s ) # add the sphere
+        ShadingEngine(u'blinn1SG')
+        >>> sets( sg, q=1)  # check members
+        [Mesh(u'pSphereShape1')]
+        >>> sets( sg, remove=s )
+        ShadingEngine(u'blinn1SG')
+        >>> sets( sg, q=1)
+        []
     - returns wrapped classes
         
     """
@@ -855,22 +869,26 @@ Modifications
     #        sets('myShadingGroup', forceElement=1)
     #    must be converted to:
     #        sets(forceElement='myShadingGroup')
-        
+    
+    
     for flag, value in kwargs.items():    
         if flag in setSetFlags:
+            kwargs[flag] = args[0]
+            
             # move arg over to kwarg
             if util.isIterable(value):
                 args = tuple(value)
-            elif isinstance( value, basestring ):
+            elif isinstance( value, (basestring,PyNode) ):
                 args = (value,)
             else:
                 args = ()
-            kwargs[flag] = objectSet
             break
         elif flag in setFlags:
             kwargs[flag] = args[0]
             args = ()
-            
+            break
+        
+    # the case where we need to return a list of objects       
     if kwargs.get( 'query', kwargs.get('q',False) ):
         size = len(kwargs)
         if size == 1 or (size==2 and kwargs.get( 'nodesOnly', kwargs.get('no',False) )  ) :
