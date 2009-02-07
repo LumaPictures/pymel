@@ -3,10 +3,8 @@
 import pymel.util as util
 import factories as _factories
 import general
-
+import language
 import pmcmds as cmds
-#import maya.cmds as cmds
-import maya.mel as mm
 
 
 
@@ -16,15 +14,20 @@ def shadingNode( *args, **kwargs):
         return general.PyNode( res )
 
 def createSurfaceShader( shadertype, name=None ):
+    """
+    create a shader and shading group
+    
+    
+    """
     classification = general.getClassification( shadertype )
     #print classification
     
     newShader = None
     #if 'shader/surface' in classification:        
     if 'rendernode/mentalray/material' in classification:
-        newShader = general.DependNode(mel.mrCreateCustomNode( "-asShader", "", shadertype))
+        newShader = general.DependNode(language.mel.mrCreateCustomNode( "-asShader", "", shadertype))
     else:
-        newShader = general.DependNode(mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
+        newShader = general.DependNode(language.mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
     #else:
     #    raise TypeError, "%s is not a valid surface shader type. shader must be classified as 'shader/surface'" % shadertype
     sg = newShader.shadingGroups()[0]
