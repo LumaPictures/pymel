@@ -6,7 +6,7 @@ from math import *
 from pymel.util.mathutils import *
 import system
 import pymel.util as util
-import maya.mel as mm
+import maya.mel as _mm
 import pmcmds as cmds
 #import maya.cmds as cmds
 from pymel.mayahook.optionvars import *
@@ -166,7 +166,7 @@ class MelGlobals( dict ):
 #            return self
 #        
 #        def setItem(self, index, value ):
-#            mm.eval(self._setItemCmd % (index, value) )
+#            _mm.eval(self._setItemCmd % (index, value) )
 
     class MelGlobalArray( util.defaultlist ):
         #__metaclass__ = util.metaStatic
@@ -186,7 +186,7 @@ class MelGlobals( dict ):
 
         
         def setItem(self, index, value ):
-            mm.eval(self._setItemCmd % (index, value) )
+            _mm.eval(self._setItemCmd % (index, value) )
         
         # prevent these from 
         def append(self, val): raise AttributeError
@@ -257,7 +257,7 @@ class MelGlobals( dict ):
             
         cmd = "global proc %s %s() { global %s %s; return %s; } %s();" % (ret_type, proc_name, type, decl_name, variable, proc_name )
         #print cmd
-        res = mm.eval( cmd  )
+        res = _mm.eval( cmd  )
         if array:
             return MelGlobals.MelGlobalArray(ret_type, variable, res)
         else:
@@ -281,7 +281,7 @@ class MelGlobals( dict ):
             
         cmd = "global %s %s; %s=%s;" % ( type, decl_name, variable, pythonToMel(value) )
         #print cmd
-        mm.eval( cmd  )
+        _mm.eval( cmd  )
     
     @classmethod
     def keys(cls):
@@ -422,7 +422,7 @@ class Mel(object):
             return self.eval(cmd)
             #print cmd
 #            try:
-#                return mm.eval(cmd)
+#                return _mm.eval(cmd)
 #            except RuntimeError, msg:
 #                info = self.whatIs( command )
 #                if info.startswith( 'Presumed Mel procedure'):
@@ -437,7 +437,7 @@ class Mel(object):
         """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
         in certain output, such as the rush render-queue manager."""
         #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
-        mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
+        _mm.eval( r"""print (%s);""" % pythonToMel( ' '.join( map( str, args))) + '\n' )
     
     @classmethod
     def source( cls, script, language='mel' ):
@@ -480,8 +480,8 @@ class Mel(object):
         u'Foo Bar Spangle'
         
         """
-        # should return a value, like mm.eval
-        #return mm.eval( cmd )   
+        # should return a value, like _mm.eval
+        #return _mm.eval( cmd )   
         # get this before installing the callback
         undoState = cmds.undoInfo(q=1, state=1)
          
@@ -570,7 +570,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval( """error %s %s""" % ( flags, pythonToMel( msg) ) )
 
     @staticmethod
     def warning( msg, showLineNumber=False ):       
@@ -578,7 +578,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval( """warning %s %s""" % ( flags, pythonToMel( msg) ) )
 
     @staticmethod
     def trace( msg, showLineNumber=False ):       
@@ -586,7 +586,7 @@ class Mel(object):
             flags = ' -showLineNumber true '
         else:
             flags = ''
-        mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
+        _mm.eval( """trace %s %s""" % ( flags, pythonToMel( msg) ) )
     
     @staticmethod
     def tokenize( *args ):
