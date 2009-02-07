@@ -1575,19 +1575,45 @@ class Component( PyNode ):
     """
     Abstract base class for pymel components, such as `MeshEdge`, `MeshVertex`, and `MeshFace`.
     
-    Provides support for extended slice notation. Typical maya ranges express a start and stop value separated
-    by a colon.  Extended slices, add a step parameter and can also represent multiple ranges separated by commas.
-    Thus, a single component object can represent any collection of indices.
-    
+    These component types can be accessed from the `Mesh` type (or it's transform) using the names you are
+    familiar with from MEL:
+
         >>> from pymel import *
-        >>> p = polySphere( name='theMoon' )[0]
+        >>> p = polySphere( name='theMoon', sa=7, sh=7 )[0]
+        >>> p.vtx
+        MeshVertex(u'theMoonShape.vtx[0:43]')
+        >>> p.e
+        MeshEdge(u'theMoonShape.e[0:90]')
+        >>> p.f
+        MeshFace(u'theMoonShape.f[0:48]')
+        
+    They are also accessible from their more descriptive alternatives:
+    
+        >>> p.verts
+        MeshVertex(u'theMoonShape.vtx[0:43]')
+        >>> p.edges
+        MeshEdge(u'theMoonShape.e[0:90]')
+        >>> p.faces
+        MeshFace(u'theMoonShape.f[0:48]')
+     
+    As you'd expect, these components are all indexible:
+     
+        >>> p.vtx[0]
+        MeshVertex(u'theMoonShape.vtx[0]')
+        
+    The classes themselves contain methods for getting information about the component.
+     
         >>> p.vtx[0].connectedEdges()
-        MeshEdge(u'theMoonShape.e[0,19,380,740]')
+        MeshEdge(u'theMoonShape.e[0,6,42,77]')
+      
+    This class provides support for python's extended slice notation. Typical maya ranges express a start and stop value separated
+    by a colon.  Extended slices add a step parameter and can also represent multiple ranges separated by commas. 
+    Thus, a single component object can represent any collection of indices.
     
     This includes start, stop, and step values.
     
         >>> # do every other edge between 0 and 10
-        >>> for e in p.e[0:10:2]: print e
+        >>> for edge in p.e[0:10:2]: print edge
         ... 
         theMoonShape.e[0]
         theMoonShape.e[2]
@@ -1596,6 +1622,31 @@ class Component( PyNode ):
         theMoonShape.e[8]
         theMoonShape.e[10]
 
+    Negative indices can be used for getting indices relative to the end:
+    
+        >>> p.edges  # the full range
+        MeshEdge(u'theMoonShape.e[0:90]')
+        >>> p.edges[5:-10]  # index 5 through to 10 from the last
+        MeshEdge(u'theMoonShape.e[5:80]')
+    
+    Just like with python ranges, you can leave an index out, and the logical result will follow:
+    
+        >>> p.edges[:-10]  # from the beginning 
+        MeshEdge(u'theMoonShape.e[0:80]')
+        >>> p.edges[20:]
+        MeshEdge(u'theMoonShape.e[20:90]')
+        
+    Or maybe you want the position of every tenth vert:
+    
+        >>> for x in p.vtx[::10]: print x.getPosition():
+        ... 
+        theMoonShape.vtx[0] [0.270522117615, -0.900968849659, -0.339223951101]
+        theMoonShape.vtx[10] [-0.704405844212, -0.623489797115, 0.339223951101]
+        theMoonShape.vtx[20] [0.974927902222, -0.222520858049, 0.0]
+        theMoonShape.vtx[30] [-0.704405784607, 0.623489797115, -0.339224010706]
+        theMoonShape.vtx[40] [0.270522087812, 0.900968849659, 0.339223980904]
+
+    
     To be compatible with Maya's range notation, these slices are inclusive of the stop index.
     
         >>> # face at index 8 will be included in the sequence
@@ -1635,7 +1686,7 @@ class Component( PyNode ):
     def _formatSlice(startIndex, stopIndex, step):
         if startIndex == stopIndex:
             sliceStr = '%s' % startIndex
-        elif step:
+        elif step is not None and step != 1:
             sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
         else:
             sliceStr = '%s:%s' % (startIndex, stopIndex)
@@ -1643,11 +1694,11 @@ class Component( PyNode ):
     
     @staticmethod
     def _getRange(start, stop, step):
-        if step is not None:   
-            indices = range( start, stop+1, step)
+        if step is None or step == 1:   
+            indices = range( start, stop+1 )
         else:
-            indices = range( start, stop+1)
-            
+            indices = range( start, stop+1, step )
+              
         return indices
     
     @staticmethod
@@ -1702,7 +1753,7 @@ class Component( PyNode ):
         
         if isApiComponent:
             startIndex = self.getIndex()
-            stopIndex = startIndex + self.count()-1
+            stopIndex = startIndex + self.__apimfn__().count()-1
             if startIndex == stopIndex:
                 self._sliceStr = '%s' % startIndex
             else:
@@ -1718,16 +1769,19 @@ class Component( PyNode ):
             self._slices = [ slice(component) ]  
             
         elif isinstance(component, slice):
-            startIndex = component.start
-            stopIndex = component.stop
-            step = component.step
+            
+            start, stop, step = component.indices( self.__apimfn__().count()-1 )
             
             self._slices = [ component ]  
-            self._sliceStr = self._formatSlice( startIndex, stopIndex, step)
-            self._range = self._getRange( startIndex, stopIndex, step)
+            self._sliceStr = self._formatSlice( start, stop, step )
+            
+            #if component.stop is not None and component.stop >= 0:
+            stop += 1
+                
+            self._range = xrange( start, stop, step )
             
             su = api.MScriptUtil()
-            self.__apimfn__().setIndex( startIndex, su.asIntPtr() )  # bug workaround
+            self.__apimfn__().setIndex( start, su.asIntPtr() )  # bug workaround
             
         elif isinstance(component, (list,tuple) ) and len(component) and isinstance( component[0], slice ):
     
@@ -1735,18 +1789,20 @@ class Component( PyNode ):
             sliceStrs = []
             self._range = []
             self._slices = component
+            count = self.__apimfn__().count()
             for x in component:
                 if isinstance(x, int):
-                    startIndex = x
-                    stopIndex = x
-                    step = None
-                else:
-                    startIndex = x.start
-                    stopIndex = x.stop
-                    step = x.step
+                    x = slice(x)
                 
-                sliceStr = self._formatSlice( startIndex, stopIndex, step)
-                indices = self._getRange( startIndex, stopIndex, step)
+                #print x, self.__apimfn__().count() 
+                start, stop, step = x.indices( count-1 )
+                    
+                sliceStr = self._formatSlice( start, stop, step)
+                #if component.stop is not None and component.stop >= 0:
+                stop += 1
+                
+                #indices = self._getRange( startIndex, stopIndex, step)
+                indices = range( start, stop, step )
                 
                 sliceStrs.append( sliceStr )
                 self._range += indices
@@ -1756,10 +1812,10 @@ class Component( PyNode ):
             self.__apimfn__().setIndex( self._range[0], su.asIntPtr() )  # bug workaround
               
         elif component is None:
-            startIndex = 0
-            stopIndex = self.count()-1
-            self._sliceStr = '%s:%s' % (startIndex, stopIndex)
-            self._slices = [ slice(startIndex, stopIndex) ]
+            start = 0
+            stop = self.count()-1
+            self._sliceStr = '%s:%s' % (start, stop)
+            self._slices = [ slice(start, stop) ]
         else:
             raise TypeError, "component must be an MObject, an integer, a slice, or a tuple of slices"
         
@@ -1888,7 +1944,7 @@ class MeshEdge( Component ):
         if self._range is not None:
             return len(self._range)
         else:
-            return self.__apimfn__().count() 
+            return self.__apimfn__().count()
 
     def connectedEdges(self):
         """
@@ -2812,8 +2868,9 @@ class Attribute(PyNode):
 #----------------------
 #xxx{ Connections
 #----------------------    
-                    
-    isConnected = cmds.isConnected
+          
+    def isConnectedTo(self, other, ignoreUnitConversion=False):          
+        return cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion)
     
     ## does not work because this method cannot return a value, it is akin to +=       
     #def __irshift__(self, other):
@@ -3672,7 +3729,7 @@ class DependNode( PyNode ):
         :rtype: `unicode`
         """
         try:
-            groups = DependNode._numPartReg.split(self)
+            groups = DependNode._numPartReg.split( self.name() )
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
             return self.__class__(formatStr % ( groups[0], (int(num) + 1) ))
@@ -4453,12 +4510,11 @@ class Transform(DagNode):
     def getRotationOld( self, **kwargs ):
         return _types.Vector( cmds.xform( self, **kwargs ) )
 
-    @addApiDocs( api.MFnTransform, 'getRotation' )
-    def setRotation(self, space='world', **kwargs):
+    @addApiDocs( api.MFnTransform, 'setRotation' )
+    def setRotation(self, rotation, space='world', **kwargs):
         space = self._getSpaceArg(space, kwargs )
-        quat = api.MQuaternion()
-        self.__apimfn__().getRotation(quat, _types.Spaces.getIndex(space) )
-        return _types.EulerRotation( quat.asEulerRotation() )
+        quat = api.MQuaternion(rotation)
+        self.__apimfn__().setRotation(quat, _types.Spaces.getIndex(space) )
       
     @addApiDocs( api.MFnTransform, 'getRotation' )
     def getRotation(self, space='world', **kwargs):
