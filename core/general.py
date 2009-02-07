@@ -3718,7 +3718,7 @@ class DependNode( PyNode ):
         
         :rtype: `unicode`
         """
-        name = self.shortName().nextName()
+        name = self.nextName()
         while name.exists():
             name = name.nextName()
         return name
@@ -3728,11 +3728,12 @@ class DependNode( PyNode ):
         
         :rtype: `unicode`
         """
+        import other
         try:
             groups = DependNode._numPartReg.split( self.name() )
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
-            return self.__class__(formatStr % ( groups[0], (int(num) + 1) ))
+            return other.NameParser( formatStr % ( groups[0], (int(num) + 1) ) )
         except:
             raise "could not find trailing numbers to increment"
             
@@ -3741,11 +3742,12 @@ class DependNode( PyNode ):
         
         :rtype: `unicode`
         """
+        import other
         try:
             groups = DependNode._numPartReg.split(self)
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
-            return self.__class__(formatStr % ( groups[0], (int(num) - 1) ))
+            return other.NameParser( formatStr % ( groups[0], (int(num) - 1) ) )
         except:
             raise "could not find trailing numbers to decrement"
 #}
