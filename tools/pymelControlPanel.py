@@ -797,6 +797,7 @@ def setManualDefaults():
     setCascadingDictValue( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
     setCascadingDictValue( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
     setCascadingDictValue( api.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
+    setCascadingDictValue( api.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
     
     # add some manual invertibles
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
