@@ -27,7 +27,8 @@ import pmcmds
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
 #: examples are usually only included when creating documentation
-includeDocExamples = False
+INCLUDE_DOC_EXAMPLES = False
+
 
 class PyNodeNamesToPyNodes(dict):
     """ Lookup from PyNode type name as a string to PyNode type as a class"""
@@ -1311,7 +1312,7 @@ def _addCmdDocs( func, cmdInfo=None ):
                 except: pass
             docstring += '        - datatype: %s\n' % ( typ )
         
-    if includeDocExamples and cmdInfo.get('example',None):
+    if INCLUDE_DOC_EXAMPLES and cmdInfo.get('example',None):
         docstring += '\nExample:\n' + cmdInfo['example']
     
 
