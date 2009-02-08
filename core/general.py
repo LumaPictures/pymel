@@ -296,7 +296,7 @@ Modifications:
                     attrName = nameparse.parse( attr )
                     assert attrName.isAttributeName(), "passed object is not an attribute"
                     try:
-                        if isinstance( arg[0], basestring ):
+                        if isinstance( arg[0], (basestring, util.ProxyUnicode ) ):
                             datatype = 'stringArray'
                         elif isinstance( arg[0], (list,_types.Vector) ):
                             datatype = 'vectorArray'
@@ -317,7 +317,7 @@ Modifications:
                             raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
 
                         _logger.debug("adding %r as %r", attr, datatype)
-                        addAttr( attrName.node, ln=attrName.attribute, dt=datatype ) 
+                        addAttr( attrName.nodePath, ln=attrName.attribute, dt=datatype ) 
                         kwargs['type'] = datatype
                         
                     # empty array is being passed
@@ -394,18 +394,18 @@ Modifications:
                     attrName = nameparse.parse( attr )
                     assert attrName.isAttributeName(), "passed object is not an attribute"
                     if isinstance( arg, basestring ):
-                        addAttr( attrName.node, ln=attrName.attribute, dt='string' )
+                        addAttr( attrName.nodePath, ln=attrName.attribute, dt='string' )
                         kwargs['type'] = 'string'
                     elif isinstance( arg, int ):
-                        addAttr( attrName.node, ln=attrName.attribute, at='long' ) 
+                        addAttr( attrName.nodePath, ln=attrName.attribute, at='long' ) 
                     elif isinstance( arg, float ):
-                        addAttr( attrName.node, ln=attrName.attribute, at='double' ) 
+                        addAttr( attrName.nodePath, ln=attrName.attribute, at='double' ) 
                     elif isinstance( arg, bool ):
-                        addAttr( attrName.node, ln=attrName.attribute, at='bool' ) 
+                        addAttr( attrName.nodePath, ln=attrName.attribute, at='bool' ) 
                     else:
                         raise TypeError, "%s.setAttr: %s is not a supported type for use with the force flag" % ( __name__, type(arg) )
                                         
-                elif isinstance(arg,basestring) or isinstance(arg,util.ProxyUnicode):
+                elif isinstance(arg,basestring) or isinstance(arg, util.ProxyUnicode):
                     kwargs['type'] = 'string'
 
     if datatype == 'matrix':
@@ -822,7 +822,7 @@ def createNode( *args, **kwargs):
 def sets( *args, **kwargs):
     """
 Modifications
-    - resolved confusing syntax: operating set is always the first and only arg::
+    - resolved confusing syntax: operating set is always the first and only arg:
     
         >>> from pymel import *
         >>> shdr, sg = createSurfaceShader( 'blinn' )
@@ -841,6 +841,7 @@ Modifications
         ShadingEngine(u'blinn1SG')
         >>> sets( sg, q=1)
         []
+    
     - returns wrapped classes
         
     """
@@ -1848,8 +1849,11 @@ class Component( PyNode ):
         return [ u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, range ) for range in ranges ]
                 
     def __apiobject__(self):
-        return self.__apiobjects__['MObjectHandle'].object()
-    
+        try:
+            return self.__apiobjects__['MObjectHandle'].object()
+        except KeyError:
+            return self.__apiobjects__['MFn'].currentItem()
+        
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this attribute, if it is valid"
         try:
@@ -1891,7 +1895,7 @@ class Component( PyNode ):
         return self.__apimfn__().index()
     
     def next(self):
-        if self.isDone(): raise StopIteration
+        if self.__apimfn__().isDone(): raise StopIteration
         if self._range is not None:
             try:
                 nextIndex = self._range[self._rangeIndex]
@@ -1908,7 +1912,7 @@ class Component( PyNode ):
             else:
                 #print "INCREMENTING"
                 self.__apimfn__().next()
-                if self.isDone(): raise StopIteration
+                if self.__apimfn__().isDone(): raise StopIteration
         #print "NEXT", self.getIndex()
         #return self.__class__(self._node, self.__apimfn__().index() )
         
@@ -2957,6 +2961,12 @@ class Attribute(PyNode):
         self.connect( node + '.' + nodeOutAttr, force=1 )
         if inputs:
             inputs[0].connect( node + '.' + nodeInAttr )
+    
+    @addMelDocs( 'setKeyframe' )    
+    def setKey(self, **kwargs):
+        kwargs.pop( 'attribute', None )
+        kwargs.pop( 'at', None )
+        return cmds.setKeyframe( self, **kwargs )
 #}
 #----------------------
 #xxx{ Info and Modification
@@ -3974,7 +3984,7 @@ class DagNode(Entity):
             except:
                 return False
     
-    def getAllInstances(self, includeSelf=True):
+    def getInstances(self, includeSelf=True):
         """
         :rtype: `DagNode` list
         
@@ -3987,9 +3997,9 @@ class DagNode(Entity):
         [Transform(u'pPlane2')]
         >>> instance(s)
         [Transform(u'pPlane3')]
-        >>> s.getShape().getAllInstances()
+        >>> s.getShape().getInstances()
         [Mesh(u'pPlane1|pPlaneShape1'), Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
-        >>> s.getShape().getAllInstances(includeSelf=False)
+        >>> s.getShape().getInstances(includeSelf=False)
         [Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
         
         """
@@ -4000,6 +4010,14 @@ class DagNode(Entity):
         
         return result
 
+    def getOtherInstances(self):
+        """
+        same as `DagNode.getInstances` with includeSelf=False.
+        
+        :rtype: `DagNode` list
+        """
+        return self.getInstances(includeSelf=False)
+    
     def firstParent(self):
         """firstParentOf
         
