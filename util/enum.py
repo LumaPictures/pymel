@@ -13,7 +13,7 @@
 This package provides a module for robust enumerations in Python.
 
 An enumeration object is created with a sequence of string arguments
-to the Enum() constructor::
+to the Enum() constructor:
 
     >>> from enum import Enum
     >>> Colours = Enum('Colours', ['red', 'blue', 'green'])
@@ -21,14 +21,14 @@ to the Enum() constructor::
 
 The return value is an immutable sequence object with a value for each
 of the string arguments. Each value is also available as an attribute
-named from the corresponding string argument::
+named from the corresponding string argument:
 
     >>> pizza_night = Weekdays[4]
     >>> shirt_colour = Colours.green
 
 The values are constants that can be compared with values from
 the same enumeration, as well as with integers or strings; comparison with other
-values will invoke Python's fallback comparisons::
+values will invoke Python's fallback comparisons:
 
     >>> pizza_night == Weekdays.fri
     True
@@ -39,7 +39,7 @@ values will invoke Python's fallback comparisons::
 
 Each value from an enumeration exports its sequence index
 as an integer, and can be coerced to a simple string matching the
-original arguments used to create the enumeration::
+original arguments used to create the enumeration:
 
     >>> str(pizza_night)
     'fri'
@@ -250,7 +250,7 @@ class Enum(object):
         get an index value from a key. this method always returns an index. if a valid index is passed instead of a key, the index will
         be returned unchanged.  this is useful when you need an index, but are not certain whether you are starting with a key or an index.
         
-            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters')
+            >>> units = Enum('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.getIndex('inches')
             1
             >>> units.getIndex(3)
@@ -282,7 +282,7 @@ class Enum(object):
         get a key value from an index. this method always returns a key. if a valid key is passed instead of an index, the key will
         be returned unchanged.  this is useful when you need a key, but are not certain whether you are starting with a key or an index.
         
-            >>> units = Enum('invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters')
+            >>> units = Enum('units', ['invalid', 'inches', 'feet', 'yards', 'miles', 'millimeters', 'centimeters', 'kilometers', 'meters'])
             >>> units.getKey(2)
             'feet'
             >>> units.getKey('inches')
@@ -308,7 +308,7 @@ class Enum(object):
             if str(index) in self._keys:
                 return index
             else:
-               raise ValueError, "invalid enumerator key: %r" % index 
+                raise ValueError, "invalid enumerator key: %r" % index 
 
     
     def values(self):

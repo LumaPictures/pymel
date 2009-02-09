@@ -411,28 +411,28 @@ ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=
                         ]) 
 
 class universalmethod(object):
-    """
-    a decorator which is similar to builtin classmethod, but which leaves the method unmodified when called
-    as a normal instance method:
-        - when the wrapped method is called as a class method, the first argument will be the class.
-        - when the wrapped method is called as an instance method, the first argument will be the instance.
-        
-        >>> import inspect
-        >>> class D(object):
-        ...    @universalmethod
-        ...    def f( obj ):
-        ...        if inspect.isclass(obj):
-        ...            print "doing something class related"
-        ...        else:
-        ...            print "doing something instance related"
-        ...
-        >>> D.f()
-        doing something class related
-        >>> d = D()
-        >>> d.f()
-        doing something instance related
-        
-    """
+#    """
+#    a decorator which is similar to builtin classmethod, but which leaves the method unmodified when called
+#    as a normal instance method:
+#        - when the wrapped method is called as a class method, the first argument will be the class.
+#        - when the wrapped method is called as an instance method, the first argument will be the instance.
+#        
+#        >>> import inspect
+#        >>> class D(object):
+#        ...    @universalmethod
+#        ...    def f( obj ):
+#        ...        if inspect.isclass(obj):
+#        ...            print "doing something class related"
+#        ...        else:
+#        ...            print "doing something instance related"
+#        ...
+#        >>> D.f()
+#        doing something class related
+#        >>> d = D()
+#        >>> d.f()
+#        doing something instance related
+#        
+#    """
 
     def __init__(self, f):
         self.f = f

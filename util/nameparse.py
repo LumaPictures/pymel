@@ -1238,6 +1238,20 @@ class NodeAttribute(NameParsed):
         Composed Of: `MayaNodePath`, `AttrSep`, `AttributePath` 
         
         Component Of: `MayaObjectName`
+        
+
+        >>> nodeAttr = NodeAttribute( 'persp|perspShape.focalLength' )
+        >>> nodeAttr.attributes
+        (Attribute('focalLength', 17),)
+        >>> nodeAttr.nodePath
+        MayaNodePath('persp|perspShape', 0)
+        >>> nodeAttr.shortName()
+        NodeAttribute('perspShape.focalLength', 0)
+        >>>
+        >>> nodeAttr2 = NodeAttribute( 'persp.translate.tx' )
+        >>> nodeAttr2.attributes
+        (Attribute('translate', 6), Attribute('tx', 16))
+
     """ 
     _parser = AttributeNameParser
     _accepts = ('MayaNodePath', 'AttrSep', 'AttributePath') 
@@ -1276,7 +1290,11 @@ class NodeAttribute(NameParsed):
     @property
     def attributes(self):
         """ All the node attribute names in that node attribute path, including the last, without separators """
-        return self.attribute.attributes
+        attr = self.attribute
+        if isinstance( attr, Attribute ):
+            return (attr,)
+        else:
+            return self.attribute.attributes
     
     def popNode(self):
         """Remove a node from the end of the path, preserving any attributes (Ex. pCube1|pCubeShape1.width --> pCube1.width)."""

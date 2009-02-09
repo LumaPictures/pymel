@@ -20,27 +20,36 @@ raised. I've added fixes for several common array assignment conventions:
 append new element
 ~~~~~~~~~~~~~~~~~~
 
-MEL::
+**MEL**
+
+.. python::
+
     string $strArray[];
     $strArray[`size $strArray`] = "foo";
     
 Python
-    >>> strArray = []                #doctest: +SKIP
-    >>> strArray.append("foo")       #doctest: +SKIP
+
+>>> strArray = []                #doctest: +SKIP
+>>> strArray.append("foo")       #doctest: +SKIP
 
 assignment relative to end of array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MEL::
+**MEL**
+
+.. python::
 
     strArray[`size $strArray`-3] = "foo";
     
-Python    
-    >>> strArray[-3] = "foo"        #doctest: +SKIP
+Python
+
+>>> strArray[-3] = "foo"        #doctest: +SKIP
 
 However, since the translator does not track values of variables, it does not know if any given index is out of
 range or not. so, the following would raise a 'list assignment index out of range' error when converted to
-python and would need to be manually fixed::
+python and would need to be manually fixed:
+
+.. python::
 
     string $strArray[];
     for ($i=0; $i<5; $i++)
@@ -58,30 +67,40 @@ for(init; condition; update)
     
         1. the initialization, condition, and update expressions must not be empty.
             
-            not translatable::
+            not translatable:
+            
+            .. python::
             
                   for(; ; $i++) print $i;
         
         2. there can be only one conditional expression.   
             
-            not translatable::
+            not translatable:
+            
+            .. python::
             
                   for($i=0; $i<10, $j<20; $i++) print $i;
         
         3. the variable which is being updated and tested in the condition (aka, the iterator) must exist alone on one
             side of the    conditional expression. this one is easy enough to fix, just do some algebra:
             
-            not translatable::
+            not translatable:
+            
+            .. python::
             
                   for($i=0; ($i-2)<10, $i++) print $i;
     
-            translatable::
+            translatable:
+            
+            .. python::
             
                   for($i=0; $i<(10+2), $i++) print $i;
         
         4. the iterator can appear only once in the update expression:
             
-            not translatable::
+            not translatable:
+            
+            .. python::
             
                   for($i=0; $i<10; $i++, $i+=2) print $i;
                   
