@@ -11,6 +11,9 @@ this will move all pipes below it in the pipe chain.
 in addition, by hitting insert or holding the d (pivot) key, only the selected joint will be moved,
 preserving the position of all other joints.
 
+to run:
+	>>> from pymel.examples.pipeGen import pipeGenWin
+	>>> pipeGenWin()
 
 """
 
@@ -141,7 +144,7 @@ def extendPipe( jointLength=1 ):
 		# naming
 		#----------
 		num = int(currJnt.extractNum())
-	
+
 		try:
 			twoPrev = int(currJnt.getParent().getParent().extractNum())
 		except:
@@ -154,7 +157,7 @@ def extendPipe( jointLength=1 ):
 
 		curr = num
 		new = int(currJnt.nextUniqueName().extractNum())
-
+		
 		print "extending from", currJnt, new
 	
 		branchNum = len(currJnt.getChildren())
@@ -171,10 +174,12 @@ def extendPipe( jointLength=1 ):
 	
 		# new skeletal joint
 		#---------------------		
-		prevJnt = Joint( '%s_Jnt%s' % (name, prev) )
+		
 		if new>1:
+			prevJnt = Joint( '%s_Jnt%s' % (name, prev) )
 			pos = 2*currJnt.getTranslation(ws=1) - prevJnt.getTranslation(ws=1)
 		else:
+			prevJnt = None
 			pos = currJnt.getTranslation(ws=1) + [0,defaultLength,0]
 		
 		newJnt = joint( p=pos, n= '%s_Jnt%s' % (name, new) )
@@ -296,7 +301,7 @@ def extendPipe( jointLength=1 ):
 	
 			tweak = group(n='%s_ElbowTweak%s' % (name, new))
 			tweak.rotateOrder = 2
-			#tweak._translate = currElbow._translate.get()
+			#tweak.translate = currElbow.translate.get()
 			tweak.setParent( currElbow, r=1 )	
 			aimConstraint( 	prevJnt, tweak, 
 							aimVector = [1, 0, 0],
@@ -321,12 +326,12 @@ def extendPipe( jointLength=1 ):
 	
 			# constraints	
 			parentConstraint( pipeLoc, pipeJnt )
-			pipeJnt._translate.lock()
+			pipeJnt.translate.lock()
 			pipeJnt.rotate.lock()
 			#pipeJnt.scale.lock()
 
 		
-			aim = pyDag('%s_Elbow%s_aimConstraint1' % (name, curr))
+			aim = PyNode('%s_Elbow%s_aimConstraint1' % (name, curr))
 			aim.setWorldUpType( 2 )
 			aim.setWorldUpObject( newJnt )
 		
@@ -336,11 +341,11 @@ def extendPipe( jointLength=1 ):
 			bendHandle.sx =.5
 			bendHandle.hide()
 		
-			bend = Dag(bend).rename( '%s_Bend%s' % (name, new) )
+			bend.rename( '%s_Bend%s' % (name, new) )
 		
 			parentConstraint( '%s_ElbowTweak%s' % (name, new), bendHandle )
 		
-			aim = Dag('%s_ElbowTweak%s_aimConstraint1' % (name, new))
+			aim = '%s_ElbowTweak%s_aimConstraint1' % (name, new)
 			#aim.worldUpType.set( 1 )
 			aimConstraint( aim, e=1, worldUpType='object', worldUpObject=newJnt )
 
@@ -473,7 +478,7 @@ def extendPipe( jointLength=1 ):
 		expression( s=expr, ae=1, n = '%s_PipeExpr%s' % (name, new))
 		'''
 	
-		pipe._translate.lock()
+		pipe.translate.lock()
 		pipe.rotate.lock()
 		#pipe.scale.lock()
 		newJnts.append( newJnt )
