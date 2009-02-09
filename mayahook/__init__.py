@@ -8,3 +8,4 @@ from version import *
 import mexceptions
 import plogging
 from plogging import getLogger
+pymel_options = parsePymelConfig()
