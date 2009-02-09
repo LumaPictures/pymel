@@ -27,7 +27,7 @@ import pmcmds
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
 #: examples are usually only included when creating documentation
-INCLUDE_DOC_EXAMPLES = False
+INCLUDE_DOC_EXAMPLES = True
 
 
 class PyNodeNamesToPyNodes(dict):
@@ -530,7 +530,7 @@ def fixCodeExamples():
             pass
         else:
             if 'import pymel' in example:
-                _logger.info("examples have already been fixed. to re-fix, first delete and recreate the commands cache")
+                _logger.warning("examples have already been fixed. to re-fix, first delete and recreate the commands cache")
                 return
             
             _logger.info("Starting command %s", command)
@@ -822,18 +822,17 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     
     module = cmds
     
-    if verbose:
-        _logger.info(funcName.center( 50, '='))
+
+    _logger.debug(funcName.center( 50, '='))
     
     if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
-        if verbose:
-            _logger.info("skipping")
+        _logger.debug("skipping")
         return cmdInfo
         
     try:
         func = getattr(module, funcName)
     except AttributeError:
-        _logger.info("could not find function %s in modules %s" % (funcName, module.__name__))
+        _logger.warning("could not find function %s in modules %s" % (funcName, module.__name__))
         return cmdInfo
     
     # get the current list of objects in the scene so we can cleanup later, after we make nodes
@@ -866,8 +865,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             obj = func(*createArgs)
             
             if isinstance(obj, list):
-                if verbose:
-                    _logger.info("Return %s", obj)
+                _logger.debug("Return %s", obj)
                 if len(obj) == 1:
                     _logger.info("%s: args need unpacking" % funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
@@ -884,8 +882,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             args = [obj]
                 
     except (TypeError,RuntimeError, ValueError), msg:
-        if verbose:
-            _logger.info("failed creation: %s", msg)
+        _logger.debug("failed creation: %s", msg)
         
     else:
         
@@ -974,11 +971,11 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                             # value is no good. reset to None, so that a default will be generated for edit
                             val = None
                     
-                    elif verbose:
-                        _logger.info(cmd)
-                        _logger.info("\tsucceeded")
-                        _logger.info('\tresult: %s', val.__repr__())
-                        _logger.info('\tresult type:    %s', resultType)
+                    else:
+                        _logger.debug(cmd)
+                        _logger.debug("\tsucceeded")
+                        _logger.debug('\tresult: %s', val.__repr__())
+                        _logger.debug('\tresult type:    %s', resultType)
                         
                 except TypeError, msg:
                     # flag is no longer supported                         
@@ -1001,7 +998,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 else:
                     # some flags are only in mel help and not in maya docs, so we don't know their
                     # supported per-flag modes.  we fill that in here
-                    flagInfo['modes'].append('query')
+                    if 'query' not in flagInfo['modes']:
+                        flagInfo['modes'].append('query')
             # EDIT
             if 'edit' in modes or testModes == True:
                 
@@ -1035,11 +1033,10 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     kwargs = {'edit':True, flag:val}              
                     cmd = _formatCmd(funcName, args, kwargs)
                     val = func( *args, **kwargs )
-                    if verbose:
-                        _logger.info(cmd)
-                        _logger.info("\tsucceeded")
-                        #_logger.debug('\t%s', val.__repr__())
-                        #_logger.debug('\t%s %s', argtype, type(val))
+                    _logger.debug(cmd)
+                    _logger.debug("\tsucceeded")
+                    #_logger.debug('\t%s', val.__repr__())
+                    #_logger.debug('\t%s %s', argtype, type(val))
                     #_logger.debug("SKIPPING %s: need arg of type %s" % (flag, flagInfo['argtype']))
                 except TypeError, msg:                                                        
                     if str(msg).startswith( 'Invalid flag' ):
@@ -1062,7 +1059,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                     if not 'query' in modes:
                         _logger.info("\tedit only")
                 else:
-                    flagInfo['modes'].append('edit')
+                    if 'edit' not in flagInfo['modes']:
+                        flagInfo['modes'].append('edit')
     
     # cleanup
     allObjsEnd = set( cmds.ls(l=1) )
@@ -2137,7 +2135,7 @@ class ApiArgUtil(object):
             pass
         return pymelName
     
-    def getClassDocs(self):
+    def getMethodDocs(self):
         return self.methodInfo['doc']
     
     def getPrototype(self, className=True, methodName=True, outputs=False, defaults=False):
@@ -2734,7 +2732,7 @@ def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoa
     outArgs = argHelper.outArgs()
     argList = argHelper.argList()
     argInfo = argHelper.argInfo()
-        
+    
     def formatDocstring(type):
         """
         convert
@@ -2750,6 +2748,7 @@ def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoa
             pymelType = ApiTypeRegister.types.get(type,type)
         else:
             pymelType = type
+        
         if pymelType.__class__.__name__ == 'Enum':
             try:
                 pymelType = pymelType.pymelName()
@@ -2765,7 +2764,8 @@ def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoa
         return doc
     
     # Docstrings
-    docstring = argHelper.getClassDocs()
+    docstring = argHelper.getMethodDocs()
+    # api is no longer in specific units, it respect UI units like MEL
     docstring = docstring.replace( 'centimeter', 'linear unit' )
     docstring = docstring.replace( 'radian', 'angular unit' )
     
@@ -2778,7 +2778,11 @@ def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoa
             typeStr = formatDocstring(type)
             
             docstring += S + '%s : %s\n' % (name, typeStr )
-            docstring += S*2 + '%s\n' % (info['doc'])  
+            docstring += S*2 + '%s\n' % (info['doc'])
+            if isinstance( type, _api.Enum ):
+                apiClassName, enumName = type
+                enumValues = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
+                docstring += '\n' + S*2 + 'values: %s\n' % ', '.join( [ '%r' % x for x in enumValues if x not in ['invalid', 'last' ] ] )
             
 
             
@@ -2838,7 +2842,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(mcl, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        _logger.debug( (mcl, classname, bases, classdict) )
+        _logger.debug( ('MetaMayaTypeWrapper', mcl, classname, bases, classdict) )
         removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
@@ -2870,7 +2874,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 # API Wrap
                 #------------------------
                 
-                 # Find out methods herited from other bases than apicls to avoid
+                # Find out methods herited from other bases than apicls to avoid
                 # unwanted overloading
                 herited = {}
                 for base in bases :
@@ -2902,15 +2906,15 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         if overloadIndex is not None:
                             if data.get('enabled', True):                        
                                 if pymelName not in classdict:
-                                    _logger.debug("Doing an auto wrap on %s for %s: proxy=%r" % (pymelName, methodName, proxy))
+                                    _logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                                     method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex )
                                     if method:
-                                        _logger.debug("%s.%s() successfully created" % (apicls.__name__, pymelName ))
+                                        _logger.debug("%s.%s successfully created" % (classname, pymelName ))
                                         classdict[pymelName] = method
-                                else: _logger.debug("%s.%s() skipping" % (apicls.__name__, methodName ))
-                            else: _logger.debug("Method %s has been manually disabled, skipping" % (methodName))
-                        else: _logger.debug("Method %s has no wrappable methods, skipping" % (methodName))
-                    else: _logger.debug("Method %s already herited from %s, skipping" % (methodName, herited[pymelName]))
+                                else: _logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
+                            else: _logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                        else: _logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                    else: _logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
                 
                 if 'pymelEnums' in classInfo:
                     # Enumerators
@@ -3017,7 +3021,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
     
     def __new__(mcl, classname, bases, classdict):
-        _logger.debug( (mcl, classname, bases, classdict) )
+        _logger.debug( ('_MetaMayaCommandWrapper', mcl, classname, bases, classdict) )
 
         newcls = super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
         
@@ -3142,23 +3146,28 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             if methodName in apiToMelMap['mel'][classname]:
                 return True
         return False
-     
+
 class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
     based on info parsed from the docs on their command counterparts.
     """
-
+    completedClasses = {}
     def __new__(mcl, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        _logger.debug( (mcl, classname, bases, classdict) )
+        _logger.debug( ('MetaMayaNodeWrapper', mcl, classname, bases, classdict) )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
 
         if apicls is not None:
-            classdict['__apicls__'] = apicls
+            if apicls in MetaMayaNodeWrapper.completedClasses:
+                _logger.debug( "%s: %s already used by %s: not adding to __apicls__" % (classname, apicls, MetaMayaNodeWrapper.completedClasses[ apicls ]) )
+            else:
+                _logger.debug( "%s: adding __apicls__ %s" % (classname, apicls) )
+                MetaMayaNodeWrapper.completedClasses[ apicls ] = classname
+                classdict['__apicls__'] = apicls
         #_logger.debug("="*40, classname, apicls, "="*40)
         
         return super(MetaMayaNodeWrapper, mcl).__new__(mcl, classname, bases, classdict)
@@ -3555,7 +3564,7 @@ def pluginUnloadedCallback( module ):
                             
             # Nodes
             nodes = data.pop('dependNodes', [])
-            _logger.info("Removing nodes: %s", ', '.join( nodes ))
+            _logger.debug("Removing nodes: %s", ', '.join( nodes ))
             for node in nodes:
                 removePyNode( module, node )
     return pluginUnloadedCB
