@@ -643,7 +643,7 @@ class FileReference(object):
         if pathOrRefNode:
             if isinstance(pathOrRefNode, basestring) and '.' in pathOrRefNode:
                 self._refNode = general.PyNode( cmds.referenceQuery( pathOrRefNode, referenceNode=1 ) )
-            elif isinstance( pathOrRefNode, general.Reference ):
+            elif isinstance( pathOrRefNode, general.nodetypes.Reference ):
                 self._refNode = pathOrRefNode
             else:
                 self._refNode = general.PyNode( pathOrRefNode )
