@@ -221,7 +221,7 @@ class DependNodeName( NameParser ):
             
     def exists(self, **kwargs):
         "objExists"
-        return cmds.objExists(**kwargs)
+        return cmds.objExists(self, **kwargs)
 
             
     _numPartReg = re.compile('([0-9]+)$')
@@ -240,8 +240,8 @@ class DependNodeName( NameParser ):
         
         try:
             return DependNodeName._numPartReg.split(self)[1]
-        except:
-            raise "No trailing numbers to extract on object ", self
+        except IndexError:
+            raise ValueError, "No trailing numbers to extract on object %s" % self
 
     def nextUniqueName(self):
         """Increment the trailing number of the object until a unique name is found"""
@@ -257,8 +257,8 @@ class DependNodeName( NameParser ):
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
             return self.__class__(formatStr % ( groups[0], (int(num) + 1) ))
-        except:
-            raise "could not find trailing numbers to increment"
+        except IndexError:
+            raise ValueError, "could not find trailing numbers to increment on object %s" % self
             
     def prevName(self):
         """Decrement the trailing number of the object by 1"""
@@ -267,8 +267,8 @@ class DependNodeName( NameParser ):
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
             return self.__class__(formatStr % ( groups[0], (int(num) - 1) ))
-        except:
-            raise "could not find trailing numbers to decrement"
+        except IndexError:
+            raise ValueError, "could not find trailing numbers to decrement on object %s" % self
 
 class DagNodeName(DependNodeName):
     

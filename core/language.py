@@ -13,7 +13,7 @@ from pymel.mayahook.optionvars import *
 import os, inspect
 import factories as _factories
 import pymel.api as api
-import pmtypes as _types
+import datatypes as _types
 
 #--------------------------
 # Mel <---> Python Glue
