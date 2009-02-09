@@ -100,7 +100,7 @@ Modifications:
             
             for attr in attrs:
                 if attr in kwargs:
-                    return general.Vector( general.getAttr(args[0] + "." + attr ) )
+                    return general.datatypes.Vector( general.getAttr(args[0] + "." + attr ) )
             
             # ...otherwise, try seeing if we can apply the new weight query syntax
             targetObjects =  kwargs.get( 'weight', kwargs.get('w', None) )

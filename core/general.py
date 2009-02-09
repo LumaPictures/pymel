@@ -25,7 +25,7 @@ import pymel.util as util
 import factories as _factories
 from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 import pymel.api as api
-import datatypes as _types
+import datatypes
 import pymel.util.nameparse as nameparse
 import pymel.util.pwarnings as pwarnings
 import logging
@@ -194,7 +194,7 @@ Modifications:
     - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
     """
     def listToMat( l ):
-        return _types.Matrix(
+        return datatypes.Matrix(
             [     [    l[0], l[1], l[2], l[3]    ],
             [    l[4], l[5], l[6], l[7]    ],
             [    l[8], l[9], l[10], l[11]    ],
@@ -203,7 +203,7 @@ Modifications:
     def listToVec( l ):
         vecRes = []
         for i in range( 0, len(res), 3):
-            vecRes.append( _types.Vector( res[i:i+3] ) )
+            vecRes.append( datatypes.Vector( res[i:i+3] ) )
         return vecRes
 
     # stringify fix
@@ -216,7 +216,7 @@ Modifications:
             if isinstance(res[0], tuple):
                 res = res[0]
                 if cmds.getAttr( attr, type=1) == 'double3':
-                    return _types.Vector(list(res))
+                    return datatypes.Vector(list(res))
             #elif cmds.getAttr( attr, type=1) == 'matrix':
             #    return listToMat(res)
             else:
@@ -299,11 +299,11 @@ Modifications:
                     try:
                         if isinstance( arg[0], (basestring, util.ProxyUnicode ) ):
                             datatype = 'stringArray'
-                        elif isinstance( arg[0], (list,_types.Vector) ):
+                        elif isinstance( arg[0], (list,datatypes.Vector) ):
                             datatype = 'vectorArray'
-                        elif isinstance( arg, _types.Vector):
+                        elif isinstance( arg, datatypes.Vector):
                             datatype = 'double3'
-                        elif isinstance( arg,  _types.Matrix ):
+                        elif isinstance( arg,  datatypes.Matrix ):
                             datatype = 'matrix'
                         elif isinstance( arg[0], int ):
                             datatype = 'Int32Array'
@@ -332,9 +332,9 @@ Modifications:
                     kwargs['type'] = datatype
                 
                 else:
-                    if isinstance( arg, _types.Vector):
+                    if isinstance( arg, datatypes.Vector):
                         datatype = 'double3'
-                    elif isinstance( arg, _types.Matrix ):
+                    elif isinstance( arg, datatypes.Matrix ):
                         datatype = 'matrix'
                     else:        
                         datatype = getAttr( attr, type=1)
@@ -450,7 +450,7 @@ Modifications:
                 float: 'double',
                 int: 'long',
                 bool: 'bool',
-                _types.Vector: 'double3',
+                datatypes.Vector: 'double3',
                 str: 'string',
                 unicode: 'string'
             }[at]
@@ -2932,7 +2932,7 @@ SCENE = Scene()
 ##        """xform -translation"""
 ##        kwargs['translation'] = True
 ##        kwargs['query'] = True
-##        return _types.Vector( cmds.xform( self, **kwargs ) )
+##        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #        
 #    #----------------------
 #    # Info Methods
@@ -4404,7 +4404,7 @@ SCENE = Scene()
 #    @editflag('xform','rotateAxis')                                
 #    def setMatrix( self, val, **kwargs ):
 #        """xform -scale"""
-#        if isinstance(val, _types.Matrix):
+#        if isinstance(val, datatypes.Matrix):
 #            val = val.toList()
 #    
 #        kwargs['matrix'] = val
@@ -4412,7 +4412,7 @@ SCENE = Scene()
 #
 ##    @queryflag('xform','scale') 
 ##    def getScaleOld( self, **kwargs ):
-##        return _types.Vector( cmds.xform( self, **kwargs ) )
+##        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #
 #    def _getSpaceArg(self, space, kwargs):
 #        if kwargs.pop( 'worldSpace', kwargs.pop('ws', False) ):
@@ -4425,7 +4425,7 @@ SCENE = Scene()
 #    
 #    @queryflag('xform','translation') 
 #    def getTranslationOld( self, **kwargs ):
-#        return _types.Vector( cmds.xform( self, **kwargs ) )
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #
 #    @addApiDocs( api.MFnTransform, 'setTranslation' )
 #    def setTranslation(self, vector, space='world', **kwargs):
@@ -4440,7 +4440,7 @@ SCENE = Scene()
 #    
 #    @queryflag('xform','rotatePivot')        
 #    def getRotatePivotOld( self, **kwargs ):
-#        return _types.Vector( cmds.xform( self, **kwargs ) )
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #
 #    @addApiDocs( api.MFnTransform, 'setRotatePivot' )
 #    def setRotatePivot(self, point, space='world', balance=True, **kwargs):
@@ -4465,25 +4465,25 @@ SCENE = Scene()
 # 
 #    @queryflag('xform','rotation')        
 #    def getRotationOld( self, **kwargs ):
-#        return _types.Vector( cmds.xform( self, **kwargs ) )
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #
 #    @addApiDocs( api.MFnTransform, 'setRotation' )
 #    def setRotation(self, rotation, space='world', **kwargs):
 #        space = self._getSpaceArg(space, kwargs )
 #        quat = api.MQuaternion(rotation)
-#        self.__apimfn__().setRotation(quat, _types.Spaces.getIndex(space) )
+#        self.__apimfn__().setRotation(quat, datatypes.Spaces.getIndex(space) )
 #      
 #    @addApiDocs( api.MFnTransform, 'getRotation' )
 #    def getRotation(self, space='world', **kwargs):
 #        space = self._getSpaceArg(space, kwargs )
 #        quat = api.MQuaternion()
-#        self.__apimfn__().getRotation(quat, _types.Spaces.getIndex(space) )
-#        return _types.EulerRotation( quat.asEulerRotation() )
+#        self.__apimfn__().getRotation(quat, datatypes.Spaces.getIndex(space) )
+#        return datatypes.EulerRotation( quat.asEulerRotation() )
 #
 #    
 #    @queryflag('xform','scalePivot') 
 #    def getScalePivotOld( self, **kwargs ):
-#        return _types.Vector( cmds.xform( self, **kwargs ) )
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #
 #    @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
 #    def setScalePivot(self, point, space='world', balance=True, **kwargs):
@@ -4508,19 +4508,19 @@ SCENE = Scene()
 #    @queryflag('xform','pivots') 
 #    def getPivots( self, **kwargs ):
 #        res = cmds.xform( self, **kwargs )
-#        return ( _types.Vector( res[:3] ), _types.Vector( res[3:] )  )
+#        return ( datatypes.Vector( res[:3] ), datatypes.Vector( res[3:] )  )
 #    
 #    @queryflag('xform','rotateAxis') 
 #    def getRotateAxis( self, **kwargs ):
-#        return _types.Vector( cmds.xform( self, **kwargs ) )
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #        
 #    @queryflag('xform','shear')                          
 #    def getShearOld( self, **kwargs ):
-#        return _types.Vector( cmds.xform( self, **kwargs ) )
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 #
 #    @queryflag('xform','matrix')                
 #    def getMatrix( self, **kwargs ): 
-#        return _types.Matrix( cmds.xform( self, **kwargs ) )
+#        return datatypes.Matrix( cmds.xform( self, **kwargs ) )
 #      
 #    #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with api.
 #    def getBoundingBox(self, invisible=False):
@@ -4537,8 +4537,8 @@ SCENE = Scene()
 #            kwargs['boundingBox'] = True
 #                    
 #        res = cmds.xform( self, **kwargs )
-#        #return ( _types.Vector(res[:3]), _types.Vector(res[3:]) )
-#        return _types.BoundingBox( res[:3], res[3:] )
+#        #return ( datatypes.Vector(res[:3]), datatypes.Vector(res[3:]) )
+#        return datatypes.BoundingBox( res[:3], res[3:] )
 #    
 #    def getBoundingBoxMin(self, invisible=False):
 #        """
