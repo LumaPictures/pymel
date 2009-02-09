@@ -35,7 +35,9 @@ warnings.formatwarning = formatwarning
 
 def showwarning(message, category, filename, lineno, file=None, line=None):
     msg = warnings.formatwarning(message, category, filename, lineno, line)
-    _logger.warning(msg + (" >> %r" % file if file else ""))
+    if file:
+        msg += " >> %r" % file
+    _logger.warning(msg)
     
 warnings.showwarning = showwarning
 
