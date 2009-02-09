@@ -201,7 +201,7 @@ else:
 			found.append( d )
 	
 		if not found:
-			return [relpath]
+			raise IPython.ipapi.TryNext
 	
 	
 		def single_dir_expand(matches):

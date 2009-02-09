@@ -1,1 +1,0 @@
-@mayapy.exe C:\pymel\tools\ipymel.py %*
