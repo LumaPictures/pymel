@@ -8,7 +8,7 @@
 *******************************
 
 Pymel makes python scripting in Maya work the way it should. Maya's command module is a direct
-translation of mel commands into python commands. The result is a very awkward and unpythonic syntax which
+translation of MEL commands into python functions. The result is a very awkward and unpythonic syntax which
 does not take advantage of python's strengths -- particularly, a flexible, object-oriented design. Pymel
 builds on the cmds module by organizing many of its commands into a class hierarchy, and by
 customizing them to operate in a more succinct and intuitive way.
@@ -25,7 +25,8 @@ What's New in Version 0.8
 Licensing Change
 ---------------------------------------
 
-pymel is now offered under the New BSD license.
+Pymel is now released under the BSD license, which is as open as open source gets.  Your studio can freely use, contribute to, and 
+modify this module with no strings attached.
 
 ---------------------------------------    
 Additions and Changes
@@ -51,7 +52,7 @@ General Improvements:
         - Added `DagNode.addChild` as well an addChild operator ( | ) for DAG objects: `DagNode.__or__`
         - The `Mel` class now prints mel errors and line numbers when an exception is raised
         - The `Mel` class returns pymel Vectors and Matrices
-        - `DependNode` subclasses can be used to create new nodes
+        - Name changes are automatically reflected in PyNode objects
 
 ---------------------------------------
 Non-Backward Compatible Changes
@@ -60,7 +61,7 @@ Non-Backward Compatible Changes
         ``<>`` operator corresponds to __ne__ method, whose other operator is '!=' and we need that to mean 'not equal'.
     - Node classes no longer inherit from unicode: see `PyNodes Are Not Strings`_
         This allows node classes to reflect name changes such as parenting or renaming, a key aspect of the API integration
-    - Instantiation of non-existent PyNode objects now results in an exception: see `Non-Existent Objects`_
+    - Instantiation of non-existent PyNode objects (nodes and attributes) now results in an exception: see `Non-Existent Objects`_
         Also a side-effect of the API integration.  Prevents mistakes and produces more pythonic code with use of new exception classes
     - _BaseObj has been replaced with `PyNode` class, which operates like the old PyNode function
         Provides more intuitive relationship between PyNode() and node classes
@@ -68,6 +69,7 @@ Non-Backward Compatible Changes
         Chaining transforms to shapes is used throughout Maya, but the additional chaining of shapes to their history can produce
         unexpected results that are difficult to troubleshoot
     - redesigned `ObjectSet` class
+    - completely rewrote `Vector` and `Matrix` classes
 
 
 =======================================
@@ -78,23 +80,108 @@ Installation
 Pymel Package
 ---------------------------------------
 
-If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your maya scripts directory.     
-However, it is usually a good idea to create a separate directory for your python scripts so that you can organize them independently
-of your mel scripts.  You can do this by setting the PYTHONPATH environment variable in your Maya.env file. Set the PYTHONPATH environment
-variable to the directory *above* the pymel folder.  For example, if the pymel folder on your machine is C:\My Documents\python\pymel 
-then you would add this line to your Maya.env::  
+
+Pymel is installed like any other python module or package.  In general, installing python pacakges can be a bit tricky, and Maya
+adds an extra level of complexity.   To find available modules, python searches directories set in an environment variable called PYTHONPATH.
+This environment variable can be set for each Maya install using the Maya.env file, or it can be set at the system-level, and
+all instances of python, including those built into Maya will read it.  I recommend setting your PYTHONPATH at both the system level
+level and the Maya.env level because it is more reliable and because it will allow you to use pymel from a standalone python interpreter.
+ 
+Install Using Maya.env
+======================
+
+OSX and Linux
+-------------
+
+If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your Maya scripts directory. This 
+will allow you to immediately use pymel from within Maya.  However, it is usually a good idea to create a separate directory for your python 
+scripts so that you can organize them independently of your mel scripts.  
+
+Let's say that you decide to create your own python development directory ``~/dev/python/``.  The pymel *folder* would go within this 
+directory at ``~/dev/python/pymel``. Then you would add this line to your Maya.env:
+
+.. python::
+ 
+    PYTHONPATH = ~/dev/python
+
+Windows
+-------
+
+On, Windows you might create a directory for python development at ``C:\My Documents\python\``. 
+Then you would add this line to your Maya.env:
+
+.. python::
 
     PYTHONPATH = C:\My Documents\python
 
+
+System Install
+==============
+
+OSX and Linux
+-------------
+
+Setting up your python paths for the system on OSX and Linux is a little bit involved.  I will focus on OSX here, because Linux users
+tend to be more technical. When you open a terminal on osx ( /Applications/Utilites/Terminal.app ), your shell may be using
+several different scripting languages.  You can easily tell which is being used by looking at the label on the top bar of the terminal 
+window, or the name of the tab, if you have more than one open.  It will
+most likely say "bash", which is the default.  To set up python at the system level using bash, first create a new file called ``.profile``
+in your home directory ( ~/ ).  Inside this file paste the following, being sure to set the desired Maya version:
+ 
+.. python::
+
+    export PYTHONDEV=~/dev/python
+    export MAYA_LOCATION=/Applications/Autodesk/maya2009/Maya.app/Contents
+    export PATH=$MAYA_LOCATION/bin:$PYTHONDEV/pymel/tools/bin:$PATH
+    export PYTHONPATH=$PYTHONPATH:$PYTHONDEV
+
+
+The first line sets your custom python directory, under which should be your pymel directory.
+You can change this to whatever you want, but make sure your pymel directory is directly below this path. 
+The second line sets a special Maya environment variable that helps Maya determine which version to use when working via the command
+line ( be sure to point it to the correct Maya version).  The third line allows you to access all the executables in the Maya bin
+directory from a shell without using the full path, and also allows you to use the special `ipymel` interpreter ( but only after you install
+IPython!).  For example, you can launch Maya by typing ``maya``, or open a special Maya python interpreter by typing ``mayapy``. 
+The last line ensures that python will see your python dev directory, where pymel resides.
+
+
+Windows
+-------
+
+Click the Start Menu, right-click on "My Computer" and then click on "Properties".  This will open the "System Properties" window.  Click on
+the "Advanced" tab, then on the "Environment Variables" button at the bottom.  In the new window that pops up, look
+through your "User Varaibles" on top and your "System Variables" on the bottom, looking to see if the ``PYTHONPATH`` variable is set anywhere.
+
+If it is not set, make a new variable for either your user or the system (if you have permission).  Use ``PYTHONPATH`` for the name and
+for the the value use the directory *above* the pymel directory.  So, for example, if the pymel directory is ``C:\My Documents\python\pymel`` copy and 
+paste in the value``C:\My Documents\python`` from an explorer window.
+
+If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to 
+the end of the value and add a semi-colon ( ; ) and after this add the 
+directory *above* the pymel directory to the end of the existing path. If the pymel directory is ``C:\My Documents\python\pymel`` copy and 
+paste in the value ``C:\My Documents\python`` *after* the semi colon that you just added.
+
+Find and edit your PATH variable, appending to the end of the existing value a semi-colon ( ; ) and the value 
+``C:\Program Files\Autodesk\Maya2008\bin;C:\My Documents\python\pymel\tools\bin``.  These are just example paths: be sure to use 
+the path to the Maya bin directory for your desired version of Maya as well as the path to your pymel bin directory.
+
+
+userSetup files
+===============
+
+
 Next, to avoid having to import pymel every time you startup, you can create a userSetup.mel
-file, place it in your scipts directory and add this line::
+file, place it in your Maya scipts directory and add this line:
+
+.. python::
 
     python("from pymel import *");
 
-Alternately, you can create a userSetup.py file and add the line::
+Alternately, you can create a userSetup.py file and add the line:
+
+.. python::
 
     from pymel import *
-
 
 ---------------------------------------
 Script Editor
@@ -117,35 +204,32 @@ dag nodes, and attributes, as well as automatic import of pymel at startup.  Man
 OSX and Linux
 =============
 
-    1. Install IPython.  I recommend downloading the tarball, not the egg file. uzip the tar.gz and put the subdirectory named IPython somewhere on your PYTHONPATH,
-       or just put it directl into your python site-packages directory
-    2. Ensure that the maya bin directory is on your system PATH
-    3. Open a terminal, cd into pymel/tools and run::
+    #. Follow the installation instructions above for `System Install`
+    #. Install IPython.  I recommend downloading the tarball, not the egg file. Unzip the tar.gz and put the sub-directory named IPython somewhere on your PYTHONPATH,
+       or just put it directly into your python site-packages directory
+    #. Open a terminal and run::
     
-        chmod 777 ipymel
+        chmod 777 `which ipymel`
         
-    4. from the same terminal run::
+    #. then run::
     
-        ./ipymel
-    
-It's easiest if you either add the pymel/tools directory to your system PATH variable or if you copy the ipymel file to somewhere on your PATH like /usr/local/bin. Once
-it is on your PATH you can simply open a shell and type ``ipymel`` to launch.
+        ipymel
+
 
 Windows
 =======
 
+    #. Follow the installation instructions above for `System Install`
     #. Install python for windows, if you have not already.
     #. Install IPython using their windows installer.  The installer will most likely not find the maya python install, 
        so install IPython to your system Python instead (from step 1).
     #. Install pyreadline for windows, also from the IPython website
     #. Copy the IPython directory, pyreadline directory, and all the pyreadline.* files from your system site-packages directory 
        ( ex.``C:\Python25\Lib\site-packages ) to your Maya site-packages directory ( ex. ``C:\Program Files\Autodesk\Maya2008\Python\lib\site-packages`` ). 
-    #. Ensure that the maya bin directory is on your system PATH ( System Properties > Advanced > Environment Variables )
-    #. Edit pymel/tools/ipymel.bat so that the path to ipymel.py is correct. If your maya bin directory is not on your PATH, you can also
-       add the full path to mayapy.exe to this file as well. 
-    #. now double click on ipymel.bat to launch.
+    #. open a command prompt ( go to Start menu, then click 'Run...', then enter ``cmd`` ).  Once it is open execute the following line to start ipymel::
+    
+        ipymel.bat
 
-You can copy ipymel.bat wherever you want and run it from there.
 
 ---------------------------------------
 Problems on Linux
@@ -289,7 +373,7 @@ same way that we would with maya.cmds.
     [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
 
 Notice that the names of the returned nodes are preceded by the node type, `Camera`.  When using pymel, commands don't return strings
-as they do in MEL and maya.cmds.  Instead they return `PyNode` classes which correspond to the type of object or UI.
+as they do in MEL and maya.cmds.  Instead they return instances of `PyNode` classes which correspond to the type of object or UI.
 These python objects are like strings on steroids: in addition to methods found on the builtin string ( a method is a function bound to an object. ex. 'bar' is the
 method in 'foo.bar' ), 
 pymel adds methods for operating on the specific type of maya object that the string represents. 
@@ -314,10 +398,10 @@ Now let's create a node:
     [Transform(u'pPlane1'), PolyPlane(u'polyPlane1')]
 
 You can see that, like the `ls` command, the `polyPlane` command also returns `PyNode` classes.  As in MEL, it returns a list: the
-first object is the tranform of the plane, and the second is the construction history (if construction history is turned on). Now
+first object is the tranform of the plane, and the second is the construction history. Now
 let's get the shape of the transform:
 
-    >>> #assign the transform to a variable
+    >>> #assign the transform from above to a variable
     >>> plane = objs[0]
     >>> shape = plane.getShape()
     >>> shape
@@ -373,7 +457,7 @@ To get and set attributes:
     0.0
     >>> plane.translateX.set(10.0)
     
-To query and edit properties of attributes:
+Here's a few examples of how to query and edit properties of attributes:
 
     >>> plane.translateX.isLocked()
     False
@@ -484,12 +568,12 @@ of the more common commands for creating and getting lists of objects. These mod
 Commands that list objects return pymel classes:
     >>> s = ls(type='transform')[0]
     >>> print type(s)
-    <class 'pymel.core.general.Transform'>
+    <class 'pymel.core.nodetypes.Transform'>
     
 Commands that create objects are wrapped as well:
     >>> t = polySphere()[0]
     >>> print t, type(t)
-    pSphere1 <class 'pymel.core.general.Transform'>
+    pSphere1 <class 'pymel.core.nodetypes.Transform'>
     
 ---------------------------------------
 API Underpinnings
@@ -503,7 +587,10 @@ same. In MEL, to accomplish this the typical solution is to perform a string com
 of two object names, but there are many ways that this seemingly simple operation can go wrong. For instance, forgetting to compare the
 full paths of dag node objects, or comparing the long name of an attribute to the short name of an attribute.  
 And what if you want to test if the nodes are instances of each other?  You'll have some pretty 
-nasty string processing ahead of you.  But since pymel uses the underlying API objects, these operations are simple
+nasty string processing ahead of you.  And what if someone renames the node or its name becomes non-unique?  With PyMEL, the nightmares
+of string comparisons are over.
+
+But since pymel uses the underlying API objects, these operations are simple
 and API-fast.
 
         >>> from pymel import *
@@ -524,7 +611,7 @@ and API-fast.
         >>> # they are instances of each other
         >>> sphere1.isInstanceOf( sphere2 )    
         True
-        >>> sphere1.getAllInstances()
+        >>> sphere1.getInstances()
         [Transform(u'group1|mySphere'), Transform(u'group2|mySphere')]
         >>> 
         >>> # long and short names retrieve the same attribute
@@ -560,19 +647,19 @@ convert the list of PyNodes to a list of strings:
     'frontShape, perspShape, sideShape, topShape'
 
 Similarly, if you are trying to concatenate your PyNode with another string, you will need to cast it to a string (same as you would have
-to do with an int)::
+to do with an int):
     
     >>> cam = PyNode('frontShape')
     >>> print "The node " + str(cam) + " is a camera"
     The node frontShape is a camera
    
-Alternately, you can use % string formatting syntax::
+Alternately, you can use % string formatting syntax:
 
     >>> print "The node %s is a camera" % cam
     The node frontShape is a camera
     
 By default the shortest unique name of the node is used. If you want more control over how the name is printed, use the various methods for retrieving the
-name as a string::
+name as a string:
 
     >>> cam.shortName() # shortest unique
     u'frontShape'
@@ -585,7 +672,7 @@ Finally, be aware that string operations with PyNodes return strings not new PyN
 
     >>> new = cam.replace( 'front', 'monkey' )
     >>> print new, type(new), type(cam)
-    monkeyShape <type 'unicode'> <class 'pymel.core.general.Camera'>
+    monkeyShape <type 'unicode'> <class 'pymel.core.nodetypes.Camera'>
     
 ---------------------------------------
 Mutability and You
@@ -689,9 +776,8 @@ to track changes to a file.
     new: pTorus1
     new: pTorusShape1
     deleted: pCube1
-    deleted: polyCube1
     deleted: pCubeShape1
-
+    deleted: polyCube2
 
 
 ---------------------------------------
@@ -709,16 +795,16 @@ and compare your objects.  For example:
 
     >>> dl = directionalLight()
     >>> type(dl)
-    <class 'pymel.core.general.DirectionalLight'>
-    >>> isinstance( dl, DirectionalLight)
+    <class 'pymel.core.nodetypes.DirectionalLight'>
+    >>> isinstance( dl, nodetypes.DirectionalLight)
     True
-    >>> isinstance( dl, Light)
+    >>> isinstance( dl, nodetypes.Light)
     True
-    >>> isinstance( dl, Shape)
+    >>> isinstance( dl, nodetypes.Shape)
     True
-    >>> isinstance( dl, DagNode)
+    >>> isinstance( dl, nodetypes.DagNode)
     True
-    >>> isinstance( dl, Mesh)
+    >>> isinstance( dl, nodetypes.Mesh)
     False
      
 Many of these classes contain no methods of their own and exist only as place-holders in the hierarchy.
@@ -756,13 +842,13 @@ This example demonstrates some basic principles. Note the relationship between t
 created, its node type, and its class type. Also notice that instead of creating new objects using
 maya.cmds functions ( ex. spotlight ), the class ( ex. Spotlight ) can also be used :
 
-    >>> l = SpotLight()
+    >>> l = nodetypes.SpotLight()
     >>> print "The name is", l
     The name is spotLightShape1
     >>> print "The maya type is", l.type()
     The maya type is spotLight
     >>> print "The python type is", type(l)    
-    The python type is <class 'pymel.core.general.SpotLight'>
+    The python type is <class 'pymel.core.nodetypes.SpotLight'>
 
 Once you have an instance of a pymel class (usually handled automatically), you can use it to query and edit the
 maya node it represents in an object-oriented way.
@@ -783,7 +869,7 @@ object-oriented reorganization of the directionalLight command, where you 'get' 
 Some classes have functionality that goes beyond their command counterpart. The `Camera` class,
 for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and `cameraView` commands:
 
-    >>> cam = Camera(name='newCam')
+    >>> cam = nodetypes.Camera(name='newCam')
     >>> cam.setFocalLength(100)
     >>> cam.getHorizontalFieldOfView()
     20.407947443463367
@@ -814,13 +900,13 @@ request will be passed to appropriate class of the transform's shape node, if it
     >>> # get the persp camera as a PyNode
     >>> trans = PyNode('persp')
     >>> print type(trans)
-    <class 'pymel.core.general.Transform'>
+    <class 'pymel.core.nodetypes.Transform'>
     >>> # get the transform's shape, aka the camera node
     >>> cam = trans.getShape()
     >>> print cam
     perspShape
     >>> print type( cam )
-    <class 'pymel.core.general.Camera'>
+    <class 'pymel.core.nodetypes.Camera'>
     >>> trans.getCenterOfInterest()
     44.82186966202994
     >>> cam.getCenterOfInterest()
@@ -869,7 +955,7 @@ Explicit notation:
     >>> x.attr('myAttr')
     Traceback (most recent call last):
         ...
-    MayaAttributeError: Maya Attribute does not exist: 'earth.myAttr'
+    MayaAttributeError: Maya Attribute does not exist: u'earth.myAttr'
     
 Shorthand notation:
     >>> x = polySphere(name='moon')[0]
@@ -958,16 +1044,33 @@ New construct:
 ---------------------------------------
 Other Pymel Idioms
 ---------------------------------------
-Two other pymel idioms have been removed as a result of this change: 
+Two other pymel idioms have been removed as a result of this change. `Attribute.add` has been removed because, the attribute has to exist
+in order to successfully get an Attribute instance.  So instead you have to use the addAttr method on the node:
 
-`Attribute.add` is now:
+
+No longer supported:
+    
+    >>> PyNode('persp').myNewFloatAttr.add( at=float ) #doctest: +SKIP
+    
+Still supported:
 
     >>> PyNode('persp').addAttr( 'myNewFloatAttr', at=float )
 
-`Attribute.set` with the force flag (which would create the attribute if it did not exist) is now:
-    
-    >>> PyNode('persp').setDynamicAttr( 'myNewIntAttr', 2 )
+Similarly, the ``force`` flag for setAttr functions, which creates the attribute before setting if it does not exist, can only be safely used from the node class
+and not the attribute class:
 
+No longer supported:
+  
+    >>> PyNode('persp').myNewIntAttr.set( 2, force=1 ) #doctest: +SKIP
+
+Still supported:
+
+    >>> PyNode('persp').setAttr( 'myNewIntAttr', 2, force=1 )
+
+New construct:
+ 
+    >>> PyNode('persp').setDynamicAttr( 'myNewIntAttr', 2 )
+      
 --------------------------------------------
 Manipulating Names of Non-Existent Objects
 --------------------------------------------
@@ -975,12 +1078,37 @@ Manipulating Names of Non-Existent Objects
 One advantage of the old way of dealing with non-existent objects was that you could use the name parsing methods of the PyNode
 classes to manipulate the object's name until you found what you were looking for.  To allow for this, we've added
 several classes which operate on non-existent nodes and contain only methods for string parsing and existence testing.
-These nodes can be found in the `other` module and are named `NameParser`, `AttributeName`, `DependNodeName`, and `DagNodeName`.
-
-Also, there is a new fully-featured maya name parsing module, `util.nameparser`, which is based on a fast parser called Python Lex Yacc.  It parses maya
-object names into hierarchical name tokens, accessible via cascading class attributes.
+These nodes can be found in the `other` module and are named `other.NameParser`, `other.AttributeName`, `other.DependNodeName`, and `other.DagNodeName`.
 
 
+--------------------------------------------
+Asserting Proper Type
+--------------------------------------------
+
+While `PyNode` serves to easily cast any string to its proper class in the node hierarchy, other nodes in the hierarchy can achieve the 
+same effect:
+
+    >>> PyNode('lambert1')
+    Lambert(u'lambert1')
+    >>> DependNode('lambert1')
+    Lambert(u'lambert1')
+
+If the determined type does not match the requested type, an error will be raised.  For example, a lambert node is not
+a DAG node:
+
+    >>> DagNode( 'lambert1' )
+    Traceback (most recent call last):
+    ...
+    TypeError: Determined type is Lambert, which is not a subclass of desired type DagNode
+
+This is useful because it can be used as a quick way to assert that a given node is of the desire type.
+
+    >>> try:
+    ...    DagNode( selected()[0] )
+    ... except TypeError:
+    ...    print "Please select a DAG node"
+    
+ 
 =======================================
     Module Namespaces
 =======================================
@@ -1013,7 +1141,7 @@ primarily to improve the clarity of the documentation.
 =======================================
 
 To use maya functions in an external python interpreter, maya provides a handy executable called mayapy.  You can find it in the maya bin 
-directory.  Pymel has some more tricks up its sleeves in this arena as well.  When pymel detects that it is being imported in a standalone
+directory.  Pymel ensures that using python outside of Maya is as close as possible to python inside Maya.  When pymel detects that it is being imported in a standalone
 interpreter it performs these operations:
 
     1. initializes maya.standalone ( which triggers importing userSetup.py )
@@ -1031,10 +1159,17 @@ The second one might seem a little tricky, but we've already come up with the so
 Jump to the docs for the function for more information on how to use it.
 
 
+=======================================
+    Special Thanks
+=======================================
+
+Special thanks to those studios with the foresight to support an open-source project of this nature:  Luma Pictures, 
+Attitude Studio, and ImageMovers Digital.
+
 """
 
 
-__version__ = '0.8.0'
+__version__ = '0.9.0'
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 # not maya dependant
 #import util
