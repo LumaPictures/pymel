@@ -760,7 +760,10 @@ def mayaInit(forversion=None) :
             refreshEnviron()
             import maya.mel
             try:
-                maya.mel.eval( 'source "userSetup.mel"')
+                # make sure it exists
+                res = maya.mel.eval('whatIs "userSetup.mel"')
+                if res != 'Unknown':
+                    maya.mel.eval( 'source "userSetup.mel"')
             except RuntimeError: pass
         except ImportError, msg:
             warn("Unable to import maya.standalone to start Maya: "+msg, UserWarning)
@@ -806,12 +809,12 @@ def loadCache( filePrefix, description='', useVersion=True):
         file = open(newPath, mode='rb')
         try :
             return pickle.load(file)
-        except :
-            _logger.info("Unable to load%s from '%s'" % (description,file.name))
+        except Exception, e:
+            _logger.warn("Unable to load%s from '%s': %s" % (description,file.name, e))
         
         file.close()
-    except :
-        _logger.info("Unable to open '%s' for reading%s" % ( newPath, description ))
+    except Exception, e:
+        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
 
  
 def writeCache( data, filePrefix, description='', useVersion=True):
@@ -838,7 +841,20 @@ def writeCache( data, filePrefix, description='', useVersion=True):
     except :
         _logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
                  
- 
+
+def parsePymelConfig():
+    import ConfigParser
+
+    config = ConfigParser.ConfigParser()
+    config.read( os.path.join( util.moduleDir(), 'pymel.conf') )
+    
+    try:
+        return dict(config.items('pymel')) 
+    except e:
+        _logger.warn( str(e) )
+        return {}
+    
+
 def executeDeferred(func):
     """
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
