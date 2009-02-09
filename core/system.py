@@ -35,16 +35,33 @@ import pymel.util as util
 import factories as _factories
 from factories import createflag, addMelDocs
 import pymel.util as util
-from pymel.mayahook import Version 
+import pymel.mayahook as mayahook
+from pymel.mayahook import Version
 from pymel.util.scanf import fscanf
 import logging
 _logger = logging.getLogger(__name__)
 
 import sys
+
 try:
-    import luma
-    pathClass = luma.Filepath
-except:
+    # attempt to import a custom path class to use as the base for pymel's Path class
+    basePathName = mayahook.pymel_options['path_class']
+    buf = basePathName.split('.')
+    moduleName = '.'.join(buf[:-1])
+    className = buf[-1]
+    try:
+        pathModule = __import__(moduleName, globals(), locals(), [''])
+    except Exception, e:
+        _logger.warning( "Could not import %r module containing custom base Path class: %s" % ( moduleName, str(e) ) )
+        raise AssertionError
+    
+    try:
+        pathClass = getattr(pathModule, className)
+        _logger.info( "Using custom path class %s" % ( basePathName ) )
+    except AttributeError, e:
+        _logger.warning( "Custom path class %s could not be found in module %s" % ( className, pathModule ) )
+        raise AssertionError
+except (KeyError, AssertionError):
     pathClass = util.path
 
 
@@ -162,7 +179,7 @@ class Workspace(object):
     
     All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
         >>> workspace.path / workspace.fileRules['DXF']
-        /Users/chad/Documents/maya/projects/default/path
+        Path('/Users/chad/Documents/maya/projects/default/data')
         
     """
     __metaclass__ = util.Singleton
@@ -474,7 +491,11 @@ class ReferenceCache(object):
     
     @classmethod
     def deferReferenceUpdates(cls, state):
-        logging.debug("%s Reference Updates" % ("SUSPENDING " if state else "Enabling"))
+        if state:
+            msg = "SUSPENDING "
+        else:
+            msg = "Enabling"
+        logging.debug("%s Reference Updates" % (msg))
         cls._deferReferenceUpdates = state
     
     
@@ -564,7 +585,7 @@ class ReferenceCache(object):
         # there's no guarantee that:
         #  the namespace has not changed since the last cache refresh
         #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
-        if not cls.callbacksEnabled or namespace: # or ( refnode and Version.current < Version.v2009 ):
+        if not cls.callbacksEnabled or namespace: # or ( refnode and mayahook.Version.current < mayahook.Version.v2009 ):
             # force refresh (only need to try once)
             attempts=1
             cls.refresh()
@@ -720,7 +741,7 @@ class FileReference(object):
     @property
     def path(self):
         # TODO: check in cache to see if this has changed
-#        if not ReferenceCache.callbacksEnabled or Version.current < Version.v2009:
+#        if not ReferenceCache.callbacksEnabled or mayahook.Version.current < mayahook.Version.v2009:
 #            ReferenceCache.refresh()
 #            
 #        return ReferenceCache[ self.refNode ]._file
