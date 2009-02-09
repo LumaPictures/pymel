@@ -8,10 +8,15 @@ import logging.config
 from logging import *
 # The python 2.6 version of 'logging' hids these functions, so we need to import explcitly
 from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
+import pymel.util as util
+import maya.utils
+import maya.app.python
+from pymel.util.decoration import decorator
+
 
 configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
 if not os.path.isfile(configFile):
-    configFile = os.path.join(os.path.dirname(__file__),"logging.conf")
+    configFile = os.path.join(util.moduleDir(),"pymel.conf")
 
 if sys.version_info >= (2,6):
     logging.config.fileConfig(configFile, disable_existing_loggers=0)
@@ -23,10 +28,7 @@ else:
             v.disabled = 0
     
 
-import pymel.util as util
-import maya.utils
-import maya.app.python
-from pymel.util.decoration import decorator
+
 
 #===============================================================================
 # DEFAULT FORMAT SETUP
