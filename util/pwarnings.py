@@ -48,7 +48,8 @@ def warn(*args, **kwargs):
     """ Default Maya warn which uses ExecutionWarning as the default warning class. """
     if len(args) == 1 and not isinstance(args[0], Warning):
         args = args + (ExecutionWarning,)
-    return warnings.warn(*args, **kwargs)
+    stacklevel = kwargs.pop("stacklevel",1) + 1 # add to the stack-level so that this wrapper func is skipped
+    return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
 
 def deprecated(funcOrMessage, className=None):  
     """the decorator can either receive parameters or the function directly.
@@ -66,7 +67,7 @@ def deprecated(funcOrMessage, className=None):
             module = func.__module__)
         
         def deprecationLoggedFunc(*args, **kwargs):
-            warn(message % info, DeprecationWarning)
+            warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
             return func(*args, **kwargs)
         
         deprecationLoggedFunc.__name__ = func.__name__
