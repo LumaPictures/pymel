@@ -12,8 +12,13 @@ in addition, by hitting insert or holding the d (pivot) key, only the selected j
 preserving the position of all other joints.
 
 to run:
-	>>> from pymel.examples.pipeGen import pipeGenWin
-	>>> pipeGenWin()
+	>>> import pymel.examples.pipeGen as pipeGen
+	>>> pipeGen.pipeGenWin()
+
+to create pipes via a script:
+
+	>>> pipeGen.startPipe()
+	>>> pipeGen.extendPipe()
 
 """
 
@@ -123,20 +128,6 @@ def extendPipe( jointLength=1 ):
 			name = currJnt.split('_')[0]
 			root = Joint( '%s_Jnt0' % name )
 		
-		
-			"""	
-			name = selected()[0].split('_')[0]
-			root = Joint( '%s_Jnt0' % name )
-	
-			try:
-				currJnt = ls( listRelatives( root, ad=1) , leaf=1)[0]
-			except:
-				currJnt = root
-		
-			assert currJnt.type() == 'joint'
-		
-			currJnt.select()
-			"""
 		except:
 			raise "select an object on the pipe that you want to extend"
 		
@@ -503,13 +494,7 @@ class pipeGenWin(object):
 		text( l='Name' )
 		self.createGrp = textField( text='pipe', w=90)
 			
-		"""
-		textFieldButtonGrp( l='Name',
-				text= 'pipe',
-		 		cw3 = [50, 200, 50],
-				bl='Create', 
-				bc = lambda: self.newPipeCB() )
-		"""
+
 		setParent('..')
 		
 		separator(w=400)
@@ -523,12 +508,7 @@ class pipeGenWin(object):
 			value=1,
 			field=1,
 			min=1, max=20 )
-		"""
-		self.numSegments = intSliderGrp( l='Segments', 
-			value=1,
-			field=1,
-			min=1, max=20 )
-		"""
+
 		
 		setParent('..')	
 		setParent('..')

@@ -1222,10 +1222,15 @@ class PyNode(util.ProxyUnicode):
         if cls is not PyNode :
             # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
+            # There is one exception type:  MeshVertex( Mesh( 'pSphere1') )
             # TODO : can add object creation option in the __init__ if desired
-            if not issubclass( pymelType, cls ):
+            
+            if issubclass( cls, nodetypes.Component ):
+                newcls = cls
+            elif not issubclass( pymelType, cls ):
                 raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % ( pymelType.__name__, cls.__name__ )
-            newcls = pymelType
+            else:
+                newcls = pymelType
         else :
             newcls = pymelType
    
