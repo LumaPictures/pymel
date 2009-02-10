@@ -18,13 +18,21 @@ Project Goals
 Production Proven
 ======================
 
-Since its release over a year ago PyMEL has accumulated an impressive resume, in both feature films and games: 
+Since its release over a year ago PyMEL, has accumulated an impressive resume, in both feature films and games: 
 
     - DreamWorks: *Fung Fu Panda*, *Shrek 4*, *Monsters Vs Aliens*, and *How to Train Your Dragon*
     - Luma Pictures: *Pirates of the Carribean: At World's End*, *Harry Potter 6*, and *Wolverine*
     - ImageMovers Digital: Robert Zemeckis' upcoming *A Christman Carol*
-    - Bungie Studios: 
-    
+   
+Here's what Seth Gibson of Bungie Studios, makers of the hit game *Halo*, has to say:
+
+    "Having done production python code myself for many years, wrapping my head around Maya's native 
+    implementation took a little bit of time.  With PyMel, I can think and write the python code and 
+    syntax I'm already used to, which speeds up my development time considerably.  It's also
+    going to help our other Technical Artists with their Python learning curve, since PyMEL's syntax
+    is consistent with most other python packages.  Kudos to the PyMel team for such a well 
+    thought out project!"
+
 ======================
 What's New
 ======================
@@ -203,8 +211,12 @@ programmers with a vision for how to seamlessly integrate the API and MEL.
 
 
 ======================
-Powerful Classes
+Core Features
 ======================
+
+----------------------
+Powerful Classes
+----------------------
 
 **Node classes** for every node type
 
@@ -262,9 +274,9 @@ Manage optionVars as a python dictionary
     optionVar['numbers'].append(9)
     numArray = optionVar.pop('numbers')
 
-==========================
+---------------------------
 Do More with Less Code
-==========================
+---------------------------
 
 If you've tried working with the default maya.cmds and maya.mel modules, you know that they add a lot of awkward syntax that can slow you down. PyMEL streamlines
 this syntax in many ways.
