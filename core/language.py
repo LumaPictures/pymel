@@ -13,7 +13,7 @@ from pymel.mayahook.optionvars import *
 import os, inspect
 import factories as _factories
 import pymel.api as api
-import datatypes as _types
+import datatypes
 
 #--------------------------
 # Mel <---> Python Glue
@@ -50,9 +50,9 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         >>> p = SCENE.persp
         >>> getMelType( p.translate.get() )
         'vector'
-        >>> getMelType( Matrix )
+        >>> getMelType( datatypes.Matrix )
         'int[]'
-        >>> getMelType( Matrix, allowMatrix=True )
+        >>> getMelType( datatypes.Matrix, allowMatrix=True )
         'matrix'
         >>> getMelType( True )
         'int'
@@ -86,8 +86,8 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         elif allowBool and issubclass( pyObj, bool ) : return 'bool'
         elif issubclass( pyObj, int ) : return 'int'
         elif issubclass( pyObj, float ) : return 'float'         
-        elif issubclass( pyObj, _types.VectorN ) : return 'vector'
-        elif issubclass( pyObj, _types.MatrixN ) : 
+        elif issubclass( pyObj, datatypes.VectorN ) : return 'vector'
+        elif issubclass( pyObj, datatypes.MatrixN ) : 
             if allowMatrix: 
                 return 'matrix'
             else:
@@ -97,8 +97,8 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
             return pyObj.__name__
             
     else:
-        if isinstance( pyObj, _types.VectorN ) : return 'vector'
-        elif isinstance( pyObj, _types.MatrixN ) : 
+        if isinstance( pyObj, datatypes.VectorN ) : return 'vector'
+        elif isinstance( pyObj, datatypes.MatrixN ) : 
             if allowMatrix: 
                 return 'matrix'
             else:
@@ -148,7 +148,7 @@ class MelGlobals( dict ):
         'string'    : str,
         'int'       : int,
         'float'     : float,
-        'vector'    : _types.Vector
+        'vector'    : datatypes.Vector
         }
 
 #    class MelGlobalArray1( tuple ):
@@ -550,19 +550,19 @@ class Mel(object):
             elif resType == api.MCommandResult.kVector:
                 result = api.MVector()
                 res.getResult(result)
-                return _types.Vector(result)    
+                return datatypes.Vector(result)    
             elif resType == api.MCommandResult.kVectorArray:
                 result = api.MMatrixArray()
                 res.getResult(result)
-                return [ _types.Vector(result[i]) for i in range( result.length() ) ]
+                return [ datatypes.Vector(result[i]) for i in range( result.length() ) ]
             elif resType == api.MCommandResult.kMatrix:
                 result = api.MMatrix()
                 res.getResult(result)
-                return _types.Matrix(result)   
+                return datatypes.Matrix(result)   
             elif resType == api.MCommandResult.kMatrixArray:
                 result = api.MMatrixArray()
                 res.getResult(result)
-                return [ _types.Matrix(result[i]) for i in range( result.length() ) ]
+                return [ datatypes.Matrix(result[i]) for i in range( result.length() ) ]
              
     @staticmethod   
     def error( msg, showLineNumber=False ):       

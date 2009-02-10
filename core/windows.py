@@ -1120,12 +1120,12 @@ class VectorFieldGrp( FloatFieldGrp ):
         x = floatFieldGrp( self, q=1, v1=True )
         y = floatFieldGrp( self, q=1, v2=True )
         z = floatFieldGrp( self, q=1, v3=True )
-        return Vector( [x,y,z] )
+        return datatypes.Vector( [x,y,z] )
     
     def setVector(self, vec):
         floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
         
-        return Vector( [x,y,z] )
+        return datatypes.Vector( [x,y,z] )
 
 #class ValueControlGrp( UI ):
 #    def __new__(cls, name=None, create=False, dataType=None, numberOfControls=1, **kwargs):

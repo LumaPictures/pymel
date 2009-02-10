@@ -215,7 +215,10 @@ class Component( PyNode ):
         try:
             return self.__apiobjects__['MObjectHandle'].object()
         except KeyError:
-            return self.__apiobjects__['MFn'].currentItem()
+            if len(self._range) == 1:
+                return self.__apiobjects__['MFn'].currentItem()
+            else:
+                raise ValueError, "Cannot determine mobject"
         
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this attribute, if it is valid"
@@ -234,7 +237,10 @@ class Component( PyNode ):
                     mfn = self.__apicls__( self.__apimdagpath__(), self.__apiobject__() )
                     self.__apiobjects__['MFn'] = mfn
                     return mfn
-            
+    
+    def __eq__(self, other):
+        return api.MFnComponent( self.__apiobject__() ).isEqual( other.__apiobject__() )
+               
     def __str__(self): 
         return str(self.name())
     
@@ -743,7 +749,7 @@ class Attribute(PyNode):
     to set an attribute that expects a double3, you can use any iterable with 3 elements:
     
         >>> cam.translate.set([4,5,6])
-        >>> cam.translate.set(Vector([4,5,6]))
+        >>> cam.translate.set(datatypes.Vector([4,5,6]))
 
     Getting Attribute Values
     ------------------------
@@ -767,7 +773,7 @@ class Attribute(PyNode):
         False
         >>> # why is this? because result is a Vector and value is a list
         >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
-        >>> result == Vector(value)
+        >>> result == datatypes.Vector(value)
         True
         >>> result.isEquivalent(value)
         True
