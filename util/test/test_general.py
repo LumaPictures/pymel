@@ -84,7 +84,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         # change units from default
         currentUnit(linear='meter')
         
-        testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', Vector([3.0,2.0,1.0]) ),  # Distance Vector
+        testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', datatypes.Vector([3.0,2.0,1.0]) ),  # Distance datatypes.Vector
                       ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
                       ('persp.verticalShake' , 'getVerticalShake', 'setVerticalShake', 1.0 ),  # Unitless
                       ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
