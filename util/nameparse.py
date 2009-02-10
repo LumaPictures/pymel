@@ -1,4 +1,4 @@
-from recursiveObjectParser import *
+from objectParser import *
 
 __all__ = [#'NameParseError', 'ParsingWarning', 
            #'ProxyUni', 'NameParsed', 
