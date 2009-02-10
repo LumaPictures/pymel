@@ -130,7 +130,7 @@ class MelGlobals( dict ):
     to retrieve existing global variables, just use the name as a key
     
     >>> melGlobals['gMainFileMenu']
-    mainFileMenu
+    'mainFileMenu'
     >>> # works with or without $
     >>> melGlobals['$gGridDisplayGridLinesDefault']
     1

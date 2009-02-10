@@ -1103,11 +1103,13 @@ a DAG node:
 
 This is useful because it can be used as a quick way to assert that a given node is of the desire type.
 
+    >>> select( 'lambert1' ) # this line represents user action
     >>> try:
     ...    DagNode( selected()[0] )
     ... except TypeError:
     ...    print "Please select a DAG node"
-    
+    ... 
+    Please select a DAG node
  
 =======================================
     Module Namespaces
