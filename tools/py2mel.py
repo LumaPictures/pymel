@@ -35,8 +35,8 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
             #elif not boolIsInt and isinstance( arg, bool ) : return 'bool'
             elif issubclass( pyObj, int ) : return 'int'
             elif issubclass( pyObj, float ) : return 'float'         
-            elif issubclass( pyObj, Vector ) : return 'vector'
-            elif issubclass( pyObj, Matrix ) : return 'matrix'
+            elif issubclass( pyObj, datatypes.Vector ) : return 'vector'
+            elif issubclass( pyObj, datatypes.Matrix ) : return 'matrix'
             
     elif melVariable is not None:
         assert pyType is None and pyObj is None, "Pass only one of pyObj, pyType or melVariable"
@@ -67,8 +67,8 @@ def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
             #elif not boolIsInt and isinstance( arg, bool ) : return 'bool'
             elif isinstance( pyObj, int ) : return 'int'
             elif isinstance( pyObj, float ) : return 'float'         
-            elif isinstance( pyObj, Vector ) : return 'vector'
-            elif isinstance( pyObj, Matrix ) : return 'matrix'
+            elif isinstance( pyObj, datatypes.Vector ) : return 'vector'
+            elif isinstance( pyObj, datatypes.Matrix ) : return 'matrix'
 
 
 
