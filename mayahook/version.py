@@ -50,13 +50,15 @@ __all__ = ['Version']
 
 
 def _getApiVersion():
+    """backward compatibility hack for api version in maya 8.5"""
     try:
         return MGlobal.apiVersion()
     except AttributeError:
-        return { 
-         '8.5 Service Pack 1': 200701,
-         '8.5': 200700,
-         }[ MGlobal.mayaVersion() ]
+        versionStr = MGlobal.mayaVersion()
+        if versionStr.startswith('8.5 Service Pack 1'):
+            return 200701
+        else:
+            return 200700
 
 
 
