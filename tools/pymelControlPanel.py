@@ -742,12 +742,16 @@ class MethodRow(object):
         return type == 'MVector' or type.startswith('double')
 
 def getClassHierarchy( className ):
+    pymelClass = None
     try:
-        pymelClass = getattr(core.general, className)
+        pymelClass = getattr(core.nodetypes, className)
     except AttributeError:
-        logger.warning( "could not find class %s" % className )
-        pass
-    else:
+        try:
+            pymelClass = getattr(core.datatypes, className)
+        except AttributeError:
+            logger.warning( "could not find class %s" % (className) )
+    
+    if pymelClass:
             
         mro = list( inspect.getmro(pymelClass) )
         mro.reverse()

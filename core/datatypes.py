@@ -1319,7 +1319,7 @@ class Space(_api.MSpace):
 
 # fix the Space enumerator
 keys = Space.Space._keys.copy()
-print keys
+#print keys
 val = keys.pop('postTransform', None)
 if val:
     keys['object'] = val

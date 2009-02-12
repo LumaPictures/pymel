@@ -27,7 +27,7 @@ import pmcmds
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
 #: examples are usually only included when creating documentation
-INCLUDE_DOC_EXAMPLES = True
+INCLUDE_DOC_EXAMPLES = False
 
 
 class PyNodeNamesToPyNodes(dict):
