@@ -3530,7 +3530,8 @@ def pluginLoadedCallback( module ):
                             addPyNode( module, node, parent )
                             parent = node
             
-            if _api.MFileIO.isReadingFile() or _api.MFileIO.isOpeningFile():
+            # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
+            if _api.MFileIO.isReadingFile() or ( mayahook.Version.current >= mayahook.Version.v2008 and _api.MFileIO.isOpeningFile() ):
                 #_logger.debug("pymel: Installing temporary plugin-loaded callback")
                 id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
                 pluginData[pluginName]['callbackId'] = id
