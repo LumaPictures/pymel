@@ -36,8 +36,17 @@ else:
 
 def _fixMayaOutput():
     if not hasattr( sys.stdout,"flush"):
-        def flush(*args,**kwargs): pass
-        sys.stdout.flush = flush
+        def flush(*args,**kwargs): 
+            pass
+        try:
+            sys.stdout.flush = flush
+        except AttributeError:
+            # second try
+            #if hasattr(maya,"Output") and not hasattr(maya.Output,"flush"):
+            class mayaOutput(maya.Output):
+                def flush(*args,**kwargs):
+                    pass
+            sys.stdout = mayaOutput()
 
 class ClassInfo(object):
     def __init__(self, cls):
