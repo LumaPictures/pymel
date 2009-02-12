@@ -850,14 +850,14 @@ class FileReference(object):
 
     @addMelDocs('file', 'exportAnimFromReference')    
     def exportAnim( self, exportPath, **kwargs ):
-        if 'type' not in kwargs:
+        if 'type' not in kwargs and 'typ' not in kwargs:
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
         return Path(cmds.file( exportPath, rfn=self.refNode, exportAnimFromReference=1))
           
     @addMelDocs('file', 'exportSelectedAnimFromReference')    
     def exportSelectedAnim( self, exportPath, **kwargs ):
-        if 'type' not in kwargs:
+        if 'type' not in kwargs and 'typ' not in kwargs:
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
         return Path(cmds.file( exportPath, rfn=self.refNode, exportSelectedAnimFromReference=1))
@@ -1058,7 +1058,7 @@ def exportAsReference( exportPath, **kwargs ):
 
 @createflag('file', 'exportSelected')
 def exportSelected( exportPath, **kwargs ):
-    if 'type' not in kwargs:
+    if 'type' not in kwargs and 'typ' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     res = cmds.file(exportPath, **kwargs)
@@ -1067,7 +1067,7 @@ def exportSelected( exportPath, **kwargs ):
 
 @createflag('file', 'exportAnim')
 def exportAnim( exportPath, **kwargs ):
-    if 'type' not in kwargs:
+    if 'type' not in kwargs and 'typ' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     res = cmds.file(exportPath, **kwargs)
@@ -1076,7 +1076,7 @@ def exportAnim( exportPath, **kwargs ):
 
 @createflag('file', 'exportSelectedAnim')
 def exportSelectedAnim( exportPath, **kwargs ):
-    if 'type' not in kwargs:
+    if 'type' not in kwargs and 'typ' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     res = cmds.file(exportPath, **kwargs)
@@ -1085,7 +1085,7 @@ def exportSelectedAnim( exportPath, **kwargs ):
 
 @addMelDocs('file', 'exportAnimFromReference')    
 def exportAnimFromReference( exportPath, **kwargs ):
-    if 'type' not in kwargs:
+    if 'type' not in kwargs and 'typ' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     res = cmds.file(exportPath, **kwargs)
@@ -1094,7 +1094,7 @@ def exportAnimFromReference( exportPath, **kwargs ):
       
 @addMelDocs('file', 'exportSelectedAnimFromReference')    
 def exportSelectedAnimFromReference( exportPath, **kwargs ):
-    if 'type' not in kwargs:
+    if 'type' not in kwargs and 'typ' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
     res = cmds.file(exportPath, **kwargs)
