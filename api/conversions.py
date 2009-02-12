@@ -121,10 +121,11 @@ class ApiDocParser(object):
                                       
         return pymelNames, pairsList
 
+
                            
     def getClassFilename(self):
         filename = 'class'
-        for tok in re.split( '([A-Z][a-z]+)', self.apiClassName ):
+        for tok in re.split( '([A-Z][a-z]*)', self.apiClassName ):
             if tok:
                 if tok[0].isupper():
                     filename += '_' + tok.lower()
@@ -1264,11 +1265,10 @@ def loadApiToMelBridge():
 
     data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
     if data is not None:
-        # temporary fix, because we converted from one item in the cache, to now having two
-        if isinstance(data, util.defaultdict):
-            return data, {}
-        
-        return data
+        # maya 8.5 fix: convert dict to defaultdict
+        bridge, overrides = data
+        bridge = util.defaultdict(dict, bridge)
+        return bridge, overrides
     
     # no bridge cache exists. create default
     bridge = util.defaultdict(dict)
@@ -1279,7 +1279,9 @@ def loadApiToMelBridge():
     return bridge, overrides
 
 def saveApiToMelBridge():
-    mayahook.writeCache( (apiToMelData,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
+    # maya 8.5 fix: convert defaultdict to dict
+    bridge = dict(apiToMelData)
+    mayahook.writeCache( (bridge,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
 
 
 #-------------------------------------------------------------------------------------
