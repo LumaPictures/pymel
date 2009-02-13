@@ -1287,12 +1287,17 @@ class PyNode(util.ProxyUnicode):
         :rtype: `bool`
         """
         if isinstance(other,PyNode):
-            return self.__apiobject__() == other.__apiobject__()
+            apiobj = other.__apiobject__()
         else:
             try:
-                return self.__apiobject__() == PyNode(other).__apiobject__()
-            except (ValueError,TypeError): # could not cast to PyNode
+                apiobj = PyNode(other).__apiobject__()
+            except:
                 return False
+        
+        try:
+            return self.__apiobject__() == apiobj
+        except: 
+            return False
        
     def __ne__(self, other):
         """
