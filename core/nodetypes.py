@@ -34,7 +34,7 @@ from system import namespaceInfo as _namespaceInfo, FileReference as _FileRefere
 
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
-__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
+#__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
 
 class Component( PyNode ):
@@ -3486,8 +3486,11 @@ class SelectionSet( api.MSelectionList):
         
         
     def getSymmetricDifference(self, other):
-        """Also known as XOR
-        :rtype: `SelectionSet`"""
+        """
+        Also known as XOR
+        
+        :rtype: `SelectionSet`
+        """
         # create a new SelectionSet so that we don't modify our current one
         newSet = SelectionSet( self )
         newSet.symmetricDifference(other)
@@ -3863,8 +3866,7 @@ def _createPyNodes():
             continue
         
         className = util.capitalize(mayaType)
-        if className not in __all__:
-            __all__.append( className )
+        #if className not in __all__: __all__.append( className )
         
         _factories.addPyNode( _thisModule, mayaType, parentMayaType )
 
