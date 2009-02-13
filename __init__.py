@@ -1473,7 +1473,7 @@ def _installCallbacks():
     if preLoadedPlugins:
         logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
         for plugin in preLoadedPlugins:
-            pluginLoadedCB( plugin )
+            _pluginLoaded( plugin )
 
 _installCallbacks()
 
