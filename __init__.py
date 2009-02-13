@@ -1329,7 +1329,6 @@ def _pluginLoaded( pluginName ):
     #print type(array)
     #pluginPath, pluginName = array
     import core.pmcmds
-    print pluginName
     logger.info("Plugin loaded %s", pluginName)
     commands = core.pmcmds.pluginInfo(pluginName, query=1, command=1)
     _pluginData[pluginName] = {}
