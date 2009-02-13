@@ -334,15 +334,19 @@ class MelError(RuntimeError):
     pass
 
 class MelConversionError(MelError,TypeError):
-    """Error raised when MEL cannot process a conversion or cast between data types"""
+    """MEL cannot process a conversion or cast between data types"""
     pass
 
 class UnknownProcedureError(MelError,NameError):
-    """The called mel procedure does not exist or has not been sourced"""
+    """The called MEL procedure does not exist or has not been sourced"""
     pass
 
 class MelArgumentError(MelError,TypeError):
-    """The arguments passed to the mel script are incorrect"""
+    """The arguments passed to the MEL script are incorrect"""
+    pass
+
+class MelSyntaxError(MelError,SyntaxError):
+    """The MEL script has a syntactical error"""
     pass
 
 class Mel(object):
@@ -398,7 +402,7 @@ class Mel(object):
 
     
     Notice that the error raised is a `MelConversionError`.  There are several MEL exceptions that may be raised,
-    depending on the type of error: `MelError`, `MelConversionError`, `MelArgumentError`, and `UnknownProcedureError`.
+    depending on the type of error encountered: `MelError`, `MelConversionError`, `MelArgumentError`, `MelSyntaxError`, and `UnknownProcedureError`.
     To remain backward compatible with maya.cmds and older versions of pymel, all MEL exceptions inherit from 
     `MelError`, which in turn inherits from `RuntimeError`.
     
@@ -513,6 +517,8 @@ class Mel(object):
                 e = MelArgumentError
             elif 'Cannot convert data' in msg or 'Cannot cast data' in msg:
                 e = MelConversionError
+            elif 'Syntax error' in msg:
+                e = MelSyntaxError
             else:
                 e = MelError
             raise e, "Error occurred during execution of MEL script: %s" % ( msg )
