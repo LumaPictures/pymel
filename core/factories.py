@@ -3474,8 +3474,10 @@ pluginData = {}
                     
 def pluginLoadedCallback( module ):
                 
-    def pluginLoadedCB(pluginName):
-                
+    def pluginLoadedCB( pluginName ):
+        #print type(array)
+        #pluginPath, pluginName = array
+         
         _logger.info("Plugin loaded %s", pluginName)
         commands = cmds.pluginInfo(pluginName, query=1, command=1)
         pluginData[pluginName] = {}
@@ -3584,7 +3586,11 @@ def installCallbacks(module):
     if pluginLoadedCB is None:
         _logger.debug("Adding pluginLoaded callback")
         pluginLoadedCB = pluginLoadedCallback(module)
-        cmds.loadPlugin( addCallback=pluginLoadedCB )
+        #cmds.loadPlugin( addCallback=pluginLoadedCB )
+        # 2009 only
+        #id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginLoad, pluginLoadedCB  )
+        #id.disown()
+        #_api.MSceneMessage.addCallback( _api.MSceneMessage.kAfterPluginLoad, pluginLoadedCB  )
         
     else:
         _logger.debug("PluginLoaded callback already exists")

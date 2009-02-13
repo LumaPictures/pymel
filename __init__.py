@@ -1315,20 +1315,176 @@ logger.debug( 'imported core' )
 
 #import factories
 _module = __import__(__name__)    
-#_factories.installCallbacks(_module)
+#_factories._installCallbacks(_module)
 #cmds.loadPlugin( addCallback=pluginLoadedCallback(_module) )
-factories.installCallbacks(_module)
-
-# some submodules do 'import pymel.core.pymel.mayahook.pmcmds as cmds' -
-# this ensures that when the user does 'from pymel import *',
-# cmds is always maya.cmds
+#factories._installCallbacks(_module)
 
 
-import maya.cmds as cmds
+#: dictionary of plugins and the nodes and commands they register   
+_pluginData = {}
 
-def _test():
-    import doctest
-    doctest.testmod(verbose=True)
+                    
+             
+def _pluginLoaded( pluginName ):
+    #print type(array)
+    #pluginPath, pluginName = array
+    import core.pmcmds
+    print pluginName
+    logger.info("Plugin loaded %s", pluginName)
+    commands = core.pmcmds.pluginInfo(pluginName, query=1, command=1)
+    _pluginData[pluginName] = {}
+    
+    # Commands
+    if commands:
+        _pluginData[pluginName]['commands'] = commands
+        logger.debug( "adding new commands: %s" % ', '.join(commands) )
+        for funcName in commands:
+            #_logger.debug("adding new command:", funcName)
+            factories.cmdlist[funcName] = factories.getCmdInfoBasic( funcName )
+            core.pmcmds.addWrappedCmd(funcName)
+            func = factories.functionFactory( funcName )
+            try:
+                if func:
+                    setattr( _module, funcName, func )
+                else:
+                    logger.warning( "failed to create function" )
+            except Exception, msg:
+                logger.warning("exception: %s" % str(msg) )
+    
+    # Nodes          
+    mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
+    #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
+    if mayaTypes :
+        
+        def addPluginPyNodes(*args):
+            try:
+                id = _pluginData[pluginName]['callbackId']
+                if id is not None:
+                    api.MEventMessage.removeCallback( id )
+                    id.disown()
+            except KeyError:
+                logger.warning("could not find callback id!")
+            
+            _pluginData[pluginName]['dependNodes'] = mayaTypes
+            logger.debug("adding new nodes: %s", ', '.join( mayaTypes ))
+            
+            for mayaType in mayaTypes:
+                
+                inheritance = factories.getInheritance( mayaType )
+                
+                # Bug work around for haggi on python_inside_maya
+                if not util.isIterable(inheritance):
+                    logger.warn( "could not get inheritance for mayaType %s" % mayaType)
+                else:
+                    #_logger.debug(mayaType, inheritance)
+                    #_logger.debug("adding new node:", mayaType, apiEnum, inheritence)
+                    # some nodes in the hierarchy for this node might not exist, so we cycle through all 
+                    parent = 'dependNode'
+                    for node in inheritance:
+                        factories.addPyNode( _module, node, parent )
+                        parent = node
+        
+        # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
+        if api.MFileIO.isReadingFile() or ( mayahook.Version.current >= mayahook.Version.v2008 and api.MFileIO.isOpeningFile() ):
+            #_logger.debug("pymel: Installing temporary plugin-loaded callback")
+            id = api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
+            _pluginData[pluginName]['callbackId'] = id
+            # scriptJob not respected in batch mode, had to use api
+            #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 ) 
+        else:
+            # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
+            _pluginData[pluginName]['callbackId'] = None
+            addPluginPyNodes()
 
-if __name__ == "__main__":
-    _test()
+            
+
+
+             
+def _pluginUnloaded(*args):
+    args, clientData = args
+    pluginName = args[0]
+    logger.info("Plugin unloaded %s" % pluginName)
+    import core.pmcmds
+    try:
+        data = _pluginData.pop(pluginName)
+    except KeyError: 
+        pass
+    else:
+        # Commands
+        commands = data.pop('commands', [])
+        logger.info("Removing commands: %s", ', '.join( commands ))
+        for command in commands:
+            try:
+                core.pmcmds.removeWrappedCmd(command)
+                _module.__dict__.pop(command)
+            except KeyError:
+                logger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
+                        
+        # Nodes
+        nodes = data.pop('dependNodes', [])
+        logger.debug("Removing nodes: %s" % ', '.join( nodes ))
+        for node in nodes:
+            factories.removePyNode( _module, node )
+
+
+global pluginLoadedCB
+global pluginUnloadedCB
+pluginLoadedCB = None
+pluginUnloadedCB = None
+
+def _installCallbacks():
+    """install the callbacks that trigger new nodes and commands to be added to pymel when a 
+    plugin loads.  This is called from pymel.__init__
+    """
+
+    global pluginLoadedCB
+    if pluginLoadedCB is None:
+        pluginLoadedCB = True
+        logger.debug("Adding pluginLoaded callback")
+        #pluginLoadedCB = pluginLoadedCallback(module)
+        # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
+        cmds.loadPlugin( addCallback='import pymel; pymel._pluginLoaded("%s")' )
+        
+#        if mayahook.Version.current >= mayahook.Version.v2009:
+#            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, pluginLoadedCB  )
+#            id.disown()
+        
+    else:
+        logger.debug("PluginLoaded callback already exists")
+    
+    global pluginUnloadedCB
+    if pluginUnloadedCB is None:
+        pluginUnloadedCB = True
+        
+        # BUG: this line must go through MEL because autodesk still has not add python callback support
+        mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
+        
+#        if mayahook.Version.current >= mayahook.Version.v2009:
+#            logger.debug("Adding pluginUnloaded callback")
+#            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
+#            id.disown()
+        
+
+    else:
+        logger.debug("PluginUnloaded callback already exists")
+
+    # add commands and nodes for plugins loaded prior to importing pymel
+    preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
+    if preLoadedPlugins:
+        logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
+        for plugin in preLoadedPlugins:
+            pluginLoadedCB( plugin )
+
+_installCallbacks()
+
+## some submodules do 'import pymel.core.pmcmds as cmds' -
+## this ensures that when the user does 'from pymel import *',
+## cmds is always maya.cmds
+#import maya.cmds as cmds
+#
+#def _test():
+#    import doctest
+#    doctest.testmod(verbose=True)
+#
+#if __name__ == "__main__":
+#    _test()
