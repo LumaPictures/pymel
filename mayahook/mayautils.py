@@ -759,6 +759,14 @@ def mayaInit(forversion=None) :
             
             refreshEnviron()
             import maya.mel
+            
+            try:
+                maya.mel.eval( 'source initialPluginLoad' )
+                maya.mel.eval( 'source initialPlugins' )
+                maya.mel.eval( 'source initRenderers' )
+            except:
+                pass
+            
             try:
                 # make sure it exists
                 res = maya.mel.eval('whatIs "userSetup.mel"')
