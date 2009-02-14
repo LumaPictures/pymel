@@ -21,8 +21,10 @@ class NameParser(unicode):
     
         # the if statement was failing for some types (ex: pymel.node.Vertex), 
         # so forcing into unicode string:
-
-        newcls = _getParserClass(strObj)
+        if cls is not NameParser:
+            newcls = cls
+        else:
+            newcls = _getParserClass(strObj)
         self = super(NameParser, cls).__new__(newcls, strObj)
         return self
     

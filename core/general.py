@@ -807,13 +807,13 @@ def rename( obj, newname, **kwargs):
 Modifications:
     - if the full path to an object is passed as the new name, the shortname of the object will automatically be used
     """
-    import nodetypes
+    import nodetypes, other
     # added catch to use object name explicitly when object is a Pymel Node
     if isinstance( newname, nodetypes.DagNode ):
         newname = newname.nodeName()
-    if isinstance (obj, nodetypes.DagNode) :
-        obj = obj.nodeName()
-        
+    else:
+        newname = other.DagNodeName(newname).nodeName()
+           
     return PyNode( cmds.rename( obj, newname, **kwargs ) )
     
 def createNode( *args, **kwargs):
