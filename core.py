@@ -802,11 +802,15 @@ Maya Bug Fix:
     - even with the 'force' flag enabled, the command would raise an error if the connection already existed. 
     
     """
-    if kwargs.get('force', False) or kwargs.get('f', False):    
+    if kwargs.get('force', False) or kwargs.get('f', False):
         try:
             cmds.connectAttr( source, destination, **kwargs )
-        except RuntimeError:
-            pass
+        except RuntimeError, e:
+            if not node.Attribute(source).exists():
+                raise Exception("Source attribute '%s' does not exist" % source)
+            if not node.Attribute(destination).exists():
+                raise Exception("Destination attribute '%s' does not exist" % destination)
+            print e
     else:
         cmds.connectAttr( source, destination, **kwargs )
 
