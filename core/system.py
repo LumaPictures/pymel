@@ -93,6 +93,134 @@ def feof( fileid ):
 def sceneName():
     return Path( OpenMaya.MFileIO.currentFile() )    
 
+
+#===============================================================================
+# Namespace
+#===============================================================================
+class Namespace(str):
+
+    @classmethod
+    def getCurrent(cls):
+        return cls(cmds.namespaceInfo(cur=1))
+    
+    @classmethod
+    def create(cls, name):
+        ns = cmds.namespace(add=name)
+        return cls(ns)
+
+    def __new__(cls, namespace, create=False):
+        namespace = ":" + namespace.strip(":")
+        if not cmds.namespace(exists=namespace):
+            if not create:
+                raise ValueError("Namespace '%s' does not exist" % namespace)
+            else:
+                current = Namespace.getCurrent() 
+                Namespace(":").setCurrent()
+                for part in namespace.split(":")[1:]:
+                    if not cmds.namespace(exists=part):
+                        cmds.namespace(add=part)
+                    cmds.namespace(set=part)
+                current.setCurrent()
+                
+        self = str.__new__(cls, namespace)
+        return self
+    
+    def __repr__(self):
+        return "%s('%s')" % (self.__class__.__name__, self)
+
+    def __add__(self, other):
+        return "%s:%s" % (self, other.lstrip(":"))
+    
+    def __cmp__(self, other):
+        return cmp(self.strip(":"), str(other).strip(":"))
+    
+    __eq__ = lambda self, other: self.__cmp__(other)==0
+    __ne__ = lambda self, other: self.__cmp__(other)!=0
+    __le__ = lambda self, other: self.__cmp__(other)<=0
+    __lt__ = lambda self, other: self.__cmp__(other)<0
+    __ge__ = lambda self, other: self.__cmp__(other)>=0
+    __gt__ = lambda self, other: self.__cmp__(other)>0
+    
+    def splitAll(self):
+        return self.strip(":").split(":")
+        
+    def shortName(self): 
+        return self.splitAll()[-1]
+    
+    def getParent(self):
+        return self.__class__(self.splitAll()[:-1]) if (str(self)!=":") else None
+    
+    def ls(self, pattern="*", **kwargs):
+        return general.ls(self + pattern, **kwargs)
+    
+    def getNode(self, nodeName, verify=True):
+        node = general.PyNode(self + nodeName)
+        if verify and not node.exists():
+            raise Exception("Node '%s' does not exist" % node)
+        return node
+    
+    def listNamespaces(self, recursive=False, internal=False):
+        curNS = Namespace.getCurrent()
+        
+        self.setCurrent()
+        try:
+            namespaces = map(self.__class__, cmds.namespaceInfo(listOnlyNamespaces=True) or [])
+            
+            if not internal:
+                for i in [":UI",":shared"]:
+                    if i in namespaces:
+                        namespaces.remove(i)
+                
+            if recursive:
+                childNamespaces = []
+                for ns in namespaces:
+                    try:
+                        childNamespaces.extend(ns.listNamespaces(recursive, internal))
+                    except: pass
+                namespaces.extend(childNamespaces)
+        finally:
+            curNS.setCurrent()
+        
+        return namespaces        
+        
+    def setCurrent(self):
+        cmds.namespace(set=self)
+    
+    def clean(self, haltOnError=True):
+        cur = Namespace.getCurrent()
+        self.setCurrent()
+        toDelete = cmds.namespaceInfo(ls=1, dp=1) or []
+        cur.setCurrent()
+        
+        # reparent 
+        if toDelete:
+            for o in general.ls(toDelete, transforms=True):
+                for c in o.getChildren(fullPath=True, type='transform'):
+                    if self != c.namespace():
+                        _logger.warning("Preserving %r, which was parented under %r" % (c, o))
+                        try:
+                            c.setParent(world=True)
+                        except Exception, e:
+                            if haltOnError:
+                                raise
+                            _logger.error("Could not preserve %r (%s)" % (c,e))
+    
+            toDelete = general.ls(toDelete)
+            if toDelete:
+                _logger.debug("Deleting %d nodes from namespace '%s'" % (len(toDelete), self))
+                for n in toDelete:
+                    _logger.log(5, "\t%s" % n)
+                    n.unlock()
+                general.delete(toDelete)
+
+                
+    def remove(self, haltOnError=True):
+        self.clean(haltOnError=haltOnError)
+        for subns in self.listNamespaces():
+            subns.remove(haltOnError=haltOnError)
+        cmds.namespace(removeNamespace=self)        
+
+
 def listNamespaces():
     """Returns a list of the namespaces of referenced files.
     REMOVE In Favor of listReferences('dict') ?""" 
@@ -101,7 +229,9 @@ def listNamespaces():
     except:
         return []
 
-
+def listNamespaces_new(root=None, recursive=False, internal=False):
+    """Returns a list of the namespaces in the scene"""
+    return Namespace(root or ":").listNamespaces(recursive, internal)
 
 #-----------------------------------------------
 #  Workspace Class
