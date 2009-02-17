@@ -22,29 +22,30 @@ class Vector(list):
         list.__init__(self, elements)
     
     def __repr__(self):
-        return 'Vector(%s)' % list.__repr__(self)    
+        return '%s(%s)' % (self.__class__.__name__, list.__repr__(self))
+        
     def __getslice__(self, i, j):
         try:
             # use the list __getslice__ method and convert
             # result to Vector
-            return Vector(super(Vector, self).__getslice__(i,j))
+            return self.__class__(list.__getslice__(i,j))
         except:
             raise TypeError, 'Vector::FAILURE in __getslice__'
         
     def __add__(self, other):
         try:
-            return Vector(map(lambda x,y: x+y, self, other))
+            return self.__class__(map(lambda x,y: x+y, self, other))
         except:
-            return Vector(map( lambda x: x+other, self))
+            return self.__class__(map( lambda x: x+other, self))
         
     def __neg__(self):
-        return Vector(map(lambda x: -x, self))
+        return self.__class__(map(lambda x: -x, self))
     
     def __sub__(self, other):
         try:
-            return Vector(map(lambda x,y: x-y, self, other))
+            return self.__class__(map(lambda x,y: x-y, self, other))
         except:
-            return Vector(map( lambda x: x-other, self))
+            return self.__class__(map( lambda x: x-other, self))
 
     def __mul__(self, other):
         """
@@ -61,15 +62,15 @@ class Vector(list):
                 #return Matrix( map( lambda x: [x], self ) ) * other
                 dif = other.ncols()-self.size()
                 #print "VEC x MAT"
-                res = Matrix( [list(self) + [1]*dif ]) * other 
-                return res[0][0:self.size()]
+                res = other.__class__( [list(self) + [1]*dif ]) * other 
+                return self.__class__(res[0][0:self.size()])
             else:
                 #print "VEC x VEC"
-                return Vector(map(lambda x,y: x*y, self,other))
+                return self.__class__(map(lambda x,y: x*y, self,other))
 
         #print "VEC x CONST"
         # other is a const
-        return Vector(map(lambda x: x*other, self))
+        return self.__class__(map(lambda x: x*other, self))
 
 
     def __rmul__(self, other):
@@ -82,19 +83,19 @@ class Vector(list):
         Element by element division.
         """
         try:
-            return Vector(map(lambda x,y: x/y, self, other))
+            return self.__class__(map(lambda x,y: x/y, self, other))
         except:
-            return Vector(map(lambda x: x/other, self))
+            return self.__class__(map(lambda x: x/other, self))
 
     def __rdiv__(self, other):
         """
         The same as __div__
         """
         try:
-            return Vector(map(lambda x,y: x/y, other, self))
+            return self.__class__(map(lambda x,y: x/y, other, self))
         except:
             # other is a const
-            return Vector(map(lambda x: other/x, self))
+            return self.__class__(map(lambda x: other/x, self))
 
     def __iadd__(self, other):
         self[:] = self.__add__(other)
@@ -168,15 +169,15 @@ class Vector(list):
 
 
     def conjugate(self):
-        return Vector(map(lambda x: x.conjugate(), self))
+        return self.__class__(map(lambda x: x.conjugate(), self))
 
     def ReIm(self):
         """
         Return the real and imaginary parts
         """
         return [
-            Vector(map(lambda x: x.real, self)),
-            Vector(map(lambda x: x.imag, self)),
+            self.__class__(map(lambda x: x.real, self)),
+            self.__class__(map(lambda x: x.imag, self)),
             ]
 
     def AbsArg(self):
@@ -184,8 +185,8 @@ class Vector(list):
         Return modulus and phase parts
         """
         return [
-            Vector(map(lambda x: abs(x), self)),
-            Vector(map(lambda x: atan2(x.imag,x.real), self)),
+            self.__class__(map(lambda x: abs(x), self)),
+            self.__class__(map(lambda x: atan2(x.imag,x.real), self)),
             ]
 
     def setToZeros(self):
@@ -196,7 +197,7 @@ class Vector(list):
 
     def setToRandom(self, lmin=0.0, lmax=1.0):
         import whrandom
-        new = Vector([])
+        new = self.__class__([])
         gen = whrandom.whrandom()
         self[:] = map( lambda x: (lmax-lmin)*gen.random() + lmin, range(self.size()) )
         
@@ -286,18 +287,18 @@ class Matrix(list):
         
     def __add__(self, other):
         try:
-            return Matrix(map(lambda x,y: x+y, self, other))
+            return self.__class__(map(lambda x,y: x+y, self, other))
         except:
-            return Matrix(map( lambda x: x+other, self))
+            return self.__class__(map( lambda x: x+other, self))
         
     def __neg__(self):
-        return Matrix(map(lambda x: -x, self))
+        return self.__class__(map(lambda x: -x, self))
     
     def __sub__(self, other):
         try:
-            return Matrix(map(lambda x,y: x-y, self, other))
+            return self.__class__(map(lambda x,y: x-y, self, other))
         except:
-            return Matrix(map( lambda x: x-other, self))
+            return self.__class__(map( lambda x: x-other, self))
 
 
     def __mul__(self, other):
@@ -305,7 +306,7 @@ class Matrix(list):
         Element by element multiplication
         """
         temp = other.transpose()
-        return Matrix( [ [ dot(row,col) for col in temp ] for row in self ] )
+        return self.__class__( [ [ dot(row,col) for col in temp ] for row in self ] )
 
     def __rmul__(self, other):
         return (self*other)
@@ -343,7 +344,7 @@ class Matrix(list):
         return len(self.transpose())
     
     def transpose(self):
-        return Matrix( apply( map, [None]+self ) )
+        return self.__class__( apply( map, [None]+self ) )
         
     
 
