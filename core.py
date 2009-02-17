@@ -298,19 +298,19 @@ class Namespace(str):
             for o in ls(toDelete, transforms=True):
                 for c in o.getChildren(fullPath=True, type='transform'):
                     if self != c.namespace():
-                        _logger.warning("Preserving %r, which was parented under %r" % (c, o))
+                        print ("Preserving %r, which was parented under %r" % (c, o))
                         try:
                             c.setParent(world=True)
                         except Exception, e:
                             if haltOnError:
                                 raise
-                            _logger.error("Could not preserve %r (%s)" % (c,e))
+                            print ("Could not preserve %r (%s)" % (c,e))
     
             toDelete = ls(toDelete)
             if toDelete:
-                _logger.debug("Deleting %d nodes from namespace '%s'" % (len(toDelete), self))
+                #_logger.debug("Deleting %d nodes from namespace '%s'" % (len(toDelete), self))
                 for n in toDelete:
-                    _logger.log(5, "\t%s" % n)
+                    #_logger.log(5, "\t%s" % n)
                     n.unlock()
                 cmds.delete(toDelete)
 
