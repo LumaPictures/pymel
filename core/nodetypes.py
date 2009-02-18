@@ -878,6 +878,9 @@ class Attribute(PyNode):
         """
         iterator for multi-attributes
         
+            >>> from pymel import *
+            >>> f=newFile(f=1) #start clean
+            >>> 
             >>> at = PyNode( 'defaultLightSet.dagSetMembers' )
             >>> SpotLight()
             SpotLight(u'spotLightShape1')
@@ -1153,8 +1156,7 @@ class Attribute(PyNode):
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
             >>> from pymel import *
-            >>> newFile(f=1)
-            Path('untitled')
+            >>> f=newFile(f=1) #start clean
             >>> 
             >>> dls = SCENE.defaultLightSet
             >>> dls.dagSetMembers.numElements()
@@ -1191,8 +1193,7 @@ class Attribute(PyNode):
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
             >>> from pymel import *
-            >>> newFile(f=1)
-            Path('untitled')
+            >>> f=newFile(f=1) #start clean
             >>>
             >>> dls = SCENE.defaultLightSet
             >>> dls.dagSetMembers.numElements()
@@ -1701,7 +1702,34 @@ class DependNode( PyNode ):
             return self._updateName()
         else :
             return self._name  
-
+#
+#    def shortName(self):
+#        """
+#        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+#        of nodes that include both Dag and Depend nodes.
+#        
+#        :rtype: `unicode`
+#        """ 
+#        return self.name()
+#
+#    def longName(self):
+#        """
+#        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+#        of nodes that include both Dag and Depend nodes.
+#        
+#        :rtype: `unicode`
+#        """ 
+#        return self.name()
+#
+#    def nodeName(self):
+#        """
+#        This produces the same results as `DependNode.name` and is included to simplify looping over lists
+#        of nodes that include both Dag and Depend nodes.
+#        
+#        :rtype: `unicode`
+#        """ 
+#        return self.name()
+#    
     #rename = rename
     def rename( self, name ):
         """
@@ -2088,13 +2116,13 @@ class DependNode( PyNode ):
         an error will be raised.
 
         >>> SCENE.lambert1.extractNum()
-        u'2'
+        u'1'
         
         :rtype: `unicode`
         """
         
         try:
-            return DependNode._numPartReg.split( self.nodeName() )[1]
+            return DependNode._numPartReg.split( self.name() )[1]
         except IndexError:
             raise ValueError, "No trailing numbers to extract on object %s" % self
 
@@ -2113,7 +2141,7 @@ class DependNode( PyNode ):
         """Increment the trailing number of the object by 1
 
         >>> SCENE.lambert1.nextName()
-        u'lambert2'
+        DependNodeName('lambert2')
         
         :rtype: `unicode`
         """
@@ -2368,8 +2396,7 @@ class DagNode(Entity):
         :rtype: `DagNode` list
         
         >>> from pymel import *
-        >>> newFile(f=1)
-        Path('untitled')
+        >>> f=newFile(f=1) #start clean
         >>>
         >>> s = polyPlane()[0]
         >>> instance(s)
@@ -3518,14 +3545,17 @@ class ObjectSet(Entity):
     create some sets:
     
         >>> from pymel import *
-        >>> newFile(f=1)
+        >>> f=newFile(f=1) #start clean
         >>> 
         >>> s = sets()  # create an empty set
         >>> s.union( ls( type='camera') )  # add some cameras to it
         >>> s.members()  # get members as a list
         [Camera(u'sideShape'), Camera(u'frontShape'), Camera(u'topShape'), Camera(u'perspShape')]
-        >>> s.asSelectionSet() # or as a SelectionSet
+        >>> sel = s.asSelectionSet() # or as a SelectionSet
+        >>> sel # doctest: +SKIP
         SelectionSet([u'sideShape', u'frontShape', u'topShape', u'perspShape'])
+        >>> sorted(sel)
+        [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
         
     Operations between sets result in `SelectionSet` objects:
     
@@ -3533,8 +3563,11 @@ class ObjectSet(Entity):
         >>> t.add( 'perspShape' )  # add the persp camera shape to it
         >>> s.getIntersection(t)
         SelectionSet([u'perspShape'])
-        >>> s.getDifference(t)
+        >>> diff = s.getDifference(t)
+        >>> diff #doctest: +SKIP
         SelectionSet([u'sideShape', u'frontShape', u'topShape'])
+        >>> sorted(diff)
+        [Camera(u'frontShape'), Camera(u'sideShape'), Camera(u'topShape')]
         >>> s.isSuperSet(t)
         True
         
@@ -3642,13 +3675,13 @@ class ObjectSet(Entity):
         "operator for `ObjectSet.union`"
         return self.union(s)
 
-    def __lt__(self, s):
-        "operator for `ObjectSet.isSubSet`"
-        return self.isSubSet(s)
-
-    def __gt__(self, s):
-        "operator for `ObjectSet.isSuperSet`"
-        return self.isSuperSet(s)
+#    def __lt__(self, s):
+#        "operator for `ObjectSet.isSubSet`"
+#        return self.isSubSet(s)
+#
+#    def __gt__(self, s):
+#        "operator for `ObjectSet.isSuperSet`"
+#        return self.isSuperSet(s)
                     
     def __sub__(self, s):
         "operator for `ObjectSet.getDifference`"

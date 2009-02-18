@@ -829,9 +829,11 @@ Modifications
     - resolved confusing syntax: operating set is always the first and only arg:
     
         >>> from pymel import *
+        >>> f=newFile(f=1) #start clean
+        >>> 
         >>> shdr, sg = createSurfaceShader( 'blinn' )
         >>> shdr
-        DependNode(u'blinn1')
+        Blinn(u'blinn1')
         >>> sg
         ShadingEngine(u'blinn1SG')
         >>> s,h = polySphere()
@@ -1047,14 +1049,6 @@ class PyNode(util.ProxyUnicode):
         
     If the passed node or attribute does not exist an error will be raised.
     
-    If the determined type does not match the requested type, an error will be raised.  For example, a lambert node is not
-    a DAG node:
-    
-        >>> DagNode( 'lambert1' )
-        Traceback (most recent call last):
-        ...
-        TypeError: Determined type is Lambert, which is not a subclass of desired type DagNode
-
     """
         
     _name = None              # unicode
@@ -1319,6 +1313,29 @@ class PyNode(util.ProxyUnicode):
         """
         return self.exists()
 
+    def __lt__(self, other):
+        if isinstance(other, (basestring,PyNode) ):
+            return self.name().__lt__( unicode(other) )
+        else:
+            return NotImplemented
+        
+    def __gt__(self, other):
+        if isinstance(other, (basestring,PyNode) ):
+            return self.name().__gt__( unicode(other) )
+        else:
+            return NotImplemented
+        
+    def __le__(self, other):
+        if isinstance(other, (basestring,PyNode) ):
+            return self.name().__le__( unicode(other) )
+        else:
+            return NotImplemented
+        
+    def __ge__(self, other):
+        if isinstance(other, (basestring,PyNode) ):
+            return self.name().__ge__( unicode(other) )
+        else:
+            return NotImplemented
     #-----------------------------------------
     # Name Info and Manipulation
     #-----------------------------------------
@@ -1442,7 +1459,8 @@ def _deprecatePyNode():
         setattr( PyNode, method, g)
         
 
-    for method in ['__contains__',  '__ge__', '__gt__', '__le__', '__lt__', '__len__', 
+    for method in ['__contains__',  '__len__', 
+                            #'__ge__', '__gt__', '__le__', '__lt__',  # still very useful for sorting a list by name
                              '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__',  ]: #'__reduce__' '__radd__', 
         makeDeprecatedMethod( method )                   
 

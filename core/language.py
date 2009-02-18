@@ -10,6 +10,7 @@ import maya.mel as _mm
 import pmcmds as cmds
 #import maya.cmds as cmds
 from pymel.mayahook.optionvars import *
+import pymel.mayahook as mayahook
 import os, inspect
 import factories as _factories
 import pymel.api as api
@@ -129,11 +130,10 @@ class MelGlobals( dict ):
     
     to retrieve existing global variables, just use the name as a key
     
-    >>> melGlobals['gMainFileMenu']
-    'mainFileMenu'
-    >>> # works with or without $
-    >>> melGlobals['$gGridDisplayGridLinesDefault']
-    1
+    >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
+    [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ..., u'registerMayaHardwareRenderer.res.mel']
+    >>> melGlobals['$gv_browserMode'] # works with or without $
+    0
     
     creating new variables requires the use of the initVar function to specify the type
     
@@ -506,11 +506,21 @@ class Mel(object):
         try:
             res = api.MCommandResult()
             api.MGlobal.executeCommand( cmd, res, False, undoState )
-        except:
+        except Exception:
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )
-            id.disown()
-            msg = '\n'.join( errors)
+            # 8.5 fix
+            if hasattr(id, 'disown'):
+                id.disown()
+            
+            try:
+                msg = '\n'.join( errors )
+            except TypeError, msg:
+                if mayahook.Version.current == mayahook.Version.v85:
+                    raise RuntimeError, 'Error occurred during execution of MEL script: advanced exceptions with line numbers are supported only on versions 8.5SP1 and greater'
+                else:
+                    raise msg
+            
             if 'Cannot find procedure' in msg:
                 e = UnknownProcedureError
             elif 'Wrong number of arguments' in msg:
@@ -525,8 +535,9 @@ class Mel(object):
         else:   
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )
-            id.disown()
-            
+            # 8.5 fix
+            if hasattr(id, 'disown'):
+                id.disown()            
             resType = res.resultType()
             
             if resType == api.MCommandResult.kInvalid:
