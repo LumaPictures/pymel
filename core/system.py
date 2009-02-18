@@ -148,7 +148,8 @@ class Namespace(str):
         return self.splitAll()[-1]
     
     def getParent(self):
-        return self.__class__(self.splitAll()[:-1]) if (str(self)!=":") else None
+        if (str(self)!=":"):
+            return self.__class__(self.splitAll()[:-1])
     
     def ls(self, pattern="*", **kwargs):
         return general.ls(self + pattern, **kwargs)
@@ -240,6 +241,8 @@ def listNamespaces_new(root=None, recursive=False, internal=False):
 class WorkspaceEntryDict(object):
     def __init__(self, entryType):
         self.entryType = entryType
+    def __repr__(self):
+        return '%s(%r)' % ( self.__class__.__name__, self.entryType )
     def __getitem__(self, item):
         res = cmds.workspace( item, **{'q' : 1, self.entryType + 'Entry' : 1 } )
         if not res:
@@ -278,17 +281,15 @@ class Workspace(object):
     have a corresponding dictiony for setting and accessing these mappings.
     
         >>> from pymel import *
-        >>> workspace.renderTypes['audio']
-        u'sound'
-        >>> workspace.renderTypes.keys()
-        [u'3dPaintTextures', u'audio', u'clips', u'depth', u'images', u'iprImages', u'lights', u'mentalRay', u'particles', u'renderScenes', u'sourceImages', u'textures']
-        >>> 'DXF' in workspace.fileRules
+        >>> workspace.fileRules['mayaAscii']
+        u'scenes'
+        >>> workspace.fileRules.keys()
+        [u'mayaAscii', u'mayaBinary', u'particles', u'templates']
+        >>> 'mayaBinary' in workspace.fileRules
         True
-        >>> workspace.fileRules['DXF']
-        u'data'
         >>> workspace.fileRules['super'] = 'data'
-        >>> workspace.fileRules.get( 'foo', 'data' )
-        'data'
+        >>> workspace.fileRules.get( 'foo', 'some_default' )
+        'some_default'
         
     the workspace dir can be confusing because it works by maintaining a current working directory that is persistent
     between calls to the command.  In other words, it works much like the unix 'cd' command, or python's 'os.chdir'.
@@ -296,20 +297,21 @@ class Workspace(object):
     to resemble similar commands from the os module.
     
     old way (still exists for backward compatibility)
-        >>> workspace(edit=1, dir='mydir')
-        >>> workspace(query=1, dir=1)
-        u'/Users/chad/Documents/maya/projects/'
+        >>> workspace(dir='mydir')
+        >>> workspace(query=1, dir=1) # doctest: +ELLIPSIS
+        u'/Users/chad/Documents/maya/projects/mydir/'
         >>> workspace(create='mydir')
+        >>> workspace(dir='../')
     
     new way    
         >>> workspace.chdir('mydir')
-        >>> workspace.getcwd()
+        >>> workspace.getcwd() # doctest: +ELLIPSIS
         Path('/Users/chad/Documents/maya/projects/mydir/')
         >>> workspace.mkdir('mydir')
     
     All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
-        >>> workspace.path / workspace.fileRules['DXF']
-        Path('/Users/chad/Documents/maya/projects/default/data')
+        >>> workspace.path / workspace.fileRules['mayaAscii']
+        Path('/Users/chad/Documents/maya/projects/default/scenes')
         
     """
     __metaclass__ = util.Singleton
@@ -319,11 +321,11 @@ class Workspace(object):
     renderTypes = WorkspaceEntryDict( 'renderType' )
     variables     = WorkspaceEntryDict( 'variable' )
     
-    def __init__(self):
-        self.objectTypes = WorkspaceEntryDict( 'objectType' )
-        self.fileRules     = WorkspaceEntryDict( 'fileRule' )
-        self.renderTypes = WorkspaceEntryDict( 'renderType' )
-        self.variables     = WorkspaceEntryDict( 'variable' )
+#    def __init__(self):
+#        self.objectTypes = WorkspaceEntryDict( 'objectType' )
+#        self.fileRules     = WorkspaceEntryDict( 'fileRule' )
+#        self.renderTypes = WorkspaceEntryDict( 'renderType' )
+#        self.variables     = WorkspaceEntryDict( 'variable' )
     
     @classmethod
     def open(self, workspace):
