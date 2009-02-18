@@ -1255,15 +1255,30 @@ class PyNode(util.ProxyUnicode):
     
     def __apimfn__(self):
         try:
+            # if we have it, use it
             return self.__apiobjects__['MFn']
         except KeyError:          
             if self.__apicls__:
+                # use whatever type is appropriate
                 obj = self.__apiobject__()
                 if obj:
-                    mfn = self.__apicls__(obj)
-                    self.__apiobjects__['MFn'] = mfn
-                    return mfn
-            
+                    try:
+                        mfn = self.__apicls__(obj)
+                        self.__apiobjects__['MFn'] = mfn
+                        
+                    except RuntimeError:
+                        # when using PyNodes in strange places, like node creation callbacks, the proper MFn does not work yet, so we default to
+                        # a super class and don't save it, so that we can get the right one later
+                        if isinstance(obj, api.MDagPath):
+                            mfn = api.MFnDagNode( obj )
+                            _logger.warning( "Could not create desired MFn. Defaulting to MFnDagNode." )
+                            
+                        elif isinstance(obj, api.MObject):
+                            mfn = api.MFnDependencyNode( obj ) 
+                            _logger.warning( "Could not create desired MFn. Defaulting to MFnDependencyNode." )
+                        else:
+                            raise
+                    return mfn  
     def __repr__(self):
         """
         :rtype: `unicode`
