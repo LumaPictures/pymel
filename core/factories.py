@@ -2497,10 +2497,9 @@ def interface_wrapper( doer, args=[], defaults=[], runtimeArgs=False, runtimeKwa
     for i, arg in enumerate(args):
         if i >= offset:
             default = defaults[i-offset]
-            if isinstance( default, util.EnumValue ):
-                defaultStr = repr( str(default) )
-            else:
-                defaultStr = repr(default)
+            if not hasattr(default, '__repr__'):
+                raise ValueError, "default values must have a __repr__ method"
+            defaultStr = repr(default)
             kwargs.append( '%s=%s' % (arg, defaultStr ) )
         else:
             kwargs.append( str(arg) )
@@ -2702,10 +2701,17 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         
         wrappedApiFunc = _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex, undoable )
    
-        defaults = argHelper.getDefaults()
-            
+        # format EnumValue defaults
+        defaults = []
+        for default in argHelper.getDefaults():
+            if isinstance( default, util.EnumValue ):
+                defaults.append( repr( str(default) ) )
+            else:
+                defaults.append( default )
+                     
         #_logger.debug(inArgs, defaults)
         if defaults: _logger.debug("defaults: %s" % defaults)
+        
         wrappedApiFunc = interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
         
         if argHelper.isStatic():
