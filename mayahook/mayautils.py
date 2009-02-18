@@ -205,14 +205,25 @@ def getMayaVersion(running=True, installed=True, extension=True):
     # ...then, for non-standard installation directories, call the maya binary for the version.
     # we try this as a last resort because of potential load-time slowdowns
     
-
+    version = None
+    
     fns = []
     if running :
-        fns.append(getRunningMayaVersionString)
+        try :
+            from maya.cmds import about
+            version = about(file=True)
+            if extension and about(is64=1):
+                version += '-x64'
+            return version
+        except :
+            pass
+        
+        #fns.append(getRunningMayaVersionString)
+        
     if installed :
         fns.append(getMayaLocation)
         fns.append(_getVersionStringFromExecutable)
-    version = None   
+    
     for versionFunction in fns:
         try:
             version = parseVersionStr(versionFunction(), extension)
@@ -765,14 +776,21 @@ def mayaInit(forversion=None) :
                 maya.mel.eval( 'source initialPlugins' )
                 maya.mel.eval( 'source initRenderers' )
             except:
-                pass
+                _logger.warn( "could not perform maya initialization sequence" )
             
+            try:
+                prefsFile = os.path.join( os.environ['MAYA_APP_DIR'], mayaVersion, 'prefs', 'userPrefs.mel' )
+                maya.mel.eval( 'source "%s"' % prefsFile )
+            except:
+                _logger.warn( "could not load user preferences: %s" % prefsFile )
+                
             try:
                 # make sure it exists
                 res = maya.mel.eval('whatIs "userSetup.mel"')
                 if res != 'Unknown':
                     maya.mel.eval( 'source "userSetup.mel"')
             except RuntimeError: pass
+            
         except ImportError, msg:
             warn("Unable to import maya.standalone to start Maya: "+msg, UserWarning)
 
