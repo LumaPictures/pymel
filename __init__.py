@@ -1455,13 +1455,13 @@ def _installCallbacks():
     if pluginUnloadedCB is None:
         pluginUnloadedCB = True
         
-        # BUG: this line must go through MEL because autodesk still has not add python callback support
-        mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
+        # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
+        #mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
         
-#        if mayahook.Version.current >= mayahook.Version.v2009:
-#            logger.debug("Adding pluginUnloaded callback")
-#            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
-#            id.disown()
+        if mayahook.Version.current >= mayahook.Version.v2009:
+            logger.debug("Adding pluginUnloaded callback")
+            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
+            id.disown()
         
 
     else:
