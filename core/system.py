@@ -236,6 +236,22 @@ def listNamespaces_new(root=None, recursive=False, internal=False):
     """Returns a list of the namespaces in the scene"""
     return Namespace(root or ":").listNamespaces(recursive, internal)
 
+
+def namespaceInfo(*args, **kwargs):
+    """
+Modifications:
+    - returns an empty list when the result is None
+    - returns wrapped classes for flags listNamespace and listOnlyDependencyNodes
+    """
+    if kwargs.get('ls', kwargs.get('listNamespace', False) ) or kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) ):
+        kwargs['dagPath'] = True
+        res = cmds.namespaceInfo(*args, **kwargs)
+        res = util.listForNone(res)
+        return [general.PyNode(x) for x in res ]
+    
+    return cmds.namespaceInfo(*args, **kwargs)
+
+        
 #-----------------------------------------------
 #  Translator Class
 #-----------------------------------------------
