@@ -198,14 +198,57 @@ else:
             long_attrs = pymel.cmds.listAttr( node )
             short_attrs = pymel.cmds.listAttr( node , shortNames=1)
             
+            matches = self.Completer.python_matches(text)
+            
             # if node is a plug  ( 'persp.t' ), the first result will be the passed plug
             if '.' in node:
                 attrs = long_attrs[1:] + short_attrs[1:]
             else:
                 attrs = long_attrs + short_attrs
-            return [ expr + '.' + at for at in attrs ]    
+            return matches + [ expr + '.' + at for at in attrs ]    
 
         raise IPython.ipapi.TryNext 
+
+    def buildRecentFileMenu():
+
+        if "RecentFilesList" not in pymel.optionVar:
+            return
+    
+        # get the list
+        RecentFilesList = pymel.optionVar["RecentFilesList"]
+        nNumItems = len(RecentFilesList)
+        RecentFilesMaxSize = pymel.optionVar["RecentFilesMaxSize"]
+    
+#        # check if there are too many items in the list
+#        if (RecentFilesMaxSize < nNumItems):
+#            
+#            #if so, truncate the list
+#            nNumItemsToBeRemoved = nNumItems - RecentFilesMaxSize
+#    
+#            #Begin removing items from the head of the array (least recent file in the list)
+#            for ($i = 0; $i < $nNumItemsToBeRemoved; $i++):
+#
+#                pymel.optionVar -removeFromArray "RecentFilesList" 0;
+#
+#            RecentFilesList = pymel.optionVar["RecentFilesList"]
+#            nNumItems = len($RecentFilesList);
+
+    
+        # The RecentFilesTypeList optionVar may not exist since it was
+        # added after the RecentFilesList optionVar. If it doesn't exist,
+        # we create it and initialize it with a guess at the file type
+        if nNumItems > 0 :
+            if "RecentFilesTypeList" not in pymel.optionVar:
+                pymel.mel.initRecentFilesTypeList( RecentFilesList )
+                
+            RecentFilesTypeList = pymel.optionVar["RecentFilesTypeList"]
+
+            
+        #toNativePath
+        # first, check if we are the same.
+    
+
+
     
     #ip.set_hook('complete_command', IPython.Extensions.ipy_cyeahompleters.cd_completer , re_key = regkey )
     #ip.set_hook('complete_command', filepath_completer , re_key = ".+(?:(?:\s+|\()'?)" )
@@ -216,3 +259,12 @@ else:
     ip.ex("from pymel import *")
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
+    
+    ip.ex("""
+import os.path
+for _mayaproj in optionVar['RecentProjectsList']:
+    _mayaproj = os.path.join( _mayaproj, 'scenes' )
+    if _mayaproj not in _dh:
+        _dh.append(_mayaproj)
+del(_mayaproj)""")
+
