@@ -3226,7 +3226,7 @@ class Mesh(SurfaceShape):
     ...     avgLen=totalLen / edgCnt
     ...     #print avgLen
     ...     currColor = vtx.getColor(0)
-    ...     color = Color.black
+    ...     color = datatypes.Color.black
     ...     # only set blue if it has not been set before
     ...     if currColor.b<=0.0:
     ...         color.b = avgLen

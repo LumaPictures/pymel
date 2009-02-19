@@ -2191,7 +2191,7 @@ class ApiArgUtil(object):
                 try:
                     return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
                 except ValueError:
-                    raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
+                    raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
                 
         elif input is not None:
 #            try:
@@ -2705,7 +2705,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         defaults = []
         for default in argHelper.getDefaults():
             if isinstance( default, util.EnumValue ):
-                defaults.append( repr( str(default) ) )
+                defaults.append( str(default) )
             else:
                 defaults.append( default )
                      

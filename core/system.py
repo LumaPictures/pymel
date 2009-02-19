@@ -22,6 +22,7 @@ some of the new commands were changed slightly from their flag name to avoid nam
 
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
     >>> createReference( expFile )
+    FileReference(u'testRN', u'/var/tmp/test.ma')
 
 Also, note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
 

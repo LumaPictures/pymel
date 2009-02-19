@@ -27,7 +27,7 @@ class testCase_references(unittest.TestCase):
         expFile = exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
 
         impFile = importFile( expFile ) 
-        exportAll( os.path.join( temp, 'all.ma' ), preserveReferences=1, force=1)
+        exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
         
         
     
