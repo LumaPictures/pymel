@@ -68,10 +68,9 @@ except (KeyError, AssertionError):
 
 
 def _getTypeFromExtension( path ):
-    return {
-        '.ma' : 'mayaAscii',
-        '.mb' :    'mayaBinary'
-    }[Path(path).ext]
+    ext = Path(path).ext
+    return str(Translator.fromExtension(ext))
+
 
 
 def feof( fileid ):
@@ -236,6 +235,72 @@ def listNamespaces_new(root=None, recursive=False, internal=False):
     """Returns a list of the namespaces in the scene"""
     return Namespace(root or ":").listNamespaces(recursive, internal)
 
+#-----------------------------------------------
+#  Translator Class
+#-----------------------------------------------
+
+class Translator(object):
+    """
+    >>> tma = Translator('mayaAscii')
+    >>> tma.ext
+    u'ma'
+    >>> tmb =Translator.fromExtension( 'mb' )
+    >>> tmp
+    Translator(u'mayaBinary')
+    >>> tmp.name
+    u'mayaBinary'
+    >>> tmb.hasReadSupport()
+    True
+    
+    """
+    
+    @staticmethod
+    def listRegistered( ):
+        return cmds.translator(q=1,list=1)
+    
+    @staticmethod
+    def fromExtension( ext ):
+        if ext.startswith('.'): 
+            ext = ext[1:]
+        for k in Translator.listRegistered():
+            t = Translator(k)
+            if ext == t.ext:
+                return t
+        
+    def __init__(self, name):
+        assert name in cmds.translator(q=1,list=1), "%s is not the name of a registered translator" % name
+        self._name = unicode(name)
+    
+    def __str__(self):
+        return self._name
+    
+    def __repr__(self):
+        return '%s(%r)' % ( self.__class__.__name__, self._name )
+    
+    def extension(self):
+        return cmds.translator(self._name, q=1, ext=1)
+    ext = property(extension)
+    name = property(__str__)
+    def filter(self):
+        return cmds.translator(self._name, q=1, filter=1)
+    def optionsScript(self):
+        return cmds.translator(self._name, q=1, optionsScript=1)
+
+    def hasReadSupport(self):
+        return bool( cmds.translator(self._name, q=1, readSupport=1) )
+    def hasWriteSupport(self):
+        return ( cmds.translator(self._name, q=1, writeSupport=1) )
+    
+    def getDefaultOptions(self):
+        return cmds.translator(self._name, q=1, defaultOptions=1)
+    def setDefaultOptions(self, options):
+        cmds.translator(self._name, e=1, defaultOptions=options)  
+    def getFileCompression(self):
+        return cmds.translator(self._name, q=1, fileCompression=1)
+    def setFileCompression(self, compression):
+        cmds.translator(self._name, e=1, fileCompression=compression)  
+    
+    
 #-----------------------------------------------
 #  Workspace Class
 #-----------------------------------------------
@@ -1269,9 +1334,12 @@ def newFile( **kwargs ):
 @createflag('file', 'open')
 def openFile( filepath, **kwargs ):
     res = cmds.file( filepath, **kwargs)
-    if res is None:
-        return Path(filepath)
-    return Path(res)
+    # this command seems to return the last accessed file, which may be a reference
+    # i think we're better off spitting the passed path back out
+#    if res is None:
+#        return Path(filepath)
+#    return Path(res)
+    return sceneName()
 
 @addMelDocs('file', 'rename')
 def renameFile( *args, **kwargs ):
