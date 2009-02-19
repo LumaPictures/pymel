@@ -1268,7 +1268,7 @@ class PyNode(util.ProxyUnicode):
                         
                     except RuntimeError:
                         # when using PyNodes in strange places, like node creation callbacks, the proper MFn does not work yet, so we default to
-                        # a super class and don't save it, so that we can get the right one later
+                        # a super class and we don't save it, so that we can get the right one later
                         if isinstance(obj, api.MDagPath):
                             mfn = api.MFnDagNode( obj )
                             _logger.warning( "Could not create desired MFn. Defaulting to MFnDagNode." )
@@ -1291,6 +1291,10 @@ class PyNode(util.ProxyUnicode):
         else:
             raise TypeError, "cannot concatenate '%s' and '%s' objects" % ( other.__class__.__name__, self.__class__.__name__)
 
+    def __reduce__(self):
+        """allows PyNodes to be pickled"""
+        return (PyNode, (self.name(),) )
+    
     def __eq__(self, other):
         """
         :rtype: `bool`
@@ -1361,9 +1365,10 @@ class PyNode(util.ProxyUnicode):
         The optional levels keyword specifies how many levels of cascading namespaces to strip, starting with the topmost (leftmost).
         The default is 0 which will remove all namespaces.
         
-        :rtype: `unicode`
-        """
+        :rtype: `other.NameParser`
         
+        """
+        import other
         nodes = []
         for x in self.split('|'):
             y = x.split('.')
@@ -1374,13 +1379,13 @@ class PyNode(util.ProxyUnicode):
             else:
                 y[0] = z[-1]
             nodes.append( '.'.join( y ) )
-        return self.__class__( '|'.join( nodes) )
+        return other.NameParser( '|'.join( nodes) )
 
     def swapNamespace(self, prefix):
         """Returns the object's name with its current namespace replaced with the provided one.  
         The calling instance is unaffected.
         
-        :rtype: `unicode`
+        :rtype: `other.NameParser`
         """    
         return self.addPrefix( self.stripNamespace(), prefix+':' )
             
@@ -1406,8 +1411,9 @@ class PyNode(util.ProxyUnicode):
     def addPrefix(self, prefix):
         """Returns the object's name with a prefix added to the beginning of the name
         
-        :rtype: `unicode`
+        :rtype: `other.NameParser`
         """
+        import other
         name = self
         leadingSlash = False
         if name.startswith('|'):
@@ -1416,7 +1422,7 @@ class PyNode(util.ProxyUnicode):
         name =  '|'.join( map( lambda x: prefix+x, name.split('|') ) ) 
         if leadingSlash:
             name = '|' + name
-        return name 
+        return other.NameParser(name) 
                 
 
 
