@@ -1699,9 +1699,11 @@ class DependNode( PyNode ):
         """
         
         if update or self._name is None:
-            return self._updateName()
-        else :
-            return self._name  
+            try:
+                return self._updateName()
+            except MayaObjectError:
+                _logger.warn( "object %s no longer exists" % self._name ) 
+        return self._name  
 #
 #    def shortName(self):
 #        """
@@ -1748,6 +1750,7 @@ class DependNode( PyNode ):
         handle = self.__apihandle__()
         if api.isValidMObjectHandle( handle ) :
             return handle.object()
+        raise MayaNodeError( self._name )
         
     def __apihandle__(self) :
         return self.__apiobjects__['MObjectHandle']
@@ -2204,12 +2207,14 @@ class DagNode(Entity):
         return self._name                       
             
     def name(self, update=True, long=False) :
-        if update or long or self._name is None:
-            return self._updateName(long)
-        else :
-            return self._name
         
-
+        if update or long or self._name is None:
+            try:
+                return self._updateName()
+            except MayaObjectError:
+                _logger.warn( "object %s no longer exists" % self._name ) 
+        return self._name  
+    
     def longName(self):
         """
         The full dag path to the object, including leading pipe ( | )
@@ -2270,7 +2275,10 @@ class DagNode(Entity):
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
-            handle = api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
+            try:
+                handle = api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
+            except RuntimeError:
+                raise MayaNodeError( self._name )
             self.__apiobjects__['MObjectHandle'] = handle
         return handle
     
@@ -2484,7 +2492,17 @@ class DagNode(Entity):
              
         res = PyNode( res )
         return res
-                    
+    
+    def getAllParents(self):
+        """return a list of all transforms above this node"""
+        x = self.getParent()
+        res = []
+        while x:
+            res.append(x)
+            x = x.getParent()
+        return res      
+                
+                     
     def getChildren(self, **kwargs ):
         """
         see also `childAtIndex`
@@ -3767,7 +3785,12 @@ class ObjectSet(Entity):
         """
         return list( self.asSelectionSet(flatten) )
 
-    elements = util.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )( members ) 
+    @util.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
+    def elements(self, flatten=False):
+        """return members as a list
+        :rtype: `list`
+        """
+        return list( self.asSelectionSet(flatten) )
     
     def flattened(self):
         """return a flattened list of members.  equivalent to `ObjectSet.members(flatten=True)`
@@ -3934,7 +3957,6 @@ def _getPymelType(arg) :
                 raise MayaNodeError
     obj = None
     results = {}
-    objName = None
     
     passedType = ''
     isAttribute = False
@@ -3991,7 +4013,7 @@ def _getPymelType(arg) :
     if not isAttribute:
         pymelType = getPymelTypeFromObject( obj ) 
     
-    return pymelType, results, objName
+    return pymelType, results
 
 
 #def listToMSelection( objs ):

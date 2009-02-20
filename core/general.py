@@ -1134,10 +1134,12 @@ class PyNode(util.ProxyUnicode):
                         
                 elif hasattr( argObj, '__module__') and argObj.__module__.startswith( 'maya.OpenMaya' ) :
                     pass
+                
                 #elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
                 else:
                     # convert to string then to api objects.
-                    res = api.toApiObject( unicode(argObj), dagPlugs=True )
+                    name = unicode(argObj)
+                    res = api.toApiObject( name, dagPlugs=True )
                     # DagNode Plug
                     if isinstance(res, tuple):
                         # Plug or Component
@@ -1152,6 +1154,7 @@ class PyNode(util.ProxyUnicode):
                     elif res:
                         argObj = res
                     else:
+                        # the object doesn't exist: raise an error
                         try:
                             strArg = unicode(argObj)
                         except:
@@ -1174,7 +1177,7 @@ class PyNode(util.ProxyUnicode):
                 
             #-- All Others
             else:
-                pymelType, obj, name = nodetypes._getPymelType( argObj )
+                pymelType, obj = nodetypes._getPymelType( argObj )
             #print pymelType, obj, name, attrNode
             
             # Virtual (non-existent) objects will be cast to their own virtual type.
@@ -1434,10 +1437,12 @@ class PyNode(util.ProxyUnicode):
 
     def exists(self, **kwargs):
         "objExists"
-        if self.__apiobject__() :
-            return True
-        else :
-            return False
+        try:
+            if self.__apiobject__() :
+                return True
+        except MayaObjectError:
+            pass
+        return False
                  
     objExists = exists
         
