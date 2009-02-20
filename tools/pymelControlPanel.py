@@ -741,6 +741,33 @@ class MethodRow(object):
         type = str(type)
         return type == 'MVector' or type.startswith('double')
 
+def getApiClassName( className ):
+    pymelClass = None
+    try:
+        pymelClass = getattr(core.nodetypes, className)
+    except AttributeError:
+        try:
+            pymelClass = getattr(core.datatypes, className)
+        except AttributeError:
+            logger.warning( "could not find class %s" % (className) )
+    
+    if pymelClass:
+            
+        apiClass = None
+        apiClassName = None
+        #if cls.__name__ not in ['object']:             
+        try:
+            apiClass = pymelClass.__dict__[ '__apicls__']
+            apiClassName = apiClass.__name__   
+        except KeyError:
+            try:
+                apiClass = pymelClass.__dict__[ 'apicls']
+                apiClassName = apiClass.__name__   
+            except KeyError:
+                #print "could not determine api class for", cls.__name__
+                apiClassName = None
+        return apiClassName           
+            
 def getClassHierarchy( className ):
     pymelClass = None
     try:
