@@ -940,7 +940,7 @@ class MetaTree(type):
                 value = self.value
                 result = ""
                 if value :
-                    result += u">"*depth+u"%s\n" % value
+                    result += u"_"*depth+u".%s\n" % value
                 for c in self.childs() :
                     result += c.formatted(depth+1)
                 return result    
@@ -1198,9 +1198,24 @@ def treeFromChildLink (isExactChildFn, *args):
         >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'a', 'b', 'bb', 'ab', 'bab', 'bba']
         >>> def isChild(s1, s2) :
         ...     return s1.startswith(s2) and len(s1)==len(s2)+1
+        ... 
         >>> a = treeFromChildLink (isChild, *lst)
-        >>> print a[0].formatted()
-        A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
+        >>> print a.formatted()
+        _.a
+        __.aa
+        ___.aab
+        __.ab
+        ___.aba
+        _.b
+        __.ba
+        ___.bab
+        __.bb
+        ___.bbb
+        ___.bba
+        <BLANKLINE>
+
+    A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
+    
         >>> def isChild(s1, s2) :
         ...     return s1.startswith(s2) 
         >>> forest = treeFromChildLink (isChild, lst)

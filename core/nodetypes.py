@@ -2210,7 +2210,7 @@ class DagNode(Entity):
         
         if update or long or self._name is None:
             try:
-                return self._updateName()
+                return self._updateName(long)
             except MayaObjectError:
                 _logger.warn( "object %s no longer exists" % self._name ) 
         return self._name  
@@ -2957,14 +2957,17 @@ class Transform(DagNode):
     @addApiDocs( api.MFnTransform, 'setRotation' )
     def setRotation(self, rotation, space='world', **kwargs):
         space = self._getSpaceArg(space, kwargs )
-        quat = api.MQuaternion(rotation)
-        self.__apimfn__().setRotation(quat, datatypes.Spaces.getIndex(space) )
+        rotation = list(rotation)
+        if len(rotation) == 3:
+            rotation.append(1.0)
+        quat = api.MQuaternion(*rotation)
+        api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
       
     @addApiDocs( api.MFnTransform, 'getRotation' )
     def getRotation(self, space='world', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         quat = api.MQuaternion()
-        self.__apimfn__().getRotation(quat, datatypes.Spaces.getIndex(space) )
+        api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
         return datatypes.EulerRotation( quat.asEulerRotation() )
 
     

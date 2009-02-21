@@ -258,15 +258,15 @@ Modifications:
 
 class Translator(object):
     """
-    >>> tma = Translator('mayaAscii')
-    >>> tma.ext
+    >>> ascii = Translator('mayaAscii')
+    >>> ascii.ext
     u'ma'
-    >>> tmb =Translator.fromExtension( 'mb' )
-    >>> tmp
+    >>> bin = Translator.fromExtension( 'mb' )
+    >>> bin
     Translator(u'mayaBinary')
-    >>> tmp.name
+    >>> bin.name
     u'mayaBinary'
-    >>> tmb.hasReadSupport()
+    >>> bin.hasReadSupport()
     True
     
     """
@@ -381,21 +381,24 @@ class Workspace(object):
     to resemble similar commands from the os module.
     
     old way (still exists for backward compatibility)
-        >>> workspace(dir='mydir')
-        >>> workspace(query=1, dir=1) # doctest: +ELLIPSIS
-        u'/Users/chad/Documents/maya/projects/mydir/'
+        >>> proj = workspace(query=1, dir=1) 
+        >>> proj  # doctest: +ELLIPSIS
+        u'.../Documents/maya/projects/'
         >>> workspace(create='mydir')
-        >>> workspace(dir='../')
-    
+        >>> workspace(dir='mydir') # move into new dir
+        >>> workspace(dir=proj) # change back to original dir
+        
     new way    
-        >>> workspace.chdir('mydir')
-        >>> workspace.getcwd() # doctest: +ELLIPSIS
-        Path('/Users/chad/Documents/maya/projects/mydir/')
+        >>> proj = workspace.getcwd() # doctest: +ELLIPSIS
+        >>> proj  # doctest: +ELLIPSIS
+        Path('.../Documents/maya/projects/')
         >>> workspace.mkdir('mydir')
+        >>> workspace.chdir('mydir')
+        >>> workspace.chdir(proj)
     
     All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
-        >>> workspace.path / workspace.fileRules['mayaAscii']
-        Path('/Users/chad/Documents/maya/projects/default/scenes')
+        >>> workspace.path / workspace.fileRules['mayaAscii']  # doctest: +ELLIPSIS
+        Path('.../Documents/maya/projects/default/scenes')
         
     """
     __metaclass__ = util.Singleton
@@ -1066,17 +1069,19 @@ class FileReference(object):
 
     @addMelDocs('file', 'exportAnimFromReference')    
     def exportAnim( self, exportPath, **kwargs ):
+        kwargs['exportAnimFromReference'] = 1
         if 'type' not in kwargs and 'typ' not in kwargs:
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
-        return Path(cmds.file( exportPath, rfn=self.refNode, exportAnimFromReference=1))
+        return Path(cmds.file( exportPath, rfn=self.refNode, **kwargs))
           
     @addMelDocs('file', 'exportSelectedAnimFromReference')    
     def exportSelectedAnim( self, exportPath, **kwargs ):
+        kwargs['exportSelectedAnimFromReference'] =1
         if 'type' not in kwargs and 'typ' not in kwargs:
             try: kwargs['type'] = _getTypeFromExtension(exportPath)
             except: pass
-        return Path(cmds.file( exportPath, rfn=self.refNode, exportSelectedAnimFromReference=1))
+        return Path(cmds.file( exportPath, rfn=self.refNode, **kwargs))
 
 
     def getReferenceEdits(self, **kwargs):
@@ -1298,7 +1303,7 @@ def exportAnim( exportPath, **kwargs ):
     if 'type' not in kwargs and 'typ' not in kwargs:
         try: kwargs['type'] = _getTypeFromExtension(exportPath)
         except: pass
-    kwargs['exportSelectedAnim'] = True
+    kwargs['exportAnim'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
         return Path(exportPath)

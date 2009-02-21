@@ -28,8 +28,9 @@ class testCase_references(unittest.TestCase):
 
         impFile = importFile( expFile ) 
         exportAll( os.path.join( self.temp, 'all.ma' ), preserveReferences=1, force=1)
-        
-        
+        exportAnim( os.path.join( self.temp, 'anim.ma' ), force=1)
+        select(SCENE.persp)
+        exportSelectedAnim( os.path.join( self.temp, 'selAnim.ma' ), force=1)
     
     def test_file_reference(self):
         self.assert_( isinstance( self.sphereRef1, FileReference ) )
@@ -39,8 +40,11 @@ class testCase_references(unittest.TestCase):
         self.sphereRef1.unload()
         self.assert_( self.sphereRef1.isDeferred() )
         self.sphereRef1.load()
-        self.sphereRef1.exportAnim( os.path.join( self.temp, 'anim' ) )
+        self.sphereRef1.exportAnim( os.path.join( self.temp, 'refAnim.ma' ), force=1 )
+        select( self.sphereRef1.nodes() )
+        self.sphereRef1.exportSelectedAnim( os.path.join( self.temp, 'selRefAnim.ma' ), force=1 )
         self.sphereRef1.remove()
+        self.sphereRef2.importContents()
         
     def tearDown(self):
         newFile(f=1)

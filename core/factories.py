@@ -2623,7 +2623,11 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 getter = getattr( self, getterArgHelper.getPymelName() )
                 setter = getattr( self, pymelName )
                 
-                getterResult = getter( *getterArgs )
+                try:
+                    getterResult = getter( *getterArgs )
+                except RuntimeError:
+                    _logger.error( "the arguments at time of error were %r" % getterArgs)
+                    raise
                 # when a command returns results normally and passes additional outputs by reference, the result is returned as a tuple
                 # otherwise, always as a list
                 if not isinstance( getterResult, tuple ):

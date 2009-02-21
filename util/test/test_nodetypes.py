@@ -85,6 +85,7 @@ def testInvertibles():
                             args = [obj] + args
                             def checkSetter( setter, args ):
                                 setter( *args )
+                                mel.undo()
                             checkSetter.description = descr
                             yield checkSetter, setter, args
                         except KeyError, msg:
