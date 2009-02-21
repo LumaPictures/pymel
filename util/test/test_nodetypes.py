@@ -6,8 +6,10 @@ def getFundamentalTypes():
     leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     return sorted( set(classList).intersection(leaves) )
 
-EXCEPTIONS = ['MotionPath']
-  
+EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
+ 
+
+     
 def testInvertibles():
     classList = getFundamentalTypes()
     print classList
@@ -17,24 +19,32 @@ def testInvertibles():
         except AttributeError:
             print "could not find", pynodeName
             continue
-        if not issubclass( pynode, PyNode ) or pynodeName in EXCEPTIONS:
-            continue
         
-        for pymelClassName, apiClassName in getClassHierarchy(pynodeName):
+        if not issubclass( pynode, PyNode ) or issubclass(pynode, GeometryShape) or pynodeName in EXCEPTIONS:
+            continue
+
+        obj = createNode( util.uncapitalize(pynodeName) )
+        print repr(obj)
+            
+        for className, apiClassName in getClassHierarchy(pynodeName):
+            
             if apiClassName not in api.apiClassInfo:
                 continue
+            
+            #print className, apiClassName
+            
             classInfo = api.apiClassInfo[apiClassName]
             invertibles = classInfo['invertibles']
+            #print invertibles
 
-            obj = createNode( util.uncapitalize(pynodeName) )
-            print repr(obj)
                             
             for setMethod, getMethod in invertibles:
                 info = classInfo['methods'][setMethod]
                 try:
                     setMethod = info[0]['pymelName']
                 except KeyError: pass
-                setMethod, data = factories._getApiOverrideNameAndData( pynodeName, setMethod )
+                
+                setMethod, data = factories._getApiOverrideNameAndData( className, setMethod )
                 try:
                     overloadIndex = data['overloadIndex']
                     info = info[overloadIndex]
@@ -45,34 +55,42 @@ def testInvertibles():
                     except AttributeError: pass
                     else:
                         typeMap = {   'bool' : True,
-                            'double' : 0.5,
-                            'float': 0.5,
+                            'double' : 2.5, # min required for setFocalLength
+                            'double3' : ( 1.0, 2.0, 3.0),
+                            'MEulerRotation' : ( 1.0, 2.0, 3.0),
+                            'float': 2.5,
                             'MFloatArray': [1.1, 2.2, 3.3],
                             'MString': 'thingie',
                             'float2': (.1, .2),
                             'MPoint' : [1,2,3],
                             'short': 1,
                             'MColor' : [1,0,0],
-                            'MColorArray': ( [1,0,0], [0,1,0] ),
+                            'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
                             'MVector' : [1,0,0],
-                            'MVectorArray': ( [1,0,0], [0,1,0] ),
+                            'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
                             'int' : 1,
                             'MIntArray': [1,2,3],
                             'MSpace.Space' : 'world'
                         }
                         
                         inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
-                        types = [ info['types'][arg] for arg in inArgs ]
+                        types = [ str(info['types'][arg]) for arg in inArgs ]
                         try:
                             args = [ typeMap[typ] for typ in types ]
-                            print pynodeName, setMethod, getMethod, args
-                            try:
-                                setter( obj, *args )
-                            except Exception, e:
-                                print str(e)
+                            descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
+#                            try:
+#                                setter( obj, *args )
+#                            except Exception, e:
+#                                print str(e)
+                            args = [obj] + args
+                            def checkSetter( setter, args ):
+                                setter( *args )
+                            checkSetter.description = descr
+                            yield checkSetter, setter, args
                         except KeyError, msg:
                             print str(msg)
-            
+        try: 
             delete( obj )
-
+        except:
+            pass
                     #print types

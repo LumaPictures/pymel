@@ -2653,12 +2653,17 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     result = method( *newargs )
                 else:
                     if proxy:
-                        result = method( self.__apimfn__(), *newargs )
+                        # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a 
+                        # subclass of the api class being wrapped, however, the api object can still be used with this mfn explicitly.
+                        mfn = self.__apimfn__()
+                        if not isinstance(mfn, apiClass):
+                            mfn = apiClass( self.__apiobject__() )
+                        result = method( mfn, *newargs )
                     else:
                         result = method( self, *newargs )
                 
             except RuntimeError:
-                _logger.info(newargs)
+                _logger.error( "the arguments at time of error were %r" % newargs)
                 raise
                           
 #            if argHelper.isStatic():

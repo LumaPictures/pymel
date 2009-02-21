@@ -11,5 +11,5 @@ import nose
 #SKIP_MAYA_2009 = doctest.register_optionflag('SKIP_MAYA_2009')
 
 #class MayaOutputChecker(doctest.
-
-nose.main( argv=['empty'] + "--with-doctest -v pymel --pdb --noexe --exclude (windows)|(tools)|(arrays)|(example1)|(.*testingutils)|(pmcmds)|(testPa)".split() )
+#--pdb 
+nose.main( argv=['empty'] + "--with-doctest -v pymel --noexe --exclude (windows)|(tools)|(arrays)|(example1)|(.*testingutils)|(pmcmds)|(testPa)".split() )
