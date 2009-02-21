@@ -107,10 +107,12 @@ Unlike the maya module, PyMEL behaves the same in a standalone interpreter as it
 When pymel detects that it is being imported in a standalone
 interpreter it performs these operations:
 
-    1. initializes maya.standalone
-    2. parses your Maya.env and adds variables to your environment
-    3. sources userSetup.mel
-
+    #. initializes maya.standalone
+    #. parses your Maya.env and adds variables to your environment
+    #. sources Autodesk's initialization MEL scripts
+    #. sources user preferences
+    #. sources userSetup.mel
+    
 This will save you a lot of time and headache when using Maya in a standalone environment.
 
 --------------------------------
@@ -130,14 +132,15 @@ vastly improved method, which allows you to call a mel procedure as if it was a 
     # PyMEL
     mel.stringArrayRemoveDuplicates( values )
     
-In the new release, when a MEL script called from PyMEL raises an error, you will get the specific mel error message in the python traceback, along with line numbers!
+In the new release, when a MEL script called from PyMEL raises an error, you will get the specific MEL error message in the python 
+traceback, along with line numbers!
     
 For example, here's a procedure "myScript" with a line that will result in an error:
 
     >>> mel.eval( '''global proc myScript( string $stringArg, float $floatArray[] ){ 
     ...     float $donuts = `ls -type camera`;}''')
     
-When we call it, we can quickly determine the problem:
+When we call the procedure via PyMEL, we can quickly determine the problem:
 
     >>> mel.myScript( 'foo', [] )
     Traceback (most recent call last):

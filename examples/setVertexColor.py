@@ -1,7 +1,7 @@
 
 import pymel
 from pymel import *
-from pymel.datatypes import *
+from pymel.core.datatypes import *
 from time import time
 import unittest
 

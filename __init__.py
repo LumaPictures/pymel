@@ -42,10 +42,12 @@ that the changes could have just as easily been performed by the user interactin
     >>> print cam
     camera1
     >>> cam.rename('renderCam')
+    Transform(u'renderCam')
     >>> print cam
     renderCam
     >>> grp = group(cam)
     >>> instance(grp)
+    [Transform(u'group2')]
     >>> print cam
     group1|renderCam
     >>> cam.getInstances()
@@ -87,9 +89,11 @@ Unlike the maya module, PyMEL behaves the same in a standalone interpreter as it
 When pymel detects that it is being imported in a standalone
 interpreter it performs these operations:
 
-    1. initializes maya.standalone
-    2. parses your Maya.env and adds variables to your environment
-    3. sources userSetup.mel
+    #. initializes maya.standalone
+    #. parses your Maya.env and adds variables to your environment
+    #. sources Autodesk's initialization MEL scripts
+    #. sources user preferences
+    #. sources userSetup.mel
 
 This will save you a lot of time and headache when using Maya in a standalone environment.
 
@@ -121,9 +125,9 @@ Global Variables Dictionary
 
 Also, getting and setting MEL global variables is accomplished via a special dictionary-like object:
 
-    >>> melGlobals['$gMainFileMenu']
+    >>> melGlobals['$gMainFileMenu'] #doctest: +SKIP
     'mainFileMenu'
-    >>> melGlobals['$gGridDisplayGridLinesDefault'] = 2    
+    >>> melGlobals['$gGridDisplayGridLinesDefault'] = 2   #doctest: +SKIP 
     
     
 --------------------------------
@@ -465,8 +469,7 @@ module name.  For more information on the pros and cons of this see `Module Name
 
 Before we proceed let's make sure we have a clean scene so that you'll get the same results as me:
 
-    >>> newFile( f=1 )
-    Path('untitled')
+    >>> f=newFile(f=1) #start clean
     
 ---------------------------------------
 The Basics
@@ -866,13 +869,13 @@ to track changes to a file.
     ...         print "deleted:", name
     >>>     
     >>> s = sphere()[0]
-    >>> c = polyCube()[0]
+    >>> c = polyCube(ch=0)[0]
     >>> store()  # save the state of the current scene
     >>>
     >>> # make some changes
     >>> s.rename('monkey')
     Transform(u'monkey')
-    >>> delete(c)
+    >>> delete(c.getShape())
     >>> polyTorus()
     [Transform(u'pTorus1'), PolyTorus(u'polyTorus1')]
     >>>
@@ -882,9 +885,7 @@ to track changes to a file.
     new: polyTorus1
     new: pTorus1
     new: pTorusShape1
-    deleted: pCube1
     deleted: pCubeShape1
-    deleted: polyCube2
 
 
 ---------------------------------------
@@ -1215,7 +1216,7 @@ This is useful because it can be used as a quick way to assert that a given node
     ...    DagNode( selected()[0] )
     ... except TypeError:
     ...    print "Please select a DAG node"
-    
+    Please select a DAG node
  
 =======================================
     Module Namespaces
@@ -1252,9 +1253,11 @@ To use maya functions in an external python interpreter, maya provides a handy e
 directory.  Pymel ensures that using python outside of Maya is as close as possible to python inside Maya.  When pymel detects that it is being imported in a standalone
 interpreter it performs these operations:
 
-    1. initializes maya.standalone ( which triggers importing userSetup.py )
-    2. parses your Maya.env and adds variables to your environment
-    3. sources userSetup.mel
+    #. initializes maya.standalone
+    #. parses your Maya.env and adds variables to your environment
+    #. sources Autodesk's initialization MEL scripts
+    #. sources user preferences
+    #. sources userSetup.mel
      
 Because of these improvements, working in this standalone environment 
 is nearly identical to working in interactive mode, except of course you can't create windows.  However, there are two caveats
@@ -1298,6 +1301,10 @@ logger.debug( 'imported api' )
 # will check for the presence of an initilized Maya / launch it
 from mayahook import mayaInit as _mayaInit
 assert _mayaInit() 
+
+from mayahook import Version
+assert Version.current > Version.v85, "This version of pymel is only compatible with maya 8.5 Service Pack 1 or greater."
+
 
 #import tools
 #print "imported tools"
@@ -1475,6 +1482,7 @@ def _installCallbacks():
             _pluginLoaded( plugin )
 
 _installCallbacks()
+
 
 ## some submodules do 'import pymel.core.pmcmds as cmds' -
 ## this ensures that when the user does 'from pymel import *',
