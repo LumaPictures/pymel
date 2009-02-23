@@ -1930,7 +1930,6 @@ class DependNode( PyNode ):
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
                 raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
             
-    @util.deprecated('Use Attribute.set() instead', 'DependNode' )
     def __setattr__(self, attr, val):
         #print "DependNode.__setattr__", attr, val
 
@@ -1938,6 +1937,7 @@ class DependNode( PyNode ):
         if hasattr(PyNode, attr):
             super(PyNode, self).__setattr__( attr, val )
         else:
+            util.warn( 'Setting Maya attributes using an equal sign (ex. SCENE.persp.tx=3) is deprecated. Please use Attribute.set() (ex. SCENE.persp.tx.set(3) )' )
             DependNode.attr(self,attr).set(val)
              
     @util.universalmethod
