@@ -209,10 +209,10 @@ class Namespace(str):
         ns = cmds.namespace(add=name)
         return cls(ns)
 
-    def __new__(cls, namespace, create=False):
+    def __new__(cls, namespace, create=False, validate=True):
         namespace = ":" + namespace.strip(":")
         if not cmds.namespace(exists=namespace):
-            if not create:
+            if validate and not create:
                 raise ValueError("Namespace '%s' does not exist" % namespace)
             else:
                 current = Namespace.getCurrent() 
@@ -249,7 +249,7 @@ class Namespace(str):
         return self.splitAll()[-1]
     
     def getParent(self):
-        return self.__class__(self.splitAll()[:-1]) if (str(self)!=":") else None
+        return self.__class__(":".join(self.splitAll()[:-1])) if (str(self)!=":") else None
     
     def ls(self, pattern="*", **kwargs):
         return ls(self + pattern, **kwargs)
