@@ -2468,56 +2468,6 @@ class ApiUndo:
         self.redo_queue = []
 
 apiUndo = ApiUndo()
-       
-def interface_wrapper( doer, args=[], defaults=[], runtimeArgs=False, runtimeKwargs=False ):
-    """
-    A wrapper which allows factories to create functions with
-    precise inputs arguments, instead of using the argument catchall:
-        >>> f( *args, **kwargs ): 
-        >>> ...
-
-    :param doer: the function to be wrapped.
-    :param args: a list of strings to be used as argument names, in proper order
-    :param defaults: a list of default values for the arguments. must be less than or equal
-        to args in length. if less than, the last element of defaults will be paired with the last element of args,
-        the second-to-last with the second-to-last and so on ( see inspect.getargspec ). Arguments
-        which get a default become keyword arguments.
-    """
-    
-
-    # TODO: ensure doer has only an *args parameter
-    
-    name = doer.__name__
-    storageName = doer.__name__ + '_interfaced'
-    g = { storageName : doer }
-    kwargs=[]
-    offset = len(args) - len(defaults)
-    if offset < 0:
-        raise TypeError, "The number of defaults cannot exceed the number of arguments"
-    for i, arg in enumerate(args):
-        if i >= offset:
-            default = defaults[i-offset]
-            if not hasattr(default, '__repr__'):
-                raise ValueError, "default values must have a __repr__ method"
-            defaultStr = repr(default)
-            kwargs.append( '%s=%s' % (arg, defaultStr ) )
-        else:
-            kwargs.append( str(arg) )
-            
-    if runtimeArgs:
-        kwargs.append( '*args' )
-    elif runtimeKwargs:
-        kwargs.append( '**kwargs' )
-        
-    defStr = """def %s( %s ): 
-        return %s(%s)""" % (name, ','.join(kwargs), storageName, ','.join(args) )
-        
-    exec( defStr ) in g
-
-    func = g[name]
-    func.__doc__ = doer.__doc__
-    func.__module__ = doer.__module__
-    return func
 
     
 def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
@@ -2721,7 +2671,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         #_logger.debug(inArgs, defaults)
         if defaults: _logger.debug("defaults: %s" % defaults)
         
-        wrappedApiFunc = interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
+        wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
         
         if argHelper.isStatic():
             wrappedApiFunc = classmethod(wrappedApiFunc)
