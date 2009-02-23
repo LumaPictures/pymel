@@ -14,19 +14,6 @@ import maya.app.python
 from pymel.util.decoration import decorator
 
 
-configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
-if not os.path.isfile(configFile):
-    configFile = os.path.join(util.moduleDir(),"pymel.conf")
-
-if sys.version_info >= (2,6):
-    logging.config.fileConfig(configFile, disable_existing_loggers=0)
-else:
-    logging.config.fileConfig(configFile)
-    # The fileConfig function disables old-loggers, so we need to re-enable them
-    for k,v in sorted(logging.root.manager.loggerDict.iteritems()):
-        if hasattr(v, 'disabled') and v.disabled:
-            v.disabled = 0
-    
 
 
 
@@ -43,10 +30,11 @@ def _fixMayaOutput():
         except AttributeError:
             # second try
             #if hasattr(maya,"Output") and not hasattr(maya.Output,"flush"):
-            class mayaOutput(maya.Output):
+            class MayaOutput(maya.Output):
                 def flush(*args,**kwargs):
                     pass
-            sys.stdout = mayaOutput()
+            maya.Output = MayaOutput()
+            sys.stdout = maya.Output
 
 class ClassInfo(object):
     def __init__(self, cls):
@@ -72,33 +60,26 @@ class ClassInfo(object):
         return keys.__iter__()
 
            
-#if sys.version_info[:2] >= (2,5):
-#    # funcName is only available in python 2.5+
-#    
-#    #basicConfig(format='%(levelname)-9s:%(module)s.%(funcName)s(): %(message)s ')#,stream=logStream)
-#    basicConfig(format='pymel.%(module)-15s: %(levelname)-7s: %(message)s ')
-#    #basicConfig(format='%(name)s: %(levelname)-8s %(message)s ')
-#else:
-#    basicConfig(format='%(levelname)10s | %(name)-25s:\t\t%(message)s ' ) #,stream=logStream)
 
 _fixMayaOutput()
 
-# taken care of by logging.conf
-# console = logging.StreamHandler(sys.stdout)
 
+configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
+if not os.path.isfile(configFile):
+    configFile = os.path.join(util.moduleDir(),"pymel.conf")
 
-# for some idiotic reason maya does not use a fixed-width font in their script editor, so even spacing won't matter 90% of the time
-# when we hook up an option to spit out to file, we can have a different formatting with more info and better spacing
-formatter = logging.Formatter('pymel.%(module)s : %(levelname)s : %(message)s')
-#formatter = logging.Formatter('%(levelname)s : (pymel.%(module)s) : %(message)s')
+if sys.version_info >= (2,6):
+    logging.config.fileConfig(configFile, disable_existing_loggers=0)
+else:
+    logging.config.fileConfig(configFile)
+    # The fileConfig function disables old-loggers, so we need to re-enable them
+    for k,v in sorted(logging.root.manager.loggerDict.iteritems()):
+        if hasattr(v, 'disabled') and v.disabled:
+            v.disabled = 0
+    
 
-# taken care of by logging.conf
-# console.setFormatter(formatter)
 
 mainLogger = logging.root
-
-# taken care of by logging.conf
-# mainLogger.addHandler(console)
 
 pymelLogger = logging.getLogger("pymel")
 
