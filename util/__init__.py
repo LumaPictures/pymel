@@ -15,6 +15,7 @@ from trees import *
 from arrays import *
 from enum import *
 from path import *
+from decoration import *
 #from enumerators import *
 import nameparse
 
