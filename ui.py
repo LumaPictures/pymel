@@ -1,18 +1,35 @@
-
 """
-The ui module contains functions which are used to create ui elements, as well as their class counterparts.
+Functions for creating UI elements, as well as their class counterparts.
 
 Pymel UIs
 =========
 
-pymel adds more readability to ui building while also maintaining backward compatibility.  Every ui command in maya.cmds
-is a class in pymel, which can behave like a command or like a class. More documentation on this to come, but for now
-check out pipeGen.py in examples directory
+pymel adds more readability to UI building while also maintaining backward compatibility.  Like nodes and 
+`PyNode`s, every ui command in maya.cmds has a class counterpart in pymel derived from the base class `PyUI`.
+The ui commands return these PyUI objects, and these have all of the various methods to get and set properties
+on the ui element:
+
+    from pymel import *
+    win = window(title="My Window")
+    layout = columnLayout()
+    chkBox = checkBox(label = "My Checkbox", value=True, parent=layout)
+    btn = button(label="My Button", parent=layout)
+    def buttonPressed(*args):
+        if chkBox.getValue():
+            print "Check box is CHECKED!"
+            btn.setLabel("Uncheck")
+        else:
+            print "Check box is UNCHECKED!"
+            btn.setLabel("Check")
+    btn.setCommand(buttonPressed)
+    win.show()
+    
+    
 
 Command Callbacks
 -----------------
 
-one common point of confusion is command callbacks with ui elements. There are several different ways to handle 
+One common point of confusion is command callbacks with ui elements. There are several different ways to handle 
 command callbacks on user interface widgets:  
                         
 Function Name as String
@@ -27,8 +44,16 @@ into the command:
 or
 
     >>> button( c="myModule.myCommand" )
+    
+or
 
-this method is not recommended.
+    >>> button ( c="import myModule; myModule.myCommand" )
+
+Another major limitation with this method is that it is hard to pass parameters to these functions since these
+have to be converted into a string representation. This becomes impractical when the parameters are complex objects,
+such as dictionaries, lists, or other custom objects.
+
+This method is not recommended.
 
 Function Object
 ~~~~~~~~~~~~~~~  
@@ -43,15 +68,122 @@ in the function.
     >>> def myCommand( *args ): print args # this definition must come first
 
     >>> button( c=myCommand )
+    
                 
 Lambda Functions
 ~~~~~~~~~~~~~~~~
-In my experience this is the best way to handle most command callbacks.  You can choose exactly which args you want
+This is the way to handle most common command callbacks.  You can choose exactly which args you want
 to pass along to your function and order of definition does not matter.
 
     >>> button( c= lambda *args: myCommand(args[0]) )
 
     >>> def myCommand( arg ): print "running", arg 
+
+
+or, ignoring the arguments altogether
+
+    
+    >>> someParameter = 10
+    
+    >>> button( c= lambda *args: myCommand(someParameter) )
+
+    >>> def myCommand( param ): print "running", param 
+
+
+This method fails when used in a 'for' loop:
+
+    >>> def myPrint(c): print c
+    >>>
+    >>> for i in range(5):
+    >>>    button(label="Button %s" % i, c=lambda *args: myPrint(i))
+
+Whichever button is pressed they will all print '4', since they all use a single 'lambda' object.
+
+
+Callback Objects
+~~~~~~~~~~~~~~~~
+In my experience this method handles all cases reliably and predictably, and solves the 'lambda' issue described above.
+A Callback object is an object that behaves like a function, meaning it can be 'called' like a regular function.
+The Callback object 'wraps' another function, and also stores the parameters to pass to that function.
+Here's an example:
+ 
+    >>> def func(a,b,p): print a, b, p
+    >>> func(1, p=5, b=2)    # normal invokation of the function
+
+Here's a Callback object that creates the same effect:
+    
+ - first parameter is the function to wrap; the rest are parameters to that function
+    >>> myCallback = Callback(func, 1, p=5, b=2)
+ - Deferred evaluation of the function
+    >>> myCallback()
+
+So, when used in as a button command:
+
+    >>> button(c=Callback(func, 1, p=5, b=2))
+
+
+Here's the example from the section above, converted to use a Callback object:
+    
+    >>> def myPrint(c): print c
+    >>>
+    >>> for i in range(5):
+    >>>    button(label="Button %s" % i, c=Callback(myPrint,i))
+
+
+
+Layouts
+~~~~~~~
+
+One major pain in designing GUIs is the placing controls in layouts. 
+Maya provides the formLayout command which lets controls resize and keep their relationship with other controls, however
+the use of this command is somewhat combersome and unintuitive.
+Pymel provides an extended FormLayout class, which handles the details of attaching controls to one another automatically:
+
+
+    >>> win = window(title="My Window")
+    >>> layout = formLayout()
+    >>> for i in range(5):
+    >>>     button(label="button %s" % i)
+    >>> win.show()
+
+
+The 'redistribute' method should now be used to redistributes the children (buttons in this case) evenly in their layout    
+    >>> layout.redistribute()
+
+
+A formLayout will align its controls vertically by default. By using the 'verticalLayout' or 'horizontalLayout' commands
+you can explicitly override this (note that both commands still return a FormLayout object):
+
+    >>> win = window(title="My Window")
+    >>> layout = horizontalLayout()
+    >>> for i in range(5):
+    >>>     button(label="button %s" % i)
+    >>> layout.redistribute()    # now will redistribute horizontally
+    >>> win.show()
+
+
+By default, the control are redistributed evenly but this can be overridden:
+
+    >>> layout.redistribute(1,3,2)    # (For 5 elements, the ratios will then be 1:3:2:1:1)
+
+
+You can also specify the ratios at creation time, as well as the spacing between the controls:
+(A ratio of 0 (zero) means that the control will not be resized, and will keep a fixed size:)
+
+    >>> win = window(title="My Window")
+    >>> layout = horizontalLayout(ratios=[1,0,2], spacing=10)
+    >>> for i in range(5):
+    >>>     button(label="button %s" % i)
+    >>> layout.redistribute()    # now will redistribute horizontally
+    >>> win.show()
+    
+
+
+Finally, just for fun, you can also reset, flip and reverse the layout:
+
+    >>> layout.flip()     # flip the orientation
+    >>> layout.reverse()  # reverse the order of the controls
+    >>> layout.reset()    # reset the ratios
 
 
 """
@@ -557,12 +689,13 @@ class _ListSelectLayout(FormLayout):
         return self
     
     def __init__(self):
-        (items, prompt, ok, cancel, default, allowMultiSelection, width, height) = _ListSelectLayout.args
+        (items, prompt, ok, cancel, default, allowMultiSelection, width, height, kwargs) = _ListSelectLayout.args
         self.ams = allowMultiSelection
         self.items = list(items)
+        kwargs.update(dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection))
         SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), AutoLayout.redistribute, [
             SLC("prompt", text, dict(l=prompt)),
-            SLC("selectionList", textScrollList, dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection)),
+            SLC("selectionList", textScrollList, kwargs),
             SLC("buttons", horizontalLayout, dict(ratios=[1,1]), AutoLayout.redistribute, [
                 SLC(None, button, dict(l=ok, c=self.returnSelection)),
                 SLC(None, button, dict(l=cancel, c=Callback(layoutDialog, dismiss=""))), 
@@ -593,9 +726,9 @@ class _ListSelectLayout(FormLayout):
                 _ListSelectLayout.selection = _ListSelectLayout.selection[0]
             return layoutDialog(dismiss=_ListSelectLayout.selection and "True" or "")
 
-def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False):
+def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False, **kwargs):
     """ Prompt the user to select items from a list of objects """
-    _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height)
+    _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height, kwargs)
     ret = str(layoutDialog(title=title, ui="""python("import sys; sys.modules['%s']._ListSelectLayout()")""" % (__name__)))
     if ret:
         return _ListSelectLayout.selection
@@ -636,7 +769,9 @@ def textWindow(title, text, size=None):
 
     
 def showsHourglass(func):
-    """ Decorator - shows the hourglass cursor until the function returns """
+    """
+    Decorator - shows the hourglass cursor until the function returns
+    """
     def decoratedFunc(*args, **kwargs):
         cmds.waitCursor(st=True)
         try:
@@ -646,6 +781,39 @@ def showsHourglass(func):
     decoratedFunc.__doc__ = func.__doc__
     decoratedFunc.__name__ = func.__name__
     return decoratedFunc
+
+
+_lastException = None
+def announcesExceptions(title="Exception Caught", message="'%(exc)s'\nCheck script-editor for details", ignoredExecptiones=None):
+    """
+    Decorator - shows an information box to the user with any exception raised in a sub-routine.
+    Note - the exception is re-raised.
+    """
+    
+    if not ignoredExecptiones:
+        ignoredExecptiones = tuple()
+    else:
+        ignoredExecptiones = tuple(ignoredExecptiones)
+        
+    def decoratingFunc(func):
+        def decoratedFunc(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except ignoredExecptiones:
+                raise
+            except Exception, e:
+                global _lastException
+                if e is _lastException:
+                    return
+                else:
+                    _lastException = e
+                import sys
+                sys.excepthook(*sys.exc_info())
+                informBox(title, message % dict(exc=e))
+                raise
+        return decoratedFunc
+    return decoratingFunc
+
     
 class MelToPythonWindow(Window):
 
@@ -715,5 +883,4 @@ def PyUI(strObj, type=None):
     
 def getMainProgressBar():
     return ProgressBar(core.getMelGlobal("string",'gMainProgressBar'))    
-    
     
