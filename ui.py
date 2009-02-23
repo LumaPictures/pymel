@@ -170,13 +170,11 @@ class Window(UI):
         cmds.deleteUI(self, window=True)
                 
 class FormLayout(UI):
+
     __metaclass__ = factories.metaNode
+
     def attachForm(self, *args):
         kwargs = {'edit':True}
-        #if isinstance(list, args[0]):
-        #    kwargs['attachForm'] = args
-        #    return self.applyArgs(**kwargs)
-            
         kwargs['attachForm'] = [args]
         cmds.formLayout(self,**kwargs)
         
@@ -216,7 +214,7 @@ class FormLayout(UI):
         return self
     
         
-    def __init__(self, name=None, orientation=VERTICAL, spacing=2, reversed=False, ratios=None, **kwargs):
+    def __init__(self, name=None, orientation=-1, spacing=2, reversed=False, ratios=None, **kwargs):
         """ 
         spacing - absolute space between controls
         orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
@@ -242,7 +240,10 @@ class FormLayout(UI):
         self.ratios = []
         self.reversed = False
         self.redistribute()
-        
+
+    def __aftercreate__(self, *args, **kwargs):
+        self.redistribute()
+
     def redistribute(self,*ratios):
         """ Redistribute the child controls based on the given ratios.
             If not ratios are given (or not enough), 1 will be used 
@@ -252,7 +253,10 @@ class FormLayout(UI):
             [pm.button(l=i,parent=al) for i in "yes no cancel".split()] # create 3 buttons
             al.redistribute(2,2) # First two buttons will be twice as big as the 3rd button
         """
-        
+        if self.ori not in [self.VERTICAL, self.HORIZONTAL]:
+            print "Invalid orientation for %r" % self
+            return
+            
         children = self.getChildArray()
         if not children:
             return
@@ -451,7 +455,11 @@ class SmartLayoutCreator:
 
         [child.create(creation=creation,parent=self.me,debug=debug,depth=depth+1) for child in childCreators]
         
-        if self.postFunc: 
+        if hasattr(self.me, "__aftercreate__"):
+            self.me.__aftercreate__()
+            if debug:
+                print ">>"*depth + "__aftercreate__: %s" % self.me.__aftercreate__ 
+        elif self.postFunc: 
             self.postFunc(self.me)
             if debug:
                 print ">>"*depth + "postFunc: %s" % self.postFunc 
@@ -459,8 +467,8 @@ class SmartLayoutCreator:
 
 SLC = SmartLayoutCreator
 class SmartLayoutCreator2(SmartLayoutCreator):
-    def __init__(self, uiFunc=None, name=None, childCreators=None, postFunc=None, **kwargs):
-        SmartLayoutCreator.__init__(self,name, uiFunc, kwargs, postFunc, childCreators)
+    def __init__(self, func=None, name=None, childCreators=None, postFunc=None, **kwargs):
+        SmartLayoutCreator.__init__(self,name,func,kwargs,postFunc,childCreators)
         
 SLT = SmartLayoutCreator2
 
