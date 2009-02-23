@@ -199,6 +199,8 @@ def redirectLoggerToMayaOutput(*args):
         
             _fixMayaOutput()
             newHandler = StreamHandler(sys.stdout)
+            #TODO: get this formatter from the config file
+            formatter = logging.Formatter('pymel.%(module)s : %(levelname)s : %(message)s')
             newHandler.setFormatter(formatter)
             #newHandler.setLevel( mainLogger.getEffectiveLevel() )
             mainLogger.addHandler( newHandler )
