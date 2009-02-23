@@ -1930,7 +1930,7 @@ class DependNode( PyNode ):
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
                 raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
             
-
+    @util.deprecated('Use Attribute.set() instead', 'DependNode' )
     def __setattr__(self, attr, val):
         #print "DependNode.__setattr__", attr, val
 
@@ -2956,6 +2956,7 @@ class Transform(DagNode):
 
     @addApiDocs( api.MFnTransform, 'setRotation' )
     def setRotation(self, rotation, space='world', **kwargs):
+        # quaternions are the only method that support a space parameter
         space = self._getSpaceArg(space, kwargs )
         rotation = list(rotation)
         if len(rotation) == 3:
