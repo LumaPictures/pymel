@@ -1221,7 +1221,7 @@ def getInheritance( mayaType ):
     state = cmds.undoInfo( q=1, state=1)
     try:
         cmds.undoInfo( state=0)
-        res = cmds.createNode( mayaType, parent=None )
+        res = cmds.createNode( mayaType ) # not sure why this was there before: , parent=None )
         #_logger.debug("created node: %s", res)
         parent = cmds.nodeType( res, inherited=1)
         #_logger.debug("parents: %s", parent)
@@ -2904,7 +2904,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 for methodName, info in classInfo['methods'].items(): 
                     # don't rewrap if already herited from a base class that is not the apicls
                     _logger.debug("Checking method %s" % (methodName))
-                    #TODO : check pymelName
+
                     try:
                         pymelName = info[0]['pymelName']
                         removeAttrs.append(methodName)
