@@ -40,17 +40,18 @@ def decorator(func):
        
 def interface_wrapper( doer, args=[], defaults=[], runtimeArgs=False, runtimeKwargs=False ):
     """
-    A wrapper which allows factories to create functions with
-    precise inputs arguments, instead of using the argument catchall:
-        >>> f( *args, **kwargs ): 
-        >>> ...
+    A wrapper which allows factories to programatically create functions with
+    precise input arguments, instead of using the argument catch-all:
+    
+        >>> def f( *args, **kwargs ): #doctest: +SKIP
+        ...     pass
 
     :param doer: the function to be wrapped.
     :param args: a list of strings to be used as argument names, in proper order
     :param defaults: a list of default values for the arguments. must be less than or equal
         to args in length. if less than, the last element of defaults will be paired with the last element of args,
         the second-to-last with the second-to-last and so on ( see inspect.getargspec ). Arguments
-        which get a default become keyword arguments.
+        which pair with a default become keyword arguments.
     """
     
 
