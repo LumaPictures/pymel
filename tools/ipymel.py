@@ -262,9 +262,8 @@ else:
     
     ip.ex("""
 import os.path
-for _mayaproj in optionVar['RecentProjectsList']:
+for _mayaproj in optionVar.get('RecentProjectsList', []):
     _mayaproj = os.path.join( _mayaproj, 'scenes' )
     if _mayaproj not in _dh:
-        _dh.append(_mayaproj)
-del(_mayaproj)""")
+        _dh.append(_mayaproj)""")
 
