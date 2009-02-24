@@ -20,12 +20,26 @@ def testInvertibles():
             print "could not find", pynodeName
             continue
         
-        if not issubclass( pynode, PyNode ) or issubclass(pynode, GeometryShape) or pynodeName in EXCEPTIONS:
+        if not issubclass( pynode, PyNode ) or pynodeName in EXCEPTIONS:
             continue
 
-        obj = createNode( util.uncapitalize(pynodeName) )
+        if issubclass(pynode, GeometryShape):
+            if pynode == Mesh :
+                obj = polyCube()[0].getShape()
+            elif pynode == Subdiv:
+                obj = polyToSubdiv( polyCube()[0].getShape())[0].getShape()
+            elif pynode == NurbsSurface:
+                obj = sphere()[0].getShape()
+            elif pynode == NurbsCurve:
+                obj = circle()[0].getShape()
+            else:
+                print "skipping shape", pynode
+                continue
+        else:
+            obj = createNode( util.uncapitalize(pynodeName) )
+        
         print repr(obj)
-            
+    
         for className, apiClassName in getClassHierarchy(pynodeName):
             
             if apiClassName not in api.apiClassInfo:
@@ -36,7 +50,7 @@ def testInvertibles():
             classInfo = api.apiClassInfo[apiClassName]
             invertibles = classInfo['invertibles']
             #print invertibles
-
+    
                             
             for setMethod, getMethod in invertibles:
                 info = classInfo['methods'][setMethod]
@@ -78,10 +92,10 @@ def testInvertibles():
                         try:
                             args = [ typeMap[typ] for typ in types ]
                             descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
-#                            try:
-#                                setter( obj, *args )
-#                            except Exception, e:
-#                                print str(e)
+    #                            try:
+    #                                setter( obj, *args )
+    #                            except Exception, e:
+    #                                print str(e)
                             args = [obj] + args
                             def checkSetter( setter, args ):
                                 setter( *args )
@@ -94,4 +108,7 @@ def testInvertibles():
             delete( obj )
         except:
             pass
+             
+
+
                     #print types
