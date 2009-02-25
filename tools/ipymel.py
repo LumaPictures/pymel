@@ -23,6 +23,7 @@ To Use:
 Author: Chad Dombrova
 Version: 0.1
 """
+from optparse import OptionParser
 try:
     import maya
 except ImportError:
@@ -257,7 +258,9 @@ else:
     
         
         if event.symbol == '-':
+            print "completer"
             width_dh = str(len(str(len(ip.user_ns['_sh']) + 1)))
+            print width_dh
             # jump in directory history by number
             fmt = '-%0' + width_dh +'d [%s]'
             ents = [ fmt % (i,s) for i,s in enumerate(ip.user_ns['_sh'])]
@@ -267,24 +270,38 @@ else:
 
         raise IPython.ipapi.TryNext 
 
+    parser = OptionParser()
+    parser.add_option("-d", type="int", dest="depth")
+    
     def magic_dag(self, parameter_s=''):
+        
+        options, args = parser.parse_args(parameter_s.split())
+        #print options.depth
         def doLevel(obj, depth, isLast ):
-            if isLast:
+            if isLast[-1]:
                 sep = '\__ '
             else:
                 sep = '|__ '
             depth += 1
-            print  '| '* (depth-1) + sep + obj.nodeName()
+            pre = ''
+            for x in isLast[:-1]:
+                pre += '  ' if x else '| '
+            print pre + sep + obj.nodeName()
             children = obj.getChildren()
             num = len(children)-1
+            if options.depth and depth >= options.depth:
+                return
             for i, x in enumerate(children):
-                doLevel(x, depth, i==num)
-        
+                doLevel(x, depth, isLast+[i==num])
+
         depth = 0
-        root = pymel.ls(assemblies=1)
+        if args:
+            root = [pymel.PyNode(args[0])]
+        else:
+            root = pymel.ls(assemblies=1)
         num = len(root)-1
         for i, x in enumerate(root):
-            doLevel(x, depth, i==num)
+            doLevel(x, depth, [i==num])
 
     
     def magic_open(self, parameter_s=''):
