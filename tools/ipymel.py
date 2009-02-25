@@ -247,19 +247,187 @@ else:
         #toNativePath
         # first, check if we are the same.
     
+    def open_completer(self, event):
+        relpath = event.symbol
+        #print event # dbg
+        if '-b' in event.line:
+            # return only bookmark completions
+            bkms = self.db.get('bookmarks',{})
+            return bkms.keys()
+    
+        
+        if event.symbol == '-':
+            width_dh = str(len(str(len(ip.user_ns['_sh']) + 1)))
+            # jump in directory history by number
+            fmt = '-%0' + width_dh +'d [%s]'
+            ents = [ fmt % (i,s) for i,s in enumerate(ip.user_ns['_sh'])]
+            if len(ents) > 1:
+                return ents
+            return []
 
+        raise IPython.ipapi.TryNext 
+
+    def magic_dag(self, parameter_s=''):
+        def doLevel(obj, depth, isLast ):
+            if isLast:
+                sep = '\__ '
+            else:
+                sep = '|__ '
+            depth += 1
+            print  '| '* (depth-1) + sep + obj.nodeName()
+            children = obj.getChildren()
+            num = len(children)-1
+            for i, x in enumerate(children):
+                doLevel(x, depth, i==num)
+        
+        depth = 0
+        root = pymel.ls(assemblies=1)
+        num = len(root)-1
+        for i, x in enumerate(root):
+            doLevel(x, depth, i==num)
 
     
-    #ip.set_hook('complete_command', IPython.Extensions.ipy_cyeahompleters.cd_completer , re_key = regkey )
-    #ip.set_hook('complete_command', filepath_completer , re_key = ".+(?:(?:\s+|\()'?)" )
+    def magic_open(self, parameter_s=''):
+        """Change the current working directory.
+
+        This command automatically maintains an internal list of directories
+        you visit during your IPython session, in the variable _sh. The
+        command %dhist shows this history nicely formatted. You can also
+        do 'cd -<tab>' to see directory history conveniently.
+
+        Usage:
+
+          openFile 'dir': changes to directory 'dir'.
+
+          openFile -: changes to the last visited directory.
+
+          openFile -<n>: changes to the n-th directory in the directory history.
+
+          openFile --foo: change to directory that matches 'foo' in history
+            
+          openFile -b <bookmark_name>: jump to a bookmark set by %bookmark
+             (note: cd <bookmark_name> is enough if there is no
+              directory <bookmark_name>, but a bookmark with the name exists.)
+              'cd -b <tab>' allows you to tab-complete bookmark names. 
+
+        Options:
+
+        -q: quiet.  Do not print the working directory after the cd command is
+        executed.  By default IPython's cd command does print this directory,
+        since the default prompts do not display path information.
+        
+        Note that !cd doesn't work for this purpose because the shell where
+        !command runs is immediately discarded after executing 'command'."""
+
+        parameter_s = parameter_s.strip()
+        #bkms = self.shell.persist.get("bookmarks",{})
+
+        oldcwd = os.getcwd()
+        numcd = re.match(r'(-)(\d+)$',parameter_s)
+        # jump in directory history by number
+        if numcd:
+            nn = int(numcd.group(2))
+            try:
+                ps = ip.ev('_sh[%d]' % nn )
+            except IndexError:
+                print 'The requested directory does not exist in history.'
+                return
+            else:
+                opts = {}
+#        elif parameter_s.startswith('--'):
+#            ps = None
+#            fallback = None
+#            pat = parameter_s[2:]
+#            dh = self.shell.user_ns['_sh']
+#            # first search only by basename (last component)
+#            for ent in reversed(dh):
+#                if pat in os.path.basename(ent) and os.path.isdir(ent):
+#                    ps = ent
+#                    break
+#            
+#                if fallback is None and pat in ent and os.path.isdir(ent):
+#                    fallback = ent
+#                
+#            # if we have no last part match, pick the first full path match
+#            if ps is None:
+#                ps = fallback
+#            
+#            if ps is None:
+#                print "No matching entry in directory history"
+#                return
+#            else:
+#                opts = {}
+                
+            
+        else:
+            #turn all non-space-escaping backslashes to slashes, 
+            # for c:\windows\directory\names\
+            parameter_s = re.sub(r'\\(?! )','/', parameter_s)            
+            opts,ps = self.parse_options(parameter_s,'qb',mode='string')
+        
+        # jump to previous
+        if ps == '-':
+            try:
+                ps = ip.ev('_sh[-2]' % nn )
+            except IndexError:
+                raise UsageError('%cd -: No previous directory to change to.')
+#        # jump to bookmark if needed
+#        else:
+#            if not os.path.exists(ps) or opts.has_key('b'):
+#                bkms = self.db.get('bookmarks', {})
+#            
+#                if bkms.has_key(ps):
+#                    target = bkms[ps]
+#                    print '(bookmark:%s) -> %s' % (ps,target)
+#                    ps = target
+#                else:
+#                    if opts.has_key('b'):
+#                        raise UsageError("Bookmark '%s' not found.  "
+#                              "Use '%%bookmark -l' to see your bookmarks." % ps)
+            
+        # at this point ps should point to the target dir
+        if ps:
+            ip.ex( 'openFile("%s", f=1)' % ps )
+#            try:                
+#                os.chdir(os.path.expanduser(ps))
+#                if self.shell.rc.term_title:
+#                    #print 'set term title:',self.shell.rc.term_title  # dbg
+#                    platutils.set_term_title('IPy ' + abbrev_cwd())
+#            except OSError:
+#                print sys.exc_info()[1]
+#            else:
+#                cwd = os.getcwd()
+#                dhist = self.shell.user_ns['_sh']
+#                if oldcwd != cwd:
+#                    dhist.append(cwd)
+#                    self.db['dhist'] = compress_dhist(dhist)[-100:]
+                
+#        else:
+#            os.chdir(self.shell.home_dir)
+#            if self.shell.rc.term_title:
+#                platutils.set_term_title("IPy ~")
+#            cwd = os.getcwd()
+#            dhist = self.shell.user_ns['_sh']
+#            
+#            if oldcwd != cwd:
+#                dhist.append(cwd)
+#                self.db['dhist'] = compress_dhist(dhist)[-100:]
+#        if not 'q' in opts and self.shell.user_ns['_sh']:
+#            print self.shell.user_ns['_sh'][-1]
+
+
     ip.set_hook('complete_command', pymel_python_completer , re_key = ".*" )
     ip.set_hook('complete_command', pymel_name_completer , re_key = "(.+(\s+|\())|(SCENE\.)" )
-    
+    ip.set_hook('complete_command', open_completer , str_key = "openf" )
     
     ip.ex("from pymel import *")
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
     
+    ip.expose_magic('openf', magic_open)
+    ip.expose_magic('dag', magic_dag)
+    
+    # add projects
     ip.ex("""
 import os.path
 for _mayaproj in optionVar.get('RecentProjectsList', []):
@@ -267,3 +435,11 @@ for _mayaproj in optionVar.get('RecentProjectsList', []):
     if _mayaproj not in _dh:
         _dh.append(_mayaproj)""")
 
+    # add files
+    ip.ex("""
+import os.path
+_sh=[]
+for _mayaproj in optionVar.get('RecentFilesList', []):
+    if _mayaproj not in _sh:
+        _sh.append(_mayaproj)""")
+    
