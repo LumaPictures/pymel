@@ -96,8 +96,6 @@ def getClassLogger(cls):
     
     return logger
 
-global _callbackId
-
 def nameToLevel(name):
     return logLevels.getIndex(name)
 
@@ -179,17 +177,13 @@ def _setupLevelPreferenceHook():
         # stdout has not yet been replaced by maya's custom stream that redirects to the output window.
         # we need to put a callback in place that lets us get maya.Output stream as our StreamHandler.
         pymelLogger.debug( 'setting up callback to redirect logger StreamHandler' )
-#        global _callbackId
-#        _callbackId = MEventMessage.addEventCallback( 'SceneOpened', redirectLoggerToMayaOutput )
+
         maya.utils.executeDeferred( redirectLoggerToMayaOutput )
 
 
 def redirectLoggerToMayaOutput(*args):
     "run when pymel is imported very early in the load process"
     
-#    global _callbackId
-#    MMessage.removeCallback( _callbackId )
-#    _callbackId.disown()
     
     if MGlobal.mayaState() == MGlobal.kInteractive:
         if sys.stdout.__class__ == file:
