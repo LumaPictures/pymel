@@ -45,7 +45,8 @@ class Enum(tuple):
         return '.'.join( [str(x) for x in parts] )
 
 class ApiDocParser(object):
-    
+    OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
+    DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
     def __init__(self, apiClassName, version='2009', verbose=False):
         self.enums = {}
         self.pymelEnums = {}
@@ -248,11 +249,11 @@ class ApiDocParser(object):
         docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir(docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
-        file = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
+        self.docfile = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
+
+        _logger.info( "parsing file %s" , self.docfile )
         
-        _logger.info( "parsing file %s" , file )
-        
-        f = open( file )
+        f = open( self.docfile )
     
         soup = BeautifulSoup( f.read(), convertEntities='html' )
         f.close()
@@ -354,6 +355,7 @@ class ApiDocParser(object):
                 types ={}
                 typeQualifiers={}
                 methodDoc = ''
+                deprecated = False
                 
                 # Static methods
                 static = False
@@ -445,10 +447,18 @@ class ApiDocParser(object):
                     #except: pass
                     
                     #if addendum.findAll( text = re.compile( '(This method is obsolete.)|(Deprecated:)') ):
-                    if addendum.dl.findAll( text=lambda text: text in ['This method is obsolete.', 'Deprecated:', 'NO SCRIPT SUPPORT.'] ):
-                        self.xprint( "DEPRECATED" )
+                    
+                    if addendum.findAll( text=lambda x: x in self.OBSOLETE_MSG ):
+                        self.xprint( "OBSOLETE" )
                         self.currentMethod = None
                         continue
+                    
+                    #if self.currentMethod == 'createColorSet': raise NotImplementedError
+                    if addendum.findAll( text=lambda x: x in self.DEPRECATED_MSG ):
+                        self.xprint( "DEPRECATED" )
+                        #print self.apiClassName + '.' + self.currentMethod + ':' + ' DEPRECATED'
+                        deprecated = True
+                    
                     
                     methodDoc = ' '.join( addendum.p.findAll( text=True ) )
                     
@@ -582,7 +592,8 @@ class ApiDocParser(object):
                               'defaults' : defaults,
                               #'directions' : directions,
                               'types' : types,
-                              'static' : static } 
+                              'static' : static,
+                              'deprecated' : deprecated } 
                 self.methods[self.currentMethod].append(methodInfo)
                 
                 # reset

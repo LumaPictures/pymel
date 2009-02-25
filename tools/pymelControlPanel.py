@@ -394,13 +394,13 @@ class MethodRow(object):
             self.overloadPrecedenceColl = radioCollection() 
             for i in range( len(self.methodInfoList) ) :
 
-                self.createAnnotation(i)
+                self.createMethodInstance(i)
 
         else:
             #row = rowLayout( self.methodName + '_rowMain', nc=2, cw2=[200, 400] )
             #self.enabledChBx = checkBox(label=self.methodName, changeCommand=CallbackWithArgs( MethodRow.enableCB, self ) )
             #text(label='')
-            self.createAnnotation(0)
+            self.createMethodInstance(0)
             #setParent('..')  
         
         setParent(col)
@@ -575,7 +575,7 @@ class MethodRow(object):
         return array
 
            
-    def createAnnotation(self, i ):
+    def createMethodInstance(self, i ):
         
         #setUITemplate('attributeEditorTemplate', pushTemplate=1)
         
@@ -588,7 +588,8 @@ class MethodRow(object):
 
         enable = argUtil.canBeWrapped()
         
-        
+        if argUtil.isDeprecated():
+            text(l='DEPRECATED')
         # main info row
         row = rowLayout( '%s_rowMain%s' % (self.methodName,i), nc=3, cw3=rowSpacing, enable=enable )
         self.rows.append(row)
@@ -829,6 +830,7 @@ def setManualDefaults():
     setCascadingDictValue( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
     setCascadingDictValue( api.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
     setCascadingDictValue( api.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
+    setCascadingDictValue( api.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
     
     # add some manual invertibles
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
