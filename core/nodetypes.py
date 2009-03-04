@@ -3332,7 +3332,12 @@ class Mesh(SurfaceShape):
     def getCurrentColorSetName(self):
         return self.__apimfn__().currentColorSetName( self.instanceNumber() )
     
-    
+    @addApiDocs( api.MFnMesh, 'numColors' )
+    def numColors(self, colorSet=None):
+        args = []
+        if colorSet:
+            args.append(colorSet)
+        return self.__apimfn__().numColors(*args)
      
 class Subdiv(SurfaceShape):
     __metaclass__ = MetaMayaNodeWrapper

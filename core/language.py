@@ -131,7 +131,7 @@ class MelGlobals( dict ):
     to retrieve existing global variables, just use the name as a key
     
     >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
-    [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ..., u'registerMayaHardwareRenderer.res.mel']
+    [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ...]
     >>> melGlobals['$gv_browserMode'] # works with or without $
     0
     
@@ -393,8 +393,11 @@ class Mel(object):
     
     For example, in the example below we redeclare the myScript procedure with a line that will result in an error:
     
-        >>> mel.eval( '''global proc myScript( string $stringArg, float $floatArray[] ){ 
-        ...     float $donuts = `ls -type camera`;}''')
+        >>> commandEcho(lineNumbers=1)  # turn line numbers on
+        >>> mel.eval( '''
+        ... global proc myScript( string $stringArg, float $floatArray[] ){ 
+        ...     float $donuts = `ls -type camera`;}
+        ... ''')
         >>> mel.myScript( 'foo', [] )
         Traceback (most recent call last):
             ...

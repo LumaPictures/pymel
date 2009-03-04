@@ -17,12 +17,12 @@ except ImportError:
 #SKIP_MAYA_2009 = doctest.register_optionflag('SKIP_MAYA_2009')
 
 #class MayaOutputChecker(doctest.
-#--pdb 
 
 exclusion = 'windows tools arrays example1 .*testingutils pmcmds testPa'
 
 args = ['empty']
 args += "--with-doctest -v pymel --noexe ".split()
+#args += ['--pdb']
 args += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
 args += sys.argv[1:]
 

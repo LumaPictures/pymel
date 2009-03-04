@@ -81,9 +81,9 @@ def testInvertibles():
                                 'MPoint' : [1,2,3],
                                 'short': 1,
                                 'MColor' : [1,0,0],
-                                'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
+                                'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ),
                                 'MVector' : [1,0,0],
-                                'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
+                                'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ),
                                 'int' : 1,
                                 'MIntArray': [1,2,3],
                                 'MSpace.Space' : 'world'
@@ -98,7 +98,9 @@ def testInvertibles():
                         try:
                             if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
                                 args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
-                            if apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
+                            elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
+                                args = [ [ [.5,.5,.5] ]*obj.numColors() ]
+                            elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                                 args = [ 0, 2.5 ]
                             else:
                                 args = [ getType(typ) for typ in types ]

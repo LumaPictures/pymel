@@ -115,6 +115,7 @@ For example, here's a procedure "myScript" with a line that will result in an er
     
 When we call it, we can quickly determine the problem:
 
+    >>> commandEcho(lineNumbers=1)  # turn line numbers on
     >>> mel.myScript( 'foo', [] )
     Traceback (most recent call last):
         ...
