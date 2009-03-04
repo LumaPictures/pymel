@@ -289,7 +289,10 @@ else:
             depth += 1
             pre = ''
             for x in isLast[:-1]:
-                pre += '   ' if x else '|  '
+                if x:
+                    pre += '   '
+                else:
+                    pre += '|  '
             
             if options.shapes:
                 children = obj.getChildren()
@@ -304,13 +307,18 @@ else:
                 name += '*'
             
             if options.depth:
-                if depth >= options.depth:
-                    pre = ( '[+]' if children else '   ' ) + '   ' + pre
-                    print pre + sep + name
-                    return 
+                if children:
+                    if depth >= options.depth:
+                        pre = '[+]' + ' '*3 + pre
+                    else:
+                        pre = '[-]' + ' '*3 + pre
                 else:
-                    pre = ( '[-]' if children else '   ' ) + '   ' + pre  
-                    print pre + sep + name
+                    pre = ' '*6 + pre
+                         
+                print pre + sep + name
+                if depth >= options.depth:
+                    return
+                
             else: 
                 print pre + sep + name
                 
