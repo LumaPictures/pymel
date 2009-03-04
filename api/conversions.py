@@ -1571,7 +1571,20 @@ def toMPlug (plugName):
             plug = None
     return plug
 
-
+def toComponentMObject( dagPath ):
+    """get an MObject representing all components of the passed dagPath"""
+    
+    component = MObject()
+    sel = MSelectionList()
+    mit = MItGeometry( dagPath )
+    while not mit.isDone():
+        comp = mit.component()
+        # merge is True
+        sel.add( dagPath, comp, True )
+        mit.next()
+    sel.getDagPath( 0, dagPath, component )
+    return component
+      
 # MDagPath, MPlug or MObject to name
 # Note there is a kNamedObject API type but not corresponding MFn, thus
 # I see no way of querying the name of something that isn't a kDependency node or a MPlug
