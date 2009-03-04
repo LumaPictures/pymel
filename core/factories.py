@@ -2038,7 +2038,8 @@ class ApiArgUtil(object):
         return self.methodInfo['argInfo']
     
     def getGetterInfo(self):
-
+        if mayahook.Version.current <= mayahook.Version.v85sp1:
+            return
         try:
             inverse, isgetter = self.methodInfo['inverse']
             if isgetter:
@@ -2437,6 +2438,7 @@ class ApiUndo:
         count = cmds.getAttr(self.node_name + '.cmdCount')
         cmds.setAttr(self.node_name + '.cmdCount', count + 1)
 
+        
         # Append the command to the end of the undo queue.
         self.undo_queue.append(cmdObj)
 
@@ -2477,6 +2479,15 @@ class ApiUndo:
 
 apiUndo = ApiUndo()
 
+class UndoItem(object):
+    def __init__(self, setter, newargs, undoArgs):
+        self._setter = setter
+        self._newargs = newargs
+        self._undoArgs = undoArgs
+    def redoIt(self):
+        self._setter(*self._newargs)
+    def undoIt(self):
+        self._setter(*self._undoArgs)
     
 def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
     """If proxy is the True, then __apimfn__ function used to retrieve the proxy class. If None,
@@ -2602,35 +2613,36 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
                 #_logger.debug(undoArgs)
                 
-                class Undo(object):
-                    @staticmethod
-                    def redoIt():
-                        setter(*newargs)
-                    @staticmethod
-                    def undoIt():
-                        setter(*undoArgs)
-                        
-                apiUndo.append(Undo)
-                # undoIt = setter + undoArgs
-                # redoIt = setter + newargs
-                
-            try:
-                if argHelper.isStatic():
-                    result = method( *newargs )
+#                class Undo(object):
+#                    @staticmethod
+#                    def redoIt():
+#                        setter(*newargs)
+#                    @staticmethod
+#                    def undoIt():
+#                        setter(*undoArgs)
+#                        
+#                apiUndo.append(Undo)
+#                # undoIt = setter + undoArgs
+#                # redoIt = setter + newargs
+                undoItem = UndoItem(setter, newargs, undoArgs)
+                apiUndo.append( undoItem )
+#            try:
+            if argHelper.isStatic():
+                result = method( *newargs )
+            else:
+                if proxy:
+                    # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a 
+                    # subclass of the api class being wrapped, however, the api object can still be used with this mfn explicitly.
+                    mfn = self.__apimfn__()
+                    if not isinstance(mfn, apiClass):
+                        mfn = apiClass( self.__apiobject__() )
+                    result = method( mfn, *newargs )
                 else:
-                    if proxy:
-                        # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a 
-                        # subclass of the api class being wrapped, however, the api object can still be used with this mfn explicitly.
-                        mfn = self.__apimfn__()
-                        if not isinstance(mfn, apiClass):
-                            mfn = apiClass( self.__apiobject__() )
-                        result = method( mfn, *newargs )
-                    else:
-                        result = method( self, *newargs )
+                    result = method( self, *newargs )
                 
-            except RuntimeError:
-                _logger.error( "the arguments at time of error were %r" % newargs)
-                raise
+#            except RuntimeError:
+#                _logger.error( "the arguments at time of error were %r" % newargs)
+#                raise
                           
 #            if argHelper.isStatic():
 #                pass
