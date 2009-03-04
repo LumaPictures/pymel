@@ -60,15 +60,17 @@ class OptionVarDict(object):
         return bool( cmds.optionVar( exists=key ) )
                 
     def __getitem__(self,key):
+        if not self.has_key(key):
+            raise KeyError, key
         val = cmds.optionVar( q=key )
         if isinstance(val, list):
             val = OptionVarList( val, key )
         return val
 
     def get(self, key, default=None):
-        if self.has_key(key):
+        try:
             return self[key]
-        else:
+        except KeyError:
             return default
     
     def __setitem__(self,key,val):
