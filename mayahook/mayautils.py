@@ -200,7 +200,7 @@ def getMayaVersion(running=True, installed=True, extension=True):
         If both are True, order is first test for running Maya, then installed
         if extension=True, will return long version form, with extension (known one : x64 for 64 bit cuts) 
     """
-    # first try to get the version from maya.cmds.about (ie, getRunningMayaVersionString)...
+    # first try to get the version from maya.cmds.about 
     # ...try the path if maya.cmds is not loaded (ie, getMayaLocation)
     # ...then, for non-standard installation directories, call the maya binary for the version.
     # we try this as a last resort because of potential load-time slowdowns
@@ -239,7 +239,16 @@ def getMayaVersion(running=True, installed=True, extension=True):
     
     return version
     
+def getMayaAppDir():
+    if not os.environ.has_key('MAYA_APP_DIR') :
+        home = os.environ.get('HOME', None)
+        if not home :
+            return None
+        else :
+            return os.path.join(home, 'maya')
+    return os.environ['MAYA_APP_DIR']
 
+            
 # TODO: finish this, use it in getMayaVersion
 #class MayaVersionStringParser(object):
 #    """
@@ -439,15 +448,11 @@ def parseMayaenv(envLocation=None, version=None) :
            
     # no Maya.env specified, we look for it in MAYA_APP_DIR
     if not envPath or not envPath.isfile() :
-        if not os.environ.has_key('MAYA_APP_DIR') :
-            home = os.environ.get('HOME', None)
-            if not home :
-                warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env", ExecutionWarning)
-                return False
-            else :
-                maya_app_dir = os.path.join(home, 'maya')
-        else :
-            maya_app_dir = os.environ['MAYA_APP_DIR']
+        maya_app_dir = getMayaAppDir()
+        if not maya_app_dir:
+            _logger.warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env")
+            return False
+
         # try to find which version of Maya should be initialized
         if not version :
             # try to query version, will only work if reparsing env from a working Maya
@@ -685,7 +690,7 @@ def mayaInit(forversion=None) :
     >>> 'MAYA_SCRIPT_PATH' in os.environ
     False
     
-    The solution lies in refreshEnviron, which copies the environment from the shell to os.environ after maya.standalone
+    The solution lies in `refreshEnviron`, which copies the environment from the shell to os.environ after maya.standalone
     initializes.
     
     """
@@ -720,48 +725,7 @@ def mayaInit(forversion=None) :
     envVersion = os.environ.get('MAYA_ENV_VERSION', mayaVersion)
     mayaLocation = os.environ['MAYA_LOCATION']
     system = platform.system()
-    
-    
-    # add necessary environment variables and paths for importing maya.cmds, a la mayapy
-#    if system == 'Darwin' :
-#        frameworks = os.path.join( mayaLocation, 'Frameworks' )    
-#        _addEnv( 'DYLD_FRAMEWORK_PATH', frameworks )
-#        
-#        # this *must* be set prior to launching python
-#        _addEnv( 'DYLD_LIBRARY_PATH', os.path.join( mayaLocation, 'MacOS' ) )
-#        
-#        pyhomeReal = os.environ.get('PYTHONHOME')
-#        pyhomeMaya = os.path.join( frameworks, 'Python.framework/Versions/Current' )
-#        #print pyhomeReal, pyhomeMaya
-#        if pyhomeReal is None or not os.path.samefile( pyhomeReal, pyhomeMaya ):
-#            pydir = os.path.join( pyhomeMaya, 'lib/python%s/site-packages' % pythonVersion )
-#            print "adding", pydir
-#            sys.path.append(  pydir  )
-#
-#        
-#    elif system == 'Linux' :
-#        # TODO : seems to fail (not taken into account by the import maya.standalone
-#        # even with using putenv, guess it must be set before Python is started
-#        libdir = os.path.join( mayaLocation, 'lib' )
-#        _addEnv( 'LD_LIBRARY_PATH', libdir, put=True )
-#        
-#        pyhomeReal = os.environ.get('PYTHONHOME', '')
-#        pyhomeMaya = mayaLocation
-#        
-#        if not os.path.samefile( pyhomeReal, pyhomeMaya ):
-#            pydir = os.path.join( pyhomeMaya, 'lib/python%s/site-packages' % pythonVersion )
-#            print "adding", pydir
-#            sys.path.append(  pydir  )
-#  
-#
-#    else :
-#        # TODO: Perhaps convert 'standard paths' added on to sys.path to use backslashes?
-#        #       Normal maya does not do this, so that, on windows, it will add, for instance,
-#        #       'C:/Documents and Settings/%USERNAME%/My Documents/maya/2008-x64/prefs/scripts'
-#        #       instead of 
-#        #       'C:\\Documents and Settings\\%USERNAME%\\My Documents\\maya\\2008-x64\\prefs\\scripts',
-#        #       which means that you can't import modules located in the 'standard' script folders.
-#        print "Nothing planned for platform: %s" % (system)
+
                     
     if not sys.modules.has_key('maya.standalone') or version != forversion:
         try :
@@ -769,35 +733,72 @@ def mayaInit(forversion=None) :
             maya.standalone.initialize(name="python")
             
             refreshEnviron()
-            import maya.mel
-            
-            try:
-                maya.mel.eval( 'source initialPluginLoad' )
-                maya.mel.eval( 'source initialPlugins' )
-                maya.mel.eval( 'source initRenderers' )
-            except:
-                _logger.warn( "could not perform maya initialization sequence" )
-            
-            try:
-                prefsFile = os.path.join( os.environ['MAYA_APP_DIR'], mayaVersion, 'prefs', 'userPrefs.mel' )
-                maya.mel.eval( 'source "%s"' % prefsFile )
-            except:
-                _logger.warn( "could not load user preferences: %s" % prefsFile )
-                
-            try:
-                # make sure it exists
-                res = maya.mel.eval('whatIs "userSetup.mel"')
-                if res != 'Unknown':
-                    maya.mel.eval( 'source "userSetup.mel"')
-            except RuntimeError: pass
-            
+            #initMEL()
+            #executeDeferred( initMEL )
         except ImportError, msg:
             warn("Unable to import maya.standalone to start Maya: "+msg, UserWarning)
 
     # TODO: import userSetup.py to the global namespace, like when running normal Maya 
 
     return mayaIsRunning()
+
+def initMEL():   
+    _logger.debug( "initMEL" )        
+    import maya.mel
     
+    mayaVersion = getMayaVersion(extension=True)                             
+    try:
+        prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
+    except:
+        _logger.error( "could not perform maya initialization sequence: MAYA_APP_DIR not set" )
+    else:
+        # got this startup sequence from autodesk support
+        startup = [   
+            #'defaultRunTimeCommands.mel',  # sourced automatically
+            #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
+            'createPreferencesOptVars.mel',
+            'createGlobalOptVars.mel',
+            os.path.join( prefsDir, 'userPrefs.mel'),
+            'initialStartup.mel',
+            #$HOME/Documents/maya/projects/default/workspace.mel
+            'initialPlugins.mel',
+            #'initialGUI.mel', #GUI
+            #'initialLayout.mel', #GUI
+            #os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
+            #os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
+            #'hotkeySetup.mel', #GUI
+            'namedCommandSetup.mel',
+            os.path.join( prefsDir, 'userNamedCommands.mel' ),
+            #'initAfter.mel', #GUI
+            os.path.join( prefsDir, 'pluginPrefs.mel' ),
+        ]
+        try:
+            for f in startup:
+                maya.mel.eval( 'source "%s"' % f )
+                
+        except Exception, e:
+            _logger.error( "could not perform maya initialization sequence: failed on %s: %s" % ( f, e) )
+                
+#                maya.mel.eval( 'source defaultRunTimeCommands' )
+#                maya.mel.eval( 'source "%s"' % os.path.join( prefsDir, 'userRunTimeCommands.mel' )  )
+#                maya.mel.eval( 'source initialPluginLoad' )
+#                maya.mel.eval( 'source initialPluginLoad' )
+#                maya.mel.eval( 'source initialPlugins' )
+#                maya.mel.eval( 'source initRenderers' )
+
+    
+#            try:
+#                maya.mel.eval( 'source "%s"' % os.path.join( prefsDir, 'userPrefs.mel' )  )
+#            except:
+#                _logger.warn( "could not load user preferences: %s" % prefsFile )
+        
+    try:
+        # make sure it exists
+        res = maya.mel.eval('whatIs "userSetup.mel"')
+        if res != 'Unknown':
+            maya.mel.eval( 'source "userSetup.mel"')
+    except RuntimeError: pass
+               
 # Fix for non US encodings in Maya
 def encodeFix():
     if mayaInit() :
@@ -871,14 +872,22 @@ def writeCache( data, filePrefix, description='', useVersion=True):
 def parsePymelConfig():
     import ConfigParser
 
+    types = { '0_7_compatibility_mode' : 'boolean' }
+    
     config = ConfigParser.ConfigParser()
     config.read( os.path.join( util.moduleDir(), 'pymel.conf') )
     
-    try:
-        return dict(config.items('pymel')) 
-    except e:
-        _logger.warn( str(e) )
-        return {}
+    d = {}
+    for option in config.options('pymel'):
+        getter = getattr( config, 'get' + types.get(option, '') ) 
+        d[option] = getter( 'pymel', option )
+    return d
+
+#    try:
+#        return dict(config.items('pymel')) 
+#    except e:
+#        _logger.warn( str(e) )
+#        return {}
     
 
 def executeDeferred(func):
