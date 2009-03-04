@@ -1701,7 +1701,6 @@ class Array(object):
                     shape = tuple(shape)
                      
                     shape, ndim, size = cls._expandshape(shape, ndim, size)
-                    
                     # reshape / resize / retrim if needed
                     if shape != dshape :
                         if not dshape : 
@@ -1731,8 +1730,15 @@ class Array(object):
                 # check that the shape is compatible with the class, as some Array sub classes have fixed shapes / ndim
                 if not cls._shapecheck(data.shape) :
                     raise TypeError, "shape of arguments %s is incompatible with class %s" % (data.shape, cls.__name__)            
-    
-                self.data = data.data
+                
+                # Maya 8.5 fix
+                # this is a very bad workaround for a python2.4 bug.  datatypes.Vector uses a propert to emulate self.data
+                # and ensure that the data is converted to api classes.  unfortunately, in python2.4 these properties are not
+                # being called when self.data is set from here.  this workaround can be removed when we drop maya 8.5 support
+                if hasattr(self,'_setdata'):
+                    self._setdata(data.data)
+                else:
+                    self.data = data.data
             else :
                 raise ValueError, "could not initialize a %s from the provided arguments %s" % (cls.__name__, args)
 
