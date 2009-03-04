@@ -1817,9 +1817,13 @@ class ApiTypeRegister(object):
 
     @staticmethod
     def _makeApiArraySetter( type, inCast ):
+        iterable = hasattr(inCast, '__iter__')
         def setArray( array ):
             arrayPtr = type()
-            [ arrayPtr.append( inCast(x) ) for x in array ]
+            if iterable:
+                [ arrayPtr.append( inCast(*x) ) for x in array ]
+            else:
+                [ arrayPtr.append( inCast(x) ) for x in array ]
             return arrayPtr
         setArray.__name__ = 'set_' + type.__name__
         return setArray
@@ -2084,7 +2088,8 @@ class ApiArgUtil(object):
                             defaults.has_key(argname) or \
                             argtype == self.apiClassName, \
                     '%s.%s(): %s: invalid input type %s' % (self.apiClassName, self.methodName, argname, argtype)
-                
+                    
+                    #if argname in ['instance', 'instanceNumber']: print '%s.%s(): %s: %r' % (self.apiClassName, self.methodName, argname, argtype)
                 # Output
                 elif direction == 'out':
                     assert argtype in ApiTypeRegister.refInit and argtype in ApiTypeRegister.refCast, '%s.%s(): %s: invalid output type %s' % (self.apiClassName, self.methodName, argname, argtype)
@@ -2348,7 +2353,10 @@ class ApiArgUtil(object):
     
     def isStatic(self):
         return self.methodInfo['static']
-
+    
+    def isDeprecated(self):
+        return self.methodInfo.get('deprecated', False)
+    
 class ApiUndo:
 
     __metaclass__ = util.Singleton
@@ -2491,6 +2499,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         pymelName = newName
           
     if argHelper.canBeWrapped() :
+        
+        if argHelper.isDeprecated():
+            _logger.warn(  "%s.%s is deprecated" % (apiClassName, methodName) )
         inArgs = argHelper.inArgs()
         outArgs = argHelper.outArgs()
         argList = argHelper.argList()
@@ -2498,6 +2509,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
 
         getterArgHelper = argHelper.getGetterInfo()
+        
         if argHelper.hasOutput() :
             getterInArgs = []
             # query method ( getter )
