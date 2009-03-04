@@ -272,9 +272,12 @@ else:
 
     parser = OptionParser()
     parser.add_option("-d", type="int", dest="depth")
-    
+    parser.add_option("-t", action="store_false", dest="shapes", default=True)
+    parser.add_option("-s", action="store_true", dest="shapes" )
     def magic_dag(self, parameter_s=''):
+        """
         
+        """
         options, args = parser.parse_args(parameter_s.split())
         #print options.depth
         def doLevel(obj, depth, isLast ):
@@ -282,15 +285,35 @@ else:
                 sep = '\__ '
             else:
                 sep = '|__ '
+            #sep = '|__ '
             depth += 1
             pre = ''
             for x in isLast[:-1]:
-                pre += '  ' if x else '| '
-            print pre + sep + obj.nodeName()
-            children = obj.getChildren()
+                pre += '   ' if x else '|  '
+            
+            if options.shapes:
+                children = obj.getChildren()
+            else:
+                children = obj.getChildren(type='transform')
             num = len(children)-1
-            if options.depth and depth >= options.depth:
-                return
+            
+            name = obj.nodeName()
+            if obj.isInstanced():
+                name += ' [%d]' % obj.instanceNumber()
+            elif not obj.isUniquelyNamed():
+                name += '*'
+            
+            if options.depth:
+                if depth >= options.depth:
+                    pre = ( '[+]' if children else '   ' ) + '   ' + pre
+                    print pre + sep + name
+                    return 
+                else:
+                    pre = ( '[-]' if children else '   ' ) + '   ' + pre  
+                    print pre + sep + name
+            else: 
+                print pre + sep + name
+                
             for i, x in enumerate(children):
                 doLevel(x, depth, isLast+[i==num])
 
