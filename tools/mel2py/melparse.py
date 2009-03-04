@@ -9,7 +9,7 @@ Created from the ansi c example included with ply, which is based on the grammar
 
 
 
-import sys, os, re, os.path
+import sys, os, re, os.path, tempfile
 import mellex
 from pymel.util.external.ply import *
 from pymel.util import unescape
@@ -2535,7 +2535,7 @@ def p_error(t):
 
 lexer = lex.lex(module=mellex)
 
-_outputdir = util.getTempDir()
+_outputdir = tempfile.gettempdir()
 parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir )
 
 
