@@ -26,6 +26,7 @@ def testInvertibles():
         if issubclass(pynode, GeometryShape):
             if pynode == Mesh :
                 obj = polyCube()[0].getShape()
+                obj.createColorSet( 'thingie' )
             elif pynode == Subdiv:
                 obj = polyToSubdiv( polyCube()[0].getShape())[0].getShape()
             elif pynode == NurbsSurface:
@@ -68,29 +69,39 @@ def testInvertibles():
                         setter = getattr( pynode, setMethod )                      
                     except AttributeError: pass
                     else:
-                        typeMap = {   'bool' : True,
-                            'double' : 2.5, # min required for setFocalLength
-                            'double3' : ( 1.0, 2.0, 3.0),
-                            'MEulerRotation' : ( 1.0, 2.0, 3.0),
-                            'float': 2.5,
-                            'MFloatArray': [1.1, 2.2, 3.3],
-                            'MString': 'thingie',
-                            'float2': (.1, .2),
-                            'MPoint' : [1,2,3],
-                            'short': 1,
-                            'MColor' : [1,0,0],
-                            'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
-                            'MVector' : [1,0,0],
-                            'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
-                            'int' : 1,
-                            'MIntArray': [1,2,3],
-                            'MSpace.Space' : 'world'
-                        }
-                        
+                        def getType(type):
+                            typeMap = {   'bool' : True,
+                                'double' : 2.5, # min required for setFocalLength
+                                'double3' : ( 1.0, 2.0, 3.0),
+                                'MEulerRotation' : ( 1.0, 2.0, 3.0),
+                                'float': 2.5,
+                                'MFloatArray': [1.1, 2.2, 3.3],
+                                'MString': 'thingie',
+                                'float2': (.1, .2),
+                                'MPoint' : [1,2,3],
+                                'short': 1,
+                                'MColor' : [1,0,0],
+                                'MColorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
+                                'MVector' : [1,0,0],
+                                'MVectorArray': ( [1.0,0.0,0.0], [0.0,1.0,0.0] ),
+                                'int' : 1,
+                                'MIntArray': [1,2,3],
+                                'MSpace.Space' : 'world'
+                            }
+                            if '.' in type:
+                                return 1 # take a dumb guess at an enum
+                            else:
+                                return typeMap[type]
+                            
                         inArgs = [ arg for arg in info['inArgs'] if arg not in info['defaults'] ]
                         types = [ str(info['types'][arg]) for arg in inArgs ]
                         try:
-                            args = [ typeMap[typ] for typ in types ]
+                            if apiClassName == 'MFnMesh' and setMethod == 'setUVs':
+                                args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
+                            if apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
+                                args = [ 0, 2.5 ]
+                            else:
+                                args = [ getType(typ) for typ in types ]
                             descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
     #                            try:
     #                                setter( obj, *args )
