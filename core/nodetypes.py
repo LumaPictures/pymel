@@ -6,7 +6,7 @@ import sys, os, re
 import pmcmds as cmds
 import maya.mel as mm
 
-import inspect
+import inspect, itertools
 
 import pymel.util as util
 import factories as _factories
@@ -218,7 +218,18 @@ class Component( PyNode ):
             if len(self._range) == 1:
                 return self.__apiobjects__['MFn'].currentItem()
             else:
-                raise ValueError, "Cannot determine mobject"
+                component = api.MObject()
+                sel = api.MSelectionList()
+                dagPath = self.__apimdagpath__()
+                mit = self.__apimfn__()
+                while not mit.isDone():
+                    comp = mit.currentItem()
+                    # merge is True
+                    sel.add( dagPath, comp, True )
+                    mit.next()
+                sel.getDagPath( 0, dagPath, component )
+                return component
+                #raise ValueError, "Cannot determine mobject"
         
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this attribute, if it is valid"
@@ -2399,6 +2410,16 @@ class DagNode(Entity):
             except:
                 return False
     
+    def instanceNumber(self):
+        """
+        returns the instance number that this path represents in the DAG. The instance number can be used to determine which
+        element of the world space array attributes of a DAG node to connect to get information regarding this instance.
+        
+        :rtype: `int`
+        """
+        return self.__apimdagpath__().instanceNumber()
+    
+        
     def getInstances(self, includeSelf=True):
         """
         :rtype: `DagNode` list
@@ -3305,7 +3326,14 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
            
+    def getCurrentUVSetName(self):
+        return self.__apimfn__().currentUVSetName( self.instanceNumber() )
 
+    def getCurrentColorSetName(self):
+        return self.__apimfn__().currentColorSetName( self.instanceNumber() )
+    
+    
+     
 class Subdiv(SurfaceShape):
     __metaclass__ = MetaMayaNodeWrapper
     def getTweakedVerts(self, **kwargs):
@@ -3571,12 +3599,12 @@ class ObjectSet(Entity):
         >>> 
         >>> s = sets()  # create an empty set
         >>> s.union( ls( type='camera') )  # add some cameras to it
-        >>> s.members()  # get members as a list
+        >>> s.members()  # doctest: +SKIP
         [Camera(u'sideShape'), Camera(u'frontShape'), Camera(u'topShape'), Camera(u'perspShape')]
         >>> sel = s.asSelectionSet() # or as a SelectionSet
         >>> sel # doctest: +SKIP
         SelectionSet([u'sideShape', u'frontShape', u'topShape', u'perspShape'])
-        >>> sorted(sel)
+        >>> sorted(sel) # as a sorted list
         [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
         
     Operations between sets result in `SelectionSet` objects:
@@ -3900,6 +3928,44 @@ class ObjectSet(Entity):
      
     update = util.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
 
+
+class GeometryFilter(DependNode): pass
+class SkinCluster(GeometryFilter):
+    __metaclass__ = MetaMayaNodeWrapper
+    
+    def getWeights(self, geometry, influenceIndex=None):
+        if not isinstance(geometry, PyNode):
+            geometry = PyNode(geometry)
+            
+        if isinstance( geometry, Transform ):
+            try:
+                geometry = geometry.getShape()
+            except:
+                raise TypeError, "%s is a transform with no shape" % geometry
+              
+        if isinstance(geometry, GeometryShape):
+            components = api.toComponentMObject( geometry.__apimdagpath__() )
+        elif isinstance(geometry, Component):
+            components = geometry.__apiobject__()
+            
+        else:
+            raise TypeError
+        
+        if influenceIndex is not None:
+            weights = api.MDoubleArray()
+            self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, influenceIndex, weights )
+            return iter(weights)
+        else:
+            weights = api.MDoubleArray()
+            su = api.MScriptUtil()
+            index = su.asUintPtr()
+            self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index )
+            index = api.MScriptUtil(index).asInt()
+            args = [iter(weights)] * index
+            return itertools.izip(*args)
+            
+            
+             
 _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )  
 
 
