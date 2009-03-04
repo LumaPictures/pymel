@@ -14,7 +14,8 @@
 
 """
 
-import re, inspect, sys, os
+import re, inspect, sys, os, tempfile
+
 import external.ply.lex as lex
 import external.ply.yacc as yacc
 
@@ -24,13 +25,6 @@ from pwarnings import *
 from arguments import *
 from utilitytypes import *
 
-def _getOutputDir():
-    outdir = os.path.dirname(__file__)
-    if os.access( outdir, os.W_OK ):
-        return outdir
-    else:
-        import common
-        return common.getTempDir()
 
 
 
@@ -442,7 +436,6 @@ class Parsed(ProxyUni):
 class Parser(object):
     """ Abstract Base class for all name parsers """
     classes = {}
-    _outputdir = _getOutputDir()
     def __new__(cls, *args, **kwargs):
         # this class is an abstract base class for all Parser classes, cannot be built directly
         
@@ -555,11 +548,9 @@ class Parser(object):
     def build(self,**kwargs):
         debug = kwargs.get('debug', verbose())
         start = kwargs.get('start', self.__class__.start)  
-        outputdir = kwargs.get('outputdir', 'parsers')
-        parserspath = os.path.join(self._outputdir, outputdir)
+        parserspath = kwargs.get('outputdir', tempfile.gettempdir() )  
         if debug :
             print "nameparse parsers path", parserspath
-        outputdir = None 
         method = kwargs.get('method', 'LALR')    
         if debug :
             print "Build for", self.__class__.__name__
