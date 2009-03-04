@@ -1138,32 +1138,56 @@ class PyNode(util.ProxyUnicode):
                 #elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
                 else:
                     # convert to string then to api objects.
-                    name = unicode(argObj)
-                    res = api.toApiObject( name, dagPlugs=True )
-                    # DagNode Plug
-                    if isinstance(res, tuple):
-                        # Plug or Component
-                        #print "PLUG or COMPONENT", res
-                        attrNode = PyNode(res[0])
-                        argObj = res[1]
-                    # DependNode Plug
-                    elif isinstance(res,api.MPlug):
-                        attrNode = PyNode(res.node())
-                        argObj = res
-                    # Other Object
-                    elif res:
-                        argObj = res
+                    try:
+                        name = unicode(argObj)
+                    except:
+                        raise MayaNodeError
                     else:
-                        # the object doesn't exist: raise an error
-                        try:
-                            strArg = unicode(argObj)
-                        except:
-                            strArg = ''
-                            
-                        if '.' in strArg:
-                            raise MayaAttributeError( argObj )
+                        res = api.toApiObject( name, dagPlugs=True )
+                        # DagNode Plug
+                        if isinstance(res, tuple):
+                            # Plug or Component
+                            #print "PLUG or COMPONENT", res
+                            attrNode = PyNode(res[0])
+                            argObj = res[1]
+                        # DependNode Plug
+                        elif isinstance(res,api.MPlug):
+                            attrNode = PyNode(res.node())
+                            argObj = res
+                        # Other Object
+                        elif res:
+                            argObj = res
                         else:
-                            raise MayaNodeError( argObj )
+                            if mayahook.pymel_options.get( '0_7_compatibility_mode', False):
+                                import other
+                                
+#                                if '.' in name:
+#                                    newcls = nodetypes.Attribute
+#                                elif '|' in name:
+#                                    newcls = nodetypes.DagNode
+#                                else:
+#                                    newcls = nodetypes.DependNode
+#                                    
+#                                self = super(PyNode,cls).__new__(newcls)
+#                                self._name = name
+#                                self.__apiobjects__ = {}
+                                
+                                if '.' in name:
+                                    newcls = other.AttributeName
+                                elif '|' in name:
+                                    newcls = other.DagNodeName
+                                else:
+                                    newcls = other.DependNodeName
+                                    
+                                self = unicode.__new__(newcls, name)
+                                
+                                return self  
+                            else:
+                                # the object doesn't exist: raise an error
+                                if '.' in name:
+                                    raise MayaAttributeError( name )
+                                else:
+                                    raise MayaNodeError( name )
 
             #-- Components
             if isinstance( argObj, (int,slice) ) or \
@@ -1217,7 +1241,7 @@ class PyNode(util.ProxyUnicode):
         newcls = None
             
         if cls is not PyNode :
-            # a PyNode class was explicitely required, if an existing object was passed to init check that the object type
+            # a PyNode class was explicitly required, if an existing object was passed to init check that the object type
             # is compatible with the required class, if no existing object was passed, create an empty PyNode of the required class
             # There is one exception type:  MeshVertex( Mesh( 'pSphere1') )
             # TODO : can add object creation option in the __init__ if desired
@@ -1244,8 +1268,8 @@ class PyNode(util.ProxyUnicode):
             raise TypeError, "Cannot make a %s out of a %r object" % (cls.__name__, pymelType)   
 
     def __init__(self, *args, **kwargs):
-        """this  prevents the api class which is the second base, from being automatically instantiated. This __init__ should
-        be overridden on subclasses of PyNode"""
+        # this  prevents the api class which is the second base, from being automatically instantiated. This __init__ should
+        # be overridden on subclasses of PyNode
         pass
  
                          
