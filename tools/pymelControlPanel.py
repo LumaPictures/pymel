@@ -58,10 +58,15 @@ class PymelControlPanel(object):
         
         # Right Column: Mel Methods
         melForm = formLayout()
+        
         label1 = text( label='Unassigned Mel Methods' )
         self.unassignedMelMethodLister = textScrollList()
+        
         label2 = text( label='Assigned Mel Methods' )
         self.assignedMelMethodLister = textScrollList()
+
+        label3 = text( label='Disabled Mel Methods' )
+        self.disabledMelMethodLister = textScrollList()
         
         melForm.attachForm( label1, 'top', 5 )
         melForm.attachForm( label1, 'left', 5 )
@@ -70,7 +75,7 @@ class PymelControlPanel(object):
         melForm.attachControl( self.unassignedMelMethodLister, 'top', 0, label1 )
         melForm.attachForm( self.unassignedMelMethodLister, 'left', 5 )
         melForm.attachForm( self.unassignedMelMethodLister, 'right', 5 )
-        melForm.attachPosition( self.unassignedMelMethodLister, 'bottom', 5, 50 )
+        melForm.attachPosition( self.unassignedMelMethodLister, 'bottom', 5, 33 )
         
         melForm.attachControl( label2, 'top', 5,  self.unassignedMelMethodLister)
         melForm.attachForm( label2, 'left', 5 )
@@ -79,9 +84,25 @@ class PymelControlPanel(object):
         melForm.attachControl( self.assignedMelMethodLister, 'top', 0, label2 )
         melForm.attachForm( self.assignedMelMethodLister, 'left', 5 )
         melForm.attachForm( self.assignedMelMethodLister, 'right', 5 )
-        melForm.attachForm( self.assignedMelMethodLister, 'bottom', 5 )
+        melForm.attachPosition( self.assignedMelMethodLister, 'bottom', 5, 66 )
+        
+        
+        melForm.attachControl( label3, 'top', 5,  self.assignedMelMethodLister)
+        melForm.attachForm( label3, 'left', 5 )
+        melForm.attachForm( label3, 'right', 5 )
+        
+        melForm.attachControl( self.disabledMelMethodLister, 'top', 0, label3 )
+        melForm.attachForm( self.disabledMelMethodLister, 'left', 5 )
+        melForm.attachForm( self.disabledMelMethodLister, 'right', 5 )
+        melForm.attachForm( self.disabledMelMethodLister, 'bottom', 5 )
         
         setParent('..')
+
+        popupMenu(parent=self.unassignedMelMethodLister, button=3  )
+        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
+
+        popupMenu(parent=self.assignedMelMethodLister, button=3  )
+        menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
         
         # key is a tuple of (class, method)
         self.classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -96,7 +117,17 @@ class PymelControlPanel(object):
         self.win.show()
 
     
-            
+    def disableMelMethod(self, menu):
+        msel = menu.getSelectItem()
+        csel = self.classScrollList.getSelectItem()
+        if msel and csel:
+            method = msel[0]
+            clsname = csel[0]
+            menu.removeItem(method)
+            self.disabledMelMethodLister.append( method  )
+            #print clsname, method, api.apiToMelData[ (clsname, method) ]
+            api.apiToMelData[ (clsname, method) ]['melEnabled'] = False
+       
     @staticmethod    
     def getMelMethods(className):
         """get all mel-derived methods for this class"""
@@ -167,9 +198,21 @@ class PymelControlPanel(object):
         
         self.unassignedMelMethodLister.removeAll()
         self.assignedMelMethodLister.removeAll()
+        self.disabledMelMethodLister.removeAll()
         
         melMethods = self.getMelMethods(className) 
-        self.unassignedMelMethodLister.extend( melMethods )
+        for method in melMethods:
+            # fix
+            if (className, method) in api.apiToMelData and api.apiToMelData[ (className, method) ] == {'enabled':False}:
+                d = api.apiToMelData.pop( (className, method) )
+                d.pop('enabled')
+                d['melEnabled'] = False
+            
+            if (className, method) in api.apiToMelData and api.apiToMelData[(className, method)].get('melEnabled',True) == False:  
+                self.disabledMelMethodLister.append( method )
+            else:
+                self.unassignedMelMethodLister.append( method )
+        
         
         #filter = set( ['double', 'MVector'] )
         filter = []
@@ -432,10 +475,12 @@ class MethodRow(object):
         self.altNameText.changeCommand( CallbackWithArgs( MethodRow.alternateNameCB, self ) )
         self.nameMode.onCommand( Callback( MethodRow.nameTypeCB, self ) ) 
         
+        isEnabled = self.data.get('enabled', True)
         
         # UI SETUP
  
         melName = self.data.get('melName', '')
+        
         try:
             #self.melNameOptMenu.setValue( melName )
             self.melNameTextField.setText(melName)
@@ -451,7 +496,7 @@ class MethodRow(object):
             logger.debug( "making %s frame read-only" % self.methodName )
             self.frame.setEnable(False)
         
-        isEnabled = self.data.get('enabled', True)
+        
         self.enabledChBx.setValue( isEnabled )
         self.row.setEnable( isEnabled )
         self.row2.setEnable( isEnabled )
@@ -540,7 +585,7 @@ class MethodRow(object):
         logger.debug( 'overloadPrecedenceCB' )
         self.data['overloadIndex'] = i
     
-    def melNameCB(self, newMelName):
+    def melNameChangedCB(self, newMelName):
         oldMelName = str(self.melNameTextField.getText())
         if oldMelName:
             self.uncrossReference( oldMelName )
@@ -557,17 +602,18 @@ class MethodRow(object):
             self.melNameTextField.setText(newMelName)
             
     def populateMelNameMenu(self):
+        """called to populate the popup menu for choosing the mel equivalent to an api method"""
         self.melNameOptMenu.deleteAllItems()
 
-        menuItem(parent=self.melNameOptMenu, label='[None]', command=Callback( MethodRow.melNameCB, self, '[None]' ))
+        menuItem(parent=self.melNameOptMenu, label='[None]', command=Callback( MethodRow.melNameChangedCB, self, '[None]' ))
         # need to add a listForNone to this in windows
         items = self.parent.parent.unassignedMelMethodLister.getAllItems()
         if items:
             for method in items:
-                menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameCB, self, str(method) ))
+                menuItem(parent=self.melNameOptMenu, label=method, command=Callback( MethodRow.melNameChangedCB, self, str(method) ))
         
     def getEnabledArray(self):
-        """returns an array of booleans that correspond to each method and whether they can be wrapped"""
+        """returns an array of booleans that correspond to each override method and whether they can be wrapped"""
         array = []
         for i, info in enumerate( self.methodInfoList ):
             argUtil = factories.ApiArgUtil( self.apiClassName, self.apiMethodName, i )

@@ -3069,7 +3069,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here. 
-                            if not _api.apiToMelData.has_key((classname,methodName)) or not _api.apiToMelData[(classname,methodName)].get('enabled',True):
+                            if not _api.apiToMelData.has_key((classname,methodName)) \
+                                or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
+                                or not _api.apiToMelData[(classname,methodName)].get('enabled',True):
                                 returnFunc = None
                                 
                                 if flagInfo.get( 'resultNeedsCasting', False):
@@ -3101,7 +3103,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                            
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
-                            if not _api.apiToMelData.has_key((classname,methodName)) or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
+                            if not _api.apiToMelData.has_key((classname,methodName)) \
+                                or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
+                                or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
@@ -3109,8 +3113,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 _logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
                                 #setattr( newcls, methodName, wrappedMelFunc )
-                            else: _logger.debug(("Skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        else: _logger.debug(("Skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                        else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
         
         for name, attr in classdict.iteritems() :
             type.__setattr__(newcls, name, attr) 
