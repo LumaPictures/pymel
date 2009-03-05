@@ -241,14 +241,14 @@ def namespaceInfo(*args, **kwargs):
     """
 Modifications:
     - returns an empty list when the result is None
-    - returns wrapped classes for flags listNamespace and listOnlyDependencyNodes
+    - returns wrapped classes for listOnlyDependencyNodes
     """
-    if kwargs.get('ls', kwargs.get('listNamespace', False) ) or kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) ):
+    if kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) ):
         kwargs['dagPath'] = True
         res = cmds.namespaceInfo(*args, **kwargs)
         res = util.listForNone(res)
         return [general.PyNode(x) for x in res ]
-    
+
     return cmds.namespaceInfo(*args, **kwargs)
 
         
