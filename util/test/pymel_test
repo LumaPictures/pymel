@@ -18,8 +18,8 @@ except ImportError:
 
 #class MayaOutputChecker(doctest.
 
-exclusion = 'windows tools arrays example1 .*testingutils pmcmds testPa'
-
+exclusion = 'windows tools example1 .*testingutils pmcmds testPa'
+#arrays 
 args = ['empty']
 args += "--with-doctest -v pymel --noexe ".split()
 #args += ['--pdb']
