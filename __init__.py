@@ -1313,6 +1313,8 @@ plogging.pymelLogger.debug( 'imported factories' )
 from core import *
 plogging.pymelLogger.debug( 'imported core' )
 
+# for wrapped math functions
+from util.arrays import *
 
 ## some submodules do 'import pymel.core.pmcmds as cmds' -
 ## this ensures that when the user does 'from pymel import *',
