@@ -1,3 +1,5 @@
+import unittest
+
 from pymel import *
 from pymel.tools.pymelControlPanel import getApiClassName, getClassHierarchy
 
@@ -8,7 +10,53 @@ def getFundamentalTypes():
 
 EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
  
+class testCase_attribExistance(unittest.TestCase):
+    def setUp(self):
+        self.sphere1, hist = polySphere()
+        
+        class AttributeData(object):
+            node = self.sphere1
+            
+            def __init__(self, name, **initArgs):
+                self.name = name
+                self.initArgs = initArgs
+                
+            def add(self):
+                addAttr(self.node, longName=self.name, **self.initArgs)
+        
+        self.newAttrs = [
+                        AttributeData('multiByte', multi=True, attributeType='byte'),
+                        AttributeData('compound', attributeType='compound', numberOfChildren=3),
+                        AttributeData('compound_multiFloat', attributeType='float', multi=True, parent='compound'),
+                        AttributeData('compound_double', attributeType='double', parent='compound'),
+                        AttributeData('compound_compound', attributeType='compound', numberOfChildren=2, parent='compound'),
+                        AttributeData('compound_compound_matrix', attributeType='matrix', parent='compound_compound'),
+                        AttributeData('compound_compound_long', attributeType='long', parent='compound_compound'),
+                        ]
 
+        for attr in self.newAttrs:
+            attr.add()
+            
+        self.newAttrs = dict([(newAttr.name, Attribute(self.sphere1 + "." + newAttr.name)) for newAttr in self.newAttrs ])
+        
+        self.setMultiElement = self.newAttrs['multiByte'][1]
+        self.setMultiElement.set(1)
+        
+        self.unsetMultiElement = self.newAttrs['multiByte'][3]
+        
+        
+    def test_newAttrsExist(self):
+        for attr in self.newAttrs.itervalues():
+            print "Testing existence of:", attr.name()
+            self.assertTrue(attr.exists())
+            
+    def test_setMultiElement(self):
+        self.assertTrue(self.setMultiElement.exists())
+            
+    def test_unsetMultiElement(self):
+        self.assertTrue(self.unsetMultiElement.exists())
+    
+            
      
 def testInvertibles():
     classList = getFundamentalTypes()
