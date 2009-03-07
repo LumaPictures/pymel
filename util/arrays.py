@@ -3215,20 +3215,20 @@ class Array(object):
             []
             >>> A.shape
             (0,)
-            
-            TODO : how to interpret slices (get rid of the "None" thing ?)
-
-            >>> A = Array(xrange(1, 10), shape=(3, 3))
-            >>> print A.formated()
-            [[1, 2, 3],
-             [4, 5, 6],
-             [7, 8, 9]]
-            >>> del A[:, -1]
-            >>> print A.formated()
-            [[1, 2],
-             [4, 5],
-             [7, 8]]
         """
+        # TODO : how to interpret slices (get rid of the "None" thing ?)
+        #
+        # >>> A = Array(xrange(1, 10), shape=(3, 3))
+        # >>> print A.formated()
+        # [[1, 2, 3],
+        #  [4, 5, 6],
+        #  [7, 8, 9]]
+        # >>> del A[:, -1]
+        # >>> print A.formated()
+        # [[1, 2],
+        #  [4, 5],
+        #  [7, 8]]
+        
         index = self._getindex(index, default=None, expand=True)
         # TODO : check what shape it would yield first
         if index :
@@ -3677,17 +3677,17 @@ class Array(object):
             1
             >>> A.count([1, 2])
             0
-            
-            TODO : like numpy count for column occurrences ?
-            
-            # >>> A.count([1, 4, 3])
-            # 1
-            # >>> A.count([[1], [4], [3]])
-            # 1
-            # >>> A.count(A)
-            # 0
-            
         """
+           
+        # TODO : like numpy count for column occurrences ?
+        # >>> A.count([1, 4, 3])
+        # 1
+        # >>> A.count([[1], [4], [3]])
+        # 1
+        # >>> A.count(A)
+        # 0
+            
+        
         res = 0
         shape = self.shape
         ndim = self.ndim
@@ -3720,18 +3720,18 @@ class Array(object):
             Traceback (most recent call last):
                 ...
             ValueError: Array.index(x): x not in Array
+        """
+        
+        # TODO : like numpy also search for column occurrences ? 
+        # >>> A.index([1, 4, 3])
+        # 1
+        # >>> A.index([[1], [4], [3]])
+        # 1
+        # >>> A.index(A)
+        # Traceback (most recent call last):
+        #     ...
+        # ValueError: Array.index(x): x not in Array
             
-            TODO : like numpy also search for column occurrences ?
-            
-            >>> A.index([1, 4, 3])
-            1
-            >>> A.index([[1], [4], [3]])
-            1
-            >>> A.index(A)
-            Traceback (most recent call last):
-                ...
-            ValueError: Array.index(x): x not in Array
-        """    
         shape = self.shape
         ndim = self.ndim
         if shape != () :
