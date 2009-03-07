@@ -1444,14 +1444,28 @@ class Attribute(PyNode):
 
     
     def exists(self):
-        """attributeQuery -exists
+        """
+        Whether the attribute actually exists.
+        
+        In spirit, similar to 'attributeQuery -exists'...
+        ...however, also handles multi (array) attribute elements, such as plusMinusAverage.input1D[2] 
         
         :rtype: `bool`
         """
-        try:
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
-        except TypeError:
-            return False
+        
+        if self.isElement():
+            arrayExists = self.array().exists()
+            if not arrayExists:
+                return False
+            
+            # If the array exists, now check the array indices...
+            indices = self.array().getArrayIndices()
+            return (indices and self.index() in indices)
+        else:
+            try:
+                return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
+            except TypeError:
+                return False
         
 #}
 #-------------------------- 

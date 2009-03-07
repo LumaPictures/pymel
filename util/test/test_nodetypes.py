@@ -47,14 +47,14 @@ class testCase_attribExistance(unittest.TestCase):
         
     def test_newAttrsExist(self):
         for attr in self.newAttrs.itervalues():
-            print "Testing existence of:", attr.name()
+#            print "Testing existence of:", attr.name()
             self.assertTrue(attr.exists())
             
     def test_setMultiElement(self):
         self.assertTrue(self.setMultiElement.exists())
             
     def test_unsetMultiElement(self):
-        self.assertTrue(self.unsetMultiElement.exists())
+        self.assertFalse(self.unsetMultiElement.exists())
     
             
      
