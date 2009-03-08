@@ -77,6 +77,20 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assert_( shape.hasParent(self.sphere1) )
         self.assert_( self.sphere1.hasChild(shape) )
         
+        self.sphere2 | self.grp1
+        # Should now have grp2 | sphere2 | grp1 | cube1
+        self.assertEqual(self.cube1.getParent(0), self.cube1)
+        self.assertEqual(self.cube1.getParent(generations=1), self.grp1)
+        self.assertEqual(self.cube1.getParent(2), self.sphere2)
+        self.assertEqual(self.cube1.getParent(generations=3), self.grp2)
+        self.assertEqual(self.cube1.getParent(-1), self.grp2)
+        self.assertEqual(self.cube1.getParent(generations=-2), self.sphere2)
+        self.assertEqual(self.cube1.getParent(-3), self.grp1)
+        self.assertEqual(self.cube1.getParent(generations=-4), self.cube1)
+        self.assertEqual(self.cube1.getParent(-5), None)
+        self.assertEqual(self.cube1.getParent(generations=4), None)
+        self.assertEqual(self.cube1.getParent(-63), None)
+        self.assertEqual(self.cube1.getParent(generations=32), None)
     
     def test07_units(self):
         startLinear = currentUnit( q=1, linear=1)

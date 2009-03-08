@@ -37,6 +37,79 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
 
+def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
+    """
+    Generator function which makes 2 new 'parent' functions, given a baseParentFunc.
+    
+    The first function returns an array of all parents, starting from the parent immediately above, going up.
+    The second returns baseParentFunc, but adds an optional keyword arg, generations, used to control
+    the number of levels up to find the parent.
+
+    It is assumed that the first arg to baseParentFunc is the object whose parent we wish to find.
+    
+    The optional 'generations' keyword arg will be added as though it were the very FIRST
+    optional keyword arg given - ie, if we have:
+    
+    def baseParentFunc(mandatory1, mandatory2, optional1=None, optional2="foo", *args, **kwargs)
+    
+    then the function returned will be like a function declared like:
+    
+    parentFuncWithGenerations(mandatory1, mandatory2, generations=1, optional1=None, optional2="foo", *args, **kwargs)
+    """
+    namedArgs, varargs, varkwargs, defaults = inspect.getargspec(baseParentFunc)
+    if defaults is None:
+        mandatoryArgs = namedArgs
+        defaultArgs = {}
+    else:
+        mandatoryArgs = namedArgs[:-len(defaults)]
+        defaultArgs = dict(zip(namedArgs[-len(defaults):], defaults)) 
+    
+    def getAllParents(*args, **kwargs):
+        """Return a list of all parents above this.
+        
+        Starts from the parent immediately above, going up."""
+        
+        x = baseParentFunc(*args, **kwargs)
+        res = []
+        while x:
+            res.append(x)
+            x = baseParentFunc(x, *args[1:], **kwargs)
+        return res
+    
+    def parentFuncWithGenerations(*args, **kwargs):
+        if 'generations' in kwargs:
+            generations = kwargs.pop('generations')
+        elif len(args) > len(mandatoryArgs):
+            args = list(args)
+            generations = args.pop(len(mandatoryArgs))
+        else:
+            generations = 1
+
+        if generations == 0:
+            return args[0]
+        elif generations >= 1:
+            firstParent = baseParentFunc(*args, **kwargs)
+            
+            if generations == 1 or firstParent is None:
+                return firstParent
+            else:
+                kwargs['generations'] = generations - 1
+                return parentFuncWithGenerations(firstParent, *args[1:], **kwargs)
+        elif generations < 0:
+            allParents = getAllParents(*args, **kwargs)
+            
+            if -generations > (len(allParents) + 1):
+                return None
+            # Assures we can return self
+            elif -generations == (len(allParents) + 1):
+                return args[0]
+            else:
+                return allParents[generations]
+                        
+    parentFuncWithGenerations.__doc__ = baseParentFunc.__doc__
+    
+    return getAllParents, parentFuncWithGenerations
+
 class Component( PyNode ):
     """
     Abstract base class for pymel components, such as `MeshEdge`, `MeshVertex`, and `MeshFace`.
@@ -1677,16 +1750,37 @@ class Attribute(PyNode):
             pass
     siblings = getSiblings
     
-    def getParent(self):
+    def _getParentBase(self):
         """
+        Modifications:
+            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
+              ie:
+                  >>> transforms = [Transform('TopLevel'), Transform['NextLevel'], Transform['AlmostThere'], Transform['Bottom'])];
+                  ... transforms[0] | transforms[1] | transforms[2] | transforms[3];
+                  ... Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(2)
+                  Transform('TopLevel|NextLevel')
+              
+              Negative values will traverse from the top:
+              
+                  >>> Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(generations=-3)
+                  Transform('TopLevel|NextLevel|AlmostThere')
+              
+              A value of 0 will return the same node.
+              The default value is 1.
+              
+              Since the original command returned None if there is no parent, to sync with this behavior, None will
+              be returned if generations is out of bounds (no IndexError will be thrown). 
+        
         :rtype: `Attribute`  
         """
         try:
             return Attribute( self.node(), self.__apimfn__().parent() )
         except:
             pass
-    
+
+    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(_getParentBase)
     parent = getParent
+        
 #}      
 
 
@@ -2503,12 +2597,29 @@ class DagNode(Entity):
 #            child.push( thisDag.child(i) )
 #            children.append( PyNode(child) )
 #        return children
-             
-    def getParent(self, **kwargs):
+
+    def _getParentBase(self, **kwargs):
         """unlike the firstParent command which determines the parent via string formatting, this 
         command uses the listRelatives command
         
-        see also `parentAtIndex`
+        Modifications:
+            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
+              ie:
+                  >>> transforms = [Transform('TopLevel'), Transform['NextLevel'], Transform['AlmostThere'], Transform['Bottom'])];
+                  ... transforms[0] | transforms[1] | transforms[2] | transforms[3];
+                  ... Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(2)
+                  Transform('TopLevel|NextLevel')
+              
+              Negative values will traverse from the top:
+              
+                  >>> Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(generations=-3)
+                  Transform('TopLevel|NextLevel|AlmostThere')
+              
+              A value of 0 will return the same node.
+              The default value is 1.
+              
+              Since the original command returned None if there is no parent, to sync with this behavior, None will
+              be returned if generations is out of bounds (no IndexError will be thrown). 
         
         :rtype: `DagNode`
         
@@ -2527,16 +2638,8 @@ class DagNode(Entity):
              
         res = PyNode( res )
         return res
-    
-    def getAllParents(self):
-        """return a list of all transforms above this node"""
-        x = self.getParent()
-        res = []
-        while x:
-            res.append(x)
-            x = x.getParent()
-        return res      
-                
+        
+    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(_getParentBase)
                      
     def getChildren(self, **kwargs ):
         """
