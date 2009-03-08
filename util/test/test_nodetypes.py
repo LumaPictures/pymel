@@ -10,7 +10,7 @@ def getFundamentalTypes():
 
 EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
  
-class testCase_attribExistance(unittest.TestCase):
+class testCase_attribs(unittest.TestCase):
     def setUp(self):
         self.sphere1, hist = polySphere()
         
@@ -47,16 +47,32 @@ class testCase_attribExistance(unittest.TestCase):
     def tearDown(self):
         delete(self.sphere1)
         
-    def test_newAttrsExist(self):
+    def test_newAttrsExists(self):
         for attr in self.newAttrs.itervalues():
 #            print "Testing existence of:", attr.name()
             self.assertTrue(attr.exists())
             
-    def test_setMultiElement(self):
+    def test_setMultiElementExists(self):
         self.assertTrue(self.setMultiElement.exists())
             
-    def test_unsetMultiElement(self):
+    def test_unsetMultiElementExists(self):
         self.assertFalse(self.unsetMultiElement.exists())
+        
+    def test_getParent(self):
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(), self.newAttrs['compound_compound'])
+                
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(0), self.newAttrs['compound_compound_long'])
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=1), self.newAttrs['compound_compound'])
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(2), self.newAttrs['compound'])
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=3), None)
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-1), self.newAttrs['compound'])
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=-2), self.newAttrs['compound_compound'])
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-3), self.newAttrs['compound_compound_long'])
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=-4), None)
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-5), None)
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=4), None)
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)        
     
             
      
