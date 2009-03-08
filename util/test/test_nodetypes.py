@@ -44,6 +44,8 @@ class testCase_attribExistance(unittest.TestCase):
         
         self.unsetMultiElement = self.newAttrs['multiByte'][3]
         
+    def tearDown(self):
+        delete(self.sphere1)
         
     def test_newAttrsExist(self):
         for attr in self.newAttrs.itervalues():

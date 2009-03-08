@@ -12,9 +12,6 @@ class testCase_typeTrees(TestCase):
         pass
 
 
-setupUnittestModule(__name__)
-
-
 # to be organised in nice unit tests :
 
 

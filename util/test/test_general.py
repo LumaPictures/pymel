@@ -1,4 +1,5 @@
 import sys, os, inspect, unittest
+from testingutils import setupUnittestModule
 from pymel import *
 #import pymel
 #import pymel.core.factories as _factories
@@ -128,7 +129,87 @@ class testCase_nodesAndAttributes(unittest.TestCase):
     def test_classCreation(self):
         self.newobjs.append( Joint() )
         self.newobjs.append( Transform() )
+
+
+class testCase_listHistory(unittest.TestCase):
+
+    def setUp(self):
+        self.sphere1, self.sphere1Maker = polySphere()
+        self.sphere1Shape = self.sphere1.getShape()
+        self.cube1 = polyCube()[0]
+        self.cube1Shape = self.cube1.getShape()
         
+        # Delete cube's construction history
+        delete(self.cube1, ch=1)
+        
+        # Connect sphere up to cube
+        self.sphere1Shape.outMesh >> self.cube1Shape.inMesh
+        
+        self.justSphereShape = set([self.sphere1Shape])
+        self.justPolySphere = set([self.sphere1Maker])
+        self.justCubeShape = set([self.cube1Shape])
+        self.polySphereAndShape = self.justSphereShape | self.justPolySphere
+        self.polySphereAndShapeAndCubeShape = self.polySphereAndShape | self.justCubeShape
+        self.shapes = self.justSphereShape | self.justCubeShape
+
+    def tearDown(self):
+        # cleaning
+        delete(self.sphere1)
+        delete(self.cube1)
+                
+    def test_listHistory(self):
+        hist = set(self.sphere1.listHistory())
+        self.assertEqual(self.polySphereAndShape, hist)
+        
+        hist = set(self.cube1.listHistory())
+        self.assertEqual(self.polySphereAndShapeAndCubeShape, hist)
+
+    def test_listHistoryType(self):
+        hist = set(self.sphere1.listHistory(type='dagNode'))
+        self.assertEqual(self.justSphereShape, hist)
+
+        hist = set(self.sphere1.listHistory(type='mesh'))
+        self.assertEqual(self.justSphereShape, hist)
+        
+        hist = set(self.cube1.listHistory(type='dagNode'))
+        self.assertEqual(self.shapes, hist)
+
+        hist = set(self.cube1.listHistory(type='mesh'))
+        self.assertEqual(self.shapes, hist)
+        
+
+    def test_listHistoryExactType(self):        
+        hist = set(self.sphere1.listHistory(exactType='dagNode'))
+        self.assertEqual(set(), hist)
+        
+        hist = set(self.sphere1.listHistory(exactType='mesh'))
+        self.assertEqual(self.justSphereShape, hist)
+        
+        hist = set(self.cube1.listHistory(exactType='dagNode'))
+        self.assertEqual(set(), hist)
+        
+        hist = set(self.cube1.listHistory(exactType='mesh'))
+        self.assertEqual(self.shapes, hist)        
+    
+    def test_listFuture(self):
+        fut = set(self.sphere1Maker.listFuture())
+        self.assertEqual(self.polySphereAndShapeAndCubeShape, fut)
+        
+    def test_listFutureType(self):
+        fut = set(self.sphere1Maker.listFuture(type='dagNode'))
+        self.assertEqual(self.shapes, fut)
+
+        fut = set(self.sphere1Maker.listFuture(type='mesh'))
+        self.assertEqual(self.shapes, fut)
+
+    def test_listFutureExactType(self):
+        fut = set(self.sphere1Maker.listFuture(exactType='dagNode'))
+        self.assertEqual(set(), fut)
+
+        fut = set(self.sphere1Maker.listFuture(exactType='mesh'))
+        self.assertEqual(self.shapes, fut)
+
+                
 #    def test_transform(self):
 #        s, h = polySphere()
 #        g = group(s)
@@ -143,7 +224,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 #        # Result: [10.0, 10.0, 20.0] # 
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
-unittest.TextTestRunner(verbosity=2).run(suite)
+#suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
+#suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
+#unittest.TextTestRunner(verbosity=2).run(suite)
+setupUnittestModule(__name__)
+
 
      

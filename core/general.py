@@ -549,15 +549,26 @@ def listHistory( *args, **kwargs ):
 Modifications:
     - returns an empty list when the result is None
     - added a much needed 'type' filter
+    - ...and an 'exactType' filter (if both are present, 'type' is ignored)
     
     :rtype: `DependNode` list
     
     """
-    
+
+    type = exactType = None
     if 'type' in kwargs:
-        typ = kwargs.pop('type')
-        return filter( lambda x: cmds.nodeType(x) == typ, map( PyNode, cmds.listHistory( *args,  **kwargs ) )  )
-    return map(PyNode, util.listForNone(cmds.listHistory( *args,  **kwargs ) ) )
+        type = kwargs.pop('type')
+    if 'exactType' in kwargs:
+        exactType = kwargs.pop('exactType')
+
+    results = [PyNode(x) for x in util.listForNone(cmds.listHistory( *args,  **kwargs ))]
+
+    if exactType:
+        results = [x for x in results if x.nodeType() == exactType]
+    elif type:
+        results = [x for x in results if type in x.nodeType(inherited=True)]
+
+    return results
 
         
 def listFuture( *args, **kwargs ):
@@ -565,15 +576,14 @@ def listFuture( *args, **kwargs ):
 Modifications:
     - returns an empty list when the result is None
     - added a much needed 'type' filter
+    - ...and an 'exactType' filter (if both are present, 'type' is ignored)
     
     :rtype: `DependNode` list
     
     """
     kwargs['future'] = True
-    if 'type' in kwargs:
-        typ = kwargs.pop('type')
-        return filter( lambda x: cmds.nodeType(x) == typ, map( PyNode, cmds.listHistory( *args,  **kwargs ) )  )
-    return map(PyNode, util.listForNone(cmds.listHistory( *args,  **kwargs )) )
+    
+    return listHistory(*args, **kwargs)
 
         
 def listRelatives( *args, **kwargs ):
