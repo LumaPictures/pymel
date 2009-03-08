@@ -1750,7 +1750,7 @@ class Attribute(PyNode):
             pass
     siblings = getSiblings
     
-    def _getParentBase(self):
+    def firstParent(self):
         """
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
@@ -1778,7 +1778,7 @@ class Attribute(PyNode):
         except:
             pass
 
-    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(_getParentBase)
+    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
     parent = getParent
         
 #}      
@@ -2598,7 +2598,7 @@ class DagNode(Entity):
 #            children.append( PyNode(child) )
 #        return children
 
-    def _getParentBase(self, **kwargs):
+    def firstParent2(self, **kwargs):
         """unlike the firstParent command which determines the parent via string formatting, this 
         command uses the listRelatives command
         
@@ -2639,7 +2639,7 @@ class DagNode(Entity):
         res = PyNode( res )
         return res
         
-    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(_getParentBase)
+    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent2)
                      
     def getChildren(self, **kwargs ):
         """

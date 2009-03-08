@@ -15,6 +15,8 @@ _factories.createFunctions( __name__ )
 #--------------------------
 
 class NameParser(unicode):
+    PARENT_SEP = '|'
+    
     def __new__(cls, strObj):
         """Casts a string to a pymel class. Use this function if you are unsure which class is the right one to use
         for your object."""
@@ -191,12 +193,42 @@ class AttributeName(NameParser):
         except: return None
 
         
-    def getParent(self):
+    def getParent(self, generations=1):
         """
         Returns the parent attribute
+
+        Modifications:
+            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
+              ie:
+                  >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(2)
+                  'Cube1.multiComp[3]'
+              
+              Negative values will traverse from the top, not counting the initial node name:
+              
+                  >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(-2)
+                  'Cube1.multiComp[3].child'
+              
+              A value of 0 will return the same node.
+              The default value is 1.
+              
+              Since the original command returned None if there is no parent, to sync with this behavior, None will
+              be returned if generations is out of bounds (no IndexError will be thrown). 
         """    
-        if self.count('.') > 1:
-            return AttributeName('.'.join(self.split('.')[:-1]))
+
+        if generations==0:
+            return self
+        
+        split = self.split('.')
+        if -len(split) < generations < len(split) - 1:        
+            if generations < 0:
+                # Move it one over to account for the initial node name
+                splitIndex = 1 - generations
+            else:
+                splitIndex = -generations
+            try:
+                return AttributeName('.'.join(split[:splitIndex]))
+            except:
+                pass
 
     def addAttr( self, **kwargs):    
         kwargs['longName'] = self.plugAttr()
@@ -313,11 +345,37 @@ class DagNodeName(DependNodeName):
 
         return DagNodeName( '|'.join( self.split('|')[:-1] ) )
     
-    def getParent(self):
-        'firstParentOf'
+    def getParent(self, generations=1):
+        """
+        Returns the parent node
 
-        return DagNodeName( '|'.join( self.split('|')[:-1] ) )
+        Modifications:
+            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
+              ie:
+                  >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(2)
+                  'NS1:TopLevel|Next'
+              
+              Negative values will traverse from the top, not counting the initial node name:
+              
+                  >>> AttributeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(-3)
+                  'NS1:TopLevel|Next|ns2:Third'
+              
+              A value of 0 will return the same node.
+              The default value is 1.
+              
+              Since the original command returned None if there is no parent, to sync with this behavior, None will
+              be returned if generations is out of bounds (no IndexError will be thrown). 
+        """    
 
+        if generations==0:
+            return self
+        
+        split = self.split('|')
+        if -len(split) <= generations < len(split):        
+            try:
+                return DagNodeName('|'.join(split[:-generations]))
+            except:
+                pass
         
             
 #    def shortName( self ):
