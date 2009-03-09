@@ -223,6 +223,42 @@ class testCase_listHistory(unittest.TestCase):
         fut = set(self.sphere1Maker.listFuture(exactType='mesh'))
         self.assertEqual(self.shapes, fut)
 
+
+     
+    def test_transform_translation(self):
+        SCENE.persp.setTranslation( [10,20,30], 'world')
+
+        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
+        SCENE.persp.setTranslation( [1,2,3], 'world', relative=1)
+
+        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([11.0, 22.0, 33.0]) )
+        undo()
+        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
+
+    def test_transform_scale(self):
+
+        SCENE.persp.setScale( [10,20,30] )
+
+        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+        SCENE.persp.setScale( [1,2,3], relative=1)
+
+        self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
+        undo()
+        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+
+    def test_transform_rotation(self):
+        SCENE.persp.setRotation( [10,20,30], 'world')
+        print repr( SCENE.persp.getRotation( 'world' ) )
+        self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 30.0]) ) )
+        SCENE.persp.setRotation( [1,2,3], 'world', relative=1)
+
+        self.assert_( SCENE.persp.getRotation( 'world' ) == datatypes.EulerRotation([11.0, 22.0, 33.0]) )
+        undo()
+        self.assert_( SCENE.persp.getRotation( 'world' ) == datatypes.EulerRotation([10.0, 20.0, 30.0]) )
+               
+
+
+
                 
 #    def test_transform(self):
 #        s, h = polySphere()
@@ -242,6 +278,5 @@ class testCase_listHistory(unittest.TestCase):
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
 setupUnittestModule(__name__)
-
 
      
