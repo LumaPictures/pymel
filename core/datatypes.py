@@ -17,7 +17,7 @@ import factories as _factories
 # TODO:  add a version check: 
 #from pymel.mayahook import Version
 #if Version.current => Version.v2010:
-#    AS_UNITS = 'asUnits'
+#    AS_UNITS = 'asUnit'
 #else:
 AS_UNITS = 'as'
         
@@ -318,10 +318,17 @@ class Vector(VectorN) :
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__) 
         
         # units handling
-        unit = kwargs.get('unit', None)
-        if unit is not None :
-            self.assign([Distance(x, unit) for x in self])
-            
+        self.unit = kwargs.get('unit', None)
+        if self.unit is not None :
+            self.assign([Distance(x, self.unit) for x in self])
+    
+    def __repr__(self):
+        if self.unit:
+            return "%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
+        else:
+            return "%s(%s)" % (self.__class__.__name__, str(self)) 
+    
+           
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
     # here, there is no _data attribute as we subclass _api.MVector directly, thus v.data is v
     # for wraps 
@@ -624,36 +631,36 @@ class Vector(VectorN) :
         else :
             return self
     
-#    def asUnits(self, unit) :
+#    def asUnit(self, unit) :
 #        #kUnit = Distance.kUnit(unit)
-#        return self.__class__( [ Distance(x).asUnits(unit) for x in self ]  )
+#        return self.__class__( [ Distance(x).asUnit(unit) for x in self ]  )
 #
 #    def asUnit(self) :
-#        return self.asUnits(self.unit)
+#        return self.asUnit(self.unit)
 #
-#    def asUI(self) :
-#        return self.asUnits(Distance.getUIUnit())
+#    def asUIUnit()nits()self) :
+#        return self.asUnit(Distance.getUIUnit())
 #
-#    def asInternal(self) :
-#        return self.asUnits(Distance.getInternalUnit())
+#    def asInternalUnit(self) :
+#        return self.asUnit(Distance.getInternalUnit())
 #
 #    def asMillimeter(self) :
-#        return self.asUnits('millimeter')
+#        return self.asUnit('millimeter')
 #    def asCentimeters(self) :
-#        return self.asUnits('centimeters')
+#        return self.asUnit('centimeters')
 #    def asKilometers(self) :
-#        return self.asUnits('kilometers')
+#        return self.asUnit('kilometers')
 #    def asMeters(self) :
-#        return self.asUnits('meters')
+#        return self.asUnit('meters')
 #
 #    def asInches(self) :
-#        return self.asUnits('inches')
+#        return self.asUnit('inches')
 #    def asFeet(self) :
-#        return self.asUnits('feet')
+#        return self.asUnit('feet')
 #    def asYards(self) :
-#        return self.asUnits('yards')
+#        return self.asUnit('yards')
 #    def asMiles(self) :
-#        return self.asUnits('miles')
+#        return self.asUnit('miles')
     
     # additional api methods that work on Vector only, but can also be delegated to VectorN
       
@@ -1317,14 +1324,18 @@ class Space(_api.MSpace):
     __metaclass__ = _factories.MetaMayaTypeWrapper
     pass
 
-# fix the Space enumerator
-keys = Space.Space._keys.copy()
-#print keys
-val = keys.pop('postTransform', None)
-if val:
-    keys['object'] = val
-    Space.Space = util.Enum( 'Space', keys )
 Spaces = Space.Space
+
+def _fixSpace():
+    # fix the Space enumerator
+    keys = Space.Space._keys.copy()
+    #print keys
+    val = keys.pop('postTransform', None)
+    if val:
+        keys['object'] = val
+        Space.Space = util.Enum( 'Space', keys )
+    Spaces = Space.Space
+#_fixSpace()
 
 #kInvalid
 #    kTransform
@@ -1845,6 +1856,31 @@ class TransformationMatrix(Matrix):
 
 
 class EulerRotation(Array):
+    """
+    unit handling:
+    >>> currentUnit(angle='degree')
+    >>> e = EulerRotation([math.pi,0,0], unit='radians')
+    >>> e
+    EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
+    >>> e2 = EulerRotation([180,0,0], unit='degrees')
+    >>> e2
+    EulerRotation([180.0, 0.0, 0.0])
+    >>> e.isEquivalent( e2 )
+    True
+    >>> e == e2
+    True
+    
+    units are only displayed when they do not match the current ui unit
+    >>> Angle.getUIUnit() # check current angular unit
+    'degrees'
+    >>> e
+    EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
+    >>> Angle.setUIUnit('radians')  # change to radians
+    >>> e
+    EulerRotation([3.14159265359, 0.0, 0.0])
+    
+    
+    """
     __metaclass__ = MetaMayaArrayTypeWrapper
     apicls = _api.MEulerRotation
     shape = (3,)   
@@ -1878,20 +1914,24 @@ class EulerRotation(Array):
     def __init__(self, *args, **kwargs):
         """ __init__ method for EulerRotation """
         cls = self.__class__
-        
+        self.unit = None
         if args :
             # allow both forms for arguments
-            if len(args)==1 and hasattr(args[0], '__iter__') and not isinstance(args[0], self.apicls):
-                args = args[0]
-                # len(api.MEulerRotation()) is 4.  this is not correct. it should be only 3 (the fourth element is always just the third element repeated)
-                # this is not a nice fix, but the only way i can see until Autodesk fixes this bug
-                if len(args)==4:
-                    args = list(args)[:3]
+            if len(args)==1 and hasattr(args[0], '__iter__'):
+                if isinstance(args[0], self.apicls):
+                    self.unit = 'radians' 
+                else:
+                    args = args[0]
+                    # len(api.MEulerRotation()) is 4.  this is not correct. it should be only 3 (the fourth element is always just the third element repeated)
+                    # this is not a nice fix, but the only way i can see until Autodesk fixes this bug
+                    if len(args)==4:
+                        args = list(args)[:3]
             # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
             if hasattr(args, 'rotate') :
                 euler = _api.MEulerRotation()
                 euler.assign(args.rotate)
                 args = euler
+                self.unit = 'radians' 
             elif len(args) == 4 and isinstance(args[3], (basestring, util.EnumValue) ) :
                 # allow to initialize directly from 3 rotations and a rotation order as string
                 args = (args[0], args[1], args[2], cls.RotationOrder.getIndex(args[3])) 
@@ -1899,7 +1939,8 @@ class EulerRotation(Array):
             elif len(args) == 2 and isinstance(args[0], VectorN) and isinstance(args[1], float) :
                 # some special init cases are allowed by the api class, want to authorize
                 # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
-                args = (float(args[1]), Vector(args[0]))        
+                args = (float(args[1]), Vector(args[0])) 
+                       
             # shortcut when a direct api init is possible     
             try :
                 self.assign(args)
@@ -1921,7 +1962,25 @@ class EulerRotation(Array):
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)  
-    
+ 
+        # units handling, convert to radians for internal handling
+        if self.unit is None:
+            self.unit = kwargs.get('unit', Angle.getUIUnit() )
+        if self.unit is not None and self.unit != 'radians':
+            self.assign([Angle(self._getitem(i), self.unit).asUnit('radians') for i in range(self.size) ])
+
+    def setDisplayUnit(self, unit):
+        if unit not in Angle.Unit:
+            raise TypeError, "%s is not a valid angular unit.  See Angle.Unit for the list of valid units"
+        self.unit = unit
+        
+    def __repr__(self):
+        #return "%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
+        if self.unit != Angle.getUIUnit():
+            return "%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
+        else:
+            return "%s(%s)" % (self.__class__.__name__, str(self)) 
+            
     def __iter__(self):
         for i in range(self.size):
             yield self[i]
@@ -1932,7 +1991,7 @@ class EulerRotation(Array):
         return self.size
      
     def __getitem__(self, i):
-        return Angle( self._getitem(i), 'radians' ).asUI()
+        return Angle( self._getitem(i), 'radians' ).asUnit(self.unit)
     
     # faster to override __getitem__ cause we know Vector only has one dimension
     def _getitem(self, i):
@@ -2151,14 +2210,18 @@ class Quaternion(Matrix):
     def __init__(self, *args, **kwargs):
         """ __init__ method for Quaternion """
         cls = self.__class__
-        
+        self.unit = None
         if args :
             # allow both forms for arguments
             if len(args)==1 and hasattr(args[0], '__iter__') :
                 args = args[0]
+                if isinstance(args[0], self.apicls):
+                    self.unit = 'radians'
+                
             # TransformationMatrix, Quaternion, EulerRotation api classes can convert to a rotation Quaternion
             if hasattr(args, 'rotate') :
                 args = args.rotate
+                self.unit = 'radians' 
                 
             elif len(args) == 4 and ( isinstance(args[3], basestring) or isinstance(args[3], int) ): # isinstance(args[3], EulerRotation.RotationOrder) ) :
                 quat = _api.MQuaternion()
@@ -2191,7 +2254,13 @@ class Quaternion(Matrix):
                 except :
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)                          
-
+        
+        # units handling, convert to radians for internal handling
+        if self.unit is None:
+            self.unit = kwargs.get('unit', Angle.getUIUnit() )
+        if self.unit is not None and self.unit != 'radians':
+            self.assign([Angle(self._getitem(i), self.unit).asUnit('radians') for i in range(self.size) ])
+            
    # set properties for easy acces to translation / rotation / scale of a MMatrix or derived class
     # some of these will only yield dependable results if MMatrix is a MTransformationMatrix and some
     # will always be zero for some classes (ie only rotation has a value on a MQuaternion
@@ -2233,11 +2302,17 @@ class Quaternion(Matrix):
         self.apicls.get(self, p)
         return tuple([ms.getDoubleArrayItem ( p, i ) for i in xrange(self.size)])
 
-#    def __getitem__(self,i):
-#        return Angle( self._getitem(i), 'radians' ).asUI()
+    def __getitem__(self,i):
+        res = self._getitem(i)
+        if i == 3:
+            return res
+        if hasattr(res, '__iter__'):
+            return [ Angle( x, 'radians' ).asUnit(self.unit) for x in res ]
+        
+        return Angle( res, 'radians' ).asUnit(self.unit) 
     
     # faster to override __getitem__ cause we know Quaternion only has one dimension
-    def __getitem__(self, i):
+    def _getitem(self, i):
         """ Get component i value from self """
         if hasattr(i, '__iter__') :
             i = list(i)
@@ -2259,10 +2334,7 @@ class Quaternion(Matrix):
                 else :
                     res = list(self)[i]
                 # 4th component is not unitized
-                if i == 3:
-                    return res
-                else:
-                    return Angle( res, 'radians' ).asUI()
+                return res
             else :
                 raise IndexError, "class %s instance %s is of size %s, index %s is out of bounds" % (util.clsname(self), self, self.size, i)
 
@@ -2321,7 +2393,7 @@ class Unit(float):
     @classmethod
     def uiToInternal (cls, value) :
         d = cls(value, cls.getUIUnit())
-        return d.asInternal()
+        return d.asInternalUnit()
         
     @classmethod
     def kUnit(cls, unit=None):
@@ -2348,23 +2420,23 @@ class Unit(float):
             Returns the units currently in effect for this instance
         """
         return self.__class__.sUnit(self._unit)    
-    def setUnit(self, unit=None) :
-        """
-            Sets the units currently in effect for this instance
-        """
-        self._unit = self.__class__.kUnit(unit)
-    unit = property(getUnit, setUnit, None, "The units currently in effect for this instance")
+#    def setUnit(self, unit=None) :
+#        """
+#            Sets the units currently in effect for this instance
+#        """
+#        self._unit = self.__class__.kUnit(unit)
+    unit = property(getUnit, None, None, "The units currently in effect for this instance")
 
     def __new__(cls, value, unit=None) :
         unit = cls.kUnit(unit)
         if isinstance(value, cls.apicls):
             value = getattr(value, AS_UNITS)(unit)
         elif isinstance(value, cls):
-            value = value.asUnits(unit)
+            value = value.asUnit(unit)
         #data = cls.apicls(value, unit)
         # the float representation uses internal units so that arithmetics work
-        #newobj = float.__new__(cls, data.asUnits(cls.apicls.internalUnit()))
-        #newobj = float.__new__(cls, data.asUnits(unit))
+        #newobj = float.__new__(cls, data.asUnit(cls.apicls.internalUnit()))
+        #newobj = float.__new__(cls, data.asUnit(unit))
         newobj = float.__new__(cls, value)
         #ewobj._data = data
         newobj._unit = unit
@@ -2379,18 +2451,18 @@ class Unit(float):
     def __repr__(self) :
         return '%s(%s, unit=%r)' % ( self.__class__.__name__, self, self.unit ) 
      
-    def asUnits(self, unit) :
+    def asUnit(self, unit) :
         # in python2.6/maya2010 'as' becomes a keyword.
         return getattr( self._data, AS_UNITS )( self.__class__.kUnit(unit) )
 
-    def asUnit(self) :
-        return self.asUnits(self.unit)
+#    def asUnit(self) :
+#        return self.asUnit(self.unit)
 
-    def asUI(self) :
-        return self.asUnits(self.__class__.getUIUnit())
+    def asUIUnit(self) :
+        return self.asUnit(self.__class__.getUIUnit())
 
-    def asInternal(self) :
-        return self.asUnits(self.__class__.getInternalUnit())
+    def asInternalUnit(self) :
+        return self.asUnit(self.__class__.getInternalUnit())
 
 class Time(Unit):
     apicls = _api.MTime
@@ -2418,7 +2490,7 @@ class Distance( Unit ) :
         Distance(12.0, unit='meters')
         >>> print d.asUnit()
         12.0
-        >>> print d.asInternal()
+        >>> print d.asInternalUnit()
         1200.0
         
         >>> Distance.setUIUnit('centimeters')
@@ -2435,7 +2507,7 @@ class Distance( Unit ) :
         Distance(12.0, unit='centimeters')
         >>> print d.asUnit()
         12.0
-        >>> print d.asInternal()
+        >>> print d.asInternalUnit()
         12.0
                         
         >>> d = Distance(12, 'feet')      
@@ -2452,11 +2524,11 @@ class Distance( Unit ) :
         >>> Distance.setUIUnit('meters')
         >>> Distance.getUIUnit()
         'meters'
-        >>> print d.asUI()
+        >>> print d.asUIUnit())
         3.6576
         >>> Distance.getInternalUnit()
         'centimeters'
-        >>> print d.asInternal()
+        >>> print d.asInternalUnit()
         365.76
 
         >>> print d.asFeet()
@@ -2473,33 +2545,37 @@ class Distance( Unit ) :
     apicls = _api.MDistance
     Unit = _api.apiClassInfo['MDistance']['pymelEnums']['Unit']
 
-
-
-
     def asMillimeter(self) :
-        return self.asUnits('millimeter')
+        return self.asUnit('millimeter')
     def asCentimeters(self) :
-        return self.asUnits('centimeters')
+        return self.asUnit('centimeters')
     def asKilometers(self) :
-        return self.asUnits('kilometers')
+        return self.asUnit('kilometers')
     def asMeters(self) :
-        return self.asUnits('meters')
+        return self.asUnit('meters')
 
     def asInches(self) :
-        return self.asUnits('inches')
+        return self.asUnit('inches')
     def asFeet(self) :
-        return self.asUnits('feet')
+        return self.asUnit('feet')
     def asYards(self) :
-        return self.asUnits('yards')
+        return self.asUnit('yards')
     def asMiles(self) :
-        return self.asUnits('miles')
+        return self.asUnit('miles')
 
    
 class Angle( Unit ):
     apicls = _api.MAngle
     Unit = _api.apiClassInfo['MAngle']['pymelEnums']['Unit']
     
-
+    def asRadians(self):
+        return self.asUnit('radians')
+    def asDegrees(self):
+        return self.asUnit('degrees')
+    def asAngMinutes(self):
+        return self.asUnit('angMinutes')
+    def asAngSeconds(self):
+        return self.asUnit('angSeconds')
 class BoundingBox( _api.MBoundingBox):
     apicls = _api.MBoundingBox
     __metaclass__ = _factories.MetaMayaTypeWrapper
@@ -2537,8 +2613,8 @@ class BoundingBox( _api.MBoundingBox):
 #_factories.ApiTypeRegister.register( 'MQuaternion', Quaternion )
 #_factories.ApiTypeRegister.register( 'MEulerRotation', EulerRotation )
 _factories.ApiTypeRegister.register( 'MTime', Time )
-_factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda instance, result: Distance(result,'centimeters').asUI() )
-_factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUI()  )
+_factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda instance, result: Distance(result,'centimeters').asUIUnit()) 
+_factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUIUnit())  
 
         
 def getPlugValue( plug ):
@@ -4017,7 +4093,7 @@ if __name__ == '__main__' :
     Distance(12.0, unit='meters')
     print d.asUnit()
     12.0
-    print d.asInternal() 
+    print d.asInternalUnit() 
     1200.0
     
     import doctest
