@@ -2997,33 +2997,33 @@ class Transform(DagNode):
 #    def setScale( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 
-    @editflag('xform','rotation')             
-    def setRotationOld( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
-        
-    @editflag('xform','translation')  
-    def setTranslationOld( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
-
-    @editflag('xform','scalePivot')  
-    def setScalePivotOld( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
-        
-    @editflag('xform','rotatePivot')         
-    def setRotatePivotOld( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
+#    @editflag('xform','rotation')             
+#    def setRotationOld( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
+#        
+#    @editflag('xform','translation')  
+#    def setTranslationOld( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
+#
+#    @editflag('xform','scalePivot')  
+#    def setScalePivotOld( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
+#        
+#    @editflag('xform','rotatePivot')         
+#    def setRotatePivotOld( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
  
 #    @editflag('xform','pivots')         
 #    def setPivots( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
         
-    @editflag('xform','rotateAxis')  
-    def setRotateAxisOld( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
-        
-    @editflag('xform','shear')                                 
-    def setShearingOld( self, val, **kwargs ):
-        cmds.xform( self, **kwargs )
+#    @editflag('xform','rotateAxis')  
+#    def setRotateAxisOld( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
+#        
+#    @editflag('xform','shear')                                 
+#    def setShearingOld( self, val, **kwargs ):
+#        cmds.xform( self, **kwargs )
 
     
     @editflag('xform','rotateAxis')                                
@@ -3040,97 +3040,166 @@ class Transform(DagNode):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     def _getSpaceArg(self, space, kwargs):
+        "for internal use only"
         if kwargs.pop( 'worldSpace', kwargs.pop('ws', False) ):
             space = 'world'
         elif kwargs.pop( 'objectSpace', kwargs.pop('os', False) ):
             space = 'object'
-        if kwargs:
-            raise ValueError, "unknown keyword argument(s) %s" % ','.join( kwargs.keys() )
         return space
     
-    @queryflag('xform','translation') 
-    def getTranslationOld( self, **kwargs ):
-        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+    def _isRelativeArg(self, kwargs ):
+        
+        isRelative = kwargs.pop( 'relative', kwargs.pop('r', None) )
+        if isRelative is None:
+            isRelative = not kwargs.pop( 'absolute', kwargs.pop('a', True) )
+        return isRelative
+            
+#    @queryflag('xform','translation') 
+#    def getTranslationOld( self, **kwargs ):
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     @addApiDocs( api.MFnTransform, 'setTranslation' )
-    def setTranslation(self, vector, space='world', **kwargs):
+    def setTranslation(self, vector, space='object', **kwargs):
+        if self._isRelativeArg(kwargs):
+            return self.translateBy(vector, space, **kwargs)
         space = self._getSpaceArg(space, kwargs )
         return self._setTranslation(vector, space=space)
     
     @addApiDocs( api.MFnTransform, 'getTranslation' )
-    def getTranslation(self, space='world', **kwargs):
+    def getTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getTranslation(space=space)
 
+    @addApiDocs( api.MFnTransform, 'translateBy' )
+    def translateBy(self, vector, space='object', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        curr = self._getTranslation(space)
+        self._translateBy(vector, space)
+        new = self._getTranslation(space)
+        undoItem = _factories.UndoItem(Transform.setTranslation, (self, new, space), (self, curr, space) )
+        _factories.apiUndo.append( undoItem )
+
+    @addApiDocs( api.MFnTransform, 'setScale' )
+    def setScale(self, scale, **kwargs):
+        if self._isRelativeArg(kwargs):
+            return self.scaleBy(scale, **kwargs)
+        return self._setScale(scale)
     
-    @queryflag('xform','rotatePivot')        
-    def getRotatePivotOld( self, **kwargs ):
-        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+    @addApiDocs( api.MFnTransform, 'scaleBy' )
+    def scaleBy(self, scale, **kwargs):
+        curr = self.getScale()
+        self._scaleBy(scale)
+        new = self.getScale()
+        undoItem = _factories.UndoItem(Transform.setScale, (self, new), (self, curr) )
+        _factories.apiUndo.append( undoItem )
+
+    @addApiDocs( api.MFnTransform, 'setShear' )
+    def setShear(self, shear, **kwargs):
+        if self._isRelativeArg(kwargs):
+            return self.shearBy(shear, **kwargs)
+        return self._setShear(shear)
+    
+    @addApiDocs( api.MFnTransform, 'shearBy' )
+    def shearBy(self, shear, **kwargs):
+        curr = self.getShear()
+        self._shearBy(shear)
+        new = self.getShear()
+        undoItem = _factories.UndoItem(Transform.setShear, (self, new), (self, curr) )
+        _factories.apiUndo.append( undoItem )
+         
+        
+#    @queryflag('xform','rotatePivot')        
+#    def getRotatePivotOld( self, **kwargs ):
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     @addApiDocs( api.MFnTransform, 'setRotatePivot' )
-    def setRotatePivot(self, point, space='world', balance=True, **kwargs):
+    def setRotatePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setRotatePivot(point, space=space, balance=balance) 
     
     @addApiDocs( api.MFnTransform, 'rotatePivot' )
-    def getRotatePivot(self, space='world', **kwargs):
+    def getRotatePivot(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getRotatePivot(space=space)
 
     @addApiDocs( api.MFnTransform, 'setRotatePivotTranslation' )
-    def setRotatePivotTranslation(self, vector, space='world', **kwargs):
+    def setRotatePivotTranslation(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setRotatePivotTranslation(vector, space=space)
     
     @addApiDocs( api.MFnTransform, 'rotatePivotTranslation' )
-    def getRotatePivotTranslation(self, space='world', **kwargs):
+    def getRotatePivotTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getRotatePivotTranslation(space=space)
 
  
-    @queryflag('xform','rotation')        
-    def getRotationOld( self, **kwargs ):
-        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+#    @queryflag('xform','rotation')        
+#    def getRotationOld( self, **kwargs ):
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     @addApiDocs( api.MFnTransform, 'setRotation' )
-    def setRotation(self, rotation, space='world', **kwargs):
+    def setRotation(self, rotation, space='object', **kwargs):
         # quaternions are the only method that support a space parameter
+        if self._isRelativeArg(kwargs):
+            return self.rotateBy(vector, space, **kwargs)
         space = self._getSpaceArg(space, kwargs )
         rotation = list(rotation)
-        if len(rotation) == 3:
-            rotation.append(1.0)
-        quat = api.MQuaternion(*rotation)
+
+        rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
+
+        
+        quat = api.MEulerRotation( *rotation ).asQuaternion()
         api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
       
+#    @addApiDocs( api.MFnTransform, 'getRotation' )
+#    def getRotation(self, space='object', **kwargs):
+#        # quaternions are the only method that support a space parameter
+#        space = self._getSpaceArg(space, kwargs )
+#        quat = api.MQuaternion()
+#        api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
+#        return datatypes.EulerRotation( quat.asEulerRotation() )
+
     @addApiDocs( api.MFnTransform, 'getRotation' )
-    def getRotation(self, space='world', **kwargs):
+    def getRotation(self, space='object', **kwargs):
+        # quaternions are the only method that support a space parameter
         space = self._getSpaceArg(space, kwargs )
-        quat = api.MQuaternion()
-        api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
-        return datatypes.EulerRotation( quat.asEulerRotation() )
+        #return self._getRotation(space=space).asEulerRotation()
+        e = self._getRotation(space=space).asEulerRotation()
+        e.setDisplayUnit( datatypes.Angle.getUIUnit() )
+        return e
 
     
-    @queryflag('xform','scalePivot') 
-    def getScalePivotOld( self, **kwargs ):
-        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+    @addApiDocs( api.MFnTransform, 'rotateBy' )
+    def rotateBy(self, rotation, space='object', **kwargs):
+        space = self._getSpaceArg(space, kwargs )
+        curr = self.getRotation(space)
+        self._rotateBy(rotation, space)
+        new = self.getRotation(space)
+        undoItem = _factories.UndoItem(Transform.setRotation, (self, new, space), (self, curr, space) )
+        _factories.apiUndo.append( undoItem )
+
+
+#    @queryflag('xform','scalePivot') 
+#    def getScalePivotOld( self, **kwargs ):
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
-    def setScalePivot(self, point, space='world', balance=True, **kwargs):
+    def setScalePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setScalePivotTranslation(point, space=space, balance=balance)
     
     @addApiDocs( api.MFnTransform, 'scalePivot' )
-    def getScalePivot(self, space='world', **kwargs):
+    def getScalePivot(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getScalePivot(space=space)
 
     @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
-    def setScalePivotTranslation(self, vector, space='world', **kwargs):
+    def setScalePivotTranslation(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setScalePivotTranslation(vector, space=space)
           
     @addApiDocs( api.MFnTransform, 'scalePivotTranslation' )
-    def getScalePivotTranslation(self, space='world', **kwargs):
+    def getScalePivotTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getScalePivotTranslation(space=space)
     
@@ -3143,9 +3212,9 @@ class Transform(DagNode):
     def getRotateAxis( self, **kwargs ):
         return datatypes.Vector( cmds.xform( self, **kwargs ) )
         
-    @queryflag('xform','shear')                          
-    def getShearOld( self, **kwargs ):
-        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+#    @queryflag('xform','shear')                          
+#    def getShearOld( self, **kwargs ):
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
     @queryflag('xform','matrix')                
     def getMatrix( self, **kwargs ): 
