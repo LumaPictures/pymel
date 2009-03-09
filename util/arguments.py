@@ -355,7 +355,8 @@ def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
         #print key, from_val
         if contains(key):
             to_val = to_dict[key]
-            if isMapping(from_val) and ( isMapping(to_val) or (allowDictToListMerging and isinstance(to_val, list )) ):
+            #if isMapping(from_val) and ( isMapping(to_val) or (allowDictToListMerging and isinstance(to_val, list )) ):
+            if hasattr(from_val, 'iteritems') and ( hasattr(to_val, 'iteritems') or (allowDictToListMerging and isinstance(to_val, list )) ):
                 mergeCascadingDicts( from_val, to_val, allowDictToListMerging )
             else:
                 to_dict[key] = from_val
