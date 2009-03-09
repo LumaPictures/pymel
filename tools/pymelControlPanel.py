@@ -321,7 +321,11 @@ class MethodRow(object):
         self.methodInfoList = methodInfoList
         self.data = api.apiToMelData[ (self.className, self.methodName ) ]
         self.classInfo = api.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName]
-        enabledArray = self.getEnabledArray()
+        try:
+            enabledArray = self.getEnabledArray()
+        except:
+            print self.apiClassName, self.apiMethodName
+            raise
         # DEFAULT VALUES
         
 
@@ -878,12 +882,13 @@ def setManualDefaults():
     setCascadingDictValue( api.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
     setCascadingDictValue( api.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
     
-    # add some manual invertibles
+    # add some manual invertibles: THESE MUST BE THE API NAMES
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
                     ('MPlug', 0, 'setChannelBox', 'isChannelBoxFlagSet'),
                     ('MFnTransform', 0, 'enableLimit', 'isLimited'),
                     ('MFnTransform', 0, 'setLimit', 'limitValue'),
                     ('MFnTransform', 0, 'set', 'transformation'),
+                    ('MFnRadialField', 0, 'setType', 'radialType')
                      ]
     for className, methodIndex, setter, getter in invertibles:
         # append to the class-level invertibles list
@@ -897,7 +902,29 @@ def setManualDefaults():
         # add the individual method entries
         setCascadingDictValue( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
         setCascadingDictValue( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
+    
+    nonInvertibles = [ ( 'MFnMesh', 0, 'setFaceVertexNormals', 'getFaceVertexNormals' ),
+                        ( 'MFnMesh', 0, 'setFaceVertexNormal', 'getFaceVertexNormal' ) ]
+    for className, methodIndex, setter, getter in nonInvertibles:
+        setCascadingDictValue( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
+        setCascadingDictValue( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
+    fixSpace()
+
+def fixSpace():
+    "fix the Space enumerator"
+    
+    enum = getCascadingDictValue( api.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
+    keys = enum._keys.copy()
+    #print keys
+    val = keys.pop('postTransform', None)
+    if val is not None:
+        keys['object'] = val
+        newEnum = util.Enum( 'Space', keys )
         
+        setCascadingDictValue( api.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
+    else:
+        logger.warning( "could not fix Space")
+  
 def cacheResults():
     #return 
 
