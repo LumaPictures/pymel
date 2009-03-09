@@ -131,6 +131,10 @@ def testInvertibles():
                     info = info[overloadIndex]
                 except (KeyError, TypeError): pass
                 else:
+                    # test if this invertible has been broken in pymelControlPanel
+                    if not info['inverse']:
+                        continue
+                    
                     try:
                         setter = getattr( pynode, setMethod )                      
                     except AttributeError: pass
@@ -167,7 +171,7 @@ def testInvertibles():
                             elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
                                 args = [ [ [.5,.5,.5] ]*obj.numColors() ]
                             elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
-                                args = [ 0, 2.5 ]
+                                args = [ 6, 4.5 ]
                             else:
                                 args = [ getType(typ) for typ in types ]
                             descr =  '%s.%s(%s)' % ( pynodeName, setMethod, ', '.join( [ repr(x) for x in args] ) )
