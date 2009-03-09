@@ -337,7 +337,7 @@ class MelConversionError(MelError,TypeError):
     """MEL cannot process a conversion or cast between data types"""
     pass
 
-class UnknownProcedureError(MelError,NameError):
+class MelUnknownProcedureError(MelError,NameError):
     """The called MEL procedure does not exist or has not been sourced"""
     pass
 
@@ -405,7 +405,7 @@ class Mel(object):
 
     
     Notice that the error raised is a `MelConversionError`.  There are several MEL exceptions that may be raised,
-    depending on the type of error encountered: `MelError`, `MelConversionError`, `MelArgumentError`, `MelSyntaxError`, and `UnknownProcedureError`.
+    depending on the type of error encountered: `MelError`, `MelConversionError`, `MelArgumentError`, `MelSyntaxError`, and `MelUnknownProcedureError`.
     To remain backward compatible with maya.cmds and older versions of pymel, all MEL exceptions inherit from 
     `MelError`, which in turn inherits from `RuntimeError`.
     
@@ -525,7 +525,7 @@ class Mel(object):
                     raise msg
             
             if 'Cannot find procedure' in msg:
-                e = UnknownProcedureError
+                e = MelUnknownProcedureError
             elif 'Wrong number of arguments' in msg:
                 e = MelArgumentError
             elif 'Cannot convert data' in msg or 'Cannot cast data' in msg:
@@ -663,41 +663,41 @@ class MayaGlobals(object):
         return gethostname()
     
     
-class SceneGlobals(object):
-    """
-    A Static Singleton class to represent scene-dependent settings.
-    """
-    __metaclass__ = util.Singleton
-    
-    @staticmethod
-    def sceneName():
-        return system.Path(cmds.file( q=1, sn=1))
-
-    @util.universalmethod
-    def getTime(obj):
-        return cmds.currentTime( q=1 )
-    
-    @util.universalmethod
-    def setTime( obj, val ):
-        cmds.currentTime( val )    
-    time = property( getTime, setTime )
-    
-    @staticmethod
-    def getMinTime():
-        return cmds.playbackOptions( q=1, minTime=1 )
-    @staticmethod
-    def setMinTime( val ):
-        cmds.playbackOptions( minTime=val )
-    minTime = property( getMinTime, setMinTime )
-
-    @staticmethod
-    def getMaxTime():
-        return cmds.playbackOptions( q=1, maxTime=1 )
-    @staticmethod
-    def setMaxTime( val ):
-        cmds.playbackOptions( maxTime=val ) 
-       
-    maxTime = property( getMaxTime, setMaxTime )
+#class SceneGlobals(object):
+#    """
+#    A Static Singleton class to represent scene-dependent settings.
+#    """
+#    __metaclass__ = util.Singleton
+#    
+#    @staticmethod
+#    def sceneName():
+#        return system.Path(cmds.file( q=1, sn=1))
+#
+#    @util.universalmethod
+#    def getTime(obj):
+#        return cmds.currentTime( q=1 )
+#    
+#    @util.universalmethod
+#    def setTime( obj, val ):
+#        cmds.currentTime( val )    
+#    time = property( getTime, setTime )
+#    
+#    @staticmethod
+#    def getMinTime():
+#        return cmds.playbackOptions( q=1, minTime=1 )
+#    @staticmethod
+#    def setMinTime( val ):
+#        cmds.playbackOptions( minTime=val )
+#    minTime = property( getMinTime, setMinTime )
+#
+#    @staticmethod
+#    def getMaxTime():
+#        return cmds.playbackOptions( q=1, maxTime=1 )
+#    @staticmethod
+#    def setMaxTime( val ):
+#        cmds.playbackOptions( maxTime=val ) 
+#       
+#    maxTime = property( getMaxTime, setMaxTime )
             
 #env = Env()
 
