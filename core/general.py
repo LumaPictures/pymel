@@ -835,6 +835,10 @@ def createNode( *args, **kwargs):
                 
 def sets( *args, **kwargs):
     """
+    """
+    # temp
+    
+    """
 Modifications
     - resolved confusing syntax: operating set is always the first and only arg:
     
@@ -1424,7 +1428,7 @@ class PyNode(util.ProxyUnicode):
         
         :rtype: `other.NameParser`
         """    
-        return self.addPrefix( self.stripNamespace(), prefix+':' )
+        return self.stripNamespace().addPrefix( prefix+':' )
             
     def namespaceList(self):
         """Useful for cascading references.  Returns all of the namespaces of the calling object as a list
