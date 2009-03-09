@@ -547,28 +547,28 @@ class Path(pathClass):
     
     getTypeName = _factories.makeQueryFlagMethod( cmds.file, 'type' )
     setSubType = _factories.makeQueryFlagMethod( cmds.file, 'subType', 'setSubType')
-   
-class CurrentFile(Path):
-    getRenameToSave = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'renameToSave', 'getRenameToSave'))
-    setRenameToSave = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'renameToSave', 'setRenameToSave'))
-    anyModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'anyModified'))
-    @classmethod
-    @addMelDocs( 'file', 'lockFile')
-    def lock(self):
-        return cmds.file( lockFile=True)
-    
-    @classmethod
-    @addMelDocs( 'file', 'lockFile')
-    def unlock(self):
-        return cmds.file( lockFile=False)  
-    isModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'modified', 'isModified'))
-    setModified = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'modified', 'setModified'))
-    
-    isWritableInScene = _factories.makeQueryFlagMethod( cmds.file, 'writable' )
-    @classmethod
-    @addMelDocs( 'file', 'sceneName')
-    def name(self):
-        return Path( OpenMaya.MFileIO.currentFile() ) 
+#   
+#class CurrentFile(Path):
+#    getRenameToSave = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'renameToSave', 'getRenameToSave'))
+#    setRenameToSave = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'renameToSave', 'setRenameToSave'))
+#    anyModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'anyModified'))
+#    @classmethod
+#    @addMelDocs( 'file', 'lockFile')
+#    def lock(self):
+#        return cmds.file( lockFile=True)
+#    
+#    @classmethod
+#    @addMelDocs( 'file', 'lockFile')
+#    def unlock(self):
+#        return cmds.file( lockFile=False)  
+#    isModified = classmethod( _factories.makeQueryFlagMethod( cmds.file, 'modified', 'isModified'))
+#    setModified = classmethod( _factories.makeCreateFlagMethod( cmds.file, 'modified', 'setModified'))
+#    
+#    isWritableInScene = _factories.makeQueryFlagMethod( cmds.file, 'writable' )
+#    @classmethod
+#    @addMelDocs( 'file', 'sceneName')
+#    def name(self):
+#        return Path( OpenMaya.MFileIO.currentFile() ) 
 
 
 
