@@ -180,10 +180,10 @@ Pymel Package
 ---------------------------------------
 
 
-Pymel is installed like any other python module or package.  In general, installing python pacakges can be a bit tricky, and Maya
-adds an extra level of complexity.   To find available modules, python searches directories set in an environment variable called PYTHONPATH.
-This environment variable can be set for each Maya install using the Maya.env file, or it can be set at the system-level, and
-all instances of python, including those built into Maya will read it.  I recommend setting your PYTHONPATH at both the system level
+Pymel is installed like any other python module or package. To find available modules, python searches directories set in an 
+environment variable called PYTHONPATH.  This environment variable can be set for each Maya installation using the Maya.env 
+file, or it can be set at the system level, which will set it for all instances of python, including those built into Maya (aka "mayapy").  
+I recommend setting your PYTHONPATH at both the system level
 level and the Maya.env level because it is more reliable and because it will allow you to use pymel from a standalone python interpreter.
  
 Install Using Maya.env
@@ -192,9 +192,9 @@ Install Using Maya.env
 OSX and Linux
 -------------
 
-If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your Maya scripts directory. This 
+If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your Maya "scripts" directory. This 
 will allow you to immediately use pymel from within Maya.  However, it is usually a good idea to create a separate directory for your python 
-scripts so that you can organize them independently of your mel scripts.  
+modules so that you can organize them independently of your mel scripts.  
 
 Let's say that you decide to create your own python development directory ``~/dev/python``.  The pymel *folder* would go within this 
 directory at ``~/dev/python/pymel``. Then you would add this line to your Maya.env:
@@ -221,10 +221,14 @@ OSX and Linux
 -------------
 
 Setting up your python paths for the system on OSX and Linux is a little bit involved.  I will focus on OSX here, because Linux users
-tend to be more technical. When you open a terminal on osx ( /Applications/Utilites/Terminal.app ), your shell may be using
-several different scripting languages.  You can easily tell which is being used by looking at the label on the top bar of the terminal 
-window, or the name of the tab, if you have more than one open.  It will
-most likely say "bash", which is the default.  To set up python at the system level using bash, first create a new file called ``.profile``
+tend to be more technical. 
+
+When you open a terminal on OSX ( /Applications/Utilites/Terminal.app ), your shell may be using
+several different scripting languages.   (You can easily tell which is being used by looking at the label on the top bar of the terminal 
+window, or the name of the tab, if you have more than one open. ) It will most likely say "bash", which is the default, so that 
+is what I will explain here.  
+
+To set up python at the system level using bash, first create a new file called ``.profile``
 in your home directory ( ~/ ).  Inside this file paste the following, being sure to set the desired Maya version:
  
 .. python::
@@ -234,48 +238,51 @@ in your home directory ( ~/ ).  Inside this file paste the following, being sure
     export PATH=$MAYA_LOCATION/bin:$PYTHONDEV/pymel/tools/bin:$PATH
     export PYTHONPATH=$PYTHONPATH:$PYTHONDEV
 
+Here's a line-by-line breakdown of what you just did:
 
-The first line sets your custom python directory, under which should be your pymel directory.
-You can change this to whatever you want, but make sure your pymel directory is directly below this path. 
-The second line sets a special Maya environment variable that helps Maya determine which version to use when working via the command
-line ( be sure to point it to the correct Maya version).  The third line allows you to access all the executables in the Maya bin
-directory from a shell without using the full path, and also allows you to use the special `ipymel` interpreter ( but only after you install
-IPython!).  For example, you can launch Maya by typing ``maya``, or open a special Maya python interpreter by typing ``mayapy``. 
-The last line ensures that python will see your python dev directory, where pymel resides.
+    1.  set your custom python directory, under which should be your pymel directory.
+        You can change this to whatever you want, but make sure your pymel directory is immediately below this path (The variable
+        PYTHONDEV does not have a special meaning to python or maya: we're creating it so that we can reuse its value in the next few lines).
+    2.  set a special Maya environment variable that helps Maya determine which version to use when working via the command
+        line ( be sure to point it to the correct Maya version).  
+    3.  this line allows you to access all the executables in the Maya bin
+        directory from a shell without using the full path, and also allows you to use the `ipymel` interpreter ( but only after you install
+        IPython!).  For example, you can launch Maya by typing ``maya``, or open a Maya python interpreter by typing ``mayapy``. 
+    4.  we set the PYTHONPATH to ensure that python will see your python dev directory, where pymel resides.
 
 
 Windows
 -------
 
-Click the Start Menu, right-click on "My Computer" and then click on "Properties".  This will open the "System Properties" window.  Click on
-the "Advanced" tab, then on the "Environment Variables" button at the bottom.  In the new window that pops up, look
-through your "User Varaibles" on top and your "System Variables" on the bottom, looking to see if the ``PYTHONPATH`` variable is set anywhere.
+    1.  Click the Start Menu, right-click on "My Computer" and then click on "Properties".  This will open the "System Properties" window.  
+    2.  Click on the "Advanced" tab, then on the "Environment Variables" button at the bottom.  
+    3.  In the new window that pops up, search through your "User Varaibles" on top and your "System Variables" on 
+        the bottom, looking to see if the ``PYTHONPATH`` variable is set anywhere.
+        
+        If it is not set, make a new variable for either your user or the system (if you have permission).  Use ``PYTHONPATH`` for 
+        the name and for the the value use the directory *above* the pymel directory.  So, for example, if the pymel directory is 
+        ``C:\My Documents\python\pymel`` copy and paste in the value ``C:\My Documents\python`` from an explorer window.
+        
+        If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to 
+        the end of the value and add a semi-colon ( ; ) and after this add the 
+        directory *above* the pymel directory to the end of the existing path. For example, let's say the starting value is:
+            
+        .. python::
+            C:\Python25\lib
+        
+        If the pymel directory is ``C:\My Documents\python\pymel``, the edited value would be:
+        
+        .. python::
+            C:\Python25\lib;C:\My Documents\python\pymel
 
-If it is not set, make a new variable for either your user or the system (if you have permission).  Use ``PYTHONPATH`` for the name and
-for the the value use the directory *above* the pymel directory.  So, for example, if the pymel directory is ``C:\My Documents\python\pymel`` copy and 
-paste in the value ``C:\My Documents\python`` from an explorer window.
-
-If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to 
-the end of the value and add a semi-colon ( ; ) and after this add the 
-directory *above* the pymel directory to the end of the existing path. For example, let's say the starting value is:
-
-.. python::
-    C:\Python25\lib
-
-If the pymel directory is ``C:\My Documents\python\pymel``, the edited value would be:
-
-.. python::
-    C:\Python25\lib;C:\My Documents\python\pymel
-
-Next, find and edit your ``PATH`` variable. Append something like the following to the end of the existing value:
-
-.. python:
-
-    ;C:\Program Files\Autodesk\Maya2008\\bin;C:\My Documents\python\pymel\\tools\\bin.  
-
-These are just example paths: be sure to use 
-the path to the Maya bin directory for your desired version of Maya as well as the proper path to your pymel bin directory.  And don't forget
-to put a semi-colon (;) between the existing paths and the new ones that you are adding.
+    4.  Next, find and edit your ``PATH`` variable. Append something like the following to the end of the existing value:
+    
+        .. python:
+            ;C:\Program Files\Autodesk\Maya2008\\bin;C:\My Documents\python\pymel\\tools\\bin.  
+        
+        These are just example paths: be sure to use 
+        the path to the Maya bin directory for your desired version of Maya as well as the proper path to your pymel bin directory.  And don't forget
+        to put a semi-colon (;) between the existing paths and the new ones that you are adding.
 
 
 userSetup files
@@ -647,15 +654,15 @@ Transitioning Tips
 ---------------------------------------
 
 
-All of the MEL functions in maya.cmds exist in pymel, with a few exceptions ( see `Module Namespaces`_ ).  The purpose
-of these functions tend to fall into one or two of the following categories:  creating, listing, querying/editing. 
-As you begin to retrain yourself to use a more object-oriented approach, you should know where to focus your efforts. 
+All of the MEL functions in maya.cmds exist in pymel, with a few exceptions ( see `Module Namespaces`_ ).  MEL functions that operate on nodes and/or attributes
+almost always fall into one or more of these categories:  creating, listing, querying/editing. 
+As you begin shifting toward a more object-oriented approach, you will still retain the need for procedural programming.
 Use these guidelines for what aspects of pymel are best suited to object-oriented programming:
 
 
     1. creating nodes and UI elements : remains mostly procedural
     2. listing objects and UI elements:  object-oriented, except for general listing commands like `ls`
-    3. querying and editing objects and UI elements:  object-oriented, except for commands that operate on many nodes, like `select` and `delete`
+    3. querying and editing objects and UI elements:  object-oriented, except for commands that operate on many nodes at once, like `select` and `delete`
 
 
 
@@ -986,8 +993,30 @@ for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and 
 API Classes and their PyNode Counterparts
 =========================================
 
+PyNode classes now derive their methods from both MEL and the API ( aka. maya.cmds and maya.OpenMaya, respectivelly ).  If you're 
+familiar with Maya's API, you know that there is a distinct separation between objects and their abilities.  There are fundamental
+object types such as MObject and MDagPath that represent the object itself, and there are "function sets", which are classes that,
+once instantiated with a given fundamental object, provide it with special abilities.  ( Because I am a huge nerd, I like to the think of the 
+function sets as robotic "mechs" and the fundamental objects as "spirits" or "ghosts" that inhabit them, like in *Ghost in the Shell* ). 
 
+For simplicity, pymel does away with this distinction: a PyNode instance is the equivalent of an activated API function set;  the 
+necessary fundamental API objects are determined behind the scenes at instantiation.  You can access these by using the special methods
+__apimobject__, __apihandle__, __apimdagpath__, __apimplug__, and __apimfn__.  ( Be aware that this is still considered internal magic, 
+and the names of these methods are subject to change ):
 
+    >>> p = PyNode('perspShape')
+    >>> p.__apimfn__() # doctest: +ELLIPSIS
+    <maya.OpenMaya.MFnCamera; proxy of <Swig Object of type 'MFnCamera *' at ...> >
+    >>> p.__apimdagpath__() # doctest: +ELLIPSIS
+    <maya.OpenMaya.MDagPath; proxy of <Swig Object of type 'MDagPath *' at ...> >
+    >>> a = p.focalLength
+    >>> a
+    Attribute(u'perspShape.focalLength')
+    >>> a.__apimplug__() # doctest: +ELLIPSIS
+    <maya.OpenMaya.MPlug; proxy of <Swig Object of type 'MPlug *' at ...> >
+
+As you can probably see, these methods are enormously useful when prototyping API plugins.
+ 
 ---------------------------------------
 Chained Function and Attribute Lookups
 ---------------------------------------
@@ -1321,8 +1350,9 @@ from util.arrays import *
 ## cmds is always maya.cmds
 import maya.cmds as cmds
 
-# initialize MEL and 
-mayahook.initMEL() 
+# initialize MEL 
+if about(batch=1):
+    mayahook.initMEL() 
 
 _module = __import__(__name__)    
 
