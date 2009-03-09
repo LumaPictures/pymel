@@ -468,6 +468,7 @@ else:
     ip.set_hook('complete_command', pymel_name_completer , re_key = "(.+(\s+|\())|(SCENE\.)" )
     ip.set_hook('complete_command', open_completer , str_key = "openf" )
     
+    ip.ex("import pymel")  # it's useful to have pymel in both namespaces, for relaoding purposes
     ip.ex("from pymel import *")
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
