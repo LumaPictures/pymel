@@ -1250,9 +1250,9 @@ def getInheritance( mayaType ):
 # Function Factory
 #-----------------------
 
-def _addCmdDocs( func, cmdInfo=None ):
-    if cmdInfo is None:
-        cmdInfo = cmdlist[func.__name__]
+def _addCmdDocs( func, cmdName ):
+
+    cmdInfo = cmdlist[cmdName]
         
     # runtime functions have no docs
     if cmdInfo['type'] == 'runtime':
@@ -1309,7 +1309,9 @@ def _addCmdDocs( func, cmdInfo=None ):
                     typ = typ.__name__
                 except: pass
             docstring += '        - datatype: %s\n' % ( typ )
-        
+    
+    docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName) 
+    
     if INCLUDE_DOC_EXAMPLES and cmdInfo.get('example',None):
         docstring += '\nExample:\n' + cmdInfo['example']
     
@@ -1318,10 +1320,8 @@ def _addCmdDocs( func, cmdInfo=None ):
     func.__doc__ = docstring
     return func        
 
-def _addFlagCmdDocs(func,cmdName,flag,docstring=''):
-    if docstring:
-        func.__doc__ = docstring
-    else:
+def _addFlagCmdDocs(func, cmdName, flag, docstring=''):
+    if not docstring:
         try:
             flagDocs = cmdlist[cmdName]['flags']
             docs = flagDocs[flag]
@@ -1335,9 +1335,12 @@ def _addFlagCmdDocs(func,cmdName,flag,docstring=''):
                 for secondaryFlag in docs['secondaryFlags']:
                     docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
             except KeyError: pass
-            
-            func.__doc__ = docstring
+
         except KeyError: _logger.info(("No documentation available for %s flag of %s command" % (flag,cmdName )    ))
+        
+    docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
+    func.__doc__ = docstring
+
     return func
 
 
@@ -1588,7 +1591,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     # 3. Modify the function descriptors - ie, __doc__, __name__, etc
     
     newFunc.__doc__ = inFunc.__doc__
-    _addCmdDocs( newFunc, cmdInfo )
+    _addCmdDocs( newFunc, funcName )
 
     if rename: 
         newFunc.__name__ = rename
@@ -1723,8 +1726,7 @@ def addMelDocs( cmdName, flag=None ):
         # A command  
         def doc_decorator(func):
             try:
-                cmdInfo = cmdlist[cmdName]
-                wrappedMelFunc = _addCmdDocs(func, cmdInfo )
+                wrappedMelFunc = _addCmdDocs(func, cmdName )
                 wrappedMelFunc.__module__ = func.__module__
             except KeyError:
                 _logger.info(("No documentation available %s command" % ( cmdName ) ))
@@ -2254,17 +2256,17 @@ class ApiArgUtil(object):
             #_logger.debug("setting linear")
             unitCast = ApiTypeRegister.inCast['MDistance']
             if util.isIterable(input):
-                input = [ unitCast(val).asInternal() for val in input ]
+                input = [ unitCast(val).asInternalUnit() for val in input ]
             else:
-                input = unitCast(input).asInternal()
+                input = unitCast(input).asInternalUnit()
                 
         elif unit == 'angular':
             #_logger.debug("setting angular")
             unitCast = ApiTypeRegister.inCast['MAngle']
             if util.isIterable(input):
-                input = [ unitCast(val).asInternal() for val in input ]
+                input = [ unitCast(val).asInternalUnit() for val in input ]
             else:
-                input = unitCast(input).asInternal()
+                input = unitCast(input).asInternalUnit()
                 
         return input
             
@@ -2518,8 +2520,11 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         argList = argHelper.argList()
         argInfo = argHelper.argInfo()
 
-
-        getterArgHelper = argHelper.getGetterInfo()
+        # undo does not work in maya 8.5 
+        if mayahook.Version.current <= mayahook.Version.v85sp1:
+            getterArgHelper = None
+        else:
+            getterArgHelper = argHelper.getGetterInfo()
         
         if argHelper.hasOutput() :
             getterInArgs = []
@@ -2542,7 +2547,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         # create the function 
         def wrappedApiFunc( self, *args ):
 
-            newargs = []
+            do_args = []
             outTypeList = []
 
             
@@ -2551,48 +2556,38 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             if len(args) != len(inArgs):
                 raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
             #_logger.debug(args, argInfo)
-            inCount = 0
-            totalCount = 0
-            
-            
+                        
 #            if argHelper.isStatic():
 #                pass
 #            else:
 #                if proxy:
-#                    newargs.append( self.__apimfn__() )
+#                    do_args.append( self.__apimfn__() )
 #                else:
-#                    newargs.append( self)
+#                    do_args.append( self)
                     
-            getterArgs = []  # args required to get the current state before setting it
-            undoArgs = []  # args required to reset back to the original (starting) state  ( aka "undo" )
-            missingUndoIndices = [] # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
-                   
-            for name, argtype, direction in argList :
-                if direction == 'in':
-                    arg = args[inCount]
-                    undoArgs.append(arg)
-                    if name in getterInArgs:
-                        # gather up args that are required to get the current value we are about to set.
-                        # these args are shared between getter and setter pairs
-                        getterArgs.append(arg)
-                        #undoArgs.append(arg)
-                    else:
-                        # store the indices for 
-                        missingUndoIndices.append(inCount)
-                        #undoArgs.append(None)
-                    newargs.append( argHelper.castInput( name, arg, self.__class__ ) )
-                    inCount +=1
-                else:
-                    val = argHelper.initReference(argtype) 
-                    newargs.append( val )
-                    outTypeList.append( (argtype, totalCount) )
-                    #outTypeIndex.append( totalCount )
-                totalCount+=1
-  
-            #_logger.debug("%s.%s: arglist %s" % ( apiClassName, methodName, newargs))
+            #_logger.debug("%s.%s: arglist %s" % ( apiClassName, methodName, do_args))
             
             # get the value we are about to set
             if getterArgHelper is not None:
+                getterArgs = []  # args required to get the current state before setting it
+                undo_args = []  # args required to reset back to the original (starting) state  ( aka "undo" )
+                missingUndoIndices = [] # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
+                inCount = 0
+                for name, argtype, direction in argList :
+                    if direction == 'in':
+                        arg = args[inCount]
+                        undo_args.append(arg)
+                        if name in getterInArgs:
+                            # gather up args that are required to get the current value we are about to set.
+                            # these args are shared between getter and setter pairs
+                            getterArgs.append(arg)
+                            #undo_args.append(arg)
+                        else:
+                            # store the indices for 
+                            missingUndoIndices.append(inCount)
+                            #undo_args.append(None)
+                        inCount +=1
+                
                 getter = getattr( self, getterArgHelper.getPymelName() )
                 setter = getattr( self, pymelName )
                 
@@ -2606,29 +2601,29 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 if not isinstance( getterResult, tuple ):
                     getterResult = (getterResult,)
                 
-                #_logger.debug(getterResult)
-                #_logger.debug(missingUndoIndices)
                 for index, result in zip(missingUndoIndices, getterResult ):
-                    undoArgs[index] = result
+                    undo_args[index] = result
 
-                #_logger.debug(undoArgs)
+
+            inCount = totalCount = 0
+            for name, argtype, direction in argList :
+                if direction == 'in':
+                    arg = args[inCount]
+                    do_args.append( argHelper.castInput( name, arg, self.__class__ ) )
+                    inCount +=1
+                else:
+                    val = argHelper.initReference(argtype) 
+                    do_args.append( val )
+                    outTypeList.append( (argtype, totalCount) )
+                    #outTypeIndex.append( totalCount )
+                totalCount += 1
                 
-#                class Undo(object):
-#                    @staticmethod
-#                    def redoIt():
-#                        setter(*newargs)
-#                    @staticmethod
-#                    def undoIt():
-#                        setter(*undoArgs)
-#                        
-#                apiUndo.append(Undo)
-#                # undoIt = setter + undoArgs
-#                # redoIt = setter + newargs
-                undoItem = UndoItem(setter, newargs, undoArgs)
+            if getterArgHelper is not None:
+                undoItem = UndoItem(setter, do_args, undo_args)
                 apiUndo.append( undoItem )
 #            try:
             if argHelper.isStatic():
-                result = method( *newargs )
+                result = method( *do_args )
             else:
                 if proxy:
                     # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a 
@@ -2636,26 +2631,26 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     mfn = self.__apimfn__()
                     if not isinstance(mfn, apiClass):
                         mfn = apiClass( self.__apiobject__() )
-                    result = method( mfn, *newargs )
+                    result = method( mfn, *do_args )
                 else:
-                    result = method( self, *newargs )
+                    result = method( self, *do_args )
                 
 #            except RuntimeError:
-#                _logger.error( "the arguments at time of error were %r" % newargs)
+#                _logger.error( "the arguments at time of error were %r" % do_args)
 #                raise
                           
 #            if argHelper.isStatic():
 #                pass
 #            else:
 #                if proxy:
-#                    newargs.insert(0, self.__apimfn__() )
+#                    do_args.insert(0, self.__apimfn__() )
 #                else:
-#                    newargs.insert(0, self)
+#                    do_args.insert(0, self)
 #                
 #            try:
-#                result = method( *newargs )
+#                result = method( *do_args )
 #            except RuntimeError:
-#                _logger.info(newargs)
+#                _logger.info(do_args)
 #                raise
             #_logger.debug(("%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )))
             
@@ -2670,7 +2665,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     result = []
                 
                 for outType, index in outTypeList:
-                    outArgVal = newargs[index]
+                    outArgVal = do_args[index]
                     res = argHelper.castReferenceResult( outType, outArgVal )
                     result.append( res )
                     
@@ -2704,7 +2699,8 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
 
 
 
-def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=False):
+
+def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
     """decorator for adding API docs"""
     
     def doc_decorator(func):
