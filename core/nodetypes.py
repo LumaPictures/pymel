@@ -3077,7 +3077,7 @@ class Transform(DagNode):
         curr = self._getTranslation(space)
         self._translateBy(vector, space)
         new = self._getTranslation(space)
-        undoItem = _factories.UndoItem(Transform.setTranslation, (self, new, space), (self, curr, space) )
+        undoItem = _factories.ApiUndoItem(Transform.setTranslation, (self, new, space), (self, curr, space) )
         _factories.apiUndo.append( undoItem )
 
     @addApiDocs( api.MFnTransform, 'setScale' )
@@ -3091,7 +3091,7 @@ class Transform(DagNode):
         curr = self.getScale()
         self._scaleBy(scale)
         new = self.getScale()
-        undoItem = _factories.UndoItem(Transform.setScale, (self, new), (self, curr) )
+        undoItem = _factories.ApiUndoItem(Transform.setScale, (self, new), (self, curr) )
         _factories.apiUndo.append( undoItem )
 
     @addApiDocs( api.MFnTransform, 'setShear' )
@@ -3105,7 +3105,7 @@ class Transform(DagNode):
         curr = self.getShear()
         self._shearBy(shear)
         new = self.getShear()
-        undoItem = _factories.UndoItem(Transform.setShear, (self, new), (self, curr) )
+        undoItem = _factories.ApiUndoItem(Transform.setShear, (self, new), (self, curr) )
         _factories.apiUndo.append( undoItem )
          
         
@@ -3175,7 +3175,7 @@ class Transform(DagNode):
         curr = self.getRotation(space)
         self._rotateBy(rotation, space)
         new = self.getRotation(space)
-        undoItem = _factories.UndoItem(Transform.setRotation, (self, new, space), (self, curr, space) )
+        undoItem = _factories.ApiUndoItem(Transform.setRotation, (self, new, space), (self, curr, space) )
         _factories.apiUndo.append( undoItem )
 
 

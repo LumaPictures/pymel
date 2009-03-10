@@ -2358,6 +2358,7 @@ class ApiArgUtil(object):
     
     def isDeprecated(self):
         return self.methodInfo.get('deprecated', False)
+
     
 class ApiUndo:
 
@@ -2384,7 +2385,22 @@ class ApiUndo:
                 cmdObj = self.redo_queue.pop()
                 cmdObj.redoIt()
                 self.undo_queue.append(cmdObj)
+                
+    def _attrChanged_85(self):
+        print "attr changed", self.cb_enabled, _api.MGlobal.isUndoing()
+        if self.cb_enabled:
 
+            if _api.MGlobal.isUndoing():
+                cmdObj = self.undo_queue.pop()
+                print "calling undoIt"
+                cmdObj.undoIt()
+                self.redo_queue.append(cmdObj)
+
+            elif _api.MGlobal.isRedoing():
+                cmdObj = self.redo_queue.pop()
+                print "calling redoIt"
+                cmdObj.redoIt()
+                self.undo_queue.append(cmdObj)
 
     def _createNode( self ):
         """
@@ -2397,6 +2413,7 @@ class ApiUndo:
         Note that we don't want to use Maya commands here because they
         would pollute Maya's undo queue, so we use API calls instead.
         """
+        
         self.flushUndo()
 
         dgmod = _api.MDGModifier()
@@ -2417,17 +2434,28 @@ class ApiUndo:
         nodeFn.setDoNotWrite(True)
         nodeFn.setLocked(True)
 
-        # Set up a callback to keep track of changes to the counts.
         try:
             _api.MMessage.removeCallback( self.cbid )
             self.cbid.disown()
         except:
             pass
-
         self.cbid = _api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
-        
-
+            
+#        if mayahook.Version.current > mayahook.Version.v85sp1:
+#            # Set up a callback to keep track of changes to the counts.
+#            try:
+#                _api.MMessage.removeCallback( self.cbid )
+#                self.cbid.disown()
+#            except:
+#                pass
+#            self.cbid = _api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
+#        else:
+#            print "making 8.5 callback"
+#            self.cbid = cmds.scriptJob( attributeChange=('%s.cmdCount' % self.node_name, self._attrChanged_85) )
+#            print "id", self.cbid
+            
     def append(self, cmdObj ):
+        
         self.cb_enabled = False
 
         if not cmds.objExists( self.node_name ):
@@ -2438,8 +2466,7 @@ class ApiUndo:
         # undo/redo code.
         count = cmds.getAttr(self.node_name + '.cmdCount')
         cmds.setAttr(self.node_name + '.cmdCount', count + 1)
-
-        
+      
         # Append the command to the end of the undo queue.
         self.undo_queue.append(cmdObj)
 
@@ -2480,7 +2507,7 @@ class ApiUndo:
 
 apiUndo = ApiUndo()
 
-class UndoItem(object):
+class ApiUndoItem(object):
     def __init__(self, setter, newargs, undoArgs):
         self._setter = setter
         self._newargs = newargs
@@ -2519,10 +2546,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         argList = argHelper.argList()
         argInfo = argHelper.argInfo()
 
+        getterArgHelper = None
         # undo does not work in maya 8.5 
-        if mayahook.Version.current <= mayahook.Version.v85sp1:
-            getterArgHelper = None
-        else:
+        if proxy and mayahook.Version.current > mayahook.Version.v85sp1:
             getterArgHelper = argHelper.getGetterInfo()
         
         if argHelper.hasOutput() :
@@ -2617,9 +2643,6 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     #outTypeIndex.append( totalCount )
                 totalCount += 1
                 
-            if getterArgHelper is not None:
-                undoItem = UndoItem(setter, do_args, undo_args)
-                apiUndo.append( undoItem )
 #            try:
             if argHelper.isStatic():
                 result = method( *do_args )
@@ -2654,7 +2677,11 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             #_logger.debug(("%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )))
             
             result = argHelper.castResult( self, result ) 
-            
+
+            if getterArgHelper is not None:
+                undoItem = ApiUndoItem(setter, do_args, undo_args)
+                apiUndo.append( undoItem )
+                
             #_logger.debug((methodName, "result (post)", result))
              
             if len(outArgs):
