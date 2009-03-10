@@ -935,17 +935,20 @@ def cacheResults():
                         defaultButton='Yes')
     print res
     if res == 'Yes':
-        print "---"
-        print "adding manual defaults"
-        setManualDefaults()
-        print "merging dictionaries"
-        # update apiClasIfno with the sparse data stored in apiClassOverrides
-        util.mergeCascadingDicts( api.apiClassOverrides, api.apiClassInfo, allowDictToListMerging=True )
-        print "saving api cache"
-        api.saveApiCache()
-        print "saving bridge"
-        api.saveApiToMelBridge()
+        doCacheResults()
         
+def doCacheResults():
+    print "---"
+    print "adding manual defaults"
+    setManualDefaults()
+    print "merging dictionaries"
+    # update apiClasIfno with the sparse data stored in apiClassOverrides
+    util.mergeCascadingDicts( api.apiClassOverrides, api.apiClassInfo, allowDictToListMerging=True )
+    print "saving api cache"
+    api.saveApiCache()
+    print "saving bridge"
+    api.saveApiToMelBridge()
         
-        print "---"
+    
+    print "---"
 
