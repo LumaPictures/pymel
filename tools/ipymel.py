@@ -105,10 +105,14 @@ else:
             path, partialObj = splitDag(obj)
             #print "getting children", repr(path), repr(partialObj)
             
-            fullpath = pymel.cmds.ls( path, l=1 )[0]
-            if not fullpath: return []
-            children = pymel.cmds.listRelatives( fullpath , f=1, c=1)
-            if not children: return []
+            try:
+                fullpath = pymel.cmds.ls( path, l=1 )[0]
+                if not fullpath: return []
+                children = pymel.cmds.listRelatives( fullpath , f=1, c=1)
+                if not children: return []
+            except:
+                return []
+            
             matchStr = fullpath + '|' + partialObj
             #print "children", children
             #print matchStr, fullpath, path
