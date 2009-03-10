@@ -170,6 +170,10 @@ def testInvertibles():
                                 args = [ [.1]*obj.numUVs(), [.2]*obj.numUVs() ]
                             elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
                                 args = [ [ [.5,.5,.5] ]*obj.numColors() ]
+                            elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
+                                obj.createColorSet(setMethod + '_ColorSet' )
+                                args = [ ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]), [1, 2, 3] ]
+                            
                             elif apiClassName == 'MFnNurbsCurve' and setMethod == 'setKnot':
                                 args = [ 6, 4.5 ]
                             else:
@@ -194,5 +198,53 @@ def testInvertibles():
             pass
              
 
-
-                    #print types
+#def test_units():
+#    startLinear = currentUnit( q=1, linear=1)
+#    
+#    #cam = PyNode('persp')
+#    # change units from default
+#    currentUnit(linear='meter')
+#    
+#    light = directionalLight()
+#    
+#    testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', datatypes.Vector([3.0,2.0,1.0]) ),  # Distance datatypes.Vector
+#                  ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
+#                  ('persp.verticalShake' , 'getVerticalShake', 'setVerticalShake', 1.0 ),  # Unitless
+#                  ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
+#                  ('%s.penumbraAngle' % light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
+#                  
+#                 ]
+#
+#    for attrName, getMethodName, setMethodName, realValue in testPairs:
+#        at = PyNode(attrName)
+#        node = at.node()
+#        getter = getattr( node, getMethodName )
+#        setter = getattr( node, setMethodName )
+#
+#
+#        descr =  '%s / %s / %s' % ( attrName, getMethodName, setMethodName )
+#        
+#        def checkUnits( *args ):
+#            print repr(at)
+#            print "Real Value:", repr(realValue)
+#            # set attribute using "safe" method
+#            at.set( realValue )
+#            # get attribute using wrapped api method
+#            gotValue = getter()
+#            print "Got Value:", repr(gotValue)
+#            # compare
+#            self.assertEqual( realValue, gotValue )
+#            
+#            # set using wrapped api method
+#            setter( realValue )
+#            # get attribute using "safe" method
+#            gotValue = at.get()
+#            # compare
+#            self.assertEqual( realValue, gotValue )
+#        checkUnits.description = descr
+#        yield checkUnits
+#                            
+#    # reset units
+#    currentUnit(linear=startLinear)
+#    delete( light )
+#                    #print types

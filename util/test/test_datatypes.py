@@ -278,17 +278,17 @@ class test_PMTypes(unittest.TestCase):
         self.assert_(first.isEquivalent(last))
 
     def testMVector_angleRotateBy(self):
-        self.u = datatypes.Vector(1, 0, 0)
-        self.v = datatypes.Vector(0.707, 0, -0.707)
+        u = datatypes.Vector(1, 0, 0)
+        v = datatypes.Vector(0.707, 0, -0.707)
 
-        first = self.u.rotateBy(self.u.axis(self.v), self.u.angle(self.v))
+        first = u.rotateBy(u.axis(v), u.angle(v))
         last = datatypes.Vector([0.707106781187, 0.0, -0.707106781187])
 
         self.assert_(first.isEquivalent(last))
                           
-        self.q = datatypes.Quaternion([-0.0, 0.382683432365, 0.0, 0.923879532511])
+        q = datatypes.Quaternion([-0.0, 0.382683432365, 0.0, 0.923879532511])
         
-        first = self.u.rotateBy(self.q)
+        first = u.rotateBy(q)
         last = datatypes.Vector([0.707106781187, 0.0, -0.707106781187])
         self.assert_(first.isEquivalent(last))
 
@@ -1174,16 +1174,16 @@ class test_PMTypes(unittest.TestCase):
 
 
     def testMTransformationMatrix_QuatInstance(self) :
-        self.q = datatypes.Quaternion()
-        self.assertEquals(self.q, datatypes.Quaternion([0.0, 0.0, 0.0, 1.0]))
+        q = datatypes.Quaternion()
+        self.assertEquals(q, datatypes.Quaternion([0.0, 0.0, 0.0, 1.0]))
 
-        self.q = datatypes.Quaternion(1, 2, 3, 0.5)
+        q = datatypes.Quaternion(1, 2, 3, 0.5)
         last = datatypes.Quaternion([1.0, 2.0, 3.0, 0.5])
-        self.assert_(self.q.isEquivalent(last))
+        self.assert_(q.isEquivalent(last))
 
-        self.q = datatypes.Quaternion(0.785, 0.785, 0.785, "xyz")
+        q = datatypes.Quaternion(0.785, 0.785, 0.785, "XYZ")
         last = datatypes.Quaternion([0.191357439088, 0.461717715523, 0.191357439088, 0.844737481223])
-        self.assert_(self.q.isEquivalent(last))
+        self.assert_(q.isEquivalent(last))
 
     def testMTransformationMatrix_rotate(self):
         self.m = datatypes.Matrix()
