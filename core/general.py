@@ -835,10 +835,6 @@ def createNode( *args, **kwargs):
                 
 def sets( *args, **kwargs):
     """
-    """
-    # temp
-    
-    """
 Modifications
     - resolved confusing syntax: operating set is always the first and only arg:
     

@@ -1754,17 +1754,10 @@ class Attribute(PyNode):
         """
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
-              ie:
-                  >>> transforms = [Transform('TopLevel'), Transform['NextLevel'], Transform['AlmostThere'], Transform['Bottom'])];
-                  ... transforms[0] | transforms[1] | transforms[2] | transforms[3];
-                  ... Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(2)
-                  Transform('TopLevel|NextLevel')
+
               
-              Negative values will traverse from the top:
-              
-                  >>> Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(generations=-3)
-                  Transform('TopLevel|NextLevel|AlmostThere')
-              
+              Negative values will traverse from the top.
+
               A value of 0 will return the same node.
               The default value is 1.
               
@@ -2605,15 +2598,23 @@ class DagNode(Entity):
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
-                  >>> transforms = [Transform('TopLevel'), Transform['NextLevel'], Transform['AlmostThere'], Transform['Bottom'])];
-                  ... transforms[0] | transforms[1] | transforms[2] | transforms[3];
-                  ... Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(2)
-                  Transform('TopLevel|NextLevel')
+                  >>> select(cl=1)
+                  >>> bottom = group(n='bottom')
+                  >>> group(n='almostThere')
+                  Transform(u'almostThere')
+                  >>> group(n='nextLevel')
+                  Transform(u'nextLevel')
+                  >>> group(n='topLevel')
+                  Transform(u'topLevel')
+                  >>> bottom.longName()
+                  u'|topLevel|nextLevel|almostThere|bottom'
+                  >>> bottom.getParent(2)
+                  Transform(u'nextLevel')
               
               Negative values will traverse from the top:
               
-                  >>> Transform('TopLevel|NextLevel|AlmostThere|Bottom').getParent(generations=-3)
-                  Transform('TopLevel|NextLevel|AlmostThere')
+                  >>> bottom.getParent(generations=-3)
+                  Transform(u'almostThere')
               
               A value of 0 will return the same node.
               The default value is 1.
@@ -3141,13 +3142,12 @@ class Transform(DagNode):
     def setRotation(self, rotation, space='object', **kwargs):
         # quaternions are the only method that support a space parameter
         if self._isRelativeArg(kwargs):
-            return self.rotateBy(vector, space, **kwargs)
+            return self.rotateBy(rotation, space, **kwargs)
         space = self._getSpaceArg(space, kwargs )
         rotation = list(rotation)
 
         rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
 
-        
         quat = api.MEulerRotation( *rotation ).asQuaternion()
         api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
       
@@ -3511,13 +3511,25 @@ class Mesh(SurfaceShape):
      
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
-           
-    def getCurrentUVSetName(self):
-        return self.__apimfn__().currentUVSetName( self.instanceNumber() )
-
-    def getCurrentColorSetName(self):
-        return self.__apimfn__().currentColorSetName( self.instanceNumber() )
     
+    if mayahook.Version.current >= mayahook.Version.v2009:
+        @addApiDocs( api.MFnMesh, 'currentUVSetName' )  
+        def getCurrentUVSetName(self):
+            return self.__apimfn__().currentUVSetName( self.instanceNumber() )
+        
+        @addApiDocs( api.MFnMesh, 'currentColorSetName' )
+        def getCurrentColorSetName(self):
+            return self.__apimfn__().currentColorSetName( self.instanceNumber() )
+        
+    else:
+        @addApiDocs( api.MFnMesh, 'currentUVSetName' )  
+        def getCurrentUVSetName(self):
+            return self.__apimfn__().currentUVSetName()
+    
+        @addApiDocs( api.MFnMesh, 'currentColorSetName' )
+        def getCurrentColorSetName(self):
+            return self.__apimfn__().currentColorSetName()
+        
     @addApiDocs( api.MFnMesh, 'numColors' )
     def numColors(self, colorSet=None):
         args = []

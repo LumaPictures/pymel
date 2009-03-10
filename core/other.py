@@ -201,12 +201,12 @@ class AttributeName(NameParser):
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
                   >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(2)
-                  'Cube1.multiComp[3]'
+                  AttributeName('Cube1.multiComp[3]')
               
               Negative values will traverse from the top, not counting the initial node name:
               
                   >>> AttributeName("Cube1.multiComp[3].child.otherchild").getParent(-2)
-                  'Cube1.multiComp[3].child'
+                  AttributeName('Cube1.multiComp[3].child')
               
               A value of 0 will return the same node.
               The default value is 1.
@@ -353,12 +353,12 @@ class DagNodeName(DependNodeName):
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
                   >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(2)
-                  'NS1:TopLevel|Next'
+                  DagNodeName('NS1:TopLevel|Next')
               
               Negative values will traverse from the top, not counting the initial node name:
               
-                  >>> AttributeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(-3)
-                  'NS1:TopLevel|Next|ns2:Third'
+                  >>> DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth").getParent(-3)
+                  DagNodeName('NS1:TopLevel|Next|ns2:Third')
               
               A value of 0 will return the same node.
               The default value is 1.

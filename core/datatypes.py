@@ -620,14 +620,14 @@ class Vector(VectorN) :
             There are several ways the rotation can be specified:
             args is a tuple of one Matrix, TransformationMatrix, Quaternion, EulerRotation
             arg is tuple of 4 arguments, 3 rotation value and an optionnal rotation order
-            args is a tuple of one Vector, the axis and one float, the angle to rotate around that axis """
+            args is a tuple of one Vector, the axis and one float, the angle to rotate around that axis in radians"""
         if args :
             if len(args) == 2 and isinstance(args[0], Vector) :
                 return self.__class__(self.apicls.rotateBy(self, Quaternion(Vector(args[0]), float(args[1]))))
             elif len(args) == 1 and isinstance(args[0], Matrix) :
                 return self.__class__(self.apicls.rotateBy(self, args[0].rotate))         
             else :
-                return self.__class__(self.apicls.rotateBy(self, EulerRotation(*args)))
+                return self.__class__(self.apicls.rotateBy(self, EulerRotation(unit='radians', *args)))
         else :
             return self
     
@@ -2052,9 +2052,9 @@ class EulerRotation(Array):
     def __eq__(self, other):
         """ u.__eq__(v) <==> u == v
             Equivalence test """
-        try :
+        if isinstance( other, self.apicls ):
             return bool(self.apicls.__eq__(self, other))
-        except :
+        else :
             return bool(super(EulerRotation, self).__eq__(other))        
     def __ne__(self, other):
         """ u.__ne__(v) <==> u != v
@@ -2225,7 +2225,7 @@ class Quaternion(Matrix):
                 
             elif len(args) == 4 and ( isinstance(args[3], basestring) or isinstance(args[3], int) ): # isinstance(args[3], EulerRotation.RotationOrder) ) :
                 quat = _api.MQuaternion()
-                quat.assign(EulerRotation(args))
+                quat.assign(EulerRotation(*args, **kwargs))
                 args = quat
                 # allow to initialize directly from 3 rotations and a rotation order
             
@@ -2233,7 +2233,9 @@ class Quaternion(Matrix):
                 # some special init cases are allowed by the api class, want to authorize
                 # Quaternion(Vector axis, float angle) as well as Quaternion(float angle, Vector axis)
                 args = (float(args[1]), Vector(args[0]))        
-            # shortcut when a direct api init is possible     
+            # shortcut when a direct api init is possible   
+            
+              
             try :
                 self.assign(args)
             except :
@@ -2255,11 +2257,11 @@ class Quaternion(Matrix):
                     msg = ", ".join(map(lambda x,y:x+"=<"+util.clsname(y)+">", cls.cnames, l))
                     raise TypeError, "in %s(%s), at least one of the components is of an invalid type, check help(%s) " % (cls.__name__, msg, cls.__name__)                          
         
-        # units handling, convert to radians for internal handling
+#        # units handling, convert to radians for internal handling
         if self.unit is None:
             self.unit = kwargs.get('unit', Angle.getUIUnit() )
-        if self.unit is not None and self.unit != 'radians':
-            self.assign([Angle(self._getitem(i), self.unit).asUnit('radians') for i in range(self.size) ])
+#        if self.unit is not None and self.unit != 'radians':
+#            self.assign([Angle(self._getitem(i), self.unit).asUnit('radians') for i in range(3) ])
             
    # set properties for easy acces to translation / rotation / scale of a MMatrix or derived class
     # some of these will only yield dependable results if MMatrix is a MTransformationMatrix and some

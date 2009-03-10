@@ -2040,12 +2040,11 @@ class ApiArgUtil(object):
         return self.methodInfo['argInfo']
     
     def getGetterInfo(self):
-        if mayahook.Version.current <= mayahook.Version.v85sp1:
-            return
         try:
             inverse, isgetter = self.methodInfo['inverse']
             if isgetter:
-                return ApiArgUtil( self.apiClassName, inverse, self.methodIndex )
+                if hasattr( getattr(_api, self.apiClassName), inverse ):
+                    return ApiArgUtil( self.apiClassName, inverse, self.methodIndex )
         except:
             pass
                   
@@ -2896,6 +2895,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                     if method:
                                         _logger.debug("%s.%s successfully created" % (classname, pymelName ))
                                         classdict[pymelName] = method
+                                    else: _logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
                                 else: _logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
                             else: _logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
                         else: _logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))

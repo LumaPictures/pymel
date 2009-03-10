@@ -6,11 +6,12 @@ from time import time
 import unittest
 
 def doIt(obj):
+    obj.createColorSet('edgeLength')
     colors = []
     for i, vtx in enumerate(obj.vtx):
         #iterate through vertices
         #print vtx, vtx._range, vtx.getIndex(), vtx.getPosition()
-        edgs=vtx.toEdges()
+        edgs = vtx.connectedEdges()
         totalLen=0
         edgCnt=0
         for edg in edgs:
@@ -20,17 +21,8 @@ def doIt(obj):
             l = edg.getLength()
             #print "length", l
             totalLen += l
-#                
-#                 verts=edg.toVertices()
-#                
-#                 pOne=verts[0].getPosition()
-#                 pTwo=verts[1].getPosition()
-#                 pDif = pOne - pTwo
-#
-#                 totalLen += pDif.mag()
    
         avgLen=totalLen / edgCnt
-        #print avgLen
        
         currColor = vtx.getColor(0)
         color = Color.black
