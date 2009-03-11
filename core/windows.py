@@ -610,8 +610,18 @@ def horizontalLayout(*args, **kwargs):
     kwargs['orientation'] = 'HORIZONTAL'
     return autoLayout(*args, **kwargs)
 
+def textScrollList( *args, **kwargs ):
 
+    res = cmds.textScrollList(*args, **kwargs)
 
+    if kwargs.get('query', kwargs.get('q', False ) ) and \
+         ( kwargs.get('selectIndexedItem', kwargs.get( 'sii', False )) or \
+           kwargs.get('allItems', kwargs.get( 'ai', False )) or \
+           kwargs.get('selectItem', kwargs.get( 'si', False )) ):
+        return util.listForNone(res)
+    
+    return res
+    
 class TextScrollList(UI):
     __metaclass__ = MetaMayaUIWrapper
     def extend( self, appendList ):
