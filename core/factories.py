@@ -2366,30 +2366,41 @@ class ApiUndo:
 
     def __init__( self ):
         self.node_name = '__pymelUndoNode'
-        self.cb_enabled = False
+        self.cb_enabled = True
         self.undo_queue = []
         self.redo_queue = []
 
 
     def _attrChanged(self, msg, plug, otherPlug, data):
-        if self.cb_enabled \
+        if self.cb_enabled\
            and (msg & _api.MNodeMessage.kAttributeSet != 0) \
            and (plug == self.cmdCountAttr):
-
+            
+            
+#            #count = cmds.getAttr(self.node_name + '.cmdCount')
+#            #print count
             if _api.MGlobal.isUndoing():
+                #cmds.undoInfo(state=0)
+                self.cb_enabled = False
                 cmdObj = self.undo_queue.pop()
                 cmdObj.undoIt()
                 self.redo_queue.append(cmdObj)
-
+                #cmds.undoInfo(state=1)
+                self.cb_enabled = True
+                
             elif _api.MGlobal.isRedoing():
+                #cmds.undoInfo(state=0)
+                self.cb_enabled = False
                 cmdObj = self.redo_queue.pop()
                 cmdObj.redoIt()
                 self.undo_queue.append(cmdObj)
+                #cmds.undoInfo(state=1)
+                self.cb_enabled = True
                 
     def _attrChanged_85(self):
         print "attr changed", self.cb_enabled, _api.MGlobal.isUndoing()
         if self.cb_enabled:
-
+            
             if _api.MGlobal.isUndoing():
                 cmdObj = self.undo_queue.pop()
                 print "calling undoIt"
@@ -2508,12 +2519,13 @@ class ApiUndo:
 apiUndo = ApiUndo()
 
 class ApiUndoItem(object):
-    def __init__(self, setter, newargs, undoArgs):
+    def __init__(self, setter, redoArgs, undoArgs):
         self._setter = setter
-        self._newargs = newargs
+        self._redoArgs = redoArgs
         self._undoArgs = undoArgs
     def redoIt(self):
-        self._setter(*self._newargs)
+        self._setter(*self._redoArgs)
+        
     def undoIt(self):
         self._setter(*self._undoArgs)
     
@@ -2575,25 +2587,14 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             do_args = []
             outTypeList = []
 
-            
+            undoEnabled = getterArgHelper is not None and cmds.undoInfo(q=1, state=1) and apiUndo.cb_enabled
             #outTypeIndex = []
 
             if len(args) != len(inArgs):
                 raise TypeError, "%s() takes exactly %s arguments (%s given)" % ( methodName, len(inArgs), len(args) )
-            #_logger.debug(args, argInfo)
-                        
-#            if argHelper.isStatic():
-#                pass
-#            else:
-#                if proxy:
-#                    do_args.append( self.__apimfn__() )
-#                else:
-#                    do_args.append( self)
-                    
-            #_logger.debug("%s.%s: arglist %s" % ( apiClassName, methodName, do_args))
             
             # get the value we are about to set
-            if getterArgHelper is not None:
+            if undoEnabled:
                 getterArgs = []  # args required to get the current state before setting it
                 undo_args = []  # args required to reset back to the original (starting) state  ( aka "undo" )
                 missingUndoIndices = [] # indices for undo args that are not shared with the setter and which need to be filled by the result of the getter
@@ -2621,6 +2622,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 except RuntimeError:
                     _logger.error( "the arguments at time of error were %r" % getterArgs)
                     raise
+                
                 # when a command returns results normally and passes additional outputs by reference, the result is returned as a tuple
                 # otherwise, always as a list
                 if not isinstance( getterResult, tuple ):
@@ -2642,8 +2644,13 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     outTypeList.append( (argtype, totalCount) )
                     #outTypeIndex.append( totalCount )
                 totalCount += 1
+
+
+            if undoEnabled:
+                undoItem = ApiUndoItem(setter, do_args, undo_args)
+                apiUndo.append( undoItem )
                 
-#            try:
+                
             if argHelper.isStatic():
                 result = method( *do_args )
             else:
@@ -2655,35 +2662,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                         mfn = apiClass( self.__apiobject__() )
                     result = method( mfn, *do_args )
                 else:
-                    result = method( self, *do_args )
-                
-#            except RuntimeError:
-#                _logger.error( "the arguments at time of error were %r" % do_args)
-#                raise
-                          
-#            if argHelper.isStatic():
-#                pass
-#            else:
-#                if proxy:
-#                    do_args.insert(0, self.__apimfn__() )
-#                else:
-#                    do_args.insert(0, self)
-#                
-#            try:
-#                result = method( *do_args )
-#            except RuntimeError:
-#                _logger.info(do_args)
-#                raise
-            #_logger.debug(("%s.%s: result (pre) %s %s" % ( apiClassName, methodName, result, type(result) )))
-            
+                    result = method( self, *do_args )    
             result = argHelper.castResult( self, result ) 
-
-            if getterArgHelper is not None:
-                undoItem = ApiUndoItem(setter, do_args, undo_args)
-                apiUndo.append( undoItem )
-                
-            #_logger.debug((methodName, "result (post)", result))
-             
+        
             if len(outArgs):
                 if result is not None:
                     result = [result]
