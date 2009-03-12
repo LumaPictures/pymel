@@ -21,8 +21,6 @@ _logger = logging.getLogger(__name__)
 # to make sure Maya is up
 import pymel.mayahook as mayahook
 from pymel.mayahook import Version
-assert mayahook.mayaInit()
-
 
 from maya.cmds import about as _about
 import maya.mel as mm

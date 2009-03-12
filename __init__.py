@@ -1340,7 +1340,7 @@ plogging.pymelLogger.debug( 'imported api' )
 
 
 # will check for the presence of an initilized Maya / launch it
-assert mayahook.mayaInit() 
+isStandalone = mayahook.mayaInit() 
 
 from mayahook import Version
 assert Version.current > Version.v85, "This version of pymel is only compatible with Maya 8.5 Service Pack 1 or greater."
@@ -1364,7 +1364,7 @@ from util.arrays import *
 import maya.cmds as cmds
 
 # initialize MEL 
-if about(batch=1):
+if isStandalone:
     mayahook.initMEL() 
 
 _module = __import__(__name__)    

@@ -693,6 +693,9 @@ def mayaInit(forversion=None) :
     The solution lies in `refreshEnviron`, which copies the environment from the shell to os.environ after maya.standalone
     initializes.
     
+    :rtype: bool
+    :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
+    
     """
 
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
@@ -701,12 +704,12 @@ def mayaInit(forversion=None) :
     if forversion :
         if runningVersion == forversion :
             # maya is initialized and its the version we want. we're done
-            return True
+            return False
         else :
             _logger.debug("Maya is already initialized as version %s, initializing it for a different version %s" % (runningVersion, forversion))
     elif runningVersion :
         #_logger.debug("Maya is already initialized as version %s" % (runningVersion))
-        return True
+        return False
                 
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
     sep = os.path.pathsep
@@ -735,12 +738,16 @@ def mayaInit(forversion=None) :
             refreshEnviron()
             #initMEL()
             #executeDeferred( initMEL )
-        except ImportError, msg:
-            warn("Unable to import maya.standalone to start Maya: "+msg, UserWarning)
+        except ImportError, e:
+            raise e, str(e) + ": pymel was unable to intialize maya.standalone"
 
     # TODO: import userSetup.py to the global namespace, like when running normal Maya 
-
-    return mayaIsRunning()
+    try:
+        from maya.cmds import about
+    except Exception, e:
+        raise e, str(e) + ": maya.standalone was successfully initialized, but pymel failed to import maya.cmds"
+    # return True, meaning we had to initialize maya standalone
+    return True
 
 def initMEL():   
     _logger.debug( "initMEL" )        
