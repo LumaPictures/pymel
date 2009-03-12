@@ -12,9 +12,7 @@ import maya.mel as mm
 def currentTime( *args, **kwargs ):
     """
 Modifications:
-    - if no args are provided, the command returns the current time -- the equivalent of::
-    
-        >>> cmds.currentTime(q=1) #doctest: +SKIP
+    - if no args are provided, the command returns the current time
     """
     
     if not args and not kwargs:

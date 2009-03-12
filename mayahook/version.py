@@ -66,9 +66,9 @@ class Version(object):
     """
     Class for storing apiVersions, which are the best method for comparing versions.
     
-    >>> if Version.current > Version.v2008:
-    ...     print "The current version is later than Maya 2008"
-    The current version is later than Maya 2008
+    >>> if Version.current >= Version.v85sp1:
+    ...     print "The current version is later than Maya 8.5 Service Pack 1"
+    The current version is later than Maya 8.5 Service Pack 1
     """
     #TODO: make these read-only
     __metaclass__ = util.metaReadOnlyAttr

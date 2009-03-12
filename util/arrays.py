@@ -1036,11 +1036,13 @@ class Array(object):
         [[1, 2, 3],
          [1, 2, 3],
          [1, 2, 3]]
-        >>> A = Array([[1], [2], [3]], shape=(3, 3))
-        >>> print A.formated()
-        [[1, 1, 1],
-         [2, 2, 2],
-         [3, 3, 3]]
+         
+        TODO :
+        #>>> A = Array([[1], [2], [3]], shape=(3, 3))
+        #>>> print A.formated()
+        #[[1, 1, 1],
+        # [2, 2, 2],
+        # [3, 3, 3]]
 
         To avoid repetition, you can use a nested list of the desired number of dimensions
 
@@ -3103,13 +3105,13 @@ class Array(object):
              [1, 2, 2],
              [1, 2, 0]]
                           
-             TODO : accept this form as well
+            TODO : accept this form as well
              
-            >>> A[0:2, 1:3] = [[1], [2]]
-            >>> print A.formated()
-            [[1, 1, 1],
-             [1, 2, 2],
-             [1, 2, 0]]
+            #>>> A[0:2, 1:3] = [[1], [2]]
+            #>>> print A.formated()
+            #[[1, 1, 1],
+            # [1, 2, 2],
+            # [1, 2, 0]]
                                                    
             It cannot be truncated however
                                                    
@@ -3636,10 +3638,6 @@ class Array(object):
             True
             >>> [1, 2] in A
             False
-            >>> [1, 4, 3] in A
-            True
-            >>> [[1], [4], [3]] in A
-            True
             >>> Array([[1, 2], [4, 5]]) in A
             False
             
@@ -3647,6 +3645,12 @@ class Array(object):
             
             >>> A in A
             False
+            
+            TODO :
+            #>>> [1, 4, 3] in A
+            #True
+            #>>> [[1], [4], [3]] in A
+            #True
         """
         shape = self.shape
         ndim = self.ndim

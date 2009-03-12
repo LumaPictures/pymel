@@ -101,7 +101,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         
         testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', datatypes.Vector([3.0,2.0,1.0]) ),  # Distance datatypes.Vector
                       ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
-                      ('persp.verticalShake' , 'getVerticalShake', 'setVerticalShake', 1.0 ),  # Unitless
+                      ('persp.verticalFilmAperture' , 'getVerticalFilmAperture', 'setVerticalFilmAperture', 2.0 ),  # Unitless
                       ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
                       ('%s.penumbraAngle' % self.light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
                       
@@ -153,8 +153,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         SCENE.persp.setTranslation( [1,2,3], 'world', relative=1)
 
         self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([11.0, 22.0, 33.0]) )
-        undo()
-        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
+        
+        if mayahook.Version.current > mayahook.Version.v85sp1:
+            undo()
+            self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
 
     def test_transform_scale(self):
 
@@ -164,8 +166,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         SCENE.persp.setScale( [1,2,3], relative=1)
 
         self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
-        undo()
-        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+        
+        if mayahook.Version.current > mayahook.Version.v85sp1:
+            undo()
+            self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
 
     def test_transform_rotation(self):
         SCENE.persp.setRotation( [10,20,0], 'world')
@@ -174,8 +178,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         SCENE.persp.setRotation( [0,90,0], 'world', relative=1)
 
         self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 110.0, 0.0])) )
-        undo()
-        self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
+        
+        if mayahook.Version.current > mayahook.Version.v85sp1:
+            undo()
+            self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
 
 class testCase_apiUndo(unittest.TestCase):
     
@@ -189,6 +195,8 @@ class testCase_apiUndo(unittest.TestCase):
         cmds.undoInfo(state=1)
         
     def test_undo(self):
+        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
+        
         SCENE.top.setFocalLength(20)
         self.assert_( len(factories.apiUndo.undo_queue) == 1 )
         

@@ -1181,7 +1181,7 @@ class test_PMTypes(unittest.TestCase):
         last = datatypes.Quaternion([1.0, 2.0, 3.0, 0.5])
         self.assert_(q.isEquivalent(last))
 
-        q = datatypes.Quaternion(0.785, 0.785, 0.785, "XYZ")
+        q = datatypes.Quaternion(0.785, 0.785, 0.785, "XYZ", unit='radians')
         last = datatypes.Quaternion([0.191357439088, 0.461717715523, 0.191357439088, 0.844737481223])
         self.assert_(q.isEquivalent(last))
 
@@ -1257,6 +1257,62 @@ class test_PMTypes(unittest.TestCase):
         self.o = self.m * self.n
         self.assertEquals(self.o.formated(),'[[1.0, 0.0, 0.0, 0.0],\n [0.0, 1.0, 0.0, 0.0],\n [0.0, 0.0, 1.0, 0.0],\n [0.0, 0.0, 0.0, 1.0]]')
 
+    def test_constants(self):
+        # TODO : come up with a programatic way of finding constants
+        s = """
+        Vector.xAxis
+        Vector.one
+        Vector.zero
+        Vector.yNegAxis
+        Vector.zNegAxis
+        Vector.xNegAxis
+        Vector.zAxis
+        Vector.yAxis
+        FloatVector.xAxis
+        FloatVector.one
+        FloatVector.zero
+        FloatVector.yNegAxis
+        FloatVector.zNegAxis
+        FloatVector.xNegAxis
+        FloatVector.zAxis
+        FloatVector.yAxis
+        Point.origin
+        Point.xAxis
+        Point.yNegAxis
+        Point.zero
+        Point.zNegAxis
+        Point.yAxis
+        Point.zAxis
+        Point.one
+        Point.xNegAxis
+        FloatPoint.origin
+        FloatPoint.yNegAxis
+        FloatPoint.yAxis
+        FloatPoint.zNegAxis
+        FloatPoint.xNegAxis
+        FloatPoint.zAxis
+        FloatPoint.xAxis
+        FloatPoint.one
+        FloatPoint.zero
+        Color.xAxis
+        Color.yNegAxis
+        Color.zero
+        Color.zNegAxis
+        Color.yAxis
+        Color.zAxis
+        Color.one
+        Color.xNegAxis
+        FloatMatrix.identity
+        TransformationMatrix.identity
+        EulerRotation.identity
+        Quaternion.identity
+        """
+        
+        for x in s.split('\n'):
+            x = x.strip()
+            if x:
+                c, at = x.split('.')
+                val  = getattr( getattr( datatypes, c ), at )
 
 if __name__ == '__main__':
     unittest.main()
