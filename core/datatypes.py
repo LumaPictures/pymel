@@ -2,7 +2,7 @@
 A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion, EulerRotation types
 """
 
-import inspect
+import inspect, sys
 import math, copy
 import itertools, operator, colorsys
 import warnings
@@ -12,6 +12,7 @@ import pymel.api as _api
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import factories as _factories
+import pymel.mayahook as mayahook
 
 # in python2.6/maya2010 'as' becomes a keyword. 
 # TODO:  add a version check: 
@@ -98,7 +99,7 @@ def _patchMFloatMatrix() :
     def __iter__(self):
         """ Iterates on all 4 rows of a Maya api FloatMatrix """
         for r in xrange(4) :
-            yield Array([_api.MScriptUtil.getDoubleArrayItem(_api.MMatrix.__getitem__(self, r), c) for c in xrange(4)])
+            yield Array([_api.MScriptUtil.getFloatArrayItem(_api.MFloatMatrix.__getitem__(self, r), c) for c in xrange(4)])
     type.__setattr__(_api.MFloatMatrix, '__iter__', __iter__)
 
 def _patchMTransformationMatrix() :
@@ -201,7 +202,24 @@ class MetaMayaArrayTypeWrapper(_factories.MetaMayaTypeWrapper) :
                         coords = coords[0]
                     else :
                         coords = tuple(coords)
-                    p = eval("property( lambda self: self.__getitem__(%s) ,  lambda self, val: self.__setitem__(%s,val) )" % (coords, coords))
+                        
+                    
+#                    def _get(self):
+#                        return self.__getitem__(coords)
+#                    _get.__name__ = '_get_' + compname
+#                    
+#                    # FIXME : the set property does not do anything in python 2.4 !!!  It doesn't even get called.
+#
+#                    def _set(self, val):
+#                        self.__setitem__(coords, val)
+#                        
+#                    _set.__name__ = '_set_' + compname
+#                    
+#                    p = property( _get, _set, None, 'set and get %s component' % compname )   
+
+                    cmd = "property( lambda self: self.__getitem__(%s) ,  lambda self, val: self.__setitem__(%s,val) )" % (coords, coords)
+                    p = eval(cmd)
+
                     if compname not in classdict :
                         type.__setattr__(newcls, compname, p)
                     else :
@@ -260,7 +278,7 @@ class Vector(VectorN) :
     apicls = _api.MVector
     cnames = ('x', 'y', 'z')
     shape = (3,)
-
+    unit = None
     def __new__(cls, *args, **kwargs):
         shape = kwargs.get('shape', None)
         ndim = kwargs.get('ndim', None)
@@ -323,8 +341,8 @@ class Vector(VectorN) :
             self.assign([Distance(x, self.unit) for x in self])
     
     def __repr__(self):
-        if self.unit:
-            return "%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
+        if hasattr( self, 'unit' ) and self.unit:
+            return "%s(%s, unit='%s')" % (self.__class__.__name__, str(self), self.unit)
         else:
             return "%s(%s)" % (self.__class__.__name__, str(self)) 
     
@@ -1564,7 +1582,14 @@ class Matrix(MatrixN):
             value = list(MatrixN(value).flat)
             if len(value) == self.size :
                 data = self.apicls()
-                _api.MScriptUtil.createMatrixFromList ( value, data ) 
+                if isinstance(data, _api.MFloatMatrix):
+                    _api.MScriptUtil.createFloatMatrixFromList ( value, data ) 
+                elif isinstance(data, _api.MMatrix):
+                    _api.MScriptUtil.createMatrixFromList ( value, data ) 
+                else:
+                    tmp = _api.MMatrix()
+                    _api.MScriptUtil.createMatrixFromList ( value, tmp )
+                    data = self.apicls( tmp )
             else :
                 raise TypeError, "cannot assign %s to a %s" % (value, util.clsname(self))
         
@@ -2860,7 +2885,53 @@ def getPlugValue( plug ):
     
     raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _api.ApiEnumsToApiTypes().get( apiType, '' ))
 
-    
+if mayahook.Version.current == mayahook.Version.v85sp1:
+    Vector.xAxis = Vector([1.0, 0.0, 0.0])
+    Vector.one = Vector([1.0, 1.0, 1.0])
+    Vector.zero = Vector([0.0, 0.0, 0.0])
+    Vector.yNegAxis = Vector([0.0, -1.0, 0.0])
+    Vector.zNegAxis = Vector([0.0, 0.0, -1.0])
+    Vector.xNegAxis = Vector([-1.0, 0.0, 0.0])
+    Vector.zAxis = Vector([0.0, 0.0, 1.0])
+    Vector.yAxis = Vector([0.0, 1.0, 0.0])
+    FloatVector.xAxis = FloatVector([1.0, 0.0, 0.0])
+    FloatVector.one = FloatVector([1.0, 1.0, 1.0])
+    FloatVector.zero = FloatVector([0.0, 0.0, 0.0])
+    FloatVector.yNegAxis = FloatVector([0.0, -1.0, 0.0])
+    FloatVector.zNegAxis = FloatVector([0.0, 0.0, -1.0])
+    FloatVector.xNegAxis = FloatVector([-1.0, 0.0, 0.0])
+    FloatVector.zAxis = FloatVector([0.0, 0.0, 1.0])
+    FloatVector.yAxis = FloatVector([0.0, 1.0, 0.0])
+    Point.origin = Point([0.0, 0.0, 0.0])
+    Point.xAxis = Point([1.0, 0.0, 0.0])
+    Point.yNegAxis = Point([0.0, -1.0, 0.0])
+    Point.zero = Point([0.0, 0.0, 0.0])
+    Point.zNegAxis = Point([0.0, 0.0, -1.0])
+    Point.yAxis = Point([0.0, 1.0, 0.0])
+    Point.zAxis = Point([0.0, 0.0, 1.0])
+    Point.one = Point([1.0, 1.0, 1.0])
+    Point.xNegAxis = Point([-1.0, 0.0, 0.0])
+    FloatPoint.origin = FloatPoint([0.0, 0.0, 0.0])
+    FloatPoint.yNegAxis = FloatPoint([0.0, -1.0, 0.0])
+    FloatPoint.yAxis = FloatPoint([0.0, 1.0, 0.0])
+    FloatPoint.zNegAxis = FloatPoint([0.0, 0.0, -1.0])
+    FloatPoint.xNegAxis = FloatPoint([-1.0, 0.0, 0.0])
+    FloatPoint.zAxis = FloatPoint([0.0, 0.0, 1.0])
+    FloatPoint.xAxis = FloatPoint([1.0, 0.0, 0.0])
+    FloatPoint.one = FloatPoint([1.0, 1.0, 1.0])
+    FloatPoint.zero = FloatPoint([0.0, 0.0, 0.0])
+    Color.xAxis = Color([1.0, 0.0, 0.0, 1.0])
+    Color.yNegAxis = Color([0.0, -1.0, 0.0, 1.0])
+    Color.zero = Color([0.0, 0.0, 0.0, 1.0])
+    Color.zNegAxis = Color([0.0, 0.0, -1.0, 1.0])
+    Color.yAxis = Color([0.0, 1.0, 0.0, 1.0])
+    Color.zAxis = Color([0.0, 0.0, 1.0, 1.0])
+    Color.one = Color([1.0, 1.0, 1.0, 1.0])
+    Color.xNegAxis = Color([-1.0, 0.0, 0.0, 1.0])
+    FloatMatrix.identity = FloatMatrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+    TransformationMatrix.identity = TransformationMatrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+    EulerRotation.identity = EulerRotation([0.0, 0.0, 0.0], unit='radians')
+    Quaternion.identity = Quaternion([0.0, 0.0, 0.0, 1.0]) 
                        
 def _testMVector() :
     
