@@ -171,6 +171,19 @@ Non-Backward Compatible Changes
     - completely rewrote `Vector` and `Matrix` classes
     - data classes like `Vector` and `Matrix` are now found in the ``datatypes`` namespace to avoid conflicts with node types
 
+
+=======================================
+Supported Platforms
+=======================================
+
+PyMEL is supported on any OS that Maya is supported on.  Our goal is to support the 3 latest versions of Maya.  At the time of this
+writing, that means 2009, 2008, and 8.5 ( on 8.5 Service Pack 1 is required ).  However, python in Maya 8.5 is very buggy,
+even with the service pack. As a result there are two aspects of PyMEL that will not work on 8.5:
+
+	- No API Undo: node class methods that derive from API will not be undoable
+	- Data class properties are read-only: operations such as ``Color().r=1.0`` or ``Vector().x=2.0`` will have no effect 
+
+
 =======================================
 Installation
 =======================================
