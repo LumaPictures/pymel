@@ -95,6 +95,15 @@ def feof( fileid ):
 def sceneName():
     return Path( OpenMaya.MFileIO.currentFile() )    
 
+def undoInfo(*args, **kwargs):
+    """
+Modifications:
+    - when state is turned off, also clears pymel's api undo queue
+    """
+    if kwargs.get('state', kwargs.get('st', None )) in [False, 0]:
+        _factories.apiUndo.flushUndo()
+    cmds.undoInfo(*args, **kwargs)
+
 
 #===============================================================================
 # Namespace
