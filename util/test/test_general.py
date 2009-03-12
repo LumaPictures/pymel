@@ -177,6 +177,64 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         undo()
         self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
 
+class testCase_apiUndo(unittest.TestCase):
+    
+    def setUp(self):
+        
+        # reset all undo queues
+        cmds.undoInfo(state=0)
+        setAttr( 'persp.focalLength', 35 )
+        setAttr( 'top.focalLength', 35 )
+        factories.apiUndo.flushUndo()
+        cmds.undoInfo(state=1)
+        
+    def test_undo(self):
+        SCENE.top.setFocalLength(20)
+        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
+        
+        
+        undoInfo(stateWithoutFlush=0)#--------------------------------
+        
+        SCENE.persp.setFocalLength(20)
+        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
+        
+        undoInfo(stateWithoutFlush=1)#--------------------------------
+        
+        undo() # undo top focal length back to 35
+        
+        self.assert_( SCENE.top.getFocalLength() == 35.0 )
+        self.assert_( SCENE.persp.getFocalLength() == 20.0 )
+        
+        redo()
+        
+        self.assert_( SCENE.top.getFocalLength() == 20.0 )
+        self.assert_( SCENE.persp.getFocalLength() == 20.0 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
+        
+        # clear maya's undo queue
+        # we override undoInfo in system to flush the cache 
+        undoInfo( state=0)
+        undoInfo( state=1)  
+
+        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
+        
+        SCENE.top.setFocalLength(200)
+        undo()
+        
+        self.assert_( SCENE.persp.getFocalLength() == 20.0 )
+        self.assert_( SCENE.top.getFocalLength() == 20.0 )
+        
+        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
+
+    def tearDown(self):
+        
+        # reset all undo queues
+        cmds.undoInfo(state=0)
+        setAttr( 'persp.focalLength', 35 )
+        setAttr( 'top.focalLength', 35 )
+        factories.apiUndo.flushUndo()
+        cmds.undoInfo(state=1)
+        
 class testCase_listHistory(unittest.TestCase):
 
     def setUp(self):
