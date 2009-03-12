@@ -2361,7 +2361,24 @@ class ApiArgUtil(object):
 
     
 class ApiUndo:
-
+    """
+    this is based on a clever prototype that Dean Edmonds posted on python_inside_maya   
+    awhile back.  it works like this: 
+    
+        - using the API, create a garbage node with an integer attribute,   
+          lock it and set it not to save with the scene. 
+        - add an API callback to the node, so that when the special attribute   
+          is changed, we get a callback 
+        - the API queue is a list of simple python classes with undoIt and   
+          redoIt methods.  each time we add a new one to the queue, we increment   
+          the garbage node's integer attribute using maya.cmds. 
+        - when maya's undo or redo is called, it triggers the undoing or   
+          redoing of the garbage node's attribute change (bc we changed it using   
+          MEL/maya.cmds), which in turn triggers our API callback.  the callback   
+          runs the undoIt or redoIt method of the class at the index taken from   
+          the numeric attribute. 
+    
+    """
     __metaclass__ = util.Singleton
 
     def __init__( self ):
@@ -2469,13 +2486,18 @@ class ApiUndo:
         
         self.cb_enabled = False
 
-        if not cmds.objExists( self.node_name ):
-            self._createNode()
+#        if not cmds.objExists( self.node_name ):
+#            self._createNode()
 
         # Increment the undo node's command count. We want this to go into
         # Maya's undo queue because changes to this attr will trigger our own
         # undo/redo code.
-        count = cmds.getAttr(self.node_name + '.cmdCount')
+        try:
+            count = cmds.getAttr(self.node_name + '.cmdCount')
+        except:
+            self._createNode()
+            count = cmds.getAttr(self.node_name + '.cmdCount')
+        
         cmds.setAttr(self.node_name + '.cmdCount', count + 1)
       
         # Append the command to the end of the undo queue.
@@ -2519,19 +2541,68 @@ class ApiUndo:
 apiUndo = ApiUndo()
 
 class ApiUndoItem(object):
+    """A simple class that reprsents an undo item to be undone or redone."""
+    __slots__ = ['_setter', '_reo_args', '_undo_args' ]
     def __init__(self, setter, redoArgs, undoArgs):
         self._setter = setter
-        self._redoArgs = redoArgs
-        self._undoArgs = undoArgs
+        self._reo_args = redoArgs
+        self._undo_args = undoArgs
     def redoIt(self):
-        self._setter(*self._redoArgs)
+        self._setter(*self._reo_args)
         
     def undoIt(self):
-        self._setter(*self._undoArgs)
+        self._setter(*self._undo_args)
     
 def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex=None ):
-    """If proxy is the True, then __apimfn__ function used to retrieve the proxy class. If None,
-    then we assume that the class being wrapped inherits from the underlying api class."""
+    """
+    create a wrapped, user-friendly API method that works the way a python method should: no MScriptUtil and
+    no special API classes required.  Inputs go in the front door, and outputs come out the back door.
+    
+    
+    Regarding Undo
+    --------------
+    
+    The API provides many methods which are pairs -- one sets a value   
+    while the other one gets the value.  the naming convention of these   
+    methods follows a fairly consistent pattern.  so what I did was   
+    determine all the get and set pairs, which I can use to automatically   
+    register api undo items:  prior to setting something, we first *get*   
+    it's existing value, which we can later use to reset when undo is   
+    triggered. 
+    
+    This API undo is only for PyMEL methods which are derived from API   
+    methods.  it's not meant to be used with plugins.  and since it just   
+    piggybacks maya's MEL undo system, it won't get cross-mojonated. 
+
+    Take `MFnTransform.setTranslation`, for example. PyMEL provides a wrapped copy of this as   
+    `Transform.setTranslation`.   when pymel.Transform.setTranslation is   
+    called, here's what happens in relation to undo: 
+    
+        #. process input args, if any 
+        #. call MFnTransform.getTranslation() to get the current translation. 
+        #. append to the api undo queue, with necessary info to undo/redo   
+           later (the current method, the current args, and the current   
+           translation) 
+        #. call MFnTransform.setTranslation() with the passed args 
+        #. process result and return it 
+
+
+    :Parameters:
+    
+        apiClass : class
+            the api class
+        methodName : string
+            the name of the api method
+        newName : string
+            optionally provided if a name other than that of api method is desired
+        proxy : bool
+            If True, then __apimfn__ function used to retrieve the proxy class. If False,
+            then we assume that the class being wrapped inherits from the underlying api class.
+        overloadIndex : None or int
+            which of the overloaded C++ signatures to use as the basis of our wrapped function.
+        
+        
+        """
     
     #getattr( _api, apiClassName )
 
