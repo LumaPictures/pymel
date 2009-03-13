@@ -1,0 +1,29 @@
+#!/usr/bin/env mayapy
+
+#nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
+
+#import doctest
+import sys
+
+try:
+	import nose
+except ImportError:
+	"To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
+	
+#import maya
+
+#SKIP_MAYA_8_5 = doctest.register_optionflag('SKIP_MAYA_8_5')
+#SKIP_MAYA_2008 = doctest.register_optionflag('SKIP_MAYA_2008')
+#SKIP_MAYA_2009 = doctest.register_optionflag('SKIP_MAYA_2009')
+
+#class MayaOutputChecker(doctest.
+
+exclusion = 'windows tools example1 .*testingutils pmcmds testPa'
+#arrays 
+args = ['empty']
+args += "--with-doctest -v pymel --noexe ".split()
+#args += ['--pdb']
+args += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
+args += sys.argv[1:]
+
+nose.main( argv=args )
