@@ -58,35 +58,35 @@ of string comparisons are over.
 Below, we make a camera, rename it, and then group and instance it, to demonstrate how the name changes are constantly reflected. Keep in mind
 that the changes could have just as easily been performed by the user interacting with objects through the GUI.
 
-    >>> cam, shape = camera()
-    >>> print cam
-    camera1
-    >>> cam.rename('renderCam')
-    >>> print cam
-    renderCam
-    >>> grp = group(cam)
-    >>> instance(grp)
-    >>> print cam
-    group1|renderCam
-    >>> cam.getInstances()
-    [Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]
+>>> cam, shape = camera()
+>>> print cam
+camera1
+>>> cam.rename('renderCam')
+>>> print cam
+renderCam
+>>> grp = group(cam)
+>>> instance(grp)
+>>> print cam
+group1|renderCam
+>>> cam.getInstances()
+[Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]
 
 Comparing attributes is just as easy.  
 
-    >>> # long and short names retrieve the same attribute
-    >>> cam.t == cam.translate    
-    True
-    >>> cam.tx == cam.translate.translateX
-    True
+>>> # long and short names retrieve the same attribute
+>>> cam.t == cam.translate
+True
+>>> cam.tx == cam.translate.translateX
+True
 
 Like MEL, PyMEL will also look up shape attributes from a transform:
 
-    >>> cam  # confirm that cam is a transform
-    Transform(u'group1|renderCam')
-    >>> cam.focalLength  # get the focalLength of the shape
-    Attribute(u'group1|renderCam|renderCamShape.focalLength')
-    >>> cam.focalLength == cam.getShape().focalLength
-    True
+>>> cam  # confirm that cam is a transform
+Transform(u'group1|renderCam')
+>>> cam.focalLength  # get the focalLength of the shape
+Attribute(u'group1|renderCam|renderCamShape.focalLength')
+>>> cam.focalLength == cam.getShape().focalLength
+True
     
 Beyond this new purity of behavior, PyMEL node classes now include hundreds of new methods derived from the API, but with the same intuitive and unified design as before.
 With PyMEL you get the benefits of API speed and versatility without the advanced learning curve.
@@ -137,22 +137,23 @@ traceback, along with line numbers!
     
 For example, here's a procedure "myScript" with a line that will result in an error:
 
-    >>> mel.eval( '''global proc myScript( string $stringArg, float $floatArray[] ){ 
-    ...     float $donuts = `ls -type camera`;}''')
+>>> mel.eval( '''global proc myScript( string $stringArg, float $floatArray[] ){ 
+...     float $donuts = `ls -type camera`;}''')
     
-When we call the procedure via PyMEL, we can quickly determine the problem:
+When we call the procedure via PyMEL, we can quickly determine the problem, because PyMEL gives us the error and the line number:
 
-    >>> mel.myScript( 'foo', [] )
-    Traceback (most recent call last):
-        ...
-    MelConversionError: Error occurred during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
+>>> mel.myScript( 'foo', [] )
+Traceback (most recent call last):
+    ...
+MelConversionError: Error occurred during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
 
-Also, getting and setting MEL global variables is accomplished via a special dictionary-like object:
+Also, getting and setting MEL global variables is accomplished via a special dictionary-like object, which keeps it simple and
+intuitive:
 
-    >>> melGlobals['$gMainFileMenu']
-    mainFileMenu
-    >>> melGlobals['$gGridDisplayGridLinesDefault'] = 2    
-        
+>>> melGlobals['$gMainFileMenu']
+mainFileMenu
+>>> melGlobals['$gGridDisplayGridLinesDefault'] = 2    
+    
 --------------------------------
 Other Improvements
 --------------------------------
@@ -207,10 +208,11 @@ For the Technical Director
 
 For those looking to master python in a production environment, PyMEL is more than a module for Maya scripting, 
 it is a repository of example python code -- a self-contained pipeline demonstrating 
-advanced python concepts like function factories, metaclasses, and decorators, as well as essential production practices such as parsing, pickling, logging, and unit testing.
+advanced python concepts like function factories, metaclasses, and decorators, as well as essential production practices such as parsing, 
+pickling, logging, and unit testing.
 
-For those who are already masters of python and who naturally expect more out of a python package, PyMEL is for you, too.  It was written in real production environments by 
-programmers with a vision for how to seamlessly integrate the API and MEL.
+For those who are already masters of python and who naturally expect more out of a python package, PyMEL is for you, too.  It was written 
+in for use in production by experiened programmers with a vision for how to add object-oriented design to Maya.
 
 
 ======================
@@ -225,8 +227,8 @@ Powerful Classes
 
 .. python::
 
-    camTrans, cam = camera()
-    cam.setFocalLength(100) 
+    camTrans, cam = camera()  # create a new camera
+    cam.setFocalLength(100)
     fov = cam.getHorizontalFieldOfView()
     cam.dolly( -3 )
     cam.track(left=10)

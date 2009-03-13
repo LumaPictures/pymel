@@ -171,7 +171,7 @@ def testInvertibles():
                             elif apiClassName == 'MFnMesh' and setMethod == 'setColors':
                                 args = [ [ [.5,.5,.5] ]*obj.numColors() ]
                             elif apiClassName == 'MFnMesh' and setMethod == 'setColor':
-                                obj.setColors( [ [.5,.5,.5] ]*obj.numColors() )
+                                obj.setColors( [ [.5,.5,.5] ]*obj.numVertices() )
                                 args = [ 1, [1,0,0] ] 
                             elif apiClassName == 'MFnMesh' and setMethod in ['setFaceVertexColors', 'setVertexColors']:
                                 obj.createColorSet(setMethod + '_ColorSet' )

@@ -20,9 +20,9 @@ s2.setTranslation([0,0,-2], relative=1)
 
 # cycle through and move some verts. 
 # we're moving each verts a relative amount based on its vertex number
-num = s2.numVerts()
-for vert in s2.getShape().verts:
-	vert.move( [ (float(vert.item() ) / float(num) ), 0, 0 ], r=1)
+num = s2.numVertices()
+for i, vert in enumerate(s2.verts):
+	move( vert, [ i / float(num), 0, 0 ], r=1)
 
 
 # save the current scene scene
@@ -39,7 +39,7 @@ if exportScene.exists():
 	exportScene.remove()
 
 print "exporting new scene:", exportScene
-exportSelected( exportScene )
+exportSelected( exportScene, f=1 )
 
 # delete the original group
 delete(g)
@@ -52,7 +52,7 @@ for i in range(1,4):
 	# this will be the 'newGroup' node. 
 	allRefNodes = ref.nodes()
 	print "moving" , allRefNodes[0]
-	allRefNodes[0].tx = 2*i 
+	allRefNodes[0].tx.set( 2*i ) 
 
 # print out some information about our newly created references
 allRefs = listReferences()

@@ -3101,18 +3101,15 @@ class Array(object):
              [1, 2, 0]]
             >>> A[0:2, 1:3] = [1, 2]
             >>> print A.formated()
-            [[1, 1, 1],
-             [1, 2, 2],
+            [[1, 1, 2],
+             [1, 1, 2],
              [1, 2, 0]]
-                          
-            TODO : accept this form as well
-             
-            #>>> A[0:2, 1:3] = [[1], [2]]
-            #>>> print A.formated()
-            #[[1, 1, 1],
-            # [1, 2, 2],
-            # [1, 2, 0]]
-                                                   
+            >>> A[0:2, 1:3] = [[1], [2]]
+            >>> print A.formated()
+            [[1, 1, 0],
+             [1, 2, 0],
+             [1, 2, 0]]
+                                                               
             It cannot be truncated however
                                                    
             >>> A[0] = [1, 2, 3, 4]
@@ -3120,6 +3117,15 @@ class Array(object):
                 ...
             ValueError: shape mismatch between value(s) and Array components or sub Arrays designated by the indexing
         """
+        # NUMPY differences: expands by repeating last value
+        """
+            >>> A[0:2, 1:3] = [[1], [2]] 
+            >>> print A.formated()
+            [[1, 1, 1],
+             [1, 2, 2],
+             [1, 2, 0]]
+        """
+        
         if not hasattr(index, '__iter__') :
             index = [index]
         else :
@@ -5466,12 +5472,6 @@ class MatrixN(Array):
         """ m.minor(i, j) --> MatrixN
         
             Returns the MatrixN obtained by deleting row i and column j from m.
-
-            >>> M = MatrixN([1])
-            >>> M
-            MatrixN([[1]])
-            >>> M.minor(0, 0)
-            MatrixN([])
             
             >>> M = MatrixN(range(4), shape=(2, 2))
             >>> print M.formated()
@@ -5498,6 +5498,15 @@ class MatrixN(Array):
              [4.0, 5.0, 6.0],
              [7.0, 8.0, 9.0]]
         """
+        # TODO : the below example fails.  M.minor(0,0) returns an Array instead of MatrixN
+        """
+            >>> M = MatrixN([1])
+            >>> M
+            MatrixN([[1]])
+            >>> M.minor(0, 0)
+            MatrixN([])
+        """
+        
         index = self._getindex((i, j), default=None)
         m = self.deleted(index)
         return m

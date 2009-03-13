@@ -532,12 +532,14 @@ class Vector(VectorN) :
             and multiplies each component of u by v when v is a numeric type. """
         try :
             res = self.apicls.__mul__(self, other)
+            assert res is not NotImplemented
         except :
             res = super(Vector, self).__mul__(other)
         if util.isNumeric(res) :
             return res
         else :
-            return self.__class__._convert(res)          
+            return self.__class__._convert(res)
+               
     def __rmul__(self, other):
         """ u.__rmul__(v) <==> v*u
             The multiply '*' operator is mapped to the dot product when both objects are Vectors,

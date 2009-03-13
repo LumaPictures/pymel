@@ -178,7 +178,7 @@ Supported Platforms
 
 PyMEL is supported on any OS that Maya is supported on.  Our goal is to support the 3 latest versions of Maya.  At the time of this
 writing, that means 2009, 2008, and 8.5 ( on 8.5 Service Pack 1 is required ).  However, python in Maya 8.5 is very buggy,
-even with the service pack. As a result there are two aspects of PyMEL that will not work on 8.5:
+even with the service pack so as a result there are two aspects of PyMEL that will not work on 8.5:
 
 	- No API Undo: node class methods that derive from API will not be undoable
 	- Data class properties are read-only: operations such as ``Color().r=1.0`` or ``Vector().x=2.0`` will have no effect 
@@ -1343,8 +1343,10 @@ plogging.pymelLogger.debug( 'imported api' )
 isStandalone = mayahook.mayaInit() 
 
 from mayahook import Version
-assert Version.current > Version.v85, "This version of pymel is only compatible with Maya 8.5 Service Pack 1 or greater."
-
+if Version.current == Version.v85:
+    raise AssertionError, "This version of pymel is only compatible with Maya 8.5 Service Pack 1 or greater."
+elif Version.current == Version.v85sp1:
+    plogging.pymelLogger.warn( "pymel works best with Maya 2008 and above. See the documentation for features that do not work in 8.5" )
 
 #import tools
 #print "imported tools"

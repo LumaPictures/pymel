@@ -34,7 +34,7 @@ def doIt(obj):
 
 
     print len(colors)
-    obj.setVertexColors( colors, xrange(len(colors)) )
+    obj.setColors( colors )
     obj.updateSurface()
        
     polyColorPerVertex( obj, e=1, colorDisplayOption=1 )
