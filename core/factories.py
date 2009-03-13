@@ -1307,11 +1307,8 @@ def getInheritance( mayaType ):
         name = _api.MFnDagNode(obj).name()
         mod = dagMod
         
-    if not obj.isNull() and not obj.hasFn( _api.MFn.kManipulator3D ):
-        
-        #print mayaType, name
+    if not obj.isNull() and not obj.hasFn( _api.MFn.kManipulator3D ) and not obj.hasFn( _api.MFn.kManipulator2D ):
         lineage = cmds.nodeType( name, inherited=1)
-        #print lineage
     else:
         lineage = []
         
