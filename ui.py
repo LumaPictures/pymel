@@ -638,7 +638,10 @@ def confirmBox(title, message, yes="Yes", no="No", *moreButtons, **kwargs):
     ret = confirmDialog(t=title,    m=message,     b=[yes,no] + list(moreButtons), 
                            db=default, 
                            ma="center", cb="No", ds="No")
-    return ret if moreButtons else (ret==yes)
+    if moreButtons:
+        return ret
+    else:
+        return (ret==yes)
 
 def informBox(title, message, ok="Ok"):
     """ Information box """

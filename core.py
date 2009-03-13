@@ -249,7 +249,8 @@ class Namespace(str):
         return self.splitAll()[-1]
     
     def getParent(self):
-        return self.__class__(":".join(self.splitAll()[:-1])) if (str(self)!=":") else None
+        if (str(self)!=":"):
+            return self.__class__(":".join(self.splitAll()[:-1]))
     
     def ls(self, pattern="*", **kwargs):
         return ls(self + pattern, **kwargs)
