@@ -1214,38 +1214,149 @@ def NodeHierarchy() :
 def getUncachedCmds():
     return list( set( map( itemgetter(0), inspect.getmembers( cmds, callable ) ) ).difference( cmdlist.keys() ) )
         
+#def getInheritance( mayaType ):
+#    """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
+#    This method relies on creating the node to use with cmds.nodeType -- i would prefer a cleaner solution."""
+#    parent = []
+#    state = cmds.undoInfo( q=1, state=1)
+#    try:
+#        cmds.undoInfo( stateWithoutFlush=0)
+#        
+#        res = cmds.createNode( mayaType ) # not sure why this was there before: , parent=None )
+#        #_logger.debug("created node: %s", res)
+#        parent = cmds.nodeType( res, inherited=1)
+#        #_logger.debug("parents: %s", parent)
+#        
+#        # TODO: this will sometimes fail to get an inheritance when a file
+#        # is imported, and it requires an unloaded plugin... debug this
+#        if parent is None:
+#            util.warn("Could not find inheritance for node type '%s'" % mayaType)
+#            parent = []
+#
+#        # createNode may also have created a transform above the returned node
+#        if 'dagNode' in parent:
+#            dagParent = cmds.listRelatives(res, parent=1)
+#            if dagParent is not None:
+#                cmds.delete(dagParent[0])
+#            else:
+#                cmds.delete(res)
+#        else:
+#            cmds.delete(res)
+#    finally:
+#        # there's a chance it failed on delete
+#        cmds.undoInfo( stateWithoutFlush=state)
+#        return parent
+
+#def getInheritance( mayaType, dagMod, dgMod ):
+#    """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
+#    This method relies on creating the node to use with cmds.nodeType -- i would prefer a cleaner solution."""
+#    parent = []
+#    
+#    obj = _api.makeDgModGhostObject( mayaType, dagMod, dgMod )
+#    if obj and not obj.hasFn( _api.MFn.kManipulator3D ):
+#    
+#        res = cmds.createNode( mayaType ) # not sure why this was there before: , parent=None )
+#        #print mayaType, repr(res)
+#        #print repr(_api.MFnDependencyNode(obj).name())
+#        
+#        #_logger.debug("created node: %s", res)
+#        parent = cmds.nodeType( res, inherited=1)
+#        #parent = cmds.nodeType( _api.MFnDependencyNode(obj).name(), inherited=1)
+#        #_logger.debug("parents: %s", parent)
+#    
+#        # TODO: this will sometimes fail to get an inheritance when a file
+#        # is imported, and it requires an unloaded plugin... debug this
+#        if parent is None:
+#            #_logger.warn("Could not find inheritance for node type '%s'" % mayaType)
+#            print("Could not find inheritance for node type '%s'" % mayaType)
+#            parent = []
+#    else:
+#        #_logger.warn("Could not test inheritance for node type '%s'" % mayaType)
+#        print("Could not test inheritance for node type '%s'" % mayaType)
+#        
+#    return parent
+
 def getInheritance( mayaType ):
     """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
-    This method relies on creating the node to use with cmds.nodeType -- i would prefer a cleaner solution."""
-    parent = []
-    state = cmds.undoInfo( q=1, state=1)
-    try:
-        cmds.undoInfo( state=0)
-        res = cmds.createNode( mayaType ) # not sure why this was there before: , parent=None )
-        #_logger.debug("created node: %s", res)
-        parent = cmds.nodeType( res, inherited=1)
-        #_logger.debug("parents: %s", parent)
-        
-        # TODO: this will sometimes fail to get an inheritance when a file
-        # is imported, and it requires an unloaded plugin... debug this
-        if parent is None:
-            util.warn("Could not find inheritance for node type '%s'" % mayaType)
-            parent = []
+    To get the inheritance we use nodeType, which requires a real node.  To do get these without poluting the scene
+    we use a dag/dg modifier, call the doIt method, get the lineage, then call undoIt."""
 
-        # createNode may also have created a transform above the returned node
-        if 'dagNode' in parent:
-            dagParent = cmds.listRelatives(res, parent=1)
-            if dagParent is not None:
-                cmds.delete(dagParent[0])
-            else:
-                cmds.delete(res)
-        else:
-            cmds.delete(res)
-    finally:
-        # there's a chance it failed on delete
-        cmds.undoInfo( state=state)
-        return parent
-   
+    dagMod = _api.MDagModifier()
+    dgMod = _api.MDGModifier()
+    
+    # Regardless of whether we're making a DG or DAG node, make a parent first - 
+    # for some reason, this ensures good cleanup (don't ask me why...??)
+    parent = dagMod.createNode ( 'transform', _api.MObject())
+
+    try :
+        # Try making it with dgMod FIRST - this way, we can avoid making an
+        # unneccessary transform if it is a DG node
+        obj = dgMod.createNode ( mayaType )
+        dgMod.doIt()
+        
+        _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
+        name = _api.MFnDependencyNode(obj).name()
+        mod = dgMod
+        
+    except RuntimeError:
+        # DagNode
+        obj = dagMod.createNode ( mayaType, parent )
+        dagMod.doIt()
+        
+        _logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
+        name = _api.MFnDagNode(obj).name()
+        mod = dagMod
+        
+    if not obj.isNull() and not obj.hasFn( _api.MFn.kManipulator3D ):
+        
+        #print mayaType, name
+        lineage = cmds.nodeType( name, inherited=1)
+        #print lineage
+    else:
+        lineage = []
+        
+    mod.undoIt()
+    return lineage
+            
+
+
+
+    
+#def getInheritance( mayaType ):
+#    """Get parents as a list, starting from the node after dependNode, and ending with the mayaType itself.
+#    This method relies on creating the node to use with cmds.nodeType -- i would prefer a cleaner solution."""
+#    parent = []
+#    state = cmds.undoInfo( q=1, state=1)
+#
+#    cmds.undoInfo( stateWithoutFlush=1)
+#    res = cmds.createNode( mayaType ) 
+#
+#    parent = cmds.nodeType( res, inherited=1)
+#    # TODO: this will sometimes fail to get an inheritance when a file
+#    # is imported, and it requires an unloaded plugin... debug this
+#    if parent is None:
+#        util.warn("Could not find inheritance for node type '%s'" % mayaType)
+#        parent = []
+#        
+#    try:
+#        cmds.undo()
+#    except:
+#        # createNode may also have created a transform above the returned node
+#        try:
+#            if 'dagNode' in parent:
+#                dagParent = cmds.listRelatives(res, parent=1)
+#                if dagParent is not None:
+#                    cmds.delete(dagParent[0])
+#                else:
+#                    cmds.delete(res)
+#            else:
+#                cmds.delete(res)
+#        except:
+#            util.warn("Failed to cleanup '%s'" % res)
+#    # there's a chance it failed on delete
+#    cmds.undoInfo( stateWithoutFlush=state)
+#    return parent
+    
 #-----------------------
 # Function Factory
 #-----------------------
