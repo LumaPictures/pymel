@@ -1,0 +1,5 @@
+#!/bin/tcsh
+
+setenv PYMEL_INCLUDE_DOC_EXAMPLES 1
+cd `dirname $0`/..
+mayapy `which epydoc` --config epydoc.cfg
