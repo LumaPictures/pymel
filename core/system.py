@@ -104,6 +104,13 @@ Modifications:
         _factories.apiUndo.flushUndo()
     cmds.undoInfo(*args, **kwargs)
 
+def flushUndo():
+    """
+Modifications:
+    - also clears pymel's api undo queue
+    """
+    _factories.apiUndo.flushUndo()
+    cmds.flushUndo()
 
 #===============================================================================
 # Namespace
