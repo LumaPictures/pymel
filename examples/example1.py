@@ -18,7 +18,7 @@ Project Goals
 Production Proven
 ======================
 
-Since its release over a year ago PyMEL, has accumulated an impressive resume, in both feature films and games: 
+Since its release over a year ago PyMEL, has accumulated an impressive resume in both feature films and games: 
 
     - DreamWorks: *Fung Fu Panda*, *Shrek 4*, *Monsters Vs Aliens*, and *How to Train Your Dragon*
     - Luma Pictures: *Pirates of the Carribean: At World's End*, *Harry Potter 6*, and *Wolverine*
@@ -36,7 +36,6 @@ Here's what Seth Gibson of Bungie Studios, makers of the hit game *Halo*, has to
 ======================
 What's New
 ======================
-
 ----------------------
 API Hybridization
 ----------------------
@@ -44,51 +43,37 @@ API Hybridization
 PyMEL 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten 
 from the ground up to use the python API as their foundation, increasing the speed and fidelity of PyMEL's object-oriented design.  
 
-PyMEL harnesses the API to create a name-independent
-representation of your object.  With this in hand, PyMEL can operate on the object itself, not just the string representing the object.
-And if anything causes the name of your object to change it will automatically be reflected in your node variable.
-
-Let's take a common example: testing if two nodes or attributes are the
-same. In MEL or maya.cmds, to accomplish this the typical solution is to perform a string comparison 
-of two object names, but there are many ways that this seemingly simple operation can go wrong. For instance, forgetting to compare the
-full paths of dag node objects, or comparing the long name of an attribute to the short name of an attribute.  
-And what if someone renames the node or its name becomes non-unique?  With PyMEL, the nightmares
-of string comparisons are over.
+PyMEL harnesses the API to create a name-independent representation of your object.  
+This means that the annoying inconsistencies of string comparisons are over: no more worrying about short names versus long names, DAG paths, unique paths,
+instance paths...  it's all handled intelligently for you.  And what's more, if *anything* causes the name of your object to change it 
+will automatically be reflected in your python object.
 
 Below, we make a camera, rename it, and then group and instance it, to demonstrate how the name changes are constantly reflected. Keep in mind
 that the changes could have just as easily been performed by the user interacting with objects through the GUI.
 
->>> cam, shape = camera()
->>> print cam
-camera1
->>> cam.rename('renderCam')
->>> print cam
-renderCam
->>> grp = group(cam)
->>> instance(grp)
->>> print cam
-group1|renderCam
->>> cam.getInstances()
-[Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]
+    >>> cam, shape = camera()
+    >>> print cam
+    camera1
+    >>> cam.rename('renderCam')
+    Transform(u'renderCam')
+    >>> print cam
+    renderCam
+    >>> grp = group(cam)
+    >>> instance(grp)
+    [Transform(u'group2')]
+    >>> print cam
+    group1|renderCam
+    >>> cam.getInstances()
+    [Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]
 
-Comparing attributes is just as easy.  
+Comparing attributes is just as easy. It doesn't matter what name you use to access an attribute:
 
->>> # long and short names retrieve the same attribute
->>> cam.t == cam.translate
-True
->>> cam.tx == cam.translate.translateX
-True
-
-Like MEL, PyMEL will also look up shape attributes from a transform:
-
->>> cam  # confirm that cam is a transform
-Transform(u'group1|renderCam')
->>> cam.focalLength  # get the focalLength of the shape
-Attribute(u'group1|renderCam|renderCamShape.focalLength')
->>> cam.focalLength == cam.getShape().focalLength
-True
+    >>> cam.t == cam.translate    
+    True
+    >>> cam.tx == cam.translate.translateX
+    True
     
-Beyond this new purity of behavior, PyMEL node classes now include hundreds of new methods derived from the API, but with the same intuitive and unified design as before.
+PyMEL node classes now include hundreds of new methods derived from the API, but with the same intuitive and unified design as before.
 With PyMEL you get the benefits of API speed and versatility without the advanced learning curve.
 
 --------------------
@@ -113,7 +98,7 @@ interpreter it performs these operations:
     #. sources user preferences
     #. sources userSetup.mel
     
-This will save you a lot of time and headache when using Maya in a standalone environment.
+This makes using Maya in a standalone environment the ideal environment for for batch processes and even rendering.
 
 --------------------------------
 Tighter MEL Integration
@@ -153,15 +138,6 @@ intuitive:
 >>> melGlobals['$gMainFileMenu']
 mainFileMenu
 >>> melGlobals['$gGridDisplayGridLinesDefault'] = 2    
-    
---------------------------------
-Other Improvements
---------------------------------
-
-    - New and improved math classes
-    - Expanded documentation
-    - Loads of useful utilities
-
 
 
 ==========================
@@ -215,13 +191,9 @@ For those who are already masters of python and who naturally expect more out of
 in for use in production by experiened programmers with a vision for how to add object-oriented design to Maya.
 
 
-======================
-Core Features
-======================
-
-----------------------
+==========================
 Powerful Classes
-----------------------
+==========================
 
 **Node classes** for every node type
 
@@ -279,9 +251,9 @@ Manage optionVars as a python dictionary
     optionVar['numbers'].append(9)
     numArray = optionVar.pop('numbers')
 
----------------------------
+==========================
 Do More with Less Code
----------------------------
+==========================
 
 If you've tried working with the default maya.cmds and maya.mel modules, you know that they add a lot of awkward syntax that can slow you down. PyMEL streamlines
 this syntax in many ways.

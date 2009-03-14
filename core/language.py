@@ -132,9 +132,10 @@ class MelGlobals( dict ):
     
     >>> melGlobals['gResourceFileList'] #doctest: +ELLIPSIS
     [u'defaultRunTimeCommands.res.mel', u'localizedPanelLabel.res.mel', ...]
-    >>> melGlobals['$gv_browserMode'] # works with or without $
-    0
-    
+    >>> # works with or without $
+    >>> melGlobals['gFilterUIDefaultAttributeFilterList']  #doctest: +ELLIPSIS
+    [u'DefaultHiddenAttributesFilter', u'animCurveFilter', ..., u'publishedFilter']
+  
     creating new variables requires the use of the initVar function to specify the type
     
     >>> melGlobals.initVar( 'string', 'gMyStrVar' )

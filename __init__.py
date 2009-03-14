@@ -29,11 +29,10 @@ API Hybridization
 PyMEL 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten 
 from the ground up to use the python API as their foundation, increasing the speed and fidelity of PyMEL's object-oriented design.  
 
-PyMEL harnesses the API to create a name-independent
-representation of your object.  With this in hand, PyMEL can operate on the object itself, not just the string representing the object.
-With PyMEL, the nightmares of string comparisons are over: no more worrying about short names versus long names, DAG paths, unique paths,
-instance paths...  it's all handled intelligently for you.  And what's more, if anything causes the name of your object to change it 
-will automatically be reflected in your node variable.
+PyMEL harnesses the API to create a name-independent representation of your object.  
+This means that the annoying inconsistencies of string comparisons are over: no more worrying about short names versus long names, DAG paths, unique paths,
+instance paths...  it's all handled intelligently for you.  And what's more, if *anything* causes the name of your object to change it 
+will automatically be reflected in your python object.
 
 Below, we make a camera, rename it, and then group and instance it, to demonstrate how the name changes are constantly reflected. Keep in mind
 that the changes could have just as easily been performed by the user interacting with objects through the GUI.
@@ -1478,34 +1477,34 @@ def _pluginUnloaded(*args):
             factories.removePyNode( _module, node )
 
 
-global pluginLoadedCB
-global pluginUnloadedCB
-pluginLoadedCB = None
-pluginUnloadedCB = None
+global _pluginLoadedCB
+global _pluginUnloadedCB
+_pluginLoadedCB = None
+_pluginUnloadedCB = None
 
 def _installCallbacks():
     """install the callbacks that trigger new nodes and commands to be added to pymel when a 
     plugin loads.  This is called from pymel.__init__
     """
 
-    global pluginLoadedCB
-    if pluginLoadedCB is None:
-        pluginLoadedCB = True
+    global _pluginLoadedCB
+    if _pluginLoadedCB is None:
+        _pluginLoadedCB = True
         plogging.pymelLogger.debug("Adding pluginLoaded callback")
-        #pluginLoadedCB = pluginLoadedCallback(module)
+        #_pluginLoadedCB = pluginLoadedCallback(module)
         # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
         cmds.loadPlugin( addCallback='import pymel; pymel._pluginLoaded("%s")' )
         
 #        if mayahook.Version.current >= mayahook.Version.v2009:
-#            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, pluginLoadedCB  )
+#            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoadedCB  )
 #            id.disown()
         
     else:
         plogging.pymelLogger.debug("PluginLoaded callback already exists")
     
-    global pluginUnloadedCB
-    if pluginUnloadedCB is None:
-        pluginUnloadedCB = True
+    global _pluginUnloadedCB
+    if _pluginUnloadedCB is None:
+        _pluginUnloadedCB = True
         
         # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
         #mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
