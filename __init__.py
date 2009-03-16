@@ -4,12 +4,12 @@
  
 """
 *******************************
-          Pymel
+          PyMEL
 *******************************
 
-Pymel makes python scripting in Maya work the way it should. Maya's command module is a direct
+PyMEL makes python scripting in Maya work the way it should. Maya's command module is a direct
 translation of MEL commands into python functions. The result is a very awkward and unpythonic syntax which
-does not take advantage of python's strengths -- particularly, a flexible, object-oriented design. Pymel
+does not take advantage of python's strengths -- particularly, a flexible, object-oriented design. PyMEL
 builds on the cmds module by organizing many of its commands into a class hierarchy, and by
 customizing them to operate in a more succinct and intuitive way.
 
@@ -85,7 +85,7 @@ Improved Standalone Support
 ------------------------------
 
 Unlike the maya module, PyMEL behaves the same in a standalone interpreter as it does in an GUI session.
-When pymel detects that it is being imported in a standalone
+When PyMEL detects that it is being imported in a standalone
 interpreter it performs these operations:
 
     #. initializes maya.standalone
@@ -188,15 +188,15 @@ Installation
 =======================================
 
 ---------------------------------------
-Pymel Package
+PyMEL Package
 ---------------------------------------
 
 
-Pymel is installed like any other python module or package. To find available modules, python searches directories set in an 
+PyMEL is installed like any other python module or package. To find available modules, python searches directories set in an 
 environment variable called PYTHONPATH.  This environment variable can be set for each Maya installation using the Maya.env 
 file, or it can be set at the system level, which will set it for all instances of python, including those built into Maya (aka "mayapy").  
 I recommend setting your PYTHONPATH at both the system level
-level and the Maya.env level because it is more reliable and because it will allow you to use pymel from a standalone python interpreter.
+level and the Maya.env level because it is more reliable and because it will allow you to use PyMEL from a standalone python interpreter.
  
 Install Using Maya.env
 ======================
@@ -205,7 +205,7 @@ OSX and Linux
 -------------
 
 If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your Maya "scripts" directory. This 
-will allow you to immediately use pymel from within Maya.  However, it is usually a good idea to create a separate directory for your python 
+will allow you to immediately use PyMEL from within Maya.  However, it is usually a good idea to create a separate directory for your python 
 modules so that you can organize them independently of your mel scripts.  
 
 Let's say that you decide to create your own python development directory ``~/dev/python``.  The pymel *folder* would go within this 
@@ -260,7 +260,7 @@ Here's a line-by-line breakdown of what you just did:
     3.  this line allows you to access all the executables in the Maya bin
         directory from a shell without using the full path, and also allows you to use the `ipymel` interpreter ( but only after you install
         IPython!).  For example, you can launch Maya by typing ``maya``, or open a Maya python interpreter by typing ``mayapy``. 
-    4.  we set the PYTHONPATH to ensure that python will see your python dev directory, where pymel resides.
+    4.  we set the PYTHONPATH to ensure that python will see your python dev directory, where PyMEL resides.
 
 
 Windows
@@ -317,7 +317,7 @@ Alternately, you can create a userSetup.py file and add the line:
 ---------------------------------------
 Script Editor
 ---------------------------------------
-Pymel includes a replacement for the script editor window that provides the option to translate all mel history into python. 
+PyMEL includes a replacement for the script editor window that provides the option to translate all mel history into python. 
 Currently this feature is beta and works only in versions beginning with Maya 8.5 SP1.
 
 The script editor is comprised of two files located in the pymel/tools/scriptEditor directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  
@@ -329,8 +329,8 @@ Mel to Python**. Now all output will be reported in python, regardless of whethe
 ---------------------------------------
 ipymel
 ---------------------------------------
-ipymel is an extension of the ultra-customizable IPython interpreter, which enables it to easily work with mayapy and pymel.  It adds tab completion of maya depend nodes,
-dag nodes, and attributes, as well as automatic import of pymel at startup.  Many more features to come. 
+ipymel is an extension of the ultra-customizable IPython interpreter, which enables it to easily work with mayapy and PyMEL.  It adds tab completion of maya depend nodes,
+dag nodes, and attributes, as well as automatic import of PyMEL at startup.  Many more features to come. 
 
 OSX and Linux
 =============
@@ -393,7 +393,7 @@ I've found that the same thing must sometimes be done for libcrypto.so.4, as wel
 Procedural (maya.cmds)
 ---------------------------------------
 
-When approaching the reorganization of the existing commands provided by maya.cmds, pymel follows these practical guidelines:
+When approaching the reorganization of the existing commands provided by maya.cmds, PyMEL follows these practical guidelines:
 
     - a value returned by a query flag should be accepted as a valid argument by the corresponding edit flag
         - example: ``camera( 'persp', e=1, focalLength = camera( 'persp', q=1, focalLength=1)   )``
@@ -403,7 +403,7 @@ When approaching the reorganization of the existing commands provided by maya.cm
         - example: `spaceLocator`
     - wherever possible, pymel/python objects should be returned
         - example: pretty much every command
-    - a function which provides a mapping mechanism should have a dictionary-like pymel counterpart 
+    - a function which provides a mapping mechanism should have a dictionary-like PyMEL counterpart 
         - example: `fileInfo` and `FileInfo`, `optionVar` and `OptionVar`
     - a function which returns a list of pairs should be a 2D array, or possibly a dictionary 
         - example: ``ls( showType=1 )``, ``listConnections(connections=1)``
@@ -416,7 +416,7 @@ When approaching the reorganization of the existing commands provided by maya.cm
 Object-Oriented
 ---------------------------------------
 
-In constructing the PyNode classes, pymel follows these design rules:
+In constructing the PyNode classes, PyMEL follows these design rules:
 
     - node classes should never use properties -- all behavior should be placed in methods to differentiate them from shorthand attribute syntax
         - ( ex. foo.bar retrieves an Attribute class, foo.bar() executes a function )
@@ -453,14 +453,14 @@ The C++ API also has a python wrap but it too suffers from awkward and unpythoni
 benefits from the fact that it was object-oriented to begin with, but from a scripters' standpoint, it's tortuously verbose and cryptic.
 Certainly nothing you would want to write an entire pipeline with.
 
-Enter Pymel.  The primary reasons for pymel's existence are threefold:
+Enter PyMEL.  The primary reasons for pymel's existence are threefold:
 
     1. to fix bugs in maya.cmds
     2. to modify the behavior of maya.cmds to improve workflow and make it more pythonic ( like returning an empty list instead of None )
     3. to provide a complete object-oriented design for working with nodes, attributes, and other maya structures
 
 If you're still not sure you're ready to make the jump to object-oriented programming, the first two points alone
-are reason enough to use pymel, but the object-oriented design is where pymel really shines.  Pymel 
+are reason enough to use pymel, but the object-oriented design is where PyMEL really shines.  PyMEL 
 strikes a balance between the complicated yet powerful API, and straightforward but unruly MEL. 
 
 
@@ -506,7 +506,7 @@ Notice that the names of the returned nodes are preceded by the node type, `Came
 as they do in MEL and maya.cmds.  Instead they return instances of `PyNode` classes which correspond to the type of object or UI.
 These python objects are like strings on steroids: in addition to methods found on the builtin string ( a method is a function bound to an object. ex. 'bar' is the
 method in 'foo.bar' ), 
-pymel adds methods for operating on the specific type of maya object that the string represents. 
+PyMEL adds methods for operating on the specific type of maya object that the string represents. 
 
 Let's use one of these camera objects to get some information:
         
@@ -565,7 +565,7 @@ If you are ever unsure of what method to use, just use the builtin python help c
 
     >>> help(Camera)   #doctest: +SKIP
 
-You can do the same thing for any command in pymel as well.
+You can do the same thing for any function as well.
 
     >>> help(ls)   #doctest: +SKIP
 
@@ -619,7 +619,7 @@ Notice that when we enable the ``plugs`` flag that the result becomes an `Attrib
     >>> shape.inputs(plugs=1)
     [Attribute(u'polyPlane1.output')]
 
-Here's another handy feature of python: it supports 2D arrays, meaning you can put lists inside lists.  Pymel takes advantage of
+Here's another handy feature of python: it supports 2D arrays, meaning you can put lists inside lists.  PyMEL takes advantage of
 that in many situations, including when we use the ``connections`` flag, which causes `listConnections` to list source-destination
 pairs.
 
@@ -638,8 +638,8 @@ This is particularly useful for looping:
 Using Existing Objects by Name
 ---------------------------------------
 
-In many cases, you won't be creating objects directly in your code, but will want to gain access to an existing object by name. Pymel
-provides two ways of doing this. Both of them will automatically choose the correct pymel class for your object.
+In many cases, you won't be creating objects directly in your code, but will want to gain access to an existing object by name. PyMEL
+provides two ways of doing this. Both of them will automatically choose the correct PyMEL class for your object.
 
 The `PyNode` class:
     >>> PyNode( 'defaultRenderGlobals').startFrame.get()
@@ -669,7 +669,7 @@ Transitioning Tips
 All of the MEL functions in maya.cmds exist in pymel, with a few exceptions ( see `Module Namespaces`_ ).  MEL functions that operate on nodes and/or attributes
 almost always fall into one or more of these categories:  creating, listing, querying/editing. 
 As you begin shifting toward a more object-oriented approach, you will still retain the need for procedural programming.
-Use these guidelines for what aspects of pymel are best suited to object-oriented programming:
+Use these guidelines for what aspects of PyMEL are best suited to object-oriented programming:
 
 
     1. creating nodes and UI elements : remains mostly procedural
@@ -691,11 +691,11 @@ The `PyNode` class is the base object for all node-, component-, and attribute-r
 to all these classes as "PyNodes".
 
 In order to use the object-oriented design of pymel, you must ensure that the objects that you are working 
-with are instances of pymel classes. To make this easier, pymel contains wrapped version 
+with are instances of PyMEL classes. To make this easier, PyMEL contains wrapped version 
 of the more common commands for creating and getting lists of objects. These modified commands cast their results to the appropriate 
 `PyNode` class type. See `ls`, `listRelatives`, `listTransforms`, `selected`, and `listHistory`, for a few examples.  
 
-Commands that list objects return pymel classes:
+Commands that list objects return PyMEL classes:
     >>> s = ls(type='transform')[0]
     >>> print type(s)
     <class 'pymel.core.nodetypes.Transform'>
@@ -709,7 +709,7 @@ Commands that create objects are wrapped as well:
 API Underpinnings
 ---------------------------------------
 In MEL, the best representation we have have of a maya node or attribute is its name.  But with the API we can do better!  
-When creating an instance of a `PyNode` class, pymel determines the underlying API object behind the scenes.
+When creating an instance of a `PyNode` class, PyMEL determines the underlying API object behind the scenes.
 With this in hand, it can operate on the object itself, not just the string representing the object.
 
 So, what does this mean to you?  Well, let's take a common example: testing if two nodes or attributes are the
@@ -720,7 +720,7 @@ And what if you want to test if the nodes are instances of each other?  You'll h
 nasty string processing ahead of you.  And what if someone renames the node or its name becomes non-unique?  With PyMEL, the nightmares
 of string comparisons are over.
 
-But since pymel uses the underlying API objects, these operations are simple
+But since PyMEL uses the underlying API objects, these operations are simple
 and API-fast.
 
         >>> from pymel import *
@@ -752,7 +752,9 @@ and API-fast.
         >>> # the same attrs on different nodes/instances are still the same 
         >>> sphere1.t == sphere2.t    
         True
-        
+
+For more on the relationship between PyMEL and Maya's API, see `API Classes and their PyNode Counterparts`_
+   
 ---------------------------------------
 PyNodes Are Not Strings
 ---------------------------------------
@@ -822,7 +824,7 @@ in the name returned by your PyNode class.
 Renaming
 ========
 
-In versions of pymel previous to 0.9, the node classes inherited from python's built-in unicode
+In versions of PyMEL previous to 0.9, the node classes inherited from python's built-in unicode
 string type, which, due to its immutability, could cause unintuitive results with commands like rename.
 The new behavior creates a more intuitve result.
 
@@ -844,8 +846,8 @@ Using PyNodes as Keys in Dictionaries
 Maya 2008 and Earlier
 ---------------------
 
-There is one caveat to the mutability of node names: it can cause problems when using a pymel node as a key in a dictionary prior to 2009.
-The reason is that the hash ( a hash is an integer value which is used to speed up dictionary access ) generated by a pymel node
+There is one caveat to the mutability of node names: it can cause problems when using a PyMEL node as a key in a dictionary prior to 2009.
+The reason is that the hash ( a hash is an integer value which is used to speed up dictionary access ) generated by a PyMEL node
 is based on the node's name, which is subject to change.  
 
     >>> orig = polySphere()[0]         #doctest: +SKIP
@@ -913,8 +915,8 @@ Node Class Hierarchy
 ---------------------------------------
 
 
-Pymel provides a class for every node type in Maya's type hierarchy.  The name of the class is the node type captitalized.  Wherever possible,
-pymel will return objects as instances of these classes. This allows you to use builtin python functions to inspect
+PyMEL provides a class for every node type in Maya's type hierarchy.  The name of the class is the node type captitalized.  Wherever possible,
+PyMEL functions will return objects as instances of these classes. This allows you to use builtin python functions to inspect
 and compare your objects.  For example:
 
     >>> dl = directionalLight()
@@ -938,7 +940,7 @@ include `DependNode`, `DagNode`, `Transform`, and `Constraint`.
 The methods on each node class are derived from three sources:
     1. automatically, from maya.cmds
     2. automatically, from maya.OpenMaya*
-    3. manually, written by pymel team
+    3. manually, written by PyMEL team
 
 MEL Node Commands and their PyNode Counterparts
 ===============================================
@@ -951,7 +953,7 @@ that there are a handful of exceptions to this rule.
 Some examples of command-class pairs.  Notice that the last two nodes do not match their corresponding command:
 
 ================    ================    =================
-Mel Command         Maya Node Type      Pymel Node  Class
+Mel Command         Maya Node Type      PyMEL Node  Class
 ================    ================    =================
 aimConstraint       aimConstraint       AimConstraint
 camera              camera              Camera
@@ -974,7 +976,7 @@ maya.cmds functions ( ex. spotlight ), the class ( ex. Spotlight ) can also be u
     >>> print "The python type is", type(l)    
     The python type is <class 'pymel.core.nodetypes.SpotLight'>
 
-Once you have an instance of a pymel class (usually handled automatically), you can use it to query and edit the
+Once you have an instance of a PyMEL class (usually handled automatically), you can use it to query and edit the
 maya node it represents in an object-oriented way.
 
 make the light red and get shadow samples, the old, procedural way
@@ -982,7 +984,7 @@ make the light red and get shadow samples, the old, procedural way
     >>> print spotLight( l, query=1, shadowSamples=1 ) 
     1
     
-now, the object-oriented, pymel way
+now, the object-oriented, PyMEL way
     >>> l.setRgb( [1,0,0] )
     >>> print l.getShadowSamples()   
     1
@@ -1011,7 +1013,7 @@ object types such as MObject and MDagPath that represent the object itself, and 
 once instantiated with a given fundamental object, provide it with special abilities.  ( Because I am a huge nerd, I like to the think of the 
 function sets as robotic "mechs" and the fundamental objects as "spirits" or "ghosts" that inhabit them, like in *Ghost in the Shell* ). 
 
-For simplicity, pymel does away with this distinction: a PyNode instance is the equivalent of an activated API function set;  the 
+For simplicity, PyMEL does away with this distinction: a PyNode instance is the equivalent of an activated API function set;  the 
 necessary fundamental API objects are determined behind the scenes at instantiation.  You can access these by using the special methods
 __apimobject__, __apihandle__, __apimdagpath__, __apimplug__, and __apimfn__.  ( Be aware that this is still considered internal magic, 
 and the names of these methods are subject to change ):
@@ -1027,7 +1029,10 @@ and the names of these methods are subject to change ):
     >>> a.__apimplug__() # doctest: +ELLIPSIS
     <maya.OpenMaya.MPlug; proxy of <Swig Object of type 'MPlug *' at ...> >
 
-As you can probably see, these methods are enormously useful when prototyping API plugins.
+As you can probably see, these methods are enormously useful when prototyping API plugins.  Also of great use is the `PyNode` class,
+which can be instantiated using API objects.
+
+
  
 ---------------------------------------
 Chained Function and Attribute Lookups
@@ -1040,7 +1045,7 @@ interchangably::
     camera -q -centerOfInterest perspShape
 
 
-pymel achieves this effect by chaining function lookups.  If a called method does not exist on the Transform class, the 
+PyMEL achieves this effect by chaining function lookups.  If a called method does not exist on the Transform class, the 
 request will be passed to appropriate class of the transform's shape node, if it exists.
 
     >>> # get the persp camera as a PyNode
@@ -1062,17 +1067,40 @@ request will be passed to appropriate class of the transform's shape node, if it
 Non-Existent Objects
 =======================================
 
-Previous versions of pymel allowed you to instantiate classes for nonexistent objects.  This could be useful in circumstances where
-you wished to use name formatting methods, and was also part of several PyMEL idioms, including PyNode.exists(). 
+Previous versions of PyMEL allowed you to instantiate classes for non-existent objects.  This was common practice for testing 
+object existence using PyNode.exists and could also be useful in circumstances where
+you wished to use name formatting methods.
 
-Starting with this version, an exception will be raised if the passed name does not represent an object in the scene. This has several advantages:
+Starting with this version, an exception will be raised if the passed name does not represent an object in the scene. This has 
+several advantages:
 
-    1. you will never accidentally attempt to work with a node or attribute that does not exist, either due to a typo or otherwise
+    1. you will never unknowingingly attempt to use a node or attribute that does not exist, either due to a typo or unexpected context
     2. it brings PyMEL's attribute handling more in line with pythonic rules, where attributes must exist before accessing them
-    3. it prevents the awkward situation of having an object for which only a handful of methods will actually work
+    3. it prevents the awkward situation of having a python object for which only a handful of methods will actually work
     
 The side-effect, however, is that certain conventions for existence testing are no longer supported, while new ones have also been added.
-This is the largest non-backward compatible change in the new version, so we're providing 
+
+
+---------------------------------------
+Compatibility Mode
+---------------------------------------
+
+We realize this is a big change so we have provided an option in the new ``pymel.cfg`` file ( found in the root of the pymel directory )
+called '0_7_compatibility_mode'. When enabled, this option causes PyMEL to treat non-existent objects in a similar fashion to version 0.7.x:
+
+    >>> x = PyNode( 'foobar' ) # doctest: +SKIP
+    >>> x
+    DependNodeName('foobar') # doctest: +SKIP
+    >>> x.exists()
+    False
+
+When the Maya node or attribute does not exists, the python object returned is not a subclass of PyNode, but rather of `other.NameParser`.  
+For more information see `Manipulating Names of Non-Existent Objects`_.  Also, keep in mind that the behavior of "compatibility mode" 
+is deprecated and will not be supported in PyMEL 1.0 ( unless, of course, there is strong public support to keep it ).
+
+---------------------------------------
+New Exceptions
+---------------------------------------
 
 We've added three new exceptions which can be used to test for existence errors when creating new PyNodes: `MayaObjectError`, 
 `MayaNodeError`, and `MayaAttributeError`. 
@@ -1189,10 +1217,10 @@ New construct:
     Attribute Doesn't Exist
     
 ---------------------------------------
-Other Pymel Idioms
+Other PyMEL Idioms
 ---------------------------------------
-Two other pymel idioms have been removed as a result of this change. `Attribute.add` has been removed because, the attribute has to exist
-in order to successfully get an Attribute instance.  So instead you have to use the addAttr method on the node:
+Two other PyMEL idioms have been removed as a result of this change. `Attribute.add` has been removed because the attribute has to exist
+in order to successfully get an Attribute instance.  Instead, you should use the ``addAttr`` method on the node:
 
 
 No longer supported:
@@ -1263,7 +1291,7 @@ This is useful because it can be used as a quick way to assert that a given node
 =======================================
 
 Another problem with maya.cmds is that importing it into the root namespace (e.g. ``from maya.cmds import *``)
-is dangerous because it will override several of python's more important built-in methods. pymel is designed
+is dangerous because it will override several of python's more important built-in methods. PyMEL is designed
 to be safe to import into the root namespace so that scripts can be written much more concisely. However, if you are
 a python novice, you might want to keep pymel in its own namespace, because, unlike in mel, in python you can "overwrite" functions
 if you are not careful:
@@ -1280,17 +1308,17 @@ All the functions in maya.cmds are in the pymel namespace, except the conflictin
 help, and quit). The conflicting commands can be found in the pymel.cmds namespace, along with all of the unaltered
 maya commands.  
 
-See `pymel.core.system` for more information on how the file command is implemented in pymel.
+See `pymel.core.system` for more information on how the file command is implemented in PyMEL.
 
-Even though pymel has many sub modules, all but `pymel.runtime`, `pymel.api`, `pymel.util`, and `pymel.datatypes` are 
-imported into the pymel namespace. The sub-modules are provided primarily to improve the clarity of the documentation.
+Even though PyMEL has many sub modules, all but `pymel.runtime`, `pymel.api`, `pymel.util`, and `pymel.datatypes` are 
+imported into the PyMEL namespace. The sub-modules are provided primarily to improve the clarity of the documentation.
 
 =======================================
     Standalone Maya Python
 =======================================
 
 To use maya functions in an external python interpreter, maya provides a handy executable called mayapy.  You can find it in the maya bin 
-directory.  Pymel ensures that using python outside of Maya is as close as possible to python inside Maya.  When pymel detects that it is being imported in a standalone
+directory.  PyMEL ensures that using python outside of Maya is as close as possible to python inside Maya.  When PyMEL detects that it is being imported in a standalone
 interpreter it performs these operations:
 
     #. initializes maya.standalone
@@ -1304,7 +1332,7 @@ is nearly identical to working in interactive mode, except of course you can't c
 that you must be aware of.  
 
     - scriptJobs do not work: use callbacks derived from `api.MMessage` instead
-    - maya.cmds does not work inside userSetup.py (and thus any function in pymel that relies on maya.cmds)
+    - maya.cmds does not work inside userSetup.py (and thus any function in PyMEL that relies on maya.cmds)
 
 The second one might seem a little tricky, but we've already come up with the solution: a utility function called `pymel.mayahook.executeDeferred`.
 Jump to the docs for the function for more information on how to use it.

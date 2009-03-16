@@ -23,7 +23,8 @@ Since its release over a year ago PyMEL, has accumulated an impressive resume in
     - DreamWorks: *Fung Fu Panda*, *Shrek 4*, *Monsters Vs Aliens*, and *How to Train Your Dragon*
     - Luma Pictures: *Pirates of the Carribean: At World's End*, *Harry Potter 6*, and *Wolverine*
     - ImageMovers Digital: Robert Zemeckis' upcoming *A Christman Carol*
-   
+    - 2K Sports: *Major League Baseball 2K8*
+    
 Here's what Seth Gibson of Bungie Studios, makers of the hit game *Halo*, has to say:
 
     "Having done production python code myself for many years, wrapping my head around Maya's native 
@@ -226,7 +227,7 @@ Manipulate **file paths** with ease
     #backup all mb files in the current scene's directory
     basedir = sceneName().parent
     backupDir = basedir / "backup" #slash op joins paths
-    if not backupDir.exists:
+    if not backupDir.exists():
         backupDir.mkdir()
     for file in basedir.files( '*.mb' ):
         print "backing up: ", file.name

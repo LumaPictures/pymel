@@ -255,7 +255,7 @@ class DependNodeName( NameParser ):
             
     def exists(self, **kwargs):
         "objExists"
-        return cmds.objExists(self, **kwargs)
+        return bool( cmds.objExists(self, **kwargs) )
 
             
     _numPartReg = re.compile('([0-9]+)$')
