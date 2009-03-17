@@ -172,20 +172,3 @@ def putEnv( env, value ):
         value = os.path.pathsep.join(value)
     os.environ[env] = value
     
-    
-def getTempDir():
-    """get a temporary directory using TMPDIR and TEMP env vars, and test to ensure it is writable
-    
-    :rtype: string
-    """
-    try:
-        tempdir = os.environ['TMPDIR'] 
-    except KeyError:
-        try:
-            tempdir = os.environ['TEMP']
-        except KeyError:
-            raise OSError, "Could not find a temp directory. Please ensure that environment variable TMPDIR or TEMP points to a writable directory"
-
-    if not os.access(tempdir, os.W_OK):
-        raise OSError, "Temp dir %s is not writable. Please ensure that environment variable TMPDIR or TEMP points to a writable directory" % tempdir
-    return tempdir
