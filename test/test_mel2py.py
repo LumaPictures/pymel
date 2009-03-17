@@ -7,7 +7,7 @@ from pymel.tools.mel2py import mel2pyStr
 
 
 
-class TestStrings(testingutils.TestCaseExtended):
+class TestStrings(unittest.TestCase):
     def assertMelAndPyStringsEqual(self, melString, verbose=False):
         if verbose:
             print "Original mel string:"
@@ -41,5 +41,5 @@ class TestStrings(testingutils.TestCaseExtended):
         for str in melStrs:
             self.assertMelAndPyStringsEqual(str)
 
-testingutils.setupUnittestModule(__name__)
+#testingutils.setupUnittestModule(__name__)
 

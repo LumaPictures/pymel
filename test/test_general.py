@@ -1,5 +1,5 @@
 import sys, os, inspect, unittest
-from testingutils import setupUnittestModule
+#from testingutils import setupUnittestModule
 from pymel import *
 #import pymel
 #import pymel.core.factories as _factories
@@ -38,10 +38,6 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         
         self.light = spotLight()
         self.newobjs = []
-
-    def tearDown(self):
-        # cleaning
-        delete(self.grp1,self.grp2, self.grp3, self.light, *self.newobjs )
         
     def test01_attribute_parent_equality(self):
         self.assertEqual( self.sphere2.t.tx.parent(), self.sphere2.t )
@@ -182,7 +178,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         if mayahook.Version.current > mayahook.Version.v85sp1:
             undo()
             self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
-
+        
     def test_immutability(self):
 
         c1 = polyCube()[0]
@@ -260,14 +256,18 @@ class testCase_apiUndo(unittest.TestCase):
         
         self.assert_( len(factories.apiUndo.undo_queue) == 0 )
 
+#    def tearDown(self):
+#        
+#        # reset all undo queues
+#        cmds.undoInfo(state=0)
+#        setAttr( 'persp.focalLength', 35 )
+#        setAttr( 'top.focalLength', 35 )
+#        factories.apiUndo.flushUndo()
+#        cmds.undoInfo(state=1)
+
     def tearDown(self):
-        
-        # reset all undo queues
-        cmds.undoInfo(state=0)
-        setAttr( 'persp.focalLength', 35 )
-        setAttr( 'top.focalLength', 35 )
-        factories.apiUndo.flushUndo()
-        cmds.undoInfo(state=1)
+        # cleaning
+        newFile(f=1)
         
 class testCase_listHistory(unittest.TestCase):
 
@@ -370,6 +370,6 @@ class testCase_listHistory(unittest.TestCase):
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
-setupUnittestModule(__name__)
+#setupUnittestModule(__name__)
 
      

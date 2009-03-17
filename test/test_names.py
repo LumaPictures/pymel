@@ -1,7 +1,8 @@
-import testingutils
+#import testingutils
+import unittest
 import pymel.core.other, pymel.core.system
 
-class testCase_attribNameParsing(testingutils.TestCase):
+class testCase_attribNameParsing(unittest.TestCase):
     def test_attribNameParents(self):
         parser = pymel.core.other.AttributeName("Cube1.multiComp[3].child.otherchild")
         self.assertEqual(parser.getParent(), "Cube1.multiComp[3].child")
@@ -17,7 +18,7 @@ class testCase_attribNameParsing(testingutils.TestCase):
         self.assertEqual(parser.getParent(-63), None)
         self.assertEqual(parser.getParent(generations=32), None)
         
-class testCase_DagNameParsing(testingutils.TestCase):
+class testCase_DagNameParsing(unittest.TestCase):
     def test_attribNameParents(self):
         parser = pymel.core.other.DagNodeName("NS1:TopLevel|Next|ns2:Third|Fourth")
         self.assertEqual(parser.getParent(), "NS1:TopLevel|Next|ns2:Third")
@@ -36,4 +37,4 @@ class testCase_DagNameParsing(testingutils.TestCase):
         self.assertEqual(parser.getParent(generations=32), None)
 
 
-testingutils.setupUnittestModule(__name__)
+#testingutils.setupUnittestModule(__name__)

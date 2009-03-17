@@ -1,7 +1,8 @@
-import testingutils
+#import testingutils
+import unittest
 import pymel.mayahook.mayautils
 
-class TestGetMayaVersion(testingutils.TestCase):
+class TestGetMayaVersion(unittest.TestCase):
     
     versions = ['6', '6.0', '7', '7.0', '8', '8.0', '8.5', '2008', '2009']
     extensions = [1, 2, 2008]
