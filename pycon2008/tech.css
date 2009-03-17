@@ -1,0 +1,50 @@
+body {
+	margin: 8px;
+	background-color: white; color: black;
+}
+body.command,body.node {
+	padding-bottom: 100px;
+}
+#banner {
+	position: relative; left: -8px; top: -8px;
+	width: 100%;
+	padding: 8px;
+}
+
+.node #banner {background-color: #F4F4F0;}
+.command #banner {background-color: #F0F0F0;}
+
+h1 {
+	font-size: 150%;
+	margin-top: 0; margin-bottom: 0; padding: 0;
+}
+h2 {font-size: 120%;}
+h3 {font-size: 100%;}
+
+.toolbar {margin: 0;}
+
+#navbar {text-align: right;}
+#super,#className {font-size: 90%;}
+#super,#className {margin-bottom: 0; margin-top: 0;}
+#className {color: #666;}
+
+#synopsis {
+	background-color: #FFFFF0;
+	padding: 8px;
+	border-style: solid; border-width: 1px; border-color: #DDDDD0;
+}
+
+th {
+	text-align: left; vertical-align: bottom;
+}
+
+hr {color: #CCC;}
+
+.lab {
+	margin-bottom: 4px;
+}
+
+.internalName {font-size: 85%; color: #666;}
+
+ul {margin: 0 0 0 8px; padding: 0 0 0 8px;}
+li {white-space: nowrap;}
