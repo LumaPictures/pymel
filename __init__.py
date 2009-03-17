@@ -1088,10 +1088,10 @@ Compatibility Mode
 We realize this is a big change so we have provided an option in the new ``pymel.cfg`` file ( found in the root of the pymel directory )
 called '0_7_compatibility_mode'. When enabled, this option causes PyMEL to treat non-existent objects in a similar fashion to version 0.7.x:
 
-    >>> x = PyNode( 'foobar' ) # doctest: +SKIP
-    >>> x
-    DependNodeName('foobar') # doctest: +SKIP
-    >>> x.exists()
+    >>> x = PyNode( 'nonExistentNodeName' ) # doctest: +SKIP
+    >>> x # doctest: +SKIP
+    DependNodeName('nonExistentNodeName') 
+    >>> x.exists() # doctest: +SKIP
     False
 
 When the Maya node or attribute does not exists, the python object returned is not a subclass of PyNode, but rather of `other.NameParser`.  
