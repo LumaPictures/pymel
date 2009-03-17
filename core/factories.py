@@ -2635,7 +2635,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
     if argHelper.canBeWrapped() :
         
         if argHelper.isDeprecated():
-            _logger.warn(  "%s.%s is deprecated" % (apiClassName, methodName) )
+            _logger.info(  "%s.%s is deprecated" % (apiClassName, methodName) )
         inArgs = argHelper.inArgs()
         outArgs = argHelper.outArgs()
         argList = argHelper.argList()
