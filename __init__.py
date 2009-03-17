@@ -611,7 +611,7 @@ setAttr: to prevent mixup with double3, int3, ..., removed doubleArray and Int32
 	- explore the possibility of a mutable node class tied to the MObject
 """
 
-__version__ = '0.7.9'
+__version__ = '0.7.10'
 
 #check for the presence of an initilized Maya
 import util
