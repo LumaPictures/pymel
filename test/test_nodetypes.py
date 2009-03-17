@@ -74,6 +74,8 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)        
     
+    def tearDown(self):
+        newFile(f=1)
             
      
 def testInvertibles():

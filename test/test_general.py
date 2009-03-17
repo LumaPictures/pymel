@@ -183,6 +183,32 @@ class testCase_nodesAndAttributes(unittest.TestCase):
             undo()
             self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
 
+    def test_immutability(self):
+
+        c1 = polyCube()[0]
+        c2 = polyCube()[0]
+        
+        nodeHash1 = c1.__hash__()
+        nodeHash2 = c2.__hash__()
+        
+        attrHash1 = c1.translate.__hash__()
+        attrHash2 = c2.translate.__hash__()
+        
+        self.assert_ ( nodeHash1 != nodeHash2 )
+        self.assert_ ( attrHash1 != attrHash2 )
+        
+        c1.rename( 'funfun' )
+        c2.rename( 'yumyum' )
+
+        self.assert_( nodeHash1 == c1.__hash__() )
+        self.assert_( nodeHash2 == c2.__hash__() )
+        self.assert_( attrHash1 == c1.translate.__hash__() )
+        self.assert_( attrHash2 == c2.translate.__hash__() )
+        
+        
+    def tearDown(self):
+        newFile(f=1)
+        
 class testCase_apiUndo(unittest.TestCase):
     
     def setUp(self):

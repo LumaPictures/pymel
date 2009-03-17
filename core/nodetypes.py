@@ -1047,6 +1047,12 @@ class Attribute(PyNode):
             otherIndex = None  
         return thisPlug == otherPlug and thisIndex == otherIndex
 
+    def __hash__(self):
+        """
+        :rtype: `int`
+        """
+        return (self.plugNode(), self.name(includeNode=False) ).__hash__()
+        
     def __ne__(self, other):
         """
         :rtype: `bool`
