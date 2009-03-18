@@ -4170,8 +4170,13 @@ class SkinCluster(GeometryFilter):
             index = api.MScriptUtil(index).asInt()
             args = [iter(weights)] * index
             return itertools.izip(*args)
-            
-            
+        
+    @addApiDocs( api.MFnSkinCluster, 'influenceObjects' )        
+    def influenceObjects(self):
+        return self._influenceObjects()[1]
+    
+    def numInfluenceObjects(self):
+        return self._influenceObjects()[0]
              
 _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )  
 
