@@ -1952,8 +1952,8 @@ class ApiTypeRegister(object):
                     cls.inCast[apiTypeName] = cls._makeApiArraySetter( apiType, apiArrayItemType )
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
                     if apiType == _api.MDagPathArray:
-                        cls.refCast[apiTypeName] = lambda x:       [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
-                        cls.outCast[apiTypeName] = lambda self, x: [ pymelType( apiType(x[i]) ) for i in range( x.length() ) ]
+                        cls.refCast[apiTypeName] = lambda x:       [ pymelType( apiArrayItemType(x[i]) ) for i in range( x.length() ) ]
+                        cls.outCast[apiTypeName] = lambda self, x: [ pymelType( apiArrayItemType(x[i]) ) for i in range( x.length() ) ]
                     else:
                         cls.refCast[apiTypeName] = lambda x:       [ pymelType( x[i] ) for i in range( x.length() ) ]
                         cls.outCast[apiTypeName] = lambda self, x: [ pymelType( x[i] ) for i in range( x.length() ) ]
