@@ -648,6 +648,9 @@ class NodeHierarchyDocParser(HTMLParser):
  
     def parse(self):
         docloc = mayahook.mayaDocsLocation(self.version)
+        if not os.path.isdir( docloc ):
+            docloc = mayahook.mayaDocsLocation('2009')
+
         f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
         self.feed( f.read() )
         f.close()
@@ -735,8 +738,8 @@ class CommandModuleDocParser(HTMLParser):
     }
     
     def parse(self):
-        docloc = mayahook.mayaDocsLocation(self.version)
-        f = open( os.path.join( docloc , 'Commands/cat_' + self.category + '.html' ) )
+        
+        f = open( os.path.join( self.docloc , 'Commands/cat_' + self.category + '.html' ) )
         self.feed( f.read() )
         f.close()
         return self.cmdList + self.moduleCommandAdditions.get(self.category, [] )
@@ -745,6 +748,11 @@ class CommandModuleDocParser(HTMLParser):
         self.cmdList = []
         self.category = category
         self.version = version
+        
+        docloc = mayahook.mayaDocsLocation(self.version)
+        if not os.path.isdir(docloc):
+            docloc = mayahook.mayaDocsLocation('2009')
+        self.docloc = docloc
         HTMLParser.__init__(self)
         
     def handle_starttag(self, tag, attrs):
@@ -763,10 +771,136 @@ class CommandModuleDocParser(HTMLParser):
     #        _logger.info(data)
 
 def _getUICommands():
-    f = open( os.path.join( util.moduleDir() , 'misc/commandsUI') , 'r') 
-    cmds = f.read().split('\n')
-    f.close()
-    return cmds
+    uiClassCmds = """
+    attrColorSliderGrp
+    attrControlGrp
+    attrEnumOptionMenu
+    attrEnumOptionMenuGrp
+    attrFieldGrp
+    attrFieldSliderGrp
+    attrNavigationControlGrp
+    attributeMenu
+    colorIndexSliderGrp
+    colorSliderButtonGrp
+    colorSliderGrp
+    columnLayout
+    colorEditor
+    floatField
+    floatFieldGrp
+    floatScrollBar
+    floatSlider
+    floatSlider2
+    floatSliderButtonGrp
+    floatSliderGrp
+    frameLayout
+    iconTextButton
+    iconTextCheckBox
+    iconTextRadioButton
+    iconTextRadioCollection
+    iconTextScrollList
+    iconTextStaticLabel
+    intField
+    intFieldGrp
+    intScrollBar
+    intSlider
+    intSliderGrp
+    paneLayout
+    panel
+    radioButton
+    radioButtonGrp
+    radioCollection
+    radioMenuItemCollection
+    symbolButton
+    symbolCheckBox
+    textCurves
+    textField
+    textFieldButtonGrp
+    textFieldGrp
+    text
+    textScrollList
+    toolButton
+    toolCollection
+    window
+    blendShapeEditor
+    blendShapePanel
+    button
+    checkBox
+    checkBoxGrp
+    confirmDialog
+    fontDialog
+    formLayout
+    menu
+    menuBarLayout
+    menuEditor
+    menuItem
+    menuSet
+    promptDialog
+    scrollField
+    scrollLayout
+    scriptedPanel
+    scriptedPanelType
+    shelfButton
+    shelfLayout
+    shelfTabLayout
+    tabLayout
+    outlinerEditor
+    optionMenu
+    outlinerPanel
+    optionMenuGrp
+    animCurveEditor
+    animDisplay
+    separator
+    visor
+    layout
+    layoutDialog
+    layerButton
+    hyperGraph
+    hyperPanel
+    hyperShade
+    rowColumnLayout
+    rowLayout
+    renderLayerButton
+    renderWindowEditor
+    glRenderEditor
+    scriptTable
+    keyframeStats
+    keyframeOutliner
+    canvas
+    channelBox
+    gradientControl
+    gradientControlNoAttr
+    gridLayout
+    messageLine
+    popupMenu
+    modelEditor
+    modelPanel
+    helpLine
+    hardwareRenderPanel
+    image
+    nodeIconButton
+    commandLine
+    progressBar
+    defaultLightListCheckBox
+    exclusiveLightCheckBox
+    shellField
+    clipSchedulerOutliner
+    clipEditor
+    deviceEditor
+    devicePanel
+    dynRelEdPanel
+    dynRelEditor
+    dynPaintEditor
+    nameField
+    cmdScrollFieldExecuter
+    cmdScrollFieldReporter
+    cmdShell
+    nameField
+    palettePort
+    """
+    #f = open( os.path.join( util.moduleDir() , 'misc/commandsUI') , 'r') 
+    #cmds = f.read().split('\n')
+    #f.close()
+    return [ x.strip() for x in uiClassCmds.split('\n') if x.strip() ]
 
 def getModuleCommandList( category, version='8.5' ):
     parser = CommandModuleDocParser(category, version)

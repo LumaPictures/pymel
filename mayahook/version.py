@@ -4,7 +4,6 @@ import pymel.util as util
 import re
 from maya.OpenMaya import MGlobal
 import maya.cmds as cmds
-from mayautils import parseVersionStr
 __all__ = ['Version']
 
 # TODO: finish this, replace current Version class...
@@ -61,6 +60,38 @@ def _getApiVersion():
             return 200700
 
 
+def parseVersionStr(versionStr, extension=False):
+    """
+    >>> mayahook.parseVersionStr('2008 Service Pack1 x64')
+    '2008'
+    >>> mayahook.parseVersionStr('2008 Service Pack1 x64', extension=True)
+    '2008-x64'
+    >>> mayahook.parseVersionStr('2008x64', extension=True)
+    '2008-x64'
+    >>> mayahook.parseVersionStr('8.5', extension=True)
+    '8.5'
+   >>> mayahook.parseVersionStr('2008 Extension 2')
+    '2008'
+    >>> mayahook.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
+    '2009'
+    >>> mayahook.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
+    '2008'
+
+    """
+    # problem with service packs addition, must be able to match things such as :
+    # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
+
+    # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
+    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid 
+    # the regular expression might be getting unwieldy
+
+    ma = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
+    version = ma.group('base')
+
+    if extension and (ma.group('ext') is not None) :
+        version += "-"+ma.group('ext')
+    return version
+
 
 class Version(object):
     """
@@ -86,7 +117,7 @@ class Version(object):
     v2008sp1  = 200806
     v2008ext2 = 200806
     v2009     = 200900
-
+    v2010     = 201000
 #    CURRENT = _getApiVersion()
 #    
 #    v85      = 200700
@@ -128,5 +159,4 @@ class Version(object):
     
     @classmethod
     def isEval(cls): return cmds.about(evalVersion=1)
-    
     

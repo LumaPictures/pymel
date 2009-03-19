@@ -23,6 +23,14 @@ VERBOSE = True
           
 class PymelControlPanel(object):
     def __init__(self):
+        # key is a tuple of (class, method)
+        self.classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
+        self.classFrames={}
+        self.processClassFrames()
+        self.buildUI()
+
+            
+    def buildUI(self):
         self.win = window(title='Pymel Control Panel')
         
         self.pane = paneLayout(configuration='vertical3', paneSize=([1,20,100], [3,20,100]) )
@@ -104,13 +112,9 @@ class PymelControlPanel(object):
         popupMenu(parent=self.assignedMelMethodLister, button=3  )
         menuItem(l='disable', c=Callback( PymelControlPanel.disableMelMethod, self, self.unassignedMelMethodLister ) )
         
-        # key is a tuple of (class, method)
-        self.classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
         
         self.classScrollList.extend( self.classList )
         self.classScrollList.selectCommand( lambda: self.apiClassList_selectCB() )
-        self.classFrames={}
-        self.processClassFrames()
         
         scriptJob(uiDeleted=[str(self.win),cacheResults])
         

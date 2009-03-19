@@ -15,6 +15,7 @@ except:
     _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
 
+from version import Version, parseVersionStr
 import envparse
 
 #from maya.cmds import encodeString
@@ -73,45 +74,12 @@ def source (file, searchPath=None, recurse=False) :
     # _logger.debug("Executing: "+filepath)
     return execfile(filepath)
 
-def parseVersionStr(versionStr, extension=False):
-    """
-    >>> mayahook.parseVersionStr('2008 Service Pack1 x64')
-    '2008'
-    >>> mayahook.parseVersionStr('2008 Service Pack1 x64', extension=True)
-    '2008-x64'
-    >>> mayahook.parseVersionStr('2008x64', extension=True)
-    '2008-x64'
-    >>> mayahook.parseVersionStr('8.5', extension=True)
-    '8.5'
-   >>> mayahook.parseVersionStr('2008 Extension 2')
-    '2008'
-    >>> mayahook.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
-    '2009'
-    >>> mayahook.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
-    '2008'
-
-    """
-    # problem with service packs addition, must be able to match things such as :
-    # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
-
-    # NOTE: we're using the same regular expression (parseVersionStr) to parse both the crazy human readable
-    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid 
-    # the regular expression might be getting unwieldy
-    
-    ma = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
-    version = ma.group('base')
-    
-    if extension and (ma.group('ext') is not None) :
-        version += "-"+ma.group('ext')
-    return version
-
 def getMayaLocation(version=None):
     """ Remember to pass the FULL version (with extension if any) to this function! """
     try:
         loc = os.path.realpath( os.environ['MAYA_LOCATION'] )
     except:
         loc = os.path.dirname( os.path.dirname( sys.executable ) )
-    
     # get the path of a different maya version than current
     if version:
         # note that a recursive loop between getMayaLocation / getMayaVersion
@@ -212,6 +180,8 @@ def getMayaVersion(running=True, installed=True, extension=True):
         try :
             from maya.cmds import about
             version = about(file=True)
+            # in 2010 we got an ff02 tagged on the end, which was boning everything
+            assert re.match( '(8.5)|(20\d\d)$', version )
             if extension and about(is64=1):
                 version += '-x64'
             return version
@@ -328,10 +298,9 @@ def mayaDocsLocation(version=None):
             warn("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation), UserWarning)
 
         short_version = parseVersionStr(version, extension=False)
-        
         if platform.system() == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
-    
+            
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
 
     return docLocation
@@ -735,7 +704,8 @@ def mayaInit(forversion=None) :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            refreshEnviron()
+            if Version.current < Version.v2010:
+                refreshEnviron()
             #initMEL()
             #executeDeferred( initMEL )
         except ImportError, e:

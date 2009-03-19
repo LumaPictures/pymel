@@ -47,17 +47,21 @@ class Enum(tuple):
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
-    def __init__(self, apiClassName, version='2009', verbose=False):
+    def __init__(self, version='2009', verbose=False):
         self.enums = {}
         self.pymelEnums = {}
         self.methods=util.defaultdict(list)
-        self.apiClassName = apiClassName
-        self.apiClass = getattr(_thisModule, self.apiClassName)
+        self.apiClassName = None
+        self.apiClass = None
         self.currentMethod=None
         self.verbose = verbose
         self.version = version
         self.badEnums = []
-    
+
+        self.docloc = mayahook.mayaDocsLocation(self.version)
+        if not os.path.isdir(self.docloc):
+            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+        
     def xprint(self, *args): 
         if self.verbose or VERBOSE:
             print self.apiClassName + '.' + self.currentMethod + ':', ' '.join( [ str(x) for x in args ] ) 
@@ -245,11 +249,12 @@ class ApiDocParser(object):
         else:
             return False 
                                 
-    def parse(self):            
-        docloc = mayahook.mayaDocsLocation(self.version)
-        if not os.path.isdir(docloc):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
-        self.docfile = os.path.join( docloc , 'API', self.getClassFilename() + '.html' )
+    def parse(self, apiClassName):
+        self.apiClassName = apiClassName          
+        self.apiClass = getattr(_thisModule, self.apiClassName)
+        
+        
+        self.docfile = os.path.join( self.docloc , 'API', self.getClassFilename() + '.html' )
 
         _logger.info( "parsing file %s" , self.docfile )
         
@@ -608,32 +613,6 @@ class ApiDocParser(object):
                  'pymelMethods' :  pymelNames,
                  'invertibles' : invertibles
                 }
-        
-def getMFnInfo( apiClassName ):
-    parser = ApiDocParser(apiClassName )
-    try:
-        classInfo = parser.parse()
-    except IOError, msg: 
-        #print "Error parsing docs: %s" % msg
-        pass
-    else:
-
-        
-#        for methodName, methodInfoList in classInfo['methods'].items():
-#              for i, methodInfo in enumerate( methodInfoList ):
-#                  #try: print methodInfo['pymelName'], methodName
-#                  #except: pass
-#                  newMethodName = methodInfo.get('pymelName', methodName)
-#                  if newMethodName.startswith('get') and len(newMethodName)>3:              
-#                      outputs = []
-#                      returnType = methodInfo['returnType']
-#                      if returnType:
-#                          outputs.append( returnType )
-#                      outputs += methodInfo['outArgs']
-#                      if not outputs:
-#                           print "no outputs", apiClassName, methodName, i 
-        return classInfo 
-
 
                           
 # fast convenience tests on API objects
@@ -1155,15 +1134,21 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     
     if apiClassInfo is None:
         apiClassInfo = {}
+#        try:
+        parser = ApiDocParser()
+#        except IOError, msg: 
+#            _logger.warn( "failed to find docs for current version: %s", name )
+            
         for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
             if not name.startswith( 'MPx' ):
+                
                 try:
-                    info = getMFnInfo( name )
-                    if info is not None:
-                        #print "succeeded", name
+                    try:
+                        info = parser.parse(name)
                         apiClassInfo[ name ] = info
-                    else: 
+                    except IOError:
                         _logger.warn( "failed to parse docs: %s", name )
+
                 except (ValueError,IndexError), msg: 
                     _logger.warn( "failed %s %s" % ( name, msg ) )
                     
