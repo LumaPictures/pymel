@@ -102,7 +102,7 @@ Modifications:
     """
     if kwargs.get('state', kwargs.get('st', None )) in [False, 0]:
         _factories.apiUndo.flushUndo()
-    cmds.undoInfo(*args, **kwargs)
+    return cmds.undoInfo(*args, **kwargs)
 
 def flushUndo():
     """
@@ -110,7 +110,7 @@ Modifications:
     - also clears pymel's api undo queue
     """
     _factories.apiUndo.flushUndo()
-    cmds.flushUndo()
+    return cmds.flushUndo()
 
 #===============================================================================
 # Namespace
