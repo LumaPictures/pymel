@@ -544,7 +544,8 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
     
     if varList > rootVars:
         os.environ[envVariableName] = os.path.pathsep.join( varList )
-        _logger.debug("Maya script path recursion complete")
+        _logger.info("Added %d directories to Maya script path" % len(varList) - len(rootVars) )
+
     else:
         _logger.info("Maya script path recursion did not find any paths to add")
 
