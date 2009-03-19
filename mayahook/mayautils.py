@@ -529,8 +529,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
         
     varList = rootVars[:]
     
-    _logger.debug("###############################")
-    _logger.debug("  Recursing Maya Script Path :")
+    _logger.info("Recursing Maya script path starting from %s" % ', '.join( rootVars ) )
     for rootVar in rootVars:
         root = path.path( rootVar )
         # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
@@ -538,17 +537,16 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
             try:
                 if (excludeRegex and not excludeRegex.match(f.name)) and len(f.files("*.mel")):            
                     if f not in varList:
-                        _logger.debug("     --> Adding : %s" % f)
+                        _logger.debug("Adding : %s" % f)
                         varList.append( str(f) )
+                    
             except OSError: pass
     
     if varList > rootVars:
         os.environ[envVariableName] = os.path.pathsep.join( varList )
-        _logger.debug("Maya Script Path Recursion:  DONE! ")
-        _logger.debug("#######################################")
+        _logger.debug("Maya script path recursion complete")
     else:
-        _logger.debug("Maya Script Path Recursion: Nothing To do")
-        _logger.debug("#######################################")
+        _logger.info("Maya script path recursion did not find any paths to add")
 
 
 
