@@ -63,11 +63,22 @@ class ClassInfo(object):
 
 _fixMayaOutput()
 
-
-configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
-if not os.path.isfile(configFile):
+def getLogConfigFile():
+    configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
+    if os.path.isfile(configFile):
+        return configFile
+    
+    if 'HOME' in os.environ:
+        configFile = os.path.join( os.environ['HOME'], "pymel.conf")
+        if os.path.isfile(configFile):
+            return configFile
     configFile = os.path.join(util.moduleDir(),"pymel.conf")
+    if os.path.isfile(configFile):
+        print "using", configFile
+        return configFile
+    raise IOError, "Could not find pymel.conf"
 
+configFile = getLogConfigFile()
 if sys.version_info >= (2,6):
     logging.config.fileConfig(configFile, disable_existing_loggers=0)
 else:
@@ -142,16 +153,14 @@ def _setupLevelPreferenceHook():
     
     LOGLEVEL_OPTVAR = 'pymel.logLevel'
 
-    # retrieve the preference as a string name, for human readability
+    # retrieve the preference as a string name, for human readability.
     # we need to use MGlobal because cmds.optionVar might not exist yet
+    # TODO : resolve load order for standalone.  i don't think that userPrefs is loaded yet at this point in standalone.
     levelName = MGlobal.optionVarStringValue( LOGLEVEL_OPTVAR )
     if levelName:
         level =  min( logging.WARNING, nameToLevel(levelName) ) # no more than WARNING level
         pymelLogger.setLevel(level)
-        pymelLogger.debug("setting logLevel to preference: %s (%d)" % (levelName, level) )
-    else:
-        pymelLogger.debug("setting logLevel to default: %s" % (levelName ) )
-        pymelLogger.setLevel(logging.INFO)
+        pymelLogger.info("setting logLevel to user preference: %s (%d)" % (levelName, level) )
         
     func = pymelLogger.setLevel
     def setLevelHook(level, *args, **kwargs):

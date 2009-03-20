@@ -537,7 +537,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
             try:
                 if (excludeRegex and not excludeRegex.match(f.name)) and len(f.files("*.mel")):            
                     if f not in varList:
-                        _logger.debug("Adding : %s" % f)
+                        _logger.debug("Appending script path directory %s" % f)
                         varList.append( str(f) )
                     
             except OSError: pass
@@ -845,13 +845,23 @@ def writeCache( data, filePrefix, description='', useVersion=True):
         _logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
                  
 
+def getConfigFile():  
+    if 'HOME' in os.environ:
+        configFile = os.path.join( os.environ['HOME'], "pymel.conf")
+        if os.path.isfile(configFile):
+            return configFile
+    configFile = os.path.join(util.moduleDir(),"pymel.conf")
+    if os.path.isfile(configFile):
+        return configFile
+    raise IOError, "Could not find pymel.conf"
+
 def parsePymelConfig():
     import ConfigParser
 
     types = { '0_7_compatibility_mode' : 'boolean' }
     
     config = ConfigParser.ConfigParser()
-    config.read( os.path.join( util.moduleDir(), 'pymel.conf') )
+    config.read( getConfigFile() )
     
     d = {}
     for option in config.options('pymel'):
