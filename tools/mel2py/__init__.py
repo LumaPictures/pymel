@@ -225,42 +225,45 @@ custom_proc_remap = {
 # do not change the following line !!!
 proc_remap.update(custom_proc_remap)
 
-def _getInputFiles( arg ):
-    
-    def resolvePath(filepath):
-        """
-        if passed a directory, get all mel files in the directory
-        if passed a file, ensure it is a mel file
-        if passed a procedure name, find its file
-        """
-        filepath = util.path(filepath)
-        if filepath.isfile():
-            if filepath.ext == '.mel':
-                return [ filepath.realpath() ]
-            else:
-                print "File is not a mel script: %s" % (filepath)
-                return []
-        elif filepath.isdir():
-            return [ f.realpath() for f in filepath.files( '[a-zA-Z]*.mel') ]
-        #elif not filepath.exists():
+def resolvePath( melobj ):
+    """
+    if passed a directory, get all mel files in the directory
+    if passed a file, ensure it is a mel file
+    if passed a procedure name, find its file
+    """
+    filepath = util.path( melobj )
+    if filepath.isfile():
+        if filepath.ext == '.mel':
+            return [ filepath.realpath() ]
         else:
-            # see if it's a procedure that we can derive a path from
-            try:
-                melfile = util.path( pymel.mel.whatIs( filepath ).split(': ')[-1] )
-                return [melfile.realpath()]
-            except Exception, msg:
-                print "Could not determine mel file from input '%s': %s" % (filepath, msg)
-        return []
+            util.warn( "File is not a mel script: %s" % (filepath) )
+            return []
+    elif filepath.isdir():
+        return [ f.realpath() for f in filepath.files( '[a-zA-Z]*.mel') ]
+    #elif not filepath.exists():
+    else:
+        # see if it's a procedure that we can derive a path from
+        try:
+            info = mel.whatIs( melobj ).split(': ')[-1]
+            assert info != 'Unknown', "If providing a procedure or a short file name, ensure the appropriate script is sourced"
+            melfile = util.path( info )
+            return [ melfile.realpath() ]
+        except Exception, msg:
+            util.warn( "Could not determine mel script from input '%s': %s." % (filepath, msg) )
+    return []
+    
+def _getInputFiles( input ):
     
     results = []
     if util.isIterable( input ):
-        for filepath in input:
-            results += resolvePath(filepath)
+        for f in input:
+            results += resolvePath(f)
             
     else:
         results = resolvePath(input)
     
     return results
+
 
 def melInfo( input ):
     """
@@ -284,29 +287,16 @@ def melInfo( input ):
 
             
     """
-    filepath = util.path(input)
-    if filepath.isfile():
-        if filepath.ext == '.mel':
-           filepath = filepath.realpath()
-        else:
-            raise ValueError, "File is not a mel script: %s" % (filepath)
-
-    elif filepath.isdir():
-        raise ValueError, "Please provide a file or a procedure"
     
-    #elif not filepath.exists():
-    else:
-        # see if it's a procedure that we can derive a path from
-        try:
-            filepath = util.path( pymel.mel.whatIs( filepath ).split(': ')[-1] )
-            filepath = filepath.realpath()
-        except Exception, msg:
-            print "Could not determine mel file from input '%s': %s" % (filepath, msg)
-
+    # TODO: change this to use _getInputFiles, with an option to prevent recursing directories
+    res = resolvePath(input)
+    if len(res) != 1:
+        raise ValueError, "input must be a mel script or a known procedure from a sourced mel script."
+    f = res[0]
     
     cbParser = MelScanner()
     cbParser.build()
-    return cbParser.parse( filepath.bytes() )
+    return cbParser.parse( f.bytes() )
 
 def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0 ):
     """
@@ -380,7 +370,7 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
         test : bool
             After translation, attempt to import the modules to test for errors
             
-
+    
     """
 
 
