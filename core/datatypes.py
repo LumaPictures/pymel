@@ -2641,7 +2641,7 @@ class BoundingBox( _api.MBoundingBox):
 #_factories.ApiTypeRegister.register( 'MColor', Color )
 #_factories.ApiTypeRegister.register( 'MQuaternion', Quaternion )
 #_factories.ApiTypeRegister.register( 'MEulerRotation', EulerRotation )
-_factories.ApiTypeRegister.register( 'MTime', Time )
+_factories.ApiTypeRegister.register( 'MTime', Time, inCast=lambda x: Time(x)._data )
 _factories.ApiTypeRegister.register( 'MDistance', Distance, outCast=lambda instance, result: Distance(result,'centimeters').asUIUnit()) 
 _factories.ApiTypeRegister.register( 'MAngle', Angle, outCast=lambda instance, result: Angle(result,'radians').asUIUnit())  
 

@@ -37,6 +37,16 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.sphere3, self.cube3 = self.grp3.getChildren()
         
         self.light = spotLight()
+        
+        currentTime( 1 )
+        setKeyframe( self.light.intensity )
+        currentTime( 10 )
+        self.light.intensity.set(10)
+        setKeyframe( self.light.intensity )
+        currentTime( 1 )
+
+        self.anim = self.light.intensity.inputs()[0]
+        
         self.newobjs = []
         
     def test01_attribute_parent_equality(self):
@@ -90,17 +100,21 @@ class testCase_nodesAndAttributes(unittest.TestCase):
     
     def test07_units(self):
         startLinear = currentUnit( q=1, linear=1)
-        
+        startAngular = currentUnit( q=1, angle=1)
+        startTime = currentUnit( q=1, time=1)
         #cam = PyNode('persp')
-        # change units from default
-        currentUnit(linear='meter')
         
-        testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', datatypes.Vector([3.0,2.0,1.0]) ),  # Distance datatypes.Vector
+        # change to units that differ from api internal units
+        
+        currentUnit(linear='meter')
+        currentUnit(angle='deg')
+        currentUnit(time='120fps')
+        
+        testPairs = [ ('persp.translate', 'getTranslation', 'setTranslation', datatypes.Vector([3.0,2.0,1.0]) ),  # Distance Vector
                       ('persp.shutterAngle' , 'getShutterAngle', 'setShutterAngle', 144.0 ),  # Angle
                       ('persp.verticalFilmAperture' , 'getVerticalFilmAperture', 'setVerticalFilmAperture', 2.0 ),  # Unitless
                       ('persp.focusDistance', 'getFocusDistance', 'setFocusDistance', 5.0 ),  # Distance
                       ('%s.penumbraAngle' % self.light, 'getPenumbra', 'setPenumbra', 5.0 ),  # Angle with renamed api method ( getPenumbraAngle --> getPenumbra )
-                      
                      ]
         print
         for attrName, getMethodName, setMethodName, realValue in testPairs:
@@ -108,6 +122,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
             node = at.node()
             getter = getattr( node, getMethodName )
             setter = getattr( node, setMethodName )
+            
             print repr(at)
             print "Real Value:", repr(realValue)
             # set attribute using "safe" method
@@ -125,8 +140,14 @@ class testCase_nodesAndAttributes(unittest.TestCase):
             # compare
             self.assertEqual( realValue, gotValue )
         
+        
+        self.assert_( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
+        self.anim.setTime(1, 5.0)
+        self.assert_( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
         # reset units
         currentUnit(linear=startLinear)
+        currentUnit(linear=startAngular)
+        currentUnit(linear=startTime)
     
     def test_components(self):
         import pymel.examples.setVertexColor
