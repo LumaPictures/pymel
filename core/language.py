@@ -574,7 +574,11 @@ class Mel(object):
           
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
-            return self.__dict__[command]
+            try:
+                return self.__dict__[command]
+            except KeyError:
+                raise AttributeError, "object has no attribute '%s'" % command
+
         def _call(*args, **kwargs):
         
             strArgs = [pythonToMel(arg) for arg in args]
