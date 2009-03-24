@@ -2914,7 +2914,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         #_logger.debug(inArgs, defaults)
         if defaults: _logger.debug("defaults: %s" % defaults)
         
-        wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults )
+        wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults=defaults )
         
         if argHelper.isStatic():
             wrappedApiFunc = classmethod(wrappedApiFunc)
