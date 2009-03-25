@@ -472,7 +472,7 @@ def parseMayaenv(envLocation=None, version=None) :
 
 '^([._])|(AE[a-zA-Z]).*'
 
-def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
+def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn'):
     """
     Given a path or list of paths, recurses through directories appending to the MAYA_SCRIPT_PATH
     environment variable
@@ -533,7 +533,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None):
     for rootVar in rootVars:
         root = path.path( rootVar )
         # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
-        for f in root.walkdirs( errors='ignore'):
+        for f in root.walkdirs( errors=errors):
             try:
                 if (excludeRegex and not excludeRegex.match(f.name)) and len(f.files("*.mel")):            
                     if f not in varList:
