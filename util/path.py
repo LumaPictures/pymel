@@ -83,9 +83,9 @@ class PathWalkWarning(Warning):
     pass
 
 def _handleException(exc, mode, warningObject):
-    if errors == 'ignore':
+    if mode == 'ignore':
         return
-    elif errors == 'warn':
+    elif mode == 'warn':
         warnings.warn(warningObject.__class__(warningObject.message % dict(exc=exc)))
     else:
         raise exc
@@ -399,19 +399,19 @@ class path(_base):
             childList = self.listdir()
         except Exception, exc:
             _handleException(exc,errors,
-                PathWalkWarning("Unable to list directory '%s': %%(exc)s"))
-
-        for child in childList:
-            if pattern is None or child.fnmatch(pattern):
-                yield child
-            try:
-                isdir = child.isdir()
-            except Exception:
-                _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s"))
-
-            if isdir:
-                for item in child.walk(pattern, errors):
-                    yield item
+                PathWalkWarning("Unable to list directory '%s': %%(exc)s" % self ))
+        else:
+            for child in childList:
+                if pattern is None or child.fnmatch(pattern):
+                    yield child
+                try:
+                    isdir = child.isdir()
+                except Exception, exc:
+                    _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s" % self))
+    
+                if isdir:
+                    for item in child.walk(pattern, errors):
+                        yield item
     
     def walkdirs(self, pattern=None, errors='strict', realpath=False):
         """ D.walkdirs() -> iterator over subdirs, recursively.
@@ -431,30 +431,29 @@ class path(_base):
 
         try:
             dirs = self.dirs(realpath=realpath)
-        except Exception:
-            _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s"))
-  
-        
-        parent_realpath = None
-        for child in dirs:
-            if pattern is None or child.fnmatch(pattern):
-                if child.islink():
-                    if parent_realpath is None:
-                        parent_realpath = self.realpath()
-                    if realpath:
-                        child_realpath = child
-                    else:
-                        child_realpath = child.realpath()
-                    # check for infinite recursion
-                    if child_realpath == parent_realpath or parent_realpath.startswith( child_realpath + os.path.sep ):
-                        #print "skipping %s to prevent infinite recursion" % child
-                        continue
+        except Exception, exc:
+            _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s" % self))
+        else:  
+            parent_realpath = None
+            for child in dirs:
+                if pattern is None or child.fnmatch(pattern):
+                    if child.islink():
+                        if parent_realpath is None:
+                            parent_realpath = self.realpath()
+                        if realpath:
+                            child_realpath = child
+                        else:
+                            child_realpath = child.realpath()
+                        # check for infinite recursion
+                        if child_realpath == parent_realpath or parent_realpath.startswith( child_realpath + os.path.sep ):
+                            #print "skipping %s to prevent infinite recursion" % child
+                            continue
+                        else:
+                            yield child
                     else:
                         yield child
-                else:
-                    yield child
-            for subsubdir in child.walkdirs(pattern, errors, realpath):
-                yield subsubdir
+                for subsubdir in child.walkdirs(pattern, errors, realpath):
+                    yield subsubdir
 
     def walkfiles(self, pattern=None, errors='strict'):
         """ D.walkfiles() -> iterator over files in D, recursively.
@@ -469,24 +468,23 @@ class path(_base):
 
         try:
             childList = self.listdir()
-        except Exception:
-            _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s"))
-
-
-        for child in childList:
-            try:
-                isfile = child.isfile()
-                isdir = not isfile and child.isdir()
-            except:
-                _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s"))
-
-
-            if isfile:
-                if pattern is None or child.fnmatch(pattern):
-                    yield child
-            elif isdir:
-                for f in child.walkfiles(pattern, errors):
-                    yield f
+        except Exception, exc:
+            _handleException(exc,errors,PathWalkWarning("Unable to list directory '%s': %%(exc)s" % self))
+        else:
+            for child in childList:
+                try:
+                    isfile = child.isfile()
+                    isdir = not isfile and child.isdir()
+                except Exception, exc:
+                    _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s" % self) )
+                else:
+    
+                    if isfile:
+                        if pattern is None or child.fnmatch(pattern):
+                            yield child
+                    elif isdir:
+                        for f in child.walkfiles(pattern, errors):
+                            yield f
 
     def fnmatch(self, pattern):
         """ Return True if self.name matches the given pattern.
