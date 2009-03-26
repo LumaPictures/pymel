@@ -2118,15 +2118,15 @@ class DependNode( PyNode ):
                             # and we're trying to get the next plug, 'lightDirection', then we need a dummy index.
                             # the following line will reuslt in 'defaultLightList1.lightDataArray[-1].lightDirection'
                             if result.isArray():
-                                result = self.__apimfn__().findPlug( token )  
+                                result = self.__apimfn__().findPlug( unicode(token) )  
                             else:
-                                result = result.child( self.__apimfn__().attribute( token ) )
+                                result = result.child( self.__apimfn__().attribute( unicode(token) ) )
                         else: # Node
-                            result = self.__apimfn__().findPlug( token )                              
+                            result = self.__apimfn__().findPlug( unicode(token) )                              
 #                                # search children for the attribute to simulate  cam.focalLength --> perspShape.focalLength
 #                                except TypeError:
 #                                    for i in range(fn.childCount()):
-#                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( token )
+#                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( unicode(token) )
 #                                        except TypeError: pass
 #                                        else:break
                     if isinstance( token, nameparse.NameIndex ):
