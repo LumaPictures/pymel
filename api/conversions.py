@@ -1502,14 +1502,14 @@ def toApiObject (nodeName, dagPlugs=True):
 #            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
 #                if isinstance( token, nameparse.MayaName ):
 #                    if isinstance( result, MPlug ):
-#                        result = result.child( fn.attribute( token ) )
+#                        result = result.child( fn.attribute( unicode(token) ) )
 #                    else:
 #                        try:
-#                            result = fn.findPlug( token )
+#                            result = fn.findPlug( unicode(token) )
 #                        except TypeError:
 #                            for i in range(fn.childCount()):
 #                                try:
-#                                    result = MFnDagNode( fn.child(i) ).findPlug( token )
+#                                    result = MFnDagNode( fn.child(i) ).findPlug( unicode(token) )
 #                                except TypeError:
 #                                    pass
 #                                else:
@@ -1523,9 +1523,9 @@ def toApiObject (nodeName, dagPlugs=True):
 #            for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
 #                if isinstance( token, nameparse.MayaName ):
 #                    if isinstance( result, MPlug ):
-#                        result = result.child( fn.attribute( token ) )
+#                        result = result.child( fn.attribute( unicode(token) ) )
 #                    else:
-#                        result = fn.findPlug( token )
+#                        result = fn.findPlug( unicode(token) )
 #                            
 #                if isinstance( token, nameparse.NameIndex ):
 #                    result = result.elementByLogicalIndex( token.value )
