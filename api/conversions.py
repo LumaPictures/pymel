@@ -48,16 +48,9 @@ class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
     def __init__(self, version='2009', verbose=False):
-        self.enums = {}
-        self.pymelEnums = {}
-        self.methods=util.defaultdict(list)
-        self.apiClassName = None
-        self.apiClass = None
-        self.currentMethod=None
+
         self.verbose = verbose
         self.version = version
-        self.badEnums = []
-
         self.docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir(self.docloc):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
@@ -250,6 +243,13 @@ class ApiDocParser(object):
             return False 
                                 
     def parse(self, apiClassName):
+
+        self.enums = {}
+        self.pymelEnums = {}
+        self.methods=util.defaultdict(list)
+        self.currentMethod=None
+        self.badEnums = []
+        
         self.apiClassName = apiClassName          
         self.apiClass = getattr(_thisModule, self.apiClassName)
         
