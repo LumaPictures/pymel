@@ -117,6 +117,7 @@ class Version(object):
     v2008sp1  = 200806
     v2008ext2 = 200806
     v2009     = 200900
+    v2009sp1  = 200904
     v2010     = 201000
 #    CURRENT = _getApiVersion()
 #    
