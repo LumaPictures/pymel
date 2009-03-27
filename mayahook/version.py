@@ -62,6 +62,7 @@ def _getApiVersion():
 
 def parseVersionStr(versionStr, extension=False):
     """
+    >>> from pymel import *
     >>> mayahook.parseVersionStr('2008 Service Pack1 x64')
     '2008'
     >>> mayahook.parseVersionStr('2008 Service Pack1 x64', extension=True)
@@ -70,7 +71,7 @@ def parseVersionStr(versionStr, extension=False):
     '2008-x64'
     >>> mayahook.parseVersionStr('8.5', extension=True)
     '8.5'
-   >>> mayahook.parseVersionStr('2008 Extension 2')
+    >>> mayahook.parseVersionStr('2008 Extension 2')
     '2008'
     >>> mayahook.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
     '2009'

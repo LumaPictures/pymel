@@ -146,8 +146,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assert_( self.anim.keyTimeValue[1].keyTime.get() == self.anim.getTime(1) )
         # reset units
         currentUnit(linear=startLinear)
-        currentUnit(linear=startAngular)
-        currentUnit(linear=startTime)
+        currentUnit(angle=startAngular)
+        currentUnit(time=startTime)
     
     def test_components(self):
         import pymel.examples.setVertexColor
