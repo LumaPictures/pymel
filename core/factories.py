@@ -3051,7 +3051,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(mcl, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        _logger.debug( ('MetaMayaTypeWrapper', mcl, classname, bases, classdict) )
+        _logger.debug( 'MetaMayaTypeWrapper: %s' % classdict ) 
         removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
@@ -3231,7 +3231,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
     
     def __new__(mcl, classname, bases, classdict):
-        _logger.debug( ('_MetaMayaCommandWrapper', mcl, classname, bases, classdict) )
+        _logger.debug( '_MetaMayaCommandWrapper: %s' % classdict )
 
         newcls = super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
         
@@ -3370,7 +3370,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     def __new__(mcl, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        _logger.debug( ('MetaMayaNodeWrapper', mcl, classname, bases, classdict) )
+        _logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
@@ -3655,7 +3655,7 @@ def addPyNode( module, mayaType, parentMayaType ):
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
         except TypeError, msg:
             # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            _logger.debug(("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg )))
+            _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
             import new
             PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
             PyNodeType.__module__ = module.__name__

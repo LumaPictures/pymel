@@ -74,7 +74,6 @@ def getLogConfigFile():
             return configFile
     configFile = os.path.join(util.moduleDir(),"pymel.conf")
     if os.path.isfile(configFile):
-        print "using", configFile
         return configFile
     raise IOError, "Could not find pymel.conf"
 
