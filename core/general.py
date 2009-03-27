@@ -1223,20 +1223,31 @@ class PyNode(util.ProxyUnicode):
                 #print "creating dependNode"
                 if not cls.__melcmd_isinfo__:
                     try:
+                        #_logger.debug( 'creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__ ) ) 
                         res = cls.__melcmd__(**kwargs)
-                        #print res
-                        if isinstance(res,cls):
-                            return res
-                        elif isinstance(res,list):
+                    except Exception, e:
+                        #_logger.debug( 'failed to create %s' % e )
+                        pass
+                    else:
+                        if isinstance(res,list):
                             # we only want to return a single object
                             for x in res:
-                                if isinstance(x,cls):
-                                    return x
-    
-                    except:
-                        pass
-                
+                                typ = cmds.nodeType(x)
+                                if typ == cls.__melnode__:
+                                    return cls(x)
+                                elif typ == 'transform':
+                                    shape = cmds.listRelatives( x, s=1)
+                                    if shape and cmds.nodeType(shape[0]) == cls.__melnode__:
+                                        return cls(shape[0])
+                                    
+                            raise ValueError, "could not find type %s in result %s returned by %s" % ( cls.__name__, res, cls.__melcmd__.__name__ )
+                        elif cls.__melnode__ == nodeType(res): #isinstance(res,cls):
+                            return cls(res)
+                        else:
+                            raise ValueError, "unexpect result %s returned by %s" % ( res, cls.__melcmd__.__name__ )
+
                 try:
+                    #_logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
                     return createNode( cls.__melnode__, **kwargs )
                 except:
                     pass
