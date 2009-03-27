@@ -713,7 +713,8 @@ def _buildMayaReservedTypes():
                 'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
                 'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
                 'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
-                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip' }      # creating these 2 crash Maya      
+                'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip', # creating these 2 crash Maya 
+                'dynBase': 'kDynBase', 'polyPrimitive': 'kPolyPrimitive','nParticle': 'kNParticle', 'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry', } # Reserved types that crash when            
 
     # filter to make sure all these types exist in current version (some are Maya2008 only)
     ReservedMayaTypes ( dict( (item[0], item[1]) for item in filter(lambda i:i[1] in ApiTypesToApiEnums(), reservedTypes.iteritems()) ) )
@@ -893,7 +894,7 @@ def _getMObject(nodeType, dagMod, dgMod) :
     
     return _makeDgModGhostObject(mayaType, dagMod, dgMod)
 
-_unableToCreate = set()
+
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
@@ -931,8 +932,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     if isValidMObject(obj) :
         return obj
     else :
-        #util.warn("Error trying to create ghost node for '%s'" %  mayaType)
-        _unableToCreate.add(mayaType)
+        _logger.debug("Error trying to create ghost node for '%s'" %  mayaType)
         return None
 
 
@@ -1033,6 +1033,9 @@ def _createNodes(dagMod, dgMod, *args) :
 
     result = {}
     mayaResult = {}
+    unableToCreate = set()
+    
+        
     for mayaType in args :
         if ReservedMayaTypes().has_key(mayaType) :
             apiType = ReservedMayaTypes()[mayaType]
@@ -1042,11 +1045,13 @@ def _createNodes(dagMod, dgMod, *args) :
       
         else :
             obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
-            if isValidMObject(obj) :
+            if obj :
                 apiType = obj.apiTypeStr()
                 mayaResult[mayaType] = apiType
                 result[apiType] = obj
-    return result, mayaResult
+            else:
+                unableToCreate.add(mayaType)
+    return result, mayaResult, unableToCreate
 
 # child:parent lookup of the Maya API classes hierarchy (based on the existing MFn class hierarchy)
 # TODO : fix that, doesn't accept the Singleton base it seems
@@ -1158,9 +1163,9 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     dagMod = MDagModifier()
     dgMod = MDGModifier()      
     #nodeDict = _createNodes(dagMod, dgMod, *ApiTypesToApiEnums().keys())
-    nodeDict, mayaDict = _createNodes( dagMod, dgMod, *allMayaTypes )
-    if len(_unableToCreate) > 0:
-        _logger.warn("Unable to create the following nodes: %s" % ", ".join(_unableToCreate))
+    nodeDict, mayaDict, unableToCreate = _createNodes( dagMod, dgMod, *allMayaTypes )
+    if len(unableToCreate) > 0:
+        _logger.warn("Unable to create the following nodes: %s" % ", ".join(unableToCreate))
     
     for mayaType, apiType in mayaDict.items() :
         MayaTypesToApiTypes()[mayaType] = apiType
