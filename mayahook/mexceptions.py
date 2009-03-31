@@ -2,7 +2,6 @@
 Corrects printing of unicode errors in maya.
 """
 
-import pymel.util as util
 from pymel.util.pwarnings import warn, simplefilter
 # from warnings import warn, simplefilter
 

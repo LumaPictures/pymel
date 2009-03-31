@@ -4,7 +4,6 @@ that maya is initialized in standalone mode.
 """
 
 import re, os, os.path, sys, platform, subprocess
-import pymel.util as util
 from pymel.util.pwarnings import *
 import plogging
 _logger = plogging.getLogger(__name__)
@@ -40,7 +39,7 @@ def moduleDir():
     """
     return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
 
-# A source commande that will search for the Python script "file" in the specified path
+# A source command that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it
 def source (file, searchPath=None, recurse=False) :
     """Looks for a python script in the specified path (uses system path if no path is specified)
@@ -51,8 +50,8 @@ def source (file, searchPath=None, recurse=False) :
     
     if searchPath is None :
         searchPath=sys.path
-    if not util.isIterable(searchPath) :
-        searchPath = list((searchPath,))
+    if isinstance(searchPath, basestring ):
+        searchPath = [searchPath]
     itpath = iter(searchPath)
     _logger.debug("looking for file as: "+filepath)
     while not os.path.exists(filepath) :

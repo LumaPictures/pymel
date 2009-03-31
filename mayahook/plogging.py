@@ -153,10 +153,11 @@ def _setupLevelPreferenceHook():
     
     LOGLEVEL_OPTVAR = 'pymel.logLevel'
 
+    
     # retrieve the preference as a string name, for human readability.
     # we need to use MGlobal because cmds.optionVar might not exist yet
     # TODO : resolve load order for standalone.  i don't think that userPrefs is loaded yet at this point in standalone.
-    levelName = MGlobal.optionVarStringValue( LOGLEVEL_OPTVAR )
+    levelName = os.environ.get( 'PYMEL_LOGLEVEL', MGlobal.optionVarStringValue( LOGLEVEL_OPTVAR ) )
     if levelName:
         level =  min( logging.WARNING, nameToLevel(levelName) ) # no more than WARNING level
         pymelLogger.setLevel(level)
