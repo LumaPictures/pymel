@@ -632,7 +632,7 @@ def fixCodeExamples():
 
 
     short_version = mayahook.getMayaVersion(extension=False)
-    newPath = os.path.join( util.moduleDir(),  'mayaCmdsList'+short_version+'.bin' )
+    newPath = os.path.join( mayahook.moduleDir(),  'mayaCmdsList'+short_version+'.bin' )
     try :
         file = open(newPath, mode='wb')
         try :
@@ -649,7 +649,9 @@ class NodeHierarchyDocParser(HTMLParser):
     def parse(self):
         docloc = mayahook.mayaDocsLocation(self.version)
         if not os.path.isdir( docloc ):
-            docloc = mayahook.mayaDocsLocation('2009')
+            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+#            _logger.warn( "could not find documentation for maya version %s. defaulting to 2009" )
+#            docloc = mayahook.mayaDocsLocation('2009')
 
         f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
         self.feed( f.read() )
@@ -897,7 +899,7 @@ def _getUICommands():
     nameField
     palettePort
     """
-    #f = open( os.path.join( util.moduleDir() , 'misc/commandsUI') , 'r') 
+    #f = open( os.path.join( mayahook.moduleDir() , 'misc/commandsUI') , 'r') 
     #cmds = f.read().split('\n')
     #f.close()
     return [ x.strip() for x in uiClassCmds.split('\n') if x.strip() ]

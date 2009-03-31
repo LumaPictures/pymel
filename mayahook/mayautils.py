@@ -33,6 +33,13 @@ SYSTEM = platform.system()
 #if SYSTEM == 'Microsoft':
 #    SYSTEM = 'Windows'
 
+def moduleDir():
+    """
+    Returns the base pymel directory.
+    :rtype: string
+    """
+    return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
+
 # A source commande that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it
 def source (file, searchPath=None, recurse=False) :
@@ -718,7 +725,11 @@ def mayaInit(forversion=None) :
     # return True, meaning we had to initialize maya standalone
     return True
 
-def initMEL():   
+def initMEL():
+    if 'PYMEL_SKIP_MEL_INIT' in os.environ or pymel_options.get( 'skip_mel_init', False ) :
+        _logger.info( "Skipping MEL initialization" )
+        return
+    
     _logger.debug( "initMEL" )        
     import maya.mel
     
@@ -804,7 +815,7 @@ def loadCache( filePrefix, description='', useVersion=True):
         short_version = getMayaVersion(extension=False)   
     else:
         short_version = ''
-    newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
+    newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
     
     if description:
         description = ' ' + description
@@ -827,7 +838,7 @@ def writeCache( data, filePrefix, description='', useVersion=True):
         short_version = getMayaVersion(extension=False)   
     else:
         short_version = ''
-    newPath = os.path.join( util.moduleDir(),  filePrefix+short_version+'.bin' )
+    newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
 
     if description:
         description = ' ' + description
@@ -850,7 +861,7 @@ def getConfigFile():
         configFile = os.path.join( os.environ['HOME'], "pymel.conf")
         if os.path.isfile(configFile):
             return configFile
-    configFile = os.path.join(util.moduleDir(),"pymel.conf")
+    configFile = os.path.join(moduleDir(),"pymel.conf")
     if os.path.isfile(configFile):
         return configFile
     raise IOError, "Could not find pymel.conf"
@@ -858,9 +869,13 @@ def getConfigFile():
 def parsePymelConfig():
     import ConfigParser
 
-    types = { '0_7_compatibility_mode' : 'boolean' }
+    types = { '0_7_compatibility_mode' : 'boolean',
+              'skip_mel_init' : 'boolean' }
     
-    config = ConfigParser.ConfigParser()
+    defaults = { '0_7_compatibility_mode' : 'off',
+                 'skip_mel_init' : 'off' }
+    
+    config = ConfigParser.ConfigParser(defaults)
     config.read( getConfigFile() )
     
     d = {}
@@ -906,5 +921,6 @@ def executeDeferred(func):
         maya.utils.executeDeferred(func)
     else:
         func()
-    
-    
+   
+ 
+pymel_options = parsePymelConfig() 

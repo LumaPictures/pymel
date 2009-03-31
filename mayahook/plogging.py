@@ -6,7 +6,7 @@ import sys, os
 import logging
 import logging.config
 from logging import *
-# The python 2.6 version of 'logging' hids these functions, so we need to import explcitly
+# The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
 from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
 import pymel.util as util
 import maya.utils
@@ -72,7 +72,8 @@ def getLogConfigFile():
         configFile = os.path.join( os.environ['HOME'], "pymel.conf")
         if os.path.isfile(configFile):
             return configFile
-    configFile = os.path.join(util.moduleDir(),"pymel.conf")
+    moduleDir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
+    configFile = os.path.join(moduleDir,"pymel.conf")
     if os.path.isfile(configFile):
         return configFile
     raise IOError, "Could not find pymel.conf"

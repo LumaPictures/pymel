@@ -158,6 +158,9 @@ class Version(object):
     
     @classmethod
     def isComplete(cls): return cls.flavor() == 'Complete'
+
+    @classmethod
+    def isRenderNode(cls): return cls.flavor() == 'Render'
     
     @classmethod
     def isEval(cls): return cmds.about(evalVersion=1)

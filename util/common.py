@@ -74,13 +74,6 @@ def cacheProperty(getter, attr_name, fdel=None, doc=None):
         setattr(obj, attr_name, val)
 
     return property( fget, fset, fdel, doc)
-
-def moduleDir():
-    """
-    Returns the base pymel directory.
-    :rtype: string
-    """
-    return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
     
 def timer( command='pass', number=10, setup='import pymel' ):
     import timeit
