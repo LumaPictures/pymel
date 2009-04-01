@@ -33,8 +33,7 @@ Date:    7 Mar 2004
 #   - Could add split() and join() methods that generate warnings.
 
 from __future__ import generators
-
-import sys, warnings, os, fnmatch, glob, shutil, codecs
+import sys, warnings, os, fnmatch, glob, shutil, codecs, re
 
 __version__ = '2.1'
 __all__ = ['path']
@@ -377,7 +376,7 @@ class path(_base):
         
         return [p for p in self.listdir(pattern) if p.isfile()]
 
-    def walk(self, pattern=None, errors='strict'):
+    def walk(self, pattern=None, errors='strict', regex=None ):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -402,18 +401,18 @@ class path(_base):
                 PathWalkWarning("Unable to list directory '%s': %%(exc)s" % self ))
         else:
             for child in childList:
-                if pattern is None or child.fnmatch(pattern):
+                if ( pattern is None or child.fnmatch(pattern) ) and ( regex is None or re.match( regex, child.name ) ):
                     yield child
-                try:
-                    isdir = child.isdir()
-                except Exception, exc:
-                    _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s" % self))
+                    try:
+                        isdir = child.isdir()
+                    except Exception, exc:
+                        _handleException(exc,errors,PathWalkWarning("Unable to access '%s': %%(exc)s" % self))
+        
+                    if isdir:
+                        for item in child.walk(pattern=pattern, errors=errors, regex=regex):
+                            yield item
     
-                if isdir:
-                    for item in child.walk(pattern, errors):
-                        yield item
-    
-    def walkdirs(self, pattern=None, errors='strict', realpath=False):
+    def walkdirs(self, pattern=None, errors='strict', realpath=False, regex=None):
         """ D.walkdirs() -> iterator over subdirs, recursively.
 
         With the optional 'pattern' argument, this yields only
@@ -436,7 +435,7 @@ class path(_base):
         else:  
             parent_realpath = None
             for child in dirs:
-                if pattern is None or child.fnmatch(pattern):
+                if ( pattern is None or child.fnmatch(pattern) ) and ( regex is None or re.match( regex, child.name ) ):
                     if child.islink():
                         if parent_realpath is None:
                             parent_realpath = self.realpath()
@@ -452,10 +451,11 @@ class path(_base):
                             yield child
                     else:
                         yield child
-                for subsubdir in child.walkdirs(pattern, errors, realpath):
-                    yield subsubdir
+                        
+                    for subsubdir in child.walkdirs(pattern, errors=errors, realpath=realpath, regex=regex):
+                        yield subsubdir
 
-    def walkfiles(self, pattern=None, errors='strict'):
+    def walkfiles(self, pattern=None, errors='strict', regex=None):
         """ D.walkfiles() -> iterator over files in D, recursively.
 
         The optional argument, pattern, limits the results to files
@@ -480,10 +480,10 @@ class path(_base):
                 else:
     
                     if isfile:
-                        if pattern is None or child.fnmatch(pattern):
+                        if ( pattern is None or child.fnmatch(pattern) ) and ( regex is None or re.match( regex, child.name ) ):
                             yield child
                     elif isdir:
-                        for f in child.walkfiles(pattern, errors):
+                        for f in child.walkfiles(pattern=pattern, errors=errors, regex=regex):
                             yield f
 
     def fnmatch(self, pattern):
