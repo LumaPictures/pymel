@@ -12,7 +12,7 @@ _logger = mayahook.plogging.getLogger(__name__)
 #from general import PyNode
 import pymel.api as _api
 import sys, os, inspect, pickle, re, types, os.path, warnings, keyword
-#from networkx.tree import *
+
 from HTMLParser import HTMLParser
 from operator import itemgetter
 
@@ -145,6 +145,10 @@ secondaryFlags = {
              )
 }
 
+cmdlistOverrides = {}
+util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'shortFlags', 'sl', 'modes' ), ['create', 'query', 'edit'] )
+util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'flags', 'select', 'modes' ),  ['create', 'query', 'edit'] )
+util.mergeCascadingDicts( cmdlistOverrides, cmdlistOverrides )
 
 
 #---------------------------------------------------------------
@@ -616,7 +620,7 @@ def fixCodeExamples():
                 example = '\n'.join( newlines )
                 info['example'] = example
             except:
-               _logger.info("COMPLETE AND UTTER FAILURE: %s", command)
+                _logger.info("COMPLETE AND UTTER FAILURE: %s", command)
             
             # cleanup opened windows
             for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
@@ -1303,7 +1307,9 @@ def buildCachedData() :
                     cmdlist[funcName] = (funcName, args, () )
             '''
         mayahook.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
-             
+    
+    util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
+            
     return (cmdlist,nodeHierarchyTree,uiClassList,nodeCommandList,moduleCmds)
 
                                   
