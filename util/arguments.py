@@ -363,6 +363,26 @@ def mergeCascadingDicts( from_dict, to_dict, allowDictToListMerging=False ):
         else:
             to_dict[key] = from_val
 
+def setCascadingDictItem( dict, keys, value ):
+    
+    currentDict = dict
+    for key in keys[:-1]:
+        if key not in currentDict:
+            currentDict[key] = {}
+        currentDict = currentDict[key]
+    currentDict[keys[-1]] = value                
+
+def getCascadingDictItem( dict, keys, default={} ):
+    
+    currentDict = dict
+    for key in keys[:-1]:
+        if key not in currentDict:
+            currentDict[key] = {}
+        currentDict = currentDict[key]
+    try:
+        return currentDict[keys[-1]]
+    except KeyError:
+        return default 
 
 def sequenceToSlice( intList ):
     """convert a sequence of integers into a slice object"""

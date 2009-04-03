@@ -853,38 +853,18 @@ def getClassHierarchy( className ):
                     
             yield cls.__name__, apiClassName    
 
-          
-def setCascadingDictValue( dict, keys, value ):
-    
-    currentDict = dict
-    for key in keys[:-1]:
-        if key not in currentDict:
-            currentDict[key] = {}
-        currentDict = currentDict[key]
-    currentDict[keys[-1]] = value                
-
-def getCascadingDictValue( dict, keys, default={} ):
-    
-    currentDict = dict
-    for key in keys[:-1]:
-        if key not in currentDict:
-            currentDict[key] = {}
-        currentDict = currentDict[key]
-    try:
-        return currentDict[keys[-1]]
-    except KeyError:
-        return default        
+               
 
 
 def setManualDefaults():
     # set some defaults
     # TODO : allow these defaults to be controlled via the UI
-    setCascadingDictValue( api.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
-    setCascadingDictValue( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
-    setCascadingDictValue( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
-    setCascadingDictValue( api.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
-    setCascadingDictValue( api.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
-    setCascadingDictValue( api.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
+    util.setCascadingDictItem( api.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
+    util.setCascadingDictItem( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
+    util.setCascadingDictItem( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
+    util.setCascadingDictItem( api.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
+    util.setCascadingDictItem( api.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
+    util.setCascadingDictItem( api.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
     
     # add some manual invertibles: THESE MUST BE THE API NAMES
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
@@ -896,28 +876,28 @@ def setManualDefaults():
                      ]
     for className, methodIndex, setter, getter in invertibles:
         # append to the class-level invertibles list
-        curr = getCascadingDictValue( api.apiClassInfo, (className, 'invertibles' ), [] )
+        curr = util.getCascadingDictItem( api.apiClassInfo, (className, 'invertibles' ), [] )
         pair = (setter, getter)
         if pair not in curr:
             curr.append( pair )
             
-        setCascadingDictValue( api.apiClassOverrides, (className, 'invertibles'), curr )    
+        util.setCascadingDictItem( api.apiClassOverrides, (className, 'invertibles'), curr )    
         
         # add the individual method entries
-        setCascadingDictValue( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
-        setCascadingDictValue( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
+        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
+        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
     
     nonInvertibles = [ ( 'MFnMesh', 0, 'setFaceVertexNormals', 'getFaceVertexNormals' ),
                         ( 'MFnMesh', 0, 'setFaceVertexNormal', 'getFaceVertexNormal' ) ]
     for className, methodIndex, setter, getter in nonInvertibles:
-        setCascadingDictValue( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
-        setCascadingDictValue( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
+        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
+        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
     fixSpace()
 
 def fixSpace():
     "fix the Space enumerator"
     
-    enum = getCascadingDictValue( api.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
+    enum = util.getCascadingDictItem( api.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
     keys = enum._keys.copy()
     #print keys
     val = keys.pop('postTransform', None)
@@ -925,7 +905,7 @@ def fixSpace():
         keys['object'] = val
         newEnum = util.Enum( 'Space', keys )
         
-        setCascadingDictValue( api.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
+        util.setCascadingDictItem( api.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
     else:
         logger.warning( "could not fix Space")
   
