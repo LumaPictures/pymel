@@ -18,7 +18,7 @@ Project Goals
 Production Proven
 ======================
 
-Since its release over a year ago PyMEL, has accumulated an impressive resume in both feature films and games: 
+Since its release over a year ago, PyMEL has accumulated an impressive resume in both feature films and games: 
 
     - DreamWorks: *Fung Fu Panda*, *Shrek 4*, *Monsters Vs Aliens*, and *How to Train Your Dragon*
     - Luma Pictures: *Pirates of the Carribean: At World's End*, *Harry Potter 6*, and *Wolverine*
