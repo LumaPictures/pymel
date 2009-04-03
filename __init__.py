@@ -1404,7 +1404,13 @@ _pluginData = {}
 
                     
              
-def _pluginLoaded( pluginName ):
+def _pluginLoaded( *args ):
+
+    # API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
+    if len(args) > 1:
+        pluginName = args[0][1]
+    else:
+        pluginName = args[0]
     #print type(array)
     #pluginPath, pluginName = array
     import core.pmcmds
@@ -1479,7 +1485,6 @@ def _pluginLoaded( pluginName ):
 
              
 def _pluginUnloaded(*args):
-    args, clientData = args
     pluginName = args[0]
     plogging.pymelLogger.info("Plugin unloaded %s" % pluginName)
     import core.pmcmds
@@ -1523,7 +1528,7 @@ def _installCallbacks():
 
         
         if mayahook.Version.current >= mayahook.Version.v2009:
-            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoadedCB  )
+            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
             id.disown()
         else:
             # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
