@@ -1520,13 +1520,14 @@ def _installCallbacks():
         _pluginLoadedCB = True
         plogging.pymelLogger.debug("Adding pluginLoaded callback")
         #_pluginLoadedCB = pluginLoadedCallback(module)
-        # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
-        cmds.loadPlugin( addCallback='import pymel; pymel._pluginLoaded("%s")' )
+
         
-#        if mayahook.Version.current >= mayahook.Version.v2009:
-#            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoadedCB  )
-#            id.disown()
-        
+        if mayahook.Version.current >= mayahook.Version.v2009:
+            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoadedCB  )
+            id.disown()
+        else:
+            # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
+            cmds.loadPlugin( addCallback='import pymel; pymel._pluginLoaded("%s")' )
     else:
         plogging.pymelLogger.debug("PluginLoaded callback already exists")
     
