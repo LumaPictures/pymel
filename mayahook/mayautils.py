@@ -103,7 +103,7 @@ def getMayaLocation(version=None):
             if os.path.exists(try_loc) :
                 loc = try_loc
             else :
-                warn("No Maya found for version %s" % version, UserWarning)
+                _logger.warn("No Maya found for version %s" % version )
                 loc = None
                 
     return loc
@@ -301,7 +301,7 @@ def mayaDocsLocation(version=None):
         docLocation = getMayaLocation(version) # use original version
         if docLocation is None :
             docLocation = getMayaLocation(None)
-            warn("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation), UserWarning)
+            _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation) )
 
         short_version = parseVersionStr(version, extension=False)
         if platform.system() == 'Darwin':
@@ -446,7 +446,7 @@ def parseMayaenv(envLocation=None, version=None) :
         try :
             envFile = open(envPath)
         except :
-            warn ("Unable to open Maya.env file %s" % envPath, ExecutionWarning)
+            _logger.warn ("Unable to open Maya.env file %s" % envPath )
             return False
         success = False
         try :
