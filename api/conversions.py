@@ -862,8 +862,8 @@ def removeMayaType( mayaType ):
         enums = ApiEnumsToMayaTypes()[apiEnum]
         enums.pop( mayaType, None )
         if not enums:
-           ApiEnumsToMayaTypes().pop(apiEnum)
-           ApiEnumsToApiTypes().pop(apiEnum)
+            ApiEnumsToMayaTypes().pop(apiEnum)
+            ApiEnumsToApiTypes().pop(apiEnum)
     try:
         apiType = MayaTypesToApiTypes().pop( mayaType, None )
     except KeyError: pass
@@ -871,8 +871,8 @@ def removeMayaType( mayaType ):
         types = ApiTypesToMayaTypes()[apiType]
         types.pop( mayaType, None )
         if not types:
-           ApiTypesToMayaTypes().pop(apiType)
-           ApiTypesToApiEnums().pop(apiType)
+            ApiTypesToMayaTypes().pop(apiType)
+            ApiTypesToApiEnums().pop(apiType)
     
        
 
@@ -1117,6 +1117,14 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     if not mayahook.mayaIsRunning():
         mayahook.mayaInit()
     import maya.cmds
+    
+    # load all maya plugins
+    mayaLoc = mayahook.getMayaLocation()
+    pluginPath = [ x for x in os.environ['MAYA_PLUG_IN_PATH'].split(':') if x.startswith( mayaLoc ) ][0]
+    for x in os.listdir( pluginPath ):
+        if os.path.isfile( os.path.join(pluginPath,x)):
+            maya.cmds.loadPlugin( x )
+
     allMayaTypes = ReservedMayaTypes().keys() + maya.cmds.ls(nodeTypes=True)
     
     apiTypesToApiClasses = {}
