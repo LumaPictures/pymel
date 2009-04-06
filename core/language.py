@@ -624,7 +624,7 @@ class Mel(object):
             cls.eval( """source "%s";""" % script )
             
         elif language == 'python':
-            script = _path.path( script )
+            script = util.path( script )
             modulePath = script.namebase
             folder = script.parent
             print modulePath
@@ -780,13 +780,13 @@ mel = Mel()
 
 
 def conditionExists(conditionName):
-	"""
-	Returns True if the named condition exists, False otherwise.
-	
-	Note that 'condition' here refers to the type used by 'isTrue' and 'scriptJob', NOT to the condition NODE.
-	"""
-	return conditionName in cmds.scriptJob(listConditions=True)
-	
+    """
+    Returns True if the named condition exists, False otherwise.
+    
+    Note that 'condition' here refers to the type used by 'isTrue' and 'scriptJob', NOT to the condition NODE.
+    """
+    return conditionName in cmds.scriptJob(listConditions=True)
+    
 
 #class MayaGlobals(object):
 #    """

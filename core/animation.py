@@ -44,7 +44,7 @@ Modifications:
     return util.listForNone( cmds.keyframe(*args, **kwargs) )
 
 def deformer(*args, **kwargs):
-    return map( PyNode, cmds.deformer(*args, **kwargs) )
+    return map( general.PyNode, cmds.deformer(*args, **kwargs) )
     
 def joint(*args, **kwargs):
     """
@@ -52,7 +52,6 @@ Maya Bug Fix:
     - when queried, limitSwitch*, stiffness*, and angle* flags returned lists of values instead 
         of single values. Values are now properly unpacked
     """
-    
     res = cmds.joint(*args, **kwargs)
     
     #if kwargs.pop('query',False) or kwargs.pop('q',False):
@@ -71,8 +70,6 @@ Maya Bug Fix:
         ]
         if filter( lambda x: x in args, kwargs.keys()):
             res = res[0]
-    elif res is not None:    
-        res = general.PyNode(res)
     return res
 
 def _constraint( func ):

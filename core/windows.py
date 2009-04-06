@@ -439,9 +439,9 @@ class UI(unicode):
         """
         return not name or create or kwargs.get( 'parent', kwargs.get('p', None))
         
-    def exists():
-        try: return cls.__melcmd__(name, ex=1)
-        except: pass
+#    def exists():
+#        try: return cls.__melcmd__(name, ex=1)
+#        except: pass
         
     def __repr__(self):
         return u"%s('%s')" % (self.__class__.__name__, self)

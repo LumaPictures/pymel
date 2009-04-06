@@ -610,11 +610,7 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
     
     """
     import general
-    import other
-#    if asDict:
-#        assert not (namespaces and refNodes)
-        
-    res = []   
+  
     if parentReference is None:
         refs = zip( cmds.file( q=1, reference=1), cmds.file( q=1, reference=1, unresolvedName=1) )
     else:

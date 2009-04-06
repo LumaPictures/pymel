@@ -233,6 +233,7 @@ class AttributeName(NameParser):
     def addAttr( self, **kwargs):    
         kwargs['longName'] = self.plugAttr()
         kwargs.pop('ln', None )
+        from pymel.core.general import addAttr
         return addAttr( self.node(), **kwargs )
     
     def setAttr(self, *args, **kwargs):
