@@ -502,7 +502,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
 
     if excludeRegex:
         assert isinstance(excludeRegex, basestring), "please pass a regular expression as a string" 
-        regex = excludeRegex + '|' + excludeRegex
+        regex = regex + '|' + excludeRegex
     
     includeRegex =  "(?!(" + regex + "))" # add a negative lookahead assertion
         
