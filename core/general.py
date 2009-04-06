@@ -1145,6 +1145,7 @@ class PyNode(util.ProxyUnicode):
                 
                 #elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
                 else:
+                    # didn't match any known types. treat as a string
                     # convert to string then to api objects.
                     try:
                         name = unicode(argObj)
@@ -1166,19 +1167,9 @@ class PyNode(util.ProxyUnicode):
                         elif res:
                             argObj = res
                         else:
+                            # non-existent objects
                             if mayahook.pymel_options.get( '0_7_compatibility_mode', False):
                                 import other
-                                
-#                                if '.' in name:
-#                                    newcls = nodetypes.Attribute
-#                                elif '|' in name:
-#                                    newcls = nodetypes.DagNode
-#                                else:
-#                                    newcls = nodetypes.DependNode
-#                                    
-#                                self = super(PyNode,cls).__new__(newcls)
-#                                self._name = name
-#                                self.__apiobjects__ = {}
                                 
                                 if '.' in name:
                                     newcls = other.AttributeName
@@ -1209,7 +1200,7 @@ class PyNode(util.ProxyUnicode):
                 
             #-- All Others
             else:
-                pymelType, obj = nodetypes._getPymelType( argObj )
+                pymelType, obj = nodetypes._getPymelType( argObj, name )
             #print pymelType, obj, name, attrNode
             
             # Virtual (non-existent) objects will be cast to their own virtual type.

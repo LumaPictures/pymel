@@ -34,6 +34,7 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
+_virtualSubClasses = {}
 
 def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
     """
@@ -2286,6 +2287,35 @@ class DependNode( PyNode ):
             return other.NameParser( formatStr % ( groups[0], (int(num) - 1) ) )
         except:
             raise ValueError, "could not find trailing numbers to decrement on object %s" % self
+    
+    @classmethod
+    def registerVirtualSubClass( cls, callback, nameRequired=False ):
+        """
+        Allows a user to create their own subclasses of leaf PyMEL node classes,
+        which are returned by `PyNode` and all other pymel commands.
+        
+        The process is fairly simple:
+            1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
+                and not an abstract type higher up in the hierarchy. 
+            2.  Register your subclass by calling the registerVirtualSubClass method of your new class.  This is a class method, 
+                meaning that it **must** be called from an uninstantiated class.
+        
+        :type  callback: function
+        :param callback: must be a function that accepts two arguments, an MFnDepencencyNode instance for the current object, 
+            and its name. The callback function should return True if the current object meets the requirements to become the
+            virtual subclass, or else False.
+        :type  nameRequired: bool
+        :param nameRequired: True if the callback requires the string name to operate on. The object's name is not always immediately
+            avaiable and takes an extra calculation to retrieve.
+            
+        """
+        # assert that we are a leaf class
+        parentCls = inspect.getmro(cls)[1]
+        assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
+        if parentCls not in _virtualSubClasses:
+            _virtualSubClasses[parentCls] = [ (cls, callback, nameRequired) ]
+        else:
+            _virtualSubClasses[parentCls].append( (cls, callback, nameRequired) )
 #}
 
 class Entity(DependNode):
@@ -4203,7 +4233,7 @@ def _createPyNodes():
             _logger.warning("could not find parent node: %s", mayaType)
             continue
         
-        className = util.capitalize(mayaType)
+        #className = util.capitalize(mayaType)
         #if className not in __all__: __all__.append( className )
         
         _factories.addPyNode( _thisModule, mayaType, parentMayaType )
@@ -4217,7 +4247,7 @@ _createPyNodes()
 
 
 
-def _getPymelType(arg) :
+def _getPymelType(arg, name) :
     """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default.
         
@@ -4234,13 +4264,26 @@ def _getPymelType(arg) :
                 fnDepend = api.MFnDependencyNode( obj )
                 mayaType = fnDepend.typeName()
                 pymelType = mayaTypeToPyNode( mayaType, DependNode )
-                return pymelType
             except RuntimeError:
                 raise MayaNodeError
+            
+            try:
+                data = _virtualSubClasses[pymelType]
+                nodeName = name
+                for virtualCls, callback, nameRequired in data:
+                    if nameRequired and nodeName is None:
+                        nodeName = fnDepend.name()
+                    
+                    if callback(fnDepend, nodeName):
+                        pymelType = virtualCls
+                        break
+            except KeyError:
+                pass
+            return pymelType
+
     obj = None
     results = {}
     
-    passedType = ''
     isAttribute = False
   
     #--------------------------   
