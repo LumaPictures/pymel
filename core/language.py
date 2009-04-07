@@ -238,8 +238,11 @@ class MelGlobals( dict ):
             try:
                 type = MelGlobals.typeMap[variable]
             except KeyError:
-                type = cls.getType(variable)
-            
+                try:
+                    type = cls.getType(variable)
+                except TypeError:
+                    raise KeyError, variable
+        
         variable = cls.initVar(type, variable)
         
         ret_type = type
