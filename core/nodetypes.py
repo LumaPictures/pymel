@@ -6,7 +6,7 @@ import sys, os, re
 import pmcmds as cmds
 import maya.mel as mm
 
-import inspect, itertools
+import inspect, itertools, math
 
 import pymel.util as util
 import factories as _factories
@@ -1617,7 +1617,7 @@ class Attribute(PyNode):
     def setMax(self, newMax):
         self.setRange('default', newMax)
 
-    def setMin(self, newMin):
+    def setSoftMin(self, newMin):
         self.setSoftRange(newMin, 'default')
         
     def setSoftMax(self, newMax):
@@ -2310,8 +2310,13 @@ class DependNode( PyNode ):
             
         """
         # assert that we are a leaf class
-        parentCls = inspect.getmro(cls)[1]
-        assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
+        parentCls = None 
+        for each_cls in inspect.getmro(cls)[1:]:
+            if each_cls.__module__ == __name__:
+                parentCls = each_cls
+                break
+        assert parentCls, "could not find parent PyNode"
+        #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
         if parentCls not in _virtualSubClasses:
             _virtualSubClasses[parentCls] = [ (cls, callback, nameRequired) ]
         else:
@@ -2785,14 +2790,14 @@ class Camera(Shape):
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
-        fov = 2.0 * atan (fov)
+        fov = 2.0 * math.atan (fov)
         fov = 57.29578 * fov
         return fov
     
     @util.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
     def setFov(self, fov):
         aperture = self.horizontalFilmAperture.get()
-        focal = tan (0.00872665 * fov);
+        focal = math.tan (0.00872665 * fov);
         focal = (0.5 * aperture) / (focal * 0.03937);
         self.focalLength.set(focal)
     
@@ -2849,6 +2854,7 @@ class Camera(Shape):
     @addMelDocs('roll')
     def roll(self, degree, relative=True):
         Camera(u'frontShape')
+        kwargs = {}
         kwargs['degree'] = degree
         if relative:
             kwargs['relative'] = True
@@ -4274,7 +4280,7 @@ def _getPymelType(arg, name) :
                     if nameRequired and nodeName is None:
                         nodeName = fnDepend.name()
                     
-                    if callback(fnDepend, nodeName):
+                    if callback(obj, nodeName):
                         pymelType = virtualCls
                         break
             except KeyError:

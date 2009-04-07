@@ -1213,12 +1213,17 @@ class PyNode(util.ProxyUnicode):
             # create node if possible
             if issubclass(cls,nodetypes.DependNode):
                 #print "creating dependNode"
-                if not cls.__melcmd_isinfo__:
+                if hasattr( cls, 'createVirtual' ):
+                    res = cls.createVirtual(**kwargs)
+                    if res is None:
+                        raise TypeError, "createVirtual must return the created node"
+                    return cls(res)
+                elif not cls.__melcmd_isinfo__:
                     try:
-                        #_logger.debug( 'creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__ ) ) 
+                        _logger.debug( 'creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__ ) ) 
                         res = cls.__melcmd__(**kwargs)
                     except Exception, e:
-                        #_logger.debug( 'failed to create %s' % e )
+                        _logger.debug( 'failed to create %s' % e )
                         pass
                     else:
                         if isinstance(res,list):
@@ -1237,12 +1242,12 @@ class PyNode(util.ProxyUnicode):
                             return cls(res)
                         else:
                             raise ValueError, "unexpect result %s returned by %s" % ( res, cls.__melcmd__.__name__ )
-
-                try:
-                    #_logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
-                    return createNode( cls.__melnode__, **kwargs )
-                except:
-                    pass
+                else:
+                    try:
+                        _logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
+                        return createNode( cls.__melnode__, **kwargs )
+                    except:
+                        pass
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
         
         # print "type:", pymelType

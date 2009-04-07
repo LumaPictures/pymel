@@ -1,5 +1,5 @@
 """
-This is an experimental feature!!!
+This is an experimental feature!!!  
 
 Allows a user to create their own subclasses of leaf PyMEL node classes,
 which are returned by `PyNode` and all other pymel commands.
@@ -10,7 +10,7 @@ The process is fairly simple:
     2.  Register your subclass by calling the registerVirtualSubClass method of your new class.  This is a class method, 
         meaning that it **must** be called from an uninstantiated class.  You do not need to create a node to register it.
 
-When registering a new virtual subclass,  you must provide a callback function that accepts two arguments: an MFnDepencencyNode 
+When registering a new virtual subclass,  you must provide a callback function that accepts two arguments: an MObject/MDagPath 
 instance for the current object, and its name. The callback function should return True if the current object meets the requirements to become the
 virtual subclass, or else False. If the callback requires the name of the object, set the keyword argument nameRequired to True when registering the
 new class. The object's name is not always immediately available and may take an extra calculation to retrieve, so if nameRequired is not set
@@ -27,50 +27,73 @@ infinite recursion.
 """
 
 from pymel import *
+    
+#-------------------------------------------------------------------------------
 
-import re
-
-class LegJoint(Joint):
-    """ this is an example of how to create your own subdivisions of existing nodes"""
+ 
+class CustomJointBase(Joint):
+    """ this is an example of how to create your own subdivisions of existing nodes. """
+    @classmethod
+    def createVirtual(cls, **kwargs):
+        """
+        This method is called when no argument is passed to the class, such as:
+        
+        >>> LegJoint(name='right)
+        LegJoint(u'right')
+        
+        this method must be a classmethod or staticmethod. If you don't know what that means, just make sure you have
+        @classmethod above your createVirtual method, as in this example.
+        """
+        # create a joint
+        j = joint(**kwargs)
+        # add the identifying attribute. the attribute name will be set on subclasses of this class
+        j.addAttr(cls._jointClassID)
+        return j
+        
+    
+    @classmethod
+    def callback( cls, obj, name ):
+        """This is the callback for the determining if a Joint should become a "virtual" LegJoint or JawJoint, etc.  
+        The name of the method is unimportant, and it could have actually been a regular function instead of a class method.
+        Notice that this method is a classmethod, which means it gets passed the class as "cls" instead of an instance as "self".
+        
+        PyMEL code should not be used inside the callback, only API. 
+        """
+        # obj is either an MObject or an MDagPath, depending on whether this class is a subclass of DependNode or DagNode, respectively.
+        # we use MFnDependencyNode below because it works with either and we onl need to test attribute existence.
+        fn = api.MFnDependencyNode(obj)
+        try:
+            # NOTE: MFnDependencyNode.hasAttribute fails if the attribute does not exist, so we have to try/except it.
+            # the _jointClassID is stored on subclass of CustomJointBase
+            return fn.hasAttribute( cls._jointClassID )
+        except: pass
+        return False
+ 
+ 
+class LegJoint(CustomJointBase):
+    _jointClassID = 'jointType_leg'
     
     def kick(self):
         print "kicking"
         
-class JawJoint(Joint):
-    """ this is an example of how to create your own subdivisions of existing nodes"""
+        
+class JawJoint(CustomJointBase):
+    _jointClassID = 'jointType_jaw'
     
     def munch(self):
         print "munching"
-        
-def legJointCallback( fn, name ):
-    """if the desired attribute exists, then we're a LegJoint!"""
-    try:
-        # this function fails if the attribute does not exist, so we have to try/except it.
-        return fn.hasAttribute( 'jointType_leg' )
-    except: pass
-    return False
 
-def jawJointCallback( fn, name ):
-    """if the desired attribute exists, then we're a LegJoint!"""
-    try:
-        # this function fails if the attribute does not exist, so we have to try/except it.
-        print "testing if this is a leg joint"
-        return fn.hasAttribute( 'jointType_jaw' )
-    except: pass
-    return False
-
-LegJoint.registerVirtualSubClass( legJointCallback, nameRequired=False )
-JawJoint.registerVirtualSubClass( jawJointCallback, nameRequired=False )
+# we don't need to register CustomJointBase because it's just an abstract class to help us easily make our other virutal nodes
+LegJoint.registerVirtualSubClass( LegJoint.callback, nameRequired=False )
+JawJoint.registerVirtualSubClass( JawJoint.callback, nameRequired=False )
 
     
 def testJoint():
-    joint()
-    joint()
-    j1 = joint()
-    j2 = joint()
-    j1.addAttr( 'jointType_leg' )
-    j2.addAttr( 'jointType_jaw' )
-    
+    Joint()
+    Joint()
+    LegJoint()
+    JawJoint()
+
     # now list the joints and see which ones are our special joints
     res = ls(type='joint')
     for x in res:
@@ -79,7 +102,8 @@ def testJoint():
         elif isinstance(x, JawJoint ):
             x.munch()
     
-    
+
+#-------------------------------------------------------------------------------
 
 # make sure Mayatomr plugin is loaded ore the Mib_amb_occlusion might not exist
 loadPlugin('Mayatomr')
@@ -88,7 +112,7 @@ class Mib_amb_occlusion(Mib_amb_occlusion):
     def occlude(self):
         print "occluding!"
 
-# the callback always returns True, so we always replace it with our own.
+# the callback always returns True, so we always replace the default with our own.
 Mib_amb_occlusion.registerVirtualSubClass( lambda *args: True, nameRequired=False )
     
 
