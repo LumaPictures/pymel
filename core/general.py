@@ -472,7 +472,8 @@ def hasAttr( pyObj, attr, checkShape=True ):
     if not isinstance( pyObj, PyNode ):
         raise TypeError, "hasAttr requires a PyNode instance and a string"
     
-    if isinstance( pyObj, Transform ):
+    import nodetypes
+    if isinstance( pyObj, nodetypes.Transform ):
         try:
             pyObj.attr(attr,checkShape=checkShape)
             return True
