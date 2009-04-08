@@ -7,6 +7,7 @@ import re, os, os.path, sys, platform, subprocess
 from pymel.util.pwarnings import *
 import plogging
 _logger = plogging.getLogger(__name__)
+from pymel.util import path as _path
 
 try:
     import cPickle as pickle
@@ -496,7 +497,6 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
             the folder name
         
     """
-    import path
     
     regex = '[.]|(obsolete)'
 
@@ -541,7 +541,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
     _logger.info("Recursing Maya script path")
     _logger.debug( "Only directories which match %s will be traversed" % includeRegex )
     for rootVar in rootVars:
-        root = path.path( rootVar )
+        root = _path( rootVar )
         if re.match( includeRegex, root.name ):
             _logger.debug( "Searching for all valid script directories below %s" % rootVar )
             # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
@@ -562,90 +562,90 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
         _logger.info("Maya script path recursion did not find any paths to add")
 
 
-
-def setMayaDefaultEnvs(version):
-    """
-    Sets environment variables to their maya defaults.  This was created as an alternate solution to 
-    refreshEnviron, but is not currently in use.
-    """
-    
-    if SYSTEM == 'Darwin':
-        share = '/Users/Shared/Autodesk'
-    
-    # single value variables
-    try:
-        mayaloc = os.environ['MAYA_LOCATION']
-    except:
-        mayaloc = os.path.dirname( os.path.dirname( sys.executable ) )
-        os.environ['MAYA_LOCATION'] = mayaloc
-        
-    try:
-        appdir = os.environ['MAYA_APP_DIR']
-    except KeyError:
-        appdir = os.environ['HOME']
-        os.environ['MAYA_APP_DIR'] = os.path.join( appdir, 'maya' )
-
-    # list variables
-    
-    
-    # MAYA_PLUG_IN_PATH
-    try:
-        pluginPaths = [ os.environ['MAYA_PLUG_IN_PATH'] ]
-    except KeyError:
-        pluginPaths = []
-    pluginPaths.append( os.path.join(appdir, version, 'plug-ins') )
-    pluginPaths.append( os.path.join(appdir, 'plug-ins') )
-    pluginPaths.append( os.path.join(share, version, 'plug-ins') )
-    pluginPaths.append( os.path.join(share, 'plug-ins') )
-    pluginPaths.append( os.path.join(mayaloc, 'plug-ins') ) 
-    os.environ['MAYA_PLUG_IN_PATH'] =  os.path.pathsep.join( pluginPaths )
-
-
-    # MAYA_MODULE_PATH
-    try:
-        modulePaths = [ os.environ['MAYA_MODULE_PATH'] ]
-    except KeyError:
-        modulePaths = []
-    modulePaths.append( os.path.join(appdir, version, 'modules') )
-    modulePaths.append( os.path.join(appdir, 'modules') )
-    modulePaths.append( os.path.join(mayaloc, 'modules') )
-    os.environ['MAYA_MODULE_PATH'] =  os.path.pathsep.join( modulePaths )
-    
-    # MAYA_SCRIPT_PATH
-    try:
-        scriptPaths = [ os.environ['MAYA_SCRIPT_PATH'] ]
-    except KeyError:
-        scriptPaths = []
-    scriptPaths.append( os.path.join(appdir, version, 'scripts') )
-    scriptPaths.append( os.path.join(appdir, 'scripts') )
-    scriptPaths.append( os.path.join(appdir, version, 'presets') )
-    scriptPaths.append( os.path.join(share, version, 'scripts') )
-    scriptPaths.append( os.path.join(share, 'scripts') )
-    try:
-        # only added if it exists
-        scriptPaths.append( os.environ['MAYA_SHELF_PATH'] )
-    except KeyError: pass
-    if system == 'Darwin':
-        scriptPaths.append( os.path.join(mayaloc, 'MacOS', 'scripts') ) 
-    
-    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'shelves' ) ) 
-    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'markingMenus' ) ) 
-    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'scripts' ) ) 
-    
-    scriptPaths.append( os.path.join(mayaloc, 'scripts') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'startup') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'others') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'AETemplates') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'unsupported') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'paintEffects') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'fluidEffects') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'hair') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'cloth') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'live') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'fur') ) 
-    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'muscle') ) 
-    os.environ['MAYA_SCRIPT_PATH'] =  os.path.pathsep.join( scriptPaths )
-      
+#
+#def setMayaDefaultEnvs(version):
+#    """
+#    Sets environment variables to their maya defaults.  This was created as an alternate solution to 
+#    refreshEnviron, but is not currently in use.
+#    """
+#    
+#    if SYSTEM == 'Darwin':
+#        share = '/Users/Shared/Autodesk'
+#    
+#    # single value variables
+#    try:
+#        mayaloc = os.environ['MAYA_LOCATION']
+#    except:
+#        mayaloc = os.path.dirname( os.path.dirname( sys.executable ) )
+#        os.environ['MAYA_LOCATION'] = mayaloc
+#        
+#    try:
+#        appdir = os.environ['MAYA_APP_DIR']
+#    except KeyError:
+#        appdir = os.environ['HOME']
+#        os.environ['MAYA_APP_DIR'] = os.path.join( appdir, 'maya' )
+#
+#    # list variables
+#    
+#    
+#    # MAYA_PLUG_IN_PATH
+#    try:
+#        pluginPaths = [ os.environ['MAYA_PLUG_IN_PATH'] ]
+#    except KeyError:
+#        pluginPaths = []
+#    pluginPaths.append( os.path.join(appdir, version, 'plug-ins') )
+#    pluginPaths.append( os.path.join(appdir, 'plug-ins') )
+#    pluginPaths.append( os.path.join(share, version, 'plug-ins') )
+#    pluginPaths.append( os.path.join(share, 'plug-ins') )
+#    pluginPaths.append( os.path.join(mayaloc, 'plug-ins') ) 
+#    os.environ['MAYA_PLUG_IN_PATH'] =  os.path.pathsep.join( pluginPaths )
+#
+#
+#    # MAYA_MODULE_PATH
+#    try:
+#        modulePaths = [ os.environ['MAYA_MODULE_PATH'] ]
+#    except KeyError:
+#        modulePaths = []
+#    modulePaths.append( os.path.join(appdir, version, 'modules') )
+#    modulePaths.append( os.path.join(appdir, 'modules') )
+#    modulePaths.append( os.path.join(mayaloc, 'modules') )
+#    os.environ['MAYA_MODULE_PATH'] =  os.path.pathsep.join( modulePaths )
+#    
+#    # MAYA_SCRIPT_PATH
+#    try:
+#        scriptPaths = [ os.environ['MAYA_SCRIPT_PATH'] ]
+#    except KeyError:
+#        scriptPaths = []
+#    scriptPaths.append( os.path.join(appdir, version, 'scripts') )
+#    scriptPaths.append( os.path.join(appdir, 'scripts') )
+#    scriptPaths.append( os.path.join(appdir, version, 'presets') )
+#    scriptPaths.append( os.path.join(share, version, 'scripts') )
+#    scriptPaths.append( os.path.join(share, 'scripts') )
+#    try:
+#        # only added if it exists
+#        scriptPaths.append( os.environ['MAYA_SHELF_PATH'] )
+#    except KeyError: pass
+#    if system == 'Darwin':
+#        scriptPaths.append( os.path.join(mayaloc, 'MacOS', 'scripts') ) 
+#    
+#    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'shelves' ) ) 
+#    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'markingMenus' ) ) 
+#    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'scripts' ) ) 
+#    
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'startup') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'others') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'AETemplates') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'unsupported') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'paintEffects') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'fluidEffects') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'hair') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'cloth') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'live') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'fur') ) 
+#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'muscle') ) 
+#    os.environ['MAYA_SCRIPT_PATH'] =  os.path.pathsep.join( scriptPaths )
+#      
        
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
@@ -710,7 +710,7 @@ def mayaInit(forversion=None) :
     system = platform.system()
 
                     
-    if not sys.modules.has_key('maya.standalone') or version != forversion:
+    if not sys.modules.has_key('maya.standalone') or shortVersion != forversion:
         try :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")

@@ -1342,6 +1342,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
             pymelName = nameType
     else:
         # set defaults
+        _logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
         data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
         _api.apiToMelData[(classname,pymelName)] = data
 
@@ -1381,13 +1382,16 @@ def getInheritance( mayaType ):
         mod = dgMod
         
     except RuntimeError:
-        # DagNode
-        obj = dagMod.createNode ( mayaType, parent )
-        dagMod.doIt()
-        
-        _logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
-        name = _api.MFnDagNode(obj).name()
-        mod = dagMod
+        try:
+            # DagNode
+            obj = dagMod.createNode ( mayaType, parent )
+            dagMod.doIt()
+            
+            _logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
+            name = _api.MFnDagNode(obj).name()
+            mod = dagMod
+        except RuntimeError:
+            return None
         
     if not obj.isNull() and not obj.hasFn( _api.MFn.kManipulator3D ) and not obj.hasFn( _api.MFn.kManipulator2D ):
         lineage = cmds.nodeType( name, inherited=1)

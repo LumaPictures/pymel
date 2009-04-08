@@ -38,7 +38,7 @@ class CustomJointBase(Joint):
         """
         This method is called when no argument is passed to the class, such as:
         
-        >>> LegJoint(name='right)
+        >>> LegJoint(name='right')
         LegJoint(u'right')
         
         this method must be a classmethod or staticmethod. If you don't know what that means, just make sure you have
