@@ -722,6 +722,10 @@ Modifications:
 
 def nodeType( node, **kwargs ):
     """
+    Note: this will return the dg node type for an object, like maya.cmds.nodeType,
+    NOT the pymel PyNode class.  For objects like components or attributes,
+    nodeType will return the dg type of the node to which the PyNode is attached.
+    
     :rtype: `unicode`
     """
     # still don't know how to do inherited via api
