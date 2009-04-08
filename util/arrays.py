@@ -6526,13 +6526,6 @@ class VectorN(Array):
         return VectorN( (nself.dot(nother) /  nother.sqlength()) * nother )    
     # blend and clamp derived from Array
 
-  
-def dot(a, b):
-    """
-    dot product of two Vectors.
-    """
-    return reduce(lambda x, y: x+y, a*b, 0.)
-
 
               
 if __name__ == '__main__' :   
