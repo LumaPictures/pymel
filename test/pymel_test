@@ -3,13 +3,23 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys
+import sys, platform, os, shutil
 
 try:
 	import nose
-except ImportError:
+except ImportError, e:
 	"To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
-	
+	raise e
+
+app_dir = os.environ['HOME']
+if platform.system() == 'Darwin':
+	app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )	
+else:
+	app_dir = os.path.join( app_dir, 'maya' )
+
+print "backing up Maya user directory", app_dir
+shutil.move( app_dir, app_dir + '.bak' )
+
 #import maya
 
 #SKIP_MAYA_8_5 = doctest.register_optionflag('SKIP_MAYA_8_5')
@@ -26,4 +36,12 @@ args += "--with-doctest -v pymel --noexe ".split()
 args += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
 args += sys.argv[1:]
 
-nose.main( argv=args )
+try:
+	nose.main( argv=args )
+except Exception, e:
+	print e
+finally:
+	print "restoring Maya user directory", app_dir
+	shutil.rmtree( app_dir )
+	shutil.move( app_dir + '.bak', app_dir )
+	print "done"
