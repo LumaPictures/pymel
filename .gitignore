@@ -1,1 +1,6 @@
 *.pyc
+/.settings
+/.project
+/.pydevproject
+/git-svn_authors.txt
+/mayaCmdsList*.bin
