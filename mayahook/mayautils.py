@@ -20,13 +20,11 @@ import envparse
 
 #from maya.cmds import encodeString
 
-# is this still needed ?
 if os.name == 'nt' :
     maya = 'maya.exe'
-    sep = os.path.pathsep
 else :
     maya = 'maya.bin'
-    sep = os.path.pathsep
+sep = os.path.pathsep
 
 SYSTEM = platform.system()
 # Note: for XP x64 and Vista, system() returns 'Microsoft'... do we want to 'standardize'?

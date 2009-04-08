@@ -1120,10 +1120,12 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     
     # load all maya plugins
     mayaLoc = mayahook.getMayaLocation()
-    pluginPath = [ x for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep) if x.startswith( mayaLoc ) ][0]
-    for x in os.listdir( pluginPath ):
-        if os.path.isfile( os.path.join(pluginPath,x)):
-            maya.cmds.loadPlugin( x )
+    # need to set to os.path.realpath to get a 'canonical' path for string comparison...
+    pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
+    for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
+        for x in os.listdir( pluginPath ):
+            if os.path.isfile( os.path.join(pluginPath,x)):
+                maya.cmds.loadPlugin( x )
 
     allMayaTypes = ReservedMayaTypes().keys() + maya.cmds.ls(nodeTypes=True)
     
