@@ -291,7 +291,7 @@ Modifications:
                 # if we're using force flag and the attribute does not exist
                 # we can infer the type from the passed value
                 #attr = Attribute(attr)
-                if force and not objExists(attr): #attr.exists():
+                if force and not cmds.objExists(attr): #attr.exists():
                     attrName = nameparse.parse( attr )
                     assert attrName.isAttributeName(), "passed object is not an attribute"
                     try:
@@ -1347,7 +1347,10 @@ class PyNode(util.ProxyUnicode):
         :rtype: `bool`
         """
         if isinstance(other,PyNode):
-            apiobj = other.__apiobject__()
+            try:
+                apiobj = other.__apiobject__()
+            except TypeError: # intermixing MDagPath with MObject
+                return False
         else:
             try:
                 apiobj = PyNode(other).__apiobject__()
@@ -1363,15 +1366,9 @@ class PyNode(util.ProxyUnicode):
         """
         :rtype: `bool`
         """
-        if isinstance(other,PyNode):
-            # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
-            return not self.__apiobject__() == other.__apiobject__()
-        else:
-            try:
-                # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
-                return not self.__apiobject__() == PyNode(other).__apiobject__()
-            except (ValueError,TypeError): # could not cast to PyNode
-                return False
+        # != does not work for MDagPath (maybe others) iff MDagPaths are equal (returns True)
+        return not self == other
+
 
     def __nonzero__(self):
         """
@@ -1575,7 +1572,6 @@ _factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=_MDagPathIn )
 _factories.ApiTypeRegister.register('MPlug', PyNode, inCast=_MPlugIn, outCast=_MPlugOut )
                    
 #from animation import listAnimatable as _listAnimatable
-#from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
 #-----------------------------------------------
 #  Global Settings
@@ -1797,13 +1793,13 @@ def iterNodes (  *args, **kwargs ):
     
     
     """
-    
+    from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
     # if a list of existing PyNodes (DependNodes) arguments is provided, only these will be iterated / tested on the conditions
     # TODO : pass the Pymel "Scene" object instead to list nodes of the Maya scene (instead of an empty arg list as for Maya's ls?
     # TODO : if a Tree or Dag of PyNodes is passed instead, make it work on it as wel    
     nodes = []
     for a in args :
-        if isinstance(a, DependNode) :
+        if isinstance(a, nodetypes.DependNode) :
             if a.exists() :
                 if not a in nodes :
                     nodes.append(a)
@@ -1902,7 +1898,7 @@ def iterNodes (  *args, **kwargs ):
             else :
                 # either a valid dag node / node name or a glob pattern
                 try :
-                    name = MayaObjectName(key)
+                    name = nameparse.MayaObjectName(key)
                     # if it's an actual node, plug or component name
                     # TODO : if it's a long name need to substitude namespaces on all dags
                     name = name.node
@@ -2022,7 +2018,7 @@ def iterNodes (  *args, **kwargs ):
             if not util.isSequence(typeArgs) :
                 typeArgs = [typeArgs]
             # can pass strings or PyNode types directly
-            typeArgs = _optToDict(*typeArgs, **{'valid':DependNode})    
+            typeArgs = _optToDict(*typeArgs, **{'valid':nodetypes.DependNode})    
         # check
         #print typeArgs
         for key, isInclusive in typeArgs.items() :
@@ -2127,7 +2123,7 @@ def iterNodes (  *args, **kwargs ):
         # for valid attribute name patterns check node.Attribute  
         # valid form for conditions
         attrValuePattern = r".+"
-        attrCondPattern = r"(?P<attr>"+PlugName.pattern+r")[ \t]*(?P<oper>==|!=|>|<|>=|<=)?[ \t]*(?P<value>"+attrValuePattern+r")?"
+        attrCondPattern = r"(?P<attr>"+nameparse.PlugName.pattern+r")[ \t]*(?P<oper>==|!=|>|<|>=|<=)?[ \t]*(?P<value>"+attrValuePattern+r")?"
         validAttrCond = re.compile(attrCondPattern)        
         for i in attrArgs.items() :
             key = i[0]
@@ -2244,7 +2240,7 @@ def iterNodes (  *args, **kwargs ):
                 elif not cval :
                     result = True                                             
         # check on position (for dags) conditions
-        if result and len(pos)!=0 and isinstance(pyobj, DagNode) :
+        if result and len(pos)!=0 and isinstance(pyobj, nodetypes.DagNode) :
             result = False
             for cpos, cval in pos.items() :              
                 if cpos == 'root' :
@@ -2267,7 +2263,7 @@ def iterNodes (  *args, **kwargs ):
                         result = True                                                                
         # TODO : 'level' condition, would be faster to get the depth from the API iterator
         # check some pre-defined properties, so far existing properties all concern dag nodes
-        if result and len(prop)!=0 and isinstance(pyobj, DagNode) :
+        if result and len(prop)!=0 and isinstance(pyobj, nodetypes.DagNode) :
             result = False
             for cprop, cval in prop.items() :                   
                 if cprop == 'visible' :
@@ -2357,8 +2353,7 @@ def iterHierarchy ( *args, **kwargs ):
 
 
 
-def analyzeApiClasses():
-    import inspect
+def _analyzeApiClasses():
     for elem in api.apiTypeHierarchy.preorder():
         try:
             parent = elem.parent.key
