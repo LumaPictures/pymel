@@ -1120,7 +1120,7 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     
     # load all maya plugins
     mayaLoc = mayahook.getMayaLocation()
-    pluginPath = [ x for x in os.environ['MAYA_PLUG_IN_PATH'].split(':') if x.startswith( mayaLoc ) ][0]
+    pluginPath = [ x for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep) if x.startswith( mayaLoc ) ][0]
     for x in os.listdir( pluginPath ):
         if os.path.isfile( os.path.join(pluginPath,x)):
             maya.cmds.loadPlugin( x )

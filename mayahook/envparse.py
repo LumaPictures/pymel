@@ -229,10 +229,7 @@ def parse(text, environ=os.environ, osname=os.name):
     # first level lexer
     envLex = EnvLex()
     envLex.build()
-    if osname == 'nt' :
-        sep = ';'
-    else :
-        sep = ':'
+    sep = os.path.pathsep
     # easier if we have a closing newline before eof
     if not text.endswith('\n') :
         text += '\n'
