@@ -203,11 +203,8 @@ def testInvertibles():
             pass
 
 class testCase_components(unittest.TestCase):
-    @staticmethod     
-    def getComponentTypes():
-        def compTypeStr(mfnCompObj):
-            return api.ApiEnumsToApiTypes()[mfnCompObj.type()]
-        
+    @classmethod     
+    def getComponentTypes(cls):
         mfnCompBase = api.MFnComponent()
         mfnCompTypes = (api.MFnSingleIndexedComponent(),
                         api.MFnDoubleIndexedComponent(),
@@ -216,19 +213,86 @@ class testCase_components(unittest.TestCase):
         
         componentTypes = {}
         for compType in mfnCompTypes + (mfnCompBase,):
-            componentTypes[compTypeStr(compType)] = []
+            componentTypes[compType.type()] = []
 
         for apiEnum in api.ApiEnumsToApiTypes():
             if mfnCompBase.hasObj(apiEnum):
-                apiEnumString = api.ApiEnumsToApiTypes()[apiEnum]
                 for compType in mfnCompTypes:
                     if compType.hasObj(apiEnum):
                         break
                 else:
                     compType = mfnCompBase
-                componentTypes[compTypeStr(compType)].append(apiEnumString)
+                componentTypes[compType.type()].append(apiEnum)
                     
         return componentTypes
+    
+    @classmethod
+    def printComponentTypes(cls):
+        # Output
+#        kComponent :
+#             kCurveParamComponent
+#             kIsoparmComponent
+#             kPivotComponent
+#             kEdgeComponent
+#             kSurfaceRangeComponent
+#             kDecayRegionCapComponent
+#             kSetGroupComponent
+#        kSingleIndexedComponent :
+#             kCurveCVComponent
+#             kCurveEPComponent
+#             kCurveKnotComponent
+#             kMeshEdgeComponent
+#             kMeshPolygonComponent
+#             kMeshVertComponent
+#             kDynParticleSetComponent
+#             kMeshMapComponent
+#             kSubdivMapComponent
+#        kDoubleIndexedComponent :
+#             kSurfaceCVComponent
+#             kSurfaceEPComponent
+#             kSurfaceKnotComponent
+#             kMeshVtxFaceComponent
+#             kSurfaceFaceComponent
+#        kTripleIndexedComponent :
+#             kLatticeComponent
+#        kUint64SingleIndexedComponent :
+#             kSubdivCVComponent
+#             kSubdivEdgeComponent
+#             kSubdivFaceComponent        
+        compTypes = cls.getComponentTypes()
+        for compType, compList in compTypes.iteritems():
+            print api.ApiEnumsToApiTypes()[compType], ":"
+            for exactComp in compList:
+                print "    ", api.ApiEnumsToApiTypes()[exactComp]
+    
+    def setUp(self):
+        self.nodes = {}
+        self.comps = {}
+        self.nodes['cube'] = cmds.polyCube()[0]
+        self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
+        self.comps['lattice'] = self.nodes['lattice'] + ".pt[0][1][0]"
+        
+    def tearDown(self):
+        for node in self.nodes.itervalues():
+            if cmds.objExists(node):
+                cmds.delete(node)
+            
+    def test_allCompsRepresented(self):
+        compTypesDict = self.getComponentTypes()
+        flatCompTypes = set()
+        for typesList in compTypesDict.itervalues():
+            flatCompTypes.update(typesList)
+        
+        for comp in self.comps.itervalues():
+            compMobj = api.toApiObject(comp)[1]
+            flatCompTypes.remove(compMobj.apiType())
+        
+        if flatCompTypes:
+            failMsg = "component types not tested:\n"
+            for x in flatCompTypes:
+                failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
+            self.fail(failMsg)
+        
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
