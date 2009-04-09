@@ -37,7 +37,7 @@ class testCase_attribs(unittest.TestCase):
         for attr in self.newAttrs:
             attr.add()
             
-        self.newAttrs = dict([(newAttr.name, Attribute(self.sphere1 + "." + newAttr.name)) for newAttr in self.newAttrs ])
+        self.newAttrs = dict([(newAttr.name, Attribute(str(self.sphere1) + "." + newAttr.name)) for newAttr in self.newAttrs ])
         
         self.setMultiElement = self.newAttrs['multiByte'][1]
         self.setMultiElement.set(1)
@@ -333,12 +333,27 @@ class testCase_components(unittest.TestCase):
             self.fail(failMsg)
             
     def test_makePyNodes(self):
+        failedComps = []
         for comp in self.comps.itervalues():
+            # Need seperate tests for PyNode / Component, b/c was bug where
+            # Component('pCube1.vtx[3]') would actually return a Component
+            # object, instead of a MeshVertex object, and fail, while
+            # PyNode('pCube1.vtx[3]') would succeed
+            failedCreators = []
             try:
                 PyNode(comp)
             except:
-                self.fail('Could not create PyNode(%r)' % comp)
-        
+                failedCreators.append('PyNode')
+            
+            try:
+                Component(comp)
+            except:
+                failedCreators.append('Component')
+            if failedCreators:
+                failedComps.append(comp + ' (' + ', '.join(failedCreators) + ')')
+            
+        if failedComps:
+            self.fail('Could not create following components:\n' + '\n'.join(failedComps))
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
