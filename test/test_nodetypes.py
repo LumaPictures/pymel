@@ -202,9 +202,26 @@ def testInvertibles():
         except:
             pass
 
-class testCase_components(unittest.TestCase):     
-    def getAllComponentEnums(self):
-        pass
+class testCase_components(unittest.TestCase):
+    @staticmethod     
+    def getComponentTypes():
+        mfnTypeComps = (api.MFnComponent(),
+                        api.MFnSingleIndexedComponent(),
+                        api.MFnDoubleIndexedComponent(),
+                        api.MFnTripleIndexedComponent(),
+                        api.MFnUint64SingleIndexedComponent())
+        
+        componentTypes = {}
+
+        for apiEnum in api.ApiEnumsToApiTypes():
+            for compType in mfnTypeComps:
+                if compType.hasObj(apiEnum):
+                    apiEnumString = api.ApiEnumsToApiTypes()[apiEnum]
+                    compTypeString = api.ApiEnumsToApiTypes()[compType.type()]
+                    #print "%s was a %s" % (apiEnumString, compTypeString)
+                    componentTypes.setdefault(apiEnumString, []).append(compTypeString)
+                    
+        return componentTypes
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
