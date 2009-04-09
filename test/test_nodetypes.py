@@ -1,7 +1,8 @@
 import unittest
 
 from pymel import *
-from pymel.tools.pymelControlPanel import getApiClassName, getClassHierarchy
+from pymel.tools.pymelControlPanel import getClassHierarchy
+from pymel.core.factories import ApiEnumsToPyComponents
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -12,6 +13,7 @@ EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
  
 class testCase_attribs(unittest.TestCase):
     def setUp(self):
+        newFile(f=1)
         self.sphere1, hist = polySphere()
         
         class AttributeData(object):
@@ -73,10 +75,7 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=4), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)        
-    
-    def tearDown(self):
-        newFile(f=1)
-            
+
      
 def testInvertibles():
     classList = getFundamentalTypes()
@@ -267,41 +266,45 @@ class testCase_components(unittest.TestCase):
     
     def setUp(self):
         self.nodes = {}
-        self.comps = {}
+        self.compNames = {}
 
         self.nodes['cube'] = cmds.polyCube()[0]
-        self.comps['meshVtx'] = self.nodes['cube'] + ".vtx[2]"
-        self.comps['meshEdge'] = self.nodes['cube'] + ".e[1]"
-        #self.comps['meshEdge'] = self.nodes['cube'] + ".edge[1]"   # This just gets the plug, not a kEdgeComponent
-        self.comps['meshFace'] = self.nodes['cube'] + ".f[4]"
-        self.comps['meshUV'] = self.nodes['cube'] + ".map[3]"
-        self.comps['meshVtxFace'] = self.nodes['cube'] + ".vtxFace[3][0]"
-        self.comps['pviot'] = self.nodes['cube'] + ".rotatePivot"
+        self.compNames['meshVtx'] = self.nodes['cube'] + ".vtx[2]"
+        self.compNames['meshEdge'] = self.nodes['cube'] + ".e[1]"
+        #self.compNames['meshEdge'] = self.nodes['cube'] + ".edge[1]"   # This just gets the plug, not a kEdgeComponent
+        self.compNames['meshFace'] = self.nodes['cube'] + ".f[4]"
+        self.compNames['meshUV'] = self.nodes['cube'] + ".map[3]"
+        self.compNames['meshVtxFace'] = self.nodes['cube'] + ".vtxFace[3][0]"
+        self.compNames['pviot'] = self.nodes['cube'] + ".rotatePivot"
 
         self.nodes['subdBase'] = cmds.polyCube()[0]
         self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
-        self.comps['subdCV'] = self.nodes['subd'] + ".smp[0][2]"
-        self.comps['subdEdge'] = self.nodes['subd'] + ".sme[256][1]"
-        self.comps['subdFace'] = self.nodes['subd'] + ".smf[256][0]"
-        self.comps['subdUV'] = self.nodes['subd'] + ".smm[95]"
+        self.compNames['subdCV'] = self.nodes['subd'] + ".smp[0][2]"
+        self.compNames['subdEdge'] = self.nodes['subd'] + ".sme[256][1]"
+        self.compNames['subdFace'] = self.nodes['subd'] + ".smf[256][0]"
+        self.compNames['subdUV'] = self.nodes['subd'] + ".smm[95]"
 
         self.nodes['curve'] = cmds.circle()[0]
-        self.comps['curveCV'] = self.nodes['curve'] + ".cv[6]"
-        self.comps['curvePt'] = self.nodes['curve'] + ".u[7.26580365007639]"
-        self.comps['curveEP'] = self.nodes['curve'] + ".ep[7]"
-        self.comps['curveKnot'] = self.nodes['curve'] + ".knot[1]"
+        self.compNames['curveCV'] = self.nodes['curve'] + ".cv[6]"
+        self.compNames['curvePt'] = self.nodes['curve'] + ".u[7.26580365007639]"
+        self.compNames['curveEP'] = self.nodes['curve'] + ".ep[7]"
+        self.compNames['curveKnot'] = self.nodes['curve'] + ".knot[1]"
 
         self.nodes['sphere'] = cmds.sphere()[0]
-        self.comps['nurbsCV'] = self.nodes['sphere'] + ".cv[2][1]"
-        self.comps['nurbsIso'] = self.nodes['sphere'] + ".v[5.27974050577565]"
-        #self.comps['nurbsPt'] = self.nodes['sphere'] + ".uv[2.50132435444908][5.1327452105745]"  # Also results in kIsoparmComponent
-        self.comps['nurbsPatch'] = self.nodes['sphere'] + ".sf[1][1]"
-        self.comps['nurbsEP'] = self.nodes['sphere'] + ".ep[1][5]"
-        self.comps['nurbsKnot'] = self.nodes['sphere'] + ".knot[1][5]"
-        self.comps['nurbsRange'] = self.nodes['sphere'] + ".u[2:3]"
+        self.compNames['nurbsCV'] = self.nodes['sphere'] + ".cv[2][1]"
+        self.compNames['nurbsIso'] = self.nodes['sphere'] + ".v[5.27974050577565]"
+        #self.compNames['nurbsPt'] = self.nodes['sphere'] + ".uv[2.50132435444908][5.1327452105745]"  # Also results in kIsoparmComponent
+        self.compNames['nurbsPatch'] = self.nodes['sphere'] + ".sf[1][1]"
+        self.compNames['nurbsEP'] = self.nodes['sphere'] + ".ep[1][5]"
+        self.compNames['nurbsKnot'] = self.nodes['sphere'] + ".knot[1][5]"
+        self.compNames['nurbsRange'] = self.nodes['sphere'] + ".u[2:3]"
 
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
-        self.comps['lattice'] = self.nodes['lattice'] + ".pt[0][1][0]"
+        self.compNames['lattice'] = self.nodes['lattice'] + ".pt[0][1][0]"
+        
+        self.compObjs = {}
+        for compType, compName in self.compNames.iteritems():
+            self.compObjs[compType] = api.toApiObject(compName)[1]
         
     def tearDown(self):
         for node in self.nodes.itervalues():
@@ -320,8 +323,7 @@ class testCase_components(unittest.TestCase):
             flatCompTypes.update(typesList)
         flatCompTypes = flatCompTypes - set([api.ApiTypesToApiEnums()[x] for x in unableToCreate])
         
-        for comp in self.comps.itervalues():
-            compMobj = api.toApiObject(comp)[1]
+        for compMobj in self.compObjs.itervalues():
             #print compMobj.apiTypeStr(), comp
             flatCompTypes.remove(compMobj.apiType())
              
@@ -334,7 +336,7 @@ class testCase_components(unittest.TestCase):
             
     def test_makePyNodes(self):
         failedComps = []
-        for comp in self.comps.itervalues():
+        for comp in self.compNames.itervalues():
             # Need seperate tests for PyNode / Component, b/c was bug where
             # Component('pCube1.vtx[3]') would actually return a Component
             # object, instead of a MeshVertex object, and fail, while
@@ -353,7 +355,26 @@ class testCase_components(unittest.TestCase):
                 failedComps.append(comp + ' (' + ', '.join(failedCreators) + ')')
             
         if failedComps:
-            self.fail('Could not create following components:\n' + '\n'.join(failedComps))
+            self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
+            
+    def test_makeCompFromObject(self):
+        failedComps = []
+
+        for compType, compName in self.compNames.iteritems():
+            compObj = self.compObjs[compType]
+            if compObj.apiType() in ApiEnumsToPyComponents():
+                node = compName.split('.')[0]
+                pymelClass = ApiEnumsToPyComponents()[compObj.apiType()]
+                try:
+                    pymelObj = pymelClass(node)
+                except:
+                    failedComps.append('%s(%r)' % (pymelClass.__name__, node))
+                else:
+                    self.assertEqual(pymelObj.__class__, pymelClass)
+                    
+        if failedComps:
+            self.fail('Could not create the following:\n   ' + '\n   '.join(failedComps))
+            
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
