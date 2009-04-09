@@ -109,12 +109,15 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
     
     return getAllParents, parentFuncWithGenerations
 
-class Component( PyNode ):
+class Component( PyNode):
+    pass
+
+class MItComponent( Component ):
     """
-    Abstract base class for pymel components, such as `MeshEdge`, `MeshVertex`, and `MeshFace`.
- 
+    Abstract base class for pymel components that can be accessed via iterators.
     
-    
+    (ie, `MeshEdge`, `MeshVertex`, and `MeshFace` can be wrapped around
+    MItMeshEdge, etc)
     """
     @staticmethod
     def _formatSlice(startIndex, stopIndex, step):
@@ -387,7 +390,7 @@ class Component( PyNode ):
             return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
 
         
-class MeshEdge( Component ):
+class MeshEdge( MItComponent ):
     __apicls__ = api.MItMeshEdge
     __metaclass__ = _factories.MetaMayaTypeWrapper
     _ComponentLabel__ = 'e'
@@ -453,7 +456,7 @@ class MeshEdge( Component ):
     
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshEdgeComponent  ] = MeshEdge
        
-class MeshVertex( Component ):
+class MeshVertex( MItComponent ):
     __apicls__ = api.MItMeshVertex
     __metaclass__ = _factories.MetaMayaTypeWrapper
     _ComponentLabel__ = 'vtx'
@@ -527,7 +530,7 @@ class MeshVertex( Component ):
             
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshVertComponent ] = MeshVertex  
   
-class MeshFace( Component ):
+class MeshFace( MItComponent ):
     __apicls__ = api.MItMeshPolygon
     __metaclass__ = _factories.MetaMayaTypeWrapper
     _ComponentLabel__ = 'f'
@@ -598,7 +601,7 @@ class MeshFace( Component ):
     
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshPolygonComponent ] = MeshFace
 
-class NurbsCurveCV( Component ):
+class NurbsCurveCV( MItComponent ):
     __apicls__ = api.MItCurveCV
     __metaclass__ = _factories.MetaMayaTypeWrapper
     _ComponentLabel__ = 'cv'

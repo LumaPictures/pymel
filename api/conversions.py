@@ -1573,13 +1573,22 @@ def toMPlug (plugName):
     return plug
 
 def toComponentMObject( dagPath ):
-    """get an MObject representing all components of the passed dagPath"""
+    """
+    get an MObject representing all components of the passed dagPath
+    
+    The component type that will be returned depends on the exact type of
+    object passed in - for instance, a poly mesh will return a component
+    representing all the kMeshVertComponents.
+    
+    The exact choice of component type is determined by MItGeometry.
+    """
     
     component = MObject()
     sel = MSelectionList()
     mit = MItGeometry( dagPath )
     while not mit.isDone():
-        comp = mit.component()
+        # MItGeometry.component is deprecated
+        comp = mit.currentItem()
         # merge is True
         sel.add( dagPath, comp, True )
         mit.next()
