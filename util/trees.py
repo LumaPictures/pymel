@@ -35,34 +35,6 @@ A tree module that can wrap either pure python tree implementation or the networ
 -: 2
 <BLANKLINE>
 -: 3
->>>
->>> # If we set the parent of a forest to an existing tree, the forest
->>> # now refers to that parent element
->>>  
-
->>> # Empty tree testing
->>> emptyTree = Tree()
->>> emptyTree.add(myTree)
->>> emptyTree == myTree
-True
-
->>> emptyTree = Tree()
->>> print bool(emptyTree)  # It's empty, so it's false
-False
->>> otherEmptyTree = Tree()            
->>> otherEmptyTree.parent = emptyTree  # If we add an empty tree to another...
->>> otherEmptyTree == emptyTree        # They're both now the same tree
-True
->>> emptyTree.value = 3        # If we change the value of one...
->>> otherEmptyTree.value       # ...it should change on the other
-3
->>> otherEmptyTree.add(4)      # Similarly, adding a child to one...
->>> emptyTree.view()           # ...should add it on the other
-+: 3
-\--: 4
-
-
-
 """
 # Python implementation inspired from Gonzalo Rodrigues "Trees and more trees" in ASPN cookbook
 
@@ -451,41 +423,34 @@ class MetaTree(type):
                 if parent is specified as a value there must exactly one match in self or an exception will be raised
                 if parent is None, element will be added as a sibling of self's top node(s)
                 if next is not none, element will be added before next in the childs of parent, else as a last childs """
-            if self :
-                if not isinstance(element, self.__class__) :
-                    element = self.__class__(element)
+            if not isinstance(element, self.__class__) :
+                element = self.__class__(element)
+            if parent is None :
+                parent = self._get_parent()
                 if parent is None :
-                    parent = self._get_parent()
-                    if parent is None :
-                        value = self._get_value()
-                        if value is not None :
-                            # if self is not already a forest, make it one
-                            subs = None
-                            if self._subtrees is not None :
-                                subs = list(iter(self._subtrees))                        
-                            selfchild = self.__class__()
-                            selfchild._pRef = weak.ref(self)
-                            selfchild._set_value(value)
-                            selfchild._subtrees = self.__class__._toSubtree(subs)
-                            if subs :
-                                for sub in subs :
-                                    sub._pRef = weak.ref(selfchild)
-                            # must do manually
-                            self._value = None
-                            self._subtrees = self.__class__._toSubtree([selfchild])
-                            # print self.debug()
-                            # print selfchild.debug()
-                        parent = self
-                else :
-                    # parent must be actually a subtree of self, not a subtree of another tree that happens to be equal in value
-                    parent = self[parent]
-                element._set_parent(parent) 
+                    value = self._get_value()
+                    if value is not None :
+                        # if self is not already a forest, make it one
+                        subs = None
+                        if self._subtrees is not None :
+                            subs = list(iter(self._subtrees))                        
+                        selfchild = self.__class__()
+                        selfchild._pRef = weak.ref(self)
+                        selfchild._set_value(value)
+                        selfchild._subtrees = self.__class__._toSubtree(subs)
+                        if subs :
+                            for sub in subs :
+                                sub._pRef = weak.ref(selfchild)
+                        # must do manually
+                        self._value = None
+                        self._subtrees = self.__class__._toSubtree([selfchild])
+                        # print self.debug()
+                        # print selfchild.debug()
+                    parent = self
             else :
-                if isTree(element) :
-                    value = element._get_value()
-                else :
-                    value = element
-                self._set_value(value)
+                # parent must be actually a subtree of self, not a subtree of another tree that happens to be equal in value
+                parent = self[parent]
+            element._set_parent(parent) 
 
         def __cmp__(self, other):
             return cmp(self.value, other.value)
@@ -561,7 +526,8 @@ class MetaTree(type):
             it is the same as though we had unpacked the sequence:
             
             >>> list = (1,('a','b'))
-            >>> Tree(list) == Tree(*list) 
+            >>> Tree(list) == Tree(*list)
+            True
 
             Now, some examples:
 
