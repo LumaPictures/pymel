@@ -268,7 +268,38 @@ class testCase_components(unittest.TestCase):
     def setUp(self):
         self.nodes = {}
         self.comps = {}
+
         self.nodes['cube'] = cmds.polyCube()[0]
+        self.comps['meshVtx'] = self.nodes['cube'] + ".vtx[2]"
+        self.comps['meshEdge'] = self.nodes['cube'] + ".e[1]"
+        #self.comps['meshEdge'] = self.nodes['cube'] + ".edge[1]"   # This just gets the plug, not a kEdgeComponent
+        self.comps['meshFace'] = self.nodes['cube'] + ".f[4]"
+        self.comps['meshUV'] = self.nodes['cube'] + ".map[3]"
+        self.comps['meshVtxFace'] = self.nodes['cube'] + ".vtxFace[3][0]"
+        self.comps['pviot'] = self.nodes['cube'] + ".rotatePivot"
+
+        self.nodes['subdBase'] = cmds.polyCube()[0]
+        self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
+        self.comps['subdCV'] = self.nodes['subd'] + ".smp[0][2]"
+        self.comps['subdEdge'] = self.nodes['subd'] + ".sme[256][1]"
+        self.comps['subdFace'] = self.nodes['subd'] + ".smf[256][0]"
+        self.comps['subdUV'] = self.nodes['subd'] + ".smm[95]"
+
+        self.nodes['curve'] = cmds.circle()[0]
+        self.comps['curveCV'] = self.nodes['curve'] + ".cv[6]"
+        self.comps['curvePt'] = self.nodes['curve'] + ".u[7.26580365007639]"
+        self.comps['curveEP'] = self.nodes['curve'] + ".ep[7]"
+        self.comps['curveKnot'] = self.nodes['curve'] + ".knot[1]"
+
+        self.nodes['sphere'] = cmds.sphere()[0]
+        self.comps['nurbsCV'] = self.nodes['sphere'] + ".cv[2][1]"
+        self.comps['nurbsIso'] = self.nodes['sphere'] + ".v[5.27974050577565]"
+        #self.comps['nurbsPt'] = self.nodes['sphere'] + ".uv[2.50132435444908][5.1327452105745]"  # Also results in kIsoparmComponent
+        self.comps['nurbsPatch'] = self.nodes['sphere'] + ".sf[1][1]"
+        self.comps['nurbsEP'] = self.nodes['sphere'] + ".ep[1][5]"
+        self.comps['nurbsKnot'] = self.nodes['sphere'] + ".knot[1][5]"
+        self.comps['nurbsRange'] = self.nodes['sphere'] + ".u[2:3]"
+
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
         self.comps['lattice'] = self.nodes['lattice'] + ".pt[0][1][0]"
         
@@ -278,14 +309,22 @@ class testCase_components(unittest.TestCase):
                 cmds.delete(node)
             
     def test_allCompsRepresented(self):
+        unableToCreate = ('kEdgeComponent',
+                          'kDecayRegionCapComponent',
+                          'kSetGroupComponent',
+                          'kDynParticleSetComponent',
+                          )
         compTypesDict = self.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
+        flatCompTypes = flatCompTypes - set([api.ApiTypesToApiEnums()[x] for x in unableToCreate])
         
         for comp in self.comps.itervalues():
             compMobj = api.toApiObject(comp)[1]
+            print compMobj.apiTypeStr(), comp
             flatCompTypes.remove(compMobj.apiType())
+             
         
         if flatCompTypes:
             failMsg = "component types not tested:\n"
