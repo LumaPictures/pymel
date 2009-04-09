@@ -186,6 +186,8 @@ class MetaTree(type):
                     # if self is actually a forest, we'll instead parent all childs of self
                     if self._get_value() is not None :
                         subs = [self]
+                    elif self._subtrees is None :
+                        subs = []
                     else :
                         subs = list(iter(self._subtrees))
                     for s in subs :
