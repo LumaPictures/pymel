@@ -1444,33 +1444,33 @@ def treeFromChildLink (isExactChildFn, *args):
     This function will build a tree from the provided sequence and a comparison function in the form:
         cmp(a,b): returns True if a is a direct child of b, False else
         
-    >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'b', 'a', 'bb', 'ab', 'bab', 'bba']
-    >>> def isDirectChild(s1, s2) :
-    ...     return s1.startswith(s2) and len(s1)==len(s2)+1
-    >>> a = treeFromChildLink (isDirectChild, *lst)
-    >>> a.sort()
-    >>> print a.formatted()
-    +: a
-    |-+: aa
-    | \--: aab
-    \-+: ab
-      \--: aba
-    <BLANKLINE>
-    +: b
-    |-+: ba
-    | \--: bab
-    \-+: bb
-      |--: bba
-      \--: bbb
-    >>>
-    >>> # A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
-    >>>
-    >>> def isChild(s1, s2) :
-    ...     return s1.startswith(s2) 
-    >>> failedTree = treeFromChildLink (isChild, *lst)
-    Traceback (most recent call last):
-        ...
-    ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild'
+        >>> lst = ['aab', 'aba', 'aa', 'bbb', 'ba', 'b', 'a', 'bb', 'ab', 'bab', 'bba']
+        >>> def isDirectChild(s1, s2) :
+        ...     return s1.startswith(s2) and len(s1)==len(s2)+1
+        >>> a = treeFromChildLink (isDirectChild, *lst)
+        >>> a.sort()
+        >>> print a.formatted()
+        +: a
+        |-+: aa
+        | \--: aab
+        \-+: ab
+          \--: aba
+        <BLANKLINE>
+        +: b
+        |-+: ba
+        | \--: bab
+        \-+: bb
+          |--: bba
+          \--: bbb
+        >>>
+        >>> # A child cannot have more than one parent, if the isChild is ambiguous an exception will be raised
+        >>>
+        >>> def isChild(s1, s2) :
+        ...     return s1.startswith(s2) 
+        >>> failedTree = treeFromChildLink (isChild, *lst)
+        Traceback (most recent call last):
+            ...
+        ValueError: A child in Tree cannot have multiple parents, check the provided isChild(c, p) function: 'isChild'
     """    
     deq = deque()
     for arg in args :
