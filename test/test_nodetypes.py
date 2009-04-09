@@ -204,7 +204,7 @@ def testInvertibles():
 
 class testCase_components(unittest.TestCase):     
     def getAllComponentEnums(self):
-        
+        pass
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
