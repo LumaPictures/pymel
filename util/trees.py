@@ -1585,55 +1585,55 @@ def treeFromIsChild(isChildFn, *elements):
         childForest.parent = newSubTree
         
     return newTree
-
-class DirTree(Tree):
-    """
-    A tree structure describing a directory hierarchy.
-    """
-    def __init__(self, dir=None):
-        """
-        Creates a DirTree rooted at the given directory
-        
-        Can be initialized by passing in a single argument, which
-        if supplied, must be a path to a directory that exists
-        on the filesystem. 
-
-        If the given directory does not exist on the filesystem,
-        a ValueError is raised.
-        
-        >>> myDirTree = DirTree()
-        >>> myDirTree.value = 'root'
-        >>> myDirTree.add('foo')
-        >>> myDirTree.add('bar', parent='foo')
-        >>> myDirTree.add('other')
-        >>> myDirTree.view()
-        +: root
-        |-+: foo
-        | \--: bar
-        \--: other
-        """
-        if not os.path.isdir(dir):
-            raise ValueError("%s is not a valid directory" % dir)
-            
-        super(DirTree, self).__init__()
-        
-        if dir:
-            basename = ""
-            while not basename and dir:
-                dir, basename = os.path.split(dir)
-            self.value = basename
-            for entry in os.listdir(dir):
-                path = os.path.join(dir, entry)
-                if os.path.isdir(path):
-                    subTree = _pymelDirTree_recurse(path)
-                    self.add(subTree)
-    
-    def dirPath(self, *args, **kwargs):
-        """
-        Returns a string representing the directory path from the root to this element.
-        """
-        dirs = [dir.value for dir in self.path()]
-        return os.path.join(dirs)
+#
+#class DirTree(Tree):
+#    """
+#    A tree structure describing a directory hierarchy.
+#    """
+#    def __init__(self, dir=None):
+#        """
+#        Creates a DirTree rooted at the given directory
+#        
+#        Can be initialized by passing in a single argument, which
+#        if supplied, must be a path to a directory that exists
+#        on the filesystem. 
+#
+#        If the given directory does not exist on the filesystem,
+#        a ValueError is raised.
+#        
+#        >>> myDirTree = DirTree()
+#        >>> myDirTree.value = 'root'
+#        >>> myDirTree.add('foo')
+#        >>> myDirTree.add('bar', parent='foo')
+#        >>> myDirTree.add('other')
+#        >>> myDirTree.view()
+#        +: root
+#        |-+: foo
+#        | \--: bar
+#        \--: other
+#        """
+#        if not os.path.isdir(dir):
+#            raise ValueError("%s is not a valid directory" % dir)
+#            
+#        super(DirTree, self).__init__()
+#        
+#        if dir:
+#            basename = ""
+#            while not basename and dir:
+#                dir, basename = os.path.split(dir)
+#            self.value = basename
+#            for entry in os.listdir(dir):
+#                path = os.path.join(dir, entry)
+#                if os.path.isdir(path):
+#                    subTree = _pymelDirTree_recurse(path)
+#                    self.add(subTree)
+#    
+#    def dirPath(self, *args, **kwargs):
+#        """
+#        Returns a string representing the directory path from the root to this element.
+#        """
+#        dirs = [dir.value for dir in self.path()]
+#        return os.path.join(dirs)
 
 # unit test with doctest
 if __name__ == '__main__' :
