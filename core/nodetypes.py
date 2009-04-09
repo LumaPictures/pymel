@@ -599,7 +599,7 @@ class MeshFace( Component ):
 _factories.ApiEnumsToPyComponents()[api.MFn.kMeshPolygonComponent ] = MeshFace
 
 class NurbsCurveCV( Component ):
-    apicls = api.MItCurveCV
+    __apicls__ = api.MItCurveCV
     __metaclass__ = _factories.MetaMayaTypeWrapper
     _ComponentLabel__ = 'cv'
     def count(self):
