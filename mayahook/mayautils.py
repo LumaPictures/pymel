@@ -764,7 +764,12 @@ def initMEL():
         ]
         try:
             for f in startup:
-                maya.mel.eval( 'source "%s"' % f )
+                if isinstance(f, unicode):
+                    encoding = 'unicode_escape'
+                else:
+                    encoding = 'string_escape'
+                # need to encode backslashes (used for windows paths)
+                maya.mel.eval( 'source "%s"' % f.encode(encoding) )
                 
         except Exception, e:
             _logger.error( "could not perform maya initialization sequence: failed on %s: %s" % ( f, e) )
