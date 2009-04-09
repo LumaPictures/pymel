@@ -205,21 +205,28 @@ def testInvertibles():
 class testCase_components(unittest.TestCase):
     @staticmethod     
     def getComponentTypes():
-        mfnTypeComps = (api.MFnComponent(),
-                        api.MFnSingleIndexedComponent(),
+        def compTypeStr(mfnCompObj):
+            return api.ApiEnumsToApiTypes()[mfnCompObj.type()]
+        
+        mfnCompBase = api.MFnComponent()
+        mfnCompTypes = (api.MFnSingleIndexedComponent(),
                         api.MFnDoubleIndexedComponent(),
                         api.MFnTripleIndexedComponent(),
                         api.MFnUint64SingleIndexedComponent())
         
         componentTypes = {}
+        for compType in mfnCompTypes + (mfnCompBase,):
+            componentTypes[compTypeStr(compType)] = []
 
         for apiEnum in api.ApiEnumsToApiTypes():
-            for compType in mfnTypeComps:
-                if compType.hasObj(apiEnum):
-                    apiEnumString = api.ApiEnumsToApiTypes()[apiEnum]
-                    compTypeString = api.ApiEnumsToApiTypes()[compType.type()]
-                    #print "%s was a %s" % (apiEnumString, compTypeString)
-                    componentTypes.setdefault(apiEnumString, []).append(compTypeString)
+            if mfnCompBase.hasObj(apiEnum):
+                apiEnumString = api.ApiEnumsToApiTypes()[apiEnum]
+                for compType in mfnCompTypes:
+                    if compType.hasObj(apiEnum):
+                        break
+                else:
+                    compType = mfnCompBase
+                componentTypes[compTypeStr(compType)].append(apiEnumString)
                     
         return componentTypes
     
