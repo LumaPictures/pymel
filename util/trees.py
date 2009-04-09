@@ -556,6 +556,12 @@ class MetaTree(type):
 
             If there are multiple nodes, then a forest is returned, with each node
             representing a root.
+            
+            For speed and ease of use, if there is only a single argument, and it is a sequence,
+            it is the same as though we had unpacked the sequence:
+            
+            >>> list = (1,('a','b'))
+            >>> Tree(list) == Tree(*list) 
 
             Now, some examples:
 
@@ -647,6 +653,10 @@ class MetaTree(type):
                 pRef = weak.ref(parent)
             else :
                 pRef = None
+                
+            if len(args) == 1 and isSequence(args[0]):
+                args = args[0]
+                
             roots = []
             previousWasValue = False
             for arg in args :
