@@ -322,7 +322,7 @@ class testCase_components(unittest.TestCase):
         
         for comp in self.comps.itervalues():
             compMobj = api.toApiObject(comp)[1]
-            print compMobj.apiTypeStr(), comp
+            #print compMobj.apiTypeStr(), comp
             flatCompTypes.remove(compMobj.apiType())
              
         
@@ -331,6 +331,13 @@ class testCase_components(unittest.TestCase):
             for x in flatCompTypes:
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
+            
+    def test_makePyNodes(self):
+        for comp in self.comps.itervalues():
+            try:
+                PyNode(comp)
+            except:
+                self.fail('Could not create PyNode(%r)' % comp)
         
     
 #def test_units():
