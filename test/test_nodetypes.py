@@ -201,8 +201,11 @@ def testInvertibles():
             delete( obj )
         except:
             pass
-             
 
+class testCase_components(unittest.TestCase):     
+    def getAllComponentEnums(self):
+        
+    
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
 #    
