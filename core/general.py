@@ -1266,10 +1266,11 @@ class PyNode(util.ProxyUnicode):
             # There is one exception type:  MeshVertex( Mesh( 'pSphere1') )
             # TODO : can add object creation option in the __init__ if desired
             
-            if issubclass( cls, nodetypes.Component ):
-                newcls = cls
-            elif not issubclass( pymelType, cls ):
-                raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % ( pymelType.__name__, cls.__name__ )
+            if not issubclass( pymelType, cls ):
+                if issubclass( cls, nodetypes.Component ):
+                    newcls = cls
+                else:
+                    raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % ( pymelType.__name__, cls.__name__ )
             else:
                 newcls = pymelType
         else :
