@@ -1266,7 +1266,7 @@ class PyNode(util.ProxyUnicode):
             # There is one exception type:  MeshVertex( Mesh( 'pSphere1') )
             # TODO : can add object creation option in the __init__ if desired
             
-            if not issubclass( pymelType, cls ):
+            if not pymelType or not issubclass( pymelType, cls ):
                 if issubclass( cls, nodetypes.Component ):
                     newcls = cls
                 else:

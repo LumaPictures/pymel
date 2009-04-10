@@ -390,9 +390,7 @@ class testCase_components(unittest.TestCase):
         cubeShape1 = PyNode('cubeShape1')
         cubeShape1.vtx[1]
         """
-        splitCompName = compName.split('.') 
-        nodeName = splitCompName[:1]
-        dotCompName = '.'.join(splitCompName[1:])
+        nodeName = compName.split('.')[0]
         exec '%s = PyNode(%r)' % (nodeName, nodeName)
         exec compName
 
