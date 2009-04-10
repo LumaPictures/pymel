@@ -3447,7 +3447,17 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
     @classmethod
     def getMelCmd(mcl, classdict):
         return classdict['__melui__'], False
-        
+    
+class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
+    """
+    A metaclass for creating components.
+    """
+    def __new__(mcl, classname, bases, classdict):
+        newcls = super(MetaMayaComponentWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        apienum = getattr(newcls, '_apienum__', None) 
+        if apienum:
+            ApiEnumsToPyComponents()[apienum] = newcls
+        return newcls
     
 def getValidApiMethods( apiClassName, api, verbose=False ):
 

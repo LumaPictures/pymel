@@ -115,14 +115,16 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 # Implement makeComponentFromIndex - have it return an MObject handle
 # Implement auto adding to ApiEnumsToPyComponents for comp types not explicitly defined
 # Implement auto generation of PyComponentsToApiEnums
+# Implement multiple component labels! (ie, surface iso can be 'u' or 'v')
 class Component( PyNode ):
     """
     Abstract base class for pymel components.
     """
     
     __apicls__ = api.MFnComponent
-    __metaclass__ = MetaMayaTypeWrapper
+    __metaclass__ = MetaMayaComponentWrapper
     _ComponentLabel__ = None
+    _apienum__ = None
 
     @classmethod
     def printComponentTypes(cls):
@@ -238,13 +240,16 @@ class Component( PyNode ):
         
         # if still no component, give up
         if not component or not api.isValidMObjectHandle(component):
-            raise TypeError("Cannot create a %r on node %r without an index" % (self.__class__.__name__, self.node.name())) 
-        
-        if 'MObjectHandle' not in self.__apiobjects__.get(, None):
-            self.__apiobjects__['MObjectHandle'] = component
-
-        # instantiate the MFnComponent
-        self.__apiobjects__['MFn'] = self.__apicls__(component.object())
+            self._mfnCompInitialized = False
+            
+        else:
+            if 'MObjectHandle' not in self.__apiobjects__.get(, None):
+                self.__apiobjects__['MObjectHandle'] = component
+    
+            # instantiate the MFnComponent
+            self.__apiobjects__['MFn'] = self.__apicls__(component.object())
+            self._mfnCompInitialized = True
+            
         
     # TODO: implement!
     def makeComponentFromIndex(self, indexObj):
@@ -262,39 +267,99 @@ class Component2D( Component ):
 class Component3D( Component ):
     __apicls__ = api.MFnTripleIndexedComponent
 
+
+## Specific Components...
+
+## Mesh Components
+
 class MeshVertex( Component1D ):
     _ComponentLabel__ = "vtx"
-        # Output
-    #        kComponent :
-    #             kCurveParamComponent
-    #             kIsoparmComponent
-    #             kPivotComponent
-    #             kEdgeComponent
-    #             kSurfaceRangeComponent
-    #             kDecayRegionCapComponent
-    #             kSetGroupComponent
-    #        kSingleIndexedComponent :
-    #             kCurveCVComponent
-    #             kCurveEPComponent
-    #             kCurveKnotComponent
-    #             kMeshEdgeComponent
-    #             kMeshPolygonComponent
-    #             kMeshVertComponent
-    #             kDynParticleSetComponent
-    #             kMeshMapComponent
-    #             kSubdivMapComponent
-    #        kDoubleIndexedComponent :
-    #             kSurfaceCVComponent
-    #             kSurfaceEPComponent
-    #             kSurfaceKnotComponent
-    #             kMeshVtxFaceComponent
-    #             kSurfaceFaceComponent
-    #        kTripleIndexedComponent :
-    #             kLatticeComponent
-    #        kUint64SingleIndexedComponent :
-    #             kSubdivCVComponent
-    #             kSubdivEdgeComponent
-    #             kSubdivFaceComponent        
+    _apiEnum__ = api.MFn.kMeshVertComponent
+
+class MeshEdge( Component1D ):
+    _ComponentLabel__ = "e"
+    _apiEnum__ = api.MFn.kMeshEdgeComponent
+    
+class MeshFace( Component1D ):
+    _ComponentLabel__ = "f"
+    _apiEnum__ = api.MFn.kMeshPolygonComponent
+
+class MeshUV( Component1D ):
+    _ComponentLabel__ = "map"
+    _apiEnum__ = api.MFn.kMeshMapComponent
+
+class MeshVertexFace( Component2D ):
+    _ComponentLabel__ = "vtxFace"
+    _apiEnum__ = api.MFn.kMeshVtxFaceComponent
+    
+## Subd Components    
+
+class SubdVertex( Component1D64 ):
+    _ComponentLabel__ = "smp"
+    _apiEnum__ = api.MFn.kSubdivCVComponent
+
+class SubdEdge( Component1D64 ):
+    _ComponentLabel__ = "sme"
+    _apiEnum__ = api.MFn.kSubdivEdgeComponent
+    
+class SubdFace( Component1D64 ):
+    _ComponentLabel__ = "smf"
+    _apiEnum__ = api.MFn.kSubdivFaceComponent
+
+class SubdUV( Component1D ):
+    _ComponentLabel__ = "smm"
+    _apiEnum__ = api.MFn.kSubdivMapComponent
+
+## Nurbs Curve Components
+
+class NurbsCurveParameter( Component ):
+    _ComponentLabel__ = "u"
+    _apiEnum__ = api.MFn.kCurveParamComponent
+
+class NurbsCurveCV( Component1D ):
+    _ComponentLabel__ = "cv"
+    _apiEnum__ = api.MFn.kCurveCVComponent
+    
+class NurbsCurveEP( Component1D ):
+    _ComponentLabel__ = "ep"
+    _apiEnum__ = api.MFn.kCurveEPComponent
+    
+class NurbsCurveKnot( Component1D ):
+    _ComponentLabel__ = "knot"
+    _apiEnum__ = api.MFn.kCurveKnotComponent
+    
+## NurbsSurface Components
+
+class NurbsSurfaceIsoparm( Component ):
+    _ComponentLabel__ = "u"
+    _apiEnum__ = api.MFn.kIsoparmComponent
+
+class NurbsSurfaceRange( Component ):
+    _ComponentLabel__ = "u"
+    _apiEnum__ = api.MFn.kSurfaceRangeComponent
+
+class NurbsSurfaceCV( Component2D ):
+    _ComponentLabel__ = "cv"
+    _apiEnum__ = api.MFn.kSurfaceCVComponent
+    
+class NurbsSurfaceEP( Component2D ):
+    _ComponentLabel__ = "ep"
+    _apiEnum__ = api.MFn.kSurfaceEPComponent
+    
+class NurbsSurfaceKnot( Component2D ):
+    _ComponentLabel__ = "knot"
+    _apiEnum__ = api.MFn.kSurfaceKnotComponent
+
+class NurbsSurfaceFace( Component2D ):
+    _ComponentLabel__ = "sf"
+    _apiEnum__ = api.MFn.kSurfaceFaceComponent
+    
+## Lattice Components
+
+class LatticePoint( Component3D ):
+    _ComponentLabel__ = "pt"
+    _apiEnum__ = api.MFn.kLatticeComponent
+        
 #
 #class MItComponent( Component ):
 #    """
