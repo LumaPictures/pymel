@@ -109,10 +109,21 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
     
     return getAllParents, parentFuncWithGenerations
 
+
+# TODO:
+# -----
+# Implement makeComponentFromIndex - have it return an MObject handle
+# Implement auto adding to ApiEnumsToPyComponents for comp types not explicitly defined
+# Implement auto generation of PyComponentsToApiEnums
 class Component( PyNode):
     """
     Abstract base class for pymel components.
     """
+    
+    __apicls__ = api.MFnComponent
+    __metaclass__ = MetaMayaTypeWrapper
+    _ComponentLabel__ = None
+    
     # Implementation wise, this will wrap MFnComponent
 
     @staticmethod
@@ -141,22 +152,18 @@ class Component( PyNode):
         return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
     
     def __init__(self, *args, **kwargs ):
-        isApiComponent = False 
         component = None
-        newargs = []
-        print "self._node:", self._node
-        print "self.__apiobjects__:", self.__apiobjects__
+
         # the Component class can be instantiated several ways:
         # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
         if self._node :
-            newargs.append( self._node.__apimdagpath__() )
-            try:
-                component = self.__apiobjects__['MObjectHandle']
-                if api.isValidMObjectHandle( component ): 
-                    newargs.append( component.object() )  
-                    isApiComponent = True
-            except KeyError:
-                component = self.__apiobjects__['ComponentIndex']
+            self.__apiobjects__['MDagPath'] = self._node.__apiobjects__['MDagPath']
+            component = self.__apiobjects__.get('MObjectHandle', None)
+            if component:
+                if not api.isValidMObjectHandle( component):
+                    raise RuntimeError("Error creating %s(*%r, **r): invalid MObjectHandle" % (self.__class__.__name__, args, kwargs))
+            elif 'ComponentIndex' in self.__apiobjects__: 
+                component = self.makeComponentFromIndex(self.__apiobjects__['ComponentIndex']);
             
         # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
         else:
@@ -164,18 +171,27 @@ class Component( PyNode):
             newargs = [dag]
             self._node = PyNode(dag)
             
+        # At this point, should have self._node and self.__apiobjects__['MDagPath']...
+        assert(self._node and self.__apiobjects['MDagPath'])
+        
         #print "ARGS", newargs   
 
-        # DEFAULTS
-        self._range = None # a list of component indices
-        self._rangeIndex = 0 # an index into the range
-        self._sliceStr = ''
-        self._slices = None
+        # instantiate the MFnComponent
+        if component:
+            mfnComp = self.__apicls__(component)
+        # We weren't given an mobject - need to make one somehow
+        # try making from MFnComponent.create, if apicls has it defined
+        elif 'create' in dir(self.__apicls__):
+            apiEnums = PyComponentsToApiEnums().get([self.__class__], None)
+            if apiEnums is not None and len(apiEnums) == 1:
+                component = self.__apicls__().create(apiEnums[0])
+                if api.isValidMObject(component):
+                    component = api.MObjectHandle(component)
+                else:
+                    component = None
         
-        stopIndex = 0
-        self.isReset = True # if the iterator is at its first item
-   
-        # instantiate the api component iterator    
+        if not component: 
+                
         self.__apiobjects__['MFn'] = self.__apicls__(*newargs )
         
         
@@ -251,6 +267,11 @@ class Component( PyNode):
         #self._node = node
         #self._comp = component
         self._comp = component
+        
+        
+    # TODO: implement!
+    def makeComponentFromIndex(self, indexObj):
+        return None
 
 
 class MItComponent( Component ):
