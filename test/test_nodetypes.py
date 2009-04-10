@@ -340,7 +340,6 @@ class testCase_components(unittest.TestCase):
 
         self.nodes['cube'] = cmds.polyCube()[0]
         self.compData['meshVtx'] = ComponentData(self.nodes['cube'], "vtx", 2)
-        self.compData['meshVtx'] = ComponentData(self.nodes['cube'], "vtx", 2)
         self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "e", 1)
         #self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "edge", 1)   # This just gets the plug, not a kEdgeComponent
         self.compData['meshFace'] = ComponentData(self.nodes['cube'], "f", 4)
