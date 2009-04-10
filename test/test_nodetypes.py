@@ -203,12 +203,55 @@ def testInvertibles():
 
 # TODO: add tests for slices
 
+class ComponentData(object):
+    """
+    Stores data handy for creating / testing a component.
+    """
+    def __init__(self, nodeName, compName, indices, sliceIndices=None):
+        self.nodeName = nodeName
+        self.compName = compName
+        self.indices = indices
+        if isinstance(self.indices, (int, float, basestring)):
+            self.indices = (self.indices,)
+        self.sliceIndices = sliceIndices
+        
+        if self.indices:
+            compObjStr = self.indexedComp()
+        else:
+            compObjStr = self.fullComp()
+        self._compObj = api.toApiObject(compObjStr)[1]    
+        
+    def fullComp(self):
+        return self.nodeName + "." + self.compName
+    
+    def _makeIndicesString(self, indexObjs):
+        return ''.join(['[%s]' % x for x in indexObjs])
+    
+    def indexedComp(self):
+        if not self.indices:
+            raise ValueError("no indices stored - %s" % self.fullComp())
+        return self.fullComp() + self._makeIndicesString(self.indices)
+    
+    def slicedComp(self):
+        if not self.sliceIndices:
+            raise ValueError("no slices stored - %s" % self.fullComp())
+        return self.fullComp() + self._makeIndicesString(self.sliceIndices)
+    
+    def typeEnum(self):
+        return self._compObj.apiType()
+
+    def typeName(self):
+        return self._compObj.apiTypeStr()
+
+
 def makePynodeCreationTests(compCreator):
     """
     Outputs a function suitable for use as a unittest test that test creation of components.
     
-    For every component in self.compNames / compObjs, it will call 'compCreator(self, compName, compObj)'.
-    compCreator should try to create a component, and raise an exception if it fails.
+    For every component in self.compNames / compObjs, it will call 'compCreator(self, componentData)'.
+    compCreator should try to create a component; if it succeeds, it should return an object which 
+    evaluates as false; if it fails, it should return a string to print, identifying the component
+    it failed to make.
     
     If any component cannot be created, the test will fail, and output a list of the components that
     could not be made in the fail message.
@@ -216,13 +259,10 @@ def makePynodeCreationTests(compCreator):
     
     def test_makePyNodes(self):
         failedComps = []
-        for compType in self.compNames:
-            compName = self.compNames[compType]
-            compObj = self.compObjs[compType]
-            try:
-                compCreator(self, compName, compObj)
-            except:
-                failedComps.append("%s (%s)" % (compName, compObj.apiTypeStr() ))                
+        for compDatum in self.compData.itervalues():
+            result = compCreator(self, compDatum)
+            if result:
+                failedComps.append(result)                
             
         if failedComps:
             self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
@@ -293,46 +333,45 @@ class testCase_components(unittest.TestCase):
                 print "    ", api.ApiEnumsToApiTypes()[exactComp]
     
     def setUp(self):
+        newFile(f=1)
+
         self.nodes = {}
-        self.compNames = {}
+        self.compData= {}
 
         self.nodes['cube'] = cmds.polyCube()[0]
-        self.compNames['meshVtx'] = self.nodes['cube'] + ".vtx[2]"
-        self.compNames['meshEdge'] = self.nodes['cube'] + ".e[1]"
-        #self.compNames['meshEdge'] = self.nodes['cube'] + ".edge[1]"   # This just gets the plug, not a kEdgeComponent
-        self.compNames['meshFace'] = self.nodes['cube'] + ".f[4]"
-        self.compNames['meshUV'] = self.nodes['cube'] + ".map[3]"
-        self.compNames['meshVtxFace'] = self.nodes['cube'] + ".vtxFace[3][0]"
-        self.compNames['pviot'] = self.nodes['cube'] + ".rotatePivot"
+        self.compData['meshVtx'] = ComponentData(self.nodes['cube'], "vtx", 2)
+        self.compData['meshVtx'] = ComponentData(self.nodes['cube'], "vtx", 2)
+        self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "e", 1)
+        #self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "edge", 1)   # This just gets the plug, not a kEdgeComponent
+        self.compData['meshFace'] = ComponentData(self.nodes['cube'], "f", 4)
+        self.compData['meshUV'] = ComponentData(self.nodes['cube'], "map", 3)
+        self.compData['meshVtxFace'] = ComponentData(self.nodes['cube'], "vtxFace", (3,0))
+        self.compData['pivot'] = ComponentData(self.nodes['cube'], "rotatePivot", None)
 
         self.nodes['subdBase'] = cmds.polyCube()[0]
         self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
-        self.compNames['subdCV'] = self.nodes['subd'] + ".smp[0][2]"
-        self.compNames['subdEdge'] = self.nodes['subd'] + ".sme[256][1]"
-        self.compNames['subdFace'] = self.nodes['subd'] + ".smf[256][0]"
-        self.compNames['subdUV'] = self.nodes['subd'] + ".smm[95]"
+        self.compData['subdCV'] = ComponentData(self.nodes['subd'], "smp", (0,2))
+        self.compData['subdEdge'] = ComponentData(self.nodes['subd'], "sme", (256,1))
+        self.compData['subdFace'] = ComponentData(self.nodes['subd'], "smf", (256,0))
+        self.compData['subdUV'] = ComponentData(self.nodes['subd'], "smm", 95)
 
         self.nodes['curve'] = cmds.circle()[0]
-        self.compNames['curveCV'] = self.nodes['curve'] + ".cv[6]"
-        self.compNames['curvePt'] = self.nodes['curve'] + ".u[7.26580365007639]"
-        self.compNames['curveEP'] = self.nodes['curve'] + ".ep[7]"
-        self.compNames['curveKnot'] = self.nodes['curve'] + ".knot[1]"
+        self.compData['curveCV'] = ComponentData(self.nodes['curve'], "cv", 6)
+        self.compData['curvePt'] = ComponentData(self.nodes['curve'], "u", 7.26580365007639)
+        self.compData['curveEP'] = ComponentData(self.nodes['curve'], "ep", 7)
+        self.compData['curveKnot'] = ComponentData(self.nodes['curve'], "knot", 1)
 
         self.nodes['sphere'] = cmds.sphere()[0]
-        self.compNames['nurbsCV'] = self.nodes['sphere'] + ".cv[2][1]"
-        self.compNames['nurbsIso'] = self.nodes['sphere'] + ".v[5.27974050577565]"
-        #self.compNames['nurbsPt'] = self.nodes['sphere'] + ".uv[2.50132435444908][5.1327452105745]"  # Also results in kIsoparmComponent
-        self.compNames['nurbsPatch'] = self.nodes['sphere'] + ".sf[1][1]"
-        self.compNames['nurbsEP'] = self.nodes['sphere'] + ".ep[1][5]"
-        self.compNames['nurbsKnot'] = self.nodes['sphere'] + ".knot[1][5]"
-        self.compNames['nurbsRange'] = self.nodes['sphere'] + ".u[2:3]"
+        self.compData['nurbsCV'] = ComponentData(self.nodes['sphere'], "cv", (2,1))
+        self.compData['nurbsIso'] = ComponentData(self.nodes['sphere'], "v", 5.27974050577565)
+        #self.compData['nurbsPt'] = ComponentData(self.nodes['sphere'], "uv", (2.50132435444908,5.1327452105745))  # Also results in kIsoparmComponent
+        self.compData['nurbsPatch'] = ComponentData(self.nodes['sphere'], "sf", (1,1))
+        self.compData['nurbsEP'] = ComponentData(self.nodes['sphere'], "ep", (1,5))
+        self.compData['nurbsKnot'] = ComponentData(self.nodes['sphere'], "knot", (1,5))
+        self.compData['nurbsRange'] = ComponentData(self.nodes['sphere'], "u", '2:3')
 
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
-        self.compNames['lattice'] = self.nodes['lattice'] + ".pt[0][1][0]"
-        
-        self.compObjs = {}
-        for compType, compName in self.compNames.iteritems():
-            self.compObjs[compType] = api.toApiObject(compName)[1]
+        self.compData['lattice'] = ComponentData(self.nodes['lattice'], "pt", (0,1,0))
         
     def tearDown(self):
         for node in self.nodes.itervalues():
@@ -351,10 +390,8 @@ class testCase_components(unittest.TestCase):
             flatCompTypes.update(typesList)
         flatCompTypes = flatCompTypes - set([api.ApiTypesToApiEnums()[x] for x in unableToCreate])
         
-        for compMobj in self.compObjs.itervalues():
-            #print compMobj.apiTypeStr(), comp
-            flatCompTypes.remove(compMobj.apiType())
-             
+        for compDatum in self.compData.itervalues():
+            flatCompTypes.remove(compDatum.typeEnum())
         
         if flatCompTypes:
             failMsg = "component types not tested:\n"
@@ -368,31 +405,50 @@ class testCase_components(unittest.TestCase):
     # PyNode('pCube1.vtx[3]') would succeed
     
     @makePynodeCreationTests
-    def test_makeComps_PyNode(self, compName, compObj):
-        PyNode(compName)
+    def test_makeIndexedComps_PyNode(self, compData):
+        if compData.indices:
+            execString = 'PyNode(%r)' % compData.indexedComp()
+            try:
+                exec execString
+            except:
+                return execString
         
     @makePynodeCreationTests
-    def test_makeComps_Component(self, compName, compObj):
-        Component(compName)
+    def test_makeIndexedComps_Component(self, compData):
+        if compData.indices:
+            execString = 'Component(%r)' % compData.indexedComp()
+            try:
+                exec execString
+            except:
+                return execString
 
     @makePynodeCreationTests
-    def test_makeCompFromObject(self, compName, compObj):
-        if compObj.apiType() in ApiEnumsToPyComponents():
-            node = compName.split('.')[0]
-            pymelClass = ApiEnumsToPyComponents()[compObj.apiType()]
-            pymelObj = pymelClass(node)
-            self.assertEqual(pymelObj.__class__, pymelClass)
+    def test_makeCompFromObject(self, compData):
+        """
+        ie, MeshVertexComponent('pCube1')
+        """
+        pymelClass = ApiEnumsToPyComponents().get(compData.typeEnum(), None)
+        if pymelClass:
+            try:
+                pymelObj = pymelClass(compData.nodeName)
+            except:
+                return '%s(%r)' % (pymelClass.__name__, compData.nodeName)
+            else:
+                self.assertEqual(pymelObj.__class__, pymelClass)
             
     @makePynodeCreationTests
-    def test_makeCompFromNodeDotComptypeIndex(self, compName, compObj):
+    def test_node_dot_comptypeIndex(self, compData):
         """
-        if compName is 'cubeShape1.vtx[1]', will try:
+        if 'cubeShape1.vtx[1]', will try:
         cubeShape1 = PyNode('cubeShape1')
         cubeShape1.vtx[1]
         """
-        nodeName = compName.split('.')[0]
-        exec '%s = PyNode(%r)' % (nodeName, nodeName)
-        exec compName
+        if compData.indices:
+            exec '%s = PyNode(%r)' % (compData.nodeName, compData.nodeName)
+            try:
+                exec compData.indexedComp()
+            except:
+                return compData.indexedComp()
 
 
     
