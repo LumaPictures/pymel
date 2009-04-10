@@ -412,6 +412,15 @@ class testCase_components(unittest.TestCase):
                 exec execString
             except:
                 return execString
+            
+    @makePynodeCreationTests
+    def test_makeComps_PyNode(self, compData):
+        if compData.indices:
+            execString = 'PyNode(%r)' % compData.fullComp()
+            try:
+                exec execString
+            except:
+                return execString            
         
     @makePynodeCreationTests
     def test_makeIndexedComps_Component(self, compData):
@@ -421,6 +430,15 @@ class testCase_components(unittest.TestCase):
                 exec execString
             except:
                 return execString
+            
+    @makePynodeCreationTests
+    def test_makeComps_Component(self, compData):
+        if compData.indices:
+            execString = 'Component(%r)' % compData.fullComp()
+            try:
+                exec execString
+            except:
+                return execString            
 
     @makePynodeCreationTests
     def test_makeCompFromObject(self, compData):
@@ -449,8 +467,6 @@ class testCase_components(unittest.TestCase):
                 exec compData.indexedComp()
             except:
                 return compData.indexedComp()
-
-
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
