@@ -271,67 +271,6 @@ def makePynodeCreationTests(compCreator):
     return test_makePyNodes
 
 class testCase_components(unittest.TestCase):
-    @classmethod     
-    def getComponentTypes(cls):
-        mfnCompBase = api.MFnComponent()
-        mfnCompTypes = (api.MFnSingleIndexedComponent(),
-                        api.MFnDoubleIndexedComponent(),
-                        api.MFnTripleIndexedComponent(),
-                        api.MFnUint64SingleIndexedComponent())
-        
-        componentTypes = {}
-        for compType in mfnCompTypes + (mfnCompBase,):
-            componentTypes[compType.type()] = []
-
-        for apiEnum in api.ApiEnumsToApiTypes():
-            if mfnCompBase.hasObj(apiEnum):
-                for compType in mfnCompTypes:
-                    if compType.hasObj(apiEnum):
-                        break
-                else:
-                    compType = mfnCompBase
-                componentTypes[compType.type()].append(apiEnum)
-                    
-        return componentTypes
-    
-    @classmethod
-    def printComponentTypes(cls):
-        # Output
-#        kComponent :
-#             kCurveParamComponent
-#             kIsoparmComponent
-#             kPivotComponent
-#             kEdgeComponent
-#             kSurfaceRangeComponent
-#             kDecayRegionCapComponent
-#             kSetGroupComponent
-#        kSingleIndexedComponent :
-#             kCurveCVComponent
-#             kCurveEPComponent
-#             kCurveKnotComponent
-#             kMeshEdgeComponent
-#             kMeshPolygonComponent
-#             kMeshVertComponent
-#             kDynParticleSetComponent
-#             kMeshMapComponent
-#             kSubdivMapComponent
-#        kDoubleIndexedComponent :
-#             kSurfaceCVComponent
-#             kSurfaceEPComponent
-#             kSurfaceKnotComponent
-#             kMeshVtxFaceComponent
-#             kSurfaceFaceComponent
-#        kTripleIndexedComponent :
-#             kLatticeComponent
-#        kUint64SingleIndexedComponent :
-#             kSubdivCVComponent
-#             kSubdivEdgeComponent
-#             kSubdivFaceComponent        
-        compTypes = cls.getComponentTypes()
-        for compType, compList in compTypes.iteritems():
-            print api.ApiEnumsToApiTypes()[compType], ":"
-            for exactComp in compList:
-                print "    ", api.ApiEnumsToApiTypes()[exactComp]
     
     def setUp(self):
         newFile(f=1)
@@ -384,7 +323,7 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = self.getComponentTypes()
+        compTypesDict = api.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)

@@ -1634,7 +1634,29 @@ def nameToMObject( *args ):
         return result[0]
     else :
         return tuple(result)
+
+def getComponentTypes():
+    mfnCompBase = MFnComponent()
+    mfnCompTypes = (MFnSingleIndexedComponent(),
+                    MFnDoubleIndexedComponent(),
+                    MFnTripleIndexedComponent(),
+                    MFnUint64SingleIndexedComponent())
     
+    componentTypes = {}
+    for compType in mfnCompTypes + (mfnCompBase,):
+        componentTypes[compType.type()] = []
+
+    for apiEnum in ApiEnumsToApiTypes():
+        if mfnCompBase.hasObj(apiEnum):
+            for compType in mfnCompTypes:
+                if compType.hasObj(apiEnum):
+                    break
+            else:
+                compType = mfnCompBase
+            componentTypes[compType.type()].append(apiEnum)
+                
+    return componentTypes
+
     
 # wrap of api iterators
 
