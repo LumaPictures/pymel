@@ -201,6 +201,34 @@ def testInvertibles():
         except:
             pass
 
+# TODO: add tests for slices
+
+def makePynodeCreationTests(compCreator):
+    """
+    Outputs a function suitable for use as a unittest test that test creation of components.
+    
+    For every component in self.compNames / compObjs, it will call 'compCreator(self, compName, compObj)'.
+    compCreator should try to create a component, and raise an exception if it fails.
+    
+    If any component cannot be created, the test will fail, and output a list of the components that
+    could not be made in the fail message.
+    """
+    
+    def test_makePyNodes(self):
+        failedComps = []
+        for compType in self.compNames:
+            compName = self.compNames[compType]
+            compObj = self.compObjs[compType]
+            try:
+                compCreator(self, compName, compObj)
+            except:
+                failedComps.append("%s (%s)" % (compName, compObj.apiTypeStr() ))                
+            
+        if failedComps:
+            self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
+            
+    return test_makePyNodes
+
 class testCase_components(unittest.TestCase):
     @classmethod     
     def getComponentTypes(cls):
@@ -333,48 +361,42 @@ class testCase_components(unittest.TestCase):
             for x in flatCompTypes:
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
-            
-    def test_makePyNodes(self):
-        failedComps = []
-        for comp in self.compNames.itervalues():
-            # Need seperate tests for PyNode / Component, b/c was bug where
-            # Component('pCube1.vtx[3]') would actually return a Component
-            # object, instead of a MeshVertex object, and fail, while
-            # PyNode('pCube1.vtx[3]') would succeed
-            failedCreators = []
-            try:
-                PyNode(comp)
-            except:
-                failedCreators.append('PyNode')
-            
-            try:
-                Component(comp)
-            except:
-                failedCreators.append('Component')
-            if failedCreators:
-                failedComps.append(comp + ' (' + ', '.join(failedCreators) + ')')
-            
-        if failedComps:
-            self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
-            
-    def test_makeCompFromObject(self):
-        failedComps = []
 
-        for compType, compName in self.compNames.iteritems():
-            compObj = self.compObjs[compType]
-            if compObj.apiType() in ApiEnumsToPyComponents():
-                node = compName.split('.')[0]
-                pymelClass = ApiEnumsToPyComponents()[compObj.apiType()]
-                try:
-                    pymelObj = pymelClass(node)
-                except:
-                    failedComps.append('%s(%r)' % (pymelClass.__name__, node))
-                else:
-                    self.assertEqual(pymelObj.__class__, pymelClass)
-                    
-        if failedComps:
-            self.fail('Could not create the following:\n   ' + '\n   '.join(failedComps))
+    # Need seperate tests for PyNode / Component, b/c was bug where
+    # Component('pCube1.vtx[3]') would actually return a Component
+    # object, instead of a MeshVertex object, and fail, while
+    # PyNode('pCube1.vtx[3]') would succeed
+    
+    @makePynodeCreationTests
+    def test_makeComps_PyNode(self, compName, compObj):
+        PyNode(compName)
+        
+    @makePynodeCreationTests
+    def test_makeComps_Component(self, compName, compObj):
+        Component(compName)
+
+    @makePynodeCreationTests
+    def test_makeCompFromObject(self, compName, compObj):
+        if compObj.apiType() in ApiEnumsToPyComponents():
+            node = compName.split('.')[0]
+            pymelClass = ApiEnumsToPyComponents()[compObj.apiType()]
+            pymelObj = pymelClass(node)
+            self.assertEqual(pymelObj.__class__, pymelClass)
             
+    @makePynodeCreationTests
+    def test_makeCompFromNodeDotComptypeIndex(self, compName, compObj):
+        """
+        if compName is 'cubeShape1.vtx[1]', will try:
+        cubeShape1 = PyNode('cubeShape1')
+        cubeShape1.vtx[1]
+        """
+        splitCompName = compName.split('.') 
+        nodeName = splitCompName[:1]
+        dotCompName = '.'.join(splitCompName[1:])
+        exec '%s = PyNode(%r)' % (nodeName, nodeName)
+        exec compName
+
+
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
