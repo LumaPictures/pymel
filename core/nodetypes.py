@@ -10,7 +10,7 @@ import inspect, itertools, math
 
 import pymel.util as util
 import factories as _factories
-from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
+from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper, MetaMayaComponentWrapper
 import pymel.api as api
 import datatypes
 import pymel.util.nameparse as nameparse
@@ -116,6 +116,9 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 # Implement auto adding to ApiEnumsToPyComponents for comp types not explicitly defined
 # Implement auto generation of PyComponentsToApiEnums
 # Implement multiple component labels! (ie, surface iso can be 'u' or 'v')
+# Add 'setCompleteData' when we can find how many components (instead of just 'setComplete')
+# Decide what to do when you index a non-complete component
+# Multi-Dimensional indices
 class Component( PyNode ):
     """
     Abstract base class for pymel components.
@@ -165,95 +168,176 @@ class Component( PyNode ):
             for exactComp in compList:
                 print "    ", api.ApiEnumsToApiTypes()[exactComp]
 
-    @staticmethod
-    def _formatSlice(startIndex, stopIndex, step):
-        if startIndex == stopIndex:
-            sliceStr = '%s' % startIndex
-        elif step is not None and step != 1:
-            sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
-        else:
-            sliceStr = '%s:%s' % (startIndex, stopIndex)
-        return sliceStr 
-    
-    @staticmethod
-    def _getRange(start, stop, step):
-        if step is None or step == 1:   
-            indices = range( start, stop+1 )
-        else:
-            indices = range( start, stop+1, step )
-              
-        return indices
-    
-    @staticmethod
-    def _getMayaSlice( array ):
-        """given an MIntArray, convert to a maya-formatted slice"""
-        
-        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
-    
     def __init__(self, *args, **kwargs ):
         component = None
+        indices = None
 
         # the Component class can be instantiated several ways:
         # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
         if self._node :
-            self.__apiobjects__['MDagPath'] = self._node.__apiobjects__['MDagPath']
+            #self.__apiobjects__['MDagPath'] = self._node.__apiobjects__['MDagPath']
             component = self.__apiobjects__.get('MObjectHandle', None)
             if component:
+                indices = True # so we know not to set the 'isComplete' flag later
                 if not api.isValidMObjectHandle( component):
                     raise RuntimeError("Error creating %s(*%r, **r): invalid MObjectHandle" % (self.__class__.__name__, args, kwargs))
-            elif 'ComponentIndex' in self.__apiobjects__: 
-                component = self.makeComponentFromIndex(self.__apiobjects__['ComponentIndex']);
+            elif 'ComponentIndex' in self.__apiobjects__:
+                indices = self._indicesFromSlices(self.__apiobjects__['ComponentIndex'])
             
         # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
         else:
             dag = self.__apiobjects__['MDagPath']
-            newargs = [dag]
             self._node = PyNode(dag)
             
         # At this point, should have self._node and self.__apiobjects__['MDagPath']...
-        assert(self._node and self.__apiobjects['MDagPath'])
+        assert(self._node)
         
         #print "ARGS", newargs   
 
-        # We weren't given an mobject - need to make one somehow
+        # We weren't given an mobject, make one
+        if not component:
+            component = self._makeComponentMObjectHandle(indices)
+            
+        # if still no component, give up for now
+        if not component or not api.isValidMObjectHandle(component):
+            self._mfnCompInitialized = False
+            self._indices = indices
+        else:
+            if 'MObjectHandle' not in self.__apiobjects__:
+                self.__apiobjects__['MObjectHandle'] = component
+    
+            # instantiate the MFnComponent
+            self.__apiobjects__['MFn'] = self.__apicls__(component.object())
+            self._mfnCompInitialized = True
+
+            if indices is True:
+                # We got a component mobject handed to us, skip
+                pass
+            elif isinstance(indices, set):
+                # We constructed indices from slices / ints ourselves, set them
+                self._setIndices(indices)
+            elif not indices:
+                # There are no indices - make a complete component for ALL indices
+                self.__mfnComp__().setComplete(True)
+            
+
+    def name(self):
+        # If we have a component mobject...
+        if self._mfnCompInitialized:
+            selList = api.MSelectionList()
+            selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
+            strings = []
+            selList.getSelectionStrings(0, strings)
+            if len(strings) == 1:
+                return strings[0]
+            else:
+                return repr(strings)
+        # Otherwise...
+        else:
+            return self._completeNameString()
+        
+    def _completeNameString(self):
+        return u'%s.%s[*]' % ( self._node, self._ComponentLabel__)
+
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this component, if it is valid"
+        try:
+            #print "NODE", self.node()
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+        
+    def __apimobject__(self) :
+        "get the MObject for this component if it is valid"
+        handle = self.__apihandle__()
+        if api.isValidMObjectHandle( handle ) :
+            return handle.object()
+        raise MayaObjectError( self.name() )        
+
+    def __apihandle__(self) :
+        return self.__apiobjects__['MObjectHandle']
+
+    def __mfnComp__(self):
+        return self.__apiobjects__['MFn']
+    
+    def node(self):
+        return self._node
+
+    @staticmethod
+    def _sliceToSet(sliceObj):
+        """
+        Converts a slice object to a set of the indices it represents.
+        """
+        if sliceObj.step is None or sliceObj.step == 1:  
+            sliceRange =  xrange(sliceObj.start, sliceObj.stop + 1)
+        else:
+            sliceRange= xrange(sliceObj.start, sliceObj.stop + 1, sliceObj.step)
+        return set(sliceRange)
+
+    def _indicesFromSlices(self, indexObjs):
+        if indexObjs == "*" or indexObjs is None:
+            indicies = None
+        else:
+            indices = set()
+
+            # Convert single objects to a list
+            if isinstance(indexObjs, (int, slice)):
+                indexObjs = [indexObjs]
+                
+            if isinstance(indexObjs, (list,tuple) ) and len(indexObjs):
+                for indexObj in indexObjs:
+                    if isinstance(indexObj, int):
+                        indices.add(indexObj)
+                    elif isinstance(indexObj, slice):
+                        indices.update(self._sliceToSet(indexObj))
+                    else:
+                        raise TypeError("Invalid indices for component")
+            else:
+                raise TypeError("Invalid indices for component")
+        return indices
+
+    def _makeComponentMObjectHandle(self, indices):
+        component = None
         # try making from MFnComponent.create, if apicls has it defined
-        elif 'create' in dir(self.__apicls__):
-            apiEnums = PyComponentsToApiEnums().get([self.__class__], None)
+        if 'create' in dir(self.__apicls__):
+            apiEnums = _factories.PyComponentsToApiEnums().get(self.__class__, None)
             if apiEnums is not None and len(apiEnums) == 1:
                 component = self.__apicls__().create(apiEnums[0])
                 if not api.isValidMObject(component):
                     component = None
         
         # that didn't work - try checking if we have _ComponentLabel__  
-        if not component:
-            if self._ComponentLabel__:
-                try:
-                    component = api.toApiObject(self._node.name() + "." + self._ComponentLabel__)[1]
-                except:
-                    pass
-                else:
-                    if not api.isValidMObject(component):
-                        component = None
+        if not component and self._ComponentLabel__:
+            try:
+                component = api.toApiObject(self._completeNameString())[1]
+            except:
+                pass
+            else:
+                if not api.isValidMObject(component):
+                    component = None
 
         if isinstance(component, api.MObject):
             component = api.MObjectHandle(component)
-        
-        # if still no component, give up
-        if not component or not api.isValidMObjectHandle(component):
-            self._mfnCompInitialized = False
             
-        else:
-            if 'MObjectHandle' not in self.__apiobjects__.get(, None):
-                self.__apiobjects__['MObjectHandle'] = component
+        return component
     
-            # instantiate the MFnComponent
-            self.__apiobjects__['MFn'] = self.__apicls__(component.object())
-            self._mfnCompInitialized = True
-            
+    def _setIndices(self, indices):
+        scriptUtil = api.MScriptUtil()
+        typeIntM = api.MIntArray()
+        scriptUtil.createIntArrayFromList ( list(indices),  typeIntM )
+        self.__mfnComp__().addElements(typeIntM)
+
+    def __getitem__(self, item):
+        if self.isComplete():
+            #return self.__class__(self._node, item)
+            return self.__class__(self._node, item)
+        else:
+            raise IndexError("Indexing only allowed on a complete range, such as when using Mesh(u'obj').vtx")
         
-    # TODO: implement!
-    def makeComponentFromIndex(self, indexObj):
-        return None
+    def isComplete(self):
+        if not self._mfnCompInitialized:
+            return True
+        else:
+            return self.__mfnComp__().isComplete()
 
 class Component1D( Component ):
     __apicls__ = api.MFnSingleIndexedComponent
@@ -267,6 +351,18 @@ class Component2D( Component ):
 class Component3D( Component ):
     __apicls__ = api.MFnTripleIndexedComponent
 
+_mfnCompClassToPymelClass = {
+    api.MFn.kComponent:Component,
+    api.MFn.kSingleIndexedComponent:Component1D,
+    api.MFn.kDoubleIndexedComponent:Component2D,
+    api.MFn.kTripleIndexedComponent:Component3D,
+    api.MFn.kUint64SingleIndexedComponent:Component1D64}
+
+# Setup default mappings...
+for mfnCompType, apiEnums in api.getComponentTypes().iteritems():
+    for apiEnum in apiEnums:
+        pymelClass = _mfnCompClassToPymelClass[mfnCompType]
+        _factories.ApiEnumsToPyComponents()[apiEnum] = pymelClass
 
 ## Specific Components...
 
@@ -274,91 +370,91 @@ class Component3D( Component ):
 
 class MeshVertex( Component1D ):
     _ComponentLabel__ = "vtx"
-    _apiEnum__ = api.MFn.kMeshVertComponent
+    _apienum__ = api.MFn.kMeshVertComponent
 
 class MeshEdge( Component1D ):
     _ComponentLabel__ = "e"
-    _apiEnum__ = api.MFn.kMeshEdgeComponent
+    _apienum__ = api.MFn.kMeshEdgeComponent
     
 class MeshFace( Component1D ):
     _ComponentLabel__ = "f"
-    _apiEnum__ = api.MFn.kMeshPolygonComponent
+    _apienum__ = api.MFn.kMeshPolygonComponent
 
 class MeshUV( Component1D ):
     _ComponentLabel__ = "map"
-    _apiEnum__ = api.MFn.kMeshMapComponent
+    _apienum__ = api.MFn.kMeshMapComponent
 
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
-    _apiEnum__ = api.MFn.kMeshVtxFaceComponent
+    _apienum__ = api.MFn.kMeshVtxFaceComponent
     
 ## Subd Components    
 
 class SubdVertex( Component1D64 ):
     _ComponentLabel__ = "smp"
-    _apiEnum__ = api.MFn.kSubdivCVComponent
+    _apienum__ = api.MFn.kSubdivCVComponent
 
 class SubdEdge( Component1D64 ):
     _ComponentLabel__ = "sme"
-    _apiEnum__ = api.MFn.kSubdivEdgeComponent
+    _apienum__ = api.MFn.kSubdivEdgeComponent
     
 class SubdFace( Component1D64 ):
     _ComponentLabel__ = "smf"
-    _apiEnum__ = api.MFn.kSubdivFaceComponent
+    _apienum__ = api.MFn.kSubdivFaceComponent
 
 class SubdUV( Component1D ):
     _ComponentLabel__ = "smm"
-    _apiEnum__ = api.MFn.kSubdivMapComponent
+    _apienum__ = api.MFn.kSubdivMapComponent
 
 ## Nurbs Curve Components
 
 class NurbsCurveParameter( Component ):
     _ComponentLabel__ = "u"
-    _apiEnum__ = api.MFn.kCurveParamComponent
+    _apienum__ = api.MFn.kCurveParamComponent
 
 class NurbsCurveCV( Component1D ):
     _ComponentLabel__ = "cv"
-    _apiEnum__ = api.MFn.kCurveCVComponent
+    _apienum__ = api.MFn.kCurveCVComponent
     
 class NurbsCurveEP( Component1D ):
     _ComponentLabel__ = "ep"
-    _apiEnum__ = api.MFn.kCurveEPComponent
+    _apienum__ = api.MFn.kCurveEPComponent
     
 class NurbsCurveKnot( Component1D ):
     _ComponentLabel__ = "knot"
-    _apiEnum__ = api.MFn.kCurveKnotComponent
+    _apienum__ = api.MFn.kCurveKnotComponent
     
 ## NurbsSurface Components
 
 class NurbsSurfaceIsoparm( Component ):
     _ComponentLabel__ = "u"
-    _apiEnum__ = api.MFn.kIsoparmComponent
+    _apienum__ = api.MFn.kIsoparmComponent
 
 class NurbsSurfaceRange( Component ):
     _ComponentLabel__ = "u"
-    _apiEnum__ = api.MFn.kSurfaceRangeComponent
+    _apienum__ = api.MFn.kSurfaceRangeComponent
 
 class NurbsSurfaceCV( Component2D ):
     _ComponentLabel__ = "cv"
-    _apiEnum__ = api.MFn.kSurfaceCVComponent
+    _apienum__ = api.MFn.kSurfaceCVComponent
     
 class NurbsSurfaceEP( Component2D ):
     _ComponentLabel__ = "ep"
-    _apiEnum__ = api.MFn.kSurfaceEPComponent
+    _apienum__ = api.MFn.kSurfaceEPComponent
     
 class NurbsSurfaceKnot( Component2D ):
     _ComponentLabel__ = "knot"
-    _apiEnum__ = api.MFn.kSurfaceKnotComponent
+    _apienum__ = api.MFn.kSurfaceKnotComponent
 
 class NurbsSurfaceFace( Component2D ):
     _ComponentLabel__ = "sf"
-    _apiEnum__ = api.MFn.kSurfaceFaceComponent
+    _apienum__ = api.MFn.kSurfaceFaceComponent
     
 ## Lattice Components
 
 class LatticePoint( Component3D ):
     _ComponentLabel__ = "pt"
-    _apiEnum__ = api.MFn.kLatticeComponent
+    _apienum__ = api.MFn.kLatticeComponent
         
 #
 #class MItComponent( Component ):
@@ -369,6 +465,30 @@ class LatticePoint( Component3D ):
 #    MItMeshEdge, etc)
 #    """
 #
+#    @staticmethod
+#    def _formatSlice(startIndex, stopIndex, step):
+#        if startIndex == stopIndex:
+#            sliceStr = '%s' % startIndex
+#        elif step is not None and step != 1:
+#            sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
+#        else:
+#            sliceStr = '%s:%s' % (startIndex, stopIndex)
+#        return sliceStr 
+#    
+#    @staticmethod
+#    def _getRange(start, stop, step):
+#        if step is None or step == 1:   
+#            indices = range( start, stop+1 )
+#        else:
+#            indices = range( start, stop+1, step )
+#              
+#        return indices
+#    
+#    @staticmethod
+#    def _getMayaSlice( array ):
+#        """given an MIntArray, convert to a maya-formatted slice"""
+#        
+#        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( array ) ]
 #    def isComplete(self):
 #        return self._range is None
 #          
@@ -2658,14 +2778,6 @@ class DagNode(Entity):
             self.__apiobjects__['MObjectHandle'] = handle
         return handle
     
-    def __apimobject__(self) :
-        "get the MObject for this object if it is valid"
-        handle = self.__apihandle__()
-        if api.isValidMObjectHandle( handle ):
-            return handle.object()
-        raise MayaNodeError( self._name )
-            
-
 #    def __apimfn__(self):
 #        if self._apimfn:
 #            return self._apimfn

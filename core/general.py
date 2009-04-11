@@ -1278,7 +1278,7 @@ class PyNode(util.ProxyUnicode):
 
             #-- Components
             if isinstance( argObj, (int,slice) ) or \
-                    (isinstance( argObj, (list,tuple) ) and len(argObj) and isinstance(argObj[0],slice)):
+                    (isinstance( argObj, (list,tuple) ) and len(argObj) and isinstance(argObj[0],(int,slice))):
                 #pymelType, obj, name = _getPymelType( attrNode._apiobject )
                 obj = {'ComponentIndex' : argObj }
                 # if we are creating a component class using an int or slice, then we must specify a class type:

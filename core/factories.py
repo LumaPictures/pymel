@@ -46,9 +46,50 @@ class ApiEnumsToPyComponents(dict):
     """Lookup from Api Enums to Pymel Component Classes"""
     __metaclass__ = util.Singleton
     
+    ## automatically update PyComponentsToApiEnums when we
+    ## add to this - note that I'm going to assume that we never
+    ## remove items
+    def __setitem__(self, apienum, pyComp):
+        if apienum in self:
+            # If it's already here, we'll need to remove an entry from PyComponentsToApiEnums
+            PyComponentsToApiEnums()[self[apienum]].remove(apienum)
+        super(ApiEnumsToPyComponents, self).__setitem__(apienum, pyComp)
+        PyComponentsToApiEnums()._ApiEnumsToPyComponents_setdefault(pyComp, []).append(apienum)
+
+    def setdefault(self, key, default=None):
+        # make sure that people use setitem for updates, so
+        # PyComponentsToApiEnums is updated too
+        raise NotImplementedError("Dictionary only supports modification through index assignment")
+        
+    def update(self, *args, **kwargs):
+        # make sure that people use setitem for updates, so
+        # PyComponentsToApiEnums is updated too
+        raise NotImplementedError("Dictionary only supports modification through index assignment")
+
+class PyComponentsToApiEnums(dict):
+    """Lookup from Pymel Component Classes to list of Api Enums """
+    __metaclass__ = util.Singleton
+    
+    ### Disable normal modifcation of dict - should only be modified by
+    ### ApiEnumsToPyComponents
+    
+    def __setitem__(self, key, value):
+        raise NotImplementedError("Dictionary should not be modified directly - modify ApiEnumsToPyComponents")
+
+    def setdefault(self, key, default=None):
+        raise NotImplementedError("Dictionary should not be modified directly - modify ApiEnumsToPyComponents")
+        
+    def update(self, *args, **kwargs):
+        raise NotImplementedError("Dictionary should not be modified directly - modify ApiEnumsToPyComponents")
+
+    def _ApiEnumsToPyComponents_setdefault(self, key, default=None):
+        return super(PyComponentsToApiEnums, self).setdefault(key, default)
+    
 class PyNodeTypesHierarchy(dict):
     """child:parent lookup of the pymel classes that derive from DependNode"""
     __metaclass__ = util.Singleton
+
+
     
 #: creation commands whose names do not match the type of node they return require this dict
 #: to resolve which command the class should wrap 
@@ -3454,9 +3495,13 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
     """
     def __new__(mcl, classname, bases, classdict):
         newcls = super(MetaMayaComponentWrapper, mcl).__new__(mcl, classname, bases, classdict)
-        apienum = getattr(newcls, '_apienum__', None) 
+        apienum = getattr(newcls, '_apienum__', None)
+#        print "addng new component %s - '%s' (%r):" % (newcls, classname, classdict),
         if apienum:
+#            print apienum
             ApiEnumsToPyComponents()[apienum] = newcls
+#        else:
+#            print "no apienum"
         return newcls
     
 def getValidApiMethods( apiClassName, api, verbose=False ):

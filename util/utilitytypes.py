@@ -375,7 +375,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
         
     elif dataFuncName:
         def _methodWrapper( method ):
-            #print method
+            #print "method:", method
             #@functools.wraps(f)
             def wrapper(self, *args, **kwargs):
                 return method( cls( getattr(self, dataFuncName)() ), *args, **kwargs )
