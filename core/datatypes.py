@@ -264,11 +264,14 @@ class Vector(VectorN) :
     """ 
     A 3 dimensional vector class that wraps Maya's api Vector class
     
-        >>> v = Vector(1, 2, 3)
-        >>> w = Vector(x=1, z=2)
-        >>> z = Vector(Vector.xAxis, z=1)
+        >>> from pymel import *
+        >>> import pymel.datatypes as dt
+        >>> 
+        >>> v = dt.Vector(1, 2, 3)
+        >>> w = dt.Vector(x=1, z=2)
+        >>> z = dt.Vector( dt.Vector.xAxis, z=1)
         
-        >>> v = Vector(1, 2, 3, unit='meters')
+        >>> v = dt.Vector(1, 2, 3, unit='meters')
         >>> print v
         [100.0, 200.0, 300.0]
     """
@@ -1414,15 +1417,18 @@ def _fixSpace():
 class Matrix(MatrixN):
     """ 
         A 4x4 transformation matrix based on api Matrix
-    
-        >>> i = Matrix()
+
+        >>> from pymel import *
+        >>> import pymel.datatypes as dt
+        >>> 
+        >>> i = dt.Matrix()
         >>> print i.formated()
         [[1.0, 0.0, 0.0, 0.0],
          [0.0, 1.0, 0.0, 0.0],
          [0.0, 0.0, 1.0, 0.0],
          [0.0, 0.0, 0.0, 1.0]]
          
-        >>> v = Matrix(1, 2, 3)
+        >>> v = dt.Matrix(1, 2, 3)
         >>> print v.formated()
         [[1.0, 2.0, 3.0, 0.0],
          [1.0, 2.0, 3.0, 0.0],
@@ -1885,11 +1891,14 @@ class TransformationMatrix(Matrix):
 class EulerRotation(Array):
     """
     unit handling:
+    >>> from pymel import *
+    >>> import pymel.datatypes as dt
+    >>> 
     >>> currentUnit(angle='degree')
-    >>> e = EulerRotation([math.pi,0,0], unit='radians')
+    >>> e = dt.EulerRotation([math.pi,0,0], unit='radians')
     >>> e
     EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
-    >>> e2 = EulerRotation([180,0,0], unit='degrees')
+    >>> e2 = dt.EulerRotation([180,0,0], unit='degrees')
     >>> e2
     EulerRotation([180.0, 0.0, 0.0])
     >>> e.isEquivalent( e2 )
@@ -1898,11 +1907,11 @@ class EulerRotation(Array):
     True
     
     units are only displayed when they do not match the current ui unit
-    >>> Angle.getUIUnit() # check current angular unit
+    >>> dt.Angle.getUIUnit() # check current angular unit
     'degrees'
     >>> e
     EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
-    >>> Angle.setUIUnit('radians')  # change to radians
+    >>> dt.Angle.setUIUnit('radians')  # change to radians
     >>> e
     EulerRotation([3.14159265359, 0.0, 0.0])
     
@@ -2501,14 +2510,16 @@ class Time(Unit):
 
 class Distance( Unit ) :
     """
-    
-        >>> Distance.getInternalUnit()
+        >>> from pymel import *
+        >>> import pymel.datatypes as dt
+        >>> 
+        >>> dt.Distance.getInternalUnit()
         'centimeters'
-        >>> Distance.setUIUnit('meters')
-        >>> Distance.getUIUnit()
+        >>> dt.Distance.setUIUnit('meters')
+        >>> dt.Distance.getUIUnit()
         'meters'
      
-        >>> d = Distance(12)
+        >>> d = dt.Distance(12)
         >>> d.unit
         'meters'
         >>> print d
@@ -2522,10 +2533,10 @@ class Distance( Unit ) :
         >>> print d.asInternalUnit()
         1200.0
         
-        >>> Distance.setUIUnit('centimeters')
-        >>> Distance.getUIUnit()
+        >>> dt.Distance.setUIUnit('centimeters')
+        >>> dt.Distance.getUIUnit()
         'centimeters'
-        >>> d = Distance(12)
+        >>> d = dt.Distance(12)
         >>> d.unit
         'centimeters'
         >>> print d
@@ -2539,7 +2550,7 @@ class Distance( Unit ) :
         >>> print d.asInternalUnit()
         12.0
                         
-        >>> d = Distance(12, 'feet')      
+        >>> d = dt.Distance(12, 'feet')      
         >>> print d
         365.76
         >>> str(d)
@@ -2550,12 +2561,12 @@ class Distance( Unit ) :
         'feet'
         >>> print d.asUnit()
         12.0
-        >>> Distance.setUIUnit('meters')
-        >>> Distance.getUIUnit()
+        >>> dt.Distance.setUIUnit('meters')
+        >>> dt.Distance.getUIUnit()
         'meters'
         >>> print d.asUIUnit())
         3.6576
-        >>> Distance.getInternalUnit()
+        >>> dt.Distance.getInternalUnit()
         'centimeters'
         >>> print d.asInternalUnit()
         365.76
@@ -2567,8 +2578,8 @@ class Distance( Unit ) :
         >>> print d.asCentimeters()
         365.76
         
-        >>> Distance.setUIUnit()
-        >>> Distance.getUIUnit()
+        >>> dt.Distance.setUIUnit()
+        >>> dt.Distance.getUIUnit()
         'centimeters'
     """    
     apicls = _api.MDistance
@@ -2605,6 +2616,8 @@ class Angle( Unit ):
         return self.asUnit('angMinutes')
     def asAngSeconds(self):
         return self.asUnit('angSeconds')
+    
+
 class BoundingBox( _api.MBoundingBox):
     apicls = _api.MBoundingBox
     __metaclass__ = _factories.MetaMayaTypeWrapper
