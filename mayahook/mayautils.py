@@ -4,7 +4,7 @@ that maya is initialized in standalone mode.
 """
 
 import re, os, os.path, sys, platform, subprocess
-from pymel.util.pwarnings import *
+from pwarnings import *
 import plogging
 _logger = plogging.getLogger(__name__)
 from pymel.util import path as _path
