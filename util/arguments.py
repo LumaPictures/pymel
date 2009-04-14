@@ -384,12 +384,13 @@ def getCascadingDictItem( dict, keys, default={} ):
     except KeyError:
         return default 
 
-def sequenceToSlices( intList ):
-    """convert a sequence of integers into a slice object"""
+def sequenceToSlices( intList, sort=True ):
+    """convert a sequence of integers into a tuple of slice objects"""
     slices = []
 
     if intList:
-        intList = sorted(intList)
+        if sort:
+            intList = sorted(intList)
         start = intList[0]
         stop = None
         step = None
@@ -398,7 +399,7 @@ def sequenceToSlices( intList ):
         for curr in intList[1:]:
             curr = int(curr)
             thisStep = curr - lastVal
-            assert thisStep > 0, "cannot have duplicate values. pass a set to be safe"
+            #assert thisStep > 0, "cannot have duplicate values. pass a set to be safe"
             
 #            print 
 #            print "%s -> %s" % (lastVal, curr)
@@ -412,7 +413,7 @@ def sequenceToSlices( intList ):
             if lastStep is None:
                 # we're here bc the last iteration was the beginning of a new slice
                 pass
-            elif thisStep == lastStep:
+            elif thisStep > 0 and thisStep == lastStep:
                 # we found 2 in a row, they are the beginning of a new slice
                 # setting step indicates we've found a pattern
                 #print "found a pattern on", thisStep
@@ -443,40 +444,23 @@ def sequenceToSlices( intList ):
                 stop = None
                 step = None
                 
-                       
-#            else:
-#                if thisStep != step:
-#                    # new slice
-#                    slices.append( slice(start, stop+1, step) )
-#                    start = curr
-#                    stop = None
-#                    step = thisStep
-
-            #step = lastStep
+            
             lastStep = thisStep
             
             
             stop = lastVal
             lastVal = curr
-            
-#        print 
-#        print "%s" % (lastVal)
-#        print "lastStep", lastStep
-#        print "step", step
-#        print "lastVal", lastVal
-#        print (start, stop, step)
-#        print slices
-
         
         if step is not None:
-            # end the old slice
-            newslice = slice(start, lastVal+1, step)
+            # end the old slice  
+            if step == 1:
+                newslice = slice(start, lastVal+1, None)
+            else:
+                newslice = slice(start, lastVal+1, step)
+                        
             #print "adding", newslice 
             slices.append( newslice )
         else:
-#            slices.append( slice(start, stop+1 ) )
-#            if lastVal != stop:
-#                slices.append( slice(lastVal, lastVal+1 ) )
 
             if lastStep == 1:
                 slices.append( slice(start, lastVal+1, lastStep ) )
@@ -486,6 +470,6 @@ def sequenceToSlices( intList ):
                 if lastStep is not None:
                     slices.append( slice(lastVal, lastVal+1 ) )
                 
-    return slices   
+    return slices    
             
             
