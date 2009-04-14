@@ -10,7 +10,8 @@ from allapi import *
 #import pymel.factories as _factories
 
 import sys, inspect, timeit, time, re
-from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict, warn, ExecutionWarning
+from pymel.util import Singleton, metaStatic, expandArgs, Tree, FrozenTree, IndexedFrozenTree, treeFromDict, warn
+from pymel.mayahook import ExecutionWarning
 import pymel.util as util
 import pickle, os.path
 #import pymel.mayahook as mayahook

@@ -27,7 +27,7 @@ from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, M
 import pymel.api as api
 import datatypes
 import pymel.util.nameparse as nameparse
-import pymel.util.pwarnings as pwarnings
+import pymel.mayahook.pwarnings as pwarnings
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -1514,7 +1514,7 @@ class PyNode(util.ProxyUnicode):
     future = listFuture
 
 def _deprecatePyNode():
-    strDeprecateDecorator = util.deprecated( 'Convert to string first using str() or PyNode.name().', 'PyNode' )
+    strDeprecateDecorator = mayahook.deprecated( 'Convert to string first using str() or PyNode.name().', 'PyNode' )
     
     def makeDeprecatedMethod(method):
         def f(self, *args):

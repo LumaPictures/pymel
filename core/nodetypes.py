@@ -14,7 +14,7 @@ from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, M
 import pymel.api as api
 import datatypes
 import pymel.util.nameparse as nameparse
-import pymel.util.pwarnings as pwarnings
+import pymel.mayahook.pwarnings as pwarnings
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -139,7 +139,7 @@ class Component( PyNode ):
     def _getMayaSlice( array ):
         """given an MIntArray, convert to a maya-formatted slice"""
         
-        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( array ) ]
+        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
 
     
     def isComplete(self):
@@ -418,7 +418,7 @@ class MeshEdge( Component ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @util.deprecated("Use 'connectedFaces' instead.")
+    @mayahook.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
         """
         :rtype: `MeshFace` list
@@ -474,7 +474,7 @@ class MeshVertex( Component ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @util.deprecated("Use 'connectedEdges' instead.") 
+    @mayahook.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
         """
         :rtype: `MeshEdge` list
@@ -491,7 +491,7 @@ class MeshVertex( Component ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @util.deprecated("Use 'connectedFaces' instead.")
+    @mayahook.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
         """
         :rtype: `MeshFace` list
@@ -549,7 +549,7 @@ class MeshFace( Component ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @util.deprecated("Use 'connectedEdges' instead.") 
+    @mayahook.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
         """
         :rtype: `MeshEdge` list
@@ -566,7 +566,7 @@ class MeshFace( Component ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, self._getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @util.deprecated("Use 'connectedVertices' instead.")
+    @mayahook.deprecated("Use 'connectedVertices' instead.")
     def toVertices(self):
         """
         :rtype: `MeshVertex` list
@@ -1273,7 +1273,7 @@ class Attribute(PyNode):
         except RuntimeError:
             raise TypeError, "%s is not an array (multi) attribute" % self
 
-    @util.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
+    @mayahook.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
     def size(self):
         """
         The number of elements in an array attribute. Returns None if not an array element.
@@ -2786,7 +2786,7 @@ class Shape(DagNode):
         
 class Camera(Shape):
     __metaclass__ = MetaMayaNodeWrapper
-    @util.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
+    @mayahook.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
@@ -2794,14 +2794,14 @@ class Camera(Shape):
         fov = 57.29578 * fov
         return fov
     
-    @util.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
+    @mayahook.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
     def setFov(self, fov):
         aperture = self.horizontalFilmAperture.get()
         focal = math.tan (0.00872665 * fov);
         focal = (0.5 * aperture) / (focal * 0.03937);
         self.focalLength.set(focal)
     
-    @util.deprecated('Use getAspectRatio instead', 'Camera' )  
+    @mayahook.deprecated('Use getAspectRatio instead', 'Camera' )  
     def getFilmAspect(self):
         return self.horizontalFilmAperture.get()/ self.verticalFilmAperture.get()
 
@@ -3537,11 +3537,11 @@ class Mesh(SurfaceShape):
     @property
     def verts(self): return MeshVertex(self)
                     
-    vertexCount =  util.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
-    edgeCount =    util.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
-    faceCount =    util.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
-    uvcoordCount = util.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
-    triangleCount = util.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
+    vertexCount =  mayahook.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
+    edgeCount =    mayahook.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
+    faceCount =    mayahook.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
+    uvcoordCount = mayahook.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
+    triangleCount = mayahook.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
@@ -4060,7 +4060,7 @@ class ObjectSet(Entity):
         """
         return list( self.asSelectionSet(flatten) )
 
-    @util.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
+    @mayahook.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
     def elements(self, flatten=False):
         """return members as a list
         :rtype: `list`
@@ -4099,14 +4099,14 @@ class ObjectSet(Entity):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSubSet(other)
     
-    issubset = util.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
+    issubset = mayahook.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
     
     
     def isSuperSet(self, other ):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSuperSet(other)
     
-    issuperset = util.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
+    issuperset = mayahook.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
     
     def isEqual(self, other ):
         """
@@ -4169,7 +4169,7 @@ class ObjectSet(Entity):
     def union(self, other):
         self.addMembers(other)
      
-    update = util.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
+    update = mayahook.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
 
 
 class GeometryFilter(DependNode): pass
