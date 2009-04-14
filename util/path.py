@@ -35,6 +35,11 @@ Date:    7 Mar 2004
 from __future__ import generators
 import sys, warnings, os, fnmatch, glob, shutil, codecs, re
 
+try:
+    import grp
+except ImportError:
+    grp = None
+    
 __version__ = '2.1'
 __all__ = ['path']
 
@@ -852,6 +857,17 @@ class path(_base):
         get_owner, None, None,
         """ Name of the owner of this file or directory. """)
 
+    if grp:
+        def get_groupname(self):
+            """get the group name for this file"""
+            return grp.getgrgid(self.stat().st_gid).gr_name
+        groupname = property( get_groupname )
+
+        def chgrp(self, group):
+            if isinstance(group, basestring):
+                group = grp.getgrnam(group).gr_gid
+            os.chown( self, -1, group )
+            
     if hasattr(os, 'statvfs'):
         def statvfs(self):
             """ Perform a statvfs() system call on this path. """
