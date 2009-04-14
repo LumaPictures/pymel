@@ -6,7 +6,6 @@ import sys, codecs, os, os.path, re, platform
 
 from collections import *
 
-from pwarnings import *
 from namedtuple import namedtuple
 from common import *
 from arguments import *

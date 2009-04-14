@@ -46,7 +46,7 @@ from collections import *
 import logging
 _logger = logging.getLogger(__name__)
 import inspect
-import pwarnings
+import warnings
 import weakref as weak
 from copy import *
 
@@ -1374,7 +1374,7 @@ class MetaTree(type):
                 if k == '__doc__' :
                     newdict[k] = newdict[k] + "\n" + basedict[k]
                 else :
-                    pwarnings.warn("Can't override core method or property %s in Trees (trying to create class '%s')" % (k, classname))
+                    warnings.warn("Can't override core method or property %s in Trees (trying to create class '%s')" % (k, classname))
             else :
                 newdict[k] = basedict[k]
                 

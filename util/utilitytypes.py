@@ -4,7 +4,7 @@ These types can be shared by other utils modules and imported into util main nam
 """
 
 import inspect
-from pwarnings import *
+from warnings import *
 
 class Singleton(type):
     """ Metaclass for Singleton classes.

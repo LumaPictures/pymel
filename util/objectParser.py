@@ -15,13 +15,13 @@
 """
 
 import re, inspect, sys, os, tempfile
-
+import types
 import external.ply.lex as lex
 import external.ply.yacc as yacc
 
 #from namedtuple import namedtuple
 from common import capitalize, uncapitalize
-from pwarnings import *
+import warnings
 from arguments import *
 from utilitytypes import *
 
@@ -42,7 +42,7 @@ def currentfn() :
 class NameParseError(Exception):
     pass
 
-class ParsingWarning(ExecutionWarning):
+class ParsingWarning(UserWarning):
     pass
 
 

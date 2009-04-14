@@ -384,7 +384,7 @@ def getCascadingDictItem( dict, keys, default={} ):
     except KeyError:
         return default 
 
-def sequenceToSlice( intList ):
+def sequenceToSlices( intList ):
     """convert a sequence of integers into a slice object"""
     slices = []
 
