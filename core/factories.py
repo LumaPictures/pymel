@@ -2321,9 +2321,9 @@ class ApiArgUtil(object):
         
         proto = "(%s)" % (', '.join( args ) )
         if methodName:
-              proto = self.methodName + proto
-              if className:
-                  proto = self.apiClassName + '.' + proto
+            proto = self.methodName + proto
+            if className:
+                proto = self.apiClassName + '.' + proto
  
         
         if outputs:
