@@ -985,3 +985,6 @@ class path(_base):
         def startfile(self):
             os.startfile(self)
 
+
+# migrating to PEP8 compliance
+Path = path
