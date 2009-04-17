@@ -203,6 +203,8 @@ def testInvertibles():
             pass
 
 # TODO: add tests for slices
+# test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
+# Add tests for ranges of float parameters: ie, 'nurbsSphere1.v[5.657][3.1:4.2]'
 
 class ComponentData(object):
     """
