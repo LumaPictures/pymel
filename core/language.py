@@ -29,6 +29,8 @@ def pythonToMel(arg):
     """convert a python object to a string representing an equivalent value in mel"""
     if util.isNumeric(arg):
         return str(arg)
+    if isinstance(arg, datatypes.Vector):
+        return '<<%f,%f,%f>>' % ( arg[0], arg[1], arg[2] )
     if util.isIterable(arg):
         return '{%s}' % ','.join( map( pythonToMel, arg) )
     
@@ -264,7 +266,7 @@ class MelGlobals( dict ):
         if array:
             return MelGlobals.MelGlobalArray(ret_type, variable, res)
         else:
-            return res
+            return MelGlobals.melTypeToPythonType[type](res)
     
     @classmethod
     def set( cls, variable, value, type=None ):
