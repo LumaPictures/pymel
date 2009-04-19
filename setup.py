@@ -51,5 +51,5 @@ succinct and intuitive way. """,
       install_requires=requires,
       extras_require= { 'ipymel' : 'ipython' },
       tests_require=['nose'],
-      
+      test_suite = 'nose.collector',
      )
