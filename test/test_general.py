@@ -149,13 +149,13 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         currentUnit(angle=startAngular)
         currentUnit(time=startTime)
     
-    def test_components(self):
-        import pymel.examples.setVertexColor
-        pymel.examples.setVertexColor.doIt( self.sphere1 )
-
-    def test_examples(self):
-        import pymel.examples.example1
-        import pymel.examples.example2
+#    def test_components(self):
+#        import pymel.examples.setVertexColor
+#        pymel.examples.setVertexColor.doIt( self.sphere1 )
+#
+#    def test_examples(self):
+#        import pymel.examples.example1
+#        import pymel.examples.example2
         
     def test_classCreation(self):
         self.newobjs.append( Joint() )
