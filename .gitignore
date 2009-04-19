@@ -4,3 +4,6 @@
 /.pydevproject
 /git-svn_authors.txt
 /mayaCmdsList*.bin
+*.egg-info
+/build
+/dist

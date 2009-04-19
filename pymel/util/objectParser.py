@@ -16,9 +16,13 @@
 
 import re, inspect, sys, os, tempfile
 import types
-import external.ply.lex as lex
-import external.ply.yacc as yacc
-
+try:
+    import external.ply.lex as lex
+    import external.ply.yacc as yacc
+except ImportError:
+    import ply.lex as lex
+    import ply.yacc as yacc
+    
 #from namedtuple import namedtuple
 from common import capitalize, uncapitalize
 import warnings

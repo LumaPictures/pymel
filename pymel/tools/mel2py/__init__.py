@@ -183,7 +183,11 @@ quickly as i can.
 
 
 from melparse import *
-from pymel.util.external.ply.lex import LexError
+try:
+    from pymel.util.external.ply.lex import LexError
+except ImportError:
+    from ply.lex import LexError
+
 import pymel.util as util
 import pymel.mayahook as mayahook
 import pymel.core.factories as _factories

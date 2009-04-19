@@ -16,7 +16,11 @@ import pymel.util as util
 import pickle, os.path
 #import pymel.mayahook as mayahook
 from HTMLParser import HTMLParser
-from pymel.util.external.BeautifulSoup import BeautifulSoup
+try:
+    from pymel.util.external.BeautifulSoup import BeautifulSoup
+except ImportError:
+    import BeautifulSoup
+
 from keyword import iskeyword as _iskeyword
 
 

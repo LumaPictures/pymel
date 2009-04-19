@@ -1,6 +1,11 @@
 import sys, os, re, os.path
 import mellex
-from pymel.util.external.ply import *
+
+try:
+    from pymel.util.external.ply import *
+except ImportError:
+    from ply import *
+
 from pymel.util import unescape
 import pymel
 import pymel.util as util
