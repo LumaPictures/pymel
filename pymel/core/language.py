@@ -8,6 +8,7 @@ from pymel.util.mathutils import *
 import system
 import pymel.util as util
 import maya.mel as _mm
+import maya.cmds as _mc
 import pmcmds as cmds
 #import maya.cmds as cmds
 import pymel.mayahook as mayahook
@@ -659,8 +660,9 @@ class Mel(object):
         # should return a value, like _mm.eval
         #return _mm.eval( cmd )   
         # get this before installing the callback
-        undoState = cmds.undoInfo(q=1, state=1)
-         
+        undoState = _mc.undoInfo(q=1, state=1)
+        lineNumbers = _mc.commandEcho(q=1,lineNumbers=1)
+        _mc.commandEcho(lineNumbers=1)
         global errors
         errors = []
         def errorCallback( nativeMsg, messageType, data ):
@@ -681,6 +683,7 @@ class Mel(object):
         except Exception:
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )
+            _mc.commandEcho(lineNumbers=lineNumbers)
             # 8.5 fix
             if hasattr(id, 'disown'):
                 id.disown()
@@ -707,6 +710,7 @@ class Mel(object):
         else:   
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )
+            _mc.commandEcho(lineNumbers=lineNumbers)
             # 8.5 fix
             if hasattr(id, 'disown'):
                 id.disown()            
@@ -741,7 +745,7 @@ class Mel(object):
                 res.getResult(result)
                 return datatypes.Vector(result)    
             elif resType == api.MCommandResult.kVectorArray:
-                result = api.MMatrixArray()
+                result = api.MVectorArray()
                 res.getResult(result)
                 return [ datatypes.Vector(result[i]) for i in range( result.length() ) ]
             elif resType == api.MCommandResult.kMatrix:
