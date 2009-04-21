@@ -4,8 +4,6 @@ Contains classes corresponding to the Maya type hierarchy, including `DependNode
 import sys, os, re
 
 import pmcmds as cmds
-import maya.mel as mm
-
 import inspect, itertools, math
 
 import pymel.util as util
