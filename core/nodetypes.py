@@ -125,7 +125,9 @@ class Component( PyNode ):
     Abstract base class for pymel components.
     """
     
-#    __metaclass__ = MetaMayaComponentWrapper
+    __metaclass__ = MetaMayaComponentWrapper
+    _mfncompclass = api.MFnComponent
+    _apienum__ = api.MFn.kComponent
     _ComponentLabel__ = None
     _apienum__ = None
 
@@ -198,7 +200,7 @@ class Component( PyNode ):
         if 'MObjectHandle' not in self.__apiobjects__:
             handle = self._makeComponentMObjectHandle()
             if not handle or not api.isValidMObjectHandle(handle):
-                raise MayaObjectError("%s(*%r, **%r)" % (self.__class__.__name__, args, kwargs))
+                raise MayaObjectError( self._completeNameString() )
             self.__apiobjects__['MObjectHandle'] = handle            
         return self.__apiobjects__['MObjectHandle']
 
@@ -241,7 +243,7 @@ class Component( PyNode ):
         return component
     
     def _makeComponentMFn(self):
-        return api.MFnComponent(self.__apimobject__())
+        return self._mfncompclass(self.__apimobject__())
     
     def name(self):
         selList = api.MSelectionList()
@@ -269,8 +271,42 @@ class DimensionedComponent( Component ):
     """
     Components for which having a __getitem__ of some sort makes sense - ie, myComponent[X].
     """
-    _dimensions = []
+    # All components except for the pivot component and the unknown ones are indexable in some manner
+    
+    dimensions = 0
 
+    def _completeNameString(self):
+        return super(DimensionedComponent, self)._completeNameString() + '[*]'
+
+    def _makeComponentMFn(self):
+        indices = self.__apiobjects__.get('ComponentIndex', None)
+        if indices is not None:
+            return self._makeComponentMFnFromIndices(indices)
+        else:
+            return super(IndexedComponent, self)._makeComponentMFn()
+
+    def _makeComponentMFnFromIndices(self, indices):
+        # Implement in derived classes!
+        raise NotImplementedError
+        
+    def __getitem__(self, item):
+        if self.isComplete():
+            #return self.__class__(self._node, item)
+            return self.__class__(self._node, item)
+        else:
+            raise IndexError("Indexing only allowed on a complete range, such as when using Mesh(u'obj').vtx")
+            
+    def isComplete(self, dimension=None):
+        return self.__mfnComp__().isComplete()
+
+   
+class IndexedComponent( DimensionedComponent ):
+    """
+    Components whose dimensions are indexed.
+    
+    Ie, there are a finite number of possible components, referenced by integer indices.
+    Example: polyCube.vtx[38], nurbsSurface.cv[3][2]
+    """
     @staticmethod
     def _sliceToSet(sliceObj, numIndices):
         """
@@ -278,43 +314,19 @@ class DimensionedComponent( Component ):
         """
         return set(xrange(*sliceObj.indices(numIndices)))
     
-    @classmethod
-    def dimensions(cls):
-        return len(cls._dimensions)
+    def _setIndices(self, indices):
+        scriptUtil = api.MScriptUtil()
+        typeIntM = api.MIntArray()
+        scriptUtil.createIntArrayFromList ( list(indices),  typeIntM )
+        self.__mfnComp__().addElements(typeIntM)
 
-#    def __init__(self, *args, **kwargs):
-#        self._homemadeMObject = False
-
-    def _completeNameString(self):
-        return super(DimensionedComponent, self)._completeNameString() + '[*]'
-
-#    def _makeComponentMObjectHandle(self):
-#        # If we're making our own MObject, need to know so that later
-#        # if we should call setComplete(True)
-#        self._homemadeMObject = True
-#        return super(DimensionedComponent, self)._makeComponentMObjectHandle
-
-    def _makeComponentMFn(self):
-        if 'ComponentIndex' in self.__apiobjects__:
-            indices = self._indicesFromSlices(self.__apiobjects__['ComponentIndex'])
-        else:
-            indices = None
-
-        if indices is not None:
-            if isinstance
-            # We constructed indices from slices / ints ourselves, set them
-            self._setIndices(indices)
-        elif not indices:
-            # There are no indices - make a complete component for ALL indices
-            self.__mfnComp__().setComplete(True)
-
-        
+    def _makeComponentMFnFromIndices(self, indices):            
         component = None
         # try making from MFnComponent.create, if apicls has it defined
-        if 'create' in dir(self.__apicls__):
+        if 'create' in dir(self._mfncompclass) and self:
             apiEnums = _factories.PyComponentsToApiEnums().get(self.__class__, None)
             if apiEnums is not None and len(apiEnums) == 1:
-                component = self.__apicls__().create(apiEnums[0])
+                component = self._mfncompclass().create(apiEnums[0])
                 if not api.isValidMObject(component):
                     component = None
         
@@ -332,24 +344,6 @@ class DimensionedComponent( Component ):
             component = api.MObjectHandle(component)
             
         return component
-    
-    # All components except for the pivot component and the unknown ones are indexable in some manner
-    
-    def isComplete(self, dimension=None):
-        return self.__mfnComp__().isComplete()
-    
-    def __getitem__(self, item):
-        if self.isComplete():
-            #return self.__class__(self._node, item)
-            return self.__class__(self._node, item)
-        else:
-            raise IndexError("Indexing only allowed on a complete range, such as when using Mesh(u'obj').vtx")
-        
-    def _setIndices(self, indices):
-        scriptUtil = api.MScriptUtil()
-        typeIntM = api.MIntArray()
-        scriptUtil.createIntArrayFromList ( list(indices),  typeIntM )
-        self.__mfnComp__().addElements(typeIntM)
 
     def _indicesFromSlices(self, indexObjs):
         if indexObjs == "*" or indexObjs is None:
@@ -372,44 +366,44 @@ class DimensionedComponent( Component ):
             else:
                 raise IndexError("Invalid indices for component")
         return indices
+
+class ContinuousComponent( DimensionedComponent ):
+    """
+    Components whose dimensions are continuous.
+    
+    Ie, there are an infinite number of possible components, referenced by floating point parameters.
+    Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
+    """
+    pass
             
-class Component1DFloat( DimensionedComponent ):
-    """
-    For components such CurveParam, where the component is specificied by a continual parameter, not an index. 
-    """
-    _dimensions = [float]
+#class Component1DFloat( ContinuousComponent ):
+#    """
+#    For components such CurveParam, where the component is specificied by a continual parameter, not an index. 
+#    """
+#    dimensions = 1
+#
+#class Component2DFloat( ContinuousComponent ):
+#    dimensions = 2
 
-class Component2DFloat( DimensionedComponent ):
-    _dimensions = [float, float]
+class Component1D( IndexedComponent ):
+    _mfncompclass = api.MFnSingleIndexedComponent
+    _apienum__ = api.MFn.kSingleIndexedComponent
+    dimensions = 1
 
-class Component1D( DimensionedComponent ):
-    __apicls__ = api.MFnSingleIndexedComponent
-    _dimensions = [int]
-
-class Component1D64( DimensionedComponent ):
-    __apicls__ = api.MFnUint64SingleIndexedComponent
-    _dimensions = [long]
+class Component1D64( IndexedComponent ):
+    _mfncompclass = api.MFnUint64SingleIndexedComponent
+    _apienum__ = api.MFn.kUint64SingleIndexedComponent
+    dimensions = 1
     
-class Component2D( DimensionedComponent ):
-    __apicls__ = api.MFnDoubleIndexedComponent
-    _dimensions = [int, int]
+class Component2D( IndexedComponent ):
+    _mfncompclass = api.MFnDoubleIndexedComponent
+    _apienum__ = api.MFn.kDoubleIndexedComponent
+    dimensions = 2
     
-class Component3D( DimensionedComponent ):
-    __apicls__ = api.MFnTripleIndexedComponent
-    _dimensions = [int, int, int]
-
-_mfnCompClassToPymelClass = {
-    api.MFn.kComponent:Component,
-    api.MFn.kSingleIndexedComponent:Component1D,
-    api.MFn.kDoubleIndexedComponent:Component2D,
-    api.MFn.kTripleIndexedComponent:Component3D,
-    api.MFn.kUint64SingleIndexedComponent:Component1D64}
-
-# Setup default mappings...
-for mfnCompType, apiEnums in api.getComponentTypes().iteritems():
-    for apiEnum in apiEnums:
-        pymelClass = _mfnCompClassToPymelClass[mfnCompType]
-        _factories.ApiEnumsToPyComponents()[apiEnum] = pymelClass
+class Component3D( IndexedComponent ):
+    _mfncompclass = api.MFnTripleIndexedComponent
+    _apienum__ = api.MFn.kTripleIndexedComponent
+    dimensions = 3
 
 ## Specific Components...
 
