@@ -288,10 +288,6 @@ class DimensionedComponent( Component ):
         indices = self.__apiobjects__.get('ComponentIndex', None)
         if indices is not None:
             handle = self._makeIndexedComponentHandle(indices, handle=handle)
-            mfnComp = self._mfncompclass(handle.object())
-
-            # If we were fed indices, mark this an incomplete component
-            mfnComp.setComplete(False)
         return handle 
 
     def _makeIndexedComponentHandle(self, indices, handle=None):
@@ -385,6 +381,7 @@ class IndexedComponent( DimensionedComponent ):
         typeIntM = api.MIntArray()
         scriptUtil.createIntArrayFromList ( list(indices),  typeIntM )
         mfnComp = self._mfncompclass(handle.object())
+        mfnComp.setComplete(False)
         mfnComp.addElements(typeIntM)
         return handle
 
