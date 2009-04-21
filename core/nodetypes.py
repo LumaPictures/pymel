@@ -113,8 +113,6 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 # TODO:
 # -----
 # Implement makeComponentFromIndex - have it return an MObject handle
-# Implement auto adding to ApiEnumsToPyComponents for comp types not explicitly defined
-# Implement auto generation of PyComponentsToApiEnums
 # Implement multiple component labels! (ie, surface iso can be 'u' or 'v')
 # Add 'setCompleteData' when we can find how many components (instead of just 'setComplete')
 # Decide what to do when you index a non-complete component
@@ -129,7 +127,6 @@ class Component( PyNode ):
     _mfncompclass = api.MFnComponent
     _apienum__ = api.MFn.kComponent
     _ComponentLabel__ = None
-    _apienum__ = None
 
     @classmethod
     def printComponentTypes(cls):
@@ -172,8 +169,12 @@ class Component( PyNode ):
 
     def __init__(self, *args, **kwargs ):
         # the Component class can be instantiated several ways:
-        # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
-        # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
+        # Component(dagPath, component):
+        #    args get stored on self._node and
+        #    self.__apiobjects__['MObjectHandle'] respectively
+        # Component(dagPath):
+        #    in this case, stored on self.__apiobjects__['MDagPath']
+        #    (self._node will be None)
         
         # First, ensure that we have a self._node...
         if not self._node :
@@ -207,7 +208,7 @@ class Component( PyNode ):
     def __apicomponent__(self):
         mfnComp = self.__apiobjects__.get('MFnComponent', None)
         if mfnComp is None:
-            mfnComp = self._makeComponentMFn()
+            mfnComp = self._mfncompclass(self.__apimobject__())
             self.__apiobjects__['MFnComponent'] = mfnComp
         return mfnComp
     
@@ -219,13 +220,18 @@ class Component( PyNode ):
 
     def _makeComponentMObjectHandle(self):
         component = None
-        # try making from MFnComponent.create, if apicls has it defined
-        if 'create' in dir(self.__apicls__):
-            apiEnums = _factories.PyComponentsToApiEnums().get(self.__class__, None)
-            if apiEnums is not None and len(apiEnums) == 1:
-                component = self.__apicls__().create(apiEnums[0])
-                if not api.isValidMObject(component):
-                    component = None
+        # try making from MFnComponent.create, if _mfncompclass has it defined
+        if ('create' in dir(self._mfncompclass) and
+            self._apienum__ not in (None,
+                                    api.MFn.kSingleIndexedComponent,
+                                    api.MFn.kComponent,
+                                    api.MFn.kSingleIndexedComponent,
+                                    api.MFn.kUint64SingleIndexedComponent,
+                                    api.MFn.kDoubleIndexedComponent,
+                                    api.MFn.kTripleIndexedComponent)):
+            component = self._mfncompclass().create(self._apienum__)
+            if not api.isValidMObject(component):
+                component = None        
         
         # that didn't work - try checking if we have a valid plugAttr  
         if not component and self.plugAttr():
@@ -237,13 +243,11 @@ class Component( PyNode ):
                 if not api.isValidMObject(component):
                     component = None
 
-        if isinstance(component, api.MObject):
-            component = api.MObjectHandle(component)
-            
-        return component
-    
-    def _makeComponentMFn(self):
-        return self._mfncompclass(self.__apimobject__())
+        # component objects we create always start out 'complete'
+        mfnComp = self._mfncompclass(component)
+        mfnComp.setComplete(True)
+
+        return api.MObjectHandle(component)
     
     def name(self):
         selList = api.MSelectionList()
@@ -264,12 +268,13 @@ class Component( PyNode ):
         return self._ComponentLabel__
     
     def isComplete(self, *args, **kwargs):
-        # Non-dimensioned components (such as a pivot) are always 'complete'
-        return True
+        return self.__apicomponent__().isComplete()
 
 class DimensionedComponent( Component ):
     """
-    Components for which having a __getitem__ of some sort makes sense - ie, myComponent[X].
+    Components for which having a __getitem__ of some sort makes sense
+    
+    ie, myComponent[X] would be reasonable.
     """
     # All components except for the pivot component and the unknown ones are indexable in some manner
     
@@ -278,15 +283,30 @@ class DimensionedComponent( Component ):
     def _completeNameString(self):
         return super(DimensionedComponent, self)._completeNameString() + '[*]'
 
-    def _makeComponentMFn(self):
+    def _makeComponentMObjectHandle(self):
+        handle = super(DimensionedComponent, self)._makeComponentMObjectHandle()
         indices = self.__apiobjects__.get('ComponentIndex', None)
         if indices is not None:
-            return self._makeComponentMFnFromIndices(indices)
-        else:
-            return super(IndexedComponent, self)._makeComponentMFn()
+            handle = self._makeIndexedComponentHandle(indices, handle=handle)
+            mfnComp = self._mfncompclass(handle.object())
 
-    def _makeComponentMFnFromIndices(self, indices):
-        # Implement in derived classes!
+            # If we were fed indices, mark this an incomplete component
+            mfnComp.setComplete(False)
+        return handle 
+
+    def _makeIndexedComponentHandle(self, indices, handle=None):
+        """
+        Returns an MObjectHandle that points to a maya component object with
+        the given indices.
+        
+        Even though a handle may be provided to the function, you should ALWAYS
+        use the handle returned from this function, and never assume that the
+        handle given is in any way related to the one returned.
+        
+        The option to provide a handle is simply for efficiency / speed -
+        if it is possible to use the provided handle, it will be; otherwise,
+        a new handle/mobject is made and returned.
+        """
         raise NotImplementedError
         
     def __getitem__(self, item):
@@ -297,74 +317,102 @@ class DimensionedComponent( Component ):
             raise IndexError("Indexing only allowed on a complete range, such as when using Mesh(u'obj').vtx")
             
     def isComplete(self, dimension=None):
-        return self.__mfnComp__().isComplete()
+        return self.__apicomponent__().isComplete()
 
-   
+# TODO: implement slices with negative values / None stop values
 class IndexedComponent( DimensionedComponent ):
     """
     Components whose dimensions are indexed.
     
-    Ie, there are a finite number of possible components, referenced by integer indices.
+    Ie, there are a finite number of possible components, referenced by integer
+    indices.
+    
     Example: polyCube.vtx[38], nurbsSurface.cv[3][2]
     """
     @staticmethod
-    def _sliceToSet(sliceObj, numIndices):
+    def _sliceToSet(sliceObj):
         """
         Converts a slice object to a set of the indices it represents.
         """
-        return set(xrange(*sliceObj.indices(numIndices)))
+
+        #return set(xrange(*sliceObj.indices(self.dimensionSize())))
+        
+        # store these in local variables, to avoid constantly making
+        # new slice objects, since slice objects are immutable
+        start = sliceObj.start
+        stop = sliceObj.stop
+        step = sliceObj.step
+        
+        if stop is None:
+            raise IndexError("pymel components do not support slices with no "
+                             "stop value")
+
+        if start is None:
+            start = 0
+            
+        if step is None:
+            step = 1
+            
+        if start < 0 or stop < 0 or step < 0:
+            raise IndexError("pymel components do not support slices with "
+                             "negative start/stop/step values")
+
+        # convert 'maya slices' to 'python slices'...
+        # ie, in maya, someObj.vtx[2:3] would mean:
+        #  (vertices[2], vertices[3])
+        # in python, it would mean:
+        #  (vertices[2],)
+        stop += 1
+
+        return set(xrange(start, stop, step))
     
-    def _setIndices(self, indices):
+    
+#    def dimensionSize(dimensionIndex):
+#        """
+#        Given a dimension index, returns the maximum value for that dimension.
+#        
+#        Ie, if nurbsSurfaceCV.dimensionSize(0) == 3, then there would be 3 cvs
+#        in the u direction; if nurbsSurfaceCV.dimensionSize(1) == 6, then there
+#        would be 6 cvs in the v direction.
+#        """
+#        pass
+    
+    def _makeIndexedComponentHandle(self, indices, handle=None):
+        if not handle:
+            handle = Component._makeComponentMObjectHandle(self)
+        indices = self._standardizeIndices(indices)
         scriptUtil = api.MScriptUtil()
         typeIntM = api.MIntArray()
         scriptUtil.createIntArrayFromList ( list(indices),  typeIntM )
-        self.__mfnComp__().addElements(typeIntM)
+        mfnComp = self._mfncompclass(handle.object())
+        mfnComp.addElements(typeIntM)
+        return handle
 
-    def _makeComponentMFnFromIndices(self, indices):            
-        component = None
-        # try making from MFnComponent.create, if apicls has it defined
-        if 'create' in dir(self._mfncompclass) and self:
-            apiEnums = _factories.PyComponentsToApiEnums().get(self.__class__, None)
-            if apiEnums is not None and len(apiEnums) == 1:
-                component = self._mfncompclass().create(apiEnums[0])
-                if not api.isValidMObject(component):
-                    component = None
+    def _standardizeIndices(self, indexObjs):
+        """
+        Convert indexObjs to a simple set of indices.
         
-        # that didn't work - try checking if we have a valid plugAttr  
-        if not component and self.plugAttr():
-            try:
-                component = api.toApiObject(self._completeNameString())[1]
-            except:
-                pass
-            else:
-                if not api.isValidMObject(component):
-                    component = None
-
-        if isinstance(component, api.MObject):
-            component = api.MObjectHandle(component)
-            
-        return component
-
-    def _indicesFromSlices(self, indexObjs):
-        if indexObjs == "*" or indexObjs is None:
-            indicies = None
-        else:
-            indices = set()
-
+        indexObjs may be an int, long, slice, or an iterable of such items, or
+        'None'
+        """
+        indices = set()
+        if indexObjs is not None:
             # Convert single objects to a list
-            if isinstance(indexObjs, (int, slice)):
+            if isinstance(indexObjs, (int, long, slice)):
                 indexObjs = [indexObjs]
                 
             if isinstance(indexObjs, (list,tuple) ) and len(indexObjs):
                 for indexObj in indexObjs:
-                    if isinstance(indexObj, int):
+                    if isinstance(indexObj, (int, long)):
                         indices.add(indexObj)
                     elif isinstance(indexObj, slice):
                         indices.update(self._sliceToSet(indexObj))
                     else:
-                        raise IndexError("Invalid indices for component")
+                        raise IndexError("Invalid index for component: %r" %
+                                         indexObj)
             else:
-                raise IndexError("Invalid indices for component")
+                raise IndexError("Invalid indices for component: %r" % 
+                                 indexObjs)
         return indices
 
 class ContinuousComponent( DimensionedComponent ):
@@ -376,14 +424,14 @@ class ContinuousComponent( DimensionedComponent ):
     """
     pass
             
-#class Component1DFloat( ContinuousComponent ):
-#    """
-#    For components such CurveParam, where the component is specificied by a continual parameter, not an index. 
-#    """
-#    dimensions = 1
-#
-#class Component2DFloat( ContinuousComponent ):
-#    dimensions = 2
+class Component1DFloat( ContinuousComponent ):
+    """
+    For components such CurveParam, where the component is specificied by a continual parameter, not an index. 
+    """
+    dimensions = 1
+
+class Component2DFloat( ContinuousComponent ):
+    dimensions = 2
 
 class Component1D( IndexedComponent ):
     _mfncompclass = api.MFnSingleIndexedComponent
