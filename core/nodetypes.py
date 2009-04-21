@@ -125,8 +125,7 @@ class Component( PyNode ):
     Abstract base class for pymel components.
     """
     
-    __apicls__ = api.MFnComponent
-    __metaclass__ = MetaMayaComponentWrapper
+#    __metaclass__ = MetaMayaComponentWrapper
     _ComponentLabel__ = None
     _apienum__ = None
 
@@ -170,8 +169,6 @@ class Component( PyNode ):
                 print "    ", api.ApiEnumsToApiTypes()[exactComp]
 
     def __init__(self, *args, **kwargs ):
-        component = None
-
         # the Component class can be instantiated several ways:
         # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
         # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
@@ -182,21 +179,6 @@ class Component( PyNode ):
             self._node = PyNode(dag)
         assert(self._node)
         
-        if not component:
-            # We weren't given an mobject, try to make one
-            component = self._makeComponentMObjectHandle()
-            
-        # if still no component, give up
-        if not component or not api.isValidMObjectHandle(component):
-            raise MayaObjectError("%s(*%r, **%r)" % (self.__class__.__name__, args, kwargs))
-            
-        else:
-            if 'MObjectHandle' not in self.__apiobjects__:
-                self.__apiobjects__['MObjectHandle'] = component
-    
-            # instantiate the MFnComponent
-            self.__apiobjects__['MFn'] = self._makeComponentMFn()
-
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this component, if it is valid"
         try:
@@ -213,13 +195,22 @@ class Component( PyNode ):
         raise MayaObjectError( self._completeNameString() )        
 
     def __apihandle__(self) :
+        if 'MObjectHandle' not in self.__apiobjects__:
+            handle = self._makeComponentMObjectHandle()
+            if not handle or not api.isValidMObjectHandle(handle):
+                raise MayaObjectError("%s(*%r, **%r)" % (self.__class__.__name__, args, kwargs))
+            self.__apiobjects__['MObjectHandle'] = handle            
         return self.__apiobjects__['MObjectHandle']
 
-    def __mfnComp__(self):
-        return self.__apiobjects__['MFn']
+    def __apicomponent__(self):
+        mfnComp = self.__apiobjects__.get('MFnComponent', None)
+        if mfnComp is None:
+            mfnComp = self._makeComponentMFn()
+            self.__apiobjects__['MFnComponent'] = mfnComp
+        return mfnComp
     
     def __apimfn__(self):
-        return self.__mfnComp__()
+        return self.__apicomponent__()
             
     def _completeNameString(self):
         return u'%s.%s' % ( self.node(), self.plugAttr())
@@ -250,8 +241,8 @@ class Component( PyNode ):
         return component
     
     def _makeComponentMFn(self):
-        return self.__apicls__(self.__apimobject__())
-
+        return api.MFnComponent(self.__apimobject__())
+    
     def name(self):
         selList = api.MSelectionList()
         selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
