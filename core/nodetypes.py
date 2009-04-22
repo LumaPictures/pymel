@@ -3945,7 +3945,9 @@ class Mesh(SurfaceShape):
                             'e'     : MeshEdge,
                             'edges' : MeshEdge,
                             'f'     : MeshEdge,
-                            'faces' : MeshEdge}
+                            'faces' : MeshEdge,
+                            'map'   : MeshUV,
+                            'uvs'   : MeshUV}
                         
     vertexCount =  mayahook.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
     edgeCount =    mayahook.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
