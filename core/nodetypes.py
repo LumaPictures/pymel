@@ -3379,14 +3379,23 @@ class Constraint(Transform):
         args = list(targetObjects) + [constraintObj]
         return inFunc(  *args, **{'query':True, 'weight':True} )
 
-class GeometryShape(DagNode): pass
+class GeometryShape(DagNode):
+    _componentAttributes = {}
+
+    def __getattr__(self, attr):
+        #print "Mesh.__getattr__", attr
+        try:
+            return self._componentAttributes[attr](self)
+        except KeyError:
+            #print "getting super", attr
+            return super(GeometryShape,self).__getattr__(attr)
+            
 class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
 class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
     __metaclass__ = MetaMayaNodeWrapper
-    @property
-    def cv(self): return NurbsCurveCV(self)
+    _componentAttributes = {'cv': NurbsCurveCV}
     
 class SurfaceShape(ControlPoint): pass
 class Mesh(SurfaceShape):
@@ -3508,35 +3517,13 @@ class Mesh(SurfaceShape):
 #    def __init__(self, *args, **kwargs ):      
 #        SurfaceShape.__init__(self, self._apiobject )
 #        self.vtx = MeshEdge(self.__apimobject__() )
-    def __getattr__(self, attr):
-        #print "Mesh.__getattr__", attr
-        try:
-            {   'vtx'   : MeshVertex,
-                'verts' : MeshVertex,
-                'e'     : MeshEdge,
-                'edges' : MeshEdge,
-                'f'     : MeshEdge,
-                'faces' : MeshEdge
-            }[attr](self)
-        except KeyError:
-            #print "getting super", attr
-            return DependNode.__getattr__(self,attr)
-         
-    @property
-    def f(self): return MeshFace(self)
-    @property
-    def faces(self): return MeshFace(self)
-    
-    @property
-    def e(self): return MeshEdge(self)
-    @property
-    def edges(self): return MeshEdge(self)
-     
-    @property
-    def vtx(self): return MeshVertex(self)
-    @property
-    def verts(self): return MeshVertex(self)
-                    
+    _componentAttributes = {'vtx'   : MeshVertex,
+                            'verts' : MeshVertex,
+                            'e'     : MeshEdge,
+                            'edges' : MeshEdge,
+                            'f'     : MeshEdge,
+                            'faces' : MeshEdge}
+                        
     vertexCount =  mayahook.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
     edgeCount =    mayahook.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
     faceCount =    mayahook.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
