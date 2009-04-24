@@ -112,6 +112,10 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 
 # TODO:
 # -----
+# Seperate out _makeComponentHandle and _setComponentHandle - ie, order should be:
+#    1. _makeComponentHandle
+#    2. _makeMFnComponent
+#    3. _setComponentHandle
 # Implement makeComponentFromIndex - have it return an MObject handle
 # Implement multiple component labels! (ie, surface iso can be 'u' or 'v')
 # Add 'setCompleteData' when we can find how many components (instead of just 'setComplete')
@@ -199,7 +203,7 @@ class Component( PyNode ):
 
     def __apihandle__(self) :
         if 'MObjectHandle' not in self.__apiobjects__:
-            handle = self._makeComponentMObjectHandle()
+            handle = self._makeComponentHandle()
             if not handle or not api.isValidMObjectHandle(handle):
                 raise MayaObjectError( self._completeNameString() )
             self.__apiobjects__['MObjectHandle'] = handle            
@@ -218,7 +222,7 @@ class Component( PyNode ):
     def _completeNameString(self):
         return u'%s.%s' % ( self.node(), self.plugAttr())
 
-    def _makeComponentMObjectHandle(self):
+    def _makeComponentHandle(self):
         component = None
         # try making from MFnComponent.create, if _mfncompclass has it defined
         if ('create' in dir(self._mfncompclass) and
@@ -280,11 +284,36 @@ class DimensionedComponent( Component ):
     
     dimensions = 0
 
+    def __init__(self, *args, **kwargs ):
+        # the Component class can be instantiated several ways:
+        # Component(dagPath, component):
+        #    args get stored on self._node and
+        #    self.__apiobjects__['MObjectHandle'] respectively
+        # Component(dagPath):
+        #    in this case, stored on self.__apiobjects__['MDagPath']
+        #    (self._node will be None)
+                
+        self._getItemDimension = 0
+        
+        isComplete = True
+        
+        # If we're fed an MObjectHandle already, we don't allow
+        # __getitem__ indexing... unless it's complete
+        handle = self.__apiobjects__.get('MObjectHandle', None)
+        if handle is not None:
+            mfncomp = self._mfncompclass(handle.object())
+            if not mfncomp.isComplete():
+                isComplete = False
+                
+        self._completeDimensions = [isComplete] * self.dimensions
+        
+        super(DimensionedComponent, self).__init__(*args, **kwargs)
+
     def _completeNameString(self):
         return super(DimensionedComponent, self)._completeNameString() + '[*]'
 
-    def _makeComponentMObjectHandle(self):
-        handle = super(DimensionedComponent, self)._makeComponentMObjectHandle()
+    def _makeComponentHandle(self):
+        handle = super(DimensionedComponent, self)._makeComponentHandle()
         indices = self.__apiobjects__.get('ComponentIndex', None)
         if indices is not None:
             handle = self._makeIndexedComponentHandle(indices, handle=handle)
@@ -306,14 +335,16 @@ class DimensionedComponent( Component ):
         raise NotImplementedError
         
     def __getitem__(self, item):
-        if self.isComplete():
-            #return self.__class__(self._node, item)
+        if self.isComplete(dimension=self._getItemDimension):
             return self.__class__(self._node, item)
         else:
             raise IndexError("Indexing only allowed on a complete range, such as when using Mesh(u'obj').vtx")
             
     def isComplete(self, dimension=None):
-        return self.__apicomponent__().isComplete()
+        if dimension is None:
+            return self.__apicomponent__().isComplete()
+        else:
+            return self._completeDimensions[dimension]
 
 # TODO: implement slices with negative values / None stop values
 class IndexedComponent( DimensionedComponent ):
@@ -375,7 +406,7 @@ class IndexedComponent( DimensionedComponent ):
     
     def _makeIndexedComponentHandle(self, indices, handle=None):
         if not handle:
-            handle = Component._makeComponentMObjectHandle(self)
+            handle = Component._makeComponentHandle(self)
         indices = self._standardizeIndices(indices)
         scriptUtil = api.MScriptUtil()
         typeIntM = api.MIntArray()
@@ -387,7 +418,7 @@ class IndexedComponent( DimensionedComponent ):
 
     def _standardizeIndices(self, indexObjs):
         """
-        Convert indexObjs to a simple set of indices.
+        Convert indexObjs to a set of indices.
         
         indexObjs may be an int, long, slice, or an iterable of such items, or
         'None'
@@ -416,15 +447,14 @@ class ContinuousComponent( DimensionedComponent ):
     """
     Components whose dimensions are continuous.
     
-    Ie, there are an infinite number of possible components, referenced by floating point parameters.
+    Ie, there are an infinite number of possible components, referenced by
+    floating point parameters.
+    
     Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
     """
     pass
             
 class Component1DFloat( ContinuousComponent ):
-    """
-    For components such CurveParam, where the component is specificied by a continual parameter, not an index. 
-    """
     dimensions = 1
 
 class Component2DFloat( ContinuousComponent ):
