@@ -783,15 +783,89 @@ Modifications
 def duplicate( *args, **kwargs ):
     """
 Modifications:
+    - new option: addShape
+        If addShape evaluates to True, then all arguments fed in must be shapes, and each will be duplicated and added under
+        the existing parent transform, instead of duplicating the parent transform.
+        The following arguments are incompatible with addShape, and will raise a ValueError if enabled along with addShape:
+            renameChildren (rc), instanceLeaf (ilf), parentOnly (po), smartTransform (st)
     - returns wrapped classes
     - returnRootsOnly is forced on. This is because the duplicate command does not use full paths when returning
     the names of duplicated objects and will fail if the name is not unique. Rather than return a mixed list of PyNodes and
     strings, I thought it best to give more predictable results.
     """
+    addShape = kwargs.pop('addShape', False)
     kwargs['returnRootsOnly'] = True
     kwargs.pop('rr', None)
-    return map(PyNode, cmds.duplicate( *args, **kwargs ) )
+    
+    if not addShape:
+        return map(PyNode, cmds.duplicate( *args, **kwargs ) )
+    else:
+        for invalidArg in ('renameChildren', 'rc', 'instanceLeaf', 'ilf',
+                           'parentOnly', 'po', 'smartTransform', 'st'):
+            if kwargs.get(invalidArg, False) :
+                raise ValueError("duplicate: argument %r may not be used with 'addShape' argument" % invalidArg)
+        name=kwargs.pop('name', kwargs.pop('n', None))
+                    
+        import nodetypes
+        
+        newShapes = []
+        for origShape in [PyNode(x) for x in args]:
+            if 'shape' not in cmds.nodeType(origShape.name(), inherited=True):
+                raise TypeError('addShape arg of duplicate requires all arguments to be shapes (non-shape arg: %r)'
+                                % origShape)
 
+            # This is somewhat complex, because if we have a transform with
+            # multiple shapes underneath it,
+            #   a) The transform and all shapes are always duplicated
+            #   b) After duplication, there is no reliable way to distinguish
+            #         which shape is the duplicate of the one we WANTED to
+            #         duplicate (cmds.shapeCompare does not work on all types
+            #         of shapes - ie, subdivs)
+            
+            # To get around this, we:
+            # 1) duplicate the transform ONLY (result: dupeTransform1)
+            # 2) instance the shape we want under the new transform
+            #    (result: dupeTransform1|instancedShape)
+            # 3) duplicate the new transform
+            #    (result: dupeTransform2, dupeTransform2|duplicatedShape)
+            # 4) delete the transform with the instance (delete dupeTransform1)
+            # 5) place an instance of the duplicated shape under the original
+            #    transform (result: originalTransform|duplicatedShape)
+            # 6) delete the extra transform (delete dupeTransform2)
+            # 7) rename the final shape (if requested)
+            
+            # 1) duplicate the transform ONLY (result: dupeTransform1)
+            dupeTransform1 = duplicate(origShape, parentOnly=1)[0]
+
+            # 2) instance the shape we want under the new transform
+            #    (result: dupeTransform1|instancedShape)
+            parent(origShape, dupeTransform1, shape=True, addObject=True,
+                        relative=True)
+            
+            # 3) duplicate the new transform
+            #    (result: dupeTransform2, dupeTransform2|duplicatedShape)
+            dupeTransform2 = duplicate(dupeTransform1, **kwargs)[0]
+
+            # 4) delete the transform with the instance (delete dupeTransform1)
+            delete(dupeTransform1)
+
+            # 5) place an instance of the duplicated shape under the original
+            #    transform (result: originalTransform|duplicatedShape)
+            newShape = PyNode(parent(dupeTransform2.getShape(),
+                                     origShape.getParent(),
+                                     shape=True, addObject=True,
+                                     relative=True)[0])
+
+            # 6) delete the extra transform (delete dupeTransform2)
+            delete(dupeTransform2)
+            
+            # 7) rename the final shape (if requested)
+            if name is not None:
+                newShape.rename(name)
+            
+            newShapes.append(newShape)
+        select(newShapes, r=1)
+        return newShapes
     
 def instance( *args, **kwargs ):
     """
