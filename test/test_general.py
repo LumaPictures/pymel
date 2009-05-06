@@ -1,6 +1,7 @@
 import sys, os, inspect, unittest
 #from testingutils import setupUnittestModule
 from pymel import *
+import pymel.core.nodetypes as nodetypes
 #import pymel
 #import pymel.core.factories as _factories
 #import maya.cmds as cmds
@@ -387,7 +388,76 @@ class testCase_listHistory(unittest.TestCase):
 #        s.getTranslation('world')
 #        # Result: [10.0, 10.0, 20.0] # 
 
+class testCase_duplicateShape(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.poly = polyCube(name='singleShapePoly')[0]
+        self.curve = circle(name='singleShapeCurve')[0]
+        tempShapeTransform = polyCone()[0]
+        self.subd = polyToSubdiv(tempShapeTransform,
+                                 constructionHistory=False,
+                                 name='singleShapeSubd')[0]
+        delete(tempShapeTransform)
+        #self.noShape = createNode('transform', name='noShapeTransform')
+        
+        #one transform, multiple shapes
+        self.multiShape = polyCube(name='multiShape')[0]
+        self.multiShape.getShape().rename('multiShapePolyShape')
+        tempShapeTransform = polyToSubdiv(self.multiShape,
+                                          constructionHistory=False,
+                                          name='multiShapeSubd')[0]
+        parent(tempShapeTransform.getShape(), self.multiShape, shape=True,
+               addObject=True, relative=True)
+        delete(tempShapeTransform)
+        tempShapeTransform = circle(name='multiShapeCurve')[0]
+        parent(tempShapeTransform.getShape(), self.multiShape, shape=True,
+               addObject=True, relative=True)
+        delete(tempShapeTransform)
 
+    def tearDown(self):
+        for node in (self.multiShape, self.poly, self.curve, self.subd):
+            delete(node)
+            
+    def test_singleShapes(self):
+        for shapeTransform in (self.poly, self.curve, self.subd):
+            self.assertEqual(len(shapeTransform.getChildren(shapes=1)), 1)
+            self.assertRaises(TypeError, duplicate, shapeTransform, addShape=True)
+            self.assertEqual(len(shapeTransform.getChildren(shapes=1)), 1)
+            origShape = shapeTransform.getShape()
+            shapeDup = duplicate(origShape, addShape=True)
+            self.assertEqual(len(shapeTransform.getChildren(shapes=1)), 2)
+            self.assertEqual(len(shapeDup), 1)
+            shapeDup = shapeDup[0]
+            self.assertDupeShape(origShape, shapeDup)
+            
+    def test_multiShape(self):
+        origShapes = self.multiShape.getChildren(shapes=1)
+        oldNumChildren = len(origShapes)
+        self.assertRaises(TypeError, duplicate, self.multiShape, addShape=True)
+        self.assertEqual(len(self.multiShape.getChildren(shapes=1)),
+                             oldNumChildren)
+        for origShape in origShapes:
+            shapeDup = duplicate(origShape, addShape=True)
+            self.assertEqual(len(self.multiShape.getChildren(shapes=1)),
+                             oldNumChildren + 1)
+            oldNumChildren += 1
+            self.assertEqual(len(shapeDup), 1)
+            shapeDup = shapeDup[0]
+            self.assertDupeShape(origShape, shapeDup)
+
+    
+    def assertDupeShape(self, origShape, shapeDup):
+            self.assertTrue(shapeDup.__class__ == origShape.__class__)
+            
+            # As of Maya 2009, shapeCompare doesn't handle subdivs, and always
+            #    returns 1 for curves
+            if not isinstance(origShape, (Subdiv, NurbsCurve)):
+                if shapeCompare(origShape, shapeDup) != 0:
+                    self.fail("shapes do not compare equal: %r, %r)" %
+                              (origShape, shapeDup))
+            self.assertFalse(origShape.isInstanceOf(shapeDup))
+        
+            
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
