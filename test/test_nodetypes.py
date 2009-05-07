@@ -3,6 +3,7 @@ import unittest
 from pymel import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.core.factories import ApiEnumsToPyComponents
+from pymel.test.testingutils import TestCaseExtended
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -466,6 +467,53 @@ class testCase_components(unittest.TestCase):
                 exec compData.indexedComp()
             except:
                 return compData.indexedComp()
+
+class testCase_sets(TestCaseExtended):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.cube = polyCube()[0]
+        self.sphere = sphere()[0]
+
+    def assertSetSelect(self, setClass, *items): 
+        """
+        Generator function which tests the given set type by: 
+        selects the items, saves the list of the selected items, makes a set
+        from the selected items, selects the items in the set, then compares
+        the results to the initial selection.
+        """
+        select(items)
+        initialSel = cmds.ls(sl=1)
+        if issubclass(setClass, ObjectSet):
+            mySet = sets(initialSel)
+        else:
+            mySet = SelectionSet(initialSel)
+        self.assertNoError(select, mySet)
+        self.assertIteration(initialSel, cmds.ls(sl=1),
+                             orderMatters=False)
+        
+    def test_ObjectSet_singleObject(self):
+        self.assertSetSelect(ObjectSet, self.cube)
+        
+    def test_ObjectSet_multiObject(self):
+        self.assertSetSelect(ObjectSet, self.cube, self.sphere)
+        
+    def test_ObjectSet_vertices(self):
+        self.assertSetSelect(ObjectSet, self.cube.vtx[1:3])
+    
+    def test_ObjectSet_mixedObjectsComponents(self):
+        self.assertSetSelect(ObjectSet, self.cube.edges[4:6], self.sphere)
+    
+    def test_SelectionSet_singleObject(self):
+        self.assertSetSelect(SelectionSet, self.cube)
+        
+    def test_SelectionSet_multiObject(self):
+        self.assertSetSelect(SelectionSet, self.cube, self.sphere)
+        
+    def test_SelectionSet_vertices(self):
+        self.assertSetSelect(SelectionSet, self.cube.vtx[1:3])
+    
+    def test_SelectionSet_mixedObjectsComponents(self):
+        self.assertSetSelect(SelectionSet, self.cube.edges[4:6], self.sphere)
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
