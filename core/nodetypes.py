@@ -3633,9 +3633,18 @@ class SelectionSet( api.MSelectionList):
                     self.apicls.add( self, obj )
                 else:
                     raise TypeError
-        
+                
     def __melobject__(self):
-        return list(self)
+        # If the list contains components, THEIR __melobject__ is a list -
+        # so need to iterate through, and flatten if needed
+        melList = []
+        for selItem in self:
+            selItem = selItem.__melobject__()
+            if util.isIterable(selItem):
+                melList.extend(selItem)
+            else:
+                melList.append(selItem)
+        return melList
     
     def __len__(self):
         """:rtype: `int` """
@@ -3665,19 +3674,28 @@ class SelectionSet( api.MSelectionList):
         plug = api.MPlug()
         obj = api.MObject()
         dag = api.MDagPath()
+        comp = api.MObject()
+        
+        # Go from most specific to least - plug, dagPath, dependNode
         try:
             self.apicls.getPlug( self, index, plug )
-            return PyNode( plug )
         except RuntimeError:
             try:
-                self.apicls.getDependNode( self, index, obj )
-                return PyNode( obj )
+                self.apicls.getDagPath( self, index, dag, comp )
             except RuntimeError:
                 try:
-                    self.apicls.getDagPath( self, index, dag )
-                    return PyNode( dag )
+                    self.apicls.getDependNode( self, index, obj )
+                    return PyNode( obj )
                 except:
                     pass
+            else:
+                if comp.isNull():
+                    return PyNode( dag )
+                else:
+                    return PyNode( dag, comp )
+        else:
+            return PyNode( plug )
+
                 
     def __setitem__(self, index, item):
         
