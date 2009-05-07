@@ -44,8 +44,8 @@ def getMelRepresentation( args, recursionLimit=None, maintainDicts=True):
             on them, etc.  If recursionLimit==None, then there is no limit to recursion depth.
             
         maintainDicts : bool
-            In general, all iterables will be converted to lists in the returned copy - however, if maintainDicts==True,
-            then iterables for which ``operator.isMappingType()`` returns True will be returned as dicts.
+            In general, all iterables will be converted to tuples in the returned copy - however, if maintainDicts==True,
+            then iterables for which ``util.isMapping()`` returns True will be returned as dicts.
     
     """
     if recursionLimit:
