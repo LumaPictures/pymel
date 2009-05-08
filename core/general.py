@@ -981,14 +981,21 @@ Modifications
             kwargs[flag] = args[0]
             args = ()
             break
-        
-    # the case where we need to return a list of objects       
-    if kwargs.get( 'query', kwargs.get('q',False) ):
-        size = len(kwargs)
-        if size == 1 or (size==2 and kwargs.get( 'nodesOnly', kwargs.get('no',False) )  ) :
-            return map( PyNode, util.listForNone(cmds.sets( *args, **kwargs )) )
-            
-    return PyNode(cmds.sets( *args, **kwargs ))
+    
+    
+#    # the case where we need to return a list of objects       
+#    if kwargs.get( 'query', kwargs.get('q',False) ):
+#        size = len(kwargs)
+#        if size == 1 or (size==2 and kwargs.get( 'nodesOnly', kwargs.get('no',False) )  ) :
+#            return map( PyNode, util.listForNone(cmds.sets( *args, **kwargs )) )
+
+    # Just get the result, then check if it's a list, rather than trying to
+    # parse the kwargs...
+    result = cmds.sets( *args, **kwargs )
+    if util.isIterable(result):
+        return map( PyNode, util.listForNone(result) )
+    else:
+        return PyNode(result)
     
     '''
     #try:
