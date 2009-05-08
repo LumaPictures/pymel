@@ -992,6 +992,8 @@ Modifications
     # Just get the result, then check if it's a list, rather than trying to
     # parse the kwargs...
     result = cmds.sets( *args, **kwargs )
+    if isinstance(result, (bool, int, long, float)):
+        return result
     if util.isIterable(result):
         return map( PyNode, util.listForNone(result) )
     else:
