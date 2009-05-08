@@ -3,7 +3,7 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys, platform, os, shutil
+import sys, platform, os, os.path, shutil
 
 try:
 	import nose
@@ -11,14 +11,28 @@ except ImportError, e:
 	"To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
 	raise e
 
-app_dir = os.environ['HOME']
+if os.name == 'nt':
+    app_dir = os.environ['USERPROFILE']
+    
+    # Vista or newer... version() returns "6.x.x"
+    if int(platform.version().split('.')[0]) > 5:
+        app_dir = os.path.join( app_dir, 'Documents')
+    else:
+        app_dir = os.path.join( app_dir, 'My Documents')
+else:
+    app_dir = os.environ['HOME']
+    
 if platform.system() == 'Darwin':
 	app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )	
 else:
 	app_dir = os.path.join( app_dir, 'maya' )
 
+# On windows, had problems doing shutil.move( app_dir, app_dir + '.bak') -
+# Seems like a bug, not sure if it's just in windows...
+
 print "backing up Maya user directory", app_dir
-shutil.move( app_dir, app_dir + '.bak' )
+backup_dir = app_dir + '_bak'
+shutil.move( app_dir, backup_dir )
 
 #import maya
 
@@ -42,6 +56,7 @@ except Exception, e:
 	print e
 finally:
 	print "restoring Maya user directory", app_dir
-	shutil.rmtree( app_dir )
-	shutil.move( app_dir + '.bak', app_dir )
+	if os.path.isdir( app_dir ):
+	   shutil.rmtree( app_dir )
+	shutil.move( backup_dir, app_dir )
 	print "done"
