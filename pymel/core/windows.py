@@ -1,5 +1,10 @@
 """
 Functions for creating UI elements, as well as their class counterparts.
+"""
+
+# foo
+
+"""
 
 ====================
 Pymel UIs
@@ -8,9 +13,7 @@ Pymel UIs
 pymel adds more readability to UI building while also maintaining backward compatibility.  Like nodes and 
 `PyNode`s, every ui command in maya.cmds has a class counterpart in pymel derived from the base class `PyUI`.
 The ui commands return these PyUI objects, and these have all of the various methods to get and set properties
-on the ui element:
-
-.. python::
+on the ui element::
 
     from pymel import *
     win = window(title="My Window")
@@ -40,9 +43,7 @@ Function Name as String
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The simplest method of setting up a callback is to pass the name of the callback function as a string. Maya will try to execute 
-this as a python function. Here's a simple example:
-
-.. python::
+this as a python function. Here's a simple example::
 
     from pymel import *
 
@@ -62,18 +63,14 @@ Maya's perspective, its new location is ``myModule.buttonPressed``.
 
 There are several solutions to this.  First, you can import the contents of ``myModule`` directly into the main namespace ( e.g. 
 ``from myModule import *`` ). This will allow ``buttonPressed`` to be accessed without the namespace. Alterately, you can change your script 
-and prefix the function with the module it will be imported from:
-
-.. python::
+and prefix the function with the module it will be imported from::
 
     button( command="myModule.buttonPressed" )
 
 The problem with both of these solutions is that you must ensure that the module is *always* imported the same way, and, if you plan
 to share your module with someone, it's pretty impossible to do this.
   
-A more robust solution is to include an import command in the string to execute. 
-
-.. python::
+A more robust solution is to include an import command in the string to execute::
     
     button ( command="import myModule; myModule.buttonPressed" )
 
@@ -91,9 +88,7 @@ Function Object
 ~~~~~~~~~~~~~~~  
 
 When using this method, you pass an actual function object (without the parentheses). The callback function
-has to be defined before it is passed to the command flag.  
-
-.. python::
+has to be defined before it is passed to the command flag::
 
     from pymel import *
     
@@ -110,33 +105,25 @@ The difference from the previous example is subtle:  ``buttonPressed`` does not 
 
 This method is very robust, its primary weakness lies in passing arguments to our function.
 
-In the above example, we defined our callback function like this:
-
-.. python::
+In the above example, we defined our callback function like this::
 
     def buttonPressed(arg):
         print "pressed!"
 
 Notice that the function has one argument: ``arg``.  We had to include this argument in our callback function because the `button` UI widget,
 like many others, automatically passes arguments to your function, whether you want them or not (These forced arguments allow python in Maya
-to mimic the "myCommand #1" functionality in MEL). If we had defined our function like this...
-
-.. python::
+to mimic the "myCommand #1" functionality in MEL). If we had defined our function like this::
 
     def buttonPressed():
         print "pressed!"
         
-...when we pressed our button we would have gotten this error:
-
-.. python::
+...when we pressed our button we would have gotten this error::
 
     # TypeError: buttonPressed() takes no arguments (1 given) # 
 
 In our case, the arguments passed by the button are actually pretty useless, but sometimes they contain the state of the UI element, such as
 whether a checkbox is on or off.  The tricky part is that different UI elements pass differing numbers of arguments to their callbacks, and some
-pass none at all.  This is why it is best for your command to use the ``*args`` syntax, like so:
-
-.. python::
+pass none at all.  This is why it is best for your command to use the ``*args`` syntax, like so::
 
     def buttonPressed(*args):
         print "pressed!"
@@ -152,9 +139,7 @@ Lambda Functions
 ~~~~~~~~~~~~~~~~
 
 Combining lambda functions with the lessons we learned above adds more versatility to command callbacks.  You can choose 
-exactly which args you want to pass along.
-
-.. python::
+exactly which args you want to pass along::
 
     from pymel import *
     
@@ -171,16 +156,12 @@ exactly which args you want to pass along.
 So, what exactly is a lambda?  It's a special way of creating a function on one line. It's usually used when you need a function
 but you don't need to refer to it later by name.
 
-In the above example, this portion of the code...
-
-.. python::
+In the above example, this portion of the code::
 
     name = 'chad'
     btn = button( command = lambda *args: buttonPressed(name) )
     
-...could have been written as:
-
-.. python::
+...could have been written as::
 
     name = 'chad'
     def tempFunc(*args):
@@ -192,9 +173,7 @@ The lambda is just a shorthand syntax that allows us to do it on one line.  The 
 does the real work so that we can control what arguments will be passed to it.
 
 This method, too, has a drawback. It fails when used in a 'for' loop. In the following example, we're going to make several buttons.
-Our intention is that each one will print a different name, but as you will soon see, we won't succeed.
-
-.. python::
+Our intention is that each one will print a different name, but as you will soon see, we won't succeed::
 
     from pymel import *
     
@@ -215,9 +194,7 @@ code it has been given, but the variables in that code are live too, so the valu
 the variable named ``character`` changes with each
 iteration through the loop, thereby changing the code that lambda is
 waiting to execute.  What is its value at the end of the loop?  It's 'james'.
-So all the lambda's execute:
-
-.. python::
+So all the lambda's execute::
 
     buttonPressed('james')
 
@@ -229,9 +206,7 @@ Callback Objects
 In my experience this method handles all cases reliably and predictably, and solves the 'lambda' issue described above.
 A `Callback` object is an object that behaves like a function, meaning it can be 'called' like a regular function.
 The Callback object 'wraps' another function, and also stores the parameters to pass to that function.
-Here's an example:
- 
-.. python::
+Here's an example::
 
     from pymel import *
     

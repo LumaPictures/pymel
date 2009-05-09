@@ -1,11 +1,8 @@
 """
 Contains general node and attribute functions, as well as the main `PyNode` base class. 
 
-For the rest of the class hierarchy, including `DependNode`, `Transform`, and `Attribute`, see `pymel.core.nodetypes`.
-
-:group Exceptions: ``*Error``
-
-:group Utility: Version, Scene
+For the rest of the class hierarchy, including `DependNode <pymel.core.nodetypes.DependNode>`, `Transform <pymel.core.nodetypes.Transform>`, 
+and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes`.
 
 
 """
@@ -23,7 +20,7 @@ import inspect, timeit, time
 
 import pymel.util as util
 import factories as _factories
-from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
+
 import pymel.api as api
 import datatypes
 import pymel.util.nameparse as nameparse
@@ -33,7 +30,6 @@ _logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
-from pymel.mayahook import Version
 
 from maya.cmds import about as _about
 import maya.mel as mm
@@ -1297,7 +1293,7 @@ class PyNode(util.ProxyUnicode):
                           
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. """
-        #if Version.current >= Version.v2009:
+        #if mayahook.Version.current >= mayahook.Version.v2009:
         #    raise AttributeError
         return self.name()
     

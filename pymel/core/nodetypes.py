@@ -3,13 +3,12 @@ Contains classes corresponding to the Maya type hierarchy, including `DependNode
 """
 import sys, os, re
 
-import pmcmds as cmds
+import pmcmds as cmds #@UnresolvedImport
 import inspect, itertools, math
-
 import pymel.util as util
 import factories as _factories
 from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
-import pymel.api as api
+import pymel.api as api #@UnresolvedImport
 import datatypes
 import pymel.util.nameparse as nameparse
 import pymel.mayahook.pwarnings as pwarnings
@@ -18,13 +17,12 @@ _logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
-from pymel.mayahook import Version
 
 from maya.cmds import about as _about
 import maya.mel as mm
 
-from general import *
-
+#from general import *
+import general
 from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
@@ -107,7 +105,7 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
     
     return getAllParents, parentFuncWithGenerations
 
-class Component( PyNode ):
+class Component( general.PyNode ):
     """
     Abstract base class for pymel components, such as `MeshEdge`, `MeshVertex`, and `MeshFace`.
  
@@ -166,7 +164,7 @@ class Component( PyNode ):
         else:
             dag = self.__apiobjects__['MDagPath']
             newargs = [dag]
-            self._node = PyNode(dag)
+            self._node = general.PyNode(dag)
             
         #print "ARGS", newargs   
 
@@ -676,7 +674,7 @@ class ComponentArray(object):
 
     def plugNode(self):
         'plugNode'
-        return PyNode( str(self).split('.')[0])
+        return general.PyNode( str(self).split('.')[0])
                 
     def plugAttr(self):
         """plugAttr"""
@@ -705,13 +703,13 @@ class _Component(object):
         return self._item    
         
     def move( self, *args, **kwargs ):
-        return move( self, *args, **kwargs )
+        return general.move( self, *args, **kwargs )
     def scale( self, *args, **kwargs ):
-        return scale( self, *args, **kwargs )    
+        return general.scale( self, *args, **kwargs )    
     def rotate( self, *args, **kwargs ):
-        return rotate( self, *args, **kwargs )
+        return general.rotate( self, *args, **kwargs )
 
-class AttributeDefaults(PyNode):
+class AttributeDefaults(general.PyNode):
     __metaclass__ = MetaMayaTypeWrapper
     __apicls__ = api.MFnAttribute
     
@@ -729,7 +727,7 @@ class AttributeDefaults(PyNode):
         if api.isValidMObjectHandle( handle ):
             return handle.object()
 
-        raise MayaAttributeError
+        raise general.MayaAttributeError
     
     def __apimplug__(self) :
         "Return the MPlug for this attribute, if it is valid"
@@ -743,7 +741,14 @@ class AttributeDefaults(PyNode):
             return self.node().__apimdagpath__()
         except AttributeError: pass
                  
-class Attribute(PyNode):
+class Attribute(general.PyNode):
+    """
+    
+    """
+    
+    #
+    
+    
     """
     Attributes
     ==========
@@ -757,7 +762,7 @@ class Attribute(PyNode):
     Here's a simple example showing how the Attribute class is used in context.
     
         >>> from pymel import *
-        >>> cam = PyNode('persp')
+        >>> cam = general.PyNode('persp')
         >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
         ...     cam.visibility.set( True )
         ...     cam.visibility.lock()
@@ -768,7 +773,7 @@ class Attribute(PyNode):
     Accessing Attributes
     --------------------
     
-    You can access an attribute class in three ways.  The first two require that you already have a `PyNode` object.
+    You can access an attribute class in three ways.  The first two require that you already have a `general.PyNode` object.
     
     Shorthand
     ~~~~~~~~~
@@ -806,7 +811,7 @@ class Attribute(PyNode):
     Direct Instantiation
     ~~~~~~~~~~~~~~~~~~~~
     The last way of getting an attribute is by directly instantiating the class. You can pass the attribute name as a string, or if you have one handy,
-    pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
+    pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `general.PyNode`
     class, which will determine the appropriate class automaticallly.
     
     explicitly request an Attribute:
@@ -814,9 +819,9 @@ class Attribute(PyNode):
         >>> Attribute( 'persp.visibility' ) 
         Attribute(u'persp.visibility')
         
-    let PyNode figure it out for you:
+    let general.PyNode figure it out for you:
     
-        >>> PyNode( 'persp.translate' ) 
+        >>> general.PyNode( 'persp.translate' ) 
         Attribute(u'persp.translate')
     
 
@@ -899,7 +904,7 @@ class Attribute(PyNode):
         if api.isValidMObjectHandle( handle ):
             return handle.object()
 
-        raise MayaAttributeError
+        raise general.MayaAttributeError
     
     def __apimplug__(self) :
         "Return the MPlug for this attribute, if it is valid"
@@ -942,13 +947,13 @@ class Attribute(PyNode):
                 return Attribute( node, plug.child( attrObj ) )
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
-            raise MayaAttributeError( '%s.%s' % (self, attr) )
+            raise general.MayaAttributeError( '%s.%s' % (self, attr) )
     
     
     def __getattr__(self, attr):
         try:
             return self.attr(attr)
-        except MayaAttributeError, e:
+        except general.MayaAttributeError, e:
             raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
     # Added the __call__ so to generate a more appropriate exception when a class method is not found 
     def __call__(self, *args, **kwargs):
@@ -962,7 +967,7 @@ class Attribute(PyNode):
             >>> from pymel import *
             >>> f=newFile(f=1) #start clean
             >>> 
-            >>> at = PyNode( 'defaultLightSet.dagSetMembers' )
+            >>> at = general.PyNode( 'defaultLightSet.dagSetMembers' )
             >>> SpotLight()
             SpotLight(u'spotLightShape1')
             >>> SpotLight()
@@ -1034,8 +1039,8 @@ class Attribute(PyNode):
             
         if not isinstance(other,Attribute):
             try:
-                other = PyNode(other)
-            except (ValueError,TypeError): # could not cast to PyNode
+                other = general.PyNode(other)
+            except (ValueError,TypeError): # could not cast to general.PyNode
                 return False
             
         otherPlug = other.__apimplug__()
@@ -1082,7 +1087,7 @@ class Attribute(PyNode):
                                               fullAttrPath, #useFullAttributePath
                                               longName #useLongNames 
                                             )
-        raise MayaObjectError(self._name)
+        raise general.MayaObjectError(self._name)
     
     
 #    def attributeName(self):
@@ -1321,8 +1326,8 @@ class Attribute(PyNode):
         return cmds.addAttr( self, q=1, en=1 ).split(':')    
             
     # getting and setting                    
-    set = setAttr            
-    get = getAttr
+    set = general.setAttr            
+    get = general.getAttr
     setKey = _factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
     
     
@@ -1341,7 +1346,7 @@ class Attribute(PyNode):
     #    return cmds.isConnected(self, other)
     
 
-    connect = connectAttr
+    connect = general.connectAttr
         
     def __rshift__(self, other):
         """
@@ -1350,9 +1355,9 @@ class Attribute(PyNode):
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
-        return connectAttr( self, other, force=True )
+        return general.connectAttr( self, other, force=True )
                 
-    disconnect = disconnectAttr
+    disconnect = general.disconnectAttr
     
     def __floordiv__(self, other):
         """
@@ -1370,7 +1375,7 @@ class Attribute(PyNode):
         
         see `Attribute.connections` for the full ist of flags.
         
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
         
         kwargs['source'] = True
@@ -1378,7 +1383,7 @@ class Attribute(PyNode):
         kwargs['destination'] = False
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)
+        return general.listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
         """
@@ -1386,7 +1391,7 @@ class Attribute(PyNode):
         
         see `Attribute.connections` for the full ist of flags.
         
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
         
         kwargs['source'] = False
@@ -1394,7 +1399,7 @@ class Attribute(PyNode):
         kwargs['destination'] = True
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)
+        return general.listConnections(self, **kwargs)
     
     def insertInput(self, node, nodeOutAttr, nodeInAttr ):
         """connect the passed node.outAttr to this attribute and reconnect
@@ -1780,7 +1785,7 @@ class Attribute(PyNode):
 #}      
 
 
-class DependNode( PyNode ):
+class DependNode( general.PyNode ):
     __apicls__ = api.MFnDependencyNode
     __metaclass__ = MetaMayaNodeWrapper
     #-------------------------------
@@ -1797,7 +1802,7 @@ class DependNode( PyNode ):
 #        if create:
 #            ntype = cls.__melnode__
 #            name = createNode(ntype,n=name,ss=1)
-#        return PyNode.__new__(cls,name)
+#        return general.PyNode.__new__(cls,name)
 
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self._apiobject.object() )
@@ -1816,7 +1821,7 @@ class DependNode( PyNode ):
         if update or self._name is None:
             try:
                 return self._updateName()
-            except MayaObjectError:
+            except general.MayaObjectError:
                 _logger.warn( "object %s no longer exists" % self._name ) 
         return self._name  
 #
@@ -1854,7 +1859,7 @@ class DependNode( PyNode ):
         """
         # TODO : ensure that name is the shortname of a node. implement ignoreShape flag
         #self.setName( name ) # no undo support
-        return rename(self, name)
+        return general.rename(self, name)
     
     def __apiobject__(self) :
         "get the default API object (MObject) for this node if it is valid"
@@ -1865,7 +1870,7 @@ class DependNode( PyNode ):
         handle = self.__apihandle__()
         if api.isValidMObjectHandle( handle ) :
             return handle.object()
-        raise MayaNodeError( self._name )
+        raise general.MayaNodeError( self._name )
         
     def __apihandle__(self) :
         return self.__apiobjects__['MObjectHandle']
@@ -1877,7 +1882,7 @@ class DependNode( PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if Version.current >= Version.v2009:
+    if mayahook.Version.current >= mayahook.Version.v2009:
         def __hash__(self):
             return self.__apihandle__().hashCode()
 
@@ -1915,7 +1920,7 @@ class DependNode( PyNode ):
         return cmds.nodeCast( self, swapNode, *kwargs )
 
     
-    duplicate = duplicate
+    duplicate = general.duplicate
     
 #--------------------------
 #xxx{    Presets
@@ -1947,7 +1952,7 @@ class DependNode( PyNode ):
 #--------------------------
 #xxx{    Info
 #-------------------------- 
-    type = nodeType
+    type = general.nodeType
             
          
     def referenceFile(self):
@@ -1966,7 +1971,7 @@ class DependNode( PyNode ):
             
     def classification(self):
         'getClassification'
-        return getClassification( self.type() )    
+        return general.getClassification( self.type() )    
         #return self.__apimfn__().classification( self.type() )
     
 #}
@@ -1977,48 +1982,48 @@ class DependNode( PyNode ):
     def inputs(self, **kwargs):
         """listConnections -source 1 -destination 0
         
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
         kwargs.pop('d', None )
-        return listConnections(self, **kwargs)
+        return general.listConnections(self, **kwargs)
     
     def outputs(self, **kwargs):
         """listConnections -source 0 -destination 1
         
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)                            
+        return general.listConnections(self, **kwargs)                            
 
     def sources(self, **kwargs):
         """listConnections -source 1 -destination 0
         
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
         kwargs['source'] = True
         kwargs.pop('s', None )
         kwargs['destination'] = False
         kwargs.pop('d', None )
-        return listConnections(self, **kwargs)
+        return general.listConnections(self, **kwargs)
     
     def destinations(self, **kwargs):
         """listConnections -source 0 -destination 1
         
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
         kwargs['source'] = False
         kwargs.pop('s', None )
         kwargs['destination'] = True
         kwargs.pop('d', None )
         
-        return listConnections(self, **kwargs)    
+        return general.listConnections(self, **kwargs)    
         
     def shadingGroups(self):
         """list any shading groups in the future of this object - works for shading nodes, transforms, and shapes 
@@ -2034,13 +2039,13 @@ class DependNode( PyNode ):
     def __getattr__(self, attr):
         try :
             #print "DependNode.__getattr__(%r)" % attr
-            #return super(PyNode, self).__getattr__(attr) 
-            return getattr(super(PyNode, self), attr)
+            #return super(general.PyNode, self).__getattr__(attr) 
+            return getattr(super(general.PyNode, self), attr)
         except AttributeError :
             try:
                 #print "DependNode.attr(%r)" % attr
                 return DependNode.attr(self,attr)
-            except MayaAttributeError, e:
+            except general.MayaAttributeError, e:
                 # since we're being called via __getattr__ we don't know whether the user was trying 
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
                 raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
@@ -2049,8 +2054,8 @@ class DependNode( PyNode ):
         #print "DependNode.__setattr__", attr, val
 
         # TODO: check all nodes in hierarchy
-        if hasattr(PyNode, attr):
-            super(PyNode, self).__setattr__( attr, val )
+        if hasattr(general.PyNode, attr):
+            super(general.PyNode, self).__setattr__( attr, val )
         else:
             util.warn( 'Setting Maya attributes using an equal sign (ex. SCENE.persp.tx=3) is deprecated. Please use Attribute.set() (ex. SCENE.persp.tx.set(3) )' )
             DependNode.attr(self,attr).set(val)
@@ -2102,7 +2107,7 @@ class DependNode( PyNode ):
             if '.' in attr or '[' in attr:
                 # Compound or Multi Attribute
                 # there are a couple of different ways we can proceed: 
-                # Option 1: back out to api.toApiObject (via PyNode)
+                # Option 1: back out to api.toApiObject (via general.PyNode)
                 # return Attribute( self.__apiobject__(), self.name() + '.' + attr )
             
                 # Option 2: nameparse.
@@ -2137,7 +2142,7 @@ class DependNode( PyNode ):
             
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
-            raise MayaAttributeError( '%s.%s' % (self, attr) )
+            raise general.MayaAttributeError( '%s.%s' % (self, attr) )
                
     def hasAttr( self, attr):
         """
@@ -2153,7 +2158,7 @@ class DependNode( PyNode ):
     @addMelDocs('setAttr')  
     def setAttr( self, attr, *args, **kwargs):
         # for now, using strings is better, because there is no MPlug support
-        return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
+        return general.setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
     @addMelDocs('setAttr')  
     def setDynamicAttr( self, attr, *args, **kwargs):
@@ -2164,29 +2169,29 @@ class DependNode( PyNode ):
         
         # for now, using strings is better, because there is no MPlug support
         kwargs['force'] = True
-        return setAttr( "%s.%s" % (self, attr), *args, **kwargs )
+        return general.setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
     @addMelDocs('getAttr')  
     def getAttr( self, attr, *args, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
-        return getAttr( "%s.%s" % (self, attr), *args,  **kwargs )
+        return general.getAttr( "%s.%s" % (self, attr), *args,  **kwargs )
 
     @addMelDocs('addAttr')  
     def addAttr( self, attr, **kwargs):
         # for now, using strings is better, because there is no MPlug support  
         assert 'longName' not in kwargs and 'ln' not in kwargs
         kwargs['longName'] = attr
-        return addAttr( unicode(self), **kwargs )
+        return general.addAttr( unicode(self), **kwargs )
     
     @addMelDocs('connectAttr')  
     def connectAttr( self, attr, destination, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
-        return connectAttr( "%s.%s" % (self, attr), destination, **kwargs )
+        return general.connectAttr( "%s.%s" % (self, attr), destination, **kwargs )
     
     @addMelDocs('disconnectAttr')  
     def disconnectAttr( self, attr, destination=None, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
-        return disconnectAttr( "%s.%s" % (self, attr), destination, **kwargs )
+        return general.disconnectAttr( "%s.%s" % (self, attr), destination, **kwargs )
 
                     
     listAnimatable = _listAnimatable
@@ -2290,7 +2295,7 @@ class DependNode( PyNode ):
     def registerVirtualSubClass( cls, callback, nameRequired=False ):
         """
         Allows a user to create their own subclasses of leaf PyMEL node classes,
-        which are returned by `PyNode` and all other pymel commands.
+        which are returned by `general.PyNode` and all other pymel commands.
         
         The process is fairly simple:
             1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
@@ -2313,7 +2318,7 @@ class DependNode( PyNode ):
             if each_cls.__module__ == __name__:
                 parentCls = each_cls
                 break
-        assert parentCls, "could not find parent PyNode"
+        assert parentCls, "could not find parent general.PyNode"
         #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
         if parentCls not in _virtualSubClasses:
             _virtualSubClasses[parentCls] = [ (cls, callback, nameRequired) ]
@@ -2347,7 +2352,7 @@ class DagNode(Entity):
         if dag:
             name = dag.partialPathName()
             if not name:
-                raise MayaNodeError
+                raise general.MayaNodeError
             
             self._name = name
             if long :
@@ -2360,7 +2365,7 @@ class DagNode(Entity):
         if update or long or self._name is None:
             try:
                 return self._updateName(long)
-            except MayaObjectError:
+            except general.MayaObjectError:
                 _logger.warn( "object %s no longer exists" % self._name ) 
         return self._name  
     
@@ -2427,7 +2432,7 @@ class DagNode(Entity):
             try:
                 handle = api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
             except RuntimeError:
-                raise MayaNodeError( self._name )
+                raise general.MayaNodeError( self._name )
             self.__apiobjects__['MObjectHandle'] = handle
         return handle
     
@@ -2436,7 +2441,7 @@ class DagNode(Entity):
         handle = self.__apihandle__()
         if api.isValidMObjectHandle( handle ):
             return handle.object()
-        raise MayaNodeError( self._name )
+        raise general.MayaNodeError( self._name )
             
 
 #    def __apimfn__(self):
@@ -2540,11 +2545,11 @@ class DagNode(Entity):
         """
         :rtype: `bool`
         """
-        if isinstance( other, PyNode ):
+        if isinstance( other, general.PyNode ):
             return self.__apimobject__() == other.__apimobject__()
         else:
             try:
-                return self.__apimobject__() == PyNode(other).__apimobject__()
+                return self.__apimobject__() == general.PyNode(other).__apimobject__()
             except:
                 return False
     
@@ -2579,7 +2584,7 @@ class DagNode(Entity):
         d = api.MDagPathArray()
         self.__apimfn__().getAllPaths(d)
         thisDagPath = self.__apimdagpath__()
-        result = [ PyNode( api.MDagPath(d[i])) for i in range(d.length()) if includeSelf or not d[i] == thisDagPath ]
+        result = [ general.PyNode( api.MDagPath(d[i])) for i in range(d.length()) if includeSelf or not d[i] == thisDagPath ]
         
         return result
 
@@ -2614,7 +2619,7 @@ class DagNode(Entity):
 #        parent = api.MDagPath( self.__apiobject__() )
 #        try:
 #            parent.pop()
-#            return PyNode(parent)
+#            return general.PyNode(parent)
 #        except RuntimeError:
 #            pass
 #
@@ -2625,7 +2630,7 @@ class DagNode(Entity):
 #        for i in range( thisDag.childCount() ):
 #            child = api.MDagPath( thisDag )
 #            child.push( thisDag.child(i) )
-#            children.append( PyNode(child) )
+#            children.append( general.PyNode(child) )
 #        return children
 
     def firstParent2(self, **kwargs):
@@ -2674,7 +2679,7 @@ class DagNode(Entity):
         except TypeError:
             return None
              
-        res = PyNode( res )
+        res = general.PyNode( res )
         return res
         
     getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent2)
@@ -2688,7 +2693,7 @@ class DagNode(Entity):
         kwargs['children'] = True
         kwargs.pop('c',None)
 
-        return listRelatives( self, **kwargs)
+        return general.listRelatives( self, **kwargs)
         
     def getSiblings(self, **kwargs ):
         """
@@ -2702,9 +2707,9 @@ class DagNode(Entity):
                 
     def listRelatives(self, **kwargs ):
         """
-        :rtype: `PyNode` list
+        :rtype: `general.PyNode` list
         """
-        return listRelatives( self, **kwargs)
+        return general.listRelatives( self, **kwargs)
         
     
     def setParent( self, *args, **kwargs ):
@@ -2717,8 +2722,8 @@ class DagNode(Entity):
         :rtype: `DagNode`
         """
         cmds.parent( child, self, **kwargs )
-        if not isinstance( child, PyNode ):
-            child = PyNode(child)
+        if not isinstance( child, general.PyNode ):
+            child = general.PyNode(child)
         return child
     
     def __or__(self, child, **kwargs):
@@ -2872,7 +2877,7 @@ class Transform(DagNode):
     __metaclass__ = MetaMayaNodeWrapper
 #    def __getattr__(self, attr):
 #        try :
-#            return super(PyNode, self).__getattr__(attr)
+#            return super(general.PyNode, self).__getattr__(attr)
 #        except AttributeError, msg:
 #            try: 
 #                return self.getShape().attr(attr)
@@ -2944,7 +2949,7 @@ class Transform(DagNode):
         #print "ATTR: Transform"
         try :
             return DependNode.attr(self,attr)
-        except MayaAttributeError, e:
+        except general.MayaAttributeError, e:
             if checkShape:
                 #print "\tCHECKING SHAPE"
                 try: 
@@ -2955,7 +2960,7 @@ class Transform(DagNode):
         
 #    def __getattr__(self, attr):
 #        if attr.startswith('__') and attr.endswith('__'):
-#            return super(PyNode, self).__getattr__(attr)
+#            return super(general.PyNode, self).__getattr__(attr)
 #                        
 #        at = Attribute( '%s.%s' % (self, attr) )
 #        
@@ -3307,7 +3312,7 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-if Version.isUnlimited():
+if mayahook.Version.isUnlimited():
     class FluidEmitter(Transform):
         __metaclass__ = MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -3320,7 +3325,7 @@ if Version.isUnlimited():
 class RenderLayer(DependNode):
     def listMembers(self, fullNames=True):
         if fullNames:
-            return map( PyNode, util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=True) ) )
+            return map( general.PyNode, util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=True) ) )
         else:
             return util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=False) )
         
@@ -3331,7 +3336,7 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerMembers( self, members, remove=True )
  
     def listAdjustments(self):
-        return map( PyNode, util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
+        return map( general.PyNode, util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
       
     def addAdjustments(self, members, noRecurse):
         return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
@@ -3345,7 +3350,7 @@ class RenderLayer(DependNode):
 class DisplayLayer(DependNode):
     def listMembers(self, fullNames=True):
         if fullNames:
-            return map( PyNode, util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=True) ) )
+            return map( general.PyNode, util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=True) ) )
         else:
             return util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=False) )
         
@@ -3646,7 +3651,7 @@ class SelectionSet( api.MSelectionList):
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
-            return self.apicls.hasItem(self, PyNode(item).__apiobject__())
+            return self.apicls.hasItem(self, general.PyNode(item).__apiobject__())
 
     def __repr__(self):
         """:rtype: `str` """
@@ -3656,7 +3661,7 @@ class SelectionSet( api.MSelectionList):
 
         
     def __getitem__(self, index):
-        """:rtype: `PyNode` """
+        """:rtype: `general.PyNode` """
         if index >= len(self):
             raise IndexError, "index out of range"
         
@@ -3665,15 +3670,15 @@ class SelectionSet( api.MSelectionList):
         dag = api.MDagPath()
         try:
             self.apicls.getPlug( self, index, plug )
-            return PyNode( plug )
+            return general.PyNode( plug )
         except RuntimeError:
             try:
                 self.apicls.getDependNode( self, index, obj )
-                return PyNode( obj )
+                return general.PyNode( obj )
             except RuntimeError:
                 try:
                     self.apicls.getDagPath( self, index, dag )
-                    return PyNode( dag )
+                    return general.PyNode( dag )
                 except:
                     pass
                 
@@ -3684,7 +3689,7 @@ class SelectionSet( api.MSelectionList):
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
-            return self.apicls.replace(self, PyNode(item).__apiobject__())
+            return self.apicls.replace(self, general.PyNode(item).__apiobject__())
         
     def __and__(self, s):
         "operator for `SelectionSet.getIntersection`"
@@ -3733,11 +3738,11 @@ class SelectionSet( api.MSelectionList):
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
-            return self.apicls.add(self, PyNode(item).__apiobject__())
+            return self.apicls.add(self, general.PyNode(item).__apiobject__())
         
      
     def pop(self, index):
-        """:rtype: `PyNode` """
+        """:rtype: `general.PyNode` """
         if index >= len(self):
             raise IndexError, "index out of range"
         return self.apicls.remove(self, index )
@@ -3807,7 +3812,7 @@ class SelectionSet( api.MSelectionList):
         self.apicls.merge( self, other, api.MSelectionList.kXOR )
 
     def asObjectSet(self):
-        return sets( self )
+        return general.sets( self )
 #    def intersect(self, other):
 #        self.apicls.merge( other, api.MSelectionList.kXORWithList )
     
@@ -3921,7 +3926,7 @@ class ObjectSet(Entity):
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
         else:
-            return self.__apimfn__().isMember(PyNode(item).__apiobject__())
+            return self.__apimfn__().isMember(general.PyNode(item).__apiobject__())
 
     def __getitem__(self, index):
         return self.asSelectionSet()[index]
@@ -4070,7 +4075,7 @@ class ObjectSet(Entity):
         elif isinstance(item, Component):
             raise NotImplementedError
         else:
-            return self.__apimfn__().addMember(PyNode(item).__apiobject__())
+            return self.__apimfn__().addMember(general.PyNode(item).__apiobject__())
 
     def remove(self, item):
         if isinstance(item, (DependNode, DagNode, Attribute) ):
@@ -4078,7 +4083,7 @@ class ObjectSet(Entity):
         elif isinstance(item, Component):
             raise NotImplementedError
         else:
-            return self.__apimfn__().removeMember(PyNode(item).__apiobject__())
+            return self.__apimfn__().removeMember(general.PyNode(item).__apiobject__())
           
     def isSubSet(self, other):
         """:rtype: `bool`"""
@@ -4162,8 +4167,8 @@ class SkinCluster(GeometryFilter):
     __metaclass__ = MetaMayaNodeWrapper
     
     def getWeights(self, geometry, influenceIndex=None):
-        if not isinstance(geometry, PyNode):
-            geometry = PyNode(geometry)
+        if not isinstance(geometry, general.PyNode):
+            geometry = general.PyNode(geometry)
             
         if isinstance( geometry, Transform ):
             try:
@@ -4239,12 +4244,12 @@ _createPyNodes()
 
 
 def _getPymelType(arg, name) :
-    """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
+    """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default.
         
         If the name of an existing object is passed, the name and MObject will be returned
         If a valid MObject is passed, the name will be returned as None
-        If a PyNode instance is passed, its name and MObject will be returned
+        If a general.PyNode instance is passed, its name and MObject will be returned
         """
         
     def getPymelTypeFromObject(obj):
@@ -4254,9 +4259,9 @@ def _getPymelType(arg, name) :
             try:  
                 fnDepend = api.MFnDependencyNode( obj )
                 mayaType = fnDepend.typeName()
-                pymelType = mayaTypeToPyNode( mayaType, DependNode )
+                pymelType = general.mayaTypeToPyNode( mayaType, DependNode )
             except RuntimeError:
-                raise MayaNodeError
+                raise general.MayaNodeError
             
             try:
                 data = _virtualSubClasses[pymelType]
@@ -4315,7 +4320,7 @@ def _getPymelType(arg, name) :
             raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
 
 #    #---------------------------------
-#    # No Api Object : Virtual PyNode 
+#    # No Api Object : Virtual general.PyNode 
 #    #---------------------------------   
 #    elif objName :
 #        # non existing node

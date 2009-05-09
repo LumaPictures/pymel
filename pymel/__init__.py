@@ -191,24 +191,83 @@ Installation
 PyMEL Package
 ---------------------------------------
 
+Easy Install
+============
 
-PyMEL is installed like any other python module or package. To find available modules, python searches directories set in an 
+As of version 0.9.1 PyMEL supports installation via setuptools, which makes it a lot easier to get started if you're not well-versed in the intricacies of
+the PYTHONPATH.  If you don't already have setuptools installed it will be downloaded for you when you run the install command below, but in order
+for this to all go smoothly you must have the following things:
+
+    * a connection to the internet
+    * write permission to your Maya installation directory
+    
+If you fall short on either of these you can always perform a `Manual Install`_ of PyMEL.
+
+
+    #.  Open a shell
+        * on osx you'll find the Terminal app in /Applications/Utilities
+        * on Windows, open the Start menu then go to "Run...", then put in ``cmd`` and press "OK"
+        
+    #.  ``cd`` to the directory where you extracted the pymel zip file. A file called setup.py should exist directly below this directory.
+        For example, I downloaded and extracted mine to my "Downloads" folder on OSX::
+    
+            cd ~/Downloads/pymel-0.9.1
+       
+        NOTE: On OSX and Linux you have to escape spaces in folder names ( or you can press the Tab key to auto-complete paths ). Here is an
+        example of escaping a space in a folder name (notice the backslash after ``Image``)::
+       
+           cd /Applications/Image\ Capture.app
+           
+        On Windows you can copy the path from Explorer and paste into the shell by right clicking.  You don't need to escape spaces.
+        
+    #.  Now run the installation for each version of Maya that you have installed using Maya's own python interpreter -- aka mayapy. 
+        This ensure's that PyMEL is installed to the site-packages directory of each, and that it will always be on your PYTHONPATH when using Maya.
+        
+        On OSX::
+       
+            /Applications/Autodesk/maya2009/Maya.app/Contents/bin/mayapy setup.py install
+
+        On Windows wrap the path in double quotes::
+        
+            "C:\Program Files (x86)\Autodesk\Maya2009\bin\mayapy.exe" setup.py install
+
+
+Manual Install
+==============
+
+PyMEL can be installed like any other python module or package.
+To find available modules, python searches directories set in an 
 environment variable called PYTHONPATH.  This environment variable can be set for each Maya installation using the Maya.env 
 file, or it can be set at the system level, which will set it for all instances of python, including those built into Maya (aka "mayapy").  
-I recommend setting your PYTHONPATH at both the system level
-level and the Maya.env level because it is more reliable and because it will allow you to use PyMEL from a standalone python interpreter.
- 
-Install Using Maya.env
-======================
+Each of these methods have their pros and cons.
+    
+    * Maya.env: 
+        * allows per-maya configuration
+        * does not allow easy execution of ``maya`` and ``mayapy`` in a shell
+        
+    * System install
+        * only allows one configuration for all copies of Maya
+        * will override values set in Maya.env ( except on OSX if you launch Maya from from an application bundle )
+        * allows easy execution of ``maya`` and ``mayapy`` in a shell
+
+On OSX you can get the best of both worlds if you set your PYTHONPATH at both the system level
+level and the Maya.env level because the system settings will be ignored when launching Maya from its application bundle. On other operating systems
+and when launching Maya from a shell on OSX, be aware that if you set your PYTHONPATH at the system level it will override any values found
+in Maya.env.
+
+
+
+Setting Up Your Environment Using Maya.env
+==========================================
 
 OSX and Linux
 -------------
 
 If on linux or osx, the simplest way to install pymel is to place the unzipped pymel folder in your Maya "scripts" directory. This 
-will allow you to immediately use PyMEL from within Maya.  However, it is usually a good idea to create a separate directory for your python 
+will allow you to immediately use PyMEL from within Maya.  However, it is usually a good idea to create a separate directory for your own python 
 modules so that you can organize them independently of your mel scripts.  
 
-Let's say that you decide to create your own python development directory ``~/dev/python``.  The pymel *folder* would go within this 
+Let's say that you decide to create your python development directory ``~/dev/python``.  The pymel *folder* would go within this 
 directory at ``~/dev/python/pymel``. Then you would add this line to your Maya.env:
 
 .. python::
@@ -226,8 +285,8 @@ Then you would add this line to your Maya.env:
     PYTHONPATH = C:\My Documents\python
 
 
-System Install
-==============
+Setting Up Your System Environment
+==================================
 
 OSX and Linux
 -------------
@@ -247,27 +306,36 @@ in your home directory ( ~/ ).  Inside this file paste the following, being sure
 
     export PYTHONDEV=~/dev/python
     export MAYA_LOCATION=/Applications/Autodesk/maya2009/Maya.app/Contents
-    export PATH=$MAYA_LOCATION/bin:$PYTHONDEV/pymel/tools/bin:$PATH
+    export PATH=$MAYA_LOCATION/bin:$PATH
     export PYTHONPATH=$PYTHONPATH:$PYTHONDEV
 
 Here's a line-by-line breakdown of what you just did:
 
-    1.  set your custom python directory, under which should be your pymel directory.
-        You can change this to whatever you want, but make sure your pymel directory is immediately below this path (The variable
-        PYTHONDEV does not have a special meaning to python or maya: we're creating it so that we can reuse its value in the next few lines).
+    1.  set your custom python directory. You can change this to whatever you want, but if you are not using the `Easy Install`_ method make 
+        sure your pymel directory is immediately below this path (The variable PYTHONDEV does not have a special meaning to python or maya: 
+        we're creating it so that we can reuse its value in the next few lines).
     2.  set a special Maya environment variable that helps Maya determine which version to use when working via the command
         line ( be sure to point it to the correct Maya version).  
     3.  this line allows you to access all the executables in the Maya bin
-        directory from a shell without using the full path, and also allows you to use the `ipymel` interpreter ( but only after you install
-        IPython!).  For example, you can launch Maya by typing ``maya``, or open a Maya python interpreter by typing ``mayapy``. 
+        directory from a shell without using the full path.
+        For example, you can launch Maya by typing ``maya``, or open a Maya python interpreter by typing ``mayapy``. 
+        
+        *If installing ipymel* include the path to your ipymel bin directory. For example, if you manually installed PyMEL, the line should look like
+        the following:
+        
+        .. python::
+        
+            export PATH=$MAYA_LOCATION/bin:$PYTHONDEV/pymel/tools/bin:$PATH
+
     4.  we set the PYTHONPATH to ensure that python will see your python dev directory, where PyMEL resides.
+
 
 
 Windows
 -------
 
-    1.  Click the Start Menu, right-click on "My Computer" and then click on "Properties".  This will open the "System Properties" window.  
-    2.  Click on the "Advanced" tab, then on the "Environment Variables" button at the bottom.  
+    1.  Open the Start Menu, right-click on "My Computer" and then click on "Properties".  This will open the "System Properties" window.  
+    2.  Changed to the "Advanced" tab, then click on the "Environment Variables" button at the bottom.  
     3.  In the new window that pops up, search through your "User Varaibles" on top and your "System Variables" on 
         the bottom, looking to see if the ``PYTHONPATH`` variable is set anywhere.
         
@@ -285,18 +353,26 @@ Windows
         If the pymel directory is ``C:\My Documents\python\pymel``, the edited value would be:
         
         .. python::
-            C:\Python25\lib;C:\My Documents\python\pymel
+            C:\Python25\lib;C:\My Documents\python
 
-    4.  Next, find and edit your ``PATH`` variable. Append something like the following to the end of the existing value:
+    4.  Add and set your MAYA_LOCATION.  For example, for 2008 it would be:
     
-        .. python:
-            ;C:\Program Files\Autodesk\Maya2008\\bin;C:\My Documents\python\pymel\\tools\\bin.  
+        .. python::
+            C:\Program Files\Autodesk\Maya2008
+
+    5.  Next, find and edit your ``PATH`` variable. Append the following to the end of the existing value:
+    
+        .. python::
+            %MAYA_LOCATION%\\bin
         
-        These are just example paths: be sure to use 
-        the path to the Maya bin directory for your desired version of Maya as well as the proper path to your pymel bin directory.  And don't forget
-        to put a semi-colon (;) between the existing paths and the new ones that you are adding.
+        Don't forget to put a semi-colon (;) between the existing paths and the new ones that you are adding.
+        
+        *If installing ipymel* include the path to your ipymel bin directory. For example, if you manually installed PyMEL, the line should look like
+        the following:
 
-
+        .. python::
+            %MAYA_LOCATION%\\bin;C:\My Documents\python\pymel\\tools\\bin  
+            
 userSetup files
 ===============
 
@@ -329,14 +405,46 @@ Mel to Python**. Now all output will be reported in python, regardless of whethe
 ---------------------------------------
 ipymel
 ---------------------------------------
+
 ipymel is an extension of the ultra-customizable IPython interpreter, which enables it to easily work with mayapy and PyMEL.  It adds tab completion of maya depend nodes,
 dag nodes, and attributes, as well as automatic import of PyMEL at startup.  Many more features to come. 
 
-OSX and Linux
-=============
+ipymel Easy Install
+===================
 
-    #. Follow the installation instructions above for `System Install`_
-    #. Install IPython.  I recommend downloading the tarball, not the egg file. Unzip the tar.gz and put the sub-directory named IPython somewhere on your PYTHONPATH,
+
+    #. Follow the installation instructions above for `Setting Up Your System Environment`_
+    #. Start a new shell to ensure that all our newly set environment variables are refreshed.
+    #. Next, we will use setuptools to automaticallly download ipython and install
+       the ipymel binary to your Maya bin directory. As a bonus over the manual install, on Windows the ipymel script will become 
+       an executable, ipymel.exe, instead of a batch file::
+
+        On OSX and Linux::
+            
+            mayapy setup.py easy_install --script-dir=$MAYA_LOCATION/bin . pymel[ipymel]
+    
+        On Windows::
+        
+            mayapy setup.py easy_install --script-dir="%MAYA_LOCATION%\bin" . pymel[ipymel]
+
+    #. Windows Only: 
+        * Install pyreadline for windows from the `IPython <http://ipython.scipy.org/dist>`_ website
+        * Copy the IPython directory, pyreadline directory, and all the pyreadline.* files from your system site-packages directory 
+          ( ex. ``C:\Python25\Lib\site-packages`` ) to your Maya site-packages directory ( ex. ``C:\Program Files\Autodesk\Maya2008\Python\lib\site-packages`` ). 
+       
+    #. run::
+    
+        ipymel
+        
+ipymel Manual Install
+=====================
+
+OSX and Linux
+-------------
+
+    #. Follow the installation instructions above for `Setting Up Your System Environment`_
+    #. Install IPython.  For a manual install, I recommend downloading the tarball, not the egg file. 
+       Unzip the tar.gz and put the sub-directory named IPython somewhere on your PYTHONPATH,
        or just put it directly into your python site-packages directory
     #. Open a terminal and run::
     
@@ -348,11 +456,11 @@ OSX and Linux
 
 
 Windows
-=======
+-------
 
-    #. Follow the installation instructions above for `System Install`_
+    #. Follow the installation instructions above for `Setting Up Your System Environment`_
     #. Install python for windows, if you have not already.
-    #. Install IPython using their windows installer.  The installer will most likely not find the maya python install, 
+    #. Install `IPython <http://ipython.scipy.org/dist>`_ using their windows installer.  The installer will most likely not find the maya python install, 
        so install IPython to your system Python instead (from step 1).
     #. Install pyreadline for windows, also from the IPython website
     #. Copy the IPython directory, pyreadline directory, and all the pyreadline.* files from your system site-packages directory 

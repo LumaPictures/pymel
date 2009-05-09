@@ -1422,39 +1422,29 @@ def _addCmdDocs( func, cmdName ):
         docstring += func.__doc__ + '\n\n'
         
     flagDocs = cmdInfo['flags']
-    if flagDocs:
+    
+    if flagDocs and sorted(flagDocs.keys()) != ['edit', 'query']:
+
+        widths = [3, 100, 32, 32]
+        altwidths = [ widths[0] + widths[1] ] + widths[2:]
+        rowsep = '    +' + '+'.join( [ '-'*(w-1) for w in widths ] ) + '+\n'
+        headersep = '    +' + '+'.join( [ '='*(w-1) for w in widths ] ) + '+\n'
         
+        import textwrap
+        def makerow( items, widths ):
+            return '    |' + '|'.join( ' ' + i.ljust(w-2) for i, w in zip( items, widths ) ) + '|\n'
+
         docstring += 'Flags:\n'
+    
+        docstring += rowsep
+        docstring += makerow( ['Long name (short name)', 'Argument Types', 'Properties'], altwidths )
+        docstring += headersep
+              
         for flag in sorted(flagDocs.keys()):
+            if flag in ['edit', 'query']: continue
             docs = flagDocs[flag]
 
-            label = '    - %s (%s)' % (flag, docs['shortname'])
-            docstring += label + '\n'
-            
-            # docstring
-            try:
-                doc = docs['docstring']
-                if doc:
-                    docstring += '        - %s\n' %  doc
-            except KeyError: pass
-            
-            # modes
-            if docs.get('modes',False):
-                docstring += '        - modes: *%s*\n' % (', '.join(docs['modes']))
-            
-            #modified
-            try:
-                modified = docs['modified']
-                if modified:
-                    docstring += '        - modifies: *%s*\n' % ( ', '.join( modified ))
-            except KeyError: pass
-            
-            #secondary flags
-            try:
-                docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
-            except KeyError: pass
-            
-            #args
+            # type
             typ = docs['args']
             if isinstance(typ, list):
                 try:
@@ -1466,11 +1456,70 @@ def _addCmdDocs( func, cmdName ):
                 try:
                     typ = typ.__name__
                 except: pass
-            docstring += '        - datatype: %s\n' % ( typ )
+            
+            # docstring
+            descr = docs.get('docstring', '')
+            
+            # modes
+            tmpmodes = docs.get('modes', [])
+            modes = []
+            if 'create' in tmpmodes: modes.append('create')
+            if 'query' in tmpmodes: modes.append('query')
+            if 'edit' in tmpmodes: modes.append('edit')
+                        
+            if INCLUDE_DOC_EXAMPLES:
+                for data in util.izip_longest( ['**%s (%s)**' % (flag, docs['shortname'])],
+                                            textwrap.wrap( '*%s*' % typ, widths[2]-2 ),
+                                            [ '.. image:: /images/%s.gif' % m for m in modes],
+                                            fillvalue='' ):
+                    docstring += makerow( data, altwidths )
+                
+                #docstring += makerow( ['**%s (%s)**' % (flag, docs['shortname']), '*%s*' % typ, ''], altwidths )
+                #for m in modes:
+                #    docstring += makerow( ['', '', '.. image:: /images/%s.gif' % m], altwidths )
+                                
+                docstring += rowsep
+                
+                descr_widths = [widths[0], sum(widths[1:])]
+                if descr:
+                    for line in textwrap.wrap( descr.strip('|'), sum(widths[1:])-2 ):
+                        docstring += makerow( ['', line], descr_widths )
+                    # add some filler at the bottom
+                    docstring += makerow( ['', '  ..'], descr_widths )
+                else:
+                    docstring += makerow( ['', ''], descr_widths )
+                
+                # empty row for spacing
+                #docstring += rowsep
+                #docstring += makerow( ['']*len(widths), widths )
+                # closing separator
+                docstring += rowsep
+                
+            else:
+                docstring += '    - %s : %s  (%s)\n        - [%s] %s\n' % ( flag, 
+                                                                 docs['shortname'], 
+                                                                 typ,
+                                                                 ','.join( modes ),
+                                                                 descr )
+#            #modified
+#            try:
+#                modified = docs['modified']
+#                if modified:
+#                    docstring += '        - modifies: *%s*\n' % ( ', '.join( modified ))
+#            except KeyError: pass
+#            
+#            #secondary flags
+#            try:
+#                docstring += '        - secondary flags: *%s*\n' % ( ', '.join(docs['secondaryFlags'] ))
+#            except KeyError: pass
+#            
+            #args
+
     
     docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName) 
     
     if INCLUDE_DOC_EXAMPLES and cmdInfo.get('example',None):
+        #docstring = ".. |create| image:: /images/create.gif\n.. |edit| image:: /images/edit.gif\n.. |query| image:: /images/query.gif\n\n" + docstring
         docstring += '\nExample:\n' + cmdInfo['example']
     
 
