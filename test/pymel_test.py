@@ -1,0 +1,1 @@
+execfile("pymel_test")
