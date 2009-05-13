@@ -2318,6 +2318,7 @@ class DependNode( PyNode ):
         assert parentCls, "could not find parent PyNode"
         #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
 
+        cls.__melnode__ = parentCls.__melnode__
         # put new classes at the front of list, so more recently added ones
         # will override old definitions - handy if a module which registers a
         # virtual node is reloaded
