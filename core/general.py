@@ -1330,10 +1330,10 @@ class PyNode(util.ProxyUnicode):
                         else:
                             raise ValueError, "unexpect result %s returned by %s" % ( res, cls.__melcmd__.__name__ )
                 else:
+                    _logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
                     try:
-                        _logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
                         return createNode( cls.__melnode__, **kwargs )
-                    except:
+                    except RuntimeError:
                         pass
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
         

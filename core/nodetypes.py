@@ -2301,7 +2301,7 @@ class DependNode( PyNode ):
                 meaning that it **must** be called from an uninstantiated class.
         
         :type  callback: function
-        :param callback: must be a function that accepts two arguments, an MFnDepencencyNode instance for the current object, 
+        :param callback: must be a function that accepts two arguments, an MObject instance for the current object, 
             and its name. The callback function should return True if the current object meets the requirements to become the
             virtual subclass, or else False.
         :type  nameRequired: bool
@@ -2317,10 +2317,20 @@ class DependNode( PyNode ):
                 break
         assert parentCls, "could not find parent PyNode"
         #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
-        if parentCls not in _virtualSubClasses:
-            _virtualSubClasses[parentCls] = [ (cls, callback, nameRequired) ]
-        else:
-            _virtualSubClasses[parentCls].append( (cls, callback, nameRequired) )
+
+        # Check the already added virtual classes's callbacks versus the new
+        # callback, to avoid duplicate entries (which can cause problems)
+        # (duplicate entries might occur if, for instance, you reload a module
+        # which calls registerVirtualSubClass...)
+        nonDuplicatedClasses = []
+        if parentCls in _virtualSubClasses:
+            for oldEntry in _virtualSubClasses[parentCls]:
+                # compare the compiled bytecode - if it's the same, axe the old
+                # class entry
+                if oldEntry[1].func_code != callback.func_code:
+                    nonDuplicatedClasses.append(oldEntry)
+        nonDuplicatedClasses.append((cls, callback, nameRequired))
+        _virtualSubClasses[parentCls] = nonDuplicatedClasses
 #}
 
 class Entity(DependNode):
