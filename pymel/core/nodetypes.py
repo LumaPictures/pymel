@@ -2323,8 +2323,6 @@ class DependNode( general.PyNode ):
         # put new classes at the front of list, so more recently added ones
         # will override old definitions - handy if a module which registers a
         # virtual node is reloaded
-        print "virtual subclasses for %s:" % parentCls.__name__
-        print _virtualSubClasses.get(parentCls, [])
         _virtualSubClasses[parentCls] = \
             [(cls, callback, nameRequired)] + _virtualSubClasses.get(parentCls, [])
 #}
