@@ -2318,19 +2318,13 @@ class DependNode( PyNode ):
         assert parentCls, "could not find parent PyNode"
         #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
 
-        # Check the already added virtual classes's callbacks versus the new
-        # callback, to avoid duplicate entries (which can cause problems)
-        # (duplicate entries might occur if, for instance, you reload a module
-        # which calls registerVirtualSubClass...)
-        nonDuplicatedClasses = []
-        if parentCls in _virtualSubClasses:
-            for oldEntry in _virtualSubClasses[parentCls]:
-                # compare the compiled bytecode - if it's the same, axe the old
-                # class entry
-                if oldEntry[1].func_code != callback.func_code:
-                    nonDuplicatedClasses.append(oldEntry)
-        nonDuplicatedClasses.append((cls, callback, nameRequired))
-        _virtualSubClasses[parentCls] = nonDuplicatedClasses
+        # put new classes at the front of list, so more recently added ones
+        # will override old definitions - handy if a module which registers a
+        # virtual node is reloaded
+        print "virtual subclasses for %s:" % parentCls.__name__
+        print _virtualSubClasses.get(parentCls, [])
+        _virtualSubClasses[parentCls] = \
+            [(cls, callback, nameRequired)] + _virtualSubClasses.get(parentCls, [])
 #}
 
 class Entity(DependNode):
