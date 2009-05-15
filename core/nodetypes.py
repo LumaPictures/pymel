@@ -2713,7 +2713,14 @@ class DagNode(Entity):
         
     
     def setParent( self, *args, **kwargs ):
-        'parent'
+        """
+        parent
+
+        Modifications:
+            if parent is 'None', world=True is automatically set
+        """
+        if args and args[-1] is None:
+            kwargs['world']=True
         return self.__class__( cmds.parent( self, *args, **kwargs )[0] )
 
     def addChild( self, child, **kwargs ):
