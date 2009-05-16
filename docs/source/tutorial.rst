@@ -1,3 +1,5 @@
+.. currentmodule:: pymel
+
 =======================================
 Tutorial
 =======================================
@@ -5,9 +7,12 @@ Tutorial
 This tutorial assumes that you have some familiarity with python, but even if you only have MEL experience, you'll probably be able to follow along.
 If you are a MEL scripter but have not used python in maya yet, you should start with the Maya docs on the subject, particularly
 the section `Using Python <http://download.autodesk.com/us/maya/2008help/General/Using_Python.html>`__. This will help you to understand 
-the differences in syntax between the two languages and how to translate between them. Another great way to learn how to translate 
-mel into python is to install the new `Script Editor`_. With it you can execute some mel code and watch the 
-python output in the top pane. You can toggle back and forth by checking and unchecking the "Convert Mel to Python" checkbox.
+the differences in syntax between the two languages and how to translate between them. 
+
+.. 
+	Another great way to learn how to translate 
+	mel into python is to install the new `Script Editor`_. With it you can execute some mel code and watch the 
+	python output in the top pane. You can toggle back and forth by checking and unchecking the "Convert Mel to Python" checkbox.
 
 
 ---------------------------------------
@@ -157,7 +162,7 @@ Here's a few examples of how to query and edit properties of attributes:
 Connections
 ---------------------------------------
 
-Now let's look into getting other objects connected to our plane shape.  The `Attribute.connections` method accepts the 
+Now let's look into getting other objects connected to our plane shape.  The :meth:`Attribute.connections` method accepts the 
 same flags as the procedural command `listConnections`.  
 
     >>> # below we get incoming and outgoing connections
@@ -214,7 +219,7 @@ the programmer's part.  `pymel.mel` handles all of that for you so you can use y
 were python functions. This includes automatically formatting all iterable types into maya arrays. 
 
     
-Check out `pymel.core.Mel` for more information.
+Check out `pymel.Mel` for more information.
 
 
 ---------------------------------------
@@ -222,7 +227,7 @@ Transitioning Tips
 ---------------------------------------
 
 
-All of the MEL functions in maya.cmds exist in pymel, with a few exceptions ( see `Module Namespaces`_ ).  MEL functions that operate on nodes and/or attributes
+All of the MEL functions in maya.cmds exist in pymel, with a few exceptions ( see :doc:`modules` ).  MEL functions that operate on nodes and/or attributes
 almost always fall into one or more of these categories:  creating, listing, querying/editing. 
 As you begin shifting toward a more object-oriented approach, you will still retain the need for procedural programming.
 Use these guidelines for what aspects of PyMEL are best suited to object-oriented programming:

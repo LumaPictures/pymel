@@ -7,7 +7,6 @@ import pmcmds as cmds #@UnresolvedImport
 import inspect, itertools, math
 import pymel.util as util
 import factories as _factories
-from factories import queryflag, editflag, createflag, addMelDocs, addApiDocs, MetaMayaTypeWrapper, MetaMayaNodeWrapper
 import pymel.api as api #@UnresolvedImport
 import datatypes
 import pymel.util.nameparse as nameparse
@@ -710,7 +709,7 @@ class _Component(object):
         return general.rotate( self, *args, **kwargs )
 
 class AttributeDefaults(general.PyNode):
-    __metaclass__ = MetaMayaTypeWrapper
+    __metaclass__ = _factories.MetaMayaTypeWrapper
     __apicls__ = api.MFnAttribute
     
     def __apiobject__(self) :
@@ -883,7 +882,7 @@ class Attribute(general.PyNode):
             
 
     """
-    __metaclass__ = MetaMayaTypeWrapper
+    __metaclass__ = _factories.MetaMayaTypeWrapper
     __apicls__ = api.MPlug
     attrItemReg = re.compile( '\[(\d+)\]$')
     
@@ -1424,7 +1423,7 @@ class Attribute(general.PyNode):
         if inputs:
             inputs[0].connect( node + '.' + nodeInAttr )
     
-    @addMelDocs( 'setKeyframe' )    
+    @_factories.addMelDocs( 'setKeyframe' )    
     def setKey(self, **kwargs):
         kwargs.pop( 'attribute', None )
         kwargs.pop( 'at', None )
@@ -1787,7 +1786,7 @@ class Attribute(general.PyNode):
 
 class DependNode( general.PyNode ):
     __apicls__ = api.MFnDependencyNode
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     #-------------------------------
     #    Name Info and Manipulation
     #-------------------------------
@@ -2155,12 +2154,12 @@ class DependNode( general.PyNode ):
         except AttributeError:
             return False
 
-    @addMelDocs('setAttr')  
+    @_factories.addMelDocs('setAttr')  
     def setAttr( self, attr, *args, **kwargs):
         # for now, using strings is better, because there is no MPlug support
         return general.setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
-    @addMelDocs('setAttr')  
+    @_factories.addMelDocs('setAttr')  
     def setDynamicAttr( self, attr, *args, **kwargs):
         """
         same as `DependNode.setAttr` with the force flag set to True.  This causes
@@ -2171,24 +2170,24 @@ class DependNode( general.PyNode ):
         kwargs['force'] = True
         return general.setAttr( "%s.%s" % (self, attr), *args, **kwargs )
     
-    @addMelDocs('getAttr')  
+    @_factories.addMelDocs('getAttr')  
     def getAttr( self, attr, *args, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
         return general.getAttr( "%s.%s" % (self, attr), *args,  **kwargs )
 
-    @addMelDocs('addAttr')  
+    @_factories.addMelDocs('addAttr')  
     def addAttr( self, attr, **kwargs):
         # for now, using strings is better, because there is no MPlug support  
         assert 'longName' not in kwargs and 'ln' not in kwargs
         kwargs['longName'] = attr
         return general.addAttr( unicode(self), **kwargs )
     
-    @addMelDocs('connectAttr')  
+    @_factories.addMelDocs('connectAttr')  
     def connectAttr( self, attr, destination, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
         return general.connectAttr( "%s.%s" % (self, attr), destination, **kwargs )
     
-    @addMelDocs('disconnectAttr')  
+    @_factories.addMelDocs('disconnectAttr')  
     def disconnectAttr( self, attr, destination=None, **kwargs ):
         # for now, using strings is better, because there is no MPlug support
         return general.disconnectAttr( "%s.%s" % (self, attr), destination, **kwargs )
@@ -2327,7 +2326,7 @@ class DependNode( general.PyNode ):
 #}
 
 class Entity(DependNode):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     pass
 
 class DagNode(Entity):
@@ -2337,7 +2336,7 @@ class DagNode(Entity):
     """
     
     __apicls__ = api.MFnDagNode
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self.__apimdagpath__() )
@@ -2781,14 +2780,14 @@ class DagNode(Entity):
 
 
 class Shape(DagNode):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     def getTransform(self): pass    
 #class Joint(Transform):
 #    pass
 
         
 class Camera(Shape):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     @mayahook.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
@@ -2844,7 +2843,7 @@ class Camera(Shape):
     def listBookmarks(self):
         return self.bookmarks.inputs()
     
-    @addMelDocs('dolly')
+    @_factories.addMelDocs('dolly')
     def dolly(self, distance, relative=True):
         kwargs = {}
         kwargs['distance'] = distance
@@ -2854,7 +2853,7 @@ class Camera(Shape):
             kwargs['absolute'] = True
         cmds.dolly(self, **kwargs)
 
-    @addMelDocs('roll')
+    @_factories.addMelDocs('roll')
     def roll(self, degree, relative=True):
         Camera(u'frontShape')
         kwargs = {}
@@ -2874,7 +2873,7 @@ class Camera(Shape):
     
 
 class Transform(DagNode):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
 #    def __getattr__(self, attr):
 #        try :
 #            return super(general.PyNode, self).__getattr__(attr)
@@ -3037,40 +3036,40 @@ class Transform(DagNode):
         return cmds.ungroup( self, **kwargs )
     
 
-#    @editflag('xform','scale')      
+#    @_factories.editflag('xform','scale')      
 #    def setScale( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 
-#    @editflag('xform','rotation')             
+#    @_factories.editflag('xform','rotation')             
 #    def setRotationOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 #        
-#    @editflag('xform','translation')  
+#    @_factories.editflag('xform','translation')  
 #    def setTranslationOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 #
-#    @editflag('xform','scalePivot')  
+#    @_factories.editflag('xform','scalePivot')  
 #    def setScalePivotOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 #        
-#    @editflag('xform','rotatePivot')         
+#    @_factories.editflag('xform','rotatePivot')         
 #    def setRotatePivotOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
  
-#    @editflag('xform','pivots')         
+#    @_factories.editflag('xform','pivots')         
 #    def setPivots( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
         
-#    @editflag('xform','rotateAxis')  
+#    @_factories.editflag('xform','rotateAxis')  
 #    def setRotateAxisOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 #        
-#    @editflag('xform','shear')                                 
+#    @_factories.editflag('xform','shear')                                 
 #    def setShearingOld( self, val, **kwargs ):
 #        cmds.xform( self, **kwargs )
 
     
-    @editflag('xform','rotateAxis')                                
+    @_factories.editflag('xform','rotateAxis')                                
     def setMatrix( self, val, **kwargs ):
         """xform -scale"""
         if isinstance(val, datatypes.Matrix):
@@ -3079,7 +3078,7 @@ class Transform(DagNode):
         kwargs['matrix'] = val
         cmds.xform( self, **kwargs )
 
-#    @queryflag('xform','scale') 
+#    @_factories.queryflag('xform','scale') 
 #    def getScaleOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
@@ -3098,23 +3097,23 @@ class Transform(DagNode):
             isRelative = not kwargs.pop( 'absolute', kwargs.pop('a', True) )
         return isRelative
             
-#    @queryflag('xform','translation') 
+#    @_factories.queryflag('xform','translation') 
 #    def getTranslationOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @addApiDocs( api.MFnTransform, 'setTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'setTranslation' )
     def setTranslation(self, vector, space='object', **kwargs):
         if self._isRelativeArg(kwargs):
             return self.translateBy(vector, space, **kwargs)
         space = self._getSpaceArg(space, kwargs )
         return self._setTranslation(vector, space=space)
     
-    @addApiDocs( api.MFnTransform, 'getTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'getTranslation' )
     def getTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getTranslation(space=space)
 
-    @addApiDocs( api.MFnTransform, 'translateBy' )
+    @_factories.addApiDocs( api.MFnTransform, 'translateBy' )
     def translateBy(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         curr = self._getTranslation(space)
@@ -3123,13 +3122,13 @@ class Transform(DagNode):
         undoItem = _factories.ApiUndoItem(Transform.setTranslation, (self, new, space), (self, curr, space) )
         _factories.apiUndo.append( undoItem )
 
-    @addApiDocs( api.MFnTransform, 'setScale' )
+    @_factories.addApiDocs( api.MFnTransform, 'setScale' )
     def setScale(self, scale, **kwargs):
         if self._isRelativeArg(kwargs):
             return self.scaleBy(scale, **kwargs)
         return self._setScale(scale)
     
-    @addApiDocs( api.MFnTransform, 'scaleBy' )
+    @_factories.addApiDocs( api.MFnTransform, 'scaleBy' )
     def scaleBy(self, scale, **kwargs):
         curr = self.getScale()
         self._scaleBy(scale)
@@ -3137,13 +3136,13 @@ class Transform(DagNode):
         undoItem = _factories.ApiUndoItem(Transform.setScale, (self, new), (self, curr) )
         _factories.apiUndo.append( undoItem )
 
-    @addApiDocs( api.MFnTransform, 'setShear' )
+    @_factories.addApiDocs( api.MFnTransform, 'setShear' )
     def setShear(self, shear, **kwargs):
         if self._isRelativeArg(kwargs):
             return self.shearBy(shear, **kwargs)
         return self._setShear(shear)
     
-    @addApiDocs( api.MFnTransform, 'shearBy' )
+    @_factories.addApiDocs( api.MFnTransform, 'shearBy' )
     def shearBy(self, shear, **kwargs):
         curr = self.getShear()
         self._shearBy(shear)
@@ -3152,36 +3151,36 @@ class Transform(DagNode):
         _factories.apiUndo.append( undoItem )
          
         
-#    @queryflag('xform','rotatePivot')        
+#    @_factories.queryflag('xform','rotatePivot')        
 #    def getRotatePivotOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @addApiDocs( api.MFnTransform, 'setRotatePivot' )
+    @_factories.addApiDocs( api.MFnTransform, 'setRotatePivot' )
     def setRotatePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setRotatePivot(point, space=space, balance=balance) 
     
-    @addApiDocs( api.MFnTransform, 'rotatePivot' )
+    @_factories.addApiDocs( api.MFnTransform, 'rotatePivot' )
     def getRotatePivot(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getRotatePivot(space=space)
 
-    @addApiDocs( api.MFnTransform, 'setRotatePivotTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'setRotatePivotTranslation' )
     def setRotatePivotTranslation(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setRotatePivotTranslation(vector, space=space)
     
-    @addApiDocs( api.MFnTransform, 'rotatePivotTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'rotatePivotTranslation' )
     def getRotatePivotTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getRotatePivotTranslation(space=space)
 
  
-#    @queryflag('xform','rotation')        
+#    @_factories.queryflag('xform','rotation')        
 #    def getRotationOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @addApiDocs( api.MFnTransform, 'setRotation' )
+    @_factories.addApiDocs( api.MFnTransform, 'setRotation' )
     def setRotation(self, rotation, space='object', **kwargs):
         # quaternions are the only method that support a space parameter
         if self._isRelativeArg(kwargs):
@@ -3194,7 +3193,7 @@ class Transform(DagNode):
         quat = api.MEulerRotation( *rotation ).asQuaternion()
         api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
       
-#    @addApiDocs( api.MFnTransform, 'getRotation' )
+#    @_factories.addApiDocs( api.MFnTransform, 'getRotation' )
 #    def getRotation(self, space='object', **kwargs):
 #        # quaternions are the only method that support a space parameter
 #        space = self._getSpaceArg(space, kwargs )
@@ -3202,7 +3201,7 @@ class Transform(DagNode):
 #        api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
 #        return datatypes.EulerRotation( quat.asEulerRotation() )
 
-    @addApiDocs( api.MFnTransform, 'getRotation' )
+    @_factories.addApiDocs( api.MFnTransform, 'getRotation' )
     def getRotation(self, space='object', **kwargs):
         # quaternions are the only method that support a space parameter
         space = self._getSpaceArg(space, kwargs )
@@ -3212,7 +3211,7 @@ class Transform(DagNode):
         return e
 
     
-    @addApiDocs( api.MFnTransform, 'rotateBy' )
+    @_factories.addApiDocs( api.MFnTransform, 'rotateBy' )
     def rotateBy(self, rotation, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         curr = self.getRotation(space)
@@ -3222,44 +3221,44 @@ class Transform(DagNode):
         _factories.apiUndo.append( undoItem )
 
 
-#    @queryflag('xform','scalePivot') 
+#    @_factories.queryflag('xform','scalePivot') 
 #    def getScalePivotOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
     def setScalePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setScalePivotTranslation(point, space=space, balance=balance)
     
-    @addApiDocs( api.MFnTransform, 'scalePivot' )
+    @_factories.addApiDocs( api.MFnTransform, 'scalePivot' )
     def getScalePivot(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getScalePivot(space=space)
 
-    @addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
     def setScalePivotTranslation(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setScalePivotTranslation(vector, space=space)
           
-    @addApiDocs( api.MFnTransform, 'scalePivotTranslation' )
+    @_factories.addApiDocs( api.MFnTransform, 'scalePivotTranslation' )
     def getScalePivotTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getScalePivotTranslation(space=space)
     
-    @queryflag('xform','pivots') 
+    @_factories.queryflag('xform','pivots') 
     def getPivots( self, **kwargs ):
         res = cmds.xform( self, **kwargs )
         return ( datatypes.Vector( res[:3] ), datatypes.Vector( res[3:] )  )
     
-    @queryflag('xform','rotateAxis') 
+    @_factories.queryflag('xform','rotateAxis') 
     def getRotateAxis( self, **kwargs ):
         return datatypes.Vector( cmds.xform( self, **kwargs ) )
         
-#    @queryflag('xform','shear')                          
+#    @_factories.queryflag('xform','shear')                          
 #    def getShearOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @queryflag('xform','matrix')                
+    @_factories.queryflag('xform','matrix')                
     def getMatrix( self, **kwargs ): 
         return datatypes.Matrix( cmds.xform( self, **kwargs ) )
       
@@ -3307,14 +3306,14 @@ class Transform(DagNode):
     '''
 
 class Joint(Transform):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     connect = _factories.functionFactory( cmds.connectJoint, rename='connect')
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
 if mayahook.Version.isUnlimited():
     class FluidEmitter(Transform):
-        __metaclass__ = MetaMayaNodeWrapper
+        __metaclass__ = _factories.MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
         loadFluid = _factories.functionFactory( cmds.loadFluid, rename='loadFluid')
         resampleFluid = _factories.functionFactory( cmds.resampleFluid, rename='resampleFluid')
@@ -3397,7 +3396,7 @@ class DeformableShape(GeometryShape): pass
 class ControlPoint(DeformableShape): pass
 class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'cv': NurbsCurveCV}
     
 class SurfaceShape(ControlPoint): pass
@@ -3516,7 +3515,7 @@ class Mesh(SurfaceShape):
     
     
     """
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
 #    def __init__(self, *args, **kwargs ):      
 #        SurfaceShape.__init__(self, self._apiobject )
 #        self.vtx = MeshEdge(self.__apimobject__() )
@@ -3543,24 +3542,24 @@ class Mesh(SurfaceShape):
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
     if mayahook.Version.current >= mayahook.Version.v2009:
-        @addApiDocs( api.MFnMesh, 'currentUVSetName' )  
+        @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )
         
-        @addApiDocs( api.MFnMesh, 'currentColorSetName' )
+        @_factories.addApiDocs( api.MFnMesh, 'currentColorSetName' )
         def getCurrentColorSetName(self):
             return self.__apimfn__().currentColorSetName( self.instanceNumber() )
         
     else:
-        @addApiDocs( api.MFnMesh, 'currentUVSetName' )  
+        @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName()
     
-        @addApiDocs( api.MFnMesh, 'currentColorSetName' )
+        @_factories.addApiDocs( api.MFnMesh, 'currentColorSetName' )
         def getCurrentColorSetName(self):
             return self.__apimfn__().currentColorSetName()
         
-    @addApiDocs( api.MFnMesh, 'numColors' )
+    @_factories.addApiDocs( api.MFnMesh, 'numColors' )
     def numColors(self, colorSet=None):
         args = []
         if colorSet:
@@ -3568,7 +3567,7 @@ class Mesh(SurfaceShape):
         return self.__apimfn__().numColors(*args)
      
 class Subdiv(SurfaceShape):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     def getTweakedVerts(self, **kwargs):
         return cmds.querySubdiv( action=1, **kwargs )
         
@@ -3585,7 +3584,7 @@ class Subdiv(SurfaceShape):
         cmds.subdCleanTopology(self)
     
 class Particle(DeformableShape):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     
     class PointArray(ComponentArray):
         def __init__(self, name):
@@ -3914,7 +3913,7 @@ class ObjectSet(Entity):
 #    # Maya Methods
 #    #-----------------------
 
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     #-----------------------
     # Python ObjectSet Methods
     #-----------------------
@@ -4164,7 +4163,7 @@ class ObjectSet(Entity):
 
 class GeometryFilter(DependNode): pass
 class SkinCluster(GeometryFilter):
-    __metaclass__ = MetaMayaNodeWrapper
+    __metaclass__ = _factories.MetaMayaNodeWrapper
     
     def getWeights(self, geometry, influenceIndex=None):
         if not isinstance(geometry, general.PyNode):
@@ -4197,7 +4196,7 @@ class SkinCluster(GeometryFilter):
             args = [iter(weights)] * index
             return itertools.izip(*args)
         
-    @addApiDocs( api.MFnSkinCluster, 'influenceObjects' )        
+    @_factories.addApiDocs( api.MFnSkinCluster, 'influenceObjects' )        
     def influenceObjects(self):
         return self._influenceObjects()[1]
     

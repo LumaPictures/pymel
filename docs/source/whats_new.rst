@@ -1,3 +1,4 @@
+.. currentmodule:: pymel
 
 =======================================
 What's New in Version 0.9

@@ -1,3 +1,4 @@
+.. currentmodule:: pymel
 
 =======================================
 PyNodes
@@ -336,7 +337,7 @@ function sets as robotic "mechs" and the fundamental objects as "spirits" or "gh
 
 For simplicity, PyMEL does away with this distinction: a PyNode instance is the equivalent of an activated API function set;  the 
 necessary fundamental API objects are determined behind the scenes at instantiation.  You can access these by using the special methods
-__apimobject__, __apihandle__, __apimdagpath__, __apimplug__, and __apimfn__.  ( Be aware that this is still considered internal magic, 
+``__apimobject__``, ``__apihandle__``, ``__apimdagpath__``, ``__apimplug__``, and ``__apimfn__``.  ( Be aware that this is still considered internal magic, 
 and the names of these methods are subject to change ):
 
     >>> p = PyNode('perspShape')

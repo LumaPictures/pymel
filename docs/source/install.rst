@@ -24,7 +24,7 @@ Easy Install
 ============
 
 As of version 0.9.1 PyMEL supports installation via setuptools, which makes it a lot easier to get started if you're not well-versed in the intricacies of
-the PYTHONPATH.  If you don't already have setuptools installed it will be downloaded for you when you run the install command below, but in order
+the ``PYTHONPATH``.  If you don't already have setuptools installed it will be downloaded for you when you run the install command below, but in order
 for this to all go smoothly you must have the following things:
 
     * a connection to the internet
@@ -32,8 +32,10 @@ for this to all go smoothly you must have the following things:
     
 If you fall short on either of these you can always perform a `Manual Install`_ of PyMEL.
 
+To Install:
 
     #.  Open a shell
+
         * on osx you'll find the Terminal app in /Applications/Utilities
         * on Windows, open the Start menu then go to "Run...", then put in ``cmd`` and press "OK"
         
@@ -66,7 +68,7 @@ Manual Install
 
 PyMEL can be installed like any other python module or package.
 To find available modules, python searches directories set in an 
-environment variable called PYTHONPATH.  This environment variable can be set for each Maya installation using the Maya.env 
+environment variable called ``PYTHONPATH``.  This environment variable can be set for each Maya installation using the Maya.env 
 file, or it can be set at the system level, which will set it for all instances of python, including those built into Maya (aka "mayapy").  
 Each of these methods have their pros and cons.
     
@@ -79,9 +81,9 @@ Each of these methods have their pros and cons.
         * will override values set in Maya.env ( except on OSX if you launch Maya from from an application bundle )
         * allows easy execution of ``maya`` and ``mayapy`` in a shell
 
-On OSX you can get the best of both worlds if you set your PYTHONPATH at both the system level
+On OSX you can get the best of both worlds if you set your ``PYTHONPATH`` at both the system level
 level and the Maya.env level because the system settings will be ignored when launching Maya from its application bundle. On other operating systems
-and when launching Maya from a shell on OSX, be aware that if you set your PYTHONPATH at the system level it will override any values found
+and when launching Maya from a shell on OSX, be aware that if you set your ``PYTHONPATH`` at the system level it will override any values found
 in Maya.env.
 
 

@@ -1,10 +1,10 @@
 
-.. currentmodule:: pymel.core.nodetypes
+.. currentmodule:: pymel
 
 Attributes
 ==========
 
-The Attribute class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
+The `Attribute` class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
 have become familiar with all the many commands for operating on attributes.  This class gathers them all into one
 place. If you forget or are unsure of the right method name, just ask for help by typing `help(Attribute)`.  
 
@@ -24,7 +24,7 @@ Here's a simple example showing how the Attribute class is used in context.
 Accessing Attributes
 --------------------
 
-You can access an attribute class in three ways.  The first two require that you already have a `general.PyNode` object.
+You can access an attribute class in three ways.  The first two require that you already have a `PyNode` object.
 
 Shorthand
 ~~~~~~~~~
@@ -62,7 +62,7 @@ Unlike the shorthand syntax, this method is capable of being passed attributes w
 Direct Instantiation
 ~~~~~~~~~~~~~~~~~~~~
 The last way of getting an attribute is by directly instantiating the class. You can pass the attribute name as a string, or if you have one handy,
-pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `general.PyNode`
+pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
 class, which will determine the appropriate class automaticallly.
 
 explicitly request an Attribute:
@@ -91,7 +91,7 @@ to set an attribute that expects a double3, you can use any iterable with 3 elem
 Getting Attribute Values
 ------------------------
 To get the value of an attribute, you use the `Attribute.get` method. Keep in mind that, where applicable, the values returned will 
-be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
+be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector <pymel.core.datatypes.Vector>`.
 
     >>> t = cam.translate.get()
     >>> print t
@@ -100,7 +100,7 @@ be cast to pymel classes. This example shows that rotation (along with translati
     >>> print type(t) 
     <class 'pymel.core.datatypes.Vector'>
     
-`set` is flexible in the types that it will accept, but `get` will always return the same type 
+`Attribute.set` is flexible in the types that it will accept, but `Attribute.get` will always return the same type 
 for a given attribute. This can be a potential source of confusion:
     
     >>> value = [4,5,6]
@@ -122,7 +122,7 @@ As you might expect, connecting and disconnecting attributes is pretty straightf
     >>> cam.rotateX.connect( cam.rotateY )
     >>> cam.rotateX.disconnect( cam.rotateY )
 
-there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
+there are also handy operators for `connection <Attribute.__rshift__>` and `disconnection <Attribute.__floordiv__>`
 
     >>> c = polyCube(name='testCube')[0]        
     >>> cam.tx >> c.tx    # connect

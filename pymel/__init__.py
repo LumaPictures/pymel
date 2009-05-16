@@ -1494,6 +1494,8 @@ plogging.pymelLogger.debug( 'imported core' )
 
 # for wrapped math functions
 from util.arrays import *
+print "datatypes"
+import core.datatypes as datatypes
 
 ## some submodules do 'import pymel.core.pmcmds as cmds' -
 ## this ensures that when the user does 'from pymel import *',

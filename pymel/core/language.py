@@ -2,9 +2,9 @@
 Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
 import sys, os, inspect
-from getpass import getuser
-from math import *
-from pymel.util.mathutils import *
+from getpass import getuser as _getuser
+#from math import *
+#from pymel.util.mathutils import *
 import system
 import pymel.util as util
 import maya.mel as _mm
@@ -467,9 +467,9 @@ class Env(object):
         return cmds.upAxis( q=True, axis=True )    
 
     def user(self):
-        return getuser()    
+        return _getuser()    
     def host(self):
-        return gethostname()
+        return _gethostname()
     
     def getTime( self ):
         return cmds.currentTime( q=1 )

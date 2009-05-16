@@ -1,3 +1,4 @@
+.. currentmodule:: pymel
 
 =======================================
 Non-Existent Objects

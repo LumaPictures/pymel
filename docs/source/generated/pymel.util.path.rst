@@ -1,9 +1,11 @@
-pymel.util.path
-===============
+:class:`pymel.util.path`
+========================
 
 .. currentmodule:: pymel.util
 
-.. autoclass:: pymel.util.path
+
+
+.. autoclass:: path
     :show-inheritance:
     :members:
     :undoc-members:

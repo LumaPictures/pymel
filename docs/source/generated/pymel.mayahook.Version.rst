@@ -1,9 +1,36 @@
-pymel.mayahook.Version
-======================
+:mod:`pymel.mayahook.version`
+=============================
 
-.. currentmodule:: pymel.mayahook
 
-.. autoclass:: pymel.mayahook.Version
-    :show-inheritance:
-    :members:
-    :undoc-members:
+.. automodule:: pymel.mayahook.version
+
+..
+	
+	.. currentmodule:: pymel.mayahook.version
+	
+
+
+Functions
+----------
+
+.. autosummary::
+	:toctree: functions/pymel.mayahook.version
+	:nosignatures:
+	
+
+	parseVersionStr
+
+
+
+
+Classes
+--------
+.. autosummary::
+	:toctree: classes/pymel.mayahook.version
+	:nosignatures:
+
+
+	Version
+
+
+

@@ -2,7 +2,7 @@
 
 import pymel.util as util
 import re
-from maya.OpenMaya import MGlobal
+from maya.OpenMaya import MGlobal  as _MGlobal
 import maya.cmds as cmds
 __all__ = ['Version']
 
@@ -51,9 +51,9 @@ __all__ = ['Version']
 def _getApiVersion():
     """backward compatibility hack for api version in maya 8.5"""
     try:
-        return MGlobal.apiVersion()
+        return _MGlobal.apiVersion()
     except AttributeError:
-        versionStr = MGlobal.mayaVersion()
+        versionStr = _MGlobal.mayaVersion()
         if versionStr.startswith('8.5 Service Pack 1'):
             return 200701
         else:
@@ -134,7 +134,7 @@ class Version(object):
     
     @staticmethod
     def fullName():
-        return MGlobal.mayaVersion()
+        return _MGlobal.mayaVersion()
     @classmethod
     def installName(cls):
         return parseVersionStr(cls.fullName(), extension=True)
@@ -142,7 +142,7 @@ class Version(object):
     def shortName(cls):
         return parseVersionStr(cls.fullName(), extension=False)
     
-#    fullName = MGlobal.mayaVersion()
+#    fullName = _MGlobal.mayaVersion()
 #    installName = parseVersionStr(fullName, extension=True)
 #    shortName = parseVersionStr(fullName, extension=False)
     

@@ -31,7 +31,7 @@ Contents:
 
 .. autosummary::
 	:nosignatures:
-	:toctree:
+	:toctree: generated/
 	
 	pymel.core.animation
 	pymel.core.datatypes
@@ -42,11 +42,23 @@ Contents:
 	pymel.core.nodetypes
 	pymel.core.other
 	pymel.core.rendering
+	pymel.core.runtime
 	pymel.core.system
 	pymel.core.windows
+	pymel.core.context
 	pymel.mayahook.version
 	pymel.util
-
+	pymel.util.arguments
+	pymel.util.arrays
+	pymel.util.common
+	pymel.util.decoration
+	pymel.util.enum
+	pymel.util.mathutils
+	pymel.util.namedtuple
+	pymel.util.path
+	pymel.util.trees
+	pymel.util.utilitytypes
+	pymel.mayahook
 
 =======================================
     Special Thanks
