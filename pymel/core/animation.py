@@ -70,6 +70,11 @@ Maya Bug Fix:
         ]
         if filter( lambda x: x in args, kwargs.keys()):
             res = res[0]
+    else:
+        try:
+            res = cmds.ls(sl=1)[0]
+        except:
+            pass
     return res
 
 def _constraint( func ):
