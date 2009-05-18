@@ -32,7 +32,6 @@ _logger = logging.getLogger(__name__)
 import pymel.mayahook as mayahook
 
 from maya.cmds import about as _about
-import maya.mel as mm
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?

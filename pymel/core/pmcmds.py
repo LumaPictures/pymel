@@ -87,8 +87,8 @@ def addWrappedCmd(cmdname, cmd=None):
         # convert args to mel-friendly representation
         new_args = getMelRepresentation(args)
         
-        # flatten list. this is necessary for list of components.  see Issue 71.
-        if len(new_args) == 1 and util.isIterable(new_args[0]): #isinstance( new_args[0], (tuple, list) ):
+        # flatten list. this is necessary for list of components.  see Issue 71.  however, be sure that it's not an empty list/tuple
+        if len(new_args) == 1 and util.isIterable(new_args[0]) and len(new_args[0]): #isinstance( new_args[0], (tuple, list) ):
             new_args = new_args[0]
         
         new_kwargs = getMelRepresentation(kwargs)

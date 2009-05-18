@@ -79,6 +79,7 @@ nodeTypeToNodeCommand = {
     'makeNurbsSquare' : 'nurbsSquare',
     'makeNurbCube' : 'nurbsCube',
     'skinPercent' : 'skinCluster',
+    'file' : None # prevent File node from using cmds.file
 }
 
 #: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
@@ -464,9 +465,9 @@ def getCmdInfo( command, version='8.5', python=True ):
                 for primaryFlag in modifiedList:
                     #_logger.debug(command, "1st", primaryFlag)
                     if 'secondaryFlags' in parser.flags[primaryFlag]:
-                         flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
+                        flags[primaryFlag]['secondaryFlags'].append(secondaryFlag)
                     else:
-                         flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
+                        flags[primaryFlag]['secondaryFlags'] = [secondaryFlag]
         
                          
         # add shortname lookup
