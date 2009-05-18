@@ -444,7 +444,6 @@ class testCase_duplicateShape(unittest.TestCase):
             self.assertEqual(len(shapeDup), 1)
             shapeDup = shapeDup[0]
             self.assertDupeShape(origShape, shapeDup)
-
     
     def assertDupeShape(self, origShape, shapeDup):
             self.assertTrue(shapeDup.__class__ == origShape.__class__)
