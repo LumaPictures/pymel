@@ -1,0 +1,49 @@
+Version 0.9.1
+
+BUGFIXES
+
+fixed a bug in undoInfo
+fixed a bug that was breaking mel2py
+fixed a bug with logging that was locking it to INFO level.  INFO is now the default, but it can be properly changed in pymel.conf
+fixed input casting of datatypes.Time 
+bug fixes in error handling within path class
+fixed issue 65: DependencyNode.listAttr broken
+made sure NameParse objects are stringified before fed to MFnDependencyNode.findPlug
+added a few more reserved types so as to avoid creating them, which can lead to crashes on some setups
+fixed issue 66 where nodes could be created twice when using PEP8 style class instantiation: pm.Locator()
+path.walk* now properly prunes all directories below those that do not match the supplied patterns.
+maya bug workaround: changed pluginLoaded callback to API-based for 2009 and later
+fixed bug in hasAttr
+removed bug in arrays.dot where incorrect duplicate definition was taking precedence
+fixed bug in PyNode.__ne__ when comparing DagNodes to DependNodes
+fixed Issue 72: cannot select lists of components
+fixed bug with startup on windows (backslashes not escaped)
+fix for Component('pCube1.vtx[3]')
+fix for nurbsCurveCV('nurbsCircle1') failing
+pythonToMel and Mel now properly convert datatypes.Vectors to mel vectors ( <<0,0,0>> ). MelGlobals now returns datatypes.Vectors
+fixed bug with duplicate(addShape=1)
+fixed a bug where selectionSets can't be selected
+fixed a bug with sets() when it returns lists
+fixed issue 76, where non-unique joint names were returned by pymel.joint and thus were unsuccessfully cast to nodetypes.Joint
+fixed issue 80, regading incorrect association of nodetypes.File with cmds.file. 
+
+CHANGES AND ADDITIONS
+
+new feature:  virtual subclasses.  allows the user to create their own subclasses which are returned by PyNode
+added v2009sp1 and v2009sp1a to Version
+changed MelGlobals.__getitem__ to raise a KeyError on missing global, instead of a typeError
+util.path now supports regular expression filtering in addition to globs.  
+moved moduleDir from util to mayahook since it is explicitly for pymel.  
+ensured that all default plugins are loaded when creating the api cache so that we can avoid calculating those each time the plugins are loaded
+added a new `errors` flag to recurseMayaScriptPath for controlling how to handle directory walking errors: warn or ignore
+moved pwarnings to ensure that pymel.util is completely separated from maya
+adding new sphinx documentation. modifying source docstrings where necessary.
+setParent now allows 'None' arg to specify world parent
+adopted a standard setuptools-compliant package layout, with pymel as a subdirectory of the top level
+forced line numbers on for Mel.eval
+changed ipymel to use $MAYA_LOCATION to find mayapy instead of /usr/bin/env
+changed datatypes examples to demonstrate the necessity to include a namespace
+added groupname, get_groupname, and chgrp to path class for dealing with unix groups as strings instead of as gid's
+added alias path.Path for path.path so as to follow PEP8
+added a new option to pymel.conf to allow disabling of mel initialization in standalone mode.
+added ability to set logger verbosity using PYMEL_LOGLEVEL environment variable.  great for quick testing.
