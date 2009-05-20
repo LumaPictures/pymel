@@ -1,0 +1,18 @@
+#!/bin/bash
+
+export PYMEL_INCLUDE_DOC_EXAMPLES=1
+cd `dirname $0`/..
+echo "making main docs"
+
+
+if [ -d docs ]; then
+	rm docs/*.* 
+else
+	mkdir docs
+fi
+
+cd pymel
+mayapy `which epydoc` --config ../test/epydoc.cfg  # this makes to tmpdocs
+
+# the process hangs so nothing else will run after mayapy
+#mayapy `which epydoc` --config test/promo.cfg
