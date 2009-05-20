@@ -121,7 +121,7 @@ class Component( general.PyNode ):
     Abstract base class for pymel components.
     """
     
-    __metaclass__ = MetaMayaComponentWrapper
+    __metaclass__ = _factories.MetaMayaComponentWrapper
     _mfncompclass = api.MFnComponent
     _apienum__ = api.MFn.kComponent
     _ComponentLabel__ = None
