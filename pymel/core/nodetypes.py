@@ -474,6 +474,279 @@ class Component3D( IndexedComponent ):
     _apienum__ = api.MFn.kTripleIndexedComponent
     dimensions = 3
 
+class MItComponent( Component1D ):
+    """
+    Abstract base class for pymel components that can be accessed via iterators.
+    
+    (ie, `MeshEdge`, `MeshVertex`, and `MeshFace` can be wrapped around
+    MItMeshEdge, etc)
+    """
+#
+#    @staticmethod
+#    def _formatSlice(startIndex, stopIndex, step):
+#        if startIndex == stopIndex:
+#            sliceStr = '%s' % startIndex
+#        elif step is not None and step != 1:
+#            sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
+#        else:
+#            sliceStr = '%s:%s' % (startIndex, stopIndex)
+#        return sliceStr 
+#    
+#    @staticmethod
+#    def _getRange(start, stop, step):
+#        if step is None or step == 1:   
+#            indices = range( start, stop+1 )
+#        else:
+#            indices = range( start, stop+1, step )
+#              
+#        return indices
+#    
+#    @staticmethod
+#    def _getMayaSlice( array ):
+#        """given an MIntArray, convert to a maya-formatted slice"""
+#        
+#        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( array ) ]
+#    def isComplete(self):
+#        return self._range is None
+          
+#    def __init__(self, *args, **kwargs ):
+#        isApiComponent = False 
+#        component = None
+#        newargs = []
+#        # the Component class can be instantiated several ways:
+#        # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
+#        if self._node :
+#            newargs.append( self._node.__apimdagpath__() )
+#            try:
+#                component = self.__apiobjects__['MObjectHandle']
+#                if api.isValidMObjectHandle( component ): 
+#                    newargs.append( component.object() )  
+#                    isApiComponent = True
+#            except KeyError:
+#                component = self.__apiobjects__['ComponentIndex']
+#            
+#        # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
+#        else:
+#            dag = self.__apiobjects__['MDagPath']
+#            newargs = [dag]
+#            self._node = PyNode(dag)
+#            
+#        #print "ARGS", newargs   
+#
+#        # DEFAULTS
+#        self._range = None # a list of component indices
+#        self._rangeIndex = 0 # an index into the range
+#        self._sliceStr = ''
+#        self._slices = None
+#        
+#        stopIndex = 0
+#        self.isReset = True # if the iterator is at its first item
+#   
+#        # instantiate the api component iterator    
+#        self.__apiobjects__['MFn'] = self.__apicls__(*newargs )
+#        
+#        
+#        if isApiComponent:
+#            startIndex = self.getIndex()
+#            stopIndex = startIndex + self.__apimfn__().count()-1
+#            if startIndex == stopIndex:
+#                self._sliceStr = '%s' % startIndex
+#            else:
+#                self._sliceStr = '%s:%s' % (startIndex, stopIndex)
+#            self._slices = [ slice(startIndex, stopIndex) ]   
+#            self._range = xrange( startIndex, stopIndex+1)
+#            
+#        elif isinstance(component, int):
+#            self._sliceStr = '%s' % component
+#            self._range = [component]
+#            su = api.MScriptUtil()
+#            self.__apimfn__().setIndex( component, su.asIntPtr() )  # bug workaround
+#            self._slices = [ slice(component,component) ]  
+#            
+#        elif isinstance(component, slice):
+#            
+#            start, stop, step = component.indices( self.__apimfn__().count()-1 )
+#            
+#            self._slices = [ component ]  
+#            self._sliceStr = self._formatSlice( start, stop, step )
+#            
+#            #if component.stop is not None and component.stop >= 0:
+#            stop += 1
+#                
+#            self._range = xrange( start, stop, step )
+#            
+#            su = api.MScriptUtil()
+#            self.__apimfn__().setIndex( start, su.asIntPtr() )  # bug workaround
+#            
+#        elif isinstance(component, (list,tuple) ) and len(component) and isinstance( component[0], slice ):
+#    
+#            indices = []
+#            sliceStrs = []
+#            self._range = []
+#            self._slices = component
+#            count = self.__apimfn__().count()
+#            for x in component:
+#                if isinstance(x, int):
+#                    x = slice(x, x)
+#                
+#                #print x, self.__apimfn__().count() 
+#                start, stop, step = x.indices( count-1 )
+#                    
+#                sliceStr = self._formatSlice( start, stop, step)
+#                #if component.stop is not None and component.stop >= 0:
+#                stop += 1
+#                
+#                #indices = self._getRange( startIndex, stopIndex, step)
+#                indices = range( start, stop, step )
+#                
+#                sliceStrs.append( sliceStr )
+#                self._range += indices
+#            
+#            self._sliceStr = ','.join(sliceStrs)
+#            su = api.MScriptUtil()
+#            self.__apimfn__().setIndex( self._range[0], su.asIntPtr() )  # bug workaround
+#              
+#        elif component is None:
+#            start = 0
+#            stop = self.count()-1
+#            self._sliceStr = '%s:%s' % (start, stop)
+#            self._slices = [ slice(start, stop) ]
+#        else:
+#            raise TypeError, "component must be an MObject, an integer, a slice, or a tuple of slices"
+#        
+#        #print "START-STOP", self._startIndex, self._stopIndex
+#        #self._node = node
+#        #self._comp = component
+#        self._comp = component
+
+    
+    def name(self):
+#        if isinstance( self._comp, int ):
+#            return u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, self._comp )
+#        elif isinstance( self._comp, slice ):
+#            return u'%s.%s[%s:%s]' % ( self._node, self._ComponentLabel__, self._comp.start, self._comp.stop )
+#        
+#        return u'%s.%s[0:%s]' % (self._node, self._ComponentLabel__, self.count()-1)
+        
+        return u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, self._sliceStr )
+
+    def __melobject__(self):
+        """convert components with pymel extended slices into a list of maya.cmds compatible names"""
+        ranges = []
+        count = self.__apimfn__().count()
+        for slice in self._slices:
+            start, stop, step = slice.indices(count)
+            if step == 1:
+                ranges.append( self._formatSlice( start, stop, step ) )
+            else:
+                # maya cannot do steps
+                ranges +=  [ str(x) for x in self._getRange( start, stop, step ) ]
+                
+        return [ u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, range ) for range in ranges ]
+                
+    def __apiobject__(self):
+        try:
+            return self.__apiobjects__['MObjectHandle'].object()
+        except KeyError:
+            if len(self._range) == 1:
+                return self.__apiobjects__['MFn'].currentItem()
+            else:
+                component = api.MObject()
+                sel = api.MSelectionList()
+                dagPath = self.__apimdagpath__()
+                mit = self.__apimfn__()
+                while not mit.isDone():
+                    comp = mit.currentItem()
+                    # merge is True
+                    sel.add( dagPath, comp, True )
+                    mit.next()
+                sel.getDagPath( 0, dagPath, component )
+                return component
+                #raise ValueError, "Cannot determine mobject"
+        
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this attribute, if it is valid"
+        try:
+            #print "NODE", self.node()
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+        
+    def __apimfn__(self):
+        try:
+            return self.__apiobjects__['MFn']
+        except KeyError:
+            if self.__apicls__:
+                obj = self.__apiobject__()
+                if obj:
+                    mfn = self.__apicls__( self.__apimdagpath__(), self.__apiobject__() )
+                    self.__apiobjects__['MFn'] = mfn
+                    return mfn
+    
+    def __eq__(self, other):
+        return api.MFnComponent( self.__apiobject__() ).isEqual( other.__apiobject__() )
+               
+    def __str__(self): 
+        return str(self.name())
+    
+    def __unicode__(self): 
+        return self.name()                                
+     
+    def __iter__(self): 
+        return self
+    
+    def node(self):
+        return self._node
+
+    def setIndex(self, index):
+        #self._range = [component]
+        su = api.MScriptUtil()
+        self.__apimfn__().setIndex( index, su.asIntPtr() )  # bug workaround
+        #self._index = index
+        return self
+    
+    def getIndex(self):
+        return self.__apimfn__().index()
+    
+    def next(self):
+        if self.__apimfn__().isDone(): raise StopIteration
+        if self._range is not None:
+            try:
+                nextIndex = self._range[self._rangeIndex]
+                su = api.MScriptUtil()
+                self.__apimfn__().setIndex( nextIndex, su.asIntPtr() )  # bug workaround
+                self._rangeIndex += 1
+                return self.__class__(self._node, nextIndex)
+            except IndexError:
+                raise StopIteration
+
+        else:
+            if self.isReset:
+                self.isReset = False
+            else:
+                #print "INCREMENTING"
+                self.__apimfn__().next()
+                if self.__apimfn__().isDone(): raise StopIteration
+        #print "NEXT", self.getIndex()
+        #return self.__class__(self._node, self.__apimfn__().index() )
+        
+        #print "RETURNING"
+        return self.__class__( self, self.getIndex() )
+#        if isinstance( self._comp, int ):
+#            _api.apicls.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
+#        elif isinstance( self._comp, slice):
+#            _api.apicls.setIndex( self, i, su.asIntPtr() )  # bug workaround
+    
+    def __len__(self): 
+        return self.count()
+            
+    def __getitem__(self, item):
+        if self.isComplete():
+            #return self.__class__(self._node, item)
+            return self.__class__(self._node, item)
+        else:
+            assert isinstance(item, (int,slice) ), "Extended slice syntax only allowed on a complete range, such as when using Mesh(u'obj').vtx"
+            return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
+
 ## Specific Components...
 
 ## Mesh Components
@@ -566,279 +839,8 @@ class LatticePoint( Component3D ):
     _ComponentLabel__ = "pt"
     _apienum__ = api.MFn.kLatticeComponent
         
-#
-#class MItComponent( Component ):
-#    """
-#    Abstract base class for pymel components that can be accessed via iterators.
-#    
-#    (ie, `MeshEdge`, `MeshVertex`, and `MeshFace` can be wrapped around
-#    MItMeshEdge, etc)
-#    """
-#
-#    @staticmethod
-#    def _formatSlice(startIndex, stopIndex, step):
-#        if startIndex == stopIndex:
-#            sliceStr = '%s' % startIndex
-#        elif step is not None and step != 1:
-#            sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
-#        else:
-#            sliceStr = '%s:%s' % (startIndex, stopIndex)
-#        return sliceStr 
-#    
-#    @staticmethod
-#    def _getRange(start, stop, step):
-#        if step is None or step == 1:   
-#            indices = range( start, stop+1 )
-#        else:
-#            indices = range( start, stop+1, step )
-#              
-#        return indices
-#    
-#    @staticmethod
-#    def _getMayaSlice( array ):
-#        """given an MIntArray, convert to a maya-formatted slice"""
-#        
-#        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( array ) ]
-#    def isComplete(self):
-#        return self._range is None
-#          
-##    def __init__(self, *args, **kwargs ):
-##        isApiComponent = False 
-##        component = None
-##        newargs = []
-##        # the Component class can be instantiated several ways:
-##        # Component(dagPath, component): args get stored on self._node and self.__apiobjects__['MObjectHandle'] respectively
-##        if self._node :
-##            newargs.append( self._node.__apimdagpath__() )
-##            try:
-##                component = self.__apiobjects__['MObjectHandle']
-##                if api.isValidMObjectHandle( component ): 
-##                    newargs.append( component.object() )  
-##                    isApiComponent = True
-##            except KeyError:
-##                component = self.__apiobjects__['ComponentIndex']
-##            
-##        # Component(dagPath): in this case, stored on self.__apiobjects__['MDagPath'] (self._node will be None)
-##        else:
-##            dag = self.__apiobjects__['MDagPath']
-##            newargs = [dag]
-##            self._node = PyNode(dag)
-##            
-##        #print "ARGS", newargs   
-##
-##        # DEFAULTS
-##        self._range = None # a list of component indices
-##        self._rangeIndex = 0 # an index into the range
-##        self._sliceStr = ''
-##        self._slices = None
-##        
-##        stopIndex = 0
-##        self.isReset = True # if the iterator is at its first item
-##   
-##        # instantiate the api component iterator    
-##        self.__apiobjects__['MFn'] = self.__apicls__(*newargs )
-##        
-##        
-##        if isApiComponent:
-##            startIndex = self.getIndex()
-##            stopIndex = startIndex + self.__apimfn__().count()-1
-##            if startIndex == stopIndex:
-##                self._sliceStr = '%s' % startIndex
-##            else:
-##                self._sliceStr = '%s:%s' % (startIndex, stopIndex)
-##            self._slices = [ slice(startIndex, stopIndex) ]   
-##            self._range = xrange( startIndex, stopIndex+1)
-##            
-##        elif isinstance(component, int):
-##            self._sliceStr = '%s' % component
-##            self._range = [component]
-##            su = api.MScriptUtil()
-##            self.__apimfn__().setIndex( component, su.asIntPtr() )  # bug workaround
-##            self._slices = [ slice(component,component) ]  
-##            
-##        elif isinstance(component, slice):
-##            
-##            start, stop, step = component.indices( self.__apimfn__().count()-1 )
-##            
-##            self._slices = [ component ]  
-##            self._sliceStr = self._formatSlice( start, stop, step )
-##            
-##            #if component.stop is not None and component.stop >= 0:
-##            stop += 1
-##                
-##            self._range = xrange( start, stop, step )
-##            
-##            su = api.MScriptUtil()
-##            self.__apimfn__().setIndex( start, su.asIntPtr() )  # bug workaround
-##            
-##        elif isinstance(component, (list,tuple) ) and len(component) and isinstance( component[0], slice ):
-##    
-##            indices = []
-##            sliceStrs = []
-##            self._range = []
-##            self._slices = component
-##            count = self.__apimfn__().count()
-##            for x in component:
-##                if isinstance(x, int):
-##                    x = slice(x, x)
-##                
-##                #print x, self.__apimfn__().count() 
-##                start, stop, step = x.indices( count-1 )
-##                    
-##                sliceStr = self._formatSlice( start, stop, step)
-##                #if component.stop is not None and component.stop >= 0:
-##                stop += 1
-##                
-##                #indices = self._getRange( startIndex, stopIndex, step)
-##                indices = range( start, stop, step )
-##                
-##                sliceStrs.append( sliceStr )
-##                self._range += indices
-##            
-##            self._sliceStr = ','.join(sliceStrs)
-##            su = api.MScriptUtil()
-##            self.__apimfn__().setIndex( self._range[0], su.asIntPtr() )  # bug workaround
-##              
-##        elif component is None:
-##            start = 0
-##            stop = self.count()-1
-##            self._sliceStr = '%s:%s' % (start, stop)
-##            self._slices = [ slice(start, stop) ]
-##        else:
-##            raise TypeError, "component must be an MObject, an integer, a slice, or a tuple of slices"
-##        
-##        #print "START-STOP", self._startIndex, self._stopIndex
-##        #self._node = node
-##        #self._comp = component
-##        self._comp = component
-#
-#    
-#    def name(self):
-##        if isinstance( self._comp, int ):
-##            return u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, self._comp )
-##        elif isinstance( self._comp, slice ):
-##            return u'%s.%s[%s:%s]' % ( self._node, self._ComponentLabel__, self._comp.start, self._comp.stop )
-##        
-##        return u'%s.%s[0:%s]' % (self._node, self._ComponentLabel__, self.count()-1)
-#        
-#        return u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, self._sliceStr )
-#
-#    def __melobject__(self):
-#        """convert components with pymel extended slices into a list of maya.cmds compatible names"""
-#        ranges = []
-#        count = self.__apimfn__().count()
-#        for slice in self._slices:
-#            start, stop, step = slice.indices(count)
-#            if step == 1:
-#                ranges.append( self._formatSlice( start, stop, step ) )
-#            else:
-#                # maya cannot do steps
-#                ranges +=  [ str(x) for x in self._getRange( start, stop, step ) ]
-#                
-#        return [ u'%s.%s[%s]' % ( self._node, self._ComponentLabel__, range ) for range in ranges ]
-#                
-#    def __apiobject__(self):
-#        try:
-#            return self.__apiobjects__['MObjectHandle'].object()
-#        except KeyError:
-#            if len(self._range) == 1:
-#                return self.__apiobjects__['MFn'].currentItem()
-#            else:
-#                component = api.MObject()
-#                sel = api.MSelectionList()
-#                dagPath = self.__apimdagpath__()
-#                mit = self.__apimfn__()
-#                while not mit.isDone():
-#                    comp = mit.currentItem()
-#                    # merge is True
-#                    sel.add( dagPath, comp, True )
-#                    mit.next()
-#                sel.getDagPath( 0, dagPath, component )
-#                return component
-#                #raise ValueError, "Cannot determine mobject"
-#        
-#    def __apimdagpath__(self) :
-#        "Return the MDagPath for the node of this attribute, if it is valid"
-#        try:
-#            #print "NODE", self.node()
-#            return self.node().__apimdagpath__()
-#        except AttributeError: pass
-#        
-#    def __apimfn__(self):
-#        try:
-#            return self.__apiobjects__['MFn']
-#        except KeyError:
-#            if self.__apicls__:
-#                obj = self.__apiobject__()
-#                if obj:
-#                    mfn = self.__apicls__( self.__apimdagpath__(), self.__apiobject__() )
-#                    self.__apiobjects__['MFn'] = mfn
-#                    return mfn
-#    
-#    def __eq__(self, other):
-#        return api.MFnComponent( self.__apiobject__() ).isEqual( other.__apiobject__() )
-#               
-#    def __str__(self): 
-#        return str(self.name())
-#    
-#    def __unicode__(self): 
-#        return self.name()                                
-#     
-#    def __iter__(self): 
-#        return self
-#    
-#    def node(self):
-#        return self._node
-#
-#    def setIndex(self, index):
-#        #self._range = [component]
-#        su = api.MScriptUtil()
-#        self.__apimfn__().setIndex( index, su.asIntPtr() )  # bug workaround
-#        #self._index = index
-#        return self
-#    
-#    def getIndex(self):
-#        return self.__apimfn__().index()
-#    
-#    def next(self):
-#        if self.__apimfn__().isDone(): raise StopIteration
-#        if self._range is not None:
-#            try:
-#                nextIndex = self._range[self._rangeIndex]
-#                su = api.MScriptUtil()
-#                self.__apimfn__().setIndex( nextIndex, su.asIntPtr() )  # bug workaround
-#                self._rangeIndex += 1
-#                return self.__class__(self._node, nextIndex)
-#            except IndexError:
-#                raise StopIteration
-#
-#        else:
-#            if self.isReset:
-#                self.isReset = False
-#            else:
-#                #print "INCREMENTING"
-#                self.__apimfn__().next()
-#                if self.__apimfn__().isDone(): raise StopIteration
-#        #print "NEXT", self.getIndex()
-#        #return self.__class__(self._node, self.__apimfn__().index() )
-#        
-#        #print "RETURNING"
-#        return self.__class__( self, self.getIndex() )
-##        if isinstance( self._comp, int ):
-##            _api.apicls.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
-##        elif isinstance( self._comp, slice):
-##            _api.apicls.setIndex( self, i, su.asIntPtr() )  # bug workaround
-#    
-#    def __len__(self): 
-#        return self.count()
-#            
-#    def __getitem__(self, item):
-#        if self.isComplete():
-#            #return self.__class__(self._node, item)
-#            return self.__class__(self._node, item)
-#        else:
-#            assert isinstance(item, (int,slice) ), "Extended slice syntax only allowed on a complete range, such as when using Mesh(u'obj').vtx"
-#            return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
+
+
 #
 #        
 #class MeshEdge( MItComponent ):
