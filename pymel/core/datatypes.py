@@ -265,7 +265,7 @@ class Vector(VectorN) :
     A 3 dimensional vector class that wraps Maya's api Vector class
     
         >>> from pymel import *
-        >>> import pymel.datatypes as dt
+        >>> import pymel.core.datatypes as dt
         >>> 
         >>> v = dt.Vector(1, 2, 3)
         >>> w = dt.Vector(x=1, z=2)
@@ -273,7 +273,7 @@ class Vector(VectorN) :
         
         >>> v = dt.Vector(1, 2, 3, unit='meters')
         >>> print v
-        [100.0, 200.0, 300.0]
+        [1.0, 2.0, 3.0]
     """
     __metaclass__ = MetaMayaArrayTypeWrapper
     __slots__ = ()
@@ -1419,7 +1419,7 @@ class Matrix(MatrixN):
         A 4x4 transformation matrix based on api Matrix
 
         >>> from pymel import *
-        >>> import pymel.datatypes as dt
+        >>> import pymel.core.datatypes as dt
         >>> 
         >>> i = dt.Matrix()
         >>> print i.formated()
@@ -1892,9 +1892,10 @@ class EulerRotation(Array):
     """
     unit handling:
     >>> from pymel import *
-    >>> import pymel.datatypes as dt
+    >>> import pymel.core.datatypes as dt
     >>> 
     >>> currentUnit(angle='degree')
+    u'degree'
     >>> e = dt.EulerRotation([math.pi,0,0], unit='radians')
     >>> e
     EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
@@ -2511,7 +2512,7 @@ class Time(Unit):
 class Distance( Unit ) :
     """
         >>> from pymel import *
-        >>> import pymel.datatypes as dt
+        >>> import pymel.core.datatypes as dt
         >>> 
         >>> dt.Distance.getInternalUnit()
         'centimeters'
@@ -2523,12 +2524,10 @@ class Distance( Unit ) :
         >>> d.unit
         'meters'
         >>> print d
-        1200.0
-        >>> str(d)
-        '1200.0'
+        12.0
         >>> print repr(d)
         Distance(12.0, unit='meters')
-        >>> print d.asUnit()
+        >>> print d.asUIUnit()
         12.0
         >>> print d.asInternalUnit()
         1200.0
@@ -2536,46 +2535,44 @@ class Distance( Unit ) :
         >>> dt.Distance.setUIUnit('centimeters')
         >>> dt.Distance.getUIUnit()
         'centimeters'
-        >>> d = dt.Distance(12)
-        >>> d.unit
+        >>> e = dt.Distance(12)
+        >>> e.unit
         'centimeters'
-        >>> print d
+        >>> print e
         12.0
-        >>> str(d)
+        >>> str(e)
         '12.0'
-        >>> print repr(d)
+        >>> print repr(e)
         Distance(12.0, unit='centimeters')
-        >>> print d.asUnit()
+        >>> print e.asUIUnit()
         12.0
-        >>> print d.asInternalUnit()
+        >>> print e.asInternalUnit()
         12.0
                         
-        >>> d = dt.Distance(12, 'feet')      
-        >>> print d
-        365.76
-        >>> str(d)
-        '365.76'
-        >>> print repr(d)
-        Distance(12.0, unit='feet')
-        >>> d.unit
-        'feet'
-        >>> print d.asUnit()
+        >>> f = dt.Distance(12, 'feet')      
+        >>> print f
         12.0
+        >>> print repr(f)
+        Distance(12.0, unit='feet')
+        >>> f.unit
+        'feet'
+        >>> print f.asUIUnit()
+        365.76
         >>> dt.Distance.setUIUnit('meters')
         >>> dt.Distance.getUIUnit()
         'meters'
-        >>> print d.asUIUnit())
+        >>> print f.asUIUnit()
         3.6576
         >>> dt.Distance.getInternalUnit()
         'centimeters'
-        >>> print d.asInternalUnit()
+        >>> print f.asInternalUnit()
         365.76
 
-        >>> print d.asFeet()
-        12.0        
-        >>> print d.asMeters()
+        >>> print f.asFeet()
+        12.0
+        >>> print f.asMeters()
         3.6576
-        >>> print d.asCentimeters()
+        >>> print f.asCentimeters()
         365.76
         
         >>> dt.Distance.setUIUnit()

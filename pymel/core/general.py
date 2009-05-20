@@ -991,6 +991,8 @@ Modifications
         return result
     if util.isIterable(result):
         return map( PyNode, util.listForNone(result) )
+    elif result is None:
+        return []
     else:
         return PyNode(result)
     
