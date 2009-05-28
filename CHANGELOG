@@ -26,6 +26,7 @@ fixed a bug where selectionSets can't be selected
 fixed a bug with sets() when it returns lists
 fixed issue 76, where non-unique joint names were returned by pymel.joint and thus were unsuccessfully cast to nodetypes.Joint
 fixed issue 80, regading incorrect association of nodetypes.File with cmds.file. 
+fixed a bug in connectAttr that was preventing connection errors from being raised when the force flag was used
 
 CHANGES AND ADDITIONS
 
