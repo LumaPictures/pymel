@@ -1,0 +1,112 @@
+#!/usr/bin/env mayapy
+
+#nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
+
+#import doctest
+import sys, platform, os, os.path, shutil, subprocess
+
+try:
+    import nose
+except ImportError, e:
+    print "To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
+    raise e
+
+if os.name == 'nt':
+    app_dir = os.environ['USERPROFILE']
+    
+    # Vista or newer... version() returns "6.x.x"
+    if int(platform.version().split('.')[0]) > 5:
+        app_dir = os.path.join( app_dir, 'Documents')
+    else:
+        app_dir = os.path.join( app_dir, 'My Documents')
+else:
+    app_dir = os.environ['HOME']
+    
+if platform.system() == 'Darwin':
+    app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
+else:
+    app_dir = os.path.join( app_dir, 'maya' )
+
+backup_dir = app_dir + '.bak'
+
+deleteBackupOnlyArg = '--delete-maya-user-backup'
+
+if deleteBackupOnlyArg not in sys.argv:
+    if os.path.isdir(backup_dir):
+        print "backup dir %r already exists - aborting" % backup_dir
+    else:
+        print "backing up Maya user directory", app_dir
+        shutil.move( app_dir, backup_dir )
+        
+        #import maya
+        
+        #SKIP_MAYA_8_5 = doctest.register_optionflag('SKIP_MAYA_8_5')
+        #SKIP_MAYA_2008 = doctest.register_optionflag('SKIP_MAYA_2008')
+        #SKIP_MAYA_2009 = doctest.register_optionflag('SKIP_MAYA_2009')
+        
+        #class MayaOutputChecker(doctest.
+        
+        exclusion = 'windows tools example1 .*testingutils pmcmds testPa'
+        #arrays 
+        args = ['empty']
+        args += "--with-doctest -v pymel --noexe ".split()
+        #args += ['--pdb']
+        args += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
+        args += sys.argv[1:]
+        
+        try:
+            nose.main( argv=args )
+        except Exception, e:
+            print e
+        finally:
+            print "restoring Maya user directory", app_dir            
+            try:
+                shutil.rmtree( app_dir )
+            except Exception, e:
+                # on windows, maya never seems to exit cleanly unless the
+                # process is completely exited - it keeps open access to
+                # 'mayaLog', with the result that you can't delete the
+                # backup_dir.  only way I know of around this is to delete
+                # backup_dir in a completely separate process...                
+                subprocess.Popen([sys.executable, __file__, deleteBackupOnlyArg])
+            else:  
+                shutil.move( backup_dir, app_dir )
+                print "done"
+
+else:
+    import time
+
+    print "restoring Maya user directory", app_dir, " - from separate process" 
+
+    # Maya may take some time to shut down / finish writing to files - 
+    # give it 2 seconds
+    retryTime = 5
+    lastException = None
+    start = time.time()
+    while os.path.isdir( app_dir ):
+        # Check elapsed time AFTER trying to delete dir -
+        # otherwise, if some other thread gets priority while we are
+        # sleeping, and it's a while before the thread wakes up, we might
+        # check once when almost no time has passed, sleep, wake up after
+        # a lot of time has passed, and not check again...
+        try:
+            shutil.rmtree( app_dir )
+        except Exception, e:
+            lastException = e
+            # print("print - unable to delete '%s' - elapsed time: %f" %
+            #        (app_dir, time.time() - start))
+            time.sleep(.2)
+        else:
+            lastException = None
+            
+        if time.time() - start > retryTime:
+            break
+
+    if lastException is not None:
+        print('Error deleting "%s" - manually delete and rename/move "%s"' %
+               (app_dir, backup_dir))
+        raise lastException
+    else:  
+        shutil.move( backup_dir, app_dir )
+        print "done"
+

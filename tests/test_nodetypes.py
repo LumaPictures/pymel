@@ -5,6 +5,7 @@ from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
+
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
     leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
