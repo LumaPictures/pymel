@@ -128,7 +128,7 @@ Other Improvements
     - Expanded documentation
     - Loads of useful utilities
     - Commands and classes created by plugins are now added to pymel namespace on load and removed on unload
-    - Name-independent dictionary hashing for nodes in maya 2009: see section `Using PyNodes as Keys in Dictionaries`_
+    - Name-independent dictionary hashing for nodes in maya 2009: see section :ref:`pynodes_in_dicts`
     - Added `DagNode.addChild` as well an addChild operator  ``|`` for DAG objects: `DagNode.__or__`
     - The `Version` class simplifies comparison of Maya versions
     - New mesh component classes `MeshVertex`, `MeshEdge`, and `MeshFace` add many new methods, as well as extended slice syntax
@@ -139,16 +139,16 @@ Non-Backward Compatible Changes
 ---------------------------------------
     - Attribute disconnection operator has changed from ``<>`` to ``//``
         ``<>`` operator corresponds to ``__ne__`` method, whose other operator is ``!=`` and we need that to mean 'not equal'.
-    - Node classes no longer inherit from unicode: see `PyNodes Are Not Strings`_
+    - Node classes no longer inherit from unicode: see :ref:`pynodes_not_strings`
         This allows node classes to reflect name changes such as parenting or renaming, a key aspect of the API integration
-    - Instantiation of non-existent PyNode objects (nodes and attributes) now results in an exception: see `Non-Existent Objects`_
+    - Instantiation of non-existent PyNode objects (nodes and attributes) now results in an exception: see :doc:`non_existent_objs`
         Also a side-effect of the API integration.  Prevents mistakes and produces more pythonic code with use of new exception classes
-    - _BaseObj has been replaced with `PyNode` class, which operates like the old PyNode function
-        Provides more intuitive relationship between PyNode() and node classes
+    - ``_BaseObj`` has been replaced with `PyNode` class, which operates like the old PyNode function
+        Provides more intuitive relationship between ``PyNode()`` and node classes
     - removed method-chaining between shapes and their history
         Chaining transforms to shapes is used throughout Maya, but the additional chaining of shapes to their history can produce
         unexpected results that are difficult to troubleshoot
     - redesigned `ObjectSet` class
     - completely rewrote `Vector` and `Matrix` classes
-    - data classes like `Vector` and `Matrix` are now found in the `datatypes` namespace to avoid conflicts with node types
+    - data classes like `Vector` and `Matrix` are now found in the `datatypes <pymel.core.datatypes>` namespace to avoid conflicts with node types
 

@@ -20,6 +20,8 @@ even with the service pack so as a result there are two aspects of PyMEL that wi
 PyMEL Package
 ---------------------------------------
 
+.. _install_setuptools:
+
 Easy Install
 ============
 
@@ -65,6 +67,7 @@ To Install:
             "C:\Program Files (x86)\Autodesk\Maya2008\bin\mayapy.exe" setup.py install
             "C:\Program Files (x86)\Autodesk\Maya2009\bin\mayapy.exe" setup.py install
 
+.. _install_manual:
 
 Manual Install
 ==============
@@ -83,7 +86,7 @@ Each of these methods have their pros and cons.
         * allows per-maya configuration
         * does not allow easy execution of ``maya`` and ``mayapy`` in a shell
         
-    * :ref:`System install <install_system_env` :
+    * :ref:`System install <install_system_env>` :
         * only allows one configuration for all copies of Maya
         * will override values set in Maya.env ( except on OSX if you launch Maya from from an application bundle )
         * allows easy execution of ``maya`` and ``mayapy`` in a shell
