@@ -17,9 +17,9 @@ import pickle, os.path
 #import pymel.mayahook as mayahook
 from HTMLParser import HTMLParser
 try:
-    from pymel.util.external.BeautifulSoup import BeautifulSoup
+    from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
 except ImportError:
-    import BeautifulSoup
+    from BeautifulSoup import BeautifulSoup, NavigableString
 
 from keyword import iskeyword as _iskeyword
 
@@ -52,13 +52,17 @@ class Enum(tuple):
 class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
-    def __init__(self, version='2009', verbose=False):
+    def __init__(self, version=None, verbose=False):
 
         self.verbose = verbose
-        self.version = version
-        self.docloc = mayahook.mayaDocsLocation(self.version)
+        self.docloc = mayahook.mayaDocsLocation(version)
         if not os.path.isdir(self.docloc):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+            docloc09 = mayahook.mayaDocsLocation('2009')
+            if not os.path.isdir(self.docloc):
+                raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+
+            _logger.warn( "could not find maya documentation for this version of Maya. Using 2009 documentation" )
+            self.docloc = docloc09
         
     def xprint(self, *args): 
         if self.verbose or VERBOSE:
@@ -328,7 +332,13 @@ class ApiDocParser(object):
                             warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod), ExecutionWarning)
                             enumVal = None
                         enumValues[ enumKey ] = enumVal
-                        enumDocs[enumKey] = str(em.next.next.next.next.next.contents[0]).strip()
+                        
+                        docItem = em.next.next.next.next.next
+                        
+                        if isinstance( docItem, NavigableString ):
+                            enumDocs[enumKey] = str(docItem).strip()
+                        else:
+                            enumDocs[enumKey] = str(docItem.contents[0]).strip()
     
                     #self.enums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(enumList) ] )
                     #self.pymelEnums[self.currentMethod] = dict( [ (x,i) for i, x in enumerate(pymelEnumList) ] )      

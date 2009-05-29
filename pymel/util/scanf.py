@@ -142,7 +142,6 @@ import sys
 import unittest
 from string import whitespace as WHITESPACE
 from string import digits as DIGITS
-from sets import Set
 
 
 __all__ = ['scanf', 'sscanf', 'fscanf']
@@ -321,18 +320,18 @@ class IncompleteCaptureError(ValueError):
 
 
 try:
-	"""We keep a module-level STDIN CharacterBuffer, so that we can call
-	scanf() several times and not lose characters between invocations."""
-	_STDIN = CharacterBufferFromIterable(sys.stdin)
-	
-	
-	def scanf(formatString):
-		"""scanf(formatString) -> tuple
-	
-	Scans standard input for formats specified in the formatString.  See
-	module's docs for list of supported format characters."""
-		return bscanf(_STDIN, formatString)
-		
+    """We keep a module-level STDIN CharacterBuffer, so that we can call
+    scanf() several times and not lose characters between invocations."""
+    _STDIN = CharacterBufferFromIterable(sys.stdin)
+    
+    
+    def scanf(formatString):
+        """scanf(formatString) -> tuple
+    
+    Scans standard input for formats specified in the formatString.  See
+    module's docs for list of supported format characters."""
+        return bscanf(_STDIN, formatString)
+        
 except: TypeError
 
 def sscanf(inputString, formatString):
@@ -364,7 +363,7 @@ characters."""
     return parser(buffer)
 
 
-def isWhitespaceChar(ch, _set=Set(WHITESPACE)):
+def isWhitespaceChar(ch, _set=set(WHITESPACE)):
     """Returns true if the charcter looks like whitespace.
     We follow the definition of C's isspace() function.
     """
@@ -386,10 +385,10 @@ def handleWhitespace(buffer):
 
 ## We keep a few sets as module variables just to incur the cost of
 ## constructing them just once.
-_PLUS_MINUS_SET = Set("+-")
-_DIGIT_SET = Set(DIGITS)
-_OCT_SET = Set("01234567")
-_HEX_SET = Set("0123456789ABCDEFabcdef")
+_PLUS_MINUS_SET = set("+-")
+_DIGIT_SET = set(DIGITS)
+_OCT_SET = set("01234567")
+_HEX_SET = set("0123456789ABCDEFabcdef")
 
 def handleDecimalInt(buffer, optional=False, allowLeadingWhitespace=True):
     """Tries to scan for an integer.  If 'optional' is set to False,
@@ -636,10 +635,10 @@ class ScanfTests(unittest.TestCase):
 
     def testCharacterSetScanning(self):
         b = makeCharBuffer("+++-+++++1234")
-        self.assertEquals("+++", b.scanCharacterSet(Set("+")))
-        self.assertEquals("", b.scanCharacterSet(Set("+")))
-        self.assertEquals("-", b.scanCharacterSet(Set("-")))
-        self.assertEquals("+", b.scanCharacterSet(Set("+"), 1))
+        self.assertEquals("+++", b.scanCharacterSet(set("+")))
+        self.assertEquals("", b.scanCharacterSet(set("+")))
+        self.assertEquals("-", b.scanCharacterSet(set("-")))
+        self.assertEquals("+", b.scanCharacterSet(set("+"), 1))
 
     def testPredicateScanning(self):
         b = makeCharBuffer("+++-+++++1234")
