@@ -3,7 +3,8 @@ import unittest
 from pymel import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.core.factories import ApiEnumsToPyComponents
-from pymel_tests.testingutils import TestCaseExtended
+from testingutils import TestCaseExtended
+
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )

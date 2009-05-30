@@ -11,46 +11,86 @@ Before You Begin
 	* Use Eclipse's **Software Update** window (under help) to install `PyDev <http://pydev.sourceforge.net/download.html>`_
 	* You may also want to install a trial of `PyDev Extensions <http://fabioz.com/pydev/index.html>`_. I can't live without its `Mark Occurrences <http://fabioz.com/pydev/manual_adv_markoccurrences.html>`_ feature.
 
---------------------------------------------------
-OSX	Leopard
---------------------------------------------------
 
-Setting up auto-completion on OSX and Linux is more involved than on Windows. Follow along closely.
 
+--------------------------------------------------
 Adding The Maya Python Interpreter
-==================================
+--------------------------------------------------
 
-	1.	With Eclipse open, click on the **Eclipse** menu, then **Preferences...**
+	1.	Open the Eclipse preferences window.
+
+		============================================== ==============================================
+		Windows                                        OSX
+		============================================== ==============================================
+		under the **Window** menu:                         under the **Eclipse** menu:
+		
+		.. image:: images/pymel_eclipse_win_101.png    .. image:: images/pymel_eclipse_osx_101.png
+		============================================== ==============================================
+
+			
 	2.	In the left pane, drop down to **Pydev > Interpreter-Python**
 	3.	Click the **New..** button at the top right of the **Python Interpreters** preferences window
-	4.	In the browser that comes up, you want to choose Maya's python interpreter.  The problem is that it's buried within Maya.app and Python.app, which you cannot access in this simple browser (thanks Apple!).  Here's a trick that will save you many times over: hold down Command+Shift+G to bring up a box to enter a path (that's the Apple "Comand" button, plus Shift, plus the letter G). 
-	
-		.. image:: images/pymel_eclipse_104.png
-		
-		This shortcut works in the finder as well. Now, due to a bug on Eclipse's part, you can't *paste* a path in here, so you'll have to arduously type it out ( however, it does have some basic tab completion to help you along ).  Type in this path::
-	
-			/Applications/Autodesk/maya2009/Maya.app/Contents/Frameworks/Python.framework/Versions/2.5/Resources/Python.app/Contents/MacOS/Python
-	
-	5.	Once you choose the "Python" binary, you'll get this window:
-	
-		.. image:: images/pymel_eclipse_105.png
-		
-		Check the first two libraries, as I have done in the image.  I have some other "egg" folders listed here that you probably don't have -- just ignore them.
-	
-	6.	Next, add the path to our Maya python site-packages directory.  Click the **New Folder** button to bring up the browser again. Navigate to::
-	
-			/Applications/Autodesk/maya2009/Maya.app/Contents/Frameworks/Python.framework/Versions/2.5/lib/python2.5/site-packages
-	
-	7.	Finally, add the directory *above* your pymel folder to the list of System Libs. The final result should look like this:
-	
-		.. image:: images/pymel_eclipse_107.png
-			:height: 598
-			:width: 987
-		
-		The last path in the image above is the directory above my pymel folder
+	4.	In the browser that comes up, you want to choose Maya's python interpreter: ``mayapy``.  
 
+		.. note:: On osx, browsing to ``mayapy`` is not as easy as it should be. The problem is that it's buried within Maya.app, which you cannot access in a file browser (thanks Apple!).  To get to it, hold down **Command+Shift+G** to bring up a box to enter a path (that's the Apple "Command" button, plus Shift, plus the letter G). Due to a bug on Eclipse's part, you can't *paste* a path in this browser, so you'll have to arduously type it out ( luckily, it does have some basic tab completion to help you along ).
+
+		
+		.. |win_104| image:: images/pymel_eclipse_win_104.png  
+						:width: 452                                          
+						:height: 344
+						
+		.. |osx_104| image:: images/pymel_eclipse_osx_104.png
+		  				:width: 481
+		  				:height: 361
+		  
+		====================================================== ==================================================================
+		Windows                                                OSX
+		====================================================== ==================================================================
+		``C:\Program Files\Autodesk\Maya2009\bin\mayapy.exe``  ``/Applications/Autodesk/maya2009/Maya.app/Contents/bin/mayapy``
+		
+		|win_104|                                              |osx_104|
+		====================================================== ==================================================================
+		
+		..
+			**default mayapy locations:**
+			
+			=======================  =================================================================
+			OS                       LOCATION
+			=======================  =================================================================
+			Windows                  ``C:\Program Files\Autodesk\Maya2009\bin\mayapy.exe``
+			OSX                      ``/Applications/Autodesk/maya2009/Maya.app/Contents/bin/mayapy``
+			Linux (32 bit)           ``/usr/autodesk/maya2009/bin/mayapy``
+			Linux (64 bit)           ``/usr/autodesk/maya2009-x64/bin/mayapy``
+			=======================  =================================================================
+	
+	5.	Once you choose the "mayapy" binary, you'll get this window:
+
+		.. |win_105| image:: images/pymel_eclipse_win_105.png  
+						:width: 466                                          
+						:height: 432
+						
+		.. |osx_105| image:: images/pymel_eclipse_osx_105.png
+		  				:width: 914
+		  				:height: 484
+		
+		====================================================== ==================================================================
+		Windows                                                OSX
+		====================================================== ==================================================================
+		|win_105|                                              |osx_105|
+		====================================================== ==================================================================
+		
+		on windows: add a check beside ``python25.zip``.
+		
+		If you installed PyMEL using the :ref:`install_setuptools` method, you'll see the pymel "egg" in the list of automatically detected site packages.
+		Press "OK" and skip down to the next section.
+		
+		If you installed PyMEL using the :ref:`install_manual` method, then you will have to add the directory *above* your pymel folder to the
+		list of System Libs. To do this, first click "OK" to confirm the automatically detected libs. After it finishes parsing the directories
+		click the **New Folder** button and browse to the directory above your pymel folder.
+
+--------------------------------------------------
 Adding Forced Builtins
-======================
+--------------------------------------------------
 
 Because PyMEL contains many dynamically created functions and classes, simply parsing its modules is not sufficient to produce the full set of completions.  Luckily, Pydev has a special list of modules that it inspects more thoroughly.  Starting from where we left off in the Pydev preferences under Python Interpreters...
 
@@ -82,39 +122,58 @@ Because PyMEL contains many dynamically created functions and classes, simply pa
 			maya.OpenMayaMPx
 			maya.OpenMayaRender
 
-		.. image:: images/pymel_eclipse_203.png
-			:height: 598
-			:width: 987
+		.. image:: images/pymel_eclipse_win_203.png
+			:height: 504
+			:width: 723
 
+--------------------------------------------------
 Adding Environment Variables
-============================
+--------------------------------------------------
 
-The last step is to add the environment variables that enable the python interpreter to properly load Maya's libs
+The last step is to add the environment variables that enable the python interpreter to properly load Maya's libs. 
+
+	.. note:: On Windows this step is optional if you properly :ref:`setup your environment <install_system_env>`.
 
 	1.	Change to the **Environment** tab.
-	2.	Add each of the following variables:
-	
+	2.	Add the following variables, using the proper path for your installation of Maya:
+		
+		**Windows Variables:**
+		
 		=======================  ================================================================ 
-		Name                     Value
+		Name                     Example Value
+		=======================  ================================================================
+		``MAYA_LOCATION``        ``C:\Program Files\Autodesk\Maya2009``
+		=======================  ================================================================
+
+		.. image:: images/pymel_eclipse_win_302.png
+			:height: 504
+			:width: 723
+			
+		**OSX Variables:**
+
+		=======================  ================================================================ 
+		Name                     Example Value
 		=======================  ================================================================
 		``MAYA_LOCATION``        ``/Applications/Autodesk/maya2009/Maya.app/Contents``
 		``DYLD_LIBRARY_PATH``    ``/Applications/Autodesk/maya2009/Maya.app/Contents/MacOS``
 		``DYLD_FRAMEWORK_PATH``  ``/Applications/Autodesk/maya2009/Maya.app/Contents/Frameworks``
 		=======================  ================================================================
-
-		.. image:: images/pymel_eclipse_302.png
+			
+		.. image:: images/pymel_eclipse_osx_302.png
 			:height: 537
 			:width: 947
-	
-	3.	Double check that your environment variables points to the same version of Maya	as the Maya site-packages directory under **Libraries**	
-	4.	Press **OK** and wait while Pydev to parse all your python files
 
 
+	3.	Double check that your environment variable points to the same version of Maya	as the Maya site-packages directory under the **Libraries**	tab
+	4.	Press **OK** in the Preference window and wait while Pydev parses all your python files. 
+
+
+--------------------------------------------------
 Testing That It Worked
-======================
+--------------------------------------------------
 
 	1.	Restart Eclipse
-	2.	Create a new file from within eclipse ( **File / New / File** ) named foo.py 
+	2.	Create a new file from within eclipse ( **File / New / File** ) named foo.py or whatever you want ( just make sure to include the .py )
 	3.	Add the following line::
 		
 			import pymel
@@ -123,24 +182,24 @@ Testing That It Worked
 	
 			pymel.bin
 			
-		There should be a pause at the period, and you should see a Python app open up in you dock. This is good. It means eclipse is initializing maya and doing a full inspection of PyMEL.  When it completes, you should get ``bindSkin()`` as a completion.  Don't worry, this long pause will only happen once.
+		There should be a pause at the period.  ( If you are using OSX, you should see a Python app open up in your dock. This is good. It means eclipse is initializing maya and doing a full inspection of PyMEL. ) Afterwards, you should get ``bindSkin()`` as a completion.  Don't worry, this long pause will only happen once per eclipse session.
 
-		.. image:: images/pymel_eclipse_404.png
+		.. image:: images/pymel_eclipse_osx_404.png
 			:height: 493
 			:width: 816
 			
 .. note::
 	
 	If you like to import everything from pymel, aka ``from pymel import *``, then you should open the Eclipse preferences, go to **Pydev > Editor > Code Completion**, and enable **Autocomplete on all letter chars and '_'**
-	
+
+--------------------------------------------------	
 Troubleshooting
-~~~~~~~~~~~~~~~
+--------------------------------------------------
 	
 If you're still not getting completion:
-	
-	* Restart Eclipse and retry steps 3 and 4 above
-	* Go to Eclipse preferences under **Pydev > Editor > Code Completion** and increase **Timeout to connect to shell** to 30 seconds.
-	* Open a log view (**Window / Show View / Error Log**) and if you see any suspicious errors, post for help at the `Pydev suport forum <https://sourceforge.net/forum/forum.php?forum_id=293649>`_
 
+	* Go to Eclipse preferences under **Pydev > Editor > Code Completion** and increase **Timeout to connect to shell** to 30 seconds or more.
+	* Restart Eclipse and retry steps 3 and 4 above
+	* Open a log view (**Window / Show View / Error Log**) and if you see any suspicious errors, post for help at the `Pydev suport forum <https://sourceforge.net/forum/forum.php?forum_id=293649>`_
 
 

@@ -26,6 +26,7 @@ Contents:
 	attributes
 	non_existent_objs
 	ui
+	standalone
 	eclipse
 	
 

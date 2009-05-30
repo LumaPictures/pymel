@@ -659,13 +659,13 @@ def mayaInit(forversion=None) :
     Note: the following example assumes that MAYA_SCRIPT_PATH is not set in your shell environment prior to launching
     python or mayapy.
     
-    >>> import maya.standalone
-    >>> maya.standalone.initialize()
-    >>> import maya.mel as mm
-    >>> print mm.eval("getenv MAYA_SCRIPT_PATH")   
+    >>> import maya.standalone            #doctest: +SKIP
+    >>> maya.standalone.initialize()      #doctest: +SKIP
+    >>> import maya.mel as mm             #doctest: +SKIP
+    >>> print mm.eval("getenv MAYA_SCRIPT_PATH")    #doctest: +SKIP 
     /Network/Servers/sv-user.luma-pictures.com/luma .....
-    >>> import os
-    >>> 'MAYA_SCRIPT_PATH' in os.environ
+    >>> import os                         #doctest: +SKIP
+    >>> 'MAYA_SCRIPT_PATH' in os.environ  #doctest: +SKIP
     False
     
     The solution lies in `refreshEnviron`, which copies the environment from the shell to os.environ after maya.standalone
@@ -910,9 +910,7 @@ def executeDeferred(func):
         2. you want to execute some code that relies on maya.cmds
         3. you want your userSetup.py to work in both interactive and standalone mode
     
-    Example userSetup.py file:
-     
-    .. python::
+    Example userSetup.py file::
     
         from pymel import *
         def delayedStartup():

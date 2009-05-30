@@ -141,8 +141,10 @@ Maya Bug Fix:
     if kwargs.get('force', False) or kwargs.get('f', False):    
         try:
             cmds.connectAttr( source, destination, **kwargs )
-        except RuntimeError:
-            pass
+        except RuntimeError, e:
+            if str(e) != 'Maya command error':
+                # we only want to pass on a certain connection error.  all others we re-raise
+                raise e
     else:
         cmds.connectAttr( source, destination, **kwargs )
 
@@ -991,6 +993,8 @@ Modifications
         return result
     if util.isIterable(result):
         return map( PyNode, util.listForNone(result) )
+    elif result is None:
+        return []
     else:
         return PyNode(result)
     
