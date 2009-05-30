@@ -1106,7 +1106,8 @@ class Attribute(general.PyNode):
     node = plugNode
                 
     def plugAttr(self, longName=False, fullPath=False):
-        """        
+        """
+            >>> from pymel import *
             >>> at = SCENE.persp.t.tx
             >>> at.plugAttr(longName=False, fullPath=False)
             u'tx'
@@ -1124,6 +1125,7 @@ class Attribute(general.PyNode):
     
     def lastPlugAttr(self, longName=False):
         """
+            >>> from pymel import *
             >>> at = SCENE.persp.t.tx
             >>> at.lastPlugAttr(longName=False)
             u'tx'
@@ -1138,7 +1140,8 @@ class Attribute(general.PyNode):
 
     
     def longName(self, fullPath=False ):
-        """        
+        """
+            >>> from pymel import *
             >>> at = SCENE.persp.t.tx
             >>> at.longName(fullPath=False)
             u'translateX'
@@ -1152,7 +1155,8 @@ class Attribute(general.PyNode):
                          fullAttrPath=fullPath)
         
     def shortName(self, fullPath=False):
-        """        
+        """
+            >>> from pymel import *  
             >>> at = SCENE.persp.t.tx
             >>> at.shortName(fullPath=False)
             u'tx'
@@ -1351,6 +1355,7 @@ class Attribute(general.PyNode):
         """
         operator for 'connectAttr'
         
+            >>> from pymel import *
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
@@ -1362,6 +1367,7 @@ class Attribute(general.PyNode):
         """
         operator for 'disconnectAttr'
         
+            >>> from pymel import *
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
@@ -2223,6 +2229,7 @@ class DependNode( general.PyNode ):
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
         the name will be returned unchanged.
         
+        >>> from pymel import *
         >>> SCENE.lambert1.stripNum()
         u'lambert'
         
@@ -2237,6 +2244,7 @@ class DependNode( general.PyNode ):
         """Return the trailing numbers of the node name. If no trailing numbers are found
         an error will be raised.
 
+        >>> from pymel import *
         >>> SCENE.lambert1.extractNum()
         u'1'
         
@@ -2262,6 +2270,7 @@ class DependNode( general.PyNode ):
     def nextName(self):
         """Increment the trailing number of the object by 1
 
+        >>> from pymel import *
         >>> SCENE.lambert1.nextName()
         DependNodeName('lambert2')
         
@@ -2642,6 +2651,7 @@ class DagNode(Entity):
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
+                  >>> from pymel import *
                   >>> select(cl=1)
                   >>> bottom = group(n='bottom')
                   >>> group(n='almostThere')
@@ -3533,8 +3543,8 @@ class Mesh(SurfaceShape):
                             'verts' : MeshVertex,
                             'e'     : MeshEdge,
                             'edges' : MeshEdge,
-                            'f'     : MeshEdge,
-                            'faces' : MeshEdge}
+                            'f'     : MeshFace,
+                            'faces' : MeshFace}
                         
     vertexCount =  mayahook.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
     edgeCount =    mayahook.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
@@ -3702,11 +3712,11 @@ class SelectionSet( api.MSelectionList):
                     pass
             else:
                 if comp.isNull():
-                    return PyNode( dag )
+                    return general.PyNode( dag )
                 else:
-                    return PyNode( dag, comp )
+                    return general.PyNode( dag, comp )
         else:
-            return PyNode( plug )
+            return general.PyNode( plug )
 
                 
     def __setitem__(self, index, item):

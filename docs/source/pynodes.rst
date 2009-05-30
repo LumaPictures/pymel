@@ -76,7 +76,9 @@ and API-fast.
         True
 
 For more on the relationship between PyMEL and Maya's API, see `API Classes and their PyNode Counterparts`_
-   
+
+.. _pynodes_not_strings:
+  
 ---------------------------------------
 PyNodes Are Not Strings
 ---------------------------------------
@@ -161,6 +163,8 @@ New Behavior:
     
 As you can see, you no longer need to assign the result of a rename to a variable, although, for backward
 compatibility's sake, we've ensured that you still can.
+
+.. _pynodes_in_dicts:
 
 Using PyNodes as Keys in Dictionaries
 =====================================
