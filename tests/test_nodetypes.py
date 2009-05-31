@@ -211,22 +211,29 @@ class ComponentData(object):
     """
     Stores data handy for creating / testing a component.
     """
-    def __init__(self, nodeName, compName, indices, sliceIndices=None):
+    def __init__(self, nodeName, compName, indices, melCompName=None,
+                 sliceIndices=None):
         self.nodeName = nodeName
         self.compName = compName
+        if melCompName is None:
+            melCompName = compName
+        self.melCompName = melCompName
         self.indices = indices
         if isinstance(self.indices, (int, float, basestring)):
             self.indices = (self.indices,)
         self.sliceIndices = sliceIndices
         
         if self.indices:
-            compObjStr = self.indexedComp()
+            compObjStr = self.melIndexedComp()
         else:
-            compObjStr = self.fullComp()
+            compObjStr = self.melFullComp()
         self._compObj = api.toApiObject(compObjStr)[1]    
         
     def fullComp(self):
         return self.nodeName + "." + self.compName
+    
+    def melFullComp(self):
+        return self.nodeName + "." + self.melCompName
     
     def _makeIndicesString(self, indexObjs):
         return ''.join(['[%s]' % x for x in indexObjs])
@@ -236,10 +243,20 @@ class ComponentData(object):
             raise ValueError("no indices stored - %s" % self.fullComp())
         return self.fullComp() + self._makeIndicesString(self.indices)
     
+    def melIndexedComp(self):
+        if not self.indices:
+            raise ValueError("no indices stored - %s" % self.melFullComp())
+        return self.melFullComp() + self._makeIndicesString(self.indices)
+    
     def slicedComp(self):
         if not self.sliceIndices:
             raise ValueError("no slices stored - %s" % self.fullComp())
         return self.fullComp() + self._makeIndicesString(self.sliceIndices)
+
+    def melSlicedComp(self):
+        if not self.sliceIndices:
+            raise ValueError("no slices stored - %s" % self.melFullComp())
+        return self.melFullComp() + self._makeIndicesString(self.sliceIndices)
     
     def typeEnum(self):
         return self._compObj.apiType()
@@ -307,8 +324,9 @@ class testCase_components(unittest.TestCase):
 
         self.nodes['sphere'] = cmds.sphere()[0]
         self.compData['nurbsCV'] = ComponentData(self.nodes['sphere'], "cv", (2,1))
-        self.compData['nurbsIso'] = ComponentData(self.nodes['sphere'], "v", 5.27974050577565)
-        #self.compData['nurbsPt'] = ComponentData(self.nodes['sphere'], "uv", (2.50132435444908,5.1327452105745))  # Also results in kIsoparmComponent
+        self.compData['nurbsIsoU'] = ComponentData(self.nodes['sphere'], "u", 5)
+        self.compData['nurbsIsoV'] = ComponentData(self.nodes['sphere'], "vIsoparm", 5.27974050577565, "v")
+        self.compData['nurbsIsoUV'] = ComponentData(self.nodes['sphere'], "uv", (1, 4.8))
         self.compData['nurbsPatch'] = ComponentData(self.nodes['sphere'], "sf", (1,1))
         self.compData['nurbsEP'] = ComponentData(self.nodes['sphere'], "ep", (1,5))
         self.compData['nurbsKnot'] = ComponentData(self.nodes['sphere'], "knot", (1,5))
@@ -334,12 +352,15 @@ class testCase_components(unittest.TestCase):
             flatCompTypes.update(typesList)
         flatCompTypes = flatCompTypes - set([api.ApiTypesToApiEnums()[x] for x in unableToCreate])
         
+        notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.itervalues():
-            flatCompTypes.remove(compDatum.typeEnum())
+            testedType = compDatum.typeEnum()
+            self.assert_(testedType in flatCompTypes)
+            notFoundCompTypes.discard(testedType)
         
-        if flatCompTypes:
+        if notFoundCompTypes:
             failMsg = "component types not tested:\n"
-            for x in flatCompTypes:
+            for x in notFoundCompTypes:
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
 
@@ -351,7 +372,7 @@ class testCase_components(unittest.TestCase):
     @makePynodeCreationTests
     def test_makeIndexedComps_PyNode(self, compData):
         if compData.indices:
-            execString = 'PyNode(%r)' % compData.indexedComp()
+            execString = 'PyNode(%r)' % compData.melIndexedComp()
             try:
                 exec execString
             except:
@@ -360,7 +381,7 @@ class testCase_components(unittest.TestCase):
     @makePynodeCreationTests
     def test_makeComps_PyNode(self, compData):
         if compData.indices:
-            execString = 'PyNode(%r)' % compData.fullComp()
+            execString = 'PyNode(%r)' % compData.melFullComp()
             try:
                 exec execString
             except:
@@ -369,7 +390,7 @@ class testCase_components(unittest.TestCase):
     @makePynodeCreationTests
     def test_makeIndexedComps_Component(self, compData):
         if compData.indices:
-            execString = 'Component(%r)' % compData.indexedComp()
+            execString = 'Component(%r)' % compData.melIndexedComp()
             try:
                 exec execString
             except:
@@ -378,7 +399,7 @@ class testCase_components(unittest.TestCase):
     @makePynodeCreationTests
     def test_makeComps_Component(self, compData):
         if compData.indices:
-            execString = 'Component(%r)' % compData.fullComp()
+            execString = 'Component(%r)' % compData.melFullComp()
             try:
                 exec execString
             except:

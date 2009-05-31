@@ -3816,7 +3816,7 @@ class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u'           : NurbsCurveParameter,
-                            'cv'         : NurbsCurveCV,
+                            'cv'          : NurbsCurveCV,
                             'conrolVerts' : NurbsCurveCV,
                             'ep'          : NurbsCurveEP,
                             'editPoints'  : NurbsCurveEP,
@@ -3828,9 +3828,11 @@ class SurfaceShape(ControlPoint): pass
 class NurbsSurface(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u'           : NurbsSurfaceIsoparm,
+                            'uIsoparm'    : NurbsSurfaceIsoparm,
                             'v'           : NurbsSurfaceIsoparm,
+                            'vIsoparm'    : NurbsSurfaceIsoparm,
                             'uv'          : NurbsSurfaceIsoparm,
-                            'cv'         : NurbsSurfaceCV,
+                            'cv'          : NurbsSurfaceCV,
                             'conrolVerts' : NurbsSurfaceCV,
                             'ep'          : NurbsSurfaceEP,
                             'editPoints'  : NurbsSurfaceEP,
@@ -4035,7 +4037,12 @@ class Subdiv(SurfaceShape):
                 
     def cleanTopology(self):
         cmds.subdCleanTopology(self)
-    
+
+class Lattice(ControlPoint):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    _componentAttributes = {'pt'    : LatticePoint,
+                            'points': LatticePoint}
+        
 class Particle(DeformableShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     
