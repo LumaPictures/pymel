@@ -364,7 +364,7 @@ class testCase_components(unittest.TestCase):
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
 
-    # Need seperate tests for PyNode / Component, b/c was bug where
+    # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
     # object, instead of a MeshVertex object, and fail, while
     # PyNode('pCube1.vtx[3]') would succeed
@@ -380,12 +380,11 @@ class testCase_components(unittest.TestCase):
             
     @makePynodeCreationTests
     def test_makeComps_PyNode(self, compData):
-        if compData.indices:
-            execString = 'PyNode(%r)' % compData.melFullComp()
-            try:
-                exec execString
-            except:
-                return execString            
+        execString = 'PyNode(%r)' % compData.melFullComp()
+        try:
+            exec execString
+        except:
+            return execString            
         
     @makePynodeCreationTests
     def test_makeIndexedComps_Component(self, compData):
@@ -398,26 +397,24 @@ class testCase_components(unittest.TestCase):
             
     @makePynodeCreationTests
     def test_makeComps_Component(self, compData):
-        if compData.indices:
-            execString = 'Component(%r)' % compData.melFullComp()
-            try:
-                exec execString
-            except:
-                return execString            
+        execString = 'Component(%r)' % compData.melFullComp()
+        try:
+            exec execString
+        except:
+            return execString            
 
     @makePynodeCreationTests
     def test_makeCompFromObject(self, compData):
         """
         ie, MeshVertexComponent('pCube1')
         """
-        pymelClass = ApiEnumsToPyComponents().get(compData.typeEnum(), None)
-        if pymelClass:
-            try:
-                pymelObj = pymelClass(compData.nodeName)
-            except:
-                return '%s(%r)' % (pymelClass.__name__, compData.nodeName)
-            else:
-                self.assertEqual(pymelObj.__class__, pymelClass)
+        pymelClass = ApiEnumsToPyComponents()[compData.typeEnum()]
+        try:
+            pymelObj = pymelClass(compData.nodeName)
+        except:
+            return '%s(%r)' % (pymelClass.__name__, compData.nodeName)
+        else:
+            self.assertEqual(pymelObj.__class__, pymelClass)
             
     @makePynodeCreationTests
     def test_node_dot_comptypeIndex(self, compData):
