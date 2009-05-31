@@ -694,6 +694,17 @@ class MItComponent( Component1D ):
 
 ## Specific Components...
 
+## Pivot Components
+
+class Pivot( Component ):
+    _apienum__ = api.MFn.kPivotComponent
+
+class RotatePivot( Pivot ):
+    _ComponentLabel__ = "rotatePivot"
+
+class ScalePivot( Pivot ):
+    _ComponentLabel__ = "scalePivot"
+    
 ## Mesh Components
 
 class MeshVertex( Component1D ):
@@ -3293,6 +3304,8 @@ class Camera(Shape):
 
 class Transform(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
+    _componentAttributes = {'rotatePivot' : RotatePivot,
+                            'scalePivot'  : ScalePivot}
 #    def __getattr__(self, attr):
 #        try :
 #            return super(general.PyNode, self).__getattr__(attr)

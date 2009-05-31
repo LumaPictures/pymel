@@ -307,7 +307,7 @@ class testCase_components(unittest.TestCase):
         self.compData['meshFace'] = ComponentData(self.nodes['cube'], "f", 4)
         self.compData['meshUV'] = ComponentData(self.nodes['cube'], "map", 3)
         self.compData['meshVtxFace'] = ComponentData(self.nodes['cube'], "vtxFace", (3,0))
-        self.compData['pivot'] = ComponentData(self.nodes['cube'], "rotatePivot", None)
+        self.compData['rotatePivot'] = ComponentData(self.nodes['cube'], "rotatePivot", None)
 
         self.nodes['subdBase'] = cmds.polyCube()[0]
         self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
@@ -315,7 +315,8 @@ class testCase_components(unittest.TestCase):
         self.compData['subdEdge'] = ComponentData(self.nodes['subd'], "sme", (256,1))
         self.compData['subdFace'] = ComponentData(self.nodes['subd'], "smf", (256,0))
         self.compData['subdUV'] = ComponentData(self.nodes['subd'], "smm", 95)
-
+        self.compData['scalePivot'] = ComponentData(self.nodes['cube'], "scalePivot", None)
+        
         self.nodes['curve'] = cmds.circle()[0]
         self.compData['curveCV'] = ComponentData(self.nodes['curve'], "cv", 6)
         self.compData['curvePt'] = ComponentData(self.nodes['curve'], "u", 7.26580365007639)
