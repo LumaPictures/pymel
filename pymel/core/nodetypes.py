@@ -113,9 +113,9 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 # Implement makeComponentFromIndex - have it return an MObject handle
 # Implement multiple component labels! (ie, surface iso can be 'u' or 'v')
 # Add 'setCompleteData' when we can find how many components (instead of just 'setComplete')
-# Decide what to do when you index a non-complete component
-# Multi-Dimensional indices
-# Put in some sort of 'plugAttr' function - look up what it's called on Attribute
+# Handle multiple _ComponentLabel__'s that refer to different flavors of same component type -
+#    ie, NurbsSurface.u/.v/.uv, transform.rotatePivot/scalePivot
+# NurbsSurfaceRange 
 class Component( general.PyNode ):
     """
     Abstract base class for pymel components.
@@ -3815,9 +3815,30 @@ class ControlPoint(DeformableShape): pass
 class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'cv': NurbsCurveCV}
-    
+    _componentAttributes = {'u'           : NurbsCurveParameter,
+                            'cv '         : NurbsCurveCV,
+                            'conrolVerts' : NurbsCurveCV,
+                            'ep'          : NurbsCurveEP,
+                            'editPoints'  : NurbsCurveEP,
+                            'knot'        : NurbsCurveKnot,    
+                            'knots'       : NurbsCurveKnot}    
+
 class SurfaceShape(ControlPoint): pass
+
+class NurbsSurface(SurfaceShape):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+    _componentAttributes = {'u'           : NurbsSurfaceIsoparm,
+                            'u'           : NurbsSurfaceIsoparm,
+                            'uv'          : NurbsSurfaceIsoparm,
+                            'cv '         : NurbsSurfaceCV,
+                            'conrolVerts' : NurbsSurfaceCV,
+                            'ep'          : NurbsSurfaceEP,
+                            'editPoints'  : NurbsSurfaceEP,
+                            'knot'        : NurbsSurfaceKnot,
+                            'knots'       : NurbsSurfaceKnot,
+                            'sf'          : NurbsSurfaceFace,
+                            'faces'       : NurbsSurfaceFace}
+
 class Mesh(SurfaceShape):
     """
     The Mesh class provides wrapped access to many API methods for querying and modifying meshes.  Be aware that 

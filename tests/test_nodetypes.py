@@ -275,6 +275,8 @@ def makePynodeCreationTests(compCreator):
 
 class testCase_components(unittest.TestCase):
     
+    # TODO: check up on '.rotatePivot'...
+    
     def setUp(self):
         newFile(f=1)
 
