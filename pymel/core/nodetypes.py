@@ -3816,7 +3816,7 @@ class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u'           : NurbsCurveParameter,
-                            'cv '         : NurbsCurveCV,
+                            'cv'         : NurbsCurveCV,
                             'conrolVerts' : NurbsCurveCV,
                             'ep'          : NurbsCurveEP,
                             'editPoints'  : NurbsCurveEP,
@@ -3830,7 +3830,7 @@ class NurbsSurface(SurfaceShape):
     _componentAttributes = {'u'           : NurbsSurfaceIsoparm,
                             'u'           : NurbsSurfaceIsoparm,
                             'uv'          : NurbsSurfaceIsoparm,
-                            'cv '         : NurbsSurfaceCV,
+                            'cv'         : NurbsSurfaceCV,
                             'conrolVerts' : NurbsSurfaceCV,
                             'ep'          : NurbsSurfaceEP,
                             'editPoints'  : NurbsSurfaceEP,
