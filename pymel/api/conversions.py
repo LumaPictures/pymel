@@ -1640,6 +1640,8 @@ def nameToMObject( *args ):
         return tuple(result)
 
 def getComponentTypes():
+    # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
+    # and there's also a kMeshVtxFaceComponent (which does)??
     mfnCompBase = MFnComponent()
     mfnCompTypes = (MFnSingleIndexedComponent(),
                     MFnDoubleIndexedComponent(),

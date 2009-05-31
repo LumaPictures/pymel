@@ -1276,10 +1276,7 @@ class PyNode(util.ProxyUnicode):
                                     raise MayaNodeError( name )
 
             #-- Components
-            if (isinstance( argObj, (int,long,slice) ) or
-                isinstance(argObj, nodeTypes._ComponentIndices) or
-                (isinstance( argObj, (list,tuple) ) and
-                 len(argObj) and isinstance(argObj[0],(int,long,slice)))):
+            if nodetypes.validComponentIndex(argObj):
                 #pymelType, obj, name = _getPymelType( attrNode._apiobject )
                 obj = {'ComponentIndex' : argObj }
                 # if we are creating a component class using an int or slice, then we must specify a class type:

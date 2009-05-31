@@ -158,7 +158,10 @@ class Component( general.PyNode ):
     #        kUint64SingleIndexedComponent :
     #             kSubdivCVComponent
     #             kSubdivEdgeComponent
-    #             kSubdivFaceComponent        
+    #             kSubdivFaceComponent
+    
+    # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
+    # and there's also a kMeshVtxFaceComponent (which does)??
         compTypes = api.getComponentTypes()
         for compType, compList in compTypes.iteritems():
             print api.ApiEnumsToApiTypes()[compType], ":"
@@ -285,7 +288,8 @@ class DimensionedComponent( Component ):
     
     ie, myComponent[X] would be reasonable.
     """
-    # All components except for the pivot component and the unknown ones are indexable in some manner
+    # All components except for the pivot component and the unknown ones are
+    # indexable in some manner
     
     dimensions = 0
 
@@ -309,8 +313,19 @@ class DimensionedComponent( Component ):
             mfncomp = self._mfncompclass(handle.object())
             if not mfncomp.isComplete():
                 isComplete = False
-                
-        self._completeDimensions = [isComplete] * self.dimensions
+        
+        # If the component is complete, we allow further indexing of it using
+        # __getitem__
+        # Whether or not __getitem__ indexing is allowed, and what dimension
+        # we are currently indexing, is stored in _partialIndex
+        # If _partialIndex is None, __getitem__ indexing is NOT allowed
+        # Otherwise, _partialIndex should be a ComponentIndex object,
+        # and it's length indicates how many dimensions have already been
+        # specified. 
+        if isComplete:
+            self._partialIndex = ComponentIndex()
+        else:
+            self._partialIndex = None
         
         super(DimensionedComponent, self).__init__(*args, **kwargs)
 
@@ -346,7 +361,7 @@ class DimensionedComponent( Component ):
                              "specified component")
         else:
             return self.__class__(self._node,
-                    _ComponentIndices(self.getDimensionIndices() + (item,)))
+                    ComponentIndex(self._partialIndex + (item,)))
 
     def currentDimension(self):
         """
@@ -357,53 +372,66 @@ class DimensionedComponent( Component ):
         already indexed), then None is returned.
         """
         if not hasattr(self, '_currentDimension'):
-            indices = self.getDimensionIndices()
+            indices = self._partialIndex
             if len(indices) < self.dimensions:
                 return len(indices)
             else:
                 self._currentDimension = None
         return self._currentDimension
 
-    # TODO: implement getDimensionIndices
-
-    # TODO: reimplement with getDimensionIndices
-    def isComplete(self, dimension=None):
-        if dimension is None:
-            return self.__apicomponent__().isComplete()
-        else:
-            return (self.getDimensionIndices(dimension) ==
-                    _ComponentIndices.COMPLETE)
-
-class _ComponentIndices( tuple ):
+class ComponentIndex( tuple ):
     """
-    Class used to specify indices.
+    Class used to specify a multi-dimensional component index.
     
-    Use this when specifying multi-dimensional indices for component creation.
-    
-    If the length of a _ComponentIndices object < the number of dimensions,
+    If the length of a ComponentIndex object < the number of dimensions,
     then the remaining dimensions are taken to be 'complete' (ie, have not yet
     had indices specified).
     """
     pass
 
-# TODO: implement slices with negative values / None stop values
-class IndexedComponent( DimensionedComponent ):
+def validComponentIndex( argObj ):
     """
-    Components whose dimensions are indexed.
+    True if argObj is of a suitable type for specifying a component's index.
+    False otherwise.
+    """
+    componentIndexTypes = (int, long, float, slice, ComponentIndex)
+    return (isinstance(argObj, componentIndexTypes) or
+            (isinstance( argObj, (list,tuple) ) and
+             len(argObj) and isinstance(argObj[0], componentIndexTypes)))
+
+# TODO: implement slices with negative values / None stop values
+class DiscreteComponent( DimensionedComponent ):
+    """
+    Components whose dimensions are discretely indexed.
     
     Ie, there are a finite number of possible components, referenced by integer
     indices.
     
     Example: polyCube.vtx[38], nurbsSurface.cv[3][2]
+    
+    Derived classes should implement:
+    _slicesToIndices
     """
 
-    def _sliceToIndices(self, sliceObj):
+    # TODO: make multi-dimensional (take a partial index, and return a
+    # ComponentIndex object!
+    def _sliceToIndices(self, sliceObj, partialIndex=None):
         """
         Converts a slice object to an iterable of the indices it represents.
-        """
-
-        #return set(xrange(*sliceObj.indices(self.dimensionSize())))
         
+        If a partialIndex is supplied, then sliceObj is taken to be a slice
+        at the next dimension not specified by partialIndex - ie,
+        
+        myFaceVertex._slicesToIndices(slice(1,-1), partialIndex=ComponentIndex((3,)))
+        
+        might be used to get a component such as
+        
+        faceVertices[3][1:-1]
+        """
+        
+        if partialIndex is None:
+            partialIndex = ComponentIndex()
+
         # store these in local variables, to avoid constantly making
         # new slice objects, since slice objects are immutable
         start = sliceObj.start
@@ -432,7 +460,8 @@ class IndexedComponent( DimensionedComponent ):
         #  (vertices[2],)
         stop += 1
 
-        return xrange(start, stop, step)
+        for rawIndex in xrange(start, stop, step):
+            yield ComponentIndex(partialIndex + (rawIndex,))
     
 #    def dimensionSize(dimensionIndex):
 #        """
@@ -449,45 +478,81 @@ class IndexedComponent( DimensionedComponent ):
             handle = Component._makeComponentHandle(self)
         indices = self._standardizeIndices(indices)
         scriptUtil = api.MScriptUtil()
-        typeIntM = api.MIntArray()
-        scriptUtil.createIntArrayFromList ( list(indices),  typeIntM )
+        mIntArrays = []
+        for dimIndices in zip(indices):
+            typeIntM = api.MIntArray()
+            scriptUtil.createIntArrayFromList( dimIndices, typeIntM )
+            mIntArrays.append(typeIntM)
         mfnComp = self._mfncompclass(handle.object())
         mfnComp.setComplete(False)
-        mfnComp.addElements(typeIntM)
+        mfnComp.addElements(*mIntArrays)
         return handle
 
-    def _standardizeIndices(self, indexObjs):
+    def _standardizeIndices(self, indexObjs, allowIterable=True):
         """
-        Convert indexObjs to an iterable of indices.
+        Convert indexObjs to an iterable of ComponentIndex objects.
         
-        indexObjs may be an int, long, slice, _ComponentIndices object,
+        indexObjs may be an int, long, slice, ComponentIndex object,
         or an iterable of such items, or 'None'
         """
         indices = set()
         if indexObjs is not None:
             # Convert single objects to a list
             if isinstance(indexObjs, (int, long, slice)):
-                indexObjs = [indexObjs]
-                
-            if isinstance(indexObjs, (list,tuple) ) and len(indexObjs):
-                for indexObj in indexObjs:
-                    if isinstance(indexObj, (int, long)):
-                        indices.add(indexObj)
-                    elif isinstance(indexObj, slice):
-                        indices.update(self._sliceToIndices(indexObj))
+                if self.dimensions == 1:
+                    if isinstance(indexObjs, slice):
+                        return self._standardizeIndices(self._sliceToIndices(slice))
                     else:
-                        raise IndexError("Invalid index for component: %r" %
-                                         indexObj)
-            elif isinstance(indexObjs, _ComponentIndices):
-                pass
-                # TODO: implement
+                        indices.add(indexObjs)
+                else:
+                    raise IndexError("Single Index given for a multi-dimensional component")
+            elif isinstance(indexObjs, ComponentIndex):
+                if len(componentIndex) == self.dimensions:
+                    indices.add(indexObjs)
+                else:
+                    indices.update(self._flattenIndex(indexObjs))
+            elif allowIterable and util.isIterable(indexObjs):
+                for index in indexObjs:
+                    indices.update(self._standardizeIndices(index,
+                                                            allowIterable=False))
             else:
                 raise IndexError("Invalid indices for component: %r" % 
                                  indexObjs)
         return indices
     
+    def _flattenIndex(self, index):
+        """
+        Given a ComponentIndex object, which may be either a partial index (ie,
+        len(index) < self.dimensions), or whose individual-dimension indices
+        might be slices, return a flat list of ComponentIndex objects. 
+        """
+        # Some components - such as face-vertices - need to know the previous
+        # indices to be able to fully expand the remaining indices... ie,
+        # faceVertex[1][2][:] may result in a different expansion than for
+        # faceVertex[3][8][:]...
+        # for this reason, we need to supply the previous indices to 
+        # _slicesToIndices, and expand on a per-partial-index basis 
+        
+        while len(index) < self.dimensions:
+            index = ComponentIndex(index + (slice(),))
+          
+        indices = set([ComponentIndex()])
+        for dimIndex in index:
+            if isinstance(dimIndex, slice):
+                newIndices = set()
+                for oldPartial in indices:
+                    newIndices.add(self._slicesToIndices(slice,
+                                                    partialIndex=oldPartial))
+                indices = newIndices
+            else:
+                indices = set([ComponentIndex(x + (dimIndex,))
+                                  for x in indices])
+        return indices
+    
     def __iter__(self): 
-        for index in self._sliceToSet()
+        # TODO: fix
+        for index in self._sliceToIndices():
+            yield self.__class__(self._node, index)
 
 class ContinuousComponent( DimensionedComponent ):
     """
@@ -506,22 +571,22 @@ class Component1DFloat( ContinuousComponent ):
 class Component2DFloat( ContinuousComponent ):
     dimensions = 2
 
-class Component1D( IndexedComponent ):
+class Component1D( DiscreteComponent ):
     _mfncompclass = api.MFnSingleIndexedComponent
     _apienum__ = api.MFn.kSingleIndexedComponent
     dimensions = 1
 
-class Component1D64( IndexedComponent ):
+class Component1D64( DiscreteComponent ):
     _mfncompclass = api.MFnUint64SingleIndexedComponent
     _apienum__ = api.MFn.kUint64SingleIndexedComponent
     dimensions = 1
     
-class Component2D( IndexedComponent ):
+class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
     _apienum__ = api.MFn.kDoubleIndexedComponent
     dimensions = 2
     
-class Component3D( IndexedComponent ):
+class Component3D( DiscreteComponent ):
     _mfncompclass = api.MFnTripleIndexedComponent
     _apienum__ = api.MFn.kTripleIndexedComponent
     dimensions = 3
@@ -3877,9 +3942,11 @@ class Mesh(SurfaceShape):
                             'e'     : MeshEdge,
                             'edges' : MeshEdge,
                             'f'     : MeshFace,
-                            'faces' : MeshFace}
+                            'faces' : MeshFace,
                             'map'   : MeshUV,
-                            'uvs'   : MeshUV}
+                            'uvs'   : MeshUV,
+                            'vtxFace'   : MeshVertexFace,
+                            'faceVerts' : MeshVertexFace}
                         
     vertexCount =  mayahook.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
     edgeCount =    mayahook.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
