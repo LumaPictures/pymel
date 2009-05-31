@@ -3828,7 +3828,7 @@ class SurfaceShape(ControlPoint): pass
 class NurbsSurface(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     _componentAttributes = {'u'           : NurbsSurfaceIsoparm,
-                            'u'           : NurbsSurfaceIsoparm,
+                            'v'           : NurbsSurfaceIsoparm,
                             'uv'          : NurbsSurfaceIsoparm,
                             'cv'         : NurbsSurfaceCV,
                             'conrolVerts' : NurbsSurfaceCV,
