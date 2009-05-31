@@ -1254,6 +1254,24 @@ class PyNode(util.ProxyUnicode):
                         elif res:
                             argObj = res
                         else:
+                            # Check if it's a component that's normally indexed,
+                            # but has no index specified - ie, myPoly.vtx,
+                            # instead of the (mel-valid) myPoly.vtx[*]
+                            dotSplit = name.split('.')
+                            if len(dotSplit) == 2:
+                                try:
+                                    res = PyNode(dotSplit[0])
+                                except MayaObjectError:
+                                    pass
+                                else:
+                                    try:
+                                        argObj = getattr(res, dotSplit[1])
+                                    except AttributeError:
+                                        pass
+                                    else:
+                                        if isinstance(argObj, cls):
+                                            return argObj
+                            
                             # non-existent objects
                             if mayahook.pymel_options.get( '0_7_compatibility_mode', False):
                                 import other

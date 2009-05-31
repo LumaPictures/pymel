@@ -115,7 +115,8 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 # Add 'setCompleteData' when we can find how many components (instead of just 'setComplete')
 # Handle multiple _ComponentLabel__'s that refer to different flavors of same component type -
 #    ie, NurbsSurface.u/.v/.uv, transform.rotatePivot/scalePivot
-# NurbsSurfaceRange 
+# NurbsSurfaceRange
+# Make it work with multiple component types in single component(?) 
 class Component( general.PyNode ):
     """
     Abstract base class for pymel components.
