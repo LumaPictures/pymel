@@ -3990,6 +3990,16 @@ class Mesh(SurfaceShape):
      
 class Subdiv(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
+    
+    _componentAttributes = {'smp'   : SubdVertex,
+                            'verts' : SubdVertex,
+                            'sme'   : SubdEdge,
+                            'edges' : SubdEdge,
+                            'smf'   : SubdFace,
+                            'faces' : SubdFace,
+                            'smm'   : SubdUV,
+                            'uvs'   : SubdUV}
+        
     def getTweakedVerts(self, **kwargs):
         return cmds.querySubdiv( action=1, **kwargs )
         
