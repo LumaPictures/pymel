@@ -235,13 +235,13 @@ class ComponentData(object):
                 compObjStr = x
                 break 
         else:
-            compObjStr = self.melFullComp()
+            compObjStr = self.melUnindexedComp()
         self._compObj = api.toApiObject(compObjStr)[1]    
         
-    def fullComp(self):
+    def unindexedComp(self):
         return self.nodeName + "." + self.compName
     
-    def melFullComp(self):
+    def melUnindexedComp(self):
         return self.nodeName + "." + self.melCompName
     
     def _makeIndicesString(self, indexObj):
@@ -249,17 +249,17 @@ class ComponentData(object):
     
     def indexedComps(self):
         if not self.indices:
-            raise ValueError("no indices stored - %s" % self.fullComp())
+            raise ValueError("no indices stored - %s" % self.unindexedComp())
         else:
             for index in itertools.chain(self.indices, self.pythonIndices):
-                yield self.fullComp() + self._makeIndicesString(index)
+                yield self.unindexedComp() + self._makeIndicesString(index)
     
     def melIndexedComps(self):
         if not self.indices:
-            raise ValueError("no indices stored - %s" % self.melFullComp())
+            raise ValueError("no indices stored - %s" % self.melUnindexedComp())
         else:
             for index in self.indices:
-                yield self.melFullComp() + self._makeIndicesString(index)
+                yield self.melUnindexedComp() + self._makeIndicesString(index)
     
     def indexSizes(self):
         for index in self.indices:
@@ -318,22 +318,35 @@ def makeComponentCreationTests(evalStringCreator):
             
     return test_makeComponents
 
-def indexedEvalStringCreator(evalStringCreator):
-    def newIndexedEvalStringCreator(self, compData):
+def melIndexedCompEvalStringCreator(evalStringCreator):
+    def newMelIndexedCompEvalStringCreator(self, compData):
         if compData.indices:
             return [evalStringCreator(self, x)
                      for x in compData.melIndexedComps()]
         else:
             return []
-    return newIndexedEvalStringCreator
+    return newMelIndexedCompEvalStringCreator
+
+def indexedCompEvalStringCreator(evalStringCreator):
+    def newIndexedCompEvalStringCreator(self, compData):
+        if compData.indices:
+            return [evalStringCreator(self, x)
+                     for x in compData.indexedComps()]
+        else:
+            return []
+    return newIndexedCompEvalStringCreator
         
-def fullCompEvalStringCreator(evalStringCreator):
-    def newFullCompEvalStringCreator(self, compData):
-        return [evalStringCreator(self, compData.melFullComp())]
-    return newFullCompEvalStringCreator    
+def melUnindexedCompEvalStringCreator(evalStringCreator):
+    def newMelUnindexedCompEvalStringCreator(self, compData):
+        return [evalStringCreator(self, compData.melUnindexedComp())]
+    return newMelUnindexedCompEvalStringCreator
+        
+def unindexedCompEvalStringCreator(evalStringCreator):
+    def newUnindexedCompEvalStringCreator(self, compData):
+        return [evalStringCreator(self, compData.unindexedComp())]
+    return newUnindexedCompEvalStringCreator
 
 class testCase_components(unittest.TestCase):
-    
     def setUp(self):
         newFile(f=1)
 
@@ -437,14 +450,14 @@ class testCase_components(unittest.TestCase):
     def pyNodeMaker(self, compString):
         return 'PyNode(%r)' % compString
     
-    indexed_PyNode_evalStrings = indexedEvalStringCreator(pyNodeMaker)
-    fullComp_PyNode_evalStrings = fullCompEvalStringCreator(pyNodeMaker)
+    indexed_PyNode_evalStrings = melIndexedCompEvalStringCreator(pyNodeMaker)
+    unindexedComp_PyNode_evalStrings = melUnindexedCompEvalStringCreator(pyNodeMaker)
 
     def componentMaker(self, compString):
         return 'Component(%r)' % compString
     
-    indexed_Component_evalStrings = indexedEvalStringCreator(componentMaker)
-    fullComp_Component_evalStrings = fullCompEvalStringCreator(componentMaker)
+    indexed_Component_evalStrings = melIndexedCompEvalStringCreator(componentMaker)
+    unindexedComp_Component_evalStrings = melUnindexedCompEvalStringCreator(componentMaker)
 
     def object_evalStrings(self, compData):
         """
@@ -473,7 +486,7 @@ class testCase_components(unittest.TestCase):
             self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
                     
     
-    @indexedEvalStringCreator
+    @indexedCompEvalStringCreator
     def node_dot_comptypeIndex_evalStrings(self, compString):
         """
         if 'cubeShape1.vtx[1]', will try:
