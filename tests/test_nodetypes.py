@@ -1,4 +1,5 @@
 import unittest
+import itertools
 
 from pymel import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
@@ -212,7 +213,7 @@ class ComponentData(object):
     """
     Stores data handy for creating / testing a component.
     """
-    def __init__(self, nodeName, compName, indices, melCompName=None):
+    def __init__(self, nodeName, compName, indices, melCompName=None, pythonIndices=None):
         self.nodeName = nodeName
         self.compName = compName
         if melCompName is None:
@@ -221,6 +222,11 @@ class ComponentData(object):
         self.indices = indices
         if isinstance(self.indices, (int, float, basestring)):
             self.indices = (self.indices,)
+        if pythonIndices is None:
+            pythonIndices = []
+        if isinstance(pythonIndices, (int, float, basestring)):
+            pythonIndices = [pythonIndices]
+        self.pythonIndices = pythonIndices
         
         if indices:
             # just want the first one, since all we need in a component
@@ -245,7 +251,7 @@ class ComponentData(object):
         if not self.indices:
             raise ValueError("no indices stored - %s" % self.fullComp())
         else:
-            for index in self.indices:
+            for index in itertools.chain(self.indices, self.pythonIndices):
                 yield self.fullComp() + self._makeIndicesString(index)
     
     def melIndexedComps(self):
@@ -274,62 +280,41 @@ class IndexData(object):
         self.size = size
 
 
-def makeComponentCreationTests(compCreator):
+def makeComponentCreationTests(execStringCreator):
     """
-    Outputs a function suitable for use as a unittest test that test creation of components.
+    Outputs a function suitable for use as a unittest test that tests creation of components.
     
-    For every component in self.compNames / compObjs, it will call 'compCreator(self, componentData)'.
-    compCreator should try to create a component; if it succeeds, it should return an object which 
-    evaluates as false; if it fails, it should return a string to print, identifying the component
-    it failed to make, or a list of such strings.
+    For every ComponentData item in in self.compData, it will call
+        'execStringCreator(self, componentData, locals, globals)'
+    execStringCreator should output
+        (execStrings, locals, globals)
+    where execStrings is a list of strings, each of which when called like:
+        exec anExecString in locals, globals
+    attempts to make a given component.
     
     If any component cannot be created, the test will fail, and output a list of the components that
     could not be made in the fail message.
     """
     
     def test_makePyNodes(self):
+        successfulComps = []
         failedComps = []
         for compDatum in self.compData.itervalues():
-            result = compCreator(self, compDatum)
-            if result:
-                if isinstance(result, (list, tuple)):
-                    failedComps.extend(result)
+            execStrings, locals, globals = \
+                execStringCreator(self, componentData, locals, globals)
+            for execString in execStrings:
+                try:
+                    exec execString in locals(), globals()
+                except Exception:
+                    failedComps.append(execString)
                 else:
-                    failedComps.append(result)                
-            
+                    successfulComps.append(execString)
         if failedComps:
             self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
             
     return test_makePyNodes
 
-def makeComponentCreationTestsFromExecstring(execStringCreator):
-    """
-    Generator which outputs a function suitable for use as a unittest test that
-    tests creation of components.
-    
-    execStringCreator should output a list of strings, each of which, when
-    called with 'exec' will create a component.
-
-    execStringCreator's args should be:
-    execStringCreator(self, compData)
-    where compData is a ComponentData instance.
-    """
-    
-    @makeComponentCreationTests
-    def componentTest(self, compData):
-        failures = []
-        for execString in execStringCreator(self, compData):
-            try:
-                exec execString in locals(), globals()
-            except Exception:
-                failures.append(execString)
-        return failures
-    
-    return componentTest
-
 class testCase_components(unittest.TestCase):
-    
-    # TODO: check up on '.rotatePivot'...
     
     def setUp(self):
         newFile(f=1)
@@ -339,7 +324,8 @@ class testCase_components(unittest.TestCase):
 
         self.nodes['cube'] = cmds.polyCube()[0]
         self.compData['meshVtx'] = ComponentData(self.nodes['cube'], "vtx",
-                                                 [IndexData(2)])
+                                            [IndexData(2), IndexData('2:4')],
+                                            pythonIndices = [IndexData(':-1')])
         self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "e",
                                                   [IndexData(1)])
         #self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "edge", 1)   # This just gets the plug, not a kEdgeComponent
@@ -430,30 +416,26 @@ class testCase_components(unittest.TestCase):
     # object, instead of a MeshVertex object, and fail, while
     # PyNode('pCube1.vtx[3]') would succeed
 
-    @makeComponentCreationTestsFromExecstring
-    def test_makeIndexedComps_PyNode(self, compData):
+    def indexed_PyNode_execStrings(self, compData, locals, globals):
         if compData.indices:
-            return ['PyNode(%r)' % x for x in compData.melIndexedComps()]
+            return (['PyNode(%r)' % x for x in compData.melIndexedComps()],
+                    locals, globals)
         else:
-            return []
+            return ([], locals, globals)
             
-    @makeComponentCreationTestsFromExecstring
-    def test_makeComps_PyNode(self, compData):
+    def pyNode_execStrings(self, compData, locals, globals):
         return ['PyNode(%r)' % compData.melFullComp()]            
         
-    @makeComponentCreationTestsFromExecstring
-    def test_makeIndexedComps_Component(self, compData):
+    def indexed_Component_execStrings(self, compData, locals, globals):
         if compData.indices:
             return ['Component(%r)' % x for x in compData.melIndexedComps()]
         else:
             return []
             
-    @makeComponentCreationTestsFromExecstring
-    def test_makeComps_Component(self, compData):
+    def component_execStrings(self, compData, locals, globals):
         return ['Component(%r)' % compData.melFullComp()]
 
-    @makeComponentCreationTests
-    def test_makeCompFromObject(self, compData):
+    def object_execStrings(self, compData, locals, globals):
         """
         ie, MeshVertexComponent('pCube1')
         """
@@ -465,8 +447,7 @@ class testCase_components(unittest.TestCase):
         else:
             self.assertEqual(pymelObj.__class__, pymelClass)
             
-    @makeComponentCreationTests
-    def test_node_dot_comptypeIndex(self, compData):
+    def node_dot_comptypeIndex_execStrings(self, compData, locals, globals):
         """
         if 'cubeShape1.vtx[1]', will try:
         cubeShape1 = PyNode('cubeShape1')
