@@ -346,6 +346,14 @@ def unindexedCompEvalStringCreator(evalStringCreator):
         return [evalStringCreator(self, compData.unindexedComp())]
     return newUnindexedCompEvalStringCreator
 
+def getEvalStringFunctions(theObj):
+    returnDict = {}
+    for propName in dir(theObj):
+        evalStringId = '_evalStrings'
+        if propName.endswith(evalStringId):
+            returnDict[propName] = getattr(theObj, propName)
+    return returnDict
+
 class testCase_components(unittest.TestCase):
     def setUp(self):
         newFile(f=1)
@@ -466,6 +474,18 @@ class testCase_components(unittest.TestCase):
         pymelClass = ApiEnumsToPyComponents()[compData.typeEnum()]
         return ['%s(%r)' % (pymelClass.__name__, compData.nodeName)]
     
+    @indexedCompEvalStringCreator
+    def node_dot_comptypeIndex_evalStrings(self, compString):
+        """
+        if 'cubeShape1.vtx[1]', will try:
+        cubeShape1 = PyNode('cubeShape1')
+        cubeShape1.vtx[1]
+        """
+        compSplit = compString.split('.')
+        nodeName = compSplit[0]
+        compName = '.'.join(compSplit[1:])
+        return 'PyNode(%r).%s' % (nodeName, compName)
+
     def test_objectComponentsClassEqual(self):
         successfulComps = []
         failedComps = []
@@ -485,26 +505,43 @@ class testCase_components(unittest.TestCase):
         if failedComps:
             self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
                     
+    def getComponentStrings(self):
+        componentStrings = []
+        for componentData in self.compData.itervalues():
+            for evalStringFunc in getEvalStringFunctions(self.__class__).itervalues():
+                componentStrings.extend(evalStringFunc(self, componentData))
+        return componentStrings
     
-    @indexedCompEvalStringCreator
-    def node_dot_comptypeIndex_evalStrings(self, compString):
-        """
-        if 'cubeShape1.vtx[1]', will try:
-        cubeShape1 = PyNode('cubeShape1')
-        cubeShape1.vtx[1]
-        """
-        compSplit = compString.split('.')
-        nodeName = compSplit[0]
-        compName = '.'.join(compSplit[1:])
-        return 'PyNode(%r).%s' % (nodeName, compName)
+    def test_componentSelection(self):
+        failedSelections = []
+        selectionUnequal = []
+        print "I'm here!"
+        for compString in self.getComponentStrings():
+            print "compString:", compString
+            try:
+                pymelObj = eval(compString)
+            except Exception:
+                failedSelections.append(compString)
+            else:
+                try:
+                    print "selecting:", pymelObj.name()
+                    #cmds.select(pymelObj.name())
+                    if pymelObj != ls(sl=1)[0]:
+                        selectionUnequal.append(compString)
+                except:
+                    failedSelections.append(compString)
+        if failedComps or selectionUnequal:
+            failMsg = 'Following components unselectable (or not created):\n   ' + '\n   '.join(failedSelections)
+            failMsg += 'Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal)
 
-for propName in dir(testCase_components):
+for propName, evalStringFunc in \
+        getEvalStringFunctions(testCase_components).iteritems():
     evalStringId = '_evalStrings'
     if propName.endswith(evalStringId):
         baseName = propName[:-len(evalStringId)].capitalize()
         newFuncName = 'test_' + baseName + '_ComponentCreation'
         setattr(testCase_components, newFuncName,
-            makeComponentCreationTests(getattr(testCase_components, propName)))
+            makeComponentCreationTests(evalStringFunc))
 
 class testCase_sets(TestCaseExtended):
     def setUp(self):
