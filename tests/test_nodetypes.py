@@ -285,12 +285,12 @@ def makeComponentCreationTests(evalStringCreator):
     Outputs a function suitable for use as a unittest test that tests creation of components.
     
     For every ComponentData item in in self.compData, it will call
-        'evalStringCreator(self, componentData, locals, globals)'
+        'evalStringCreator(self, componentData)'
     evalStringCreator should output
-        (evalStrings, locals, globals)
+        evalStrings
     where evalStrings is a list of strings, each of which when called like:
-        eval(anEvalString, globals, locals)
-    attempts to make a given component.
+        eval(anEvalString)
+    evaluates to a component.
     
     The function returns
         (successfulComps, failedComps)
@@ -304,12 +304,11 @@ def makeComponentCreationTests(evalStringCreator):
     def test_makeComponents(self):
         successfulComps = []
         failedComps = []
-        for compDatum in self.compData.itervalues():
-            evalStrings, locals, globals = \
-                evalStringCreator(self, componentData, locals, globals)
+        for componentData in self.compData.itervalues():
+            evalStrings = evalStringCreator(self, componentData)
             for evalString in evalStrings:
                 try:
-                    eval(evalString, globals(), locals())
+                    eval(evalString)
                 except Exception:
                     failedComps.append(evalString)
                 else:
@@ -320,20 +319,17 @@ def makeComponentCreationTests(evalStringCreator):
     return test_makeComponents
 
 def indexedEvalStringCreator(evalStringCreator):
-    def newIndexedEvalStringCreator(self, compData, locals, globals):
+    def newIndexedEvalStringCreator(self, compData):
         if compData.indices:
-            return ([evalStringCreator(self, x, locals, globals)
-                     for x in compData.melIndexedComps()],
-                    locals, globals)
+            return [evalStringCreator(self, x)
+                     for x in compData.melIndexedComps()]
         else:
-            return ([], locals, globals)
+            return []
     return newIndexedEvalStringCreator
         
 def fullCompEvalStringCreator(evalStringCreator):
-    def newFullCompEvalStringCreator(self, compData, locals, globals):
-        return ([evalStringCreator(self, compData.melFullComp(),
-                                  locals, globals)],
-                locals, globals)
+    def newFullCompEvalStringCreator(self, compData):
+        return [evalStringCreator(self, compData.melFullComp())]
     return newFullCompEvalStringCreator    
 
 class testCase_components(unittest.TestCase):
@@ -438,45 +434,64 @@ class testCase_components(unittest.TestCase):
     # object, instead of a MeshVertex object, and fail, while
     # PyNode('pCube1.vtx[3]') would succeed
 
-    def pyNodeMaker(self, compString, locals, globals):
-        return ('PyNode(%r)' % compString, locals, globals)
+    def pyNodeMaker(self, compString):
+        return 'PyNode(%r)' % compString
     
     indexed_PyNode_evalStrings = indexedEvalStringCreator(pyNodeMaker)
     fullComp_PyNode_evalStrings = fullCompEvalStringCreator(pyNodeMaker)
 
-    def componentMaker(self, compString, locals, globals):
-        return ('PyNode(%r)' % compString, locals, globals)
+    def componentMaker(self, compString):
+        return 'Component(%r)' % compString
     
     indexed_Component_evalStrings = indexedEvalStringCreator(componentMaker)
     fullComp_Component_evalStrings = fullCompEvalStringCreator(componentMaker)
 
-    def object_evalStrings(self, compData, locals, globals):
+    def object_evalStrings(self, compData):
         """
         ie, MeshVertexComponent('pCube1')
         """
         pymelClass = ApiEnumsToPyComponents()[compData.typeEnum()]
-        return (['%s(%r)' % (pymelClass.__name__, compData.nodeName)],
-                locals, globals)
+        return ['%s(%r)' % (pymelClass.__name__, compData.nodeName)]
     
     def test_objectComponentsClassEqual(self):
-        compStrings, locals, globals = self.object_evalStrings()
-        for compString in compStrings:
-            pymelObj = eval(compString, globals, locals)
-            className = compString.split('(')[0]
-            pymelClass = eval(className)
-            self.assertEqual(pymelObj.__class__, pymelClass)
+        successfulComps = []
+        failedComps = []
+        for componentData in self.compData.itervalues():
+            for compString in self.object_evalStrings(componentData):
+                try:
+                    pymelObj = eval(compString)
+                except Exception:
+                    failedComps.append(compString)
+                else:
+                    className = compString.split('(')[0]
+                    pymelClass = eval(className)
+                    if pymelObj.__class__ == pymelClass:
+                        successfulComps.append(compString)
+                    else:
+                        failedComps.append(compString)
+        if failedComps:
+            self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
+                    
     
     @indexedEvalStringCreator
-    def node_dot_comptypeIndex_evalStrings(self, compString, locals, globals):
+    def node_dot_comptypeIndex_evalStrings(self, compString):
         """
         if 'cubeShape1.vtx[1]', will try:
         cubeShape1 = PyNode('cubeShape1')
         cubeShape1.vtx[1]
         """
         compSplit = compString.split('.')
-        nodeName = compString[0]
-        compName = '.'.join(compString[1:])
-        return ('PyNode(%r).%s' % (nodeName, compName), locals, globals)
+        nodeName = compSplit[0]
+        compName = '.'.join(compSplit[1:])
+        return 'PyNode(%r).%s' % (nodeName, compName)
+
+for propName in dir(testCase_components):
+    evalStringId = '_evalStrings'
+    if propName.endswith(evalStringId):
+        baseName = propName[:-len(evalStringId)].capitalize()
+        newFuncName = 'test_' + baseName + '_ComponentCreation'
+        setattr(testCase_components, newFuncName,
+            makeComponentCreationTests(getattr(testCase_components, propName)))
 
 class testCase_sets(TestCaseExtended):
     def setUp(self):
