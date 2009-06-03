@@ -280,48 +280,61 @@ class IndexData(object):
         self.size = size
 
 
-def makeComponentCreationTests(execStringCreator):
+def makeComponentCreationTests(evalStringCreator):
     """
     Outputs a function suitable for use as a unittest test that tests creation of components.
     
     For every ComponentData item in in self.compData, it will call
-        'execStringCreator(self, componentData, locals, globals)'
-    execStringCreator should output
-        (execStrings, locals, globals)
-    where execStrings is a list of strings, each of which when called like:
-        exec anExecString in locals, globals
+        'evalStringCreator(self, componentData, locals, globals)'
+    evalStringCreator should output
+        (evalStrings, locals, globals)
+    where evalStrings is a list of strings, each of which when called like:
+        eval(anEvalString, globals, locals)
     attempts to make a given component.
+    
+    The function returns
+        (successfulComps, failedComps)
+    where each item of successfulComps is a successfully created component
+    object, and each item of failedComps is the evalString that was not made.
     
     If any component cannot be created, the test will fail, and output a list of the components that
     could not be made in the fail message.
     """
     
-    def test_makePyNodes(self):
+    def test_makeComponents(self):
         successfulComps = []
         failedComps = []
         for compDatum in self.compData.itervalues():
-            execStrings, locals, globals = \
-                execStringCreator(self, componentData, locals, globals)
-            for execString in execStrings:
+            evalStrings, locals, globals = \
+                evalStringCreator(self, componentData, locals, globals)
+            for evalString in evalStrings:
                 try:
-                    exec execString in locals(), globals()
+                    eval(evalString, globals(), locals())
                 except Exception:
-                    failedComps.append(execString)
+                    failedComps.append(evalString)
                 else:
-                    successfulComps.append(execString)
+                    successfulComps.append(evalString)
         if failedComps:
             self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
             
-    return test_makePyNodes
+    return test_makeComponents
 
-def makeIndexedExecStringCreator(execStringCreator):
-    def indexedExecStringCreator(self, compData, locals, globals):
+def indexedEvalStringCreator(evalStringCreator):
+    def newIndexedEvalStringCreator(self, compData, locals, globals):
         if compData.indices:
-            return ([execStringCreator(self, x, locals, globals)
+            return ([evalStringCreator(self, x, locals, globals)
                      for x in compData.melIndexedComps()],
                     locals, globals)
         else:
             return ([], locals, globals)
+    return newIndexedEvalStringCreator
+        
+def fullCompEvalStringCreator(evalStringCreator):
+    def newFullCompEvalStringCreator(self, compData, locals, globals):
+        return ([evalStringCreator(self, compData.melFullComp(),
+                                  locals, globals)],
+                locals, globals)
+    return newFullCompEvalStringCreator    
 
 class testCase_components(unittest.TestCase):
     
@@ -425,52 +438,45 @@ class testCase_components(unittest.TestCase):
     # object, instead of a MeshVertex object, and fail, while
     # PyNode('pCube1.vtx[3]') would succeed
 
-    def indexed_PyNode_execStrings(self, compData, locals, globals):
-        if compData.indices:
-            return (['PyNode(%r)' % x for x in compData.melIndexedComps()],
-                    locals, globals)
-        else:
-            return ([], locals, globals)
-            
-    def pyNode_execStrings(self, compData, locals, globals):
-        return ['PyNode(%r)' % compData.melFullComp()]            
-        
-    def indexed_Component_execStrings(self, compData, locals, globals):
-        if compData.indices:
-            return ['Component(%r)' % x for x in compData.melIndexedComps()]
-        else:
-            return []
-            
-    def component_execStrings(self, compData, locals, globals):
-        return ['Component(%r)' % compData.melFullComp()]
+    def pyNodeMaker(self, compString, locals, globals):
+        return ('PyNode(%r)' % compString, locals, globals)
+    
+    indexed_PyNode_evalStrings = indexedEvalStringCreator(pyNodeMaker)
+    fullComp_PyNode_evalStrings = fullCompEvalStringCreator(pyNodeMaker)
 
-    def object_execStrings(self, compData, locals, globals):
+    def componentMaker(self, compString, locals, globals):
+        return ('PyNode(%r)' % compString, locals, globals)
+    
+    indexed_Component_evalStrings = indexedEvalStringCreator(componentMaker)
+    fullComp_Component_evalStrings = fullCompEvalStringCreator(componentMaker)
+
+    def object_evalStrings(self, compData, locals, globals):
         """
         ie, MeshVertexComponent('pCube1')
         """
         pymelClass = ApiEnumsToPyComponents()[compData.typeEnum()]
-        try:
-            pymelObj = pymelClass(compData.nodeName)
-        except:
-            return '%s(%r)' % (pymelClass.__name__, compData.nodeName)
-        else:
+        return (['%s(%r)' % (pymelClass.__name__, compData.nodeName)],
+                locals, globals)
+    
+    def test_objectComponentsClassEqual(self):
+        compStrings, locals, globals = self.object_evalStrings()
+        for compString in compStrings:
+            pymelObj = eval(compString, globals, locals)
+            className = compString.split('(')[0]
+            pymelClass = eval(className)
             self.assertEqual(pymelObj.__class__, pymelClass)
-            
-    def node_dot_comptypeIndex_execStrings(self, compData, locals, globals):
+    
+    @indexedEvalStringCreator
+    def node_dot_comptypeIndex_evalStrings(self, compString, locals, globals):
         """
         if 'cubeShape1.vtx[1]', will try:
         cubeShape1 = PyNode('cubeShape1')
         cubeShape1.vtx[1]
         """
-        if compData.indices:
-            exec '%s = PyNode(%r)' % (compData.nodeName, compData.nodeName)
-            failed = []
-            for compName in compData.indexedComps():
-                try:
-                    exec compName
-                except Exception:
-                    failed.append(compName)
-            return failed 
+        compSplit = compString.split('.')
+        nodeName = compString[0]
+        compName = '.'.join(compString[1:])
+        return ('PyNode(%r).%s' % (nodeName, compName), locals, globals)
 
 class testCase_sets(TestCaseExtended):
     def setUp(self):
