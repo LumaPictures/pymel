@@ -314,6 +314,15 @@ def makeComponentCreationTests(execStringCreator):
             
     return test_makePyNodes
 
+def makeIndexedExecStringCreator(execStringCreator):
+    def indexedExecStringCreator(self, compData, locals, globals):
+        if compData.indices:
+            return ([execStringCreator(self, x, locals, globals)
+                     for x in compData.melIndexedComps()],
+                    locals, globals)
+        else:
+            return ([], locals, globals)
+
 class testCase_components(unittest.TestCase):
     
     def setUp(self):
