@@ -513,26 +513,36 @@ class testCase_components(unittest.TestCase):
         return componentStrings
     
     def test_componentSelection(self):
+        failedCreation  = []
         failedSelections = []
         selectionUnequal = []
-        print "I'm here!"
         for compString in self.getComponentStrings():
-            print "compString:", compString
             try:
                 pymelObj = eval(compString)
             except Exception:
-                failedSelections.append(compString)
+                failedCreation.append(compString)
             else:
                 try:
-                    print "selecting:", pymelObj.name()
-                    #cmds.select(pymelObj.name())
-                    if pymelObj != ls(sl=1)[0]:
-                        selectionUnequal.append(compString)
+                    # There's a bug - if you try to select x.sme[*][*], it
+                    # crashes. don't know way around this at the moment, so
+                    # just automatically failing this test for now
+                    if isinstance(pymelObj, SubdEdge) and pymelObj.isComplete():
+                        failedSelections.append(compString)
+                    else:
+                        cmds.select(pymelObj.name())
+                        if pymelObj != ls(sl=1)[0]:
+                            selectionUnequal.append(compString)
                 except:
                     failedSelections.append(compString)
-        if failedComps or selectionUnequal:
-            failMsg = 'Following components unselectable (or not created):\n   ' + '\n   '.join(failedSelections)
-            failMsg += 'Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal)
+        if failedCreation or failedSelections or selectionUnequal:
+            failMsg = []
+            if failedCreation:
+                failMsg = 'Following components not created:\n   ' + '\n   '.join(failedCreation)
+            if failedSelections:
+                failMsg = 'Following components unselectable:\n   ' + '\n   '.join(failedSelections)
+            if selectionUnequal:
+                failMsg += 'Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal)
+            self.fail(failMsg)
 
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
