@@ -683,9 +683,10 @@ class MItComponent( Component1D ):
         # we feed out, and it seems like asking for trouble to have them
         # keep track of when things such as geomChanged need to be called,
         # we simply never retain the MIt for long..
-        mit = self.__apicls__( self.__apimdagpath__(), self.__apimobject__() )
-        mit.setIndex(self._currentFlatIndex, api.MScriptUtil().asIntPtr())
-        return mit
+        if self._currentFlatIndex == 0:
+            return self.__apicls__( self.__apimdagpath__(), self.__apimobject__() )
+        else:
+            return self.__apicls__( self.__apimdagpath__(), self.currentItem().__apimobject__() )
     
     def __apimfn__(self):
         return self.__apimit__()
