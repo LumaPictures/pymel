@@ -245,9 +245,14 @@ class Component( general.PyNode ):
                                     api.MFn.kUint64SingleIndexedComponent,
                                     api.MFn.kDoubleIndexedComponent,
                                     api.MFn.kTripleIndexedComponent)):
-            component = self._mfncompclass().create(self._apienum__)
-            if not api.isValidMObject(component):
-                component = None        
+            try:
+                component = self._mfncompclass().create(self._apienum__)
+            # Note - there's a bug with kSurfaceFaceComponent - can't use create
+            except RuntimeError:
+                pass
+            else:
+                if not api.isValidMObject(component):
+                    component = None        
         
         # that didn't work - try checking if we have a valid plugAttr  
         if not component and self.plugAttr():
@@ -334,7 +339,16 @@ class DimensionedComponent( Component ):
         super(DimensionedComponent, self).__init__(*args, **kwargs)
 
     def _completeNameString(self):
-        return super(DimensionedComponent, self)._completeNameString() + '[*]'
+        # Note - most multi-dimensional components allow selection of all
+        # components with only a single index - ie,
+        #    myNurbsSurface.cv[*]
+        # will work, even though nurbs cvs are double-indexed
+        # However, some multi-indexed components WON'T work like this, ie
+        #    myNurbsSurface.sf[*]
+        # FAILS, and you MUST do:
+        #    myNurbsSurface.sf[*][*]
+        return (super(DimensionedComponent, self)._completeNameString() +
+                 ('[*]' * self.dimensions))
 
     def _makeComponentHandle(self):
         handle = super(DimensionedComponent, self)._makeComponentHandle()
