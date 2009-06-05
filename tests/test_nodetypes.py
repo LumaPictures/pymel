@@ -539,14 +539,14 @@ class testCase_components(unittest.TestCase):
                             selectionUnequal.append(compString)
 
         if failedCreation or failedSelections or selectionUnequal:
-            failMsg = []
+            failMsgs = []
             if failedCreation:
-                failMsg = 'Following components not created:\n   ' + '\n   '.join(failedCreation)
+                failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
             if failedSelections:
-                failMsg = 'Following components unselectable:\n   ' + '\n   '.join(failedSelections)
+                failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedSelections))
             if selectionUnequal:
-                failMsg += 'Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal)
-            self.fail(failMsg)
+                failMsgs.append('Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal))
+            self.fail('\n\n'.join(failMsgs))
 
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():

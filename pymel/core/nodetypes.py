@@ -411,8 +411,12 @@ class DiscreteComponent( DimensionedComponent ):
     Example: polyCube.vtx[38], nurbsSurface.cv[3][2]
     
     Derived classes should implement:
-    _sliceToIndices
+    _dimLength
     """
+
+    def __init__(self, *args, **kwargs):
+        self.reset()
+        super(DiscreteComponent, self).__init__(*args, **kwargs)
 
     # TODO: make multi-dimensional (take a partial index, and return a
     # ComponentIndex object!
@@ -439,27 +443,22 @@ class DiscreteComponent( DimensionedComponent ):
         stop = sliceObj.stop
         step = sliceObj.step
         
-        if stop is None:
-            raise IndexError("%s's do not support slices with no "
-                             "stop value" % self.__class__.__name__)
-
         if start is None:
             start = 0
             
         if step is None:
             step = 1
-            
-        if start < 0 or stop < 0 or step < 0:
-            raise IndexError("%s's do not support slices with negative "
-                             "start/stop/step values" %
-                             self.__class__.__name__)
 
         # convert 'maya slices' to 'python slices'...
         # ie, in maya, someObj.vtx[2:3] would mean:
         #  (vertices[2], vertices[3])
         # in python, it would mean:
-        #  (vertices[2],)
-        stop += 1
+        #  (vertices[2],)        
+        if stop is not None and stop >= 0:
+            stop += 1
+        
+        if stop is None or start < 0 or stop < 0 or step < 0:
+            start, stop, step = slice.indices(self._dimLength(partialIndex))
 
         # Made this return a normal list for easier debugging...
         # ... can always make it back to a generator if need it for speed
@@ -468,15 +467,14 @@ class DiscreteComponent( DimensionedComponent ):
         return [ComponentIndex(partialIndex + (rawIndex,))
                 for rawIndex in xrange(start, stop, step)]
     
-#    def dimensionSize(dimensionIndex):
-#        """
-#        Given a dimension index, returns the maximum value for that dimension.
-#        
-#        Ie, if nurbsSurfaceCV.dimensionSize(0) == 3, then there would be 3 cvs
-#        in the u direction; if nurbsSurfaceCV.dimensionSize(1) == 6, then there
-#        would be 6 cvs in the v direction.
-#        """
-#        pass
+    def _dimLength(self, partialIndex):
+        """
+        Given a partialIndex, returns the maximum value for the first
+         unspecified dimension.
+        """
+        # Implement in derived classes - no general way to determine the length
+        # of components!
+        raise NotImplementedError
     
     def _makeIndexedComponentHandle(self, indices, handle=None):
         if not handle:
@@ -484,23 +482,27 @@ class DiscreteComponent( DimensionedComponent ):
         indices = self._standardizeIndices(indices)
         mayaArrays = [] 
         for dimIndices in zip(*indices):
-            mayaArrays.append(self._makeMayaArray(dimIndices))
-#        for i, mIntArray in enumerate(mayaArrays):
-#            cIntArray = scriptUtil.asIntPtr()
-#            mIntArray.get(cIntArray)
-#            pythonIntArray = [scriptUtil.getIntArrayItem ( cIntArray, i ) for i in xrange(mIntArray.length())] 
-#            print "mayaArrays[%d]:" % i, pythonIntArray 
+            mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
         mfnComp = self._mfncompclass(handle.object())
         mfnComp.setComplete(False)
         mfnComp.addElements(*mayaArrays)
         return handle
 
     @classmethod
-    def _makeMayaArray(cls, pythonArray):
+    def _pyArrayToMayaArray(cls, pythonArray):
         scriptUtil = api.MScriptUtil()
         mayaArray = api.MIntArray()
         scriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
         return mayaArray
+    
+    # Ok... i'm dumb, you can just do: [x for x in mayaArray]
+#    @classmethod
+#    def _mayaArrayToPyArray(cls, mayaArray):
+#        scriptUtil = api.MScriptUtil()
+#        cArray = scriptUtil.asIntPtr()
+#        mayaArray.get(cArray)
+#        return [scriptUtil.getIntArrayItem ( cArray, i ) for i in xrange(mIntArray.length())] 
+
     
     def _standardizeIndices(self, indexObjs, allowIterable=True):
         """
@@ -560,10 +562,54 @@ class DiscreteComponent( DimensionedComponent ):
                                   for x in indices])
         return indices
     
-    def __iter__(self): 
-        # TODO: fix
-        for index in self._sliceToIndices():
-            yield self.__class__(self._node, index)
+    # Since retaining MIt**'s is now considered dangerous (see 
+    # MItComponent.__apimit__), we simply implement iteration by storing our
+    # own flat index
+    def __iter__(self):
+        return self
+
+    def __len__(self):
+        return self.__apicomponent__().elementCount()
+
+    def setIndex(self, index):
+        if not 0 <= index < len(self):
+            raise IndexError
+        self._currentFlatIndex = index
+        return self
+    
+    def getIndex(self):
+        return self._currentFlatIndex            
+
+    def currentItem(self):
+        mfncomp = self.__apicomponent__()
+        if hasattr(mfncomp, element):
+            return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
+        else:
+            indices = []
+            scriptUtil = api.MScriptUtil()
+            for dimNum in self.dimensions:
+                indices.append(scriptUtil.asIntPtr())
+            self.__apicomponent__().getElement(self._currentFlatIndex, *indices)
+            indices = [scriptUtil.getInt(x) for x in indices]
+            return self.__class__(self._node, ComponentIndex(indices))
+            
+    def next(self):
+        if self._stopIteration:
+            raise StopIteration
+        elif not self:
+            self._stopIteration = True
+            raise StopIteration
+        else:
+            toReturn = self.currentItem()
+            try:
+                self.setIndex(self.getIndex() + 1)
+            except IndexError:
+                self._stopIteration = True
+            return toReturn
+    
+    def reset(self):
+        self._stopIteration = False
+        self._currentFlatIndex = 0
 
 class ContinuousComponent( DimensionedComponent ):
     """
@@ -593,17 +639,12 @@ class Component1D64( DiscreteComponent ):
     dimensions = 1
 
     @classmethod
-    def _makeMayaArray(cls, pythonArray):
+    def _pyArrayToMayaArray(cls, pythonArray):
         scriptUtil = api.MScriptUtil()
         mayaArray = api.MUint64Array(len(pythonArray))
         for i, value in enumerate(pythonArray):
             mayaArray.set(value, i)
         return mayaArray
-    
-    @classmethod
-    def _mayaArrayType(cls):
-        return api.MUint64Array()
-
     
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
@@ -621,99 +662,28 @@ class MItComponent( Component1D ):
     
     (ie, `MeshEdge`, `MeshVertex`, and `MeshFace` can be wrapped around
     MItMeshEdge, etc)
+    
+    If deriving from this class, you should set __apicls__ to an appropriate
+    MIt* type - ie, for MeshEdge, you would set __apicls__ = api.MItMeshEdge
     """
 #
-#    @staticmethod
-#    def _formatSlice(startIndex, stopIndex, step):
-#        if startIndex == stopIndex:
-#            sliceStr = '%s' % startIndex
-#        elif step is not None and step != 1:
-#            sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
-#        else:
-#            sliceStr = '%s:%s' % (startIndex, stopIndex)
-#        return sliceStr 
-#    
-#    @staticmethod
-#    def _getRange(start, stop, step):
-#        if step is None or step == 1:   
-#            indices = range( start, stop+1 )
-#        else:
-#            indices = range( start, stop+1, step )
-#              
-#        return indices
-#    
-#    @staticmethod
-#    def _getMayaSlice( array ):
-#        """given an MIntArray, convert to a maya-formatted slice"""
-#        
-#        return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlice( array ) ]
-#    def isComplete(self):
-#        return self._range is None
-
-          
     def __init__(self, *args, **kwargs ):
         super(MItComponent, self).__init__(*args, **kwargs)
     
     def __apimit__(self):
-        try:
-            return self.__apiobjects__['MIt']
-        except KeyError:
-            mit = self.__apicls__( self.__apimdagpath__(), self.__apiobject__() )
-            self.__apiobjects__['MIt'] = mit
-            return mit
-        
+        # Note - the iterator should NOT be stored, as if it gets out of date,
+        # it can cause crashes - see, for instance, MItMeshEdge.geomChanged
+        # Since we don't know how the user might end up using the components
+        # we feed out, and it seems like asking for trouble to have them
+        # keep track of when things such as geomChanged need to be called,
+        # we simply never retain the MIt for long..
+        mit = self.__apicls__( self.__apimdagpath__(), self.__apimobject__() )
+        mit.setIndex(self._currentFlatIndex)
+        return mit
+    
     def __apimfn__(self):
         return self.__apimit__()
-
-    def setIndex(self, index):
-        #self._range = [component]
-        su = api.MScriptUtil()
-        self.__apimfn__().setIndex( index, su.asIntPtr() )  # bug workaround
-        #self._index = index
-        return self
-    
-    def getIndex(self):
-        return self.__apimfn__().index()
-    
-    def next(self):
-        if self.__apimfn__().isDone(): raise StopIteration
-        if self._range is not None:
-            try:
-                nextIndex = self._range[self._rangeIndex]
-                su = api.MScriptUtil()
-                self.__apimfn__().setIndex( nextIndex, su.asIntPtr() )  # bug workaround
-                self._rangeIndex += 1
-                return self.__class__(self._node, nextIndex)
-            except IndexError:
-                raise StopIteration
-
-        else:
-            if self.isReset:
-                self.isReset = False
-            else:
-                #print "INCREMENTING"
-                self.__apimfn__().next()
-                if self.__apimfn__().isDone(): raise StopIteration
-        #print "NEXT", self.getIndex()
-        #return self.__class__(self._node, self.__apimfn__().index() )
-        
-        #print "RETURNING"
-        return self.__class__( self, self.getIndex() )
-#        if isinstance( self._comp, int ):
-#            _api.apicls.setIndex( self, self._comp, su.asIntPtr() )  # bug workaround
-#        elif isinstance( self._comp, slice):
-#            _api.apicls.setIndex( self, i, su.asIntPtr() )  # bug workaround
-    
-    def __len__(self): 
-        return self.count()
             
-    def __getitem__(self, item):
-        if self.isComplete():
-            #return self.__class__(self._node, item)
-            return self.__class__(self._node, item)
-        else:
-            assert isinstance(item, (int,slice) ), "Extended slice syntax only allowed on a complete range, such as when using Mesh(u'obj').vtx"
-            return self.__class__( self._node, self._getMayaSlice(self._range[item]) )
 
 ## Specific Components...
 
