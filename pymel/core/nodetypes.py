@@ -199,6 +199,9 @@ class Component( general.PyNode ):
         # Can't use self.name(), as that references this!
         raise MayaObjectError( self._completeNameString() )        
 
+    def __apiobject__(self) :
+        return self.__apimobject__()
+
     def __apihandle__(self) :
         if 'MObjectHandle' not in self.__apiobjects__:
             handle = self._makeComponentHandle()
@@ -458,7 +461,7 @@ class DiscreteComponent( DimensionedComponent ):
             stop += 1
         
         if stop is None or start < 0 or stop < 0 or step < 0:
-            start, stop, step = slice.indices(self._dimLength(partialIndex))
+            start, stop, step = slice(start, stop, step).indices(self._dimLength(partialIndex))
 
         # Made this return a normal list for easier debugging...
         # ... can always make it back to a generator if need it for speed
@@ -519,7 +522,7 @@ class DiscreteComponent( DimensionedComponent ):
                     if isinstance(indexObjs, slice):
                         return self._standardizeIndices(self._sliceToIndices(slice))
                     else:
-                        indices.add(indexObjs)
+                        indices.add(ComponentIndex((indexObjs,)))
                 else:
                     raise IndexError("Single Index given for a multi-dimensional component")
             elif isinstance(indexObjs, ComponentIndex):
@@ -570,6 +573,9 @@ class DiscreteComponent( DimensionedComponent ):
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
+    
+    def count(self):
+        return len(self)
 
     def setIndex(self, index):
         if not 0 <= index < len(self):
@@ -582,7 +588,7 @@ class DiscreteComponent( DimensionedComponent ):
 
     def currentItem(self):
         mfncomp = self.__apicomponent__()
-        if hasattr(mfncomp, element):
+        if hasattr(mfncomp, 'element'):
             return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
         else:
             indices = []
@@ -678,13 +684,12 @@ class MItComponent( Component1D ):
         # keep track of when things such as geomChanged need to be called,
         # we simply never retain the MIt for long..
         mit = self.__apicls__( self.__apimdagpath__(), self.__apimobject__() )
-        mit.setIndex(self._currentFlatIndex)
+        mit.setIndex(self._currentFlatIndex, api.MScriptUtil().asIntPtr())
         return mit
     
     def __apimfn__(self):
         return self.__apimit__()
             
-
 ## Specific Components...
 
 ## Pivot Components
@@ -700,22 +705,37 @@ class ScalePivot( Pivot ):
     
 ## Mesh Components
 
-class MeshVertex( Component1D ):
+class MeshVertex( MItComponent ):
+    __apicls__ = api.MItMeshVertex
     _ComponentLabel__ = "vtx"
     _apienum__ = api.MFn.kMeshVertComponent
 
-class MeshEdge( Component1D ):
+    def _dimLength(self, partialIndex):
+        return self.node().numVertices()
+
+class MeshEdge( MItComponent ):
+    __apicls__ = api.MItMeshEdge
     _ComponentLabel__ = "e"
     _apienum__ = api.MFn.kMeshEdgeComponent
     
-class MeshFace( Component1D ):
+    def _dimLength(self, partialIndex):
+        return self.node().numEdges()
+    
+class MeshFace( MItComponent ):
+    __apicls__ = api.MItMeshPolygon
     _ComponentLabel__ = "f"
     _apienum__ = api.MFn.kMeshPolygonComponent
+
+    def _dimLength(self, partialIndex):
+        return self.node().numFaces()
 
 class MeshUV( Component1D ):
     _ComponentLabel__ = "map"
     _apienum__ = api.MFn.kMeshMapComponent
 
+    def _dimLength(self, partialIndex):
+        return self.node().numUVs()
+    
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
     _apienum__ = api.MFn.kMeshVtxFaceComponent
@@ -744,7 +764,8 @@ class NurbsCurveParameter( Component1DFloat ):
     _ComponentLabel__ = "u"
     _apienum__ = api.MFn.kCurveParamComponent
 
-class NurbsCurveCV( Component1D ):
+class NurbsCurveCV( MItComponent ):
+    __apicls__ = api.MItCurveCV
     _ComponentLabel__ = "cv"
     _apienum__ = api.MFn.kCurveCVComponent
     
