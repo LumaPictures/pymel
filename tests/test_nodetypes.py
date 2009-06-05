@@ -522,18 +522,22 @@ class testCase_components(unittest.TestCase):
             except Exception:
                 failedCreation.append(compString)
             else:
-                try:
-                    # There's a bug - if you try to select x.sme[*][*], it
-                    # crashes. don't know way around this at the moment, so
-                    # just automatically failing this test for now
-                    if isinstance(pymelObj, SubdEdge) and pymelObj.isComplete():
+                # There's a bug - if you try to select x.sme[*][*], it
+                # crashes. don't know way around this at the moment, so
+                # just automatically failing this test for now
+                if isinstance(pymelObj, SubdEdge) and pymelObj.isComplete():
+                    failedSelections.append(compString)
+                else:
+                    try:
+                        cmds.select(pymelObj.name(), r=1)
+                    except Exception:
+#                        import traceback
+#                        traceback.print_exc()
                         failedSelections.append(compString)
                     else:
-                        cmds.select(pymelObj.name())
                         if pymelObj != ls(sl=1)[0]:
                             selectionUnequal.append(compString)
-                except:
-                    failedSelections.append(compString)
+
         if failedCreation or failedSelections or selectionUnequal:
             failMsg = []
             if failedCreation:

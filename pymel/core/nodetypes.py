@@ -220,7 +220,7 @@ class Component( general.PyNode ):
     def __eq__(self, other):
         if not hasattr(other, '__apicomponent__'):
             return False
-        return self.__apicomponent__().isEqual( other.__apicomponent__() )
+        return self.__apicomponent__().isEqual( other.__apicomponent__().object() )
                
     def __str__(self): 
         return str(self.name())
@@ -478,17 +478,26 @@ class DiscreteComponent( DimensionedComponent ):
         if not handle:
             handle = Component._makeComponentHandle(self)
         indices = self._standardizeIndices(indices)
-        scriptUtil = api.MScriptUtil()
-        mIntArrays = []
-        for dimIndices in zip(indices):
-            typeIntM = api.MIntArray()
-            scriptUtil.createIntArrayFromList( dimIndices, typeIntM )
-            mIntArrays.append(typeIntM)
+        mayaArrays = [] 
+        for dimIndices in zip(*indices):
+            mayaArrays.append(self._makeMayaArray(dimIndices))
+#        for i, mIntArray in enumerate(mayaArrays):
+#            cIntArray = scriptUtil.asIntPtr()
+#            mIntArray.get(cIntArray)
+#            pythonIntArray = [scriptUtil.getIntArrayItem ( cIntArray, i ) for i in xrange(mIntArray.length())] 
+#            print "mayaArrays[%d]:" % i, pythonIntArray 
         mfnComp = self._mfncompclass(handle.object())
         mfnComp.setComplete(False)
-        mfnComp.addElements(*mIntArrays)
+        mfnComp.addElements(*mayaArrays)
         return handle
 
+    @classmethod
+    def _makeMayaArray(cls, pythonArray):
+        scriptUtil = api.MScriptUtil()
+        mayaArray = api.MIntArray()
+        scriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
+        return mayaArray
+    
     def _standardizeIndices(self, indexObjs, allowIterable=True):
         """
         Convert indexObjs to an iterable of ComponentIndex objects.
@@ -508,10 +517,7 @@ class DiscreteComponent( DimensionedComponent ):
                 else:
                     raise IndexError("Single Index given for a multi-dimensional component")
             elif isinstance(indexObjs, ComponentIndex):
-                if len(componentIndex) == self.dimensions:
-                    indices.add(indexObjs)
-                else:
-                    indices.update(self._flattenIndex(indexObjs))
+                indices.update(self._flattenIndex(indexObjs))
             elif allowIterable and util.isIterable(indexObjs):
                 for index in indexObjs:
                     indices.update(self._standardizeIndices(index,
@@ -519,7 +525,7 @@ class DiscreteComponent( DimensionedComponent ):
             else:
                 raise IndexError("Invalid indices for component: %r" % 
                                  indexObjs)
-        return indices
+        return tuple(indices)
     
     def _flattenIndex(self, index):
         """
@@ -581,6 +587,19 @@ class Component1D64( DiscreteComponent ):
     _mfncompclass = api.MFnUint64SingleIndexedComponent
     _apienum__ = api.MFn.kUint64SingleIndexedComponent
     dimensions = 1
+
+    @classmethod
+    def _makeMayaArray(cls, pythonArray):
+        scriptUtil = api.MScriptUtil()
+        mayaArray = api.MUint64Array(len(pythonArray))
+        for i, value in enumerate(pythonArray):
+            mayaArray.set(value, i)
+        return mayaArray
+    
+    @classmethod
+    def _mayaArrayType(cls):
+        return api.MUint64Array()
+
     
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
