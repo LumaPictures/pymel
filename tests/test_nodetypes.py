@@ -7,6 +7,8 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
+VERBOSE = True
+
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
     leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
@@ -307,6 +309,8 @@ def makeComponentCreationTests(evalStringCreator):
         for componentData in self.compData.itervalues():
             evalStrings = evalStringCreator(self, componentData)
             for evalString in evalStrings:
+                if VERBOSE:
+                    print "trying to create:", evalString
                 try:
                     eval(evalString)
                 except Exception:
@@ -338,12 +342,18 @@ def indexedCompEvalStringCreator(evalStringCreator):
         
 def melUnindexedCompEvalStringCreator(evalStringCreator):
     def newMelUnindexedCompEvalStringCreator(self, compData):
-        return [evalStringCreator(self, compData.melUnindexedComp())]
+        if not compData.indices:
+            return [evalStringCreator(self, compData.melUnindexedComp())]
+        else:
+            return []
     return newMelUnindexedCompEvalStringCreator
         
 def unindexedCompEvalStringCreator(evalStringCreator):
     def newUnindexedCompEvalStringCreator(self, compData):
-        return [evalStringCreator(self, compData.unindexedComp())]
+        if not compData.indices:
+            return [evalStringCreator(self, compData.unindexedComp())]
+        else:
+            return []
     return newUnindexedCompEvalStringCreator
 
 def getEvalStringFunctions(theObj):

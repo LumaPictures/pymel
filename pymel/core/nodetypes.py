@@ -564,7 +564,7 @@ class DiscreteComponent( DimensionedComponent ):
         # _sliceToIndices, and expand on a per-partial-index basis 
         
         while len(index) < self.dimensions:
-            index = ComponentIndex(index + (slice(),))
+            index = ComponentIndex(index + (slice(None),))
           
         indices = set([ComponentIndex()])
         for dimIndex in index:
