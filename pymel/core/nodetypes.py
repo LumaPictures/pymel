@@ -411,7 +411,7 @@ class DiscreteComponent( DimensionedComponent ):
     Example: polyCube.vtx[38], nurbsSurface.cv[3][2]
     
     Derived classes should implement:
-    _slicesToIndices
+    _sliceToIndices
     """
 
     # TODO: make multi-dimensional (take a partial index, and return a
@@ -423,7 +423,7 @@ class DiscreteComponent( DimensionedComponent ):
         If a partialIndex is supplied, then sliceObj is taken to be a slice
         at the next dimension not specified by partialIndex - ie,
         
-        myFaceVertex._slicesToIndices(slice(1,-1), partialIndex=ComponentIndex((3,)))
+        myFaceVertex._sliceToIndices(slice(1,-1), partialIndex=ComponentIndex((3,)))
         
         might be used to get a component such as
         
@@ -461,8 +461,12 @@ class DiscreteComponent( DimensionedComponent ):
         #  (vertices[2],)
         stop += 1
 
-        for rawIndex in xrange(start, stop, step):
-            yield ComponentIndex(partialIndex + (rawIndex,))
+        # Made this return a normal list for easier debugging...
+        # ... can always make it back to a generator if need it for speed
+#        for rawIndex in xrange(start, stop, step):
+#            yield ComponentIndex(partialIndex + (rawIndex,))
+        return [ComponentIndex(partialIndex + (rawIndex,))
+                for rawIndex in xrange(start, stop, step)]
     
 #    def dimensionSize(dimensionIndex):
 #        """
@@ -538,7 +542,7 @@ class DiscreteComponent( DimensionedComponent ):
         # faceVertex[1][2][:] may result in a different expansion than for
         # faceVertex[3][8][:]...
         # for this reason, we need to supply the previous indices to 
-        # _slicesToIndices, and expand on a per-partial-index basis 
+        # _sliceToIndices, and expand on a per-partial-index basis 
         
         while len(index) < self.dimensions:
             index = ComponentIndex(index + (slice(),))
@@ -548,7 +552,7 @@ class DiscreteComponent( DimensionedComponent ):
             if isinstance(dimIndex, slice):
                 newIndices = set()
                 for oldPartial in indices:
-                    newIndices.add(self._slicesToIndices(slice,
+                    newIndices.update(self._sliceToIndices(dimIndex,
                                                     partialIndex=oldPartial))
                 indices = newIndices
             else:
