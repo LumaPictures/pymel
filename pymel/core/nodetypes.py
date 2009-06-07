@@ -408,26 +408,74 @@ class DimensionedComponent( Component ):
 
     def _makeComponentHandle(self):
         indices = self.__apiobjects__.get('ComponentIndex', None)
+        indices = self._standardizeIndices(indices)
         if indices is None:
             handle = super(DimensionedComponent, self)._makeComponentHandle()
         else:
             handle = self._makeIndexedComponentHandle(indices)
         return handle 
 
-    def _makeIndexedComponentHandle(self, indices, handle=None):
+    def _makeIndexedComponentHandle(self, indices):
         """
         Returns an MObjectHandle that points to a maya component object with
         the given indices.
-        
-        Even though a handle may be provided to the function, you should ALWAYS
-        use the handle returned from this function, and never assume that the
-        handle given is in any way related to the one returned.
-        
-        The option to provide a handle is simply for efficiency / speed -
-        if it is possible to use the provided handle, it will be; otherwise,
-        a new handle/mobject is made and returned.
         """
+        selList = api.MSelectionList()
+        for index in indices:
+            compName = Component._completeNameString(self)
+            for dimIndex in index:
+                compName += '[%s]' % dimIndex
+            selList.add(compName)
+        compMobj = api.MObject()
+        dagPath = api.MDagPath()
+        selList.getDagPath(0, dagPath, compMobj)
+        return api.MObjectHandle(compMobj)
+
+    VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
+
+    def _standardizeIndices(self, indexObjs, allowIterable=True):
+        """
+        Convert indexObjs to an iterable of ComponentIndex objects.
+        
+        indexObjs may be a member of VALID_SINGLE_INDEX_TYPES, a
+        ComponentIndex object, or an iterable of such items (if allowIterable),
+        or 'None'
+        """
+        indices = set()
+        if indexObjs is not None:
+            # Convert single objects to a list
+            if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
+                if self.dimensions == 1:
+                    if isinstance(indexObjs, slice):
+                        return self._standardizeIndices(self._sliceToIndices(slice))
+                    else:
+                        indices.add(ComponentIndex((indexObjs,)))
+                else:
+                    raise IndexError("Single Index given for a multi-dimensional component")
+            elif (isinstance(indexObjs, ComponentIndex) and
+                  all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
+                indices.update(self._flattenIndex(indexObjs))
+            elif allowIterable and util.isIterable(indexObjs):
+                for index in indexObjs:
+                    indices.update(self._standardizeIndices(index,
+                                                            allowIterable=False))
+            else:
+                raise IndexError("Invalid indices for component: %r" % 
+                                 indexObjs)
+        return tuple(indices)
+
+    def _sliceToIndices(self, slice):
         raise NotImplementedError
+    
+    def _flattenIndex(self, index):
+        """
+        Given a ComponentIndex object, which may be either a partial index (ie,
+        len(index) < self.dimensions), a flat list of non-partial
+        ComponentIndex objects. 
+        """
+        while len(index) < self.dimensions:
+            index = ComponentIndex(index + ('*',))
+        return (index,)
     
     def __getitem__(self, item):
         curDim = self.currentDimension()
@@ -474,7 +522,6 @@ def validComponentIndex( argObj ):
             (isinstance( argObj, (list,tuple) ) and
              len(argObj) and isinstance(argObj[0], componentIndexTypes)))
 
-# TODO: implement slices with negative values / None stop values
 class DiscreteComponent( DimensionedComponent ):
     """
     Components whose dimensions are discretely indexed.
@@ -488,12 +535,12 @@ class DiscreteComponent( DimensionedComponent ):
     _dimLength
     """
 
+    VALID_SINGLE_INDEX_TYPES = (int, long, slice)
+    
     def __init__(self, *args, **kwargs):
         self.reset()
         super(DiscreteComponent, self).__init__(*args, **kwargs)
 
-    # TODO: make multi-dimensional (take a partial index, and return a
-    # ComponentIndex object!
     def _sliceToIndices(self, sliceObj, partialIndex=None):
         """
         Converts a slice object to an iterable of the indices it represents.
@@ -550,14 +597,11 @@ class DiscreteComponent( DimensionedComponent ):
         # of components!
         raise NotImplementedError
     
-    def _makeIndexedComponentHandle(self, indices, handle=None):
-        if not handle:
-            handle = Component._makeComponentHandle(self)
-        indices = self._standardizeIndices(indices)
-        
+    def _makeIndexedComponentHandle(self, indices):
         # We could always create our component using the selection list
         # method; but since this has to do string processing, it is slower...
         # so use MFnComponent.addElements method if possible.
+        handle = Component._makeComponentHandle(self)
         if self._componentMObjEmpty(handle.object()):
             mayaArrays = [] 
             for dimIndices in zip(*indices):
@@ -565,18 +609,9 @@ class DiscreteComponent( DimensionedComponent ):
             mfnComp = self._mfncompclass(handle.object())
             mfnComp.setComplete(False)
             mfnComp.addElements(*mayaArrays)
+            return handle
         else:
-            selList = api.MSelectionList()
-            for index in indices:
-                compName = Component._completeNameString(self)
-                for dimIndex in index:
-                    compName += '[%s]' % dimIndex
-                selList.add(compName)
-            compMobj = api.MObject()
-            dagPath = api.MDagPath()
-            selList.getDagPath(0, dagPath, compMobj)
-            handle = api.MObjectHandle(compMobj)
-        return handle
+            return super(DiscreteComponent, self)._makeIndexedComponentHandle(indices)
 
     @classmethod
     def _pyArrayToMayaArray(cls, pythonArray):
@@ -593,35 +628,6 @@ class DiscreteComponent( DimensionedComponent ):
 #        mayaArray.get(cArray)
 #        return [scriptUtil.getIntArrayItem ( cArray, i ) for i in xrange(mIntArray.length())] 
 
-    
-    def _standardizeIndices(self, indexObjs, allowIterable=True):
-        """
-        Convert indexObjs to an iterable of ComponentIndex objects.
-        
-        indexObjs may be an int, long, slice, ComponentIndex object,
-        or an iterable of such items, or 'None'
-        """
-        indices = set()
-        if indexObjs is not None:
-            # Convert single objects to a list
-            if isinstance(indexObjs, (int, long, slice)):
-                if self.dimensions == 1:
-                    if isinstance(indexObjs, slice):
-                        return self._standardizeIndices(self._sliceToIndices(slice))
-                    else:
-                        indices.add(ComponentIndex((indexObjs,)))
-                else:
-                    raise IndexError("Single Index given for a multi-dimensional component")
-            elif isinstance(indexObjs, ComponentIndex):
-                indices.update(self._flattenIndex(indexObjs))
-            elif allowIterable and util.isIterable(indexObjs):
-                for index in indexObjs:
-                    indices.update(self._standardizeIndices(index,
-                                                            allowIterable=False))
-            else:
-                raise IndexError("Invalid indices for component: %r" % 
-                                 indexObjs)
-        return tuple(indices)
     
     def _flattenIndex(self, index):
         """
@@ -713,7 +719,11 @@ class ContinuousComponent( DimensionedComponent ):
     
     Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
     """
-    pass
+    VALID_SINGLE_INDEX_TYPES = (int, long, float)
+    
+    def _standardizeIndices(self, indexObjs):
+        return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
+                                                           allowIterable=False)
             
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1

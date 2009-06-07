@@ -215,7 +215,8 @@ class ComponentData(object):
     """
     Stores data handy for creating / testing a component.
     """
-    def __init__(self, nodeName, compName, indices, melCompName=None, pythonIndices=None):
+    def __init__(self, nodeName, compName, indices, melCompName=None,
+                 pythonIndices=None, melIndices=None):
         self.nodeName = nodeName
         self.compName = compName
         if melCompName is None:
@@ -229,6 +230,11 @@ class ComponentData(object):
         if isinstance(pythonIndices, (int, float, basestring)):
             pythonIndices = [pythonIndices]
         self.pythonIndices = pythonIndices
+        if melIndices is None:
+            melIndices = []
+        if isinstance(melIndices, (int, float, basestring)):
+            melIndices = [melIndices]            
+        self.melIndices = melIndices
         
         if indices:
             # just want the first one, since all we need in a component
@@ -250,22 +256,24 @@ class ComponentData(object):
         return ''.join(['[%s]' % x for x in indexObj.index])
     
     def indexedComps(self):
-        if not self.indices:
+        if not self.hasPyIndices():
             raise ValueError("no indices stored - %s" % self.unindexedComp())
         else:
             for index in itertools.chain(self.indices, self.pythonIndices):
                 yield self.unindexedComp() + self._makeIndicesString(index)
     
     def melIndexedComps(self):
-        if not self.indices:
+        if not self.hasMelIndices():
             raise ValueError("no indices stored - %s" % self.melUnindexedComp())
         else:
-            for index in self.indices:
+            for index in itertools.chain(self.indices, self.melIndices):
                 yield self.melUnindexedComp() + self._makeIndicesString(index)
     
-    def indexSizes(self):
-        for index in self.indices:
-            yield index.size
+    def hasPyIndices(self):
+        return self.indices or self.pythonIndices
+    
+    def hasMelIndices(self):
+        return self.indices or self.melIndices
     
     def typeEnum(self):
         return self._compObj.apiType()
@@ -324,7 +332,7 @@ def makeComponentCreationTests(evalStringCreator):
 
 def melIndexedCompEvalStringCreator(evalStringCreator):
     def newMelIndexedCompEvalStringCreator(self, compData):
-        if compData.indices:
+        if compData.hasMelIndices():
             return [evalStringCreator(self, x)
                      for x in compData.melIndexedComps()]
         else:
@@ -333,7 +341,7 @@ def melIndexedCompEvalStringCreator(evalStringCreator):
 
 def indexedCompEvalStringCreator(evalStringCreator):
     def newIndexedCompEvalStringCreator(self, compData):
-        if compData.indices:
+        if compData.hasPyIndices():
             return [evalStringCreator(self, x)
                      for x in compData.indexedComps()]
         else:
@@ -342,7 +350,7 @@ def indexedCompEvalStringCreator(evalStringCreator):
         
 def melUnindexedCompEvalStringCreator(evalStringCreator):
     def newMelUnindexedCompEvalStringCreator(self, compData):
-        if not compData.indices:
+        if not compData.hasMelIndices():
             return [evalStringCreator(self, compData.melUnindexedComp())]
         else:
             return []
@@ -350,7 +358,7 @@ def melUnindexedCompEvalStringCreator(evalStringCreator):
         
 def unindexedCompEvalStringCreator(evalStringCreator):
     def newUnindexedCompEvalStringCreator(self, compData):
-        if not compData.indices:
+        if not compData.hasPyIndices():
             return [evalStringCreator(self, compData.unindexedComp())]
         else:
             return []
@@ -532,21 +540,19 @@ class testCase_components(unittest.TestCase):
             except Exception:
                 failedCreation.append(compString)
             else:
-                # There's a bug - if you try to select x.sme[*][*], it
-                # crashes. don't know way around this at the moment, so
-                # just automatically failing this test for now
-                if isinstance(pymelObj, SubdEdge) and pymelObj.isComplete():
-                    failedSelections.append(compString)
-                else:
-                    try:
-                        cmds.select(pymelObj.name(), r=1)
-                    except Exception:
+                # There's a bug - if you try to select x.sme[*][*] immediately
+                # after creating the component, with no refresh, it crashes.
+                if isinstance(pymelObj, SubdEdge):
+                    cmds.refresh()
+                try:
+                    cmds.select(pymelObj.name(), r=1)
+                except Exception:
 #                        import traceback
 #                        traceback.print_exc()
-                        failedSelections.append(compString)
-                    else:
-                        if pymelObj != ls(sl=1)[0]:
-                            selectionUnequal.append(compString)
+                    failedSelections.append(compString)
+                else:
+                    if pymelObj != ls(sl=1)[0]:
+                        selectionUnequal.append(compString)
 
         if failedCreation or failedSelections or selectionUnequal:
             failMsgs = []
