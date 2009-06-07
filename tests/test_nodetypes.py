@@ -7,7 +7,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = True
+VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )

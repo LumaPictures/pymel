@@ -169,6 +169,53 @@ class Component( general.PyNode ):
             for exactComp in compList:
                 print "    ", api.ApiEnumsToApiTypes()[exactComp]
 
+    @classmethod
+    def _componentMObjEmpty(cls, mobj):
+        """
+        Returns true if the given component mobj is empty (has no elements).
+        """
+        
+#        Note that a component marked as complete will return elementCount == 0,
+#        even if it is not truly empty.
+#        
+#        Even MFnComponent.isEmpty will sometimes "lie" if component is complete.
+#        
+#        Try this:
+#        
+#        import maya.OpenMaya as api
+#        import maya.cmds as cmds
+#        
+#        melSphere = cmds.sphere()[0]
+#        selList = api.MSelectionList()
+#        selList.add(melSphere + '.cv[*][*]')
+#        compObj = api.MObject()
+#        dagPath = api.MDagPath()
+#        selList.getDagPath(0, dagPath, compObj)
+#        mfnComp = api.MFnDoubleIndexedComponent(compObj)
+#        print "is empty:", mfnComp.isEmpty()
+#        print "is complete:", mfnComp.isComplete()
+#        print "elementCount:", mfnComp.elementCount()
+#        print
+#        mfnComp.setComplete(True)
+#        print "is empty:", mfnComp.isEmpty()
+#        print "is complete:", mfnComp.isComplete()
+#        print "elementCount:", mfnComp.elementCount()
+#        print
+#        mfnComp.setComplete(False)
+#        print "is empty:", mfnComp.isEmpty()
+#        print "is complete:", mfnComp.isComplete()
+#        print "elementCount:", mfnComp.elementCount()
+#        print
+        
+        mfnComp = api.MFnComponent(mobj)
+        completeStatus = mfnComp.isComplete()
+        if completeStatus:
+            mfnComp.setComplete(False)
+        isEmpty = mfnComp.isEmpty()
+        if completeStatus:
+            mfnComp.setComplete(True)
+        return isEmpty
+        
     def __init__(self, *args, **kwargs ):
         # the Component class can be instantiated several ways:
         # Component(dagPath, component):
@@ -332,7 +379,16 @@ class DimensionedComponent( Component ):
         # and it's length indicates how many dimensions have already been
         # specified. 
         if isComplete:
-            self._partialIndex = ComponentIndex()
+            if indices:
+                if isinstance(indices, ComponentIndex):
+                    if len(indices) < self.dimensions:
+                        self._partialIndex = indices
+                    else:
+                        self._partialIndex = None
+                else:
+                    self._partialIndex = None
+            else:
+                self._partialIndex = ComponentIndex()
         else:
             self._partialIndex = None
         
@@ -351,10 +407,11 @@ class DimensionedComponent( Component ):
                  ('[*]' * self.dimensions))
 
     def _makeComponentHandle(self):
-        handle = super(DimensionedComponent, self)._makeComponentHandle()
         indices = self.__apiobjects__.get('ComponentIndex', None)
-        if indices is not None:
-            handle = self._makeIndexedComponentHandle(indices, handle=handle)
+        if indices is None:
+            handle = super(DimensionedComponent, self)._makeComponentHandle()
+        else:
+            handle = self._makeIndexedComponentHandle(indices)
         return handle 
 
     def _makeIndexedComponentHandle(self, indices, handle=None):
@@ -497,12 +554,28 @@ class DiscreteComponent( DimensionedComponent ):
         if not handle:
             handle = Component._makeComponentHandle(self)
         indices = self._standardizeIndices(indices)
-        mayaArrays = [] 
-        for dimIndices in zip(*indices):
-            mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
-        mfnComp = self._mfncompclass(handle.object())
-        mfnComp.setComplete(False)
-        mfnComp.addElements(*mayaArrays)
+        
+        # We could always create our component using the selection list
+        # method; but since this has to do string processing, it is slower...
+        # so use MFnComponent.addElements method if possible.
+        if self._componentMObjEmpty(handle.object()):
+            mayaArrays = [] 
+            for dimIndices in zip(*indices):
+                mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
+            mfnComp = self._mfncompclass(handle.object())
+            mfnComp.setComplete(False)
+            mfnComp.addElements(*mayaArrays)
+        else:
+            selList = api.MSelectionList()
+            for index in indices:
+                compName = Component._completeNameString(self)
+                for dimIndex in index:
+                    compName += '[%s]' % dimIndex
+                selList.add(compName)
+            compMobj = api.MObject()
+            dagPath = api.MDagPath()
+            selList.getDagPath(0, dagPath, compMobj)
+            handle = api.MObjectHandle(compMobj)
         return handle
 
     @classmethod
@@ -817,7 +890,16 @@ class NurbsSurfaceKnot( Component2D ):
 class NurbsSurfaceFace( Component2D ):
     _ComponentLabel__ = "sf"
     _apienum__ = api.MFn.kSurfaceFaceComponent
-    
+
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) == 0:
+            return self.node().numSpansInU()
+        elif len(partialIndex) == 1:
+            return self.node().numSpansInV()
+        else:
+            raise IndexError("partialIndex %r for %s must have length <= 1" %
+                             (partialIndex, self.__class__.__name__))
+        
 ## Lattice Components
 
 class LatticePoint( Component3D ):
