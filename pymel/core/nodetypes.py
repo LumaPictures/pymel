@@ -529,7 +529,7 @@ class DiscreteComponent( DimensionedComponent ):
     Ie, there are a finite number of possible components, referenced by integer
     indices.
     
-    Example: polyCube.vtx[38], nurbsSurface.cv[3][2]
+    Example: polyCube.vtx[38], f.cv[3][2]
     
     Derived classes should implement:
     _dimLength
@@ -878,8 +878,13 @@ class NurbsCurveKnot( Component1D ):
 ## NurbsSurface Components
 
 class NurbsSurfaceIsoparm( Component2DFloat ):
-    _ComponentLabel__ = "u"
     _apienum__ = api.MFn.kIsoparmComponent
+
+class NurbsSurfaceUIsoparm( Component2DFloat ):
+     _ComponentLabel__ = "u"
+
+class NurbsSurfaceVIsoparm( Component2DFloat ):
+     _ComponentLabel__ = "v"
 
 class NurbsSurfaceRange( Component1DFloat ):
     _ComponentLabel__ = "u"
@@ -3962,11 +3967,11 @@ class SurfaceShape(ControlPoint): pass
 
 class NurbsSurface(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'u'           : NurbsSurfaceIsoparm,
-                            'uIsoparm'    : NurbsSurfaceIsoparm,
-                            'v'           : NurbsSurfaceIsoparm,
-                            'vIsoparm'    : NurbsSurfaceIsoparm,
-                            'uv'          : NurbsSurfaceIsoparm,
+    _componentAttributes = {'u'           : NurbsSurfaceUIsoparm,
+                            'uIsoparm'    : NurbsSurfaceUIsoparm,
+                            'v'           : NurbsSurfaceVIsoparm,
+                            'vIsoparm'    : NurbsSurfaceVIsoparm,
+                            'uv'          : NurbsSurfaceUIsoparm,
                             'cv'          : NurbsSurfaceCV,
                             'conrolVerts' : NurbsSurfaceCV,
                             'ep'          : NurbsSurfaceEP,
