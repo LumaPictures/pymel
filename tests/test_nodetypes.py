@@ -7,7 +7,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -535,24 +535,33 @@ class testCase_components(unittest.TestCase):
         failedSelections = []
         selectionUnequal = []
         for compString in self.getComponentStrings():
+            if VERBOSE:
+                print compString, "-", "creating...",
             try:
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
-                # There's a bug - if you try to select x.sme[*][*] immediately
-                # after creating the component, with no refresh, it crashes.
-                if isinstance(pymelObj, SubdEdge):
-                    cmds.refresh()
+                if VERBOSE:
+                    print "selecting...",
                 try:
-                    cmds.select(pymelObj.name(), r=1)
+                    melName = pymelObj.name()
+                    # There's a bug - if you try to select x.sme[*][*] immediately
+                    # after creating the component, with no refresh, it crashes.
+                    if melName.endswith('.sme[*][*]'):
+                        raise Exception
+                    cmds.select(melName, r=1)
                 except Exception:
 #                        import traceback
 #                        traceback.print_exc()
                     failedSelections.append(compString)
                 else:
+                    if VERBOSE:
+                        print "comparing...",
                     if pymelObj != ls(sl=1)[0]:
                         selectionUnequal.append(compString)
+                    if VERBOSE:
+                        print "done!"
 
         if failedCreation or failedSelections or selectionUnequal:
             failMsgs = []

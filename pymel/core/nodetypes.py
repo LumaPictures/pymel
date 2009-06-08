@@ -408,10 +408,10 @@ class DimensionedComponent( Component ):
 
     def _makeComponentHandle(self):
         indices = self.__apiobjects__.get('ComponentIndex', None)
-        indices = self._standardizeIndices(indices)
         if indices is None:
             handle = super(DimensionedComponent, self)._makeComponentHandle()
         else:
+            indices = self._standardizeIndices(indices)
             handle = self._makeIndexedComponentHandle(indices)
         return handle 
 
