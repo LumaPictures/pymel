@@ -17,7 +17,7 @@ import pymel.mayahook as mayahook
 # in python2.6/maya2010 'as' becomes a keyword. 
 # TODO:  add a version check: 
 if sys.version_info >= (2,6):
-    AS_UNITS = 'asUnit'
+    AS_UNITS = 'asUnits'
 else:
     AS_UNITS = 'as'
         
