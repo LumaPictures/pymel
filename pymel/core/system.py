@@ -10,25 +10,31 @@ within the pymel namespace.
 
 for example, instead of this:
     
-    >>> expFile = cmds.file( '/var/tmp/test.ma', exportAll=1, preserveReferences=1, type='mayaAscii', force=1 )
+    >>> res = cmds.file( 'test.ma', exportAll=1, preserveReferences=1, type='mayaAscii', force=1 )
     
 you can do this:
 
-    >>> expFile = exportAll( '/var/tmp/test.ma', preserveReferences=1, force=1)
-    >>> expFile
-    Path('/var/tmp/test.ma')
+    >>> expFile = exportAll( 'test.ma', preserveReferences=1, force=1)
     
 some of the new commands were changed slightly from their flag name to avoid name clashes and to add to readability:
 
     >>> importFile( expFile )  # flag was called import, but that's a python keyword
-    >>> createReference( expFile )
-    FileReference(u'testRN', u'/var/tmp/test.ma')
+    >>> ref = createReference( expFile ) 
+    >>> ref # doctest: +ELLIPSIS
+    FileReference(u'testRN', u'.../test.ma')
 
-Also, note that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
+Notice that the 'type' flag is set automatically for you when your path includes a '.mb' or '.ma' extension.
+
+Paths returned by these commands are either a `Path` or a `FileReference`, so you can use object-oriented path methods with
+the results::
+
+    >>> expFile.exists()
+    True
+    >>> expFile.remove()  # cleanup
 
 """
 
-
+import sys, os
 import pmcmds as cmds
 #import maya.cmds as cmds
 import maya.OpenMaya as OpenMaya
@@ -40,7 +46,6 @@ from pymel.util.scanf import fscanf
 import logging
 _logger = logging.getLogger(__name__)
 
-import sys
 
 try:
     # attempt to import a custom path class to use as the base for pymel's Path class
@@ -395,7 +400,7 @@ class Workspace(object):
     old way (still exists for backward compatibility)
         >>> proj = workspace(query=1, dir=1) 
         >>> proj  # doctest: +ELLIPSIS
-        u'.../Documents/maya/projects/'
+        u'.../maya/projects/'
         >>> workspace(create='mydir')
         >>> workspace(dir='mydir') # move into new dir
         >>> workspace(dir=proj) # change back to original dir
@@ -403,14 +408,14 @@ class Workspace(object):
     new way    
         >>> proj = workspace.getcwd() # doctest: +ELLIPSIS
         >>> proj  # doctest: +ELLIPSIS
-        Path('.../Documents/maya/projects/')
+        Path('.../maya/projects/')
         >>> workspace.mkdir('mydir')
         >>> workspace.chdir('mydir')
         >>> workspace.chdir(proj)
     
     All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
         >>> workspace.path / workspace.fileRules['mayaAscii']  # doctest: +ELLIPSIS
-        Path('.../Documents/maya/projects/default/scenes')
+        Path('.../maya/projects/default/scenes')
         
     """
     __metaclass__ = util.Singleton
@@ -1262,6 +1267,11 @@ class ReferenceEdit(str):
 # TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave ( api : mustRenameToSave )
 # From API: isReadingFile, isWritingFile, isOpeningFile, isNewingFile, isImportingFile
 
+def _correctPath(path):
+    # make paths absolute
+    if '\\' not in path and '/' not in path and path != 'untitled':
+        path = '/'.join( [os.getcwd().replace('\\', '/'), path] )
+    return path
 
 @_factories.addMelDocs('file', 'reference')
 def createReference( filepath, **kwargs ):
@@ -1281,8 +1291,8 @@ def exportAll( exportPath, **kwargs ):
     kwargs['exportAll'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
-        return Path(exportPath)
-    return Path(res)
+        res = exportPath
+    return Path(_correctPath(res))
 
 @_factories.addMelDocs('file', 'exportAsReference')
 def exportAsReference( exportPath, **kwargs ):
@@ -1303,8 +1313,8 @@ def exportSelected( exportPath, **kwargs ):
     kwargs['exportSelected'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
-        return Path(exportPath)
-    return Path(res)
+        res = exportPath
+    return Path(_correctPath(res))
 
 @_factories.addMelDocs('file', 'exportAnim')
 def exportAnim( exportPath, **kwargs ):
@@ -1314,8 +1324,8 @@ def exportAnim( exportPath, **kwargs ):
     kwargs['exportAnim'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
-        return Path(exportPath)
-    return Path(res)
+        res = exportPath
+    return Path(_correctPath(res))
 
 @_factories.addMelDocs('file', 'exportSelectedAnim')
 def exportSelectedAnim( exportPath, **kwargs ):
@@ -1325,8 +1335,8 @@ def exportSelectedAnim( exportPath, **kwargs ):
     kwargs['exportSelectedAnim'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
-        return Path(exportPath)
-    return Path(res)
+        res = exportPath
+    return Path(_correctPath(res))
 
 @_factories.addMelDocs('file', 'exportAnimFromReference')    
 def exportAnimFromReference( exportPath, **kwargs ):
@@ -1336,8 +1346,8 @@ def exportAnimFromReference( exportPath, **kwargs ):
     kwargs['exportAnimFromReference'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
-        return Path(exportPath)
-    return Path(res)
+        res = exportPath
+    return Path(_correctPath(res))
       
 @_factories.addMelDocs('file', 'exportSelectedAnimFromReference')    
 def exportSelectedAnimFromReference( exportPath, **kwargs ):
@@ -1347,8 +1357,8 @@ def exportSelectedAnimFromReference( exportPath, **kwargs ):
     kwargs['exportSelectedAnimFromReference'] = True
     res = cmds.file(exportPath, **kwargs)
     if res is None:
-        return Path(exportPath)
-    return Path(res)
+        res = exportPath
+    return Path(_correctPath(res))
     
 @_factories.addMelDocs('file', 'i')
 def importFile( filepath, **kwargs ):
