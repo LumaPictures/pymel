@@ -16,11 +16,10 @@ import pymel.mayahook as mayahook
 
 # in python2.6/maya2010 'as' becomes a keyword. 
 # TODO:  add a version check: 
-#from pymel.mayahook import Version
-#if Version.current => Version.v2010:
-#    AS_UNITS = 'asUnit'
-#else:
-AS_UNITS = 'as'
+if sys.version_info >= (2,6):
+    AS_UNITS = 'asUnit'
+else:
+    AS_UNITS = 'as'
         
 # patch some Maya api classes that miss __iter__ to make them iterable / convertible to list
 def _patchMVector() :
