@@ -851,7 +851,7 @@ def writeCache( data, filePrefix, description='', useVersion=True):
     if description:
         description = ' ' + description
     
-    _logger.debug("Saving%s to '%s'" % ( description, newPath ))
+    _logger.info("Saving%s to '%s'" % ( description, newPath ))
     try :
         file = open(newPath, mode='wb')
         try :

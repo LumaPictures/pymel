@@ -6092,10 +6092,10 @@ def axis(a, b, c=None, normalize=False):
         
         >>> u = VectorN(1.0, 0.0, 0.0)
         >>> v = VectorN(0.707, 0.0, -0.707)
-        >>> axis(u, v)
-        VectorN([-0.0, 0.707, 0.0])
-        >>> axis(u, [0.707, 0.0, -0.707], normalize=True)        
-        VectorN([-0.0, 1.0, 0.0])
+        >>> axis(u, v) == VectorN([0.0, 0.707, 0.0])
+        True
+        >>> axis(u, [0.707, 0.0, -0.707], normalize=True) == VectorN([-0.0, 1.0, 0.0])     
+        True
         
         Alternatively can use the form axis(a, b, c), where a, b, c are 4 dimensional Vectors representing 3D points,
         it is then equivalent to axis(b-a, c-a).        
@@ -6103,8 +6103,8 @@ def axis(a, b, c=None, normalize=False):
         >>> o = VectorN(0.0, 1.0, 0.0, 1.0)        
         >>> p = VectorN(1.0, 1.0, 0.0, 1.0)
         >>> q = VectorN(0.707, 1.0, -0.707, 1.0)
-        >>> axis(o, p, q, normalize=True)
-        VectorN([-0.0, 1.0, 0.0])
+        >>> axis(o, p, q, normalize=True) == VectorN([0.0, 1.0, 0.0])
+        True
         
         Related : see VectorN.axis method.
     """

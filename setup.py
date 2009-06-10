@@ -1,10 +1,15 @@
 #!/usr/bin/env python
-
+import sys
 import ez_setup
 ez_setup.use_setuptools()
 
 from setuptools import setup, find_packages
 
+if sys.version_info >= (2,6):
+    ply_version = 'ply >2.0'
+else:
+    ply_version = 'ply >2.0, <3.0'
+    
 setup(name='pymel',
       version='0.9.1',
       description='Python in Maya Done Right',
@@ -20,7 +25,7 @@ succinct and intuitive way. """,
       packages=['pymel','pymel.api', 'pymel.core', 'pymel.mayahook', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util' ],
       entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main [ipymel]' },
       package_data={'pymel': ['*.bin', '*.conf' ] },
-      install_requires=['BeautifulSoup >3.0', 'ply >2.0, <3.0' ],
+      install_requires=['BeautifulSoup >3.0', ply_version],
       extras_require= { 'ipymel' : 'ipython' },
       tests_require=['nose'],
       test_suite = 'nose.collector',
