@@ -7,7 +7,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = True
+VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -215,8 +215,10 @@ class ComponentData(object):
     """
     Stores data handy for creating / testing a component.
     """
-    def __init__(self, nodeName, compName, indices, melCompName=None,
+    def __init__(self, pymelType, nodeName, compName, indices,
+                 melCompName=None,
                  pythonIndices=None, melIndices=None):
+        self.pymelType = pymelType
         self.nodeName = nodeName
         self.compName = compName
         if melCompName is None:
@@ -244,7 +246,8 @@ class ComponentData(object):
                 break 
         else:
             compObjStr = self.melUnindexedComp()
-        self._compObj = api.toApiObject(compObjStr)[1]    
+        self._compObj = api.toApiObject(compObjStr)[1]
+
         
     def unindexedComp(self):
         return self.nodeName + "." + self.compName
@@ -380,64 +383,90 @@ class testCase_components(unittest.TestCase):
         self.compData= {}
 
         self.nodes['cube'] = cmds.polyCube()[0]
-        self.compData['meshVtx'] = ComponentData(self.nodes['cube'], "vtx",
+        self.compData['meshVtx'] = ComponentData(MeshVertex,
+                                                 self.nodes['cube'], "vtx",
                                             [IndexData(2), IndexData('2:4')],
                                             pythonIndices = [IndexData(':-1')])
-        self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "e",
+        self.compData['meshEdge'] = ComponentData(MeshEdge,
+                                                  self.nodes['cube'], "e",
                                                   [IndexData(1)])
         #self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "edge", 1)   # This just gets the plug, not a kEdgeComponent
-        self.compData['meshFace'] = ComponentData(self.nodes['cube'], "f",
+        self.compData['meshFace'] = ComponentData(MeshFace,
+                                                  self.nodes['cube'], "f",
                                                   [IndexData(4)])
-        self.compData['meshUV'] = ComponentData(self.nodes['cube'], "map",
-                                                  [IndexData(3)])
-        self.compData['meshVtxFace'] = ComponentData(self.nodes['cube'], "vtxFace",
-                                                  [IndexData((3,0))])
-        self.compData['rotatePivot'] = ComponentData(self.nodes['cube'], "rotatePivot", [])
+        self.compData['meshUV'] = ComponentData(MeshUV,
+                                                self.nodes['cube'], "map",
+                                                [IndexData(3)])
+        self.compData['meshVtxFace'] = ComponentData(MeshVertexFace,
+                                                     self.nodes['cube'], "vtxFace",
+                                                     [IndexData((3,0))])
+        self.compData['rotatePivot'] = ComponentData(RotatePivot,
+                                                     self.nodes['cube'],
+                                                     "rotatePivot", [])
 
         self.nodes['subdBase'] = cmds.polyCube()[0]
         self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
-        self.compData['subdCV'] = ComponentData(self.nodes['subd'], "smp",
-                                                  [IndexData((0,2))])
-        self.compData['subdEdge'] = ComponentData(self.nodes['subd'], "sme",
+        self.compData['subdCV'] = ComponentData(SubdVertex,
+                                                self.nodes['subd'], "smp",
+                                                [IndexData((0,2))])
+        self.compData['subdEdge'] = ComponentData(SubdEdge,
+                                                  self.nodes['subd'], "sme",
                                                   [IndexData((256,1))])
-        self.compData['subdFace'] = ComponentData(self.nodes['subd'], "smf",
+        self.compData['subdFace'] = ComponentData(SubdFace,
+                                                  self.nodes['subd'], "smf",
                                                   [IndexData((256,0))])
-        self.compData['subdUV'] = ComponentData(self.nodes['subd'], "smm",
-                                                  [IndexData(95)])
-        self.compData['scalePivot'] = ComponentData(self.nodes['cube'], "scalePivot", [])
+        self.compData['subdUV'] = ComponentData(SubdUV,
+                                                self.nodes['subd'], "smm",
+                                                [IndexData(95)])
+        self.compData['scalePivot'] = ComponentData(ScalePivot,
+                                                    self.nodes['cube'],
+                                                    "scalePivot", [])
         
         self.nodes['curve'] = cmds.circle()[0]
-        self.compData['curveCV'] = ComponentData(self.nodes['curve'], "cv",
-                                                  [IndexData(6)])
-        self.compData['curvePt'] = ComponentData(self.nodes['curve'], "u", 
-                                                  [IndexData(7.26580365007639)])        
-        self.compData['curveEP'] = ComponentData(self.nodes['curve'], "ep",
-                                                  [IndexData(7)])
-        self.compData['curveKnot'] = ComponentData(self.nodes['curve'], "knot",
-                                                  [IndexData(1)])
+        self.compData['curveCV'] = ComponentData(NurbsCurveCV,
+                                                 self.nodes['curve'], "cv",
+                                                 [IndexData(6)])
+        self.compData['curvePt'] = ComponentData(NurbsCurveParameter,
+                                                 self.nodes['curve'], "u", 
+                                                 [IndexData(7.26580365007639)])        
+        self.compData['curveEP'] = ComponentData(NurbsCurveEP,
+                                                 self.nodes['curve'], "ep",
+                                                 [IndexData(7)])
+        self.compData['curveKnot'] = ComponentData(NurbsCurveKnot,
+                                                   self.nodes['curve'], "knot",
+                                                   [IndexData(1)])
 
         self.nodes['sphere'] = cmds.sphere()[0]
-        self.compData['nurbsCV'] = ComponentData(self.nodes['sphere'], "cv",
-                                                  [IndexData((2,1))])
-        self.compData['nurbsIsoU'] = ComponentData(self.nodes['sphere'], "u",
-                                                  [IndexData(5)])
-        self.compData['nurbsIsoV'] = ComponentData(self.nodes['sphere'], "vIsoparm",
-                                                  [IndexData(5.27974050577565)],
+        self.compData['nurbsCV'] = ComponentData(NurbsSurfaceCV,
+                                                 self.nodes['sphere'], "cv",
+                                                 [IndexData((2,1))])
+        self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceUIsoparm,
+                                                   self.nodes['sphere'], "u",
+                                                   [IndexData(5)])
+        self.compData['nurbsIsoV'] = ComponentData(NurbsSurfaceVIsoparm,
+                                                   self.nodes['sphere'], "vIsoparm",
+                                                   [IndexData(5.27974050577565)],
                                                    melCompName="v")
-        self.compData['nurbsIsoUV'] = ComponentData(self.nodes['sphere'], "uv",
-                                                  [IndexData((1, 4.8))])
-        self.compData['nurbsPatch'] = ComponentData(self.nodes['sphere'], "sf",
-                                                  [IndexData((1,1))])
-        self.compData['nurbsEP'] = ComponentData(self.nodes['sphere'], "ep",
-                                                  [IndexData((1,5))])
-        self.compData['nurbsKnot'] = ComponentData(self.nodes['sphere'], "knot",
-                                                  [IndexData((1,5))])
-        self.compData['nurbsRange'] = ComponentData(self.nodes['sphere'], "u",
-                                                  [IndexData('2:3')])
+        self.compData['nurbsIsoUV'] = ComponentData(NurbsSurfaceUIsoparm,
+                                                    self.nodes['sphere'], "uv",
+                                                    [IndexData((1, 4.8))])
+        self.compData['nurbsPatch'] = ComponentData(NurbsSurfaceFace,
+                                                    self.nodes['sphere'], "sf",
+                                                    [IndexData((1,1))])
+        self.compData['nurbsEP'] = ComponentData(NurbsSurfaceEP,
+                                                 self.nodes['sphere'], "ep",
+                                                 [IndexData((1,5))])
+        self.compData['nurbsKnot'] = ComponentData(NurbsSurfaceKnot,
+                                                   self.nodes['sphere'], "knot",
+                                                   [IndexData((1,5))])
+        self.compData['nurbsRange'] = ComponentData(NurbsSurfaceRange,
+                                                    self.nodes['sphere'], "u",
+                                                    [IndexData('2:3')])
 
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
-        self.compData['lattice'] = ComponentData(self.nodes['lattice'], "pt",
-                                                  [IndexData((0,1,0))])
+        self.compData['lattice'] = ComponentData(LatticePoint,
+                                                 self.nodes['lattice'], "pt",
+                                                 [IndexData((0,1,0))])
         
     def tearDown(self):
         for node in self.nodes.itervalues():
@@ -523,12 +552,15 @@ class testCase_components(unittest.TestCase):
         if failedComps:
             self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
                     
-    def getComponentStrings(self):
-        componentStrings = []
+    def getComponentStrings(self, returnCompData=False):
+        componentStrings = set()
         for componentData in self.compData.itervalues():
             for evalStringFunc in getEvalStringFunctions(self.__class__).itervalues():
-                componentStrings.extend(evalStringFunc(self, componentData))
-        return componentStrings
+                newStrings = evalStringFunc(self, componentData)
+                if returnCompData:
+                    newStrings = [(x, componentData) for x in newStrings]
+                componentStrings.update(newStrings)
+        return list(componentStrings)
     
     def test_componentSelection(self):
         failedCreation  = []
@@ -573,6 +605,33 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal))
             self.fail('\n\n'.join(failMsgs))
 
+    def test_componentTypes(self):
+        def getCompAttrName(compString):
+            dotSplit = compString.split('.')
+            if len(dotSplit) > 1:
+                return re.split(r'\W+', dotSplit[1])[0]
+                
+        failedCreation  = []
+        failedComparisons = []
+        for compString, compData in self.getComponentStrings(returnCompData=True):
+            try:
+                pymelObj = eval(compString)
+            except Exception:
+                failedCreation.append(compString)
+            else:
+                if pymelObj.__class__ != compData.pymelType:
+                        failedComparisons.append(compString +
+                            ' - expected: %s got: %s' % (compData.pymelType,
+                                                         pymelObj.__class__))
+                        
+        if failedCreation or failedComparisons:
+            failMsgs = []
+            if failedCreation:
+                failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
+            if failedComparisons:
+                failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
+            self.fail('\n\n'.join(failMsgs))
+                        
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
     evalStringId = '_evalStrings'

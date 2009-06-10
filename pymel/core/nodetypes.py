@@ -739,7 +739,16 @@ class Component1D( DiscreteComponent ):
 class Component1D64( DiscreteComponent ):
     _mfncompclass = api.MFnUint64SingleIndexedComponent
     _apienum__ = api.MFn.kUint64SingleIndexedComponent
-    dimensions = 1
+    # kUint64SingleIndexedComponent components have a bit of a dual-personality
+    # - though internally represented as a single-indexed long-int, in almost
+    # all of the "interface", they are displayed as double-indexed-ints:
+    # ie, if you select a subd vertex, it might be displayed as
+    #    mySubd.smp[256][4388]
+    # Since the end user will mostly "see" the component as double-indexed,
+    # the default pymel indexing will be double-indexed, so we set dimensions
+    # to 2, and then hand correct cases where self.dimensions affects how
+    # we're interacting with the kUint64SingleIndexedComponent
+    dimensions = 2
 
     @classmethod
     def _pyArrayToMayaArray(cls, pythonArray):
@@ -748,7 +757,15 @@ class Component1D64( DiscreteComponent ):
         for i, value in enumerate(pythonArray):
             mayaArray.set(value, i)
         return mayaArray
-    
+
+    def _makeIndexedComponentHandle(self, indices):
+        # Because I can't find a way to get a MUint64 &, which
+        # MFnSubdNames.fromSelectionIndices requires, the only way I know of
+        # to convert selection indices to int64 indices is using selections,
+        # so might as well just use the version of _makeIndexedComponentHandle
+        # that uses selection lists...
+        return DimensionedComponent._makeIndexedComponentHandle(self, indices)
+                
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
     _apienum__ = api.MFn.kDoubleIndexedComponent
