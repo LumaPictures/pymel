@@ -562,7 +562,7 @@ class testCase_components(unittest.TestCase):
                 componentStrings.update(newStrings)
         return list(componentStrings)
     
-    def DISABLEDtest_componentSelection(self):
+    def test_componentSelection(self):
         failedCreation  = []
         failedSelections = []
         selectionUnequal = []
@@ -605,7 +605,7 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal))
             self.fail('\n\n'.join(failMsgs))
 
-    def DISABLEDtest_componentTypes(self):
+    def test_componentTypes(self):
         def getCompAttrName(compString):
             dotSplit = compString.split('.')
             if len(dotSplit) > 1:
