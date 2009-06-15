@@ -332,7 +332,7 @@ class Component( general.PyNode ):
     def name(self):
         melObj = self.__melobject__()
         if isinstance(melObj, basestring):
-            return basestring
+            return melObj
         return repr(melObj)
                 
     def node(self):
