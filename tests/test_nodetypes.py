@@ -7,7 +7,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -262,7 +262,11 @@ class ComponentData(object):
         if not self.hasPyIndices():
             raise ValueError("no indices stored - %s" % self.unindexedComp())
         else:
+            # yield partial indices as well...
             for index in itertools.chain(self.indices, self.pythonIndices):
+                if len(index.index):
+                    for partialIndexLen in xrange(1, len(index.index)):
+                        yield self.unindexedComp() + self._makeIndicesString(IndexData(index.index[:partialIndexLen]))
                 yield self.unindexedComp() + self._makeIndicesString(index)
     
     def melIndexedComps(self):
@@ -582,7 +586,7 @@ class testCase_components(unittest.TestCase):
                     # after creating the component, with no refresh, it crashes.
                     if melName.endswith('.sme[*][*]'):
                         raise Exception
-                    cmds.select(melName, r=1)
+                    select(pymelObj, r=1)
                 except Exception:
 #                        import traceback
 #                        traceback.print_exc()

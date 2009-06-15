@@ -316,8 +316,8 @@ class Component( general.PyNode ):
         mfnComp.setComplete(True)
 
         return api.MObjectHandle(component)
-    
-    def name(self):
+
+    def __melobject__(self):
         selList = api.MSelectionList()
         selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
         strings = []
@@ -327,7 +327,13 @@ class Component( general.PyNode ):
         elif len(strings) == 1:
             return strings[0]
         else:
-            return repr(strings)
+            return strings
+            
+    def name(self):
+        melObj = self.__melobject__()
+        if isinstance(melObj, basestring):
+            return basestring
+        return repr(melObj)
                 
     def node(self):
         return self._node
@@ -854,6 +860,12 @@ class MeshUV( Component1D ):
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
     _apienum__ = api.MFn.kMeshVtxFaceComponent
+    
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) == 0:
+            return self.node().numVertices()
+        elif len(partialIndex) == 1:
+            return self.node().vtx[partialIndex[0]].numConnectedFaces()
     
 ## Subd Components    
 
