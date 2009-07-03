@@ -79,7 +79,14 @@ class testCase_attribs(unittest.TestCase):
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-5), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=4), None)
         self.assertEqual(self.newAttrs['compound_compound_long'].getParent(-63), None)
-        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)        
+        self.assertEqual(self.newAttrs['compound_compound_long'].getParent(generations=32), None)
+        
+    def test_comparison(self):
+        for attr in self.newAttrs.itervalues():
+            self.assertEqual(attr, PyNode(attr.name()))
+            
+    def test_comparisonOtherObject(self):
+        self.assertNotEqual(self.newAttrs['compound'], self.sphere1)
 
      
 def testInvertibles():
