@@ -623,10 +623,15 @@ class testCase_components(unittest.TestCase):
             except Exception:
                 failedCreation.append(compString)
             else:
+                # only test iteration for discrete components!
+                if not isinstance(pymelObj, DiscreteComponent):
+                    continue
+                
                 if VERBOSE:
                     print "iterating...",
                 try:
                     iteration = [x for x in pymelObj]
+                    iterationString = repr(iteration)
                 except Exception:
 #                        import traceback
 #                        traceback.print_exc()
@@ -637,7 +642,7 @@ class testCase_components(unittest.TestCase):
                     try:
                         select(iteration)
                     except Exception:
-                        failedSelections.append(repr(iteration))
+                        failedSelections.append(iterationString)
                     else:
                         iterSel = ls(sl=1)
                         try:
