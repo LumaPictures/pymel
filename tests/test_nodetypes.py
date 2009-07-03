@@ -609,6 +609,59 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal))
             self.fail('\n\n'.join(failMsgs))
 
+    def test_componentIteration(self):
+        failedCreation  = []
+        failedIterations = []
+        failedSelections = []
+        iterationUnequal = []
+        
+        for compString in self.getComponentStrings():
+            if VERBOSE:
+                print compString, "-", "creating...",
+            try:
+                pymelObj = eval(compString)
+            except Exception:
+                failedCreation.append(compString)
+            else:
+                if VERBOSE:
+                    print "iterating...",
+                try:
+                    iteration = [x for x in pymelObj]
+                except Exception:
+#                        import traceback
+#                        traceback.print_exc()
+                    failedIterations.append(compString)
+                else:
+                    if VERBOSE:
+                        print "comparing (using selection)...",
+                    try:
+                        select(iteration)
+                    except Exception:
+                        failedSelections.append(repr(iteration))
+                    else:
+                        iterSel = ls(sl=1)
+                        try:
+                            select(pymelObj)
+                        except Exception:
+                            failedSelections.append(compString)
+                        else:
+                            if iterSel != ls(sl=1):
+                                iterationUnequal.append(compString)
+                            if VERBOSE:
+                                print "done!"
+
+        if failedCreation or failedIterations or failedSelections or iterationUnequal:
+            failMsgs = []
+            if failedCreation:
+                failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
+            if failedIterations:
+                failMsgs.append('Following components uniterable:\n   ' + '\n   '.join(failedIterations))
+            if failedSelections:
+                failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedSelections))
+            if iterationUnequal:
+                failMsgs.append('Following components iteration not equal to orignal:\n   ' + '\n   '.join(iterationUnequal))
+            self.fail('\n\n'.join(failMsgs))
+
     def test_componentTypes(self):
         def getCompAttrName(compString):
             dotSplit = compString.split('.')
