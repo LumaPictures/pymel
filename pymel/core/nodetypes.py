@@ -730,6 +730,9 @@ class ContinuousComponent( DimensionedComponent ):
     def _standardizeIndices(self, indexObjs):
         return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
                                                            allowIterable=False)
+    
+    def __iter__(self):
+        raise TypeError("%r object is not iterable" % self.__class__.__name__)
             
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
