@@ -86,7 +86,7 @@ class testCase_attribs(unittest.TestCase):
             self.assertEqual(attr, PyNode(attr.name()))
             
     def test_comparisonOtherObject(self):
-        self.assertNotEqual(self.newAttrs['compound'], self.node)
+        self.assertNotEqual(self.newAttrs['compound'], self.sphere1)
 
      
 def testInvertibles():

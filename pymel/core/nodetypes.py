@@ -1600,6 +1600,8 @@ class Attribute(general.PyNode):
         if not isinstance(other,Attribute):
             try:
                 other = general.PyNode(other)
+                if not hasattr(other, '__apimplug__'):
+                    return False
             except (ValueError,TypeError): # could not cast to general.PyNode
                 return False
             
