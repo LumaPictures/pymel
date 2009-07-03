@@ -7,7 +7,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = True
+VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -337,39 +337,70 @@ def makeComponentCreationTests(evalStringCreator):
             
     return test_makeComponents
 
-def melIndexedCompEvalStringCreator(evalStringCreator):
-    def newMelIndexedCompEvalStringCreator(self, compData):
-        if compData.hasMelIndices():
-            return [evalStringCreator(self, x)
-                     for x in compData.melIndexedComps()]
-        else:
+class MakeEvalStringCreator(object):
+    def __init__(self, melOrPymel, indexed=True, alwaysMakeUnindexed=False):
+        self.melOrPymel = melOrPymel
+        self.indexed = indexed
+        self.alwaysMakeUnindexed = alwaysMakeUnindexed
+        
+    def __call__(self, evalStringCreator):
+        def wrappedEvalStringCreator(testCase, compData):
+            compDataStringFunc = None
+            if self.indexed:
+                if self.melOrPymel == 'mel':
+                    if compData.hasMelIndices():
+                        compDataStringFunc = compData.melIndexedComps
+                elif self.melOrPymel == 'pymel':
+                    if compData.hasPyIndices():
+                        compDataStringFunc = compData.indexedComps
+                if compDataStringFunc:
+                    return [evalStringCreator(testCase, x)
+                            for x in compDataStringFunc()]
+            else:
+                if self.melOrPymel == 'mel':
+                    if self.alwaysMakeUnindexed or not compData.hasMelIndices():
+                        compDataStringFunc = compData.melUnindexedComp
+                elif self.melOrPymel == 'pymel':
+                    if self.alwaysMakeUnindexed or not compData.hasPyIndices():
+                        compDataStringFunc = compData.unindexedComp
+                if compDataStringFunc:
+                    return [evalStringCreator(testCase, compDataStringFunc())]
             return []
-    return newMelIndexedCompEvalStringCreator
+        return wrappedEvalStringCreator
 
-def indexedCompEvalStringCreator(evalStringCreator):
-    def newIndexedCompEvalStringCreator(self, compData):
-        if compData.hasPyIndices():
-            return [evalStringCreator(self, x)
-                     for x in compData.indexedComps()]
-        else:
-            return []
-    return newIndexedCompEvalStringCreator
-        
-def melUnindexedCompEvalStringCreator(evalStringCreator):
-    def newMelUnindexedCompEvalStringCreator(self, compData):
-        if not compData.hasMelIndices():
-            return [evalStringCreator(self, compData.melUnindexedComp())]
-        else:
-            return []
-    return newMelUnindexedCompEvalStringCreator
-        
-def unindexedCompEvalStringCreator(evalStringCreator):
-    def newUnindexedCompEvalStringCreator(self, compData):
-        if not compData.hasPyIndices():
-            return [evalStringCreator(self, compData.unindexedComp())]
-        else:
-            return []
-    return newUnindexedCompEvalStringCreator
+#def melIndexedCompEvalStringCreator(evalStringCreator):
+#    def newMelIndexedCompEvalStringCreator(self, compData):
+#        if compData.hasMelIndices():
+#            return [evalStringCreator(self, x)
+#                     for x in compData.melIndexedComps()]
+#        else:
+#            return []
+#    return newMelIndexedCompEvalStringCreator
+#
+#def indexedCompEvalStringCreator(evalStringCreator):
+#    def newIndexedCompEvalStringCreator(self, compData):
+#        if compData.hasPyIndices():
+#            return [evalStringCreator(self, x)
+#                     for x in compData.indexedComps()]
+#        else:
+#            return []
+#    return newIndexedCompEvalStringCreator
+#        
+#def melUnindexedCompEvalStringCreator(evalStringCreator):
+#    def newMelUnindexedCompEvalStringCreator(self, compData):
+#        if not compData.hasMelIndices():
+#            return [evalStringCreator(self, compData.melUnindexedComp())]
+#        else:
+#            return []
+#    return newMelUnindexedCompEvalStringCreator
+#        
+#def unindexedCompEvalStringCreator(evalStringCreator, allowIndexedComps=False):
+#    def newUnindexedCompEvalStringCreator(self, compData):
+#        if not compData.hasPyIndices():
+#            return [evalStringCreator(self, compData.unindexedComp())]
+#        else:
+#            return []
+#    return newUnindexedCompEvalStringCreator
 
 def getEvalStringFunctions(theObj):
     returnDict = {}
@@ -509,14 +540,14 @@ class testCase_components(unittest.TestCase):
     def pyNodeMaker(self, compString):
         return 'PyNode(%r)' % compString
     
-    indexed_PyNode_evalStrings = melIndexedCompEvalStringCreator(pyNodeMaker)
-    unindexedComp_PyNode_evalStrings = melUnindexedCompEvalStringCreator(pyNodeMaker)
+    indexed_PyNode_evalStrings = MakeEvalStringCreator('mel', indexed=True)(pyNodeMaker)
+    unindexedComp_PyNode_evalStrings = MakeEvalStringCreator('mel', indexed=False)(pyNodeMaker)
 
     def componentMaker(self, compString):
         return 'Component(%r)' % compString
     
-    indexed_Component_evalStrings = melIndexedCompEvalStringCreator(componentMaker)
-    unindexedComp_Component_evalStrings = melUnindexedCompEvalStringCreator(componentMaker)
+    indexed_Component_evalStrings = MakeEvalStringCreator('mel', indexed=True)(componentMaker)
+    unindexedComp_Component_evalStrings = MakeEvalStringCreator('mel', indexed=False)(componentMaker)
 
     def object_evalStrings(self, compData):
         """
@@ -525,7 +556,7 @@ class testCase_components(unittest.TestCase):
         pymelClass = ApiEnumsToPyComponents()[compData.typeEnum()]
         return ['%s(%r)' % (pymelClass.__name__, compData.nodeName)]
     
-    @indexedCompEvalStringCreator
+    @MakeEvalStringCreator('pymel', indexed=True)
     def node_dot_comptypeIndex_evalStrings(self, compString):
         """
         if 'cubeShape1.vtx[1]', will try:
@@ -536,6 +567,18 @@ class testCase_components(unittest.TestCase):
         nodeName = compSplit[0]
         compName = '.'.join(compSplit[1:])
         return 'PyNode(%r).%s' % (nodeName, compName)
+    
+    @MakeEvalStringCreator('pymel', indexed=False, alwaysMakeUnindexed=True)
+    def node_dot_comptype_evalStrings(self, compString):
+        """
+        if 'cubeShape1.vtx[1]', will try:
+        cubeShape1 = PyNode('cubeShape1')
+        cubeShape1.vtx
+        """
+        compSplit = compString.split('.')
+        nodeName = compSplit[0]
+        compName = '.'.join(compSplit[1:])
+        return 'PyNode(%r).%s' % (nodeName, compName)    
 
     def test_objectComponentsClassEqual(self):
         successfulComps = []
