@@ -1,5 +1,6 @@
 import unittest
 import itertools
+import re
 
 from pymel import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
@@ -7,7 +8,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -332,12 +333,19 @@ def makeComponentCreationTests(evalStringCreator):
             evalStrings = evalStringCreator(self, componentData)
             for evalString in evalStrings:
                 if VERBOSE:
-                    print "trying to create:", evalString
+                    print "trying to create:", evalString, "...",
+                # Currently, a bug with adding '___.sme[*]' to any
+                # MSelectionList - causes may to crash. thus, for now, just
+                # auto fail tests making .sme[*]
                 try:
                     eval(evalString)
                 except Exception:
+                    if VERBOSE:
+                        print "FAILED"
                     failedComps.append(evalString)
                 else:
+                    if VERBOSE:
+                        print "ok"
                     successfulComps.append(evalString)
         if failedComps:
             self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
@@ -509,6 +517,9 @@ class testCase_components(unittest.TestCase):
         self.compData['lattice'] = ComponentData(LatticePoint,
                                                  self.nodes['lattice'], "pt",
                                                  [IndexData((0,1,0))])
+        # prevent crash sometimes after making a subd, then selecting edges -
+        # see http://groups.google.com/group/python_inside_maya/browse_thread/thread/9415d03bac9e712b/0b94edb468fbe6bd
+        cmds.refresh()
         
     def tearDown(self):
         for node in self.nodes.itervalues():
@@ -743,6 +754,24 @@ class testCase_components(unittest.TestCase):
             if failedComparisons:
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
+
+# There's a bug in Maya where if you select .sme[*], it crashes -
+# so, temporarily, autofail all .sme's by wrapping the evalString functions
+
+# Note - NEED to make autoFailSme a function, to avoid scope issues
+def autoFailSme(evalStringFunc):
+    def evalStringFunc_autoFailSme(*args, **kwargs):
+        results = evalStringFunc(*args, **kwargs)
+        for i, evalString in enumerate(results):
+            if re.search(r"""\.sme\[\*\]|\.sme(?:\[[*0-9]+\])*$|SubdEdge\(""", evalString):
+                results[i] = evalString + "   ***.sme AUTO-FAIL***"
+        return results
+    evalStringFunc_autoFailSme.__name__ = propName + "_autoFailSme"
+    return evalStringFunc_autoFailSme
+
+for propName, evalStringFunc in \
+        getEvalStringFunctions(testCase_components).iteritems():
+    setattr(testCase_components, propName, autoFailSme(evalStringFunc))
                         
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
