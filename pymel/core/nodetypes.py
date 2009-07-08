@@ -316,8 +316,8 @@ class Component( general.PyNode ):
         mfnComp.setComplete(True)
 
         return api.MObjectHandle(component)
-    
-    def name(self):
+
+    def __melobject__(self):
         selList = api.MSelectionList()
         selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
         strings = []
@@ -327,7 +327,13 @@ class Component( general.PyNode ):
         elif len(strings) == 1:
             return strings[0]
         else:
-            return repr(strings)
+            return strings
+            
+    def name(self):
+        melObj = self.__melobject__()
+        if isinstance(melObj, basestring):
+            return melObj
+        return repr(melObj)
                 
     def node(self):
         return self._node
@@ -408,11 +414,8 @@ class DimensionedComponent( Component ):
 
     def _makeComponentHandle(self):
         indices = self.__apiobjects__.get('ComponentIndex', None)
-        if indices is None:
-            handle = super(DimensionedComponent, self)._makeComponentHandle()
-        else:
-            indices = self._standardizeIndices(indices)
-            handle = self._makeIndexedComponentHandle(indices)
+        indices = self._standardizeIndices(indices)
+        handle = self._makeIndexedComponentHandle(indices)
         return handle 
 
     def _makeIndexedComponentHandle(self, indices):
@@ -441,27 +444,29 @@ class DimensionedComponent( Component ):
         ComponentIndex object, or an iterable of such items (if allowIterable),
         or 'None'
         """
+        if indexObjs is None:
+            indexObjs = [slice(None,None,None)] * self.dimensions
+
         indices = set()
-        if indexObjs is not None:
-            # Convert single objects to a list
-            if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
-                if self.dimensions == 1:
-                    if isinstance(indexObjs, slice):
-                        return self._standardizeIndices(self._sliceToIndices(slice))
-                    else:
-                        indices.add(ComponentIndex((indexObjs,)))
+        # Convert single objects to a list
+        if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
+            if self.dimensions == 1:
+                if isinstance(indexObjs, slice):
+                    return self._standardizeIndices(self._sliceToIndices(indexObjs))
                 else:
-                    raise IndexError("Single Index given for a multi-dimensional component")
-            elif (isinstance(indexObjs, ComponentIndex) and
-                  all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
-                indices.update(self._flattenIndex(indexObjs))
-            elif allowIterable and util.isIterable(indexObjs):
-                for index in indexObjs:
-                    indices.update(self._standardizeIndices(index,
-                                                            allowIterable=False))
+                    indices.add(ComponentIndex((indexObjs,)))
             else:
-                raise IndexError("Invalid indices for component: %r" % 
-                                 indexObjs)
+                raise IndexError("Single Index given for a multi-dimensional component")
+        elif (isinstance(indexObjs, ComponentIndex) and
+              all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
+            indices.update(self._flattenIndex(indexObjs))
+        elif allowIterable and util.isIterable(indexObjs):
+            for index in indexObjs:
+                indices.update(self._standardizeIndices(index,
+                                                        allowIterable=False))
+        else:
+            raise IndexError("Invalid indices for component: %r" % 
+                             indexObjs)
         return tuple(indices)
 
     def _sliceToIndices(self, slice):
@@ -724,6 +729,9 @@ class ContinuousComponent( DimensionedComponent ):
     def _standardizeIndices(self, indexObjs):
         return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
                                                            allowIterable=False)
+    
+    def __iter__(self):
+        raise TypeError("%r object is not iterable" % self.__class__.__name__)
             
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
@@ -854,6 +862,12 @@ class MeshUV( Component1D ):
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
     _apienum__ = api.MFn.kMeshVtxFaceComponent
+    
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) == 0:
+            return self.node().numVertices()
+        elif len(partialIndex) == 1:
+            return self.node().vtx[partialIndex[0]].numConnectedFaces()
     
 ## Subd Components    
 
@@ -1600,6 +1614,8 @@ class Attribute(general.PyNode):
         if not isinstance(other,Attribute):
             try:
                 other = general.PyNode(other)
+                if not hasattr(other, '__apimplug__'):
+                    return False
             except (ValueError,TypeError): # could not cast to general.PyNode
                 return False
             

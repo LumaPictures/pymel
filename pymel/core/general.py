@@ -1329,7 +1329,7 @@ class PyNode(util.ProxyUnicode):
                     if res is None:
                         raise TypeError, "createVirtual must return the created node"
                     return cls(res)
-                elif not cls.__melcmd_isinfo__:
+                elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
                     try:
                         _logger.debug( 'creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__ ) ) 
                         res = cls.__melcmd__(**kwargs)
