@@ -8,7 +8,7 @@ from pymel.core.factories import ApiEnumsToPyComponents
 from testingutils import TestCaseExtended
 
 
-VERBOSE = True
+VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -755,23 +755,23 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
 
-# There's a bug in Maya where if you select .sme[*], it crashes -
-# so, temporarily, autofail all .sme's by wrapping the evalString functions
-
-# Note - NEED to make autoFailSme a function, to avoid scope issues
-def autoFailSme(evalStringFunc):
-    def evalStringFunc_autoFailSme(*args, **kwargs):
-        results = evalStringFunc(*args, **kwargs)
-        for i, evalString in enumerate(results):
-            if re.search(r"""\.sme\[\*\]|\.sme(?:\[[*0-9]+\])*$|SubdEdge\(""", evalString):
-                results[i] = evalString + "   ***.sme AUTO-FAIL***"
-        return results
-    evalStringFunc_autoFailSme.__name__ = propName + "_autoFailSme"
-    return evalStringFunc_autoFailSme
-
-for propName, evalStringFunc in \
-        getEvalStringFunctions(testCase_components).iteritems():
-    setattr(testCase_components, propName, autoFailSme(evalStringFunc))
+## There's a bug in Maya where if you select .sme[*], it crashes -
+## so, temporarily, autofail all .sme's by wrapping the evalString functions
+#
+## Note - NEED to make autoFailSme a function, to avoid scope issues
+#def autoFailSme(evalStringFunc):
+#    def evalStringFunc_autoFailSme(*args, **kwargs):
+#        results = evalStringFunc(*args, **kwargs)
+#        for i, evalString in enumerate(results):
+#            if re.search(r"""\.sme\[\*\]|\.sme(?:\[[*0-9]+\])*$|SubdEdge\(""", evalString):
+#                results[i] = evalString + "   ***.sme AUTO-FAIL***"
+#        return results
+#    evalStringFunc_autoFailSme.__name__ = propName + "_autoFailSme"
+#    return evalStringFunc_autoFailSme
+#
+#for propName, evalStringFunc in \
+#        getEvalStringFunctions(testCase_components).iteritems():
+#    setattr(testCase_components, propName, autoFailSme(evalStringFunc))
                         
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():

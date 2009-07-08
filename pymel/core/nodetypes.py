@@ -414,11 +414,8 @@ class DimensionedComponent( Component ):
 
     def _makeComponentHandle(self):
         indices = self.__apiobjects__.get('ComponentIndex', None)
-        if indices is None:
-            handle = super(DimensionedComponent, self)._makeComponentHandle()
-        else:
-            indices = self._standardizeIndices(indices)
-            handle = self._makeIndexedComponentHandle(indices)
+        indices = self._standardizeIndices(indices)
+        handle = self._makeIndexedComponentHandle(indices)
         return handle 
 
     def _makeIndexedComponentHandle(self, indices):
@@ -447,27 +444,29 @@ class DimensionedComponent( Component ):
         ComponentIndex object, or an iterable of such items (if allowIterable),
         or 'None'
         """
+        if indexObjs is None:
+            indexObjs = [slice(None,None,None)] * self.dimensions
+
         indices = set()
-        if indexObjs is not None:
-            # Convert single objects to a list
-            if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
-                if self.dimensions == 1:
-                    if isinstance(indexObjs, slice):
-                        return self._standardizeIndices(self._sliceToIndices(slice))
-                    else:
-                        indices.add(ComponentIndex((indexObjs,)))
+        # Convert single objects to a list
+        if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
+            if self.dimensions == 1:
+                if isinstance(indexObjs, slice):
+                    return self._standardizeIndices(self._sliceToIndices(indexObjs))
                 else:
-                    raise IndexError("Single Index given for a multi-dimensional component")
-            elif (isinstance(indexObjs, ComponentIndex) and
-                  all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
-                indices.update(self._flattenIndex(indexObjs))
-            elif allowIterable and util.isIterable(indexObjs):
-                for index in indexObjs:
-                    indices.update(self._standardizeIndices(index,
-                                                            allowIterable=False))
+                    indices.add(ComponentIndex((indexObjs,)))
             else:
-                raise IndexError("Invalid indices for component: %r" % 
-                                 indexObjs)
+                raise IndexError("Single Index given for a multi-dimensional component")
+        elif (isinstance(indexObjs, ComponentIndex) and
+              all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
+            indices.update(self._flattenIndex(indexObjs))
+        elif allowIterable and util.isIterable(indexObjs):
+            for index in indexObjs:
+                indices.update(self._standardizeIndices(index,
+                                                        allowIterable=False))
+        else:
+            raise IndexError("Invalid indices for component: %r" % 
+                             indexObjs)
         return tuple(indices)
 
     def _sliceToIndices(self, slice):

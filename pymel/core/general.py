@@ -1375,21 +1375,7 @@ class PyNode(util.ProxyUnicode):
             
             if not pymelType or not issubclass( pymelType, cls ):
                 if issubclass( cls, nodetypes.Component ):
-                    # If we're doing something like MeshVertex('pCube1'),
-                    # just return result of MeshVertex('pCube1.vtx[*]')
-                    # This way, we let maya make a component mobject which is
-                    # 'filled in' with the appropriate indices already, instead
-                    # of having to fill them in ourselves.
-                    if (issubclass( cls, nodetypes.DimensionedComponent)
-                        and isinstance(argObj, api.MDagPath)):
-                        if cls._ComponentLabel__:
-                            compName = "%s.%s" % (argObj.partialPathName(), cls._ComponentLabel__)
-                            compName += ('[*]' * cls.dimensions)
-                            return cls(compName)
-                        else:
-                            newcls = None
-                    else:
-                        newcls = cls
+                    newcls = cls
                 else:
                     raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % ( pymelType.__name__, cls.__name__ )
             else:
