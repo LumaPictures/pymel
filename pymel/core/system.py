@@ -1001,8 +1001,12 @@ class FileReference(object):
 #        return cmds.file( self.withCopyNumber(), **kwargs )
 
     @_factories.addMelDocs('file', 'importReference')
-    def importContents(self):
+    def importContents(self, removeNamespace=False):
+        ns = self.namespace
         return cmds.file( rfn=self.refNode, importReference=1 )
+        if removeNamespace:
+            namespace( mv=(ns, ':'), f=1 )
+            namespace( rm=ns )
       
 #    @_factories.createflag('file', 'removeReference')
 #    def remove(self, **kwargs):
@@ -1276,12 +1280,18 @@ def _correctPath(path):
 @_factories.addMelDocs('file', 'reference')
 def createReference( filepath, **kwargs ):
     kwargs['reference'] = True
-    return FileReference(cmds.file(filepath, **kwargs))
+    res = cmds.file(filepath, **kwargs)
+    if kwargs.get('returnNewNodes', kwargs.get('rnn', False) ):
+        return [ general.PyNode(x) for x in res ]
+    return FileReference(res)
 
 @_factories.addMelDocs('file', 'loadReference')
 def loadReference( filepath, **kwargs ):
     kwargs['loadReference'] = True
-    return FileReference(cmds.file(filepath, **kwargs))
+    res = cmds.file(filepath, **kwargs)
+    if kwargs.get('returnNewNodes', kwargs.get('rnn', False) ):
+        return [ general.PyNode(x) for x in res ]
+    return FileReference(res)
 
 @_factories.addMelDocs('file', 'exportAll')    
 def exportAll( exportPath, **kwargs ):
@@ -1364,6 +1374,8 @@ def exportSelectedAnimFromReference( exportPath, **kwargs ):
 def importFile( filepath, **kwargs ):
     kwargs['i'] = True
     res = cmds.file(filepath, **kwargs)
+    if kwargs.get('returnNewNodes', kwargs.get('rnn', False) ):
+        return [ general.PyNode(x) for x in res ]
     # does not return anything
 
 @_factories.createflag('file', 'newFile')
@@ -1374,6 +1386,8 @@ def newFile( **kwargs ):
 @_factories.createflag('file', 'open')
 def openFile( filepath, **kwargs ):
     res = cmds.file( filepath, **kwargs)
+    if kwargs.get('returnNewNodes', kwargs.get('rnn', False) ):
+        return [ general.PyNode(x) for x in res ]
     # this command seems to return the last accessed file, which may be a reference
     # i think we're better off spitting the passed path back out
 #    if res is None:
