@@ -322,6 +322,8 @@ class Component( general.PyNode ):
         selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
         strings = []
         selList.getSelectionStrings(0, strings)
+        nodeName = self.node().name() + '.'
+        strings = [ nodeName + x.split('.',1)[-1] for x in strings ]
         if not strings:
             return self._completeNameString()
         elif len(strings) == 1:
