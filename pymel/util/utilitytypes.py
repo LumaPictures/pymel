@@ -354,7 +354,7 @@ class metaReadOnlyAttr(type) :
         return newcls                     
 
     
-def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[] ):
+def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[], sourceIsImmutable=True ):
     """this function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
     will break hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
@@ -362,7 +362,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
 
     assert not ( dataAttrName and dataFuncName ), 'Cannot use attribute and function for data storage. Choose one or the other.'
 
-    if dataAttrName:
+    if sourceIsImmutable and dataAttrName:
         def _methodWrapper( method ):
             #print method
             #@functools.wraps(f)
@@ -373,9 +373,9 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
             wrapper.__name__ = method.__name__
             return wrapper
         
-    elif dataFuncName:
+    elif sourceIsImmutable and dataFuncName:
         def _methodWrapper( method ):
-            #print "method:", method
+            #print method
             #@functools.wraps(f)
             def wrapper(self, *args, **kwargs):
                 return method( cls( getattr(self, dataFuncName)() ), *args, **kwargs )
@@ -383,9 +383,30 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[
             wrapper.__doc__ = method.__doc__
             wrapper.__name__ = method.__name__
             return wrapper
+
+    elif not sourceIsImmutable and dataAttrName:
+        def _methodWrapper( method ):
+            #print method
+            #@functools.wraps(f)
+            def wrapper(self, *args, **kwargs):
+                return method( getattr(self, dataAttrName), *args, **kwargs )
+
+            wrapper.__doc__ = method.__doc__
+            wrapper.__name__ = method.__name__
+            return wrapper
+        
+    elif not sourceIsImmutable and dataFuncName:
+        def _methodWrapper( method ):
+            #print method
+            #@functools.wraps(f)
+            def wrapper(self, *args, **kwargs):
+                return method( getattr(self, dataFuncName)(), *args, **kwargs )
+
+            wrapper.__doc__ = method.__doc__
+            wrapper.__name__ = method.__name__
+            return wrapper
     else:
-        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'
-          
+        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
     remove = ['__new__', '__init__', '__getattribute__', '__getattr__'] + remove
     #remove = [ '__init__', '__getattribute__', '__getattr__'] + remove
     class Proxy(object):
