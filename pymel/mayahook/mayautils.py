@@ -26,10 +26,17 @@ else :
     maya = 'maya.bin'
 sep = os.path.pathsep
 
-SYSTEM = platform.system()
-# Note: for XP x64 and Vista, system() returns 'Microsoft'... do we want to 'standardize'?
-#if SYSTEM == 'Microsoft':
-#    SYSTEM = 'Windows'
+
+try:
+    SYSTEM = platform.system()
+    # Note: for XP x64 and Vista, system() returns 'Microsoft'. 
+    if SYSTEM not in ('Darwin', 'Linux'):
+        SYSTEM = 'Windows'
+except:
+    # There are also cases where platform.system fails completely on Vista
+    SYSTEM = 'Windows'
+
+
 
 def moduleDir():
     """
@@ -303,7 +310,7 @@ def mayaDocsLocation(version=None):
             _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation) )
 
         short_version = parseVersionStr(version, extension=False)
-        if platform.system() == 'Darwin':
+        if SYSTEM == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
             
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
@@ -391,7 +398,7 @@ def refreshEnviron():
     """ 
     exclude = ['SHLVL'] 
     
-    if platform.system() in ('Darwin', 'Linux'):
+    if SYSTEM in ('Darwin', 'Linux'):
         cmd = '/usr/bin/env'
     else:
         cmd = 'set'
@@ -705,9 +712,7 @@ def mayaInit(forversion=None) :
     # now we should have correct en vars
     envVersion = os.environ.get('MAYA_ENV_VERSION', mayaVersion)
     mayaLocation = os.environ['MAYA_LOCATION']
-    system = platform.system()
-
-                    
+             
     if not sys.modules.has_key('maya.standalone') or shortVersion != forversion:
         try :
             import maya.standalone #@UnresolvedImport
