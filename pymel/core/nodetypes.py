@@ -127,6 +127,19 @@ class Component( general.PyNode ):
     _apienum__ = api.MFn.kComponent
     _ComponentLabel__ = None
 
+    # Maya 2008 and earlier have no kUint64SingleIndexedComponent /
+    # MFnUint64SingleIndexedComponent...
+    _componentEnums = [api.MFn.kComponent,
+                       api.MFn.kSingleIndexedComponent,
+                       api.MFn.kDoubleIndexedComponent,
+                       api.MFn.kTripleIndexedComponent]
+
+    if hasattr(api.MFn, 'kUint64SingleIndexedComponent'):
+        _hasUint64 = True
+        _componentEnums.append(api.MFn.kUint64SingleIndexedComponent)
+    else:
+        _hasUint64 = False
+        
     @classmethod
     def printComponentTypes(cls):
         # Output
@@ -285,13 +298,7 @@ class Component( general.PyNode ):
         component = None
         # try making from MFnComponent.create, if _mfncompclass has it defined
         if ('create' in dir(self._mfncompclass) and
-            self._apienum__ not in (None,
-                                    api.MFn.kSingleIndexedComponent,
-                                    api.MFn.kComponent,
-                                    api.MFn.kSingleIndexedComponent,
-                                    api.MFn.kUint64SingleIndexedComponent,
-                                    api.MFn.kDoubleIndexedComponent,
-                                    api.MFn.kTripleIndexedComponent)):
+            self._apienum__ not in self._componentEnums + [None]):
             try:
                 component = self._mfncompclass().create(self._apienum__)
             # Note - there's a bug with kSurfaceFaceComponent - can't use create
@@ -345,7 +352,27 @@ class Component( general.PyNode ):
     
     def isComplete(self, *args, **kwargs):
         return self.__apicomponent__().isComplete()
-
+    
+    @staticmethod
+    def numComponentsFromStrings(*componentStrings):
+        """
+        Does basic string processing to count the number of components
+        given a number of strings, which are assumed to be the valid mel names
+        of components. 
+        """
+        numComps = 0
+        for compString in componentStrings:
+            indices = re.findall(r'\[[^\]]*\]', compString)
+            newComps = 1
+            if indices:
+                for index in indices:
+                    if ':' in index:
+                        indexSplit = index.split(':')
+                        # + 1 is b/c mel indices are inclusive
+                        newComps *= int(indexSplit[1]) - int(indexSplit[0]) + 1
+            numComps += newComps
+        return numComps
+                    
 class DimensionedComponent( Component ):
     """
     Components for which having a __getitem__ of some sort makes sense
@@ -688,16 +715,7 @@ class DiscreteComponent( DimensionedComponent ):
 
     def currentItem(self):
         mfncomp = self.__apicomponent__()
-        if hasattr(mfncomp, 'element'):
-            return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
-        else:
-            indices = []
-            scriptUtil = api.MScriptUtil()
-            for dimNum in self.dimensions:
-                indices.append(scriptUtil.asIntPtr())
-            self.__apicomponent__().getElement(self._currentFlatIndex, *indices)
-            indices = [scriptUtil.getInt(x) for x in indices]
-            return self.__class__(self._node, ComponentIndex(indices))
+        return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
             
     def next(self):
         if self._stopIteration:
@@ -746,36 +764,6 @@ class Component1D( DiscreteComponent ):
     _apienum__ = api.MFn.kSingleIndexedComponent
     dimensions = 1
 
-class Component1D64( DiscreteComponent ):
-    _mfncompclass = api.MFnUint64SingleIndexedComponent
-    _apienum__ = api.MFn.kUint64SingleIndexedComponent
-    # kUint64SingleIndexedComponent components have a bit of a dual-personality
-    # - though internally represented as a single-indexed long-int, in almost
-    # all of the "interface", they are displayed as double-indexed-ints:
-    # ie, if you select a subd vertex, it might be displayed as
-    #    mySubd.smp[256][4388]
-    # Since the end user will mostly "see" the component as double-indexed,
-    # the default pymel indexing will be double-indexed, so we set dimensions
-    # to 2, and then hand correct cases where self.dimensions affects how
-    # we're interacting with the kUint64SingleIndexedComponent
-    dimensions = 2
-
-    @classmethod
-    def _pyArrayToMayaArray(cls, pythonArray):
-        scriptUtil = api.MScriptUtil()
-        mayaArray = api.MUint64Array(len(pythonArray))
-        for i, value in enumerate(pythonArray):
-            mayaArray.set(value, i)
-        return mayaArray
-
-    def _makeIndexedComponentHandle(self, indices):
-        # Because I can't find a way to get a MUint64 &, which
-        # MFnSubdNames.fromSelectionIndices requires, the only way I know of
-        # to convert selection indices to int64 indices is using selections,
-        # so might as well just use the version of _makeIndexedComponentHandle
-        # that uses selection lists...
-        return DimensionedComponent._makeIndexedComponentHandle(self, indices)
-                
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
     _apienum__ = api.MFn.kDoubleIndexedComponent
@@ -786,7 +774,8 @@ class Component3D( DiscreteComponent ):
     _apienum__ = api.MFn.kTripleIndexedComponent
     dimensions = 3
 
-class MItComponent( Component1D ):
+# Mixin class for components which use MIt* objects for some functionality
+class MItComponent( Component ):
     """
     Abstract base class for pymel components that can be accessed via iterators.
     
@@ -800,21 +789,69 @@ class MItComponent( Component1D ):
     def __init__(self, *args, **kwargs ):
         super(MItComponent, self).__init__(*args, **kwargs)
     
-    def __apimit__(self):
+    def __apimit__(self, alwaysUnindexed=False):
         # Note - the iterator should NOT be stored, as if it gets out of date,
         # it can cause crashes - see, for instance, MItMeshEdge.geomChanged
         # Since we don't know how the user might end up using the components
         # we feed out, and it seems like asking for trouble to have them
         # keep track of when things such as geomChanged need to be called,
         # we simply never retain the MIt for long..
-        if self._currentFlatIndex == 0:
+        if self._currentFlatIndex == 0 or alwaysUnindexed:
             return self.__apicls__( self.__apimdagpath__(), self.__apimobject__() )
         else:
             return self.__apicls__( self.__apimdagpath__(), self.currentItem().__apimobject__() )
     
     def __apimfn__(self):
         return self.__apimit__()
-            
+    
+class MItComponent1D( MItComponent, Component1D ): pass
+
+class Component1D64( DiscreteComponent ):
+    if Component._hasUint64:
+        _mfncompclass = api.MFnUint64SingleIndexedComponent
+        _apienum__ = api.MFn.kUint64SingleIndexedComponent
+        
+        @classmethod
+        def _pyArrayToMayaArray(cls, pythonArray):
+            scriptUtil = api.MScriptUtil()
+            mayaArray = api.MUint64Array(len(pythonArray))
+            for i, value in enumerate(pythonArray):
+                mayaArray.set(value, i)
+            return mayaArray
+    else:
+        _mfncompclass = api.MFnComponent
+        _apienum__ = api.MFn.kComponent
+
+        def _makeIndexedComponentHandle(self, indices):
+            # We have no MFnComp that supports .getElement, so use the
+            # version that does string processing...
+            return DimensionedComponent._makeIndexedComponentHandle(self, indices)
+
+        def __len__(self):
+            if hasattr(self, '_storedLen'):
+                return self._storedLen
+            else:
+                # subd MIt*'s have no .count(), and there is no appropriate
+                # MFn, so count it using strings...
+                melStrings = self.__melobject__()
+                if util.isIterable(melStrings):
+                    count = Component.numComponentsFromStrings(*melStrings)
+                else:
+                    count = Component.numComponentsFromStrings(melStrings)
+                self._storedLen = count
+                return count
+
+    # kUint64SingleIndexedComponent components have a bit of a dual-personality
+    # - though internally represented as a single-indexed long-int, in almost
+    # all of the "interface", they are displayed as double-indexed-ints:
+    # ie, if you select a subd vertex, it might be displayed as
+    #    mySubd.smp[256][4388]
+    # Since the end user will mostly "see" the component as double-indexed,
+    # the default pymel indexing will be double-indexed, so we set dimensions
+    # to 2, and then hand correct cases where self.dimensions affects how
+    # we're interacting with the kUint64SingleIndexedComponent
+    dimensions = 2
+
 ## Specific Components...
 
 ## Pivot Components
@@ -830,7 +867,7 @@ class ScalePivot( Pivot ):
     
 ## Mesh Components
 
-class MeshVertex( MItComponent ):
+class MeshVertex( MItComponent1D ):
     __apicls__ = api.MItMeshVertex
     _ComponentLabel__ = "vtx"
     _apienum__ = api.MFn.kMeshVertComponent
@@ -838,7 +875,7 @@ class MeshVertex( MItComponent ):
     def _dimLength(self, partialIndex):
         return self.node().numVertices()
 
-class MeshEdge( MItComponent ):
+class MeshEdge( MItComponent1D ):
     __apicls__ = api.MItMeshEdge
     _ComponentLabel__ = "e"
     _apienum__ = api.MFn.kMeshEdgeComponent
@@ -846,7 +883,7 @@ class MeshEdge( MItComponent ):
     def _dimLength(self, partialIndex):
         return self.node().numEdges()
     
-class MeshFace( MItComponent ):
+class MeshFace( MItComponent1D ):
     __apicls__ = api.MItMeshPolygon
     _ComponentLabel__ = "f"
     _apienum__ = api.MFn.kMeshPolygonComponent
@@ -895,7 +932,7 @@ class NurbsCurveParameter( Component1DFloat ):
     _ComponentLabel__ = "u"
     _apienum__ = api.MFn.kCurveParamComponent
 
-class NurbsCurveCV( MItComponent ):
+class NurbsCurveCV( MItComponent1D ):
     __apicls__ = api.MItCurveCV
     _ComponentLabel__ = "cv"
     _apienum__ = api.MFn.kCurveCVComponent
