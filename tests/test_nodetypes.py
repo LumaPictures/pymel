@@ -572,7 +572,7 @@ class testCase_components(unittest.TestCase):
         """
         ie, MeshVertexComponent('pCube1')
         """
-        pymelClass = ApiEnumsToPyComponents()[compData.typeEnum()]
+        pymelClass = compData.pymelType
         return ['%s(%r)' % (pymelClass.__name__, compData.nodeName)]
     
     @MakeEvalStringCreator('pymel', indexed=True)

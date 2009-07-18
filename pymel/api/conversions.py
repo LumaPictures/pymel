@@ -6,6 +6,7 @@ import pymel.mayahook as mayahook
 _logger = mayahook.getLogger(__name__)
 
 from allapi import *
+import allapi # for getting at an original, unaltered api version
 
 #import pymel.factories as _factories
 
@@ -1683,7 +1684,7 @@ def getWorldNode():
     
     This node is the dag node that all other nodes are children of.
     """
-    return MItDag().root()
+    return allapi.MItDag().root()
 
 def getWorldPath():
     """
@@ -1692,7 +1693,7 @@ def getWorldPath():
     This node is the dag node that all other nodes are children of.
     """
     dagRoot = MDagPath()
-    MItDag().getPath(dagRoot)
+    allapi.MItDag().getPath(dagRoot)
     return dagRoot
 
     

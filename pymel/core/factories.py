@@ -3535,7 +3535,7 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
             if apienum not in ApiEnumsToPyComponents():
                 ApiEnumsToPyComponents()[apienum] = [newcls]
             else:
-                oldEntries = ApiEnumsToPyComponents()
+                oldEntries = ApiEnumsToPyComponents()[apienum]
 
                 # if the apienum is already present, check if this class is a
                 # subclass of an already present class
