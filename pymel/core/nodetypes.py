@@ -950,10 +950,10 @@ class NurbsCurveKnot( Component1D ):
 class NurbsSurfaceIsoparm( Component2DFloat ):
     _apienum__ = api.MFn.kIsoparmComponent
 
-class NurbsSurfaceUIsoparm( Component2DFloat ):
+class NurbsSurfaceUIsoparm( NurbsSurfaceIsoparm ):
      _ComponentLabel__ = "u"
 
-class NurbsSurfaceVIsoparm( Component2DFloat ):
+class NurbsSurfaceVIsoparm( NurbsSurfaceIsoparm ):
      _ComponentLabel__ = "v"
 
 class NurbsSurfaceRange( Component1DFloat ):
@@ -4930,8 +4930,6 @@ def _createPyNodes():
 _createPyNodes()
 #_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
 
-
-
 def _getPymelType(arg, name) :
     """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default.
@@ -4940,31 +4938,6 @@ def _getPymelType(arg, name) :
         If a valid MObject is passed, the name will be returned as None
         If a general.PyNode instance is passed, its name and MObject will be returned
         """
-        
-    def getPymelTypeFromObject(obj):
-        try:
-            return _factories.ApiEnumsToPyComponents()[obj.apiType()]
-        except KeyError:
-            try:  
-                fnDepend = api.MFnDependencyNode( obj )
-                mayaType = fnDepend.typeName()
-                pymelType = general.mayaTypeToPyNode( mayaType, DependNode )
-            except RuntimeError:
-                raise general.MayaNodeError
-            
-            try:
-                data = _virtualSubClasses[pymelType]
-                nodeName = name
-                for virtualCls, callback, nameRequired in data:
-                    if nameRequired and nodeName is None:
-                        nodeName = fnDepend.name()
-                    
-                    if callback(obj, nodeName):
-                        pymelType = virtualCls
-                        break
-            except KeyError:
-                pass
-            return pymelType
 
     obj = None
     results = {}
@@ -4978,7 +4951,7 @@ def _getPymelType(arg, name) :
         results['MObjectHandle'] = api.MObjectHandle( arg )
         obj = arg
 #        if api.isValidMObjectHandle( obj ) :
-#            pymelType = getPymelTypeFromObject( obj.object() )        
+#            pymelType = _getPymelTypeFromObject( obj.object() )        
 #        else:
 #            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
                       
@@ -4987,7 +4960,7 @@ def _getPymelType(arg, name) :
         obj = arg.object()
         
 #        if api.isValidMObjectHandle( obj ) :          
-#            pymelType = getPymelTypeFromObject( obj.object() )    
+#            pymelType = _getPymelTypeFromObject( obj.object() )    
 #        else:
 #            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
         
@@ -4995,7 +4968,7 @@ def _getPymelType(arg, name) :
         results['MDagPath'] = arg
         obj = arg.node()
 #        if api.isValidMDagPath( obj ):
-#            pymelType = getPymelTypeFromObject( obj.node() )    
+#            pymelType = _getPymelTypeFromObject( obj.node() )    
 #        else:
 #            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
                                
@@ -5021,10 +4994,57 @@ def _getPymelType(arg, name) :
         raise ValueError, "Unable to determine Pymel type for %r" % arg         
     
     if not isAttribute:
-        pymelType = getPymelTypeFromObject( obj ) 
+        pymelType = _getPymelTypeFromObject( obj ) 
     
     return pymelType, results
 
+# Moved this out from _getPymelType to speed it up a little
+def _getPymelTypeFromObject(obj):
+        compTypes = _factories.ApiEnumsToPyComponents().get(obj.apiType(), None)
+        if compTypes is not None:
+            if len(compTypes) == 1:
+                return compTypes[0]
+            else:
+                return _getExactCompType(obj, compTypes)
+        else:
+            try:  
+                fnDepend = api.MFnDependencyNode( obj )
+                mayaType = fnDepend.typeName()
+                pymelType = general.mayaTypeToPyNode( mayaType, DependNode )
+            except RuntimeError:
+                raise general.MayaNodeError
+            
+            try:
+                data = _virtualSubClasses[pymelType]
+                nodeName = name
+                for virtualCls, callback, nameRequired in data:
+                    if nameRequired and nodeName is None:
+                        nodeName = fnDepend.name()
+                    
+                    if callback(obj, nodeName):
+                        pymelType = virtualCls
+                        break
+            except KeyError:
+                pass
+            return pymelType
+        
+def _getCompTypeFromObject(obj, compTypes=None):
+    # We're going to implement this by adding the component object to a
+    # selection list, and then doing string comparison on the resulting
+    # selection string - can't think of another way to distinguish, say,
+    # uIsoparms and vIsoparms, or 
+    selList = api.MSelectionList()
+    # To add a component to a selection list, we need a dagPath - thankfully,
+    # the dagPath + component combo don't actually have to exist / be vaild,
+    # so we just use the world root for the dagPath
+    selList.add(api.getWorldPath(), obj)
+    selStrings = []
+    selList.getSelectionStrings(0, selStrings)
+    compString = selStrings[0].split('.')[1].split('[')[0]
+    for compType in compTypes:
+        if getattr(compType, '_ComponentLabel__', None) == compString:
+            return compType
+        
 
 #def listToMSelection( objs ):
 #    sel = api.MSelectionList()

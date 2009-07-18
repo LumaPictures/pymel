@@ -43,7 +43,12 @@ class ApiClassNamesToPyNodeNames(dict):
     __metaclass__ = util.Singleton
     
 class ApiEnumsToPyComponents(dict):
-    """Lookup from Api Enums to Pymel Component Classes"""
+    """
+    Lookup from Api Enums to Pymel Component Classes
+    
+    A list of possible component classes is always returned (even if it's only
+    of length one).
+    """
     __metaclass__ = util.Singleton
    
 class PyNodeTypesHierarchy(dict):
@@ -3511,10 +3516,22 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
         apienum = getattr(newcls, '_apienum__', None)
 #        print "addng new component %s - '%s' (%r):" % (newcls, classname, classdict),
         if apienum:
-#            print apienum
-            ApiEnumsToPyComponents()[apienum] = newcls
-#        else:
-#            print "no apienum"
+            if apienum not in ApiEnumsToPyComponents():
+                ApiEnumsToPyComponents()[apienum] = [newcls]
+            else:
+                oldEntries = ApiEnumsToPyComponents()
+
+                # if the apienum is already present, check if this class is a
+                # subclass of an already present class
+                newEntries  = []
+                for oldEntry in oldEntries:
+                    for base in bases:
+                        if issubclass(base, oldEntry):
+                            break
+                    else:
+                        newEntries.append(oldEntry)
+                newEntries.append(newcls)
+                ApiEnumsToPyComponents()[apienum] = newEntries
         return newcls
     
 def getValidApiMethods( apiClassName, api, verbose=False ):
