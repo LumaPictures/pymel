@@ -755,6 +755,17 @@ class testCase_components(unittest.TestCase):
             if failedComparisons:
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
+            
+    def test_mixedPivot(self):
+        select(self.nodes['cube'] + '.rotatePivot', r=1)
+        select(self.nodes['cube'] + '.scalePivot', add=1)
+        ls(sl=1)
+        
+    def test_mixedIsoparm(self):
+        select(self.nodes['sphere'] + '.u[1]', r=1)
+        select(self.nodes['sphere'] + '.v[0]', add=1)
+        select(self.nodes['sphere'] + '.uv[2][1]', add=1)
+        ls(sl=1)        
 
 ## There's a bug in Maya where if you select .sme[*], it crashes -
 ## so, temporarily, autofail all .sme's by wrapping the evalString functions

@@ -5244,7 +5244,9 @@ def _getExactCompType(obj, compTypes):
     # To add a component to a selection list, we need a dagPath - thankfully,
     # the dagPath + component combo don't actually have to exist / be vaild,
     # so we just use the world root for the dagPath
-    selList.add(api.getWorldPath(), obj)
+    rootPath = api.MDagPath()
+    api.allapi.MItDag().getPath(rootPath)
+    selList.add(rootPath, obj)
     selStrings = []
     selList.getSelectionStrings(0, selStrings)
     compString = selStrings[0].split('.')[1].split('[')[0]
