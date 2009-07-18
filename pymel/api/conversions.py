@@ -1676,25 +1676,6 @@ def getComponentTypes():
                 
     return componentTypes
 
-def getWorldNode():
-    """
-    Return an MObject representing the "world node" / "root node".
-    
-    This node is the dag node that all other nodes are children of.
-    """
-    return allapi.MItDag().root()
-
-def getWorldPath():
-    """
-    Return a MDagPath to the "world node" / "root node".
-    
-    This node is the dag node that all other nodes are children of.
-    """
-    dagRoot = MDagPath()
-    allapi.MItDag().getPath(dagRoot)
-    return dagRoot
-
-    
 # wrap of api iterators
 
 def MItNodes( *args, **kwargs ):
