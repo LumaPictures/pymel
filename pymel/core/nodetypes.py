@@ -5028,7 +5028,7 @@ def _getPymelTypeFromObject(obj):
                 pass
             return pymelType
         
-def _getCompTypeFromObject(obj, compTypes=None):
+def _getExactCompType(obj, compTypes):
     # We're going to implement this by adding the component object to a
     # selection list, and then doing string comparison on the resulting
     # selection string - can't think of another way to distinguish, say,
