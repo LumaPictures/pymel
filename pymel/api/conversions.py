@@ -1655,8 +1655,10 @@ def getComponentTypes():
     mfnCompBase = MFnComponent()
     mfnCompTypes = (MFnSingleIndexedComponent(),
                     MFnDoubleIndexedComponent(),
-                    MFnTripleIndexedComponent(),
-                    MFnUint64SingleIndexedComponent())
+                    MFnTripleIndexedComponent())
+    # Maya 2008 and before didn't haveMFnUint64SingleIndexedComponent
+    if hasattr(MFn, 'kUint64SingleIndexedComponent'):
+        mfnCompTypes += (MFnUint64SingleIndexedComponent(),)
     
     componentTypes = {}
     for compType in mfnCompTypes + (mfnCompBase,):
