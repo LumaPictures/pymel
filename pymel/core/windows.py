@@ -374,6 +374,18 @@ def getPanel(*args, **kwargs):
     return util.listForNone( cmds.getPanel(*args, **kwargs ) )
 
 
+def textScrollList( *args, **kwargs ):
+    res = cmds.textScrollList(*args, **kwargs)
+    return _factories.listForNoneQuery( res, kwargs, [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)] )
+
+def optionMenu( *args, **kwargs ):
+    res = cmds.optionMenu(*args, **kwargs)
+    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
+
+def optionMenuGrp( *args, **kwargs ):
+    res = cmds.optionMenuGrp(*args, **kwargs)
+    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
+
 _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
 
 
@@ -585,17 +597,6 @@ def horizontalLayout(*args, **kwargs):
     kwargs['orientation'] = 'HORIZONTAL'
     return autoLayout(*args, **kwargs)
 
-def textScrollList( *args, **kwargs ):
-
-    res = cmds.textScrollList(*args, **kwargs)
-
-    if kwargs.get('query', kwargs.get('q', False ) ) and \
-         ( kwargs.get('selectIndexedItem', kwargs.get( 'sii', False )) or \
-           kwargs.get('allItems', kwargs.get( 'ai', False )) or \
-           kwargs.get('selectItem', kwargs.get( 'si', False )) ):
-        return util.listForNone(res)
-    
-    return res
     
 class TextScrollList(UI):
     __metaclass__ = MetaMayaUIWrapper
