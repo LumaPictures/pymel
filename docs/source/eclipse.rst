@@ -104,7 +104,7 @@ Because PyMEL contains many dynamically created functions and classes, simply pa
 			pymel.core.general
 			pymel.core.language
 			pymel.core.modeling
-			pymel.core.nodetyeps
+			pymel.core.nodetypes
 			pymel.core.other
 			pymel.core.rendering
 			pymel.core.system

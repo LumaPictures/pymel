@@ -1566,6 +1566,14 @@ def _getCallbackFlags(flagDocs):
             commandFlags += [flag, data['shortname']]
     return commandFlags
 
+def _getTimeRangeFlags(flagDocs):
+    """used parsed data and naming convention to determine which flags are callbacks"""
+    commandFlags = []
+    for flag, data in flagDocs.items():
+        if data['args'] == 'timeRange':
+            commandFlags += [flag, data['shortname']]
+    return commandFlags
+
 def getUICommandsWithCallbacks():
     cmds = []
     for funcName in moduleCmds['windows']:
@@ -1575,9 +1583,15 @@ def getUICommandsWithCallbacks():
     return cmds
 
 def fixCallbacks(inFunc, funcName=None ):
-    """ui callback functions are passed strings instead of python values. this fixes the problem and also adds an extra flag
-    to all commands with callbacks called 'passSelf'.  when set to True, an instance of the ui element will be passed
-    as the first argument."""
+    """
+    When a user provides a custom callback functions for a UI elements, such as a checkBox, when the callback is trigger it is passed
+    a string instead of a real python values. For example, a checkBox changeCommand returns the string 'true' instead of
+    the python boolean True. This function wraps UI commands to correct the problem and also adds an extra flag
+    to all commands with callbacks called 'passSelf'.  When set to True, an instance of the calling UI class will be passed
+    as the first argument.
+    
+    if inFunc has been renamed, pass a funcName to lookup command info in factories.cmdlist
+    """
     
     if funcName is None:
         funcName = inFunc.__name__
@@ -1649,9 +1663,11 @@ def fixCallbacks(inFunc, funcName=None ):
     return  newUiFunc
 
 def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None, uiWidget=False ):
-    """create a new function, apply the given returnFunc to the results (if any), 
+    """
+    create a new function, apply the given returnFunc to the results (if any), 
     and add to the module given by 'moduleName'.  Use pre-parsed command documentation
-    to add to __doc__ strings for the command."""
+    to add to __doc__ strings for the command.
+    """
 
     #if module is None:
     #   module = _thisModule
@@ -1665,7 +1681,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             try:       
                 inFunc = getattr(module, funcName)
             except AttributeError:
-                #if funcName == 'lsThroughFilter': _logger.info("function %s not found in module %s" % ( funcName, module.__name__))
+                #if funcName == 'lsThroughFilter': _logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
         
         if not inFunc:
@@ -1673,9 +1689,9 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                 # import from pymel.mayahook.pmcmds
                 inFunc = getattr(pmcmds,funcName)
                 #inFunc = getattr(cmds,funcName)
-                #if funcName == 'lsThroughFilter': _logger.info("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
+                #if funcName == 'lsThroughFilter': _logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
-                util.warn('Cannot find function %s' % funcNameOrObject)
+                _logger.debug('Cannot find function %s' % funcNameOrObject)
                 return
     else:
         funcName = funcNameOrObject.__name__
@@ -1683,7 +1699,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
 
     # Do some sanity checks...
     if not callable(inFunc):
-        util.warn('%s not callable' % funcNameOrObject)
+        _logger.warn('%s not callable' % funcNameOrObject)
         return
     
     cmdInfo = cmdlist[funcName]
@@ -1695,10 +1711,15 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         try:
             newFuncName = inFunc.__name__
             if funcName != newFuncName:
-                util.warn("Function found in module %s has different name than desired: %s != %s. simple fix? %s" % ( inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None))
+                _logger.warn("Function found in module %s has different name than desired: %s != %s. simple fix? %s" % ( inFunc.__module__, funcName, newFuncName, funcType == types.FunctionType and returnFunc is None))
         except AttributeError:
-            util.warn("%s had no '__name__' attribute" % inFunc)
+            _logger.warn("%s had no '__name__' attribute" % inFunc)
 
+    if 'flags' in cmdInfo:
+        timeRangeFlags = _getTimeRangeFlags(cmdInfo['flags'])
+    else:
+        timeRangeFlags = []
+    
     # some refactoring done here - to avoid code duplication (and make things clearer),
     # we now ALWAYS do things in the following order:
         # 1. Check if we need a newFunction, or can modify existing one, and set our newFunc appropriately
@@ -1706,9 +1727,11 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         # 3. Modify the function descriptors - ie, __doc__, __name__, etc
         
     # 1. Check if we need a newFunction, or can modify existing one, and set our newFunc appropriately
-    if not (funcType == types.BuiltinFunctionType or rename):
-        # if it's a non-builtin function and we're not renaming, we don't need to create a
+    if returnFunc or timeRangeFlags or not (funcType == types.BuiltinFunctionType or rename):
+        # if it's a non-builtin function and we're not renaming we don't need to create a
         # new function - just tack docs onto existing one
+        # alternately, if there's a return function or timeRange flags it will cause us to do a wrap below anyway, 
+        # so it's safe to use a builtin as a starting point 
         newFunc = inFunc
     else:
         # otherwise, we'll need a new function: we don't want to touch built-ins, or
@@ -1722,13 +1745,42 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         
     # 2. Perform operations which modify the execution of the function (ie, adding return funcs)
 
-    if returnFunc:
+    
+    if returnFunc or timeRangeFlags:
         # need to define a seperate var here to hold
         # the old value of newFunc, b/c 'return newFunc'
         # would be recursive
         
         beforeReturnFunc = newFunc
         def newFuncWithReturnFunc( *args, **kwargs):
+            for flag in timeRangeFlags:
+                try:
+                    # allow for open-ended time ranges: 
+                    # (1,None), (1,), slice(1,None), "1:"
+                    # (None,100), slice(100), ":100"
+                    # (None,None), ":"
+                    val = kwargs[flag]
+                    if isinstance(val, slice):
+                        val = [val.start, val.stop]
+                    elif isinstance(val, basestring) and val.count(':') == 1:
+                        val = val.split(':')
+                        # keep this python 2.4 compatible
+                        for i, v in enumerate(val):
+                            if not v:
+                                val[i] = None
+                    
+                    if isinstance(val, (tuple, list) ):
+                        val = list(val)
+                        if len(val)==2 :
+                            if val[0] is None:
+                                val[0] = cmds.findKeyframe(which='first')
+                            if val[1] is None:
+                                val[1] = cmds.findKeyframe(which='last')
+                        elif len(val)==1:
+                            val.append( cmds.findKeyframe(which='last') )
+                        kwargs[flag] = tuple(val)
+                except KeyError: pass
+            
             res = beforeReturnFunc(*args, **kwargs)
             if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
                 if isinstance(res, list):
@@ -1751,52 +1803,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     # UI commands with callbacks
     #----------------------------
     
-    if uiWidget: #funcName in moduleCmds['windows']:
- 
-#        # wrap ui callback commands to ensure that the correct types are returned.
-#        # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
-#        if funcName.startswith('float'):
-#            callbackReturnFunc = float
-#        elif funcName.startswith('int'):
-#            callbackReturnFunc = int
-#        elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-#            callbackReturnFunc = lambda x: x == 'true'
-#        else:
-#            callbackReturnFunc = None
-#        
-#        if callbackReturnFunc or passSelf:                
-#            commandFlags = _getCallbackFlags(cmdInfo['flags'])
-#        else:
-#            commandFlags = []
-#        
-#
-#         
-#        #_logger.debug(funcName, inFunc.__name__, commandFlags)
-#
-#        # need to define a seperate var here to hold
-#        # the old value of newFunc, b/c 'return newFunc'
-#        # would be recursive
-#        beforeUiFunc = newFunc
-#        
-#        def newUiFunc( *args, **kwargs):
-#            for key in commandFlags:
-#                try:
-#                    cb = kwargs[ key ]
-#                    if callable(cb):
-#                        def callback(*args):
-#                            newargs = []
-#                            for arg in args:
-#                                arg = callbackReturnFunc(arg)
-#                                newargs.append(arg)
-#                            newargs = tuple(newargs)
-#                            return cb( *newargs )
-#                        kwargs[ key ] = callback
-#                except KeyError: pass
-#            
-#            return beforeUiFunc(*args, **kwargs)
-#        
-#        newFunc = newUiFunc
-        
+    if uiWidget:
         newFunc = fixCallbacks( newFunc, funcName )
 
         
@@ -3393,6 +3400,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             if not _api.apiToMelData.has_key((classname,methodName)) \
                                 or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
                                 or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
+                                #FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
