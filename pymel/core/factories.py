@@ -1954,6 +1954,13 @@ def addMelDocs( cmdName, flag=None ):
     
     return doc_decorator
 
+def listForNoneQuery(res, kwargs, flags):
+    "convert a None to an empty list on the given query flags"
+    if res is None and kwargs.get('query', kwargs.get('q', False ) ) and \
+        bool( [ True for long, short in flags if kwargs.get(long, kwargs.get(short, False ))] ):
+        return []
+    return res
+    
 '''
 def createFunctions( moduleName ):
     module = __import__(moduleName, globals(), locals(), [''])
