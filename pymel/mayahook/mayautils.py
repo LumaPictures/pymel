@@ -21,20 +21,15 @@ import envparse
 #from maya.cmds import encodeString
 
 if os.name == 'nt' :
-    maya = 'maya.exe'
+    # There are also cases where platform.system fails completely on Vista
+    MAYABIN = 'maya.exe'
+    SYSTEM = 'Windows'
 else :
-    maya = 'maya.bin'
+    MAYABIN = 'maya.bin'
+    SYSTEM = platform.system()
+    
 sep = os.path.pathsep
 
-
-try:
-    SYSTEM = platform.system()
-    # Note: for XP x64 and Vista, system() returns 'Microsoft'. 
-    if SYSTEM not in ('Darwin', 'Linux'):
-        SYSTEM = 'Windows'
-except:
-    # There are also cases where platform.system fails completely on Vista
-    SYSTEM = 'Windows'
 
 
 
