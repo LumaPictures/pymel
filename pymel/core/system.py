@@ -887,7 +887,7 @@ class FileReference(object):
                     self._refNode = iRefNode
                     break
             if self._refNode is None:
-                raise "Could not find a reference with the namespace %r" % namespace
+                raise RuntimeError,"Could not find a reference with the namespace %r" % namespace
             
         elif refnode:
             self._refNode = general.PyNode( refnode )
