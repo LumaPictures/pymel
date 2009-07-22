@@ -2165,7 +2165,7 @@ class Attribute(general.PyNode):
             return (indices and self.index() in indices)
         else:
             try:
-                return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True)    
+                return bool( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True) ) 
             except TypeError:
                 return False
         
@@ -2762,6 +2762,10 @@ class DependNode( general.PyNode ):
                 return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) ) 
             
         except RuntimeError:
+            if mayahook.pymel_options.get( '0_7_compatibility_mode', True):
+                import other
+                return other.AttributeName( '%s.%s' % (self, attr) )
+                
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
             raise general.MayaAttributeError( '%s.%s' % (self, attr) )
                
@@ -3535,17 +3539,27 @@ class Transform(DagNode):
         try :
             #print "Transform.__getattr__(%r)" % attr
             # Functions through normal inheritance
-            return DependNode.__getattr__(self,attr)
+            res = DependNode.__getattr__(self,attr)
         except AttributeError, e:
             # Functions via shape inheritance , and then, implicitly, Attributes
             shape = self.getShape()
             if shape:
                 try:
-                    #print "Transform: trying shape: getattr(%s,%s)" % (shape,attr)
                     return getattr(shape,attr)
                 except AttributeError: pass
             raise e
         
+        # if compatibility mode is on then we would get an AttributeName if the attribute did not exist
+        if mayahook.pymel_options.get( '0_7_compatibility_mode', True):
+            import other
+            if isinstance(res, other.AttributeName):
+                # we didn't get a real attribute, so lets' try to get a real one on the shape
+                shapeRes = self.getShape().attr(attr)
+                if isinstance(shapeRes, Attribute):
+                    return shapeRes
+                
+        return res
+    
     def __setattr__(self, attr, val):
         """
         Checks in the following order:
@@ -3577,16 +3591,26 @@ class Transform(DagNode):
         """
         #print "ATTR: Transform"
         try :
-            return DependNode.attr(self,attr)
+            res = DependNode.attr(self,attr)
         except general.MayaAttributeError, e:
             if checkShape:
-                #print "\tCHECKING SHAPE"
                 try: 
                     return self.getShape().attr(attr)
                 except AttributeError:
                     raise e
             raise e
         
+        # if compatibility mode is on then we would get an AttributeName if the attribute did not exist
+        if checkShape and mayahook.pymel_options.get( '0_7_compatibility_mode', True):
+            import other
+            if isinstance(res, other.AttributeName):
+                # we didn't get a real attribute, so lets' try to get a real one on the shape
+                shapeRes = self.getShape().attr(attr)
+                if isinstance(shapeRes, Attribute):
+                    return shapeRes
+                
+        return res
+    
 #    def __getattr__(self, attr):
 #        if attr.startswith('__') and attr.endswith('__'):
 #            return super(general.PyNode, self).__getattr__(attr)
