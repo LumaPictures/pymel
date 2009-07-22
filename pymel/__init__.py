@@ -1521,12 +1521,23 @@ def _pluginLoaded( *args ):
         pluginName = args[0][1]
     else:
         pluginName = args[0]
+        
+    if not pluginName:
+        return
+    
     #print type(array)
     #pluginPath, pluginName = array
     import core.pmcmds
     plogging.pymelLogger.info("Plugin loaded %s", pluginName)
-    commands = core.pmcmds.pluginInfo(pluginName, query=1, command=1)
+    
     _pluginData[pluginName] = {}
+    
+    try:
+        commands = core.pmcmds.pluginInfo(pluginName, query=1, command=1)
+    except:
+        plogging.pymelLogger.error("Failed to get command list from %s", pluginName)
+        commands = None
+
     
     # Commands
     if commands:
