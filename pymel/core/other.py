@@ -243,6 +243,21 @@ class AttributeName(NameParser):
     set = setAttr
     add = addAttr
     
+    def exists(self):
+        node = self.plugNode()
+        attr = self.plugAttr()
+        if not node or not attr:
+            return False
+
+        if not cmds.objExists(node):
+            return False
+    
+        # short name
+        if attr in cmds.listAttr( node, shortNames=1) + cmds.listAttr( node):
+            return True
+    
+        return False
+
 
 class DependNodeName( NameParser ):
     #-------------------------------
