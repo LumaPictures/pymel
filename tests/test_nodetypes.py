@@ -218,6 +218,7 @@ def testInvertibles():
 # add check of length of indices
 # test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
 # Add tests for ranges of float parameters: ie, 'nurbsSphere1.v[5.657][3.1:4.2]'
+# Add tests for double-indexed nurbs suface: 'nurbsSphere1.v[1.1:2.2][3.3:4.4]'
 
 class ComponentData(object):
     """
@@ -450,7 +451,7 @@ class testCase_components(unittest.TestCase):
         self.compData['meshVtxFace'] = ComponentData(MeshVertexFace,
                                                      self.nodes['cube'], "vtxFace",
                                                      [IndexData((3,0))])
-        self.compData['rotatePivot'] = ComponentData(RotatePivot,
+        self.compData['rotatePivot'] = ComponentData(Pivot,
                                                      self.nodes['cube'],
                                                      "rotatePivot", [])
 
@@ -468,8 +469,8 @@ class testCase_components(unittest.TestCase):
         self.compData['subdUV'] = ComponentData(SubdUV,
                                                 self.nodes['subd'], "smm",
                                                 [IndexData(95)])
-        self.compData['scalePivot'] = ComponentData(ScalePivot,
-                                                    self.nodes['cube'],
+        self.compData['scalePivot'] = ComponentData(Pivot,
+                                                    self.nodes['subd'],
                                                     "scalePivot", [])
         
         self.nodes['curve'] = cmds.circle()[0]
