@@ -420,6 +420,16 @@ class DimensionedComponent( Component ):
             mfncomp = self._mfncompclass(handle.object())
             if not mfncomp.isComplete():
                 isComplete = False
+
+        if isintance(indices, dict):
+            if len(dict) > 1:
+                isComplete = False
+                self._ComponentLabel__ = indices.keys()
+                assert set(self._ComponentLabel__).issubset(set(self.__class__._ComponentLabel__))
+            else:
+                # dict only has length 1..
+                self._ComponentLabel__ = indices.keys()[0]
+                indices = indices.values()[0]
         
         # If the component is complete, we allow further indexing of it using
         # __getitem__
@@ -561,15 +571,36 @@ class ComponentIndex( tuple ):
     """
     pass
 
-def validComponentIndex( argObj ):
+def validComponentIndex( argObj, allowDicts=True ):
     """
     True if argObj is of a suitable type for specifying a component's index.
     False otherwise.
+    
+    Dicts allow for components whose 'mel name' may vary - ie, a single
+    isoparm component may have, u, v, or uv elements; or, a single pivot
+    component may have scalePivot and rotatePivot elements.  The key of the
+    dict would indicate the 'mel component name', and the value the actual
+    indices.
+    
+    Thus:
+       {'u':3, 'v':(4,5), 'uv':ComponentIndex((1,4)) }
+    would represent single component that contained:
+       .u[3]
+       .v[4]
+       .v[5]
+       .uv[1][4]
     """
     componentIndexTypes = (int, long, float, slice, ComponentIndex)
-    return (isinstance(argObj, componentIndexTypes) or
-            (isinstance( argObj, (list,tuple) ) and
-             len(argObj) and isinstance(argObj[0], componentIndexTypes)))
+    
+    if allowDicts and isinstance(argObj, dict):
+        for key, value in dict.iteritems():
+            if not validComponentIndex(value, allowDicts=False):
+                return False
+        return True
+    else:
+        return (isinstance(argObj, componentIndexTypes) or
+                (isinstance( argObj, (list,tuple) ) and
+                 len(argObj) and isinstance(argObj[0], componentIndexTypes)))
 
 class DiscreteComponent( DimensionedComponent ):
     """
@@ -885,12 +916,7 @@ class Component1D64( DiscreteComponent ):
 
 class Pivot( Component ):
     _apienum__ = api.MFn.kPivotComponent
-
-class RotatePivot( Pivot ):
-    _ComponentLabel__ = "rotatePivot"
-
-class ScalePivot( Pivot ):
-    _ComponentLabel__ = "scalePivot"
+    _ComponentLabel__ = ("rotatePivot", "scalePivot") 
     
 ## Mesh Components
 
@@ -1145,15 +1171,10 @@ class NurbsCurveKnot( Component1D ):
 
 class NurbsSurfaceIsoparm( Component2DFloat ):
     _apienum__ = api.MFn.kIsoparmComponent
+    _ComponentLabel__ = ("u", "v", "uv")
 
-class NurbsSurfaceUIsoparm( NurbsSurfaceIsoparm ):
-     _ComponentLabel__ = "u"
-
-class NurbsSurfaceVIsoparm( NurbsSurfaceIsoparm ):
-     _ComponentLabel__ = "v"
-
-class NurbsSurfaceRange( Component1DFloat ):
-    _ComponentLabel__ = "u"
+class NurbsSurfaceRange( Component2DFloat ):
+    _ComponentLabel__ = ("u", "v", "uv")
     _apienum__ = api.MFn.kSurfaceRangeComponent
 
 class NurbsSurfaceCV( Component2D ):
@@ -3682,8 +3703,8 @@ class Camera(Shape):
 
 class Transform(DagNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'rotatePivot' : RotatePivot,
-                            'scalePivot'  : ScalePivot}
+    _componentAttributes = {'rotatePivot' : (Pivot, 'rotatePivot'), 
+                            'scalePivot'  : (Pivot, 'scalePivot')}
 #    def __getattr__(self, attr):
 #        try :
 #            return super(general.PyNode, self).__getattr__(attr)
@@ -4248,11 +4269,11 @@ class SurfaceShape(ControlPoint): pass
 
 class NurbsSurface(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'u'           : NurbsSurfaceUIsoparm,
-                            'uIsoparm'    : NurbsSurfaceUIsoparm,
-                            'v'           : NurbsSurfaceVIsoparm,
-                            'vIsoparm'    : NurbsSurfaceVIsoparm,
-                            'uv'          : NurbsSurfaceUIsoparm,
+    _componentAttributes = {'u'           : (NurbsSurfaceIsoparm, 'u'),
+                            'uIsoparm'    : (NurbsSurfaceIsoparm, 'u'),
+                            'v'           : (NurbsSurfaceIsoparm, 'v'),
+                            'vIsoparm'    : (NurbsSurfaceIsoparm, 'v'),
+                            'uv'          : (NurbsSurfaceIsoparm, 'uv'),
                             'cv'          : NurbsSurfaceCV,
                             'conrolVerts' : NurbsSurfaceCV,
                             'ep'          : NurbsSurfaceEP,
