@@ -118,11 +118,22 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 # NurbsSurfaceRange
 # Make it work with multiple component types in single component(?) 
 
-def _getMayaSlice( array ):
-    """given an MIntArray, convert to a maya-formatted slice"""
+def _sequenceToComponentSlice( array ):
+    """given an array, convert to a maya-formatted slice"""
     
     return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
+
+def _formatSlice(slice):
+    startIndex, stopIndex, step = slice.start, slice.stop, slice.step
+    if startIndex == stopIndex:
+        sliceStr = '%s' % startIndex
+    elif step is not None and step != 1:
+        sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
+    else:
+        sliceStr = '%s:%s' % (startIndex, stopIndex)
+    return sliceStr 
     
+      
 class Component( general.PyNode ):
     """
     Abstract base class for pymel components.
@@ -500,8 +511,7 @@ class DimensionedComponent( Component ):
                 indices.update(self._standardizeIndices(index,
                                                         allowIterable=False))
         else:
-            raise IndexError("Invalid indices for component: %r" % 
-                             indexObjs)
+            raise IndexError("Invalid indices for component: %r" % (indexObjs,) )
         return tuple(indices)
 
     def _sliceToIndices(self, slice):
@@ -769,7 +779,20 @@ class Component1D( DiscreteComponent ):
     _mfncompclass = api.MFnSingleIndexedComponent
     _apienum__ = api.MFn.kSingleIndexedComponent
     dimensions = 1
-
+    
+    def name(self):
+        # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
+        melobj = self.__melobject__()
+        if isinstance(melobj, basestring):
+            return
+        else:
+            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melobj ]
+            compSlice = _sequenceToComponentSlice( indices )
+            sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
+            return self._completeNameString().replace( '*', sliceStr )
+            
+                
+            
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
     _apienum__ = api.MFn.kDoubleIndexedComponent
@@ -890,7 +913,7 @@ class MeshVertex( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
     @mayahook.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
@@ -899,7 +922,7 @@ class MeshVertex( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 
     def connectedFaces(self):
         """
@@ -907,7 +930,7 @@ class MeshVertex( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
     @mayahook.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
@@ -916,7 +939,7 @@ class MeshVertex( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
     def connectedVertices(self):
         """
@@ -924,7 +947,7 @@ class MeshVertex( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
  
     def isConnectedTo(self, component):
         """
@@ -958,7 +981,7 @@ class MeshEdge( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 
     def connectedFaces(self):
         """
@@ -966,7 +989,7 @@ class MeshEdge( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
     @mayahook.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
@@ -975,7 +998,7 @@ class MeshEdge( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 
     def connectedVertices(self):
         """
@@ -1017,7 +1040,7 @@ class MeshFace( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
     @mayahook.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
@@ -1026,7 +1049,7 @@ class MeshFace( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 
     def connectedFaces(self):
         """
@@ -1034,7 +1057,7 @@ class MeshFace( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
     @mayahook.deprecated("Use 'connectedVertices' instead.")
     def toVertices(self):
@@ -1043,7 +1066,7 @@ class MeshFace( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
     
     def connectedVertices(self):
         """
@@ -1051,7 +1074,7 @@ class MeshFace( MItComponent1D ):
         """
         array = api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
 
     def isConnectedTo(self, component):
         """
@@ -1191,7 +1214,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedEdges(array)
-#        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #
 #    def connectedFaces(self):
 #        """
@@ -1199,7 +1222,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedFaces(array)
-#        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #    
 #    @util.deprecated("Use 'connectedFaces' instead.")
 #    def toFaces(self):
@@ -1208,7 +1231,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedFaces(array)
-#        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #
 #    def connectedVertices(self):
 #        """
@@ -1256,7 +1279,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedEdges(array)
-#        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #    
 #    @util.deprecated("Use 'connectedEdges' instead.") 
 #    def toEdges(self):
@@ -1265,7 +1288,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedEdges(array)
-#        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #
 #    def connectedFaces(self):
 #        """
@@ -1273,7 +1296,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedFaces(array)
-#        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #    
 #    @util.deprecated("Use 'connectedFaces' instead.")
 #    def toFaces(self):
@@ -1282,7 +1305,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedFaces(array)
-#        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #    
 #    def connectedVertices(self):
 #        """
@@ -1290,7 +1313,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedVertices(array)
-#        return MeshVertex( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+#        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
 # 
 #    def isConnectedTo(self, component):
 #        """
@@ -1331,7 +1354,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedEdges(array)
-#        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #    
 #    @util.deprecated("Use 'connectedEdges' instead.") 
 #    def toEdges(self):
@@ -1340,7 +1363,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedEdges(array)
-#        return MeshEdge( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #
 #    def connectedFaces(self):
 #        """
@@ -1348,7 +1371,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedFaces(array)
-#        return MeshFace( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) )
+#        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 #    
 #    @util.deprecated("Use 'connectedVertices' instead.")
 #    def toVertices(self):
@@ -1357,7 +1380,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedVertices(array)
-#        return MeshVertex( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+#        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
 #    
 #    def connectedVertices(self):
 #        """
@@ -1365,7 +1388,7 @@ class LatticePoint( Component3D ):
 #        """
 #        array = api.MIntArray()
 #        self.__apimfn__().getConnectedVertices(array)
-#        return MeshVertex( self, _getMayaSlice( [ array[i] for i in range( array.length() ) ] ) ) 
+#        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
 #
 #    def isConnectedTo(self, component):
 #        """
