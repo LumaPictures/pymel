@@ -604,7 +604,7 @@ Modifications:
 
         res = cmds.listRelatives( *args, **kwargs)
         if res is None:
-            return
+            return []
         return ls( res, shapes=1)
                 
     return map(PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
