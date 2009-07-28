@@ -784,13 +784,12 @@ class Component1D( DiscreteComponent ):
         # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
         melobj = self.__melobject__()
         if isinstance(melobj, basestring):
-            return
+            return melobj
         else:
             indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melobj ]
             compSlice = _sequenceToComponentSlice( indices )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
-            
                 
             
 class Component2D( DiscreteComponent ):
