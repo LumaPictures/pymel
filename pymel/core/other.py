@@ -304,7 +304,7 @@ class DependNodeName( NameParser ):
         try:
             name = self.nextName()
         except ValueError:
-            name = name + '1'
+            name = self.__class__(self + '1')
         while name.exists():
             name = name.nextName()
         return name
