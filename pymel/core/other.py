@@ -281,9 +281,9 @@ class DependNodeName( NameParser ):
         the name will be returned unchanged."""
         try:
             return DependNodeName._numPartReg.split(self)[0]
-        except:
+        except IndexError:
             return unicode(self)
-            
+
     def extractNum(self):
         """Return the trailing numbers of the node name. If no trailing numbers are found
         an error will be raised."""
@@ -294,30 +294,40 @@ class DependNodeName( NameParser ):
             raise ValueError, "No trailing numbers to extract on object %s" % self
 
     def nextUniqueName(self):
-        """Increment the trailing number of the object until a unique name is found"""
-        name = self.shortName().nextName()
+        """
+        Increment the trailing number of the object until a unique name is found
+        
+        If there is no trailing number, appends '1' to the name.
+        Will always return a different name than the current name, even if the
+            current name already does not exist. 
+        """
+        try:
+            name = self.nextName()
+        except ValueError:
+            name = name + '1'
         while name.exists():
             name = name.nextName()
         return name
-                
+    
     def nextName(self):
         """Increment the trailing number of the object by 1"""
-        try:
-            groups = DependNodeName._numPartReg.split(self)
+        
+        groups = DependNodeName._numPartReg.split(self)
+        if len(groups) > 1:
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
             return self.__class__(formatStr % ( groups[0], (int(num) + 1) ))
-        except IndexError:
+        else:
             raise ValueError, "could not find trailing numbers to increment on object %s" % self
-            
+
     def prevName(self):
         """Decrement the trailing number of the object by 1"""
-        try:
-            groups = DependNodeName._numPartReg.split(self)
+        groups = DependNodeName._numPartReg.split(self)
+        if len(groups) > 1:
             num = groups[1]
             formatStr = '%s%0' + unicode(len(num)) + 'd'            
             return self.__class__(formatStr % ( groups[0], (int(num) - 1) ))
-        except IndexError:
+        else:
             raise ValueError, "could not find trailing numbers to decrement on object %s" % self
 
 class DagNodeName(DependNodeName):
