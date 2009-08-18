@@ -1818,8 +1818,8 @@ class Attribute(general.PyNode):
             self.__dict__['_iterIndices'] = size, indices
 
         if index >= size:
-            self.__dict__.pop('_iterIndex')
-            self.__dict__.pop('_iterIndices')
+            self.__dict__.pop('_iterIndex', None)
+            self.__dict__.pop('_iterIndices', None)
             raise StopIteration
 
         else:
@@ -2152,8 +2152,35 @@ class Attribute(general.PyNode):
 #xxx{ Connections
 #----------------------    
           
-    def isConnectedTo(self, other, ignoreUnitConversion=False):          
-        return cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion)
+    def isConnectedTo(self, other, ignoreUnitConversion=False, checkLocalArray=False, checkOtherArray=False ):
+        """
+        Determine if the attribute is connected to the passed attribute.
+        
+        If checkLocalArray is True and the current attribute is a multi/array, the current attribute's elements will also be tested.
+        
+        If checkOtherArray is True and the passed attribute is a multi/array, the passed attribute's elements will also be tested.
+        
+        If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
+         
+        """
+
+        if cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion):
+            return True
+        
+        if checkLocalArray and self.isMulti():
+            for elem in self:
+                if elem.isConnectedTo(other, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=checkOtherArray):
+                    return True
+                
+        if checkOtherArray:
+             other = Attribute(other)
+             if other.isMulti():
+                 for elem in other:
+                     if self.isConnectedTo(elem, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=False):
+                        return True
+
+        
+        return False
     
     ## does not work because this method cannot return a value, it is akin to +=       
     #def __irshift__(self, other):
