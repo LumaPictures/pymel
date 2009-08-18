@@ -102,6 +102,7 @@ moduleNameShortToLong = {
     'language' : 'Language'
 }
 
+
 #: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
 #: because the maya docs do not specify in any parsable way which flags are secondary modifiers, we must maintain this dictionary.
 #: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
@@ -153,8 +154,7 @@ util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'shortFlags', 'sl',
 util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'flags', 'select', 'modes' ),  ['create', 'query', 'edit'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'flags', 'jointList', 'modes' ), ['query'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', 'modes' ),   ['query'] )
-util.mergeCascadingDicts( cmdlistOverrides, cmdlistOverrides )
-
+util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
 
 #---------------------------------------------------------------
 #        Doc Parser
@@ -1558,26 +1558,37 @@ def _addFlagCmdDocs(func, cmdName, flag, docstring=''):
 
 
 
-def _getCallbackFlags(flagDocs):
+def _getCallbackFlags(cmdName):
     """used parsed data and naming convention to determine which flags are callbacks"""
     commandFlags = []
-    for flag, data in flagDocs.items():
-        if data['args'] in ['script', callable] or 'command' in flag.lower():
-            commandFlags += [flag, data['shortname']]
+    try:
+        flagDocs = cmdlist[cmdName]['flags']
+    except KeyError:
+        pass
+    else:
+        for flag, data in flagDocs.items():
+            if data['args'] in ['script', callable] or 'command' in flag.lower():
+                commandFlags += [flag, data['shortname']]
     return commandFlags
 
-def _getTimeRangeFlags(flagDocs):
+def _getTimeRangeFlags(cmdName):
     """used parsed data and naming convention to determine which flags are callbacks"""
+    
     commandFlags = []
-    for flag, data in flagDocs.items():
-        if data['args'] == 'timeRange':
-            commandFlags += [flag, data['shortname']]
+    try:
+        flagDocs = cmdlist[cmdName]['flags']
+    except KeyError:
+        pass
+    else:
+        for flag, data in flagDocs.items():
+            if data['args'] == 'timeRange':
+                commandFlags += [flag, data['shortname']]
     return commandFlags
 
 def getUICommandsWithCallbacks():
     cmds = []
     for funcName in moduleCmds['windows']:
-        cbFlags = _getCallbackFlags(cmdlist[funcName]['flags'])
+        cbFlags = _getCallbackFlags(funcName)
         if cbFlags:
             cmds.append( [funcName, cbFlags] )
     return cmds
@@ -1595,10 +1606,8 @@ def fixCallbacks(inFunc, funcName=None ):
     
     if funcName is None:
         funcName = inFunc.__name__
-    
-    cmdInfo = cmdlist[funcName]
-        
-    commandFlags = _getCallbackFlags(cmdInfo['flags'])
+      
+    commandFlags = _getCallbackFlags(funcName)
     
     if not commandFlags:
         #commandFlags = []
@@ -1715,10 +1724,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         except AttributeError:
             _logger.warn("%s had no '__name__' attribute" % inFunc)
 
-    if 'flags' in cmdInfo:
-        timeRangeFlags = _getTimeRangeFlags(cmdInfo['flags'])
-    else:
-        timeRangeFlags = []
+    timeRangeFlags = _getTimeRangeFlags(funcName)
+
     
     # some refactoring done here - to avoid code duplication (and make things clearer),
     # we now ALWAYS do things in the following order:
@@ -1760,14 +1767,20 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                     # (None,100), slice(100), ":100"
                     # (None,None), ":"
                     val = kwargs[flag]
+                except KeyError: 
+                    pass
+                else:
                     if isinstance(val, slice):
                         val = [val.start, val.stop]
                     elif isinstance(val, basestring) and val.count(':') == 1:
                         val = val.split(':')
                         # keep this python 2.4 compatible
+                        
                         for i, v in enumerate(val):
-                            if not v:
+                            if not v.strip():
                                 val[i] = None
+                    elif isinstance(val, int):
+                        val = (val,val)
                     
                     if isinstance(val, (tuple, list) ):
                         val = list(val)
@@ -1779,7 +1792,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                         elif len(val)==1:
                             val.append( cmds.findKeyframe(which='last') )
                         kwargs[flag] = tuple(val)
-                except KeyError: pass
+
             
             res = beforeReturnFunc(*args, **kwargs)
             if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
