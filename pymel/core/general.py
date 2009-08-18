@@ -505,40 +505,59 @@ Modifications:
     - added sourceFirst keyword arg. when sourceFirst is true and connections is also true, 
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
         this puts the pairs in the order that disconnectAttr and connectAttr expect.
-        
+    - added ability to pass a list of types
+    
     :rtype: `PyNode` list
     """
     def makePairs(l):
         if l is None:
             return []
         return [(PyNode(a), PyNode(b)) for (a, b) in util.pairIter(l)]
-    
-    if kwargs.get('connections', kwargs.get('c', False) ) :    
-              
-        if kwargs.pop('sourceFirst',False):
-            source = kwargs.get('source', kwargs.get('s', True ) )
-            dest = kwargs.get('destination', kwargs.get('d', True ) )
-
-            if source:                
-                if not dest:
-                    return [ (s, d) for d, s in makePairs( cmds.listConnections( *args,  **kwargs ) ) ]
-                else:
-                    res = []
-                    kwargs.pop('destination', None)
-                    kwargs['d'] = False                    
-                    res = [ (s, d) for d, s in makePairs(cmds.listConnections( *args,  **kwargs )) ]                    
-
-                    kwargs.pop('source', None)
-                    kwargs['s'] = False
-                    kwargs['d'] = True
-                    return makePairs(cmds.listConnections( *args,  **kwargs )) + res
-                    
-            # if dest passes through to normal method 
             
-        return makePairs( cmds.listConnections( *args,  **kwargs ) )
-
+    # group the core functionality into a funcion, so we can call in a loop when passed a list of types    
+    def doIt(**kwargs):
+        if kwargs.get('connections', kwargs.get('c', False) ) :    
+                  
+            if kwargs.pop('sourceFirst',False):
+                source = kwargs.get('source', kwargs.get('s', True ) )
+                dest = kwargs.get('destination', kwargs.get('d', True ) )
+    
+                if source:                
+                    if not dest:
+                        return [ (s, d) for d, s in makePairs( cmds.listConnections( *args,  **kwargs ) ) ]
+                    else:
+                        res = []
+                        kwargs.pop('destination', None)
+                        kwargs['d'] = False                    
+                        res = [ (s, d) for d, s in makePairs( cmds.listConnections( *args,  **kwargs )) ]                    
+    
+                        kwargs.pop('source', None)
+                        kwargs['s'] = False
+                        kwargs['d'] = True
+                        return makePairs(cmds.listConnections( *args,  **kwargs )) + res
+                        
+                # if dest passes through to normal method 
+                
+            return makePairs( cmds.listConnections( *args,  **kwargs ) )
+    
+        else:
+            return map(PyNode, util.listForNone(cmds.listConnections( *args,  **kwargs )) )
+    
+    # if passed a list of types, concatenate the resutls
+    # NOTE: there may be duplicate results if a leaf type and it's parent are both passed: ex.  animCurve and animCurveTL
+    types = kwargs.get('type', kwargs.get('t',None))
+    if util.isIterable(types):
+        types = list(set(types)) # remove dupes from types list
+        kwargs.pop('type',None)
+        kwargs.pop('t',None)
+        res = []
+        for type in types:
+            ikwargs = kwargs.copy()
+            ikwargs['type'] = type
+            res += doIt(**ikwargs)
+        return res
     else:
-        return map(PyNode, util.listForNone(cmds.listConnections( *args,  **kwargs )) )
+        return doIt(**kwargs)
 
 def listHistory( *args, **kwargs ):
     """
