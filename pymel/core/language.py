@@ -146,7 +146,7 @@ class MelGlobals( dict ):
     
     The variable will now be accessible within MEL as a global string.
     """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     melTypeToPythonType = {
         'string'    : str,
         'int'       : int,
@@ -313,7 +313,7 @@ class Catch(object):
         ...    print "succeeded:", result
         
         """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     result = None
     success = None
     def __call__(self, func ):
@@ -375,7 +375,7 @@ class OptionVarDict(object):
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     def __call__(self, *args, **kwargs):
         return cmds.optionVar(*args, **kwargs)
     
@@ -442,7 +442,7 @@ optionVar = OptionVarDict()
 
 class Env(object):
     """ A Singleton class to represent Maya current optionVars and settings """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     
     optionVars = OptionVarDict()
     #grid = Grid()
