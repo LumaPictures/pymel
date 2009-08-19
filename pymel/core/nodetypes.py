@@ -29,8 +29,6 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
-_virtualSubClasses = {}
-
 def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
     """
     Generator function which makes 2 new 'parent' functions, given a baseParentFunc.
@@ -782,11 +780,11 @@ class Component1D( DiscreteComponent ):
     
     def name(self):
         # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
-        melobj = self.__melobject__()
-        if isinstance(melobj, basestring):
-            return
+        melObj = self.__melobject__()
+        if isinstance(melObj, basestring):
+            return melObj
         else:
-            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melobj ]
+            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melObj ]
             compSlice = _sequenceToComponentSlice( indices )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
@@ -3145,7 +3143,7 @@ class DependNode( general.PyNode ):
             raise ValueError, "could not find trailing numbers to decrement on object %s" % self
     
     @classmethod
-    def registerVirtualSubClass( cls, callback, nameRequired=False ):
+    def registerVirtualSubClass( cls, callback, nameRequired=False, createCallback=None ):
         """
         Allows a user to create their own subclasses of leaf PyMEL node classes,
         which are returned by `general.PyNode` and all other pymel commands.
@@ -3178,8 +3176,9 @@ class DependNode( general.PyNode ):
         # put new classes at the front of list, so more recently added ones
         # will override old definitions - handy if a module which registers a
         # virtual node is reloaded
-        _virtualSubClasses[parentCls] = \
-            [(cls, callback, nameRequired)] + _virtualSubClasses.get(parentCls, [])
+        _factories.virtualClass[parentCls].insert(0, (cls, callback, nameRequired) )
+        if createCallback:
+            _factories.virtualClassCreation[cls] = createCallback
 #}
 
 class Entity(DependNode):
@@ -5201,8 +5200,8 @@ def _getPymelType(arg, name) :
             except RuntimeError:
                 raise general.MayaNodeError
             
-            try:
-                data = _virtualSubClasses[pymelType]
+            if pymelType in _factories.virtualClass:
+                data = _factories.virtualClass[pymelType]
                 nodeName = name
                 for virtualCls, callback, nameRequired in data:
                     if nameRequired and nodeName is None:
@@ -5211,8 +5210,7 @@ def _getPymelType(arg, name) :
                     if callback(obj, nodeName):
                         pymelType = virtualCls
                         break
-            except KeyError:
-                pass
+
             return pymelType
 
     obj = None

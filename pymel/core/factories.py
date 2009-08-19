@@ -156,6 +156,9 @@ util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'flags', 'jointList',
 util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', 'modes' ),   ['query'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
 
+virtualClass = util.defaultdict(list)
+virtualClassCreation = {}
+        
 #---------------------------------------------------------------
 #        Doc Parser
 #---------------------------------------------------------------
@@ -3790,3 +3793,58 @@ def removePyNode( module, mayaType ):
     PyNodesToMayaTypes().pop(PyNodeType,None)
     module.__dict__.pop(pyNodeTypeName,None)
     module.api.removeMayaType( mayaType )
+
+def registerVirtualSubClass( cls, callback, createCallback=None, nameRequired=False ):
+    """
+    Allows a user to create their own subclasses of leaf PyMEL node classes,
+    which are returned by `general.PyNode` and all other pymel commands.
+    
+    The process is fairly simple:
+        1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
+            and not an abstract type higher up in the hierarchy. 
+        2.  Register your subclass by calling the registerVirtualSubClass method of your new class.  This is a class method, 
+            meaning that it **must** be called from an uninstantiated class.
+    
+    :type  callback: function
+    :param callback: must be a function that accepts two arguments, an MObject instance for the current object, 
+        and its name. The callback function should return True if the current object meets the requirements to become the
+        virtual subclass, or else False.
+    :type  nameRequired: bool
+    :param nameRequired: True if the callback requires the string name to operate on. The object's name is not always immediately
+        avaiable and takes an extra calculation to retrieve.
+        
+    """
+    validSpecialAttrs = set(['__module__','__readonly__','__slots__','__melnode__','__doc__'])
+
+    # assert that we are a leaf class
+    parentCls = None 
+    for each_cls in inspect.getmro(cls):
+        # we've reached a pymel node. we're done
+        if each_cls.__module__.startswith('pymel.core'):
+            parentCls = each_cls
+            break
+        else:
+            # it's a custom class: test for disallowed attributes
+            specialAttrs = [ x for x in each_cls.__dict__.keys() if x.startswith('__') and x.endswith('__') ]
+            badAttrs = set(specialAttrs).difference(validSpecialAttrs)
+            if badAttrs:
+                raise ValueError, 'invalid attribute name(s) %s: special attributes are not allowed on virtual nodes' % ', '.join(badAttrs)
+            
+    assert parentCls, "passed class must be a subclass of a PyNode type"
+    #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
+
+    cls.__melnode__ = parentCls.__melnode__
+    
+    # filter out any pre-existing classes with the same name as this one, because leaving stale callbacks in the list will slow things down
+    virtualClass[parentCls] = [ x for x in virtualClass[parentCls] if x[0].__name__ != cls.__name__]
+    
+    #TODO:
+    # inspect callbacks to ensure proper number of args and kwargs ( create callback must support **kwargs )
+    # ensure that the name of our node does not conflict with a real node
+    
+    # put new classes at the front of list, so more recently added ones
+    # will override old definitions
+    virtualClass[parentCls].insert( 0, (cls, callback, nameRequired) )
+    if createCallback:
+        virtualClassCreation[cls] = createCallback
+    
