@@ -5,11 +5,11 @@ Attributes
 ==========
 
 The `Attribute` class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
-have become familiar with all the many commands for operating on attributes.  This class gathers them all into one
+have become familiar with all the myriad commands for operating on attributes.  This class gathers them all into one
 place. If you forget or are unsure of the right method name, just ask for help by typing `help(Attribute)`.  
 
-For the most part, the names of the class equivalents to the maya.cmds functions follow a fairly simple pattern:
-`setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
+For the most part, the names of the methods follow a fairly simple pattern: `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
+
 Here's a simple example showing how the Attribute class is used in context.
 
     >>> from pymel import *
@@ -26,12 +26,24 @@ Accessing Attributes
 
 You can access an attribute class in three ways.  The first two require that you already have a `PyNode` object.
 
+attr Method
+~~~~~~~~~~~
+The attr method is the safest way to access an attribute, and can be used to access attributes that conflict with 
+python methods, which would fail using shorthand syntax. This method is passed a string which
+is the name of the attribute to be accessed. 
+    
+    >>> cam.attr('visibility')
+    Attribute(u'persp.visibility')
+
+Unlike the shorthand syntax below, this method is capable of being passed attributes as variables:        
+    
+    >>> for axis in ['scaleX', 'scaleY', 'scaleZ']: 
+    ...     cam.attr( axis ).lock()          
+
 Shorthand
 ~~~~~~~~~
 
-The shorthand method is the most visually appealing and readable -- you simply access the maya attribute as a normal python attribute --
-but it has one major drawback: **if the attribute that you wish to acess has the same name as one of the attributes or methods of the 
-python class then it will fail**. 
+The shorthand method is the most visually appealing and readable -- you simply access the maya attribute as a normal python attribute -- but it has one major drawback: **if the attribute that you wish to acess has the same name as one of the attributes or methods of the python class then it will fail**. 
 
     >>> cam  # continue from where we left off above
     Transform(u'persp')
@@ -41,38 +53,23 @@ python class then it will fail**.
     Attribute(u'persp.visibility')
     
 Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
+
 If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`,
 `Attribute.plugAttr`, or `Attribute.lastPlugAttr`.
 
 
-attr Method
-~~~~~~~~~~~
-The attr method is the safest way to access an attribute, and can even be used to access attributes that conflict with 
-python methods, which would fail using shorthand syntax. This method is passed a string which
-is the name of the attribute to be accessed. 
-    
-    >>> cam.attr('visibility')
-    Attribute(u'persp.visibility')
-
-Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
-    
-    >>> for axis in ['scaleX', 'scaleY', 'scaleZ']: 
-    ...     cam.attr( axis ).lock()          
-
 Direct Instantiation
 ~~~~~~~~~~~~~~~~~~~~
-The last way of getting an attribute is by directly instantiating the class. You can pass the attribute name as a string, or if you have one handy,
-pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
-class, which will determine the appropriate class automaticallly.
+The last way of getting an attribute is by directly instantiating the class with the full name of the attribute, including the node. You can pass the attribute name as a string, or if you have one handy, pass in an api MPlug object.  If you have a name as a string, but you don't know whether it represents a node or an attribute, you can always instantiate via the `PyNode` class, which will determine the appropriate class automatically.
 
 explicitly request an Attribute:
 
     >>> Attribute( 'persp.visibility' ) 
     Attribute(u'persp.visibility')
     
-let general.PyNode figure it out for you:
+let `PyNode` figure it out for you:
 
-    >>> general.PyNode( 'persp.translate' ) 
+    >>> PyNode( 'persp.translate' ) 
     Attribute(u'persp.translate')
 
 
@@ -109,8 +106,10 @@ for a given attribute. This can be a potential source of confusion:
     >>> value == result
     False
     >>> # why is this? because result is a Vector and value is a list
+    >>> result
+    datatypes.Vector([4,5,6])
     >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
-    >>> result == datatypes.Vector(value)
+    >>> list(result) == value
     True
     >>> result.isEquivalent(value)
     True

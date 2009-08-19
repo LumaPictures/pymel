@@ -13,53 +13,63 @@ builds on the cmds module by organizing many of its commands into a class hierar
 customizing them to operate in a more succinct and intuitive way.
 
 
-Contents:
+Chapters:
 
 .. toctree::
-	:maxdepth: 2
+	:maxdepth: 1
 	
-	install
-	whats_new
-	design
+	why_pymel
 	tutorial
 	pynodes
 	attributes
 	non_existent_objs
 	ui
 	standalone
-	eclipse
-	
 
-.. autosummary::
-	:nosignatures:
-	:toctree: generated/
+
+Appendices:
+
+.. toctree::
+	:maxdepth: 1
+
+	install
+	eclipse
+	mel_to_python
+
+..
+	whats_new
 	
-	pymel.core.animation
-	pymel.core.datatypes
-	pymel.core.effects
-	pymel.core.general
-	pymel.core.language
-	pymel.core.modeling
-	pymel.core.nodetypes
-	pymel.core.other
-	pymel.core.rendering
-	pymel.core.runtime
-	pymel.core.system
-	pymel.core.windows
-	pymel.core.context
-	pymel.mayahook.version
-	pymel.util
-	pymel.util.arguments
-	pymel.util.arrays
-	pymel.util.common
-	pymel.util.decoration
-	pymel.util.enum
-	pymel.util.mathutils
-	pymel.util.namedtuple
-	pymel.util.path
-	pymel.util.trees
-	pymel.util.utilitytypes
-	pymel.mayahook
+..
+	.. autosummary::
+		:nosignatures:
+		:toctree: generated/
+	
+		pymel.core.animation
+		pymel.core.datatypes
+		pymel.core.effects
+		pymel.core.general
+		pymel.core.language
+		pymel.core.modeling
+		pymel.core.nodetypes
+		pymel.core.other
+		pymel.core.rendering
+		pymel.core.runtime
+		pymel.core.system
+		pymel.core.windows
+		pymel.core.context
+		pymel.mayahook.version
+		pymel.util
+		pymel.util.arguments
+		pymel.util.arrays
+		pymel.util.common
+		pymel.util.decoration
+		pymel.util.enum
+		pymel.util.mathutils
+		pymel.util.namedtuple
+		pymel.util.path
+		pymel.util.trees
+		pymel.util.utilitytypes
+		pymel.mayahook
 
 =======================================
     Special Thanks

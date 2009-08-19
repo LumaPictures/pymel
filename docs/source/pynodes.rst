@@ -6,8 +6,7 @@ PyNodes
 
 The pymel module reorganizes many of the most commonly used mel commands and API methods into a 
 hierarchy of classes. This design allows you to write much more concise and readable python code. It also helps
-keep all of the commands organized, so that
-functions are paired only with the types of objects that can use them.
+keep all of the commands organized, so that functions are paired only with the types of objects that can use them.
 
 The `PyNode` class is the base object for all node-, component-, and attribute-related classes. We collectively refer
 to all these classes as "PyNodes".
@@ -30,20 +29,15 @@ Commands that create objects are wrapped as well:
 ---------------------------------------
 API Underpinnings
 ---------------------------------------
-In MEL, the best representation we have have of a maya node or attribute is its name.  But with the API we can do better!  
-When creating an instance of a `PyNode` class, PyMEL determines the underlying API object behind the scenes.
-With this in hand, it can operate on the object itself, not just the string representing the object.
+
+In MEL, the best representation we have have of a maya node or attribute is its name.  But with the API we can do better!  When creating an instance of a `PyNode` class, PyMEL determines the underlying API object behind the scenes. With this in hand, it can operate on the object itself, not just the string representing the object.
 
 So, what does this mean to you?  Well, let's take a common example: testing if two nodes or attributes are the
-same. In MEL, to accomplish this the typical solution is to perform a string comparison 
-of two object names, but there are many ways that this seemingly simple operation can go wrong. For instance, forgetting to compare the
-full paths of dag node objects, or comparing the long name of an attribute to the short name of an attribute.  
-And what if you want to test if the nodes are instances of each other?  You'll have some pretty 
-nasty string processing ahead of you.  And what if someone renames the node or its name becomes non-unique?  With PyMEL, the nightmares
-of string comparisons are over.
+same. In MEL, to accomplish this the typical solution is to perform a string comparison of two object names, but there are many ways that this seemingly simple operation can go wrong. For instance, forgetting to compare the full paths of dag node objects, or comparing the long name of an attribute to the short name of an attribute.  And what if you want to test if the nodes are instances of each other?  You'll have some pretty nasty string processing ahead of you.  And if someone renames the node or its name becomes non-unique after you've already gotten its name as a string then your script will fail.  With PyMEL, the nightmares of string comparisons are over.
 
-But since PyMEL uses the underlying API objects, these operations are simple
-and API-fast.
+Since PyMEL uses the underlying API objects, these operations are simple and API-fast.
+
+In this example, we'll make a sphere, group it, then instance the group, so that we have a tricky situation with instances and non-unique names. 
 
         >>> from pymel import *
         >>> # Make two instanced spheres in different groups
@@ -51,6 +45,9 @@ and API-fast.
         >>> grp = group(sphere1)
         >>> grp2 = instance(grp)[0]
         >>> sphere2 = grp2.getChildren()[0]
+
+Now lets take a look at our objects and see how our various comparisons turn out.
+
         >>> # check out our objects
         >>> sphere1                            # the original
         Transform(u'group1|mySphere')
@@ -60,20 +57,27 @@ and API-fast.
         >>> # they aren't the same dag objects
         >>> sphere1 == sphere2              
         False
-        >>> # they are instances of each other
+        >>> # but they are instances of each other
         >>> sphere1.isInstanceOf( sphere2 )    
         True
-        >>> sphere1.getInstances()
-        [Transform(u'group1|mySphere'), Transform(u'group2|mySphere')]
-        >>> 
+
+Attribute comparison is simple, too. Keep in mind, we are not comparing the values of the attributes -- for that we would need to use the `get <Attribute.get>` method -- we are comparing the attributes themselves.  This is similar to, but better than, comparing names:
+
         >>> # long and short names retrieve the same attribute
         >>> sphere1.t == sphere1.translate    
         True
         >>> sphere1.tx == sphere1.translate.translateX
         True
         >>> # the same attrs on different nodes/instances are still the same 
-        >>> sphere1.t == sphere2.t    
+        >>> sphere1.t == sphere2.t
         True
+
+And here's an incredibly useful feature that I get asked for all the time.  Get all the instances of an object in a scene::
+
+	    >>> sphere1.getInstances()
+        [Transform(u'group1|mySphere'), Transform(u'group2|mySphere')]
+	    >>> sphere1.getOtherInstances()
+        [Transform(u'group2|mySphere')]
 
 For more on the relationship between PyMEL and Maya's API, see `API Classes and their PyNode Counterparts`_
 
@@ -86,7 +90,7 @@ PyNodes Are Not Strings
 In previous versions of pymel, the node classes inherited from the builtin unicode string class.  With the introduction of the new API
 underpinnings, the node classes inherit from a special `ProxyUnicode` class, which has the functionality of a string object, but
 removes the immutability restriction ( see the next section `Mutability And You`_ ).  It is important to keep in mind that although
-PyNodes *behave* like strings in most situations, they are no longer actual strings. Functions which explicity require a string, and which worked 
+PyNodes *behave* like strings in most situations, they are no longer actual strings. Functions which explicitly require a string, and which worked 
 with PyNodes in previous versions of pymel, might raise an error with version 0.9 and later. For example:
 
     >>> objs = ls( type='camera')
@@ -135,22 +139,28 @@ Mutability and You
 ---------------------------------------
 
 One change that has come about due to the new API-based approach is node name mutability. You might have noticed
-when working with strings in python that they cannot be changed "in place". In other words, all string operations return a new string. This is
-is known as immutability.
+when working with strings in python that they cannot be changed "in place". In other words, all string operations return a new string,
+leaving the original intact. This is is known as immutability::
+
+    >>> s1 = 'hampster dance'
+    >>> s2 = s1.replace('hampster', 'chicken')
+    >>> s1
+    'hampster dance'
+
 
 By inheriting from a mutable `ProxyUnicode` class instead of an immutable string, we are now able to provide a design which more accurately reflects 
 how nodes work in maya --  when a node's name is changed it is still the same object with the same properties --  the name
 is simply a label or handle. In practice, this
 means that each time the name of the node is required -- such as printing, slicing, splitting, etc -- the object's current name
 is queried from the underlying API object. This ensures renames performed via mel or the UI will always be reflected 
-in the name returned by your PyNode class.
+in the name returned by your PyNode class and your variables will remain valid despite these changes.
 
 Renaming
 ========
 
 In versions of PyMEL previous to 0.9, the node classes inherited from python's built-in unicode
 string type, which, due to its immutability, could cause unintuitive results with commands like rename.
-The new behavior creates a more intuitve result.
+The new behavior creates a more intuitive result.
 
 New Behavior:
     >>> orig = polyCube(name='myCube')[0]
@@ -241,8 +251,8 @@ Node Class Hierarchy
 ---------------------------------------
 
 
-PyMEL provides a class for every node type in Maya's type hierarchy.  The name of the class is the node type captitalized.  Wherever possible,
-PyMEL functions will return objects as instances of these classes. This allows you to use builtin python functions to inspect
+PyMEL provides a class for every node type in Maya's type hierarchy.  The name of the class is the node type capitalized.  Wherever possible,
+PyMEL functions will return objects as instances of these classes. This allows you to use built-in python functions to inspect
 and compare your objects.  For example:
 
     >>> dl = directionalLight()
@@ -333,7 +343,7 @@ for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and 
 API Classes and their PyNode Counterparts
 =========================================
 
-PyNode classes now derive their methods from both MEL and the API ( aka. maya.cmds and maya.OpenMaya, respectivelly ).  If you're 
+PyNode classes now derive their methods from both MEL and the API ( aka. maya.cmds and maya.OpenMaya, respectively ).  If you're 
 familiar with Maya's API, you know that there is a distinct separation between objects and their abilities.  There are fundamental
 object types such as MObject and MDagPath that represent the object itself, and there are "function sets", which are classes that,
 once instantiated with a given fundamental object, provide it with special abilities.  ( Because I am a huge nerd, I like to the think of the 
@@ -358,33 +368,33 @@ and the names of these methods are subject to change ):
 As you can probably see, these methods are enormously useful when prototyping API plugins.  Also of great use is the `PyNode` class,
 which can be instantiated using API objects.
 
-
- 
 ---------------------------------------
 Chained Function and Attribute Lookups
 ---------------------------------------
 
-Mel provides the versatility of operating on a shape node via its transform node.  For example, these two commands work
-interchangably::
+Mel provides the versatility of operating on a shape node via its transform node.  For example::
 
     camera -q -centerOfInterest persp
     camera -q -centerOfInterest perspShape
 
 
-PyMEL achieves this effect by chaining function lookups.  If a called method does not exist on the Transform class, the 
+PyMEL achieves this effect by chaining function lookups.  If a called method does not exist on the `Transform` class, the 
 request will be passed to appropriate class of the transform's shape node, if it exists.
 
     >>> # get the persp camera as a PyNode
     >>> trans = PyNode('persp')
-    >>> print type(trans)
-    <class 'pymel.core.nodetypes.Transform'>
     >>> # get the transform's shape, aka the camera node
     >>> cam = trans.getShape()
     >>> print cam
     perspShape
-    >>> print type( cam )
-    <class 'pymel.core.nodetypes.Camera'>
     >>> trans.getCenterOfInterest()
     44.82186966202994
     >>> cam.getCenterOfInterest()
     44.82186966202994
+
+Technically speaking, the Transform does not have a `getCenterOfInterest` method:: 
+
+ 	>>> trans.getCenterOfInterest
+	<bound method Camera.getCenterOfInterest of Camera(u'perspShape')>
+
+Notice the bound method belongs to the `Camera` class.

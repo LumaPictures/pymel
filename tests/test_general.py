@@ -185,9 +185,9 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
         self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
         
-        if mayahook.Version.current > mayahook.Version.v85sp1:
-            undo()
-            self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+#        if mayahook.Version.current > mayahook.Version.v85sp1:
+#            undo()
+#            self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
 
     def test_transform_rotation(self):
         SCENE.persp.setRotation( [10,20,0], 'world')
