@@ -2,74 +2,9 @@
 import maya.mel as _mm
 import inspect
 from pymel.util.arrays import VectorN, MatrixN
+from pymel.core.language import getMelType
 
-def getMelType( pyObj=None, pyType=None, melVariable=None, exactMelType=False):
-    """return the mel type of the passed argument.
-    
-    When passed a PyObj the command will determine the closest mel type equivalent for a python object
-    
-    When passed a melVariable, the command will determine the mel type from a mel variable ( ex. '$foo' )
-    
-    If exactMelType is True and no suitable mel analog can be found, the function will return None.
-    If False, types which do not have an exact mel analog will return the type name as a string
-
-    """
-
-    typeStrMap = {   
-                 'Vector' : 'vector',
-                 'unicode': 'string',
-                 'str'    : 'string'
-                           }
- 
-    if pyType is not None:
-        assert melVariable is None and pyObj is None, "Pass only one of pyObj, pyType or melVariable"
-        #assert inspect.isclass(pyType), "pyType must be passed a class. got %s" % type(pyType) 
-        if not exactMelType:
-            if not isinstance( pyType, basestring ): 
-                
-                pyType = pyType.__name__
-            return typeStrMap.get(pyType, pyType)   
-            
-        else:
-            if issubclass( pyObj, basestring ) : return 'string'
-            #elif not boolIsInt and isinstance( arg, bool ) : return 'bool'
-            elif issubclass( pyObj, int ) : return 'int'
-            elif issubclass( pyObj, float ) : return 'float'         
-            elif issubclass( pyObj, datatypes.Vector ) : return 'vector'
-            elif issubclass( pyObj, datatypes.Matrix ) : return 'matrix'
-            
-    elif melVariable is not None:
-        assert pyType is None and pyObj is None, "Pass only one of pyObj, pyType or melVariable"
-        if not melVariable.startswith('$'): melVariable = '$' + melVariable
-         
-        buf = _mm.eval( 'whatIs "%s"' % melVariable ).split()
-        try:
-            if buf[1] == 'variable':
-                return buf[0]
-        except: return
-    else:
-        assert pyType is None and melVariable is None, "Please pass only one of pyObj, pyType or melVariable"
-        
-        if not exactMelType:
-            typeStr = type(pyObj).__name__
-            typeStr = typeStrMap.get(typeStr, typeStr)
-            return typeStr
-        
-        else:    
-            if isIterable( pyObj ):
-                try:
-                    return getMelType( pyObj=arg[0], exactMelType=True ) + '[]'
-                except IndexError:
-                    return 'string[]'
-                except:
-                    return
-            if isinstance( pyObj, basestring ) : return 'string'
-            #elif not boolIsInt and isinstance( arg, bool ) : return 'bool'
-            elif isinstance( pyObj, int ) : return 'int'
-            elif isinstance( pyObj, float ) : return 'float'         
-            elif isinstance( pyObj, datatypes.Vector ) : return 'vector'
-            elif isinstance( pyObj, datatypes.Matrix ) : return 'matrix'
-
+import pymel.util as util
 
 
 def _getFunction( function ):
@@ -103,8 +38,6 @@ def getMelArgs( function, exactMelType=True ):
         
     """
     
-    from inspect import getargspec
-    
     melArgs = []
     melArgDefaults = {}
     
@@ -116,35 +49,35 @@ def getMelArgs( function, exactMelType=True ):
     funcName = function.__name__
     moduleName = function.__module__    
 
-    args, varargs, kwargs, defaults  = getargspec( function )
+    args, varargs, kwargs, defaults  = inspect.getargspec( function )
     
-    # epydoc docstring parsing
-    try:
-        import epydoc.docbuilder
-    except ImportError:
-        pass
-    else:
-        try:
-            docindex = epydoc.docbuilder.build_doc_index( [moduleName], parse=True, introspect=True, add_submodules=False)
-            linker = epydoc.markup.DocstringLinker()
-            api_doc = docindex.get_valdoc( moduleName + '.' + funcName )
-        except Exception, msg:
-            print "epydoc parsing failed: %s" % msg
-        else:
-            arg_types = api_doc.arg_types
-            #print api_doc.arg_descrs
-            #print arg_types
-            for arg, descr in api_doc.arg_descrs: 
-                # filter out args that are not actually in our function.  that means currently no support for *args and **kwargs
-                # not yet sure why, but the keys to arg_types are lists
-                arg = arg[0]
-                if arg in args: # or kwargs:
-                    parsedDescr[arg] = descr.to_plaintext( linker )
-                    try:
-                        argtype = arg_types[ arg ].to_plaintext( linker )
-                        parsedTypes[arg] = getMelType( pyType=argtype, exactMelType=exactMelType )
-                        #print arg, argtype, parsedTypes.get(arg)
-                    except KeyError: pass
+#    # epydoc docstring parsing
+#    try:
+#        import epydoc.docbuilder
+#    except ImportError:
+#        pass
+#    else:
+#        try:
+#            docindex = epydoc.docbuilder.build_doc_index( [moduleName], parse=True, introspect=True, add_submodules=False)
+#            linker = epydoc.markup.DocstringLinker()
+#            api_doc = docindex.get_valdoc( moduleName + '.' + funcName )
+#        except Exception, msg:
+#            print "epydoc parsing failed: %s" % msg
+#        else:
+#            arg_types = api_doc.arg_types
+#            #print api_doc.arg_descrs
+#            #print arg_types
+#            for arg, descr in api_doc.arg_descrs: 
+#                # filter out args that are not actually in our function.  that means currently no support for *args and **kwargs
+#                # not yet sure why, but the keys to arg_types are lists
+#                arg = arg[0]
+#                if arg in args: # or kwargs:
+#                    parsedDescr[arg] = descr.to_plaintext( linker )
+#                    try:
+#                        argtype = arg_types[ arg ].to_plaintext( linker )
+#                        parsedTypes[arg] = getMelType( pyType=argtype, exactMelType=exactMelType )
+#                        #print arg, argtype, parsedTypes.get(arg)
+#                    except KeyError: pass
             
     
     try:
@@ -161,7 +94,7 @@ def getMelArgs( function, exactMelType=True ):
         if i >= offset:
             # keyword args with defaults
             default = defaults[i-offset]
-            melType = getMelType( pyObj=default, exactMelType=exactMelType )
+            melType = getMelType( default, exactOnly=exactMelType )
             # a mel type of None means there is no mel analogue for this python object
 #            if not isValidMelType( melType ):
 #                # if it's None, then we go to parsed docs
@@ -183,19 +116,19 @@ def getMelArgs( function, exactMelType=True ):
 
 def py2melProc( function, returnType='', procName=None, evaluateInputs=True ):
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed 
-    python function.  Theoretically useful for calling your python scripts in scenarios where maya
-    does not yet support python callbacks, such as in batch mode.
+    python function.  Theoretically useful for calling your python scripts in scenarios where Maya
+    does not yet support python callbacks.
     
-    The function is inspected in order to generate a mel procedure which relays its
-    arguments on to the python function.  However, Python feature a very versatile argument structure whereas 
-    mel does not. 
+    The function is inspected in order to generate a MEL procedure which relays its
+    arguments on to the python function.  However, Python features a very versatile argument structure whereas 
+    MEL does not. 
     
-        - python args with default values (keyword args) will be set to their mel analogue, if it exists. 
+        - python args with default values (keyword args) will be set to their MEL analogue, if it exists. 
         - normal python args without default values default to strings. If 'evaluteInputs' is True, string arguments passed to the 
-            mel wrapper proc will be evaluated as python code before being passed to your wrapped python
+            MEL wrapper proc will be evaluated as python code before being passed to your wrapped python
             function. This allows you to include a typecast in the string representing your arg::
                 
-                myWrapperProc( "Transform('perp')" );
+                myWrapperProc( "Transform('persp')" );
                 
         - *args : not yet implemented
         - **kwargs : not likely to be implemented
