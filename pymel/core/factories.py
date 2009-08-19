@@ -1441,9 +1441,10 @@ def _addCmdDocs( func, cmdName ):
 
         docstring += 'Flags:\n'
     
-        docstring += rowsep
-        docstring += makerow( ['Long name (short name)', 'Argument Types', 'Properties'], altwidths )
-        docstring += headersep
+        if INCLUDE_DOC_EXAMPLES:
+            docstring += rowsep
+            docstring += makerow( ['Long name (short name)', 'Argument Types', 'Properties'], altwidths )
+            docstring += headersep
               
         for flag in sorted(flagDocs.keys()):
             if flag in ['edit', 'query']: continue
