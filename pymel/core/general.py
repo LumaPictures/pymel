@@ -1342,12 +1342,17 @@ class PyNode(util.ProxyUnicode):
         else :
             # create node if possible
             if issubclass(cls,nodetypes.DependNode):
-                #print "creating dependNode"
                 if hasattr( cls, 'createVirtual' ):
                     res = cls.createVirtual(**kwargs)
                     if res is None:
                         raise TypeError, "createVirtual must return the created node"
                     return cls(res)
+                elif cls in _factories.virtualClassCreation:
+                    res = _factories.virtualClassCreation[cls](**kwargs)
+                    if res is None:
+                        raise TypeError, "createVirtual must return the created node"
+                    return cls(res)
+                
                 elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
                     try:
                         _logger.debug( 'creating node of type %s using %s' % (cls.__melnode__, cls.__melcmd__.__name__ ) ) 
