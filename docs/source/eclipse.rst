@@ -11,6 +11,7 @@ Before You Begin
 	* Use Eclipse's **Software Update** window (under help) to install `PyDev <http://pydev.sourceforge.net/download.html>`_
 	* You may also want to install a trial of `PyDev Extensions <http://fabioz.com/pydev/index.html>`_. I can't live without its `Mark Occurrences <http://fabioz.com/pydev/manual_adv_markoccurrences.html>`_ feature.
 
+These instructions are updated for Pydev 1.4.6, and should work on either Eclipse 3.4.x or 3.5.x
 
 
 --------------------------------------------------
@@ -30,9 +31,10 @@ Adding The Maya Python Interpreter
 			
 	2.	In the left pane, drop down to **Pydev > Interpreter-Python**
 	3.	Click the **New..** button at the top right of the **Python Interpreters** preferences window
-	4.	In the browser that comes up, you want to choose Maya's python interpreter: ``mayapy``.  
+	4.	In the window that comes up give your interpreter a name (such as maya2009-osx). 
+	5.  Next, you can either copy and paste the path to your maya interpreter (aka ``mayapy``) or you can click 'Browse' and navigate to it.  
 
-		.. note:: On osx, browsing to ``mayapy`` is not as easy as it should be. The problem is that it's buried within Maya.app, which you cannot access in a file browser (thanks Apple!).  To get to it, hold down **Command+Shift+G** to bring up a box to enter a path (that's the Apple "Command" button, plus Shift, plus the letter G). Due to a bug on Eclipse's part, you can't *paste* a path in this browser, so you'll have to arduously type it out ( luckily, it does have some basic tab completion to help you along ).
+		.. note:: On OSX, browsing to ``mayapy`` is not as easy as it should be. The problem is that it's buried within Maya.app, which you cannot access in a file browser (thanks Apple!).  To get to it, hold down **Command+Shift+G** to bring up a box to enter a path (that's the Apple "Command" button, plus Shift, plus the letter G). You can't use Command-V to *paste* a path in this browser, but you *can* right click in the path entry box and choose Paste.
 
 		
 		.. |win_104| image:: images/pymel_eclipse_win_104.png  
@@ -95,33 +97,18 @@ Adding Forced Builtins
 Because PyMEL contains many dynamically created functions and classes, simply parsing its modules is not sufficient to produce the full set of completions.  Luckily, Pydev has a special list of modules that it inspects more thoroughly.  Starting from where we left off in the Pydev preferences under Python Interpreters...
 
 	1.	Change to the **Forced Builtins** tab.
-	2.	Add each of the following PyMEL builtins::
+	2.	Add each of the following PyMEL builtins (you can copy and paste the whole list at once)::
 
-			pymel.api.allapi
-			pymel.core.animation
-			pymel.core.datatypes
-			pymel.core.effects
-			pymel.core.general
-			pymel.core.language
-			pymel.core.modeling
-			pymel.core.nodetypes
-			pymel.core.other
-			pymel.core.rendering
-			pymel.core.system
-			pymel.core.windows
+			pymel.api.allapi, pymel.core.animation, pymel.core.datatypes, pymel.core.effects, pymel.core.general, pymel.core.language, pymel.core.modeling, pymel.core.nodetyeps, pymel.core.other, pymel.core.rendering, pymel.core.system, pymel.core.windows
 
 		.. note::
 			I've left a few modules out that are less often used, such as ``pymel.core.runtime`` and ``pymel.core.context``.  Feel free to add these, too.
 			
 	3.	If you plan on doing any Maya plugin development you should also add these to your builtins (or at least OpenMaya and OpenMayaMPx)::
 
-			maya.OpenMaya
-			maya.OpenMayaAnim
-			maya.OpenMayaCloth
-			maya.OpenMayaFX
-			maya.OpenMayaMPx
-			maya.OpenMayaRender
+			maya.OpenMaya, maya.OpenMayaAnim, maya.OpenMayaCloth, maya.OpenMayaFX, maya.OpenMayaMPx, maya.OpenMayaRender
 
+		
 		.. image:: images/pymel_eclipse_win_203.png
 			:height: 504
 			:width: 723
