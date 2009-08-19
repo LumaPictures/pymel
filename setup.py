@@ -34,7 +34,7 @@ def getMayaVersion():
         pass
 
 if getMayaVersion() == '2010':
-    data_files=[('', ['extra/2010/osx/readline.so'])]
+    data_files=[('', ['extras/2010/osx/readline.so'])]
 else:
     data_files = []
     
