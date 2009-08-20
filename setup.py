@@ -8,6 +8,7 @@ ez_setup.use_setuptools()
 
 from setuptools import setup
 
+print "args", sys.argv
 
 if sys.version_info >= (2,6):
     ply_version = 'ply >2.0'
@@ -24,16 +25,19 @@ def getMayaVersion():
     # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid 
     # the regular expression might be getting unwieldy
     try:
-        if platform.system() == 'Darwin':
-            versionStr = os.path.dirname( os.path.dirname( sys.executable ) )
-            m = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
-            version = m.group('base')
-            return version
-
+        versionStr = os.path.dirname( os.path.dirname( sys.executable ) )
+        m = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
+        version = m.group('base')
+        return version
     except:
         pass
 
-if getMayaVersion() == '2010':
+try:
+    system = platform.system()
+except:
+    system = None
+        
+if getMayaVersion() in ['2010'] and system == 'Darwin':
     data_files=[('', ['extras/2010/osx/readline.so'])]
 else:
     data_files = []
@@ -51,10 +55,9 @@ succinct and intuitive way. """,
       author_email='chadrik@gmail.com',
       url='http://code.google.com/p/pymel/',
       packages=['pymel','pymel.api', 'pymel.core', 'pymel.mayahook', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util' ],
-      entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main [ipymel]' },
+      entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
       package_data={'pymel': ['*.bin', '*.conf' ] },
-      install_requires=['BeautifulSoup >3.0', ply_version],
-      extras_require= { 'ipymel' : 'ipython' },
+      install_requires=['BeautifulSoup >3.0', ply_version, 'ipython'],
       tests_require=['nose'],
       test_suite = 'nose.collector',
       data_files = data_files
