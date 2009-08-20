@@ -3,9 +3,13 @@ import maya.mel as _mm
 import inspect
 from pymel.util.arrays import VectorN, MatrixN
 from pymel.core.language import getMelType
+import re
+import types
+import pymel.api.plugins as plugins
+import maya.OpenMayaMPx as mpx
+import maya.OpenMaya as om
 
-import pymel.util as util
-
+MAX_VAR_ARGS=10
 
 def _getFunction( function ):
     # function is a string, so we must import its module and get the function object
@@ -208,3 +212,384 @@ def py2melProc( function, returnType='', procName=None, evaluateInputs=True ):
     print procDef
     _mm.eval( procDef )
     return procName
+
+#--------------------------------------------------------
+#  Scripted Command Wrapper
+#--------------------------------------------------------
+
+def _shortnameByCaps(name):
+    """ 
+    uses hungarian notation (aka camelCaps) to generate a shortname, with a maximum of 3 letters
+        ex.  
+            
+            myProc --> mp
+            fooBar --> fb
+            superCrazyLongProc --> scl
+    """
+            
+    shortname = name[0]
+    count = 1
+    for each in name[1:]:
+        if each.isupper() or each.isdigit():
+            shortname += each.lower()
+            count+=1
+            if count==3:
+                break
+    return shortname
+    
+def _shortnameByUnderscores(name):
+    """ 
+    for python methods that use underscores instead of camelCaps, with a maximum of 3 letters
+    """
+    
+    buf = name.split('_')
+    shortname = ''
+    for i, token in enumerate(buf):
+        shortname += token[0].lower()
+        if i==2:
+            break
+    return shortname
+    
+def _shortnameByConvention(name):
+    """
+    chooses between byUnderscores and ByCaps
+    """
+    
+    if '_' in name:
+        return _shortnameByUnderscores(name)
+    return _shortnameByCaps(name)
+
+def _shortnameByDoc(method):
+    """ 
+    a shortname can be explicitly set by adding the keyword shortname followed by a colon followed by the shortname
+    
+            ex.
+            
+            class foo():
+                def bar():
+                    'shortname: b'
+                    # do some things
+                    return
+                
+    """
+    if hasattr( method, "__doc__") and method.__doc__:                
+        m = re.search( '.*shortname: (\w+)', method.__doc__)
+        if m:
+            return m.group(1)
+            
+def _getShortNames( names ):
+    """uses several different methods to generate a shortname flag from the long name"""
+
+    shortNames = []
+    
+    for name in names:
+        name = name.encode()
+        shortname = _shortnameByConvention(name)
+        if shortname in shortNames:                
+            shortname=name[0]
+            count = 1
+            for each in name[1:]:
+                shortname+=each.lower()
+                count+=1
+                if shortname not in shortNames:
+                    break
+                elif count==3:
+                    raise ValueError, 'could not find a unique shortname for all args'
+
+        shortNames.append(shortname)
+        
+    return tuple(shortNames)
+
+def _getMethodShortNames( methods ):
+    """uses several different methods to generate a shortname flag from the long name"""
+    shortNames = []
+    nonunique = 0
+    for methodName, method in methods:
+        # try _shortnameByDoc first        
+        shortname = _shortnameByDoc(method)
+        if not shortname or shortname in shortNames:
+            shortname = _shortnameByConvention(methodName)
+            if shortname in shortNames:                
+                shortname=methodName[0]
+                count = 1
+                for each in methodName[1:]:
+                    shortname+=each.lower()
+                    count+=1
+                    if shortname not in shortNames:
+                        break
+                    elif count==3:
+                        shortname = 's%02d' % nonunique
+                        nonunique += 1
+                        #print 'could not find a unique shortname for %s: using %s'% ( methodName, shortname )
+                        break
+                    
+        shortNames.append(shortname)
+    return tuple(shortNames)
+
+
+class WrapperCommand(plugins.Command): 
+    _syntax = None
+    _flagInfo = None
+     
+    @classmethod
+    def createSyntax(cls):
+        return cls._syntax
+        
+    def setResult(self, result):
+        """
+        convert to a valid result type
+        """
+        
+#        int
+#        double
+#        bool
+#        const MString
+#        const MIntArray
+#        const MDoubleArray
+#        const MStringArray
+        
+
+        if result is None: return
+        
+        if isinstance(result, dict):
+            #convert a dictionary into a 2d list
+            newResult = []
+            for key, value in result.items():
+                newResult.append(key)
+                newResult.append(value)
+            mpx.MPxCommand.setResult(newResult)
+        else:
+            #try:
+            mpx.MPxCommand.setResult(result)  
+                    
+    def parseCommandArgs(self, argData):
+    
+        argValues = []
+        i=0    
+        while(1):
+            try:
+                argValues.append( argData.commandArgumentString(i).encode() )
+            except RuntimeError:
+                break
+            else:
+                i+=1
+        return argValues
+            
+    def parseFlagArgs(self, argData):
+        """
+        cylce through known flags looking for any that have been set.
+        
+        :rtype: a list of (flagLongName, flagArgList) tuples
+        """
+        
+        argValues = []
+        for flag in self._flagInfo:
+            if argData.isFlagSet( flag ):
+                canQuery = self._flagInfo[flag].get('canQuery', False)
+                canEdit = self._flagInfo[flag].get('canEdit', False)
+                if argData.isQuery():
+                    if not canQuery:
+                        raise SyntaxError, 'cannot use the query flag with %s' % flag
+                elif argData.isEdit():
+                    if not canEdit:
+                        raise SyntaxError, 'cannot use the query edit with %s' % flag 
+                elif canQuery or canEdit:
+                    raise SyntaxError, 'the %s flag must be used with either query or edit' % flag 
+                
+                flagArgs = []
+                maxArgs = self._flagInfo[flag]['maxArgs']
+                for i in range(maxArgs):
+                    try:
+                        flagArgs.append( argData.flagArgumentString(flag,i) )
+                    except:
+                        break
+
+                argValues.append( (flag, flagArgs) )
+        return argValues
+
+def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFlags=[], ignoreInvalidFlags=False):
+    """
+    Create a MEL command from a python function or class.  
+
+    A MEL command has two types of arguments: command arguments and flag arguments.  In the case of passing a function, the function's
+    non-keyword arguments become the command arguments and the function's keyword arguments become the flag arguments.
+    for example::
+        
+        def makeName( first, last, middle=''):
+            if middle:
+                return first + ' ' + middle + ' ' + last
+            return first + ' ' + last
+        
+        import pymel as pm
+        from pymel.tools.py2mel import py2melCmd
+        cmd = py2melCmd( makeName, 'makeNameeCmd' )
+        pm.makeNameeCmd( 'Homer', 'Simpson')
+        # Result: Homer Simpson #
+        pm.makeNameeCmd( 'Homer', 'Simpson', middle='J.')
+        # Result: Homer J. Simpson #
+        
+    Of course, the real advantage of this tool is that now your python function is available from within MEL as a command::
+                
+        makeNameeCmd "Homer" "Simpson";
+        // Result: Homer Simpson //
+        makeNameeCmd "Homer" "Simpson" -middle "J.";
+        // Result: Homer J. Simpson //
+    
+    To remove the command, call the deregister method of the class returned by py2melCmd::
+    
+        cmd.deregister()
+        
+    
+    """
+    syntax=om.MSyntax()
+    if inspect.isfunction(pyObj):
+        # args         --> command args
+        # keyword args --> flag args
+        
+        args, varargs, keywords, defaults = inspect.getargspec(pyObj)
+        if defaults:
+            ndefaults = len(defaults)
+        else:
+            ndefaults = 0
+        assert keywords is None, 'arguments of the format **kwargs are not supported'
+        cmdArgs = args[:-ndefaults]
+        flagArgs = args[-ndefaults:]
+        flagArgs = [ x for x in flagArgs if ( not includeFlags or x in includeFlags) and x not in excludeFlags ]
+        
+        # command args
+        if varargs:
+            maxArgs = MAX_VAR_ARGS
+        else:
+            maxArgs = len(cmdArgs)
+        for i in range(maxArgs):
+            syntax.addArg(om.MSyntax.kString)
+        
+        # flag args
+        flagInfo = {}
+        for shortname, longname in zip( _getShortNames(flagArgs), flagArgs ):
+            
+            if len(longname) < 4:
+                if ignoreInvalidFlags:
+                    continue
+                else:
+                    raise TypeError, 'long flag names must be at least 4 characters long: %r' % longname
+            
+            # currently keyword args only support one item per flag. eventually we may
+            # detect when a keyword expects a list as an argument
+            syntax.addFlag( shortname, longname, om.MSyntax.kString)
+            # NOTE: shortname and longname MUST be stored on the class or they will get garbage collected and the names will be destroyed
+            flagInfo[longname] = { 'maxArgs' : 1, 'shortname' : shortname }
+            
+        class dummyCommand(WrapperCommand):
+            _syntax = syntax
+            _flagInfo = flagInfo       
+            def doIt(self,argList):
+    
+                argData = om.MArgParser(self.syntax(),argList)
+                
+                # Command Args
+                args = self.parseCommandArgs(argData)
+                
+                # unpack the flag arguments, there should always only be 1
+                kwargs = dict( [ (x[0], x[1][0]) for x in self.parseFlagArgs( argData ) ] )
+                
+                res = pyObj( *args, **kwargs )
+                return self.setResult(res)
+            
+    elif inspect.isclass(pyObj):
+        
+        # __init__ or __new__ becomes the command args
+        try:
+            argspec = inspect.getargspec(pyObj.__init__)
+        except AttributeError:
+            argspec = inspect.getargspec(pyObj.__new__)
+         
+        args, varargs, keywords, defaults = argspec
+        if varargs:
+            maxArgs = MAX_VAR_ARGS
+        else:
+            maxArgs = len(args)-1 # subtract 'self' arg
+        for i in range(maxArgs):
+            syntax.addArg(om.MSyntax.kString)
+            
+        # methods become the flag args
+        flagInfo = {}
+        attrData = [ x for x in inspect.getmembers( pyObj, lambda x: inspect.ismethod(x) or type(x) is property ) if not x[0].startswith('_') and ( not includeFlags or x[0] in includeFlags) and x[0] not in excludeFlags ]
+        names, methods = zip(*attrData)
+        for shortname, longname, method in zip( _getMethodShortNames(attrData), names, methods ):
+
+            if len(longname) < 4:
+                if ignoreInvalidFlags:
+                    continue
+                else:
+                    raise TypeError, 'long flag names must be at least 4 characters long: %r' % longname
+            
+            # per flag query and edit settings
+            canQuery = False
+            canEdit = False
+            
+            attrType = type(method)
+            
+            if attrType is types.MethodType:
+                args, varargs, keywords, defaults = inspect.getargspec( method )
+                # a variable number of args can be passed to the flag. set the maximum number
+                if varargs:
+                    maxArgs = MAX_VAR_ARGS
+                else:
+                    maxArgs = len(args)-1 # subtract 'self' arg
+            elif attrType is property:
+                # enable edit and query to determine what the user intends to do with this get/set property
+                if method.fget:
+                    syntax.enableQuery(True)
+                    canQuery = True
+                if method.fset:
+                    syntax.enableEdit(True)
+                    canEdit = True
+                maxArgs = 1
+                
+            syntaxArgs = [shortname, longname] + [om.MSyntax.kString] * maxArgs
+            syntax.addFlag( *syntaxArgs )
+
+            # NOTE: shortname and longname MUST be stored on the class or they will get garbage collected and the names will be destroyed
+            flagInfo[longname] = { 'maxArgs' : maxArgs, 'method' : method, 'shortname' : shortname, 'type' : attrType, 
+                                  'canQuery' : canQuery, 'canEdit' : canEdit }
+        
+        class dummyCommand(WrapperCommand):
+            _syntax = syntax
+            _flagInfo = flagInfo       
+            def doIt(self,argList):
+    
+                argData = om.MArgParser(self.syntax(),argList)
+                
+                # Command Args
+                classArgs = self.parseCommandArgs(argData)
+                    
+                methodArgs = self.parseFlagArgs( argData )
+                assert len(methodArgs), 'only one flag can be used at a time'
+                methodName, args = methodArgs[0]
+                
+                inst = pyObj( *classArgs )
+                attrType = self._flagInfo[methodName]['type']
+                if attrType is types.MethodType:
+                    res = getattr( inst, methodName )( *args )
+                else: # property
+                    if argData.isQuery():
+                        res = getattr( inst, methodName )
+                    elif argData.isEdit():
+                        assert len(args) == 1, "a flag derived from a property should only have one argument"
+                        res = setattr( inst, methodName, args[0] )
+                    else:
+                        raise SyntaxError, "properties must either be edited or queried"
+                return self.setResult(res)
+    else:
+        raise TypeError, 'only functions and classes can be wrapped'
+    
+    if not commandName:
+        commandName = pyObj.__name__
+    
+    dummyCommand.__name__ = commandName
+    if register:
+        dummyCommand.register()
+    return dummyCommand
+
+    
