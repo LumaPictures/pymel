@@ -55,13 +55,13 @@ Now lets take a look at our objects and see how our various comparisons turn out
         Transform(u'group2|mySphere')
         >>> # do some tests
         >>> # they aren't the same dag objects
-        >>> sphere1 == sphere2              
+        >>> sphere1 == sphere2
         False
         >>> # but they are instances of each other
         >>> sphere1.isInstanceOf( sphere2 )    
         True
 
-Attribute comparison is simple, too. Keep in mind, we are not comparing the values of the attributes -- for that we would need to use the `get <Attribute.get>` method -- we are comparing the attributes themselves.  This is similar to, but better than, comparing names:
+Attribute comparison is simple, too. Keep in mind, we are not comparing the values of the attributes -- for that we would need to use the `get <nodetypes.Attribute.get>` method -- we are comparing the attributes themselves.  This is more flexible and reliable than comparing names:
 
         >>> # long and short names retrieve the same attribute
         >>> sphere1.t == sphere1.translate    
@@ -79,7 +79,7 @@ And here's an incredibly useful feature that I get asked for all the time.  Get 
 	    >>> sphere1.getOtherInstances()
         [Transform(u'group2|mySphere')]
 
-For more on the relationship between PyMEL and Maya's API, see `API Classes and their PyNode Counterparts`_
+For more on the relationship between PyMEL and Maya's API, see :ref:`api_pynodes`.
 
 .. _pynodes_not_strings:
   
@@ -87,11 +87,11 @@ For more on the relationship between PyMEL and Maya's API, see `API Classes and 
 PyNodes Are Not Strings
 ---------------------------------------
 
-In previous versions of pymel, the node classes inherited from the builtin unicode string class.  With the introduction of the new API
+In previous versions of PyMEL, the node classes inherited from the builtin unicode string class.  With the introduction of the new API
 underpinnings, the node classes inherit from a special `ProxyUnicode` class, which has the functionality of a string object, but
 removes the immutability restriction ( see the next section `Mutability And You`_ ).  It is important to keep in mind that although
 PyNodes *behave* like strings in most situations, they are no longer actual strings. Functions which explicitly require a string, and which worked 
-with PyNodes in previous versions of pymel, might raise an error with version 0.9 and later. For example:
+with PyNodes in previous versions of PyMEL, might raise an error with version 0.9 and later. For example:
 
     >>> objs = ls( type='camera')
     >>> print ', '.join( objs )
@@ -109,17 +109,24 @@ convert the list of PyNodes to a list of strings:
 Similarly, if you are trying to concatenate your PyNode with another string, you will need to cast it to a string (same as you would have
 to do with an int):
     
-    >>> cam = PyNode('frontShape')
-    >>> print "The node " + str(cam) + " is a camera"
-    The node frontShape is a camera
-   
-Alternately, you can use % string formatting syntax:
+    >>> print "Camera 1 of " + str(len(objs)) + " is named " + str(objs[0])
+    Camera 1 of 4 is named frontShape
+       
+Alternately, you can use string formatting syntax:
 
-    >>> print "The node %s is a camera" % cam
-    The node frontShape is a camera
+    >>> print "Camera 1 of %s is named %s" % ( len(objs), objs[0] )
+    Camera 1 of 4 is named frontShape
+
+The ``%s`` means to format as a string.  
+
+.. note:: 
+    You can get more control over how numbers are formatted by using ``%f`` for floats and ``%d`` for integers::
+
+        >>> "You can control precision %.02f and padding %04d" % ( 1.2345, 2 ) 
+        'You can control precision 1.23 and padding 0002'
+
     
-By default the shortest unique name of the node is used. If you want more control over how the name is printed, use the various methods for retrieving the
-name as a string:
+By default, the shortest unique name of the node is used when converting to a string. If you want more control over how the name is printed, use the various methods for retrieving the name as a string:
 
     >>> cam.shortName() # shortest unique
     u'frontShape'
@@ -138,35 +145,13 @@ Finally, be aware that string operations with PyNodes return strings not new PyN
 Mutability and You
 ---------------------------------------
 
-One change that has come about due to the new API-based approach is node name mutability. You might have noticed
-when working with strings in python that they cannot be changed "in place". In other words, all string operations return a new string,
-leaving the original intact. This is is known as immutability::
+One change that has come about due to the new API-based approach is that node names are now :term:`mutable`.  By inheriting from a mutable `ProxyUnicode` class instead of an immutable string, we are now able to provide a design which more accurately reflects how nodes work in maya --  when a node's name is changed it is still the same object with the same properties --  the name is simply a label or handle. In practice, this means that each time the name of the node is required -- such as printing, slicing, splitting, etc -- the object's current name is queried from the underlying API object. This ensures renames performed via mel or the UI will always be reflected 
+in the name returned by your PyNode class and your variables will remain valid despite these changes.::
 
-    >>> s1 = 'hampster dance'
-    >>> s2 = s1.replace('hampster', 'chicken')
-    >>> s1
-    'hampster dance'
-
-
-By inheriting from a mutable `ProxyUnicode` class instead of an immutable string, we are now able to provide a design which more accurately reflects 
-how nodes work in maya --  when a node's name is changed it is still the same object with the same properties --  the name
-is simply a label or handle. In practice, this
-means that each time the name of the node is required -- such as printing, slicing, splitting, etc -- the object's current name
-is queried from the underlying API object. This ensures renames performed via mel or the UI will always be reflected 
-in the name returned by your PyNode class and your variables will remain valid despite these changes.
-
-Renaming
-========
-
-In versions of PyMEL previous to 0.9, the node classes inherited from python's built-in unicode
-string type, which, due to its immutability, could cause unintuitive results with commands like rename.
-The new behavior creates a more intuitive result.
-
-New Behavior:
     >>> orig = polyCube(name='myCube')[0]
     >>> print orig                    # print out the starting name
     myCube
-    >>> orig.rename('crazyCube')    # rename it (the new name is returned)
+    >>> orig.rename('crazyCube')      # rename it (the new name is returned)
     Transform(u'crazyCube')
     >>> print orig                    # the variable 'orig' reflects the name change
     crazyCube
@@ -174,76 +159,7 @@ New Behavior:
 As you can see, you no longer need to assign the result of a rename to a variable, although, for backward
 compatibility's sake, we've ensured that you still can.
 
-.. _pynodes_in_dicts:
-
-Using PyNodes as Keys in Dictionaries
-=====================================
-
-Maya 2008 and Earlier
----------------------
-
-There is one caveat to the mutability of node names: it can cause problems when using a PyMEL node as a key in a dictionary prior to 2009.
-The reason is that the hash ( a hash is an integer value which is used to speed up dictionary access ) generated by a PyMEL node
-is based on the node's name, which is subject to change.  
-
-    >>> orig = polySphere()[0]         #doctest: +SKIP
-    >>> d = { orig :  True }           #doctest: +SKIP
-    >>> orig.rename('crazySphere')     #doctest: +SKIP
-    Transform(u'crazySphere')
-    >>> print d[orig]                  #doctest: +SKIP
-    Traceback (most recent call last):
-        ...
-    KeyError: Transform(u'crazySphere')
-    
-
-Maya 2009 and Later
--------------------
-
-A powerful new feature was added in Maya 2009 that gives us access to a unique id per node. You can access this by 
-using the special method `DependNode.__hash__`.  The most important benefit of this is that PyNodes can be used as a key in
-a dictionary in a name-independent way: if the name of the node changes, the PyNode object can still be used to retrieve data placed in the dictionary
-prior to the name change.  It is important to note, however, that this id is only valid while the scene is open. Once it is closed and
-reopened, the id for each node will change.
-
-Below is an example demonstrating how this feature allows us to create a dictionary of node-to-name mappings, which could be used
-to track changes to a file.
-
-    >>> AllObjects = {}  # node-to-name dictionary
-    >>> def store():
-    ...     for obj in ls():
-    ...         AllObjects[obj] = obj.name()
-    >>> 
-    >>> def diff():
-    ...     AllObjsCopy = AllObjects.copy()
-    ...     for obj in ls():
-    ...         try:
-    ...             oldName = AllObjsCopy.pop(obj)
-    ...             newName = obj.name()
-    ...             if  newName != oldName:
-    ...                 print "renamed: %s ---> %s" % ( oldName, newName )
-    ...         except KeyError:
-    ...             print "new: %s" % ( obj.name() )
-    ...     for obj, name in AllObjsCopy.iteritems():
-    ...         print "deleted:", name
-    >>>     
-    >>> s = sphere()[0]
-    >>> c = polyCube(ch=0)[0]
-    >>> store()  # save the state of the current scene
-    >>>
-    >>> # make some changes
-    >>> s.rename('monkey')
-    Transform(u'monkey')
-    >>> delete(c.getShape())
-    >>> polyTorus()
-    [Transform(u'pTorus1'), PolyTorus(u'polyTorus1')]
-    >>>
-    >>> diff() # print out what's changed since we ran 'store()'
-    renamed: nurbsSphere1 ---> monkey
-    renamed: nurbsSphereShape1 ---> monkeyShape
-    new: polyTorus1
-    new: pTorus1
-    new: pTorusShape1
-    deleted: pCubeShape1
+See :ref:`pynodes_in_dicts` for more information on PyNode mutability.
 
 
 ---------------------------------------
@@ -272,101 +188,6 @@ and compare your objects.  For example:
 Many of these classes contain no methods of their own and exist only as place-holders in the hierarchy.
 However, there are certain key classes which provide important methods to all their sub-classes. A few of the more important
 include `DependNode`, `DagNode`, `Transform`, and `Constraint`.
-
-The methods on each node class are derived from three sources:
-    1. automatically, from maya.cmds
-    2. automatically, from maya.OpenMaya*
-    3. manually, written by PyMEL team
-
-MEL Node Commands and their PyNode Counterparts
-===============================================
-
-As you are probably aware, MEL contains a number of commands
-which are used to create, edit, and query object types in maya.  Typically, the names of these commands correspond
-with the node type on which they operate. However, it should be noted
-that there are a handful of exceptions to this rule.
-
-Some examples of command-class pairs.  Notice that the last two nodes do not match their corresponding command:
-
-================    ================    =================
-Mel Command         Maya Node Type      PyMEL Node  Class
-================    ================    =================
-aimConstraint       aimConstraint       AimConstraint
-camera              camera              Camera
-directionalLight    directionalLight    DirectionalLight 
-spaceLocator        locator             Locator
-vortex              vortexField         VortexField
-================    ================    =================
-
-    
-
-This example demonstrates some basic principles. Note the relationship between the name of the object
-created, its node type, and its class type. Also notice that instead of creating new objects using
-maya.cmds functions ( ex. spotlight ), the class ( ex. Spotlight ) can also be used :
-
-    >>> l = nodetypes.SpotLight()
-    >>> print "The name is", l
-    The name is spotLightShape1
-    >>> print "The maya type is", l.type()
-    The maya type is spotLight
-    >>> print "The python type is", type(l)    
-    The python type is <class 'pymel.core.nodetypes.SpotLight'>
-
-Once you have an instance of a PyMEL class (usually handled automatically), you can use it to query and edit the
-maya node it represents in an object-oriented way.
-
-make the light red and get shadow samples, the old, procedural way
-    >>> spotLight( l, edit=1, rgb=[1,0,0] ) 
-    >>> print spotLight( l, query=1, shadowSamples=1 ) 
-    1
-    
-now, the object-oriented, PyMEL way
-    >>> l.setRgb( [1,0,0] )
-    >>> print l.getShadowSamples()   
-    1
-
-For those familiar with MEL, you can probably already tell that the DirectionalLight class can be understood as an 
-object-oriented reorganization of the directionalLight command, where you 'get' queries and you 'set' edits.  
-
-Some classes have functionality that goes beyond their command counterpart. The `Camera` class,
-for instance, also contains the abilities of the `track`, `orbit`, `dolly`, and `cameraView` commands:
-
-    >>> cam = nodetypes.Camera(name='newCam')
-    >>> cam.setFocalLength(100)
-    >>> cam.getHorizontalFieldOfView()
-    20.407947443463367
-    >>> cam.dolly( distance = -3 )
-    >>> cam.track(left=10)
-    >>> cam.addBookmark('new')
-
-
-API Classes and their PyNode Counterparts
-=========================================
-
-PyNode classes now derive their methods from both MEL and the API ( aka. maya.cmds and maya.OpenMaya, respectively ).  If you're 
-familiar with Maya's API, you know that there is a distinct separation between objects and their abilities.  There are fundamental
-object types such as MObject and MDagPath that represent the object itself, and there are "function sets", which are classes that,
-once instantiated with a given fundamental object, provide it with special abilities.  ( Because I am a huge nerd, I like to the think of the 
-function sets as robotic "mechs" and the fundamental objects as "spirits" or "ghosts" that inhabit them, like in *Ghost in the Shell* ). 
-
-For simplicity, PyMEL does away with this distinction: a PyNode instance is the equivalent of an activated API function set;  the 
-necessary fundamental API objects are determined behind the scenes at instantiation.  You can access these by using the special methods
-``__apimobject__``, ``__apihandle__``, ``__apimdagpath__``, ``__apimplug__``, and ``__apimfn__``.  ( Be aware that this is still considered internal magic, 
-and the names of these methods are subject to change ):
-
-    >>> p = PyNode('perspShape')
-    >>> p.__apimfn__() # doctest: +ELLIPSIS
-    <maya.OpenMaya.MFnCamera; proxy of <Swig Object of type 'MFnCamera *' at ...> >
-    >>> p.__apimdagpath__() # doctest: +ELLIPSIS
-    <maya.OpenMaya.MDagPath; proxy of <Swig Object of type 'MDagPath *' at ...> >
-    >>> a = p.focalLength
-    >>> a
-    Attribute(u'perspShape.focalLength')
-    >>> a.__apimplug__() # doctest: +ELLIPSIS
-    <maya.OpenMaya.MPlug; proxy of <Swig Object of type 'MPlug *' at ...> >
-
-As you can probably see, these methods are enormously useful when prototyping API plugins.  Also of great use is the `PyNode` class,
-which can be instantiated using API objects.
 
 ---------------------------------------
 Chained Function and Attribute Lookups
@@ -398,3 +219,32 @@ Technically speaking, the Transform does not have a `getCenterOfInterest` method
 	<bound method Camera.getCenterOfInterest of Camera(u'perspShape')>
 
 Notice the bound method belongs to the `Camera` class.
+
+---------------------------------------
+Glossary
+---------------------------------------
+
+.. glossary::
+
+	mutable
+        Mutability describes a data type whos value can be changed without reassigning.  An example of a mutable data type is the builtin list.
+    
+            >>> numbers = [1,2,3]
+            >>> numbers.append(4)
+            >>> numbers
+            [1, 2, 3, 4]
+    
+        As you can see we have changed the value of ``numbers`` without reassigning a new value ``numbers`` (in plain english, we didn't use an equal sign). 
+
+        You might have noticed when working with strings in python that they cannot be changed "in place". All string operations that modify the string, return a brand new string as a result, leaving the original intact. This is is known as immutability::
+
+            >>> s1 = 'hampster dance'
+            >>> s2 = s1.replace('hampster', 'chicken')
+            >>> s1
+            'hampster dance'
+            >>> s2
+            'chicken dance'
+    
+        The value of ``s1`` remained the same, but the result of the ``replace`` operation was stored into ``s2``. Because strings are immutable and the value of ``s1`` cannot change without assigning a brand new value to ``s1``::
+
+            >>> s1 = 'brand new dance!'

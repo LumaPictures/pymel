@@ -45,7 +45,7 @@ To Install:
     #.  ``cd`` to the directory where you extracted the pymel zip file. A file called "setup.py" should exist directly below this directory.
         For example, I downloaded and extracted mine to my "Downloads" folder on OSX::
     
-            cd ~/Downloads/pymel-0.9.1
+            cd ~/Downloads/pymel-0.9.2
        
         .. note:: On OSX and Linux you have to escape spaces in folder names ( or you can press the Tab key to auto-complete paths ). Here is an
             example of escaping a space in a folder name (notice the backslash after ``Image``)::
@@ -55,7 +55,7 @@ To Install:
             On Windows you can copy the path from Explorer and paste into the shell by right clicking.  You don't need to escape spaces.
 
     #.  Now run the installation for each version of Maya that you have installed using Maya's own python interpreter -- aka mayapy. 
-        This ensure's that PyMEL is installed to the site-packages directory of each, and that it will always be on your ``PYTHONPATH`` when using Maya.
+        This ensures that PyMEL is installed to the site-packages directory of each, and that it will always be on your ``PYTHONPATH`` when using Maya.
         
         On OSX::
 
@@ -207,30 +207,20 @@ dag nodes, and attributes, as well as automatic import of PyMEL at startup.  Man
 ipymel Easy Install
 ===================
 
-
-    #. Follow the installation instructions above for `Setting Up Your System Environment`_
-    #. Start a new shell to ensure that all our newly set environment variables are refreshed.
-    #. Next, we will use setuptools to automaticallly download ipython and install
-       the ipymel binary to your Maya bin directory. As a bonus over the manual install, on Windows the ipymel script will become 
-       an executable, ipymel.exe, instead of a batch file:
-
-       On OSX and Linux::
-            
-            mayapy setup.py easy_install --script-dir=$MAYA_LOCATION/bin . pymel[ipymel]
-    
-       On Windows::
-        
-            mayapy setup.py easy_install --script-dir="%MAYA_LOCATION%\bin" . "pymel[ipymel]"
-
-    #. Windows Only: 
+As of version 0.9.2 ipymel is automatically installed when "easy" installing PyMEL, but you may have to do a few extra steps to get it working properly on Windows.
+ 
+Windows Only: 
         * Install pyreadline for windows from the `IPython <http://ipython.scipy.org/dist>`_ website
         * Copy the IPython directory, pyreadline directory, and all the pyreadline.* files from your system site-packages directory 
           ( ex. ``C:\Python25\Lib\site-packages`` ) to your Maya site-packages directory ( ex. ``C:\Program Files\Autodesk\Maya2008\Python\lib\site-packages`` ). 
        
-    #. In a new shell, run the following command::
+To Run: In a new shell, run the following command::
     
         ipymel
-        
+
+.. note:: Though not a requirement for ipymel to work, it's best to read up on `Setting Up Your System Environment`_
+   
+          
 ipymel Manual Install
 =====================
 

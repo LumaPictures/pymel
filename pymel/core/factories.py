@@ -74,7 +74,7 @@ nodeTypeToNodeCommand = {
     'makeNurbTorus' : 'torus',
     'makeNurbCone' : 'cone',
     'makeNurbCylinder' : 'cylinder',
-    #'failed' : 'curve',
+    'nurbsCurve' : 'curve', # returns a single transform, but creates a nurbsCurve
     'makeNurbSphere' : 'sphere',
     'makeNurbCircle' : 'circle',
     'makeNurbPlane' : 'nurbsPlane',

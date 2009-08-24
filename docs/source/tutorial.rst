@@ -296,7 +296,7 @@ Mel Scripts
 ===========
 
 Calling mel scripts through maya.mel.eval is a nuisance because it requires so much string formatting on 
-the programmer's part.	`pymel.mel` handles all of that for you so you can use your mel scripts as if they 
+the programmer's part.	`pymel.mel` handles all of that for you so you can use your MEL scripts as if they 
 were python functions. This includes automatically formatting all iterable types into maya arrays. 
 
 	

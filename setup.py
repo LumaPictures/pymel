@@ -40,6 +40,7 @@ def get_data_files():
 def get_mayapy_executable():   
     if os.name == 'posix':
         try:
+            # matches on osx and linux due to /bin/../Frameworks/
             mayapy_bin = re.match('.*/bin/', sys.executable ).group(0) + 'mayapy'
             return mayapy_bin
         except:
@@ -59,31 +60,30 @@ if system == 'Darwin':
     # because it has a space in it. disable this behavior
     def nt_quote_arg(arg):
         return arg
-    setuptools.command.easy_install.nt_quote_arg = nt_quote_arg
-    
-    # set default script installation directory
-    # on osx the python binary is deep within the frameworks directory,
-    # so the binaries get installed there.  would be better to have them in the maya bin directory
-    args = list(sys.argv)
-    is_set = False
-    # looking for a line like:  '--install-scripts=/Applications/Autodesk/maya2010/Maya.app/Contents/bin'
-    for arg in args[1:]:
-        if arg.split('=')[0] in [ '--install-scripts', '--install-dir' ]:
-            is_set = True
-            break
-    if not is_set:
-        args.append( '--install-scripts=' + get_maya_bin_dir() )
-        sys.argv = args
-        
-    
-    
-def get_script_args(dist, executable=None, wininst=False):
-    executable = get_mayapy_executable()  
-    if system == 'Darwin':
-        executable = '/usr/bin/env ' + executable
-    return orig_script_args(dist, executable, wininst)
 
-setuptools.command.easy_install.get_script_args = get_script_args
+    if 'install' in sys.argv:
+        # set default script installation directory
+        # on osx the python binary is deep within the frameworks directory,
+        # so the binaries get installed there.  instead, put them in the maya bin directory
+        args = list(sys.argv)
+        is_set = False
+        # looking for a line like:  '--install-scripts=/Applications/Autodesk/maya2010/Maya.app/Contents/bin'
+        for arg in args[1:]:
+            if arg.split('=')[0] in [ '--install-scripts', '--install-dir' ]:
+                is_set = True
+                break
+        if not is_set:
+            args.append( '--install-scripts=' + get_maya_bin_dir() )
+            sys.argv = args
+         
+    
+    def get_script_args(dist, executable=None, wininst=False):
+        executable = get_mayapy_executable()  
+        executable = '/usr/bin/env ' + executable
+        return orig_script_args(dist, executable, wininst)
+
+    setuptools.command.easy_install.nt_quote_arg = nt_quote_arg
+    setuptools.command.easy_install.get_script_args = get_script_args
 
 try:
     setup(name='pymel',
