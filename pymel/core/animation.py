@@ -40,8 +40,13 @@ def keyframe( *args, **kwargs ):
     """
 Modifications:
     - returns an empty list when the result is None
+    - if both valueChange and timeChange are queried, the result will be a list of (time,value) pairs
     """
-    return util.listForNone( cmds.keyframe(*args, **kwargs) )
+    res = util.listForNone( cmds.keyframe(*args, **kwargs) )
+    if kwargs.get('query', kwargs.get('q', False) ) and \
+            kwargs.get('valueChange', kwargs.get('vc', False) ) and kwargs.get('timeChange', kwargs.get('tc', False) ):
+        return list(util.pairIter(res))
+    return res
 
 def deformer(*args, **kwargs):
     return map( general.PyNode, cmds.deformer(*args, **kwargs) )
@@ -49,7 +54,7 @@ def deformer(*args, **kwargs):
 def joint(*args, **kwargs):
     """
 Maya Bug Fix:
-    - when queried, limitSwitch*, stiffness*, and angle* flags returned lists of values instead 
+    - when queried, limitSwitch*, stiffness*, and angle* flags returned lists, each with one value, instead 
         of single values. Values are now properly unpacked
     """
     res = cmds.joint(*args, **kwargs)

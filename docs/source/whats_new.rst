@@ -8,13 +8,10 @@ What's New in Version 0.9
 API Hybridization
 ----------------------
 
-PyMEL 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten 
-from the ground up to use the python API as their foundation, increasing the speed and fidelity of PyMEL's object-oriented design.  
+PyMEL 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten from the ground up to use the python API as their foundation, increasing the speed and fidelity of PyMEL's object-oriented design.  
 
 PyMEL harnesses the API to create a name-independent representation of your object.  
-This means that the annoying inconsistencies of string comparisons are over: no more worrying about short names versus long names, DAG paths, unique paths,
-instance paths...  it's all handled intelligently for you.  And what's more, if *anything* causes the name of your object to change it 
-will automatically be reflected in your python object.
+This means that the annoying inconsistencies of string comparisons are over: no more worrying about short names versus long names, DAG paths, unique paths, instance paths...  it's all handled intelligently for you.  And what's more, if *anything* causes the name of your object to change it will automatically be reflected in your python object.
 
 Below, we make a camera, rename it, and then group and instance it, to demonstrate how the name changes are constantly reflected. Keep in mind
 that the changes could have just as easily been performed by the user interacting with objects through the GUI.
@@ -87,7 +84,7 @@ Calling MEL from python is still an unfortunate necessity, so PyMEL makes it as 
 MEL Tracebacks and Line Numbers
 ===============================
 
-In the new release, when a MEL script called from PyMEL raises an error, you will get the specific mel error message in the python traceback, along with line numbers!
+In the new release, when a MEL script called from PyMEL raises an error, you will get the specific MEL error message in the python traceback, along with line numbers!
     
 For example, here's a procedure "myScript" with a line that will result in an error:
 
@@ -96,7 +93,6 @@ For example, here's a procedure "myScript" with a line that will result in an er
     
 When we call it, we can quickly determine the problem:
 
-    >>> commandEcho(lineNumbers=1)  # turn line numbers on
     >>> mel.myScript( 'foo', [] )
     Traceback (most recent call last):
         ...

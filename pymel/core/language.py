@@ -16,6 +16,7 @@ import factories as _factories
 import pymel.api as api
 import datatypes
 
+
 #--------------------------
 # Mel <---> Python Glue
 #--------------------------  
@@ -26,23 +27,55 @@ def isValidMelType( typStr ):
     """:rtype: bool"""
     return typStr in MELTYPES
 
+def _flatten(iterables):
+    for it in iterables:
+        if util.isIterable(it):
+            for element in it:
+                yield element
+        else:
+            yield it
+
 def pythonToMel(arg):
-    """convert a python object to a string representing an equivalent value in mel"""
+    """
+    convert a python object to a string representing an equivalent value in mel
+
+    iterables are flattened. 
+    
+    mapping types like dictionaries have their key value pairs flattened:
+        { key1 : val1, key2 : val2 }  -- >  ( key1, val1, key2, val2 )
+    
+    """
     if util.isNumeric(arg):
         return str(arg)
     if isinstance(arg, datatypes.Vector):
         return '<<%f,%f,%f>>' % ( arg[0], arg[1], arg[2] )
     if util.isIterable(arg):
-        return '{%s}' % ','.join( map( pythonToMel, arg) )
+        if util.isMapping(arg):
+            arg = list(_flatten(arg.iteritems()))
+        else:
+            arg = list(_flatten(arg))
+        forceString = False     
+        for each in arg:
+            if not util.isNumeric(each):
+                forceString = True
+                break
+
+        if forceString:
+            newargs = [ '"%s"' % x for x in arg ]
+        else:
+            newargs = [ str(x) for x in arg ]
+
+        return '{%s}' % ','.join( newargs )
     
     # in order for PyNodes to get wrapped in quotes we have to treat special cases first,
     # we cannot simply test if arg is an instance of basestring because PyNodes are not  
     return '"%s"' % cmds.encodeString(str(arg))
 
-
+            
 def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
-    """return the name of the closest mel type equivalent for the given python object. 
-    mel has no true boolean or matrix types, but it often reserves special treatment for them in other ways.
+    """
+    return the name of the closest MEL type equivalent for the given python object. 
+    MEL has no true boolean or matrix types, but it often reserves special treatment for them in other ways.
     To control the handling of these types, use `allowBool` and `allowMatrix`. 
     For python iterables, the first element in the array is used to determine the type. for empty lists, 'string[]' is
     returned.
@@ -71,7 +104,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         pyObj
             can be either a class or an instance.
         exactOnly : bool
-            If True and no suitable mel analog can be found, the function will return None.
+            If True and no suitable MEL analog can be found, the function will return None.
             If False, types which do not have an exact mel analog will return the python type name as a string
         allowBool : bool
             if True and a bool type is passed, 'bool' will be returned. otherwise 'int'.
@@ -121,9 +154,9 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
 
             
         elif not exactOnly:
-            typeStr = type(pyObj).__name__
+            return type(pyObj).__name__
 
-         
+        
 # TODO : convert array variables to a semi-read-only list ( no append or extend, += is ok ): 
 # using append or extend will not update the mel variable 
 class MelGlobals( dict ):
@@ -146,7 +179,7 @@ class MelGlobals( dict ):
     
     The variable will now be accessible within MEL as a global string.
     """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     melTypeToPythonType = {
         'string'    : str,
         'int'       : int,
@@ -313,7 +346,7 @@ class Catch(object):
         ...    print "succeeded:", result
         
         """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     result = None
     success = None
     def __call__(self, func ):
@@ -375,7 +408,7 @@ class OptionVarDict(object):
         >>> optionVar.has_key('numbers') # previous pop removed the key
         False
     """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     def __call__(self, *args, **kwargs):
         return cmds.optionVar(*args, **kwargs)
     
@@ -442,7 +475,7 @@ optionVar = OptionVarDict()
 
 class Env(object):
     """ A Singleton class to represent Maya current optionVars and settings """
-    __metaclass__ = util.Singleton
+    #__metaclass__ = util.Singleton
     
     optionVars = OptionVarDict()
     #grid = Grid()
@@ -590,10 +623,12 @@ class Mel(object):
             strArgs = [pythonToMel(arg) for arg in args]
             
             if kwargs:
+                # keyword args trigger us to format as a command rather than a procedure
                 strFlags = [ '-%s %s' % ( key, pythonToMel(val) ) for key, val in kwargs.items() ]
                 cmd = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
                 
             else:
+                # procedure
                 cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
             
             return self.eval(cmd)

@@ -13,27 +13,35 @@ builds on the cmds module by organizing many of its commands into a class hierar
 customizing them to operate in a more succinct and intuitive way.
 
 
-Contents:
+Chapters:
 
 .. toctree::
-	:maxdepth: 2
-	
+	:maxdepth: 1
+
+	whats_new	
 	install
-	whats_new
-	design
+	why_pymel
 	tutorial
 	pynodes
 	attributes
 	non_existent_objs
 	ui
 	standalone
+    advanced
+
+Appendices:
+
+.. toctree::
+	:maxdepth: 1
+
 	eclipse
+	mel_to_python
 	
 
 .. autosummary::
 	:nosignatures:
 	:toctree: generated/
-	
+
 	pymel.core.animation
 	pymel.core.datatypes
 	pymel.core.effects

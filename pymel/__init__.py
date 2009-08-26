@@ -1456,7 +1456,7 @@ Attitude Studio, and ImageMovers Digital.
 """
 
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 # not maya dependant
 #import util
@@ -1516,8 +1516,9 @@ _pluginData = {}
              
 def _pluginLoaded( *args ):
 
-    # API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
+    
     if len(args) > 1:
+        # 2009 API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
         pluginName = args[0][1]
     else:
         pluginName = args[0]
@@ -1528,7 +1529,7 @@ def _pluginLoaded( *args ):
     #print type(array)
     #pluginPath, pluginName = array
     import core.pmcmds
-    plogging.pymelLogger.info("Plugin loaded %s", pluginName)
+    plogging.pymelLogger.info("Plugin loaded: %s", pluginName)
     
     _pluginData[pluginName] = {}
     
@@ -1606,8 +1607,16 @@ def _pluginLoaded( *args ):
 
              
 def _pluginUnloaded(*args):
-    pluginName = args[0]
-    plogging.pymelLogger.info("Plugin unloaded %s" % pluginName)
+
+    if len(args) > 1:
+        # 2009 API callback, the args are
+        # ( [ pluginName, pathToPlugin ], clientData )  OR
+        # ( [ pathToPlugin ], clientData )
+        pluginName = args[0][0]
+    else:
+        pluginName = args[0]
+    
+    plogging.pymelLogger.info("Plugin unloaded: %s" % pluginName)
     import core.pmcmds
     try:
         data = _pluginData.pop(pluginName)
@@ -1616,19 +1625,21 @@ def _pluginUnloaded(*args):
     else:
         # Commands
         commands = data.pop('commands', [])
-        plogging.pymelLogger.info("Removing commands: %s", ', '.join( commands ))
-        for command in commands:
-            try:
-                core.pmcmds.removeWrappedCmd(command)
-                _module.__dict__.pop(command)
-            except KeyError:
-                plogging.pymelLogger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
+        if commands:
+            plogging.pymelLogger.info("Removing commands: %s", ', '.join( commands ))
+            for command in commands:
+                try:
+                    core.pmcmds.removeWrappedCmd(command)
+                    _module.__dict__.pop(command)
+                except KeyError:
+                    plogging.pymelLogger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
                         
         # Nodes
         nodes = data.pop('dependNodes', [])
-        plogging.pymelLogger.debug("Removing nodes: %s" % ', '.join( nodes ))
-        for node in nodes:
-            factories.removePyNode( _module, node )
+        if nodes:
+            plogging.pymelLogger.debug("Removing nodes: %s" % ', '.join( nodes ))
+            for node in nodes:
+                factories.removePyNode( _module, node )
 
 
 global _pluginLoadedCB

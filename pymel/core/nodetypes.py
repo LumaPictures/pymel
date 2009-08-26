@@ -29,8 +29,6 @@ _thisModule = __import__(__name__, globals(), locals(), ['']) # last input must 
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
-_virtualSubClasses = {}
-
 def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
     """
     Generator function which makes 2 new 'parent' functions, given a baseParentFunc.
@@ -786,7 +784,7 @@ class Component1D( DiscreteComponent ):
         if isinstance(melobj, basestring):
             return melobj
         else:
-            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melobj ]
+            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melObj ]
             compSlice = _sequenceToComponentSlice( indices )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
@@ -1817,8 +1815,8 @@ class Attribute(general.PyNode):
             self.__dict__['_iterIndices'] = size, indices
 
         if index >= size:
-            self.__dict__.pop('_iterIndex')
-            self.__dict__.pop('_iterIndices')
+            self.__dict__.pop('_iterIndex', None)
+            self.__dict__.pop('_iterIndices', None)
             raise StopIteration
 
         else:
@@ -2151,8 +2149,35 @@ class Attribute(general.PyNode):
 #xxx{ Connections
 #----------------------    
           
-    def isConnectedTo(self, other, ignoreUnitConversion=False):          
-        return cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion)
+    def isConnectedTo(self, other, ignoreUnitConversion=False, checkLocalArray=False, checkOtherArray=False ):
+        """
+        Determine if the attribute is connected to the passed attribute.
+        
+        If checkLocalArray is True and the current attribute is a multi/array, the current attribute's elements will also be tested.
+        
+        If checkOtherArray is True and the passed attribute is a multi/array, the passed attribute's elements will also be tested.
+        
+        If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
+         
+        """
+
+        if cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion):
+            return True
+        
+        if checkLocalArray and self.isMulti():
+            for elem in self:
+                if elem.isConnectedTo(other, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=checkOtherArray):
+                    return True
+                
+        if checkOtherArray:
+             other = Attribute(other)
+             if other.isMulti():
+                 for elem in other:
+                     if self.isConnectedTo(elem, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=False):
+                        return True
+
+        
+        return False
     
     ## does not work because this method cannot return a value, it is akin to +=       
     #def __irshift__(self, other):
@@ -3117,7 +3142,7 @@ class DependNode( general.PyNode ):
             raise ValueError, "could not find trailing numbers to decrement on object %s" % self
     
     @classmethod
-    def registerVirtualSubClass( cls, callback, nameRequired=False ):
+    def registerVirtualSubClass( cls, callback, nameRequired=False, createCallback=None ):
         """
         Allows a user to create their own subclasses of leaf PyMEL node classes,
         which are returned by `general.PyNode` and all other pymel commands.
@@ -3150,8 +3175,9 @@ class DependNode( general.PyNode ):
         # put new classes at the front of list, so more recently added ones
         # will override old definitions - handy if a module which registers a
         # virtual node is reloaded
-        _virtualSubClasses[parentCls] = \
-            [(cls, callback, nameRequired)] + _virtualSubClasses.get(parentCls, [])
+        _factories.virtualClass[parentCls].insert(0, (cls, callback, nameRequired) )
+        if createCallback:
+            _factories.virtualClassCreation[cls] = createCallback
 #}
 
 class Entity(DependNode):
@@ -5173,8 +5199,8 @@ def _getPymelType(arg, name) :
             except RuntimeError:
                 raise general.MayaNodeError
             
-            try:
-                data = _virtualSubClasses[pymelType]
+            if pymelType in _factories.virtualClass:
+                data = _factories.virtualClass[pymelType]
                 nodeName = name
                 for virtualCls, callback, nameRequired in data:
                     if nameRequired and nodeName is None:
@@ -5183,8 +5209,7 @@ def _getPymelType(arg, name) :
                     if callback(obj, nodeName):
                         pymelType = virtualCls
                         break
-            except KeyError:
-                pass
+
             return pymelType
 
     obj = None
