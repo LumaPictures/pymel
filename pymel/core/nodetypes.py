@@ -421,7 +421,7 @@ class DimensionedComponent( Component ):
             if not mfncomp.isComplete():
                 isComplete = False
 
-        if isintance(indices, dict):
+        if isinstance(indices, dict):
             if len(dict) > 1:
                 isComplete = False
                 self._ComponentLabel__ = indices.keys()
