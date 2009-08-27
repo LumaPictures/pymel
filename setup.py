@@ -10,6 +10,21 @@ try:
     system = platform.system()
 except:
     system = None
+
+def get_mayapy_executable():   
+    if os.name == 'posix':
+        try:
+            # matches on osx and linux due to /bin/../Frameworks/
+            mayapy_bin = re.match('.*/bin/', sys.executable ).group(0) + 'mayapy'
+            return mayapy_bin
+        except:
+            pass    
+    return os.path.normpath( sys.executable )
+
+mayapy_executable = get_mayapy_executable()
+maya_bin_dir = os.path.dirname( mayapy_executable )
+
+
     
 def test_dynload_modules():
     # start with a bit of a hack.  not sure the most reliable way to get the dynload directory
@@ -37,7 +52,7 @@ def fix_makefile():
     if not os.path.exists(makefile):
         print "PyMEL setup: Makefile not found: %s. Attempting to correct" % makefile
         libdir = get_python_lib(plat_specific=1, standard_lib=1)
-        zipinstall = os.path.join( os.path.dirname( get_maya_bin_dir() ),'lib', 'python%s%s.zip' % sys.version_info[0:2] )
+        zipinstall = os.path.join( os.path.dirname( maya_bin_dir ),'lib', 'python%s%s.zip' % sys.version_info[0:2] )
         if os.path.exists(zipinstall):
             try:
                 # extract the Makefile
@@ -54,7 +69,7 @@ def fix_makefile():
             except Exception, e:
                 print "PyMEL setup: an error occurred while trying to fix the Makefile: %s" % e
         else:
-            print "PyMEL setup: cannot fix. zip install was not found: %s" % zipinstall
+            print "PyMEL setup: cannot fix Makefile. zip install was not found: %s" % zipinstall
         print ("distutils will most likely fail, complaining that this is an invalid python install. PyMEL setup\n" +
                 "was unable to properly correct the problem. The root problem is that your python Makefile is missing")
 
@@ -82,18 +97,7 @@ def get_data_files():
         return [('', ['extras/2010/osx/readline.so'])]
     return []
 
-def get_mayapy_executable():   
-    if os.name == 'posix':
-        try:
-            # matches on osx and linux due to /bin/../Frameworks/
-            mayapy_bin = re.match('.*/bin/', sys.executable ).group(0) + 'mayapy'
-            return mayapy_bin
-        except:
-            pass    
-    return os.path.normpath( sys.executable )
 
-def get_maya_bin_dir():
-    return os.path.dirname( get_mayapy_executable() )
 
 
     
@@ -117,17 +121,14 @@ def main():
     ez_setup.use_setuptools()
     from setuptools import setup
     import setuptools.command.easy_install
-    
+
+    orig_script_args = setuptools.command.easy_install.get_script_args
+    orig_nt_quote_arg = setuptools.command.easy_install.nt_quote_arg
+         
     # overwrite setuptools.command.easy_install.get_script_args
     # it's the only way to change the executable for ipymel
     if system == 'Darwin':
-        orig_script_args = setuptools.command.easy_install.get_script_args
-        orig_nt_quote_arg = setuptools.command.easy_install.nt_quote_arg
-        # on osx we need to use '/usr/bin/env /Applications....mayapy', but setuptools tries to wrap this in quotes
-        # because it has a space in it. disable this behavior
-        def nt_quote_arg(arg):
-            return arg
-    
+
         if 'install' in sys.argv:
             # set default script installation directory
             # on osx the python binary is deep within the frameworks directory,
@@ -140,16 +141,26 @@ def main():
                     is_set = True
                     break
             if not is_set:
-                args.append( '--install-scripts=' + get_maya_bin_dir() )
+                args.append( '--install-scripts=' + maya_bin_dir )
                 sys.argv = args
-             
         
+        # on osx we need to use '/usr/bin/env /Applications....mayapy', but setuptools tries to wrap this in quotes
+        # because it has a space in it. disable this behavior
+        def nt_quote_arg(arg):
+            return arg
+             
+        # use mayapy executable
         def get_script_args(dist, executable=None, wininst=False):
-            executable = get_mayapy_executable()  
-            executable = '/usr/bin/env ' + executable
+            executable = '/usr/bin/env ' + mayapy_executable
             return orig_script_args(dist, executable, wininst)
     
         setuptools.command.easy_install.nt_quote_arg = nt_quote_arg
+        setuptools.command.easy_install.get_script_args = get_script_args
+        
+    elif system == 'Linux':
+        # use mayapy executable
+        def get_script_args(dist, executable=None, wininst=False):
+            return orig_script_args(dist, mayapy_executable, wininst)
         setuptools.command.easy_install.get_script_args = get_script_args
     
     try:
@@ -174,10 +185,9 @@ def main():
               data_files = get_data_files()
              )
     finally:
-        if system == 'Darwin':
-            # restore
-            setuptools.command.easy_install.get_script_args = orig_script_args
-            setuptools.command.easy_install.nt_quote_arg = orig_nt_quote_arg
+        # restore
+        setuptools.command.easy_install.get_script_args = orig_script_args
+        setuptools.command.easy_install.nt_quote_arg = orig_nt_quote_arg
 
 if __name__ == '__main__':
     main()
