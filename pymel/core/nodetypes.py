@@ -22,6 +22,7 @@ import maya.mel as mm
 
 #from general import *
 import general
+import other
 from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
@@ -780,15 +781,14 @@ class Component1D( DiscreteComponent ):
     
     def name(self):
         # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
-        melObj = self.__melobject__()
-        if isinstance(melObj, basestring):
-            return melObj
+        melobj = self.__melobject__()
+        if isinstance(melobj, basestring):
+            return melobj
         else:
             indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melObj ]
             compSlice = _sequenceToComponentSlice( indices )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
-            
                 
             
 class Component2D( DiscreteComponent ):
@@ -3066,7 +3066,8 @@ class DependNode( general.PyNode ):
 #-----------------------------------------
 #xxx{ Name Info and Manipulation
 #-----------------------------------------
-    _numPartReg = re.compile('([0-9]+)$')
+
+# Now just wraps NameParser functions
     
     def stripNum(self):
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
@@ -3078,10 +3079,7 @@ class DependNode( general.PyNode ):
         
         :rtype: `unicode`
         """
-        try:
-            return DependNode._numPartReg.split( self.name() )[0]
-        except IndexError:
-            return unicode(self)
+        return other.NameParser(self.name()).stripNum()
             
     def extractNum(self):
         """Return the trailing numbers of the node name. If no trailing numbers are found
@@ -3093,54 +3091,38 @@ class DependNode( general.PyNode ):
         
         :rtype: `unicode`
         """
-        
-        try:
-            return DependNode._numPartReg.split( self.name() )[1]
-        except IndexError:
-            raise ValueError, "No trailing numbers to extract on object %s" % self
+        return other.NameParser(self.name()).extractNum()
 
     def nextUniqueName(self):
         """Increment the trailing number of the object until a unique name is found
 
+        If there is no trailing number, appends '1' to the name.
         
         :rtype: `unicode`
         """
-        name = self.nextName()
-        while name.exists():
-            name = name.nextName()
-        return name
+        return other.NameParser(self.name()).nextUniqueName()
                 
     def nextName(self):
         """Increment the trailing number of the object by 1
 
+        Raises an error if the name has no trailing number.
+        
         >>> from pymel import *
         >>> SCENE.lambert1.nextName()
         DependNodeName('lambert2')
         
         :rtype: `unicode`
         """
-        import other
-        groups = DependNode._numPartReg.split( self.name() )
-        if groups:
-            num = groups[1]
-            formatStr = '%s%0' + unicode(len(num)) + 'd'            
-            return other.NameParser( formatStr % ( groups[0], (int(num) + 1) ) )
-        else:
-            raise ValueError, "could not find trailing numbers to increment on object %s" % self
+        return other.NameParser(self.name()).nextName()
             
     def prevName(self):
         """Decrement the trailing number of the object by 1
         
+        Raises an error if the name has no trailing number.
+        
         :rtype: `unicode`
         """
-        import other
-        try:
-            groups = DependNode._numPartReg.split(self)
-            num = groups[1]
-            formatStr = '%s%0' + unicode(len(num)) + 'd'            
-            return other.NameParser( formatStr % ( groups[0], (int(num) - 1) ) )
-        except:
-            raise ValueError, "could not find trailing numbers to decrement on object %s" % self
+        return other.NameParser(self.name()).prevName()
     
     @classmethod
     def registerVirtualSubClass( cls, callback, nameRequired=False, createCallback=None ):
