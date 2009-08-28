@@ -299,6 +299,8 @@ Script Editor
 PyMEL includes a replacement for the script editor window that provides the option to translate all mel history into python. 
 Currently this feature is beta and works only in versions beginning with Maya 8.5 SP1.
 
+.. warning:: this feature is still considered experimental
+
 The script editor is comprised of two files located in the pymel/tools/scriptEditor directory: scriptEditorPanel.mel and pymelScrollFieldReporter.py.  
 
     #. Place the mel file into your scripts directory, and the python file into your Maya plugins directory. 
