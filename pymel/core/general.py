@@ -1342,16 +1342,26 @@ class PyNode(util.ProxyUnicode):
         else :
             # create node if possible
             if issubclass(cls,nodetypes.DependNode):
-                if hasattr( cls, 'createVirtual' ):
-                    res = cls.createVirtual(**kwargs)
-                    if res is None:
-                        raise TypeError, "createVirtual must return the created node"
-                    return cls(res)
-                elif cls in _factories.virtualClassCreation:
-                    res = _factories.virtualClassCreation[cls](**kwargs)
-                    if res is None:
-                        raise TypeError, "createVirtual must return the created node"
-                    return cls(res)
+                newNode = None
+                #----------------------------------
+                # Pre Creation
+                #----------------------------------
+                if hasattr( cls, '_preCreateVirtual' ):
+                    newkwargs = cls._preCreateVirtual(**kwargs)
+                    assert isinstance(newkwargs, dict), "_preCreateVirtual must return a dictionary of keyword arguments"
+                    kwargs = newkwargs
+                    
+                #----------------------------------
+                # Creation
+                #----------------------------------
+                if hasattr( cls, '_createVirtual' ):
+                    newNode = cls.createVirtual(**kwargs)
+                    assert isinstance(newNode, basestring), "_createVirtual must return the name created node"
+#                elif cls in _factories.virtualClassCreation:
+#                    res = _factories.virtualClassCreation[cls](**kwargs)
+#                    if res is None:
+#                        raise TypeError, "the creation callback of a virtual node must return the created node"
+#                    return cls(res)
                 
                 elif hasattr(cls, '__melcmd__') and not cls.__melcmd_isinfo__:
                     try:
@@ -1366,23 +1376,35 @@ class PyNode(util.ProxyUnicode):
                             for x in res:
                                 typ = cmds.nodeType(x)
                                 if typ == cls.__melnode__:
-                                    return cls(x)
+                                    newNode = x
+                                    break
                                 elif typ == 'transform':
                                     shape = cmds.listRelatives( x, s=1)
                                     if shape and cmds.nodeType(shape[0]) == cls.__melnode__:
-                                        return cls(shape[0])
-                                    
-                            raise ValueError, "could not find type %s in result %s returned by %s" % ( cls.__name__, res, cls.__melcmd__.__name__ )
+                                        newNode = shape[0]
+                                        break
+                            if newNode is None:       
+                                raise ValueError, "could not find type %s in result %s returned by %s" % ( cls.__name__, res, cls.__melcmd__.__name__ )
                         elif cls.__melnode__ == nodeType(res): #isinstance(res,cls):
-                            return cls(res)
+                            newNode = res
                         else:
                             raise ValueError, "unexpect result %s returned by %s" % ( res, cls.__melcmd__.__name__ )
                 else:
                     _logger.debug( 'creating node of type %s using createNode' % cls.__melnode__ )
                     try:
-                        return createNode( cls.__melnode__, **kwargs )
+                        newNode = createNode( cls.__melnode__, **kwargs )
                     except RuntimeError:
+                        # FIXME: should we really be passing on this?
                         pass
+                
+                #----------------------------------
+                # Post Creation
+                #----------------------------------
+                if newNode:
+                    if hasattr( cls, '_postCreateVirtual' ):
+                        cls._postCreateVirtual( newNode )
+                    return cls(newNode)
+                    
             raise ValueError, 'PyNode expects at least one argument: an object name, MObject, MObjectHandle, MDagPath, or MPlug'
         
         # print "type:", pymelType

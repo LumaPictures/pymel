@@ -3125,42 +3125,12 @@ class DependNode( general.PyNode ):
         return other.NameParser(self.name()).prevName()
     
     @classmethod
-    def registerVirtualSubClass( cls, callback, nameRequired=False, createCallback=None ):
+    def registerVirtualSubClass( cls, nameRequired=False ):
         """
-        Allows a user to create their own subclasses of leaf PyMEL node classes,
-        which are returned by `general.PyNode` and all other pymel commands.
-        
-        The process is fairly simple:
-            1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
-                and not an abstract type higher up in the hierarchy. 
-            2.  Register your subclass by calling the registerVirtualSubClass method of your new class.  This is a class method, 
-                meaning that it **must** be called from an uninstantiated class.
-        
-        :type  callback: function
-        :param callback: must be a function that accepts two arguments, an MObject instance for the current object, 
-            and its name. The callback function should return True if the current object meets the requirements to become the
-            virtual subclass, or else False.
-        :type  nameRequired: bool
-        :param nameRequired: True if the callback requires the string name to operate on. The object's name is not always immediately
-            avaiable and takes an extra calculation to retrieve.
-            
+        Deprecated
         """
-        # assert that we are a leaf class
-        parentCls = None 
-        for each_cls in inspect.getmro(cls)[1:]:
-            if each_cls.__module__ == __name__:
-                parentCls = each_cls
-                break
-        assert parentCls, "could not find parent general.PyNode"
-        #assert issubclass( cls, parentCls ), "%s must be a subclass of %s" % ( cls, parentCls )
+        _factories.registerVirtualClass(cls, nameRequired)
 
-        cls.__melnode__ = parentCls.__melnode__
-        # put new classes at the front of list, so more recently added ones
-        # will override old definitions - handy if a module which registers a
-        # virtual node is reloaded
-        _factories.virtualClass[parentCls].insert(0, (cls, callback, nameRequired) )
-        if createCallback:
-            _factories.virtualClassCreation[cls] = createCallback
 #}
 
 class Entity(DependNode):
@@ -5185,11 +5155,11 @@ def _getPymelType(arg, name) :
             if pymelType in _factories.virtualClass:
                 data = _factories.virtualClass[pymelType]
                 nodeName = name
-                for virtualCls, callback, nameRequired in data:
+                for virtualCls, nameRequired in data:
                     if nameRequired and nodeName is None:
                         nodeName = fnDepend.name()
                     
-                    if callback(obj, nodeName):
+                    if virtualCls._isVirtual(obj, nodeName):
                         pymelType = virtualCls
                         break
 

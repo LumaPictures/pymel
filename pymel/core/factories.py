@@ -157,7 +157,6 @@ util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', '
 util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
 
 virtualClass = util.defaultdict(list)
-virtualClassCreation = {}
         
 #---------------------------------------------------------------
 #        Doc Parser
@@ -3794,7 +3793,7 @@ def removePyNode( module, mayaType ):
     module.__dict__.pop(pyNodeTypeName,None)
     module.api.removeMayaType( mayaType )
 
-def registerVirtualSubClass( cls, callback, createCallback=None, nameRequired=False ):
+def registerVirtualClass( cls, nameRequired=False ):
     """
     Allows a user to create their own subclasses of leaf PyMEL node classes,
     which are returned by `general.PyNode` and all other pymel commands.
@@ -3810,8 +3809,8 @@ def registerVirtualSubClass( cls, callback, createCallback=None, nameRequired=Fa
         and its name. The callback function should return True if the current object meets the requirements to become the
         virtual subclass, or else False.
     :type  nameRequired: bool
-    :param nameRequired: True if the callback requires the string name to operate on. The object's name is not always immediately
-        avaiable and takes an extra calculation to retrieve.
+    :param nameRequired: True if the _isVirtual callback requires the string name to operate on. The object's name is not always immediately
+        avaiable and may take an extra calculation to retrieve.
         
     """
     validSpecialAttrs = set(['__module__','__readonly__','__slots__','__melnode__','__doc__'])
@@ -3844,7 +3843,6 @@ def registerVirtualSubClass( cls, callback, createCallback=None, nameRequired=Fa
     
     # put new classes at the front of list, so more recently added ones
     # will override old definitions
-    virtualClass[parentCls].insert( 0, (cls, callback, nameRequired) )
-    if createCallback:
-        virtualClassCreation[cls] = createCallback
+    virtualClass[parentCls].insert( 0, (cls, nameRequired) )
+
     

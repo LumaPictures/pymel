@@ -1,28 +1,24 @@
 """
-This is an experimental feature!!!  
+This is an experimental feature!!!  for advanced users only.
 
 Allows a user to create their own subclasses of leaf PyMEL node classes,
 which are returned by `PyNode` and all other pymel commands.
 
+.. warning:: If you are not familiar with the classmethod and staticmethod decorators you should read up on them before using this feature.
+
 The process is fairly simple:
     1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
         and not an abstract type higher up in the hierarchy. 
-    2.  Register your subclass by calling the registerVirtualSubClass method of your new class.  This is a class method, 
-        meaning that it **must** be called from an uninstantiated class.  You do not need to create a node to register it.
-
-When registering a new virtual subclass,  you must provide a callback function that accepts two arguments: an MObject/MDagPath 
-instance for the current object, and its name. The callback function should return True if the current object meets the requirements to become the
-virtual subclass, or else False. If the callback requires the name of the object, set the keyword argument nameRequired to True when registering the
-new class. The object's name is not always immediately available and may take an extra calculation to retrieve, so if nameRequired is not set
-the name argument passed to your callback could be None.
+    2.  Add an _isVirtual classmethod that accepts two arguments: an MObject/MDagPath instance for the current object, and its name. 
+        It should return True if the current object meets the requirements to become the virtual subclass, or else False. 
+    3.  Add an option _preCreate and _postCreate method.  for more on these, see the examples below.
+    4.  Register your subclass by calling factories.registerVirtualClass. If the _isVirtual callback requires the name of the object, 
+        set the keyword argument nameRequired to True. The object's name is not always immediately available and may take an extra 
+        calculation to retrieve, so if nameRequired is not set the name argument passed to your callback could be None.
             
 If more than one subclass is registered for a node type, the registered callbacks will be run newest to oldest until one returns True.  
 If no test returns True, then the standard node class is used.  Keep in mind that once your new type is registered, its test will be run
 every time a node of its parent type is returned as a PyMEL node class, so be sure to keep your tests simple and fast.  
-
-If your callback needs access to Maya functionality, it should only use the API or plain ole' maya.cmds. This ensure that it does not cause an
-infinite recursion.
-
 
 """
 
@@ -31,48 +27,14 @@ from pymel import *
 #-------------------------------------------------------------------------------
 
 
-def _create(cls, **kwargs):
-    """
-    This method is called when no argument is passed to the class ( not including keyword arguments), such as:
-    
-    >>> LegJoint(name='right')
-    LegJoint(u'right')
-    
-    this method must be a classmethod or staticmethod. If you don't know what that means, just make sure you have
-    @classmethod above your createVirtual method, as in this example.
-    """
-    print "create callback"
-    # create a joint
-    j = cmds.joint(**kwargs)
-    # add the identifying attribute. the attribute name will be set on subclasses of this class
-    cmds.addAttr( j, ln=cls._jointClassID )
-    return j
     
 class CustomJointBase(Joint):
     """ this is an example of how to create your own subdivisions of existing nodes. """
+       
     @classmethod
-    def _create(cls, **kwargs):
-        """
-        This method is called when no argument is passed to the class ( not including keyword arguments), such as:
-        
-        >>> LegJoint(name='right')
-        LegJoint(u'right')
-        
-        this method must be a classmethod or staticmethod. If you don't know what that means, just make sure you have
-        @classmethod above your createVirtual method, as in this example.
-        """
-        # create a joint
-        j = cmds.joint(**kwargs)
-        # add the identifying attribute. the attribute name will be set on subclasses of this class
-        cmds.addAttr( j, ln=cls._jointClassID )
-        return j
-        
-    
-    @classmethod
-    def _callback( cls, obj, name ):
+    def _isVirtual( cls, obj, name ):
         """This is the callback for determining if a Joint should become a "virtual" LegJoint or JawJoint, etc.  
         Notice that this method is a classmethod, which means it gets passed the class as "cls" instead of an instance as "self".
-        The name of the method is unimportant, and it could have actually been a regular function instead of a class method.
         
         PyMEL code should not be used inside the callback, only API and maya.cmds. 
         """
@@ -86,30 +48,52 @@ class CustomJointBase(Joint):
         except: pass
         return False
  
+    @classmethod
+    def _preCreateVirtual(cls, **kwargs ):
+        """
+        This class method is called prior to node creation and gives you a chance to modify the kwargs dictionary
+        that is passed to the creation command.
+        
+        this method must be a classmethod or staticmethod
+        """
+        if 'name' not in kwargs and 'n' not in kwargs:
+            # if no name is passed, then use the joint Id as the name.
+            kwargs['name'] = cls._jointClassID
+        # be sure to return the modified kwarg dictionary
+        return kwargs
+          
+    @classmethod
+    def _postCreateVirtual(cls, newNode ):
+        """
+        This method is called after creating the new node, and gives you a chance to modify it.  The method is
+        passed the PyNode of the newly created node. You can use PyMEL code here, but you should avoid creating
+        any new nodes.
+        
+        this method must be a classmethod or staticmethod
+        """
+        # add the identifying attribute. the attribute name will be set on subclasses of this class
+        newNode.addAttr( cls._jointClassID )
  
 class LegJoint(CustomJointBase):
-    _jointClassID = 'jointType_leg'
-    
+    _jointClassID = 'joint_leg'
     def kick(self):
         print "kicking"
         
         
 class JawJoint(CustomJointBase):
-    _jointClassID = 'jointType_jaw'
-    
+    _jointClassID = 'joint_jaw'
     def munch(self):
         print "munching"
 
 # we don't need to register CustomJointBase because it's just an abstract class to help us easily make our other virtual nodes
-#LegJoint.registerVirtualSubClass( LegJoint._callback, createCallback=LegJoint._create, nameRequired=False )
-#JawJoint.registerVirtualSubClass( JawJoint._callback, createCallback=JawJoint._create, nameRequired=False )
-
-factories.registerVirtualSubClass( LegJoint, LegJoint._callback, createCallback=LegJoint._create, nameRequired=False )
-factories.registerVirtualSubClass( JawJoint, JawJoint._callback, createCallback=JawJoint._create, nameRequired=False )
+factories.registerVirtualClass( LegJoint, nameRequired=False )
+factories.registerVirtualClass( JawJoint, nameRequired=False )
    
 def testJoint():
+    # make some regular joints
     Joint()
     Joint()
+    # now make some of our custom joints
     LegJoint(name='leftLeg')
     JawJoint()
 
@@ -131,8 +115,14 @@ class Mib_amb_occlusion(Mib_amb_occlusion):
     def occlude(self):
         print "occluding!"
 
-# the callback always returns True, so we always replace the default with our own.
-Mib_amb_occlusion.registerVirtualSubClass( lambda *args: True, nameRequired=False )
+    @staticmethod
+    def _isVirtual(obj, name):
+        """
+        the callback always returns True, so we always replace the default with our own.
+        """
+        return True
+     
+factories.registerVirtualClass( Mib_amb_occlusion, nameRequired=False )
     
 
 def testMib():
