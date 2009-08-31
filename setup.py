@@ -97,7 +97,24 @@ def get_data_files():
         return [('', ['extras/2010/osx/readline.so'])]
     return []
 
-
+def set_default_script_location():
+    if 'install' in sys.argv:
+        # set default script installation directory
+        # on osx the python binary is deep within the frameworks directory,
+        # so the binaries get installed there.  instead, put them in the maya bin directory
+        
+        # on windows, the scripst are installed to MAYA_LOCATION/Python/Scripts
+        args = list(sys.argv)
+        is_set = False
+        # looking for a line like:  '--install-scripts=/Applications/Autodesk/maya2010/Maya.app/Contents/bin'
+        for arg in args[1:]:
+            if arg.split('=')[0] in [ '--install-scripts', '--install-dir' ]:
+                is_set = True
+                break
+        if not is_set:
+            print "PyMEL setup: setting script install location to %s" % maya_bin_dir
+            args.append( '--install-scripts=' + maya_bin_dir )
+            sys.argv = args
 
 
     
@@ -129,20 +146,7 @@ def main():
     # it's the only way to change the executable for ipymel
     if system == 'Darwin':
 
-        if 'install' in sys.argv:
-            # set default script installation directory
-            # on osx the python binary is deep within the frameworks directory,
-            # so the binaries get installed there.  instead, put them in the maya bin directory
-            args = list(sys.argv)
-            is_set = False
-            # looking for a line like:  '--install-scripts=/Applications/Autodesk/maya2010/Maya.app/Contents/bin'
-            for arg in args[1:]:
-                if arg.split('=')[0] in [ '--install-scripts', '--install-dir' ]:
-                    is_set = True
-                    break
-            if not is_set:
-                args.append( '--install-scripts=' + maya_bin_dir )
-                sys.argv = args
+        set_default_script_location()
         
         # on osx we need to use '/usr/bin/env /Applications....mayapy', but setuptools tries to wrap this in quotes
         # because it has a space in it. disable this behavior
@@ -162,7 +166,10 @@ def main():
         def get_script_args(dist, executable=None, wininst=False):
             return orig_script_args(dist, mayapy_executable, wininst)
         setuptools.command.easy_install.get_script_args = get_script_args
-    
+    else: # windows
+        set_default_script_location()
+
+                
     try:
         setup(name='pymel',
               version='0.9.2',
