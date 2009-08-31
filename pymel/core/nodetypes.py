@@ -785,7 +785,7 @@ class Component1D( DiscreteComponent ):
         if isinstance(melobj, basestring):
             return melobj
         else:
-            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melObj ]
+            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melobj ]
             compSlice = _sequenceToComponentSlice( indices )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
