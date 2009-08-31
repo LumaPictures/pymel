@@ -8,13 +8,25 @@ Installation
 Supported Platforms
 ---------------------------------------
 
-PyMEL is supported on any OS that Maya is supported on.  Our goal is to support the 3 latest versions of Maya.  At the time of this
-writing, that means 2009, 2008, and 8.5 ( on 8.5 Service Pack 1 is required ).  However, python in Maya 8.5 is very buggy,
-even with the service pack so as a result there are two aspects of PyMEL that will not work on 8.5:
+Our goal is to support the 3 latest versions of Maya.  At the time of this writing, that means 2008, 2009, and 2010.  While we are no longer officially supporting Maya 8.5 SP1 and python 2.4, this version of PyMEL is still mostly compatible with them.  Moving forward we will begin phasing out support for Maya 8.5 and Python 2.4. In the meantime, there are only two aspects of PyMEL that will not work on 8.5:
 
 	- No API Undo: node class methods that derive from API will not be undoable
 	- Data class properties are read-only: operations such as ``Color().r=1.0`` or ``Vector().x=2.0`` will have no effect 
 
+Versions of Maya and Python
+===========================
+
+========================================= =======================
+Maya Version                              Python Version
+========================================= =======================
+8.5 sp1 only                              2.4.3
+----------------------------------------- -----------------------
+2008 (including: sp1, ext1, sp2, ext2)    2.5.1
+----------------------------------------- -----------------------
+2009 (including: sp1, sp1a)               2.5.1
+----------------------------------------- -----------------------
+2010                                      2.6.1
+========================================= =======================
 
 ---------------------------------------
 PyMEL Package
@@ -59,15 +71,17 @@ To Install:
         
         On OSX::
 
-            /Applications/Autodesk/maya2008/Maya.app/Contents/bin/mayapy setup.py install
-            /Applications/Autodesk/maya2009/Maya.app/Contents/bin/mayapy setup.py install
+            sudo /Applications/Autodesk/maya2008/Maya.app/Contents/bin/mayapy setup.py install
+            sudo /Applications/Autodesk/maya2009/Maya.app/Contents/bin/mayapy setup.py install
 
         On Windows wrap the path in double quotes::
 
             "C:\Program Files\Autodesk\Maya2008\bin\mayapy.exe" setup.py install
             "C:\Program Files\Autodesk\Maya2009\bin\mayapy.exe" setup.py install
 
-        .. note:: Be sure to use the proper path to *your* mayapy.exe.  For example, if you have 32-bit maya installed on 64-bit windows, it will be installed to ``C:\Program Files (x86)`` instead of ``"C:\Program Files``
+        On both platforms you should be able to drag and drop the mayapy file from finder/explorer into the shell to get the path.
+        
+        .. note:: Be sure to use the proper path to *your* mayapy.exe.  For example, if you have 32-bit maya installed on 64-bit windows, it will be installed to ``C:\Program Files (x86)`` instead of ``C:\Program Files``
             
 .. _install_manual:
 
@@ -81,31 +95,27 @@ If the easy install did not turn out to be so easy, PyMEL can always be manually
 
 To find available modules, python searches directories set in an 
 environment variable called ``PYTHONPATH``.  This environment variable can be set for each Maya installation using the Maya.env 
-file, or it can be set at the system level, which will set it for all instances of python, including those bundled with each Maya installation (aka "mayapy").  
-Each of these methods have their pros and cons.
-    
-    * :ref:`Maya.env <install_maya_env>` : 
-        * allows per-maya configuration
-        * does not allow easy execution of ``maya`` and ``mayapy`` in a shell
-        
-    * :ref:`System install <install_system_env>` :
-        * only allows one configuration for all copies of Maya
-        * will override values set in Maya.env ( except on OSX if you launch Maya from from an application bundle )
-        * allows easy execution of ``maya`` and ``mayapy`` in a shell
+file, or it can be set at the system level, which will set it for all instances of python, including those bundled with each Maya installation (aka "mayapy"). 
 
-.. note:: On OSX you can get the best of both worlds if you set your ``PYTHONPATH`` at both the system level
-    and the Maya.env level: the system settings will be honored in the terminal, and Maya.env will be used when launching Maya from its application bundle.
-    On other operating systems -- and when launching Maya from a shell on OSX -- be aware that if you set your ``PYTHONPATH`` at the system level it will
-    override any values for ``PYTHONPATH`` set in Maya.env.
+============================================================ ========================================== ==========================================
+..                                                           :ref:`Maya.env <install_maya_env>`         :ref:`System-Level <install_system_env>`
+============================================================ ========================================== ==========================================
+allows per-maya configuration of environment variables       YES                                        NO
+------------------------------------------------------------ ------------------------------------------ ------------------------------------------
+allows easy execution of ``maya`` and ``mayapy`` in a shell  NO                                         YES
+============================================================ ========================================== ==========================================
 
-The instructions below on setting up your python environment are essential to learning how to properly deploy any python module, not just PyMEL, and mastering them is
-also key to using the :doc:`standalone`.
+
+.. warning:: If you set your ``PYTHONPATH`` at the system level it will override any values for ``PYTHONPATH`` set in Maya.env, except on OSX when launching Maya from it's application bundle (an application bundle is the icon you click on to launch Maya).
 
 
 .. _install_maya_env:
 
 Setting Up Your Environment Using Maya.env
 ------------------------------------------
+
+The instructions below on setting up your python environment are essential to learning how to properly deploy any python module, not just PyMEL, and mastering them is also key to using the :doc:`standalone`.
+
 
 OSX and Linux
 ~~~~~~~~~~~~~
@@ -201,22 +211,24 @@ Windows
 ipymel
 ---------------------------------------
 
-ipymel is an extension of the ultra-customizable IPython interpreter, which enables it to easily work with mayapy and PyMEL.  It adds tab completion of maya depend nodes,
-dag nodes, and attributes, as well as automatic import of PyMEL at startup.  Many more features to come. 
+ipymel is an extension of the ultra-customizable IPython interpreter, which enables it to easily work with mayapy and PyMEL.  It adds tab completion of maya depend nodes, dag nodes, and attributes, as well as automatic import of PyMEL at startup.  Many more features to come. 
 
 ipymel Easy Install
 ===================
 
 As of version 0.9.2 ipymel is automatically installed when "easy" installing PyMEL, but you may have to do a few extra steps to get it working properly on Windows.
  
-Windows Only: 
-        * Install pyreadline for windows from the `IPython <http://ipython.scipy.org/dist>`_ website
-        * Copy the IPython directory, pyreadline directory, and all the pyreadline.* files from your system site-packages directory 
+Windows Only:
+        * Install python on your system. Install only the exact versions of python that come with Maya ( see `Versions of Maya and Python`_ ) 
+        * Install pyreadline for windows from the `IPython <http://ipython.scipy.org/dist>`_ website. By default it will install to your system copy of Python.
+        * Copy the pyreadline directory, and all the pyreadline.* files from your system site-packages directory 
           ( ex. ``C:\Python25\Lib\site-packages`` ) to your Maya site-packages directory ( ex. ``C:\Program Files\Autodesk\Maya2008\Python\lib\site-packages`` ). 
        
 To Run: In a new shell, run the following command::
     
         ipymel
+
+.. note:: The "easy" installation method produces an invalid ``ipymel.exe`` on 64-bit windows systems.  As of this writing I'm still looking into this.
 
 .. note:: Though not a requirement for ipymel to work, it's best to read up on `Setting Up Your System Environment`_
    
@@ -256,27 +268,34 @@ Windows
 
 
 ---------------------------------------
-Problems on Linux
+Troubleshooting
 ---------------------------------------
 
-If you encounter an error loading the plugin in on linux, you may have to fix a few symlinks. 
-As root, or with sudo privileges do the following::
+Linux
+=====
+
+If you encounter an error installing on linux, you may have to fix a few symlinks. Here's how you check.  ``cd`` to the directory where you unzipped pymel (you should be in the same directory where ``setup.py`` is).  start up maya's standalone interpreter by typing ``mayapy`` (or provide the full path to mayapy script if you do not have Maya's bin directory on your ``PATH``) at the prompt.  now import setup.py as a module and run one of it's tests::
+
+    import setup
+    setup.test_dynload_modules()
+    
+This will print out any compiled modules that do not work on your platform.  This occurs because the flavor and/or distribution of Linux that you are running has different versions of certain system libraries than the one that Maya was compiled on. The easiest way to fix the problem is to create symbolic links from your existing libraries to those that Maya expects to find.
+    
+For example, in my case hashlib won't import because it can't find ``libssl.so.4``.  So, since I'm on a 64-bit version of linux, I check my ``/lib64/`` ( on a 32 bit OS, check ``/lib/`` ) ::
 
     cd /lib64
     ls -la libssl*
 
-You might see something like the following returned::
+I see the following returned::
     
     -rwxr-xr-x 1 root root 302552 Nov 30  2006 libssl.so.0.9.8b
     lrwxrwxrwx 1 root root     16 Jul 16  2007 libssl.so.6 -> libssl.so.0.9.8b
 
-The distribution of python that comes with maya is compiled to work with a particular flavor and version of linux, but yours most likely
-differs. In my case, it expects libssl.so.4, but i have libssl.so.6 and libssl.so.0.9.8b.  So, I have to 
-create a symbolic link to the real library::
+In my case, Maya expects ``libssl.so.4``, but instead I have ``libssl.so.0.9.8b`` and a symbolic link ``libssl.so.6`` pointing to ``libssl.so.0.9.8b``.  So, I have to create a symbolic link **from the real library to the missing library**::
     
     sudo ln -s libssl.so.0.9.8b libssl.so.4
 
-I've found that the same thing must sometimes be done for libcrypto.so.4, as well.
+I've found that the same thing must sometimes be done for ``libcrypto`` as well.
 
 
 ---------------------------------------

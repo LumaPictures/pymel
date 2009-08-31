@@ -18,7 +18,7 @@ Chapters:
 .. toctree::
 	:maxdepth: 1
 
-	whats_new	
+	whats_new
 	install
 	why_pymel
 	tutorial
@@ -27,7 +27,7 @@ Chapters:
 	non_existent_objs
 	ui
 	standalone
-    advanced
+	advanced
 
 Appendices:
 

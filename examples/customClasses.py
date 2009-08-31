@@ -7,11 +7,11 @@ which are returned by `PyNode` and all other pymel commands.
 .. warning:: If you are not familiar with the classmethod and staticmethod decorators you should read up on them before using this feature.
 
 The process is fairly simple:
-    1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
+    1.  Subclass a PyNode class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
         and not an abstract type higher up in the hierarchy. 
     2.  Add an _isVirtual classmethod that accepts two arguments: an MObject/MDagPath instance for the current object, and its name. 
         It should return True if the current object meets the requirements to become the virtual subclass, or else False. 
-    3.  Add an option _preCreate and _postCreate method.  for more on these, see the examples below.
+    3.  Add an optional _preCreate and _postCreate method.  for more on these, see the examples below.
     4.  Register your subclass by calling factories.registerVirtualClass. If the _isVirtual callback requires the name of the object, 
         set the keyword argument nameRequired to True. The object's name is not always immediately available and may take an extra 
         calculation to retrieve, so if nameRequired is not set the name argument passed to your callback could be None.
