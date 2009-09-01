@@ -92,8 +92,8 @@ def getMayaLocation(version=None):
         # note that a recursive loop between getMayaLocation / getMayaVersion
         # is avoided because getMayaVersion always calls getMayaLocation with
         # version == None
-        actual_long_version = getMayaVersion(extension=True)
-        actual_short_version = parseVersionStr(actual_long_version, extension=False)
+        actual_long_version = Version.installName()
+        actual_short_version = Version.shortName()
         if version != actual_long_version:
             short_version = parseVersionStr(version, extension=False)
             if version == short_version :
@@ -286,7 +286,7 @@ def getMayaAppDir():
 
 def mayaDocsLocation(version=None):
     docLocation = None
-    if (version == None or version == getMayaVersion() ) and mayaIsRunning():
+    if (version == None or version == Version.installName() ) and mayaIsRunning():
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -432,7 +432,7 @@ def parseMayaenv(envLocation=None, version=None) :
         # try to find which version of Maya should be initialized
         if not version :
             # try to query version, will only work if reparsing env from a working Maya
-            version = getMayaVersion(extension=True)
+            version = Version.installName()
             if version is None:
                 # if run from Maya provided mayapy / python interpreter, can guess version
                 _logger.debug("Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir)
@@ -679,42 +679,24 @@ def mayaInit(forversion=None) :
     """
 
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
-    runningVersion = getMayaVersion(running=True, installed=False, extension=True)      
 
-    if forversion :
-        if runningVersion == forversion :
-            # maya is initialized and its the version we want. we're done
-            return False
-        else :
-            _logger.debug("Maya is already initialized as version %s, initializing it for a different version %s" % (runningVersion, forversion))
-    elif runningVersion :
-        #_logger.debug("Maya is already initialized as version %s" % (runningVersion))
+    try :
+        from maya.cmds import about
+        # if this succeeded, we're initialized in gui mode
         return False
+    except:
+        pass
                 
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
     sep = os.path.pathsep
-    mayaVersion = getMayaVersion(installed=True, extension=True)
-    shortVersion = parseVersionStr(mayaVersion, extension=True)
-                      
-    envVersion = os.environ.get('MAYA_ENV_VERSION', None)
-    
-#    if (forversion and envVersion!=forversion) or not envVersion :
-#        # NOTE : is it even possible to change versions during a session? PYTHONHOME will likely point to an incompatible version of python
-#        if not parseMayaenv(version=forversion) :
-#            print "Could not read or parse Maya.env file"
-#        #setMayaDefaultEnvs(forversion)
-    
-    # now we should have correct en vars
-    envVersion = os.environ.get('MAYA_ENV_VERSION', mayaVersion)
-    mayaLocation = os.environ['MAYA_LOCATION']
              
-    if not sys.modules.has_key('maya.standalone') or shortVersion != forversion:
+    if not sys.modules.has_key('maya.standalone'):
         try :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            if Version.current < Version.v2010:
-                refreshEnviron()
+            #if Version.current < Version.v2010:
+            #    refreshEnviron()
             #initMEL()
             #executeDeferred( initMEL )
         except ImportError, e:
@@ -736,7 +718,7 @@ def initMEL():
     _logger.debug( "initMEL" )        
     import maya.mel
     
-    mayaVersion = getMayaVersion(extension=True)                             
+    mayaVersion = Version.installName()
     try:
         prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
     except:
@@ -820,7 +802,7 @@ def encodeFix():
 
 def loadCache( filePrefix, description='', useVersion=True):
     if useVersion:
-        short_version = getMayaVersion(extension=False)   
+        short_version = Version.installName()
     else:
         short_version = ''
     newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
@@ -843,7 +825,7 @@ def writeCache( data, filePrefix, description='', useVersion=True):
     _logger.debug("writing cache")
     
     if useVersion:
-        short_version = getMayaVersion(extension=False)   
+        short_version = Version.shortName()
     else:
         short_version = ''
     newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
