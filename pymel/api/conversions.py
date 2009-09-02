@@ -1140,7 +1140,9 @@ def _buildApiTypeHierarchy (apiClassInfo=None) :
     for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
         for x in os.listdir( pluginPath ):
             if os.path.isfile( os.path.join(pluginPath,x)):
-                maya.cmds.loadPlugin( x )
+                try:
+                    maya.cmds.loadPlugin( x )
+                except RuntimeError: pass
 
     allMayaTypes = ReservedMayaTypes().keys() + maya.cmds.ls(nodeTypes=True)
     
