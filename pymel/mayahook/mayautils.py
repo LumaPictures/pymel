@@ -807,7 +807,7 @@ def encodeFix():
 
 def loadCache( filePrefix, description='', useVersion=True):
     if useVersion:
-        short_version = Version.installName()
+        short_version = Version.shortName()
     else:
         short_version = ''
     newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
