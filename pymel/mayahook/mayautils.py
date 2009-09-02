@@ -18,6 +18,8 @@ except:
 from version import Version, parseVersionStr
 import envparse
 
+
+
 #from maya.cmds import encodeString
 
 if os.name == 'nt' :
@@ -864,15 +866,8 @@ def writeCache( data, filePrefix, description='', useVersion=True):
         _logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
                  
 
-def getConfigFile():  
-    if 'HOME' in os.environ:
-        configFile = os.path.join( os.environ['HOME'], "pymel.conf")
-        if os.path.isfile(configFile):
-            return configFile
-    configFile = os.path.join(moduleDir(),"pymel.conf")
-    if os.path.isfile(configFile):
-        return configFile
-    raise IOError, "Could not find pymel.conf"
+def getConfigFile():
+    return plogging.getConfigFile()
 
 def parsePymelConfig():
     import ConfigParser

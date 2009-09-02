@@ -14,7 +14,7 @@ import maya.app.python
 from pymel.util.decoration import decorator
 
 
-
+PYMEL_CONF_ENV_VAR = 'PYMEL_CONF'
 
 
 #===============================================================================
@@ -63,11 +63,11 @@ class ClassInfo(object):
 
 _fixMayaOutput()
 
-def getLogConfigFile():
-    configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
-    if os.path.isfile(configFile):
-        return configFile
-    
+def getConfigFile():
+    if PYMEL_CONF_ENV_VAR in os.environ:
+        configFile = os.environ[PYMEL_CONF_ENV_VAR]
+        if os.path.isfile(configFile):
+            return configFile
     if 'HOME' in os.environ:
         configFile = os.path.join( os.environ['HOME'], "pymel.conf")
         if os.path.isfile(configFile):
@@ -77,6 +77,12 @@ def getLogConfigFile():
     if os.path.isfile(configFile):
         return configFile
     raise IOError, "Could not find pymel.conf"
+
+def getLogConfigFile():
+    configFile = os.path.join(os.path.dirname(__file__),"user_logging.conf")
+    if os.path.isfile(configFile):
+        return configFile
+    return getConfigFile()
 
 configFile = getLogConfigFile()
 if sys.version_info >= (2,6):
