@@ -4093,7 +4093,7 @@ class Transform(DagNode):
         return datatypes.Matrix( cmds.xform( self, **kwargs ) )
       
     #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with api.
-    def getBoundingBox(self, invisible=False):
+    def getBoundingBox(self, invisible=False, space='object'):
         """xform -boundingBox and xform -boundingBoxInvisible
         
         :rtype: `BoundingBox`
@@ -4105,23 +4105,29 @@ class Transform(DagNode):
             kwargs['boundingBoxInvisible'] = True
         else:
             kwargs['boundingBox'] = True
+        if space=='object':
+            kwargs['objectSpace'] = True
+        elif space=='world':
+            kwargs['worldSpace'] = True
+        else:
+            raise ValueError('unknown space %r' % space)
                     
         res = cmds.xform( self, **kwargs )
         #return ( datatypes.Vector(res[:3]), datatypes.Vector(res[3:]) )
         return datatypes.BoundingBox( res[:3], res[3:] )
     
-    def getBoundingBoxMin(self, invisible=False):
+    def getBoundingBoxMin(self, invisible=False, space='object'):
         """
         :rtype: `Vector`
         """
-        return self.getBoundingBox(invisible)[0]
+        return self.getBoundingBox(invisible, space)[0]
         #return self.getBoundingBox(invisible).min()
     
-    def getBoundingBoxMax(self, invisible=False):
+    def getBoundingBoxMax(self, invisible=False, space='object'):
         """
         :rtype: `Vector`
         """
-        return self.getBoundingBox(invisible)[1]   
+        return self.getBoundingBox(invisible, space)[1]   
         #return self.getBoundingBox(invisible).max()
     '''        
     def centerPivots(self, **kwargs):
