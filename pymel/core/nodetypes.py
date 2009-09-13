@@ -3730,9 +3730,11 @@ class Transform(DagNode):
             import other
             if isinstance(res, other.AttributeName):
                 # we didn't get a real attribute, so lets' try to get a real one on the shape
-                shapeRes = self.getShape().attr(attr)
-                if isinstance(shapeRes, Attribute):
-                    return shapeRes
+                shape = self.getShape()
+                if shape:
+                    shapeRes = shape.attr(attr)
+                    if isinstance(shapeRes, Attribute):
+                        return shapeRes
                 
         return res
     
@@ -3781,9 +3783,11 @@ class Transform(DagNode):
             import other
             if isinstance(res, other.AttributeName):
                 # we didn't get a real attribute, so lets' try to get a real one on the shape
-                shapeRes = self.getShape().attr(attr)
-                if isinstance(shapeRes, Attribute):
-                    return shapeRes
+                shape = self.getShape()
+                if shape:
+                    shapeRes = shape.attr(attr)
+                    if isinstance(shapeRes, Attribute):
+                        return shapeRes
                 
         return res
     
