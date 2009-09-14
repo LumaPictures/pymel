@@ -5,6 +5,7 @@ import re
 from pymel import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.core.factories import ApiEnumsToPyComponents
+import pymel.mayahook as mayahook
 from testingutils import TestCaseExtended
 
 
@@ -828,6 +829,27 @@ class testCase_sets(TestCaseExtended):
     
     def test_SelectionSet_mixedObjectsComponents(self):
         self.assertSetSelect(SelectionSet, self.cube.edges[4:6], self.sphere)
+
+class testCase_0_7_compatabilityMode(unittest.TestCase):
+    # Just used to define a value that we know won't be stored in
+    # 0_7_compatability mode...
+    class NOT_SET(object): pass
+    
+    def setUp(self):
+        self.stored_0_7_compatability_mode = mayahook.pymel_options.get( '0_7_compatibility_mode', NOT_SET)
+        mayahook.pymel_options['0_7_compatibility_mode'] = True
+        
+    def tearDown(self):
+        if self.stored_0_7_compatability_mode == NOT_SET:
+            del mayahook.pymel_options['0_7_compatibility_mode']
+        else:
+            mayahook.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
+            
+    def test_nonexistantPyNode(self):
+        # Will raise an error if not in 0_7_compatability_mode
+        PyNode('I_Dont_Exist_3142341324')
+        
+    
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
