@@ -21,52 +21,6 @@ import pymel.core.nodetypes as nodetypes
 #    print "done"
 #    #print emptyFunctions
 
-# Dict which gives the attribute 'type' as used by addAttr - ie,
-# for those with a type listed as 'dt', you would add them like:
-#        addAttr(ln='theAttr', dt=typeName)
-# ...whereas for those with 'at',
-#        addAttr(ln='theAttr', at=typeName)
-# If 'both' is listed as the type, then either can be used, and the
-# 'at' version will create a compound attribute.
-
-attrTypes = {'Int32Array': 'dt',
-             'bool': 'at',      
-             'byte': 'at',
-             'char': 'at',
-             'compound': 'at',
-             'double': 'at',
-             'double2': 'both',
-             'double3': 'both',
-             'doubleAngle': 'at',
-             'doubleArray': 'dt',
-             'doubleLinear': 'at',
-             'enum': 'at',
-             'float': 'at',
-             'float2': 'both',
-             'float3': 'both',
-             'fltMatrix': 'at',
-             'lattice': 'dt',
-             'long': 'at',
-             'long2': 'both',
-             'long3': 'both',
-             'matrix': 'dt',
-             'mesh': 'dt',
-             'message': 'at',
-             'nurbsCurve': 'dt',
-             'nurbsSurface': 'dt',
-             'pointArray': 'dt',
-             'reflectance': 'at',
-             'reflectanceRGB': 'dt',
-             'short': 'at',
-             'short2': 'both',
-             'short3': 'both',
-             'spectrum': 'at',
-             'spectrumRGB': 'dt',
-             'string': 'dt',
-             'stringArray': 'dt',
-             'time': 'at',
-             'vectorArray': 'dt'}
-
 
 class testCase_nodesAndAttributes(unittest.TestCase):
 
@@ -177,7 +131,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
             # get attribute using wrapped api method
             gotValue = getter()
             print "Got Value:", repr(gotValue)
-            # compare'dt'
+            # compare
             self.assertEqual( realValue, gotValue )
             
             # set using wrapped api method
@@ -195,62 +149,6 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         currentUnit(linear=startLinear)
         currentUnit(angle=startAngular)
         currentUnit(time=startTime)
-        
-    def test_attributeAddSetGet(self):
-        """
-        Goes through all attribute types, and tests creating an attribute of that
-        type, setting it's value, then getting it's value and comparing to the set value.
-        """
-        testValues = {'Int32Array': [1,5,-3],
-                      'bool': True,      
-                      'byte': 31,
-                      'char': 'z',
-                      'compound': (('foo', 37, -8.4), ('string', 'long', 'float')),
-                      'double': 13242.9,
-                      'double2': (4328.8, -23489),
-                      'double3': (3488, -2348.87, 32409.8),
-                      'doubleAngle': 37,
-                      'doubleArray': [4328.8, -23489, 3488, -2348.87],
-                      'doubleLinear': 13242.9,
-                      'enum': ('name1', 'fun', 'times'),
-                      'float': 13242.9,
-                      'float2': (4328.8, -23489),
-                      'float3': (3488, -2348.87, 32409.8),
-                      'fltMatrix': [[230.3, 134,   590, 0],
-                                    [230,   134.8, 590, 0],
-                                    [230,   134,   590, 0],
-                                    [230,   134,   590, 0]],
-                      'lattice': [ [[(34.8, -16, 23.8), (34.8, -16, 23.8)],
-                                    [(34.8, -16, 23.8), (34.8, -16, 23.8)]],
-                                   [[(34.8, -16, 23.8), (34.8, -16, 23.8)],
-                                    [(34.8, -16, 23.8), (34.8, -16, 23.8)]] ],
-                      'long': 3480,
-                      'long2': (-8490, 8000),
-                      'long3': (-8490, 8000, 74),
-                      'matrix': [[230.3, 134,   590, 0],
-                                 [230,   134.8, 590, 0],
-                                 [230,   134,   590, 0],
-                                 [230,   134,   590, 0]],
-                      'mesh': {"v": [(0,0,0), (0,1,0), (0,0,1)],
-                               "vn": [(1,0,0), (1,0,0), (1,0,0)],
-                               "vt": [(0,0), (0,1), (1,0)],
-                               "e": [(0,1,"hard"), (1,2,"hard"), (2,0,"hard")]},
-                      'message': 'time1.outTime',
-                      'nurbsCurve': 'dt',
-                      'nurbsSurface': 'dt',
-                      'pointArray': 'dt',
-                      'reflectance': 'at',
-                      'reflectanceRGB': 'dt',
-                      'short': 'at',
-                      'short2': 'both',
-                      'short3': 'both',
-                      'spectrum': 'at',
-                      'spectrumRGB': 'dt',
-                      'string': 'dt',
-                      'stringArray': 'dt',
-                      'time': 'at',
-                      'vectorArray': 'dt'}
-
     
 #    def test_components(self):
 #        import pymel.examples.setVertexColor

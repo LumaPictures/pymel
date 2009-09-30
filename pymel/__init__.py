@@ -1475,7 +1475,7 @@ plogging.pymelLogger.debug( 'imported api' )
 
 
 # will check for the presence of an initilized Maya / launch it
-isStandalone = mayahook.mayaInit() 
+mayahook.mayaInit() 
 
 from mayahook import Version
 if Version.current == Version.v85:
@@ -1503,8 +1503,7 @@ import core.datatypes as datatypes
 import maya.cmds as cmds
 
 # initialize MEL 
-if isStandalone:
-    mayahook.initMEL() 
+mayahook.finalize()
 
 _module = __import__(__name__)    
 

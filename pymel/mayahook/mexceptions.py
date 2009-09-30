@@ -7,45 +7,48 @@ from pwarnings import warn, simplefilter
 
 import sys, StringIO, traceback, re, inspect, os.path
 
-_thisModule = sys.modules[__name__]
+### as far as i can tell in maya 2009 maya.app.python.formatException cannot be overridden in the
+### way that is attempted below
 
-sysEncoding = sys.getdefaultencoding()
-exceptionEncoding = 'utf8'
+#_thisModule = sys.modules[__name__]
 #
-## Need to overload Maya's formatException as it raises an exception on non utf8 systems
+#sysEncoding = sys.getdefaultencoding()
+#exceptionEncoding = 'utf8'
+##
+### Need to overload Maya's formatException as it raises an exception on non utf8 systems
+##
+#import maya.app.python
 #
-import maya.app.python
-
-def formatException( exceptionType, exceptionObject, traceBack ):
-    """ Maya way of formatting expections, redefined here because of a unicode encoding error """
-    # Format the exception into a string        
-    stringBuffer = StringIO.StringIO()
-    traceback.print_exception( exceptionType, exceptionObject, traceBack,
-                               32, stringBuffer )
-    # result = stringBuffer.getvalue().decode('utf8')
-    result = stringBuffer.getvalue().decode(exceptionEncoding)
-
-    stringBuffer.close()
-    
-    # Look for stack trace items that are from the Maya Console which will be
-    # off-by-one and adjust them
-    lines = result.splitlines()
-    for i, line in enumerate(lines):
-        match = maya.app.python.mayaConsoleExpr.match(line)
-        if None != match:
-            lineNo = int( match.group('line') ) - 1
-            line = line[:match.start('line')] + str(lineNo) + line[match.end('line'):]
-        lines[i] = u'# ' + line
-        
-    # Append another copy of the error message onto the front because the 
-    # command line will only display the first line of the error
-    lines[0:0] = [unicode(exceptionObject).rstrip()]
-    result = u'\n'.join(lines)
-    
-    # return the error message
-    return result
-
-maya.app.python.formatException = formatException
+#def formatException( exceptionType, exceptionObject, traceBack ):
+#    """ Maya way of formatting expections, redefined here because of a unicode encoding error """
+#    # Format the exception into a string        
+#    stringBuffer = StringIO.StringIO()
+#    traceback.print_exception( exceptionType, exceptionObject, traceBack,
+#                               32, stringBuffer )
+#    # result = stringBuffer.getvalue().decode('utf8')
+#    result = stringBuffer.getvalue().decode(exceptionEncoding)
+#
+#    stringBuffer.close()
+#    
+#    # Look for stack trace items that are from the Maya Console which will be
+#    # off-by-one and adjust them
+#    lines = result.splitlines()
+#    for i, line in enumerate(lines):
+#        match = maya.app.python.mayaConsoleExpr.match(line)
+#        if None != match:
+#            lineNo = int( match.group('line') ) - 1
+#            line = line[:match.start('line')] + str(lineNo) + line[match.end('line'):]
+#        lines[i] = u'# ' + line
+#        
+#    # Append another copy of the error message onto the front because the 
+#    # command line will only display the first line of the error
+#    lines[0:0] = [unicode(exceptionObject).rstrip()]
+#    result = u'\n'.join(lines)
+#    
+#    # return the error message
+#    return result
+#
+#maya.app.python.formatException = formatException
 
 def lastFormattedException():
     """Shorthand for formatException(sys.exc_type, sys.exc_value, sys.exc_traceback)"""

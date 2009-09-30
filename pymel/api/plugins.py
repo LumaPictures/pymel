@@ -69,7 +69,6 @@ class Command(mpx.MPxCommand):
         """
         if object is None:
             plugin = _getPlugin()
-            print "adding", cls.__name__
             cls.registeredCommands.append( cls.__name__ )
         else:
             plugin = mpx.MFnPlugin(object)
@@ -86,7 +85,6 @@ class Command(mpx.MPxCommand):
         """
         if object is None:
             plugin = _getPlugin()
-            print "removing", cls.__name__
             cls.registeredCommands.pop(cls.__name__)
         else:
             plugin = mpx.MFnPlugin(object)

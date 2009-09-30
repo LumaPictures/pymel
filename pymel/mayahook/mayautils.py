@@ -17,23 +17,31 @@ except:
 
 from version import Version, parseVersionStr
 import envparse
-
+import maya
 
 
 #from maya.cmds import encodeString
 
 if os.name == 'nt' :
     # There are also cases where platform.system fails completely on Vista
-    MAYABIN = 'maya.exe'
-    SYSTEM = 'Windows'
+    mayabin = 'maya.exe'
+    libdir = 'bin'
+    system = 'Windows'
 else :
-    MAYABIN = 'maya.bin'
-    SYSTEM = platform.system()
+    mayabin = 'maya.bin'
+    system = platform.system()
+    if system == 'Darwin':
+        libdir = 'MacOS'
+    else:
+        libdir = 'lib'
     
 sep = os.path.pathsep
 
-
-
+isInitializing = False
+    
+# tells whether this maya package has been modified to work with pymel
+pymelMayaPackage = hasattr(maya, 'pymelCompatible')
+        
 
 def moduleDir():
     """
@@ -310,7 +318,7 @@ def mayaDocsLocation(version=None):
             short_version = parseVersionStr(version, extension=False)
         else:
             short_version = Version.shortName()
-        if SYSTEM == 'Darwin':
+        if system == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
             
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
@@ -398,7 +406,7 @@ def refreshEnviron():
     """ 
     exclude = ['SHLVL'] 
     
-    if SYSTEM in ('Darwin', 'Linux'):
+    if system in ('Darwin', 'Linux'):
         cmd = '/usr/bin/env'
     else:
         cmd = 'set'
@@ -574,7 +582,7 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
 #    refreshEnviron, but is not currently in use.
 #    """
 #    
-#    if SYSTEM == 'Darwin':
+#    if system == 'Darwin':
 #        share = '/Users/Shared/Autodesk'
 #    
 #    # single value variables
@@ -651,7 +659,26 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
 #    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'muscle') ) 
 #    os.environ['MAYA_SCRIPT_PATH'] =  os.path.pathsep.join( scriptPaths )
 #      
-       
+
+def loadDynamicLibs():
+    """
+    due to a bug in maya.app.commands many functions do not return any value the first time they are run,
+    especially in standalone mode.  this function forces the loading of all dynamic libraries, which is
+    a very fast and memory-efficient process, which begs the question: why bother dynamically loading?
+    
+    this function can only be run after maya.standalone is initialized
+    """
+            
+    commandListPath = os.path.realpath( os.environ[ 'MAYA_LOCATION' ] )
+    commandListPath = os.path.join( commandListPath, libdir, 'commandList' )
+
+    import maya.cmds
+    assert hasattr( maya.cmds, 'dynamicLoad'), "maya.standalone must be initialized before running this function"
+    file = open( commandListPath, 'r' )
+    libraries = set( [ line.split()[1] for line in file] )
+    for library in libraries:
+        maya.cmds.dynamicLoad(library)
+
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
 def mayaInit(forversion=None) :
@@ -682,15 +709,22 @@ def mayaInit(forversion=None) :
     :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
     
     """
-
+    global isInitializing
+    
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
 
     try :
         from maya.cmds import about
-        # if this succeeded, we're initialized in gui mode
+        # if this succeeded, we're initialized
+        isInitializing = False
+        if not pymelMayaPackage: 
+            loadDynamicLibs() # fixes that should be run on a standard maya package
         return False
     except:
         pass
+    
+    # for use with pymel compatible maya package
+    os.environ['MAYA_SKIP_USERSETUP_PY'] = 'on'
                 
     # reload env vars, define MAYA_ENV_VERSION in the Maya.env to avoid unneeded reloads
     sep = os.path.pathsep
@@ -700,19 +734,22 @@ def mayaInit(forversion=None) :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            #if Version.current < Version.v2010:
+            #if Version.current < Version.v2011:
             #    refreshEnviron()
             #initMEL()
             #executeDeferred( initMEL )
         except ImportError, e:
             raise e, str(e) + ": pymel was unable to intialize maya.standalone"
 
-    # TODO: import userSetup.py to the global namespace, like when running normal Maya 
     try:
         from maya.cmds import about
     except Exception, e:
         raise e, str(e) + ": maya.standalone was successfully initialized, but pymel failed to import maya.cmds"
+    
     # return True, meaning we had to initialize maya standalone
+    isInitializing = True
+    if not pymelMayaPackage: 
+        loadDynamicLibs() # fixes that should be run on a standard maya package
     return True
 
 def initMEL():
@@ -729,6 +766,7 @@ def initMEL():
     except:
         _logger.error( "could not perform maya initialization sequence: MAYA_APP_DIR not set" )
     else:
+        # TODO : use cmds.internalVar to get paths
         # got this startup sequence from autodesk support
         startup = [   
             #'defaultRunTimeCommands.mel',  # sourced automatically
@@ -780,7 +818,16 @@ def initMEL():
         if res != 'Unknown':
             maya.mel.eval( 'source "userSetup.mel"')
     except RuntimeError: pass
-               
+
+
+def finalize():
+    global isInitializing
+    if pymelMayaPackage and isInitializing:
+        import maya.app.startup.basic
+        maya.app.startup.basic.executeUserSetup()
+    initMEL()
+    
+                       
 # Fix for non US encodings in Maya
 def encodeFix():
     if mayaInit() :
@@ -872,13 +919,6 @@ def parsePymelConfig():
         d[option] = getter( 'pymel', option )
     return d
 
-#    try:
-#        return dict(config.items('pymel')) 
-#    except e:
-#        _logger.warn( str(e) )
-#        return {}
-    
-
 def executeDeferred(func):
     """
     This is a wrap for maya.utils.executeDeferred.  Maya's version does not execute at all when in batch mode, so this
@@ -908,5 +948,5 @@ def executeDeferred(func):
     else:
         func()
    
- 
+
 pymel_options = parsePymelConfig() 

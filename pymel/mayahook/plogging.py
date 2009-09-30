@@ -94,8 +94,6 @@ else:
         if hasattr(v, 'disabled') and v.disabled:
             v.disabled = 0
     
-
-
 mainLogger = logging.root
 
 pymelLogger = logging.getLogger("pymel")
@@ -209,9 +207,11 @@ def redirectLoggerToMayaOutput(*args):
         
             _fixMayaOutput()
             newHandler = StreamHandler(sys.stdout)
-            #TODO: get this formatter from the config file
-            formatter = logging.Formatter('pymel.%(module)s : %(levelname)s : %(message)s')
+
+            # get current root handler formatter
+            formatter = mainLogger.handlers[0].formatter
             newHandler.setFormatter(formatter)
+            
             #newHandler.setLevel( mainLogger.getEffectiveLevel() )
             mainLogger.addHandler( newHandler )
             # mainLogger.removeHandler(console)

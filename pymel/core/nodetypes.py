@@ -2171,10 +2171,10 @@ class Attribute(general.PyNode):
                     return True
                 
         if checkOtherArray:
-             other = Attribute(other)
-             if other.isMulti():
-                 for elem in other:
-                     if self.isConnectedTo(elem, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=False):
+            other = Attribute(other)
+            if other.isMulti():
+                for elem in other:
+                    if self.isConnectedTo(elem, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=False):
                         return True
 
         
@@ -3730,11 +3730,9 @@ class Transform(DagNode):
             import other
             if isinstance(res, other.AttributeName):
                 # we didn't get a real attribute, so lets' try to get a real one on the shape
-                shape = self.getShape()
-                if shape:
-                    shapeRes = shape.attr(attr)
-                    if isinstance(shapeRes, Attribute):
-                        return shapeRes
+                shapeRes = self.getShape().attr(attr)
+                if isinstance(shapeRes, Attribute):
+                    return shapeRes
                 
         return res
     
@@ -3783,11 +3781,9 @@ class Transform(DagNode):
             import other
             if isinstance(res, other.AttributeName):
                 # we didn't get a real attribute, so lets' try to get a real one on the shape
-                shape = self.getShape()
-                if shape:
-                    shapeRes = shape.attr(attr)
-                    if isinstance(shapeRes, Attribute):
-                        return shapeRes
+                shapeRes = self.getShape().attr(attr)
+                if isinstance(shapeRes, Attribute):
+                    return shapeRes
                 
         return res
     

@@ -639,22 +639,9 @@ def fixCodeExamples():
     # restore manipulators and anim options
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
-
-
-
-    short_version = mayahook.getMayaVersion(extension=False)
-    newPath = os.path.join( mayahook.moduleDir(),  'mayaCmdsList'+short_version+'.bin' )
-    try :
-        file = open(newPath, mode='wb')
-        try :
-            pickle.dump( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds),  file, 2)
-            _logger.info("done")
-        except:
-            _logger.info("Unable to write the list of Maya commands to '"+file.name+"'")
-        file.close()
-    except :
-        _logger.info("Unable to open '"+newPath+"' for writing")
-           
+   
+    mayahook.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
+    
 class NodeHierarchyDocParser(HTMLParser):
  
     def parse(self):
@@ -1225,9 +1212,7 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    short_version = mayahook.getMayaVersion(extension=False)
-    long_version = mayahook.getMayaVersion(extension=True)
-    
+    long_version = mayahook.Version.installName()
     
     data = mayahook.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
     
