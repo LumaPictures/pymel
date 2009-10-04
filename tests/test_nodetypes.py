@@ -492,14 +492,14 @@ class testCase_components(unittest.TestCase):
         self.compData['nurbsCV'] = ComponentData(NurbsSurfaceCV,
                                                  self.nodes['sphere'], "cv",
                                                  [IndexData((2,1))])
-        self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceUIsoparm,
+        self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "u",
                                                    [IndexData(5)])
-        self.compData['nurbsIsoV'] = ComponentData(NurbsSurfaceVIsoparm,
+        self.compData['nurbsIsoV'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "vIsoparm",
                                                    [IndexData(5.27974050577565)],
                                                    melCompName="v")
-        self.compData['nurbsIsoUV'] = ComponentData(NurbsSurfaceUIsoparm,
+        self.compData['nurbsIsoUV'] = ComponentData(NurbsSurfaceIsoparm,
                                                     self.nodes['sphere'], "uv",
                                                     [IndexData((1, 4.8))])
         self.compData['nurbsPatch'] = ComponentData(NurbsSurfaceFace,
