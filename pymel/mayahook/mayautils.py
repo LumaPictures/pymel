@@ -677,7 +677,10 @@ def loadDynamicLibs():
     file = open( commandListPath, 'r' )
     libraries = set( [ line.split()[1] for line in file] )
     for library in libraries:
-        maya.cmds.dynamicLoad(library)
+        try:
+            maya.cmds.dynamicLoad(library)
+        except RuntimeError:
+            _logger.debug("Error dynamically loading maya library: %s" % library)
 
 # Will test initialize maya standalone if necessary (like if scripts are run from an exernal interpeter)
 # returns True if Maya is available, False either
