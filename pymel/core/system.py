@@ -372,6 +372,8 @@ class WorkspaceEntryDict(object):
             return self.__getitem__(item)
         except KeyError:
             return default
+    def __iter__(self):
+        return iter(self.keys())
     has_key = __contains__
         
     
@@ -546,7 +548,8 @@ class FileInfo( object ):
                 raise KeyError, args[0]
                     
         cmds.fileInfo( rm=args[0])
-    
+    def __iter__(self):
+        return iter(self.keys())
     has_key = __contains__    
 fileInfo = FileInfo()
 
