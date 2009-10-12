@@ -34,32 +34,7 @@ def _fixMayaOutput():
                 def flush(*args,**kwargs):
                     pass
             maya.Output = MayaOutput()
-            sys.stdout = maya.Output
-
-class ClassInfo(object):
-    def __init__(self, cls):
-        self.currentClass = cls
-
-    def __getitem__(self, name):
-        """
-        To allow this instance to look like a dict.
-        """
-        if name == "class":
-            result = self.currentClass.__name__
-        else:
-            result = self.__dict__.get(name, "?")
-        return result
-
-    def __iter__(self):
-        """
-        To allow iteration over keys, which will be merged into
-        the LogRecord dict before formatting and output.
-        """
-        keys = ["class"]
-        keys.extend(self.__dict__.keys())
-        return keys.__iter__()
-
-           
+            sys.stdout = maya.Output          
 
 _fixMayaOutput()
 
@@ -101,15 +76,7 @@ pymelLogger = logging.getLogger("pymel")
 # keep as an enumerator so that we can keep the order
 logLevels = util.Enum( 'logLevels', dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )
 
-def getClassLogger(cls):
-    """get a logger for the passed class"""
-    logger = logging.getLogger('%s.%s' % cls.__module__, cls.__name__)
-    # logging adapter is in 2.6 only
-    if sys.version_info[:2] >= (2,6):    
-        newlogger = logging.LoggerAdapter( logger, ClassInfo(cls) )
-        return newlogger
-    
-    return logger
+
 
 def nameToLevel(name):
     return logLevels.getIndex(name)
@@ -188,7 +155,7 @@ def _setupLevelPreferenceHook():
     
     # if we are in batch mode and pymel is imported very early, it will still register as interactive at this point
     if MGlobal.mayaState() == MGlobal.kInteractive and sys.stdout.__class__ == file and hasattr(maya.utils, 'executeDeferred'):
-        # stdout has not yet been replaced by maya's custom stream that redirects to the output window.
+        # stdout has not yet been replaced by maya's custom stream that redirects to the output window (done in maya.app.startup.gui).
         # we need to put a callback in place that lets us get maya.Output stream as our StreamHandler.
         pymelLogger.debug( 'setting up callback to redirect logger StreamHandler' )
 

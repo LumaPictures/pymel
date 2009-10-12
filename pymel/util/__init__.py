@@ -15,6 +15,7 @@ from arrays import *
 from enum import *
 from path import *
 from decoration import *
+from shell import *
 #from enumerators import *
 import nameparse
 

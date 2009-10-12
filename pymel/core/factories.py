@@ -1,24 +1,20 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
+import re, types, os.path, keyword
+from operator import itemgetter
 
 from pymel.util.trees import *
 import pymel.util as util
 import pymel.mayahook as mayahook
-_logger = mayahook.plogging.getLogger(__name__)
-
-#assert mayahook.mayaInit() 
-#_logger.debug("Maya up and running")
-#from general import PyNode
+from pymel.mayahook.parsers import CommandDocParser, NodeHierarchyDocParser, CommandModuleDocParser
 import pymel.api as _api
-import sys, os, inspect, pickle, re, types, os.path, warnings, keyword
-
-from HTMLParser import HTMLParser
-from operator import itemgetter
 
 import maya.cmds as cmds
 import maya.mel as mm
 import pmcmds
+
+_logger = mayahook.plogging.getLogger(__name__)
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -157,185 +153,7 @@ util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', '
 util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
 
 virtualClass = util.defaultdict(list)
-        
-#---------------------------------------------------------------
-#        Doc Parser
-#---------------------------------------------------------------
-class CommandDocParser(HTMLParser):
-
-    def __init__(self, command):
-        self.command = command
-        self.flags = {}  # shortname, args, docstring, and a list of modes (i.e. edit, create, query)
-        self.currFlag = ''
-        # iData is used to track which type of data we are putting into flags, and corresponds with self.datatypes
-        self.iData = 0
-        self.pcount = 0
-        self.active = False  # this is set once we reach the portion of the document that we want to parse
-        self.description = ''
-        self.example = ''
-        self.emptyModeFlags = [] # when flags are in a sequence ( lable1, label2, label3 ), only the last flag has queryedit modes. we must gather them up and fill them when the last one ends
-        HTMLParser.__init__(self)
-    
-    def startFlag(self, data):
-        #_logger.debug(self, data)
-        #assert data == self.currFlag
-        self.iData = 0
-        self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
-    
-    def addFlagData(self, data):
-        # Shortname
-        if self.iData == 0:
-            self.flags[self.currFlag]['shortname'] = data.lstrip('-')
-            
-        # Arguments
-        elif self.iData == 1:
-            typemap = {    
-             'string'  : unicode,
-             'float'   : float,
-             'double'  : float,
-             'linear'  : float,
-             'angle'   : float,
-             'int'     : int,
-             'uint'    : int,
-             'index'   : int,
-             'integer'  : int,
-             'boolean'  : bool,
-             'script'   : 'script',
-             'name'     : 'PyNode',
-             'select'   : 'PyNode'
-            }
-            args = [ typemap.get( x.strip(), x.strip() ) for x in data.strip('[]').split(',') ] 
-            numArgs = len(args)
-            if numArgs == 0:
-                args = bool
-                numArgs = 1
-            elif numArgs == 1:
-                args = args[0]
-                    
-            self.flags[self.currFlag]['args'] = args
-            self.flags[self.currFlag]['numArgs'] = numArgs
-            
-        # Docstring  
-        else:
-            #self.flags[self.currFlag]['docstring'] += data.replace( '\r\n', ' ' ).strip() + " "        
-            data = data.replace( 'In query mode, this flag needs a value.', '' )
-            data = data.replace( 'Flag can appear in Create mode of command', '' )
-            data = data.replace( 'Flag can appear in Edit mode of command', '' )
-            data = data.replace( 'Flag can appear in Query mode of command', '' )
-            data = data.replace( '\r\n', ' ' ).lstrip()
-            data = data.replace( '\n', ' ' ).lstrip()
-            data = data.strip('{}\t')
-            data = data.replace('*', '\*') # for reStructuredText
-            self.flags[self.currFlag]['docstring'] += data
-        self.iData += 1
-        
-    def endFlag(self):
-        # cleanup last flag
-        #data = self.flags[self.currFlag]['docstring']
-        
-        #_logger.debug(("ASSERT", data.pop(0), self.currFlag))
-        try:
-            if not self.flags[self.currFlag]['modes']:
-                self.emptyModeFlags.append(self.currFlag)
-            elif self.emptyModeFlags:
-                    #_logger.debug("past empty flags:", self.command, self.emptyModeFlags, self.currFlag)
-                    basename = re.match( '([a-zA-Z]+)', self.currFlag ).groups()[0]
-                    modes = self.flags[self.currFlag]['modes']
-                    self.emptyModeFlags.reverse()
-                    for flag in self.emptyModeFlags:
-                        if re.match( '([a-zA-Z]+)', flag ).groups()[0] == basename:
-                            self.flags[flag]['modes'] = modes
-                        else:
-                            break
-                        
-                    self.emptyModeFlags = []
-        except KeyError, msg:
-            pass
-            #_logger.debug(self.currFlag, msg)
-        
-    def handle_starttag(self, tag, attrs):
-        #_logger.debug("begin: %s tag: %s" % (tag, attrs))
-        if not self.active:
-            if tag == 'a':
-                if attrs[0][1] == 'hFlags':
-                    #_logger.debug('ACTIVE')
-                    self.active = 'flag'
-                elif attrs[0][1] == 'hExamples':
-                    #_logger.debug("start examples")
-                    self.active = 'examples'
-        elif tag == 'a' and attrs[0][0] == 'name':
-            self.endFlag()
-            newFlag = attrs[0][1][4:]
-            newFlag = newFlag.lstrip('-')
-            self.currFlag = newFlag      
-            self.iData = 0
-            #_logger.debug("NEW FLAG", attrs)
-            #self.currFlag = attrs[0][1][4:]
-            
-    
-        elif tag == 'img' and len(attrs) > 4:
-            #_logger.debug("MODES", attrs[1][1])
-            self.flags[self.currFlag]['modes'].append(attrs[1][1])
-        elif tag == 'h2':
-            self.active = False
-                
-    def handle_endtag(self, tag):
-        #if tag == 'p' and self.active == 'command': self.active = False
-        #_logger.debug("end: %s" % tag)
-        if not self.active:
-            if tag == 'p':
-                if self.pcount == 3:
-                    self.active = 'command'
-                else:
-                    self.pcount += 1
-        elif self.active == 'examples' and tag == 'pre':
-            self.active = False
-    
-    def handle_entityref(self,name):
-        if self.active == 'examples':
-            self.example += r'"'
-            
-    def handle_data(self, data):
-        if not self.active:
-            return
-        elif self.active == 'flag':    
-            if self.currFlag:
-                stripped = data.strip()
-                if stripped == 'Return value':
-                    self.active=False
-                    return
-                    
-                if data and stripped and stripped not in ['(',')', '=', '], [']:
-                    #_logger.debug("DATA", data)
-            
-                    if self.currFlag in self.flags:                
-                        self.addFlagData(data)
-                    else:
-                        self.startFlag(data)
-        elif self.active == 'command':
-            data = data.replace( '\r\n', ' ' )
-            data = data.replace( '\n', ' ' )
-            data = data.lstrip()
-            data = data.strip('{}')
-            data = data.replace('*', '\*') # for reStructuredText
-            if '{' not in data and '}' not in data:                
-                self.description += data
-            #_logger.debug(data)
-            #self.active = False
-        elif self.active == 'examples' and data != 'Python examples':
-            #_logger.debug("Example\n")
-            #_logger.debug(data)
-            data = data.replace( '\r\n', '\n' )
-            self.example += data
-            #self.active = False
-        
-    
-# class MayaDocsLoc(str) :
-#    """ Path to the Maya docs, cached at pymel start """
-#    __metaclass__ = util.Singleton
-    
-# TODO : cache doc location or it's evaluated for each getCmdInfo !    
-# MayaDocsLoc(mayahook.mayaDocsLocation()) 
+              
 
 class CommandInfo(object):
     def __init__(self, flags={}, description='', example='', type='other'):
@@ -642,133 +460,6 @@ def fixCodeExamples():
    
     mayahook.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
     
-class NodeHierarchyDocParser(HTMLParser):
- 
-    def parse(self):
-        docloc = mayahook.mayaDocsLocation(self.version)
-        if not os.path.isdir( docloc ):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
-#            _logger.warn( "could not find documentation for maya version %s. defaulting to 2009" )
-#            docloc = mayahook.mayaDocsLocation('2009')
-
-        f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
-        self.feed( f.read() )
-        f.close()
-        return self.tree
-    
-    def __init__(self, version=None):
-        self.version = version
-        self.currentTag = None
-        self.depth = 0
-        self.lastDepth = -1
-        self.tree = None
-        self.currentLeaves = []
-        
-        HTMLParser.__init__(self)
-    def handle_starttag(self, tag, attrs):
-        #_logger.debug(tag, attrs)
-        self.currentTag = tag
-    
-    def handle_data(self, data):
-        _logger.info("data %s", data)
-        if self.currentTag == 'tt':
-            self.depth = data.count('>')
-            #_logger.debug("lastDepth", self.lastDepth, "depth", self.depth)
-            
-        elif self.currentTag == 'a':
-            data = data.lstrip()
-
-            if self.depth == 0:
-                if self.tree is None:
-                    #_logger.debug("starting brand new tree: %s %s", self.depth, data)
-                    self.tree = [data]
-                else:
-                    #_logger.debug("skipping %s", data)
-                    return
-                    
-            elif self.depth == self.lastDepth and self.depth > 0:                
-                #_logger.debug("adding to current level", self.depth, data)
-                self.tree[ self.depth ].append( data )
-                
-            elif self.depth > self.lastDepth:
-                #_logger.debug("starting new level: %s %s", self.depth, data)
-                self.tree.append( [data] )
-                    
-            elif self.depth < self.lastDepth:
-
-                    for i in range(0, self.lastDepth-self.depth):
-                        branch = self.tree.pop()
-                        #_logger.debug("closing level", self.lastDepth, self.depth, self.tree[-1])
-                        currTree = self.tree[-1]
-                        #if isinstance(currTree, list):
-                        currTree.append( branch )
-                        #else:
-                        #    _logger.info("skipping", data)
-                        #    self.close()
-                        #    return
-                                
-                    #_logger.debug("adding to level", self.depth, data)
-                    self.tree[ self.depth ].append( data )
-            else:
-                return
-            self.lastDepth = self.depth
-            # with 2009 and the addition of the MPxNode, the hierarchy closes all the way out ( i.e. no  >'s )
-            # this prevents the depth from getting set properly. as a workaround, we'll set it to 0 here,
-            # then if we encounter '> >' we set the appropriate depth, otherwise it defaults to 0.
-            self.depth = 0 
-
-        
-def printTree( tree, depth=0 ):
-    for branch in tree:
-        if util.isIterable(branch):
-            printTree( branch, depth+1)
-        else:
-            _logger.info('> '*depth, branch)
-            
-def _getNodeHierarchy( version='8.5' ): 
-    parser = NodeHierarchyDocParser(version)
-    return parser.parse()
-
-class CommandModuleDocParser(HTMLParser):
-    #: these are commands which need to be manually added to the list parsed from the docs
-    moduleCommandAdditions = {
-        'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
-        'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
-                     'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
-    }
-    
-    def parse(self):
-        
-        f = open( os.path.join( self.docloc , 'Commands/cat_' + self.category + '.html' ) )
-        self.feed( f.read() )
-        f.close()
-        return self.cmdList + self.moduleCommandAdditions.get(self.category, [] )
-              
-    def __init__(self, category, version=None ):
-        self.cmdList = []
-        self.category = category
-        self.version = version
-        
-        docloc = mayahook.mayaDocsLocation(self.version)
-        if not os.path.isdir(docloc):
-            docloc = mayahook.mayaDocsLocation('2009')
-        self.docloc = docloc
-        HTMLParser.__init__(self)
-        
-    def handle_starttag(self, tag, attrs):
-        try:
-            attrs = attrs[0]
-            #_logger.debug(attrs)
-            if tag == 'a' and attrs[0]=='href': 
-                cmd = attrs[1].split("'")[1].split('.')[0]
-                self.cmdList.append( cmd )
-                #_logger.debug(cmd)
-        except IndexError: return
-        
-    #def handle_data(self, data):
-    #    #_logger.debug(self.currentTag, data)
-    #    if self.currentTag == 'a':
-    #        _logger.info(data)
 
 def _getUICommands():
     uiClassCmds = """
@@ -897,9 +588,6 @@ def _getUICommands():
     nameField
     palettePort
     """
-    #f = open( os.path.join( mayahook.moduleDir() , 'misc/commandsUI') , 'r') 
-    #cmds = f.read().split('\n')
-    #f.close()
     return [ x.strip() for x in uiClassCmds.split('\n') if x.strip() ]
 
 def getModuleCommandList( category, version='8.5' ):
@@ -1203,7 +891,10 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         cmds.delete( newObjs ) 
     return cmdInfo
   
-       
+def _getNodeHierarchy( version='8.5' ): 
+    parser = NodeHierarchyDocParser(version)
+    return parser.parse()
+   
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
@@ -1683,9 +1374,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         
         if not inFunc:
             try:
-                # import from pymel.mayahook.pmcmds
                 inFunc = getattr(pmcmds,funcName)
-                #inFunc = getattr(cmds,funcName)
                 #if funcName == 'lsThroughFilter': _logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
                 _logger.debug('Cannot find function %s' % funcNameOrObject)

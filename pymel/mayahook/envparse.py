@@ -263,9 +263,9 @@ def parse(text, environ=os.environ, osname=os.name):
                     action = 'Ignore'                 
                     if symbols.has_key(var) :
                     
-                    	# For these variables ONLY, maya will append the value in maya.env to an exisiting environment variable
-                    	# (Default is for already defined value to override value in maya.env)
-                    	# (note the LACK of PYTHONPATH here... boo!)
+                        # For these variables ONLY, maya will append the value in maya.env to an exisiting environment variable
+                        # (Default is for already defined value to override value in maya.env)
+                        # (note the LACK of PYTHONPATH here... boo!)
                         if var in ('MAYA_SCRIPT_PATH',
                                    'MAYA_PLUG_IN_PATH',
                                    'MAYA_MODULE_PATH',
