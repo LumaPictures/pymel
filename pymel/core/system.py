@@ -74,7 +74,10 @@ def _getTypeFromExtension( path ):
     ext = Path(path).ext
     return str(Translator.fromExtension(ext))
 
-
+# Bring the MGlobal.display* methods into this namespace, for convenience
+displayError = _OpenMaya.MGlobal.displayError
+displayWarning = _OpenMaya.MGlobal.displayWarning
+displayInfo = _OpenMaya.MGlobal.displayInfo
 
 def feof( fileid ):
     """Reproduces the behavior of the mel command of the same name. if writing pymel scripts from scratch,
