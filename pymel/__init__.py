@@ -1459,5 +1459,5 @@ Attitude Studio, and ImageMovers Digital.
 __version__ = '0.9.2'
 __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowitch']
 
-import mayahook.plogging as plogging
+#import mayahook.plogging as plogging
 

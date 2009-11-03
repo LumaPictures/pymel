@@ -264,51 +264,8 @@ def batchExceptionCallback(exceptionType, exceptionObject, traceBack):
     """
     return traceback.format_exception(exceptionType, exceptionObject, traceBack)
 
+# store a local unmodified copy
 _batchExceptionCallback = batchExceptionCallback
-
-
-def setupScriptPaths():
-    """
-    Add Maya-specific directories to sys.path
-    """
-    
-    # Per-version prefs scripts dir (eg .../maya8.5/prefs/scripts)
-    #
-    prefsDir = cmds.internalVar( userPrefDir=True )
-    sys.path.append( os.path.join( prefsDir, 'scripts' ) )
-    
-    # Per-version scripts dir (eg .../maya8.5/scripts)
-    #
-    scriptDir = cmds.internalVar( userScriptDir=True )
-    sys.path.append( os.path.dirname(scriptDir) )
-    
-    # User application dir (eg .../maya/scripts)
-    #
-    appDir = cmds.internalVar( userAppDir=True )
-    sys.path.append( os.path.join( appDir, 'scripts' ) )
-    
-def executeUserSetup():
-    """
-    Look for userSetup.py in the search path and execute it in the "__main__"
-    namespace
-    """
-    try:
-        for path in sys.path:
-            scriptPath = os.path.join( path, 'userSetup.py' )
-            if os.path.isfile( scriptPath ):
-                import __main__
-                execfile( scriptPath, __main__.__dict__ )
-    except Exception, err:
-        # get the stack and remove our current level
-        etype, value, tb = sys.exc_info()
-        tbStack = traceback.extract_tb(tb)
-        del tb # see warning in sys.exc_type docs for why this is deleted here
-
-        result = traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
-        sys.stderr.write("Failed to execute userSetup.py\n")
-        sys.stderr.write("Traceback (most recent call last):\n")
-        sys.stderr.write(''.join(result))
-        
 
 class MayaLogHandler(logging.Handler):
     """
@@ -326,7 +283,7 @@ class MayaLogHandler(logging.Handler):
         else:
             # Debug (10) and Info (20) 
             OpenMaya.MGlobal.displayInfo(msg)
-        
+
 def guiLogger():
     """
     Adds an additional handler to the root logger to print to
