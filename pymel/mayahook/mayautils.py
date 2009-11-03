@@ -11,8 +11,8 @@ import plogging
 from pymel.util import path as _path, shellOutput
 
 from version import Version, parseVersionStr
-import envparse
 import maya
+from maya.OpenMaya import MGlobal
 
 _logger = plogging.getLogger(__name__)
 try:
@@ -235,75 +235,8 @@ def refreshEnviron():
         # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
         if '=' in line:
             var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
-            if not var.startswith('_') and var not in exclude: 
-                    os.environ[var] = val 
-
-# parse the Maya.env file and set the environment variables and python path accordingly
-def parseMayaenv(envLocation=None, version=None) :
-    """ parse the Maya.env file and set the environement variablas and python path accordingly.
-        You can specify a location for the Maya.env file or the Maya version"""
-    name = 'Maya.env'
-
-        
-    envPath = None
-    if envLocation :
-        envPath = envLocation
-        if not os.path.isfile(envPath) :
-            envPath = os.path.join(envPath, name)
-           
-    # no Maya.env specified, we look for it in MAYA_APP_DIR
-    if not envPath or not envPath.isfile() :
-        maya_app_dir = getMayaAppDir()
-        if not maya_app_dir:
-            _logger.warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env")
-            return False
-
-        # try to find which version of Maya should be initialized
-        if not version :
-            # try to query version, will only work if reparsing env from a working Maya
-            version = Version.installName()
-            if version is None:
-                # if run from Maya provided mayapy / python interpreter, can guess version
-                _logger.debug("Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir)
-        # look first for Maya.env in 'version' subdir of MAYA_APP_DIR, then directly in MAYA_APP_DIR
-        if version and os.path.isfile(os.path.join(maya_app_dir, version, name)) :
-            envPath = os.path.join(maya_app_dir, version, name)
-        else :
-            envPath = os.path.join(maya_app_dir, name)
-
-    # finally if we have a possible Maya.env, parse it
-    if os.path.isfile(envPath) :
-        try :
-            envFile = open(envPath)
-        except :
-            _logger.warn ("Unable to open Maya.env file %s" % envPath )
-            return False
-        success = False
-        try :
-            envTxt = envFile.read()
-            envVars = envparse.parse(envTxt)
-            # update env vars
-            for v in envVars :
-                #_logger.debug("%s was set or modified" % v)
-                os.environ[v] = envVars[v]
-            # add to syspath
-            if envVars.has_key('PYTHONPATH') :
-                #_logger.debug("sys.path will be updated")
-                plist = os.environ['PYTHONPATH'].split(sep)
-                for p in plist :
-                    if not p in sys.path :
-                        sys.path.append(p)
-            success = True
-        finally :
-            envFile.close()
-            return success
-    else :
-        if version :
-            print"Found no suitable Maya.env file for Maya version %s" % version
-        else :
-            print"Found no suitable Maya.env file"
-        return False
-
+            if not var.startswith('_') and var not in exclude:
+                    os.environ[var] = val
 
 def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn'):
     """
@@ -551,12 +484,13 @@ def initMEL():
 
 
 def finalize():
-    global isInitializing
-    if pymelMayaPackage and isInitializing:
-        import maya.app.startup.basic
-        maya.app.startup.basic.executeUserSetup()
-    initMEL()
-    
+    if MGlobal.mayaState() == MGlobal.kBatch:
+        global isInitializing
+        if pymelMayaPackage and isInitializing:
+            import maya.utils
+            maya.utils.executeUserSetup()
+        initMEL()
+        
                        
 # Fix for non US encodings in Maya
 def encodeFix():

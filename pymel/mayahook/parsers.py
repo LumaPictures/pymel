@@ -3,7 +3,7 @@ from HTMLParser import HTMLParser
 import pymel.util as util
 from mayautils import mayaDocsLocation
 import plogging
-from pymel.mayahook import ExecutionWarning
+from pymel.mayahook.pwarnings import ExecutionWarning
 
 try:
     from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
