@@ -461,19 +461,6 @@ def initMEL():
                 
         except Exception, e:
             _logger.error( "could not perform maya initialization sequence: failed on %s: %s" % ( f, e) )
-                
-#                maya.mel.eval( 'source defaultRunTimeCommands' )
-#                maya.mel.eval( 'source "%s"' % os.path.join( prefsDir, 'userRunTimeCommands.mel' )  )
-#                maya.mel.eval( 'source initialPluginLoad' )
-#                maya.mel.eval( 'source initialPluginLoad' )
-#                maya.mel.eval( 'source initialPlugins' )
-#                maya.mel.eval( 'source initRenderers' )
-
-    
-#            try:
-#                maya.mel.eval( 'source "%s"' % os.path.join( prefsDir, 'userPrefs.mel' )  )
-#            except:
-#                _logger.warn( "could not load user preferences: %s" % prefsFile )
         
     try:
         # make sure it exists
@@ -484,11 +471,11 @@ def initMEL():
 
 
 def finalize():
-    if MGlobal.mayaState() == MGlobal.kBatch:
+    if MGlobal.mayaState() in [MGlobal.kBatch, MGlobal.kLibraryApp]:
         global isInitializing
         if pymelMayaPackage and isInitializing:
-            import maya.utils
-            maya.utils.executeUserSetup()
+            import maya.app.startup.common
+            maya.app.startup.common.executeUserSetup()
         initMEL()
         
                        
