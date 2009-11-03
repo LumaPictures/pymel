@@ -3,21 +3,12 @@
 #
 #    This module is imported during the startup of Maya in batch mode after
 #
-import os, sys
-alternate = os.environ.get('MAYA_PY_INIT_BATCH')
-if alternate:
-    try:
-        __import__(alternate)
-    except Exception, err:
-        print "Failed importing custom startup module %r. using default: %s" % (alternate, err)
-        alternate = None
 
-if not alternate:
-    import sys
-    import maya.app.startup.basic
-    import maya.utils
-    # setup an exception callback
-    sys.excepthook = maya.utils.batchExceptionCallback
+import sys
+import maya.app.startup.basic
+import maya.utils
+# setup an exception callback
+sys.excepthook = maya.utils.batchExceptionCallback
 
 # Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
