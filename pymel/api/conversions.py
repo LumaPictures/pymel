@@ -26,51 +26,9 @@ class Enum(tuple):
 
         return '.'.join( [str(x) for x in parts] )
                           
-# fast convenience tests on API objects
-def isValidMObjectHandle (obj):
-    if isinstance(obj, MObjectHandle) :
-        return obj.isValid() and obj.isAlive()
-    else :
-        return False
-
-def isValidMObject (obj):
-    if isinstance(obj, MObject) :
-        return not obj.isNull()
-    else :
-        return False
-    
-def isValidMPlug (obj):
-    if isinstance(obj, MPlug) :
-        return not obj.isNull()
-    else :
-        return False
-
-def isValidMDagPath (obj):
-    if isinstance(obj, MDagPath) : 
-        # when the underlying MObject is no longer valid, dag.isValid() will still return true,
-        # but obj.fullPathName() will be an empty string
-        return obj.isValid() and obj.fullPathName() 
-    else :
-        return False
-
-def isValidMNode (obj):
-    if isValidMObject(obj) :
-        return obj.hasFn(MFn.kDependencyNode)
-    else :
-        return False
-
-def isValidMDagNode (obj):
-    if isValidMObject(obj) :
-        return obj.hasFn(MFn.kDagNode)
-    else :
-        return False
-    
-def isValidMNodeOrPlug (obj):
-    return isValidMPlug (obj) or isValidMNode (obj)
 
 # Maya static info :
 # Initializes various static look-ups to speed up Maya types conversions
-
 
 
 class ApiTypesToApiEnums(dict) :
@@ -196,7 +154,7 @@ def ApiTypeHierarchy() :
     return apiTypeHierarchy
 
 # get the API type from a maya type
-def mayaTypeToApiType (mayaType) :
+def mayaTypeToApiType(mayaType) :
     """ Get the Maya API type from the name of a Maya type """
     try:
         return MayaTypesToApiTypes()[mayaType]
@@ -373,7 +331,7 @@ def _hasFn (apiType, dagMod, dgMod, parentType=None) :
 # Filter the given API type list to retain those that are parent of apiType
 # can pass a list of types to check for being possible parents of apiType
 # or a dictionnary of types:node to speed up testing
-def _parentFn (apiType, dagMod, dgMod, *args, **kwargs) :
+def _parentFn(apiType, dagMod, dgMod, *args, **kwargs) :
     """ Checks the given API type list, or API type:MObject dictionnary to return the first parent of apiType """
     if not kwargs :
         if not args :
@@ -504,7 +462,7 @@ def _buildApiTypesList():
 
 
 # Build a dictionnary of api types and parents to represent the MFn class hierarchy
-def _buildApiTypeHierarchy (apiClassInfo=None) :
+def _buildApiTypeHierarchy(apiClassInfo=None) :
     """
     Used to rebuild api info from scratch.
     
@@ -751,95 +709,51 @@ def toApiFunctionSet( obj ):
         except KeyError:
             return
 
-#-----------------------------------
-# All Below Here are Deprecated
-#-----------------------------------
-# conversion API enum int to API type string and back
-def apiEnumToType (apiEnum) :
-    """ Given an API type enum int, returns the corresponding Maya API type string,
-        as in MObject.apiType() to MObject.apiTypeStr() """    
-    return ApiEnumsToApiTypes().get(apiEnum, None)
 
-def apiTypeToEnum (apiType) :
-    """ Given an API type string, returns the corresponding Maya API type enum (int),
-        as in MObject.apiTypeStr() to MObject.apiType()"""
-    # Is there ever a time that our dictionary would not have an entry and MFn would? I changed this
-    # because after reload of certain pymel modules, these dictionaries can go empty.
-    #return ApiTypesToApiEnums().get(apiType, None)
-    try:
-        return getattr( MFn, apiType )
-    except AttributeError:
-        pass
-
-# get the maya type from an API type
-def apiEnumToNodeType (apiTypeEnum) :
-    """ Given an API type enum int, returns the corresponding Maya node type,
-        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
-        can be found, will return the corresponding type for the first parent in the types hierarchy
-        that can be matched """
-    return ApiEnumsToMayaTypes().get(apiTypeEnum, None)
-
-def apiTypeToNodeType (apiType) :
-    """ Given an API type name, returns the corresponding Maya node type,
-        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
-        can be found, will return the corresponding type for the first parent in the types hierarchy
-        that can be matched """
-    return ApiTypesToMayaTypes().get(apiType, None)
-
-def nodeTypeToAPIType (nodeType) :
-    """ Given an Maya node type name, returns the corresponding Maya API type name,
-        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
-        can be found, will return the corresponding type for the first parent in the types hierarchy
-        that can be matched """
-    return MayaTypesToApiTypes().get(nodeType, None)
-
-
-def apiToNodeType (*args) :
-    """ Given a list of API type or API type int, return the corresponding Maya node types,
-        note that there isn't an exact 1:1 equivalence, in the case no corresponding node type
-        can be found, will return the corresponding type for the first parent in the types hierarchy
-        that can be matched """
-    result = []
-    for a in args :
-        if type(a) is int :         
-            result.append(_apiEnumToNodeType(a))
-        else :
-            result.append(_apiTypeToNodeType(a))
-    if len(result) == 1 :
-        return result[0]
+# fast convenience tests on API objects
+def isValidMObjectHandle(obj):
+    if isinstance(obj, MObjectHandle) :
+        return obj.isValid() and obj.isAlive()
     else :
-        return tuple(result)
+        return False
 
-#-----------------------------------
-# All Above Here are Deprecated
-#-----------------------------------
+def isValidMObject(obj):
+    if isinstance(obj, MObject) :
+        return not obj.isNull()
+    else :
+        return False
+    
+def isValidMPlug(obj):
+    if isinstance(obj, MPlug) :
+        return not obj.isNull()
+    else :
+        return False
 
-# Converting API MObjects and more
+def isValidMDagPath(obj):
+    if isinstance(obj, MDagPath) : 
+        # when the underlying MObject is no longer valid, dag.isValid() will still return true,
+        # but obj.fullPathName() will be an empty string
+        return obj.isValid() and obj.fullPathName() 
+    else :
+        return False
 
-## type for a MObject with nodeType / objectType like options
-#def objType (obj, api=True, inherited=True):
-#    """ Returns the API or Node type name of MObject obj, and optionnally
-#        the list of types it inherits from.
-#            >>> obj = toMObject ('pCubeShape1')
-#            >>> objType (obj, api=True, inherited=True)
-#            >>> # Result: ['kBase', 'kDependencyNode', 'kDagNode', 'kMesh'] #
-#            >>> objType (obj, api=False, inherited=True)
-#            >>> # Result: ['dependNode', 'entity', 'dagNode', 'shape', 'geometryShape', 'deformableShape', 'controlPoint', 'surfaceShape', 'mesh'] # 
-#        Note that unfortunatly API and Node types do not exactly match in their hierarchy in Maya
-#    """
-#    result = obj.apiType()
-#    if api :
-#        result = apiEnumToType (result)
-#        if inherited :
-#            result = [k.value for k in ApiTypeHierarchy().path(result)]    
-#    else :
-#        result = apiEnumToNodeType (result)
-#        if inherited :
-#            result =  [k.value for k in NodeHierarchy().path(result)]   
-#    return result
+def isValidMNode(obj):
+    if isValidMObject(obj) :
+        return obj.hasFn(MFn.kDependencyNode)
+    else :
+        return False
+
+def isValidMDagNode(obj):
+    if isValidMObject(obj) :
+        return obj.hasFn(MFn.kDagNode)
+    else :
+        return False
+    
+def isValidMNodeOrPlug(obj):
+    return isValidMPlug(obj) or isValidMNode (obj)
             
 # returns a MObject for an existing node
-def toMObject (nodeName):
+def toMObject(nodeName):
     """ Get the API MObject given the name of an existing node """ 
     sel = MSelectionList()
     obj = MObject()
@@ -853,7 +767,7 @@ def toMObject (nodeName):
         pass
     return result
 
-def toApiObject (nodeName, dagPlugs=True):
+def toApiObject(nodeName, dagPlugs=True):
     """ Get the API MPlug, MObject or (MObject, MComponent) tuple given the name of an existing node, attribute, components selection
     
     if dagPlugs is True, plug result will be a tuple of type (MDagPath, MPlug)
@@ -961,7 +875,7 @@ def toApiObject (nodeName, dagPlugs=True):
 #
 #    return result
 
-def toMDagPath (nodeName):
+def toMDagPath(nodeName):
     """ Get an API MDagPAth to the node, given the name of an existing dag node """ 
     obj = toMObject (nodeName)
     if obj :
@@ -971,7 +885,7 @@ def toMDagPath (nodeName):
         return dagPath
 
 # returns a MPlug for an existing plug
-def toMPlug (plugName):
+def toMPlug(plugName):
     """ Get the API MObject given the name of an existing plug (node.attribute) """
     nodeAndAttr = plugName.split('.', 1)
     obj = toMObject (nodeAndAttr[0])
