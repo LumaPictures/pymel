@@ -170,9 +170,6 @@ def formatTraceStack(tbStack):
 
 _formatTraceStack = formatTraceStack     
 
-formatTraceStack = traceback.format_list
-
-
 def formatTraceback(verbose, baseMsg):
     """
     Extract the current traceback information and send it back in string form.
