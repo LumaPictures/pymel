@@ -3,21 +3,20 @@
 #
 # This module is imported during the startup of Maya in GUI mode.
 #
-print "maya.app.startup.gui"
 import os
 alternate = os.environ.get('MAYA_PY_INIT_GUI')
 if alternate:
     try:
         __import__(alternate)
     except Exception, err:
-        print "Failed importing custom startup module %s (using default): %s" % (alternate, err)
+        print "Failed importing custom startup module %r. using default: %s" % (alternate, err)
         alternate = None
 
 if not alternate:
+    import sys
+    from maya import OpenMaya
     import maya.app.startup.basic
-    maya.app.startup.basic.run()
-    
-    import maya.app.baseUI, maya.utils, sys
+    import maya.app.baseUI, maya.utils
     
     # Replace sys.stdin with a GUI version that will request input from the user
     sys.stdin = maya.app.baseUI.StandardInput()
@@ -26,6 +25,9 @@ if not alternate:
     # GUI
     sys.stdout = maya.utils.Output()
     sys.stderr = maya.utils.Output( error=1 )
+    
+    maya.utils.guiLogger()
+    
 # Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #

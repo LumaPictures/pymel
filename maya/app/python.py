@@ -22,13 +22,8 @@ def e6():
 
 """
 
-import sys, StringIO, traceback, re
-from maya.utils import formatTraceStack
-
-mayaFileExpr = re.compile('[\t ]*File "(?P<file>[^"]+)", line (?P<line>[0-9]+)')
-mayaFileModuleExpr = re.compile('[\t ]*File "(?P<file>[^"]+)", line (?P<line>[0-9]+), in (?P<module>.*)')
-mayaExceptionExpr = re.compile('(\w+):\s*(.*)')
-mayaCommentExpr = re.compile('^#\s*(.*)')
+import sys, traceback
+import maya.utils
 
 def formatException( exceptionType, exceptionObject, traceBack, detail=2 ):
     """
@@ -45,49 +40,56 @@ def formatException( exceptionType, exceptionObject, traceBack, detail=2 ):
                           Only valid for non-RuntimeError exceptionType
         detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
                           Only valid for non-RuntimeError exceptionType
-    """
-#    if exceptionType == RuntimeError:
-#        try:
-#            result = formatRuntimeException( exceptionType, exceptionObject )
-#        except Exception, err:
-#            result = 'RuntimeError: Internal Failure "%s"' % str(err)
-#    else:
-#        try:
-#            result = formatOtherException( exceptionType, exceptionObject, traceBack, detail )
-#        except Exception, err:
-#            result = '%s: Internal Failure "%s"' % (exceptionType.__name__, str(err))
+    """  
     try:
-        result = formatOtherException( exceptionType, exceptionObject, traceBack, detail )
-    except Exception, err:
-        result = '%s: Internal Failure "%s"' % (exceptionType.__name__, str(err))
+        return maya.utils.guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail)
+    except:
+        # get the stack and remove our current level
+        etype, value, tb = sys.exc_info()
+        tbStack = traceback.extract_tb(tb)
+        del tb # see warning in sys.exc_type docs for why this is deleted here
+
+        tbLines = []
+        tbLines.append("Error in  maya.utils.exceptionCallback:\n")
+        tbLines += traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
         
-    return result
+        tbLines.append("\nOriginal exception was:\n")
+        tbLines += traceback.format_exception(exceptionType, exceptionObject, traceBack)
+        tbLines = maya.utils.prefixTraceStack(tbLines)
+        return ''.join(tbLines)
 
-def formatOtherException( exceptionType, exceptionObject, traceBack, detail ):
-    baseMsg = unicode(exceptionObject)
-    if detail > 0:
-        tbStack = traceback.extract_tb(traceBack)
-        result = formatTraceStack( detail==2, baseMsg, tbStack )
-    else:
-        result = baseMsg
-    return u'%s: %s' % ( exceptionType.__name__, result)
+def formatBatchException( exceptionType, exceptionObject, traceBack ):
+    # errors here are automatically handled by sys.excepthook
+    tbLines = maya.utils.batchExceptionCallback(exceptionType, exceptionObject, traceBack)
+    sys.stderr.writelines( tbLines )
+
+#
+#def formatOtherException( exceptionType, exceptionObject, traceBack, detail ):
+#    baseMsg = unicode(exceptionObject)
+#    if detail > 0:
+#        result = formatTraceback( detail==2, baseMsg, traceBack )
+#    else:
+#        result = baseMsg
+#    return u'%s: %s' % ( exceptionType.__name__, result)
+#    
+#def formatRuntimeException( exceptionType, exceptionObject ):
+#    """
+#    Return the exception information for RuntimeError exceptions only,
+#    formatted as a string suitable for user consumption. Traceback
+#    information for this exception, if requested, is appended through
+#    the formatTraceback() function.
+#    """
+#    # Format the exception into a string        
+#    stringBuffer = StringIO.StringIO()
+#    traceback.print_exception( exceptionType, exceptionObject, None,
+#                               32, stringBuffer )
+#    result = stringBuffer.getvalue().decode('utf8')
+#    stringBuffer.close()
+#    print `result`
+#    return u'%s' % result.rstrip()
+
+
     
-def formatRuntimeException( exceptionType, exceptionObject ):
-    """
-    Return the exception information for RuntimeError exceptions only,
-    formatted as a string suitable for user consumption. Traceback
-    information for this exception, if requested, is appended through
-    the formatTraceback() function.
-    """
-    # Format the exception into a string        
-    stringBuffer = StringIO.StringIO()
-    traceback.print_exception( exceptionType, exceptionObject, None,
-                               32, stringBuffer )
-    result = stringBuffer.getvalue().decode('utf8')
-    stringBuffer.close()
-    print `result`
-    return u'%s' % result.rstrip()
-
 # Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #

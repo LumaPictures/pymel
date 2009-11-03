@@ -5,63 +5,29 @@
 #    both the maya.app.startup.batch and maya.app.startup.gui scripts
 #
 
-import maya, maya.app, maya.app.commands
-from maya import cmds, utils
+import maya, maya.app, maya.app.commands, maya.utils
 import sys, os, os.path, atexit
+ 
+# Set up sys.path to include Maya-specific user script directories.
+maya.utils.setupScriptPaths()
 
-def setupScriptPaths():
-    """
-    Add Maya-specific directories to sys.path
-    """
-    
-    # Per-version prefs scripts dir (eg .../maya8.5/prefs/scripts)
-    #
-    prefsDir = cmds.internalVar( userPrefDir=True )
-    sys.path.append( os.path.join( prefsDir, 'scripts' ) )
-    
-    # Per-version scripts dir (eg .../maya8.5/scripts)
-    #
-    scriptDir = cmds.internalVar( userScriptDir=True )
-    sys.path.append( os.path.dirname(scriptDir) )
-    
-    # User application dir (eg .../maya/scripts)
-    #
-    appDir = cmds.internalVar( userAppDir=True )
-    sys.path.append( os.path.join( appDir, 'scripts' ) )
-    
-def executeUserSetup():
-    """
-    Look for userSetup.py in the search path and execute it in the "__main__"
-    namespace
-    """
-    try:
-        for path in sys.path:
-            scriptPath = os.path.join( path, 'userSetup.py' )
-            if os.path.isfile( scriptPath ):
-                import __main__
-                execfile( scriptPath, __main__.__dict__ )
-    except Exception, e:
-        import traceback  
-        sys.stderr.write( "Failed to execute userSetup.py\n"  )
-        traceback.print_exc(None, sys.stderr)  
+# Set up auto-load stubs for Maya commands implemented in libraries which are not yet loaded
+maya.app.commands.processCommandList()
 
-def run():
-    # Set up sys.path to include Maya-specific user script directories.
-    setupScriptPaths()
-    
-    # Set up auto-load stubs for Maya commands implemented in libraries which are not yet loaded
-    maya.app.commands.processCommandList()
-    
-    # Set up string table instance for application 
-    # This must be done before executing userSetup in case something in maya.app is imported there
-    maya.stringTable = utils.StringTable()
-    
-    if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
-        # Run the user's userSetup.py if it exists
-        executeUserSetup()
-    
-    # Register code to be run on exit
-    atexit.register( maya.app.finalize )
+# Set up string table instance for application 
+# This must be done before executing userSetup in case something in maya.app is imported there
+maya.stringTable = maya.utils.StringTable()
+
+# Set up the maya logger before userSetup.py runs, so that any custom scripts that
+# use the logger will have it available
+maya.utils.shellLogger()
+
+if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
+    # Run the user's userSetup.py if it exists
+    maya.utils.executeUserSetup()
+
+# Register code to be run on exit
+atexit.register( maya.app.finalize )
 
 
 # Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
