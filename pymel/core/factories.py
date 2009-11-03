@@ -1,7 +1,7 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
-import re, types, os.path, keyword
+import re, types, os.path, keyword, inspect
 from operator import itemgetter
 
 from pymel.util.trees import *
@@ -2818,7 +2818,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         def __delete__(self, instance):
             raise AttributeError, "class constant cannot be deleted"
           
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
         _logger.debug( 'MetaMayaTypeWrapper: %s' % classdict ) 
@@ -2924,7 +2924,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 classdict['__getattribute__'] = __getattribute__
         
         # create the new class   
-        newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        newcls = super(MetaMayaTypeWrapper, cls).__new__(cls, classname, bases, classdict)
         
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
@@ -3000,15 +3000,15 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
     _classDictKeyForMelCmd = None
     
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         _logger.debug( '_MetaMayaCommandWrapper: %s' % classdict )
 
-        newcls = super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
         
         #-------------------------
         #   MEL Methods
         #-------------------------
-        melCmdName, infoCmd = mcl.getMelCmd(classdict)
+        melCmdName, infoCmd = cls.getMelCmd(classdict)
 
         
         classdict = {}
@@ -3056,7 +3056,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         apiToMelMap['mel'][classname].append( methodName )
                         
                         if methodName not in filterAttrs and \
-                                ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
+                                ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
                             
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here. 
@@ -3093,7 +3093,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         apiToMelMap['mel'][classname].append( methodName )
                            
                         if methodName not in filterAttrs and \
-                                ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
+                                ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
                             if not _api.apiToMelData.has_key((classname,methodName)) \
                                 or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
                                 or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
@@ -3114,7 +3114,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         return newcls
         
     @classmethod
-    def getMelCmd(mcl, classdict):
+    def getMelCmd(cls, classdict):
         """
         Retrieves the name of the mel command the generated class wraps, and whether it is an info command.
         
@@ -3123,7 +3123,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         return util.uncapitalize(classname), False
     
     @classmethod
-    def isMelMethod(mcl, methodName, parentClassList):
+    def isMelMethod(cls, methodName, parentClassList):
         """
         Deteremine if the passed method name exists on a parent class as a mel method
         """
@@ -3138,7 +3138,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     based on info parsed from the docs on their command counterparts.
     """
     completedClasses = {}
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         _logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
@@ -3155,10 +3155,10 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
                 classdict['__apicls__'] = apicls
         #_logger.debug("="*40, classname, apicls, "="*40)
         
-        return super(MetaMayaNodeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
     @classmethod
-    def getMelCmd(mcl, classdict):
+    def getMelCmd(cls, classdict):
         """
         Retrieves the name of the mel command for the node that the generated class wraps,
         and whether it is an info command.
@@ -3184,7 +3184,7 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
     A metaclass for creating classes based on on a maya UI type/command.
     """
 
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         uiType= classdict.setdefault('__melui__', util.uncapitalize(classname))
@@ -3201,18 +3201,18 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
                         pmcmds.deleteUI(child)
             classdict['clear'] = clear
             
-        return super(MetaMayaUIWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        return super(MetaMayaUIWrapper, cls).__new__(cls, classname, bases, classdict)
     
     @classmethod
-    def getMelCmd(mcl, classdict):
+    def getMelCmd(cls, classdict):
         return classdict['__melui__'], False
     
 class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
     """
     A metaclass for creating components.
     """
-    def __new__(mcl, classname, bases, classdict):
-        newcls = super(MetaMayaComponentWrapper, mcl).__new__(mcl, classname, bases, classdict)
+    def __new__(cls, classname, bases, classdict):
+        newcls = super(MetaMayaComponentWrapper, cls).__new__(cls, classname, bases, classdict)
         apienum = getattr(newcls, '_apienum__', None)
 #        print "addng new component %s - '%s' (%r):" % (newcls, classname, classdict),
         if apienum:
@@ -3434,7 +3434,7 @@ def addPyNode( module, mayaType, parentMayaType ):
         try:
             ParentPyNode = getattr( module, parentPyNodeTypeName )
         except AttributeError:
-            _logger.info("error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__))
+            _logger.info("error creating class %s: parent class %r not in module %s" % (pyNodeTypeName, parentMayaType, module.__name__))
             return      
         try:
             PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})

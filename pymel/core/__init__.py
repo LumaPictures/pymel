@@ -2,17 +2,18 @@
 
 #import pymel.mayahook as mayahook
 
-
+import sys, logging
 import pymel.mayahook as mayahook
-#import pymel.mayahook.plogging as plogging
-# will check for the presence of an initilized Maya / launch it
-mayahook.mayaInit() 
 
 #from mayahook import Version
 #if Version.current == Version.v85:
 #    raise AssertionError, "This version of pymel is only compatible with Maya 8.5 Service Pack 1 or greater."
 #elif Version.current == Version.v85sp1:
 #    plogging.pymelLogger.warn( "pymel works best with Maya 2008 and above. See the documentation for features that do not work in 8.5" )
+
+#import pymel.mayahook.plogging as plogging
+# will check for the presence of an initilized Maya / launch it
+mayahook.mayaInit() 
 
 
 import factories
@@ -34,8 +35,8 @@ import runtime
 # initialize MEL 
 mayahook.finalize()
 
-_module = __import__(__name__)    
-
+_module = sys.modules[__name__]    
+_logger = logging.getLogger('pymel.core')
 
 #: dictionary of plugins and the nodes and commands they register   
 _pluginData = {}
@@ -44,7 +45,6 @@ _pluginData = {}
              
 def _pluginLoaded( *args ):
 
-    
     if len(args) > 1:
         # 2009 API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
         pluginName = args[0][1]
@@ -57,23 +57,23 @@ def _pluginLoaded( *args ):
     #print type(array)
     #pluginPath, pluginName = array
     import pmcmds
-    plogging.pymelLogger.info("Plugin loaded: %s", pluginName)
+    _logger.info("Plugin loaded: %s", pluginName)
     
     _pluginData[pluginName] = {}
     
     try:
         commands = pmcmds.pluginInfo(pluginName, query=1, command=1)
     except:
-        plogging.pymelLogger.error("Failed to get command list from %s", pluginName)
+        _logger.error("Failed to get command list from %s", pluginName)
         commands = None
 
     
     # Commands
     if commands:
         _pluginData[pluginName]['commands'] = commands
-        plogging.pymelLogger.debug( "adding new commands: %s" % ', '.join(commands) )
+        _logger.debug( "adding new commands: %s" % ', '.join(commands) )
         for funcName in commands:
-            #_plogging.pymelLogger.debug("adding new command:", funcName)
+            #__logger.debug("adding new command:", funcName)
             factories.cmdlist[funcName] = factories.getCmdInfoBasic( funcName )
             pmcmds.addWrappedCmd(funcName)
             func = factories.functionFactory( funcName )
@@ -81,9 +81,9 @@ def _pluginLoaded( *args ):
                 if func:
                     setattr( _module, funcName, func )
                 else:
-                    plogging.pymelLogger.warning( "failed to create function" )
+                    _logger.warning( "failed to create function" )
             except Exception, msg:
-                plogging.pymelLogger.warning("exception: %s" % str(msg) )
+                _logger.warning("exception: %s" % str(msg) )
     
     # Nodes          
     mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
@@ -97,20 +97,20 @@ def _pluginLoaded( *args ):
                     api.MEventMessage.removeCallback( id )
                     id.disown()
             except KeyError:
-                plogging.pymelLogger.warning("could not find callback id!")
+                _logger.warning("could not find callback id!")
             
             _pluginData[pluginName]['dependNodes'] = mayaTypes
-            plogging.pymelLogger.debug("adding new nodes: %s", ', '.join( mayaTypes ))
+            _logger.debug("adding new nodes: %s", ', '.join( mayaTypes ))
             
             for mayaType in mayaTypes:
                 
                 inheritance = factories.getInheritance( mayaType )
                 
                 if not util.isIterable(inheritance):
-                    plogging.pymelLogger.warn( "could not get inheritance for mayaType %s" % mayaType)
+                    _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
                 else:
-                    #_plogging.pymelLogger.debug(mayaType, inheritance)
-                    #_plogging.pymelLogger.debug("adding new node:", mayaType, apiEnum, inheritence)
+                    #__logger.debug(mayaType, inheritance)
+                    #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
                     # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                     parent = 'dependNode'
                     for node in inheritance:
@@ -119,7 +119,7 @@ def _pluginLoaded( *args ):
         
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
         if api.MFileIO.isReadingFile() or ( mayahook.Version.current >= mayahook.Version.v2008 and api.MFileIO.isOpeningFile() ):
-            #_plogging.pymelLogger.debug("pymel: Installing temporary plugin-loaded callback")
+            #__logger.debug("pymel: Installing temporary plugin-loaded callback")
             id = api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
             # scriptJob not respected in batch mode, had to use api
@@ -143,7 +143,7 @@ def _pluginUnloaded(*args):
     else:
         pluginName = args[0]
     
-    plogging.pymelLogger.info("Plugin unloaded: %s" % pluginName)
+    _logger.info("Plugin unloaded: %s" % pluginName)
     import pmcmds
     try:
         data = _pluginData.pop(pluginName)
@@ -153,18 +153,18 @@ def _pluginUnloaded(*args):
         # Commands
         commands = data.pop('commands', [])
         if commands:
-            plogging.pymelLogger.info("Removing commands: %s", ', '.join( commands ))
+            _logger.info("Removing commands: %s", ', '.join( commands ))
             for command in commands:
                 try:
                     pmcmds.removeWrappedCmd(command)
                     _module.__dict__.pop(command)
                 except KeyError:
-                    plogging.pymelLogger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
+                    _logger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
                         
         # Nodes
         nodes = data.pop('dependNodes', [])
         if nodes:
-            plogging.pymelLogger.debug("Removing nodes: %s" % ', '.join( nodes ))
+            _logger.debug("Removing nodes: %s" % ', '.join( nodes ))
             for node in nodes:
                 factories.removePyNode( _module, node )
 
@@ -182,7 +182,7 @@ def _installCallbacks():
     global _pluginLoadedCB
     if _pluginLoadedCB is None:
         _pluginLoadedCB = True
-        plogging.pymelLogger.debug("Adding pluginLoaded callback")
+        _logger.debug("Adding pluginLoaded callback")
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
         
@@ -193,7 +193,7 @@ def _installCallbacks():
             # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
             cmds.loadPlugin( addCallback='import pymel; pymel._pluginLoaded("%s")' )
     else:
-        plogging.pymelLogger.debug("PluginLoaded callback already exists")
+        _logger.debug("PluginLoaded callback already exists")
     
     global _pluginUnloadedCB
     if _pluginUnloadedCB is None:
@@ -203,18 +203,18 @@ def _installCallbacks():
         #mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
         
         if mayahook.Version.current >= mayahook.Version.v2009:
-            plogging.pymelLogger.debug("Adding pluginUnloaded callback")
+            _logger.debug("Adding pluginUnloaded callback")
             id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
             id.disown()
         
 
     else:
-        plogging.pymelLogger.debug("PluginUnloaded callback already exists")
+        _logger.debug("PluginUnloaded callback already exists")
 
     # add commands and nodes for plugins loaded prior to importing pymel
     preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
     if preLoadedPlugins:
-        plogging.pymelLogger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
+        _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
         for plugin in preLoadedPlugins:
             _pluginLoaded( plugin )
 

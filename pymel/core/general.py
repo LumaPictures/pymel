@@ -1094,8 +1094,7 @@ def selected( **kwargs ):
     return ls( **kwargs )
 
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
-
+_thisModule = sys.modules[__name__]
                                 
 #def spaceLocator(*args, **kwargs):
 #    """
@@ -2214,7 +2213,11 @@ def iterNodes (  *args, **kwargs ):
         if apiFilter and not extendedFilter and not prune :
             for key, isInclusive in cAPITypes.items() :
                 #NOTE: is apiTypeToEnum ever a 1-to-many relationship?
-                apiInt = api.apiTypeToEnum(key)
+                try:
+                    apitInt = getattr( api.MFn, apiType )
+                except AttributeError:
+                    apiInt = None
+                    
                 if isInclusive and apiInt :
                     # can only use API filter for API types enums that are tested for positive
                     cAPIFilter.append(apiInt)

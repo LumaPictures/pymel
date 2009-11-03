@@ -289,17 +289,16 @@ Finally, just for fun, you can also reset, flip and reverse the layout:
 """
 
 
+import re, sys
 
 import pmcmds as cmds
 #import maya.cmds as cmds
-
 
 import pymel.util as util
 import factories as _factories
 from factories import MetaMayaUIWrapper
 from system import Path
 from language import mel, melGlobals
-import re
 import pymel.mayahook.plogging as plogging
 _logger = plogging.getLogger(__name__)
 
@@ -386,7 +385,7 @@ def optionMenuGrp( *args, **kwargs ):
     res = cmds.optionMenuGrp(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+_thisModule = sys.modules[__name__]
 
 
 class UI(unicode):

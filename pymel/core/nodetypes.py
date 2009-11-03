@@ -26,7 +26,7 @@ import other
 from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+_thisModule = sys.modules[__name__]
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
