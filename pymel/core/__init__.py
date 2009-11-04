@@ -31,6 +31,7 @@ from other import *
 #from datatypes import *
 from nodetypes import *
 import runtime
+import maya.cmds as cmds
 
 # initialize MEL 
 mayahook.finalize()
@@ -41,7 +42,7 @@ _logger = logging.getLogger('pymel.core')
 #: dictionary of plugins and the nodes and commands they register   
 _pluginData = {}
 
-                    
+                 
              
 def _pluginLoaded( *args ):
 

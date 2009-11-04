@@ -614,9 +614,9 @@ class ApiArrayTypeInfo(object):
 #-----------------------------------------------
 def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
-    dangerousCmds = ['doBlur']
+    dangerousCmds = ['doBlur', 'pointOnPolyConstraint']
     if funcName in dangerousCmds:
-        return
+        return cmdInfo
     
     def _formatCmd( cmd, args, kwargs ):
         args = [ x.__repr__() for x in args ]
@@ -645,7 +645,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     module = cmds
     
 
-    _logger.debug(funcName.center( 50, '='))
+    _logger.info(funcName.center( 50, '='))
     
     if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
         _logger.debug("skipping")
@@ -691,6 +691,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 if len(obj) == 1:
                     _logger.info("%s: args need unpacking" % funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
+                elif not obj:
+                    raise ValueError, "returned object is an empty list"
                 obj = obj[-1]
                 
                 
@@ -810,12 +812,12 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         modes = [] # stop edit from running
                     else:
                         _logger.info(cmd)
-                        _logger.info(("\t", str(msg).rstrip('\n')))
+                        _logger.info("\t" + str(msg).rstrip('\n'))
                     val = None
                     
                 except RuntimeError, msg:
                     _logger.info(cmd)
-                    _logger.info(("\t", str(msg).rstrip('\n') ))
+                    _logger.info("\t" + str(msg).rstrip('\n') )
                     val = None
                 else:
                     # some flags are only in mel help and not in maya docs, so we don't know their
@@ -870,13 +872,13 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         flagInfo.pop(shortname,None)
                     else:
                         _logger.info(cmd)
-                        _logger.info(("\t", str(msg).rstrip('\n')))
+                        _logger.info("\t" + str(msg).rstrip('\n'))
                         _logger.info("\tpredicted arg: %s", argtype)
                         if not 'query' in modes:
                             _logger.info("\tedit only")
                 except RuntimeError, msg:
                     _logger.info(cmd)
-                    _logger.info(("\t", str(msg).rstrip('\n')))
+                    _logger.info("\t" + str(msg).rstrip('\n'))
                     _logger.info("\tpredicted arg: %s", argtype)
                     if not 'query' in modes:
                         _logger.info("\tedit only")
