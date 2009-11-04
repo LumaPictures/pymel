@@ -11,19 +11,20 @@ commandListLocations = {
     'linux64' : 'lib'
 }
 
-def __makeDummyFunc( command, library ):
-    def dummyFunc( *args, **keywords ):
+def __makeStubFunc( command, library ):
+    def stubFunc( *args, **keywords ):
+        """ Dynamic library stub function """
         maya.cmds.dynamicLoad( library )
+        # call the real function which has replaced us
         return maya.cmds.__dict__[command]( *args, **keywords )
-    dummyFunc.__doc__ = "fake docstring"
-    return dummyFunc
+    return stubFunc
 
 def processCommandList():
     """
     Process the "commandList" file that contains the mappings between command names and the
-    libraries in which they are found.  This function will install dummy functions in maya.cmds
-    for all commands that are not yet loaded.  The dummy functions will load the required slice
-    and then execute the command
+    libraries in which they are found.  This function will install stub functions in maya.cmds
+    for all commands that are not yet loaded.  The stub functions will load the required library
+    and then execute the command.
     """
 
     try:
@@ -37,12 +38,12 @@ def processCommandList():
         for line in file:
             commandName, library = line.split()
             if not commandName in maya.cmds.__dict__:
-                maya.cmds.__dict__[commandName] = __makeDummyFunc( commandName, library )
+                maya.cmds.__dict__[commandName] = __makeStubFunc( commandName, library )
     except:
-        sys.stderr.write("Unable to open commandList file for reading")
+        sys.stderr.write("Unable to process commandList %s" % commandListPath)
         raise
 
-# Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

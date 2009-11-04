@@ -5,22 +5,22 @@
 #    both the maya.app.startup.batch and maya.app.startup.gui scripts
 #
 
-import maya, maya.app, maya.app.commands, maya.utils, maya.app.startup.common
+import maya, maya.app, maya.app.commands, maya.app.startup.common
+from maya import cmds, utils
 import os, atexit
  
 # Set up sys.path to include Maya-specific user script directories.
 maya.app.startup.common.setupScriptPaths()
 
+# Set up string table instance for application 
+maya.stringTable = utils.StringTable()
+
 # Set up auto-load stubs for Maya commands implemented in libraries which are not yet loaded
 maya.app.commands.processCommandList()
 
-# Set up string table instance for application 
-# This must be done before executing userSetup in case something in maya.app is imported there
-maya.stringTable = maya.utils.StringTable()
-
 # Set up the maya logger before userSetup.py runs, so that any custom scripts that
 # use the logger will have it available
-maya.utils.shellLogger()
+utils.shellLogger()
 
 if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
     # Run the user's userSetup.py if it exists

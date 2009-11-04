@@ -8,7 +8,7 @@ OpenMaya API.
 # code, such as executeDeferred and executeInMainThreadWithResult
 
 import os, warnings, sys, logging, traceback
-from maya import cmds, OpenMaya
+from maya import cmds
 
 _shellLogHandler = None
 _guiLogHandler = None
@@ -198,7 +198,15 @@ def fixConsoleLineNumbers( tbStack ):
             line -= 1
         result.append( (file, line, func, text) )
     return result
-                
+
+def mayaEncoding():
+    import maya.cmds as cmds
+    return cmds.about(codeset=True)
+
+def decodeStack( tbStack ):
+    encoding = mayaEncoding()
+    return [ s.decode(encoding) for s in tbStack ]
+             
 def guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail=2):
     """
     format a trace stack into a string.
@@ -221,7 +229,7 @@ def guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail=2):
         
     """
     # exceptionObject should really be an instance of an Exception subclass and not a string
-    excLines = traceback.format_exception_only(exceptionType, exceptionObject)
+    excLines = decodeStack( traceback.format_exception_only(exceptionType, exceptionObject) )
     if detail == 0:
         result = excLines[0].strip()
     else:
@@ -230,15 +238,15 @@ def guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail=2):
         if len(tbStack) > 0:
             # prepare the stack for formatting
             tbStack = fixConsoleLineNumbers(tbStack)
-            tbLines = formatTraceStack(tbStack)
+            tbLines = decodeStack( formatTraceStack(tbStack) )
             if detail == 1:
                 # Put the line number message before the actual warning/error
-                result = exceptionType.__name__ + ': ' + tbLines[-1].strip() + ': ' + unicode(exceptionObject)
+                result = u'%s: %s: %s' % (exceptionType.__name__, tbLines[-1].strip(), exceptionObject)
             else: # detail == 2
                 # The stack trace is longer so the warning/error might
                 # get lost so it needs to be first.
-                excLines.append("Traceback (most recent call last):\n")
-                result = ''.join( prefixTraceStack( excLines + tbLines ) )
+                excLines.append(u'Traceback (most recent call last):\n')
+                result = u''.join( prefixTraceStack( excLines + tbLines ) )
         else:
             result = "Trace not available"
 
@@ -270,6 +278,7 @@ class MayaLogHandler(logging.Handler):
     records with the appropriate color labels within the Maya GUI
     """
     def emit(self, record):
+        from maya import OpenMaya
         msg = self.format(record)
         if record.levelno > logging.WARNING:
             # Error (40) Critical (50)

@@ -3,11 +3,9 @@
 #
 # This module is imported during the startup of Maya in GUI mode.
 #
-
-import sys
-from maya import OpenMaya
 import maya.app.startup.basic
-import maya.app.baseUI, maya.utils
+
+import maya.app.baseUI, maya.utils, sys
 
 # Replace sys.stdin with a GUI version that will request input from the user
 sys.stdin = maya.app.baseUI.StandardInput()
