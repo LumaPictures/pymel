@@ -1145,7 +1145,11 @@ class MayaAttributeError(MayaObjectError, AttributeError):
         if self.node is not None:
             return "Maya Attribute does not exist: %r" % self.node
         return "Maya Attribute does not exist"
-
+class MayaComponentError(MayaObjectError, AttributeError):
+    def __str__(self):
+        if self.node is not None:
+            return "Maya Component does not exist: %r" % self.node
+        return "Maya Component does not exist"
 #--------------------------
 # Object Wrapper Classes
 #--------------------------

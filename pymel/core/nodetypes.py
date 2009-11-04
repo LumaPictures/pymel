@@ -259,6 +259,22 @@ class Component( general.PyNode ):
             dag = self.__apiobjects__['MDagPath']
             self._node = general.PyNode(dag)
         assert(self._node)
+
+        # Need to do indices checking even for non-dimensional
+        # components, because the ComponentIndex might be used to
+        # specify the 'flavor' of the component - ie, 'scalePivot' or
+        # 'rotatePivot' for Pivot components
+        self._indices = self.__apiobjects__.get('ComponentIndex', None)
+        
+        if isinstance(self._indices, dict):
+            if len(self._indices) > 1:
+                isComplete = False
+                self._ComponentLabel__ = self._indices.keys()
+                assert set(self._ComponentLabel__).issubset(set(self.__class__._ComponentLabel__))
+            else:
+                # dict only has length 1..
+                self._ComponentLabel__ = self._indices.keys()[0]
+                self._indices = self._indices.values()[0]
         
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this component, if it is valid"
@@ -408,11 +424,10 @@ class DimensionedComponent( Component ):
         # Component(dagPath):
         #    in this case, stored on self.__apiobjects__['MDagPath']
         #    (self._node will be None)
-                
+        super(DimensionedComponent, self).__init__(*args, **kwargs)
+                        
         isComplete = True
 
-        indices = self.__apiobjects__.get('ComponentIndex', None)
-        
         # If we're fed an MObjectHandle already, we don't allow
         # __getitem__ indexing... unless it's complete
         handle = self.__apiobjects__.get('MObjectHandle', None)
@@ -421,16 +436,9 @@ class DimensionedComponent( Component ):
             if not mfncomp.isComplete():
                 isComplete = False
 
-        if isinstance(indices, dict):
-            if len(dict) > 1:
-                isComplete = False
-                self._ComponentLabel__ = indices.keys()
-                assert set(self._ComponentLabel__).issubset(set(self.__class__._ComponentLabel__))
-            else:
-                # dict only has length 1..
-                self._ComponentLabel__ = indices.keys()[0]
-                indices = indices.values()[0]
-        
+        if isinstance(self._indices, dict) and len(self._indices) > 1:
+            isComplete = False
+                        
         # If the component is complete, we allow further indexing of it using
         # __getitem__
         # Whether or not __getitem__ indexing is allowed, and what dimension
@@ -440,10 +448,10 @@ class DimensionedComponent( Component ):
         # and it's length indicates how many dimensions have already been
         # specified. 
         if isComplete:
-            if indices:
-                if isinstance(indices, ComponentIndex):
-                    if len(indices) < self.dimensions:
-                        self._partialIndex = indices
+            if self._indices:
+                if isinstance(self._indices, ComponentIndex):
+                    if len(self._indices) < self.dimensions:
+                        self._partialIndex = self._indices
                     else:
                         self._partialIndex = None
                 else:
@@ -452,8 +460,6 @@ class DimensionedComponent( Component ):
                 self._partialIndex = ComponentIndex()
         else:
             self._partialIndex = None
-        
-        super(DimensionedComponent, self).__init__(*args, **kwargs)
 
     def _completeNameString(self):
         # Note - most multi-dimensional components allow selection of all
@@ -593,7 +599,7 @@ def validComponentIndex( argObj, allowDicts=True ):
     componentIndexTypes = (int, long, float, slice, ComponentIndex)
     
     if allowDicts and isinstance(argObj, dict):
-        for key, value in dict.iteritems():
+        for key, value in argObj.iteritems():
             if not validComponentIndex(value, allowDicts=False):
                 return False
         return True
@@ -3169,7 +3175,28 @@ class DagNode(Entity):
     
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self.__apimdagpath__() )
+    _componentAttributes = {}
+
+    def comp(self, compName):
+        """
+        Will retrieve a Component object for this node; similar to
+        DependNode.attr(), but for components.
         
+        :rtype: `Component`
+        """        
+        if compName in self._componentAttributes:
+            compClass = self._componentAttributes[compName]
+            if isinstance(compClass, tuple):
+                # We have something like:
+                # 'uIsoparm'    : (NurbsSurfaceIsoparm, 'u')
+                # need to specify what 'flavor' of the basic
+                # component we need...
+                return compClass[0](self, {compClass[1]:ComponentIndex()})
+            else:
+                return compClass(self)            
+        else:
+            raise general.MayaComponentError( '%s.%s' % (self, compName) )
+                
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
             #obj = self._apiobject.object()
@@ -4242,13 +4269,11 @@ class Constraint(Transform):
         return inFunc(  *args, **{'query':True, 'weight':True} )
 
 class GeometryShape(DagNode):
-    _componentAttributes = {}
-
     def __getattr__(self, attr):
         #print "Mesh.__getattr__", attr
         try:
-            return self._componentAttributes[attr](self)
-        except KeyError:
+            return self.comp(attr)
+        except general.MayaComponentError:
             #print "getting super", attr
             return super(GeometryShape,self).__getattr__(attr)
             
@@ -5235,7 +5260,7 @@ def _getPymelTypeFromObject(obj):
             if len(compTypes) == 1:
                 return compTypes[0]
             else:
-                return _getExactCompType(obj, compTypes)
+                raise ValueError, "Indeterminate pymel component type for %r" % obj
         else:
             try:  
                 fnDepend = api.MFnDependencyNode( obj )
@@ -5256,26 +5281,6 @@ def _getPymelTypeFromObject(obj):
                         break
             return pymelType
         
-def _getExactCompType(obj, compTypes):
-    # We're going to implement this by adding the component object to a
-    # selection list, and then doing string comparison on the resulting
-    # selection string - can't think of another way to distinguish, say,
-    # uIsoparms and vIsoparms, or 
-    selList = api.MSelectionList()
-    # To add a component to a selection list, we need a dagPath - thankfully,
-    # the dagPath + component combo don't actually have to exist / be vaild,
-    # so we just use the world root for the dagPath
-    rootPath = api.MDagPath()
-    api.allapi.MItDag().getPath(rootPath)
-    selList.add(rootPath, obj)
-    selStrings = []
-    selList.getSelectionStrings(0, selStrings)
-    compString = selStrings[0].split('.')[1].split('[')[0]
-    for compType in compTypes:
-        if getattr(compType, '_ComponentLabel__', None) == compString:
-            return compType
-        
-
 #def listToMSelection( objs ):
 #    sel = api.MSelectionList()
 #    for obj in objs:
