@@ -411,8 +411,6 @@ def mayaInit(forversion=None) :
     
     # return True, meaning we had to initialize maya standalone
     isInitializing = True
-    if not pymelMayaPackage: 
-        loadDynamicLibs() # fixes that should be run on a standard maya package
     return True
 
 def initMEL():
