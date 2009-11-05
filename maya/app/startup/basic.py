@@ -7,7 +7,53 @@
 
 import maya, maya.app, maya.app.commands, maya.app.startup.common
 from maya import cmds, utils
-import os, atexit
+import sys, os, atexit, traceback
+
+def setupScriptPaths():
+    """
+    Add Maya-specific directories to sys.path
+    """
+    
+    # Per-version prefs scripts dir (eg .../maya8.5/prefs/scripts)
+    #
+    prefsDir = cmds.internalVar( userPrefDir=True )
+    sys.path.append( os.path.join( prefsDir, 'scripts' ) )
+    
+    # Per-version scripts dir (eg .../maya8.5/scripts)
+    #
+    scriptDir = cmds.internalVar( userScriptDir=True )
+    sys.path.append( os.path.dirname(scriptDir) )
+    
+    # User application dir (eg .../maya/scripts)
+    #
+    appDir = cmds.internalVar( userAppDir=True )
+    sys.path.append( os.path.join( appDir, 'scripts' ) )
+    
+def executeUserSetup():
+    """
+    Look for userSetup.py in the search path and execute it in the "__main__"
+    namespace
+    """
+    try:
+        for path in sys.path:
+            scriptPath = os.path.join( path, 'userSetup.py' )
+            if os.path.isfile( scriptPath ):
+                import __main__
+                execfile( scriptPath, __main__.__dict__ )
+    except Exception, err:
+        # err contains the stack of everything leading to execfile,
+        # while sys.exc_info returns the stack of everything after execfile
+        try:
+            # get the stack and remove our current level
+            etype, value, tb = sys.exc_info()
+            tbStack = traceback.extract_tb(tb)
+        finally:
+            del tb # see warning in sys.exc_type docs for why this is deleted here
+        
+        sys.stderr.write("Failed to execute userSetup.py\n")
+        sys.stderr.write("Traceback (most recent call last):\n")
+        result = traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
+        sys.stderr.write(''.join(result))
  
 # Set up sys.path to include Maya-specific user script directories.
 maya.app.startup.common.setupScriptPaths()
