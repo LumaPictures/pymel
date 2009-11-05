@@ -7,7 +7,6 @@ from allapi import *
 from pymel.util import Singleton, metaStatic, expandArgs, IndexedFrozenTree, treeFromDict
 import pymel.util as util
 import pymel.mayahook as mayahook
-from pymel.mayahook.parsers import ApiDocParser
 _logger = mayahook.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
@@ -519,6 +518,7 @@ def _buildApiTypeHierarchy(apiClassInfo=None) :
                 MFnDict[ current ] = parent
     
     if apiClassInfo is None:
+        from pymel.mayahook.parsers import ApiDocParser
         apiClassInfo = {}
 #        try:
         parser = ApiDocParser(_thisModule)
