@@ -192,7 +192,7 @@ def _installCallbacks():
             id.disown()
         else:
             # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
-            cmds.loadPlugin( addCallback='import pymel; pymel._pluginLoaded("%s")' )
+            cmds.loadPlugin( addCallback='import pymel.core; pymel.core._pluginLoaded("%s")' )
     else:
         _logger.debug("PluginLoaded callback already exists")
     
