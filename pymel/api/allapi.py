@@ -265,33 +265,6 @@ def nameToMObject( *args ):
     else :
         return tuple(result)
 
-def getComponentTypes():
-    # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
-    # and there's also a kMeshVtxFaceComponent (which does)??
-    mfnCompBase = MFnComponent()
-    mfnCompTypes = (MFnSingleIndexedComponent(),
-                    MFnDoubleIndexedComponent(),
-                    MFnTripleIndexedComponent())
-    # Maya 2008 and before didn't haveMFnUint64SingleIndexedComponent
-    if hasattr(MFn, 'kUint64SingleIndexedComponent'):
-        mfnCompTypes += (MFnUint64SingleIndexedComponent(),)
-    
-    componentTypes = {}
-    for compType in mfnCompTypes + (mfnCompBase,):
-        componentTypes[compType.type()] = []
-
-    for apiEnum in ApiEnumsToApiTypes():
-        if mfnCompBase.hasObj(apiEnum):
-            for compType in mfnCompTypes:
-                if compType.hasObj(apiEnum):
-                    break
-            else:
-                compType = mfnCompBase
-            componentTypes[compType.type()].append(apiEnum)
-                
-    return componentTypes
-
-    
 # wrap of api iterators
 
 def MItNodes( *args, **kwargs ):
@@ -692,4 +665,4 @@ def getPlugValue( plug ):
             return MFnStringArrayData( dataObj ).array()
         raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
     
-    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), ApiEnumsToApiTypes().get( apiType, '' ))
+    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), obj.apiTypeStr())
