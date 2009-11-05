@@ -355,6 +355,40 @@ def makeComponentCreationTests(evalStringCreator):
     return test_makeComponents
 
 class MakeEvalStringCreator(object):
+    """
+    Used to transform a 'compString evalString creator' function to a
+    a 'compData evalString creator' function.
+    
+    The generated 'compData evalString creator' is a function of the form:
+       compDataEvalStringCreator(testCase, compDataObject)
+    It takes a testCase_components object and a ComponentData object,
+    and returns a list of strings, each of which can be fed as an argument
+    to eval to generate a component.
+    
+    The input function, the 'compString evalString creator', is of the form:
+        compStringEvalStringCreator(testCase, compString)
+    It takes a testCase_components object and a component string, such as
+       'myCube.vtx[1]'
+    and returns a single string, which may be fed to eval to generate a
+    component.
+    
+    melOrPymel determines whether mel-style or pymel-style syntax will be used.
+    (in general, pymel-style indices are similar to mel-style, but can allow
+    things such as [:-1].  Also, different component names may be used - for
+    instance, the mel-syntax 'myNurbsSphere.v' will result in a v-isoparm,
+    whereas PyNode('myNurbsSphere').v will give you the visibility attribute,
+    so PyNode('myNurbsSphere').vIsoparm must be used. )
+    
+    If indexed is True, then the returned components will have an index. In this
+    case, only compData which have associated index data (of the correct mel-or-
+    pymel syntax type) will generate evalStrings.
+    
+    If indexed is False, then returned components will not have an index.
+    In this case, alwaysMakeUnindexed will control whether given compData
+    objects generate an evalString - if alwaysMakeUnindexed, all compData will
+    be used, whereas as if it is false, only compData which have no index data
+    for the given synatx will generate evalStrings.
+    """
     def __init__(self, melOrPymel, indexed=True, alwaysMakeUnindexed=False):
         self.melOrPymel = melOrPymel
         self.indexed = indexed
@@ -619,10 +653,23 @@ class testCase_components(unittest.TestCase):
         if failedComps:
             self.fail('Following components wrong class (or not created):\n   ' + '\n   '.join(failedComps))
                     
-    def getComponentStrings(self, returnCompData=False):
+    def getComponentStrings(self, returnCompData=False, evalStringFuncs=None):
+        """
+        Return a list of all component strings made using this object's
+        component data.
+        
+        If evalStringFuncs is given, it should be an iterable which returns
+        evalString functions.
+        
+        Otherwise, the eval string function returned by
+        getEvalStringFunctions(self.__class__).itervalues()
+        will be used.
+        """
+        if evalStringFuncs is None:
+            evalStringFuncs = getEvalStringFunctions(self.__class__).itervalues()
         componentStrings = set()
         for componentData in self.compData.itervalues():
-            for evalStringFunc in getEvalStringFunctions(self.__class__).itervalues():
+            for evalStringFunc in evalStringFuncs:
                 newStrings = evalStringFunc(self, componentData)
                 if returnCompData:
                     newStrings = [(x, componentData) for x in newStrings]
@@ -766,7 +813,14 @@ class testCase_components(unittest.TestCase):
         select(self.nodes['sphere'] + '.u[1]', r=1)
         select(self.nodes['sphere'] + '.v[0]', add=1)
         select(self.nodes['sphere'] + '.uv[2][1]', add=1)
-        ls(sl=1)        
+        ls(sl=1)
+        
+    def runTest(self):
+        """
+        Just for debugging...
+        """
+        for x in self.getComponentStrings():
+            print x
 
 ## There's a bug in Maya where if you select .sme[*], it crashes -
 ## so, temporarily, autofail all .sme's by wrapping the evalString functions
