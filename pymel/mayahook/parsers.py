@@ -197,7 +197,7 @@ class NodeHierarchyDocParser(HTMLParser):
     def parse(self):
         docloc = mayaDocsLocation(self.version)
         if not os.path.isdir( docloc ):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
 #            _logger.warn( "could not find documentation for maya version %s. defaulting to 2009" )
 #            docloc = mayaDocsLocation('2009')
 
