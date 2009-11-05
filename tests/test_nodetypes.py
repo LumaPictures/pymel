@@ -817,10 +817,10 @@ class testCase_components(unittest.TestCase):
         
     def runTest(self):
         """
-        Just for debugging...
+        Just for debugging, so we can easily create an instance of this class,
+        and do things like call getComponentStrings()...
         """
-        for x in self.getComponentStrings():
-            print x
+        pass
 
 ## There's a bug in Maya where if you select .sme[*], it crashes -
 ## so, temporarily, autofail all .sme's by wrapping the evalString functions
