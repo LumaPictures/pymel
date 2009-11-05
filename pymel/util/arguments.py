@@ -256,7 +256,7 @@ def iterateArgs( *args, **kwargs ) :
     else :
         for arg in preorderIterArgs (limit, _iterateArgsTest, *args) :
             yield arg
-             
+            
 def preorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a preorder expansion of args """
     if limit :
@@ -298,7 +298,49 @@ def breadthIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
                 deq.append ((a, level+1))
         else :
             yield arg
-        
+
+def preorder( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
+    """ iterator doing a preorder expansion of args """
+    if limit :
+        for arg in iterable :
+            if testFn(arg) :
+                for a in preorderIterArgs (limit-1, testFn, *arg) :
+                    yield a
+            else :
+                yield arg
+    else :
+        for arg in iterable :
+            yield arg
+
+def postorder( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
+    """ iterator doing a postorder expansion of args """
+    if limit :
+        last = None
+        for arg in iterable :
+            if testFn(arg) :
+                for a in postorderIterArgs (limit-1, testFn, *arg) :
+                    yield a
+            else :
+                if last :
+                    yield last
+                last = arg
+        if last :
+            yield last
+    else :
+        for arg in iterable :
+            yield arg
+    
+def breadth( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
+    """ iterator doing a breadth first expansion of args """
+    deq = deque((x,0) for x in iterable)
+    while deq :
+        arg, level = deq.popleft()
+        if testFn(arg) and level<limit :
+            for a in arg :
+                deq.append ((a, level+1))
+        else :
+            yield arg
+                   
 def listForNone( res ):
     if res is None:
         return []
