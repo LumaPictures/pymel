@@ -551,11 +551,11 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
         
     varList = rootVars[:]
     
-    _logger.info("Recursing Maya script path")
+    _logger.debug("Recursing Maya script path")
     _logger.debug( "Only directories which match %s will be traversed" % includeRegex )
     for rootVar in rootVars:
         root = _path( rootVar )
-        if re.match( includeRegex, root.name ):
+        if re.match( includeRegex, root.name ) and root.exists():
             _logger.debug( "Searching for all valid script directories below %s" % rootVar )
             # TODO: fix walkdirs so we can pass our regular expression directly to it. this will prevent us from descending into directories whose parents have failed
             for f in root.walkdirs( errors=errors, regex=includeRegex ):
