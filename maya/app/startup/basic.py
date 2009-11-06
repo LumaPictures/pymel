@@ -5,7 +5,7 @@
 #    both the maya.app.startup.batch and maya.app.startup.gui scripts
 #
 
-import maya, maya.app, maya.app.commands, maya.app.startup.common
+import maya, maya.app, maya.app.commands
 from maya import cmds, utils
 import sys, os, atexit, traceback
 
@@ -56,7 +56,7 @@ def executeUserSetup():
         sys.stderr.write(''.join(result))
  
 # Set up sys.path to include Maya-specific user script directories.
-maya.app.startup.common.setupScriptPaths()
+setupScriptPaths()
 
 # Set up string table instance for application 
 maya.stringTable = utils.StringTable()
@@ -70,7 +70,7 @@ utils.shellLogger()
 
 if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
     # Run the user's userSetup.py if it exists
-    maya.app.startup.common.executeUserSetup()
+    executeUserSetup()
 
 # Register code to be run on exit
 atexit.register( maya.app.finalize )
