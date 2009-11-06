@@ -21,7 +21,9 @@ import factories
 from general import *
 from context import *
 from system import *
-from windows import *
+# to allow lazy loading, we avoid import *
+# TODO: add a UI equivalent of nodetypes
+import windows
 from animation import *
 from effects import *
 from modeling import *
@@ -29,14 +31,17 @@ from rendering import *
 from language import *
 from other import *
 #from datatypes import *
-from nodetypes import *
+
+# to allow lazy loading, we avoid import *
+import nodetypes as nodes
+
 import runtime
 import maya.cmds as cmds
 
 # initialize MEL 
 mayahook.finalize()
 
-_module = sys.modules[__name__]    
+_module = sys.modules['pymel.core.nodetypes']
 _logger = logging.getLogger('pymel.core')
 
 #: dictionary of plugins and the nodes and commands they register   
