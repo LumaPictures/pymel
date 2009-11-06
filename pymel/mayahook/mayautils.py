@@ -530,18 +530,23 @@ def load(filename):
     file.close()
     return object
 
-def loadCache( filePrefix, description='', useVersion=True, decompress=False):
+def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
-    newPath = os.path.join( _moduleDir(),  filePrefix+short_version+'.bin' )
-    
+    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+
+    if compressed:
+        newPath += '.zip'
+    else:
+        newPath += '.bin'
+        
     if description:
         description = ' ' + description
     
-    if decompress:
-        return load(newPath + '2')
+    if compressed:
+        return load(newPath)
     
     try :
         file = open(newPath, mode='rb')
@@ -559,22 +564,27 @@ def loadCache( filePrefix, description='', useVersion=True, decompress=False):
         file.close()
 
  
-def writeCache( data, filePrefix, description='', useVersion=True, compress=False):
+def writeCache( data, filePrefix, description='', useVersion=True, compressed=True):
     _logger.debug("writing cache")
     
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
-    newPath = os.path.join( _moduleDir(),  filePrefix+short_version+'.bin' )
+    
+    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+    if compressed:
+        newPath += '.zip'
+    else:
+        newPath += '.bin'
 
     if description:
         description = ' ' + description
     
     _logger.info("Saving%s to '%s'" % ( description, newPath ))
     
-    if compress:
-        return save(data, newPath + '2', 2)
+    if compressed:
+        return save(data, newPath, 2)
     
     try :
         file = open(newPath, mode='wb')

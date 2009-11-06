@@ -26,9 +26,11 @@ def separateExampleCache():
                           'mayaCmdsExamples', 'the list of Maya command examples' )
 
 def separateCmdDocCache():
-    newdata = {}
+    data = list(mayahook.loadCache('mayaCmdsList'))
+    cmdlist = data[0]
+    newCmdList = {}
     succ = fail = 0
-    for cmdName, cmdInfo in factories.cmdlist.iteritems():
+    for cmdName, cmdInfo in cmdlist.iteritems():
         newCmdInfo = {}
         if 'description' in cmdInfo:
             newCmdInfo['description'] = cmdInfo.pop('description')
@@ -38,19 +40,17 @@ def separateCmdDocCache():
                 newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
             newCmdInfo['flags'] = newFlagInfo
         if newCmdInfo:
-            newdata[cmdName] = newCmdInfo
+            newCmdList[cmdName] = newCmdInfo
             succ += 1
     print "succeeded", succ
     print "failed   ", fail
 
-    mayahook.writeCache( (factories.cmdlist,
-                          factories.nodeHierarchy,
-                          factories.uiClassList,
-                          factories.nodeCommandList,
-                          factories.moduleCmds), 
+    data[0] = newCmdList
+    
+    mayahook.writeCache( tuple(data), 
                           'mayaCmdsList', 'the list of Maya commands' )
     
-    mayahook.writeCache( newdata, 
+    mayahook.writeCache( newCmdList, 
                           'mayaCmdsDocs', 'the Maya command documentation' )
 
     
@@ -102,6 +102,7 @@ def simplifyArgs():
                 flagInfo['docstring'] = 0
 
 def flattenNodeHier():
+    
     hierarchy = [ (x.key, tuple( [y.key for y in x.parents()]) ) for x in factories.nodeHierarchy.preorder() ]
     factories.nodeHierarchy = hierarchy
     mayahook.writeCache( (factories.cmdlist,
@@ -133,9 +134,9 @@ def mergedTest():
     
 
 def compress():
-    for cache, useVersion in caches + [('mayaCmdsListAll', True)]:
-        data = mayahook.loadCache(cache, useVersion=useVersion)
-        mayahook.writeCache(data, cache, useVersion=useVersion, compress=True)
+    for cache, useVersion in caches + [('mayaCmdsListAll', True), ('mayaCmdsDocs', True) ]:
+        data = mayahook.loadCache(cache, useVersion=useVersion, compressed=False)
+        mayahook.writeCache(data, cache, useVersion=useVersion, compressed=True)
 
 def decompress():
     caches2 = [ ('mayaCmdsListAll', True), ('mayaApiMelBridge',False), ('mayaApi',True) ]
@@ -145,25 +146,25 @@ def decompress():
     s = time.time()
     for i in range(num):
         for cache, useVersion in caches2:
-            data = mayahook.loadCache(cache, useVersion=useVersion, decompress=False)
+            data = mayahook.loadCache(cache, useVersion=useVersion, compressed=False)
     print "compress=0, docstrings=1:", time.time()-s
     
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches:
-            data = mayahook.loadCache(cache, useVersion=useVersion, decompress=False)
+            data = mayahook.loadCache(cache, useVersion=useVersion, compressed=False)
     print "compress=0, docstrings=0:", time.time()-s1
 
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches2:
-            data = mayahook.loadCache(cache, useVersion=useVersion, decompress=True)
+            data = mayahook.loadCache(cache, useVersion=useVersion, compressed=True)
     print "compress=1, docstrings=1:", time.time()-s1
 
     s1 = time.time()
     for i in range(num):
         for cache, useVersion in caches:
-            data = mayahook.loadCache(cache, useVersion=useVersion, decompress=True)
+            data = mayahook.loadCache(cache, useVersion=useVersion, compressed=True)
     print "compress=1, docstrings=0:", time.time()-s1
 
 
