@@ -681,6 +681,7 @@ class testCase_components(unittest.TestCase):
         failedSelections = []
         selectionUnequal = []
         for compString in self.getComponentStrings():
+            printedDone = False
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
@@ -708,6 +709,9 @@ class testCase_components(unittest.TestCase):
                         selectionUnequal.append(compString)
                     if VERBOSE:
                         print "done!"
+                        printedDone = True
+            if VERBOSE and not printedDone:
+                print "FAIL!!!"
 
         if failedCreation or failedSelections or selectionUnequal:
             failMsgs = []
@@ -726,6 +730,7 @@ class testCase_components(unittest.TestCase):
         iterationUnequal = []
         
         for compString in self.getComponentStrings():
+            printedDone = False
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
@@ -764,6 +769,9 @@ class testCase_components(unittest.TestCase):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
                                 print "done!"
+                                printedDone = True
+            if VERBOSE and not printedDone:
+                print "FAIL!!!"                                
 
         if failedCreation or failedIterations or failedSelections or iterationUnequal:
             failMsgs = []
