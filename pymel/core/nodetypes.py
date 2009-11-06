@@ -16,6 +16,7 @@ _logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
+from pymel import version
 
 from maya.cmds import about as _about
 import maya.mel as mm
@@ -2726,7 +2727,7 @@ class DependNode( general.PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if mayahook.Version.current >= mayahook.Version.v2009:
+    if version.current >= version.v2009:
         def __hash__(self):
             return self.__apihandle__().hashCode()
 
@@ -3133,9 +3134,19 @@ class DependNode( general.PyNode ):
 
 #}
 
-class Entity(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
-    pass
+if version.CURRENT >= version.v2011:
+    class ContainerBase(DependNode):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass
+
+    class Entity(ContainerBase):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass
+
+else:
+    class Entity(DependNode):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass
 
 class DagNode(Entity):
  
@@ -4150,7 +4161,7 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-if mayahook.Version.isUnlimited():
+if version.isUnlimited():
     class FluidEmitter(Transform):
         __metaclass__ = _factories.MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -4407,7 +4418,7 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
-    if mayahook.Version.current >= mayahook.Version.v2009:
+    if version.current >= version.v2009:
         @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )
@@ -5106,22 +5117,18 @@ _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 
 def _createPyNodes():
-    #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
-    #print _factories.nodeHierarchy
-    # see if breadth first isn't more practical ?
+
+    dynModule = util.lazyLoadModule(__name__, globals())
     
     # reset cache
     _factories.PyNodeTypesHierarchy().clear()
     _factories.PyNodeNamesToPyNodes().clear()
     
-    for treeElem in _factories.nodeHierarchy.preorder():
-        #print "treeElem: ", treeElem
-        mayaType = treeElem.key
-            
-        #print "cmds.nodeType: ", cmds.nodeType
+    for mayaType, parents in _factories.nodeHierarchy:
+
         if mayaType == 'dependNode': continue
         
-        parentMayaType = treeElem.parent.key
+        parentMayaType = parents[0]
         #print "superNodeType: ", superNodeType, type(superNodeType)
         if parentMayaType is None:
             _logger.warning("could not find parent node: %s", mayaType)
@@ -5130,8 +5137,9 @@ def _createPyNodes():
         #className = util.capitalize(mayaType)
         #if className not in __all__: __all__.append( className )
         
-        _factories.addPyNode( _thisModule, mayaType, parentMayaType )
-
+        _factories.addPyNode( dynModule, mayaType, parentMayaType )
+    
+    sys.modules[__name__] = dynModule
 
 
 # Initialize Pymel classes to API types lookup
@@ -5139,99 +5147,6 @@ def _createPyNodes():
 _createPyNodes()
 #_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
 
-
-
-def _getPymelType(arg, name) :
-    """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
-        if no correct type is found returns DependNode by default.
-        
-        If the name of an existing object is passed, the name and MObject will be returned
-        If a valid MObject is passed, the name will be returned as None
-        If a general.PyNode instance is passed, its name and MObject will be returned
-        """
-        
-    def getPymelTypeFromObject(obj):
-        try:
-            return _factories.ApiEnumsToPyComponents()[obj.apiType()]
-        except KeyError:
-            try:  
-                fnDepend = api.MFnDependencyNode( obj )
-                mayaType = fnDepend.typeName()
-                pymelType = general.mayaTypeToPyNode( mayaType, DependNode )
-            except RuntimeError:
-                raise general.MayaNodeError
-            
-            if pymelType in _factories.virtualClass:
-                data = _factories.virtualClass[pymelType]
-                nodeName = name
-                for virtualCls, nameRequired in data:
-                    if nameRequired and nodeName is None:
-                        nodeName = fnDepend.name()
-                    
-                    if virtualCls._isVirtual(obj, nodeName):
-                        pymelType = virtualCls
-                        break
-
-            return pymelType
-
-    obj = None
-    results = {}
-    
-    isAttribute = False
-  
-    #--------------------------   
-    # API object testing
-    #--------------------------   
-    if isinstance(arg, api.MObject) :     
-        results['MObjectHandle'] = api.MObjectHandle( arg )
-        obj = arg
-#        if api.isValidMObjectHandle( obj ) :
-#            pymelType = getPymelTypeFromObject( obj.object() )        
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
-                      
-    elif isinstance(arg, api.MObjectHandle) :      
-        results['MObjectHandle'] = arg
-        obj = arg.object()
-        
-#        if api.isValidMObjectHandle( obj ) :          
-#            pymelType = getPymelTypeFromObject( obj.object() )    
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
-        
-    elif isinstance(arg, api.MDagPath) :
-        results['MDagPath'] = arg
-        obj = arg.node()
-#        if api.isValidMDagPath( obj ):
-#            pymelType = getPymelTypeFromObject( obj.node() )    
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
-                               
-    elif isinstance(arg, api.MPlug) : 
-        isAttribute = True
-        obj = arg
-        results['MPlug'] = obj
-        if api.isValidMPlug(arg):
-            pymelType = Attribute
-        else :
-            raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
-
-#    #---------------------------------
-#    # No Api Object : Virtual general.PyNode 
-#    #---------------------------------   
-#    elif objName :
-#        # non existing node
-#        pymelType = DependNode
-#        if '.' in objName :
-#            # TODO : some better checking / parsing
-#            pymelType = Attribute 
-    else :
-        raise ValueError, "Unable to determine Pymel type for %r" % arg         
-    
-    if not isAttribute:
-        pymelType = getPymelTypeFromObject( obj ) 
-    
-    return pymelType, results
 
 
 #def listToMSelection( objs ):
