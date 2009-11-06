@@ -22,3 +22,6 @@ import core.datatypes as datatypes
 import maya.cmds as cmds
 
 from pymel.mayahook import Version
+
+from core import nodetypes
+from core.nodetypes import *
