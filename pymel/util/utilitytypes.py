@@ -3,7 +3,7 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import inspect
+import inspect, types
 from warnings import *
 
 class Singleton(type):
@@ -466,7 +466,178 @@ class universalmethod(object):
         def newfunc(*args):
             return self.f(instance, *args)
         return newfunc
-      
+
+def lazyLoadModule(name, contents):
+    """
+    :param name: name of the module
+    :param contents: dictionary of initial module globals
+    
+    This function returns a special module type with one method `_addattr`.  The signature
+    of this method is:
+    
+        _addattr(name, creator, *creatorArgs, **creatorKwargs)
+    
+    Attributes added with this method will not be created until the first time that
+    they are accessed, at which point a callback function will be called to generate
+    the attribute's value.
+    
+    :param name: name of the attribute to lazily add
+    :param creator: a function that create the
+    
+    Example::
+    
+        import sys
+        mod = lazyLoadModule(__name__, globals())
+        mod._addattr( 'foo', str, 'bar' )
+        sys.modules[__name__] = mod
+    
+    One caveat of this technique is that if a user imports everything from your
+    lazy module ( .e.g from module import * ), it will cause all lazy attributes
+    to be evaluated.
+    """
+    class LazyLoadModule(types.ModuleType):
+        class LazyLoader(object):
+            """
+            A data descriptor that delays instantiation of an object
+            until it is first accessed.
+            """
+            def __init__(self, name, creator, *creatorArgs, **creatorKwargs):
+                self.creator = creator
+                self.args = creatorArgs
+                self.kwargs = creatorKwargs
+                self.name = name
+    
+            def __get__(self, obj, objtype):
+                newobj = self.creator(*self.args, **self.kwargs)
+                #delattr( obj.__class__, self.name) # should we overwrite with None?
+                setattr( obj, self.name, newobj)
+                return newobj
+                   
+        def __init__(self, name, contents):
+            types.ModuleType.__init__(self, name)
+            self.__dict__.update(contents)
+        
+        @property
+        def __all__(self):
+            public = [ x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_') ]
+            return public
+        
+        @classmethod
+        def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
+            setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
+    return LazyLoadModule(name, contents)
+
+class LazyDocStringError(Exception): pass
+
+class LazyDocString(types.StringType):
+    """
+    Set the __doc__ of an object to an object of this class in order to have
+    a docstring that is dynamically generated when used.
+    
+    Due to restrictions of inheriting from StringType (which is necessary,
+    as the 'help' function does a check to see if __doc__ is a string),
+    the creator can only take a single object.
+    
+    Since the object initialization requires multiple parameters, the
+    LazyDocString should be fed an sliceable-iterable on creation,
+    of the following form:
+    
+        LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )
+    
+    documentedObj should be the object on which we are placing the docstring
+    
+    docGetter should be a function which is used to retrieve the 'real'
+    docstring - it's args will be documentedObj and any extra args
+    passed to the object on creation.
+    
+    Example Usage:
+    
+    >>> def getDocStringFromDict(obj):
+    ...     returnVal = docStringDict[obj]
+    ...     return returnVal
+    >>> 
+    >>> # In order to alter the doc of a class, we need to use a metaclass
+    >>> class TestMetaClass(type): pass
+    >>>         
+    >>> class TestClass(object):
+    >>>     __metaclass__ = TestMetaClass
+    >>> 
+    >>>     def aMethod(self):
+    >>>         pass
+    >>> 
+    >>>     aMethod.__doc__ = LazyDocString( (aMethod, getDocStringFromDict) )
+    >>> 
+    >>> TestClass.__doc__ = LazyDocString( (TestClass, getDocStringFromDict) )
+    >>> 
+    >>> 
+    >>> docStringDict = {TestClass:'New Docs for PynodeClass!',
+    >>>                  TestClass.aMethod.im_func:'Method docs!'}
+    >>> 
+    >>> TestClass.__doc__
+    'New Docs for PynodeClass!'
+    >>> TestClass.aMethod.__doc__
+    'Method docs!'
+
+    
+    Note that new-style classes (ie, instances of 'type') and instancemethods
+    can't have their __doc__ altered.
+    
+    In the case of classes, you can get around this by using a metaclass for
+    the class whose docstring you wish to alter.
+    
+    In the case of instancemethods, just set the __doc__ on the function
+    underlying the method (ie, myMethod.im_func). Note that if the __doc__
+    for the method is set within the class definition itself, you will
+    already automatically be modifying the underlying function.
+    """
+   
+    def __init__(self, argList):
+        if len(argList) < 2:
+            raise LazyDocStringError('LazyDocString must be initialized with an iterable of the form: LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )')
+        documentedObj = argList[0]
+        docGetter = argList[1]
+        if len(argList) > 2:
+            args = argList[2]
+            if len(argList) == 4:
+                kwargs = argList[3]
+            else:
+                kwargs = {}
+        else:
+            args = ()
+            kwargs = {}
+        
+        try:
+            # put in a placeholder docstring, and check to make
+            # sure we can change the __doc__ of this object!
+            documentedObj.__doc__ = 'LazyDocString placeholder'
+        except AttributeError:
+            raise LazyDocStringError('cannot modify the docstring of %r objects' % documentedObj.__class__.__name__)
+        self.documentedObj = documentedObj
+        self.docGetter = docGetter
+        self.args = args
+        self.kwargs = kwargs
+    
+    def __str__(self):
+        print "creating docstrings", self.docGetter, self.args, self.kwargs
+        self.documentedObj.__doc__ = self.docGetter(*self.args, **self.kwargs)
+        return self.documentedObj.__doc__
+    def __repr__(self):
+        return repr(str(self))
+
+for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
+    if _name.startswith('_'):
+        continue
+    def LazyDocStringMethodWrapper(self, *args, **kwargs):
+        return getattr(str(self), _name)(*args, **kwargs)
+    setattr(LazyDocString, _name, LazyDocStringMethodWrapper)
+   
+def addLazyDocString( object, creator, *creatorArgs, **creatorKwargs):
+    """helper for LazyDocString.  Equivalent to :
+    
+        object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
+    """
+    object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
+
 # unit test with doctest
 if __name__ == '__main__' :
     import doctest
