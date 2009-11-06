@@ -3,16 +3,16 @@ Maya-related functions, which are useful to both `api` and `core`, including `ma
 that maya is initialized in standalone mode.
 """
 
-import re, os.path, sys, platform
+import re, os.path, sys, platform, time
 
 from pwarnings import *
 import plogging
 
 from pymel.util import path as _path, shellOutput
 
-from version import Version, parseVersionStr
+import pymel.version as version
+from pymel.version import parseVersionStr, shortName, installName
 import maya
-from maya.OpenMaya import MGlobal
 
 _logger = plogging.getLogger(__name__)
 try:
@@ -41,7 +41,7 @@ sep = os.path.pathsep
 isInitializing = False
     
 # tells whether this maya package has been modified to work with pymel
-pymelMayaPackage = hasattr(maya, 'pymelCompatible')
+pymelMayaPackage = hasattr(maya, 'pymelCompatible') or version.CURRENT >= version.v2011
         
 
 def _moduleDir():
@@ -103,8 +103,8 @@ def getMayaLocation(version=None):
         # note that a recursive loop between getMayaLocation / getMayaVersion
         # is avoided because getMayaVersion always calls getMayaLocation with
         # version == None
-        actual_long_version = Version.installName()
-        actual_short_version = Version.shortName()
+        actual_long_version = installName()
+        actual_short_version = shortName()
         if version != actual_long_version:
             short_version = parseVersionStr(version, extension=False)
             if version == short_version :
@@ -187,7 +187,7 @@ def getMayaAppDir():
 
 def mayaDocsLocation(version=None):
     docLocation = None
-    if (version == None or version == Version.installName() ) and mayaIsRunning():
+    if (version == None or version == installName() ) and mayaIsRunning():
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -208,7 +208,7 @@ def mayaDocsLocation(version=None):
         if version:
             short_version = parseVersionStr(version, extension=False)
         else:
-            short_version = Version.shortName()
+            short_version = shortName()
         if system == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
             
@@ -381,8 +381,6 @@ def mayaInit(forversion=None) :
         from maya.cmds import about
         # if this succeeded, we're initialized
         isInitializing = False
-        if not pymelMayaPackage: 
-            loadDynamicLibs() # fixes that should be run on a standard maya package
         return False
     except:
         pass
@@ -398,7 +396,7 @@ def mayaInit(forversion=None) :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            #if Version.current < Version.v2009:
+            #if version.current < version.v2009:
             #    refreshEnviron()
 
         except ImportError, e:
@@ -421,7 +419,7 @@ def initMEL():
     _logger.debug( "initMEL" )        
     import maya.mel
     
-    mayaVersion = Version.installName()
+    mayaVersion = installName()
     try:
         prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
     except:
@@ -469,11 +467,15 @@ def initMEL():
 
 
 def finalize():
-    if MGlobal.mayaState() in [MGlobal.kBatch, MGlobal.kLibraryApp]:
+    if 'maya.app.startup.batch' in sys.modules: # means were in batch mode
         global isInitializing
         if pymelMayaPackage and isInitializing:
-            import maya.app.startup.common
-            maya.app.startup.common.executeUserSetup()
+            # this module is not encapsulated into functions, but it should already
+            # be imported, so it won't run again
+            assert 'maya.app.startup.basic' in sys.modules, \
+                "something is very wrong. maya.app.startup.basic should be imported by now"
+            import maya.app.startup.basic
+            maya.app.startup.basic.executeUserSetup()
         initMEL()
         
                        
@@ -501,32 +503,67 @@ def encodeFix():
                 except ImportError :
                     _logger.debug("Unable to import maya.app.baseUI")
 
-def loadCache( filePrefix, description='', useVersion=True):
+import gzip
+def save(object, filename, protocol = -1):
+    """Save an object to a compressed disk file.
+       Works well with huge objects.
+    """
+    try:
+        file = gzip.GzipFile(filename, 'wb')
+    except Exception, e:
+        _logger.debug("Unable to open '%s' for writing: %s" % ( filename, e ))
+   
+    pickle.dump(object, file, protocol)
+    file.close()
+
+def load(filename):
+    """Loads a compressed object from disk
+    """
+    file = gzip.GzipFile(filename, 'rb')
+    buffer = ""
+    while 1:
+        data = file.read()
+        if data == "":
+            break
+        buffer += data
+    object = pickle.loads(buffer)
+    file.close()
+    return object
+
+def loadCache( filePrefix, description='', useVersion=True, decompress=False):
     if useVersion:
-        short_version = Version.shortName()
+        short_version = shortName()
     else:
         short_version = ''
     newPath = os.path.join( _moduleDir(),  filePrefix+short_version+'.bin' )
     
     if description:
         description = ' ' + description
+    
+    if decompress:
+        return load(newPath + '2')
+    
     try :
         file = open(newPath, mode='rb')
+    except Exception, e:
+        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
+    else:
         try :
-            return pickle.load(file)
+            #s = time.time()
+            res = pickle.load(file)
+            #_logger.debug("Loaded '%s' in %.04f seconds" % (newPath, time.time()-s) )
+            return res
         except Exception, e:
             _logger.warn("Unable to load%s from '%s': %s" % (description,file.name, e))
         
         file.close()
-    except Exception, e:
-        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
 
  
-def writeCache( data, filePrefix, description='', useVersion=True):
+def writeCache( data, filePrefix, description='', useVersion=True, compress=False):
     _logger.debug("writing cache")
     
     if useVersion:
-        short_version = Version.shortName()
+        short_version = shortName()
     else:
         short_version = ''
     newPath = os.path.join( _moduleDir(),  filePrefix+short_version+'.bin' )
@@ -535,17 +572,21 @@ def writeCache( data, filePrefix, description='', useVersion=True):
         description = ' ' + description
     
     _logger.info("Saving%s to '%s'" % ( description, newPath ))
+    
+    if compress:
+        return save(data, newPath + '2', 2)
+    
     try :
         file = open(newPath, mode='wb')
+    except Exception, e:
+        _logger.debug("Unable to open '%s' for writing%s: %s" % ( newPath, description, e ))
+    else:
         try :
             pickle.dump( data, file, 2)
-            _logger.debug("done")
         except:
             _logger.debug("Unable to write%s to '%s'" % (description,file.name))
         file.close()
-    except :
-        _logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
-                 
+              
 
 def getConfigFile():
     return plogging.getConfigFile()
