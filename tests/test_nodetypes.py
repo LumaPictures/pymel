@@ -623,17 +623,21 @@ class testCase_components(unittest.TestCase):
     # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx
     node_dot_comptype_evalStrings = MakeEvalStringCreator('pymel', indexed=False, alwaysMakeUnindexed=True)(node_dot_comptypeMaker)
 
-    def node_dot_compFuncMaker(self, compString):
+    # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx
+    @MakeEvalStringCreator('pymel', indexed=False, alwaysMakeUnindexed=True)
+    def node_dot_compFunc_evalStrings(self, compString):
         nodeName, compName = compString.split('.', 1)
         return 'PyNode(%r).comp(%r)' % (nodeName, compName)
 
     # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx[1]
-    node_dot_compFuncIndex_evalStrings = MakeEvalStringCreator('pymel', indexed=True)(node_dot_compFuncMaker)
-    # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx
-    node_dot_compFunc_evalStrings = MakeEvalStringCreator('pymel', indexed=False, alwaysMakeUnindexed=True)(node_dot_compFuncMaker)
-
-
-
+    @MakeEvalStringCreator('pymel', indexed=True)
+    def node_dot_compFuncIndex_evalStrings(self, compString):
+        nodeName, compNameAndIndex = compString.split('.', 1)
+        indexSplit = compNameAndIndex.find('[')
+        compName = compNameAndIndex[:indexSplit]
+        indexString = compNameAndIndex[indexSplit:]
+        return 'PyNode(%r).comp(%r)%s' % (nodeName, compName, indexString)
+        
     def test_objectComponentsClassEqual(self):
         successfulComps = []
         failedComps = []
