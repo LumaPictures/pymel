@@ -828,7 +828,7 @@ def finalize():
     if pymelMayaPackage and isInitializing:
         import maya.app.startup.basic
         maya.app.startup.basic.executeUserSetup()
-    initMEL()
+        initMEL()
     
                        
 # Fix for non US encodings in Maya
