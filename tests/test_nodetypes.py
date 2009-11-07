@@ -666,7 +666,7 @@ class testCase_components(unittest.TestCase):
         will be used.
         """
         if evalStringFuncs is None:
-            evalStringFuncs = getEvalStringFunctions(self.__class__).itervalues()
+            evalStringFuncs = getEvalStringFunctions(self.__class__).values()
         componentStrings = set()
         for componentData in self.compData.itervalues():
             for evalStringFunc in evalStringFuncs:
