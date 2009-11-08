@@ -543,10 +543,9 @@ class DimensionedComponent( Component ):
         return (index,)
     
     def __getitem__(self, item):
-        curDim = self.currentDimension()
-        if curDim is None:
+        if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component")
+                             "specified component (ie, 'cube.vtx')")
         else:
             return self.__class__(self._node,
                     ComponentIndex(self._partialIndex + (item,)))
@@ -561,8 +560,9 @@ class DimensionedComponent( Component ):
         """
         if not hasattr(self, '_currentDimension'):
             indices = self._partialIndex
-            if len(indices) < self.dimensions:
-                return len(indices)
+            if (indices is not None and
+                len(indices) < self.dimensions):
+                self._currentDimension = len(indices)
             else:
                 self._currentDimension = None
         return self._currentDimension
@@ -1178,6 +1178,15 @@ class NurbsCurveKnot( Component1D ):
 class NurbsSurfaceIsoparm( Component2DFloat ):
     _apienum__ = api.MFn.kIsoparmComponent
     _ComponentLabel__ = ("u", "v", "uv")
+    
+    def __getitem__(self, item):
+        curDim = self.currentDimension()
+        if curDim is None:
+            raise IndexError("Indexing only allowed on an incompletely "
+                             "specified component")
+        else:
+            return self.__class__(self._node,
+                    ComponentIndex(self._partialIndex + (item,)))    
 
 class NurbsSurfaceRange( Component2DFloat ):
     _ComponentLabel__ = ("u", "v", "uv")

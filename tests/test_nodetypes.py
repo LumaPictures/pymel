@@ -227,7 +227,7 @@ class ComponentData(object):
     """
     def __init__(self, pymelType, nodeName, compName, indices,
                  melCompName=None,
-                 pythonIndices=None, melIndices=None):
+                 pythonIndices=None, melIndices=None, neverUnindexed=False):
         self.pymelType = pymelType
         self.nodeName = nodeName
         self.compName = compName
@@ -247,6 +247,7 @@ class ComponentData(object):
         if isinstance(melIndices, (int, float, basestring)):
             melIndices = [melIndices]            
         self.melIndices = melIndices
+        self.neverUnindexed = neverUnindexed
         
         if indices:
             # just want the first one, since all we need in a component
@@ -388,6 +389,8 @@ class MakeEvalStringCreator(object):
     objects generate an evalString - if alwaysMakeUnindexed, all compData will
     be used, whereas as if it is false, only compData which have no index data
     for the given synatx will generate evalStrings.
+    In addtion, if a ComponentData object has it's neverUnindexed property set
+    to True, then no unindexed comp will be returned.
     """
     def __init__(self, melOrPymel, indexed=True, alwaysMakeUnindexed=False):
         self.melOrPymel = melOrPymel
@@ -407,7 +410,7 @@ class MakeEvalStringCreator(object):
                 if compDataStringFunc:
                     return [evalStringCreator(testCase, x)
                             for x in compDataStringFunc()]
-            else:
+            elif not compData.neverUnindexed:
                 if self.melOrPymel == 'mel':
                     if self.alwaysMakeUnindexed or not compData.hasMelIndices():
                         compDataStringFunc = compData.melUnindexedComp
@@ -547,7 +550,8 @@ class testCase_components(unittest.TestCase):
                                                    [IndexData((1,5))])
         self.compData['nurbsRange'] = ComponentData(NurbsSurfaceRange,
                                                     self.nodes['sphere'], "u",
-                                                    [IndexData('2:3')])
+                                                    [IndexData('2:3')],
+                                                    neverUnindexed=True)
 
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
         self.compData['lattice'] = ComponentData(LatticePoint,
