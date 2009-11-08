@@ -2978,8 +2978,11 @@ class DagNode(Entity):
                 # component we need...
                 return compClass[0](self, {compClass[1]:ComponentIndex()})
             else:
-                return compClass(self)            
+                return compClass(self)
         else:
+            shape = self.getShape()
+            if shape:
+                return shape.comp(compName)
             raise general.MayaComponentError( '%s.%s' % (self, compName) )
                 
     def _updateName(self, long=False) :

@@ -399,6 +399,7 @@ class MakeEvalStringCreator(object):
         
     def __call__(self, evalStringCreator):
         def wrappedEvalStringCreator(testCase, compData):
+            strings = []
             compDataStringFunc = None
             if self.indexed:
                 if self.melOrPymel == 'mel':
@@ -408,8 +409,8 @@ class MakeEvalStringCreator(object):
                     if compData.hasPyIndices():
                         compDataStringFunc = compData.indexedComps
                 if compDataStringFunc:
-                    return [evalStringCreator(testCase, x)
-                            for x in compDataStringFunc()]
+                    strings = [evalStringCreator(testCase, x)
+                               for x in compDataStringFunc()]
             elif not compData.neverUnindexed:
                 if self.melOrPymel == 'mel':
                     if self.alwaysMakeUnindexed or not compData.hasMelIndices():
@@ -418,8 +419,9 @@ class MakeEvalStringCreator(object):
                     if self.alwaysMakeUnindexed or not compData.hasPyIndices():
                         compDataStringFunc = compData.unindexedComp
                 if compDataStringFunc:
-                    return [evalStringCreator(testCase, compDataStringFunc())]
-            return []
+                    strings = [evalStringCreator(testCase, compDataStringFunc())]
+            # get rid of any empty strings
+            return [x for x in strings if x]
         return wrappedEvalStringCreator
 
 #def melIndexedCompEvalStringCreator(evalStringCreator):
@@ -619,6 +621,11 @@ class testCase_components(unittest.TestCase):
         return ['%s(%r)' % (pymelClass.__name__, compData.nodeName)]
     
     def node_dot_comptypeMaker(self, compString):
+        # node.scalePivot / node.rotatePivot returns the ATTRIBUTE,
+        # so skip these.
+        # (we can get the component by doing node.comp('scalePivot')
+        if compString.endswith('Pivot'):
+            return ''
         nodeName, compName = compString.split('.', 1)
         return 'PyNode(%r).%s' % (nodeName, compName)
     
