@@ -738,6 +738,40 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal))
             self.fail('\n\n'.join(failMsgs))
 
+    def test_component_repr(self):
+        failedCreation  = []
+        failedRepr = []
+        
+        for compString in self.getComponentStrings():
+            printedDone = False
+            if VERBOSE:
+                print compString, "-", "creating...",
+            try:
+                pymelObj = eval(compString)
+            except Exception:
+                failedCreation.append(compString)
+            else:
+                if VERBOSE:
+                    print "getting repr...",
+                try:
+                    str = repr(pymelObj)
+                except Exception:
+                    failedRepr.append(compString)
+                else:
+                    if VERBOSE:
+                        print "done!"
+                        printedDone = True
+            if VERBOSE and not printedDone:
+                print "FAIL!!!"                                
+
+        if failedCreation or failedRepr:
+            failMsgs = []
+            if failedCreation:
+                failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
+            if failedRepr:
+                failMsgs.append('Following components un-repr-able:\n   ' + '\n   '.join(failedRepr))
+            self.fail('\n\n'.join(failMsgs))
+
     def test_componentIteration(self):
         failedCreation  = []
         failedIterations = []
