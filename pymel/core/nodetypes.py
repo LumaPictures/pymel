@@ -1180,13 +1180,15 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
     _ComponentLabel__ = ("u", "v", "uv")
     
     def __getitem__(self, item):
-        curDim = self.currentDimension()
-        if curDim is None:
+        if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component")
         else:
-            return self.__class__(self._node,
-                    ComponentIndex(self._partialIndex + (item,)))    
+            if isinstance(item, Slice) and item.step is None:
+                return NurbsSurfaceRange(self._node,
+                        ComponentIndex(self._partialIndex + (item,)))
+            else:
+                return super(NurbsSurfaceIsoparm, self).__getitem__(item)
 
 class NurbsSurfaceRange( Component2DFloat ):
     _ComponentLabel__ = ("u", "v", "uv")
