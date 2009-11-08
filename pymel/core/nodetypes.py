@@ -817,16 +817,17 @@ class DiscreteComponent( DimensionedComponent ):
         # ...so we assume that we're not losing any speed / memory
         # by iterating through a 'list of indices' stored in memory
         # in our case, this list of indices is the MFnComponent object
-        # itself, and is stored in maya's memory, but hte idea is the same... 
+        # itself, and is stored in maya's memory, but the idea is the same... 
+
+        # This code duplicates much of currentItem - should be consolidated at some point
+        # (or, better yet, currentItem eliminated..)
+
         dimensionIndicePtrs = []
         scriptUtil = api.MScriptUtil()
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
             dimensionIndicePtrs.append(scriptUtil.asIntPtr())
             
-        # for some reason, the command to get an element is 'element' for
-        # 1D components, and 'getElement' for 2D/3D... so parent class's
-        # _flatIter won't work!
         for flatIndex in xrange(len(self)):
             mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
             yield ComponentIndex(scriptUtil.getInt(x) for x in dimensionIndicePtrs)
@@ -847,8 +848,15 @@ class DiscreteComponent( DimensionedComponent ):
         return self._currentFlatIndex            
 
     def currentItem(self):
+        # This code duplicates much of _flatIter - should be consolidated at some point
+        dimensionIndicePtrs = []
+        scriptUtil = api.MScriptUtil()        
         mfncomp = self.__apicomponent__()
-        return self.__class__(self._node, mfncomp._getElement(self._currentFlatIndex))
+        for i in xrange(self.dimensions):
+            dimensionIndicePtrs.append(scriptUtil.asIntPtr())
+        curIndex = ComponentIndex(mfncomp.getElement(self._currentFlatIndex,
+                                                     *dimensionIndicePtrs))
+        return self.__class__(self._node, curIndex)
             
     def next(self):
         if self._stopIteration:
@@ -916,6 +924,10 @@ class Component1D( DiscreteComponent ):
         mfncomp = self.__apicomponent__()
         for flatIndex in xrange(len(self)):
             yield mfncomp.element(flatIndex)
+            
+    def currentItem(self):
+        mfncomp = self.__apicomponent__()
+        return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
             
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
@@ -1298,9 +1310,12 @@ class NurbsSurfaceCV( Component2D ):
 
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
-            return self.node().numVertices()
+            return self.node().numCVsInU()
         elif len(partialIndex) == 1:
-            return self.node().vtx[partialIndex[0]].numConnectedFaces()
+            return self.node().numCVsInU()
+        else:
+            raise ValueError('partialIndex %r too long for %s._dimLength' %
+                             (partialIndex, self.__class__.__name__))
         
 class NurbsSurfaceEP( Component2D ):
     _ComponentLabel__ = "ep"
@@ -4175,7 +4190,55 @@ class GeometryShape(DagNode):
             #print "getting super", attr
             return super(GeometryShape,self).__getattr__(attr)
             
-class DeformableShape(GeometryShape): pass
+class DeformableShape(GeometryShape):
+    @classmethod
+    def _numCVsFunc_generator(cls, formFunc, spansPlusDegreeFunc, spansFunc,
+                              name=None, doc=None):
+        """
+        Intended to be used by NurbsCurve / NurbsSurface to generate
+        functions which give the 'true' number of editable CVs,
+        as opposed to just numSpans + degree.
+        (The two values will differ if we have a periodic curve).
+        
+        Note that this will usually need to be called outside/after the
+        class definition, as formFunc/spansFunc/etc will not be defined
+        until then, as they are added by the metaclass.
+        """
+        def _numCvs_generatedFunc(self, editableOnly=True):
+            if editableOnly and formFunc(self) == self.Form.periodic:
+                return spansFunc(self)
+            else:
+                return spansPlusDegreeFunc(self)
+        if name:
+            _numCvs_generatedFunc.__name__ = name
+        if doc:
+            _numCvs_generatedFunc.__doc__ = doc
+        return _numCvs_generatedFunc
+    
+    @classmethod
+    def _numEPsFunc_generator(cls, formFunc, spansFunc,
+                              name=None, doc=None):
+        """
+        Intended to be used by NurbsCurve / NurbsSurface to generate
+        functions which give the 'true' number of editable EPs,
+        as opposed to just numSpans.
+        (The two values will differ if we have a periodic curve).
+        
+        Note that this will usually need to be called outside/after the
+        class definition, as formFunc/spansFunc will not be defined
+        until then, as they are added by the metaclass.
+        """
+        def _numEPs_generatedFunc(self, editableOnly=True):
+            if editableOnly and formFunc(self) == self.Form.periodic:
+                return spansFunc(self)
+            else:
+                return spansFunc(self) + 1
+        if name:
+            _numEPs_generatedFunc.__name__ = name
+        if doc:
+            _numEPs_generatedFunc.__doc__ = doc
+        return _numEPs_generatedFunc    
+        
 class ControlPoint(DeformableShape): pass
 class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
@@ -4186,7 +4249,85 @@ class NurbsCurve(CurveShape):
                             'ep'          : NurbsCurveEP,
                             'editPoints'  : NurbsCurveEP,
                             'knot'        : NurbsCurveKnot,    
-                            'knots'       : NurbsCurveKnot}    
+                            'knots'       : NurbsCurveKnot}
+
+
+NurbsCurve.numCVs = \
+    NurbsCurve._numCVsFunc_generator(NurbsCurve.form,
+                                     NurbsCurve._numCVs,
+                                     NurbsCurve.numSpans,
+                                     name='numCVs',
+                                     doc =
+        """
+        Returns the number of CVs.
+        
+        :Parameters:
+        editableOnly : `bool`
+            If editableOnly evaluates to True (default), then this will return
+            the number of cvs that can be actually edited (and also the highest
+            index that may be used for cv's - ie, if
+                myCurve.numCVs(editableOnly=True) == 4
+            then allowable cv indices go from
+                myCurve.cv[0] to mySurf.cv[3]
+            
+            If editablyOnly is False, then this will return the underlying
+            number of cvs used to define the mathematical curve -
+            degree + numSpans.
+            
+            These will only differ if the form is 'periodic', in which
+            case the editable number will be numSpans (as the last 'degree'
+            cv's are 'locked' to be the same as the first 'degree' cvs).
+            In all other cases, the number of cvs will be degree + numSpans.
+        
+        :Examples:
+            >>> # a periodic curve
+            >>> myCurve = PyNode(curve(name='periodicCurve', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] ))
+            >>> myCurve.cv
+            NurbsCurveCV(u'periodicCurveShape.cv[0:7]')
+            >>> myCurve.numCVs()
+            8
+            >>> myCurve.numCVs(editableOnly=False)
+            11
+
+            >>> # an open curve
+            >>> myCurve = PyNode(curve(name='openCurve', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] ))
+            >>> myCurve.cv
+            NurbsCurveCV(u'openCurveShape.cv[0:10]')
+            >>> myCurve.numCVs()
+            11
+            >>> myCurve.numCVs(editableOnly=False)
+            11
+
+        :rtype: `int`
+        """)
+
+NurbsCurve.numEPs = \
+    NurbsCurve._numEPsFunc_generator(NurbsCurve.form,
+                                       NurbsCurve.numSpans,
+                                       name='numEPs',
+                                       doc =
+        """
+        Returns the number of EPs.
+        
+        :Examples:
+            >>> # a periodic curve
+            >>> myCurve = PyNode(curve(name='periodicCurve', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] ))
+            >>> myCurve.ep
+            NurbsCurveEP(u'periodicCurveShape.ep[0:7]')
+            >>> myCurve.numEPs()
+            8
+
+            >>> # an open curve
+            >>> myCurve = PyNode(curve(name='openCurve', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] ))
+            >>> myCurve.ep
+            NurbsCurveEP(u'openCurveShape.ep[0:8]')
+            >>> myCurve.numEPs()
+            9
+
+        :rtype: `int`
+        """)
+
+
 
 class SurfaceShape(ControlPoint): pass
 
@@ -4205,8 +4346,12 @@ class NurbsSurface(SurfaceShape):
                             'knots'       : NurbsSurfaceKnot,
                             'sf'          : NurbsSurfaceFace,
                             'faces'       : NurbsSurfaceFace}
-    
-    def numCVsInU(self, editableOnly=True):
+NurbsSurface.numCVsInU = \
+    NurbsSurface._numCVsFunc_generator(NurbsSurface.formInU,
+                                       NurbsSurface._numCVsInU,
+                                       NurbsSurface.numSpansInU,
+                                       name='numCVsInU',
+                                       doc =
         """
         Returns the number of CVs in the U direction.
         
@@ -4217,24 +4362,45 @@ class NurbsSurface(SurfaceShape):
             index that may be used for u - ie, if
                 mySurf.numCVsInU(editableOnly=True) == 4
             then allowable u indices go from
-                mySurf.uv[0][*] to mySurf.uv[3][*]
+                mySurf.cv[0][*] to mySurf.cv[3][*]
             
             If editablyOnly is False, then this will return the underlying
             number of cvs used to define the mathematical curve in u -
             degreeU + numSpansInU.
             
             These will only differ if the form in u is 'periodic', in which
-            clase the editable number will be numSpansInU; in all other cases,
-            the number of cvs will be degreeU + numSpansInU.
-        
+            case the editable number will be numSpansInU (as the last 'degree'
+            cv's are 'locked' to be the same as the first 'degree' cvs).
+            In all other cases, the number of cvs will be degreeU + numSpansInU.
+                    
+        :Examples:
+            >>> # a periodic surface
+            >>> mySurf = PyNode(surface(name='periodicSurf', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.cv[*][0]
+            NurbsCurveCV(u'periodicSurfShape.cv[0:7][0]')
+            >>> mySurf.numCVsInU()
+            8
+            >>> mySurf.numCVsInU(editableOnly=False)
+            11
+
+            >>> # an open surface
+            >>> mySurf = PyNode(surface(name='openSurf', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=((4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)) ))
+            >>> mySurf.cv[*][0]
+            NurbsCurveCV(u'openSurfShape.cv[0:10][0]')
+            >>> mySurf.numCVsInU()
+            11
+            >>> mySurf.numCVsInU(editableOnly=False)
+            11        
+
         :rtype: `int`
-        """
-        if editableOnly and self.formInU() == self.Form.periodic:
-            return self.numSpansInU()
-        else:
-            return self._numCVsInU()
-        
-    def numCVsInV(self, editableOnly=True):
+        """)
+
+NurbsSurface.numCVsInV = \
+    NurbsSurface._numCVsFunc_generator(NurbsSurface.formInV,
+                                       NurbsSurface._numCVsInV,
+                                       NurbsSurface.numSpansInV,
+                                       name='numCVsInV',
+                                       doc =
         """
         Returns the number of CVs in the V direction.
         
@@ -4245,22 +4411,91 @@ class NurbsSurface(SurfaceShape):
             index that may be used for v - ie, if
                 mySurf.numCVsInV(editableOnly=True) == 4
             then allowable v indices go from
-                mySurf.uv[*][0] to mySurf.uv[*][3]
+                mySurf.cv[*][0] to mySurf.cv[*][3]
             
             If editablyOnly is False, then this will return the underlying
             number of cvs used to define the mathematical curve in v -
             degreeV + numSpansInV.
             
             These will only differ if the form in v is 'periodic', in which
-            clase the editable number will be numSpansInV; in all other cases,
-            the number of cvs will be degreeV + numSpansInV.
-        
+            case the editable number will be numSpansInV (as the last 'degree'
+            cv's are 'locked' to be the same as the first 'degree' cvs).
+            In all other cases, the number of cvs will be degreeV + numSpansInV.
+
+        :Examples:
+            >>> # a periodic surface
+            >>> mySurf = PyNode(surface(name='periodicSurf', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.cv[0][*]
+            NurbsCurveCV(u'periodicSurfShape.cv[0][0:7]')
+            >>> mySurf.numCVsInV()
+            8
+            >>> mySurf.numCVsInV(editableOnly=False)
+            11
+
+            >>> # an open surface
+            >>> mySurf = PyNode(surface(name='openSurf', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.cv[0][*]
+            NurbsCurveCV(u'openSurfShape.cv[0][0:10]')
+            >>> mySurf.numCVsInV()
+            11
+            >>> mySurf.numCVsInV(editableOnly=False)
+            11        
+            
         :rtype: `int`
+        """)
+
+NurbsSurface.numEPsInU = \
+    NurbsSurface._numEPsFunc_generator(NurbsSurface.formInU,
+                                       NurbsSurface.numSpansInU,
+                                       name='numEPsInU',
+                                       doc =
         """
-        if editableOnly and self.formInV() == self.Form.closed:
-            return self.numSpansInV()
-        else:
-            return self._numCVsInV()
+        Returns the number of EPs in the U direction.
+
+        :Examples:
+            >>> # a periodic surface
+            >>> mySurf = PyNode(surface(name='periodicSurf', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.ep[*][0]
+            NurbsCurveEP(u'periodicSurfShape.ep[0:7][0]')
+            >>> mySurf.numEPsInV()
+            8
+
+            >>> # an open surface
+            >>> mySurf = PyNode(surface(name='openSurf', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.ep[*][0]
+            NurbsCurveEP(u'openSurfShape.ep[0:8][0]')
+            >>> mySurf.numEPsInV()
+            9
+                    
+        :rtype: `int`
+        """)
+
+NurbsSurface.numEPsInV = \
+    NurbsSurface._numEPsFunc_generator(NurbsSurface.formInV,
+                                       NurbsSurface.numSpansInV,
+                                       name='numEPsInV',
+                                       doc =
+        """
+        Returns the number of EPs in the V direction.
+        
+        :Examples:
+            >>> # a periodic surface
+            >>> mySurf = PyNode(surface(name='periodicSurf', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.ep[0][*]
+            NurbsCurveEP(u'periodicSurfShape.ep[0][0:7]')
+            >>> mySurf.numEPsInV()
+            8
+
+            >>> # an open surface
+            >>> mySurf = PyNode(surface(name='openSurf', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] ))
+            >>> mySurf.ep[0][*]
+            NurbsCurveEP(u'openSurfShape.ep[0][0:8]')
+            >>> mySurf.numEPsInV()
+            9
+                    
+        :rtype: `int`
+        """)
+
 
 class Mesh(SurfaceShape):
     """
