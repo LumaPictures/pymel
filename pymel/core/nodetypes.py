@@ -1274,7 +1274,7 @@ class NurbsCurveEP( Component1D ):
     _apienum__ = api.MFn.kCurveEPComponent
 
     def _dimLength(self, partialIndex):
-        return self.node().numSpans()
+        return self.node().numEPs()
         
 class NurbsCurveKnot( Component1D ):
     _ComponentLabel__ = "knot"
@@ -1312,7 +1312,7 @@ class NurbsSurfaceCV( Component2D ):
         if len(partialIndex) == 0:
             return self.node().numCVsInU()
         elif len(partialIndex) == 1:
-            return self.node().numCVsInU()
+            return self.node().numCVsInV()
         else:
             raise ValueError('partialIndex %r too long for %s._dimLength' %
                              (partialIndex, self.__class__.__name__))
@@ -1320,11 +1320,29 @@ class NurbsSurfaceCV( Component2D ):
 class NurbsSurfaceEP( Component2D ):
     _ComponentLabel__ = "ep"
     _apienum__ = api.MFn.kSurfaceEPComponent
-    
+
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) == 0:
+            return self.node().numEPsInU()
+        elif len(partialIndex) == 1:
+            return self.node().numEPsInV()
+        else:
+            raise ValueError('partialIndex %r too long for %s._dimLength' %
+                             (partialIndex, self.__class__.__name__))
+            
 class NurbsSurfaceKnot( Component2D ):
     _ComponentLabel__ = "knot"
     _apienum__ = api.MFn.kSurfaceKnotComponent
 
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) == 0:
+            return self.node().numKnotsInU()
+        elif len(partialIndex) == 1:
+            return self.node().numKnotsInV()
+        else:
+            raise ValueError('partialIndex %r too long for %s._dimLength' %
+                             (partialIndex, self.__class__.__name__))
+            
 class NurbsSurfaceFace( Component2D ):
     _ComponentLabel__ = "sf"
     _apienum__ = api.MFn.kSurfaceFaceComponent
@@ -1343,7 +1361,12 @@ class NurbsSurfaceFace( Component2D ):
 class LatticePoint( Component3D ):
     _ComponentLabel__ = "pt"
     _apienum__ = api.MFn.kLatticeComponent
-        
+    
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) > 2:
+            raise ValueError('partialIndex %r too long for %s._dimLength' %
+                             (partialIndex, self.__class__.__name__))    
+        return self.node().getDivisions()[len(partialIndex)]
 
 class ComponentArray(object):
     def __init__(self, name):
