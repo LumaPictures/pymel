@@ -744,11 +744,92 @@ class DiscreteComponent( DimensionedComponent ):
                                   for x in indices])
         return indices
     
-    # Since retaining MIt**'s is now considered dangerous (see 
-    # MItComponent.__apimit__), we simply implement iteration by storing our
-    # own flat index
     def __iter__(self):
-        return self
+        # We proceed in two ways, depending on whether we're a
+        # completely-specified component (ie, no longer indexable),
+        # or partially-specified (ie, still indexable).
+        if self.currentDimension() is None:
+            # we're completely specified, do flat iteration
+            compIndexIter = self._flatIter()
+        else:
+            # we're incompletely specified, iterate across the dimensions!
+            compIndexIter = self._dimensionIter()
+        for compIndex in compIndexIter:
+            yield self.__class__(self._node, compIndex)
+
+    def _dimensionIter(self):
+        # If we're incompletely specified, then if, for instance, we're
+        # iterating through all the vertices of a poly with 500,000 verts,
+        # then it's a huge waste of time / space to create a list of
+        # 500,000 indices in memory, then iterate through it, when we could
+        # just as easily generate the indices as we go with an xrange
+        # Since an MFnComponent is essentially a flat list of such indices
+        # - only it's stored in maya's private memory space - we AVOID
+        # calling __apicomponent__ in this case!
+        minDimension = self.currentDimension()
+        
+        # tailIndices will hold the indices that, when appended
+        # to the _partialIndex, will form a complete index for the component.
+        # we will iterate through all possible tailIndex values.
+        tailIndices = []
+        # dimension maxes hold the current maximum values for each of the
+        # respective indices in tailIndices
+        # Not that these can change as we iterate through - ie, in the case
+        # of MeshVertexFace
+        dimMaxes = []
+
+        # initialize both..
+        for i in xrange(minDimension, self.dimensions):
+            dimMaxes.append(self._dimLength(self._partialIndex + tuple(tailIndices)))
+            tailIndices.append(0)
+        
+        while True:
+            # Note that we ALWAYS yield at least 1 element
+            # since this iterator is only called if at least one
+            # dimension is free, this should be a safe assumption!
+            yield self._partialIndex + tuple(tailIndices)
+            # want to go from last index to minDimension...
+            for dimIncrementing in xrange(self.dimensions -1,
+                                          minDimensions -1, -1):
+                tailIndices[dimIncrementing] += 1
+                if tailIndices[dimIncrementing] < dimMaxes[dimIncrementing] - 1:
+                    # we haven't overflowed this index, we're done
+                    # incrementing
+                    break
+                # We overflowed that index, set it to zero, re-calc our maxes,
+                # and continue on by indexing the next higher dimension!
+                tailIndices[dimIncrementing] = 0
+            else:
+                # If we overflowed all available indices, we're done!
+                break
+            # If we increased something other than just the last element,
+            # we need to recalc our maxes...
+            if dimIncrementing != self.dimensions - 1:
+                for recalcDim in xrange(1, self.dimensions - dimIncrementing):
+                    dimMaxes[recalcDim] = \
+                        self._dimLength(self._partialIndex + tuple(tailIndices[:recalcDim]))
+        
+    def _flatIter(self):
+        #If we're completely specified, we assume that we NEED
+        # to have some sort of list of indicies just in order to know
+        # what this component obejct holds (ie, we might have
+        # [1][4], [3][80], [3][100], [4][10], etc)
+        # ...so we assume that we're not losing any speed / memory
+        # by iterating through a 'list of indices' stored in memory
+        # in our case, this list of indices is the MFnComponent object
+        # itself, and is stored in maya's memory, but hte idea is the same... 
+        dimensionIndicePtrs = []
+        scriptUtil = api.MScriptUtil()
+        mfncomp = self.__apicomponent__()
+        for i in xrange(self.dimensions):
+            dimensionIndicePtrs.append(scriptUtil.asIntPtr())
+            
+        # for some reason, the command to get an element is 'element' for
+        # 1D components, and 'getElement' for 2D/3D... so parent class's
+        # _flatIter won't work!
+        for flatIndex in xrange(len(self)):
+            mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
+            yield ComponentIndex(scriptUtil.getInt(x) for x in dimensionIndicePtrs)
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
@@ -767,7 +848,7 @@ class DiscreteComponent( DimensionedComponent ):
 
     def currentItem(self):
         mfncomp = self.__apicomponent__()
-        return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
+        return self.__class__(self._node, mfncomp._getElement(self._currentFlatIndex))
             
     def next(self):
         if self._stopIteration:
@@ -826,7 +907,15 @@ class Component1D( DiscreteComponent ):
             compSlice = _sequenceToComponentSlice( indices )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
-                
+
+    def _flatIter(self):
+        # for some reason, the command to get an element is 'element' for
+        # 1D components, and 'getElement' for 2D/3D... so parent class's
+        # _flatIter won't work!
+        # Just as well, we get a more efficient iterator for 1D comps...
+        mfncomp = self.__apicomponent__()
+        for flatIndex in xrange(len(self)):
+            yield mfncomp.element(flatIndex)
             
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
@@ -1165,13 +1254,22 @@ class NurbsCurveCV( MItComponent1D ):
     _ComponentLabel__ = "cv"
     _apienum__ = api.MFn.kCurveCVComponent
     
+    def _dimLength(self, partialIndex):
+        return self.node().numCVs()
+    
 class NurbsCurveEP( Component1D ):
     _ComponentLabel__ = "ep"
     _apienum__ = api.MFn.kCurveEPComponent
-    
+
+    def _dimLength(self, partialIndex):
+        return self.node().numSpans()
+        
 class NurbsCurveKnot( Component1D ):
     _ComponentLabel__ = "knot"
     _apienum__ = api.MFn.kCurveKnotComponent
+
+    def _dimLength(self, partialIndex):
+        return self.node().numKnots()
     
 ## NurbsSurface Components
 
