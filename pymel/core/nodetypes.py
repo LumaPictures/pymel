@@ -1295,7 +1295,13 @@ class NurbsSurfaceRange( Component2DFloat ):
 class NurbsSurfaceCV( Component2D ):
     _ComponentLabel__ = "cv"
     _apienum__ = api.MFn.kSurfaceCVComponent
-    
+
+    def _dimLength(self, partialIndex):
+        if len(partialIndex) == 0:
+            return self.node().numVertices()
+        elif len(partialIndex) == 1:
+            return self.node().vtx[partialIndex[0]].numConnectedFaces()
+        
 class NurbsSurfaceEP( Component2D ):
     _ComponentLabel__ = "ep"
     _apienum__ = api.MFn.kSurfaceEPComponent
@@ -3077,11 +3083,17 @@ class DagNode(Entity):
                 return compClass[0](self, {compClass[1]:ComponentIndex()})
             else:
                 return compClass(self)
-        else:
+        # if we do self.getShape(), and this is a shape node, we will
+        # enter a recursive loop if compName isn't actually a comp:
+        # since shape doesn't have 'getShape', it will call __getattr__
+        # for 'getShape', which in turn call comp to check if it's a comp,
+        # which will call __getattr__, etc
+        # ..soo... check if we have a 'getShape'!
+        elif hasattr(self, 'getShape'):
             shape = self.getShape()
             if shape:
                 return shape.comp(compName)
-            raise general.MayaComponentError( '%s.%s' % (self, compName) )
+        raise general.MayaComponentError( '%s.%s' % (self, compName) )
                 
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
@@ -4193,6 +4205,62 @@ class NurbsSurface(SurfaceShape):
                             'knots'       : NurbsSurfaceKnot,
                             'sf'          : NurbsSurfaceFace,
                             'faces'       : NurbsSurfaceFace}
+    
+    def numCVsInU(self, editableOnly=True):
+        """
+        Returns the number of CVs in the U direction.
+        
+        :Parameters:
+        editableOnly : `bool`
+            If editableOnly evaluates to True (default), then this will return
+            the number of cvs that can be actually edited (and also the highest
+            index that may be used for u - ie, if
+                mySurf.numCVsInU(editableOnly=True) == 4
+            then allowable u indices go from
+                mySurf.uv[0][*] to mySurf.uv[3][*]
+            
+            If editablyOnly is False, then this will return the underlying
+            number of cvs used to define the mathematical curve in u -
+            degreeU + numSpansInU.
+            
+            These will only differ if the form in u is 'periodic', in which
+            clase the editable number will be numSpansInU; in all other cases,
+            the number of cvs will be degreeU + numSpansInU.
+        
+        :rtype: `int`
+        """
+        if editableOnly and self.formInU() == self.Form.periodic:
+            return self.numSpansInU()
+        else:
+            return self._numCVsInU()
+        
+    def numCVsInV(self, editableOnly=True):
+        """
+        Returns the number of CVs in the V direction.
+        
+        :Parameters:
+        editableOnly : `bool`
+            If editableOnly evaluates to True (default), then this will return
+            the number of cvs that can be actually edited (and also the highest
+            index that may be used for v - ie, if
+                mySurf.numCVsInV(editableOnly=True) == 4
+            then allowable v indices go from
+                mySurf.uv[*][0] to mySurf.uv[*][3]
+            
+            If editablyOnly is False, then this will return the underlying
+            number of cvs used to define the mathematical curve in v -
+            degreeV + numSpansInV.
+            
+            These will only differ if the form in v is 'periodic', in which
+            clase the editable number will be numSpansInV; in all other cases,
+            the number of cvs will be degreeV + numSpansInV.
+        
+        :rtype: `int`
+        """
+        if editableOnly and self.formInV() == self.Form.closed:
+            return self.numSpansInV()
+        else:
+            return self._numCVsInV()
 
 class Mesh(SurfaceShape):
     """
