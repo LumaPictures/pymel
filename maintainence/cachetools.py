@@ -1,6 +1,5 @@
-from pymel.all import *
-import cPickle as pickle
-
+#from pymel.core import factories
+from pymel import mayahook
         
 def separateExampleCache():
     examples = {}
@@ -20,17 +19,24 @@ def separateExampleCache():
                           factories.uiClassList,
                           factories.nodeCommandList,
                           factories.moduleCmds), 
-                          'mayaCmdsList', 'the list of Maya commands' )
+                          'mayaCmdsList', 'the list of Maya commands', compressed=False )
     
     mayahook.writeCache( examples, 
-                          'mayaCmdsExamples', 'the list of Maya command examples' )
+                          'mayaCmdsExamples', 'the list of Maya command examples',compressed=False )
 
-def separateCmdDocCache():
-    data = list(mayahook.loadCache('mayaCmdsList'))
+def upgradeCaches():
+    data = list(mayahook.loadCache('mayaCmdsList',compressed=False))
     cmdlist = data[0]
-    newCmdList = {}
+    nodeHierarchy = data[1]
+    cmdDocList = {}
+    examples = {}
     succ = fail = 0
     for cmdName, cmdInfo in cmdlist.iteritems():
+        try:
+            examples[cmdName] = cmdInfo.pop('example')
+        except KeyError:
+            pass
+        
         newCmdInfo = {}
         if 'description' in cmdInfo:
             newCmdInfo['description'] = cmdInfo.pop('description')
@@ -39,21 +45,41 @@ def separateCmdDocCache():
             for flag, flagInfo in cmdInfo['flags'].iteritems():
                 newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
             newCmdInfo['flags'] = newFlagInfo
+        
         if newCmdInfo:
-            newCmdList[cmdName] = newCmdInfo
-            succ += 1
-    print "succeeded", succ
-    print "failed   ", fail
+            cmdDocList[cmdName] = newCmdInfo
+            
+        if 'shortFlags' in cmdInfo:
+            d = {}
+            #print cmdName
+            for flag, flagInfo in cmdInfo['shortFlags'].iteritems():
+                if isinstance(flagInfo, dict):
+                    d[flag] = flagInfo['longname']
+                elif isinstance(flagInfo, basestring):
+                    d[flag] = flagInfo
+                else:
+                    raise TypeError
+            cmdInfo['shortFlags'] = d
 
-    data[0] = newCmdList
+    hierarchy = [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
+                   for x in nodeHierarchy.preorder() ]
+    
+    data[0] = cmdlist
+    data[1] = hierarchy
     
     mayahook.writeCache( tuple(data), 
-                          'mayaCmdsList', 'the list of Maya commands' )
+                          'mayaCmdsList', 'the list of Maya commands',compressed=True )
     
-    mayahook.writeCache( newCmdList, 
-                          'mayaCmdsDocs', 'the Maya command documentation' )
+    mayahook.writeCache( cmdDocList, 
+                          'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
 
-    
+    mayahook.writeCache( examples, 
+                          'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
+
+#    for cache, useVersion in [ ('mayaApiMelBridge',False), ('mayaApi',True) ]:
+#        data = mayahook.loadCache(cache, useVersion=useVersion, compressed=False)
+#        mayahook.writeCache(data, cache, useVersion=useVersion, compressed=True)
+        
 def addCallbackFlags():
     succ = 0
     for cmdName, cmdInfo in factories.cmdlist.iteritems():
