@@ -560,18 +560,18 @@ class LazyDocString(types.StringType):
     >>> class TestMetaClass(type): pass
     >>>         
     >>> class TestClass(object):
-    >>>     __metaclass__ = TestMetaClass
+    ...     __metaclass__ = TestMetaClass
+    ... 
+    ...     def aMethod(self):
+    ...         pass
+    ... 
+    ...     aMethod.__doc__ = LazyDocString( (aMethod, getDocStringFromDict, (aMethod,)) )
     >>> 
-    >>>     def aMethod(self):
-    >>>         pass
-    >>> 
-    >>>     aMethod.__doc__ = LazyDocString( (aMethod, getDocStringFromDict) )
-    >>> 
-    >>> TestClass.__doc__ = LazyDocString( (TestClass, getDocStringFromDict) )
+    >>> TestClass.__doc__ = LazyDocString( (TestClass, getDocStringFromDict, (TestClass,)) )
     >>> 
     >>> 
     >>> docStringDict = {TestClass:'New Docs for PynodeClass!',
-    >>>                  TestClass.aMethod.im_func:'Method docs!'}
+    ...                  TestClass.aMethod.im_func:'Method docs!'}
     >>> 
     >>> TestClass.__doc__
     'New Docs for PynodeClass!'
@@ -618,7 +618,7 @@ class LazyDocString(types.StringType):
         self.kwargs = kwargs
     
     def __str__(self):
-        print "creating docstrings", self.docGetter, self.args, self.kwargs
+        #print "creating docstrings", self.docGetter, self.args, self.kwargs
         self.documentedObj.__doc__ = self.docGetter(*self.args, **self.kwargs)
         return self.documentedObj.__doc__
     def __repr__(self):
@@ -627,9 +627,12 @@ class LazyDocString(types.StringType):
 for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
     if _name.startswith('_'):
         continue
-    def LazyDocStringMethodWrapper(self, *args, **kwargs):
-        return getattr(str(self), _name)(*args, **kwargs)
-    setattr(LazyDocString, _name, LazyDocStringMethodWrapper)
+    
+    def makeMethod(name):
+        def LazyDocStringMethodWrapper(self, *args, **kwargs):
+            return getattr(str(self), name)(*args, **kwargs)
+        return LazyDocStringMethodWrapper
+    setattr(LazyDocString, _name, makeMethod(_name) )
    
 def addLazyDocString( object, creator, *creatorArgs, **creatorKwargs):
     """helper for LazyDocString.  Equivalent to :
