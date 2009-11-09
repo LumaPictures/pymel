@@ -972,7 +972,19 @@ class testCase_0_7_compatabilityMode(unittest.TestCase):
         # Will raise an error if not in 0_7_compatability_mode
         PyNode('I_Dont_Exist_3142341324')
         
-    
+
+class testCase_apiArgConversion(unittest.TestCase):
+    def test_unsignedIntRef_out_args(self):
+        # the MFnFluid.getResolution uses
+        # multiple unsigned int & 'out' arguments ... make sure
+        # that we can call them / they were translated correctly!
+        res = (3,3,3)
+        fluid = shadingNode('fluidShape', asShader=True)
+        fluid.resolutionW.set(res[0])
+        fluid.resolutionH.set(res[1])
+        fluid.resolutionD.set(res[2])
+        self.assertEqual(fluid.getResolution(), res)
+        
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
