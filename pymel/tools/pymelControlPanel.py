@@ -231,7 +231,7 @@ class PymelControlPanel(object):
                     count+=1
                         #frame.setVisible(False)
                     #if i != len(mro)-1:
-                    #    frame.setCollapse(True)  
+                    #    frame.setCollapse(True)
                 else:
                     logger.debug( "skipping %s", clsName )
         self.apiMethodCol.setSelectTabIndex(count)
@@ -275,7 +275,6 @@ class ClassFrame(object):
         invertibles = api.apiClassInfo[self.apiClassName]['invertibles']
         usedMethods = []
         
-        
         pairedCol = columnLayout(visible=False )
         tab.setTabLabel( [pairedCol, 'Paired'] )
         for setMethod, getMethod in invertibles:
@@ -297,9 +296,16 @@ class ClassFrame(object):
         setParent(tab) # column
         unpairedCol = columnLayout(visible=False )
         tab.setTabLabel( [unpairedCol, 'Unpaired'] )
+        # For some reason, on linux, the unpairedCol height is wrong...
+        # track + set it ourselves
+        unpairedHeight = 10 # a little extra buffer...
+        rowSpace = unpairedCol.getRowSpacing()
         for methodName in sorted( self.classInfo.keys() ):
-            if methodName not in usedMethods: 
+            setParent(unpairedCol)
+            if methodName not in usedMethods:
                 count += self.rows[methodName].buildUI(filter)
+                unpairedHeight += self.rows[methodName].frame.getHeight() + rowSpace
+        unpairedCol.setHeight(unpairedHeight)
         
         #self.form.attachForm( self.frame, 'left', 2)
         #self.form.attachForm( self.frame, 'right', 2)
