@@ -4,5 +4,5 @@
 
 #import doctest
 import sys, os.path
-thisDir = os.path.dirname(os.path.join(sys.path[0], sys.argv[0]))
+thisDir = os.path.dirname(os.path.join(sys.path[0], os.path.basename(sys.argv[0])))
 execfile(os.path.join(thisDir, 'pymel_test.py'))
