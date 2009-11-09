@@ -1,4 +1,4 @@
-from pymel import *
+from pymel.all import *
 
 """
 work in progress:

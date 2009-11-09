@@ -80,7 +80,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
     For python iterables, the first element in the array is used to determine the type. for empty lists, 'string[]' is
     returned.
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> getMelType( 1 )
         'int'
         >>> p = SCENE.persp
@@ -394,7 +394,7 @@ class OptionVarDict(object):
     """ 
     A singleton dictionary-like class for accessing and modifying optionVars.
      
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> optionVar['test'] = 'dooder'
         >>> optionVar['test'] 
         u'dooder'
@@ -564,7 +564,7 @@ class Mel(object):
         >>> mel.eval( 'myScript("firstArg", {1.0, 2.0, 3.0})')
             
     pymel:
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> # create the proc
         >>> mel.eval( 'global proc myScript( string $stringArg, float $floatArray[] ){}')
         >>> # run the script
@@ -580,7 +580,7 @@ class Mel(object):
         >>> mel.eval('myScript("%s",{%f,%f,%f})' % (cmds.nodeType(node), color[0], color[1], color[2])   ) 
             
     pymel:
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> node = PyNode("lambert1")
         >>> mel.myScript( node.type(), node.color.get() )
     

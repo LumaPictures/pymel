@@ -1571,7 +1571,7 @@ class Attribute(general.PyNode):
     `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
     Here's a simple example showing how the Attribute class is used in context.
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> cam = general.PyNode('persp')
         >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
         ...     cam.visibility.set( True )
@@ -1774,7 +1774,7 @@ class Attribute(general.PyNode):
         """
         iterator for multi-attributes
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> f=newFile(f=1) #start clean
             >>> 
             >>> at = general.PyNode( 'defaultLightSet.dagSetMembers' )
@@ -1920,7 +1920,7 @@ class Attribute(general.PyNode):
                 
     def plugAttr(self, longName=False, fullPath=False):
         """
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.plugAttr(longName=False, fullPath=False)
             u'tx'
@@ -1938,7 +1938,7 @@ class Attribute(general.PyNode):
     
     def lastPlugAttr(self, longName=False):
         """
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.lastPlugAttr(longName=False)
             u'tx'
@@ -1954,7 +1954,7 @@ class Attribute(general.PyNode):
     
     def longName(self, fullPath=False ):
         """
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.longName(fullPath=False)
             u'translateX'
@@ -1969,7 +1969,7 @@ class Attribute(general.PyNode):
         
     def shortName(self, fullPath=False):
         """
-            >>> from pymel import *  
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.shortName(fullPath=False)
             u'tx'
@@ -2063,7 +2063,7 @@ class Attribute(general.PyNode):
         Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> f=newFile(f=1) #start clean
             >>> 
             >>> dls = SCENE.defaultLightSet
@@ -2100,7 +2100,7 @@ class Attribute(general.PyNode):
         Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> f=newFile(f=1) #start clean
             >>>
             >>> dls = SCENE.defaultLightSet
@@ -2195,7 +2195,7 @@ class Attribute(general.PyNode):
         """
         operator for 'connectAttr'
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
@@ -2207,7 +2207,7 @@ class Attribute(general.PyNode):
         """
         operator for 'disconnectAttr'
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
@@ -2475,7 +2475,7 @@ class Attribute(general.PyNode):
         """provide a min and max value as a two-element tuple or list, or as two arguments to the
         method. To remove a limit, provide a None value.  for example:
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> s = polyCube()[0]
             >>> s.addAttr( 'new' )
             >>> s.new.setRange( -2, None ) #sets just the min to -2 and removes the max limit
@@ -3074,7 +3074,7 @@ class DependNode( general.PyNode ):
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
         the name will be returned unchanged.
         
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> SCENE.lambert1.stripNum()
         u'lambert'
         
@@ -3086,7 +3086,7 @@ class DependNode( general.PyNode ):
         """Return the trailing numbers of the node name. If no trailing numbers are found
         an error will be raised.
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> SCENE.lambert1.extractNum()
         u'1'
         
@@ -3108,7 +3108,7 @@ class DependNode( general.PyNode ):
 
         Raises an error if the name has no trailing number.
         
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> SCENE.lambert1.nextName()
         DependNodeName('lambert2')
         
@@ -3377,7 +3377,7 @@ class DagNode(Entity):
         """
         :rtype: `DagNode` list
         
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
         >>>
         >>> s = polyPlane()[0]
@@ -3450,7 +3450,7 @@ class DagNode(Entity):
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
-                  >>> from pymel import *
+                  >>> from pymel.all import *
                   >>> select(cl=1)
                   >>> bottom = group(n='bottom')
                   >>> group(n='almostThere')
@@ -3549,7 +3549,7 @@ class DagNode(Entity):
         operator for `addChild`. Use to easily daisy-chain together parenting operations.
         The operation order visually mimics the resulting dag path:
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> s = polySphere(name='sphere')[0]
             >>> c = polyCube(name='cube')[0]
             >>> t = polyTorus(name='torus')[0]
@@ -4283,7 +4283,7 @@ class Mesh(SurfaceShape):
     The component types can be accessed from the `Mesh` type (or it's transform) using the names you are
     familiar with from MEL:
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> p = polySphere( name='theMoon', sa=7, sh=7 )[0]
         >>> p.vtx
         MeshVertex(u'theMoonShape.vtx[0:43]')
@@ -4365,7 +4365,7 @@ class Mesh(SurfaceShape):
         theMoonShape.f[7]
         theMoonShape.f[8]
 
-    >>> from pymel import *
+    >>> from pymel.all import *
     >>> obj = polyTorus()[0]
     >>> colors = []
     >>> for i, vtx in enumerate(obj.vtx):
@@ -4736,7 +4736,7 @@ class ObjectSet(Entity):
     
     create some sets:
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
         >>> 
         >>> s = sets()  # create an empty set

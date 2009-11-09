@@ -110,7 +110,7 @@ def _getPymelType(arg, name) :
         obj = arg
         results['MPlug'] = obj
         if api.isValidMPlug(arg):
-            pymelType = Attribute
+            pymelType = nodetypes.Attribute
         else :
             raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
 
@@ -1025,7 +1025,7 @@ def sets( *args, **kwargs):
 Modifications
     - resolved confusing syntax: operating set is always the first and only arg:
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
         >>> 
         >>> shdr, sg = createSurfaceShader( 'blinn' )

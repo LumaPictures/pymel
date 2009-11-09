@@ -37,6 +37,7 @@ will automatically be reflected in your python object.
 Below, we make a camera, rename it, and then group and instance it, to demonstrate how the name changes are constantly reflected. Keep in mind
 that the changes could have just as easily been performed by the user interacting with objects through the GUI.
 
+    >>> from pymel.all import *
     >>> cam, shape = camera()
     >>> print cam
     camera1
@@ -382,13 +383,13 @@ file, place it in your Maya scipts directory and add this line:
 
 .. python::
 
-    python("from pymel import *");
+    python("from pymel.all import *");
 
 Alternately, you can create a userSetup.py file and add the line:
 
 .. python::
 
-    from pymel import *
+    from pymel.all import *
 
 ---------------------------------------
 Script Editor
@@ -590,7 +591,7 @@ Getting Started
 
 To get started we need to import pymel.
 
-    >>> from pymel import *
+    >>> from pymel.all import *
     
 This brings everything in pymel into the main namespace, meaning that you won't have to prefix the maya commands with the
 module name.  For more information on the pros and cons of this see `Module Namespaces`_.
@@ -831,7 +832,7 @@ of string comparisons are over.
 But since PyMEL uses the underlying API objects, these operations are simple
 and API-fast.
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> # Make two instanced spheres in different groups
         >>> sphere1, hist = polySphere(name='mySphere')
         >>> grp = group(sphere1)
@@ -1404,7 +1405,7 @@ to be safe to import into the root namespace so that scripts can be written much
 a python novice, you might want to keep pymel in its own namespace, because, unlike in mel, in python you can "overwrite" functions
 if you are not careful:
 
-    >>> from pymel import *
+    >>> from pymel.all import *
     >>> s = sphere() # create a nurbsSphere
     >>> sphere = 'mySphere'  # oops, we've overwritten the sphere command with a string
     >>> sphere()

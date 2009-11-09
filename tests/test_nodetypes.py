@@ -2,7 +2,7 @@ import unittest
 import itertools
 import re
 
-from pymel.pm import *
+from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.core.factories import ApiEnumsToPyComponents
 import pymel.mayahook as mayahook

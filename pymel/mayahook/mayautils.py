@@ -632,7 +632,7 @@ def executeDeferred(func):
     
     Example userSetup.py file::
     
-        from pymel import *
+        from pymel.all import *
         def delayedStartup():
            print "executing a command"
            pymel.about(apiVersion=1)

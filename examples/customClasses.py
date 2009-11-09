@@ -22,7 +22,7 @@ every time a node of its parent type is returned as a PyMEL node class, so be su
 
 """
 
-from pymel import *
+from pymel.all import *
     
 #-------------------------------------------------------------------------------
 

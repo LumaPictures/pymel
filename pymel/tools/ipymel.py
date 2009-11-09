@@ -470,7 +470,7 @@ def setup():
     ip.set_hook('complete_command', open_completer , str_key = "openf" )
     
     ip.ex("import pymel")  # it's useful to have pymel in both namespaces, for relaoding purposes
-    ip.ex("from pymel.pm import *")
+    ip.ex("from pymel.all import *")
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
     

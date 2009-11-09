@@ -1,7 +1,7 @@
 #! /usr/autodesk/maya2008-x64/bin/mayapy
 
 import sys, os, inspect, unittest
-from pymel.pm import *
+from pymel.all import *
 
 class test_PMTypes(unittest.TestCase):
 

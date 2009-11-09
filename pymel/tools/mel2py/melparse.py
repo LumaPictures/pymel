@@ -24,7 +24,7 @@ import pymel.core.factories as factories
 import melscan
 
 try:
-    from pymel import *
+    from pymel.all import *
 except ImportError:
     print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
 
@@ -2617,11 +2617,11 @@ class MelParser(object):
             
             if self.add_pymel_import:
                 if not self.lexer.pymel_namespace:
-                    header += 'from pymel import *\n'
+                    header += 'from pymel.all import *\n'
                 elif self.lexer.pymel_namespace == 'pymel.':
-                    header += 'import pymel\n'
+                    header += 'import pymel.all as pymel\n'
                 else:
-                    header += 'import pymel as %s\n' % self.lexer.pymel_namespace[:-1]
+                    header += 'import pymel.all as %s\n' % self.lexer.pymel_namespace[:-1]
                 self.add_pymel_import = False
                 
             if len( new_modules ):

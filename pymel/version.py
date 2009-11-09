@@ -2,9 +2,10 @@
 Contains functions for easily comparing versions of Maya with the current running version.
 Class for storing apiVersions, which are the best method for comparing versions. ::
 
-    >>> if version.CURRENT >= Version.V8_5_SP1:
-    ...     print "The current version is later than Maya 8.5 Service Pack 1"
-    The current version is later than Maya 8.5 Service Pack 1
+    >>> from pymel import version
+    >>> if version.CURRENT >= version.M2008:
+    ...     print "The current version is later than Maya 2008"
+    The current version is later than Maya 2008
 """
 
 import re
@@ -25,7 +26,7 @@ def _getApiVersion():
 
 def parseVersionStr(versionStr, extension=False):
     """
-    >>> from pymel import *
+    >>> from pymel.all import *
     >>> version.parseVersionStr('2008 Service Pack1 x64')
     '2008'
     >>> version.parseVersionStr('2008 Service Pack1 x64', extension=True)

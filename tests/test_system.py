@@ -1,5 +1,5 @@
 import unittest, tempfile
-from pymel.pm import *
+from pymel.all import *
 
 class testCase_references(unittest.TestCase):
 

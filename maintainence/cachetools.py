@@ -1,4 +1,4 @@
-from pymel.pm import *
+from pymel.all import *
 import cPickle as pickle
 
         

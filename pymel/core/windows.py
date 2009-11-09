@@ -15,7 +15,7 @@ pymel adds more readability to UI building while also maintaining backward compa
 The ui commands return these PyUI objects, and these have all of the various methods to get and set properties
 on the ui element::
 
-    from pymel import *
+    from pymel.all import *
     win = window(title="My Window")
     layout = columnLayout()
     chkBox = checkBox(label = "My Checkbox", value=True, parent=layout)
@@ -45,7 +45,7 @@ Function Name as String
 The simplest method of setting up a callback is to pass the name of the callback function as a string. Maya will try to execute 
 this as a python function. Here's a simple example::
 
-    from pymel import *
+    from pymel.all import *
 
     def buttonPressed(arg):
         print "pressed!"
@@ -90,7 +90,7 @@ Function Object
 When using this method, you pass an actual function object (without the parentheses). The callback function
 has to be defined before it is passed to the command flag::
 
-    from pymel import *
+    from pymel.all import *
     
     def buttonPressed(arg):
         print "pressed!"
@@ -141,7 +141,7 @@ Lambda Functions
 Combining lambda functions with the lessons we learned above adds more versatility to command callbacks.  You can choose 
 exactly which args you want to pass along::
 
-    from pymel import *
+    from pymel.all import *
     
     def buttonPressed(name):
         print "pressed %s!" % name
@@ -175,7 +175,7 @@ does the real work so that we can control what arguments will be passed to it.
 This method, too, has a drawback. It fails when used in a 'for' loop. In the following example, we're going to make several buttons.
 Our intention is that each one will print a different name, but as you will soon see, we won't succeed::
 
-    from pymel import *
+    from pymel.all import *
     
     def buttonPressed(name):
         print "pressed %s!" % name
@@ -208,7 +208,7 @@ A `Callback` object is an object that behaves like a function, meaning it can be
 The Callback object 'wraps' another function, and also stores the parameters to pass to that function.
 Here's an example::
 
-    from pymel import *
+    from pymel.all import *
     
     def buttonPressed(name):
         print "pressed %s!" % name

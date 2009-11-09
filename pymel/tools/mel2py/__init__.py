@@ -308,7 +308,7 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
     
         >>> import pymel.tools.mel2py as mel2py
         >>> print mel2py.mel2pyStr('paneLayout -e -configuration "top3" test;')
-        from pymel import *
+        from pymel.all import *
         paneLayout('test',configuration="top3",e=1)
         <BLANKLINE>
         
@@ -324,7 +324,7 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
             leave it at its default, the __main__ namespace.
             
         pymelNamespace : str
-            the namespace into which pymel will be imported.  the default is '', which means ``from pymel import *``
+            the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
             
         forceCompatibility : bool
             If True, the translator will attempt to use non-standard python types in order to produce
@@ -360,7 +360,7 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
             Directory where resulting python files will be written to
 
         pymelNamespace : str
-            the namespace into which pymel will be imported.  the default is '', which means ``from pymel import *``
+            the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
             
         forceCompatibility : bool
             If True, the translator will attempt to use non-standard python types in order to produce
