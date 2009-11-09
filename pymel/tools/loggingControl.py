@@ -1,4 +1,4 @@
-import pymel 
+import pymel.all as pymel
 import logging, logging.handlers
 import sys
 logger = logging.getLogger(__name__)

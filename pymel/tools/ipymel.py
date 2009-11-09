@@ -42,7 +42,7 @@ delim = delim.replace(':', '') # remove colon
 readline.set_completer_delims(delim)
 
 import inspect, re, glob,os,shlex,sys
-import pymel
+from pymel import core
 
 import IPython.Extensions.ipy_completers
 
@@ -53,7 +53,7 @@ def finalPipe(obj):
     completion of directories, which always places a final slash (/) after a directory.
     """
     
-    if pymel.cmds.listRelatives( obj ):
+    if core.cmds.listRelatives( obj ):
         return obj + "|" 
     return obj
 
@@ -76,7 +76,7 @@ def expand( obj ):
     return (obj + '*', obj + '*:*', obj + '*:*:*')
 
 def complete_node_with_no_path( node ):
-    tmpres = pymel.cmds.ls( expand(node) )
+    tmpres = core.cmds.ls( expand(node) )
     #print "node_with_no_path", tmpres, node, expand(node)
     res = []
     for x in tmpres:
@@ -89,8 +89,8 @@ def complete_node_with_no_path( node ):
 
 def complete_node_with_attr( node, attr ):
     #print "noe_with_attr", node, attr
-    long_attrs = pymel.cmds.listAttr( node )
-    short_attrs = pymel.cmds.listAttr( node , shortNames=1)
+    long_attrs = core.cmds.listAttr( node )
+    short_attrs = core.cmds.listAttr( node , shortNames=1)
     # if node is a plug  ( 'persp.t' ), the first result will be the passed plug
     if '.' in node:
         attrs = long_attrs[1:] + short_attrs[1:]
@@ -105,9 +105,9 @@ def pymel_name_completer(self, event):
         #print "getting children", repr(path), repr(partialObj)
         
         try:
-            fullpath = pymel.cmds.ls( path, l=1 )[0]
+            fullpath = core.cmds.ls( path, l=1 )[0]
             if not fullpath: return []
-            children = pymel.cmds.listRelatives( fullpath , f=1, c=1)
+            children = core.cmds.listRelatives( fullpath , f=1, c=1)
             if not children: return []
         except:
             return []
@@ -132,7 +132,7 @@ def pymel_name_completer(self, event):
     if m:
         node, attr = m.groups()
         if node == 'SCENE':
-            res = pymel.cmds.ls( attr + '*' )
+            res = core.cmds.ls( attr + '*' )
             if res:
                 matches = ['SCENE.' + x for x in res if '|' not in x ]
         elif node.startswith('SCENE.'):
@@ -152,7 +152,7 @@ def pymel_name_completer(self, event):
             kwargs = {}
             if line.startswith('|'):
                 kwargs['l'] = True
-            matches = pymel.cmds.ls( expand(line), **kwargs )
+            matches = core.cmds.ls( expand(line), **kwargs )
         
         # we have a full node, get it's children
         else:
@@ -192,11 +192,11 @@ def pymel_python_completer(self,event):
         except:
             raise IPython.ipapi.TryNext 
         
-    if isinstance(obj, (pymel.DependNode, pymel.Attribute) ):
+    if isinstance(obj, (core.DependNode, core.Attribute) ):
         
         node = unicode(obj)
-        long_attrs = pymel.cmds.listAttr( node )
-        short_attrs = pymel.cmds.listAttr( node , shortNames=1)
+        long_attrs = core.cmds.listAttr( node )
+        short_attrs = core.cmds.listAttr( node , shortNames=1)
         
         matches = self.Completer.python_matches(text)
         
@@ -211,13 +211,13 @@ def pymel_python_completer(self,event):
 
 def buildRecentFileMenu():
 
-    if "RecentFilesList" not in pymel.optionVar:
+    if "RecentFilesList" not in core.optionVar:
         return
     
     # get the list
-    RecentFilesList = pymel.optionVar["RecentFilesList"]
+    RecentFilesList = core.optionVar["RecentFilesList"]
     nNumItems = len(RecentFilesList)
-    RecentFilesMaxSize = pymel.optionVar["RecentFilesMaxSize"]
+    RecentFilesMaxSize = core.optionVar["RecentFilesMaxSize"]
 
 #        # check if there are too many items in the list
 #        if (RecentFilesMaxSize < nNumItems):
@@ -228,9 +228,9 @@ def buildRecentFileMenu():
 #            #Begin removing items from the head of the array (least recent file in the list)
 #            for ($i = 0; $i < $nNumItemsToBeRemoved; $i++):
 #
-#                pymel.optionVar -removeFromArray "RecentFilesList" 0;
+#                core.optionVar -removeFromArray "RecentFilesList" 0;
 #
-#            RecentFilesList = pymel.optionVar["RecentFilesList"]
+#            RecentFilesList = core.optionVar["RecentFilesList"]
 #            nNumItems = len($RecentFilesList);
 
 
@@ -238,10 +238,10 @@ def buildRecentFileMenu():
     # added after the RecentFilesList optionVar. If it doesn't exist,
     # we create it and initialize it with a guess at the file type
     if nNumItems > 0 :
-        if "RecentFilesTypeList" not in pymel.optionVar:
-            pymel.mel.initRecentFilesTypeList( RecentFilesList )
+        if "RecentFilesTypeList" not in core.optionVar:
+            core.mel.initRecentFilesTypeList( RecentFilesList )
             
-        RecentFilesTypeList = pymel.optionVar["RecentFilesTypeList"]
+        RecentFilesTypeList = core.optionVar["RecentFilesTypeList"]
 
         
     #toNativePath
@@ -326,9 +326,9 @@ def magic_dag(self, parameter_s=''):
 
     depth = 0
     if args:
-        root = [pymel.PyNode(args[0])]
+        root = [core.PyNode(args[0])]
     else:
-        root = pymel.ls(assemblies=1)
+        root = core.ls(assemblies=1)
     num = len(root)-1
     for i, x in enumerate(root):
         doLevel(x, depth, [i==num])
@@ -469,8 +469,7 @@ def setup():
     ip.set_hook('complete_command', pymel_name_completer , re_key = "(.+(\s+|\())|(SCENE\.)" )
     ip.set_hook('complete_command', open_completer , str_key = "openf" )
     
-    ip.ex("import pymel")  # it's useful to have pymel in both namespaces, for relaoding purposes
-    ip.ex("from pymel.all import *")
+    ip.ex("from pymel.core import *")
     # if you don't want pymel imported into the main namespace, you can replace the above with something like:
     #ip.ex("import pymel as pm")
     

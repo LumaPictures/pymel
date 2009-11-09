@@ -7,7 +7,7 @@ try:
 except ImportError:
     from ply import lex
     
-from exceptions import *
+from pymel.mayahook.exceptions import *
 from pymel.mayahook.mayautils import getMayaAppDir
 
 _logger = logging.getLogger(__name__)
