@@ -590,7 +590,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
     apiClassInfo = None
     
-    data = mayahook.loadCache( 'mayaApi', 'the API cache' )
+    data = mayahook.loadCache( 'mayaApi', 'the API cache', compressed=False )
     if data is not None:
         
         ReservedMayaTypes(data[0])
@@ -645,7 +645,7 @@ def saveApiCache():
 
 def loadApiToMelBridge():
 
-    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
+    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False, compressed=False )
     if data is not None:
         # maya 8.5 fix: convert dict to defaultdict
         bridge, overrides = data
