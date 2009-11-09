@@ -263,7 +263,7 @@ class Vector(VectorN) :
     """ 
     A 3 dimensional vector class that wraps Maya's api Vector class
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> import pymel.core.datatypes as dt
         >>> 
         >>> v = dt.Vector(1, 2, 3)
@@ -1417,7 +1417,7 @@ class Matrix(MatrixN):
     """ 
         A 4x4 transformation matrix based on api Matrix
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> import pymel.core.datatypes as dt
         >>> 
         >>> i = dt.Matrix()
@@ -1890,7 +1890,7 @@ class TransformationMatrix(Matrix):
 class EulerRotation(Array):
     """
     unit handling:
-    >>> from pymel import *
+    >>> from pymel.all import *
     >>> import pymel.core.datatypes as dt
     >>> 
     >>> currentUnit(angle='degree')
@@ -2510,7 +2510,7 @@ class Time(Unit):
 
 class Distance( Unit ) :
     """
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> import pymel.core.datatypes as dt
         >>> 
         >>> dt.Distance.getInternalUnit()

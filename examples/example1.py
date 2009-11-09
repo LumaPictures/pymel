@@ -380,7 +380,7 @@ PyMEL
 
 .. python::
 
-    from pymel import *                   # safe to import into main namespace
+    from pymel.all import *
     for x in ls( type='transform'):
         print x.longName()                # object oriented design
         
@@ -465,7 +465,7 @@ if objs is not None:                    # returns None when it finds no matches
 #        Default Python
 #---------------------------------------------------------------------
 
-from pymel import *                   # safe to import into main namespace
+from pymel.all import *
 newFile( force=1 )
 for x in ls( type='transform'):
     print x.longName()                # object oriented design

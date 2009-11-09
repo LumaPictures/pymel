@@ -383,11 +383,11 @@ class Workspace(object):
     The four types of workspace entries (objectType, fileRule, renderType, and variable) each
     have a corresponding dictiony for setting and accessing these mappings.
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> workspace.fileRules['mayaAscii']
         u'scenes'
-        >>> workspace.fileRules.keys()
-        [u'mayaAscii', u'mayaBinary', u'particles', u'templates']
+        >>> workspace.fileRules.keys() # doctest: +ELLIPSIS
+        [...u'mayaAscii', u'mayaBinary',...]
         >>> 'mayaBinary' in workspace.fileRules
         True
         >>> workspace.fileRules['super'] = 'data'
@@ -402,7 +402,7 @@ class Workspace(object):
     old way (still exists for backward compatibility)
         >>> proj = workspace(query=1, dir=1) 
         >>> proj  # doctest: +ELLIPSIS
-        u'.../maya/projects/'
+        u'...'
         >>> workspace(create='mydir')
         >>> workspace(dir='mydir') # move into new dir
         >>> workspace(dir=proj) # change back to original dir
@@ -410,14 +410,14 @@ class Workspace(object):
     new way    
         >>> proj = workspace.getcwd() # doctest: +ELLIPSIS
         >>> proj  # doctest: +ELLIPSIS
-        Path('.../maya/projects/')
+        Path('...')
         >>> workspace.mkdir('mydir')
         >>> workspace.chdir('mydir')
         >>> workspace.chdir(proj)
     
     All paths are returned as an pymel.core.system.Path class, which makes it easy to alter or join them on the fly.    
         >>> workspace.path / workspace.fileRules['mayaAscii']  # doctest: +ELLIPSIS
-        Path('.../maya/projects/default/scenes')
+        Path('...')
         
     """
     __metaclass__ = util.Singleton
@@ -481,7 +481,7 @@ class FileInfo( object ):
     """
     store and get custom data specific to this file:
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> fileInfo['lastUser'] = env.user()
         
     if the python structures have valid __repr__ functions, you can

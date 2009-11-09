@@ -1,4 +1,4 @@
-from pymel import *						# safe to import into main namespace
+from pymel.all import *						# safe to import into main namespace
 
 s = polySphere()[0] # second in list is the history node, if construction history is on
 c = polyCube()[0]

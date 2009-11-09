@@ -1,24 +1,19 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
+import re, types, os.path, keyword, inspect, sys
+from operator import itemgetter
 
-from pymel.util.trees import *
+from pymel.util import trees
 import pymel.util as util
 import pymel.mayahook as mayahook
-_logger = mayahook.plogging.getLogger(__name__)
-
-#assert mayahook.mayaInit() 
-#_logger.debug("Maya up and running")
-#from general import PyNode
 import pymel.api as _api
-import sys, os, inspect, pickle, re, types, os.path, warnings, keyword
-
-from HTMLParser import HTMLParser
-from operator import itemgetter
 
 import maya.cmds as cmds
 import maya.mel as mm
 import pmcmds
+
+_logger = mayahook.plogging.getLogger(__name__)
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -60,33 +55,33 @@ class PyNodeTypesHierarchy(dict):
 #: creation commands whose names do not match the type of node they return require this dict
 #: to resolve which command the class should wrap 
 nodeTypeToNodeCommand = {
-    #'failed' : 'clip',
-    #'failed' : 'clipSchedule',
-    'airField' : 'air',
-    'dragField' : 'drag',
-    'emitter' : 'emitter',
-    'turbulenceField' : 'turbulence',
+    #'failed'            : 'clip',
+    #'failed'            : 'clipSchedule',
+    'airField'          : 'air',
+    'dragField'         : 'drag',
+    'emitter'           : 'emitter',
+    'turbulenceField'   : 'turbulence',
     #'failed' : 'effector',
-    'volumeAxisField' : 'volumeAxis',
-    'uniformField' : 'uniform',
-    'gravityField' : 'gravity',
-    #'failed' : 'event',
-    #'failed' : 'pointCurveConstraint',
-    #'failed' : 'deformer',
-    #'failed' : 'constrain',
-    'locator' : 'spaceLocator',
-    'vortexField' : 'vortex',
-    'makeNurbTorus' : 'torus',
-    'makeNurbCone' : 'cone',
-    'makeNurbCylinder' : 'cylinder',
-    'nurbsCurve' : 'curve', # returns a single transform, but creates a nurbsCurve
-    'makeNurbSphere' : 'sphere',
-    'makeNurbCircle' : 'circle',
-    'makeNurbPlane' : 'nurbsPlane',
-    'makeNurbsSquare' : 'nurbsSquare',
-    'makeNurbCube' : 'nurbsCube',
-    'skinPercent' : 'skinCluster',
-    'file' : None # prevent File node from using cmds.file
+    'volumeAxisField'   : 'volumeAxis',
+    'uniformField'      : 'uniform',
+    'gravityField'      : 'gravity',
+    #'failed'            : 'event',
+    #'failed'            : 'pointCurveConstraint',
+    #'failed'            : 'deformer',
+    #'failed'            : 'constrain',
+    'locator'           : 'spaceLocator',
+    'vortexField'       : 'vortex',
+    'makeNurbTorus'     : 'torus',
+    'makeNurbCone'      : 'cone',
+    'makeNurbCylinder'  : 'cylinder',
+    'nurbsCurve'        : 'curve', # returns a single transform, but creates a nurbsCurve
+    'makeNurbSphere'    : 'sphere',
+    'makeNurbCircle'    : 'circle',
+    'makeNurbPlane'     : 'nurbsPlane',
+    'makeNurbsSquare'   : 'nurbsSquare',
+    'makeNurbCube'      : 'nurbsCube',
+    'skinPercent'       : 'skinCluster',
+    'file'              : None # prevent File node from using cmds.file
 }
 
 #: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
@@ -97,14 +92,14 @@ nodeTypeToInfoCommand = {
 }
 
 moduleNameShortToLong = {
-    'modeling' : 'Modeling',
-    'rendering': 'Rendering',
+    'modeling'   : 'Modeling',
+    'rendering'  : 'Rendering',
     'effects'    : 'Effects',
     'animation'  : 'Animation',
     'windows'    : 'Windows',
-    'system'    : 'System',
-    'general' : 'General',
-    'language' : 'Language'
+    'system'     : 'System',
+    'general'    : 'General',
+    'language'   : 'Language'
 }
 
 
@@ -154,210 +149,78 @@ secondaryFlags = {
              )
 }
 
+UI_COMMANDS ="""attrColorSliderGrp        attrControlGrp           
+                attrEnumOptionMenu        attrEnumOptionMenuGrp    
+                attrFieldGrp              attrFieldSliderGrp       
+                attrNavigationControlGrp  attributeMenu            
+                colorIndexSliderGrp       colorSliderButtonGrp     
+                colorSliderGrp            columnLayout             
+                colorEditor               floatField               
+                floatFieldGrp             floatScrollBar           
+                floatSlider               floatSlider2             
+                floatSliderButtonGrp      floatSliderGrp           
+                frameLayout               iconTextButton           
+                iconTextCheckBox          iconTextRadioButton      
+                iconTextRadioCollection   iconTextScrollList       
+                iconTextStaticLabel       intField                 
+                intFieldGrp               intScrollBar             
+                intSlider                 intSliderGrp             
+                paneLayout                panel                    
+                radioButton               radioButtonGrp           
+                radioCollection           radioMenuItemCollection  
+                symbolButton              symbolCheckBox           
+                textCurves                textField                
+                textFieldButtonGrp        textFieldGrp             
+                text                      textScrollList           
+                toolButton                toolCollection           
+                window                    blendShapeEditor         
+                blendShapePanel           button                   
+                checkBox                  checkBoxGrp              
+                confirmDialog             fontDialog               
+                formLayout                menu                     
+                menuBarLayout             menuEditor               
+                menuItem                  menuSet                  
+                promptDialog              scrollField              
+                scrollLayout              scriptedPanel            
+                scriptedPanelType         shelfButton              
+                shelfLayout               shelfTabLayout           
+                tabLayout                 outlinerEditor           
+                optionMenu                outlinerPanel            
+                optionMenuGrp             animCurveEditor          
+                animDisplay               separator                
+                visor                     layout                   
+                layoutDialog              layerButton              
+                hyperGraph                hyperPanel               
+                hyperShade                rowColumnLayout          
+                rowLayout                 renderLayerButton        
+                renderWindowEditor        glRenderEditor           
+                scriptTable               keyframeStats            
+                keyframeOutliner          canvas                   
+                channelBox                gradientControl          
+                gradientControlNoAttr     gridLayout               
+                messageLine               popupMenu                
+                modelEditor               modelPanel               
+                helpLine                  hardwareRenderPanel      
+                image                     nodeIconButton           
+                commandLine               progressBar              
+                defaultLightListCheckBox  exclusiveLightCheckBox   
+                shellField                clipSchedulerOutliner    
+                clipEditor                deviceEditor             
+                devicePanel               dynRelEdPanel            
+                dynRelEditor              dynPaintEditor           
+                nameField                 cmdScrollFieldExecuter   
+                cmdScrollFieldReporter    cmdShell                 
+                nameField                 palettePort """.split()
+    
+
 cmdlistOverrides = {}
-util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'shortFlags', 'sl', 'modes' ), ['create', 'query', 'edit'] )
+#util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'shortFlags', 'sl', 'modes' ), ['create', 'query', 'edit'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'optionMenu', 'flags', 'select', 'modes' ),  ['create', 'query', 'edit'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'flags', 'jointList', 'modes' ), ['query'] )
-util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', 'modes' ),   ['query'] )
+#util.setCascadingDictItem( cmdlistOverrides, ( 'ikHandle', 'shortFlags', 'jl', 'modes' ),   ['query'] )
 util.setCascadingDictItem( cmdlistOverrides, ( 'keyframe', 'flags', 'index', 'args' ), 'timeRange' ) # make sure this is a time range so it gets proper slice syntax
 
 virtualClass = util.defaultdict(list)
-        
-#---------------------------------------------------------------
-#        Doc Parser
-#---------------------------------------------------------------
-class CommandDocParser(HTMLParser):
-
-    def __init__(self, command):
-        self.command = command
-        self.flags = {}  # shortname, args, docstring, and a list of modes (i.e. edit, create, query)
-        self.currFlag = ''
-        # iData is used to track which type of data we are putting into flags, and corresponds with self.datatypes
-        self.iData = 0
-        self.pcount = 0
-        self.active = False  # this is set once we reach the portion of the document that we want to parse
-        self.description = ''
-        self.example = ''
-        self.emptyModeFlags = [] # when flags are in a sequence ( lable1, label2, label3 ), only the last flag has queryedit modes. we must gather them up and fill them when the last one ends
-        HTMLParser.__init__(self)
-    
-    def startFlag(self, data):
-        #_logger.debug(self, data)
-        #assert data == self.currFlag
-        self.iData = 0
-        self.flags[self.currFlag] = {'longname': self.currFlag, 'shortname': None, 'args': None, 'numArgs': None, 'docstring': '', 'modes': [] }
-    
-    def addFlagData(self, data):
-        # Shortname
-        if self.iData == 0:
-            self.flags[self.currFlag]['shortname'] = data.lstrip('-')
-            
-        # Arguments
-        elif self.iData == 1:
-            typemap = {    
-             'string'  : unicode,
-             'float'   : float,
-             'double'  : float,
-             'linear'  : float,
-             'angle'   : float,
-             'int'     : int,
-             'uint'    : int,
-             'index'   : int,
-             'integer'  : int,
-             'boolean'  : bool,
-             'script'   : 'script',
-             'name'     : 'PyNode',
-             'select'   : 'PyNode'
-            }
-            args = [ typemap.get( x.strip(), x.strip() ) for x in data.strip('[]').split(',') ] 
-            numArgs = len(args)
-            if numArgs == 0:
-                args = bool
-                numArgs = 1
-            elif numArgs == 1:
-                args = args[0]
-                    
-            self.flags[self.currFlag]['args'] = args
-            self.flags[self.currFlag]['numArgs'] = numArgs
-            
-        # Docstring  
-        else:
-            #self.flags[self.currFlag]['docstring'] += data.replace( '\r\n', ' ' ).strip() + " "        
-            data = data.replace( 'In query mode, this flag needs a value.', '' )
-            data = data.replace( 'Flag can appear in Create mode of command', '' )
-            data = data.replace( 'Flag can appear in Edit mode of command', '' )
-            data = data.replace( 'Flag can appear in Query mode of command', '' )
-            data = data.replace( '\r\n', ' ' ).lstrip()
-            data = data.replace( '\n', ' ' ).lstrip()
-            data = data.strip('{}\t')
-            data = data.replace('*', '\*') # for reStructuredText
-            self.flags[self.currFlag]['docstring'] += data
-        self.iData += 1
-        
-    def endFlag(self):
-        # cleanup last flag
-        #data = self.flags[self.currFlag]['docstring']
-        
-        #_logger.debug(("ASSERT", data.pop(0), self.currFlag))
-        try:
-            if not self.flags[self.currFlag]['modes']:
-                self.emptyModeFlags.append(self.currFlag)
-            elif self.emptyModeFlags:
-                    #_logger.debug("past empty flags:", self.command, self.emptyModeFlags, self.currFlag)
-                    basename = re.match( '([a-zA-Z]+)', self.currFlag ).groups()[0]
-                    modes = self.flags[self.currFlag]['modes']
-                    self.emptyModeFlags.reverse()
-                    for flag in self.emptyModeFlags:
-                        if re.match( '([a-zA-Z]+)', flag ).groups()[0] == basename:
-                            self.flags[flag]['modes'] = modes
-                        else:
-                            break
-                        
-                    self.emptyModeFlags = []
-        except KeyError, msg:
-            pass
-            #_logger.debug(self.currFlag, msg)
-        
-    def handle_starttag(self, tag, attrs):
-        #_logger.debug("begin: %s tag: %s" % (tag, attrs))
-        if not self.active:
-            if tag == 'a':
-                if attrs[0][1] == 'hFlags':
-                    #_logger.debug('ACTIVE')
-                    self.active = 'flag'
-                elif attrs[0][1] == 'hExamples':
-                    #_logger.debug("start examples")
-                    self.active = 'examples'
-        elif tag == 'a' and attrs[0][0] == 'name':
-            self.endFlag()
-            newFlag = attrs[0][1][4:]
-            newFlag = newFlag.lstrip('-')
-            self.currFlag = newFlag      
-            self.iData = 0
-            #_logger.debug("NEW FLAG", attrs)
-            #self.currFlag = attrs[0][1][4:]
-            
-    
-        elif tag == 'img' and len(attrs) > 4:
-            #_logger.debug("MODES", attrs[1][1])
-            self.flags[self.currFlag]['modes'].append(attrs[1][1])
-        elif tag == 'h2':
-            self.active = False
-                
-    def handle_endtag(self, tag):
-        #if tag == 'p' and self.active == 'command': self.active = False
-        #_logger.debug("end: %s" % tag)
-        if not self.active:
-            if tag == 'p':
-                if self.pcount == 3:
-                    self.active = 'command'
-                else:
-                    self.pcount += 1
-        elif self.active == 'examples' and tag == 'pre':
-            self.active = False
-    
-    def handle_entityref(self,name):
-        if self.active == 'examples':
-            self.example += r'"'
-            
-    def handle_data(self, data):
-        if not self.active:
-            return
-        elif self.active == 'flag':    
-            if self.currFlag:
-                stripped = data.strip()
-                if stripped == 'Return value':
-                    self.active=False
-                    return
-                    
-                if data and stripped and stripped not in ['(',')', '=', '], [']:
-                    #_logger.debug("DATA", data)
-            
-                    if self.currFlag in self.flags:                
-                        self.addFlagData(data)
-                    else:
-                        self.startFlag(data)
-        elif self.active == 'command':
-            data = data.replace( '\r\n', ' ' )
-            data = data.replace( '\n', ' ' )
-            data = data.lstrip()
-            data = data.strip('{}')
-            data = data.replace('*', '\*') # for reStructuredText
-            if '{' not in data and '}' not in data:                
-                self.description += data
-            #_logger.debug(data)
-            #self.active = False
-        elif self.active == 'examples' and data != 'Python examples':
-            #_logger.debug("Example\n")
-            #_logger.debug(data)
-            data = data.replace( '\r\n', '\n' )
-            self.example += data
-            #self.active = False
-        
-    
-# class MayaDocsLoc(str) :
-#    """ Path to the Maya docs, cached at pymel start """
-#    __metaclass__ = util.Singleton
-    
-# TODO : cache doc location or it's evaluated for each getCmdInfo !    
-# MayaDocsLoc(mayahook.mayaDocsLocation()) 
-
-class CommandInfo(object):
-    def __init__(self, flags={}, description='', example='', type='other'):
-        self.flags = flags
-        self.description = description
-        self.example = example
-        self.type = type
-
-class FlagInfo(object):
-    def __init__(self, longname, shortname=None, args=None, numArgs=None, docstring='', modes= [] ):
-        self.longname = longname
-        self.shortname = shortname
-        self.args = args
-        self.numArgs = numArgs
-        self.docstring = docstring
-        self.modes = modes
-
   
 def getCmdInfoBasic( command ):
     typemap = {    
@@ -428,7 +291,7 @@ def getCmdInfoBasic( command ):
                         longname = shortname
                         
                     flags[longname] = { 'longname' : longname, 'shortname' : shortname, 'args' : args, 'numArgs' : numArgs, 'docstring' : '' }
-                    shortFlags[shortname] = flags[longname]
+                    shortFlags[shortname] = longname
         
     #except:
     #    pass
@@ -442,6 +305,7 @@ def getCmdInfo( command, version='8.5', python=True ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with 
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
+    from pymel.mayahook.parsers import CommandDocParser
     
     basicInfo = getCmdInfoBasic(command)
     
@@ -487,29 +351,20 @@ def getCmdInfo( command, version='8.5', python=True ):
         
         # args and numArgs is more reliable from mel help command than from parsed docs,
         # so, here we put that back in place and create shortflags. 
-        shortFlags = basicInfo['shortFlags']
+        
+        
         for flag, flagData in flags.items():
             try:
                 basicFlagData = basicInfo['flags'][flag]
-#                if flagData['args'] != basicFlagData['args']:
-#                    docArgs = flagData['args']
-#                    helpArgs = basicFlagData['args']
-#                    if ( isinstance(docArgs, str) and '|' in docArgs) or (docArgs == str and helpArgs == callable):
-#                        flagData['args'] = helpArgs
-#                    else:
-#                        _logger.info(command, flag, docArgs, helpArgs)
-#                else:
-#                    flagData['args'] = basicFlagData['args']
-                    
                 flagData['args'] = basicFlagData['args']
                 flagData['numArgs'] = basicFlagData['numArgs']
             except KeyError: pass
-            
-            shortFlags[ flagData['shortname'] ] = flagData
-           
-        #except KeyError:pass
-          
-        res = {  'flags': flags, 'shortFlags': shortFlags, 'description' : parser.description, 'example': example }
+
+        shortFlags = basicInfo['shortFlags']
+        res = { 'flags': flags, 
+                'shortFlags': shortFlags, 
+                'description' : parser.description, 
+                'example': example }
         try:
             res['removedFlags'] = basicInfo['removedFlags']
         except KeyError: pass
@@ -646,268 +501,10 @@ def fixCodeExamples():
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
    
     mayahook.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
-    
-class NodeHierarchyDocParser(HTMLParser):
- 
-    def parse(self):
-        docloc = mayahook.mayaDocsLocation(self.version)
-        if not os.path.isdir( docloc ):
-            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
-#            _logger.warn( "could not find documentation for maya version %s. defaulting to 2009" )
-#            docloc = mayahook.mayaDocsLocation('2009')
 
-        f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
-        self.feed( f.read() )
-        f.close()
-        return self.tree
-    
-    def __init__(self, version=None):
-        self.version = version
-        self.currentTag = None
-        self.depth = 0
-        self.lastDepth = -1
-        self.tree = None
-        self.currentLeaves = []
-        
-        HTMLParser.__init__(self)
-    def handle_starttag(self, tag, attrs):
-        #_logger.debug(tag, attrs)
-        self.currentTag = tag
-    
-    def handle_data(self, data):
-        _logger.info("data %s", data)
-        if self.currentTag == 'tt':
-            self.depth = data.count('>')
-            #_logger.debug("lastDepth", self.lastDepth, "depth", self.depth)
-            
-        elif self.currentTag == 'a':
-            data = data.lstrip()
-
-            if self.depth == 0:
-                if self.tree is None:
-                    #_logger.debug("starting brand new tree: %s %s", self.depth, data)
-                    self.tree = [data]
-                else:
-                    #_logger.debug("skipping %s", data)
-                    return
-                    
-            elif self.depth == self.lastDepth and self.depth > 0:                
-                #_logger.debug("adding to current level", self.depth, data)
-                self.tree[ self.depth ].append( data )
-                
-            elif self.depth > self.lastDepth:
-                #_logger.debug("starting new level: %s %s", self.depth, data)
-                self.tree.append( [data] )
-                    
-            elif self.depth < self.lastDepth:
-
-                    for i in range(0, self.lastDepth-self.depth):
-                        branch = self.tree.pop()
-                        #_logger.debug("closing level", self.lastDepth, self.depth, self.tree[-1])
-                        currTree = self.tree[-1]
-                        #if isinstance(currTree, list):
-                        currTree.append( branch )
-                        #else:
-                        #    _logger.info("skipping", data)
-                        #    self.close()
-                        #    return
-                                
-                    #_logger.debug("adding to level", self.depth, data)
-                    self.tree[ self.depth ].append( data )
-            else:
-                return
-            self.lastDepth = self.depth
-            # with 2009 and the addition of the MPxNode, the hierarchy closes all the way out ( i.e. no  >'s )
-            # this prevents the depth from getting set properly. as a workaround, we'll set it to 0 here,
-            # then if we encounter '> >' we set the appropriate depth, otherwise it defaults to 0.
-            self.depth = 0 
-
-        
-def printTree( tree, depth=0 ):
-    for branch in tree:
-        if util.isIterable(branch):
-            printTree( branch, depth+1)
-        else:
-            _logger.info('> '*depth, branch)
-            
-def _getNodeHierarchy( version='8.5' ): 
-    parser = NodeHierarchyDocParser(version)
-    return parser.parse()
-
-class CommandModuleDocParser(HTMLParser):
-    #: these are commands which need to be manually added to the list parsed from the docs
-    moduleCommandAdditions = {
-        'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
-        'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
-                     'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
-    }
-    
-    def parse(self):
-        
-        f = open( os.path.join( self.docloc , 'Commands/cat_' + self.category + '.html' ) )
-        self.feed( f.read() )
-        f.close()
-        return self.cmdList + self.moduleCommandAdditions.get(self.category, [] )
-              
-    def __init__(self, category, version=None ):
-        self.cmdList = []
-        self.category = category
-        self.version = version
-        
-        docloc = mayahook.mayaDocsLocation(self.version)
-        if not os.path.isdir(docloc):
-            docloc = mayahook.mayaDocsLocation('2009')
-        self.docloc = docloc
-        HTMLParser.__init__(self)
-        
-    def handle_starttag(self, tag, attrs):
-        try:
-            attrs = attrs[0]
-            #_logger.debug(attrs)
-            if tag == 'a' and attrs[0]=='href': 
-                cmd = attrs[1].split("'")[1].split('.')[0]
-                self.cmdList.append( cmd )
-                #_logger.debug(cmd)
-        except IndexError: return
-        
-    #def handle_data(self, data):
-    #    #_logger.debug(self.currentTag, data)
-    #    if self.currentTag == 'a':
-    #        _logger.info(data)
-
-def _getUICommands():
-    uiClassCmds = """
-    attrColorSliderGrp
-    attrControlGrp
-    attrEnumOptionMenu
-    attrEnumOptionMenuGrp
-    attrFieldGrp
-    attrFieldSliderGrp
-    attrNavigationControlGrp
-    attributeMenu
-    colorIndexSliderGrp
-    colorSliderButtonGrp
-    colorSliderGrp
-    columnLayout
-    colorEditor
-    floatField
-    floatFieldGrp
-    floatScrollBar
-    floatSlider
-    floatSlider2
-    floatSliderButtonGrp
-    floatSliderGrp
-    frameLayout
-    iconTextButton
-    iconTextCheckBox
-    iconTextRadioButton
-    iconTextRadioCollection
-    iconTextScrollList
-    iconTextStaticLabel
-    intField
-    intFieldGrp
-    intScrollBar
-    intSlider
-    intSliderGrp
-    paneLayout
-    panel
-    radioButton
-    radioButtonGrp
-    radioCollection
-    radioMenuItemCollection
-    symbolButton
-    symbolCheckBox
-    textCurves
-    textField
-    textFieldButtonGrp
-    textFieldGrp
-    text
-    textScrollList
-    toolButton
-    toolCollection
-    window
-    blendShapeEditor
-    blendShapePanel
-    button
-    checkBox
-    checkBoxGrp
-    confirmDialog
-    fontDialog
-    formLayout
-    menu
-    menuBarLayout
-    menuEditor
-    menuItem
-    menuSet
-    promptDialog
-    scrollField
-    scrollLayout
-    scriptedPanel
-    scriptedPanelType
-    shelfButton
-    shelfLayout
-    shelfTabLayout
-    tabLayout
-    outlinerEditor
-    optionMenu
-    outlinerPanel
-    optionMenuGrp
-    animCurveEditor
-    animDisplay
-    separator
-    visor
-    layout
-    layoutDialog
-    layerButton
-    hyperGraph
-    hyperPanel
-    hyperShade
-    rowColumnLayout
-    rowLayout
-    renderLayerButton
-    renderWindowEditor
-    glRenderEditor
-    scriptTable
-    keyframeStats
-    keyframeOutliner
-    canvas
-    channelBox
-    gradientControl
-    gradientControlNoAttr
-    gridLayout
-    messageLine
-    popupMenu
-    modelEditor
-    modelPanel
-    helpLine
-    hardwareRenderPanel
-    image
-    nodeIconButton
-    commandLine
-    progressBar
-    defaultLightListCheckBox
-    exclusiveLightCheckBox
-    shellField
-    clipSchedulerOutliner
-    clipEditor
-    deviceEditor
-    devicePanel
-    dynRelEdPanel
-    dynRelEditor
-    dynPaintEditor
-    nameField
-    cmdScrollFieldExecuter
-    cmdScrollFieldReporter
-    cmdShell
-    nameField
-    palettePort
-    """
-    #f = open( os.path.join( mayahook.moduleDir() , 'misc/commandsUI') , 'r') 
-    #cmds = f.read().split('\n')
-    #f.close()
-    return [ x.strip() for x in uiClassCmds.split('\n') if x.strip() ]
 
 def getModuleCommandList( category, version='8.5' ):
+    from pymel.mayahook.parsers import CommandModuleDocParser
     parser = CommandModuleDocParser(category, version)
     return parser.parse()
 
@@ -931,9 +528,9 @@ class ApiArrayTypeInfo(object):
 #-----------------------------------------------
 def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
 
-    dangerousCmds = ['doBlur']
+    dangerousCmds = ['doBlur', 'pointOnPolyConstraint']
     if funcName in dangerousCmds:
-        return
+        return cmdInfo
     
     def _formatCmd( cmd, args, kwargs ):
         args = [ x.__repr__() for x in args ]
@@ -962,7 +559,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     module = cmds
     
 
-    _logger.debug(funcName.center( 50, '='))
+    _logger.info(funcName.center( 50, '='))
     
     if funcName in [ 'character', 'lattice', 'boneLattice', 'sculpt', 'wire' ]:
         _logger.debug("skipping")
@@ -1008,6 +605,8 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                 if len(obj) == 1:
                     _logger.info("%s: args need unpacking" % funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
+                elif not obj:
+                    raise ValueError, "returned object is an empty list"
                 obj = obj[-1]
                 
                 
@@ -1127,12 +726,12 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         modes = [] # stop edit from running
                     else:
                         _logger.info(cmd)
-                        _logger.info(("\t", str(msg).rstrip('\n')))
+                        _logger.info("\t" + str(msg).rstrip('\n'))
                     val = None
                     
                 except RuntimeError, msg:
                     _logger.info(cmd)
-                    _logger.info(("\t", str(msg).rstrip('\n') ))
+                    _logger.info("\t" + str(msg).rstrip('\n') )
                     val = None
                 else:
                     # some flags are only in mel help and not in maya docs, so we don't know their
@@ -1187,13 +786,13 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         flagInfo.pop(shortname,None)
                     else:
                         _logger.info(cmd)
-                        _logger.info(("\t", str(msg).rstrip('\n')))
+                        _logger.info("\t" + str(msg).rstrip('\n'))
                         _logger.info("\tpredicted arg: %s", argtype)
                         if not 'query' in modes:
                             _logger.info("\tedit only")
                 except RuntimeError, msg:
                     _logger.info(cmd)
-                    _logger.info(("\t", str(msg).rstrip('\n')))
+                    _logger.info("\t" + str(msg).rstrip('\n'))
                     _logger.info("\tpredicted arg: %s", argtype)
                     if not 'query' in modes:
                         _logger.info("\tedit only")
@@ -1208,7 +807,13 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
         cmds.delete( newObjs ) 
     return cmdInfo
   
-       
+def _getNodeHierarchy( version=None ):
+    from pymel.mayahook.parsers import NodeHierarchyDocParser
+    parser = NodeHierarchyDocParser(version)
+    import pymel.util.trees as trees
+    nodeHierarchyTree = trees.IndexedTree(parser.parse())
+    return [ (x.key, tuple( [y.key for y in x.parents()]) ) for x in nodeHierarchyTree.preorder() ]
+   
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
     
@@ -1223,15 +828,17 @@ def buildCachedData() :
     
     if data is not None:
         cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
-        nodeHierarchyTree = IndexedTree(nodeHierarchy)
     
     else: # or not isinstance(cmdlist,list):        
         cmdlist = {}
         _logger.info("Rebuilding the list of Maya commands...")
         
         nodeHierarchy = _getNodeHierarchy(long_version)
-        nodeHierarchyTree = IndexedTree(nodeHierarchy)
-        uiClassList = _getUICommands()
+        nodeFunctions = [ x[0] for x in nodeHierarchy ]
+        nodeFunctions += nodeTypeToNodeCommand.values()
+        
+        #nodeHierarchyTree = trees.IndexedTree(nodeHierarchy)
+        uiClassList = UI_COMMANDS
         nodeCommandList = []
         for moduleName, longname in moduleNameShortToLong.items():
             moduleNameShortToLong[moduleName] = getModuleCommandList( longname, long_version )
@@ -1242,12 +849,7 @@ def buildCachedData() :
         moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
         moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
         
-        for funcName, data in tmpCmdlist :    
-            
-            
-            #modifiers = {}
-
-                
+        for funcName, data in tmpCmdlist :     
             # determine to which module this function belongs
             module = None
             if funcName in ['eval', 'file', 'filter', 'help', 'quit']:
@@ -1278,7 +880,7 @@ def buildCachedData() :
                 cmdInfo = getCmdInfo(funcName, long_version)
 
                 if module != 'windows':
-                    if funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
+                    if funcName in nodeFunctions:
                         nodeCommandList.append(funcName)
                         cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=True, verbose=True  )
                     #elif module != 'context':
@@ -1288,26 +890,26 @@ def buildCachedData() :
              
             cmdlist[funcName] = cmdInfo
             
-            '''
-            # func, args, (usePyNode, baseClsName, nodeName)
-            # args = dictionary of command flags and their data
-            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
-            # baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
-            # nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
-            try:
-                cmdlist[funcName] = args, pymelCmdsList[funcName] )        
-            except KeyError:
-                # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
-                if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
-                     cmdlist[funcName] = (funcName, args, (False, None, None) )
-                else:
-                    cmdlist[funcName] = (funcName, args, () )
-            '''
+            
+#            # func, args, (usePyNode, baseClsName, nodeName)
+#            # args = dictionary of command flags and their data
+#            # usePyNode = determines whether the class returns its 'nodeName' or uses PyNode to dynamically return
+#            # baseClsName = for commands which should generate a class, this is the name of the superclass to inherit
+#            # nodeName = most creation commands return a node of the same name, this option is provided for the exceptions
+#            try:
+#                cmdlist[funcName] = args, pymelCmdsList[funcName] )        
+#            except KeyError:
+#                # context commands generate a class based on unicode (which is triggered by passing 'None' to baseClsName)
+#                if funcName.startswith('ctx') or funcName.endswith('Ctx') or funcName.endswith('Context'):
+#                     cmdlist[funcName] = (funcName, args, (False, None, None) )
+#                else:
+#                    cmdlist[funcName] = (funcName, args, () )
+            
         mayahook.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
     
     util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
             
-    return (cmdlist,nodeHierarchyTree,uiClassList,nodeCommandList,moduleCmds)
+    return (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds)
 
                                   
 #---------------------------------------------------------------
@@ -1404,19 +1006,36 @@ def getInheritance( mayaType ):
 #-----------------------
 # Function Factory
 #-----------------------
-
-def _addCmdDocs( func, cmdName ):
-
-    cmdInfo = cmdlist[cmdName]
-        
+docCacheLoaded = False
+def loadCmdDocCache():
+    global docCacheLoaded
+    if docCacheLoaded:
+        return
+    data = mayahook.loadCache( 'mayaCmdsDocs', 'the Maya command documentation' )
+    util.mergeCascadingDicts(data, cmdlist)
+    docCacheLoaded = True
+    
+def _addCmdDocs(func, cmdName):
     # runtime functions have no docs
-    if cmdInfo['type'] == 'runtime':
+    if cmdlist[cmdName]['type'] == 'runtime':
         return func
-        
-    docstring = cmdInfo['description'] + '\n\n'
-
+    
     if func.__doc__: 
-        docstring += func.__doc__ + '\n\n'
+        docstring = func.__doc__ + '\n\n'
+    else:
+        docstring = ''
+    util.addLazyDocString( func, addCmdDocsCallback, cmdName, docstring )
+    return func
+
+def addCmdDocsCallback(cmdName, docstring=''):
+    loadCmdDocCache()
+    
+    cmdInfo = cmdlist[cmdName]
+       
+    docstring = cmdInfo['description'] + '\n\n' + docstring
+
+#    if func.__doc__: 
+#        docstring += func.__doc__ + '\n\n'
         
     flagDocs = cmdInfo['flags']
     
@@ -1520,35 +1139,52 @@ def _addCmdDocs( func, cmdName ):
         #docstring = ".. |create| image:: /images/create.gif\n.. |edit| image:: /images/edit.gif\n.. |query| image:: /images/query.gif\n\n" + docstring
         docstring += '\nExample:\n' + cmdInfo['example']
     
-
+    return docstring
     
-    func.__doc__ = docstring
-    return func        
+    #func.__doc__ = docstring
+    #return func        
 
 def _addFlagCmdDocs(func, cmdName, flag, docstring=''):
+    util.addLazyDocString( func, addFlagCmdDocsCallback, cmdName, flag, docstring )
+    return func
+
+def addFlagCmdDocsCallback(cmdName, flag, docstring):
+    loadCmdDocCache()
+    allFlagInfo = cmdlist[cmdName]['flags']
+    flagInfo = allFlagInfo[flag]
+    docstring=flagInfo.get('docstring', '')
     if not docstring:
         try:
-            flagDocs = cmdlist[cmdName]['flags']
-            docs = flagDocs[flag]
-            docstring = ''
-            doc = docs['docstring']
+            doc = flagInfo['docstring']
             if doc:
                 docstring += '        - %s\n' %  doc
             
             try:
                 docstring += '        - secondary flags:\n'
-                for secondaryFlag in docs['secondaryFlags']:
-                    docstring += '            - %s: %s\n' % (secondaryFlag, flagDocs[secondaryFlag]['docstring'] )
+                for secondaryFlag in flagInfo['secondaryFlags']:
+                    docstring += '            - %s: %s\n' % (secondaryFlag, allFlagInfo[secondaryFlag]['docstring'] )
             except KeyError: pass
 
         except KeyError: _logger.info(("No documentation available for %s flag of %s command" % (flag,cmdName )    ))
         
     docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
-    func.__doc__ = docstring
+    return docstring
 
-    return func
+#    func.__doc__ = docstring
+#    return func
 
-
+def getCallbackFlags(cmdInfo):
+    """used parsed data and naming convention to determine which flags are callbacks"""
+    commandFlags = []
+    try:
+        flagDocs = cmdInfo['flags']
+    except KeyError:
+        pass
+    else:
+        for flag, data in flagDocs.items():
+            if data['args'] in ['script', callable] or 'command' in flag.lower():
+                commandFlags += [flag, data['shortname']]
+    return commandFlags
 
 
 def _getCallbackFlags(cmdName):
@@ -1586,7 +1222,7 @@ def getUICommandsWithCallbacks():
             cmds.append( [funcName, cbFlags] )
     return cmds
 
-def fixCallbacks(inFunc, funcName=None ):
+def fixCallbacks(inFunc, commandFlags, funcName=None ):
     """
     When a user provides a custom callback functions for a UI elements, such as a checkBox, when the callback is trigger it is passed
     a string instead of a real python values. For example, a checkBox changeCommand returns the string 'true' instead of
@@ -1600,7 +1236,7 @@ def fixCallbacks(inFunc, funcName=None ):
     if funcName is None:
         funcName = inFunc.__name__
       
-    commandFlags = _getCallbackFlags(funcName)
+    #commandFlags = _getCallbackFlags(funcName)
     
     if not commandFlags:
         #commandFlags = []
@@ -1688,9 +1324,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         
         if not inFunc:
             try:
-                # import from pymel.mayahook.pmcmds
                 inFunc = getattr(pmcmds,funcName)
-                #inFunc = getattr(cmds,funcName)
                 #if funcName == 'lsThroughFilter': _logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
                 _logger.debug('Cannot find function %s' % funcNameOrObject)
@@ -1810,7 +1444,9 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     #----------------------------
     
     if uiWidget:
-        newFunc = fixCallbacks( newFunc, funcName )
+        callbackFlags = cmdInfo.get('callbackFlags', None)
+        if callbackFlags:
+            newFunc = fixCallbacks( newFunc, callbackFlags, funcName )
 
         
     # 3. Modify the function descriptors - ie, __doc__, __name__, etc
@@ -1857,7 +1493,7 @@ def makeCreateFlagMethod( inFunc, flag, newMethodName=None, docstring='', cmdNam
         wrappedMelFunc.__name__ = newMethodName
     else:
         wrappedMelFunc.__name__ = flag
-                  
+    
     return _addFlagCmdDocs(wrappedMelFunc, cmdName, flag, docstring )
 
 def createflag( cmdName, flag ):
@@ -1966,52 +1602,10 @@ def listForNoneQuery(res, kwargs, flags):
         bool( [ True for long, short in flags if kwargs.get(long, kwargs.get(short, False ))] ):
         return []
     return res
-    
-'''
-def createFunctions( moduleName ):
-    module = __import__(moduleName, globals(), locals(), [''])
-    moduleShortName = moduleName.split('.')[-1]
-    for funcName in moduleCmds[ moduleShortName ]:
-        if not hasattr( module, funcName ):
-            func = functionFactory( funcName, returnFunc=None )
-            if func:
-                func.__module__ = moduleName
-                setattr( module, funcName, func )
-'''
-#generalModule = __import__(__name__, globals(), locals(), [''])
 
-def createFunctions2( moduleName, returnFunc=None ):
-    module = __import__(moduleName, globals(), locals(), [''])
-    
-    moduleShortName = moduleName.split('.')[-1]
-    allCommands = set(moduleCmds[ moduleShortName ])
-
-    if returnFunc is None:
-         for funcName in allCommands:
-             if not hasattr( module, funcName ):
-                func = functionFactory( funcName, returnFunc=None )
-                if func:
-                    func.__module__ = moduleName
-                    setattr( module, funcName, func )
-    else:
-        # node commands
-        for funcName in allCommands.intersection(nodeCommandList):
-            if not hasattr( module, funcName ):
-                func = functionFactory( funcName, returnFunc=returnFunc )
-                if func:
-                    func.__module__ = moduleName
-                    setattr( module, funcName, func )
-        # regular commands
-        for funcName in allCommands.difference(nodeCommandList):
-            if not hasattr( module, funcName ):
-                func = functionFactory( funcName, returnFunc=None )
-                if func:
-                    func.__module__ = moduleName
-                    setattr( module, funcName, func )
 
 def createFunctions( moduleName, returnFunc=None ):
-    module = __import__(moduleName, globals(), locals(), [''])
-    
+    module = sys.modules[moduleName]
     moduleShortName = moduleName.split('.')[-1]
     for funcName in moduleCmds[ moduleShortName ] :
         if funcName in nodeCommandList:
@@ -3134,7 +2728,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         def __delete__(self, instance):
             raise AttributeError, "class constant cannot be deleted"
           
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
         _logger.debug( 'MetaMayaTypeWrapper: %s' % classdict ) 
@@ -3206,11 +2800,11 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                     if method:
                                         _logger.debug("%s.%s successfully created" % (classname, pymelName ))
                                         classdict[pymelName] = method
-                                    else: _logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                                else: _logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
-                            else: _logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                        else: _logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-                    else: _logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
+                                    #else: _logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
+                                #else: _logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
+                            #else: _logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                        #else: _logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                    #else: _logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
                 
                 if 'pymelEnums' in classInfo:
                     # Enumerators
@@ -3240,7 +2834,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 classdict['__getattribute__'] = __getattribute__
         
         # create the new class   
-        newcls = super(MetaMayaTypeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        newcls = super(MetaMayaTypeWrapper, cls).__new__(cls, classname, bases, classdict)
         
         # shortcut for ensuring that our class constants are the same type as the class we are creating
         def makeClassConstant(attr):
@@ -3316,15 +2910,15 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
 
     _classDictKeyForMelCmd = None
     
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         _logger.debug( '_MetaMayaCommandWrapper: %s' % classdict )
 
-        newcls = super(_MetaMayaCommandWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
         
         #-------------------------
         #   MEL Methods
         #-------------------------
-        melCmdName, infoCmd = mcl.getMelCmd(classdict)
+        melCmdName, infoCmd = cls.getMelCmd(classdict)
 
         
         classdict = {}
@@ -3339,13 +2933,10 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             except (AttributeError, TypeError):
                 func = getattr(pmcmds,melCmdName)
 
-            _logger.debug("Generating methods for %s" % melCmdName)
             # add documentation
-            classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
-            classdict['__doc__'] = classdoc
+            classdict['__doc__'] = util.LazyDocString( (newcls, cls.docstring, (melCmdName,), {} ) )
             classdict['__melcmd__'] = staticmethod(func)
             classdict['__melcmd_isinfo__'] = infoCmd
-            
             
             filterAttrs = ['name']+classdict.keys()
             filterAttrs += overrideMethods.get( bases[0].__name__ , [] )
@@ -3372,7 +2963,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         apiToMelMap['mel'][classname].append( methodName )
                         
                         if methodName not in filterAttrs and \
-                                ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
+                                ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
                             
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here. 
@@ -3390,13 +2981,13 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                     returnFunc = lambda x: returnFunc(x[0])
                                 
                                 wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
-                                    docstring=flagInfo['docstring'], returnFunc=returnFunc )
+                                     returnFunc=returnFunc )
                                 
                                 _logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
                                 #setattr( newcls, methodName, wrappedMelFunc )
-                            else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
-                        else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            #else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
+                        #else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
                         # if there is a corresponding query we use the 'set' prefix. 
@@ -3409,20 +3000,19 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                         apiToMelMap['mel'][classname].append( methodName )
                            
                         if methodName not in filterAttrs and \
-                                ( not hasattr(newcls, methodName) or mcl.isMelMethod(methodName, parentClasses) ):
+                                ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
                             if not _api.apiToMelData.has_key((classname,methodName)) \
                                 or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
                                 or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
                                 #FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
-                                wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName, 
-                                                                     docstring=flagInfo['docstring'] )
+                                wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName)
                                 _logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
                                 #setattr( newcls, methodName, wrappedMelFunc )
-                            else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            #else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                        #else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
         
         for name, attr in classdict.iteritems() :
             type.__setattr__(newcls, name, attr) 
@@ -3430,7 +3020,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         return newcls
         
     @classmethod
-    def getMelCmd(mcl, classdict):
+    def getMelCmd(cls, classdict):
         """
         Retrieves the name of the mel command the generated class wraps, and whether it is an info command.
         
@@ -3439,7 +3029,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         return util.uncapitalize(classname), False
     
     @classmethod
-    def isMelMethod(mcl, methodName, parentClassList):
+    def isMelMethod(cls, methodName, parentClassList):
         """
         Deteremine if the passed method name exists on a parent class as a mel method
         """
@@ -3448,13 +3038,25 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                 return True
         return False
 
+    @classmethod
+    def docstring(cls, melCmdName):
+        try:
+            cmdInfo = cmdlist[melCmdName]
+        except KeyError:
+            _logger.debug("No MEL command info available for %s" % melCmdName)
+            classdoc = ''
+        else:
+            loadCmdDocCache()
+            classdoc = 'class counterpart of mel function `%s`\n\n%s\n\n' % (melCmdName, cmdInfo['description'])
+        return classdoc
+        
 class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     """
     A metaclass for creating classes based on node type.  Methods will be added to the new classes 
     based on info parsed from the docs on their command counterparts.
     """
     completedClasses = {}
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         _logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
@@ -3471,10 +3073,10 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
                 classdict['__apicls__'] = apicls
         #_logger.debug("="*40, classname, apicls, "="*40)
         
-        return super(MetaMayaNodeWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
     @classmethod
-    def getMelCmd(mcl, classdict):
+    def getMelCmd(cls, classdict):
         """
         Retrieves the name of the mel command for the node that the generated class wraps,
         and whether it is an info command.
@@ -3500,7 +3102,7 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
     A metaclass for creating classes based on on a maya UI type/command.
     """
 
-    def __new__(mcl, classname, bases, classdict):
+    def __new__(cls, classname, bases, classdict):
         # If the class explicitly gives it's mel ui command name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
         uiType= classdict.setdefault('__melui__', util.uncapitalize(classname))
@@ -3517,18 +3119,18 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
                         pmcmds.deleteUI(child)
             classdict['clear'] = clear
             
-        return super(MetaMayaUIWrapper, mcl).__new__(mcl, classname, bases, classdict)
+        return super(MetaMayaUIWrapper, cls).__new__(cls, classname, bases, classdict)
     
     @classmethod
-    def getMelCmd(mcl, classdict):
+    def getMelCmd(cls, classdict):
         return classdict['__melui__'], False
     
 class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
     """
     A metaclass for creating components.
     """
-    def __new__(mcl, classname, bases, classdict):
-        newcls = super(MetaMayaComponentWrapper, mcl).__new__(mcl, classname, bases, classdict)
+    def __new__(cls, classname, bases, classdict):
+        newcls = super(MetaMayaComponentWrapper, cls).__new__(cls, classname, bases, classdict)
         apienum = getattr(newcls, '_apienum__', None)
 #        print "addng new component %s - '%s' (%r):" % (newcls, classname, classdict),
         if apienum:
@@ -3741,6 +3343,73 @@ def analyzeApiClass( apiTypeStr ):
 #            for x in sorted( pyMembers.difference( allFnMembers ) ): _logger.info('    ', x)
             
     
+#def addPyNode( module, mayaType, parentMayaType ):
+#    
+#    #_logger.debug("addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module))
+#    # unicode is not liked by metaNode
+#    pyNodeTypeName = str( util.capitalize(mayaType) )
+#    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
+#    
+#    if hasattr( module, pyNodeTypeName ):
+#        _api.addMayaType( mayaType )
+#        PyNodeType = getattr( module, pyNodeTypeName )
+#        try :
+#            ParentPyNode = inspect.getmro(PyNodeType)[1]
+#            if ParentPyNode.__name__ != parentPyNodeTypeName :
+#                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
+#        except :
+#            ParentPyNode = getattr( module, parentPyNodeTypeName )
+#        #_logger.debug("already exists:", pyNodeTypeName, )
+#    else:
+#        try:
+#            ParentPyNode = getattr( module, parentPyNodeTypeName )
+#        except AttributeError:
+#            _logger.info("error creating class %s: parent class %r not in module %s" % (pyNodeTypeName, parentPyNodeTypeName, module.__name__))
+#            return      
+#        try:
+#            PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
+#        except TypeError, msg:
+#            # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+#            _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
+#            import new
+#            PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
+#            PyNodeType.__module__ = module.__name__
+#            setattr( module, pyNodeTypeName, PyNodeType )
+#        else:
+#            #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
+#            PyNodeType.__module__ = module.__name__
+#            setattr( module, pyNodeTypeName, PyNodeType )
+#           
+#    PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
+#    PyNodesToMayaTypes()[PyNodeType] = mayaType
+#    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+#    return PyNodeType
+
+def addPyNodeCallback( module, mayaType, pyNodeTypeName, parentPyNodeTypeName):
+    _logger.debug( "creating %s" % pyNodeTypeName )
+    try:
+        ParentPyNode = getattr( module, parentPyNodeTypeName )
+    except AttributeError:
+        _logger.info("error creating class %s: parent class %r not in module %s" % (pyNodeTypeName, parentPyNodeTypeName, module.__name__))
+        return      
+    try:
+        PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
+    except TypeError, msg:
+        # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+        _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
+        import new
+        PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
+        PyNodeType.__module__ = module.__name__
+        setattr( module, pyNodeTypeName, PyNodeType )
+    else:
+        #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
+        PyNodeType.__module__ = module.__name__
+        setattr( module, pyNodeTypeName, PyNodeType )
+    PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
+    PyNodesToMayaTypes()[PyNodeType] = mayaType
+    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+    return PyNodeType
+
 def addPyNode( module, mayaType, parentMayaType ):
     
     #_logger.debug("addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module))
@@ -3751,41 +3420,24 @@ def addPyNode( module, mayaType, parentMayaType ):
     if hasattr( module, pyNodeTypeName ):
         _api.addMayaType( mayaType )
         PyNodeType = getattr( module, pyNodeTypeName )
+        #print "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName )
         try :
             ParentPyNode = inspect.getmro(PyNodeType)[1]
+            #print "parent:", ParentPyNode, ParentPyNode.__name__
             if ParentPyNode.__name__ != parentPyNodeTypeName :
                 raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
         except :
             ParentPyNode = getattr( module, parentPyNodeTypeName )
         #_logger.debug("already exists:", pyNodeTypeName, )
+        PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
+        PyNodesToMayaTypes()[PyNodeType] = mayaType
+        PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+        return PyNodeType
     else:
-        try:
-            ParentPyNode = getattr( module, parentPyNodeTypeName )
-        except AttributeError:
-            _logger.info("error creating class %s: parent class %s not in module %s" % (pyNodeTypeName, parentMayaType, __name__))
-            return      
-        try:
-            PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
-        except TypeError, msg:
-            # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-            _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
-            import new
-            PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
-            PyNodeType.__module__ = module.__name__
-            setattr( module, pyNodeTypeName, PyNodeType )
-        else:
-            _logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
-            PyNodeType.__module__ = module.__name__
-            setattr( module, pyNodeTypeName, PyNodeType )
-           
-    PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
-    PyNodesToMayaTypes()[PyNodeType] = mayaType
-    _logger.debug("Adding %s for %s" % ( PyNodeType, pyNodeTypeName ))
-    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
-
-    
-    
-    return PyNodeType
+        _logger.debug( "%s(%s) setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
+        module._addattr( pyNodeTypeName, addPyNodeCallback, 
+                         module, mayaType, 
+                         pyNodeTypeName, parentPyNodeTypeName ) 
 
 def removePyNode( module, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )

@@ -1,16 +1,17 @@
 "pymel logging functions"
-import maya
-from maya.OpenMaya import MGlobal, MEventMessage, MMessage
 import sys, os
 
 import logging
 import logging.config
 from logging import *
 # The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
-from logging import basicConfig, getLevelName, root, info, debug, warning, error, critical, getLogger
+from logging import getLevelName, root, info, debug, warning, error, critical, getLogger
+
+import maya
 import pymel.util as util
 import maya.utils
-import maya.app.python
+from maya.OpenMaya import MGlobal, MEventMessage, MMessage
+
 from pymel.util.decoration import decorator
 
 
@@ -34,32 +35,7 @@ def _fixMayaOutput():
                 def flush(*args,**kwargs):
                     pass
             maya.Output = MayaOutput()
-            sys.stdout = maya.Output
-
-class ClassInfo(object):
-    def __init__(self, cls):
-        self.currentClass = cls
-
-    def __getitem__(self, name):
-        """
-        To allow this instance to look like a dict.
-        """
-        if name == "class":
-            result = self.currentClass.__name__
-        else:
-            result = self.__dict__.get(name, "?")
-        return result
-
-    def __iter__(self):
-        """
-        To allow iteration over keys, which will be merged into
-        the LogRecord dict before formatting and output.
-        """
-        keys = ["class"]
-        keys.extend(self.__dict__.keys())
-        return keys.__iter__()
-
-           
+            sys.stdout = maya.Output          
 
 _fixMayaOutput()
 
@@ -84,32 +60,26 @@ def getLogConfigFile():
         return configFile
     return getConfigFile()
 
-configFile = getLogConfigFile()
-if sys.version_info >= (2,6):
-    logging.config.fileConfig(configFile, disable_existing_loggers=0)
-else:
-    logging.config.fileConfig(configFile)
-    # The fileConfig function disables old-loggers, so we need to re-enable them
-    for k,v in sorted(logging.root.manager.loggerDict.iteritems()):
-        if hasattr(v, 'disabled') and v.disabled:
-            v.disabled = 0
+maya.utils.shellLogger()
+
+#configFile = getLogConfigFile()
+#if sys.version_info >= (2,6):
+#    logging.config.fileConfig(configFile, disable_existing_loggers=0)
+#else:
+#    logging.config.fileConfig(configFile)
+#    # The fileConfig function disables old-loggers, so we need to re-enable them
+#    for k,v in sorted(logging.root.manager.loggerDict.iteritems()):
+#        if hasattr(v, 'disabled') and v.disabled:
+#            v.disabled = 0
     
-mainLogger = logging.root
+rootLogger = logging.root
 
 pymelLogger = logging.getLogger("pymel")
 
 # keep as an enumerator so that we can keep the order
 logLevels = util.Enum( 'logLevels', dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )
 
-def getClassLogger(cls):
-    """get a logger for the passed class"""
-    logger = logging.getLogger('%s.%s' % cls.__module__, cls.__name__)
-    # logging adapter is in 2.6 only
-    if sys.version_info[:2] >= (2,6):    
-        newlogger = logging.LoggerAdapter( logger, ClassInfo(cls) )
-        return newlogger
-    
-    return logger
+
 
 def nameToLevel(name):
     return logLevels.getIndex(name)
@@ -120,6 +90,7 @@ def levelToName(level):
 #===============================================================================
 # DECORATORS
 #===============================================================================
+
 def timed(level=DEBUG):
     import time
     @decorator
@@ -135,17 +106,6 @@ def timed(level=DEBUG):
         return timedFunction
     return timedWithLevel
 
-@decorator
-def stdOutsRedirected(func):
-    def stdOutsRedirectedFunction(*arg, **kwargs):
-        redirectStandardOutputs(root)
-        origs = (sys.stdout, sys.stderr)
-        try:
-            ret = func(*arg, **kwargs)
-        finally:
-            (sys.stdout, sys.stderr) = origs
-        return ret
-    return stdOutsRedirectedFunction
 
 #===============================================================================
 # INIT TO USER'S PREFERENCE
@@ -186,35 +146,7 @@ def _setupLevelPreferenceHook():
     setLevelHook.__name__ = func.__name__
     pymelLogger.setLevel = setLevelHook
     
-    # if we are in batch mode and pymel is imported very early, it will still register as interactive at this point
-    if MGlobal.mayaState() == MGlobal.kInteractive and sys.stdout.__class__ == file and hasattr(maya.utils, 'executeDeferred'):
-        # stdout has not yet been replaced by maya's custom stream that redirects to the output window.
-        # we need to put a callback in place that lets us get maya.Output stream as our StreamHandler.
-        pymelLogger.debug( 'setting up callback to redirect logger StreamHandler' )
-
-        maya.utils.executeDeferred( redirectLoggerToMayaOutput )
 
 
-def redirectLoggerToMayaOutput(*args):
-    "run when pymel is imported very early in the load process"
-    
-    
-    if MGlobal.mayaState() == MGlobal.kInteractive:
-        if sys.stdout.__class__ == file:
-            pymelLogger.warning( 'could not fix sys.stdout %s' %  MGlobal.mayaState())
-        else:
-            pymelLogger.debug( 'fixing sys.stdout' )
-        
-            _fixMayaOutput()
-            newHandler = StreamHandler(sys.stdout)
-
-            # get current root handler formatter
-            formatter = mainLogger.handlers[0].formatter
-            newHandler.setFormatter(formatter)
-            
-            #newHandler.setLevel( mainLogger.getEffectiveLevel() )
-            mainLogger.addHandler( newHandler )
-            # mainLogger.removeHandler(console)
-
-_setupLevelPreferenceHook()
+#_setupLevelPreferenceHook()
 

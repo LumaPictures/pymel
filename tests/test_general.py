@@ -1,6 +1,6 @@
 import sys, os, inspect, unittest
 #from testingutils import setupUnittestModule
-from pymel import *
+from pymel.all import *
 import pymel.core.nodetypes as nodetypes
 #import pymel
 #import pymel.core.factories as _factories

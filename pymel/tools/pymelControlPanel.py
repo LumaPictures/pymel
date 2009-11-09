@@ -13,7 +13,7 @@ It controls:
 """
  
 
-from pymel import *
+from pymel.all import *
 import inspect, re, os
 
 logger = mayahook.plogging.getLogger(__name__)

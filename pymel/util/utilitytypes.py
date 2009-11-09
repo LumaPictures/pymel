@@ -3,7 +3,7 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import inspect
+import inspect, types
 from warnings import *
 
 class Singleton(type):
@@ -467,249 +467,181 @@ class universalmethod(object):
             return self.f(instance, *args)
         return newfunc
 
-class TwoWayDict(dict):
+def lazyLoadModule(name, contents):
     """
-    A dictionary that can also map in reverse: value to key.
-
-    >>> twd = TwoWayDict( {3:'foobar'} )
-    >>> twd[3]
-    'foobar'
-    >>> twd.get_key('foobar')
-    3
+    :param name: name of the module
+    :param contents: dictionary of initial module globals
+    
+    This function returns a special module type with one method `_addattr`.  The signature
+    of this method is:
+    
+        _addattr(name, creator, *creatorArgs, **creatorKwargs)
+    
+    Attributes added with this method will not be created until the first time that
+    they are accessed, at which point a callback function will be called to generate
+    the attribute's value.
+    
+    :param name: name of the attribute to lazily add
+    :param creator: a function that create the
+    
+    Example::
+    
+        import sys
+        mod = lazyLoadModule(__name__, globals())
+        mod._addattr( 'foo', str, 'bar' )
+        sys.modules[__name__] = mod
+    
+    One caveat of this technique is that if a user imports everything from your
+    lazy module ( .e.g from module import * ), it will cause all lazy attributes
+    to be evaluated.
+    """
+    class LazyLoadModule(types.ModuleType):
+        class LazyLoader(object):
+            """
+            A data descriptor that delays instantiation of an object
+            until it is first accessed.
+            """
+            def __init__(self, name, creator, *creatorArgs, **creatorKwargs):
+                self.creator = creator
+                self.args = creatorArgs
+                self.kwargs = creatorKwargs
+                self.name = name
+    
+            def __get__(self, obj, objtype):
+                newobj = self.creator(*self.args, **self.kwargs)
+                #delattr( obj.__class__, self.name) # should we overwrite with None?
+                setattr( obj, self.name, newobj)
+                return newobj
+                   
+        def __init__(self, name, contents):
+            types.ModuleType.__init__(self, name)
+            self.__dict__.update(contents)
         
-    Entries in both sets (keys and values) must be unique within that set, but
-    not necessarily across the two sets - ie, you may have 12 as both a key and
-    a value, but you may not have two keys which both map to 12 (or, as with a
-    regular dict, two key entries for 12).
-    
-    If a key is updated to a new value, get_key for the old value will raise
-    a KeyError:
-    
-    >>> twd = TwoWayDict( {3:'old'} )
-    >>> twd[3] = 'new'
-    >>> twd[3]
-    'new'
-    >>> twd.get_key('new')
-    3
-    >>> twd.get_key('old')
-    Traceback (most recent call last):
-        ...
-    KeyError: 'old'
-    
-    Similarly, if a key is updated to an already-existing value, then the old key
-    will be removed from the dictionary! 
-    
-    >>> twd = TwoWayDict( {'oldKey':'aValue'} )
-    >>> twd['newKey'] = 'aValue'
-    >>> twd['newKey']
-    'aValue'
-    >>> twd.get_key('aValue')
-    'newKey'
-    >>> twd['oldKey']
-    Traceback (most recent call last):
-        ...
-    KeyError: 'oldKey'
-    
-    If a group of values is fed to the TwoWayDict (either on initialization, or
-    through 'update', etc) that is not consistent with these conditions, then the
-    resulting dictionary is indeterminate; however, it is guaranteed to be a valid/
-    uncorrupted TwoWayDict.
-    (This is similar to how dict will allow, for instance, {1:'foo', 1:'bar'}).
-
-    >>> twd = TwoWayDict( {1:'foo', 1:'bar'} )
-    >>> # Is twd[1] 'foo' or 'bar'?? Nobody knows!
-    >>> # ...however, one of these is guaranteed to raise an error...
-    >>> twd.get_key('foo') + twd.get_key('bar')   #doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-        ...
-    KeyError: (either 'bar' or 'foo')
-    >>> twd = TwoWayDict( {1:'foo', 2:'foo'} )
-    >>> # Is twd.get_key('foo') 1 or 2? Nobody knows!
-    >>> # ...however, one of these is guaranteed to raise an error...
-    >>> twd[1] + twd[2]   #doctest: +IGNORE_EXCEPTION_DETAIL
-    Traceback (most recent call last):
-        ...
-    KeyError: (either 1 or 2)
+        @property
+        def __all__(self):
+            public = [ x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_') ]
+            return public
         
-    Obviously, such shenannigans should be avoided - at some point in the future, this may
-    cause an error to be raised...
+        @classmethod
+        def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
+            setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
+    return LazyLoadModule(name, contents)
+
+class LazyDocStringError(Exception): pass
+
+class LazyDocString(types.StringType):
     """
+    Set the __doc__ of an object to an object of this class in order to have
+    a docstring that is dynamically generated when used.
     
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self)
-        self._reverse = {}
-        self.update(*args, **kwargs)
-
-    def __setitem__(self, k, v):
-        # Maintain the 1-1 mapping
-        if dict.__contains__(self, k):
-            del self._reverse[self[k]]
-        if v in self._reverse:
-            dict.__delitem__(self, self.get_key(v))
-        dict.__setitem__(self, k, v)
-        self._reverse[v] = k
-
-    def has_value(self, v):
-        return self._reverse.has_key(v)
+    Due to restrictions of inheriting from StringType (which is necessary,
+    as the 'help' function does a check to see if __doc__ is a string),
+    the creator can only take a single object.
     
-    def __delitem__(self, k):
-        del self._reverse[self[k]]
-        dict.__delitem__(self, k)
-            
-    def clear(self):
-        self._reverse.clear()
-        dict.clear(self)
+    Since the object initialization requires multiple parameters, the
+    LazyDocString should be fed an sliceable-iterable on creation,
+    of the following form:
+    
+        LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )
+    
+    documentedObj should be the object on which we are placing the docstring
+    
+    docGetter should be a function which is used to retrieve the 'real'
+    docstring - it's args will be documentedObj and any extra args
+    passed to the object on creation.
+    
+    Example Usage:
+    
+    >>> def getDocStringFromDict(obj):
+    ...     returnVal = docStringDict[obj]
+    ...     return returnVal
+    >>> 
+    >>> # In order to alter the doc of a class, we need to use a metaclass
+    >>> class TestMetaClass(type): pass
+    >>>         
+    >>> class TestClass(object):
+    ...     __metaclass__ = TestMetaClass
+    ... 
+    ...     def aMethod(self):
+    ...         pass
+    ... 
+    ...     aMethod.__doc__ = LazyDocString( (aMethod, getDocStringFromDict, (aMethod,)) )
+    >>> 
+    >>> TestClass.__doc__ = LazyDocString( (TestClass, getDocStringFromDict, (TestClass,)) )
+    >>> 
+    >>> 
+    >>> docStringDict = {TestClass:'New Docs for PynodeClass!',
+    ...                  TestClass.aMethod.im_func:'Method docs!'}
+    >>> 
+    >>> TestClass.__doc__
+    'New Docs for PynodeClass!'
+    >>> TestClass.aMethod.__doc__
+    'Method docs!'
 
-    def copy(self):
-        return TwoWayDict(self)
-
-    def pop(self, k):
-        del self._reverse[self[k]]
-        return self.pop(k)
-
-    def popitem(self, **kws):
-        raise NotImplementedError()
-
-    def setdefault(self, **kws):
-        raise NotImplementedError()
-
-    def update(self, *args, **kwargs):
-        if len(args) > 1:
-            raise TypeError('update expected at most 1 arguments, got %d' % len(args))
-        # since args may be a couple different things, cast it to a dict to
-        # simplify things...
-        tempDict = dict(args[0])
-        tempDict.update(kwargs)
-        for key, val in tempDict.iteritems():
-            self[key] = val
-
-    def get_key(self, v):
-        return self._reverse[v] 
-
-class EquivalencePairs(TwoWayDict):
+    
+    Note that new-style classes (ie, instances of 'type') and instancemethods
+    can't have their __doc__ altered.
+    
+    In the case of classes, you can get around this by using a metaclass for
+    the class whose docstring you wish to alter.
+    
+    In the case of instancemethods, just set the __doc__ on the function
+    underlying the method (ie, myMethod.im_func). Note that if the __doc__
+    for the method is set within the class definition itself, you will
+    already automatically be modifying the underlying function.
     """
-    A mapping object similar to a TwoWayDict, with the addition that indexing
-    and '__contains__' can now be used with keys OR values:
-    
-    >>> eq = EquivalencePairs( {3:'foobar'} )
-    >>> eq[3]
-    'foobar'
-    >>> eq['foobar']
-    3
-    >>> 3 in eq
-    True
-    >>> 'foobar' in eq
-    True
-    
-    This is intended to be used where there is a clear distinction between
-    keys and values, so there is little likelihood of the sets of keys
-    and values intersecting. 
-    
-    The dictionary has the same restrictions as a TwoWayDict, with the added restriction
-    that an object must NOT appear in both the keys and values, unless it maps to itself.
-    If a new item is set that would break this restriction, the old keys/values will be
-    removed from the mapping to ensure these restrictions are met. 
-    
-    >>> eq = EquivalencePairs( {1:'a', 2:'b', 3:'die'} )
-    >>> eq['a']
-    1
-    >>> eq['b']
-    2
-    >>> eq[1]
-    'a'
-    >>> eq[2]
-    'b'
-    >>> del eq['die']
-    >>> eq[3]
-    Traceback (most recent call last):
-        ...
-    KeyError: 3
-    >>> eq[2] = 1
-    >>> eq[1]
-    2
-    >>> eq[2]
-    1
-    >>> eq['a']
-    Traceback (most recent call last):
-        ...
-    KeyError: 'a'
-    >>> eq['b']
-    Traceback (most recent call last):
-        ...
-    KeyError: 'b'
-
-    # Even though 2 is set as a VALUE, since it already
-    # exists as a KEY, the 2:'b' mapping is removed,
-    # so eq['b'] will be invalid...
-    >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
-    >>> eq['new'] = 2
-    >>> eq['new']
-    2
-    >>> eq[2]
-    'new'
-    >>> eq['b']
-    Traceback (most recent call last):
-        ...
-    KeyError: 'b'
-    
-    # Similarly, if you set as a KEy something that
-    # already exists as a value...
-    >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
-    >>> eq['b'] = 3
-    >>> eq['b']
-    3
-    >>> eq[3]
-    'b'
-    >>> eq[2]
-    Traceback (most recent call last):
-        ...
-    KeyError: 2
-
-    If a group of values is fed to the EquivalencePairs (either on initialization, or
-    through 'update', etc) that is not consistent with it's restrictions, then the
-    resulting dictionary is indeterminate; however, it is guaranteed to be a valid/
-    uncorrupted TwoWayDict.
-    
-    (This is somewhat similar to the behavior of the dict object itself, which will allow
-    a definition such as {1:2, 1:4} )
-    
-    Obviously, such shenannigans should be avoided - at some point in the future, this may
-    even cause an error to be raised...
-    
-    Finally, note that a distinction between keys and values IS maintained, for compatibility
-    with keys(), iter_values(), etc.
-    """
-    def __setitem__(self, k, v):
-        if k in self:
-            # this will check if k is in the keys OR values...
-            del self[k]
-        if v in self:
-            del self[v]
-        dict.__setitem__(self, k, v)
-        self._reverse[v] = k
-        
-    def __delitem__(self, key):
-        if dict.__contains__(self, key):
-            super(EquivalencePairs, self).__delitem__(key)
-        elif key in self._reverse:
-            dict.__delitem__(self, self[key])
-            del self._reverse[key]
+   
+    def __init__(self, argList):
+        if len(argList) < 2:
+            raise LazyDocStringError('LazyDocString must be initialized with an iterable of the form: LazyDocString( [documentedObj, docGetter, arg1, arg2, ...] )')
+        documentedObj = argList[0]
+        docGetter = argList[1]
+        if len(argList) > 2:
+            args = argList[2]
+            if len(argList) == 4:
+                kwargs = argList[3]
+            else:
+                kwargs = {}
         else:
-            raise KeyError(key)
-            
-    def __getitem__(self, key):
-        if dict.__contains__(self, key):
-            return super(EquivalencePairs, self).__getitem__(key)
-        elif key in self._reverse:
-            return self._reverse[key]
-        else:
-            raise KeyError(key)
+            args = ()
+            kwargs = {}
+        
+        try:
+            # put in a placeholder docstring, and check to make
+            # sure we can change the __doc__ of this object!
+            documentedObj.__doc__ = 'LazyDocString placeholder'
+        except AttributeError:
+            raise LazyDocStringError('cannot modify the docstring of %r objects' % documentedObj.__class__.__name__)
+        self.documentedObj = documentedObj
+        self.docGetter = docGetter
+        self.args = args
+        self.kwargs = kwargs
     
-    def __contains__(self, key):
-        return (dict.__contains__(self, key) or
-                key in self._reverse)
-          
+    def __str__(self):
+        #print "creating docstrings", self.docGetter, self.args, self.kwargs
+        self.documentedObj.__doc__ = self.docGetter(*self.args, **self.kwargs)
+        return self.documentedObj.__doc__
+    def __repr__(self):
+        return repr(str(self))
+
+for _name, _method in inspect.getmembers(types.StringType, inspect.isroutine):
+    if _name.startswith('_'):
+        continue
     
+    def makeMethod(name):
+        def LazyDocStringMethodWrapper(self, *args, **kwargs):
+            return getattr(str(self), name)(*args, **kwargs)
+        return LazyDocStringMethodWrapper
+    setattr(LazyDocString, _name, makeMethod(_name) )
+   
+def addLazyDocString( object, creator, *creatorArgs, **creatorKwargs):
+    """helper for LazyDocString.  Equivalent to :
+    
+        object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
+    """
+    object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
+
+
 # unit test with doctest
 if __name__ == '__main__' :
     import doctest

@@ -1,8 +1,7 @@
-import sys, os, types, doctest, modulefinder
+import sys, os, types, doctest, modulefinder, traceback
 from StringIO import StringIO
 from unittest import *
 
-from pymel.mayahook.mexceptions import lastFormattedException
 import pymel.util
 from pymel.util import warn
 
@@ -130,7 +129,7 @@ class TestCaseExtended(TestCase):
         try:
             function(*args, **kwargs)
         except:
-            self.fail("Exception raised:\n%s" % lastFormattedException())
+            self.fail("Exception raised:\n%s" % traceback.format_exc())
     
     def assertIteration(self, iterable, expectedResults,
                         orderMatters=True,
@@ -318,7 +317,7 @@ class SuiteFromModule(TestSuite):
                 if not importedSuite.countTestCases():
                     self._importError = "Imported suite (from %s.%s) had no test cases" % (self.module.__name__, self.suiteFuncName)
             except:
-                self._importError = lastFormattedException()
+                self._importError = traceback.format_exc()
             
         if not self._importError:
             self.addTest(importedSuite)
@@ -336,7 +335,7 @@ class SuiteFromModule(TestSuite):
             for subModule in packagePath[1:]:
                 module = getattr(module, subModule)
         except:
-            self._importError = lastFormattedException()
+            self._importError = traceback.format_exc()
             module = None
         return module
 

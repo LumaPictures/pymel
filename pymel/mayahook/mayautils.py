@@ -3,22 +3,23 @@ Maya-related functions, which are useful to both `api` and `core`, including `ma
 that maya is initialized in standalone mode.
 """
 
-import re, os, os.path, sys, platform, subprocess
+import re, os.path, sys, platform, time
+
 from pwarnings import *
 import plogging
-_logger = plogging.getLogger(__name__)
-from pymel.util import path as _path
 
+from pymel.util import path as _path, shellOutput
+
+import pymel.version as version
+from pymel.version import parseVersionStr, shortName, installName
+import maya
+
+_logger = plogging.getLogger(__name__)
 try:
     import cPickle as pickle
 except:
     _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
-
-from version import Version, parseVersionStr
-import envparse
-import maya
-
 
 #from maya.cmds import encodeString
 
@@ -40,10 +41,10 @@ sep = os.path.pathsep
 isInitializing = False
     
 # tells whether this maya package has been modified to work with pymel
-pymelMayaPackage = hasattr(maya, 'pymelCompatible')
+pymelMayaPackage = hasattr(maya, 'pymelCompatible') or version.CURRENT >= version.v2011
         
 
-def moduleDir():
+def _moduleDir():
     """
     Returns the base pymel directory.
     :rtype: string
@@ -102,8 +103,8 @@ def getMayaLocation(version=None):
         # note that a recursive loop between getMayaLocation / getMayaVersion
         # is avoided because getMayaVersion always calls getMayaLocation with
         # version == None
-        actual_long_version = Version.installName()
-        actual_short_version = Version.shortName()
+        actual_long_version = installName()
+        actual_short_version = shortName()
         if version != actual_long_version:
             short_version = parseVersionStr(version, extension=False)
             if version == short_version :
@@ -119,22 +120,12 @@ def getMayaLocation(version=None):
                 
     return loc
 
-def getRunningMayaVersionString():
-    """ Returns the version string (from 'about(version=True)' ) of the currently running version of maya, or None
-    if no version is initialized.
-    
-    :rtype: str or None
-    """
-
-    try :
-        from maya.cmds import about
-        return about(version=True)
-    except :
-        return None
 
 def mayaIsRunning():
     """
-    Returns True if a version of maya is running / initialized, False otherwise.
+    Returns True if maya.cmds have  False otherwise.
+    
+    Early in interactive startup it is possible for commands to exist but for Maya to not yet be initialized.
     
     :rtype: bool
     """
@@ -142,8 +133,19 @@ def mayaIsRunning():
     # Implementation is essentially just a wrapper for getRunningMayaVersionString -
     # this function was included for clearer / more readable code
     
-    return bool(getRunningMayaVersionString())
+    try :
+        from maya.cmds import about
+        about(version=True)
+        return True
+    except :
+        return False
 
+def mayaStartupHasRun():
+    """
+    Returns True if maya.app.startup has run, False otherwise.
+    """
+    return 'maya.app.startup.gui' in sys.modules or 'maya.app.startup.batch' in sys.modules
+    
 def getMayaExecutable(version=None, commandLine=True):
     """Returns the path string to the maya executable for the given version; if version is None, then returns the path
     string for the current maya version.
@@ -168,63 +170,10 @@ def getMayaExecutable(version=None, commandLine=True):
         binaryRoot, binaryExtension = os.path.splitext(os.path.basename(sys.executable))
         if binaryRoot == "python":
             # sys.executable was the python binary
-            # NOTE: We don't want to return the python binary, as this will result
-            # in _getVersionStringFromExecutable hanging
             raise RuntimeError("Unable to locate maya executable - try setting 'MAYA_LOCATION' environment variable")
         return sys.executable
     
-def _getVersionStringFromExecutable(version=None):
-    """Returns the raw string that would be returned from maya by calling it from the command line with the -v switch."""
-    return executableOutput([getMayaExecutable(version), "-v"])
 
-def getMayaVersion(running=True, installed=True, extension=True):
-    """ Returns the maya version (ie 2008), 
-        If running=True will test version of the running Maya that either embeds the current Python interpreter
-        or was started in it.
-        If installed=True will test version of an installed Maya, even if not running.
-        If both are True, order is first test for running Maya, then installed
-        if extension=True, will return long version form, with extension (known one : x64 for 64 bit cuts) 
-    """
-    # first try to get the version from maya.cmds.about 
-    # ...try the path if maya.cmds is not loaded (ie, getMayaLocation)
-    # ...then, for non-standard installation directories, call the maya binary for the version.
-    # we try this as a last resort because of potential load-time slowdowns
-    
-    version = None
-    
-    fns = []
-    if running :
-        try :
-            from maya.cmds import about
-            version = about(file=True)
-            # in 2010 we got an ff02 tagged on the end, which was boning everything
-            assert re.match( '(8.5)|(20\d\d)$', version )
-            if extension and about(is64=1):
-                version += '-x64'
-            return version
-        except :
-            pass
-        
-        #fns.append(getRunningMayaVersionString)
-        
-    if installed :
-        fns.append(getMayaLocation)
-        fns.append(_getVersionStringFromExecutable)
-    
-    for versionFunction in fns:
-        try:
-            version = parseVersionStr(versionFunction(), extension)
-        except:
-            continue
-        else:
-            break
-    
-    # commented this because we sometimes cal this with the need return a None version
-    # (means None running, Mone installed) and handle the error more explicitely in the caller
-    # (no maya running, pymel needs an installed Maya etc)
-    #   raise RuntimeError("Unable to retrieve maya version")
-    
-    return version
     
 def getMayaAppDir():
     if not os.environ.has_key('MAYA_APP_DIR') :
@@ -235,68 +184,10 @@ def getMayaAppDir():
             return os.path.join(home, 'maya')
     return os.environ['MAYA_APP_DIR']
 
-            
-# TODO: finish this, use it in getMayaVersion
-#class MayaVersionStringParser(object):
-#    """
-#    Given a maya version string, parses various information from the string:
-#
-#    Properties:
-#    (all contain 'None' if the information was not found while parsing)
-#    
-#    .versionNum - float - the primary version number (ie, 2008, 8.5, 7.0)
-#    .versionNumStr - string - .versionNum as a string - handy because .versionNum is
-#        always a float, but for the string, we may or may not want to display the
-#        digit after the decimal (ie, '8.0', '8.5', and '2008')
-#    .extension - int - if the version is an 'Extension', (ie, '2008 Extension 2'), the
-#        extension number
-#    .servicePack - int - if the version is a 'Service Pack', (ie, '8.5 Service Pack
-#        1'), the service pack number
-#    .bits - int - if the version is for a certain bit-number system (ie, '2008 x64'),
-#        the number of bits
-#    .cut - string - the cut number
-#    
-#    The version string can be from cmds.about(version=1), or from a query of the
-#    maya binary with a -v flag (ie, 'maya -v' or 'mayabatch -v')
-#    
-#    Examples:
-#    foo = MayaVersionStringParser("2008 Extension 2 x64, Cut Number 200802242349")
-#    print repr(foo.versionNum) # 2008.0
-#    print repr(foo.versionNumStr) # '2008'
-#    print repr(foo.extension) # 2
-#    print repr(foo.servicePack) # None
-#    print repr(foo.bits) # 64
-#    print repr(foo.cut) # '200802242349'
-#     
-#    foo = MayaVersionStringParser("8.5 Service Pack 1")
-#    print repr(foo.versionNum) # 8.5
-#    print repr(foo.versionNumStr) # '8.5'
-#    print repr(foo.extension) # None
-#    print repr(foo.servicePack) # 1
-#    print repr(foo.bits) # None
-#    print repr(foo.cut) # None
-#    """
-#    
-#    def __init__(self, versionStr, extension):
-#        # problem with service packs addition, must be able to match things such as :
-#        # '2008 Service Pack 1 x64', '2008x64', '2008-x64', '2008', '8.5'
-#        
-#        # TODO: make it handle either "Extension 2 Service Pack 1" or "Service Pack 1 Extension 2"
-#        self._input = versionStr
-#        ma = re.search( "(?:[Mm]aya[ ]?)?(?P<base>[\d.]+)()?()?((?:[ ]|-)x(?P<bits>[\d]+))?(?:, Cut Number (?P<cut>[\d-]+))?", versionStr)
-#        version = ma.group('base')
-#        self.versionNumStr = version
-#        self.versionNum = float(self.versionNumStr)
-#        if extension and (ma.group('bits') is not None) :
-#            version += "-x"+ma.group('bits')
-#        self._version = version
-
-
-
 
 def mayaDocsLocation(version=None):
     docLocation = None
-    if (version == None or version == Version.installName() ) and mayaIsRunning():
+    if (version == None or version == installName() ) and mayaIsRunning():
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -317,88 +208,13 @@ def mayaDocsLocation(version=None):
         if version:
             short_version = parseVersionStr(version, extension=False)
         else:
-            short_version = Version.shortName()
+            short_version = shortName()
         if system == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
             
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
 
     return docLocation
-
-def executableOutput(exeAndArgs, convertNewlines=True, stripTrailingNewline=True, **kwargs):
-    """Will return the text output of running the given executable with the given arguments.
-    
-    This is just a convenience wrapper for subprocess.Popen, so the exeAndArgs argment
-    should have the same format as the first argument to Popen: ie, either a single string
-    giving the executable, or a list where the first element is the executable and the rest
-    are arguments. 
-    
-    :Parameters:
-        convertNewlines : bool
-            if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
-            the standard \\n newline
-        
-        stripTrailingNewline : bool
-            if True, and the output from the executable contains a final newline,
-            it is removed from the return value
-            Note: the newline that is stripped is the one given by os.linesep, not \\n
-    
-    kwargs are passed onto subprocess.Popen
-    
-    Note that if the keyword arg 'stdout' is supplied (and is something other than subprocess.PIPE),
-    then the return will be empty - you must check the file object supplied as the stdout yourself.
-    
-    Also, 'stderr' is given the default value of subprocess.STDOUT, so that the return will be
-    the combined output of stdout and stderr.
-    
-    Finally, since maya's python build doesn't support universal_newlines, this is always set to False - 
-    however, set convertNewlines to True for an equivalent result."""
-    
-    kwargs.setdefault('stdout', subprocess.PIPE)
-    kwargs.setdefault('stderr', subprocess.STDOUT)
-
-    cmdProcess = subprocess.Popen(exeAndArgs, **kwargs)
-    cmdOutput = cmdProcess.communicate()[0]
-
-    if stripTrailingNewline and cmdOutput.endswith(os.linesep):
-        cmdOutput = cmdOutput[:-len(os.linesep)]
-
-    if convertNewlines:
-        cmdOutput = cmdOutput.replace(os.linesep, '\n')
-    return cmdOutput
-
-def shellOutput(shellCommand, convertNewlines=True, stripTrailingNewline=True, **kwargs):
-    """Will return the text output of running a given shell command.
-    
-    :Parameters:
-        convertNewlines : bool
-            if True, will replace os-specific newlines (ie, \\r\\n on Windows) with
-            the standard \\n newline
-        
-        stripTrailingNewline : bool
-            if True, and the output from the executable contains a final newline,
-            it is removed from the return value
-            Note: the newline that is stripped is the one given by os.linesep, not \\n
-    
-    With default arguments, behaves like commands.getoutput(shellCommand),
-    except it works on windows as well.
-    
-    kwargs are passed onto subprocess.Popen
-    
-    Note that if the keyword arg 'stdout' is supplied (and is something other than subprocess.PIPE),
-    then the return will be empty - you must check the file object supplied as the stdout yourself.
-    
-    Also, 'stderr' is given the default value of subprocess.STDOUT, so that the return will be
-    the combined output of stdout and stderr.
-    
-    Finally, since maya's python build doesn't support universal_newlines, this is always set to False - 
-    however, set convertNewlines to True for an equivalent result."""
-    
-    # commands module not supported on windows... use subprocess
-    kwargs['shell'] = True
-    kwargs['convertNewlines'] = convertNewlines
-    kwargs['stripTrailingNewline'] = stripTrailingNewline
-    return executableOutput(shellCommand, **kwargs)
 
 def refreshEnviron():
     """
@@ -419,78 +235,8 @@ def refreshEnviron():
         # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
         if '=' in line:
             var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
-            if not var.startswith('_') and var not in exclude: 
-                    os.environ[var] = val 
-
-# parse the Maya.env file and set the environment variables and python path accordingly
-def parseMayaenv(envLocation=None, version=None) :
-    """ parse the Maya.env file and set the environement variablas and python path accordingly.
-        You can specify a location for the Maya.env file or the Maya version"""
-    name = 'Maya.env'
-
-        
-    envPath = None
-    if envLocation :
-        envPath = envLocation
-        if not os.path.isfile(envPath) :
-            envPath = os.path.join(envPath, name)
-           
-    # no Maya.env specified, we look for it in MAYA_APP_DIR
-    if not envPath or not envPath.isfile() :
-        maya_app_dir = getMayaAppDir()
-        if not maya_app_dir:
-            _logger.warn("Neither HOME nor MAYA_APP_DIR is set, unable to find location of Maya.env")
-            return False
-
-        # try to find which version of Maya should be initialized
-        if not version :
-            # try to query version, will only work if reparsing env from a working Maya
-            version = Version.installName()
-            if version is None:
-                # if run from Maya provided mayapy / python interpreter, can guess version
-                _logger.debug("Unable to determine which verson of Maya should be initialized, trying for Maya.env in %s" % maya_app_dir)
-        # look first for Maya.env in 'version' subdir of MAYA_APP_DIR, then directly in MAYA_APP_DIR
-        if version and os.path.isfile(os.path.join(maya_app_dir, version, name)) :
-            envPath = os.path.join(maya_app_dir, version, name)
-        else :
-            envPath = os.path.join(maya_app_dir, name)
-
-    # finally if we have a possible Maya.env, parse it
-    if os.path.isfile(envPath) :
-        try :
-            envFile = open(envPath)
-        except :
-            _logger.warn ("Unable to open Maya.env file %s" % envPath )
-            return False
-        success = False
-        try :
-            envTxt = envFile.read()
-            envVars = envparse.parse(envTxt)
-            # update env vars
-            for v in envVars :
-                #_logger.debug("%s was set or modified" % v)
-                os.environ[v] = envVars[v]
-            # add to syspath
-            if envVars.has_key('PYTHONPATH') :
-                #_logger.debug("sys.path will be updated")
-                plist = os.environ['PYTHONPATH'].split(sep)
-                for p in plist :
-                    if not p in sys.path :
-                        sys.path.append(p)
-            success = True
-        finally :
-            envFile.close()
-            return success
-    else :
-        if version :
-            print"Found no suitable Maya.env file for Maya version %s" % version
-        else :
-            print"Found no suitable Maya.env file"
-        return False
-
-
-
-'^([._])|(AE[a-zA-Z]).*'
+            if not var.startswith('_') and var not in exclude:
+                    os.environ[var] = val
 
 def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn'):
     """
@@ -575,91 +321,6 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
         _logger.info("Maya script path recursion did not find any paths to add")
 
 
-#
-#def setMayaDefaultEnvs(version):
-#    """
-#    Sets environment variables to their maya defaults.  This was created as an alternate solution to 
-#    refreshEnviron, but is not currently in use.
-#    """
-#    
-#    if system == 'Darwin':
-#        share = '/Users/Shared/Autodesk'
-#    
-#    # single value variables
-#    try:
-#        mayaloc = os.environ['MAYA_LOCATION']
-#    except:
-#        mayaloc = os.path.dirname( os.path.dirname( sys.executable ) )
-#        os.environ['MAYA_LOCATION'] = mayaloc
-#        
-#    try:
-#        appdir = os.environ['MAYA_APP_DIR']
-#    except KeyError:
-#        appdir = os.environ['HOME']
-#        os.environ['MAYA_APP_DIR'] = os.path.join( appdir, 'maya' )
-#
-#    # list variables
-#    
-#    
-#    # MAYA_PLUG_IN_PATH
-#    try:
-#        pluginPaths = [ os.environ['MAYA_PLUG_IN_PATH'] ]
-#    except KeyError:
-#        pluginPaths = []
-#    pluginPaths.append( os.path.join(appdir, version, 'plug-ins') )
-#    pluginPaths.append( os.path.join(appdir, 'plug-ins') )
-#    pluginPaths.append( os.path.join(share, version, 'plug-ins') )
-#    pluginPaths.append( os.path.join(share, 'plug-ins') )
-#    pluginPaths.append( os.path.join(mayaloc, 'plug-ins') ) 
-#    os.environ['MAYA_PLUG_IN_PATH'] =  os.path.pathsep.join( pluginPaths )
-#
-#
-#    # MAYA_MODULE_PATH
-#    try:
-#        modulePaths = [ os.environ['MAYA_MODULE_PATH'] ]
-#    except KeyError:
-#        modulePaths = []
-#    modulePaths.append( os.path.join(appdir, version, 'modules') )
-#    modulePaths.append( os.path.join(appdir, 'modules') )
-#    modulePaths.append( os.path.join(mayaloc, 'modules') )
-#    os.environ['MAYA_MODULE_PATH'] =  os.path.pathsep.join( modulePaths )
-#    
-#    # MAYA_SCRIPT_PATH
-#    try:
-#        scriptPaths = [ os.environ['MAYA_SCRIPT_PATH'] ]
-#    except KeyError:
-#        scriptPaths = []
-#    scriptPaths.append( os.path.join(appdir, version, 'scripts') )
-#    scriptPaths.append( os.path.join(appdir, 'scripts') )
-#    scriptPaths.append( os.path.join(appdir, version, 'presets') )
-#    scriptPaths.append( os.path.join(share, version, 'scripts') )
-#    scriptPaths.append( os.path.join(share, 'scripts') )
-#    try:
-#        # only added if it exists
-#        scriptPaths.append( os.environ['MAYA_SHELF_PATH'] )
-#    except KeyError: pass
-#    if system == 'Darwin':
-#        scriptPaths.append( os.path.join(mayaloc, 'MacOS', 'scripts') ) 
-#    
-#    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'shelves' ) ) 
-#    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'markingMenus' ) ) 
-#    scriptPaths.append( os.path.join(appdir, version, 'prefs', 'scripts' ) ) 
-#    
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'startup') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'others') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'AETemplates') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'unsupported') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'paintEffects') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'fluidEffects') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'hair') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'cloth') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'live') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'fur') ) 
-#    scriptPaths.append( os.path.join(mayaloc, 'scripts', 'muscle') ) 
-#    os.environ['MAYA_SCRIPT_PATH'] =  os.path.pathsep.join( scriptPaths )
-#      
-
 def loadDynamicLibs():
     """
     due to a bug in maya.app.commands many functions do not return any value the first time they are run,
@@ -720,8 +381,6 @@ def mayaInit(forversion=None) :
         from maya.cmds import about
         # if this succeeded, we're initialized
         isInitializing = False
-        if not pymelMayaPackage: 
-            loadDynamicLibs() # fixes that should be run on a standard maya package
         return False
     except:
         pass
@@ -737,10 +396,9 @@ def mayaInit(forversion=None) :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            #if Version.current < Version.v2011:
+            #if version.current < version.v2009:
             #    refreshEnviron()
-            #initMEL()
-            #executeDeferred( initMEL )
+
         except ImportError, e:
             raise e, str(e) + ": pymel was unable to intialize maya.standalone"
 
@@ -751,8 +409,6 @@ def mayaInit(forversion=None) :
     
     # return True, meaning we had to initialize maya standalone
     isInitializing = True
-    if not pymelMayaPackage: 
-        loadDynamicLibs() # fixes that should be run on a standard maya package
     return True
 
 def initMEL():
@@ -763,7 +419,7 @@ def initMEL():
     _logger.debug( "initMEL" )        
     import maya.mel
     
-    mayaVersion = Version.installName()
+    mayaVersion = installName()
     try:
         prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
     except:
@@ -801,19 +457,6 @@ def initMEL():
                 
         except Exception, e:
             _logger.error( "could not perform maya initialization sequence: failed on %s: %s" % ( f, e) )
-                
-#                maya.mel.eval( 'source defaultRunTimeCommands' )
-#                maya.mel.eval( 'source "%s"' % os.path.join( prefsDir, 'userRunTimeCommands.mel' )  )
-#                maya.mel.eval( 'source initialPluginLoad' )
-#                maya.mel.eval( 'source initialPluginLoad' )
-#                maya.mel.eval( 'source initialPlugins' )
-#                maya.mel.eval( 'source initRenderers' )
-
-    
-#            try:
-#                maya.mel.eval( 'source "%s"' % os.path.join( prefsDir, 'userPrefs.mel' )  )
-#            except:
-#                _logger.warn( "could not load user preferences: %s" % prefsFile )
         
     try:
         # make sure it exists
@@ -824,12 +467,17 @@ def initMEL():
 
 
 def finalize():
-    global isInitializing
-    if pymelMayaPackage and isInitializing:
-        import maya.app.startup.basic
-        maya.app.startup.basic.executeUserSetup()
+    if 'maya.app.startup.batch' in sys.modules: # means were in batch mode
+        global isInitializing
+        if pymelMayaPackage and isInitializing:
+            # this module is not encapsulated into functions, but it should already
+            # be imported, so it won't run again
+            assert 'maya.app.startup.basic' in sys.modules, \
+                "something is very wrong. maya.app.startup.basic should be imported by now"
+            import maya.app.startup.basic
+            maya.app.startup.basic.executeUserSetup()
         initMEL()
-    
+        
                        
 # Fix for non US encodings in Maya
 def encodeFix():
@@ -855,51 +503,100 @@ def encodeFix():
                 except ImportError :
                     _logger.debug("Unable to import maya.app.baseUI")
 
-def loadCache( filePrefix, description='', useVersion=True):
+import gzip
+def save(object, filename, protocol = -1):
+    """Save an object to a compressed disk file.
+       Works well with huge objects.
+    """
+    try:
+        file = gzip.GzipFile(filename, 'wb')
+    except Exception, e:
+        _logger.debug("Unable to open '%s' for writing: %s" % ( filename, e ))
+   
+    pickle.dump(object, file, protocol)
+    file.close()
+
+def load(filename):
+    """Loads a compressed object from disk
+    """
+    file = gzip.GzipFile(filename, 'rb')
+    buffer = ""
+    while 1:
+        data = file.read()
+        if data == "":
+            break
+        buffer += data
+    object = pickle.loads(buffer)
+    file.close()
+    return object
+
+def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     if useVersion:
-        short_version = Version.shortName()
+        short_version = shortName()
     else:
         short_version = ''
-    newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
-    
+    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+
+    if compressed:
+        newPath += '.zip'
+    else:
+        newPath += '.bin'
+        
     if description:
         description = ' ' + description
+    
+    if compressed:
+        return load(newPath)
+    
     try :
         file = open(newPath, mode='rb')
+    except Exception, e:
+        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
+    else:
         try :
-            return pickle.load(file)
+            #s = time.time()
+            res = pickle.load(file)
+            #_logger.debug("Loaded '%s' in %.04f seconds" % (newPath, time.time()-s) )
+            return res
         except Exception, e:
             _logger.warn("Unable to load%s from '%s': %s" % (description,file.name, e))
         
         file.close()
-    except Exception, e:
-        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
 
  
-def writeCache( data, filePrefix, description='', useVersion=True):
+def writeCache( data, filePrefix, description='', useVersion=True, compressed=True):
     _logger.debug("writing cache")
     
     if useVersion:
-        short_version = Version.shortName()
+        short_version = shortName()
     else:
         short_version = ''
-    newPath = os.path.join( moduleDir(),  filePrefix+short_version+'.bin' )
+    
+    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+    if compressed:
+        newPath += '.zip'
+    else:
+        newPath += '.bin'
 
     if description:
         description = ' ' + description
     
     _logger.info("Saving%s to '%s'" % ( description, newPath ))
+    
+    if compressed:
+        return save(data, newPath, 2)
+    
     try :
         file = open(newPath, mode='wb')
+    except Exception, e:
+        _logger.debug("Unable to open '%s' for writing%s: %s" % ( newPath, description, e ))
+    else:
         try :
             pickle.dump( data, file, 2)
-            _logger.debug("done")
         except:
             _logger.debug("Unable to write%s to '%s'" % (description,file.name))
         file.close()
-    except :
-        _logger.debug("Unable to open '%s' for writing%s" % ( newPath, description ))
-                 
+              
 
 def getConfigFile():
     return plogging.getConfigFile()
@@ -935,7 +632,7 @@ def executeDeferred(func):
     
     Example userSetup.py file::
     
-        from pymel import *
+        from pymel.all import *
         def delayedStartup():
            print "executing a command"
            pymel.about(apiVersion=1)

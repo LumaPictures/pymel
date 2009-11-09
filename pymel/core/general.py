@@ -36,6 +36,100 @@ from maya.cmds import about as _about
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
 
+
+
+def _getPymelType(arg, name) :
+    """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
+        if no correct type is found returns DependNode by default.
+        
+        If the name of an existing object is passed, the name and MObject will be returned
+        If a valid MObject is passed, the name will be returned as None
+        If a general.PyNode instance is passed, its name and MObject will be returned
+        """
+        
+    def getPymelTypeFromObject(obj):
+        try:
+            return _factories.ApiEnumsToPyComponents()[obj.apiType()]
+        except KeyError:
+            import nodetypes
+            try:  
+                fnDepend = api.MFnDependencyNode( obj )
+                mayaType = fnDepend.typeName()
+                pymelType = mayaTypeToPyNode( mayaType, nodetypes.DependNode )
+            except RuntimeError:
+                raise MayaNodeError
+            
+            if pymelType in _factories.virtualClass:
+                data = _factories.virtualClass[pymelType]
+                nodeName = name
+                for virtualCls, nameRequired in data:
+                    if nameRequired and nodeName is None:
+                        nodeName = fnDepend.name()
+                    
+                    if virtualCls._isVirtual(obj, nodeName):
+                        pymelType = virtualCls
+                        break
+
+            return pymelType
+
+    obj = None
+    results = {}
+    
+    isAttribute = False
+  
+    #--------------------------   
+    # API object testing
+    #--------------------------   
+    if isinstance(arg, api.MObject) :     
+        results['MObjectHandle'] = api.MObjectHandle( arg )
+        obj = arg
+#        if api.isValidMObjectHandle( obj ) :
+#            pymelType = getPymelTypeFromObject( obj.object() )        
+#        else:
+#            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
+                      
+    elif isinstance(arg, api.MObjectHandle) :      
+        results['MObjectHandle'] = arg
+        obj = arg.object()
+        
+#        if api.isValidMObjectHandle( obj ) :          
+#            pymelType = getPymelTypeFromObject( obj.object() )    
+#        else:
+#            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
+        
+    elif isinstance(arg, api.MDagPath) :
+        results['MDagPath'] = arg
+        obj = arg.node()
+#        if api.isValidMDagPath( obj ):
+#            pymelType = getPymelTypeFromObject( obj.node() )    
+#        else:
+#            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
+                               
+    elif isinstance(arg, api.MPlug) : 
+        isAttribute = True
+        obj = arg
+        results['MPlug'] = obj
+        if api.isValidMPlug(arg):
+            pymelType = nodetypes.Attribute
+        else :
+            raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
+
+#    #---------------------------------
+#    # No Api Object : Virtual general.PyNode 
+#    #---------------------------------   
+#    elif objName :
+#        # non existing node
+#        pymelType = DependNode
+#        if '.' in objName :
+#            # TODO : some better checking / parsing
+#            pymelType = Attribute 
+    else :
+        raise ValueError, "Unable to determine Pymel type for %r" % arg         
+    
+    if not isAttribute:
+        pymelType = getPymelTypeFromObject( obj ) 
+    
+    return pymelType, results
 #-----------------------------------------------
 #  Enhanced Commands
 #-----------------------------------------------
@@ -931,7 +1025,7 @@ def sets( *args, **kwargs):
 Modifications
     - resolved confusing syntax: operating set is always the first and only arg:
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
         >>> 
         >>> shdr, sg = createSurfaceShader( 'blinn' )
@@ -1094,8 +1188,7 @@ def selected( **kwargs ):
     return ls( **kwargs )
 
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
-
+_thisModule = sys.modules[__name__]
                                 
 #def spaceLocator(*args, **kwargs):
 #    """
@@ -1335,7 +1428,7 @@ class PyNode(util.ProxyUnicode):
                 
             #-- All Others
             else:
-                pymelType, obj = nodetypes._getPymelType( argObj, name )
+                pymelType, obj = _getPymelType( argObj, name )
             #print pymelType, obj, name, attrNode
             
             # Virtual (non-existent) objects will be cast to their own virtual type.
@@ -1772,7 +1865,12 @@ def isValidPyNodeName (arg):
     return _factories.PyNodeNamesToPyNodes().has_key(arg)
 
 def mayaTypeToPyNode( arg, default=None ):
-    return _factories.PyNodeNamesToPyNodes().get( util.capitalize(arg), default )
+    import nodetypes
+    try:
+        return getattr( nodetypes, util.capitalize(arg) )
+    except:
+        return default
+    #return _factories.PyNodeNamesToPyNodes().get( util.capitalize(arg), default )
 
 def toPyNode( obj, default=None ):
     if isinstance( obj, int ):
@@ -2218,7 +2316,11 @@ def iterNodes (  *args, **kwargs ):
         if apiFilter and not extendedFilter and not prune :
             for key, isInclusive in cAPITypes.items() :
                 #NOTE: is apiTypeToEnum ever a 1-to-many relationship?
-                apiInt = api.apiTypeToEnum(key)
+                try:
+                    apitInt = getattr( api.MFn, apiType )
+                except AttributeError:
+                    apiInt = None
+                    
                 if isInclusive and apiInt :
                     # can only use API filter for API types enums that are tested for positive
                     cAPIFilter.append(apiInt)

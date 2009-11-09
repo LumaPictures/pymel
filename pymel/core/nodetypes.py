@@ -16,6 +16,7 @@ _logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
+from pymel import version
 
 from maya.cmds import about as _about
 import maya.mel as mm
@@ -26,7 +27,7 @@ import other
 from animation import listAnimatable as _listAnimatable
 from system import namespaceInfo as _namespaceInfo, FileReference as _FileReference
 
-_thisModule = __import__(__name__, globals(), locals(), ['']) # last input must included for sub-modules to be imported correctly
+_thisModule = sys.modules[__name__]
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
 
@@ -1524,7 +1525,7 @@ class Attribute(general.PyNode):
     `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
     Here's a simple example showing how the Attribute class is used in context.
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> cam = general.PyNode('persp')
         >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
         ...     cam.visibility.set( True )
@@ -1727,7 +1728,7 @@ class Attribute(general.PyNode):
         """
         iterator for multi-attributes
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> f=newFile(f=1) #start clean
             >>> 
             >>> at = general.PyNode( 'defaultLightSet.dagSetMembers' )
@@ -1873,7 +1874,7 @@ class Attribute(general.PyNode):
                 
     def plugAttr(self, longName=False, fullPath=False):
         """
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.plugAttr(longName=False, fullPath=False)
             u'tx'
@@ -1891,7 +1892,7 @@ class Attribute(general.PyNode):
     
     def lastPlugAttr(self, longName=False):
         """
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.lastPlugAttr(longName=False)
             u'tx'
@@ -1907,7 +1908,7 @@ class Attribute(general.PyNode):
     
     def longName(self, fullPath=False ):
         """
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.longName(fullPath=False)
             u'translateX'
@@ -1922,7 +1923,7 @@ class Attribute(general.PyNode):
         
     def shortName(self, fullPath=False):
         """
-            >>> from pymel import *  
+            >>> from pymel.all import *
             >>> at = SCENE.persp.t.tx
             >>> at.shortName(fullPath=False)
             u'tx'
@@ -2016,7 +2017,7 @@ class Attribute(general.PyNode):
         Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> f=newFile(f=1) #start clean
             >>> 
             >>> dls = SCENE.defaultLightSet
@@ -2053,7 +2054,7 @@ class Attribute(general.PyNode):
         Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
         value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> f=newFile(f=1) #start clean
             >>>
             >>> dls = SCENE.defaultLightSet
@@ -2148,7 +2149,7 @@ class Attribute(general.PyNode):
         """
         operator for 'connectAttr'
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
@@ -2160,7 +2161,7 @@ class Attribute(general.PyNode):
         """
         operator for 'disconnectAttr'
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> SCENE.persp.tx >> SCENE.top.tx  # connect
             >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
         """ 
@@ -2428,7 +2429,7 @@ class Attribute(general.PyNode):
         """provide a min and max value as a two-element tuple or list, or as two arguments to the
         method. To remove a limit, provide a None value.  for example:
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> s = polyCube()[0]
             >>> s.addAttr( 'new' )
             >>> s.new.setRange( -2, None ) #sets just the min to -2 and removes the max limit
@@ -2680,7 +2681,7 @@ class DependNode( general.PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if mayahook.Version.current >= mayahook.Version.v2009:
+    if version.current >= version.v2009:
         def __hash__(self):
             return self.__apihandle__().hashCode()
 
@@ -3027,7 +3028,7 @@ class DependNode( general.PyNode ):
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
         the name will be returned unchanged.
         
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> SCENE.lambert1.stripNum()
         u'lambert'
         
@@ -3039,7 +3040,7 @@ class DependNode( general.PyNode ):
         """Return the trailing numbers of the node name. If no trailing numbers are found
         an error will be raised.
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> SCENE.lambert1.extractNum()
         u'1'
         
@@ -3061,7 +3062,7 @@ class DependNode( general.PyNode ):
 
         Raises an error if the name has no trailing number.
         
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> SCENE.lambert1.nextName()
         DependNodeName('lambert2')
         
@@ -3087,9 +3088,19 @@ class DependNode( general.PyNode ):
 
 #}
 
-class Entity(DependNode):
-    __metaclass__ = _factories.MetaMayaNodeWrapper
-    pass
+if version.CURRENT >= version.v2011:
+    class ContainerBase(DependNode):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass
+
+    class Entity(ContainerBase):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass
+
+else:
+    class Entity(DependNode):
+        __metaclass__ = _factories.MetaMayaNodeWrapper
+        pass
 
 class DagNode(Entity):
  
@@ -3350,7 +3361,7 @@ class DagNode(Entity):
         """
         :rtype: `DagNode` list
         
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
         >>>
         >>> s = polyPlane()[0]
@@ -3423,7 +3434,7 @@ class DagNode(Entity):
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
-                  >>> from pymel import *
+                  >>> from pymel.all import *
                   >>> select(cl=1)
                   >>> bottom = group(n='bottom')
                   >>> group(n='almostThere')
@@ -3522,7 +3533,7 @@ class DagNode(Entity):
         operator for `addChild`. Use to easily daisy-chain together parenting operations.
         The operation order visually mimics the resulting dag path:
         
-            >>> from pymel import *
+            >>> from pymel.all import *
             >>> s = polySphere(name='sphere')[0]
             >>> c = polyCube(name='cube')[0]
             >>> t = polyTorus(name='torus')[0]
@@ -4134,7 +4145,7 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-if mayahook.Version.isUnlimited():
+if version.isUnlimited():
     class FluidEmitter(Transform):
         __metaclass__ = _factories.MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -4530,7 +4541,7 @@ class Mesh(SurfaceShape):
     The component types can be accessed from the `Mesh` type (or it's transform) using the names you are
     familiar with from MEL:
 
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> p = polySphere( name='theMoon', sa=7, sh=7 )[0]
         >>> p.vtx
         MeshVertex(u'theMoonShape.vtx[0:43]')
@@ -4612,7 +4623,7 @@ class Mesh(SurfaceShape):
         theMoonShape.f[7]
         theMoonShape.f[8]
 
-    >>> from pymel import *
+    >>> from pymel.all import *
     >>> obj = polyTorus()[0]
     >>> colors = []
     >>> for i, vtx in enumerate(obj.vtx):
@@ -4665,7 +4676,7 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
-    if mayahook.Version.current >= mayahook.Version.v2009:
+    if version.current >= version.v2009:
         @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )
@@ -4983,7 +4994,7 @@ class ObjectSet(Entity):
     
     create some sets:
     
-        >>> from pymel import *
+        >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
         >>> 
         >>> s = sets()  # create an empty set
@@ -5364,22 +5375,18 @@ _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 
 def _createPyNodes():
-    #for cmds.nodeType in networkx.search.dfs_preorder( _factories.nodeHierarchy , 'dependNode' )[1:]:
-    #print _factories.nodeHierarchy
-    # see if breadth first isn't more practical ?
+
+    dynModule = util.lazyLoadModule(__name__, globals())
     
     # reset cache
     _factories.PyNodeTypesHierarchy().clear()
     _factories.PyNodeNamesToPyNodes().clear()
     
-    for treeElem in _factories.nodeHierarchy.preorder():
-        #print "treeElem: ", treeElem
-        mayaType = treeElem.key
-            
-        #print "cmds.nodeType: ", cmds.nodeType
+    for mayaType, parents, children in _factories.nodeHierarchy:
+
         if mayaType == 'dependNode': continue
         
-        parentMayaType = treeElem.parent.key
+        parentMayaType = parents[0]
         #print "superNodeType: ", superNodeType, type(superNodeType)
         if parentMayaType is None:
             _logger.warning("could not find parent node: %s", mayaType)
@@ -5388,8 +5395,9 @@ def _createPyNodes():
         #className = util.capitalize(mayaType)
         #if className not in __all__: __all__.append( className )
         
-        _factories.addPyNode( _thisModule, mayaType, parentMayaType )
-
+        _factories.addPyNode( dynModule, mayaType, parentMayaType )
+    
+    sys.modules[__name__] = dynModule
 
 
 # Initialize Pymel classes to API types lookup
@@ -5397,101 +5405,6 @@ def _createPyNodes():
 _createPyNodes()
 #_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
 
-def _getPymelType(arg, name) :
-    """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
-        if no correct type is found returns DependNode by default.
-        
-        If the name of an existing object is passed, the name and MObject will be returned
-        If a valid MObject is passed, the name will be returned as None
-        If a general.PyNode instance is passed, its name and MObject will be returned
-        """
-
-    obj = None
-    results = {}
-    
-    isAttribute = False
-  
-    #--------------------------   
-    # API object testing
-    #--------------------------   
-    if isinstance(arg, api.MObject) :     
-        results['MObjectHandle'] = api.MObjectHandle( arg )
-        obj = arg
-#        if api.isValidMObjectHandle( obj ) :
-#            pymelType = _getPymelTypeFromObject( obj.object() )        
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
-                      
-    elif isinstance(arg, api.MObjectHandle) :      
-        results['MObjectHandle'] = arg
-        obj = arg.object()
-        
-#        if api.isValidMObjectHandle( obj ) :          
-#            pymelType = _getPymelTypeFromObject( obj.object() )    
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
-        
-    elif isinstance(arg, api.MDagPath) :
-        results['MDagPath'] = arg
-        obj = arg.node()
-#        if api.isValidMDagPath( obj ):
-#            pymelType = _getPymelTypeFromObject( obj.node() )    
-#        else:
-#            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
-                               
-    elif isinstance(arg, api.MPlug) : 
-        isAttribute = True
-        obj = arg
-        results['MPlug'] = obj
-        if api.isValidMPlug(arg):
-            pymelType = Attribute
-        else :
-            raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
-
-#    #---------------------------------
-#    # No Api Object : Virtual general.PyNode 
-#    #---------------------------------   
-#    elif objName :
-#        # non existing node
-#        pymelType = DependNode
-#        if '.' in objName :
-#            # TODO : some better checking / parsing
-#            pymelType = Attribute 
-    else :
-        raise ValueError, "Unable to determine Pymel type for %r" % arg         
-    
-    if not isAttribute:
-        pymelType = _getPymelTypeFromObject( obj ) 
-    
-    return pymelType, results
-
-# Moved this out from _getPymelType to speed it up a little
-def _getPymelTypeFromObject(obj):
-        compTypes = _factories.ApiEnumsToPyComponents().get(obj.apiType(), None)
-        if compTypes is not None:
-            if len(compTypes) == 1:
-                return compTypes[0]
-            else:
-                raise ValueError, "Indeterminate pymel component type for %r" % obj
-        else:
-            try:  
-                fnDepend = api.MFnDependencyNode( obj )
-                mayaType = fnDepend.typeName()
-                pymelType = general.mayaTypeToPyNode( mayaType, DependNode )
-            except RuntimeError:
-                raise general.MayaNodeError
-            
-            if pymelType in _factories.virtualClass:
-                data = _factories.virtualClass[pymelType]
-                nodeName = name
-                for virtualCls, nameRequired in data:
-                    if nameRequired and nodeName is None:
-                        nodeName = fnDepend.name()
-                    
-                    if virtualCls._isVirtual(obj, nodeName):
-                        pymelType = virtualCls
-                        break
-            return pymelType
         
 #def listToMSelection( objs ):
 #    sel = api.MSelectionList()

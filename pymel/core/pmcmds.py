@@ -14,7 +14,7 @@ The wrapped commands in this module are the starting point for any other pymel c
 
 '''
 
-import inspect
+import inspect, sys
 
 import pymel.util as util
 #import mayautils
@@ -22,7 +22,7 @@ import maya.cmds
 import warnings
 
 __all__ = ['getMelRepresentation']
-_thisModule = __import__(__name__, globals(), locals(), [''])
+_thisModule = sys.modules[__name__]
 
 def _testDecorator(function):
     def newFunc(*args, **kwargs):

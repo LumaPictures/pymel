@@ -1,6 +1,6 @@
 
 import pymel
-from pymel import *
+from pymel.all import *
 from pymel.core.datatypes import *
 from time import time
 import unittest

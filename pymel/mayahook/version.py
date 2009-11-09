@@ -62,7 +62,7 @@ def _getApiVersion():
 
 def parseVersionStr(versionStr, extension=False):
     """
-    >>> from pymel import *
+    >>> from pymel.all import *
     >>> mayahook.parseVersionStr('2008 Service Pack1 x64')
     '2008'
     >>> mayahook.parseVersionStr('2008 Service Pack1 x64', extension=True)

@@ -70,7 +70,7 @@ def deprecated(funcOrMessage, className=None):
         deprecationLoggedFunc.__module__ = func.__module__
         deprecationLoggedFunc.__doc__ = message % info + '\n'
         if func.__doc__:
-             deprecationLoggedFunc.__doc__ += '\n' +  func.__doc__
+            deprecationLoggedFunc.__doc__ += '\n' +  func.__doc__
         return deprecationLoggedFunc
     
     if className:
