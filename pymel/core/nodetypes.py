@@ -506,7 +506,7 @@ class DimensionedComponent( Component ):
         or 'None'
         """
         if indexObjs is None:
-            indexObjs = [slice(None,None,None)] * self.dimensions
+            indexObjs = ComponentIndex()
 
         indices = set()
         # Convert single objects to a list
@@ -534,8 +534,8 @@ class DimensionedComponent( Component ):
     
     def _flattenIndex(self, index):
         """
-        Given a ComponentIndex object, which may be either a partial index (ie,
-        len(index) < self.dimensions), a flat list of non-partial
+        Given a ComponentIndex object, which may be a partial index (ie,
+        len(index) < self.dimensions), return a flat list of non-partial
         ComponentIndex objects. 
         """
         while len(index) < self.dimensions:
