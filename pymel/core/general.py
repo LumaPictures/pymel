@@ -36,7 +36,32 @@ from maya.cmds import about as _about
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
 
-
+def _getPymelTypeFromObject(obj):
+        compTypes = _factories.ApiEnumsToPyComponents().get(obj.apiType(), None)
+        if compTypes is not None:
+            if len(compTypes) == 1:
+                return compTypes[0]
+            else:
+                return _getExactCompType(obj, compTypes)
+        else:
+            try:  
+                fnDepend = api.MFnDependencyNode( obj )
+                mayaType = fnDepend.typeName()
+                pymelType = mayaTypeToPyNode( mayaType, nodetypes.DependNode )
+            except RuntimeError:
+                raise general.MayaNodeError
+            
+            if pymelType in _factories.virtualClass:
+                data = _factories.virtualClass[pymelType]
+                nodeName = name
+                for virtualCls, callback, nameRequired in data:
+                    if nameRequired and nodeName is None:
+                        nodeName = fnDepend.name()
+                    
+                    if virtualCls._isVirtual(obj, nodeName):
+                        pymelType = virtualCls
+                        break
+            return pymelType
 
 def _getPymelType(arg, name) :
     """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
@@ -46,31 +71,6 @@ def _getPymelType(arg, name) :
         If a valid MObject is passed, the name will be returned as None
         If a general.PyNode instance is passed, its name and MObject will be returned
         """
-        
-    def getPymelTypeFromObject(obj):
-        try:
-            return _factories.ApiEnumsToPyComponents()[obj.apiType()]
-        except KeyError:
-            import nodetypes
-            try:  
-                fnDepend = api.MFnDependencyNode( obj )
-                mayaType = fnDepend.typeName()
-                pymelType = mayaTypeToPyNode( mayaType, nodetypes.DependNode )
-            except RuntimeError:
-                raise MayaNodeError
-            
-            if pymelType in _factories.virtualClass:
-                data = _factories.virtualClass[pymelType]
-                nodeName = name
-                for virtualCls, nameRequired in data:
-                    if nameRequired and nodeName is None:
-                        nodeName = fnDepend.name()
-                    
-                    if virtualCls._isVirtual(obj, nodeName):
-                        pymelType = virtualCls
-                        break
-
-            return pymelType
 
     obj = None
     results = {}
@@ -84,7 +84,7 @@ def _getPymelType(arg, name) :
         results['MObjectHandle'] = api.MObjectHandle( arg )
         obj = arg
 #        if api.isValidMObjectHandle( obj ) :
-#            pymelType = getPymelTypeFromObject( obj.object() )        
+#            pymelType = _getPymelTypeFromObject( obj.object() )        
 #        else:
 #            raise ValueError, "Unable to determine Pymel type: the passed MObject is not valid" 
                       
@@ -93,7 +93,7 @@ def _getPymelType(arg, name) :
         obj = arg.object()
         
 #        if api.isValidMObjectHandle( obj ) :          
-#            pymelType = getPymelTypeFromObject( obj.object() )    
+#            pymelType = _getPymelTypeFromObject( obj.object() )    
 #        else:
 #            raise ValueError, "Unable to determine Pymel type: the passed MObjectHandle is not valid" 
         
@@ -101,7 +101,7 @@ def _getPymelType(arg, name) :
         results['MDagPath'] = arg
         obj = arg.node()
 #        if api.isValidMDagPath( obj ):
-#            pymelType = getPymelTypeFromObject( obj.node() )    
+#            pymelType = _getPymelTypeFromObject( obj.node() )    
 #        else:
 #            raise ValueError, "Unable to determine Pymel type: the passed MDagPath is not valid"
                                
@@ -127,7 +127,7 @@ def _getPymelType(arg, name) :
         raise ValueError, "Unable to determine Pymel type for %r" % arg         
     
     if not isAttribute:
-        pymelType = getPymelTypeFromObject( obj ) 
+        pymelType = _getPymelTypeFromObject( obj ) 
     
     return pymelType, results
 #-----------------------------------------------
