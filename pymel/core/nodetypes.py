@@ -5124,7 +5124,7 @@ def _createPyNodes():
     _factories.PyNodeTypesHierarchy().clear()
     _factories.PyNodeNamesToPyNodes().clear()
     
-    for mayaType, parents in _factories.nodeHierarchy:
+    for mayaType, parents, children in _factories.nodeHierarchy:
 
         if mayaType == 'dependNode': continue
         
