@@ -509,6 +509,8 @@ def lazyLoadModule(name, contents):
     
             def __get__(self, obj, objtype):
                 newobj = self.creator(*self.args, **self.kwargs)
+                if isinstance(obj, types.ModuleType):
+                    newobj.__module__ = obj.__name__
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
                 setattr( obj, self.name, newobj)
                 return newobj
