@@ -494,6 +494,41 @@ def lazyLoadModule(name, contents):
     One caveat of this technique is that if a user imports everything from your
     lazy module ( .e.g from module import * ), it will cause all lazy attributes
     to be evaluated.
+    
+    Also, if any module-level expression needs to reference something that only
+    exists in the LazyLoadModule, it will need to be stuck in after the creation of the
+    LazyLoadModule.  Then, typically, after defining all functions/classes/etc
+    which rely on the LazyLoadModule attributes, you will wish to update the
+    LazyLoadModule with the newly-created functions - typically, this is done
+    with the _updateLazyModule method.
+    
+    Finally, any functions which reference any LazyLoadModule-only attributes,
+    whether they are defined after OR before the creation of the LazyLoadModule,
+    will have to prefix it with a reference to the LazyLoadModule.
+    
+    Example::
+    
+        import sys
+        
+        def myFunc():
+            # need to preface foo with 'lazyModule',
+            # even though this function is defined before
+            # the creation of the lazy module!
+            print 'foo is:', lazyModule.foo
+        
+        mod = lazyLoadModule(__name__, globals())
+        mod._addattr( 'foo', str, 'bar' )
+        sys.modules[__name__] = mod
+        
+        # create a reference to the LazyLoadModule in this module's
+        # global space
+        lazyModule = sys.modules[__name__]
+        
+        # define something which relies on something in the lazy module
+        fooExpanded = lazyModule.foo + '... now with MORE!'
+        
+        # update the lazyModule with our new additions (ie, fooExpanded)
+        lazyModule._updateLazyModule(globals())
     """
     class LazyLoadModule(types.ModuleType):
         class LazyLoader(object):
@@ -515,6 +550,7 @@ def lazyLoadModule(name, contents):
                     self.newobj = self.creator(*self.args, **self.kwargs)
                     if isinstance(obj, types.ModuleType):
                         self.newobj.__module__ = obj.__name__
+                #print "Lazy-loaded object:", self.name
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
                 setattr( obj, self.name, self.newobj)
                 return self.newobj
@@ -531,8 +567,44 @@ def lazyLoadModule(name, contents):
         @classmethod
         def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
             setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
-            
+        
+        # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
+        # 'real' entries in the module
+        def _updateLazyModule(self, otherDict):
+            """
+            Used to update the contents of the LazyLoadModule with the contents of another dict.
+            """
+            self.__dict__.update(otherDict)
+            # For debugging, print out a list of things in the LazyLoadModule that AREN'T in
+            # otherDict...
+#            print "only in dynamic module:", [x for x in
+#                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict)
+#                                              if not x.startswith('__')]
+
     return LazyLoadModule(name, contents)
+
+# Note - since anything referencing attributes that only exist on the lazy module
+# must be prefaced with a ref to the lazy module, if we are converting a pre-existing
+# module to include LazyLoaded objects, we must manually go through and edit
+# any references to those objects to have a 'lazyModule' prefix (or similar).
+# To aid in this process, I recommend:
+# 1. Uncommenting out the final print statement in _updateLazyModule
+# 2. Grabbing the output of the print statement, throw it into a text editor with
+#    regexp find/replace capabilities
+# 3. You should have a python list of names.
+#    Replace the initial and final bracket and quote - [' and '] - with opening
+#    and closing parentheses - ( and )
+#    Then find / replace all occurrences of:
+#          ', '
+#    with:
+#          |
+#    ...and you should be left with a regular expression you can use to find and replace
+#   in your original code...
+#   (you may also want to put (?<=\W) / (?=\W) in front / behind the regexp...)
+#   Don't do the regexp find / replace on the source code blindly, though!
+# ...also, when you make the call to _updateLazyModule that prints out the list of
+# dynamic-module-only attributes, you should do it from a GUI maya - there are some objects
+# that only exist in GUI-mode...
 
 class LazyDocStringError(Exception): pass
 
