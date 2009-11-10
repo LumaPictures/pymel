@@ -2,8 +2,6 @@
 Functions for creating UI elements, as well as their class counterparts.
 """
 
-# foo
-
 """
 
 ====================
@@ -995,10 +993,14 @@ def _createClassCommandPairs():
         func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
         if func:
             func.__module__ = __name__
+            # Since we're not using LazyLoading objects for funcs, add them
+            # to both the dynamic module and this module, so we don't have
+            # preface them with 'dynModule.' when referencing from this module
             setattr(dynModule, funcName, func)
+            setattr(_thisModule, funcName, func)
         else:
             _logger.warning( "ui command not created: %s" % funcName )
-        
+    
     sys.modules[__name__] = dynModule
                
 def _createCommands():
@@ -1008,9 +1010,10 @@ def _createCommands():
         func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
         if func:
             func.__module__ = __name__
-            # because this may be called AFTER the dynamicModule is created,
-            # we can't use our stored _thisModule
-            setattr( sys.modules[__name__], funcName, func )
+            setattr(_thisModule, funcName, func)
+            # want this call to work regardless of order we call _createClassCommandParis / _createCommands
+            if sys.modules[__name__] != _thisModule:
+                setattr( sys.modules[__name__], funcName, func )
         else:
             _logger.warning( "ui command not created: %s" % funcName )
 
@@ -1478,5 +1481,5 @@ dynModule = sys.modules[__name__]
 #def getMainProgressBar():
 #    return ProgressBar(melGlobals['gMainProgressBar'])    
 
-
+dynModule._updateLazyModule(globals())
   

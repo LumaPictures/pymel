@@ -540,6 +540,10 @@ def lazyLoadModule(name, contents):
             Used to update the contents of the LazyLoadModule with the contents of another dict.
             """
             self.__dict__.update(otherDict)
+            # For debugging, print out a list of things in the LazyLoadModule that AREN'T in
+            # otherDict...
+            print "only in dynamic module:", list((set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict))
+
             
     return LazyLoadModule(name, contents)
 
