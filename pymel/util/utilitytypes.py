@@ -602,6 +602,9 @@ def lazyLoadModule(name, contents):
 #   in your original code...
 #   (you may also want to put (?<=\W) / (?=\W) in front / behind the regexp...)
 #   Don't do the regexp find / replace on the source code blindly, though!
+# ...also, when you make the call to _updateLazyModule that prints out the list of
+# dynamic-module-only attributes, you should do it from a GUI maya - there are some objects
+# that only exist in GUI-mode...
 
 class LazyDocStringError(Exception): pass
 
