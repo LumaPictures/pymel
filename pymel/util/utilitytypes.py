@@ -508,12 +508,16 @@ def lazyLoadModule(name, contents):
                 self.name = name
     
             def __get__(self, obj, objtype):
-                newobj = self.creator(*self.args, **self.kwargs)
-                if isinstance(obj, types.ModuleType):
-                    newobj.__module__ = obj.__name__
+                # In case the LazyLoader happens to get stored on more
+                # than one object, cache the created object so the exact
+                # same one will be returned
+                if not hasattr(self, 'newobj'):
+                    self.newobj = self.creator(*self.args, **self.kwargs)
+                    if isinstance(obj, types.ModuleType):
+                        self.newobj.__module__ = obj.__name__
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
-                setattr( obj, self.name, newobj)
-                return newobj
+                setattr( obj, self.name, self.newobj)
+                return self.newobj
                    
         def __init__(self, name, contents):
             types.ModuleType.__init__(self, name)
@@ -527,6 +531,7 @@ def lazyLoadModule(name, contents):
         @classmethod
         def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
             setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
+            
     return LazyLoadModule(name, contents)
 
 class LazyDocStringError(Exception): pass
