@@ -4284,8 +4284,11 @@ class NurbsCurve(CurveShape):
                             'editPoints'  : NurbsCurveEP,
                             'knot'        : NurbsCurveKnot,    
                             'knots'       : NurbsCurveKnot}
-
-
+# hard coding the mapping of numCVs => _numCVs for now,
+# instead of using apiToMelBridge, as caches are in a state of flux
+# for now
+# can leave this in, or always move it to apiToMelBridge later...
+NurbsCurve._numCVs = NurbsCurve.numCVs
 NurbsCurve.numCVs = \
     NurbsCurve._numCVsFunc_generator(NurbsCurve.form,
                                      NurbsCurve._numCVs,
@@ -4380,6 +4383,11 @@ class NurbsSurface(SurfaceShape):
                             'knots'       : NurbsSurfaceKnot,
                             'sf'          : NurbsSurfaceFace,
                             'faces'       : NurbsSurfaceFace}
+# hard coding the mapping of numCVs => _numCVs for now,
+# instead of using apiToMelBridge, as caches are in a state of flux
+# for now
+# can leave this in, or always move it to apiToMelBridge later...
+NurbsSurface._numCVsInU = NurbsSurface.numCVsInU
 NurbsSurface.numCVsInU = \
     NurbsSurface._numCVsFunc_generator(NurbsSurface.formInU,
                                        NurbsSurface._numCVsInU,
@@ -4428,7 +4436,11 @@ NurbsSurface.numCVsInU = \
 
         :rtype: `int`
         """)
-
+# hard coding the mapping of numCVs => _numCVs for now,
+# instead of using apiToMelBridge, as caches are in a state of flux
+# for now
+# can leave this in, or always move it to apiToMelBridge later...
+NurbsSurface._numCVsInV = NurbsSurface.numCVsInV
 NurbsSurface.numCVsInV = \
     NurbsSurface._numCVsFunc_generator(NurbsSurface.formInV,
                                        NurbsSurface._numCVsInV,
