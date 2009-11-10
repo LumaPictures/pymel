@@ -515,6 +515,7 @@ def lazyLoadModule(name, contents):
                     self.newobj = self.creator(*self.args, **self.kwargs)
                     if isinstance(obj, types.ModuleType):
                         self.newobj.__module__ = obj.__name__
+                #print "Lazy-loaded object:", self.name
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
                 setattr( obj, self.name, self.newobj)
                 return self.newobj
@@ -531,6 +532,14 @@ def lazyLoadModule(name, contents):
         @classmethod
         def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
             setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
+        
+        # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
+        # 'real' entries in the module
+        def _updateLazyModule(self, otherDict):
+            """
+            Used to update the contents of the LazyLoadModule with the contents of another dict.
+            """
+            self.__dict__.update(otherDict)
             
     return LazyLoadModule(name, contents)
 
