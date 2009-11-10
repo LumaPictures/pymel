@@ -121,15 +121,18 @@ class Version(object):
     v2009sp1  = 200904
     v2009sp1a = 200906
     v2010     = 201000
-#    CURRENT = _getApiVersion()
-#    
-#    v85      = 200700
-#    v85SP1   = 200701
-#    v2008    = 200800
-#    v2008SP1  = 200806
-#    v2008EXT2 = 200806
-#    v2009     = 200900
-
+    
+    CURRENT = _getApiVersion()
+    
+    v85        = 200700
+    v85_SP1    = 200701
+    v2008      = 200800
+    v2008_SP1  = 200806
+    v2008_EXT2 = 200806
+    v2009      = 200900
+    v2009_SP1  = 200904
+    v2009_SP1A = 200906
+    v2010      = 201000
     
     #: Unlimited or Complete
     
