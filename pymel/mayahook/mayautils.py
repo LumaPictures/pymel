@@ -174,14 +174,16 @@ def getMayaExecutable(version=None, commandLine=True):
         return sys.executable
     
 
-    
 def getMayaAppDir():
     if not os.environ.has_key('MAYA_APP_DIR') :
-        home = os.environ.get('HOME', None)
+        home = os.environ.get('HOME', os.environ.get('USERPROFILE', None) )
         if not home :
             return None
         else :
-            return os.path.join(home, 'maya')
+            if system == 'darwin':
+                return os.path.join(home, 'Library/Preferences/Autodesk/maya')
+            else:
+                return os.path.join(home, 'maya')
     return os.environ['MAYA_APP_DIR']
 
 
@@ -422,8 +424,9 @@ def initMEL():
     mayaVersion = installName()
     try:
         prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
+        assert prefsDir
     except:
-        _logger.error( "could not perform maya initialization sequence: MAYA_APP_DIR not set" )
+        _logger.error( "could not perform maya initialization sequence: please set MAYA_APP_DIR, HOME (osx/linux) or USERPROFILE (windows)" )
     else:
         # TODO : use cmds.internalVar to get paths
         # got this startup sequence from autodesk support
