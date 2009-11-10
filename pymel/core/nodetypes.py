@@ -5405,7 +5405,7 @@ def _createPyNodes():
 _createPyNodes()
 #_logger.debug( "Initialized Pymel PyNodes types list in %.2f sec" % time.time() - _startTime )
 
-        
+dynModule = sys.modules[__name__]
 #def listToMSelection( objs ):
 #    sel = api.MSelectionList()
 #    for obj in objs:
@@ -5418,4 +5418,3 @@ _createPyNodes()
 #            #sel.add( obj.__apiobject__(), True )
 #        else:
 #            raise TypeError
-        

@@ -2,8 +2,6 @@
 Functions for creating UI elements, as well as their class counterparts.
 """
 
-# foo
-
 """
 
 ====================
@@ -367,7 +365,7 @@ Maya Bug Fix:
 
     if kwargs:
         cmds.scriptTable( uiName, e=1, **kwargs)    
-    return ScriptTable(uiName)
+    return dynModule.ScriptTable(uiName)
     
 def getPanel(*args, **kwargs):
     return util.listForNone( cmds.getPanel(*args, **kwargs ) )
@@ -995,10 +993,14 @@ def _createClassCommandPairs():
         func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
         if func:
             func.__module__ = __name__
-            globals()[funcName] = func
+            # Since we're not using LazyLoading objects for funcs, add them
+            # to both the dynamic module and this module, so we don't have
+            # preface them with 'dynModule.' when referencing from this module
+            setattr(dynModule, funcName, func)
+            setattr(_thisModule, funcName, func)
         else:
             _logger.warning( "ui command not created: %s" % funcName )
-        
+    
     sys.modules[__name__] = dynModule
                
 def _createCommands():
@@ -1008,466 +1010,476 @@ def _createCommands():
         func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
         if func:
             func.__module__ = __name__
-            setattr( _thisModule, funcName, func )
+            setattr(_thisModule, funcName, func)
+            # want this call to work regardless of order we call _createClassCommandParis / _createCommands
+            if sys.modules[__name__] != _thisModule:
+                setattr( sys.modules[__name__], funcName, func )
+        else:
+            _logger.warning( "ui command not created: %s" % funcName )
+
                   
 _createClassCommandPairs()
 _createCommands()
-#
-#class TextLayout(FrameLayout):
-#    """A frame-layout with a textfield inside, used by the 'textWindow' function"""
-#    
-#    def __new__(cls, name=None, parent=None, text=None):
-#        self = frameLayout(labelVisible=bool(name), label=name or "Text Window", parent=parent)
-#        return FrameLayout.__new__(cls, self)
-#
-#    def __init__(self, parent, text=None):
+
+dynModule = sys.modules[__name__]
+
+
+
+class TextLayout(dynModule.FrameLayout):
+    """A frame-layout with a textfield inside, used by the 'textWindow' function"""
+    
+    def __new__(cls, name=None, parent=None, text=None):
+        self = frameLayout(labelVisible=bool(name), label=name or "Text Window", parent=parent)
+        return dynModule.FrameLayout.__new__(cls, self)
+
+    def __init__(self, parent, text=None):
+        
+        SLC("topForm", verticalLayout, dict(), AutoLayout.redistribute, [
+            SLC("txtInfo", scrollField, {"editable":False}),
+        ]).create(self.__dict__, parent=self, debug=False)
+        self.setText(text)
+        
+    def setText(self, text=""):
+        from pprint import pformat
+        if not isinstance(text, basestring):
+            text = pformat(text)
+        self.txtInfo.setText(text)
+        self.txtInfo.setInsertionPosition(1)
+        
+def textWindow(title, text, size=None):
+
+        self = window("TextWindow#",title=title)
+        try:
+            self.main = TextLayout(parent=self, text=text)
+            self.setWidthHeight(size or [300,300])
+            self.setText = self.main.setText
+            self.show()
+            return self
+        finally:
+            deleteUI(self)
+    
+def showsHourglass(func):
+    """ Decorator - shows the hourglass cursor until the function returns """
+    def decoratedFunc(*args, **kwargs):
+        cmds.waitCursor(st=True)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            cmds.waitCursor(st=False)
+    decoratedFunc.__doc__ = func.__doc__
+    decoratedFunc.__name__ = func.__name__
+    decoratedFunc.__module__ = func.__module__
+    return decoratedFunc
+    
+
+
+def pathButtonGrp( name=None, *args, **kwargs ):
+    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
+        create = True
+    else:
+        create = False
+        
+    return PathButtonGrp( name=name, create=create, *args, **kwargs ) 
+
+class PathButtonGrp( dynModule.TextFieldButtonGrp ):
+    def __new__(cls, name=None, create=False, *args, **kwargs):
+        
+        if create:
+            kwargs.pop('bl', None)
+            kwargs['buttonLabel'] = 'Browse'
+            kwargs.pop('bl', None)
+            kwargs['buttonLabel'] = 'Browse'
+            kwargs.pop('bc', None)
+            kwargs.pop('buttonCommand', None)
+
+            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
+            
+            def setPathCB(name):
+                f = promptForPath()
+                if f:
+                    cmds.textFieldButtonGrp( name, e=1, text=f)
+            
+            cb = Callback( setPathCB, name ) 
+            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
+            
+        return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
+        
+    def setPath(self, path):
+        self.setText( path )
+       
+    def getPath(self):
+        return Path( self.getText() )
+    
+def vectorFieldGrp( *args, **kwargs ):
+    return VectorFieldGrp( *args, **kwargs ) 
+ 
+class VectorFieldGrp( dynModule.FloatFieldGrp ):
+    def __new__(cls, name=None, create=False, *args, **kwargs):
+        if create:
+            kwargs.pop('nf', None)
+            kwargs['numberOfFields'] = 3
+            name = cmds.floatFieldGrp( name, *args, **kwargs)
+
+        return dynModule.FloatFieldGrp.__new__( cls, name, create=False, *args, **kwargs )
+        
+    def getVector(self):
+        x = floatFieldGrp( self, q=1, v1=True )
+        y = floatFieldGrp( self, q=1, v2=True )
+        z = floatFieldGrp( self, q=1, v3=True )
+        return datatypes.Vector( [x,y,z] )
+    
+    def setVector(self, vec):
+        floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
+        
+        return datatypes.Vector( [x,y,z] )
+
+#class ValueControlGrp( UI ):
+#    def __new__(cls, name=None, create=False, dataType=None, numberOfControls=1, **kwargs):
 #        
-#        SLC("topForm", verticalLayout, dict(), AutoLayout.redistribute, [
-#            SLC("txtInfo", scrollField, {"editable":False}),
-#        ]).create(self.__dict__, parent=self, debug=False)
-#        self.setText(text)
-#        
-#    def setText(self, text=""):
-#        from pprint import pformat
-#        if not isinstance(text, basestring):
-#            text = pformat(text)
-#        self.txtInfo.setText(text)
-#        self.txtInfo.setInsertionPosition(1)
-#        
-#def textWindow(title, text, size=None):
-#
-#        self = window("TextWindow#",title=title)
-#        try:
-#            self.main = TextLayout(parent=self, text=text)
-#            self.setWidthHeight(size or [300,300])
-#            self.setText = self.main.setText
-#            self.show()
-#            return self
-#        finally:
-#            deleteUI(self)
-#    
-#def showsHourglass(func):
-#    """ Decorator - shows the hourglass cursor until the function returns """
-#    def decoratedFunc(*args, **kwargs):
-#        cmds.waitCursor(st=True)
-#        try:
-#            return func(*args, **kwargs)
-#        finally:
-#            cmds.waitCursor(st=False)
-#    decoratedFunc.__doc__ = func.__doc__
-#    decoratedFunc.__name__ = func.__name__
-#    decoratedFunc.__module__ = func.__module__
-#    return decoratedFunc
-#    
-#
-#
-#def pathButtonGrp( name=None, *args, **kwargs ):
-#    if name is None or not cmds.textFieldButtonGrp( name, ex=1 ):
-#        create = True
-#    else:
-#        create = False
-#        
-#    return PathButtonGrp( name=name, create=create, *args, **kwargs ) 
-#
-#class PathButtonGrp( TextFieldButtonGrp ):
-#    def __new__(cls, name=None, create=False, *args, **kwargs):
-#        
-#        if create:
-#            kwargs.pop('bl', None)
-#            kwargs['buttonLabel'] = 'Browse'
-#            kwargs.pop('bl', None)
-#            kwargs['buttonLabel'] = 'Browse'
-#            kwargs.pop('bc', None)
-#            kwargs.pop('buttonCommand', None)
-#
-#            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
-#            
-#            def setPathCB(name):
-#                f = promptForPath()
-#                if f:
-#                    cmds.textFieldButtonGrp( name, e=1, text=f)
-#            
-#            cb = Callback( setPathCB, name ) 
-#            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
-#            
-#        return TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
-#        
-#    def setPath(self, path):
-#        self.setText( path )
-#       
-#    def getPath(self):
-#        return Path( self.getText() )
-#    
-#def vectorFieldGrp( *args, **kwargs ):
-#    return VectorFieldGrp( *args, **kwargs ) 
-# 
-#class VectorFieldGrp( FloatFieldGrp ):
-#    def __new__(cls, name=None, create=False, *args, **kwargs):
-#        if create:
-#            kwargs.pop('nf', None)
-#            kwargs['numberOfFields'] = 3
-#            name = cmds.floatFieldGrp( name, *args, **kwargs)
-#
-#        return FloatFieldGrp.__new__( cls, name, create=False, *args, **kwargs )
-#        
-#    def getVector(self):
-#        x = floatFieldGrp( self, q=1, v1=True )
-#        y = floatFieldGrp( self, q=1, v2=True )
-#        z = floatFieldGrp( self, q=1, v3=True )
-#        return datatypes.Vector( [x,y,z] )
-#    
-#    def setVector(self, vec):
-#        floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
-#        
-#        return datatypes.Vector( [x,y,z] )
-#
-##class ValueControlGrp( UI ):
-##    def __new__(cls, name=None, create=False, dataType=None, numberOfControls=1, **kwargs):
-##        
-##        if cls._isBeingCreated(name, create, kwargs):
-##            assert dataType
-##            if not isinstance(dataType, basestring):
-##                try:
-##                    dataType = dataType.__name__
-##                except AttributeError:
-##                    dataType = str(dataType)
-##                    
-##            # if a dataType such as float3 or int2 was passed, get the number of ctrls
-##            try:
-##                numberOfControls = int(re.search( '(\d+)$', dataType ).group(0))
-##            except:
-##                pass
-##            
-##            dataType = dataType.lower()
-##            
-##            kwargs.pop('dt',None)
-##            kwargs['docTag'] = dataType
-###            kwargs.pop('nf', None)
-###            kwargs['numberOfFields'] = 3
-###            name = cmds.floatFieldGrp( name, *args, **kwargs)
-##
-##        #labelStr = kwargs.pop( 'label', kwargs.pop('l', str(dataType) ) )
-##        if dataType in ["bool"]:
-##            ctrl = CheckBoxGrp
-##            getter = ctrl.getValue1
-##            setter = ctrl.setValue1
-##            #if hasDefault: ctrl.setValue1( int(default) )
-##            
-##        elif dataType in ["int"]:
-##            ctrl = IntFieldGrp
-##            getter = ctrl.getValue1
-##            setter = ctrl.setValue1
-##            #if hasDefault: ctrl.setValue1( int(default) )
-##                
-##        elif dataType in ["float"]:
-##            ctrl = FloatFieldGrp
-##            getter = ctrl.getValue1
-##            setter = ctrl.setValue1
-##            #if hasDefault: ctrl.setValue1( float(default) )
-##            
-##        elif dataType in ["vector", "Vector"]:
-##            ctrl = VectorFieldGrp
-##            getter = ctrl.getVector
-##            setter = ctrl.setValue1
-##            #if hasDefault: ctrl.setVector( default )
-##            
-##        elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
-##            ctrl = PathButtonGrp
-##            getter = ctrl.getPath
-##            setter = ctrl.setPath
-##            #if hasDefault: ctrl.setText( default.__repr__() )
-##                                
-##        elif dataType in ["string", "unicode", "str"]:
-##            ctrl = TextFieldGrp
-##            getter = ctrl.getText
-##            setter = ctrl.setText
-##            #if hasDefault: ctrl.setText( str(default) )
-##        else:
-##             raise TypeError  
-###        else:
-###            ctrl = TextFieldGrp( l=labelStr )
-###            getter = makeEvalGetter( ctrl.getText )
-###            #setter = ctrl.setValue1
-###            #if hasDefault: ctrl.setText( default.__repr__() )
-##        cls.__melcmd__ = staticmethod( ctrl.__melcmd__ )        
-##        self = ctrl.__new__( cls, name, create, **kwargs )
-##        self.getter = getter
-##        self.ctrlClass = ctrl
-##        return self
-##    
-##    def getValue(self):
-##        return self.getter(self)
-#    
-#def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=None, numberOfControls=1, **kwargs):
-#    """
-#    This function allows for a simplified interface for automatically creating UI's to control numeric values. 
-#    
-#    A dictionary of keywords shared by all controls can be created and passed to this function and settings which don't pertain
-#    to the element being created will will be ignore.  For example, 'precision' will be ignored by all non-float UI and 
-#    'sliderSteps' will be ignore by all non-slider UIs.
-#        
-#    :Parameters:
-#        dataType : string or class type
-#            The dataType that the UI should control.  It can be a type object or the string name of the type. 
-#            For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to 
-#            control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
-#        
-#        numberOfControls : int
-#            A parameter for specifying the number of controls per control group.  For example, for a checkBoxGrp, numberOfControls
-#            will map to the 'numberOfCheckBoxes' keyword.
-#            
-#        slider : bool
-#            Specify whether or not sliders should be used for int and float controls. Ignored for other 
-#            types, as well as for int and float arrays
-#        
-#        value : int, int list, bool, bool list, float, float list, string, unicode, Path, Vector, 
-#            The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate 
-#            number of elements.
-#      
-#    A straightforward example:
-#    
-#    .. python::
-#    
-#        settings = {}
-#        settings['step'] = 1
-#        settings['precision'] = 3
-#        settings['vertical'] = True # for all checkBoxGrps, lay out vertically
-#        win = window()
-#        columnLayout()
-#        setUITemplate( 'attributeEditorTemplate', pushTemplate=1 )
-#        boolCtr = valueControlGrp( dataType='bool', label='bool', **settings)
-#        bool3Ctr = valueControlGrp( dataType='bool', label='bool', numberOfControls=3, **settings)
-#        intCtr = valueControlGrp( dataType=int, label='int', slider=False, **settings)
-#        intSldr = valueControlGrp( dataType=int, label='int', slider=True, **settings)
-#        int3Ctrl= valueControlGrp( dataType=int, label='int', numberOfControls=3, **settings)
-#        floatCtr = valueControlGrp( dataType=float, label='float', slider=False, **settings)
-#        floatSldr = valueControlGrp( dataType=float, label='float', slider=True, **settings)
-#        pathCtrl = valueControlGrp( dataType=Path, label='path', **settings)      
-#        win.show()
-#        
-#
-#    Here's an example of how this is meant to be used in practice:
-#    
-#    .. python::
-#
-#        settings = {}
-#        settings['step'] = 1
-#        settings['precision'] = 3
-#        win = window()
-#        columnLayout()
-#        types=[ ( 'donuts?',      
-#                    bool, 
-#                    True ),
-#                # bool arrays have a special label syntax that allow them to pass sub-labels
-#                ( [ 'flavors', ['jelly', 'sprinkles', 'glazed']], 
-#                    'bool3', 
-#                    [0,1,0]), 
-#                ( 'quantity',        
-#                  int, 
-#                  12 ), 
-#                ( 'delivery time',   
-#                  float, 
-#                  .69)
-#                ]
-#        for label, dt, val in types:
-#            valueControlGrp( dataType=dt, label=label, value=val, **settings)
-#        win.show() 
-#
-#    """
-#    
-#    def makeGetter( ctrl, methodName, num ):
-#        def getter( ):
-#            res = []
-#            for i in range( num ):
-#                res.append( getattr(ctrl, methodName + str(i+1) )() )
-#            return res
-#        return getter
-#        
-#    def makeSetter( ctrl, methodName, num ):
-#        def setter( args ):
-#            for i in range( num ):
-#                getattr(ctrl, methodName + str(i+1) )(args[i])
-#        return setter
-#                               
-#    # the options below are only valid for certain control types.  they can always be passed to valueControlGrp, but
-#    # they will be ignore if not applicable to the control for this dataType.  this allows you to create a
-#    # preset configuration and pass it to the valueControlGrp for every dataType -- no need for creating switches, afterall
-#    # that's the point of this function
-#    
-#    sliderArgs = [ 'sliderSteps', 'ss', 'dragCommand', 'dc' ]
-#    fieldArgs = [ 'field', 'f', 'fieldStep', 'fs', 'fieldMinValue', 'fmn', 'fieldMaxValue', 'fmx' ]
-#    fieldSliderArgs = ['step', 's', 'minValue', 'min', 'maxValue', 'max', 'extraLabel', 'el'] + sliderArgs + fieldArgs
-#    floatFieldArgs = ['precision', 'pre']
-#    verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
-#    
-#    if UI._isBeingCreated(name, create, kwargs):
-#        assert dataType, "You must pass a dataType when creating a new control"
-#        if not isinstance(dataType, basestring):
+#        if cls._isBeingCreated(name, create, kwargs):
+#            assert dataType
+#            if not isinstance(dataType, basestring):
+#                try:
+#                    dataType = dataType.__name__
+#                except AttributeError:
+#                    dataType = str(dataType)
+#                    
+#            # if a dataType such as float3 or int2 was passed, get the number of ctrls
 #            try:
-#                dataType = dataType.__name__
-#            except AttributeError:
-#                dataType = str(dataType)
-#                
-#        # if a dataType such as float3 or int2 was passed, get the number of ctrls
-#        try:
-#            buf = re.split( '(\d+)', dataType )
-#            dataType = buf[0]
-#            numberOfControls = int(buf[1])
-#        except:
-#            pass
-#    else:
-#        # control command lets us get basic info even when we don't know the ui type
-#        dataType = control( name, q=1, docTag=1)
-#        assert dataType
+#                numberOfControls = int(re.search( '(\d+)$', dataType ).group(0))
+#            except:
+#                pass
+#            
+#            dataType = dataType.lower()
+#            
+#            kwargs.pop('dt',None)
+#            kwargs['docTag'] = dataType
+##            kwargs.pop('nf', None)
+##            kwargs['numberOfFields'] = 3
+##            name = cmds.floatFieldGrp( name, *args, **kwargs)
 #
-#    numberOfControls = int(numberOfControls)
-#    if numberOfControls < 1:
-#        numberOfControls = 1
-#    elif numberOfControls > 4:
-#        numberOfControls = 4  
-#        
-#    #dataType = dataType.lower()
-#    kwargs.pop('dt',None)
-#    kwargs['docTag'] = dataType
-#        
-#    if dataType in ["bool"]:
-#        if numberOfControls > 1:
-#            kwargs.pop('ncb', None)
-#            kwargs['numberOfCheckBoxes'] = numberOfControls
-#            
-#        # remove field/slider and float kwargs
-#        for arg in fieldSliderArgs + floatFieldArgs: 
-#            kwargs.pop(arg, None)
-#            
-#        # special label handling
-#        label = kwargs.get('label', kwargs.get('l',None) )
-#        if label is not None:
-#            # allow label passing with additional sub-labels:
-#            #    ['mainLabel', ['subLabel1', 'subLabel2', 'subLabel3']]
-#            if util.isIterable(label):
-#                label, labelArray = label
-#                kwargs.pop('l',None)
-#                kwargs['label'] = label
-#                kwargs['labelArray' + str(numberOfControls) ] = labelArray
-#                
-#        ctrl = CheckBoxGrp( name, create, **kwargs )
-#        
-#        if numberOfControls > 1:
-#            getter = makeGetter(ctrl, 'getValue', numberOfControls)
-#            setter = makeSetter(ctrl, 'setValue', numberOfControls)
-#        else:
-#            getter = ctrl.getValue1
-#            setter = ctrl.setValue1  
-#        #if hasDefault: ctrl.setValue1( int(default) )
-#        
-#    elif dataType in ["int"]:
-#        if numberOfControls > 1:
-#            kwargs.pop('nf', None)
-#            kwargs['numberOfFields'] = numberOfControls
-#            slider = False
-#                
-#        if slider:     
-#            # remove float kwargs
-#            for arg in floatFieldArgs + verticalArgs: 
-#                kwargs.pop(arg, None)          
-#            # turn the field on by default
-#            if 'field' not in kwargs and 'f' not in kwargs:
-#                kwargs['field'] = True
-#            
-#            ctrl = IntSliderGrp( name, create, **kwargs )
-#            getter = ctrl.getValue
-#            setter = ctrl.setValue
-#        else:
-#            # remove field/slider and float kwargs
-#            for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
-#                kwargs.pop(arg, None)
-#            ctrl = IntFieldGrp( name, create, **kwargs )
-#            
+#        #labelStr = kwargs.pop( 'label', kwargs.pop('l', str(dataType) ) )
+#        if dataType in ["bool"]:
+#            ctrl = dynModule.CheckBoxGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
-#        #if hasDefault: ctrl.setValue1( int(default) )
+#            #if hasDefault: ctrl.setValue1( int(default) )
 #            
-#    elif dataType in ["float"]:
-#        if numberOfControls > 1:
-#            kwargs.pop('nf', None)
-#            kwargs['numberOfFields'] = numberOfControls
-#            slider = False
-#            
-#        if slider:
-#            for arg in verticalArgs: 
-#                kwargs.pop(arg, None)
-#                
-#            # turn the field on by default
-#            if 'field' not in kwargs and 'f' not in kwargs:
-#                kwargs['field'] = True
-#            ctrl = FloatSliderGrp( name, create, **kwargs )
-#            getter = ctrl.getValue
-#            setter = ctrl.setValue
-#        else:
-#            # remove field/slider kwargs
-#            for arg in fieldSliderArgs + verticalArgs: 
-#                kwargs.pop(arg, None)
-#            ctrl = FloatFieldGrp( name, create, **kwargs )
+#        elif dataType in ["int"]:
+#            ctrl = dynModule.IntFieldGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
-#        #if hasDefault: ctrl.setValue1( float(default) )
-#        
-#    elif dataType in ["vector", "Vector"]:
-#        # remove field/slider kwargs
-#        for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
-#            kwargs.pop(arg, None)
-#        ctrl = VectorFieldGrp( name, create, **kwargs )
-#        getter = ctrl.getVector
-#        setter = ctrl.setValue1
-#        #if hasDefault: ctrl.setVector( default )
-#        
-#    elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
-#        # remove field/slider kwargs
-#        for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
-#            kwargs.pop(arg, None)
-#        ctrl = PathButtonGrp( name, create, **kwargs )
-#        getter = ctrl.getPath
-#        setter = ctrl.setPath
-#        #if hasDefault: ctrl.setText( default.__repr__() )
-#                            
-#    elif dataType in ["string", "unicode", "str"]:
-#        # remove field/slider kwargs
-#        for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
-#            kwargs.pop(arg, None)
-#        ctrl = TextFieldGrp( name, create, **kwargs )
-#        getter = ctrl.getText
-#        setter = ctrl.setText
-#        #if hasDefault: ctrl.setText( str(default) )
-#    else:
-#        raise TypeError, "Unsupported dataType: %s" % dataType
+#            #if hasDefault: ctrl.setValue1( int(default) )
+#                
+#        elif dataType in ["float"]:
+#            ctrl = dynModule.FloatFieldGrp
+#            getter = ctrl.getValue1
+#            setter = ctrl.setValue1
+#            #if hasDefault: ctrl.setValue1( float(default) )
+#            
+#        elif dataType in ["vector", "Vector"]:
+#            ctrl = VectorFieldGrp
+#            getter = ctrl.getVector
+#            setter = ctrl.setValue1
+#            #if hasDefault: ctrl.setVector( default )
+#            
+#        elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
+#            ctrl = PathButtonGrp
+#            getter = ctrl.getPath
+#            setter = ctrl.setPath
+#            #if hasDefault: ctrl.setText( default.__repr__() )
+#                                
+#        elif dataType in ["string", "unicode", "str"]:
+#            ctrl = dynModule.TextFieldGrp
+#            getter = ctrl.getText
+#            setter = ctrl.setText
+#            #if hasDefault: ctrl.setText( str(default) )
+#        else:
+#             raise TypeError  
 ##        else:
-##            ctrl = TextFieldGrp( l=labelStr )
+##            ctrl = dynModule.TextFieldGrp( l=labelStr )
 ##            getter = makeEvalGetter( ctrl.getText )
 ##            #setter = ctrl.setValue1
 ##            #if hasDefault: ctrl.setText( default.__repr__() )
-#  
-#        #new = ctrl( name, create, **kwargs )
-#    ctrl.getValue = getter
-#    ctrl.setValue = setter
-#    ctrl.dataType = ctrl.getDocTag
+#        cls.__melcmd__ = staticmethod( ctrl.__melcmd__ )        
+#        self = ctrl.__new__( cls, name, create, **kwargs )
+#        self.getter = getter
+#        self.ctrlClass = ctrl
+#        return self
 #    
-#    if value is not None:
-#        ctrl.setValue(value)
-#        
-#    # TODO : remove setDocTag
-#    return ctrl
-#
-#
-#def PyUI(strObj, type=None):
-#    try:
-#        if not type:
-#            type = cmds.objectTypeUI(strObj)
-#        return getattr(_thisModule, util.capitalize(type) )(strObj)
-#    except AttributeError:
-#        return UI(strObj)
-#    
-#def getMainProgressBar():
-#    return ProgressBar(melGlobals['gMainProgressBar'])    
+#    def getValue(self):
+#        return self.getter(self)
+    
+def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=None, numberOfControls=1, **kwargs):
+    """
+    This function allows for a simplified interface for automatically creating UI's to control numeric values. 
+    
+    A dictionary of keywords shared by all controls can be created and passed to this function and settings which don't pertain
+    to the element being created will will be ignore.  For example, 'precision' will be ignored by all non-float UI and 
+    'sliderSteps' will be ignore by all non-slider UIs.
+        
+    :Parameters:
+        dataType : string or class type
+            The dataType that the UI should control.  It can be a type object or the string name of the type. 
+            For example for a boolean, you can specify 'bool' or pass in the bool class. Also, if the UI is meant to 
+            control an array, you can pass the type name as a stirng with a integer suffix representing the array length. ex. 'bool3'
+        
+        numberOfControls : int
+            A parameter for specifying the number of controls per control group.  For example, for a checkBoxGrp, numberOfControls
+            will map to the 'numberOfCheckBoxes' keyword.
+            
+        slider : bool
+            Specify whether or not sliders should be used for int and float controls. Ignored for other 
+            types, as well as for int and float arrays
+        
+        value : int, int list, bool, bool list, float, float list, string, unicode, Path, Vector, 
+            The value for the control. If the value is for an array type, it should be a list or tuple of the appropriate 
+            number of elements.
+      
+    A straightforward example:
+    
+    .. python::
+    
+        settings = {}
+        settings['step'] = 1
+        settings['precision'] = 3
+        settings['vertical'] = True # for all checkBoxGrps, lay out vertically
+        win = window()
+        columnLayout()
+        setUITemplate( 'attributeEditorTemplate', pushTemplate=1 )
+        boolCtr = valueControlGrp( dataType='bool', label='bool', **settings)
+        bool3Ctr = valueControlGrp( dataType='bool', label='bool', numberOfControls=3, **settings)
+        intCtr = valueControlGrp( dataType=int, label='int', slider=False, **settings)
+        intSldr = valueControlGrp( dataType=int, label='int', slider=True, **settings)
+        int3Ctrl= valueControlGrp( dataType=int, label='int', numberOfControls=3, **settings)
+        floatCtr = valueControlGrp( dataType=float, label='float', slider=False, **settings)
+        floatSldr = valueControlGrp( dataType=float, label='float', slider=True, **settings)
+        pathCtrl = valueControlGrp( dataType=Path, label='path', **settings)      
+        win.show()
+        
+
+    Here's an example of how this is meant to be used in practice:
+    
+    .. python::
+
+        settings = {}
+        settings['step'] = 1
+        settings['precision'] = 3
+        win = window()
+        columnLayout()
+        types=[ ( 'donuts?',      
+                    bool, 
+                    True ),
+                # bool arrays have a special label syntax that allow them to pass sub-labels
+                ( [ 'flavors', ['jelly', 'sprinkles', 'glazed']], 
+                    'bool3', 
+                    [0,1,0]), 
+                ( 'quantity',        
+                  int, 
+                  12 ), 
+                ( 'delivery time',   
+                  float, 
+                  .69)
+                ]
+        for label, dt, val in types:
+            valueControlGrp( dataType=dt, label=label, value=val, **settings)
+        win.show() 
+
+    """
+    
+    def makeGetter( ctrl, methodName, num ):
+        def getter( ):
+            res = []
+            for i in range( num ):
+                res.append( getattr(ctrl, methodName + str(i+1) )() )
+            return res
+        return getter
+        
+    def makeSetter( ctrl, methodName, num ):
+        def setter( args ):
+            for i in range( num ):
+                getattr(ctrl, methodName + str(i+1) )(args[i])
+        return setter
+                               
+    # the options below are only valid for certain control types.  they can always be passed to valueControlGrp, but
+    # they will be ignore if not applicable to the control for this dataType.  this allows you to create a
+    # preset configuration and pass it to the valueControlGrp for every dataType -- no need for creating switches, afterall
+    # that's the point of this function
+    
+    sliderArgs = [ 'sliderSteps', 'ss', 'dragCommand', 'dc' ]
+    fieldArgs = [ 'field', 'f', 'fieldStep', 'fs', 'fieldMinValue', 'fmn', 'fieldMaxValue', 'fmx' ]
+    fieldSliderArgs = ['step', 's', 'minValue', 'min', 'maxValue', 'max', 'extraLabel', 'el'] + sliderArgs + fieldArgs
+    floatFieldArgs = ['precision', 'pre']
+    verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
+    
+    if UI._isBeingCreated(name, create, kwargs):
+        assert dataType, "You must pass a dataType when creating a new control"
+        if not isinstance(dataType, basestring):
+            try:
+                dataType = dataType.__name__
+            except AttributeError:
+                dataType = str(dataType)
+                
+        # if a dataType such as float3 or int2 was passed, get the number of ctrls
+        try:
+            buf = re.split( '(\d+)', dataType )
+            dataType = buf[0]
+            numberOfControls = int(buf[1])
+        except:
+            pass
+    else:
+        # control command lets us get basic info even when we don't know the ui type
+        dataType = control( name, q=1, docTag=1)
+        assert dataType
+
+    numberOfControls = int(numberOfControls)
+    if numberOfControls < 1:
+        numberOfControls = 1
+    elif numberOfControls > 4:
+        numberOfControls = 4  
+        
+    #dataType = dataType.lower()
+    kwargs.pop('dt',None)
+    kwargs['docTag'] = dataType
+        
+    if dataType in ["bool"]:
+        if numberOfControls > 1:
+            kwargs.pop('ncb', None)
+            kwargs['numberOfCheckBoxes'] = numberOfControls
+            
+        # remove field/slider and float kwargs
+        for arg in fieldSliderArgs + floatFieldArgs: 
+            kwargs.pop(arg, None)
+            
+        # special label handling
+        label = kwargs.get('label', kwargs.get('l',None) )
+        if label is not None:
+            # allow label passing with additional sub-labels:
+            #    ['mainLabel', ['subLabel1', 'subLabel2', 'subLabel3']]
+            if util.isIterable(label):
+                label, labelArray = label
+                kwargs.pop('l',None)
+                kwargs['label'] = label
+                kwargs['labelArray' + str(numberOfControls) ] = labelArray
+                
+        ctrl = dynModule.CheckBoxGrp( name, create, **kwargs )
+        
+        if numberOfControls > 1:
+            getter = makeGetter(ctrl, 'getValue', numberOfControls)
+            setter = makeSetter(ctrl, 'setValue', numberOfControls)
+        else:
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1  
+        #if hasDefault: ctrl.setValue1( int(default) )
+        
+    elif dataType in ["int"]:
+        if numberOfControls > 1:
+            kwargs.pop('nf', None)
+            kwargs['numberOfFields'] = numberOfControls
+            slider = False
+                
+        if slider:     
+            # remove float kwargs
+            for arg in floatFieldArgs + verticalArgs: 
+                kwargs.pop(arg, None)          
+            # turn the field on by default
+            if 'field' not in kwargs and 'f' not in kwargs:
+                kwargs['field'] = True
+            
+            ctrl = dynModule.IntSliderGrp( name, create, **kwargs )
+            getter = ctrl.getValue
+            setter = ctrl.setValue
+        else:
+            # remove field/slider and float kwargs
+            for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
+                kwargs.pop(arg, None)
+            ctrl = dynModule.IntFieldGrp( name, create, **kwargs )
+            
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1
+        #if hasDefault: ctrl.setValue1( int(default) )
+            
+    elif dataType in ["float"]:
+        if numberOfControls > 1:
+            kwargs.pop('nf', None)
+            kwargs['numberOfFields'] = numberOfControls
+            slider = False
+            
+        if slider:
+            for arg in verticalArgs: 
+                kwargs.pop(arg, None)
+                
+            # turn the field on by default
+            if 'field' not in kwargs and 'f' not in kwargs:
+                kwargs['field'] = True
+            ctrl = dynModule.FloatSliderGrp( name, create, **kwargs )
+            getter = ctrl.getValue
+            setter = ctrl.setValue
+        else:
+            # remove field/slider kwargs
+            for arg in fieldSliderArgs + verticalArgs: 
+                kwargs.pop(arg, None)
+            ctrl = dynModule.FloatFieldGrp( name, create, **kwargs )
+            getter = ctrl.getValue1
+            setter = ctrl.setValue1
+        #if hasDefault: ctrl.setValue1( float(default) )
+        
+    elif dataType in ["vector", "Vector"]:
+        # remove field/slider kwargs
+        for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
+            kwargs.pop(arg, None)
+        ctrl = VectorFieldGrp( name, create, **kwargs )
+        getter = ctrl.getVector
+        setter = ctrl.setValue1
+        #if hasDefault: ctrl.setVector( default )
+        
+    elif dataType in ["path", "Path", "FileReference"]:# or pathreg.search( argName.lower() ):
+        # remove field/slider kwargs
+        for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
+            kwargs.pop(arg, None)
+        ctrl = PathButtonGrp( name, create, **kwargs )
+        getter = ctrl.getPath
+        setter = ctrl.setPath
+        #if hasDefault: ctrl.setText( default.__repr__() )
+                            
+    elif dataType in ["string", "unicode", "str"]:
+        # remove field/slider kwargs
+        for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
+            kwargs.pop(arg, None)
+        ctrl = dynModule.TextFieldGrp( name, create, **kwargs )
+        getter = ctrl.getText
+        setter = ctrl.setText
+        #if hasDefault: ctrl.setText( str(default) )
+    else:
+        raise TypeError, "Unsupported dataType: %s" % dataType
+#        else:
+#            ctrl = dynModule.TextFieldGrp( l=labelStr )
+#            getter = makeEvalGetter( ctrl.getText )
+#            #setter = ctrl.setValue1
+#            #if hasDefault: ctrl.setText( default.__repr__() )
+  
+        #new = ctrl( name, create, **kwargs )
+    ctrl.getValue = getter
+    ctrl.setValue = setter
+    ctrl.dataType = ctrl.getDocTag
+    
+    if value is not None:
+        ctrl.setValue(value)
+        
+    # TODO : remove setDocTag
+    return ctrl
 
 
+def PyUI(strObj, type=None):
+    try:
+        if not type:
+            type = cmds.objectTypeUI(strObj)
+        return getattr(_thisModule, util.capitalize(type) )(strObj)
+    except AttributeError:
+        return UI(strObj)
+    
+def getMainProgressBar():
+    return dynModule.ProgressBar(melGlobals['gMainProgressBar'])    
+
+dynModule._updateLazyModule(globals())
   
