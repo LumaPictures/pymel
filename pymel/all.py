@@ -25,3 +25,8 @@ from pymel.mayahook import Version
 
 from core import nodetypes
 from core.nodetypes import *
+
+# These two were imported into 'old' pymel top level module,
+# so make sure they're imported here as well
+import pymel.core as core
+import pymel.tools as tools
