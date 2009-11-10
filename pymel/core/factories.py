@@ -803,11 +803,16 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     return cmdInfo
   
 def _getNodeHierarchy( version=None ):
+    """
+    parse node hierarchy from docs and return as a list of 3-value tuples:
+        ( nodeType, parents, children )
+    """
     from pymel.mayahook.parsers import NodeHierarchyDocParser
     parser = NodeHierarchyDocParser(version)
     import pymel.util.trees as trees
     nodeHierarchyTree = trees.IndexedTree(parser.parse())
-    return [ (x.key, tuple( [y.key for y in x.parents()]) ) for x in nodeHierarchyTree.preorder() ]
+    return [ (x.key, tuple( [y.key for y in x.parents()]), tuple( [y.key for y in x.childs()] ) ) \
+             for x in nodeHierarchyTree.preorder() ]
    
 def buildCachedData() :
     """Build and save to disk the list of Maya Python commands and their arguments"""
@@ -843,7 +848,7 @@ def buildCachedData() :
         #moduleCmds = defaultdict(list)
         moduleCmds = dict( (k,[]) for k in moduleNameShortToLong.keys() )
         moduleCmds.update( {'other':[], 'runtime': [], 'context': [], 'uiClass': [] } )
-        
+    
         for funcName, data in tmpCmdlist :     
             # determine to which module this function belongs
             module = None
@@ -899,8 +904,36 @@ def buildCachedData() :
 #                     cmdlist[funcName] = (funcName, args, (False, None, None) )
 #                else:
 #                    cmdlist[funcName] = (funcName, args, () )
+
+        # split the cached data for lazy loading
+        cmdDocList = {}
+        examples = {} 
+        for cmdName, cmdInfo in cmdlist.iteritems():
+            try:
+                examples[cmdName] = cmdInfo.pop('example')
+            except KeyError:
+                pass
             
-        mayahook.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'mayaCmdsList', 'the list of Maya commands' )
+            newCmdInfo = {}
+            if 'description' in cmdInfo:
+                newCmdInfo['description'] = cmdInfo.pop('description')
+            newFlagInfo = {}
+            if 'flags' in cmdInfo:
+                for flag, flagInfo in cmdInfo['flags'].iteritems():
+                    newFlagInfo[flag] = { 'docstring' : flagInfo.pop('docstring') }
+                newCmdInfo['flags'] = newFlagInfo
+            
+            if newCmdInfo:
+                cmdDocList[cmdName] = newCmdInfo
+         
+        mayahook.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 
+                              'mayaCmdsList', 'the list of Maya commands',compressed=True )
+        
+        mayahook.writeCache( cmdDocList, 
+                              'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
+    
+        mayahook.writeCache( examples, 
+                              'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
     
     util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
             
