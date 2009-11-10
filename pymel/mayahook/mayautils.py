@@ -2,13 +2,13 @@
 Maya-related functions, which are useful to both `api` and `core`, including `mayaInit` which ensures
 that maya is initialized in standalone mode.
 """
-
+from __future__ import with_statement
 import re, os.path, sys, platform, time
 
 from pwarnings import *
 import plogging
 
-from pymel.util import path as _path, shellOutput
+from pymel.util import path as _path, shellOutput, picklezip
 
 import pymel.version as version
 from pymel.version import parseVersionStr, shortName, installName
@@ -44,12 +44,13 @@ isInitializing = False
 pymelMayaPackage = hasattr(maya, 'pymelCompatible') or version.CURRENT >= version.v2011
         
 
-def _moduleDir():
+def _moduleJoin(*args):
     """
-    Returns the base pymel directory.
+    Joins with the base pymel directory.
     :rtype: string
     """
-    return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
+    moduleDir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
+    return os.path.realpath(os.path.join( moduleDir, *args))
 
 # A source command that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it
@@ -506,99 +507,66 @@ def encodeFix():
                 except ImportError :
                     _logger.debug("Unable to import maya.app.baseUI")
 
-import gzip
-def save(object, filename, protocol = -1):
-    """Save an object to a compressed disk file.
-       Works well with huge objects.
-    """
-    try:
-        file = gzip.GzipFile(filename, 'wb')
-    except Exception, e:
-        _logger.debug("Unable to open '%s' for writing: %s" % ( filename, e ))
-   
-    pickle.dump(object, file, protocol)
-    file.close()
 
-def load(filename):
-    """Loads a compressed object from disk
-    """
-    file = gzip.GzipFile(filename, 'rb')
-    buffer = ""
-    while 1:
-        data = file.read()
-        if data == "":
-            break
-        buffer += data
-    object = pickle.loads(buffer)
-    file.close()
-    return object
+def _dump( data, filename, protocol = -1):
+    with open(filename, mode='wb') as file:
+        pickle.dump( data, file, protocol)
 
+def _load(filename):
+    with open(filename, mode='rb') as file:
+        res = pickle.load(file)
+        return res
+
+                 
 def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
-    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+    newPath = _moduleJoin( 'cache', filePrefix+short_version )
 
     if compressed:
         newPath += '.zip'
+        func = picklezip.load
     else:
         newPath += '.bin'
+        func = _load
         
     if description:
         description = ' ' + description
-    
-    if compressed:
-        return load(newPath)
-    
-    try :
-        file = open(newPath, mode='rb')
+  
+    try:
+        return func(newPath)
     except Exception, e:
-        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
-    else:
-        try :
-            #s = time.time()
-            res = pickle.load(file)
-            #_logger.debug("Loaded '%s' in %.04f seconds" % (newPath, time.time()-s) )
-            return res
-        except Exception, e:
-            _logger.warn("Unable to load%s from '%s': %s" % (description,file.name, e))
-        
-        file.close()
+        _logger.error("Unable to load%s from '%s': %s" % (description, newPath, e))
+
 
  
 def writeCache( data, filePrefix, description='', useVersion=True, compressed=True):
-    _logger.debug("writing cache")
     
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
     
-    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+    newPath = _moduleJoin( 'cache', filePrefix+short_version )
     if compressed:
         newPath += '.zip'
+        func = picklezip.dump
     else:
         newPath += '.bin'
-
+        func = _dump
+        
     if description:
         description = ' ' + description
     
     _logger.info("Saving%s to '%s'" % ( description, newPath ))
     
-    if compressed:
-        return save(data, newPath, 2)
-    
     try :
-        file = open(newPath, mode='wb')
+        func( data, newPath, 2)
     except Exception, e:
-        _logger.debug("Unable to open '%s' for writing%s: %s" % ( newPath, description, e ))
-    else:
-        try :
-            pickle.dump( data, file, 2)
-        except:
-            _logger.debug("Unable to write%s to '%s'" % (description,file.name))
-        file.close()
+        _logger.error("Unable to write%s to '%s': %s" % (description, newPath, e))
+
               
 
 def getConfigFile():
