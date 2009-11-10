@@ -13,7 +13,8 @@ VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
-    leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
+    #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
+    leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy, if not children ]
     return sorted( set(classList).intersection(leaves) )
 
 EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
