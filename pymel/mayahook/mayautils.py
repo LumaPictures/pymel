@@ -824,10 +824,11 @@ def initMEL():
 
 
 def finalize():
-    global isInitializing
-    if pymelMayaPackage and isInitializing:
-        import maya.app.startup.basic
-        maya.app.startup.basic.executeUserSetup()
+    if 'maya.app.startup.batch' in sys.modules:
+        global isInitializing
+        if pymelMayaPackage and isInitializing:
+            import maya.app.startup.basic
+            maya.app.startup.basic.executeUserSetup()
         initMEL()
     
                        
