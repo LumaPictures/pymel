@@ -300,6 +300,15 @@ from language import mel, melGlobals
 import pymel.mayahook.plogging as plogging
 _logger = plogging.getLogger(__name__)
 
+_thisModule = sys.modules[__name__]
+# Note - don't do
+#     __import__('pymel.core.windows').XXX
+# ...as this will get the 'original' module, not the dynamic one!
+# Do:
+#    import pymel.core.windows; import sys; sys.modules[pymel.core.windows].XXX
+# instead!
+thisModuleCmd = "import %s; import sys; sys.modules[%r]" % (__name__, __name__)
+
 #-----------------------------------------------
 #  Enhanced UI Commands
 #-----------------------------------------------
@@ -338,9 +347,10 @@ Maya Bug Fix:
         if hasattr(cb, '__call__'):        
             procName = 'getCellMel%d' % len(scriptTableCmds.keys())
             key = '%s_%s' % (uiName,procName)
+
             procCmd = """global proc string %s( int $row, int $column ) {
-                            return python("__import__('%s').scriptTableCmds['%s'](" + $row + "," + $column + ")");}
-                      """ %  (procName,__name__,key) 
+                            return python(%s.scriptTableCmds['%s'](" + $row + "," + $column + ")");}
+                      """ %  (procName, thisModuleCmd, key) 
             mel.eval( procCmd )
             scriptTableCmds[key] = cb
             
@@ -352,9 +362,15 @@ Maya Bug Fix:
         if hasattr(cc, '__call__'):        
             procName = 'cellChangedCmd%d' % len(scriptTableCmds.keys())
             key = '%s_%s' % (uiName,procName)
+            # Note - don't do
+            #     __import__('pymel.core.windows').XXX
+            # ...as this will get the 'original' module, not the dynamic one!
+            # Do:
+            #    import pymel.core.windows; import sys; sys.modules[pymel.core.windows].XXX
+            # instead!            
             procCmd = """global proc int %s( int $row, int $column, string $val) {
-                            return python("__import__('%s').scriptTableCmds['%s'](" + $row + "," + $column + ",'" + $val + "')");}
-                      """ %  (procName,__name__,key)
+                            return python("%s.scriptTableCmds['%s'](" + $row + "," + $column + ",'" + $val + "')");}
+                      """ %  (procName, thisModuleCmd, key)
             mel.eval( procCmd )
             scriptTableCmds[key] = cc
             
@@ -382,9 +398,6 @@ def optionMenu( *args, **kwargs ):
 def optionMenuGrp( *args, **kwargs ):
     res = cmds.optionMenuGrp(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
-
-_thisModule = sys.modules[__name__]
-
 
 class UI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
@@ -672,7 +685,7 @@ class Callback(object):
         self.kwargs = kwargs
     def __call__(self,*args):
         Callback._callData = (self.func, self.args, self.kwargs)
-        mel.python("__import__('pymel').Callback._doCall()")
+        mel.python("%s.Callback._doCall()" % thisModuleCmd)
         return Callback._callData    
     
 class CallbackWithArgs(Callback):
@@ -680,7 +693,7 @@ class CallbackWithArgs(Callback):
         kwargsFinal = self.kwargs.copy()
         kwargsFinal.update(kwargs)
         Callback._callData = (self.func, self.args + args, kwargsFinal)
-        mel.python("__import__('pymel').Callback._doCall()")
+        mel.python("%s.Callback._doCall()" % thisModuleCmd)
         return Callback._callData    
         
     
@@ -969,7 +982,7 @@ def _createClassCommandPairs():
     
     def createCallback( classname ):
         def callback(*args, **kwargs):
-            print "creating ui element", classname
+            #print "creating ui element", classname
             return getattr(dynModule, classname)(*args, **kwargs)
         return callback
      
