@@ -995,7 +995,7 @@ def _createClassCommandPairs():
         func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
         if func:
             func.__module__ = __name__
-            globals()[funcName] = func
+            setattr(dynModule, funcName, func)
         else:
             _logger.warning( "ui command not created: %s" % funcName )
         
@@ -1008,10 +1008,19 @@ def _createCommands():
         func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
         if func:
             func.__module__ = __name__
-            setattr( _thisModule, funcName, func )
+            # because this may be called AFTER the dynamicModule is created,
+            # we can't use our stored _thisModule
+            setattr( sys.modules[__name__], funcName, func )
+        else:
+            _logger.warning( "ui command not created: %s" % funcName )
+
                   
 _createClassCommandPairs()
 _createCommands()
+
+dynModule = sys.modules[__name__]
+
+
 #
 #class TextLayout(FrameLayout):
 #    """A frame-layout with a textfield inside, used by the 'textWindow' function"""
