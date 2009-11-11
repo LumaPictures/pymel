@@ -898,8 +898,8 @@ class DiscreteComponent( DimensionedComponent ):
             # dimension is free, this should be a safe assumption!
             yield self._partialIndex + tuple(tailIndices)
             # want to go from last index to minDimension...
-            for dimIncrementing in xrange(self.dimensions -1,
-                                          minDimensions -1, -1):
+            for dimIncrementing in xrange(self.dimensions - 1,
+                                          minDimension - 1, -1):
                 tailIndices[dimIncrementing] += 1
                 if tailIndices[dimIncrementing] < dimMaxes[dimIncrementing] - 1:
                     # we haven't overflowed this index, we're done
