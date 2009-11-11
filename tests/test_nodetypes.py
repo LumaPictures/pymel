@@ -893,6 +893,18 @@ class testCase_components(unittest.TestCase):
         self.assertTrue(set(cmds.ls(sl=1)).issubset(nameAliases))
 
     def test_nurbsIsoPrintedRange(self):
+        # Maya has a bug -running:
+        # 
+        # import maya.cmds as cmds
+        # cmds.sphere()
+        # cmds.select('nurbsSphere1.uv[*][*]')
+        # print cmds.ls(sl=1)
+        # cmds.select('nurbsSphere1.u[*][*]')
+        # print cmds.ls(sl=1)
+        # 
+        # Gives two different results:
+        # [u'nurbsSphere1.u[0:4][0:1]']
+        # [u'nurbsSphere1.u[0:4][0:8]']
         nameAliases = [x % self.nodes['sphere'] for x in [
                            '%s.u[*]',
                            '%s.u[*][*]',

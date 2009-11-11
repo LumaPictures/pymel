@@ -1344,6 +1344,61 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
     _apienum__ = api.MFn.kIsoparmComponent
     _ComponentLabel__ = ("u", "v", "uv")
     
+    def __init__(self, *args, **kwargs):
+        super(NurbsSurfaceIsoparm, self).__init__(*args, **kwargs)
+        # Fix the bug where running:
+        # 
+        # import maya.cmds as cmds
+        # cmds.sphere()
+        # cmds.select('nurbsSphere1.uv[*][*]')
+        # print cmds.ls(sl=1)
+        # cmds.select('nurbsSphere1.u[*][*]')
+        # print cmds.ls(sl=1)
+        # 
+        # Gives two different results:
+        # [u'nurbsSphere1.u[0:4][0:1]']
+        # [u'nurbsSphere1.u[0:4][0:8]']
+        
+        # to fix this, change 'uv' comps to 'u' comps
+        if hasattr(self, '_partialIndex'):
+            self._partialIndex = self._convertUVtoU(self._partialIndex)
+        if 'ComponentIndex' in self.__apiobjects__:
+            self.__apiobjects__['ComponentIndex'] = self._convertUVtoU(self.__apiobjects__['ComponentIndex'])
+        if hasattr(self, '_indices'):
+            self._indices = self._convertUVtoU(self._indices)
+
+    @classmethod
+    def _convertUVtoU(cls, index):
+        if isinstance(index, dict) and 'uv' in index:
+            # convert over index['uv']
+            oldUvIndex = cls._convertUVtoU(index['uv'])
+            if 'u' in index:
+                # First, make sure index['u'] is a list
+                if (isinstance(index['u'], ComponentIndex) or
+                    not isinstance(index['u'], (list, tuple))):
+                    index['u'] = [index['u']]
+                elif isinstance(index['u'], tuple):
+                    index['u'] = list(index['u'])
+                
+                # then add on 'uv' contents
+                if (isinstance(oldUvIndex, ComponentIndex) or
+                    not isinstance(oldUvIndex, (list, tuple))):
+                    index['u'].append(oldUvIndex)
+                else:
+                    index['u'].extend(oldUvIndex)
+            else:
+                index['u'] = oldUvIndex
+            del index['uv']
+        elif isinstance(index, ComponentIndex):
+            # do this check INSIDE here, because, since a ComponentIndex is a tuple,
+            # we don't want to change a ComponentIndex object with a 'v' index
+            # into a list in the next elif clause!
+            if index.label == 'uv':
+                index.label = 'u'
+        elif isinstance(index, (list, tuple)) and not isinstance(ComponentIndex):
+            index = [cls._convertUVtoU(x) for x in index]
+        return index
+    
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
@@ -1354,6 +1409,7 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
                         ComponentIndex(self._partialIndex + (item,)))
             else:
                 return super(NurbsSurfaceIsoparm, self).__getitem__(item)
+                
 
 class NurbsSurfaceRange( Component2DFloat ):
     _ComponentLabel__ = ("u", "v", "uv")
