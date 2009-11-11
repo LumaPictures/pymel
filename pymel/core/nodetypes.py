@@ -133,6 +133,9 @@ def _formatSlice(slice):
         sliceStr = '%s:%s' % (startIndex, stopIndex)
     return sliceStr 
     
+class HashableSlice( slice ):
+    def __hash__(self):
+        return hash(self.start, self.stop, self.step)
       
 class Component( general.PyNode ):
     """
@@ -569,7 +572,7 @@ class DimensionedComponent( Component ):
                              "specified component (ie, 'cube.vtx')")
         else:
             return self.__class__(self._node,
-                    ComponentIndex(self._partialIndex + (item,)))
+                ComponentIndex(self._partialIndex + (item,)))
 
     def currentDimension(self):
         """
@@ -939,7 +942,7 @@ class ContinuousComponent( DimensionedComponent ):
     
     Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
     """
-    VALID_SINGLE_INDEX_TYPES = (int, long, float)
+    VALID_SINGLE_INDEX_TYPES = (int, long, float, slice)
     
     def _standardizeIndices(self, indexObjs, **kwargs):
         return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
@@ -1404,21 +1407,25 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
                 index = 'u'
         return index
     
+class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
+    _ComponentLabel__ = ("u", "v", "uv")
+    _apienum__ = api.MFn.kSurfaceRangeComponent
+    
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component")
-        else:
-            if isinstance(item, slice) and item.step is None:
-                return NurbsSurfaceRange(self._node,
-                        ComponentIndex(self._partialIndex + (item,)))
-            else:
-                return super(NurbsSurfaceIsoparm, self).__getitem__(item)
-                
+        if isinstance(item, slice):
+            item = HashableSlice(item.start, item.stop, item.step)
 
-class NurbsSurfaceRange( Component2DFloat ):
-    _ComponentLabel__ = ("u", "v", "uv")
-    _apienum__ = api.MFn.kSurfaceRangeComponent
+        # You only get a NurbsSurfaceRange if BOTH indices are slices - if
+        # either is a single value, you get an isoparm
+        elif (not isinstance(item, slice) or
+              (self.currentDimension() == 1 and
+               not isinstance(self._partialIndex[0], slice))):
+            return NurbsSurfaceIsoparm(self._node, self._partialIndex + (item,))
+        else:
+            return super(NurbsSurfaceRange, self).__getitem__(item)    
 
 class NurbsSurfaceCV( Component2D ):
     _ComponentLabel__ = "cv"
@@ -4485,11 +4492,11 @@ class SurfaceShape(ControlPoint): pass
 
 class NurbsSurface(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'u'           : (NurbsSurfaceIsoparm, 'u'),
-                            'uIsoparm'    : (NurbsSurfaceIsoparm, 'u'),
-                            'v'           : (NurbsSurfaceIsoparm, 'v'),
-                            'vIsoparm'    : (NurbsSurfaceIsoparm, 'v'),
-                            'uv'          : (NurbsSurfaceIsoparm, 'uv'),
+    _componentAttributes = {'u'           : (NurbsSurfaceRange, 'u'),
+                            'uIsoparm'    : (NurbsSurfaceRange, 'u'),
+                            'v'           : (NurbsSurfaceRange, 'v'),
+                            'vIsoparm'    : (NurbsSurfaceRange, 'v'),
+                            'uv'          : (NurbsSurfaceRange, 'uv'),
                             'cv'          : NurbsSurfaceCV,
                             'conrolVerts' : NurbsSurfaceCV,
                             'ep'          : NurbsSurfaceEP,

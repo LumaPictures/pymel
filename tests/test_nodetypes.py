@@ -533,14 +533,19 @@ class testCase_components(unittest.TestCase):
                                                  [IndexData((2,1))])
         self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "u",
-                                                   [IndexData(5)])
+                                                   [IndexData(5),
+                                                    IndexData(2.1,1.8)],
+                                                   neverUnindexed=True)
         self.compData['nurbsIsoV'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "vIsoparm",
-                                                   [IndexData(5.27974050577565)],
-                                                   melCompName="v")
+                                                   [IndexData(5.27974050577565),
+                                                    IndexData(3,1.3)],
+                                                   melCompName="v",
+                                                   neverUnindexed=True)
         self.compData['nurbsIsoUV'] = ComponentData(NurbsSurfaceIsoparm,
                                                     self.nodes['sphere'], "uv",
-                                                    [IndexData((1, 4.8))])
+                                                    [IndexData((1, 4.8))],
+                                                    neverUnindexed=True)
         self.compData['nurbsPatch'] = ComponentData(NurbsSurfaceFace,
                                                     self.nodes['sphere'], "sf",
                                                     [IndexData((1,1))])
@@ -552,8 +557,7 @@ class testCase_components(unittest.TestCase):
                                                    [IndexData((1,5))])
         self.compData['nurbsRange'] = ComponentData(NurbsSurfaceRange,
                                                     self.nodes['sphere'], "u",
-                                                    [IndexData('2:3')],
-                                                    neverUnindexed=True)
+                                                    [IndexData('2:3')])
 
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
         self.compData['lattice'] = ComponentData(LatticePoint,
