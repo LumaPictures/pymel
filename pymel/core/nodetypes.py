@@ -498,7 +498,7 @@ class DimensionedComponent( Component ):
 
     VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
 
-    def _standardizeIndices(self, indexObjs, allowIterable=True):
+    def _standardizeIndices(self, indexObjs, allowIterable=True, label=None):
         """
         Convert indexObjs to an iterable of ComponentIndex objects.
         
@@ -507,25 +507,36 @@ class DimensionedComponent( Component ):
         or 'None'
         """
         if indexObjs is None:
-            indexObjs = ComponentIndex()
+            indexObjs = ComponentIndex(label=label)
 
         indices = set()
         # Convert single objects to a list
         if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
             if self.dimensions == 1:
                 if isinstance(indexObjs, slice):
-                    return self._standardizeIndices(self._sliceToIndices(indexObjs))
+                    return self._standardizeIndices(self._sliceToIndices(indexObjs), label=label)
                 else:
-                    indices.add(ComponentIndex((indexObjs,)))
+                    indices.add(ComponentIndex((indexObjs,), label=label))
             else:
                 raise IndexError("Single Index given for a multi-dimensional component")
         elif (isinstance(indexObjs, ComponentIndex) and
               all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
+            if label and indexObjs.label and label != indexObjs.label:
+                raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
+                                 % (label, indexObjs.label))
             indices.update(self._flattenIndex(indexObjs))
+        elif isinstance(indexObjs, dict):
+            # Dicts are used to specify component labels for a group of indices at onces...
+            for dictLabel, dictIndices in indexObjs.iteritems():
+                if label and label != dictLabel:
+                    raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
+                                     % (label, dictLabel))
+                indices.update(self._standardizeIndices(dictIndices, label=dictLabel))
         elif allowIterable and util.isIterable(indexObjs):
             for index in indexObjs:
                 indices.update(self._standardizeIndices(index,
-                                                        allowIterable=False))
+                                                        allowIterable=False,
+                                                        label=label))
         else:
             raise IndexError("Invalid indices for component: %r" % (indexObjs,) )
         return tuple(indices)
@@ -540,7 +551,7 @@ class DimensionedComponent( Component ):
         ComponentIndex objects. 
         """
         while len(index) < self.dimensions:
-            index = ComponentIndex(index + ('*',))
+            index = ComponentIndex(index + ('*',), label=index.label)
         return (index,)
     
     def __getitem__(self, item):
@@ -576,9 +587,32 @@ class ComponentIndex( tuple ):
     then the remaining dimensions are taken to be 'complete' (ie, have not yet
     had indices specified).
     """
-    pass
+    def __new__(cls, *args, **kwargs):
+        """
+        :Parameters:
+        label : `string`
+            Component label for this index.
+            Useful for components whose 'mel name' may vary - ie, an isoparm
+            may be specified as u, v, or uv.
+        """
+        label = kwargs.pop('label', None)
+        self = tuple.__new__(cls, *args, **kwargs) 
+        self.label = label
+        return self
+    
+    def __add__(self, other):
+        if isinstance(other, ComponentIndex) and other.label:
+            if not self.label:
+                label = other.label
+            else:
+                if other.label != self.label:
+                    raise ValueError('cannot add two ComponentIndex objects with different labels')
+                label = self.label
+        else:
+            label = self.label
+        return ComponentIndex(itertools.chain(self, other), label=self.label)
 
-def validComponentIndex( argObj, allowDicts=True ):
+def validComponentIndex( argObj, allowDicts=True, componentIndexTypes=None):
     """
     True if argObj is of a suitable type for specifying a component's index.
     False otherwise.
@@ -597,7 +631,8 @@ def validComponentIndex( argObj, allowDicts=True ):
        .v[5]
        .uv[1][4]
     """
-    componentIndexTypes = (int, long, float, slice, ComponentIndex)
+    if not componentIndexTypes:
+        componentIndexTypes = (int, long, float, slice, ComponentIndex)
     
     if allowDicts and isinstance(argObj, dict):
         for key, value in argObj.iteritems():
@@ -605,9 +640,15 @@ def validComponentIndex( argObj, allowDicts=True ):
                 return False
         return True
     else:
-        return (isinstance(argObj, componentIndexTypes) or
-                (isinstance( argObj, (list,tuple) ) and
-                 len(argObj) and isinstance(argObj[0], componentIndexTypes)))
+        if isinstance(argObj, componentIndexTypes):
+            return True
+        elif isinstance( argObj, (list,tuple) ) and len(argObj):
+            for indice in argObj:
+                if not isinstance(indice, componentIndexTypes):
+                    return False
+            else:
+                return True
+    return False
 
 class DiscreteComponent( DimensionedComponent ):
     """
@@ -888,9 +929,10 @@ class ContinuousComponent( DimensionedComponent ):
     """
     VALID_SINGLE_INDEX_TYPES = (int, long, float)
     
-    def _standardizeIndices(self, indexObjs):
+    def _standardizeIndices(self, indexObjs, **kwargs):
         return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
-                                                           allowIterable=False)
+                                                           allowIterable=False,
+                                                           **kwargs)
     
     def __iter__(self):
         raise TypeError("%r object is not iterable" % self.__class__.__name__)
