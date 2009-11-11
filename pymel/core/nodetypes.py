@@ -267,15 +267,22 @@ class Component( general.PyNode ):
         # 'rotatePivot' for Pivot components
         self._indices = self.__apiobjects__.get('ComponentIndex', None)
         
+        if util.isIterable(self._ComponentLabel__):
+            oldCompLabel = set(self._ComponentLabel__)
+        else:
+            oldCompLabel = set( (self._ComponentLabel__,) )
         if isinstance(self._indices, dict):
             if len(self._indices) > 1:
                 isComplete = False
+                assert set(self._indices.iterkeys()).issubset(oldCompLabel)
                 self._ComponentLabel__ = self._indices.keys()
-                assert set(self._ComponentLabel__).issubset(set(self.__class__._ComponentLabel__))
             else:
                 # dict only has length 1..
                 self._ComponentLabel__ = self._indices.keys()[0]
                 self._indices = self._indices.values()[0]
+        if isinstance(self._indices, ComponentIndex) and self._indices.label:
+            assert self._indices.label in oldCompLabel
+            self._ComponentLabel__ = self._indices.label
         
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this component, if it is valid"
@@ -449,14 +456,16 @@ class DimensionedComponent( Component ):
         # and it's length indicates how many dimensions have already been
         # specified. 
         if isComplete:
-            if self._indices:
-                if isinstance(self._indices, ComponentIndex):
-                    if len(self._indices) < self.dimensions:
-                        self._partialIndex = self._indices
-                    else:
-                        self._partialIndex = None
+            # Do this test before doing 'if self._indices',
+            # because an empty ComponentIndex will be 'False',
+            # but could still have useful info (like 'label')!
+            if isinstance(self._indices, ComponentIndex):
+                if len(self._indices) < self.dimensions:
+                    self._partialIndex = self._indices
                 else:
                     self._partialIndex = None
+            elif self._indices:
+                self._partialIndex = None
             else:
                 self._partialIndex = ComponentIndex()
         else:
@@ -596,8 +605,11 @@ class ComponentIndex( tuple ):
             may be specified as u, v, or uv.
         """
         label = kwargs.pop('label', None)
-        self = tuple.__new__(cls, *args, **kwargs) 
-        self.label = label
+        self = tuple.__new__(cls, *args, **kwargs)
+        if not label and args and isinstance(args[0], ComponentIndex) and args[0].label:
+            self.label = args[0].label
+        else:
+            self.label = label
         return self
     
     def __add__(self, other):
@@ -610,7 +622,7 @@ class ComponentIndex( tuple ):
                 label = self.label
         else:
             label = self.label
-        return ComponentIndex(itertools.chain(self, other), label=self.label)
+        return ComponentIndex(itertools.chain(self, other), label=label)
 
 def validComponentIndex( argObj, allowDicts=True, componentIndexTypes=None):
     """
@@ -3171,7 +3183,7 @@ class DagNode(Entity):
                 # 'uIsoparm'    : (NurbsSurfaceIsoparm, 'u')
                 # need to specify what 'flavor' of the basic
                 # component we need...
-                return compClass[0](self, {compClass[1]:ComponentIndex()})
+                return compClass[0](self, {compClass[1]:ComponentIndex(label=compClass[1])})
             else:
                 return compClass(self)
         # if we do self.getShape(), and this is a shape node, we will
