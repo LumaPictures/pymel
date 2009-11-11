@@ -300,22 +300,28 @@ class Component( general.PyNode ):
         # 'rotatePivot' for Pivot components
         self._indices = self.__apiobjects__.get('ComponentIndex', None)
         
-        if util.isIterable(self._ComponentLabel__):
-            oldCompLabel = set(self._ComponentLabel__)
-        else:
-            oldCompLabel = set( (self._ComponentLabel__,) )
-        if isinstance(self._indices, dict):
-            if len(self._indices) > 1:
-                isComplete = False
-                assert set(self._indices.iterkeys()).issubset(oldCompLabel)
-                self._ComponentLabel__ = self._indices.keys()
+        if self._indices:
+            if util.isIterable(self._ComponentLabel__):
+                oldCompLabel = set(self._ComponentLabel__)
             else:
-                # dict only has length 1..
-                self._ComponentLabel__ = self._indices.keys()[0]
-                self._indices = self._indices.values()[0]
-        if isinstance(self._indices, ComponentIndex) and self._indices.label:
-            assert self._indices.label in oldCompLabel
-            self._ComponentLabel__ = self._indices.label
+                oldCompLabel = set( (self._ComponentLabel__,) )
+            if isinstance(self._indices, dict):
+                if len(self._indices) > 1:
+                    isComplete = False
+                    assert set(self._indices.iterkeys()).issubset(oldCompLabel)
+                    self._ComponentLabel__ = self._indices.keys()
+                else:
+                    # dict only has length 1..
+                    self._ComponentLabel__ = self._indices.keys()[0]
+                    self._indices = self._indices.values()[0]
+            if isinstance(self._indices, ComponentIndex) and self._indices.label:
+                assert self._indices.label in oldCompLabel
+                self._ComponentLabel__ = self._indices.label
+        elif 'MObjectHandle' not in self.__apiobjects__:
+            # We're making a component by ComponentClass(shapeNode)...
+            # set a default label if one is specified
+            if self._defaultLabel():
+                self._ComponentLabel__ = self._defaultLabel()
         
     def __apimdagpath__(self) :
         "Return the MDagPath for the node of this component, if it is valid"
@@ -500,9 +506,22 @@ class DimensionedComponent( Component ):
             elif self._indices:
                 self._partialIndex = None
             else:
-                self._partialIndex = ComponentIndex()
+                self._partialIndex = ComponentIndex(label=self._ComponentLabel__)
         else:
             self._partialIndex = None
+            
+    def _defaultLabel(self):
+        """
+        Intended for classes such as NurbsSurfaceRange which have multiple possible
+        component labels (ie, u, v, uv), and we want to specify a 'default' one
+        so that we can do NurbsSurfaceRange(myNurbsSurface).
+
+        This should be None if either the component only has one label, or picking
+        a default doesn't make sense (ie, in the case of Pivot, we have no
+        idea whether the user would want the scale or rotate pivot, so
+        doing Pivot(myObject) makes no sense...
+        """
+        return None
 
     def _completeNameString(self):
         # Note - most multi-dimensional components allow selection of all
@@ -1464,6 +1483,9 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
             if index == 'uv':
                 index = 'u'
         return index
+    
+    def _defaultLabel(self):
+        return 'u'
     
 class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
     _ComponentLabel__ = ("u", "v", "uv")
