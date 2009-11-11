@@ -18,7 +18,7 @@ except:
 from version import Version, parseVersionStr
 import envparse
 import maya
-
+import maya.OpenMaya as om
 
 #from maya.cmds import encodeString
 
@@ -824,7 +824,7 @@ def initMEL():
 
 
 def finalize():
-    if 'maya.app.startup.batch' in sys.modules:
+    if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
         global isInitializing
         if pymelMayaPackage and isInitializing:
             import maya.app.startup.basic
