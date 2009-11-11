@@ -890,7 +890,9 @@ class testCase_components(unittest.TestCase):
                            '%s.u[2][1]',
                            '%s.v[1][2]',
                            '%s.uv[2][1]'])
-        self.assertTrue(set(cmds.ls(sl=1)).issubset(nameAliases))
+        selected = set(cmds.ls(sl=1))
+        print "selected:", selected
+        self.assertTrue(selected.issubset(nameAliases))
 
     def test_nurbsIsoPrintedRange(self):
         # Maya has a bug -running:
@@ -905,7 +907,8 @@ class testCase_components(unittest.TestCase):
         # Gives two different results:
         # [u'nurbsSphere1.u[0:4][0:1]']
         # [u'nurbsSphere1.u[0:4][0:8]']
-        nameAliases = [x % self.nodes['sphere'] for x in [
+        sphereShape = PyNode(self.nodes['sphere']).getShape().name()
+        nameAliases = [x % sphereShape for x in [
                            '%s.u[*]',
                            '%s.u[*][*]',
                            '%s.u[0:4][0:8]',
@@ -915,9 +918,9 @@ class testCase_components(unittest.TestCase):
                            '%s.v[*]',
                            '%s.v[*][*]',
                            '%s.v[0:8][0:4]']]
-        pynodeRepr = repr(PyNode(self.nodes['sphere']).uv)
-        self.assertTrue(pynodeRepr in nameAliases,
-                        '%s not equivalent to %s.uv[0:4][0:8]' % (pynodeRepr,self.nodes['sphere']))
+        pynodeStr = str(PyNode(self.nodes['sphere']).uv)
+        self.assertTrue(pynodeStr in nameAliases,
+                        '%s not equivalent to %s.uv[0:4][0:8]' % (pynodeStr,sphereShape))
         
     def runTest(self):
         """

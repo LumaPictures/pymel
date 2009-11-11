@@ -1397,7 +1397,7 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
             # into a list in the next elif clause!
             if index.label == 'uv':
                 index.label = 'u'
-        elif isinstance(index, (list, tuple)) and not isinstance(ComponentIndex):
+        elif isinstance(index, (list, tuple)) and not isinstance(index, ComponentIndex):
             index = [cls._convertUVtoU(x) for x in index]
         elif isinstance(index, basestring):
             if index == 'uv':
