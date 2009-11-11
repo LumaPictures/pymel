@@ -1366,29 +1366,31 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
             self.__apiobjects__['ComponentIndex'] = self._convertUVtoU(self.__apiobjects__['ComponentIndex'])
         if hasattr(self, '_indices'):
             self._indices = self._convertUVtoU(self._indices)
+        self._ComponentLabel__ = self._convertUVtoU(self._ComponentLabel__)
 
     @classmethod
     def _convertUVtoU(cls, index):
-        if isinstance(index, dict) and 'uv' in index:
-            # convert over index['uv']
-            oldUvIndex = cls._convertUVtoU(index['uv'])
-            if 'u' in index:
-                # First, make sure index['u'] is a list
-                if (isinstance(index['u'], ComponentIndex) or
-                    not isinstance(index['u'], (list, tuple))):
-                    index['u'] = [index['u']]
-                elif isinstance(index['u'], tuple):
-                    index['u'] = list(index['u'])
-                
-                # then add on 'uv' contents
-                if (isinstance(oldUvIndex, ComponentIndex) or
-                    not isinstance(oldUvIndex, (list, tuple))):
-                    index['u'].append(oldUvIndex)
+        if isinstance(index, dict):
+            if 'uv' in index:
+                # convert over index['uv']
+                oldUvIndex = cls._convertUVtoU(index['uv'])
+                if 'u' in index:
+                    # First, make sure index['u'] is a list
+                    if (isinstance(index['u'], ComponentIndex) or
+                        not isinstance(index['u'], (list, tuple))):
+                        index['u'] = [index['u']]
+                    elif isinstance(index['u'], tuple):
+                        index['u'] = list(index['u'])
+                    
+                    # then add on 'uv' contents
+                    if (isinstance(oldUvIndex, ComponentIndex) or
+                        not isinstance(oldUvIndex, (list, tuple))):
+                        index['u'].append(oldUvIndex)
+                    else:
+                        index['u'].extend(oldUvIndex)
                 else:
-                    index['u'].extend(oldUvIndex)
-            else:
-                index['u'] = oldUvIndex
-            del index['uv']
+                    index['u'] = oldUvIndex
+                del index['uv']
         elif isinstance(index, ComponentIndex):
             # do this check INSIDE here, because, since a ComponentIndex is a tuple,
             # we don't want to change a ComponentIndex object with a 'v' index
@@ -1397,6 +1399,9 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
                 index.label = 'u'
         elif isinstance(index, (list, tuple)) and not isinstance(ComponentIndex):
             index = [cls._convertUVtoU(x) for x in index]
+        elif isinstance(index, basestring):
+            if index == 'uv':
+                index = 'u'
         return index
     
     def __getitem__(self, item):
