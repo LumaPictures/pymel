@@ -864,13 +864,48 @@ class testCase_components(unittest.TestCase):
     def test_mixedPivot(self):
         select(self.nodes['cube'] + '.rotatePivot', r=1)
         select(self.nodes['cube'] + '.scalePivot', add=1)
-        ls(sl=1)
+        cubeName = self.nodes['cube']
+        self.assertEqual(set(cmds.ls(sl=1)), set(['%s.rotatePivot' % cubeName,
+                                                  '%s.scalePivot' % cubeName]))
         
     def test_mixedIsoparm(self):
         select(self.nodes['sphere'] + '.u[1]', r=1)
         select(self.nodes['sphere'] + '.v[0]', add=1)
         select(self.nodes['sphere'] + '.uv[2][1]', add=1)
-        ls(sl=1)
+        nameAliases = set(x % self.nodes['sphere'] for x in [
+                           # aliases for .u[1]
+                           '%s.u[1]',
+                           '%s.u[1][*]',
+                           '%s.u[1][0:8]',
+                           '%s.uv[1]',
+                           '%s.uv[1][*]',
+                           '%s.uv[1][0:8]',
+                           # aliases for .v[0]
+                           '%s.v[0]',
+                           '%s.v[0][*]',
+                           '%s.v[0][0:4]',
+                           '%s.uv[*][0]',
+                           '%s.uv[0:4][0]',
+                           # aliases for .uv[2][1]
+                           '%s.u[2][1]',
+                           '%s.v[1][2]',
+                           '%s.uv[2][1]'])
+        self.assertTrue(set(cmds.ls(sl=1)).issubset(nameAliases))
+
+    def test_nurbsIsoPrintedRange(self):
+        nameAliases = [x % self.nodes['sphere'] for x in [
+                           '%s.u[*]',
+                           '%s.u[*][*]',
+                           '%s.u[0:4][0:8]',
+                           '%s.uv[*]',
+                           '%s.uv[*][*]',
+                           '%s.uv[0:4][0:8]',
+                           '%s.v[*]',
+                           '%s.v[*][*]',
+                           '%s.v[0:8][0:4]']]
+        pynodeRepr = repr(PyNode(self.nodes['sphere']).uv)
+        self.assertTrue(pynodeRepr in nameAliases,
+                        '%s not equivalent to %s.uv[0:4][0:8]' % (pynodeRepr,self.nodes['sphere']))
         
     def runTest(self):
         """
