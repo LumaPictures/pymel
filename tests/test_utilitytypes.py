@@ -101,6 +101,45 @@ class TestFrozenDict(__AbstractTestDict):
         shouldBeHidden = ('clear', 'update', 'pop', 'popitem', '__setitem__', '__delitem__', 'append', 'extend' )
         for hidden in shouldBeHidden:
             self.assertFalse(hasattr(self.testClass(), hidden))
+
+#class TestEquivalencePairs(TestCaseExtended):
+#    def testInitPairs(self):
+#        ep = utilityTypes.EquivalencePairs( ((1,'foo'), (2,'bar')) )
+#        self.assertEqual(ep[1], 'foo')
+#        self.assertEqual(ep[2], 'bar')
+#        self.assertEqual(ep['foo'], 1)
+#        self.assertEqual(ep['bar'], 2)
+#        
+#    def testInitDict(self):
+#        ep = utilityTypes.EquivalencePairs( {1:'foo', 2:'bar'} )
+#        self.assertEqual(ep[1], 'foo')
+#        self.assertEqual(ep[2], 'bar')
+#        self.assertEqual(ep['foo'], 1)
+#        self.assertEqual(ep['bar'], 2)
+#
+#    def testInitEquivPairs(self):
+#        otherEp = utilityTypes.EquivalencePairs( {1:'foo', 2:'bar'} )
+#        ep = utilityTypes.EquivalencePairs(otherEp)
+#        self.assertEqual(ep[1], 'foo')
+#        self.assertEqual(ep[2], 'bar')
+#        self.assertEqual(ep['foo'], 1)
+#        self.assertEqual(ep['bar'], 2)
+#        
+#    def testOverwritePairs(self):
+#        ep = utilityTypes.EquivalencePairs({1:'a', 2:'b'})
+#        self.assertEqual(eq[1], 'a')
+#        self.assertEqual(eq[2], 'b')
+#        self.assertEqual(eq['a'], 1)
+#        self.assertEqual(eq['b'], 2)
+#        eq[1] = 2
+#        self.assertRaises(KeyError, self._getIndex, eq, 'a')
+#        self.assertRaises(KeyError, self._getIndex, eq, 'b')
+#        self.assertEqual(eq[1], 2)
+#        self.assertEqual(eq[2], 1)
+#        
+#    def _getIndex(self, indexableObj, index):
+#        return indexableObj[index]
     
-        
+
+
 setupUnittestModule(__name__)
