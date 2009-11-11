@@ -621,6 +621,9 @@ class testCase_components(unittest.TestCase):
         """
         ie, MeshVertexComponent('pCube1')
         """
+        # Can't do Pivot('pCube1'), as we don't know whether we want scalePivot or rotatePivot
+        if compData.pymelType == Pivot:
+            return []
         pymelClass = compData.pymelType
         return ['%s(%r)' % (pymelClass.__name__, compData.nodeName)]
     
