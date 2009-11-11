@@ -23,17 +23,21 @@ from context import *
 from system import *
 # to allow lazy loading, we avoid import *
 # TODO: add a UI equivalent of nodetypes
-import windows
+from windows import *
 from animation import *
 from effects import *
 from modeling import *
 from rendering import *
 from language import *
 from other import *
-#from datatypes import *
 
 # to allow lazy loading, we avoid import *
-import nodetypes as nodes
+import nodetypes
+import nodetypes as nt
+import datatypes
+import datatypes as dt
+import uitypes
+import uitypes as ui
 
 import runtime
 import maya.cmds as cmds

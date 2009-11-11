@@ -288,16 +288,15 @@ Finally, just for fun, you can also reset, flip and reverse the layout:
 
 
 import re, sys
-
 import pmcmds as cmds
-#import maya.cmds as cmds
-
 import pymel.util as util
 import factories as _factories
 from factories import MetaMayaUIWrapper
 from system import Path
 from language import mel, melGlobals
 import pymel.mayahook.plogging as plogging
+import uitypes
+
 _logger = plogging.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
@@ -381,7 +380,7 @@ Maya Bug Fix:
 
     if kwargs:
         cmds.scriptTable( uiName, e=1, **kwargs)    
-    return dynModule.ScriptTable(uiName)
+    return uitypes.ScriptTable(uiName)
     
 def getPanel(*args, **kwargs):
     return util.listForNone( cmds.getPanel(*args, **kwargs ) )
@@ -399,254 +398,6 @@ def optionMenuGrp( *args, **kwargs ):
     res = cmds.optionMenuGrp(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
 
-class UI(unicode):
-    def __new__(cls, name=None, create=False, **kwargs):
-        """
-        Provides the ability to create the UI Element when creating a class
-        
-            >>> n = pm.Window("myWindow",create=True)
-            >>> n.__repr__()
-            # Result: Window('myWindow')
-        """
-        slc = kwargs.pop("slc",kwargs.pop("defer",kwargs.get('childCreators')))
-
-        if slc:
-            self = unicode.__new__(cls,name)
-            postFunc = kwargs.pop('postFunc',None)
-            childCreators = kwargs.pop('childCreators',None)
-            self.slc = SmartLayoutCreator(
-                            name, 
-                            cls, 
-                            kwargs, postFunc, childCreators)
-            self.create = self.slc.create
-            return self
-        else:
-            if cls._isBeingCreated(name, create, kwargs):
-                name = cls.__melcmd__(name, **kwargs)
-                _logger.debug("UI: created... %s" % name)
-            return unicode.__new__(cls,name)
-
-    @staticmethod
-    def _isBeingCreated( name, create, kwargs):
-        """
-        create a new node when any of these conditions occur:
-           name is None
-           create is True
-           parent flag is set
-        """
-        return not name or create or kwargs.get( 'parent', kwargs.get('p', None))
-        
-#    def exists():
-#        try: return cls.__melcmd__(name, ex=1)
-#        except: pass
-        
-    def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self)
-    def getChildren(self, **kwargs):
-        kwargs['long'] = True
-        return filter( lambda x: x.startswith(self) and not x == self, lsUI(**kwargs))
-    def getParent(self):
-        return UI( '|'.join( unicode(self).split('|')[:-1] ) )
-    def type(self):
-        return cmds.objectTypeUI(self)
-    def shortName(self):
-        return unicode(self).split('|')[-1]
-    def name(self):
-        return unicode(self)
-    
-    delete = _factories.functionFactory( 'deleteUI', _thisModule, rename='delete' )
-    rename = _factories.functionFactory( 'renameUI', _thisModule, rename='rename' )
-    type = _factories.functionFactory( 'objectTypeUI', _thisModule, rename='type' )
-     
-# customized ui classes                            
-class Window(UI):
-    """pymel window class"""
-    __metaclass__ = MetaMayaUIWrapper                        
-    def show(self):
-        cmds.showWindow(self)
-    def delete(self):
-        cmds.deleteUI(self, window=True)
-    def __aftercreate__(self):
-        self.show()
-
-class FormLayout(UI):
-    __metaclass__ = MetaMayaUIWrapper
-    def attachForm(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachForm'] = [args]
-        cmds.formLayout(self,**kwargs)
-        
-    def attachControl(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachControl'] = [args]
-        cmds.formLayout(self,**kwargs)        
-        
-    def attachNone(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachNone'] = [args]
-        cmds.formLayout(self,**kwargs)    
-        
-    def attachPosition(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachPosition'] = [args]
-        cmds.formLayout(self,**kwargs)
-        
-
-    """ 
-    Automatically distributes child controls in either a
-    horizontal or vertical layout. Call 'redistribute' once done
-    adding child controls.
-    """
-    enumOrientation = util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
-    HORIZONTAL = enumOrientation.HORIZONTAL
-    VERTICAL = enumOrientation.VERTICAL
-    
-    def __new__(cls, name=None, **kwargs):
-        if not 'slc' in kwargs:
-            kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
-        else:
-            kw = {}
-        self = UI.__new__(cls, name, **kwargs)
-        kwargs.update(kw)
-        cls.__init__(self, name, **kwargs)
-        return self
-        
-
-    def __init__(self, name=None, orientation='VERTICAL', spacing=2, reversed=False, ratios=None, **kwargs):
-        """ 
-        spacing - absolute space between controls
-        orientation - the orientation of the layout [ AutoLayout.HORIZONTAL | AutoLayout.VERTICAL ]
-        """
-        UI.__init__(self, **kwargs)
-        self.spacing = spacing
-        self.ori = self.enumOrientation.getIndex(orientation)
-        self.reversed = reversed
-        self.ratios = ratios and list(ratios) or []
-    
-    def flip(self):
-        """Flip the orientation of the layout """
-        self.ori = 1-self.ori
-        self.redistribute(*self.ratios)
-    
-    def reverse(self):
-        """Reverse the children order """
-        self.reversed = not self.reversed
-        self.ratios.reverse()
-        self.redistribute(*self.ratios)
-        
-    def reset(self):
-        self.ratios = []
-        self.reversed = False
-        self.redistribute()
-        
-    sides = [["top","bottom"],["left","right"]]
-    def redistribute(self,*ratios):
-        """ Redistribute the child controls based on the given ratios.
-            If not ratios are given (or not enough), 1 will be used 
-        """
-        
-        children = self.getChildArray()
-        if not children:
-            return
-        if self.reversed: children.reverse()
-        
-        ratios = list(ratios) or self.ratios or []
-        ratios += [1]*(len(children)-len(ratios))
-        self.ratios = ratios
-        total = sum(ratios)       
-         
-        for i in range(len(children)):
-            child = children[i]
-            for side in self.sides[self.ori]:
-                self.attachForm(child,side,self.spacing)
-
-            if i==0:
-                self.attachForm(child,
-                    self.sides[1-self.ori][0],
-                    self.spacing)
-            else:
-                self.attachControl(child,
-                    self.sides[1-self.ori][0],
-                    self.spacing,
-                    children[i-1])
-            
-            if ratios[i]:
-                self.attachPosition(children[i],
-                    self.sides[1-self.ori][1],
-                    self.spacing,
-                    float(sum(ratios[:i+1]))/float(total)*100)
-            else:
-                self.attachNone(children[i],
-                    self.sides[1-self.ori][1])
-                
-    def __aftercreate__(self, *args, **kwargs):
-        self.redistribute()
-    
-    def vDistribute(self,*ratios):
-        self.ori = VERTICAL.index
-        self.redistribute(*ratios)
-        
-    def hDistribute(self,*ratios):
-        self.ori = HORIZONTAL.index
-        self.redistribute(*ratios)
-
-# for backwards compatiblity
-AutoLayout = FormLayout        
-
-def autoLayout(*args, **kwargs):
-    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
-    ret = formLayout(*args, **kwargs)
-    ret.__init__(**kw)
-    return ret
-
-def verticalLayout(*args, **kwargs):
-    kwargs['orientation'] = 'VERTICAL'
-    return autoLayout(*args, **kwargs)
-
-def horizontalLayout(*args, **kwargs):
-    kwargs['orientation'] = 'HORIZONTAL'
-    return autoLayout(*args, **kwargs)
-
-    
-class TextScrollList(UI):
-    __metaclass__ = MetaMayaUIWrapper
-    def extend( self, appendList ):
-        """ append a list of strings"""
-        
-        for x in appendList:
-            self.append(x)
-            
-    def selectIndexedItems( self, selectList ):
-        """select a list of indices"""
-        for x in selectList:
-            self.selectIndexedItem(x)
-
-    def removeIndexedItems( self, removeList ):
-        """remove a list of indices"""
-        for x in removeList:
-            self.removeIndexedItem(x)
-                
-    def selectAll(self):
-        """select all items"""
-        numberOfItems = self.getNumberOfItems()
-        self.selectIndexedItems(range(1,numberOfItems+1))
-
-class OptionMenu(UI):
-    __metaclass__ = MetaMayaUIWrapper
-    def addMenuItems( self, items, title=None):
-        """ Add the specified item list to the OptionMenu, with an optional 'title' item """ 
-        if title:
-            menuItem(l = title, en = 0,parent = self)
-        for item in items:
-            menuItem(l = item, parent = self)
-            
-    def clear(self):  
-        """ Clear all menu items from this OptionMenu """
-        for t in self.getItemListLong() or []:
-            cmds.deleteUI(t)
-    addItems = addMenuItems
-
-       
 #===============================================================================
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
@@ -670,9 +421,9 @@ class Callback(object):
                 c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
     """
 
-	# This implementation of the Callback object uses private members
-	# to store static call information so that the call can be made through
-	# a mel call, thus making the entire function call undoable
+    # This implementation of the Callback object uses private members
+    # to store static call information so that the call can be made through
+    # a mel call, thus making the entire function call undoable
     _callData = None
     @staticmethod
     def _doCall():
@@ -697,7 +448,19 @@ class CallbackWithArgs(Callback):
         return Callback._callData    
         
     
+def autoLayout(*args, **kwargs):
+    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
+    ret = formLayout(*args, **kwargs)
+    ret.__init__(**kw)
+    return ret
 
+def verticalLayout(*args, **kwargs):
+    kwargs['orientation'] = 'VERTICAL'
+    return autoLayout(*args, **kwargs)
+
+def horizontalLayout(*args, **kwargs):
+    kwargs['orientation'] = 'HORIZONTAL'
+    return autoLayout(*args, **kwargs)
 
 
 class SmartLayoutCreator:
@@ -803,10 +566,12 @@ SLT = SmartLayoutCreator2
 """
 SLT gives a cleaner interface to SLC. 
 
-The arguments are the gui function, an optional access 'name', and any keyword arguments acceptable by the Maya equivalent of that function. 
-Finally, the optional 'childCreators' accepts a list of additional SLTs that would be nested under the parent gui element.
+The arguments are the gui function, an optional access 'name', and any keyword arguments 
+acceptable by the Maya equivalent of that function. Finally, the optional 'childCreators' 
+accepts a list of additional SLTs that would be nested under the parent gui element.
 As before, SLT returns a dictionary which contains the 'named' gui elements for easy access.
-The 'SLT.create' method accepts a dictionary into which it will put the named elements, so this can normally be 'self.__dict__' if a gui is initialized from within a class method.
+The 'SLT.create' method accepts a dictionary into which it will put the named elements, 
+so this can normally be 'self.__dict__' if a gui is initialized from within a class method.
 See '_ListSelectLayout' below.
 
 Example:
@@ -832,8 +597,8 @@ def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None
                 SLC("control", uiFunc, kwargs)
             ]).create(parent=parent)
     control = dict["control"]
-    if not isinstance(control,UI):
-        control = UI(control)
+    if not isinstance(control,uitypes.UI):
+        control = uitypes.UI(control)
     control.label = dict["label"] 
     control.layout = dict["layout"]
     return control
@@ -923,23 +688,23 @@ def fileDialog(*args, **kwargs):
         return Path( ret )
 
 
-class _ListSelectLayout(FormLayout):
+class _ListSelectLayout(uitypes.FormLayout):
     
     args = None
     selection = None
     def __new__(cls, *args, **kwargs):
         self = cmds.setParent(q=True)
-        self = FormLayout.__new__(cls, self)
+        self = uitypes.FormLayout.__new__(cls, self)
         return self
     
     def __init__(self, *args ,**kwargs):
         (items, prompt, ok, cancel, default, allowMultiSelection, width, height) = _ListSelectLayout.args
         self.ams = allowMultiSelection
         self.items = list(items)
-        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), AutoLayout.redistribute, [
+        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), uitypes.AutoLayout.redistribute, [
             SLC("prompt", text, dict(l=prompt)),
             SLC("selectionList", textScrollList, dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection)),
-            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), AutoLayout.redistribute, [
+            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), uitypes.AutoLayout.redistribute, [
                 SLC(None, button, dict(l=ok, c=self.returnSelection)),
                 SLC(None, button, dict(l=cancel, c=Callback(layoutDialog, dismiss=""))), 
             ]),
@@ -977,30 +742,51 @@ def promptFromList(items, title="Selector", prompt="Select from list:", ok="Sele
         return _ListSelectLayout.selection
 
 
+#def _createClassCommandPairs():
+#    
+#    
+#    def createCallback( classname ):
+#        def callback(*args, **kwargs):
+#            #print "creating ui element", classname
+#            return getattr(uitypes, classname)(*args, **kwargs)
+#        return callback
+#     
+#    for funcName in _factories.uiClassList:
+#        # Create Class
+#        classname = util.capitalize(funcName)
+#        try:
+#            cls = uitypes[classname]
+#        except KeyError:
+#
+#            #uitypes._addattr(classname, MetaMayaUIWrapper, classname, (uitypes.UI,), {})
+#            uitypes[classname] = (MetaMayaUIWrapper, classname, (uitypes.UI,), {})
+#            cls = createCallback(classname)
+#    
+#        # Create Function
+#        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
+#        if func:
+#            func.__module__ = __name__
+#            # Since we're not using LazyLoading objects for funcs, add them
+#            # to both the dynamic module and this module, so we don't have
+#            # preface them with 'uitypes.' when referencing from this module
+#            setattr(uitypes, funcName, func)
+#            setattr(_thisModule, funcName, func)
+#        else:
+#            _logger.warning( "ui command not created: %s" % funcName )
+
 def _createClassCommandPairs():
-    dynModule = util.lazyLoadModule(__name__, globals())
+    
     
     def createCallback( classname ):
         def callback(*args, **kwargs):
             #print "creating ui element", classname
-            return getattr(dynModule, classname)(*args, **kwargs)
+            return getattr(uitypes, classname)(*args, **kwargs)
         return callback
      
     for funcName in _factories.uiClassList:
         # Create Class
         classname = util.capitalize(funcName)
-        try:
-            cls = globals()[classname]
-        except KeyError:
-#            try:
-#                cls = MetaMayaUIWrapper(classname, (UI,), {})
-#            except AttributeError:
-#                _logger.warning("Could not resolve '%s' - skipping..." % classname)
-#            cls.__module__ = __name__
-#            globals()[classname] = cls
-
-            dynModule._addattr(classname, MetaMayaUIWrapper, classname, (UI,), {})
-            cls = createCallback(classname)
+        cls = uitypes[classname]
     
         # Create Function
         func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
@@ -1008,15 +794,14 @@ def _createClassCommandPairs():
             func.__module__ = __name__
             # Since we're not using LazyLoading objects for funcs, add them
             # to both the dynamic module and this module, so we don't have
-            # preface them with 'dynModule.' when referencing from this module
-            setattr(dynModule, funcName, func)
+            # preface them with 'uitypes.' when referencing from this module
+            setattr(uitypes, funcName, func)
             setattr(_thisModule, funcName, func)
         else:
             _logger.warning( "ui command not created: %s" % funcName )
     
-    sys.modules[__name__] = dynModule
                
-def _createCommands():
+def _createOtherCommands():
     moduleShortName = __name__.split('.')[-1]
     nonClassFuncs = set(_factories.uiClassList).difference(_factories.moduleCmds[moduleShortName])
     for funcName in nonClassFuncs:
@@ -1032,38 +817,14 @@ def _createCommands():
 
                   
 _createClassCommandPairs()
-_createCommands()
-
-dynModule = sys.modules[__name__]
+_createOtherCommands()
 
 
-
-class TextLayout(dynModule.FrameLayout):
-    """A frame-layout with a textfield inside, used by the 'textWindow' function"""
-    
-    def __new__(cls, name=None, parent=None, text=None):
-        self = frameLayout(labelVisible=bool(name), label=name or "Text Window", parent=parent)
-        return dynModule.FrameLayout.__new__(cls, self)
-
-    def __init__(self, parent, text=None):
-        
-        SLC("topForm", verticalLayout, dict(), AutoLayout.redistribute, [
-            SLC("txtInfo", scrollField, {"editable":False}),
-        ]).create(self.__dict__, parent=self, debug=False)
-        self.setText(text)
-        
-    def setText(self, text=""):
-        from pprint import pformat
-        if not isinstance(text, basestring):
-            text = pformat(text)
-        self.txtInfo.setText(text)
-        self.txtInfo.setInsertionPosition(1)
-        
 def textWindow(title, text, size=None):
 
         self = window("TextWindow#",title=title)
         try:
-            self.main = TextLayout(parent=self, text=text)
+            self.main = uitypes.TextLayout(parent=self, text=text)
             self.setWidthHeight(size or [300,300])
             self.setText = self.main.setText
             self.show()
@@ -1092,59 +853,12 @@ def pathButtonGrp( name=None, *args, **kwargs ):
     else:
         create = False
         
-    return PathButtonGrp( name=name, create=create, *args, **kwargs ) 
-
-class PathButtonGrp( dynModule.TextFieldButtonGrp ):
-    def __new__(cls, name=None, create=False, *args, **kwargs):
-        
-        if create:
-            kwargs.pop('bl', None)
-            kwargs['buttonLabel'] = 'Browse'
-            kwargs.pop('bl', None)
-            kwargs['buttonLabel'] = 'Browse'
-            kwargs.pop('bc', None)
-            kwargs.pop('buttonCommand', None)
-
-            name = cmds.textFieldButtonGrp( name, *args, **kwargs)
-            
-            def setPathCB(name):
-                f = promptForPath()
-                if f:
-                    cmds.textFieldButtonGrp( name, e=1, text=f)
-            
-            cb = Callback( setPathCB, name ) 
-            cmds.textFieldButtonGrp( name, e=1, buttonCommand=cb )
-            
-        return dynModule.TextFieldButtonGrp.__new__( cls, name, create=False, *args, **kwargs )
-        
-    def setPath(self, path):
-        self.setText( path )
-       
-    def getPath(self):
-        return Path( self.getText() )
-    
-def vectorFieldGrp( *args, **kwargs ):
-    return VectorFieldGrp( *args, **kwargs ) 
+    return uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs ) 
  
-class VectorFieldGrp( dynModule.FloatFieldGrp ):
-    def __new__(cls, name=None, create=False, *args, **kwargs):
-        if create:
-            kwargs.pop('nf', None)
-            kwargs['numberOfFields'] = 3
-            name = cmds.floatFieldGrp( name, *args, **kwargs)
+def vectorFieldGrp( *args, **kwargs ):
+    return uitypes.VectorFieldGrp( *args, **kwargs ) 
+ 
 
-        return dynModule.FloatFieldGrp.__new__( cls, name, create=False, *args, **kwargs )
-        
-    def getVector(self):
-        x = floatFieldGrp( self, q=1, v1=True )
-        y = floatFieldGrp( self, q=1, v2=True )
-        z = floatFieldGrp( self, q=1, v3=True )
-        return datatypes.Vector( [x,y,z] )
-    
-    def setVector(self, vec):
-        floatFieldGrp( self, e=1, v1=vec[0], v2=vec[1], v3=vec[2] )
-        
-        return datatypes.Vector( [x,y,z] )
 
 #class ValueControlGrp( UI ):
 #    def __new__(cls, name=None, create=False, dataType=None, numberOfControls=1, **kwargs):
@@ -1173,19 +887,19 @@ class VectorFieldGrp( dynModule.FloatFieldGrp ):
 #
 #        #labelStr = kwargs.pop( 'label', kwargs.pop('l', str(dataType) ) )
 #        if dataType in ["bool"]:
-#            ctrl = dynModule.CheckBoxGrp
+#            ctrl = uitypes.CheckBoxGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setValue1( int(default) )
 #            
 #        elif dataType in ["int"]:
-#            ctrl = dynModule.IntFieldGrp
+#            ctrl = uitypes.IntFieldGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setValue1( int(default) )
 #                
 #        elif dataType in ["float"]:
-#            ctrl = dynModule.FloatFieldGrp
+#            ctrl = uitypes.FloatFieldGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setValue1( float(default) )
@@ -1203,14 +917,14 @@ class VectorFieldGrp( dynModule.FloatFieldGrp ):
 #            #if hasDefault: ctrl.setText( default.__repr__() )
 #                                
 #        elif dataType in ["string", "unicode", "str"]:
-#            ctrl = dynModule.TextFieldGrp
+#            ctrl = uitypes.TextFieldGrp
 #            getter = ctrl.getText
 #            setter = ctrl.setText
 #            #if hasDefault: ctrl.setText( str(default) )
 #        else:
 #             raise TypeError  
 ##        else:
-##            ctrl = dynModule.TextFieldGrp( l=labelStr )
+##            ctrl = uitypes.TextFieldGrp( l=labelStr )
 ##            getter = makeEvalGetter( ctrl.getText )
 ##            #setter = ctrl.setValue1
 ##            #if hasDefault: ctrl.setText( default.__repr__() )
@@ -1325,7 +1039,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     floatFieldArgs = ['precision', 'pre']
     verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
     
-    if UI._isBeingCreated(name, create, kwargs):
+    if uitypes.UI._isBeingCreated(name, create, kwargs):
         assert dataType, "You must pass a dataType when creating a new control"
         if not isinstance(dataType, basestring):
             try:
@@ -1375,7 +1089,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
                 kwargs['label'] = label
                 kwargs['labelArray' + str(numberOfControls) ] = labelArray
                 
-        ctrl = dynModule.CheckBoxGrp( name, create, **kwargs )
+        ctrl = uitypes.CheckBoxGrp( name, create, **kwargs )
         
         if numberOfControls > 1:
             getter = makeGetter(ctrl, 'getValue', numberOfControls)
@@ -1399,14 +1113,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
             
-            ctrl = dynModule.IntSliderGrp( name, create, **kwargs )
+            ctrl = uitypes.IntSliderGrp( name, create, **kwargs )
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider and float kwargs
             for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
                 kwargs.pop(arg, None)
-            ctrl = dynModule.IntFieldGrp( name, create, **kwargs )
+            ctrl = uitypes.IntFieldGrp( name, create, **kwargs )
             
             getter = ctrl.getValue1
             setter = ctrl.setValue1
@@ -1425,14 +1139,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             # turn the field on by default
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
-            ctrl = dynModule.FloatSliderGrp( name, create, **kwargs )
+            ctrl = uitypes.FloatSliderGrp( name, create, **kwargs )
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider kwargs
             for arg in fieldSliderArgs + verticalArgs: 
                 kwargs.pop(arg, None)
-            ctrl = dynModule.FloatFieldGrp( name, create, **kwargs )
+            ctrl = uitypes.FloatFieldGrp( name, create, **kwargs )
             getter = ctrl.getValue1
             setter = ctrl.setValue1
         #if hasDefault: ctrl.setValue1( float(default) )
@@ -1459,14 +1173,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         # remove field/slider kwargs
         for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
             kwargs.pop(arg, None)
-        ctrl = dynModule.TextFieldGrp( name, create, **kwargs )
+        ctrl = uitypes.TextFieldGrp( name, create, **kwargs )
         getter = ctrl.getText
         setter = ctrl.setText
         #if hasDefault: ctrl.setText( str(default) )
     else:
         raise TypeError, "Unsupported dataType: %s" % dataType
 #        else:
-#            ctrl = dynModule.TextFieldGrp( l=labelStr )
+#            ctrl = uitypes.TextFieldGrp( l=labelStr )
 #            getter = makeEvalGetter( ctrl.getText )
 #            #setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setText( default.__repr__() )
@@ -1489,10 +1203,9 @@ def PyUI(strObj, type=None):
             type = cmds.objectTypeUI(strObj)
         return getattr(_thisModule, util.capitalize(type) )(strObj)
     except AttributeError:
-        return UI(strObj)
+        return uitypes.UI(strObj)
     
 def getMainProgressBar():
-    return dynModule.ProgressBar(melGlobals['gMainProgressBar'])    
+    return uitypes.ProgressBar(melGlobals['gMainProgressBar'])    
 
-dynModule._updateLazyModule(globals())
   

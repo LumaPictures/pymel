@@ -5118,7 +5118,7 @@ _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 def _createPyNodes():
 
-    dynModule = util.lazyLoadModule(__name__, globals())
+    dynModule = util.LazyLoadModule(__name__, globals())
     
     # reset cache
     _factories.PyNodeTypesHierarchy().clear()
