@@ -531,6 +531,12 @@ class DimensionedComponent( Component ):
         for index in indices:
             compName = Component._completeNameString(self)
             for dimIndex in index:
+                if isinstance(dimIndex, (slice, HashableSlice)):
+                    # by the time we're gotten here, standardizedIndices
+                    # should have either flattened out slice-indices
+                    # (DiscreteComponents) or disallowed slices with
+                    # step values (ContinuousComponents)
+                    dimIndex = "%s:%s" % (dimIndex.start, dimIndex.stop)
                 compName += '[%s]' % dimIndex
             try:
                 selList.add(compName)
