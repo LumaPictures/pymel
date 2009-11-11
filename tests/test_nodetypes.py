@@ -821,7 +821,8 @@ class testCase_components(unittest.TestCase):
                         except Exception:
                             failedSelections.append(compString)
                         else:
-                            if iterSel != ls(sl=1):
+                            compSel = ls(sl=1)
+                            if set(iterSel) != set(compSel) or len(iterSel) != len(compSel):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
                                 print "done!"

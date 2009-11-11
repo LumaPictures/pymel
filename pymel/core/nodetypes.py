@@ -883,9 +883,11 @@ class DiscreteComponent( DimensionedComponent ):
         tailIndices = []
         # dimension maxes hold the current maximum values for each of the
         # respective indices in tailIndices
-        # Not that these can change as we iterate through - ie, in the case
+        # Note that these can change as we iterate through - ie, in the case
         # of MeshVertexFace
-        dimMaxes = []
+        # ...for dimensions already specified by _partialIndex, set None as
+        # a placeholder - just makes indices for dimMaxes make a bit more sense
+        dimMaxes = [None] * minDimension
 
         # initialize both..
         for i in xrange(minDimension, self.dimensions):
@@ -900,21 +902,21 @@ class DiscreteComponent( DimensionedComponent ):
             # want to go from last index to minDimension...
             for dimIncrementing in xrange(self.dimensions - 1,
                                           minDimension - 1, -1):
-                tailIndices[dimIncrementing] += 1
-                if tailIndices[dimIncrementing] < dimMaxes[dimIncrementing] - 1:
+                tailIndices[dimIncrementing - minDimension] += 1
+                if tailIndices[dimIncrementing - minDimension] < dimMaxes[dimIncrementing]:
                     # we haven't overflowed this index, we're done
                     # incrementing
                     break
                 # We overflowed that index, set it to zero, re-calc our maxes,
                 # and continue on by indexing the next higher dimension!
-                tailIndices[dimIncrementing] = 0
+                tailIndices[dimIncrementing - minDimension] = 0
             else:
                 # If we overflowed all available indices, we're done!
                 break
             # If we increased something other than just the last element,
             # we need to recalc our maxes...
             if dimIncrementing != self.dimensions - 1:
-                for recalcDim in xrange(1, self.dimensions - dimIncrementing):
+                for recalcDim in xrange(dimIncrementing + 1, self.dimensions):
                     dimMaxes[recalcDim] = \
                         self._dimLength(self._partialIndex + tuple(tailIndices[:recalcDim]))
         
