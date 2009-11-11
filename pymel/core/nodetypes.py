@@ -121,10 +121,10 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 def _sequenceToComponentSlice( array ):
     """given an array, convert to a maya-formatted slice"""
     
-    return [ slice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
+    return [ HashableSlice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
 
-def _formatSlice(slice):
-    startIndex, stopIndex, step = slice.start, slice.stop, slice.step
+def _formatSlice(sliceObj):
+    startIndex, stopIndex, step = sliceObj.start, sliceObj.stop, sliceObj.step
     if startIndex == stopIndex:
         sliceStr = '%s' % startIndex
     elif step is not None and step != 1:
@@ -132,11 +132,41 @@ def _formatSlice(slice):
     else:
         sliceStr = '%s:%s' % (startIndex, stopIndex)
     return sliceStr 
-    
-class HashableSlice( slice ):
+
+# even though slice objects are essentially immutable, due to implementation
+# of proxyClass, need to set sourceIsImmutable to False
+# (not sure why proxyClass is implemented like this...?)
+ProxySlice = util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False)
+# Really, don't need to have another class inheriting from
+# the proxy class, but do this so I can define a method using
+# normal class syntax...
+class HashableSlice( ProxySlice):
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and not kwargs and isinstance(args[0], (slice, HashableSlice)):
+            if isinstance(args[0], HashableSlice):
+                self._slice = args[0]._slice
+            else:
+                self._slice = args[0]
+        else:
+            self._slice = slice(*args, **kwargs)
+            
     def __hash__(self):
-        return hash(self.start, self.stop, self.step)
+        if not hasattr(self, '_hash'):
+            self._hash = (self.start, self.stop, self.step).__hash__()
+        return self._hash
+    
+    @property
+    def start(self):
+        return self._slice.start
       
+    @property
+    def stop(self):
+        return self._slice.stop
+
+    @property
+    def step(self):
+        return self._slice.step
+
 class Component( general.PyNode ):
     """
     Abstract base class for pymel components.
@@ -502,7 +532,10 @@ class DimensionedComponent( Component ):
             compName = Component._completeNameString(self)
             for dimIndex in index:
                 compName += '[%s]' % dimIndex
-            selList.add(compName)
+            try:
+                selList.add(compName)
+            except RuntimeError:
+                raise general.MayaComponentError(compName)
         compMobj = api.MObject()
         dagPath = api.MDagPath()
         selList.getDagPath(0, dagPath, compMobj)
@@ -525,7 +558,7 @@ class DimensionedComponent( Component ):
         # Convert single objects to a list
         if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
             if self.dimensions == 1:
-                if isinstance(indexObjs, slice):
+                if isinstance(indexObjs, (slice, HashableSlice)):
                     return self._standardizeIndices(self._sliceToIndices(indexObjs), label=label)
                 else:
                     indices.add(ComponentIndex((indexObjs,), label=label))
@@ -553,18 +586,12 @@ class DimensionedComponent( Component ):
             raise IndexError("Invalid indices for component: %r" % (indexObjs,) )
         return tuple(indices)
 
-    def _sliceToIndices(self, slice):
+    def _sliceToIndices(self, sliceObj):
         raise NotImplementedError
     
     def _flattenIndex(self, index):
-        """
-        Given a ComponentIndex object, which may be a partial index (ie,
-        len(index) < self.dimensions), return a flat list of non-partial
-        ComponentIndex objects. 
-        """
-        while len(index) < self.dimensions:
-            index = ComponentIndex(index + ('*',), label=index.label)
-        return (index,)
+        # Implemented in derived classes!
+        raise NotImplementedError
     
     def __getitem__(self, item):
         if self.currentDimension() is None:
@@ -647,7 +674,7 @@ def validComponentIndex( argObj, allowDicts=True, componentIndexTypes=None):
        .uv[1][4]
     """
     if not componentIndexTypes:
-        componentIndexTypes = (int, long, float, slice, ComponentIndex)
+        componentIndexTypes = (int, long, float, slice, HashableSlice, ComponentIndex)
     
     if allowDicts and isinstance(argObj, dict):
         for key, value in argObj.iteritems():
@@ -678,7 +705,7 @@ class DiscreteComponent( DimensionedComponent ):
     _dimLength
     """
 
-    VALID_SINGLE_INDEX_TYPES = (int, long, slice)
+    VALID_SINGLE_INDEX_TYPES = (int, long, slice, HashableSlice)
     
     def __init__(self, *args, **kwargs):
         self.reset()
@@ -786,11 +813,11 @@ class DiscreteComponent( DimensionedComponent ):
         # _sliceToIndices, and expand on a per-partial-index basis 
         
         while len(index) < self.dimensions:
-            index = ComponentIndex(index + (slice(None),))
+            index = ComponentIndex(index + (HashableSlice(None),))
           
         indices = set([ComponentIndex()])
         for dimIndex in index:
-            if isinstance(dimIndex, slice):
+            if isinstance(dimIndex, (slice, HashableSlice)):
                 newIndices = set()
                 for oldPartial in indices:
                     newIndices.update(self._sliceToIndices(dimIndex,
@@ -942,12 +969,37 @@ class ContinuousComponent( DimensionedComponent ):
     
     Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
     """
-    VALID_SINGLE_INDEX_TYPES = (int, long, float, slice)
+    VALID_SINGLE_INDEX_TYPES = (int, long, float, slice, HashableSlice)
     
     def _standardizeIndices(self, indexObjs, **kwargs):
         return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
                                                            allowIterable=False,
                                                            **kwargs)
+
+    def _flattenIndex(self, index):
+        """
+        Given a ComponentIndex object, which may be a partial index (ie,
+        len(index) < self.dimensions), return a flat list of non-partial
+        ComponentIndex objects. 
+        """
+        # Not that as opposed to a DiscreteComponent, where we
+        # always want to flatten a slice into it's discrete elements,
+        # with a ContinuousComponent a slice is a perfectly valid
+        # indices... the only caveat is we need to convert it to a
+        # HashableSlice, as we will be sticking it into a set...
+        newIndices = []
+        for i in xrange(self.dimensions):
+            if i < len(index):
+                if isinstance(index[i], (slice, HashableSlice)):
+                    if index[i].step != None:
+                        raise ComponentError("Continuous components may not use slice-indices with a 'step' -  bad slice: %s:%s:%s" %
+                                             (index[i].start, index[i].stop, index[i].step))
+                    newIndices.append(HashableSlice(index[i].start, index[i].stop, index[i].step))
+                else:
+                    newIndices.append(index[i])
+            else:
+                newIndices.append('*')
+        return ( ComponentIndex(newIndices, label=index.label), )
     
     def __iter__(self):
         raise TypeError("%r object is not iterable" % self.__class__.__name__)
@@ -1415,14 +1467,11 @@ class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component")
-        if isinstance(item, slice):
-            item = HashableSlice(item.start, item.stop, item.step)
-
         # You only get a NurbsSurfaceRange if BOTH indices are slices - if
         # either is a single value, you get an isoparm
-        elif (not isinstance(item, slice) or
+        if (not isinstance(item, (slice, HashableSlice)) or
               (self.currentDimension() == 1 and
-               not isinstance(self._partialIndex[0], slice))):
+               not isinstance(self._partialIndex[0], (slice, HashableSlice)))):
             return NurbsSurfaceIsoparm(self._node, self._partialIndex + (item,))
         else:
             return super(NurbsSurfaceRange, self).__getitem__(item)    
@@ -1551,7 +1600,7 @@ class ComponentArray(object):
         if isinstance( item, tuple ):            
             return [ self.returnClass( self._node, formatSlice(x) ) for x in  item ]
             
-        elif isinstance( item, slice ):
+        elif isinstance( item, (slice, HashableSlice) ):
             return self.returnClass( self._node, formatSlice(item) )
 
         else:
