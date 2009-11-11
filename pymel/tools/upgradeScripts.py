@@ -1,8 +1,6 @@
 import sys, os.path, re, shutil
 from collections import defaultdict
-from pprint import pprint
-
-assert sys.version_info > (2,5), "pymel version 1.0 is only supported for Maya2008/python2.5 or later"
+import pymel.core # we don't use this, but it ensures that maya and sys.path are properly initialized
 
 IMPORT_RE = re.compile( '(\s*import\s+(?:[a-zA-Z0-9_.,\s]+,\s*)?)(pymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)((?:\s*,\s*[a-zA-Z][a-zA-Z0-9_.,\s]+)?(?:\s+as\s+([a-zA-Z][a-zA-Z0-9_]+))?(?:\s*))$' )
 FROM_RE = re.compile( '(\s*from\s+)(pymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)((?:\s+import\s+([*]|(?:[a-zA-Z0-9_.,\s]+)))(?:\s*))$' )
@@ -25,94 +23,27 @@ def _getMayaAppDir():
                 return os.path.join(home, 'maya')
     return os.environ['MAYA_APP_DIR']
 
-def _parseVersionStr(versionStr, extension=False):
-    """
-    >>> from pymel.all import *
-    >>> version._parseVersionStr('2008 Service Pack1 x64')
-    '2008'
-    >>> version._parseVersionStr('2008 Service Pack1 x64', extension=True)
-    '2008-x64'
-    >>> version._parseVersionStr('2008x64', extension=True)
-    '2008-x64'
-    >>> version._parseVersionStr('8.5', extension=True)
-    '8.5'
-    >>> version._parseVersionStr('2008 Extension 2')
-    '2008'
-    >>> version._parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
-    '2009'
-    >>> version._parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
-    '2008'
-
-    """
-    # problem with service packs addition, must be able to match things such as :
-    # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
-
-    # NOTE: we're using the same regular expression (_parseVersionStr) to parse both the crazy human readable
-    # maya versions as returned by about, and the maya location directory.  to handle both of these i'm afraid 
-    # the regular expression might be getting unwieldy
-
-    ma = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
-    version = ma.group('base')
-
-    if extension and (ma.group('ext') is not None) :
-        version += "-"+ma.group('ext')
-    return version
-
-def _getMayaLocation(version=None):
-    """ Remember to pass the FULL version (with extension if any) to this function! """
-    try:
-        loc = os.path.realpath( os.environ['MAYA_LOCATION'] )
-    except:
-        loc = os.path.dirname( os.path.dirname( sys.executable ) )
-                
-    return loc
-
-def _setupScriptPaths2():
-    
-    appDir = _getMayaAppDir()
-    assert appDir
-    
-    mayaVersion = _parseVersionStr(_getMayaLocation())
-    assert mayaVersion
-    
-    
-    
-    for subdirs in [    (mayaVersion, 'prefs', 'scripts'), 
-                        (mayaVersion, 'scripts'), 
-                        ('scripts',) ]:
-        dir = os.path.join( appDir, *subdirs)
-        print "adding to sys.path", dir
-        sys.path.append( dir )
-    
-    
-def setupScriptPaths():
-    """
-    Add Maya-specific directories to sys.path
-    """
-    # Per-version prefs scripts dir (eg .../maya8.5/prefs/scripts)
-    #
-    prefsDir = cmds.internalVar( userPrefDir=True )
-    sys.path.append( os.path.join( prefsDir, 'scripts' ) )
-    
-    # Per-version scripts dir (eg .../maya8.5/scripts)
-    #
-    scriptDir = cmds.internalVar( userScriptDir=True )
-    sys.path.append( os.path.dirname(scriptDir) )
-    
-    # User application dir (eg .../maya/scripts)
-    #
-    appDir = cmds.internalVar( userAppDir=True )
-    sys.path.append( os.path.join( appDir, 'scripts' ) )
-
 objects = [ 
            ( 'Version',
-             re.compile('([a-zA-Z_][a-zA-Z0-9_.]+[.])?(Version[.])'), 
+             re.compile('([a-zA-Z_][a-zA-Z0-9_.]+[.])?(Version[.])([a-zA-Z_][a-zA-Z0-9_]*)'), 
                        ( 'pymel',
                          'pymel.version',
                          'pymel.mayahook', 
                          'pymel.mayahook.version' ),
-            'version' )
+            'version',
+            { 'current' : 'CURRENT',
+             'v85sp1' : 'v85_SP1',
+             'v2008sp1' : 'v2008_SP1',
+             'v2008ext2' : 'v2008_EXT2',
+             'v2009ext1' : 'v2009_EXT1',
+             'v2009sp1a' : 'v2009_SP1A'
+            }
+            )
            ]
+
+PREFIX = 1
+OBJECT = 2
+SUFFIX = 3
 
 def _getLogfile(logfile, read=True):
     if logfile is None:
@@ -130,9 +61,17 @@ def _getLogfile(logfile, read=True):
     return os.path.realpath(logfile)
 
 def upgradeFile(filepath, test=True):
-    f = open(filepath)
-    lines = f.readlines()
-    f.close()
+    """
+    upgrade a single file
+    """
+    try:
+        f = open(filepath)
+        lines = f.readlines()
+        f.close()
+    except Exception, e:
+        print str(e)
+        return False, False
+        
     modified = False
     uses_pymel = False
     pymel_namespaces =  defaultdict(set)
@@ -151,20 +90,15 @@ def upgradeFile(filepath, test=True):
             start, pymel_module, end, details = m.groups()
 
             if pymel_module == 'pymel':
-                lines[i] = start + 'pymel.pm' + end
+                # import pymel, foo  -->  import pymel.all as pymel, foo
+                # import pymel as pm, foo  -->  import pymel.all as pm, foo
+                # from pymel import foo  -->  from pymel.all import foo
+                as_name = ' as pymel' if mode == 'import' and not details else ''
+                lines[i] = start + 'pymel.all' + as_name + end
                 modified = True
                 
             if details:
                 details = details.strip()
-                
-#                print mode, pymel_module, details
-#                if mode == 'import':
-#                    curr_namespaces[details].add(pymel_module)
-#                    curr_pymel_namespaces[pymel_module].add( details )
-#                else: # 'from'
-#                    details = '' if details == '*' else details
-#                    for detail in details.split(','):
-#                        curr_namespaces[detail].add(pymel_module)
             
             if mode == 'import':
                 if details:
@@ -197,18 +131,18 @@ def upgradeFile(filepath, test=True):
                     rev_pymel_namespaces[detail].add(module) 
                     
         if uses_pymel:
-            for obj, reg, obj_namespaces, replace in objects:
+            for obj, reg, obj_namespaces, replace, attr_remap in objects:
                 parts = reg.split(line)
                 if len(parts) > 1:
                     #print parts
-                    for j in range(0, len(parts), 3):
+                    for j in range(0, len(parts)-1, 3):
                         try:
-                            ns = parts[j+1]
+                            ns = parts[j+PREFIX]
                         except IndexError, err:
                             pass
                         else:
                             ns = ns if ns else ''
-                            parts[j+1] = ns
+                            parts[j+PREFIX] = ns
                             #print "checking namespace", `ns`, 'against', dict(rev_pymel_namespaces)
                             for namespace, orig_namespaces in rev_pymel_namespaces.iteritems():
                                 if namespace == '' or ns == namespace or ns.startswith(namespace + '.'):
@@ -226,11 +160,13 @@ def upgradeFile(filepath, test=True):
                                                 print "warning: %s: no pymel namespace was found" % filepath
                                             else:
                                                 if pmns =='':
-                                                    parts[j+1] = replace + '.'
+                                                    parts[j+PREFIX] = replace + '.'
                                                 else:
-                                                    parts[j+1] = pmns + '.' + replace + '.'
-                                                parts[j+2] = None
-                                            
+                                                    parts[j+PREFIX] = pmns + '.' + replace + '.'
+                                                parts[j+OBJECT] = None
+                                                
+                                            attr = parts[j+SUFFIX]
+                                            parts[j+SUFFIX] = attr_remap.get(attr, attr)
                                             break
                     lines[i] = ''.join( [ x for x in parts if x is not None] )
                     #print 'before:', `line`
@@ -245,11 +181,10 @@ def upgradeFile(filepath, test=True):
             try:
                 f = open(tmpfile, 'w')
                 f.writelines(lines)
+                f.close()
             except (IOError, OSError), err:
                 print "error writing temporary file: %s: %s" % ( tmpfile, err)
-                success = False
-            finally:
-                f.close()
+                success = False               
             
             if success:
                 try:
@@ -271,10 +206,29 @@ def upgradeFile(filepath, test=True):
 
     return modified, success
 
-def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=None, verbose=False):
-    if 'maya.app.startup.gui' not in sys.modules and 'maya.app.startup.batch' not in sys.modules:
-        print "warning: in order for the python search path to be accurate, it is advisable to run this from within a Maya GUI or an initialized standalone session"
-        _setupScriptPaths2()
+def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=None, verbose=False, force=False):
+    """
+    search PYTHONPATH (aka. sys.path) and MAYA_SCRIPT_PATH for python files using
+    pymel that should be upgraded
+    
+    Keywords
+    --------
+    
+    :param logdir: 
+        directory to which to write the log of modified files
+    :param test: 
+        when run in test mode (default) no files are changed
+    :param excludeFolderRegex: 
+        a regex string which should match against a directory's basename, without parent path
+    :param excludeFileRegex: 
+        a regex string which should match against a file's basename, without parent path or extension
+    :param verbose: 
+        print more information during conversion
+    :param force: 
+        by default, `upgrade` will skip files which already have already been processed,
+        as determined by the existence of a backup file with a .pmbak extension. setting
+        force to True will ignore this precaution
+    """
     
     if test:
         print "running in test mode. set test=False to enable file editing"
@@ -296,19 +250,28 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
     global last_logfile
     last_logfile = logfile
     
+    completed = []
     try:
         for path in sys.path + os.environ['MAYA_SCRIPT_PATH'].split(os.pathsep):
         #for path in ['/Volumes/luma/_globalSoft/dev/chad/python/pymel']:
             for root, dirs, files in os.walk(path):
                 for f in files:
                     if f.endswith('.py') and not f.startswith('.'):
-                        if not excludeFileRegex or not re.match( excludeFileRegex, file ):
-                            fpath = os.path.join(root,f)
-                            modified, stat = upgradeFile( fpath, test )
-                            if modified and stat:
-                                print 'needs upgrading:' if test else 'upgraded:', fpath
-                                if not test:
-                                    log.write( fpath + '\n' )
+                        if not excludeFileRegex or not re.match( excludeFileRegex, f[:-3] ): 
+                            fpath = os.path.realpath(os.path.join(root,f))
+                            if fpath not in completed:
+                                if os.path.exists(fpath+BACKUPEXT) and not force:
+                                    print "file has already been converted. skipping: %s  (use force=True to force conversion)" % fpath
+                                    if not test:
+                                        # keep as part of the log so that revert will work
+                                        log.write( fpath + '\n' )
+                                else:
+                                    modified, stat = upgradeFile( fpath, test )                                
+                                    if modified and stat:
+                                        print 'needs upgrading:' if test else 'upgraded:', fpath
+                                        if not test:
+                                            log.write( fpath + '\n' )
+                                completed.append(fpath)
                         elif verbose:
                             print "skipping", os.path.join(root,f)
                             
@@ -336,9 +299,19 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
         if not test:
             print "writing log to %s" % logfile
         log.close()
-    print "done"
 
+    if test:
+        print "test complete"
+        print "to upgrade the listed files run:\nupgrade(test=False)"
+    else:
+        print "upgrade complete. the original files have been renamed with a %s extension\n" % BACKUPEXT
+        print "to remove the backed-up original files run:\ncleanup(%r)\n" % logfile
+        print "to restore the original files run:\nrevert(%r)" % logfile
+        
 def revertFile(filepath):
+    """
+    revert a single file
+    """
     backup = filepath + BACKUPEXT
     if os.path.isfile(backup):
         try:
@@ -352,6 +325,16 @@ def revertFile(filepath):
     return True
      
 def revert(logfile=None):
+    """
+    revert converted files to their original state and remove backups
+    
+    :param logfile:
+        the logfile containing the list of files to restore.  if None, the logfile
+        will be determined in this order:
+            1. last used logfile (module must have remained loaded since running upgrade)
+            2. MAYA_APP_DIR
+            3. current working directory
+    """
     log = open(_getLogfile(logfile), 'r' )
     try:
         for file in log:
@@ -366,6 +349,17 @@ def revert(logfile=None):
 
 
 def cleanup(logfile=None):
+    """
+    cleanup original files.  run this when you are certain that the upgrade went
+    smoothly and you no longer need the original backups.
+    
+    :param logfile:
+    the logfile containing the list of files to restore.  if None, the logfile
+    will be determined in this order:
+        1. last used logfile (module must have remained loaded since running upgrade)
+        2. MAYA_APP_DIR
+        3. current working directory
+    """
     log = open(_getLogfile(logfile), 'r' )
     try:
         for file in log:
