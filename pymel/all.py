@@ -1,2 +1,2 @@
 from pymel import *
-import pymel.mayahook.version.Version as version
+from pymel.mayahook.version import Version as version
