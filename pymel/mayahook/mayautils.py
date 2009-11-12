@@ -21,6 +21,11 @@ except:
     _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
 
+from version import Version, parseVersionStr
+import envparse
+import maya
+import maya.OpenMaya as om
+
 #from maya.cmds import encodeString
 
 if os.name == 'nt' :
@@ -420,47 +425,57 @@ def initMEL():
         return
     
     _logger.debug( "initMEL" )        
-    import maya.mel
     
     mayaVersion = installName()
-    try:
-        prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
-        assert prefsDir
-    except:
-        _logger.error( "could not perform maya initialization sequence: please set MAYA_APP_DIR, HOME (osx/linux) or USERPROFILE (windows)" )
+    appDir = getMayaAppDir()
+    if appDir is None:
+        _logger.error( "could not initialize user preferences: MAYA_APP_DIR not set" )
+        prefsDir = None
     else:
-        # TODO : use cmds.internalVar to get paths
-        # got this startup sequence from autodesk support
-        startup = [   
-            #'defaultRunTimeCommands.mel',  # sourced automatically
-            #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
-            'createPreferencesOptVars.mel',
-            'createGlobalOptVars.mel',
-            os.path.join( prefsDir, 'userPrefs.mel'),
-            'initialStartup.mel',
-            #$HOME/Documents/maya/projects/default/workspace.mel
-            'initialPlugins.mel',
-            #'initialGUI.mel', #GUI
-            #'initialLayout.mel', #GUI
-            #os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
-            #os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
-            #'hotkeySetup.mel', #GUI
-            'namedCommandSetup.mel',
-            os.path.join( prefsDir, 'userNamedCommands.mel' ),
-            #'initAfter.mel', #GUI
-            os.path.join( prefsDir, 'pluginPrefs.mel' ),
-        ]
-        try:
-            for f in startup:
-                if isinstance(f, unicode):
-                    encoding = 'unicode_escape'
+        prefsDir = os.path.realpath(os.path.join( appDir, mayaVersion, 'prefs' ))
+        if not os.path.isdir(prefsDir):
+            prefsDir = None
+            _logger.error( "could not initialize user preferences: %s does not exist" % prefsDir  )
+
+    # TODO : use cmds.internalVar to get paths
+    # got this startup sequence from autodesk support
+    startup = [   
+        #'defaultRunTimeCommands.mel',  # sourced automatically
+        #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
+        'createPreferencesOptVars.mel',
+        'createGlobalOptVars.mel',
+        os.path.join( prefsDir, 'userPrefs.mel') if prefsDir else None,
+        'initialStartup.mel',
+        #$HOME/Documents/maya/projects/default/workspace.mel
+        'initialPlugins.mel',
+        #'initialGUI.mel', #GUI
+        #'initialLayout.mel', #GUI
+        #os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
+        #os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
+        #'hotkeySetup.mel', #GUI
+        'namedCommandSetup.mel',
+        os.path.join( prefsDir, 'userNamedCommands.mel' ) if prefsDir else None,
+        #'initAfter.mel', #GUI
+        os.path.join( prefsDir, 'pluginPrefs.mel' )  if prefsDir else None
+    ]
+    try:
+        for f in startup:
+            if f is not None:
+                if os.path.isabs(f) and not os.path.exists(f):
+                    _logger.warning( "Maya startup file %s does not exist" % f )
                 else:
-                    encoding = 'string_escape'
-                # need to encode backslashes (used for windows paths)
-                maya.mel.eval( 'source "%s"' % f.encode(encoding) )
-                
-        except Exception, e:
-            _logger.error( "could not perform maya initialization sequence: failed on %s: %s" % ( f, e) )
+                    # need to encode backslashes (used for windows paths)
+                    if isinstance(f, unicode):
+                        encoding = 'unicode_escape'
+                    else:
+                        encoding = 'string_escape'
+                    #import pymel.core.language as lang
+                    #lang.mel.source( f.encode(encoding)  )
+                    import maya.mel
+                    maya.mel.eval( 'source "%s"' % f.encode(encoding) )
+            
+    except Exception, e:
+        _logger.error( "could not perform Maya initialization sequence: failed on %s: %s" % ( f, e) )
         
     try:
         # make sure it exists
@@ -471,7 +486,7 @@ def initMEL():
 
 
 def finalize():
-    if 'maya.app.startup.batch' in sys.modules: # means were in batch mode
+    if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
         global isInitializing
         if pymelMayaPackage and isInitializing:
             # this module is not encapsulated into functions, but it should already
