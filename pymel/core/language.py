@@ -741,7 +741,7 @@ class Mel(object):
                 e = MelSyntaxError
             else:
                 e = MelError
-            raise e, "Error occurred during execution of MEL script: %s" % ( msg )
+            raise e, "Error occurred during execution of MEL script: %s\ncmd: %s" % ( msg, cmd )
         else:   
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )

@@ -1514,8 +1514,6 @@ _pluginData = {}
                     
              
 def _pluginLoaded( *args ):
-
-    
     if len(args) > 1:
         # 2009 API callback, the args are ( [ pathToPlugin, pluginName ], clientData )
         pluginName = args[0][1]
@@ -1600,7 +1598,8 @@ def _pluginLoaded( *args ):
             # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
             _pluginData[pluginName]['callbackId'] = None
             addPluginPyNodes()
-
+    if 'pymel.all' in sys.modules:
+        sys.modules['pymel.all'].__dict__.update(_module.__dict__)
             
 
 
