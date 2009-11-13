@@ -855,14 +855,35 @@ class DiscreteComponent( DimensionedComponent ):
         # We proceed in two ways, depending on whether we're a
         # completely-specified component (ie, no longer indexable),
         # or partially-specified (ie, still indexable).
+        for compIndex in self._compIndexObjIter():
+            yield self.__class__(self._node, compIndex)
+            
+
+    
+    def _compIndexObjIter(self):
+        """
+        An iterator over all the indices contained by this component,
+        as ComponentIndex objects (which are a subclass of tuple).
+        """
         if self.currentDimension() is None:
             # we're completely specified, do flat iteration
-            compIndexIter = self._flatIter()
+            return self._flatIter()
         else:
             # we're incompletely specified, iterate across the dimensions!
-            compIndexIter = self._dimensionIter()
-        for compIndex in compIndexIter:
-            yield self.__class__(self._node, compIndex)
+            return self._dimensionIter()
+
+    # Essentially identical to _compIndexObjIter, except that while
+    # _compIndexObjIter, this is intended for use by end-user,
+    # and so if it's more 'intuitive' to return some other object,
+    # it will be overriden in derived classes to do so.
+    # ie, for Component1D, this will return ints
+    indicesIter = _compIndexObjIter
+
+    def indices(self):
+        """
+        A list of all the indices contained by this component.
+        """
+        return list(self.indicesIter())
 
     def _dimensionIter(self):
         # If we're incompletely specified, then if, for instance, we're
@@ -1006,8 +1027,7 @@ class Component1D( DiscreteComponent ):
         if isinstance(melobj, basestring):
             return melobj
         else:
-            indices = [ int(re.search( '\[(\d+)\]$', x ).group(1)) for x in melobj ]
-            compSlice = _sequenceToComponentSlice( indices )
+            compSlice = _sequenceToComponentSlice( self.indicesIter() )
             sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
             return self._completeNameString().replace( '*', sliceStr )
 
@@ -1023,6 +1043,14 @@ class Component1D( DiscreteComponent ):
     def currentItem(self):
         mfncomp = self.__apicomponent__()
         return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
+    
+    def indicesIter(self):
+        """
+        An iterator over all the indices contained by this component,
+        as integers.
+        """
+        for compIndex in self._compIndexObjIter():
+            yield compIndex[0]
             
 class Component2D( DiscreteComponent ):
     _mfncompclass = api.MFnDoubleIndexedComponent
@@ -1146,9 +1174,7 @@ class MeshVertex( MItComponent1D ):
         """
         :rtype: `MeshEdge` list
         """
-        array = api.MIntArray()
-        self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return self.connectedEdges()
 
     def connectedFaces(self):
         """
@@ -1163,9 +1189,7 @@ class MeshVertex( MItComponent1D ):
         """
         :rtype: `MeshFace` list
         """
-        array = api.MIntArray()
-        self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return self.connectedFaces()
     
     def connectedVertices(self):
         """
@@ -1222,9 +1246,7 @@ class MeshEdge( MItComponent1D ):
         """
         :rtype: `MeshFace` list
         """
-        array = api.MIntArray()
-        self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
+        return self.connectedFaces()
 
     def connectedVertices(self):
         """
@@ -1320,7 +1342,7 @@ class MeshUV( Component1D ):
     _apienum__ = api.MFn.kMeshMapComponent
 
     def _dimLength(self, partialIndex):
-        return self.node().numUVs()
+        return self._node.numUVs()
     
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
@@ -1328,21 +1350,35 @@ class MeshVertexFace( Component2D ):
     
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
-            return self.node().numVertices()
+            return self._node.numVertices()
         elif len(partialIndex) == 1:
-            return self.node().vtx[partialIndex[0]].numConnectedFaces()
+            return self._node.vtx[partialIndex[0]].numConnectedFaces()
         
-#    def _sliceToIndices(self, sliceObj, partialIndex=None):
-#        if (sliceObj.start not in (0, None) or
-#            sliceObj.stop is not None or
-#            sliceObj.step is not None):
-#            raise ValueError('%s objects may not be indexed with slices, execpt for [:]' %
-#                             self.__class__.__name__)
-#        if not partialIndex:
-#            for x in xrange(self._node.numVertices()):
-#                yield x
-#        else:
-#            for 
+    def _sliceToIndices(self, sliceObj, partialIndex=None):
+        if not partialIndex:
+            # If we're just grabbing a slice of the first index,
+            # the verts, we can proceed as normal...
+            for x in super(MeshVertexFace, self)._sliceToIndices(sliceObj, partialIndex):
+                yield x
+                
+        # If we're iterating over the FACES attached to a given vertex,
+        # which may be a random set - say, (3,6,187) - not clear how to
+        # interpret an index 'range'
+        else:
+            if (sliceObj.start not in (0, None) or
+                sliceObj.stop is not None or
+                sliceObj.step is not None):
+                raise ValueError('%s objects may not be indexed with slices, execpt for [:]' %
+                                 self.__class__.__name__)
+    
+            # get a MitMeshVertex ...
+            mIt = api.MItMeshVertex(self._node.__apimdagpath__())
+            su = api.MScriptUtil()
+            mIt.setIndex(partialIndex[0], su.asIntPtr())
+            intArray = api.MIntArray()
+            mIt.getConnectedFaces(intArray)
+            for i in xrange(intArray.length()):
+                yield partialIndex + (intArray[i],)
     
 ## Subd Components    
 
