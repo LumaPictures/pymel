@@ -3,7 +3,7 @@ Contains functions for easily comparing versions of Maya with the current runnin
 Class for storing apiVersions, which are the best method for comparing versions. ::
 
     >>> from pymel import version
-    >>> if version.CURRENT >= version.M2008:
+    >>> if version.CURRENT >= version.v2008:
     ...     print "The current version is later than Maya 2008"
     The current version is later than Maya 2008
 """

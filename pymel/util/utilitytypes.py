@@ -566,9 +566,14 @@ def LazyLoadModule(name, contents):
         
         @classmethod
         def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
-            setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
+            lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
+            setattr( cls, name, lazyObj )
+            return lazyObj
 
         def __setitem__(self, attr, args):
+            """
+            dynModule['attrName'] = ( callbackFunc, ( 'arg1', ), {} )
+            """
             # args will either be a single callable, or will be a tuple of 
             # ( callable, (args,), {kwargs} )
             if hasattr( args, '__call__'):
@@ -597,8 +602,10 @@ def LazyLoadModule(name, contents):
             self._addattr(attr, callback, *cb_args, **cb_kwargs)
               
         def __getitem__(self, attr):
-            """return a LazyLoader without initializing it, or, if a LazyLoader does not exist with this name,
-            a real object"""
+            """
+            return a LazyLoader without initializing it, or, if a LazyLoader does not exist with this name,
+            a real object
+            """
             try:
                 return self.__class__.__dict__[attr]
             except KeyError:
