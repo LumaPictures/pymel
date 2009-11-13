@@ -296,6 +296,7 @@ from system import Path
 from language import mel, melGlobals
 import pymel.mayahook.plogging as plogging
 import uitypes
+from pymel import version
 
 _logger = plogging.getLogger(__name__)
 
@@ -402,50 +403,97 @@ def optionMenuGrp( *args, **kwargs ):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
+if version.CURRENT >= version.v2009:
 
-class Callback(object):
-    """
-    Enables deferred function evaluation with 'baked' arguments.
-    Useful where lambdas won't work...
-    Example: 
+    class Callback(object):
+        """
+        Enables deferred function evaluation with 'baked' arguments.
+        Useful where lambdas won't work...
+        Example: 
+        
+        .. python::
+        
+            import pymel as pm
+            def addRigger(rigger, **kwargs):
+                print "adding rigger", rigger
+               
+            for rigger in riggers:
+                pm.menuItem(
+                    label = "Add " + str(rigger),
+                    c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
+        """
     
-    .. python::
+        def __init__(self,func,*args,**kwargs):
+            self.func = func
+            self.args = args
+            self.kwargs = kwargs
+        
+        def __call__(self,*args):
+            cmds.undoInfo(openChunk=1)
+            try:
+                return self.func(*self.args, **self.kwargs)
+            finally:
+                cmds.undoInfo(closeChunk=1)
+                
+    class CallbackWithArgs(Callback):
+        def __call__(self,*args,**kwargs):
+            # not sure when kwargs would get passed to __call__, 
+            # but best not to remove support now
+            kwargsFinal = self.kwargs.copy()
+            kwargsFinal.update(kwargs)
+            cmds.undoInfo(openChunk=1)
+            try:
+                return self.func(*self.args + args, **self.kwargsFinal)
+            finally:
+                cmds.undoInfo(closeChunk=1)
+else:
     
-        import pymel as pm
-        def addRigger(rigger, **kwargs):
-            print "adding rigger", rigger
-           
-        for rigger in riggers:
-            pm.menuItem(
-                label = "Add " + str(rigger),
-                c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
-    """
+    class Callback(object):
+        """
+        Enables deferred function evaluation with 'baked' arguments.
+        Useful where lambdas won't work...
+        Example: 
+        
+        .. python::
+        
+            import pymel as pm
+            def addRigger(rigger, **kwargs):
+                print "adding rigger", rigger
+               
+            for rigger in riggers:
+                pm.menuItem(
+                    label = "Add " + str(rigger),
+                    c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
+        """
+    
 
-    # This implementation of the Callback object uses private members
-    # to store static call information so that the call can be made through
-    # a mel call, thus making the entire function call undoable
-    _callData = None
-    @staticmethod
-    def _doCall():
-        (func, args, kwargs) = Callback._callData
-        Callback._callData = func(*args, **kwargs)
-
-    def __init__(self,func,*args,**kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-    def __call__(self,*args):
-        Callback._callData = (self.func, self.args, self.kwargs)
-        mel.python("%s.Callback._doCall()" % thisModuleCmd)
-        return Callback._callData    
     
-class CallbackWithArgs(Callback):
-    def __call__(self,*args,**kwargs):
-        kwargsFinal = self.kwargs.copy()
-        kwargsFinal.update(kwargs)
-        Callback._callData = (self.func, self.args + args, kwargsFinal)
-        mel.python("%s.Callback._doCall()" % thisModuleCmd)
-        return Callback._callData    
+        def __init__(self,func,*args,**kwargs):
+            self.func = func
+            self.args = args
+            self.kwargs = kwargs
+            
+        # This implementation of the Callback object uses private members
+        # to store static call information so that the call can be made through
+        # a mel call, thus making the entire function call undoable
+        _callData = None
+        @staticmethod
+        def _doCall():
+            (func, args, kwargs) = Callback._callData
+            Callback._callData = func(*args, **kwargs)
+            
+        def __call__(self,*args):
+            Callback._callData = (self.func, self.args, self.kwargs)
+            mel.python("%s.Callback._doCall()" % thisModuleCmd)
+            return Callback._callData    
+    
+    class CallbackWithArgs(Callback):
+        def __call__(self,*args,**kwargs):
+            kwargsFinal = self.kwargs.copy()
+            kwargsFinal.update(kwargs)
+            Callback._callData = (self.func, self.args + args, kwargsFinal)
+            mel.python("%s.Callback._doCall()" % thisModuleCmd)
+            return Callback._callData    
         
     
 def autoLayout(*args, **kwargs):
@@ -803,7 +851,7 @@ def _createClassCommandPairs():
                
 def _createOtherCommands():
     moduleShortName = __name__.split('.')[-1]
-    nonClassFuncs = set(_factories.uiClassList).difference(_factories.moduleCmds[moduleShortName])
+    nonClassFuncs = set(_factories.moduleCmds[moduleShortName]).difference(_factories.uiClassList)
     for funcName in nonClassFuncs:
         func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
         if func:
