@@ -1,7 +1,7 @@
 """
 Contains the wrapping mechanisms that allows pymel to integrate the api and maya.cmds into a unified interface
 """
-import re, types, os.path, keyword, inspect, sys
+import re, types, os.path, keyword, inspect, sys, textwrap
 from operator import itemgetter
 
 from pymel.util import trees
@@ -18,6 +18,8 @@ _logger = mayahook.plogging.getLogger(__name__)
 #---------------------------------------------------------------
 #        Mappings and Lists
 #---------------------------------------------------------------
+
+DOC_WIDTH = 120
 
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
@@ -126,7 +128,7 @@ secondaryFlags = {
                ( 'groupReference',   False, ['reference', 'i'] ),
                ( 'groupLocator',  None,['reference'] ),
                ( 'groupName',  None,['reference', 'i'] ),
-               ( 'namespace',  None,['reference', 'exportAsReference'] ),
+               ( 'namespace',  None,['reference', 'exportAsReference', 'namespace'] ),
                ( 'referenceNode',  None,['reference', 'exportAnimFromReference', 'exportSelectedAnimFromReference'] ),
                ( 'renameAll', None,['i'] ),
                ( 'renamingPrefix',  None,['reference', 'i','exportAsReference'] ),
@@ -1004,7 +1006,7 @@ def getInheritance( mayaType ):
         obj = dgMod.createNode ( mayaType )
         dgMod.doIt()
         
-        _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
+        #_logger.debug( "Made ghost DG node of type '%s'" % mayaType )
         name = _api.MFnDependencyNode(obj).name()
         mod = dgMod
         
@@ -1014,7 +1016,7 @@ def getInheritance( mayaType ):
             obj = dagMod.createNode ( mayaType, parent )
             dagMod.doIt()
             
-            _logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
+            #_logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
             name = _api.MFnDagNode(obj).name()
             mod = dagMod
         except RuntimeError:
@@ -1059,12 +1061,12 @@ def addCmdDocsCallback(cmdName, docstring=''):
     loadCmdDocCache()
     
     cmdInfo = cmdlist[cmdName]
-       
-    docstring = cmdInfo['description'] + '\n\n' + docstring
+    
+    docstring = cmdInfo['description'] + '\n\n' + textwrap.wrap(docstring, DOC_WIDTH)
 
 #    if func.__doc__: 
 #        docstring += func.__doc__ + '\n\n'
-        
+      
     flagDocs = cmdInfo['flags']
     
     if flagDocs and sorted(flagDocs.keys()) != ['edit', 'query']:
@@ -1073,8 +1075,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
         altwidths = [ widths[0] + widths[1] ] + widths[2:]
         rowsep = '    +' + '+'.join( [ '-'*(w-1) for w in widths ] ) + '+\n'
         headersep = '    +' + '+'.join( [ '='*(w-1) for w in widths ] ) + '+\n'
-        
-        import textwrap
+
         def makerow( items, widths ):
             return '    |' + '|'.join( ' ' + i.ljust(w-2) for i, w in zip( items, widths ) ) + '|\n'
 
@@ -1141,11 +1142,11 @@ def addCmdDocsCallback(cmdName, docstring=''):
                 docstring += rowsep
                 
             else:
-                docstring += '    - %s : %s  (%s)\n        - [%s] %s\n' % ( flag, 
-                                                                 docs['shortname'], 
-                                                                 typ,
-                                                                 ','.join( modes ),
-                                                                 descr )
+                docstring += '  - %s %s [%s]\n%s\n\n' % ( 
+                                            (flag + ' : ' + docs['shortname']).ljust(30), 
+                                            ('('+typ+')').ljust(15),
+                                            ','.join( modes ),
+                                            '\n'.join([ '      '+x for x in textwrap.wrap(descr, DOC_WIDTH)]) )
 #            #modified
 #            try:
 #                modified = docs['modified']
@@ -1181,20 +1182,16 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
     allFlagInfo = cmdlist[cmdName]['flags']
     flagInfo = allFlagInfo[flag]
     docstring=flagInfo.get('docstring', '')
-    if not docstring:
-        try:
-            doc = flagInfo['docstring']
-            if doc:
-                docstring += '        - %s\n' %  doc
-            
-            try:
-                docstring += '        - secondary flags:\n'
-                for secondaryFlag in flagInfo['secondaryFlags']:
-                    docstring += '            - %s: %s\n' % (secondaryFlag, allFlagInfo[secondaryFlag]['docstring'] )
-            except KeyError: pass
+    if docstring:
+        docstring += '\n\n'
+    
+    if 'secondaryFlags' in flagInfo:
+        docstring += 'Flags:\n'
+        for secondaryFlag in flagInfo['secondaryFlags']:
+            flagdoc = allFlagInfo[secondaryFlag]['docstring']
+            docstring += '  - %s:\n%s\n' % (secondaryFlag, 
+                                        '\n'.join( ['      '+ x for x in textwrap.wrap( flagdoc, DOC_WIDTH)] ) )
 
-        except KeyError: _logger.info(("No documentation available for %s flag of %s command" % (flag,cmdName )    ))
-        
     docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
     return docstring
 
@@ -1687,7 +1684,7 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArraySetter( apiTypeName, length, setFunc, initFunc ):
         def setArray( array ):
-            _logger.debug("set %s", array)
+            #_logger.debug("set %s", array)
             if len(array) != length:
                 raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypeName )
             arrayPtr = initFunc()
@@ -1701,7 +1698,7 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArrayGetter( apiTypeName, length, getFunc ):
         def getArray( array ):
-            _logger.debug("get %s", array)
+            #_logger.debug("get %s", array)
             return [ getFunc(array,i) for i in range(length) ]
         getArray.__name__ = 'get_' + apiTypeName + str(length) + 'Array'
         return getArray
@@ -1957,7 +1954,7 @@ class ApiArgUtil(object):
             _logger.debug( str(msg) )
             return False
         
-        _logger.debug("%s: valid" % self.getPrototype())
+        #_logger.debug("%s: valid" % self.getPrototype())
         return True
     
 #    def castEnum(self, argtype, input ):
@@ -2160,8 +2157,8 @@ class ApiArgUtil(object):
      
     def castReferenceResult(self,argtype,outArg):
         f = ApiTypeRegister.refCast[ argtype ]
-        _logger.debug("castReferenceResult")
-        _logger.debug( "%s %s %s", f, argtype, outArg)
+        #_logger.debug("castReferenceResult")
+        #_logger.debug( "%s %s %s", f, argtype, outArg)
         if f is None:
             return outArg
         
@@ -2759,7 +2756,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(cls, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        _logger.debug( 'MetaMayaTypeWrapper: %s' % classdict ) 
+        #_logger.debug( 'MetaMayaTypeWrapper: %s' % classdict ) 
         removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
@@ -2782,7 +2779,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 #_logger.debug("ADDING BASE",classdict['apicls'])
                 bases = bases + (classdict['apicls'],)
             try:
-                _logger.debug((classname, apicls))
+                #_logger.debug((classname, apicls))
                 classInfo = _api.apiClassInfo[apicls.__name__]
             except KeyError:
                 _logger.info("No api information for api class %s" % ( apicls.__name__ ))
@@ -2805,7 +2802,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 # Class Methods
                 for methodName, info in classInfo['methods'].items(): 
                     # don't rewrap if already herited from a base class that is not the apicls
-                    _logger.debug("Checking method %s" % (methodName))
+                    #_logger.debug("Checking method %s" % (methodName))
 
                     try:
                         pymelName = info[0]['pymelName']
@@ -2823,7 +2820,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         if overloadIndex is not None:
                             if data.get('enabled', True):                        
                                 if pymelName not in classdict:
-                                    _logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
+                                    #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                                     method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex )
                                     if method:
                                         _logger.debug("%s.%s successfully created" % (classname, pymelName ))
@@ -2849,8 +2846,8 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
  
         
             if not proxy:
-                if removeAttrs:
-                    _logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
+                #if removeAttrs:
+                #    _logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
                 def __getattribute__(self, name): 
                     #_logger.debug(name )
                     if name in removeAttrs and name not in EXCLUDE_METHODS: # tmp fix
@@ -2939,7 +2936,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
     
     def __new__(cls, classname, bases, classdict):
-        _logger.debug( '_MetaMayaCommandWrapper: %s' % classdict )
+        #_logger.debug( '_MetaMayaCommandWrapper: %s' % classdict )
 
         newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
         
@@ -3011,9 +3008,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
                                      returnFunc=returnFunc )
                                 
-                                _logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
+                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
-                                #setattr( newcls, methodName, wrappedMelFunc )
                             #else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
                         #else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
                     # edit command: 
@@ -3038,7 +3034,6 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName)
                                 _logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
-                                #setattr( newcls, methodName, wrappedMelFunc )
                             #else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
                         #else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
         
@@ -3087,16 +3082,17 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     def __new__(cls, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        _logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
+        #_logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         _api.addMayaType( nodeType )
         apicls = _api.toApiFunctionSet( nodeType )
 
         if apicls is not None:
             if apicls in MetaMayaNodeWrapper.completedClasses:
-                _logger.debug( "%s: %s already used by %s: not adding to __apicls__" % (classname, apicls, MetaMayaNodeWrapper.completedClasses[ apicls ]) )
+                pass
+                #_logger.debug( "%s: %s already used by %s: not adding to __apicls__" % (classname, apicls, MetaMayaNodeWrapper.completedClasses[ apicls ]) )
             else:
-                _logger.debug( "%s: adding __apicls__ %s" % (classname, apicls) )
+                #_logger.debug( "%s: adding __apicls__ %s" % (classname, apicls) )
                 MetaMayaNodeWrapper.completedClasses[ apicls ] = classname
                 classdict['__apicls__'] = apicls
         #_logger.debug("="*40, classname, apicls, "="*40)
@@ -3359,54 +3355,12 @@ def analyzeApiClass( apiTypeStr ):
 #            for x in sorted( pyMembers.difference( allFnMembers ) ): _logger.info('    ', x)
             
     
-#def addPyNode( module, mayaType, parentMayaType ):
-#    
-#    #_logger.debug("addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module))
-#    # unicode is not liked by metaNode
-#    pyNodeTypeName = str( util.capitalize(mayaType) )
-#    parentPyNodeTypeName = str(util.capitalize(parentMayaType))
-#    
-#    if hasattr( module, pyNodeTypeName ):
-#        _api.addMayaType( mayaType )
-#        PyNodeType = getattr( module, pyNodeTypeName )
-#        try :
-#            ParentPyNode = inspect.getmro(PyNodeType)[1]
-#            if ParentPyNode.__name__ != parentPyNodeTypeName :
-#                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
-#        except :
-#            ParentPyNode = getattr( module, parentPyNodeTypeName )
-#        #_logger.debug("already exists:", pyNodeTypeName, )
-#    else:
-#        try:
-#            ParentPyNode = getattr( module, parentPyNodeTypeName )
-#        except AttributeError:
-#            _logger.info("error creating class %s: parent class %r not in module %s" % (pyNodeTypeName, parentPyNodeTypeName, module.__name__))
-#            return      
-#        try:
-#            PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
-#        except TypeError, msg:
-#            # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-#            _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
-#            import new
-#            PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
-#            PyNodeType.__module__ = module.__name__
-#            setattr( module, pyNodeTypeName, PyNodeType )
-#        else:
-#            #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
-#            PyNodeType.__module__ = module.__name__
-#            setattr( module, pyNodeTypeName, PyNodeType )
-#           
-#    PyNodeTypesHierarchy()[ PyNodeType ] = ParentPyNode
-#    PyNodesToMayaTypes()[PyNodeType] = mayaType
-#    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
-#    return PyNodeType
-
-def addPyNodeCallback( module, mayaType, pyNodeTypeName, parentPyNodeTypeName):
+def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName):
     _logger.debug( "creating %s" % pyNodeTypeName )
     try:
-        ParentPyNode = getattr( module, parentPyNodeTypeName )
+        ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
     except AttributeError:
-        _logger.info("error creating class %s: parent class %r not in module %s" % (pyNodeTypeName, parentPyNodeTypeName, module.__name__))
+        _logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
         return      
     try:
         PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
@@ -3415,27 +3369,27 @@ def addPyNodeCallback( module, mayaType, pyNodeTypeName, parentPyNodeTypeName):
         _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
         import new
         PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
-        PyNodeType.__module__ = module.__name__
-        setattr( module, pyNodeTypeName, PyNodeType )
+        PyNodeType.__module__ = dynModule.__name__
+        setattr( dynModule, pyNodeTypeName, PyNodeType )
     else:
         #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
-        PyNodeType.__module__ = module.__name__
-        setattr( module, pyNodeTypeName, PyNodeType )
+        PyNodeType.__module__ = dynModule.__name__
+        setattr( dynModule, pyNodeTypeName, PyNodeType )
     PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
     PyNodesToMayaTypes()[PyNodeType] = mayaType
     PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
     return PyNodeType
 
-def addPyNode( module, mayaType, parentMayaType ):
+def addPyNode( dynModule, mayaType, parentMayaType ):
     
-    #_logger.debug("addPyNode adding %s->%s on module %s" % (mayaType, parentMayaType, module))
+    #_logger.debug("addPyNode adding %s->%s on dynModule %s" % (mayaType, parentMayaType, dynModule))
     # unicode is not liked by metaNode
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
     
-    if hasattr( module, pyNodeTypeName ):
+    if hasattr( dynModule, pyNodeTypeName ):
         _api.addMayaType( mayaType )
-        PyNodeType = getattr( module, pyNodeTypeName )
+        PyNodeType = getattr( dynModule, pyNodeTypeName )
         #print "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName )
         try :
             ParentPyNode = inspect.getmro(PyNodeType)[1]
@@ -3443,25 +3397,25 @@ def addPyNode( module, mayaType, parentMayaType ):
             if ParentPyNode.__name__ != parentPyNodeTypeName :
                 raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
         except :
-            ParentPyNode = getattr( module, parentPyNodeTypeName )
+            ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
         #_logger.debug("already exists:", pyNodeTypeName, )
         PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
         PyNodesToMayaTypes()[PyNodeType] = mayaType
         PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
-        return PyNodeType
     else:
         _logger.debug( "%s(%s) setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
-        module._addattr( pyNodeTypeName, addPyNodeCallback, 
-                         module, mayaType, 
-                         pyNodeTypeName, parentPyNodeTypeName ) 
+        dynModule[pyNodeTypeName] = ( addPyNodeCallback, 
+                                   ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
+    return pyNodeTypeName
 
-def removePyNode( module, mayaType ):
+def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     PyNodeType = PyNodeNamesToPyNodes().pop( pyNodeTypeName, None )
     PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
     PyNodesToMayaTypes().pop(PyNodeType,None)
-    module.__dict__.pop(pyNodeTypeName,None)
-    module.api.removeMayaType( mayaType )
+    dynModule.__dict__.pop(pyNodeTypeName,None)
+    dynModule.__class__.__dict__.pop(pyNodeTypeName,None)
+    dynModule.api.removeMayaType( mayaType )
 
 def registerVirtualClass( cls, nameRequired=False ):
     """
