@@ -13,6 +13,7 @@ from pymel.util import path as _path, shellOutput, picklezip
 import pymel.version as version
 from pymel.version import parseVersionStr, shortName, installName
 import maya
+import maya.OpenMaya as om
 
 _logger = plogging.getLogger(__name__)
 try:
@@ -20,11 +21,6 @@ try:
 except:
     _logger.warning("using pickle instead of cPickle: load performance will be affected")
     import pickle
-
-from version import Version, parseVersionStr
-import envparse
-import maya
-import maya.OpenMaya as om
 
 #from maya.cmds import encodeString
 
@@ -181,16 +177,29 @@ def getMayaExecutable(version=None, commandLine=True):
     
 
 def getMayaAppDir():
-    if not os.environ.has_key('MAYA_APP_DIR') :
-        home = os.environ.get('HOME', os.environ.get('USERPROFILE', None) )
-        if not home :
-            return None
-        else :
-            if system == 'darwin':
-                return os.path.join(home, 'Library/Preferences/Autodesk/maya')
+    app_dir = os.environ.get('MAYA_APP_DIR',None)
+    if app_dir is None :
+        if system == 'Window':
+            app_dir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
+            if app_dir is None:
+                return
+            
+            # Vista or newer... version() returns "6.x.x"
+            if int(platform.version().split('.')[0]) > 5:
+                app_dir = os.path.join( app_dir, 'Documents')
             else:
-                return os.path.join(home, 'maya')
-    return os.environ['MAYA_APP_DIR']
+                app_dir = os.path.join( app_dir, 'My Documents')
+        else:
+            app_dir = os.environ.get('HOME',None)
+            if app_dir is None:
+                return
+            
+        if system == 'Darwin':
+            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
+        else:
+            app_dir = os.path.join( app_dir, 'maya' )
+            
+    return app_dir
 
 
 def mayaDocsLocation(version=None):
