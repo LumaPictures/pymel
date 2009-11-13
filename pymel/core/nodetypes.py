@@ -778,10 +778,10 @@ class DiscreteComponent( DimensionedComponent ):
 
         # Made this return a normal list for easier debugging...
         # ... can always make it back to a generator if need it for speed
-#        for rawIndex in xrange(start, stop, step):
-#            yield ComponentIndex(partialIndex + (rawIndex,))
-        return [ComponentIndex(partialIndex + (rawIndex,))
-                for rawIndex in xrange(start, stop, step)]
+        for rawIndex in xrange(start, stop, step):
+            yield ComponentIndex(partialIndex + (rawIndex,))
+#        return [ComponentIndex(partialIndex + (rawIndex,))
+#                for rawIndex in xrange(start, stop, step)]
     
     def _dimLength(self, partialIndex):
         """
@@ -828,29 +828,27 @@ class DiscreteComponent( DimensionedComponent ):
         """
         Given a ComponentIndex object, which may be either a partial index (ie,
         len(index) < self.dimensions), or whose individual-dimension indices
-        might be slices, return a flat list of ComponentIndex objects. 
+        might be slices, return an flat list of ComponentIndex objects. 
         """
         # Some components - such as face-vertices - need to know the previous
         # indices to be able to fully expand the remaining indices... ie,
         # faceVertex[1][2][:] may result in a different expansion than for
         # faceVertex[3][8][:]...
         # for this reason, we need to supply the previous indices to 
-        # _sliceToIndices, and expand on a per-partial-index basis 
-        
+        # _sliceToIndices, and expand on a per-partial-index basis
         while len(index) < self.dimensions:
             index = ComponentIndex(index + (HashableSlice(None),))
-          
-        indices = set([ComponentIndex()])
+        
+        indices = [ComponentIndex()]
         for dimIndex in index:
             if isinstance(dimIndex, (slice, HashableSlice)):
-                newIndices = set()
+                newIndices = []
                 for oldPartial in indices:
-                    newIndices.update(self._sliceToIndices(dimIndex,
-                                                    partialIndex=oldPartial))
+                    newIndices.extend(self._sliceToIndices(dimIndex,
+                                                           partialIndex=oldPartial))
                 indices = newIndices
             else:
-                indices = set([ComponentIndex(x + (dimIndex,))
-                                  for x in indices])
+                indices = [ComponentIndex(x + (dimIndex,)) for x in indices]
         return indices
     
     def __iter__(self):
@@ -875,50 +873,10 @@ class DiscreteComponent( DimensionedComponent ):
         # Since an MFnComponent is essentially a flat list of such indices
         # - only it's stored in maya's private memory space - we AVOID
         # calling __apicomponent__ in this case!
-        minDimension = self.currentDimension()
         
-        # tailIndices will hold the indices that, when appended
-        # to the _partialIndex, will form a complete index for the component.
-        # we will iterate through all possible tailIndex values.
-        tailIndices = []
-        # dimension maxes hold the current maximum values for each of the
-        # respective indices in tailIndices
-        # Note that these can change as we iterate through - ie, in the case
-        # of MeshVertexFace
-        # ...for dimensions already specified by _partialIndex, set None as
-        # a placeholder - just makes indices for dimMaxes make a bit more sense
-        dimMaxes = [None] * minDimension
-
-        # initialize both..
-        for i in xrange(minDimension, self.dimensions):
-            dimMaxes.append(self._dimLength(self._partialIndex + tuple(tailIndices)))
-            tailIndices.append(0)
-        
-        while True:
-            # Note that we ALWAYS yield at least 1 element
-            # since this iterator is only called if at least one
-            # dimension is free, this should be a safe assumption!
-            yield self._partialIndex + tuple(tailIndices)
-            # want to go from last index to minDimension...
-            for dimIncrementing in xrange(self.dimensions - 1,
-                                          minDimension - 1, -1):
-                tailIndices[dimIncrementing - minDimension] += 1
-                if tailIndices[dimIncrementing - minDimension] < dimMaxes[dimIncrementing]:
-                    # we haven't overflowed this index, we're done
-                    # incrementing
-                    break
-                # We overflowed that index, set it to zero, re-calc our maxes,
-                # and continue on by indexing the next higher dimension!
-                tailIndices[dimIncrementing - minDimension] = 0
-            else:
-                # If we overflowed all available indices, we're done!
-                break
-            # If we increased something other than just the last element,
-            # we need to recalc our maxes...
-            if dimIncrementing != self.dimensions - 1:
-                for recalcDim in xrange(dimIncrementing + 1, self.dimensions):
-                    dimMaxes[recalcDim] = \
-                        self._dimLength(self._partialIndex + tuple(tailIndices[:recalcDim]))
+        # self._partialIndex may have slices...
+        for index in self._flattenIndex(self._partialIndex):
+            yield index
         
     def _flatIter(self):
         #If we're completely specified, we assume that we NEED
@@ -1373,6 +1331,18 @@ class MeshVertexFace( Component2D ):
             return self.node().numVertices()
         elif len(partialIndex) == 1:
             return self.node().vtx[partialIndex[0]].numConnectedFaces()
+        
+#    def _sliceToIndices(self, sliceObj, partialIndex=None):
+#        if (sliceObj.start not in (0, None) or
+#            sliceObj.stop is not None or
+#            sliceObj.step is not None):
+#            raise ValueError('%s objects may not be indexed with slices, execpt for [:]' %
+#                             self.__class__.__name__)
+#        if not partialIndex:
+#            for x in xrange(self._node.numVertices()):
+#                yield x
+#        else:
+#            for 
     
 ## Subd Components    
 
