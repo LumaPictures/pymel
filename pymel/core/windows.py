@@ -402,6 +402,7 @@ def optionMenuGrp( *args, **kwargs ):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
+class CallbackError(Exception): pass
 
 class Callback(object):
     """
@@ -436,7 +437,10 @@ class Callback(object):
         self.kwargs = kwargs
     def __call__(self,*args):
         Callback._callData = (self.func, self.args, self.kwargs)
-        mel.python("%s.Callback._doCall()" % thisModuleCmd)
+        try:
+            mel.python("%s.Callback._doCall()" % thisModuleCmd)
+        except Exception, e:
+            raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
         return Callback._callData    
     
 class CallbackWithArgs(Callback):
