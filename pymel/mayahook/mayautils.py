@@ -2,17 +2,18 @@
 Maya-related functions, which are useful to both `api` and `core`, including `mayaInit` which ensures
 that maya is initialized in standalone mode.
 """
-
+from __future__ import with_statement
 import re, os.path, sys, platform, time
 
 from pwarnings import *
 import plogging
 
-from pymel.util import path as _path, shellOutput
+from pymel.util import path as _path, shellOutput, picklezip
 
 import pymel.version as version
 from pymel.version import parseVersionStr, shortName, installName
 import maya
+import maya.OpenMaya as om
 
 _logger = plogging.getLogger(__name__)
 try:
@@ -44,12 +45,13 @@ isInitializing = False
 pymelMayaPackage = hasattr(maya, 'pymelCompatible') or version.CURRENT >= version.v2011
         
 
-def _moduleDir():
+def _moduleJoin(*args):
     """
-    Returns the base pymel directory.
+    Joins with the base pymel directory.
     :rtype: string
     """
-    return os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
+    moduleDir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__ ) )
+    return os.path.realpath(os.path.join( moduleDir, *args))
 
 # A source command that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it
@@ -174,15 +176,30 @@ def getMayaExecutable(version=None, commandLine=True):
         return sys.executable
     
 
-    
 def getMayaAppDir():
-    if not os.environ.has_key('MAYA_APP_DIR') :
-        home = os.environ.get('HOME', None)
-        if not home :
-            return None
-        else :
-            return os.path.join(home, 'maya')
-    return os.environ['MAYA_APP_DIR']
+    app_dir = os.environ.get('MAYA_APP_DIR',None)
+    if app_dir is None :
+        if system == 'Window':
+            app_dir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
+            if app_dir is None:
+                return
+            
+            # Vista or newer... version() returns "6.x.x"
+            if int(platform.version().split('.')[0]) > 5:
+                app_dir = os.path.join( app_dir, 'Documents')
+            else:
+                app_dir = os.path.join( app_dir, 'My Documents')
+        else:
+            app_dir = os.environ.get('HOME',None)
+            if app_dir is None:
+                return
+            
+        if system == 'Darwin':
+            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
+        else:
+            app_dir = os.path.join( app_dir, 'maya' )
+            
+    return app_dir
 
 
 def mayaDocsLocation(version=None):
@@ -417,46 +434,57 @@ def initMEL():
         return
     
     _logger.debug( "initMEL" )        
-    import maya.mel
     
     mayaVersion = installName()
-    try:
-        prefsDir = os.path.join( getMayaAppDir(), mayaVersion, 'prefs' )
-    except:
-        _logger.error( "could not perform maya initialization sequence: MAYA_APP_DIR not set" )
+    appDir = getMayaAppDir()
+    if appDir is None:
+        _logger.error( "could not initialize user preferences: MAYA_APP_DIR not set" )
+        prefsDir = None
     else:
-        # TODO : use cmds.internalVar to get paths
-        # got this startup sequence from autodesk support
-        startup = [   
-            #'defaultRunTimeCommands.mel',  # sourced automatically
-            #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
-            'createPreferencesOptVars.mel',
-            'createGlobalOptVars.mel',
-            os.path.join( prefsDir, 'userPrefs.mel'),
-            'initialStartup.mel',
-            #$HOME/Documents/maya/projects/default/workspace.mel
-            'initialPlugins.mel',
-            #'initialGUI.mel', #GUI
-            #'initialLayout.mel', #GUI
-            #os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
-            #os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
-            #'hotkeySetup.mel', #GUI
-            'namedCommandSetup.mel',
-            os.path.join( prefsDir, 'userNamedCommands.mel' ),
-            #'initAfter.mel', #GUI
-            os.path.join( prefsDir, 'pluginPrefs.mel' ),
-        ]
-        try:
-            for f in startup:
-                if isinstance(f, unicode):
-                    encoding = 'unicode_escape'
+        prefsDir = os.path.realpath(os.path.join( appDir, mayaVersion, 'prefs' ))
+        if not os.path.isdir(prefsDir):
+            prefsDir = None
+            _logger.error( "could not initialize user preferences: %s does not exist" % prefsDir  )
+
+    # TODO : use cmds.internalVar to get paths
+    # got this startup sequence from autodesk support
+    startup = [   
+        #'defaultRunTimeCommands.mel',  # sourced automatically
+        #os.path.join( prefsDir, 'userRunTimeCommands.mel'), # sourced automatically
+        'createPreferencesOptVars.mel',
+        'createGlobalOptVars.mel',
+        os.path.join( prefsDir, 'userPrefs.mel') if prefsDir else None,
+        'initialStartup.mel',
+        #$HOME/Documents/maya/projects/default/workspace.mel
+        'initialPlugins.mel',
+        #'initialGUI.mel', #GUI
+        #'initialLayout.mel', #GUI
+        #os.path.join( prefsDir, 'windowPrefs.mel'), #GUI
+        #os.path.join( prefsDir, 'menuSetPrefs.mel'), #GUI
+        #'hotkeySetup.mel', #GUI
+        'namedCommandSetup.mel',
+        os.path.join( prefsDir, 'userNamedCommands.mel' ) if prefsDir else None,
+        #'initAfter.mel', #GUI
+        os.path.join( prefsDir, 'pluginPrefs.mel' )  if prefsDir else None
+    ]
+    try:
+        for f in startup:
+            if f is not None:
+                if os.path.isabs(f) and not os.path.exists(f):
+                    _logger.warning( "Maya startup file %s does not exist" % f )
                 else:
-                    encoding = 'string_escape'
-                # need to encode backslashes (used for windows paths)
-                maya.mel.eval( 'source "%s"' % f.encode(encoding) )
-                
-        except Exception, e:
-            _logger.error( "could not perform maya initialization sequence: failed on %s: %s" % ( f, e) )
+                    # need to encode backslashes (used for windows paths)
+                    if isinstance(f, unicode):
+                        encoding = 'unicode_escape'
+                    else:
+                        encoding = 'string_escape'
+                    #import pymel.core.language as lang
+                    #lang.mel.source( f.encode(encoding)  )
+                    import maya.mel
+                    maya.mel.eval( 'source "%s"' % f.encode(encoding) )
+            
+    except Exception, e:
+        _logger.error( "could not perform Maya initialization sequence: failed on %s: %s" % ( f, e) )
         
     try:
         # make sure it exists
@@ -467,7 +495,7 @@ def initMEL():
 
 
 def finalize():
-    if 'maya.app.startup.batch' in sys.modules: # means were in batch mode
+    if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
         global isInitializing
         if pymelMayaPackage and isInitializing:
             # this module is not encapsulated into functions, but it should already
@@ -503,99 +531,66 @@ def encodeFix():
                 except ImportError :
                     _logger.debug("Unable to import maya.app.baseUI")
 
-import gzip
-def save(object, filename, protocol = -1):
-    """Save an object to a compressed disk file.
-       Works well with huge objects.
-    """
-    try:
-        file = gzip.GzipFile(filename, 'wb')
-    except Exception, e:
-        _logger.debug("Unable to open '%s' for writing: %s" % ( filename, e ))
-   
-    pickle.dump(object, file, protocol)
-    file.close()
 
-def load(filename):
-    """Loads a compressed object from disk
-    """
-    file = gzip.GzipFile(filename, 'rb')
-    buffer = ""
-    while 1:
-        data = file.read()
-        if data == "":
-            break
-        buffer += data
-    object = pickle.loads(buffer)
-    file.close()
-    return object
+def _dump( data, filename, protocol = -1):
+    with open(filename, mode='wb') as file:
+        pickle.dump( data, file, protocol)
 
+def _load(filename):
+    with open(filename, mode='rb') as file:
+        res = pickle.load(file)
+        return res
+
+                 
 def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
-    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+    newPath = _moduleJoin( 'cache', filePrefix+short_version )
 
     if compressed:
         newPath += '.zip'
+        func = picklezip.load
     else:
         newPath += '.bin'
+        func = _load
         
     if description:
         description = ' ' + description
-    
-    if compressed:
-        return load(newPath)
-    
-    try :
-        file = open(newPath, mode='rb')
+  
+    try:
+        return func(newPath)
     except Exception, e:
-        _logger.warn("Unable to open '%s' for reading%s: %s" % ( newPath, description, e ))
-    else:
-        try :
-            #s = time.time()
-            res = pickle.load(file)
-            #_logger.debug("Loaded '%s' in %.04f seconds" % (newPath, time.time()-s) )
-            return res
-        except Exception, e:
-            _logger.warn("Unable to load%s from '%s': %s" % (description,file.name, e))
-        
-        file.close()
+        _logger.error("Unable to load%s from '%s': %s" % (description, newPath, e))
+
 
  
 def writeCache( data, filePrefix, description='', useVersion=True, compressed=True):
-    _logger.debug("writing cache")
     
     if useVersion:
         short_version = shortName()
     else:
         short_version = ''
     
-    newPath = os.path.join( _moduleDir(),  filePrefix+short_version )
+    newPath = _moduleJoin( 'cache', filePrefix+short_version )
     if compressed:
         newPath += '.zip'
+        func = picklezip.dump
     else:
         newPath += '.bin'
-
+        func = _dump
+        
     if description:
         description = ' ' + description
     
     _logger.info("Saving%s to '%s'" % ( description, newPath ))
     
-    if compressed:
-        return save(data, newPath, 2)
-    
     try :
-        file = open(newPath, mode='wb')
+        func( data, newPath, 2)
     except Exception, e:
-        _logger.debug("Unable to open '%s' for writing%s: %s" % ( newPath, description, e ))
-    else:
-        try :
-            pickle.dump( data, file, 2)
-        except:
-            _logger.debug("Unable to write%s to '%s'" % (description,file.name))
-        file.close()
+        _logger.error("Unable to write%s to '%s': %s" % (description, newPath, e))
+
               
 
 def getConfigFile():

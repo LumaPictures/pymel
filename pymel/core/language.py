@@ -600,17 +600,37 @@ class Mel(object):
         >>> mel.myScript( 'foo', [] )
         Traceback (most recent call last):
             ...
-        MelConversionError: Error occurred during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
-
+        MelConversionError: Error during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
+        Calling Procedure: myScript, in Mel procedure entered interactively.
+          myScript("foo",{})
     
     Notice that the error raised is a `MelConversionError`.  There are several MEL exceptions that may be raised,
     depending on the type of error encountered: `MelError`, `MelConversionError`, `MelArgumentError`, `MelSyntaxError`, and `MelUnknownProcedureError`.
-    To remain backward compatible with maya.cmds and older versions of pymel, all MEL exceptions inherit from 
+    
+    Here's an example showing a `MelArgumentError`, which also demonstrates the additional traceback
+    information that is provided for you, including the file of the calling script.
+    
+        >>> mel.startsWith('bar')
+        Traceback (most recent call last):
+          ...
+        MelArgumentError: Error during execution of MEL script: Line 1.18: Wrong number of arguments on call to startsWith.
+        Calling Procedure: startsWith, in file ".../scripts/others/startsWith.mel"
+          startsWith("bar")
+
+    Lastly, an example of `MelUnknownProcedureError`
+    
+        >>> mel.poop()
+        Traceback (most recent call last):
+          ...
+        MelUnknownProcedureError: Error during execution of MEL script: line 1: Cannot find procedure "poop".
+
+    .. note:: To remain backward compatible with maya.cmds and older versions of pymel, all MEL exceptions inherit from 
     `MelError`, which in turn inherits from `RuntimeError`.
     
     
     """
-          
+    # proc is not an allowed name for a global procedure, so it's safe to use as an attribute
+    proc = None     
     def __getattr__(self, command):
         if command.startswith('__') and command.endswith('__'):
             try:
@@ -631,7 +651,12 @@ class Mel(object):
                 # procedure
                 cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
             
-            return self.eval(cmd)
+            try:
+                self.__class__.proc = command 
+                return self.eval(cmd)
+            finally:
+                self.__class__.proc = None
+                
             #print cmd
 #            try:
 #                return _mm.eval(cmd)
@@ -677,12 +702,12 @@ class Mel(object):
         else:
             raise TypeError, "language keyword expects 'mel' or 'python'. got '%s'" % language
     
-    @staticmethod        
-    def eval( cmd ):
+    @classmethod        
+    def eval( cls, cmd ):
         """
         evaluate a string as a mel command and return the result. 
         
-        Behaves like maya.mel.eval, with several improvments:
+        Behaves like maya.mel.eval, with several improvements:
             - returns pymel `Vector` and `Matrix` classes
             - when an error is encountered a `MelError` exception is raised, along with the line number (if enabled) and exact mel error.
         
@@ -735,13 +760,29 @@ class Mel(object):
                 e = MelUnknownProcedureError
             elif 'Wrong number of arguments' in msg:
                 e = MelArgumentError
+                if cls.proc:
+                    # remove the calling proc, it will be added below
+                    msg = msg.split('\n', 1)[1].lstrip()
             elif 'Cannot convert data' in msg or 'Cannot cast data' in msg:
                 e = MelConversionError
             elif 'Syntax error' in msg:
                 e = MelSyntaxError
             else:
                 e = MelError
-            raise e, "Error occurred during execution of MEL script: %s\nScript:\n%s" % ( msg, cmd )
+            message = "Error during execution of MEL script: %s" % ( msg )
+            fmtCmd = '\n'.join( [ '  ' + x for x in cmd.split('\n') ] )
+            
+            
+            if cls.proc:
+                if e is not MelUnknownProcedureError:
+                    file = _mm.eval('whatIs "%s"' % cls.proc)
+                    if file.startswith( 'Mel procedure found in: '):
+                        file = 'file "%s"' % os.path.realpath(file.split(':')[1].lstrip())
+                    message += '\nCalling Procedure: %s, in %s' % (cls.proc, file )
+                    message += '\n' + fmtCmd
+            else:
+                message += '\nScript:\n%s' % fmtCmd
+            raise e, message
         else:   
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
             api.MMessage.removeCallback( id )

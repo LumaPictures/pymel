@@ -141,7 +141,7 @@ def _getPymelType(arg, name) :
 def about(**kwargs):
     """
 Modifications:
-    - added apiVersion/api flag to about command for version 8.5 and 8.5sp1
+  - added apiVersion/api flag to about command for version 8.5 and 8.5sp1
     """
     if kwargs.get('apiVersion', kwargs.get('api',False)):
         try:
@@ -163,7 +163,7 @@ Modifications:
 def select(*args, **kwargs):
     """
 Modifications:
-    - passing an empty list no longer causes an error. instead, the selection is cleared
+  - passing an empty list no longer causes an error. instead, the selection is cleared
     
     """
     
@@ -181,7 +181,7 @@ Modifications:
 def move(obj, *args, **kwargs):
     """
 Modifications:
-    - allows any iterable object to be passed as first argument::
+  - allows any iterable object to be passed as first argument::
     
         move("pSphere1", [0,1,2])
         
@@ -195,7 +195,7 @@ NOTE: this command also reorders the argument order to be more intuitive, with t
 def scale(obj, *args, **kwargs):
     """
 Modifications:
-    - allows any iterable object to be passed as first argument::
+  - allows any iterable object to be passed as first argument::
     
         scale("pSphere1", [0,1,2])
         
@@ -209,7 +209,7 @@ NOTE: this command also reorders the argument order to be more intuitive, with t
 def rotate(obj, *args, **kwargs):
     """
 Modifications:
-    - allows any iterable object to be passed as first argument::
+  - allows any iterable object to be passed as first argument::
     
         rotate("pSphere1", [0,1,2])
         
@@ -229,7 +229,7 @@ NOTE: this command also reorders the argument order to be more intuitive, with t
 def connectAttr( source, destination, **kwargs ):
     """
 Maya Bug Fix: 
-    - even with the 'force' flag enabled, the command would raise an error if the connection already existed. 
+  - even with the 'force' flag enabled, the command would raise an error if the connection already existed. 
     
     """
     if kwargs.get('force', False) or kwargs.get('f', False):    
@@ -245,7 +245,7 @@ Maya Bug Fix:
 def disconnectAttr( source, destination=None, **kwargs ):
     """
 Modifications:
-    - If no destination is passed, all inputs and outputs will be disconnected from the attribute
+  - If no destination is passed, all inputs and outputs will be disconnected from the attribute
     """
     
     if destination:
@@ -272,15 +272,14 @@ Modifications:
 def getAttr( attr, default=None, **kwargs ):
     """
 Maya Bug Fix:
-    - maya pointlessly returned vector results as a tuple wrapped in 
-        a list ( ex.  '[(1,2,3)]' ). This command unpacks the vector for you.
+  - maya pointlessly returned vector results as a tuple wrapped in a list ( ex.  '[(1,2,3)]' ). This command unpacks the vector for you.
+
 Modifications:
-    - casts double3 datatypes to `Vector`
-    - casts matrix datatypes to `Matrix`
-    - casts vectorArrays from a flat array of floats to an array of Vectors
-    - when getting a multi-attr, maya would raise an error, but pymel will return a list of
-         values for the multi-attr
-    - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
+  - casts double3 datatypes to `Vector`
+  - casts matrix datatypes to `Matrix`
+  - casts vectorArrays from a flat array of floats to an array of Vectors
+  - when getting a multi-attr, maya would raise an error, but pymel will return a list of values for the multi-attr
+  - added a default argument. if the attribute does not exist and this argument is not None, this default value will be returned
     """
     def listToMat( l ):
         return datatypes.Matrix(
@@ -342,12 +341,13 @@ class AmbiguityWarning(Warning):
 def setAttr( attr, *args, **kwargs):
     """
 Maya Bug Fix:
-    - setAttr did not work with type matrix. 
+  - setAttr did not work with type matrix. 
+
 Modifications:
-    - No need to set type, this will automatically be determined
-    - Adds support for passing a list or tuple as the second argument for datatypes such as double3.
-    - When setting stringArray datatype, you no longer need to prefix the list with the number of elements - just pass a list or tuple as with other arrays
-    - Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
+  - No need to set type, this will automatically be determined
+  - Adds support for passing a list or tuple as the second argument for datatypes such as double3.
+  - When setting stringArray datatype, you no longer need to prefix the list with the number of elements - just pass a list or tuple as with other arrays
+  - Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
         - if no type flag is passed, the attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
         - currently does not support compound attributes
         - currently supported python-to-maya mappings:        
@@ -524,13 +524,13 @@ Modifications:
 def addAttr( *args, **kwargs ):
     """
 Modifications:
-    - allow python types to be passed to set -at type
+  - allow python types to be passed to set -at type
             str        S{->} string
             float     S{->} double
             int        S{->} long
             bool    S{->} bool
             Vector    S{->} double3
-    - when querying dataType, the dataType is no longer returned as a list
+  - when querying dataType, the dataType is no longer returned as a list
     """
     at = kwargs.pop('attributeType', kwargs.pop('at', None ))
     if at is not None:
@@ -584,22 +584,22 @@ def hasAttr( pyObj, attr, checkShape=True ):
 def listAttr(*args, **kwargs):
     """
 Modifications:
-    - returns an empty list when the result is None
+  - returns an empty list when the result is None
     """
     return util.listForNone(cmds.listAttr(*args, **kwargs))
       
 def listConnections(*args, **kwargs):
     """
 Modifications:
-    - returns an empty list when the result is None
-    - When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
+  - returns an empty list when the result is None
+  - When 'connections' flag is True, the attribute pairs are returned in a 2D-array::
     
         [['checker1.outColor', 'lambert1.color'], ['checker1.color1', 'fractal1.outColor']]
         
-    - added sourceFirst keyword arg. when sourceFirst is true and connections is also true, 
+  - added sourceFirst keyword arg. when sourceFirst is true and connections is also true, 
         the paired list of plugs is returned in (source,destination) order instead of (thisnode,othernode) order.
         this puts the pairs in the order that disconnectAttr and connectAttr expect.
-    - added ability to pass a list of types
+  - added ability to pass a list of types
     
     :rtype: `PyNode` list
     """
@@ -656,9 +656,9 @@ Modifications:
 def listHistory( *args, **kwargs ):
     """
 Modifications:
-    - returns an empty list when the result is None
-    - added a much needed 'type' filter
-    - ...and an 'exactType' filter (if both are present, 'type' is ignored)
+  - returns an empty list when the result is None
+  - added a much needed 'type' filter
+  - ...and an 'exactType' filter (if both are present, 'type' is ignored)
     
     :rtype: `DependNode` list
     
@@ -683,9 +683,9 @@ Modifications:
 def listFuture( *args, **kwargs ):
     """
 Modifications:
-    - returns an empty list when the result is None
-    - added a much needed 'type' filter
-    - ...and an 'exactType' filter (if both are present, 'type' is ignored)
+  - returns an empty list when the result is None
+  - added a much needed 'type' filter
+  - ...and an 'exactType' filter (if both are present, 'type' is ignored)
     
     :rtype: `DependNode` list
     
@@ -698,12 +698,12 @@ Modifications:
 def listRelatives( *args, **kwargs ):
     """
 Maya Bug Fix
-    - allDescendents and shapes flags did not work in combination
+  - allDescendents and shapes flags did not work in combination
     
 Modifications:
-    - returns an empty list when the result is None
-    - returns wrapped classes
-    - fullPath is forced on to ensure that all returned node paths are unique
+  - returns an empty list when the result is None
+  - returns wrapped classes
+  - fullPath is forced on to ensure that all returned node paths are unique
     
     :rtype: `DependNode` list
     """
@@ -726,7 +726,7 @@ Modifications:
 def ls( *args, **kwargs ):
     """
 Modifications:
-    - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
+  - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
     
     :rtype: `PyNode` list
     """
@@ -812,7 +812,7 @@ Modifications:
 def listTransforms( *args, **kwargs ):
     """
 Modifications:
-    - returns wrapped classes
+  - returns wrapped classes
     
     :rtype: `Transform` list
     """
@@ -876,7 +876,7 @@ def nodeType( node, **kwargs ):
 def group( *args, **kwargs ):
     """
 Modifications
-    - if no objects are provided for grouping, the empty flag is automatically set
+  - if no objects are provided for grouping, the empty flag is automatically set
     """
     if not args and not cmds.ls(sl=1):
         kwargs['empty'] = True
@@ -897,13 +897,13 @@ Modifications
 def duplicate( *args, **kwargs ):
     """
 Modifications:
-    - new option: addShape
+  - new option: addShape
         If addShape evaluates to True, then all arguments fed in must be shapes, and each will be duplicated and added under
         the existing parent transform, instead of duplicating the parent transform.
         The following arguments are incompatible with addShape, and will raise a ValueError if enabled along with addShape:
             renameChildren (rc), instanceLeaf (ilf), parentOnly (po), smartTransform (st)
-    - returns wrapped classes
-    - returnRootsOnly is forced on. This is because the duplicate command does not use full paths when returning
+  - returns wrapped classes
+  - returnRootsOnly is forced on. This is because the duplicate command does not use full paths when returning
     the names of duplicated objects and will fail if the name is not unique. Rather than return a mixed list of PyNodes and
     strings, I thought it best to give more predictable results.
     """
@@ -984,7 +984,7 @@ Modifications:
 def instance( *args, **kwargs ):
     """
 Modifications:
-    - returns wrapped classes
+  - returns wrapped classes
     """
     return map(PyNode, cmds.instance( *args, **kwargs ) )    
 
@@ -992,8 +992,8 @@ Modifications:
 def attributeInfo( *args, **kwargs ):
     """
 Modifications:
-    - returns an empty list when the result is None
-    - returns wrapped classes
+  - returns an empty list when the result is None
+  - returns wrapped classes
     """
     
     return map(PyNode, util.listForNone(cmds.attributeInfo(*args, **kwargs)))
@@ -1023,7 +1023,7 @@ def createNode( *args, **kwargs):
 def sets( *args, **kwargs):
     """
 Modifications
-    - resolved confusing syntax: operating set is always the first and only arg:
+  - resolved confusing syntax: operating set is always the first and only arg:
     
         >>> from pymel.all import *
         >>> f=newFile(f=1) #start clean
@@ -1045,7 +1045,7 @@ Modifications
         >>> sets( sg, q=1)
         []
     
-    - returns wrapped classes
+  - returns wrapped classes
         
     """
     setSetFlags = [
@@ -1155,7 +1155,7 @@ Modifications
 def delete(*args, **kwargs):
     """
 Modifications:
-    - the command will not fail on an empty list
+  - the command will not fail on an empty list
     """
     #if kwargs.pop('safe',False):
         # empty list
@@ -1169,7 +1169,7 @@ Modifications:
 def getClassification( *args ):
     """
 Modifications:
-    - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
+  - previously returned a list with a single colon-separated string of classifications. now returns a list of classifications
     
     :rtype: `unicode` list
     """

@@ -3,7 +3,7 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import inspect, types
+import inspect, types, operator
 from warnings import *
 
 class Singleton(type):
@@ -467,7 +467,7 @@ class universalmethod(object):
             return self.f(instance, *args)
         return newfunc
 
-def lazyLoadModule(name, contents):
+def LazyLoadModule(name, contents):
     """
     :param name: name of the module
     :param contents: dictionary of initial module globals
@@ -487,7 +487,7 @@ def lazyLoadModule(name, contents):
     Example::
     
         import sys
-        mod = lazyLoadModule(__name__, globals())
+        mod = LazyLoadModule(__name__, globals())
         mod._addattr( 'foo', str, 'bar' )
         sys.modules[__name__] = mod
     
@@ -530,7 +530,7 @@ def lazyLoadModule(name, contents):
         # update the lazyModule with our new additions (ie, fooExpanded)
         lazyModule._updateLazyModule(globals())
     """
-    class LazyLoadModule(types.ModuleType):
+    class _LazyLoadModule(types.ModuleType):
         class LazyLoader(object):
             """
             A data descriptor that delays instantiation of an object
@@ -566,7 +566,50 @@ def lazyLoadModule(name, contents):
         
         @classmethod
         def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
-            setattr( cls, name, cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs) )
+            lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
+            setattr( cls, name, lazyObj )
+            return lazyObj
+
+        def __setitem__(self, attr, args):
+            """
+            dynModule['attrName'] = ( callbackFunc, ( 'arg1', ), {} )
+            """
+            # args will either be a single callable, or will be a tuple of 
+            # ( callable, (args,), {kwargs} )
+            if hasattr( args, '__call__'):
+                callback = args
+            elif isinstance( args, (tuple, list) ):
+                if len(args) >= 1:
+                    assert hasattr( args[0], '__call__' ), 'first argument must be callable'
+                    callback = args[0]
+                else:
+                    raise ValueError, "must supply at least one argument"
+                if len(args) >= 2:
+                    assert hasattr( args[1], '__iter__'), 'second argument must be iterable'
+                    cb_args = args[1]
+                else:
+                    cb_args = ()
+                    cb_kwargs = {}
+                if len(args) == 3:
+                    assert operator.isMappingType(args[2]), 'third argument must be a mapping type'
+                    cb_kwargs = args[2]
+                else:
+                    cb_kwargs = {}
+                if len(args) > 3:
+                    raise ValueError, "if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively"
+            else:
+                raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
+            self._addattr(attr, callback, *cb_args, **cb_kwargs)
+              
+        def __getitem__(self, attr):
+            """
+            return a LazyLoader without initializing it, or, if a LazyLoader does not exist with this name,
+            a real object
+            """
+            try:
+                return self.__class__.__dict__[attr]
+            except KeyError:
+                return self.__dict__[attr]
         
         # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
         # 'real' entries in the module
@@ -581,7 +624,7 @@ def lazyLoadModule(name, contents):
 #                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict)
 #                                              if not x.startswith('__')]
 
-    return LazyLoadModule(name, contents)
+    return _LazyLoadModule(name, contents)
 
 # Note - since anything referencing attributes that only exist on the lazy module
 # must be prefaced with a ref to the lazy module, if we are converting a pre-existing
@@ -961,8 +1004,8 @@ class EquivalencePairs(TwoWayDict):
     def __contains__(self, key):
         return (dict.__contains__(self, key) or
                 key in self._reverse)
-          
-
+    
+    
 # unit test with doctest
 if __name__ == '__main__' :
     import doctest

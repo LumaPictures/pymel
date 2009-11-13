@@ -9,7 +9,7 @@ def diff_caches():
         diff_cache( cacheName, useVersion )
         
 def diff_cache( cacheName, useVersion ):
-    import pymel
+    import pymel.all as pymel
     
     if useVersion:
         cacheName += pymel.mayahook.getMayaVersion(extension=False)

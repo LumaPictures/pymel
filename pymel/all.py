@@ -16,17 +16,18 @@ from util.arrays import *
 
 import core.datatypes as datatypes
 
-## some submodules do 'import pymel.core.pmcmds as cmds' -
-## this ensures that when the user does 'from pymel import *',
-## cmds is always maya.cmds
-import maya.cmds as cmds
-
 from pymel.mayahook import Version
 
 from core import nodetypes
 from core.nodetypes import *
+from core.uitypes import *
 
 # These two were imported into 'old' pymel top level module,
 # so make sure they're imported here as well
-import pymel.core as core
-import pymel.tools as tools
+import core as core
+import tools as tools
+
+## some submodules do 'import pymel.core.pmcmds as cmds' -
+## this ensures that when the user does 'from pymel import *',
+## cmds is always maya.cmds
+import maya.cmds as cmds

@@ -1,5 +1,5 @@
 
-import pymel
+import pymel.all as pymel
 from pymel.all import *
 from pymel.core.datatypes import *
 from time import time

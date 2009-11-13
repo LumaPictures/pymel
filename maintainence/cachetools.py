@@ -1,5 +1,5 @@
 #from pymel.core import factories
-from pymel import mayahook
+from pymel.all import mayahook
         
 def separateExampleCache():
     examples = {}

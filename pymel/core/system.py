@@ -10,7 +10,7 @@ within the pymel namespace.
 
 for example, instead of this:
     
-    >>> res = cmds.file( 'test.ma', exportAll=1, preserveReferences=1, type='mayaAscii', force=1 )
+    >>> res = cmds.file( 'test.ma', exportAll=1, preserveReferences=1, type='mayaAscii', force=1 ) # doctest: +SKIP
     
 you can do this:
 
@@ -451,7 +451,7 @@ class Workspace(object):
 
     @classmethod
     def getPath(self):
-        return Path(cmds.workspace( q=1, fullpath=1 ))
+        return Path(cmds.workspace( q=1, fullName=1 ))
     
     @classmethod
     def chdir(self, newdir):
@@ -463,8 +463,8 @@ class Workspace(object):
     def mkdir(self, newdir):
         return cmds.workspace( cr=newdir )
 
-    name = property( lambda x: cmds.workspace( q=1, act=1 ) )        
-    path = property( lambda x: Path(cmds.workspace( q=1, fullName=1 ) ) )
+    name = property( getName )        
+    path = property( getPath )
             
     def __call__(self, *args, **kwargs):
         """provides backward compatibility with cmds.workspace by allowing an instance
@@ -876,8 +876,8 @@ class FileReference(object):
         import general
         self._refNode = None
         if pathOrRefNode:
-            if isinstance(pathOrRefNode, basestring) and '.' in pathOrRefNode:
-                self._refNode = general.PyNode( cmds.referenceQuery( pathOrRefNode, referenceNode=1 ) )
+            if isinstance(pathOrRefNode, (basestring,Path)) and '.' in pathOrRefNode:
+                    self._refNode = general.PyNode( cmds.referenceQuery( str(pathOrRefNode), referenceNode=1 ) )
             elif isinstance( pathOrRefNode, general.nodetypes.Reference ):
                 self._refNode = pathOrRefNode
             else:
@@ -1276,8 +1276,8 @@ class ReferenceEdit(str):
 
 def _correctPath(path):
     # make paths absolute
-    if '\\' not in path and '/' not in path and path != 'untitled':
-        path = '/'.join( [os.getcwd().replace('\\', '/'), path] )
+    if not os.path.isabs(path) and path != 'untitled':
+        path = os.path.normpath(cmds.workspace(q=1,fullName=1) + '/' + path)
     return path
 
 @_factories.addMelDocs('file', 'reference')

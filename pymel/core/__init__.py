@@ -3,15 +3,9 @@
 #import pymel.mayahook as mayahook
 
 import sys, logging
+import pymel.version as _version
 import pymel.mayahook as mayahook
 
-#from mayahook import Version
-#if Version.current == Version.v85:
-#    raise AssertionError, "This version of pymel is only compatible with Maya 8.5 Service Pack 1 or greater."
-#elif Version.current == Version.v85sp1:
-#    plogging.pymelLogger.warn( "pymel works best with Maya 2008 and above. See the documentation for features that do not work in 8.5" )
-
-#import pymel.mayahook.plogging as plogging
 # will check for the presence of an initilized Maya / launch it
 mayahook.mayaInit() 
 
@@ -21,19 +15,21 @@ import factories
 from general import *
 from context import *
 from system import *
-# to allow lazy loading, we avoid import *
-# TODO: add a UI equivalent of nodetypes
-import windows
+from windows import *
 from animation import *
 from effects import *
 from modeling import *
 from rendering import *
 from language import *
 from other import *
-#from datatypes import *
 
 # to allow lazy loading, we avoid import *
-import nodetypes as nodes
+import nodetypes
+import nodetypes as nt
+import datatypes
+import datatypes as dt
+import uitypes
+import uitypes as ui
 
 import runtime
 import maya.cmds as cmds
@@ -41,14 +37,15 @@ import maya.cmds as cmds
 # initialize MEL 
 mayahook.finalize()
 
-_module = sys.modules['pymel.core.nodetypes']
+import maya.cmds as cmds
+
 _logger = logging.getLogger('pymel.core')
 
 #: dictionary of plugins and the nodes and commands they register   
 _pluginData = {}
 
-                 
-             
+_module = sys.modules[__name__]
+    
 def _pluginLoaded( *args ):
 
     if len(args) > 1:
@@ -86,6 +83,8 @@ def _pluginLoaded( *args ):
             try:
                 if func:
                     setattr( _module, funcName, func )
+                    if 'pymel.all' in sys.modules:
+                        setattr( sys.modules['pymel.all'], funcName, func )
                 else:
                     _logger.warning( "failed to create function" )
             except Exception, msg:
@@ -119,12 +118,16 @@ def _pluginLoaded( *args ):
                     #__logger.debug("adding new node:", mayaType, apiEnum, inheritence)
                     # some nodes in the hierarchy for this node might not exist, so we cycle through all 
                     parent = 'dependNode'
+                    
                     for node in inheritance:
-                        factories.addPyNode( _module, node, parent )
+                        nodeName = factories.addPyNode( nodetypes, node, parent )
                         parent = node
+                        if 'pymel.all' in sys.modules:
+                            # getattr forces loading of Lazy object
+                            setattr( sys.modules['pymel.all'], nodeName, getattr(nodetypes,nodeName) )
         
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
-        if api.MFileIO.isReadingFile() or ( mayahook.Version.current >= mayahook.Version.v2008 and api.MFileIO.isOpeningFile() ):
+        if api.MFileIO.isReadingFile() or ( _version.CURRENT >= _version.v2008 and api.MFileIO.isOpeningFile() ):
             #__logger.debug("pymel: Installing temporary plugin-loaded callback")
             id = api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
@@ -172,7 +175,7 @@ def _pluginUnloaded(*args):
         if nodes:
             _logger.debug("Removing nodes: %s" % ', '.join( nodes ))
             for node in nodes:
-                factories.removePyNode( _module, node )
+                factories.removePyNode( nodetypes, node )
 
 
 global _pluginLoadedCB
@@ -192,7 +195,7 @@ def _installCallbacks():
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
         
-        if mayahook.Version.current >= mayahook.Version.v2009:
+        if _version.CURRENT >= _version.v2009:
             id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
             id.disown()
         else:
@@ -208,7 +211,7 @@ def _installCallbacks():
         # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
         #mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
         
-        if mayahook.Version.current >= mayahook.Version.v2009:
+        if _version.CURRENT >= _version.v2009:
             _logger.debug("Adding pluginUnloaded callback")
             id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
             id.disown()
