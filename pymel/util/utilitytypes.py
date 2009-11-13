@@ -720,6 +720,248 @@ def addLazyDocString( object, creator, *creatorArgs, **creatorKwargs):
     """
     object.__doc__ = LazyDocString( (object, creator, creatorArgs, creatorKwargs) )
 
+class TwoWayDict(dict):
+    """
+    A dictionary that can also map in reverse: value to key.
+
+    >>> twd = TwoWayDict( {3:'foobar'} )
+    >>> twd[3]
+    'foobar'
+    >>> twd.get_key('foobar')
+    3
+        
+    Entries in both sets (keys and values) must be unique within that set, but
+    not necessarily across the two sets - ie, you may have 12 as both a key and
+    a value, but you may not have two keys which both map to 12 (or, as with a
+    regular dict, two key entries for 12).
+    
+    If a key is updated to a new value, get_key for the old value will raise
+    a KeyError:
+    
+    >>> twd = TwoWayDict( {3:'old'} )
+    >>> twd[3] = 'new'
+    >>> twd[3]
+    'new'
+    >>> twd.get_key('new')
+    3
+    >>> twd.get_key('old')
+    Traceback (most recent call last):
+        ...
+    KeyError: 'old'
+    
+    Similarly, if a key is updated to an already-existing value, then the old key
+    will be removed from the dictionary! 
+    
+    >>> twd = TwoWayDict( {'oldKey':'aValue'} )
+    >>> twd['newKey'] = 'aValue'
+    >>> twd['newKey']
+    'aValue'
+    >>> twd.get_key('aValue')
+    'newKey'
+    >>> twd['oldKey']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'oldKey'
+    
+    If a group of values is fed to the TwoWayDict (either on initialization, or
+    through 'update', etc) that is not consistent with these conditions, then the
+    resulting dictionary is indeterminate; however, it is guaranteed to be a valid/
+    uncorrupted TwoWayDict.
+    (This is similar to how dict will allow, for instance, {1:'foo', 1:'bar'}).
+
+    >>> twd = TwoWayDict( {1:'foo', 1:'bar'} )
+    >>> # Is twd[1] 'foo' or 'bar'?? Nobody knows!
+    >>> # ...however, one of these is guaranteed to raise an error...
+    >>> twd.get_key('foo') + twd.get_key('bar')   #doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    KeyError: (either 'bar' or 'foo')
+    >>> twd = TwoWayDict( {1:'foo', 2:'foo'} )
+    >>> # Is twd.get_key('foo') 1 or 2? Nobody knows!
+    >>> # ...however, one of these is guaranteed to raise an error...
+    >>> twd[1] + twd[2]   #doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+        ...
+    KeyError: (either 1 or 2)
+        
+    Obviously, such shenannigans should be avoided - at some point in the future, this may
+    cause an error to be raised...
+    """
+    
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self)
+        self._reverse = {}
+        self.update(*args, **kwargs)
+
+    def __setitem__(self, k, v):
+        # Maintain the 1-1 mapping
+        if dict.__contains__(self, k):
+            del self._reverse[self[k]]
+        if v in self._reverse:
+            dict.__delitem__(self, self.get_key(v))
+        dict.__setitem__(self, k, v)
+        self._reverse[v] = k
+
+    def has_value(self, v):
+        return self._reverse.has_key(v)
+    
+    def __delitem__(self, k):
+        del self._reverse[self[k]]
+        dict.__delitem__(self, k)
+            
+    def clear(self):
+        self._reverse.clear()
+        dict.clear(self)
+
+    def copy(self):
+        return TwoWayDict(self)
+
+    def pop(self, k):
+        del self._reverse[self[k]]
+        return self.pop(k)
+
+    def popitem(self, **kws):
+        raise NotImplementedError()
+
+    def setdefault(self, **kws):
+        raise NotImplementedError()
+
+    def update(self, *args, **kwargs):
+        if len(args) > 1:
+            raise TypeError('update expected at most 1 arguments, got %d' % len(args))
+        # since args may be a couple different things, cast it to a dict to
+        # simplify things...
+        tempDict = dict(args[0])
+        tempDict.update(kwargs)
+        for key, val in tempDict.iteritems():
+            self[key] = val
+
+    def get_key(self, v):
+        return self._reverse[v] 
+
+class EquivalencePairs(TwoWayDict):
+    """
+    A mapping object similar to a TwoWayDict, with the addition that indexing
+    and '__contains__' can now be used with keys OR values:
+    
+    >>> eq = EquivalencePairs( {3:'foobar'} )
+    >>> eq[3]
+    'foobar'
+    >>> eq['foobar']
+    3
+    >>> 3 in eq
+    True
+    >>> 'foobar' in eq
+    True
+    
+    This is intended to be used where there is a clear distinction between
+    keys and values, so there is little likelihood of the sets of keys
+    and values intersecting. 
+    
+    The dictionary has the same restrictions as a TwoWayDict, with the added restriction
+    that an object must NOT appear in both the keys and values, unless it maps to itself.
+    If a new item is set that would break this restriction, the old keys/values will be
+    removed from the mapping to ensure these restrictions are met. 
+    
+    >>> eq = EquivalencePairs( {1:'a', 2:'b', 3:'die'} )
+    >>> eq['a']
+    1
+    >>> eq['b']
+    2
+    >>> eq[1]
+    'a'
+    >>> eq[2]
+    'b'
+    >>> del eq['die']
+    >>> eq[3]
+    Traceback (most recent call last):
+        ...
+    KeyError: 3
+    >>> eq[2] = 1
+    >>> eq[1]
+    2
+    >>> eq[2]
+    1
+    >>> eq['a']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'a'
+    >>> eq['b']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'b'
+
+    # Even though 2 is set as a VALUE, since it already
+    # exists as a KEY, the 2:'b' mapping is removed,
+    # so eq['b'] will be invalid...
+    >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
+    >>> eq['new'] = 2
+    >>> eq['new']
+    2
+    >>> eq[2]
+    'new'
+    >>> eq['b']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'b'
+    
+    # Similarly, if you set as a KEy something that
+    # already exists as a value...
+    >>> eq = EquivalencePairs( {1:'a', 2:'b'} )
+    >>> eq['b'] = 3
+    >>> eq['b']
+    3
+    >>> eq[3]
+    'b'
+    >>> eq[2]
+    Traceback (most recent call last):
+        ...
+    KeyError: 2
+
+    If a group of values is fed to the EquivalencePairs (either on initialization, or
+    through 'update', etc) that is not consistent with it's restrictions, then the
+    resulting dictionary is indeterminate; however, it is guaranteed to be a valid/
+    uncorrupted TwoWayDict.
+    
+    (This is somewhat similar to the behavior of the dict object itself, which will allow
+    a definition such as {1:2, 1:4} )
+    
+    Obviously, such shenannigans should be avoided - at some point in the future, this may
+    even cause an error to be raised...
+    
+    Finally, note that a distinction between keys and values IS maintained, for compatibility
+    with keys(), iter_values(), etc.
+    """
+    def __setitem__(self, k, v):
+        if k in self:
+            # this will check if k is in the keys OR values...
+            del self[k]
+        if v in self:
+            del self[v]
+        dict.__setitem__(self, k, v)
+        self._reverse[v] = k
+        
+    def __delitem__(self, key):
+        if dict.__contains__(self, key):
+            super(EquivalencePairs, self).__delitem__(key)
+        elif key in self._reverse:
+            dict.__delitem__(self, self[key])
+            del self._reverse[key]
+        else:
+            raise KeyError(key)
+            
+    def __getitem__(self, key):
+        if dict.__contains__(self, key):
+            return super(EquivalencePairs, self).__getitem__(key)
+        elif key in self._reverse:
+            return self._reverse[key]
+        else:
+            raise KeyError(key)
+    
+    def __contains__(self, key):
+        return (dict.__contains__(self, key) or
+                key in self._reverse)
+          
 
 # unit test with doctest
 if __name__ == '__main__' :
