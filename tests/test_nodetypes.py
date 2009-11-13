@@ -14,7 +14,7 @@ VERBOSE = False
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
-    leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy, if not children ]
+    leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
 
 EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
@@ -837,7 +837,7 @@ class testCase_0_7_compatabilityMode(unittest.TestCase):
     class NOT_SET(object): pass
     
     def setUp(self):
-        self.stored_0_7_compatability_mode = mayahook.pymel_options.get( '0_7_compatibility_mode', NOT_SET)
+        self.stored_0_7_compatability_mode = mayahook.pymel_options.get( '0_7_compatibility_mode', False)
         mayahook.pymel_options['0_7_compatibility_mode'] = True
         
     def tearDown(self):
