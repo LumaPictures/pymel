@@ -1038,7 +1038,7 @@ class Component1D( DiscreteComponent ):
         # Just as well, we get a more efficient iterator for 1D comps...
         mfncomp = self.__apicomponent__()
         for flatIndex in xrange(len(self)):
-            yield mfncomp.element(flatIndex)
+            yield ComponentIndex( (mfncomp.element(flatIndex),) )
             
     def currentItem(self):
         mfncomp = self.__apicomponent__()
