@@ -596,7 +596,7 @@ class DimensionedComponent( Component ):
                                  % (label, indexObjs.label))
             indices.update(self._flattenIndex(indexObjs))
         elif isinstance(indexObjs, dict):
-            # Dicts are used to specify component labels for a group of indices at onces...
+            # Dicts are used to specify component labels for a group of indices at once...
             for dictLabel, dictIndices in indexObjs.iteritems():
                 if label and label != dictLabel:
                     raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'

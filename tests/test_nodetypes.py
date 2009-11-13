@@ -564,6 +564,7 @@ class testCase_components(unittest.TestCase):
         self.compData['lattice'] = ComponentData(LatticePoint,
                                                  self.nodes['lattice'], "pt",
                                                  [IndexData((0,1,0))])
+        self.nodes['polySphere'] = cmds.polySphere()[0]
         # prevent crash sometimes after making a subd, then selecting edges -
         # see http://groups.google.com/group/python_inside_maya/browse_thread/thread/9415d03bac9e712b/0b94edb468fbe6bd
         cmds.refresh()
@@ -930,6 +931,19 @@ class testCase_components(unittest.TestCase):
         pynodeStr = str(PyNode(self.nodes['sphere']).uv)
         self.assertTrue(pynodeStr in nameAliases,
                         '%s not equivalent to %s.uv[0:4][0:8]' % (pynodeStr,sphereShape))
+        
+    def test_multiComponentName(self):
+        compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
+        mfnComp = api.MFnSingleIndexedComponent(compMobj)
+        mfnComp.addElement(0)
+        mfnComp.addElement(1)
+        mfnComp.addElement(2)
+        mfnComp.addElement(5)
+        mfnComp.addElement(7)
+        mfnComp.addElement(9)
+        mfnComp.addElement(11)
+        myVerts = MeshVertex(self.nodes['polySphere'], compMobj)
+        print myVerts
         
     def runTest(self):
         """
