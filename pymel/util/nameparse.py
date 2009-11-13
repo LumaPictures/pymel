@@ -144,10 +144,10 @@ class NamespaceSepParser(Parser):
         ''' NamespaceSep : Colon '''   
         p[0] = NamespaceSep(Token(p[1], type='Colon', pos=p.lexpos(1)))    
 
-    precedence = ( ('left', ('Colon') ),
+    precedence = ( ('left', 'Colon' ),
                    ('left', 'Underscore'),
-                   ('right', ('Alpha', 'Num') ),
-                 )
+                   ('right', 'Alpha', 'Num' ),
+                   )
         
 class NamespaceParser(NamespaceSepParser, MayaNameParser, EmptyParser):
     """ A Parser for Namespace, Maya namespaces names """
@@ -189,10 +189,10 @@ class DagPathSepParser(Parser):
         ''' DagPathSep : Pipe '''   
         p[0] = DagPathSep(Token(p[1], type='Pipe', pos=p.lexpos(1)))    
 
-    precedence = ( ('left', ('Pipe') ),
-                   ('left', ('Colon') ),
+    precedence = ( ('left', 'Pipe'),
+                   ('left', 'Colon'),
                    ('left', 'Underscore'),
-                   ('left', ('Alpha', 'Num') ),
+                   ('left', 'Alpha', 'Num' ),
                  )
               
 class MayaNodePathParser(DagPathSepParser, MayaShortNameParser):
@@ -221,11 +221,11 @@ class AttrSepParser(Parser):
         ''' AttrSep : Dot '''   
         p[0] = AttrSep(Token(p[1], type='Dot', pos=p.lexpos(1)))    
 
-    precedence = ( ('left', ('Dot') ),
-                   ('left', ('Pipe') ),
-                   ('left', ('Colon') ),
+    precedence = ( ('left', 'Dot'),
+                   ('left', 'Pipe'),
+                   ('left', 'Colon'),
                    ('left', 'Underscore'),
-                   ('left', ('Alpha', 'Num') ),
+                   ('left', 'Alpha', 'Num'),
                  )
 
 class NameIndexParser(Parser):
@@ -237,12 +237,12 @@ class NameIndexParser(Parser):
         ''' NameIndex : Index '''   
         p[0] = NameIndex(Token(p[1], type='Index', pos=p.lexpos(1)))    
 
-    precedence = ( ('left', ('Index') ),
-                   ('left', ('Dot') ),
-                   ('left', ('Pipe') ),
-                   ('left', ('Colon') ),
+    precedence = ( ('left', 'Index'),
+                   ('left', 'Dot'),
+                   ('left', 'Pipe'),
+                   ('left', 'Colon'),
                    ('left', 'Underscore'),
-                   ('left', ('Alpha', 'Num') ),
+                   ('left', 'Alpha', 'Num'),
                  )
 
 class NameRangeIndexParser(Parser):
@@ -256,13 +256,13 @@ class NameRangeIndexParser(Parser):
         ''' NameRangeIndex : RangeIndex '''   
         p[0] = NameIndex(Token(p[1], type='RangeIndex', pos=p.lexpos(1)))    
 
-    precedence = ( ('left', ('RangeIndex') ),
-                   ('left', ('Index') ),
-                   ('left', ('Dot') ),
-                   ('left', ('Pipe') ),
-                   ('left', ('Colon') ),
+    precedence = ( ('left', 'RangeIndex'),
+                   ('left', 'Index'),
+                   ('left', 'Dot'),
+                   ('left', 'Pipe'),
+                   ('left', 'Colon'),
                    ('left', 'Underscore'),
-                   ('left', ('Alpha', 'Num') ),
+                   ('left', 'Alpha', 'Num'),
                  )  
 
 class SingleComponentNameParser(NameRangeIndexParser, NameIndexParser, MayaNameParser):   
