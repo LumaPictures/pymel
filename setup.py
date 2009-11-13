@@ -87,10 +87,6 @@ def get_maya_version():
     except:
         pass
 
-def get_ply_version():
-    if sys.version_info >= (2,6):
-        return 'ply >2.0'
-    return 'ply >2.0, <3.0'
 
 def get_data_files():
     if get_maya_version() in ['2010'] and system == 'Darwin':
@@ -186,7 +182,7 @@ def main():
               packages=['pymel','pymel.api', 'pymel.core', 'pymel.mayahook', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util' ],
               entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
               package_data={'pymel': ['*.bin', '*.conf' ] },
-              install_requires=['BeautifulSoup >3.0', get_ply_version(), 'ipython'],
+              install_requires=['BeautifulSoup >3.0', 'ply==3.3', 'ipython'],
               tests_require=['nose'],
               test_suite = 'nose.collector',
               data_files = get_data_files()
