@@ -475,7 +475,9 @@ def MItDag (root = None, *args, **kwargs) :
                 yield obj
             iterObj.next()
     
-           
+# Essentially duplicated in datatypes - only difference is
+# whether return value is a PyMel or api object
+# Repeated for speed           
 def getPlugValue( plug ):
     """given an MPlug, get its value"""
 
