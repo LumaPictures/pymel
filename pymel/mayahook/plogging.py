@@ -60,7 +60,8 @@ def getLogConfigFile():
         return configFile
     return getConfigFile()
 
-maya.utils.shellLogger()
+if hasattr(maya.utils, 'shellLogger'):
+    maya.utils.shellLogger()
 
 #configFile = getLogConfigFile()
 #if sys.version_info >= (2,6):
