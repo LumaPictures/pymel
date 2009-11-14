@@ -2608,16 +2608,4 @@ def iterHierarchy ( *args, **kwargs ):
 
 
 
-
-def _analyzeApiClasses():
-    for elem in api.apiTypeHierarchy.preorder():
-        try:
-            parent = elem.parent.key
-        except:
-            parent = None
-        _factories.analyzeApiClass( elem.key, None )
-        
-
-
-
 _factories.createFunctions( __name__, PyNode )
