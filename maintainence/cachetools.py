@@ -1,6 +1,8 @@
 #from pymel.core import factories
 from pymel.all import mayahook
-        
+import pprint
+import os.path
+
 def separateExampleCache():
     examples = {}
     succ = fail = 0
@@ -159,11 +161,15 @@ def mergedTest():
     print time.time() - s2
     
 
-def compress():
+def compressAll():
     for cache, useVersion in caches + [('mayaCmdsListAll', True), ('mayaCmdsDocs', True) ]:
-        data = mayahook.loadCache(cache, useVersion=useVersion, compressed=False)
-        mayahook.writeCache(data, cache, useVersion=useVersion, compressed=True)
+        compress(cache, useVersion)
 
+def compress(cache, useVersion=True):
+    useVersion = dict(caches).get(cache,useVersion)
+    data = mayahook.loadCache(cache, useVersion=useVersion, compressed=False)
+    mayahook.writeCache(data, cache, useVersion=useVersion, compressed=True)
+    
 def decompress():
     caches2 = [ ('mayaCmdsListAll', True), ('mayaApiMelBridge',False), ('mayaApi',True) ]
     
@@ -193,6 +199,17 @@ def decompress():
             data = mayahook.loadCache(cache, useVersion=useVersion, compressed=True)
     print "compress=1, docstrings=0:", time.time()-s1
 
-
+def prepdiff(cache, outputDir='' ):
+    pprintCache(cache, True, outputDir)
+    pprintCache(cache, False, outputDir)
      
-                    
+def pprintCache(cache, compressed, outputDir):
+    useVersion = dict(caches).get(cache,True)
+    data = mayahook.loadCache(cache, useVersion=useVersion, compressed=compressed)
+    fname = os.path.realpath(os.path.join('', cache+ ('_zip.txt' if compressed else '_bin.txt') ) )
+    print "writing to", fname
+    f = open(fname, 'w')
+
+    pprint.pprint( data, f)
+    f.close()
+    
