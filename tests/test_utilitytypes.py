@@ -152,6 +152,10 @@ class TestProxyClass(TestCase):
         def clsMeth(cls):
             return cls
     
+        @staticmethod
+        def statMeth():
+            return 'static'
+    
         def instMeth(self):
             return (self, self.id)
         
@@ -166,6 +170,11 @@ class TestProxyClass(TestCase):
                                           dataAttrName='_data')
         self.assertEqual(Wrapped.clsMeth(), self.MyClass.clsMeth())
 
+    def test_staticMethod(self):
+        Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
+                                          dataAttrName='_data')
+        self.assertEqual(Wrapped.statMeth(), self.MyClass.statMeth())
+        
     def test_instMethod(self):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
                                           dataAttrName='_data')
@@ -178,5 +187,14 @@ class TestProxyClass(TestCase):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
                                           dataAttrName='_data')
         self.assertEqual(Wrapped.__doc__, self.MyClass.__doc__)
+        
+    def test_immutable(self):
+        
+        Wrapped = utilitytypes.proxyClass(''.__class__, 'Wrapped',
+                                          dataAttrName='_data')
+        self.assertEqual(Wrapped('Fun times were had by all')[3:7],
+                         'Fun times were had by all'[3:7])
+        
+    
 
 setupUnittestModule(__name__)

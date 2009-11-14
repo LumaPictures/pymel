@@ -392,31 +392,26 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
 
     assert not ( dataAttrName and dataFuncName ), 'Cannot use attribute and function for data storage. Choose one or the other.'
 
-    if dataAttrName:
-        class ProxyAttribute(object):
-            def __init__(self, name):
-                self.name = name
-        
+    class ProxyAttribute(object):
+        def __init__(self, name):
+            self.name = name
+
+        if dataAttrName:
             def __get__(self, proxyInst, proxyClass):
                 if proxyInst is None:
                     return getattr(cls, self.name)
                 else:
                     return getattr(getattr(proxyInst, dataAttrName),
                                    self.name)
-        
-    elif dataFuncName:
-        class ProxyAttribute(object):
-            def __init__(self, name):
-                self.name = name
-        
+        elif dataFuncName:
             def __get__(self, proxyInst, proxyClass):
                 if proxyInst is None:
                     return getattr(cls, self.name)
                 else:
                     return getattr(getattr(proxyInst, dataFuncName)(),
                                    self.name)
-    else:
-        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
+        else:
+            raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
 
     class Proxy(object):
         # make a default __init__ which sets the dataAttr...
