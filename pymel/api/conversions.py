@@ -4,7 +4,7 @@
 import sys, inspect, time, os.path
 
 from allapi import *
-from pymel.util import Singleton, metaStatic, expandArgs, IndexedFrozenTree, treeFromDict
+from pymel.util import Singleton, metaStatic, expandArgs
 import pymel.util as util
 import pymel.mayahook as mayahook
 _logger = mayahook.getLogger(__name__)
@@ -573,7 +573,9 @@ def _buildApiTypeHierarchy(apiClassInfo=None) :
     # make a Tree from that child:parent dictionnary
 
     # assign the hierarchy to the module-level variable
-    apiTypeHierarchy = IndexedFrozenTree(treeFromDict(MFnDict))
+    #from pymel.util.trees import IndexedFrozenTree, treeFromDict
+    #apiTypeHierarchy = IndexedFrozenTree(treeFromDict(MFnDict))
+    apiTypeHierarchy = MFnDict
     return apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo
 
 def _buildApiCache(rebuildAllButClassInfo=False):
@@ -590,7 +592,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
     apiClassInfo = None
     
-    data = mayahook.loadCache( 'mayaApi', 'the API cache', compressed=False )
+    data = mayahook.loadCache( 'mayaApi', 'the API cache', compressed=True )
     if data is not None:
         
         ReservedMayaTypes(data[0])
@@ -623,7 +625,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
     _logger.info( 'merging in dictionary of manual api overrides')
     util.mergeCascadingDicts( apiClassOverrides, apiClassInfo, allowDictToListMerging=True )
-
+    
     mayahook.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
                            dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), 
                            dict(MayaTypesToApiTypes()), 
@@ -645,7 +647,7 @@ def saveApiCache():
 
 def loadApiToMelBridge():
 
-    data = mayahook.loadCache( 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False, compressed=False )
+    data = mayahook.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
     if data is not None:
         # maya 8.5 fix: convert dict to defaultdict
         bridge, overrides = data
