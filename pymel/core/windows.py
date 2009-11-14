@@ -413,6 +413,8 @@ def optionMenuGrp( *args, **kwargs ):
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
 
+class CallbackError(Exception): pass
+
 if version.CURRENT >= version.v2009:
 
     class Callback(object):
@@ -476,8 +478,6 @@ else:
                     c = Callback(addRigger,rigger,p=1))   # will run: addRigger(rigger,p=1)
         """
     
-
-    
         def __init__(self,func,*args,**kwargs):
             self.func = func
             self.args = args
@@ -494,16 +494,22 @@ else:
             
         def __call__(self,*args):
             Callback._callData = (self.func, self.args, self.kwargs)
-            mel.python("%s.Callback._doCall()" % thisModuleCmd)
-            return Callback._callData    
-    
+            try:
+                mel.python("%s.Callback._doCall()" % thisModuleCmd)
+            except Exception, e:
+                raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
+            return Callback._callData
+        
     class CallbackWithArgs(Callback):
         def __call__(self,*args,**kwargs):
             kwargsFinal = self.kwargs.copy()
             kwargsFinal.update(kwargs)
             Callback._callData = (self.func, self.args + args, kwargsFinal)
-            mel.python("%s.Callback._doCall()" % thisModuleCmd)
-            return Callback._callData    
+            try:
+                mel.python("%s.Callback._doCall()" % thisModuleCmd)
+            except Exception, e:
+                raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
+            return Callback._callData
         
     
 def autoLayout(*args, **kwargs):
