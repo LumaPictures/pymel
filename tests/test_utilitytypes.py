@@ -1,4 +1,4 @@
-from testingutils import TestCaseExtended, setupUnittestModule
+from testingutils import TestCaseExtended, setupUnittestModule, TestCase
 from pymel.util import utilitytypes
 
 aDict = {'A':1, 'a':2}
@@ -102,44 +102,81 @@ class TestFrozenDict(__AbstractTestDict):
         for hidden in shouldBeHidden:
             self.assertFalse(hasattr(self.testClass(), hidden))
 
-#class TestEquivalencePairs(TestCaseExtended):
-#    def testInitPairs(self):
-#        ep = utilityTypes.EquivalencePairs( ((1,'foo'), (2,'bar')) )
-#        self.assertEqual(ep[1], 'foo')
-#        self.assertEqual(ep[2], 'bar')
-#        self.assertEqual(ep['foo'], 1)
-#        self.assertEqual(ep['bar'], 2)
-#        
-#    def testInitDict(self):
-#        ep = utilityTypes.EquivalencePairs( {1:'foo', 2:'bar'} )
-#        self.assertEqual(ep[1], 'foo')
-#        self.assertEqual(ep[2], 'bar')
-#        self.assertEqual(ep['foo'], 1)
-#        self.assertEqual(ep['bar'], 2)
-#
-#    def testInitEquivPairs(self):
-#        otherEp = utilityTypes.EquivalencePairs( {1:'foo', 2:'bar'} )
-#        ep = utilityTypes.EquivalencePairs(otherEp)
-#        self.assertEqual(ep[1], 'foo')
-#        self.assertEqual(ep[2], 'bar')
-#        self.assertEqual(ep['foo'], 1)
-#        self.assertEqual(ep['bar'], 2)
-#        
-#    def testOverwritePairs(self):
-#        ep = utilityTypes.EquivalencePairs({1:'a', 2:'b'})
-#        self.assertEqual(eq[1], 'a')
-#        self.assertEqual(eq[2], 'b')
-#        self.assertEqual(eq['a'], 1)
-#        self.assertEqual(eq['b'], 2)
-#        eq[1] = 2
-#        self.assertRaises(KeyError, self._getIndex, eq, 'a')
-#        self.assertRaises(KeyError, self._getIndex, eq, 'b')
-#        self.assertEqual(eq[1], 2)
-#        self.assertEqual(eq[2], 1)
-#        
-#    def _getIndex(self, indexableObj, index):
-#        return indexableObj[index]
-    
+class TestEquivalencePairs(TestCaseExtended):
+    def testInitPairs(self):
+        ep = utilitytypes.EquivalencePairs( ((1,'foo'), (2,'bar')) )
+        self.assertEqual(ep[1], 'foo')
+        self.assertEqual(ep[2], 'bar')
+        self.assertEqual(ep['foo'], 1)
+        self.assertEqual(ep['bar'], 2)
+        
+    def testInitDict(self):
+        ep = utilitytypes.EquivalencePairs( {1:'foo', 2:'bar'} )
+        self.assertEqual(ep[1], 'foo')
+        self.assertEqual(ep[2], 'bar')
+        self.assertEqual(ep['foo'], 1)
+        self.assertEqual(ep['bar'], 2)
 
+    def testInitEquivPairs(self):
+        otherEp = utilitytypes.EquivalencePairs( {1:'foo', 2:'bar'} )
+        ep = utilitytypes.EquivalencePairs(otherEp)
+        self.assertEqual(ep[1], 'foo')
+        self.assertEqual(ep[2], 'bar')
+        self.assertEqual(ep['foo'], 1)
+        self.assertEqual(ep['bar'], 2)
+        
+    def testOverwritePairs(self):
+        ep = utilitytypes.EquivalencePairs({1:'a', 2:'b'})
+        self.assertEqual(ep[1], 'a')
+        self.assertEqual(ep[2], 'b')
+        self.assertEqual(ep['a'], 1)
+        self.assertEqual(ep['b'], 2)
+        ep[1] = 2
+        self.assertRaises(KeyError, self._getIndex, ep, 'a')
+        self.assertRaises(KeyError, self._getIndex, ep, 'b')
+        self.assertEqual(ep[1], 2)
+        self.assertEqual(ep[2], 1)
+        
+    def _getIndex(self, indexableObj, index):
+        return indexableObj[index]
+    
+class TestProxyClass(TestCase):
+    class MyClass(object):
+        "MyClass's doc string!"
+        data = 3.14
+        
+        def __init__(self, id):
+            self.id = id
+    
+        @classmethod
+        def clsMeth(cls):
+            return cls
+    
+        def instMeth(self):
+            return (self, self.id)
+        
+    def test_wrapData(self):
+        Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
+                                          dataAttrName='_data')
+        self.assertEqual(Wrapped.data, self.MyClass.data)
+        self.assertEqual(Wrapped('foo').data, self.MyClass('foo').data)
+
+    def test_classMethod(self):
+        Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
+                                          dataAttrName='_data')
+        self.assertEqual(Wrapped.clsMeth(), self.MyClass.clsMeth())
+
+    def test_instMethod(self):
+        Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
+                                          dataAttrName='_data')
+        wrappedResult = Wrapped('bar').instMeth()
+        myClassResult = self.MyClass('bar').instMeth()
+        self.assertEqual(wrappedResult[0].__class__, myClassResult[0].__class__)
+        self.assertEqual(wrappedResult[1], myClassResult[1])
+
+    def test_docString(self):
+        Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
+                                          dataAttrName='_data')
+        self.assertEqual(Wrapped.__doc__, self.MyClass.__doc__)
 
 setupUnittestModule(__name__)
