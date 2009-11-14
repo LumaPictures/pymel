@@ -43,27 +43,27 @@ from __future__ import generators
 # removed as it's 2.5 only
 # import functools as ftools
 from collections import *
-import logging
-_logger = logging.getLogger(__name__)
 import inspect
 import warnings
 import weakref as weak
 from copy import *
 
+#import logging
+#_logger = logging.getLogger(__name__)
 useNetworkx = False
 networkxLoad = False
-if useNetworkx :
-    try :
-        import networkx.tree as nt
-        networkxLoad = True
-    except :
-        _logger.info("Library 'networkx' not present")
-        networkxLoad = False
-    
-if networkxLoad :
-    _logger.info("Trees module will use networkx library")
-else :
-    _logger.info("Trees module will use pure python implementation")
+#if useNetworkx :
+#    try :
+#        import networkx.tree as nt
+#        networkxLoad = True
+#    except :
+#        _logger.info("Library 'networkx' not present")
+#        networkxLoad = False
+#    
+#if networkxLoad :
+#    _logger.info("Trees module will use networkx library")
+#else :
+#    _logger.info("Trees module will use pure python implementation")
       
 #Utility
 
