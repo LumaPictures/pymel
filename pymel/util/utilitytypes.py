@@ -3,7 +3,7 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import inspect, types, operator
+import inspect, types, operator, sys
 from warnings import *
 
 class Singleton(type):
@@ -548,7 +548,7 @@ def LazyLoadModule(name, contents):
                 # same one will be returned
                 if not hasattr(self, 'newobj'):
                     self.newobj = self.creator(*self.args, **self.kwargs)
-                    if isinstance(obj, types.ModuleType):
+                    if isinstance(obj, types.ModuleType) and hasattr(self.newobj, '__module__'):
                         self.newobj.__module__ = obj.__name__
                 #print "Lazy-loaded object:", self.name
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
@@ -558,14 +558,16 @@ def LazyLoadModule(name, contents):
         def __init__(self, name, contents):
             types.ModuleType.__init__(self, name)
             self.__dict__.update(contents)
-        
+            self._lazyGlobals = contents
+            sys.modules[name] = self
+            self._lazyGlobals.update( self.__dict__ )
         @property
         def __all__(self):
             public = [ x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_') ]
             return public
         
         @classmethod
-        def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
+        def _lazyModule_addAttr(cls, name, creator, *creatorArgs, **creatorKwargs):
             lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
             setattr( cls, name, lazyObj )
             return lazyObj
@@ -599,7 +601,7 @@ def LazyLoadModule(name, contents):
                     raise ValueError, "if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively"
             else:
                 raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
-            self._addattr(attr, callback, *cb_args, **cb_kwargs)
+            self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
               
         def __getitem__(self, attr):
             """
@@ -613,17 +615,18 @@ def LazyLoadModule(name, contents):
         
         # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
         # 'real' entries in the module
-        def _updateLazyModule(self, otherDict):
+        def _lazyModule_update(self):
             """
             Used to update the contents of the LazyLoadModule with the contents of another dict.
             """
-            self.__dict__.update(otherDict)
+            self.__dict__.update(self._lazyGlobals)
             # For debugging, print out a list of things in the LazyLoadModule that AREN'T in
             # otherDict...
 #            print "only in dynamic module:", [x for x in
 #                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict)
 #                                              if not x.startswith('__')]
 
+    
     return _LazyLoadModule(name, contents)
 
 # Note - since anything referencing attributes that only exist on the lazy module
