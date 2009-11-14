@@ -24,7 +24,6 @@ import factories as _factories
 import pymel.api as api
 import datatypes
 import pymel.util.nameparse as nameparse
-import pymel.mayahook.pwarnings as pwarnings
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -383,6 +382,7 @@ Modifications:
                 # we can infer the type from the passed value
                 #attr = Attribute(attr)
                 if force and not cmds.objExists(attr): #attr.exists():
+                    import pymel.util.nameparse as nameparse
                     attrName = nameparse.parse( attr )
                     assert attrName.isAttributeName(), "passed object is not an attribute"
                     try:
@@ -399,10 +399,9 @@ Modifications:
                         elif isinstance( arg[0], float ):
                             datatype = 'doubleArray'
                             if len(arg)==3:
-                                pwarnings.warn(AmbiguityWarning(
+                                _logger.warn(
                                     "The supplied value will be interperted as a 'doubleArray' and not as a 'double3' (vector). "
-                                    "Supply an explicit 'datatype' argument to avoid this warning."
-                                    ))
+                                    "Supply an explicit 'datatype' argument to avoid this warning." )
                         else:
                             raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
 
@@ -481,6 +480,7 @@ Modifications:
             if datatype is None:
                 #attr = Attribute(attr)    
                 if force and not cmds.objExists(attr): #attr.exists(): 
+                    import pymel.util.nameparse as nameparse
                     attrName = nameparse.parse( attr )
                     assert attrName.isAttributeName(), "passed object is not an attribute"
                     if isinstance( arg, basestring ):
@@ -1779,7 +1779,7 @@ def _deprecatePyNode():
         makeDeprecatedMethod( method )                   
 
 
-_deprecatePyNode()            
+_deprecatePyNode()
                          
 _factories.PyNodeNamesToPyNodes()['PyNode'] = PyNode
 
@@ -1924,7 +1924,7 @@ def _apiSelectionToList ( sel ):
                 pynode = PyNode( obj )
                 result.append(pynode)                
             except :
-                pwarnings.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
+                _logger.warn("Unable to recover selection %i:'%s'" % (i, ', '.join(selStrs)) )             
     return result      
     
     
@@ -1965,12 +1965,12 @@ def _optToDict(*args, **kwargs ):
                     # already there, do nothing
                     pass
                 else :
-                    pwarnings.warn("%s=%s contradicts %s=%s, both ignored" % (key, val, key, result[key]))
+                    _logger.warn("%s=%s contradicts %s=%s, both ignored" % (key, val, key, result[key]))
                     del result[key]
             else :
                 result[key] = val
         else :
-            pwarnings.warn("'%r' has an invalid type for this keyword argument (valid types: %s)" % (n, types))
+            _logger.warn("'%r' has an invalid type for this keyword argument (valid types: %s)" % (n, types))
     return result                 
             
 
@@ -2111,7 +2111,7 @@ def iterNodes (  *args, **kwargs ):
         if key is not None : 
             if cDic.has_key(key) and vDic[key] != val :
                 # same condition with opposite value contradicts existing condition
-                pwarnings.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
+                _logger.warn("Condition '%s' is present with mutually exclusive True and False expected result values, both ignored" % key)
                 del cDic[key]
             else :
                 cDic[key] = val

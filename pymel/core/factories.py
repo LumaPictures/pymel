@@ -3365,11 +3365,11 @@ def fixClassAnalysis( filename ):
 #            
 #    
 def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName):
-    _logger.debug( "creating %s" % pyNodeTypeName )
+    #_logger.info( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
         ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
     except AttributeError:
-        _logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
+        #_logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
         return      
     try:
         PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
@@ -3396,25 +3396,31 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
     
-    if hasattr( dynModule, pyNodeTypeName ):
-        _api.addMayaType( mayaType )
-        PyNodeType = getattr( dynModule, pyNodeTypeName )
-        #print "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName )
-        try :
-            ParentPyNode = inspect.getmro(PyNodeType)[1]
-            #print "parent:", ParentPyNode, ParentPyNode.__name__
-            if ParentPyNode.__name__ != parentPyNodeTypeName :
-                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
-        except :
-            ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
-        #_logger.debug("already exists:", pyNodeTypeName, )
-        PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
-        PyNodesToMayaTypes()[PyNodeType] = mayaType
-        PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
-    else:
-        _logger.debug( "%s(%s) setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
+    try:
+        dynModule[pyNodeTypeName]
+    except KeyError:
+        #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
         dynModule[pyNodeTypeName] = ( addPyNodeCallback, 
                                    ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
+#    else:
+#        if not pyNodeTypeName in dynModule.__dict__:
+#            _api.addMayaType( mayaType )
+#            _logger.info( "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName ) )
+#            
+#            
+#            PyNodeType = getattr( dynModule, pyNodeTypeName )
+#            try :
+#                ParentPyNode = inspect.getmro(PyNodeType)[1]
+#                #print "parent:", ParentPyNode, ParentPyNode.__name__
+#                if ParentPyNode.__name__ != parentPyNodeTypeName :
+#                    raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
+#            except :
+#                ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
+#            #_logger.debug("already exists:", pyNodeTypeName, )
+#            PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
+#            PyNodesToMayaTypes()[PyNodeType] = mayaType
+#            PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+
     return pyNodeTypeName
 
 def removePyNode( dynModule, mayaType ):
