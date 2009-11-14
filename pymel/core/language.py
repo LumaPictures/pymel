@@ -797,7 +797,7 @@ class Mel(object):
             elif resType == api.MCommandResult.kInt:
                 result = api.MScriptUtil().asIntPtr()
                 res.getResult(result)
-                return api.MScriptUtil(result).asInt()
+                return api.MScriptUtil.getInt(result)
             elif resType == api.MCommandResult.kIntArray:
                 result = api.MIntArray()
                 res.getResult(result)
@@ -805,7 +805,7 @@ class Mel(object):
             elif resType == api.MCommandResult.kDouble:
                 result = api.MScriptUtil().asDoublePtr()
                 res.getResult(result)
-                return api.MScriptUtil(result).asDouble()
+                return api.MScriptUtil.getDouble(result)
             elif resType == api.MCommandResult.kDoubleArray:
                 result = api.MDoubleArray()
                 res.getResult(result)

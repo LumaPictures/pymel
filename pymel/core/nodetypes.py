@@ -810,19 +810,9 @@ class DiscreteComponent( DimensionedComponent ):
 
     @classmethod
     def _pyArrayToMayaArray(cls, pythonArray):
-        scriptUtil = api.MScriptUtil()
         mayaArray = api.MIntArray()
-        scriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
+        api.MScriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
         return mayaArray
-    
-    # Ok... i'm dumb, you can just do: [x for x in mayaArray]
-#    @classmethod
-#    def _mayaArrayToPyArray(cls, mayaArray):
-#        scriptUtil = api.MScriptUtil()
-#        cArray = scriptUtil.asIntPtr()
-#        mayaArray.get(cArray)
-#        return [scriptUtil.getIntArrayItem ( cArray, i ) for i in xrange(mIntArray.length())] 
-
     
     def _flattenIndex(self, index):
         """
@@ -909,18 +899,18 @@ class DiscreteComponent( DimensionedComponent ):
         # in our case, this list of indices is the MFnComponent object
         # itself, and is stored in maya's memory, but the idea is the same... 
 
-        # This code duplicates much of currentItem - should be consolidated at some point
-        # (or, better yet, currentItem eliminated..)
+        # This code duplicates much of currentItem - keeping both
+        # for speed, as _flatIter may potentially have to plow through a lot of
+        # components, so we don't want to make an extra function call...
 
         dimensionIndicePtrs = []
-        scriptUtil = api.MScriptUtil()
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(scriptUtil.asIntPtr())
+            dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
             
         for flatIndex in xrange(len(self)):
             mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
-            yield ComponentIndex(scriptUtil.getInt(x) for x in dimensionIndicePtrs)
+            yield ComponentIndex(api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs)
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
@@ -936,16 +926,18 @@ class DiscreteComponent( DimensionedComponent ):
     
     def getIndex(self):
         return self._currentFlatIndex            
-
+            
     def currentItem(self):
-        # This code duplicates much of _flatIter - should be consolidated at some point
+        # This code duplicates much of _flatIter - keeping both
+        # for speed, as _flatIter may potentially have to plow through a lot of
+        # components, so we don't want to make an extra function call...
         dimensionIndicePtrs = []
-        scriptUtil = api.MScriptUtil()        
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(scriptUtil.asIntPtr())
-        curIndex = ComponentIndex(mfncomp.getElement(self._currentFlatIndex,
-                                                     *dimensionIndicePtrs))
+            dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
+
+        mfncomp.getElement(self._currentFlatIndex, *dimensionIndicePtrs)
+        curIndex = ComponentIndex(api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs)
         return self.__class__(self._node, curIndex)
             
     def next(self):
@@ -1101,7 +1093,6 @@ class Component1D64( DiscreteComponent ):
         
         @classmethod
         def _pyArrayToMayaArray(cls, pythonArray):
-            scriptUtil = api.MScriptUtil()
             mayaArray = api.MUint64Array(len(pythonArray))
             for i, value in enumerate(pythonArray):
                 mayaArray.set(value, i)
@@ -1373,8 +1364,7 @@ class MeshVertexFace( Component2D ):
     
             # get a MitMeshVertex ...
             mIt = api.MItMeshVertex(self._node.__apimdagpath__())
-            su = api.MScriptUtil()
-            mIt.setIndex(partialIndex[0], su.asIntPtr())
+            mIt.setIndex(partialIndex[0], api.MScriptUtil().asIntPtr())
             intArray = api.MIntArray()
             mIt.getConnectedFaces(intArray)
             for i in xrange(intArray.length()):
@@ -5576,10 +5566,9 @@ class SkinCluster(GeometryFilter):
             return iter(weights)
         else:
             weights = api.MDoubleArray()
-            su = api.MScriptUtil()
-            index = su.asUintPtr()
+            index = api.MScriptUtil().asUintPtr()
             self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index )
-            index = api.MScriptUtil(index).asInt()
+            index = api.MScriptUtil.getInt(index)
             args = [iter(weights)] * index
             return itertools.izip(*args)
         

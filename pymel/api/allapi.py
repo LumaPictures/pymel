@@ -278,9 +278,8 @@ def MItNodes( *args, **kwargs ):
             typeFilter.setFilterType ( args[0] ) 
         else :
             # annoying argument conversion for Maya API non standard C types
-            scriptUtil = MScriptUtil()
             typeIntM = MIntArray()
-            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            MScriptUtil.createIntArrayFromList ( args,  typeIntM )
             typeFilter.setFilterList ( typeIntM )
         # we will iterate on dependancy nodes, not dagPaths or plugs
         typeFilter.setObjectType ( MIteratorType.kMObject )
@@ -330,9 +329,8 @@ def MItGraph (nodeOrPlug, *args, **kwargs):
             typeFilter.setFilterType ( args[0] ) 
         else :
             # annoying argument conversion for Maya API non standard C types
-            scriptUtil = MScriptUtil()
             typeIntM = MIntArray()
-            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            MScriptUtil.createIntArrayFromList ( args,  typeIntM )
             typeFilter.setFilterList ( typeIntM )
         # we start on a node or a plug
         if startPlug is not None :
@@ -399,9 +397,8 @@ def MItDag (root = None, *args, **kwargs) :
             typeFilter.setFilterType ( args[0] ) 
         else :
             # annoying argument conversion for Maya API non standard C types
-            scriptUtil = MScriptUtil()
             typeIntM = MIntArray()
-            scriptUtil.createIntArrayFromList ( args,  typeIntM )
+            MScriptUtil.createIntArrayFromList ( args,  typeIntM )
             typeFilter.setFilterList ( typeIntM )
         # we start on a MDagPath or a Mobject
         if startPath is not None :
@@ -562,62 +559,48 @@ def getPlugValue( plug ):
                 return plug.asDouble()
             
             elif dataType == MFnNumericData.k2Short :
-                su1 = MScriptUtil()
-                ptr1 = su1.asShortPtr()
-                su2= MScriptUtil()
-                ptr2 = su2.asShortPtr()
+                ptr1 = MScriptUtil().asShortPtr()
+                ptr2 = MScriptUtil().asShortPtr()
                 
                 numFn.getData2Short(ptr1,ptr2)
-                return ( MScriptUtil(ptr1).asShort(), MScriptUtil(ptr2).asShort() )
+                return ( MScriptUtil.getShort(ptr1), MScriptUtil.getShort(ptr2) )
             
             elif dataType in [ MFnNumericData.k2Int, MFnNumericData.k2Long ]:
-                su1 = MScriptUtil()
-                ptr1 = su1.asIntPtr()
-                su2= MScriptUtil()
-                ptr2 = su2.asIntPtr()
+                ptr1 = MScriptUtil().asIntPtr()
+                ptr2 = MScriptUtil().asIntPtr()
                 
                 numFn.getData2Int(ptr1,ptr2)
-                return ( MScriptUtil(ptr1).asInt(), MScriptUtil(ptr2).asInt() )
+                return ( MScriptUtil.getInt(ptr1), MScriptUtil.getInt(ptr2) )
         
             elif dataType == MFnNumericData.k2Float :
-                su1 = MScriptUtil()
-                ptr1 = su1.asFloatPtr()
-                su2= MScriptUtil()
-                ptr2 = su2.asFloatPtr()
+                ptr1 = MScriptUtil().asFloatPtr()
+                ptr2 = MScriptUtil().asFloatPtr()
                 
                 numFn.getData2Float(ptr1,ptr2)
-                return ( MScriptUtil(ptr1).asFloat(), MScriptUtil(ptr2).asFloat() )
+                return ( MScriptUtil.getFloat(ptr1), MScriptUtil.getFloat(ptr2) )
              
             elif dataType == MFnNumericData.k2Double :
-                su1 = MScriptUtil()
-                ptr1 = su1.asDoublePtr()
-                su2= MScriptUtil()
-                ptr2 = su2.asDoublePtr()
+                ptr1 = MScriptUtil().asDoublePtr()
+                ptr2 = MScriptUtil().asDoublePtr()
                 
                 numFn.getData2Double(ptr1,ptr2)
-                return ( MScriptUtil(ptr1).asDouble(), MScriptUtil(ptr2).asDouble() )
+                return ( MScriptUtil.getDouble(ptr1), MScriptUtil.getDouble(ptr2) )
         
             elif dataType == MFnNumericData.k3Float:
-                su1 = MScriptUtil()
-                ptr1 = su1.asFloatPtr()
-                su2= MScriptUtil()
-                ptr2 = su2.asFloatPtr()
-                su3= MScriptUtil()
-                ptr3 = su2.asFloatPtr()
+                ptr1 = MScriptUtil().asFloatPtr()
+                ptr2 = MScriptUtil().asFloatPtr()
+                ptr3 = MScriptUtil().asFloatPtr()
                  
                 numFn.getData3Float(ptr1,ptr2,ptr3)
-                return ( MScriptUtil(ptr1).asFloat(), MScriptUtil(ptr2).asFloat(), MScriptUtil(ptr3).asFloat() )
+                return ( MScriptUtil.getFloat(ptr1), MScriptUtil.getFloat(ptr2), MScriptUtil.getFloat(ptr3) )
             
             elif dataType ==  MFnNumericData.k3Double:
-                su1 = MScriptUtil()
-                ptr1 = su1.asDoublePtr()
-                su2= MScriptUtil()
-                ptr2 = su2.asDoublePtr()
-                su3= MScriptUtil()
-                ptr3 = su2.asDoublePtr()
+                ptr1 = MScriptUtil().asDoublePtr()
+                ptr2 = MScriptUtil().asDoublePtr()
+                ptr3 = MScriptUtil().asDoublePtr()
                   
                 numFn.getData3Double(ptr1,ptr2,ptr3)
-                return ( MScriptUtil(ptr1).asDouble(), MScriptUtil(ptr2).asDouble(), MScriptUtil(ptr3).asDouble() )
+                return ( MScriptUtil.getDouble(ptr1), MScriptUtil.getDouble(ptr2), MScriptUtil.getDouble(ptr3) )
             
         
             

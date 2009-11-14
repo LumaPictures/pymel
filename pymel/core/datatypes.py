@@ -2772,62 +2772,48 @@ def getPlugValue( plug ):
                 return plug.asDouble()
             
             elif dataType == _api.MFnNumericData.k2Short :
-                su1 = _api.MScriptUtil()
-                ptr1 = su1.asShortPtr()
-                su2= _api.MScriptUtil()
-                ptr2 = su2.asShortPtr()
+                ptr1 = _api.MScriptUtil().asShortPtr()
+                ptr2 = _api.MScriptUtil().asShortPtr()
                 
                 numFn.getData2Short(ptr1,ptr2)
-                return ( _api.MScriptUtil(ptr1).asShort(), _api.MScriptUtil(ptr2).asShort() )
+                return ( _api.MScriptUtil.getShort(ptr1), _api.MScriptUtil.getShort(ptr2) )
             
             elif dataType in [ _api.MFnNumericData.k2Int, _api.MFnNumericData.k2Long ]:
-                su1 = _api.MScriptUtil()
-                ptr1 = su1.asIntPtr()
-                su2= _api.MScriptUtil()
-                ptr2 = su2.asIntPtr()
+                ptr1 = _api.MScriptUtil().asIntPtr()
+                ptr2 = _api.MScriptUtil().asIntPtr()
                 
                 numFn.getData2Int(ptr1,ptr2)
-                return ( _api.MScriptUtil(ptr1).asInt(), _api.MScriptUtil(ptr2).asInt() )
+                return ( _api.MScriptUtil.getInt(ptr1), _api.MScriptUtil.getInt(ptr2) )
         
             elif dataType == _api.MFnNumericData.k2Float :
-                su1 = _api.MScriptUtil()
-                ptr1 = su1.asFloatPtr()
-                su2= _api.MScriptUtil()
-                ptr2 = su2.asFloatPtr()
+                ptr1 = _api.MScriptUtil().asFloatPtr()
+                ptr2 = _api.MScriptUtil().asFloatPtr()
                 
                 numFn.getData2Float(ptr1,ptr2)
-                return ( _api.MScriptUtil(ptr1).asFloat(), _api.MScriptUtil(ptr2).asFloat() )
+                return ( _api.MScriptUtil.getFloat(ptr1), _api.MScriptUtil.getFloat(ptr2) )
              
             elif dataType == _api.MFnNumericData.k2Double :
-                su1 = _api.MScriptUtil()
-                ptr1 = su1.asDoublePtr()
-                su2= _api.MScriptUtil()
-                ptr2 = su2.asDoublePtr()
+                ptr1 = _api.MScriptUtil().asDoublePtr()
+                ptr2 = _api.MScriptUtil().asDoublePtr()
                 
                 numFn.getData2Double(ptr1,ptr2)
-                return ( _api.MScriptUtil(ptr1).asDouble(), _api.MScriptUtil(ptr2).asDouble() )
+                return ( _api.MScriptUtil.getDouble(ptr1), _api.MScriptUtil.getDouble(ptr2) )
         
             elif dataType == _api.MFnNumericData.k3Float:
-                su1 = _api.MScriptUtil()
-                ptr1 = su1.asFloatPtr()
-                su2= _api.MScriptUtil()
-                ptr2 = su2.asFloatPtr()
-                su3= _api.MScriptUtil()
-                ptr3 = su2.asFloatPtr()
+                ptr1 = _api.MScriptUtil().asFloatPtr()
+                ptr2 = _api.MScriptUtil().asFloatPtr()
+                ptr3 = _api.MScriptUtil().asFloatPtr()
                  
                 numFn.getData3Float(ptr1,ptr2,ptr3)
-                return ( _api.MScriptUtil(ptr1).asFloat(), _api.MScriptUtil(ptr2).asFloat(), _api.MScriptUtil(ptr3).asFloat() )
+                return ( _api.MScriptUtil.getFloat(ptr1), _api.MScriptUtil.getFloat(ptr2), _api.MScriptUtil.getFloat(ptr3) )
             
             elif dataType ==  _api.MFnNumericData.k3Double:
-                su1 = _api.MScriptUtil()
-                ptr1 = su1.asDoublePtr()
-                su2= _api.MScriptUtil()
-                ptr2 = su2.asDoublePtr()
-                su3= _api.MScriptUtil()
-                ptr3 = su2.asDoublePtr()
+                ptr1 = _api.MScriptUtil().asDoublePtr()
+                ptr2 = _api.MScriptUtil().asDoublePtr()
+                ptr3 = _api.MScriptUtil().asFloatPtr()
                   
                 numFn.getData3Double(ptr1,ptr2,ptr3)
-                return ( _api.MScriptUtil(ptr1).asDouble(), _api.MScriptUtil(ptr2).asDouble(), _api.MScriptUtil(ptr3).asDouble() )
+                return ( _api.MScriptUtil.getDouble(ptr1), _api.MScriptUtil.getDouble(ptr2), _api.MScriptUtil.getDouble(ptr3) )
             
         
             

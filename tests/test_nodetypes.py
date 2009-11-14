@@ -871,6 +871,19 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
             
+    def test_multiComponentName(self):
+        compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
+        mfnComp = api.MFnSingleIndexedComponent(compMobj)
+        mfnComp.addElement(0)
+        mfnComp.addElement(1)
+        mfnComp.addElement(2)
+        mfnComp.addElement(5)
+        mfnComp.addElement(7)
+        mfnComp.addElement(9)
+        mfnComp.addElement(11)
+        myVerts = MeshVertex(self.nodes['polySphere'], compMobj)
+        print myVerts
+
     def test_mixedPivot(self):
         select(self.nodes['cube'] + '.rotatePivot', r=1)
         select(self.nodes['cube'] + '.scalePivot', add=1)
@@ -932,19 +945,18 @@ class testCase_components(unittest.TestCase):
         self.assertTrue(pynodeStr in nameAliases,
                         '%s not equivalent to %s.uv[0:4][0:8]' % (pynodeStr,sphereShape))
         
-    def test_multiComponentName(self):
-        compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
-        mfnComp = api.MFnSingleIndexedComponent(compMobj)
-        mfnComp.addElement(0)
-        mfnComp.addElement(1)
-        mfnComp.addElement(2)
-        mfnComp.addElement(5)
-        mfnComp.addElement(7)
-        mfnComp.addElement(9)
-        mfnComp.addElement(11)
-        myVerts = MeshVertex(self.nodes['polySphere'], compMobj)
-        print myVerts
-        
+    def test_meshVertConnnectedFaces(self):
+        # For a standard cube, vert 3 should be connected to
+        # faces 0,1,4
+        desiredFaceStrings = ['%s.f[%d]' % (self.nodes['cube'], x) for x in (0,1,4)] 
+        select(desiredFaceStrings)
+        desiredSel = ls(sl=1)
+        connectedFaces = PyNode(self.nodes['cube']).vtx[3].connectedFaces()
+        select(connectedFaces)
+        connectedSel = ls(sl=1)
+        self.assertEqual(len(desiredSel), len(connectedSel))
+        self.assertEqual(set(desiredSel), set(connectedSel)) 
+
     def runTest(self):
         """
         Just for debugging, so we can easily create an instance of this class,
