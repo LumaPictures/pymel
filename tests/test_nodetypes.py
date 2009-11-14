@@ -703,7 +703,6 @@ class testCase_components(unittest.TestCase):
     def test_componentSelection(self):
         failedCreation  = []
         failedSelections = []
-        selectionUnequal = []
         for compString in self.getComponentStrings():
             printedDone = False
             if VERBOSE:
@@ -726,14 +725,9 @@ class testCase_components(unittest.TestCase):
 #                        import traceback
 #                        traceback.print_exc()
                     failedSelections.append(compString)
-                else:
-                    if VERBOSE:
-                        print "comparing...",
-                    if pymelObj != ls(sl=1)[0]:
-                        selectionUnequal.append(compString)
-                    if VERBOSE:
-                        print "done!"
-                        printedDone = True
+                if VERBOSE:
+                    print "done!"
+                    printedDone = True
             if VERBOSE and not printedDone:
                 print "FAIL!!!"
 
@@ -743,8 +737,6 @@ class testCase_components(unittest.TestCase):
                 failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
             if failedSelections:
                 failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedSelections))
-            if selectionUnequal:
-                failMsgs.append('Following components selection not equal to orignal:\n   ' + '\n   '.join(selectionUnequal))
             self.fail('\n\n'.join(failMsgs))
 
     def test_component_repr(self):
@@ -817,13 +809,13 @@ class testCase_components(unittest.TestCase):
                     except Exception:
                         failedSelections.append(iterationString)
                     else:
-                        iterSel = ls(sl=1)
+                        iterSel = filterExpand(sm=(x for x in xrange(74)))
                         try:
                             select(pymelObj)
                         except Exception:
                             failedSelections.append(compString)
                         else:
-                            compSel = ls(sl=1)
+                            compSel = filterExpand(sm=(x for x in xrange(74)))
                             if set(iterSel) != set(compSel) or len(iterSel) != len(compSel):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
@@ -888,8 +880,8 @@ class testCase_components(unittest.TestCase):
         select(self.nodes['cube'] + '.rotatePivot', r=1)
         select(self.nodes['cube'] + '.scalePivot', add=1)
         cubeName = self.nodes['cube']
-        self.assertEqual(set(cmds.ls(sl=1)), set(['%s.rotatePivot' % cubeName,
-                                                  '%s.scalePivot' % cubeName]))
+        self.assertEqual(set(cmds.ls(sl=1)),
+                         set(['%s.%s' % (cubeName, pivot) for pivot in ('rotatePivot', 'scalePivot')]))
         
     def test_mixedIsoparm(self):
         select(self.nodes['sphere'] + '.u[1]', r=1)
@@ -950,10 +942,10 @@ class testCase_components(unittest.TestCase):
         # faces 0,1,4
         desiredFaceStrings = ['%s.f[%d]' % (self.nodes['cube'], x) for x in (0,1,4)] 
         select(desiredFaceStrings)
-        desiredSel = ls(sl=1)
+        desiredSel = filterExpand(sm=(x for x in xrange(74)))
         connectedFaces = PyNode(self.nodes['cube']).vtx[3].connectedFaces()
         select(connectedFaces)
-        connectedSel = ls(sl=1)
+        connectedSel = filterExpand(sm=(x for x in xrange(74)))
         self.assertEqual(len(desiredSel), len(connectedSel))
         self.assertEqual(set(desiredSel), set(connectedSel)) 
 
