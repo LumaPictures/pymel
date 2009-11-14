@@ -313,19 +313,29 @@ thisModuleCmd = "import %s; import sys; sys.modules[%r]" % (__name__, __name__)
 #  Enhanced UI Commands
 #-----------------------------------------------
 
-def lsUI( **kwargs ):
-    long = kwargs.pop( 'long', kwargs.pop( 'l', False ) )
+def _lsUI( **kwargs ):
+    long = kwargs.pop( 'long', kwargs.pop( 'l', True ) )
     head = kwargs.pop( 'head', kwargs.pop( 'hd', None ) )
     tail = kwargs.pop( 'tail', kwargs.pop( 'tl', None) )
     
     if not kwargs:
-        kwargs = { 
+        kwargs = {
             'windows': 1, 'panels' : 1, 'editors' : 1, 'controls' : 1, 'controlLayouts' : 1,
-            'collection' : 1, 'radioMenuItemCollections' : 1, 'menus' : 1, 'menuItems' : 1, 'contexts' : 1, 'cmdTemplates' : 1 }
+            'collection' : 1, 'radioMenuItemCollections' : 1, 'menus' : 1, 'menuItems' : 1, 
+            'contexts' : 1, 'cmdTemplates' : 1 
+            }
     kwargs['long'] = long
     if head is not None: kwargs['head'] = head
     if tail is not None: kwargs['tail'] = tail
-    return map( PyUI, util.listForNone( cmds.lsUI( **kwargs ) ) )
+    return util.listForNone(cmds.lsUI(**kwargs))
+
+def lsUI( **kwargs ):
+    """
+Modified:
+  - long defaults to True
+  - if no type is passed, defaults to all known types
+    """
+    return [ uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
    
 scriptTableCmds = {}
 
@@ -510,147 +520,6 @@ def horizontalLayout(*args, **kwargs):
     kwargs['orientation'] = 'HORIZONTAL'
     return autoLayout(*args, **kwargs)
 
-
-class SmartLayoutCreator:
-    """
-    Create a set of layouts and controls using a nested data structure.
-    Example (just try it...):
-    .. python::
-    
-        SLC = pm.SmartLayoutCreator
-        
-        class SLCExample:
-          
-            def __init__(self):
-                  slc = SLC(name   = "win",                                 # name for the ui element
-                            uiFunc = pm.Window,                             # callable that will create the ui element
-                            kwargs = {"create":True, "title":"SLC Example"}, # keyword arguments for uiFunc
-                            postFunc = pm.Window.show,                      # a callable to invoke after creating the element and its children
-                            childCreators = [                               # nested ui elements, defined as further SLC objects 
-                                # (non-verbose SLC declaration:)
-                                SLC("layout", pm.VerticalLayout, dict(ratios=[1,1.5,2,2.5,3,3.5]), pm.VerticalLayout.redistribute,
-                                    # create buttons using list comprehension:
-                                    childCreators = [
-                                        SLC("lbl" + str.capitalize(), pm.text, dict(al="center",l=str,bgc=[i/3.0,i/4.0,1])) 
-                                            for (i,str) in enumerate("this is a dead parrot".split())
-                                        ] + 
-                                        [SLC("btn", pm.button, dict(l="Click Me!", c=lambda *x: self.layout.flip()))]
-                                    )
-                                ]
-                            )
-                  # create the layout, and place the named ui elements as new values in the 'creation' dictionary
-                  slc.create(creation = self.__dict__)
-                    
-                  # now we can access ui elements via their name as designated in the SLC:  
-                  self.lblYes.backgroundColor([.8,1,.8])
-        
-        slcEx = SLCExample()
-                            
-    """
-    debug = False
-    
-    def __init__(self, name=None, uiFunc=None, kwargs=None, postFunc=None, childCreators=None):
-        """
-        @param name: None, or a name for this gui element. This will be the key under-which 
-            the gui object will be stored in the 'creation' dictionary.
-        @param uiFunc: A pointer to the function that would build this ui element.
-        @param kwargs: A dictionary of arguments for the ui function.
-        @param postFunc: Optional - a function that would be invoked once this ui elemnt and all of its children have been created. 
-            A single argument is passed to the function which is this ui element
-        @param childCreators: Optional - A list of child SLC objects that would create additional child-elements under this ui-element
-            Examples: buttons within a layout, menu-items within menus, popup-menus on any other ui elements, etc.
-        """  
-        assert (uiFunc is None) or callable(uiFunc), uiFunc
-        assert kwargs is None or isinstance(kwargs,dict), kwargs
-        assert postFunc is None or callable(postFunc), postFunc
-        assert childCreators is None or isinstance(childCreators,list), childCreators
-        self.__dict__.update(vars())
-        
-    def create(self, creation=None, parent=None, debug=False):
-        """ 
-        Create the ui elements defined in this SLC. 
-        Named elements will be inserted into the 'creation' dictionary, which is also the return value of this function.
-        The top ui element can be explicitly placed under 'parent', or implicitly under the current ui parent.
-        """  
-        
-        if creation is None:
-            creation = {}
-        childCreators = self.childCreators or []
-        if self.kwargs is None:
-            self.kwargs = dict()
-        if parent and self.uiFunc: self.kwargs["parent"] = parent
-        
-        if (self.debug or debug) and not isinstance(debug,basestring):
-            debug = "\t"
-        
-        if debug:
-            log = debug + "> uiFunc: %r(%r)" % (self.uiFunc, self.kwargs)
-        self.me = self.uiFunc and self.uiFunc(**self.kwargs) or parent
-        
-        if self.name:
-            creation[self.name] = self.me
-        if debug:
-            #log += (" : %-50r" % self.me) + (" - %r" % self.name if self.name else "")
-            _logger.debug(log)
-
-        [child.create(creation=creation,parent=self.me,debug=debug and debug+"\t") for child in childCreators]
-        
-        if self.postFunc: 
-            self.postFunc(self.me)
-            if debug:
-                _logger.debug(debug + "< postFunc: %s" % self.postFunc) 
-        elif hasattr(self.me,'__aftercreate__'):
-            self.me.__aftercreate__()
-            if debug:
-                _logger.debug(debug + "< postFunc: %s" % self.me.__aftercreate__) 
-        return creation
-
-SLC = SmartLayoutCreator
-class SmartLayoutCreator2(SmartLayoutCreator):
-    def __init__(self, uiFunc=None, name=None, childCreators=None, postFunc=None, **kwargs):
-        SmartLayoutCreator.__init__(self,name, uiFunc, kwargs, postFunc, childCreators)
-        
-SLT = SmartLayoutCreator2
-"""
-SLT gives a cleaner interface to SLC. 
-
-The arguments are the gui function, an optional access 'name', and any keyword arguments 
-acceptable by the Maya equivalent of that function. Finally, the optional 'childCreators' 
-accepts a list of additional SLTs that would be nested under the parent gui element.
-As before, SLT returns a dictionary which contains the 'named' gui elements for easy access.
-The 'SLT.create' method accepts a dictionary into which it will put the named elements, 
-so this can normally be 'self.__dict__' if a gui is initialized from within a class method.
-See '_ListSelectLayout' below.
-
-Example:
-        res = SLT(window, 'win', title='SLT Example', childCreators=[
-            SLT(verticalLayout, ratios=[0,0,1,1,1], bgc=[.5,.5,.5], childCreators=[
-                SLT(text, l='Label 1', childCreators=[
-                    SLT(popupMenu, b=3, childCreators=[
-                        SLT(menuItem, l='Example 1'),
-                        SLT(menuItem, l='Example 2'),
-                    ])
-                ]),
-                SLT(textField, tx="Test"),
-            ] + [SLT(button, name='btn%s' % i, l='Button %s'%i) for i in "ABC"])
-        ]).create()
-        
-        res['btnA'].backgroundColor([1,.5,.5])
-        map(res['btnA'].setVisible,[0,1])
-"""
-
-def labeledControl(label, uiFunc, kwargs, align="left", parent=None, ratios=None):
-    dict = SLC("layout", horizontalLayout, {"ratios":ratios}, AutoLayout.redistribute,  [
-                SLC("label", text, {"l":label,"al":align}),
-                SLC("control", uiFunc, kwargs)
-            ]).create(parent=parent)
-    control = dict["control"]
-    if not isinstance(control,uitypes.UI):
-        control = uitypes.UI(control)
-    control.label = dict["label"] 
-    control.layout = dict["layout"]
-    return control
-
 def promptBox(title, message, okText, cancelText, **kwargs):
     """ Prompt for a value. Returns the string value or None if cancelled """
     ret = promptDialog(t=title, m=message, b=[okText,cancelText], db=okText, cb=cancelText,**kwargs)
@@ -735,151 +604,6 @@ def fileDialog(*args, **kwargs):
     if ret:
         return Path( ret )
 
-
-class _ListSelectLayout(uitypes.FormLayout):
-    
-    args = None
-    selection = None
-    def __new__(cls, *args, **kwargs):
-        self = cmds.setParent(q=True)
-        self = uitypes.FormLayout.__new__(cls, self)
-        return self
-    
-    def __init__(self, *args ,**kwargs):
-        (items, prompt, ok, cancel, default, allowMultiSelection, width, height) = _ListSelectLayout.args
-        self.ams = allowMultiSelection
-        self.items = list(items)
-        SLC("topLayout", verticalLayout, dict(ratios=[0,0,1]), uitypes.AutoLayout.redistribute, [
-            SLC("prompt", text, dict(l=prompt)),
-            SLC("selectionList", textScrollList, dict(dcc=self.returnSelection, allowMultiSelection=allowMultiSelection)),
-            SLC("buttons", horizontalLayout, dict(ratios=[1,1]), uitypes.AutoLayout.redistribute, [
-                SLC(None, button, dict(l=ok, c=self.returnSelection)),
-                SLC(None, button, dict(l=cancel, c=Callback(layoutDialog, dismiss=""))), 
-            ]),
-        ]).create(parent=self, creation=self.__dict__)
-
-        self.selectionList.append(map(str, self.items))
-        if default:
-            if not hasattr(default,"__iter__"):
-                default = [default]
-            for i in default:    
-                self.selectionList.setSelectItem(str(i))
-        
-        width  = width  or 150
-        height = height or 200
-        self.setWidth(width)
-        self.setHeight(height)
-        for side in ["top", "right", "left", "bottom"]:
-            self.attachForm(self.topLayout, side, 0)
-            self.topLayout.attachNone(self.buttons, "top")
-            self.topLayout.attachControl(self.selectionList, "bottom", 0, self.buttons)
-
-        
-    def returnSelection(self, *args):
-        _ListSelectLayout.selection = [self.items[i-1] for i in self.selectionList.getSelectIndexedItem() or []]
-        if _ListSelectLayout.selection:        
-            if not self.ams:
-                _ListSelectLayout.selection = _ListSelectLayout.selection[0]
-            return layoutDialog(dismiss=_ListSelectLayout.selection and "True" or "")
-
-def promptFromList(items, title="Selector", prompt="Select from list:", ok="Select", cancel="Cancel", default=None, allowMultiSelection=False, width=None, height=None, ams=False):
-    """ Prompt the user to select items from a list of objects """
-    _ListSelectLayout.args = (items, prompt, ok, cancel, default, allowMultiSelection or ams, width, height)
-    ret = str(layoutDialog(title=title, ui="""python("import sys; sys.modules['%s']._ListSelectLayout()")""" % (__name__)))
-    if ret:
-        return _ListSelectLayout.selection
-
-
-#def _createClassCommandPairs():
-#    
-#    
-#    def createCallback( classname ):
-#        def callback(*args, **kwargs):
-#            #print "creating ui element", classname
-#            return getattr(uitypes, classname)(*args, **kwargs)
-#        return callback
-#     
-#    for funcName in _factories.uiClassList:
-#        # Create Class
-#        classname = util.capitalize(funcName)
-#        try:
-#            cls = uitypes[classname]
-#        except KeyError:
-#
-#            #uitypes._addattr(classname, MetaMayaUIWrapper, classname, (uitypes.UI,), {})
-#            uitypes[classname] = (MetaMayaUIWrapper, classname, (uitypes.UI,), {})
-#            cls = createCallback(classname)
-#    
-#        # Create Function
-#        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
-#        if func:
-#            func.__module__ = __name__
-#            # Since we're not using LazyLoading objects for funcs, add them
-#            # to both the dynamic module and this module, so we don't have
-#            # preface them with 'uitypes.' when referencing from this module
-#            setattr(uitypes, funcName, func)
-#            setattr(_thisModule, funcName, func)
-#        else:
-#            _logger.warning( "ui command not created: %s" % funcName )
-
-def _createClassCommandPairs():
-    
-    
-    def createCallback( classname ):
-        def callback(*args, **kwargs):
-            #print "creating ui element", classname
-            return getattr(uitypes, classname)(*args, **kwargs)
-        return callback
-     
-    for funcName in _factories.uiClassList:
-        # Create Class
-        classname = util.capitalize(funcName)
-        cls = uitypes[classname]
-    
-        # Create Function
-        func = _factories.functionFactory( funcName, cls, _thisModule, uiWidget=True )
-        if func:
-            func.__module__ = __name__
-            # Since we're not using LazyLoading objects for funcs, add them
-            # to both the dynamic module and this module, so we don't have
-            # preface them with 'uitypes.' when referencing from this module
-            setattr(uitypes, funcName, func)
-            setattr(_thisModule, funcName, func)
-        else:
-            _logger.warning( "ui command not created: %s" % funcName )
-    
-               
-def _createOtherCommands():
-    moduleShortName = __name__.split('.')[-1]
-    nonClassFuncs = set(_factories.moduleCmds[moduleShortName]).difference(_factories.uiClassList)
-    for funcName in nonClassFuncs:
-        func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
-        if func:
-            func.__module__ = __name__
-            setattr(_thisModule, funcName, func)
-            # want this call to work regardless of order we call _createClassCommandParis / _createCommands
-            if sys.modules[__name__] != _thisModule:
-                setattr( sys.modules[__name__], funcName, func )
-        else:
-            _logger.warning( "ui command not created: %s" % funcName )
-
-                  
-_createClassCommandPairs()
-_createOtherCommands()
-
-
-def textWindow(title, text, size=None):
-
-        self = window("TextWindow#",title=title)
-        try:
-            self.main = uitypes.TextLayout(parent=self, text=text)
-            self.setWidthHeight(size or [300,300])
-            self.setText = self.main.setText
-            self.show()
-            return self
-        finally:
-            deleteUI(self)
-    
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
     def decoratedFunc(*args, **kwargs):
@@ -906,6 +630,50 @@ def pathButtonGrp( name=None, *args, **kwargs ):
 def vectorFieldGrp( *args, **kwargs ):
     return uitypes.VectorFieldGrp( *args, **kwargs ) 
  
+
+def _createClassCommands():
+    
+    
+    def createCallback( classname ):
+        def callback(*args, **kwargs):
+            #print "creating ui element", classname
+            return getattr(uitypes, classname)(*args, **kwargs)
+        return callback
+     
+    for funcName in _factories.uiClassList:
+        # Create Class
+        classname = util.capitalize(funcName)
+        #cls = uitypes[classname]
+    
+        # Create Function
+        func = _factories.functionFactory( funcName, createCallback(classname), _thisModule, uiWidget=True )
+        if func:
+            func.__module__ = __name__
+            # Since we're not using LazyLoading objects for funcs, add them
+            # to both the dynamic module and this module, so we don't have
+            # preface them with 'uitypes.' when referencing from this module
+            setattr(uitypes, funcName, func)
+            setattr(_thisModule, funcName, func)
+    
+               
+def _createOtherCommands():
+    moduleShortName = __name__.split('.')[-1]
+    nonClassFuncs = set(_factories.moduleCmds[moduleShortName]).difference(_factories.uiClassList)
+    for funcName in nonClassFuncs:
+        func = _factories.functionFactory( funcName, returnFunc=None, module=_thisModule )
+        if func:
+            func.__module__ = __name__
+            setattr(_thisModule, funcName, func)
+            # want this call to work regardless of order we call _createClassCommandParis / _createCommands
+            if sys.modules[__name__] != _thisModule:
+                setattr( sys.modules[__name__], funcName, func )
+
+                  
+_createClassCommands()
+_createOtherCommands()
+
+    
+
 
 
 #class ValueControlGrp( UI ):
@@ -1244,14 +1012,6 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     # TODO : remove setDocTag
     return ctrl
 
-
-def PyUI(strObj, type=None):
-    try:
-        if not type:
-            type = cmds.objectTypeUI(strObj)
-        return getattr(_thisModule, util.capitalize(type) )(strObj)
-    except AttributeError:
-        return uitypes.UI(strObj)
     
 def getMainProgressBar():
     return uitypes.ProgressBar(melGlobals['gMainProgressBar'])    
