@@ -1062,7 +1062,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
     
     cmdInfo = cmdlist[cmdName]
     
-    docstring = cmdInfo['description'] + '\n\n' + textwrap.wrap(docstring, DOC_WIDTH)
+    docstring = cmdInfo['description'] + '\n\n' + '\n'.join(textwrap.wrap(docstring, DOC_WIDTH))
 
 #    if func.__doc__: 
 #        docstring += func.__doc__ + '\n\n'
@@ -1180,19 +1180,26 @@ def _addFlagCmdDocs(func, cmdName, flag, docstring=''):
 def addFlagCmdDocsCallback(cmdName, flag, docstring):
     loadCmdDocCache()
     allFlagInfo = cmdlist[cmdName]['flags']
-    flagInfo = allFlagInfo[flag]
-    docstring=flagInfo.get('docstring', '')
-    if docstring:
-        docstring += '\n\n'
+    try:
+        flagInfo = allFlagInfo[flag]
+    except KeyError:
+        _logger.warn('could not find any info on flag %s' % flag)
+    else:
+        if docstring:
+            docstring += '\n\n'
+            
+        newdocs = flagInfo.get('docstring', '')
+        if newdocs:
+            docstring += newdocs + '\n\n'
+        
+        if 'secondaryFlags' in flagInfo:
+            docstring += 'Flags:\n'
+            for secondaryFlag in flagInfo['secondaryFlags']:
+                flagdoc = allFlagInfo[secondaryFlag]['docstring']
+                docstring += '  - %s:\n%s\n' % (secondaryFlag, 
+                                            '\n'.join( ['      '+ x for x in textwrap.wrap( flagdoc, DOC_WIDTH)] ) )
     
-    if 'secondaryFlags' in flagInfo:
-        docstring += 'Flags:\n'
-        for secondaryFlag in flagInfo['secondaryFlags']:
-            flagdoc = allFlagInfo[secondaryFlag]['docstring']
-            docstring += '  - %s:\n%s\n' % (secondaryFlag, 
-                                        '\n'.join( ['      '+ x for x in textwrap.wrap( flagdoc, DOC_WIDTH)] ) )
-
-    docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
+        docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName)
     return docstring
 
 #    func.__doc__ = docstring
