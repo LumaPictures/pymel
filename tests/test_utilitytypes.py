@@ -208,5 +208,15 @@ class TestProxyClass(TestCase):
         self.assertEqual(wrappedResult[0].__class__, myClassResult[0].__class__)
         self.assertEqual(wrappedResult[1], myClassResult[1])
         
+    def test_unboundMethodDescriptor(self):
+        """
+        Some built-in types have fun things called method descriptors...
+        ...they're like methods, but not!
+        """
+        Wrapped = utilitytypes.proxyClass(''.__class__, 'Wrapped',
+                                          dataAttrName='_data')
+        theString = 'Fun times were had by all!'
+        wrapInst = Wrapped(theString)
+        self.assertEqual(Wrapped.__len__(wrapInst), len(theString))
 
 setupUnittestModule(__name__)
