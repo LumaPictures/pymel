@@ -619,10 +619,45 @@ class DimensionedComponent( Component ):
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component (ie, 'cube.vtx')")
+                             "specified component (ie, 'cube.vtx')")         
+        self._validateGetItemIndice(item)
+        return ComponentIndex(self._partialIndex + (item,))
+
+    def _validateGetItemIndice(self, item):
+        """
+        Will raise an appropriate IndexError if the given item
+        is not suitable as a __getitem__ indice.
+        """
+        if not isinstance(item, VALID_SINGLE_INDEX_TYPES):
+            raise IndexError("Invalid indice type for component: %r" % (item,) )
+        if isinstance(item, (slice, HashableSlice)):
+            maxIndex = max(item.start, item.stop)
+            minIndex = min(item.start, item.stop)
+        elif util.isIterable(item):
+            maxIndex = max(item)
+            minIndex = min(item)
         else:
-            return self.__class__(self._node,
-                ComponentIndex(self._partialIndex + (item,)))
+            maxIndex = minIndex = item
+        allowedRange = self._dimRange(self._partialIndex)
+        if minIndex < allowedRange[0] or maxIndex > allowedRange[1]:
+            raise IndexError("Indice %s out of range %s" % (item, allowedRange))        
+
+    def _dimRange(self, partialIndex):
+        """
+        Returns (minIndex, maxIndex) for the next dimension index after
+        the given partialIndex.
+        The range is inclusive.
+        """
+        raise NotImplemented
+
+    def _dimLength(self, partialIndex):
+        """
+        Given a partialIndex, returns the maximum value for the first
+         unspecified dimension.
+        """
+        # Implement in derived classes - no general way to determine the length
+        # of components!
+        raise NotImplementedError
 
     def currentDimension(self):
         """
@@ -677,7 +712,7 @@ class ComponentIndex( tuple ):
             label = self.label
         return ComponentIndex(itertools.chain(self, other), label=label)
 
-def validComponentIndex( argObj, allowDicts=True, componentIndexTypes=None):
+def validComponentIndexType( argObj, allowDicts=True, componentIndexTypes=None):
     """
     True if argObj is of a suitable type for specifying a component's index.
     False otherwise.
@@ -695,13 +730,16 @@ def validComponentIndex( argObj, allowDicts=True, componentIndexTypes=None):
        .v[4]
        .v[5]
        .uv[1][4]
+       
+    Derived classes should implement:
+    _dimLength           
     """
     if not componentIndexTypes:
         componentIndexTypes = (int, long, float, slice, HashableSlice, ComponentIndex)
     
     if allowDicts and isinstance(argObj, dict):
         for key, value in argObj.iteritems():
-            if not validComponentIndex(value, allowDicts=False):
+            if not validComponentIndexType(value, allowDicts=False):
                 return False
         return True
     else:
@@ -725,7 +763,7 @@ class DiscreteComponent( DimensionedComponent ):
     Example: polyCube.vtx[38], f.cv[3][2]
     
     Derived classes should implement:
-    _dimLength
+    _dimLength    
     """
 
     VALID_SINGLE_INDEX_TYPES = (int, long, slice, HashableSlice)
@@ -780,15 +818,6 @@ class DiscreteComponent( DimensionedComponent ):
             yield ComponentIndex(partialIndex + (rawIndex,))
 #        return [ComponentIndex(partialIndex + (rawIndex,))
 #                for rawIndex in xrange(start, stop, step)]
-    
-    def _dimLength(self, partialIndex):
-        """
-        Given a partialIndex, returns the maximum value for the first
-         unspecified dimension.
-        """
-        # Implement in derived classes - no general way to determine the length
-        # of components!
-        raise NotImplementedError
     
     def _makeIndexedComponentHandle(self, indices):
         # We could always create our component using the selection list
@@ -912,7 +941,7 @@ class DiscreteComponent( DimensionedComponent ):
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
-    
+
     def count(self):
         return len(self)
 
@@ -955,6 +984,7 @@ class DiscreteComponent( DimensionedComponent ):
     def reset(self):
         self._stopIteration = False
         self._currentFlatIndex = 0
+        
 
 class ContinuousComponent( DimensionedComponent ):
     """
@@ -964,6 +994,9 @@ class ContinuousComponent( DimensionedComponent ):
     floating point parameters.
     
     Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
+    
+    Derived classes should implement:
+    _dimRange      
     """
     VALID_SINGLE_INDEX_TYPES = (int, long, float, slice, HashableSlice)
     
@@ -1001,6 +1034,14 @@ class ContinuousComponent( DimensionedComponent ):
     
     def __iter__(self):
         raise TypeError("%r object is not iterable" % self.__class__.__name__)
+    
+    def _dimRange(self, partialIndex):
+        # Note that in the default implementation, used
+        # by DiscreteComponent, _dimRange depends on _dimLength.
+        # In ContinuousComponent, the opposite is True - _dimLength
+        # depends on _dimRange
+        raise NotImplementedError
+
             
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
@@ -1113,11 +1154,6 @@ class Component1D64( DiscreteComponent ):
             len(index) < self.dimensions), return a flat list of non-partial
             ComponentIndex objects. 
             """
-            # Not that as opposed to a DiscreteComponent, where we
-            # always want to flatten a slice into it's discrete elements,
-            # with a ContinuousComponent a slice is a perfectly valid
-            # indices... the only caveat is we need to convert it to a
-            # HashableSlice, as we will be sticking it into a set...
             newIndices = []
             for i in xrange(self.dimensions):
                 if i < len(index):
@@ -1413,28 +1449,70 @@ class SubdUV( Component1D ):
     _ComponentLabel__ = "smm"
     _apienum__ = api.MFn.kSubdivMapComponent
     
+    # This implementation failed because
+    # it appears that you can have a subd shape
+    # with no uvSet elements
+    # (shape.uvSet.evaluateNumElements() == 0)
+    # but with valid .smm's
+#    def _dimLength(self, partialIndex):
+#        # My limited tests reveal that
+#        # subds with multiple uv sets
+#        # mostly just crash a lot
+#        # However, when not crashing, it
+#        # SEEMS that you can select
+#        # a .smm[x] up to the size
+#        # of the largest possible uv
+#        # set, regardless of which uv
+#        # set is current...
+#        max = 0
+#        for elemPlug in self._node.attr('uvSet'):
+#            numElements = elemPlug.evaluateNumElements()
+#            if numElements > max:
+#                max = numElements
+#        # For some reason, if there are 206 elements
+#        # in the uvSet, the max indexable smm's go from
+#        # .smm[0] to .smm[206] - ie, num elements + 1...?
+#        return max + 1
+
+    _MAX_INDEX = 2 ** util.interpreterBits() - 1
+    _tempSel = api.MSelectionList()
+    _maxIndexRe = re.compile(r'\[0:([0-9]+)\]$')
     def _dimLength(self, partialIndex):
-        # My limited tests reveal that
-        # subds with multiple uv sets
-        # mostly just crash a lot
-        # However, when not crashing, it
-        # SEEMS that you can select
-        # a .smm[x] up to the size
-        # of the largest possible uv
-        # set, regardless of which uv
-        # set is current...
-        max = 0
-        for elemPlug in self._node.attr('uvSet'):
-            numElements = elemPlug.evaluateNumElements()
-            if numElements > max:
-                max = numElements
-        return max
+        # Fall back on good ol' string processing...
+        self._tempSel.clear()
+        self._tempSel.add(Component._completeNameString(self) +
+                          '[0:%d]' % self._MAX_INDEX)
+        selStrings = []
+        self._tempSel.getSelectionStrings(0, selStrings)
+        try:
+            # remember the + 1 for the 0'th index
+            return int(self._maxIndexRe.search(selStrings[0]).group(1)) + 1
+        except AttributeError:
+            raise RuntimeError("Couldn't determine max index for %s" %
+                               Component._completeNameString(self))
+
+    # SubdUV's don't work with .smm[*] - so need to use
+    # explicit range instead - ie, .smm[0:206]
+    def _completeNameString(self):
+        # Note - most multi-dimensional components allow selection of all
+        # components with only a single index - ie,
+        #    myNurbsSurface.cv[*]
+        # will work, even though nurbs cvs are double-indexed
+        # However, some multi-indexed components WON'T work like this, ie
+        #    myNurbsSurface.sf[*]
+        # FAILS, and you MUST do:
+        #    myNurbsSurface.sf[*][*]
+        return (super(DimensionedComponent, self)._completeNameString() +
+                 ('[:%d]' % self._dimLength(None) ))
 
 ## Nurbs Curve Components
 
 class NurbsCurveParameter( Component1DFloat ):
     _ComponentLabel__ = "u"
     _apienum__ = api.MFn.kCurveParamComponent
+    
+    def _dimRange(self, partialIndex):
+        return self._node.getKnotDomain()
 
 class NurbsCurveCV( MItComponent1D ):
     __apicls__ = api.MItCurveCV
@@ -1526,6 +1604,23 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
     
     def _defaultLabel(self):
         return 'u'
+
+    def _dimRange(self, partialIndex):
+        minU, maxU, minV, maxV = self._node.getKnotDomain()
+        if len(partial) == 0:
+            if partialIndex.label == 'v':
+                param = 'v'
+            else:
+                param = 'u'
+        else:
+            if partialIndex.label == 'v':
+                param = 'u'
+            else:
+                param = 'v'
+        if param == 'u':
+            return minU, maxU
+        else:
+            return minV, maxV
     
 class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
     _ComponentLabel__ = ("u", "v", "uv")
