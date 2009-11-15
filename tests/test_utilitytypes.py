@@ -196,5 +196,17 @@ class TestProxyClass(TestCase):
                          'Fun times were had by all'[3:7])
         
     
+    def test_unboundMethod(self):
+        """
+        We should be able to do MyProxyClass.wrappedMethod(myProxyClassInst)
+        """
+        Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
+                                          dataAttrName='_data')
+        wrapInst = Wrapped('bar')
+        wrappedResult = Wrapped.instMeth(wrapInst)
+        myClassResult = self.MyClass('bar').instMeth()
+        self.assertEqual(wrappedResult[0].__class__, myClassResult[0].__class__)
+        self.assertEqual(wrappedResult[1], myClassResult[1])
+        
 
 setupUnittestModule(__name__)
