@@ -2,7 +2,7 @@
 Commonly used utilities
 """
 
-import os, re
+import os, re, platform
 from re import escape
 from path import path
 #-----------------------------------------------
@@ -104,4 +104,11 @@ def toZip( directory, zipFile ):
     z.close()
     return zipFile
 
-
+def interpreterBits():
+    """
+    Returns the number of bits of the architecture the interpreter was compiled on
+    (ie, 32 or 64).
+    
+    :rtype: `int`
+    """
+    return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
