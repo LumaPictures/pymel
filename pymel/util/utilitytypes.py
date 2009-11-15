@@ -353,7 +353,7 @@ class metaReadOnlyAttr(type) :
         
         return newcls                     
 
-NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__',
+NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__',
                      '__class__', '__weakref__', '__subclasshook__',
                      '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
                      '__module__', '__init__', '__doc__']
