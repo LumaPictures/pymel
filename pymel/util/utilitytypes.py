@@ -392,26 +392,49 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
 
     assert not ( dataAttrName and dataFuncName ), 'Cannot use attribute and function for data storage. Choose one or the other.'
 
-    class ProxyAttribute(object):
-        def __init__(self, name):
-            self.name = name
+    if dataAttrName:
+        class ProxyAttribute(object):
+            def __init__(self, name):
+                self.name = name
 
-        if dataAttrName:
             def __get__(self, proxyInst, proxyClass):
                 if proxyInst is None:
                     return getattr(cls, self.name)
                 else:
                     return getattr(getattr(proxyInst, dataAttrName),
                                    self.name)
-        elif dataFuncName:
+                    
+        def _methodWrapper( method ):
+            def wrapper(self, *args, **kwargs):
+                return method( getattr(self, dataAttrName), *args, **kwargs )
+
+            wrapper.__doc__ = method.__doc__
+            wrapper.__name__ = method.__name__
+            return wrapper
+        
+    elif dataFuncName:
+        class ProxyAttribute(object):
+            def __init__(self, name):
+                self.name = name
+
             def __get__(self, proxyInst, proxyClass):
                 if proxyInst is None:
                     return getattr(cls, self.name)
                 else:
                     return getattr(getattr(proxyInst, dataFuncName)(),
                                    self.name)
-        else:
-            raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
+                    
+        def _methodWrapper( method ):
+            #print method
+            #@functools.wraps(f)
+            def wrapper(self, *args, **kwargs):
+                return method( getattr(self, dataFuncName)(), *args, **kwargs )
+
+            wrapper.__doc__ = method.__doc__
+            wrapper.__name__ = method.__name__
+            return wrapper                    
+    else:
+        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
 
     class Proxy(object):
         # make a default __init__ which sets the dataAttr...
@@ -433,10 +456,27 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
     #remove = [ '__init__', '__getattribute__', '__getattr__'] + remove
     for attrName, attrValue in inspect.getmembers(cls):
         if attrName not in remove:
-            try:
-                setattr(  Proxy, attrName, ProxyAttribute(attrName) )
-            except AttributeError:
-                print "proxyClass: error adding proxy attribute %s.%s" % (classname, attrName)
+            # We wrap methods using _methodWrapper, because if someone does
+            #    unboundMethod = MyProxyClass.method
+            # ...they should be able to call unboundMethod with an instance
+            # of MyProxyClass as they expect (as opposed to an instance of
+            # the wrapped class, which is what you would need to do if
+            # we used ProxyAttribute)
+
+            # ...the stuff with the cls.__dict__ is just to check
+            # we don't have a classmethod - since it's a data descriptor,
+            # we have to go through the class dict...
+            if (inspect.ismethod(attrValue) and
+                not isinstance(cls.__dict__.get(attrName, None), classmethod)):
+                try:            
+                    setattr(  Proxy, attrName, _methodWrapper(attrValue) )
+                except AttributeError:
+                    print "proxyClass: error adding proxy method %s.%s" % (classname, attrName)
+            else:
+                try:
+                    setattr(  Proxy, attrName, ProxyAttribute(attrName) )
+                except AttributeError:
+                    print "proxyClass: error adding proxy attribute %s.%s" % (classname, attrName)
                 
     Proxy.__name__ = classname
     return Proxy
