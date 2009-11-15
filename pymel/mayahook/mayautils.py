@@ -5,7 +5,6 @@ that maya is initialized in standalone mode.
 from __future__ import with_statement
 import re, os.path, sys, platform, time
 
-from pwarnings import *
 import plogging
 
 from pymel.util import path as _path, shellOutput, picklezip
@@ -559,6 +558,8 @@ def loadCache( filePrefix, description='', useVersion=True, compressed=True):
     if description:
         description = ' ' + description
   
+    #_logger.info("Loading%s from '%s'" % ( description, newPath ))
+
     try:
         return func(newPath)
     except Exception, e:

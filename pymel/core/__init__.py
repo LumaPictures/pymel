@@ -224,9 +224,12 @@ def _installCallbacks():
     preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
     if preLoadedPlugins:
         _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
+        level = _logger.getEffectiveLevel()
+        _logger.setLevel(logging.WARNING)
         for plugin in preLoadedPlugins:
             _pluginLoaded( plugin )
-
+        _logger.setLevel(level)
+            
 _installCallbacks()
 
 

@@ -505,7 +505,7 @@ def fixCodeExamples():
     mayahook.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
 
 
-def getModuleCommandList( category, version='8.5' ):
+def getModuleCommandList( category, version=None ):
     from pymel.mayahook.parsers import CommandModuleDocParser
     parser = CommandModuleDocParser(category, version)
     return parser.parse()
@@ -965,7 +965,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
         try:
             nameType = data['useName']
         except KeyError:
-            util.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
+            _logger.warn( "no 'useName' key set for %s.%s" % (classname, pymelName) )
             nameType = 'API'
              
         if nameType == 'API':
@@ -3270,114 +3270,123 @@ def fixClassAnalysis( filename ):
     _logger.info(info)
     return info
 
-def analyzeApiClass( apiTypeStr ):
-    try:
-        mayaType = _api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
-        if util.isIterable(mayaType) and len(mayaType) == 1:
-            mayaType = mayaType[0]
-            pymelType = PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
-        else:
-            pymelType = None
-    except KeyError:
-        mayaType = None
-        pymelType = None
-        #_logger.debug("no Fn", elem.key, pymelType)
-
-    try:
-        apiClass = _api.ApiTypesToApiClasses()[ apiTypeStr ]
-    except KeyError:
-        
-        _logger.info("no Fn %s", apiTypeStr)
-        return
-    
-    apiClassName = apiClass.__name__
-    parentApiClass = inspect.getmro( apiClass )[1]
-     
-    _logger.info("CLASS %s %s", apiClassName, mayaType)
-
-    # get all pymelName lookups for this class and its bases
-    pymelMethodNames = {}
-    for cls in inspect.getmro( apiClass ):
-        try:
-            pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
-        except KeyError: pass
-    reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() ) 
-    
-    allApiMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ]) 
-    parentApiMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
-    apiMembers = allApiMembers.difference( parentApiMembers )
-    
-        
-#    
-#    else:
-#        if apiTypeParentStr:
-#            try:
-#                parentApiClass = api.ApiTypesToApiClasses()[elem.parent.key ]
-#                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
-#            except KeyError:
-#                parentMembers = []
-#        else:
-#            parentMembers = []
-#        
-#        if pymelType is None: pymelType = PyNodeNamesToPyNodes().get( apiClass.__name__[3:] , None )
-#        
-#        if pymelType:
-#            parentPymelType = PyNodeTypesHierarchy()[ pymelType ]
-#            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
-#            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers and not x[0].startswith('_') ])
-#            
-#            _logger.info("CLASS", apiClass.__name__, mayaType)
-#            parentApiClass = inspect.getmro( apiClass )[1]
-#            #_logger.debug(parentApiClass)
-#            
-#            pymelMethodNames = {}
-#            # get all pymelName lookups for this class and its bases
-#            for cls in inspect.getmro( apiClass ):
-#                try:
-#                    pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
-#                except KeyError: pass
-#                
-#            allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
-#            
-#            parentFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
-#            fnMembers = allFnMembers.difference( parentFnMembers )
 #
-#            reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() )
+#def analyzeApiClasses():
+#    for elem in _api.apiTypeHierarchy.preorder():
+#        try:
+#            parent = elem.parent.key
+#        except:
+#            parent = None
+#        analyzeApiClass( elem.key, None )
+#        
+#def analyzeApiClass( apiTypeStr ):
+#    try:
+#        mayaType = _api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
+#        if util.isIterable(mayaType) and len(mayaType) == 1:
+#            mayaType = mayaType[0]
+#            pymelType = PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
+#        else:
+#            pymelType = None
+#    except KeyError:
+#        mayaType = None
+#        pymelType = None
+#        #_logger.debug("no Fn", elem.key, pymelType)
+#
+#    try:
+#        apiClass = _api.ApiTypesToApiClasses()[ apiTypeStr ]
+#    except KeyError:
+#        
+#        _logger.info("no Fn %s", apiTypeStr)
+#        return
+#    
+#    apiClassName = apiClass.__name__
+#    parentApiClass = inspect.getmro( apiClass )[1]
+#     
+#    _logger.info("CLASS %s %s", apiClassName, mayaType)
+#
+#    # get all pymelName lookups for this class and its bases
+#    pymelMethodNames = {}
+#    for cls in inspect.getmro( apiClass ):
+#        try:
+#            pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
+#        except KeyError: pass
+#    reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() ) 
+#    
+#    allApiMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ]) 
+#    parentApiMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
+#    apiMembers = allApiMembers.difference( parentApiMembers )
+#    
+#        
+##    
+##    else:
+##        if apiTypeParentStr:
+##            try:
+##                parentApiClass = api.ApiTypesToApiClasses()[elem.parent.key ]
+##                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
+##            except KeyError:
+##                parentMembers = []
+##        else:
+##            parentMembers = []
+##        
+##        if pymelType is None: pymelType = PyNodeNamesToPyNodes().get( apiClass.__name__[3:] , None )
+##        
+##        if pymelType:
+##            parentPymelType = PyNodeTypesHierarchy()[ pymelType ]
+##            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
+##            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers and not x[0].startswith('_') ])
+##            
+##            _logger.info("CLASS", apiClass.__name__, mayaType)
+##            parentApiClass = inspect.getmro( apiClass )[1]
+##            #_logger.debug(parentApiClass)
+##            
+##            pymelMethodNames = {}
+##            # get all pymelName lookups for this class and its bases
+##            for cls in inspect.getmro( apiClass ):
+##                try:
+##                    pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
+##                except KeyError: pass
+##                
+##            allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
+##            
+##            parentFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( parentApiClass, callable ) ])
+##            fnMembers = allFnMembers.difference( parentFnMembers )
+##
+##            reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() )
+##            
+##            sharedCurrent = fnMembers.intersection( pyMembers )
+##            sharedOnAll = allFnMembers.intersection( pyMembers )
+##            sharedOnOther = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
+###            _logger.info("    [shared_leaf]")
+###            for x in sorted( sharedCurrent ): 
+###                if x in reversePymelNames: _logger.info('    ', reversePymelNames[x], x )
+###                else: _logger.info('    ', x)
+##                
+###            _logger.info("    [shared_all]")
+###            for x in sorted( sharedOnOther ): 
+###                if x in reversePymelNames: _logger.info('    ', reversePymelNames[x], x )
+###                else: _logger.info('    ', x)
+##            
+##            _logger.info("    [api]")
+##            for x in sorted( fnMembers ): 
+##                if x in sharedCurrent:
+##                    prefix = '+   '
+###                elif x in sharedOnOther:
+###                    prefix = '-   '
+##                else:
+##                    prefix = '    '
+##                if x in reversePymelNames: _logger.info(prefix, reversePymelNames[x], x )
+##                else: _logger.info(prefix, x)
+##            
+##            _logger.info("    [pymel]")
+##            for x in sorted( pyMembers.difference( allFnMembers ) ): _logger.info('    ', x)
 #            
-#            sharedCurrent = fnMembers.intersection( pyMembers )
-#            sharedOnAll = allFnMembers.intersection( pyMembers )
-#            sharedOnOther = allFnMembers.intersection( pyMembers.difference( sharedCurrent) )
-##            _logger.info("    [shared_leaf]")
-##            for x in sorted( sharedCurrent ): 
-##                if x in reversePymelNames: _logger.info('    ', reversePymelNames[x], x )
-##                else: _logger.info('    ', x)
-#                
-##            _logger.info("    [shared_all]")
-##            for x in sorted( sharedOnOther ): 
-##                if x in reversePymelNames: _logger.info('    ', reversePymelNames[x], x )
-##                else: _logger.info('    ', x)
-#            
-#            _logger.info("    [api]")
-#            for x in sorted( fnMembers ): 
-#                if x in sharedCurrent:
-#                    prefix = '+   '
-##                elif x in sharedOnOther:
-##                    prefix = '-   '
-#                else:
-#                    prefix = '    '
-#                if x in reversePymelNames: _logger.info(prefix, reversePymelNames[x], x )
-#                else: _logger.info(prefix, x)
-#            
-#            _logger.info("    [pymel]")
-#            for x in sorted( pyMembers.difference( allFnMembers ) ): _logger.info('    ', x)
-            
-    
+#    
 def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName):
-    _logger.debug( "creating %s" % pyNodeTypeName )
+    #_logger.info( "%s(%s): creating" % (pyNodeTypeName,parentPyNodeTypeName) )
     try:
         ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
     except AttributeError:
-        _logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
+        #_logger.info("error creating class %s: parent class %r not in dynModule %s" % (pyNodeTypeName, parentPyNodeTypeName, dynModule.__name__))
         return      
     try:
         PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
@@ -3404,25 +3413,31 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
     parentPyNodeTypeName = str(util.capitalize(parentMayaType))
     
-    if hasattr( dynModule, pyNodeTypeName ):
-        _api.addMayaType( mayaType )
-        PyNodeType = getattr( dynModule, pyNodeTypeName )
-        #print "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName )
-        try :
-            ParentPyNode = inspect.getmro(PyNodeType)[1]
-            #print "parent:", ParentPyNode, ParentPyNode.__name__
-            if ParentPyNode.__name__ != parentPyNodeTypeName :
-                raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
-        except :
-            ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
-        #_logger.debug("already exists:", pyNodeTypeName, )
-        PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
-        PyNodesToMayaTypes()[PyNodeType] = mayaType
-        PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
-    else:
-        _logger.debug( "%s(%s) setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
+    try:
+        dynModule[pyNodeTypeName]
+    except KeyError:
+        #_logger.info( "%s(%s): setting up lazy loading" % ( pyNodeTypeName, parentPyNodeTypeName ) )
         dynModule[pyNodeTypeName] = ( addPyNodeCallback, 
                                    ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
+#    else:
+#        if not pyNodeTypeName in dynModule.__dict__:
+#            _api.addMayaType( mayaType )
+#            _logger.info( "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName ) )
+#            
+#            
+#            PyNodeType = getattr( dynModule, pyNodeTypeName )
+#            try :
+#                ParentPyNode = inspect.getmro(PyNodeType)[1]
+#                #print "parent:", ParentPyNode, ParentPyNode.__name__
+#                if ParentPyNode.__name__ != parentPyNodeTypeName :
+#                    raise RuntimeError, "Unexpected PyNode %s for Maya type %s" % (ParentPyNode, )
+#            except :
+#                ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
+#            #_logger.debug("already exists:", pyNodeTypeName, )
+#            PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
+#            PyNodesToMayaTypes()[PyNodeType] = mayaType
+#            PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+
     return pyNodeTypeName
 
 def removePyNode( dynModule, mayaType ):

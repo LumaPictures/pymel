@@ -31,4 +31,3 @@ assert sys.version_info > (2,5), "pymel versions 1.0 is compatible with Maya2008
 
 #import mayahook.plogging as plogging
 
-

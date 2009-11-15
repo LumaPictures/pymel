@@ -10,14 +10,13 @@ from namedtuple import namedtuple
 from common import *
 from arguments import *
 from utilitytypes import *
-from trees import *
+#from trees import *
 from arrays import *
 from enum import *
 from path import *
 from decoration import *
 from shell import *
-#from enumerators import *
-import nameparse
+#import nameparse
 
 
 

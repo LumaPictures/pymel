@@ -3,7 +3,7 @@ Defines common types and type related utilities:  Singleton, etc.
 These types can be shared by other utils modules and imported into util main namespace for use by other pymel modules
 """
 
-import inspect, types, operator
+import inspect, types, operator, sys
 from warnings import *
 
 class Singleton(type):
@@ -353,83 +353,100 @@ class metaReadOnlyAttr(type) :
         
         return newcls                     
 
-    
-def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None, remove=[], sourceIsImmutable=True ):
-    """this function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
+NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__',
+                     '__class__', '__weakref__', '__subclasshook__',
+                     '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
+                     '__module__', '__init__', '__doc__']
+def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
+                remove=(), sourceIsImmutable=False ):
+    """
+    This function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
     will break hashing.  not sure the best solution to this, but a good approach would be to subclass your proxy and implement
-    a valid __hash__ method."""
+    a valid __hash__ method.
+    
+    :Parameters:
+    cls : `type`
+        The class to wrap
+    classname : `string`
+        The name to give the resulting proxy class
+    dataAttrName : `string`
+        The name of an attribute on which an instance of the wrapped class will
+        be stored.
+        Either dataAttrname or dataFuncName must be given, but not both.
+    dataFuncName : `string`
+        The name of an attribute on which reside a function, which takes no
+        arguments, and when called, will return an instance of the wrapped
+        class.
+        Either dataAttrname or dataFuncName must be given, but not both.
+    remove : `string` iterable
+        An iterable of name of attributes which should NOT be wrapped.
+        Note that certain attributes will never be wrapped - the list of
+        such items is found in the NOT_PROXY_WRAPPED constant.
+    sourceIsImmutable : `bool`
+        This parameter is included only for backwards compatibility - it is
+        ignored.
+        
+    :rtype: `type`
+    """
 
     assert not ( dataAttrName and dataFuncName ), 'Cannot use attribute and function for data storage. Choose one or the other.'
 
-    if sourceIsImmutable and dataAttrName:
-        def _methodWrapper( method ):
-            #print method
-            #@functools.wraps(f)
-            def wrapper(self, *args, **kwargs):
-                return method( cls( getattr(self, dataAttrName) ), *args, **kwargs )
+    class ProxyAttribute(object):
+        def __init__(self, name):
+            self.name = name
 
-            wrapper.__doc__ = method.__doc__
-            wrapper.__name__ = method.__name__
-            return wrapper
-        
-    elif sourceIsImmutable and dataFuncName:
-        def _methodWrapper( method ):
-            #print method
-            #@functools.wraps(f)
-            def wrapper(self, *args, **kwargs):
-                return method( cls( getattr(self, dataFuncName)() ), *args, **kwargs )
+        if dataAttrName:
+            def __get__(self, proxyInst, proxyClass):
+                if proxyInst is None:
+                    return getattr(cls, self.name)
+                else:
+                    return getattr(getattr(proxyInst, dataAttrName),
+                                   self.name)
+        elif dataFuncName:
+            def __get__(self, proxyInst, proxyClass):
+                if proxyInst is None:
+                    return getattr(cls, self.name)
+                else:
+                    return getattr(getattr(proxyInst, dataFuncName)(),
+                                   self.name)
+        else:
+            raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
 
-            wrapper.__doc__ = method.__doc__
-            wrapper.__name__ = method.__name__
-            return wrapper
-
-    elif not sourceIsImmutable and dataAttrName:
-        def _methodWrapper( method ):
-            #print method
-            #@functools.wraps(f)
-            def wrapper(self, *args, **kwargs):
-                return method( getattr(self, dataAttrName), *args, **kwargs )
-
-            wrapper.__doc__ = method.__doc__
-            wrapper.__name__ = method.__name__
-            return wrapper
-        
-    elif not sourceIsImmutable and dataFuncName:
-        def _methodWrapper( method ):
-            #print method
-            #@functools.wraps(f)
-            def wrapper(self, *args, **kwargs):
-                return method( getattr(self, dataFuncName)(), *args, **kwargs )
-
-            wrapper.__doc__ = method.__doc__
-            wrapper.__name__ = method.__name__
-            return wrapper
-    else:
-        raise TypeError, 'Must specify either a dataAttrName or a dataFuncName'     
-    remove = ['__new__', '__init__', '__getattribute__', '__getattr__'] + remove
-    #remove = [ '__init__', '__getattribute__', '__getattr__'] + remove
     class Proxy(object):
-        pass
-        #def __new__(cls, *args, **kwargs):
-        #    return super(Proxy, cls).__new__(cls)
-        #def __init__(self, data):
-        #    setattr( self, dataAttrName, cls( data ) )
+        # make a default __init__ which sets the dataAttr...
+        # if __init__ is in remove, or dataFuncName given,
+        # user must supply own __init__, and set the dataAttr/dataFunc
+        # themselves
+        if '__init__' not in remove and dataAttrName:
+            def __init__(self, *args, **kwargs):
+                # We may wrap __setattr__, so don't use 'our' __setattr__!
+                object.__setattr__(self, dataAttrName, cls(*args, **kwargs))
+                
+        # For 'type' objects, you can't set the __doc__ outside of
+        # the class definition, so do it here:
+        if '__doc__' not in remove:
+            __doc__ = cls.__doc__
 
-    for methodName, method in cls.__dict__.items():
-        if methodName not in remove:
-            try:            
-                setattr(  Proxy, methodName, _methodWrapper(method) )
+    remove = set(remove)
+    remove.update(NOT_PROXY_WRAPPED)
+    #remove = [ '__init__', '__getattribute__', '__getattr__'] + remove
+    for attrName, attrValue in inspect.getmembers(cls):
+        if attrName not in remove:
+            try:
+                setattr(  Proxy, attrName, ProxyAttribute(attrName) )
             except AttributeError:
-                print "proxyClass: error adding proxy method %s.%s" % (classname, methodName)
+                print "proxyClass: error adding proxy attribute %s.%s" % (classname, attrName)
                 
     Proxy.__name__ = classname
     return Proxy
 
+        
+
 # NOTE: This may move back to core.general, depending on whether the __getitem__ bug was fixed in 2009, since we'll have to do a version switch there
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
-ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=[ 'translate', '__doc__', '__getslice__', 
-                        ]) 
+ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
+                           remove=[ 'translate', '__doc__', '__getslice__',]) 
 
 class universalmethod(object):
 #    """
@@ -548,7 +565,7 @@ def LazyLoadModule(name, contents):
                 # same one will be returned
                 if not hasattr(self, 'newobj'):
                     self.newobj = self.creator(*self.args, **self.kwargs)
-                    if isinstance(obj, types.ModuleType):
+                    if isinstance(obj, types.ModuleType) and hasattr(self.newobj, '__module__'):
                         self.newobj.__module__ = obj.__name__
                 #print "Lazy-loaded object:", self.name
                 #delattr( obj.__class__, self.name) # should we overwrite with None?
@@ -558,14 +575,16 @@ def LazyLoadModule(name, contents):
         def __init__(self, name, contents):
             types.ModuleType.__init__(self, name)
             self.__dict__.update(contents)
-        
+            self._lazyGlobals = contents
+            sys.modules[name] = self
+            self._lazyGlobals.update( self.__dict__ )
         @property
         def __all__(self):
             public = [ x for x in self.__dict__.keys() + self.__class__.__dict__.keys() if not x.startswith('_') ]
             return public
         
         @classmethod
-        def _addattr(cls, name, creator, *creatorArgs, **creatorKwargs):
+        def _lazyModule_addAttr(cls, name, creator, *creatorArgs, **creatorKwargs):
             lazyObj = cls.LazyLoader(name, creator, *creatorArgs, **creatorKwargs)
             setattr( cls, name, lazyObj )
             return lazyObj
@@ -599,7 +618,7 @@ def LazyLoadModule(name, contents):
                     raise ValueError, "if args and kwargs are desired, they should be passed as a tuple and dictionary, respectively"
             else:
                 raise ValueError, "the item must be set to a callable, or to a 3-tuple of (callable, (args,), {kwargs})"
-            self._addattr(attr, callback, *cb_args, **cb_kwargs)
+            self._lazyModule_addAttr(attr, callback, *cb_args, **cb_kwargs)
               
         def __getitem__(self, attr):
             """
@@ -613,17 +632,18 @@ def LazyLoadModule(name, contents):
         
         # Sort of a cumbersome name, but we want to make sure it doesn't conflict with any
         # 'real' entries in the module
-        def _updateLazyModule(self, otherDict):
+        def _lazyModule_update(self):
             """
             Used to update the contents of the LazyLoadModule with the contents of another dict.
             """
-            self.__dict__.update(otherDict)
+            self.__dict__.update(self._lazyGlobals)
             # For debugging, print out a list of things in the LazyLoadModule that AREN'T in
             # otherDict...
 #            print "only in dynamic module:", [x for x in
 #                                              (set(self.__class__.__dict__) | set(self.__dict__))- set(otherDict)
 #                                              if not x.startswith('__')]
 
+    
     return _LazyLoadModule(name, contents)
 
 # Note - since anything referencing attributes that only exist on the lazy module
