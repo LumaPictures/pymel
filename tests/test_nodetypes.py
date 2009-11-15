@@ -219,8 +219,11 @@ def testInvertibles():
 # TODO: add tests for slices
 # add check of length of indices
 # test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
+# test multi-index slices, ie: [1:2, 5:9:2]
 # Add tests for ranges of float parameters: ie, 'nurbsSphere1.v[5.657][3.1:4.2]'
 # Add tests for double-indexed nurbs suface: 'nurbsSphere1.v[1.1:2.2][3.3:4.4]'
+# check that indexing uses mel-style ranges (ie, inclusive)
+# Continuous components with negative indices - ie, nurbsSurf[-3.3][-2]
 
 class ComponentData(object):
     """
@@ -985,6 +988,41 @@ class testCase_components(unittest.TestCase):
         self.assertEqual(len(desiredSel), len(connectedSel))
         self.assertEqual(set(desiredSel), set(connectedSel)) 
 
+    def test_indiceChecking(self):
+        # Check for a DiscreteComponent...
+        self.nodes['cube'].vtx[2]
+        self.nodes['cube'].vtx[7]
+        self.nodes['cube'].vtx[-8]
+        self.nodes['cube'].vtx[-8:7]
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__, 8)
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
+                          slice(0,8))
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__, -9)
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
+                          slice(-9,7))
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
+                          'foo')
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
+                          5.2)
+        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
+                          slice(0,5.2))
+
+        # Check for a ContinuousComponent...
+        self.nodes['sphere'].u[2]
+        self.nodes['sphere'].u[4]
+        self.nodes['sphere'].u[0]
+        self.nodes['sphere'].u[0:4]
+        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__, 4.1)
+        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
+                          slice(0,5))
+        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__, -2)
+        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
+                          slice(-.1,4))
+        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
+                          'foo')
+        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
+                          slice(0,'foo'))
+
     def runTest(self):
         """
         Just for debugging, so we can easily create an instance of this class,
@@ -1018,7 +1056,7 @@ for propName, evalStringFunc in \
         newFuncName = 'test_' + baseName + '_ComponentCreation'
         setattr(testCase_components, newFuncName,
             makeComponentCreationTests(evalStringFunc))
-
+        
 class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):
         self.negUSurf = PyNode(surface(name='periodicSurf', du=3, dv=1,
