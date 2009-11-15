@@ -7,6 +7,26 @@ from system import Path
 import pymel.mayahook.plogging as plogging
 _logger = plogging.getLogger(__name__)
 
+def _resolveUIFunc(name):
+    if isinstance(name, basestring):
+        import window
+        try:
+            return getattr(window,name)
+        except AttributeError:
+            try:
+                cls = getattr(dynModule,name)
+                return cls.__melcmd__()
+            except (KeyError, AttributeError):
+                pass
+    else:
+        import inspect
+        if inspect.isfunction(name):
+            return name 
+        elif inspect.isclass(name) and issubclass(name, UI):
+            name.__melcmd__()
+                    
+    raise ValueError, "%r is not a known ui type" % name
+
 class UI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -69,8 +89,18 @@ class UI(unicode):
     rename = _factories.functionFactory( 'renameUI', rename='rename' )
     type = _factories.functionFactory( 'objectTypeUI', rename='type' )
 
-
+    @staticmethod
+    def exists(name):
+        return cmds.__melcmd__( name, exists=True )
+    
 class Layout(UI):
+    def __enter__(self):
+        self.makeDefault()
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        self.pop()
+    
     def children(self):
         #return [ PyUI( self.name() + '|' + x) for x in self.__melcmd__(self, q=1, childArray=1) ]
         return [ PyUI( self.name() + '|' + x) for x in cmds.layout(self, q=1, childArray=1) ]
@@ -120,12 +150,15 @@ class Layout(UI):
 class Window(Layout):
     """pymel window class"""
     __metaclass__ = MetaMayaUIWrapper
+
+    def __exit__(self, type, value, traceback):
+        self.show()
+        
     def show(self):
         cmds.showWindow(self)
+    
     def delete(self):
         cmds.deleteUI(self, window=True)
-    def __aftercreate__(self):
-        self.show()
 
     def layout(self):
         # will always be one it
@@ -170,7 +203,7 @@ class FormLayout(Layout):
         kwargs['attachPosition'] = [args]
         cmds.formLayout(self,**kwargs)
         
-
+class AutoLayout(FormLayout):
     #enumOrientation = util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
     HORIZONTAL = 0
     VERTICAL = 1
@@ -195,6 +228,10 @@ class FormLayout(Layout):
         self._reversed = reversed
         self._ratios = ratios and list(ratios) or []
     
+    def __exit__(self, type, value, traceback):
+        self.redistribute()
+        self.pop()
+        
     def flip(self):
         """Flip the orientation of the layout """
         self._orientation = 1-self._orientation
@@ -261,10 +298,6 @@ class FormLayout(Layout):
     def hDistribute(self,*ratios):
         self._orientation = int(self.Orientation.horizontal)
         self.redistribute(*ratios)
-        
-
-# for backwards compatiblity
-AutoLayout = FormLayout        
 
     
 class TextScrollList(UI):
@@ -304,6 +337,78 @@ class OptionMenu(UI):
         for t in self.getItemListLong() or []:
             cmds.deleteUI(t)
     addItems = addMenuItems
+
+class UITemplate(object):
+    """
+    from pymel.core import *
+    
+    template = ui.UITemplate( 'ExampleTemplate', force=True )
+    
+    template.define( button, width=100, height=40, align='left' )
+    template.define( frameLayout, borderVisible=True, labelVisible=False )
+    
+    #    Create a window and apply the template.
+    #
+    with window():
+        with template:
+            with columnLayout( rowSpacing=5 ):
+                with frameLayout():
+                    with columnLayout():
+                        button( label='One' )
+                        button( label='Two' )
+                        button( label='Three' )
+                
+                with frameLayout():
+                    with columnLayout():
+                        button( label='Red' )
+                        button( label='Green' )
+                        button( label='Blue' )
+"""
+    def __init__(self, name=None, force=False):
+        if name and force and cmds.uiTemplate( name, exists=True ):
+            cmds.deleteUI( name, uiTemplate=True )
+        args = [name] if name else []
+        
+        self._name = cmds.uiTemplate( *args )
+    
+    def __repr__(self):
+        return '%s(%r)' % ( self.__class__.__name__, self._name)  
+     
+    def __enter__(self):
+        self.push()
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        self.pop()
+
+    def name(self):
+        return self._name
+    
+    def push(self):
+        cmds.setUITemplate(self._name, pushTemplate=True)
+        
+    def pop(self):
+        cmds.setUITemplate( popTemplate=True)
+
+    def define(self, uiType, **kwargs):
+        """
+        uiType can be:
+            - a ui function or class
+            - the name of a ui function or class
+            - a list or tuple of the above
+        """
+        if isinstance(uiType, (list,tuple)):
+            funcs = [ _resolveUIFunc(x) for x in uiType ] 
+        else:
+            funcs = [_resolveUIFunc(uiType)]
+        kwargs['defineTemplate'] = self._name
+        for func in funcs:
+            func(**kwargs)
+    
+    @staticmethod
+    def exists(name):
+        return cmds.uiTemplate( name, exists=True )
+
 
 dynModule = util.LazyLoadModule(__name__, globals())
 

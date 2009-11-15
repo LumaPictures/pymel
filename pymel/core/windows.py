@@ -510,13 +510,7 @@ else:
             except Exception, e:
                 raise CallbackError('Error during callback: %s\n_callData: %r' % (e, Callback._callData))
             return Callback._callData
-        
-    
-def autoLayout(*args, **kwargs):
-    kw = dict((k,kwargs.pop(k)) for k in ['orientation', 'ratios', 'reversed', 'spacing'] if k in kwargs)
-    ret = formLayout(*args, **kwargs)
-    ret.__init__(**kw)
-    return ret
+
 
 def verticalLayout(*args, **kwargs):
     kwargs['orientation'] = 'VERTICAL'
@@ -637,6 +631,12 @@ def vectorFieldGrp( *args, **kwargs ):
     return uitypes.VectorFieldGrp( *args, **kwargs ) 
  
 
+def uiTemplate(name=None, force=False, exists=None):
+    if exists:
+        return cmds.uiTemplate(name, exists)
+    else:
+        return uitypes.UITemplate(name=name, force=force)
+    
 def _createClassCommands():
     
     
@@ -679,7 +679,10 @@ _createClassCommands()
 _createOtherCommands()
 
     
+def autoLayout(*args, **kwargs):
+    return uitypes.AutoLayout(*args, **kwargs)
 
+autoLayout.__doc__ = formLayout.__doc__
 
 
 #class ValueControlGrp( UI ):
