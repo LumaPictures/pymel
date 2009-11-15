@@ -9,7 +9,7 @@ import pymel.mayahook as mayahook
 from testingutils import TestCaseExtended
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -565,9 +565,26 @@ class testCase_components(unittest.TestCase):
                                                  self.nodes['lattice'], "pt",
                                                  [IndexData((0,1,0))])
         self.nodes['polySphere'] = cmds.polySphere()[0]
-        # prevent crash sometimes after making a subd, then selecting edges -
+        # Done in effort to prevent crash which happens after making a subd,
+        # then adding any subd edges to an MSelectionList
         # see http://groups.google.com/group/python_inside_maya/browse_thread/thread/9415d03bac9e712b/0b94edb468fbe6bd
         cmds.refresh()
+        import maya.utils
+        maya.utils.processIdleEvents()
+        # While the above works to prevent the crash in GUI mode,
+        # unfortunately, I can't find anything that works in batch mode...
+        # the following are various things I've tried...
+        # Unfortunately, nothing is working so far...
+#        cmds.refresh()
+#        subdPyNode = PyNode(self.nodes['subd']).getShape()
+#        subdPyNode.__apimfn__().updateSubdSurface()
+
+#        cmds.createNode('mesh')
+#        cmds.undo()
+#        edgeIt = api.MItSubdEdge(subdPyNode.__apimobject__())
+#        while not edgeIt.isDone():
+#            edgeIt.index()
+#            edgeIt.next()
         
     def tearDown(self):
         for node in self.nodes.itervalues():
@@ -715,11 +732,18 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "selecting...",
                 try:
-                    melName = pymelObj.name()
-                    # There's a bug - if you try to select x.sme[*][*] immediately
-                    # after creating the component, with no refresh, it crashes.
-                    if melName.endswith('.sme[*][*]'):
-                        raise Exception
+                    # There's a bug - if you add x.sme[*][*] to an
+                    # MSelectionList immediately
+                    # after creating the component, without any idle events
+                    # run in between, Maya crashes...
+                    # In gui mode, we process idle events after creation,
+                    # but we can't do that in batch... so if we're
+                    # in batch, just fail x.sme[*][*]...
+                    if (isinstance(pymelObj, SubdEdge) and
+                        pymelObj._currentDimension == 0 and
+                        api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                                  api.MGlobal.kLibraryApp)):
+                        raise Exception('selecting .sme[*][*] causes a crash...')
                     select(pymelObj, r=1)
                 except Exception:
 #                        import traceback
@@ -755,6 +779,18 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "getting repr...",
                 try:
+                    # There's a bug - if you add x.sme[*][*] to an
+                    # MSelectionList immediately
+                    # after creating the component, without any idle events
+                    # run in between, Maya crashes...
+                    # In gui mode, we process idle events after creation,
+                    # but we can't do that in batch... so if we're
+                    # in batch, just fail x.sme[*][*]...
+                    if (isinstance(pymelObj, SubdEdge) and
+                        pymelObj._currentDimension == 0 and
+                        api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                                  api.MGlobal.kLibraryApp)):
+                        raise Exception('selecting .sme[*][*] causes a crash...')                    
                     str = repr(pymelObj)
                 except Exception:
                     failedRepr.append(compString)

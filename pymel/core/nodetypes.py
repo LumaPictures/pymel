@@ -988,8 +988,10 @@ class ContinuousComponent( DimensionedComponent ):
             if i < len(index):
                 if isinstance(index[i], (slice, HashableSlice)):
                     if index[i].step != None:
-                        raise ComponentError("Continuous components may not use slice-indices with a 'step' -  bad slice: %s:%s:%s" %
-                                             (index[i].start, index[i].stop, index[i].step))
+                        raise ComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s:%s:%s" %
+                                             (self.__class__.__name__,
+                                              index[i].start, index[i].stop,
+                                              index[i].step))
                     newIndices.append(HashableSlice(index[i].start, index[i].stop, index[i].step))
                 else:
                     newIndices.append(index[i])
@@ -1089,6 +1091,13 @@ class Component1D64( DiscreteComponent ):
         _mfncompclass = api.MFnUint64SingleIndexedComponent
         _apienum__ = api.MFn.kUint64SingleIndexedComponent
         
+    else:
+        _mfncompclass = api.MFnComponent
+        _apienum__ = api.MFn.kComponent
+
+    if Component._hasUint64 and hasattr(api, 'MUint64'):
+        # Note that currently the python api has zero support for MUint64's
+        # This code is just here because I'm an optimist...
         @classmethod
         def _pyArrayToMayaArray(cls, pythonArray):
             mayaArray = api.MUint64Array(len(pythonArray))
@@ -1096,13 +1105,31 @@ class Component1D64( DiscreteComponent ):
                 mayaArray.set(value, i)
             return mayaArray
     else:
-        _mfncompclass = api.MFnComponent
-        _apienum__ = api.MFn.kComponent
+        # We're basically having to fall back on strings here, so revert 'back'
+        # the string implementation of various methods...
+        def _flattenIndex(self, index):
+            """
+            Given a ComponentIndex object, which may be a partial index (ie,
+            len(index) < self.dimensions), return a flat list of non-partial
+            ComponentIndex objects. 
+            """
+            # Not that as opposed to a DiscreteComponent, where we
+            # always want to flatten a slice into it's discrete elements,
+            # with a ContinuousComponent a slice is a perfectly valid
+            # indices... the only caveat is we need to convert it to a
+            # HashableSlice, as we will be sticking it into a set...
+            newIndices = []
+            for i in xrange(self.dimensions):
+                if i < len(index):
+                    if isinstance(index[i], (slice, HashableSlice)):
+                        newIndices.append(HashableSlice(index[i].start, index[i].stop, index[i].step))
+                    else:
+                        newIndices.append(index[i])
+                else:
+                    newIndices.append('*')
+            return ( ComponentIndex(newIndices, label=index.label), )
 
-        def _makeIndexedComponentHandle(self, indices):
-            # We have no MFnComp that supports .getElement, so use the
-            # version that does string processing...
-            return DimensionedComponent._makeIndexedComponentHandle(self, indices)
+        _makeIndexedComponentHandle = DimensionedComponent._makeIndexedComponentHandle
 
         def __len__(self):
             if hasattr(self, '_storedLen'):
