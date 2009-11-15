@@ -1412,6 +1412,23 @@ class SubdFace( Component1D64 ):
 class SubdUV( Component1D ):
     _ComponentLabel__ = "smm"
     _apienum__ = api.MFn.kSubdivMapComponent
+    
+    def _dimLength(self, partialIndex):
+        # My limited tests reveal that
+        # subds with multiple uv sets
+        # mostly just crash a lot
+        # However, when not crashing, it
+        # SEEMS that you can select
+        # a .smm[x] up to the size
+        # of the largest possible uv
+        # set, regardless of which uv
+        # set is current...
+        max = 0
+        for elemPlug in self._node.attr('uvSet'):
+            numElements = elemPlug.evaluateNumElements()
+            if numElements > max:
+                max = numElements
+        return max
 
 ## Nurbs Curve Components
 
