@@ -217,7 +217,6 @@ def testInvertibles():
             pass
 
 # TODO: add tests for slices
-# add check of length of indices
 # test tricky / extended slices: ie, [:3], [:-1], [-3:-1], [5:1:-2], etc
 # test multi-index slices, ie: [1:2, 5:9:2]
 # Add tests for ranges of float parameters: ie, 'nurbsSphere1.v[5.657][3.1:4.2]'
@@ -618,6 +617,41 @@ class testCase_components(unittest.TestCase):
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
 
+    def compsEqual(self, comp1, comp2, failOnEmpty=True,
+                   alreadySelected=False):
+        """
+        Compares two components for equality.
+        
+        Comps are compared through selection - they are selected,
+        the selection is listed (with filterExpand), then the
+        resulting lengths are compared, then the results are put into
+        a set... the sets are then compared for equality.
+        
+        It will also return False if either component is empty, if failOnEmpty
+        is True (default). 
+        """
+        if failOnEmpty:
+            if not comp1: return False
+            if not comp2: return False
+        if alreadySelected:
+            comp1Sel = comp1
+            comp2Sel = comp2
+        else:
+            select(comp1)
+            comp1Sel = filterExpand(sm=(x for x in xrange(74)))
+            select(comp2)
+            comp2Sel = filterExpand(sm=(x for x in xrange(74)))
+        if failOnEmpty:
+            if not comp1Sel: return False
+            if not comp2Sel: return False
+        else:
+            # filterExpand may return None,
+            # in which case set(None) would raise an error
+            if not comp1Sel or not comp2Sel:
+                return comp1Sel == comp2Sel
+        if len(comp1Sel) != len(comp2Sel): return False
+        return set(comp1Sel) == set(comp2Sel)
+    
     # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
     # object, instead of a MeshVertex object, and fail, while
@@ -878,9 +912,7 @@ class testCase_components(unittest.TestCase):
                             failedSelections.append(compString)
                         else:
                             compSel = filterExpand(sm=(x for x in xrange(74)))
-                            if (not iterSel or not compSel or
-                                len(iterSel) != len(compSel) or
-                                set(iterSel) != set(compSel)):
+                            if not self.compsEqual(iterSel, compSel, alreadySelected=True):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
                                 print "done!"
@@ -1004,13 +1036,8 @@ class testCase_components(unittest.TestCase):
         # For a standard cube, vert 3 should be connected to
         # faces 0,1,4
         desiredFaceStrings = ['%s.f[%d]' % (self.nodes['cube'], x) for x in (0,1,4)] 
-        select(desiredFaceStrings)
-        desiredSel = filterExpand(sm=(x for x in xrange(74)))
         connectedFaces = PyNode(self.nodes['cube']).vtx[3].connectedFaces()
-        select(connectedFaces)
-        connectedSel = filterExpand(sm=(x for x in xrange(74)))
-        self.assertEqual(len(desiredSel), len(connectedSel))
-        self.assertEqual(set(desiredSel), set(connectedSel)) 
+        self.assertTrue(self.compsEqual(desiredFaceStrings, connectedFaces))
 
     def test_indiceChecking(self):
         # Check for a DiscreteComponent...
@@ -1040,12 +1067,9 @@ class testCase_components(unittest.TestCase):
         self.assertRaises(IndexError, sphere.u.__getitem__, 'foo')
         self.assertRaises(IndexError, sphere.u.__getitem__, slice(0,'foo'))
 
-    def runTest(self):
-        """
-        Just for debugging, so we can easily create an instance of this class,
-        and do things like call getComponentStrings()...
-        """
+    def test_melIndexing(self):
         pass
+        
 
 ## There's a bug in Maya where if you select .sme[*], it crashes -
 ## so, temporarily, autofail all .sme's by wrapping the evalString functions

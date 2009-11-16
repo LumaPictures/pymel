@@ -1566,11 +1566,93 @@ class SubdUV( Component1D ):
 #        # .smm[0] to .smm[206] - ie, num elements + 1...?
 #        return max + 1
 
-    _MAX_INDEX = 2 ** util.interpreterBits() - 1
+
+    # ok - some weirdness in trying to find what the maximum
+    # allowable smm index is...
+    # To see what I mean, uncomment this and try it in maya:
+#from pymel.all import *
+#import sys
+#import platform
+#
+#def testMaxIndex():
+#
+#
+#    def interpreterBits():
+#        """
+#        Returns the number of bits of the architecture the interpreter was compiled on
+#        (ie, 32 or 64).
+#        
+#        :rtype: `int`
+#        """
+#        return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
+#    
+#    subdBase = polyCube()[0]
+#    subdTrans = polyToSubdiv(subdBase)[0]
+#    subd = subdTrans.getShape()
+#    selList = api.MSelectionList()
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), sys.maxint))
+#    except:
+#        print "sys.maxint (%d) failed..." % sys.maxint
+#    else:
+#        print "sys.maxint (%d) SUCCESS" % sys.maxint
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** interpreterBits() - 1))
+#    except:
+#        print "2 ** %d - 1 (%d) failed..." % (interpreterBits(), 2 ** interpreterBits() - 1)
+#    else:
+#        print "2 ** %d - 1 (%d) SUCCESS" % (interpreterBits(), 2 ** interpreterBits() - 1)
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** interpreterBits()))
+#    except:
+#        print "2 ** %d (%d) failed..." % (interpreterBits(), 2 ** interpreterBits())
+#    else:
+#        print "2 ** %d (%d) SUCCESS" % (interpreterBits(), 2 ** interpreterBits())        
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 31 - 1))
+#    except:
+#        print "2 ** 31 - 1 (%d) failed..." % (2 ** 31 - 1)
+#    else:
+#        print "2 ** 31 - 1 (%d) SUCCESS" % (2 ** 31 - 1)
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 31))
+#    except:
+#        print "2 ** 31 (%d) failed..." % (2 ** 31)
+#    else:
+#        print "2 ** 31 (%d) SUCCESS" % (2 ** 31)
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 32 - 1))
+#    except:
+#        print "2 ** 32 - 1 (%d) failed..." % (2 ** 32 - 1)
+#    else:
+#        print "2 ** 32 - 1 (%d) SUCCESS" % (2 ** 32 - 1)
+#    try:
+#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 32))
+#    except:
+#        print "2 ** 32 (%d) failed..." % (2 ** 32)
+#    else:
+#        print "2 ** 32 (%d) SUCCESS" % (2 ** 32)
+#
+
+    # On Windows XP x64, Maya2009x64, 2**64 -1 works (didn't try others at the time)
+    # ...but on Linux Maya2009x64, and OSX Maya2011x64, I get this weirdness:
+#sys.maxint (9223372036854775807) failed...
+#2 ** 64 - 1 (18446744073709551615) failed...
+#2 ** 64 (18446744073709551616) failed...
+#2 ** 31 - 1 (2147483647) SUCCESS
+#2 ** 31 (2147483648) failed...
+#2 ** 32 - 1 (4294967295) failed...
+#2 ** 32 (4294967296) SUCCESS
+
+    # So, given the inconsistencies here, just going to use
+    # 2**31 -1... hopefully nobody needs more uv's than that
+    _MAX_INDEX = 2 ** 31 - 1
     _tempSel = api.MSelectionList()
     _maxIndexRe = re.compile(r'\[0:([0-9]+)\]$')
     def _dimLength(self, partialIndex):
         # Fall back on good ol' string processing...
+        # unfortunately, .smm[*] is not allowed -
+        # so we have to provide a 'maximum' value...
         self._tempSel.clear()
         self._tempSel.add(Component._completeNameString(self) +
                           '[0:%d]' % self._MAX_INDEX)
