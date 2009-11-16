@@ -512,7 +512,7 @@ class testCase_components(unittest.TestCase):
                                                   [IndexData((256,0))])
         self.compData['subdUV'] = ComponentData(SubdUV,
                                                 self.nodes['subd'], "smm",
-                                                [IndexData(95)])
+                                                [IndexData(10)])
         self.compData['scalePivot'] = ComponentData(Pivot,
                                                     self.nodes['subd'],
                                                     "scalePivot", [])
@@ -728,6 +728,13 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
+                if ((compString.startswith('SubdEdge') or
+                     compString.endswith("comp(u'sme')") or
+                     compString.endswith('.sme'))
+                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                    api.MGlobal.kLibraryApp)):
+                    print "Auto-failing %r to avoid crash..." % compString
+                    raise Exception('selecting .sme[*][*] causes a crash...')   
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -743,9 +750,10 @@ class testCase_components(unittest.TestCase):
                     # but we can't do that in batch... so if we're
                     # in batch, just fail x.sme[*][*]...
                     if (isinstance(pymelObj, SubdEdge) and
-                        pymelObj._currentDimension == 0 and
-                        api.MGlobal.mayaState in (api.MGlobal.kBatch,
-                                                  api.MGlobal.kLibraryApp)):
+                        pymelObj.currentDimension() == 0 and
+                        api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                    api.MGlobal.kLibraryApp)):
+                        print "Auto-failing %r to avoid crash..." % compString
                         raise Exception('selecting .sme[*][*] causes a crash...')
                     select(pymelObj, r=1)
                 except Exception:
@@ -775,6 +783,13 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
+                if ((compString.startswith('SubdEdge') or
+                     compString.endswith("comp(u'sme')") or
+                     compString.endswith('.sme'))
+                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                    api.MGlobal.kLibraryApp)):
+                    print "Auto-failing %r to avoid crash..." % compString
+                    raise Exception('selecting .sme[*][*] causes a crash...')                
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -790,9 +805,10 @@ class testCase_components(unittest.TestCase):
                     # but we can't do that in batch... so if we're
                     # in batch, just fail x.sme[*][*]...
                     if (isinstance(pymelObj, SubdEdge) and
-                        pymelObj._currentDimension == 0 and
+                        pymelObj.currentDimension() == 0 and
                         api.MGlobal.mayaState in (api.MGlobal.kBatch,
                                                   api.MGlobal.kLibraryApp)):
+                        print "Auto-failing %r to avoid crash..." % compString
                         raise Exception('selecting .sme[*][*] causes a crash...')                    
                     str = repr(pymelObj)
                 except Exception:
@@ -855,7 +871,9 @@ class testCase_components(unittest.TestCase):
                             failedSelections.append(compString)
                         else:
                             compSel = filterExpand(sm=(x for x in xrange(74)))
-                            if set(iterSel) != set(compSel) or len(iterSel) != len(compSel):
+                            if (not iterSel or not compSel or
+                                len(iterSel) != len(compSel) or
+                                set(iterSel) != set(compSel)):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
                                 print "done!"
@@ -913,7 +931,7 @@ class testCase_components(unittest.TestCase):
         mfnComp.addElement(9)
         mfnComp.addElement(11)
         myVerts = MeshVertex(self.nodes['polySphere'], compMobj)
-        print myVerts
+        self.assertEqual(str(myVerts), 'pSphere1.vtx[0:2,5:11:2]')
 
     def test_mixedPivot(self):
         select(self.nodes['cube'] + '.rotatePivot', r=1)
@@ -945,7 +963,6 @@ class testCase_components(unittest.TestCase):
                            '%s.v[1][2]',
                            '%s.uv[2][1]'])
         selected = set(cmds.ls(sl=1))
-        print "selected:", selected
         self.assertTrue(selected.issubset(nameAliases))
 
     def test_nurbsIsoPrintedRange(self):
@@ -990,38 +1007,31 @@ class testCase_components(unittest.TestCase):
 
     def test_indiceChecking(self):
         # Check for a DiscreteComponent...
-        self.nodes['cube'].vtx[2]
-        self.nodes['cube'].vtx[7]
-        self.nodes['cube'].vtx[-8]
-        self.nodes['cube'].vtx[-8:7]
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__, 8)
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
-                          slice(0,8))
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__, -9)
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
-                          slice(-9,7))
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
-                          'foo')
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
-                          5.2)
-        self.assertRaises(IndexError, self.nodes['cube'].vtx.__getitem__,
-                          slice(0,5.2))
+        cube = PyNode(self.nodes['cube'])
+        cube.vtx[2]
+        cube.vtx[7]
+        cube.vtx[-8]
+        cube.vtx[-8:7]
+        self.assertRaises(IndexError, cube.vtx.__getitem__, 8)
+        self.assertRaises(IndexError, cube.vtx.__getitem__, slice(0,8))
+        self.assertRaises(IndexError, cube.vtx.__getitem__, -9)
+        self.assertRaises(IndexError, cube.vtx.__getitem__, slice(-9,7))
+        self.assertRaises(IndexError, cube.vtx.__getitem__, 'foo')
+        self.assertRaises(IndexError, cube.vtx.__getitem__, 5.2)
+        self.assertRaises(IndexError, cube.vtx.__getitem__, slice(0,5.2))
 
         # Check for a ContinuousComponent...
-        self.nodes['sphere'].u[2]
-        self.nodes['sphere'].u[4]
-        self.nodes['sphere'].u[0]
-        self.nodes['sphere'].u[0:4]
-        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__, 4.1)
-        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
-                          slice(0,5))
-        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__, -2)
-        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
-                          slice(-.1,4))
-        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
-                          'foo')
-        self.assertRaises(IndexError, self.nodes['sphere'].u.__getitem__,
-                          slice(0,'foo'))
+        cube = PyNode(self.nodes['sphere'])
+        sphere.u[2]
+        sphere.u[4]
+        sphere.u[0]
+        sphere.u[0:4]
+        self.assertRaises(IndexError, sphere.u.__getitem__, 4.1)
+        self.assertRaises(IndexError, sphere.u.__getitem__, slice(0,5))
+        self.assertRaises(IndexError, sphere.u.__getitem__, -2)
+        self.assertRaises(IndexError, sphere.u.__getitem__, slice(-.1,4))
+        self.assertRaises(IndexError, sphere.u.__getitem__, 'foo')
+        self.assertRaises(IndexError, sphere.u.__getitem__, slice(0,'foo'))
 
     def runTest(self):
         """

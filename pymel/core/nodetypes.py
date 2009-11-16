@@ -612,30 +612,76 @@ class DimensionedComponent( Component ):
     def _sliceToIndices(self, sliceObj):
         raise NotImplementedError
     
-    def _flattenIndex(self, index):
-        # Implemented in derived classes!
-        raise NotImplementedError
-    
+    def _flattenIndex(self, index, allowIterable=True):
+        """
+        Given a ComponentIndex object, which may be either a partial index (ie,
+        len(index) < self.dimensions), or whose individual-dimension indices
+        might be slices or iterables, return an flat list of ComponentIndex
+        objects. 
+        """
+        # Some components - such as face-vertices - need to know the previous
+        # indices to be able to fully expand the remaining indices... ie,
+        # faceVertex[1][2][:] may result in a different expansion than for
+        # faceVertex[3][8][:]...
+        # for this reason, we need to supply the previous indices to 
+        # _sliceToIndices, and expand on a per-partial-index basis
+        while len(index) < self.dimensions:
+            index = ComponentIndex(index + (HashableSlice(None),))
+        
+        indices = [ComponentIndex(label=index.label)]
+        for dimIndex in index:
+            if isinstance(dimIndex, (slice, HashableSlice)):
+                newIndices = []
+                for oldPartial in indices:
+                    newIndices.extend(self._sliceToIndices(dimIndex,
+                                                           partialIndex=oldPartial))
+                indices = newIndices
+            elif allowIterable and util.isIterable(dimIndex):
+                newIndices = []
+                for oldPartial in indices:
+                    for indice in dimIndex:
+                        newIndices.extend(self._flattenIndex(oldPartial + (indice,),
+                                                             allowIterable=False))
+                return newIndices
+            else:
+                indices = [x + (dimIndex,) for x in indices]
+        return indices    
+
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component (ie, 'cube.vtx')")         
         self._validateGetItemIndice(item)
-        return ComponentIndex(self._partialIndex + (item,))
+        return self.__class__(self._node,
+            ComponentIndex(self._partialIndex + (item,)))        
 
-    def _validateGetItemIndice(self, item):
+    def _validateGetItemIndice(self, item, allowIterables=True):
         """
         Will raise an appropriate IndexError if the given item
         is not suitable as a __getitem__ indice.
         """
-        if not isinstance(item, VALID_SINGLE_INDEX_TYPES):
-            raise IndexError("Invalid indice type for component: %r" % (item,) )
+        if allowIterables and util.isIterable(item):
+            for x in item:
+                self._validateGetItemIndice(item, allowIterables=False)
+            return
+        if not isinstance(item, self.VALID_SINGLE_INDEX_TYPES):
+            raise IndexError("Invalid indice type for %s: %r" %
+                             (self.__class__.__name__,
+                              item.__class__.__name__) )
         if isinstance(item, (slice, HashableSlice)):
-            maxIndex = max(item.start, item.stop)
-            minIndex = min(item.start, item.stop)
-        elif util.isIterable(item):
-            maxIndex = max(item)
-            minIndex = min(item)
+            # 'None' compares as less than all numbers, so need
+            # to check for it explicitly
+            if item.start is None and item.stop is None:
+                # If it's an open range, [:], and slices are allowed,
+                # it's valid
+                return
+            elif item.start is None:
+                minIndex = maxIndex = item.stop
+            elif item.stop is None:
+                minIndex = maxIndex = item.start
+            else:
+                maxIndex = max(item.start, item.stop)
+                minIndex = min(item.start, item.stop)
         else:
             maxIndex = minIndex = item
         allowedRange = self._dimRange(self._partialIndex)
@@ -841,32 +887,9 @@ class DiscreteComponent( DimensionedComponent ):
         api.MScriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
         return mayaArray
     
-    def _flattenIndex(self, index):
-        """
-        Given a ComponentIndex object, which may be either a partial index (ie,
-        len(index) < self.dimensions), or whose individual-dimension indices
-        might be slices, return an flat list of ComponentIndex objects. 
-        """
-        # Some components - such as face-vertices - need to know the previous
-        # indices to be able to fully expand the remaining indices... ie,
-        # faceVertex[1][2][:] may result in a different expansion than for
-        # faceVertex[3][8][:]...
-        # for this reason, we need to supply the previous indices to 
-        # _sliceToIndices, and expand on a per-partial-index basis
-        while len(index) < self.dimensions:
-            index = ComponentIndex(index + (HashableSlice(None),))
-        
-        indices = [ComponentIndex()]
-        for dimIndex in index:
-            if isinstance(dimIndex, (slice, HashableSlice)):
-                newIndices = []
-                for oldPartial in indices:
-                    newIndices.extend(self._sliceToIndices(dimIndex,
-                                                           partialIndex=oldPartial))
-                indices = newIndices
-            else:
-                indices = [ComponentIndex(x + (dimIndex,)) for x in indices]
-        return indices
+    def _dimRange(self, partialIndex):
+        dimLen = self._dimLength(partialIndex)
+        return (-dimLen, dimLen - 1)
     
     def __iter__(self):
         # We proceed in two ways, depending on whether we're a
@@ -875,8 +898,6 @@ class DiscreteComponent( DimensionedComponent ):
         for compIndex in self._compIndexObjIter():
             yield self.__class__(self._node, compIndex)
             
-
-    
     def _compIndexObjIter(self):
         """
         An iterator over all the indices contained by this component,
@@ -1005,35 +1026,33 @@ class ContinuousComponent( DimensionedComponent ):
                                                            allowIterable=False,
                                                            **kwargs)
 
-    def _flattenIndex(self, index):
-        """
-        Given a ComponentIndex object, which may be a partial index (ie,
-        len(index) < self.dimensions), return a flat list of non-partial
-        ComponentIndex objects. 
-        """
-        # Not that as opposed to a DiscreteComponent, where we
+    def _sliceToIndices(self, sliceObj, partialIndex=None):
+        # Note that as opposed to a DiscreteComponent, where we
         # always want to flatten a slice into it's discrete elements,
         # with a ContinuousComponent a slice is a perfectly valid
         # indices... the only caveat is we need to convert it to a
-        # HashableSlice, as we will be sticking it into a set...
-        newIndices = []
-        for i in xrange(self.dimensions):
-            if i < len(index):
-                if isinstance(index[i], (slice, HashableSlice)):
-                    if index[i].step != None:
-                        raise ComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s:%s:%s" %
-                                             (self.__class__.__name__,
-                                              index[i].start, index[i].stop,
-                                              index[i].step))
-                    newIndices.append(HashableSlice(index[i].start, index[i].stop, index[i].step))
-                else:
-                    newIndices.append(index[i])
-            else:
-                newIndices.append('*')
-        return ( ComponentIndex(newIndices, label=index.label), )
-    
+        # HashableSlice, as we will be sticking it into a set...        
+        if sliceObj.step != None:
+            raise ComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s" %
+                                 (self.__class__.__name__, sliceObj))
+        if partialIndex is None:
+            partialIndex = ComponentIndex()
+        if sliceObj.start == sliceObj.stop == None:
+            return (partialIndex + ('*',), )
+        else:
+            return (partialIndex +
+                    (HashableSlice(sliceObj.start, sliceObj.stop),), )
+
     def __iter__(self):
         raise TypeError("%r object is not iterable" % self.__class__.__name__)
+
+    def _dimLength(self, partialIndex):
+        # Note that in the default implementation, used
+        # by DiscreteComponent, _dimRange depends on _dimLength.
+        # In ContinuousComponent, the opposite is True - _dimLength
+        # depends on _dimRange
+        range = self._dimRange(partialIndex)
+        return range[1] - range[0]
     
     def _dimRange(self, partialIndex):
         # Note that in the default implementation, used
@@ -1041,7 +1060,6 @@ class ContinuousComponent( DimensionedComponent ):
         # In ContinuousComponent, the opposite is True - _dimLength
         # depends on _dimRange
         raise NotImplementedError
-
             
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
@@ -1146,25 +1164,22 @@ class Component1D64( DiscreteComponent ):
                 mayaArray.set(value, i)
             return mayaArray
     else:
-        # We're basically having to fall back on strings here, so revert 'back'
-        # the string implementation of various methods...
-        def _flattenIndex(self, index):
-            """
-            Given a ComponentIndex object, which may be a partial index (ie,
-            len(index) < self.dimensions), return a flat list of non-partial
-            ComponentIndex objects. 
-            """
-            newIndices = []
-            for i in xrange(self.dimensions):
-                if i < len(index):
-                    if isinstance(index[i], (slice, HashableSlice)):
-                        newIndices.append(HashableSlice(index[i].start, index[i].stop, index[i].step))
-                    else:
-                        newIndices.append(index[i])
-                else:
-                    newIndices.append('*')
-            return ( ComponentIndex(newIndices, label=index.label), )
+        # Component indices aren't sequential, and without MUint64, the only
+        # way to check if a given indice is valid is by trying to insert it
+        # into an MSelectionList... since this is both potentially fairly
+        # slow, for now just going to 'open up the gates' as far as
+        # validation is concerned...
+        _max32 = 2**32
+        def _dimLength(self, partialIndex):
+            return self._max32
 
+        # The ContinuousComponent version works fine for us - just
+        # make sure we grab the original function object, not the method
+        # object, since we don't inherit from ContinuousComponent
+        _sliceToIndices = ContinuousComponent._sliceToIndices.im_func
+
+        # We're basically having to fall back on strings here, so revert 'back'
+        # to the string implementation of various methods...
         _makeIndexedComponentHandle = DimensionedComponent._makeIndexedComponentHandle
 
         def __len__(self):
@@ -1430,6 +1445,35 @@ class MeshVertexFace( Component2D ):
             mIt.getConnectedFaces(intArray)
             for i in xrange(intArray.length()):
                 yield partialIndex + (intArray[i],)
+                
+    def _validateGetItemIndice(self, item, allowIterables=True):
+        """
+        Will raise an appropriate IndexError if the given item
+        is not suitable as a __getitem__ indice.
+        """
+        if len(self._partialIndex) == 0:
+            return super(MeshVertexFace, self)._validateGetItemIndice(item)
+        if allowIterables and util.isIterable(item):
+            for x in item:
+                self._validateGetItemIndice(item, allowIterables=False)
+            return
+        if isinstance(item, (slice, HashableSlice)):
+            if slice.start == slice.stop == slice.step == None:
+                return
+            raise IndexError("only completely open-ended slices are allowable"\
+                             " for the second indice of %s objects" %
+                             self.__class__.__name__)
+        if not isinstance(item, self.VALID_SINGLE_INDEX_TYPES):
+            raise IndexError("Invalid indice type for %s: %r" %
+                             (self.__class__.__name__,
+                              item.__class__.__name__) )
+        
+        for fullIndice in self._sliceToIndices(self, slice(None),
+                                               partialIndex=self._partialIndex):
+            if item == fullIndice[1]:
+                return
+        raise IndexError("vertex-face %s-%s does not exist" %
+                         (self._partialIndex[0], item))
     
 ## Subd Components    
 
@@ -1607,7 +1651,7 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
 
     def _dimRange(self, partialIndex):
         minU, maxU, minV, maxV = self._node.getKnotDomain()
-        if len(partial) == 0:
+        if len(partialIndex) == 0:
             if partialIndex.label == 'v':
                 param = 'v'
             else:
