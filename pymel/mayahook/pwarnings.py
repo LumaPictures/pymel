@@ -16,26 +16,26 @@ _logger = logging.getLogger(__name__)
 def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
     if issubclass(category, ExecutionWarning) :
-        s =  u"%s: %s" % (category.__name__, message)
+        s =  u"%s: %s\n" % (category.__name__, message)
     else :
-        s =  u"%s: %s # at line: %s in %s" % (category.__name__, message, lineno, filename)
-        name, ext = os.path.splitext(filename)
-        line = ""
-        if ext == ".py" :
-            line = unicode(linecache.getline(filename, lineno)).strip()
-            if line:
-                s += (u"#\t %s" % line)
+        s =  u'%s: %s, at line %s, in "%s"\n' % (category.__name__, message, lineno, filename)
+#        name, ext = os.path.splitext(filename)
+#        line = ""
+#        if ext == ".py" :
+#            line = unicode(linecache.getline(filename, lineno)).strip()
+#            if line:
+#                s += (u"#\t %s" % line)
     return s
 
 warnings.formatwarning = formatwarning
 
-def showwarning(message, category, filename, lineno, file=None, line=None):
-    msg = warnings.formatwarning(message, category, filename, lineno, line)
-    if file:
-        msg += " >> %r" % file
-    _logger.warning(msg)
-    
-warnings.showwarning = showwarning
+#def showwarning(message, category, filename, lineno, file=None, line=None):
+#    msg = warnings.formatwarning(message, category, filename, lineno, line)
+#    if file:
+#        msg += " >> %r" % file
+#    _logger.warning(msg)
+#    
+#warnings.showwarning = showwarning
 
 class ExecutionWarning (UserWarning) :
     """ Simple Warning class that doesn't print any information besides warning message """
@@ -63,14 +63,14 @@ def deprecated(funcOrMessage, className=None):
             module = func.__module__)
         
         def deprecationLoggedFunc(*args, **kwargs):
-            warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
+            warnings.warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
             return func(*args, **kwargs)
         
         deprecationLoggedFunc.__name__ = func.__name__
         deprecationLoggedFunc.__module__ = func.__module__
         deprecationLoggedFunc.__doc__ = message % info + '\n'
         if func.__doc__:
-             deprecationLoggedFunc.__doc__ += '\n' +  func.__doc__
+            deprecationLoggedFunc.__doc__ += '\n' +  func.__doc__
         return deprecationLoggedFunc
     
     if className:
