@@ -3,7 +3,7 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys, platform, os, os.path, shutil, subprocess, time, inspect
+import sys, platform, os, os.path, shutil, subprocess, time, inspect, tempfile
 
 try:
     import nose
@@ -11,6 +11,7 @@ except ImportError, e:
     print "To run pymel's tests you must have nose installed: http://code.google.com/p/python-nose"
     raise e
 
+# TODO: use mayautils.getMayaAppDir()
 if os.name == 'nt':
     app_dir = os.environ['USERPROFILE']
     
@@ -39,7 +40,7 @@ def nose_test(module=None, extraArgs=None):
     """
 
     noseKwArgs={}
-    noseArgv = "dummyArg0 --with-doctest -v --noexe ".split()
+    noseArgv = "dummyArg0 --with-doctest --noexe ".split()
     if module is None:
         module = 'pymel'
         exclusion = 'windows tools example1 .*testingutils pmcmds testPa'
@@ -59,9 +60,9 @@ def backupAndTest(extraNoseArgs):
     if os.path.isdir(backup_dir):
         print "backup dir %r already exists - aborting" % backup_dir
     else:
-        print "backing up Maya user directory", app_dir
+        print "backing up Maya user directory %s to %s" % ( app_dir, backup_dir )
         shutil.move( app_dir, backup_dir )
-        
+    
         try:
             nose_test( extraArgs=extraNoseArgs )
         except Exception, e:
@@ -81,7 +82,33 @@ def backupAndTest(extraNoseArgs):
                           sys.executable, os.path.basename(sys.executable),
                           __file__, DELETE_BACKUP_ARG)
 
-def removeBackup(retryTime=.1, printFailure=False):
+def removeBackup():
+    assert os.path.isdir(backup_dir), "Maya user backup does not exist: %s" % backup_dir
+    
+    print "restoring Maya user directory", app_dir
+
+    tempdir = os.path.join(tempfile.gettempdir(), 'maya')
+    if os.path.exists(tempdir):
+        shutil.rmtree( tempdir )
+    try:            
+        shutil.move(app_dir, tempdir)
+    except Exception, e:
+            print('Error moving "%s" to temp dir for removal: "%s": %s' %
+                   (app_dir, tempdir, e))
+    
+    else:
+        try:
+            shutil.rmtree( tempdir )
+        except Exception, e:
+            print('Error deleting "%s" - manually delete and rename/move "%s": %s' %
+                   (tempdir, backup_dir, e))
+        else:
+            shutil.move( backup_dir, app_dir )
+            print "done"
+    
+def removeBackupLoop(retryTime=.1, printFailure=False):
+    assert os.path.isdir(backup_dir), "Maya user backup does not exist: %s" % backup_dir
+    
     print "restoring Maya user directory", app_dir
 
     lastException = None
@@ -93,7 +120,11 @@ def removeBackup(retryTime=.1, printFailure=False):
         # check once when almost no time has passed, sleep, wake up after
         # a lot of time has passed, and not check again...
         try:
-            shutil.rmtree( app_dir )
+            tempdir = os.path.join(tempfile.gettempdir(), 'maya')
+            if os.path.exists(tempdir):
+                shutil.rmtree( tempdir )
+            shutil.move(app_dir, tempdir)
+            shutil.rmtree( tempdir )
         except Exception, e:
             lastException = e
             # print("print - unable to delete '%s' - elapsed time: %f" %
@@ -107,8 +138,8 @@ def removeBackup(retryTime=.1, printFailure=False):
 
     if lastException is not None:
         if printFailure:
-            print('Error deleting "%s" - manually delete and rename/move "%s"' %
-                   (app_dir, backup_dir))
+            print('Error deleting "%s" - manually delete and rename/move "%s": %s' %
+                   (app_dir, backup_dir, lastException))
         raise RemoveBackupError
     else:  
         shutil.move( backup_dir, app_dir )
@@ -120,4 +151,5 @@ if __name__ == '__main__':
     else:
         # Maya may take some time to shut down / finish writing to files - 
         # give it 2 seconds
-        removeBackup(retryTime=2, printFailure=True)
+        #removeBackupLoop(retryTime=2, printFailure=True)
+        removeBackup()
