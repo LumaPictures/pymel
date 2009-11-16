@@ -1019,6 +1019,29 @@ for propName, evalStringFunc in \
         setattr(testCase_components, newFuncName,
             makeComponentCreationTests(evalStringFunc))
 
+class testCase_nurbsSurface(TestCaseExtended):
+    def setUp(self):
+        self.negUSurf = PyNode(surface(name='periodicSurf', du=3, dv=1,
+                                       fu='periodic', fv='open',
+                                       ku=range(-13, 0, 1), kv=(0, 1),
+                                       pw=[(4, -4, 0, 1), (4, -4, -2.5, 1),
+                                           (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
+                                           (4, 4, 0, 1), (4, 4, -2.5, 1),
+                                           (0, 5.5, 0, 1), (0, 5.5, -2.5, 1),
+                                           (-4, 4, 0, 1), (-4, 4, -2.5, 1),
+                                           (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1),
+                                           (-4, -4, 0, 1), (-4, -4, -2.5, 1),
+                                           (0, -5.5, 0, 1), (0, -5.5, -2.5, 1),
+                                           (4, -4, 0, 1), (4, -4, -2.5, 1),
+                                           (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
+                                           (4, 4, 0, 1), (4, 4, -2.5, 1)] ))
+        
+    def tearDown(self):
+        delete(self.negUSurf)
+    
+    def test_knotDomain(self):
+        self.assertEqual(self.negUSurf.getKnotDomain(), (-11.0, -3.0, 0.0, 1.0))
+
 class testCase_sets(TestCaseExtended):
     def setUp(self):
         cmds.file(new=1, f=1)
