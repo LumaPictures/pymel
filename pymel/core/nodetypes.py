@@ -700,6 +700,9 @@ class DimensionedComponent( Component ):
             else:
                 maxIndex = max(item.start, item.stop)
                 minIndex = min(item.start, item.stop)
+            if (not isinstance(maxIndex, self.VALID_SINGLE_INDEX_TYPES) or
+                not isinstance(minIndex, self.VALID_SINGLE_INDEX_TYPES)):
+                raise IndexError("Invalid slice start or stop value")
         else:
             maxIndex = minIndex = item
         allowedRange = self._dimRange(self._partialIndex)
@@ -1719,6 +1722,7 @@ class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
                              "specified component")
+        self._validateGetItemIndice(item)            
         # You only get a NurbsSurfaceRange if BOTH indices are slices - if
         # either is a single value, you get an isoparm
         if (not isinstance(item, (slice, HashableSlice)) or

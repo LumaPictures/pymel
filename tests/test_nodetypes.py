@@ -537,7 +537,7 @@ class testCase_components(unittest.TestCase):
                                                  [IndexData((2,1))])
         self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "u",
-                                                   [IndexData(5),
+                                                   [IndexData(4),
                                                     IndexData(2.1,1.8)],
                                                    neverUnindexed=True)
         self.compData['nurbsIsoV'] = ComponentData(NurbsSurfaceIsoparm,
@@ -766,7 +766,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE and not printedDone:
                 print "FAIL!!!"
 
-        if failedCreation or failedSelections or selectionUnequal:
+        if failedCreation or failedSelections:
             failMsgs = []
             if failedCreation:
                 failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
@@ -1028,7 +1028,7 @@ class testCase_components(unittest.TestCase):
         self.assertRaises(IndexError, cube.vtx.__getitem__, slice(0,5.2))
 
         # Check for a ContinuousComponent...
-        cube = PyNode(self.nodes['sphere'])
+        sphere = PyNode(self.nodes['sphere'])
         sphere.u[2]
         sphere.u[4]
         sphere.u[0]
