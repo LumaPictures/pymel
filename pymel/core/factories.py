@@ -4,16 +4,17 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 import re, types, os.path, keyword, inspect, sys, textwrap
 from operator import itemgetter
 
-from pymel.util import trees
 import pymel.util as util
-import pymel.mayahook as mayahook
+import pymel.mayahook.mayautils as mayautils
+import pymel.mayahook.plogging as plogging
+import pymel.version as version
 import pymel.api as _api
 
 import maya.cmds as cmds
 import maya.mel as mm
 import pmcmds
 
-_logger = mayahook.plogging.getLogger(__name__)
+_logger = plogging.getLogger(__name__)
 
 #---------------------------------------------------------------
 #        Mappings and Lists
@@ -312,7 +313,7 @@ def getCmdInfo( command, version='8.5', python=True ):
     basicInfo = getCmdInfoBasic(command)
     
     try:
-        docloc = mayahook.mayaDocsLocation(version)
+        docloc = mayautils.mayaDocsLocation(version)
         if python:
             docloc = os.path.join( docloc , 'CommandsPython/%s.html' % (command) )
         else:
@@ -502,7 +503,7 @@ def fixCodeExamples():
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
    
-    mayahook.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
+    mayautils.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
 
 
 def getModuleCommandList( category, version=None ):
@@ -829,9 +830,9 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    long_version = mayahook.Version.installName()
+    long_version = version.installName()
     
-    data = mayahook.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
+    data = mayautils.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
     
     if data is not None:
         cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
@@ -933,13 +934,13 @@ def buildCachedData() :
             if newCmdInfo:
                 cmdDocList[cmdName] = newCmdInfo
          
-        mayahook.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 
+        mayautils.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 
                               'mayaCmdsList', 'the list of Maya commands',compressed=True )
         
-        mayahook.writeCache( cmdDocList, 
+        mayautils.writeCache( cmdDocList, 
                               'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
     
-        mayahook.writeCache( examples, 
+        mayautils.writeCache( examples, 
                               'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
     
     util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
@@ -1046,7 +1047,7 @@ def loadCmdDocCache():
     global docCacheLoaded
     if docCacheLoaded:
         return
-    data = mayahook.loadCache( 'mayaCmdsDocs', 'the Maya command documentation' )
+    data = mayautils.loadCache( 'mayaCmdsDocs', 'the Maya command documentation' )
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
     
@@ -2343,19 +2344,7 @@ class ApiUndo:
         except:
             pass
         self.cbid = _api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
-            
-#        if mayahook.Version.current > mayahook.Version.v85sp1:
-#            # Set up a callback to keep track of changes to the counts.
-#            try:
-#                _api.MMessage.removeCallback( self.cbid )
-#                self.cbid.disown()
-#            except:
-#                pass
-#            self.cbid = _api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
-#        else:
-#            print "making 8.5 callback"
-#            self.cbid = cmds.scriptJob( attributeChange=('%s.cmdCount' % self.node_name, self._attrChanged_85) )
-#            print "id", self.cbid
+
             
     def append(self, cmdObj ):
         
@@ -2504,10 +2493,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         argList = argHelper.argList()
         argInfo = argHelper.argInfo()
 
-        getterArgHelper = None
-        # undo does not work in maya 8.5 
-        if proxy and mayahook.Version.current > mayahook.Version.v85sp1:
-            getterArgHelper = argHelper.getGetterInfo()
+        getterArgHelper = argHelper.getGetterInfo()
         
         if argHelper.hasOutput() :
             getterInArgs = []
@@ -2630,7 +2616,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         
         wrappedApiFunc.__name__ = pymelName
         
-        wrappedApiFunc = _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex, undoable )
+        _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex, undoable )
    
         # format EnumValue defaults
         defaults = []
@@ -2663,6 +2649,11 @@ def addApiDocs(apiClass, methodName, overloadIndex=None, undoable=True):
 
 def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoable=True):
 
+    util.addLazyDocString( wrappedApiFunc, addApiDocsCallback, apiClass, methodName, overloadIndex, undoable, wrappedApiFunc.__doc__ )
+
+
+def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True, origDocstring=''):
+    
     apiClassName = apiClass.__name__
     
     argHelper = ApiArgUtil(apiClassName, methodName, overloadIndex)
@@ -2745,14 +2736,11 @@ def _addApiDocs( wrappedApiFunc, apiClass, methodName, overloadIndex=None, undoa
     if not undoable:
         docstring += '\n**Undo is not currently supported for this method**\n'
     
-    if wrappedApiFunc.__doc__:
-        wrappedApiFunc.__doc__ += '\n'
-    else:
-        wrappedApiFunc.__doc__ = ''
-    wrappedApiFunc.__doc__ += docstring
-    
-    return wrappedApiFunc
+    if origDocstring:
+        docstring = origDocstring + '\n' + docstring
 
+    return docstring
+    
 class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     """ A metaclass to wrap Maya api types, with support for class constants """ 
 
