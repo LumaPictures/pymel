@@ -263,7 +263,7 @@ class ComponentData(object):
         self._compObj = api.toApiObject(compObjStr)[1]
 
         
-    def unindexedComp(self):
+    def pyUnindexedComp(self):
         return self.nodeName + "." + self.compName
     
     def melUnindexedComp(self):
@@ -271,17 +271,17 @@ class ComponentData(object):
     
     def _makeIndicesString(self, indexObj):
         return ''.join(['[%s]' % x for x in indexObj.index])
-    
-    def indexedComps(self):
+
+    def pyIndexedComps(self):
         if not self.hasPyIndices():
-            raise ValueError("no indices stored - %s" % self.unindexedComp())
+            raise ValueError("no indices stored - %s" % self.pyUnindexedComp())
         else:
             # yield partial indices as well...
             for index in itertools.chain(self.indices, self.pythonIndices):
                 if len(index.index):
                     for partialIndexLen in xrange(1, len(index.index)):
-                        yield self.unindexedComp() + self._makeIndicesString(IndexData(index.index[:partialIndexLen]))
-                yield self.unindexedComp() + self._makeIndicesString(index)
+                        yield self.pyUnindexedComp() + self._makeIndicesString(IndexData(index.index[:partialIndexLen]))
+                yield self.pyUnindexedComp() + self._makeIndicesString(index)
     
     def melIndexedComps(self):
         if not self.hasMelIndices():
@@ -289,13 +289,33 @@ class ComponentData(object):
         else:
             for index in itertools.chain(self.indices, self.melIndices):
                 yield self.melUnindexedComp() + self._makeIndicesString(index)
+                
+    def bothIndexedComps(self):
+        """
+        For indices which are same for mel/pymel, returns a pair (melComp, pyComp)
+        if not self.hasMelIndices():
+            raise ValueError("no indices stored - %s" % self.melUnindexedComp())
+        else:
+            for index in itertools.chain(self.indices, self.melIndices):
+                yield self.melUnindexedComp() + self._makeIndicesString(index)
+        """
+        if not self.hasBothIndices():
+            raise ValueError("no indices stored - %s" % self.melUnindexedComp())
+        else:
+            for index in self.indices:
+                indiceString = self._makeIndicesString(index)
+                yield (self.melUnindexedComp() + indiceString,
+                       self.pyUnindexedComp() + indiceString)        
     
     def hasPyIndices(self):
         return self.indices or self.pythonIndices
     
     def hasMelIndices(self):
         return self.indices or self.melIndices
-    
+
+    def hasBothIndices(self):
+        return bool(self.indices)    
+
     def typeEnum(self):
         return self._compObj.apiType()
 
@@ -410,7 +430,10 @@ class MakeEvalStringCreator(object):
                         compDataStringFunc = compData.melIndexedComps
                 elif self.melOrPymel == 'pymel':
                     if compData.hasPyIndices():
-                        compDataStringFunc = compData.indexedComps
+                        compDataStringFunc = compData.pyIndexedComps
+                elif self.melOrPymel == 'both':
+                    if compData.hasBothIndices():
+                        compDataStringFunc = compData.bothIndexedComps
                 if compDataStringFunc:
                     strings = [evalStringCreator(testCase, x)
                                for x in compDataStringFunc()]
@@ -420,46 +443,12 @@ class MakeEvalStringCreator(object):
                         compDataStringFunc = compData.melUnindexedComp
                 elif self.melOrPymel == 'pymel':
                     if self.alwaysMakeUnindexed or not compData.hasPyIndices():
-                        compDataStringFunc = compData.unindexedComp
+                        compDataStringFunc = compData.pyUnindexedComp
                 if compDataStringFunc:
                     strings = [evalStringCreator(testCase, compDataStringFunc())]
             # get rid of any empty strings
             return [x for x in strings if x]
         return wrappedEvalStringCreator
-
-#def melIndexedCompEvalStringCreator(evalStringCreator):
-#    def newMelIndexedCompEvalStringCreator(self, compData):
-#        if compData.hasMelIndices():
-#            return [evalStringCreator(self, x)
-#                     for x in compData.melIndexedComps()]
-#        else:
-#            return []
-#    return newMelIndexedCompEvalStringCreator
-#
-#def indexedCompEvalStringCreator(evalStringCreator):
-#    def newIndexedCompEvalStringCreator(self, compData):
-#        if compData.hasPyIndices():
-#            return [evalStringCreator(self, x)
-#                     for x in compData.indexedComps()]
-#        else:
-#            return []
-#    return newIndexedCompEvalStringCreator
-#        
-#def melUnindexedCompEvalStringCreator(evalStringCreator):
-#    def newMelUnindexedCompEvalStringCreator(self, compData):
-#        if not compData.hasMelIndices():
-#            return [evalStringCreator(self, compData.melUnindexedComp())]
-#        else:
-#            return []
-#    return newMelUnindexedCompEvalStringCreator
-#        
-#def unindexedCompEvalStringCreator(evalStringCreator, allowIndexedComps=False):
-#    def newUnindexedCompEvalStringCreator(self, compData):
-#        if not compData.hasPyIndices():
-#            return [evalStringCreator(self, compData.unindexedComp())]
-#        else:
-#            return []
-#    return newUnindexedCompEvalStringCreator
 
 def getEvalStringFunctions(theObj):
     returnDict = {}
@@ -1068,27 +1057,62 @@ class testCase_components(unittest.TestCase):
         self.assertRaises(IndexError, sphere.u.__getitem__, slice(0,'foo'))
 
     def test_melIndexing(self):
-        pass
+        melString = '%s.vtx[1:4]' % self.nodes['cube']
+        self.assertTrue(self.compsEqual(melString, PyNode(melString)))
         
 
-## There's a bug in Maya where if you select .sme[*], it crashes -
-## so, temporarily, autofail all .sme's by wrapping the evalString functions
-#
-## Note - NEED to make autoFailSme a function, to avoid scope issues
-#def autoFailSme(evalStringFunc):
-#    def evalStringFunc_autoFailSme(*args, **kwargs):
-#        results = evalStringFunc(*args, **kwargs)
-#        for i, evalString in enumerate(results):
-#            if re.search(r"""\.sme\[\*\]|\.sme(?:\[[*0-9]+\])*$|SubdEdge\(""", evalString):
-#                results[i] = evalString + "   ***.sme AUTO-FAIL***"
-#        return results
-#    evalStringFunc_autoFailSme.__name__ = propName + "_autoFailSme"
-#    return evalStringFunc_autoFailSme
-#
-#for propName, evalStringFunc in \
-#        getEvalStringFunctions(testCase_components).iteritems():
-#    setattr(testCase_components, propName, autoFailSme(evalStringFunc))
-                        
+    # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx[1]
+    node_dot_comptypeIndex_evalStrings = MakeEvalStringCreator('pymel', indexed=True)(node_dot_comptypeMaker)
+        
+    def test_melPyMelCompsEqual(self):
+        def pairedStrings(self, compStringPair):
+            # The mel compString we don't need to alter...
+            # For the PyNode, use PyNode('cubeShape1').vtx[1] syntax
+            return (compStringPair[0], self.node_dot_comptypeMaker(compStringPair[1]))
+        
+        unindexedPairedStrings = MakeEvalStringCreator('both', indexed=False)(pairedStrings)
+        indexedPairedStrings = MakeEvalStringCreator('both', indexed=True)(pairedStrings)
+        failedCreation  = []
+        failedSelection = []
+        failedComparison = []
+        for componentData in self.compData.itervalues():
+            evalStringPairs = itertools.chain(unindexedPairedStrings(self, componentData),
+                                              indexedPairedStrings(self, componentData))
+            for melString, pyString in evalStringPairs:
+                printedDone = False
+                if VERBOSE:
+                    print melString, "/", pyString, "-", "creating...",
+                try:
+                    pymelObj = eval(pyString)
+                except Exception:
+                    failedCreation.append(pyString)
+                else:
+                    if VERBOSE:
+                        print "comparing...",                        
+                    try:
+                        areEqual = self.compsEqual(melString, pymelObj)
+                    except Exception:
+                        failedSelection.append(str( (melString, pyString) ))
+                    else:
+                        if not areEqual:
+                            failedComparison.append(str( (melString, pyString) ))
+                        else:
+                            if VERBOSE:
+                                print "done!"
+                            printedDone = True
+                if not printedDone and VERBOSE:
+                    print "FAIL!!!"
+                
+        if any( (failedCreation, failedSelection, failedComparison) ):
+            failMsgs = []
+            if failedCreation:
+                failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
+            if failedSelection:
+                failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedSelection))
+            if failedComparison:
+                failMsgs.append('Following components unequal:\n   ' + '\n   '.join(failedComparison))
+            self.fail('\n\n'.join(failMsgs))
+        
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
     evalStringId = '_evalStrings'
