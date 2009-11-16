@@ -547,13 +547,31 @@ class DimensionedComponent( Component ):
         selList = api.MSelectionList()
         for index in indices:
             compName = Component._completeNameString(self)
-            for dimIndex in index:
+            for dimNum, dimIndex in enumerate(index):
                 if isinstance(dimIndex, (slice, HashableSlice)):
                     # by the time we're gotten here, standardizedIndices
                     # should have either flattened out slice-indices
                     # (DiscreteComponents) or disallowed slices with
                     # step values (ContinuousComponents)
-                    dimIndex = "%s:%s" % (dimIndex.start, dimIndex.stop)
+                    if dimIndex.start == dimIndex.stop == None:
+                        dimIndex = '*'
+                    else:
+                        if dimIndex.start is None:
+                            if isinstance(self, DiscreteComponent):
+                                start = 0
+                            else:
+                                partialIndex = ComponentIndex(('*',)*dimNum,
+                                                              index.label) 
+                                start = self._dimRange(partialIndex)[0]
+                        else:
+                            start = dimIndex.start
+                        if dimIndex.stop is None:
+                            partialIndex = ComponentIndex(('*',)*dimNum,
+                                                          index.label) 
+                            stop= self._dimRange(partialIndex)[1]
+                        else:
+                            stop = dimIndex.stop
+                        dimIndex = "%s:%s" % (start, stop)
                 compName += '[%s]' % dimIndex
             try:
                 selList.add(compName)
@@ -1038,7 +1056,7 @@ class ContinuousComponent( DimensionedComponent ):
         if partialIndex is None:
             partialIndex = ComponentIndex()
         if sliceObj.start == sliceObj.stop == None:
-            return (partialIndex + ('*',), )
+            return (partialIndex + (HashableSlice(None), ), )
         else:
             return (partialIndex +
                     (HashableSlice(sliceObj.start, sliceObj.stop),), )
@@ -1195,7 +1213,34 @@ class Component1D64( DiscreteComponent ):
                     count = Component.numComponentsFromStrings(melStrings)
                 self._storedLen = count
                 return count
-
+            
+        # The standard _flatIter relies on being able to use element/getElement
+        # Since we can't use these, due to lack of MUint64, fall back on
+        # string processing...
+        _indicesRe = re.compile( r'\[((?:\d+(?::\d+)?)|\*)\]'*2 + '$' )
+        def _flatIter(self):
+            if not hasattr(self, '_fullIndices'):
+                melobj = self.__melobject__()
+                if isinstance(melobj, basestring):
+                    melobj = [melobj]
+                indices = [ self._indicesRe.search(x).groups() for x in melobj ]
+                for i, indicePair in enumerate(indices):
+                    processedPair = []
+                    for dimIndice in indicePair:
+                        if dimIndice == '*':
+                            processedPair.append(HashableSlice(None))
+                        elif ':' in dimIndice:
+                            start, stop = dimIndice.split(':')
+                            processedPair.append(HashableSlice(int(start),
+                                                               int(stop)))
+                        else:
+                            processedPair.append(int(dimIndice))
+                    indices[i] = ComponentIndex(processedPair)
+                self._fullIndices = indices
+            for fullIndex in self._fullIndices:
+                for index in self._flattenIndex(fullIndex):
+                    yield index
+        
     # kUint64SingleIndexedComponent components have a bit of a dual-personality
     # - though internally represented as a single-indexed long-int, in almost
     # all of the "interface", they are displayed as double-indexed-ints:
@@ -1468,7 +1513,7 @@ class MeshVertexFace( Component2D ):
                              (self.__class__.__name__,
                               item.__class__.__name__) )
         
-        for fullIndice in self._sliceToIndices(self, slice(None),
+        for fullIndice in self._sliceToIndices(slice(None),
                                                partialIndex=self._partialIndex):
             if item == fullIndice[1]:
                 return

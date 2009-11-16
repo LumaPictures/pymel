@@ -839,6 +839,13 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
+                if ((compString.startswith('SubdEdge') or
+                     compString.endswith("comp(u'sme')") or
+                     compString.endswith('.sme'))
+                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                    api.MGlobal.kLibraryApp)):
+                    print "Auto-failing %r to avoid crash..." % compString
+                    raise Exception('selecting .sme[*][*] causes a crash...')   
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
