@@ -3,7 +3,7 @@ Defines arguments manipulation utilities, like checking if an argument is iterab
 These utility functions can be used by other util modules and are imported in util's main namespace for use by other pymel modules
 """
 
-from collections import deque
+from collections import deque as _deque
 import sys, operator, itertools
 
 from utilitytypes import ProxyUnicode
@@ -136,7 +136,7 @@ def expandArgs( *args, **kwargs ) :
 def preorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ returns a list of a preorder expansion of args """
     stack = [(x,0) for x in args]
-    result = deque()
+    result = _deque()
     while stack :
         arg, level = stack.pop()
         if testFn(arg) and level<limit :
@@ -151,13 +151,13 @@ def postorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     if len(args) == 1:
         return (args[0],)
     else:
-        deq = deque((x,0) for x in args)
+        deq = _deque((x,0) for x in args)
         stack = []
         result = []
         while deq :
             arg, level = deq.popleft()
             if testFn(arg) and level<limit :
-                deq = deque( [(x, level+1) for x in arg] + list(deq))
+                deq = _deque( [(x, level+1) for x in arg] + list(deq))
             else :
                 if stack :
                     while stack and level <= stack[-1][1] :
@@ -172,7 +172,7 @@ def postorderArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     
 def breadthArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ returns a list of a breadth first expansion of args """
-    deq = deque((x,0) for x in args)
+    deq = _deque((x,0) for x in args)
     result = []
     while deq :
         arg, level = deq.popleft()
@@ -290,7 +290,7 @@ def postorderIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) 
     
 def breadthIterArgs (limit=sys.getrecursionlimit(), testFn=isIterable, *args) :
     """ iterator doing a breadth first expansion of args """
-    deq = deque((x,0) for x in args)
+    deq = _deque((x,0) for x in args)
     while deq :
         arg, level = deq.popleft()
         if testFn(arg) and level<limit :
@@ -332,7 +332,7 @@ def postorder( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     
 def breadth( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
     """ iterator doing a breadth first expansion of args """
-    deq = deque((x,0) for x in iterable)
+    deq = _deque((x,0) for x in iterable)
     while deq :
         arg, level = deq.popleft()
         if testFn(arg) and level<limit :

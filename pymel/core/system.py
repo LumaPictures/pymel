@@ -37,9 +37,9 @@ the results::
 import sys, os
 import pmcmds as cmds
 #import maya.cmds as cmds
-import maya.OpenMaya as OpenMaya
+import maya.OpenMaya as _OpenMaya
 from pymel.util.decoration import decorator
-import pymel.util as util
+import pymel.util as _util
 import factories as _factories
 import pymel.mayahook as mayahook
 from pymel.util.scanf import fscanf
@@ -66,7 +66,7 @@ try:
         _logger.warning( "Custom path class %s could not be found in module %s" % ( className, pathModule ) )
         raise AssertionError
 except (KeyError, AssertionError):
-    pathClass = util.path
+    pathClass = _util.path
 
 
 def _getTypeFromExtension( path ):
@@ -94,7 +94,7 @@ def feof( fileid ):
 
 @_factories.addMelDocs( 'file', 'sceneName')
 def sceneName():
-    return Path( OpenMaya.MFileIO.currentFile() )    
+    return Path( _OpenMaya.MFileIO.currentFile() )    
 
 def undoInfo(*args, **kwargs):
     """
@@ -263,7 +263,7 @@ Modifications:
     if kwargs.get('lod', kwargs.get('listOnlyDependencyNodes', False) ):
         kwargs['dagPath'] = True
         res = cmds.namespaceInfo(*args, **kwargs)
-        res = util.listForNone(res)
+        res = _util.listForNone(res)
         return [general.PyNode(x) for x in res ]
 
     return cmds.namespaceInfo(*args, **kwargs)
@@ -354,7 +354,7 @@ class WorkspaceEntryDict(object):
     def __contains__(self, key):
         return key in self.keys()
     def items(self):    
-        entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
+        entries = _util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
         res = []
         for i in range( 0, len(entries), 2):
             res.append( (entries[i], entries[i+1] ) )
@@ -362,7 +362,7 @@ class WorkspaceEntryDict(object):
     def keys(self):    
         return cmds.workspace( **{'q' : 1, self.entryType + 'List': 1 } )
     def values(self):    
-        entries = util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
+        entries = _util.listForNone( cmds.workspace( **{'q' : 1, self.entryType : 1 } ) )
         res = []
         for i in range( 0, len(entries), 2):
             res.append( entries[i+1] )
@@ -420,7 +420,7 @@ class Workspace(object):
         Path('...')
         
     """
-    __metaclass__ = util.Singleton
+    __metaclass__ = _util.Singleton
     
     objectTypes = WorkspaceEntryDict( 'objectType' )
     fileRules     = WorkspaceEntryDict( 'fileRule' )
@@ -497,7 +497,7 @@ class FileInfo( object ):
         >>> fileInfo( 'myKey', 'myData' )
         
     """
-    __metaclass__ = util.Singleton
+    __metaclass__ = _util.Singleton
     
     def __contains__(self, item):
         return item in self.keys()
@@ -588,7 +588,7 @@ class Path(pathClass):
 #    @classmethod
 #    @_factories.addMelDocs( 'file', 'sceneName')
 #    def name(self):
-#        return Path( OpenMaya.MFileIO.currentFile() ) 
+#        return Path( _OpenMaya.MFileIO.currentFile() ) 
 
 
 
@@ -810,7 +810,7 @@ class ReferenceCache(object):
         messages = ['kAfterReference', 'kAfterRemoveReference', 'kAfterImportReference', 'kAfterExportReference', 'kSceneUpdate']
         for msg in messages:
             _logger.debug("Setting up File-Reference Callback: %s" % msg)
-            cb = OpenMaya.MSceneMessage.addCallback(getattr(OpenMaya.MSceneMessage,msg), refererencesUpdated, None)
+            cb = _OpenMaya.MSceneMessage.addCallback(getattr(_OpenMaya.MSceneMessage,msg), refererencesUpdated, None)
             cb.disown()     # suppresses those swig 'memory leak' warnings
             cls._callbacks.append(cb)
 
@@ -1268,7 +1268,7 @@ class ReferenceEdit(str):
             self.fileReference.unload()
         cmds.referenceEdit(self.editData['node'], removeEdits=True, successfulEdits=True, failedEdits=True, editCommand=self.type)
 
-    editData = util.cacheProperty(_getEditData,"_editData") 
+    editData = _util.cacheProperty(_getEditData,"_editData") 
 
 
 # TODO: anyModified, modified, errorStatus, executeScriptNodes, lockFile, lastTempFile, renamingPrefixList, renameToSave ( api : mustRenameToSave )

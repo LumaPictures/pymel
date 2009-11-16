@@ -3,7 +3,6 @@ from HTMLParser import HTMLParser
 import pymel.util as util
 from mayautils import mayaDocsLocation
 import plogging
-from pymel.mayahook.pwarnings import ExecutionWarning
 
 try:
     from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
@@ -592,7 +591,7 @@ class ApiDocParser(object):
                         try:
                             enumVal = getattr(self.apiClass, enumKey)
                         except:
-                            util.warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod), ExecutionWarning)
+                            _logger.warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod))
                             enumVal = None
                         enumValues[ enumKey ] = enumVal
                         
@@ -784,12 +783,12 @@ class ApiDocParser(object):
                             if dir == '[in]': 
                                 # attempt to correct bad in/out docs
                                 if re.search(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)', doc ):
-                                    util.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
-                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, doc), ExecutionWarning)
+                                    _logger.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, doc))
                                     dir = 'out'
                                 elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float']:
-                                    util.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
-                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)                                                                                        
+                                    _logger.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc))                                                                                        
                                     dir = 'out'
                                 else:
                                     dir = 'in'
@@ -854,8 +853,8 @@ class ApiDocParser(object):
                             inArgs.pop(idx)
                             outArgs.append(argname)
 
-                            util.warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (               
-                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc), ExecutionWarning) 
+                            _logger.warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (               
+                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc)) 
                 
                 # now that the directions are correct, make the argList
                 for argname in names:
