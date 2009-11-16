@@ -165,6 +165,8 @@ def formatTraceStack(tbStack):
         if func != "<module>":
             result += " in function %s" % func
         result += '\n'
+        if text is not None:
+            result += '    ' + text + '\n'
         lines.append(result)
     return lines
 
@@ -178,8 +180,10 @@ def formatTraceback(verbose, baseMsg):
     return baseMsg
 
 def prefixTraceStack(tbStack, prefix = '# '):
-    """prefix with '#', being sure to get internal newlines. do not prefix first line
-    as that will be added automatically"""
+    """
+    prefix with '#', being sure to get internal newlines. do not prefix first line
+    as that will be added automatically
+    """
     result = ''.join(tbStack).rstrip().split('\n')
     size = len(result)-1
     for i, line in enumerate(result):
@@ -228,28 +232,29 @@ def guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail=2):
         maya.utils.guiExceptionCallback = myExceptCB
         
     """
-    # exceptionObject should really be an instance of an Exception subclass and not a string
+    # Note: exceptionObject should really be an instance of an Exception subclass and not a string
     excLines = decodeStack( traceback.format_exception_only(exceptionType, exceptionObject) )
+    # the primary except line will be the last in the formatted exception.  this is usually
+    # only one line, but for syntax errors, may span muitple lines.
+    errorMsg = excLines[-1]
     if detail == 0:
-        result = excLines[0].strip()
+        result = errorMsg.strip()
     else:
         tbStack = traceback.extract_tb(traceBack)
+        tbStack = fixConsoleLineNumbers(tbStack)
+        tbLines = decodeStack( formatTraceStack(tbStack) )
         
-        if len(tbStack) > 0:
-            # prepare the stack for formatting
-            tbStack = fixConsoleLineNumbers(tbStack)
-            tbLines = decodeStack( formatTraceStack(tbStack) )
-            if detail == 1:
-                # Put the line number message before the actual warning/error
-                result = u'%s: %s: %s' % (exceptionType.__name__, tbLines[-1].strip(), exceptionObject)
-            else: # detail == 2
-                # The stack trace is longer so the warning/error might
-                # get lost so it needs to be first.
-                excLines.append(u'Traceback (most recent call last):\n')
-                result = u''.join( prefixTraceStack( excLines + tbLines ) )
-        else:
-            result = "Trace not available"
+        if detail == 1:
+            # Put the line number message before the actual warning/error
+            tb = tbLines[-1].strip() + ': ' if tbLines else ''
+            result = u'%s: %s%s' % (exceptionType.__name__, tb, exceptionObject)
+        else: # detail == 2
+            if len(tbStack) > 0:
+                tbLines.insert(0, u'Traceback (most recent call last):\n')
 
+            # The stack trace is longer so the warning/error might
+            # get lost so it needs to be first.
+            result = u''.join( prefixTraceStack( [str(exceptionObject)+'\n'] + tbLines + excLines) )
     return result
 
 _guiExceptionCallback = guiExceptionCallback

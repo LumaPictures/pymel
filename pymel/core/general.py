@@ -1848,6 +1848,12 @@ class Scene(object):
     """
     __metaclass__ = util.Singleton
     def __getattr__(self, obj):
+        if obj.startswith('__') and obj.endswith('__'):
+            try:
+                return self.__dict__[obj]
+            except KeyError, err:
+                raise AttributeError, "type object %r has no attribute %r" % (self.__class__.__name__, obj)
+                
         return PyNode( obj )
 
 SCENE = Scene()

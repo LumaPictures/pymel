@@ -1,6 +1,7 @@
 import os, subprocess
 from arguments import isIterable as _isIterable
 
+__all__ = [ 'appendEnv', 'prependEnv', 'getEnv', 'getEnvs', 'putEnv', 'executableOutput', 'shellOutput' ]
 
 # TODO : expand environment variables when testing if it already exists in the list
 def appendEnv( env, value ):

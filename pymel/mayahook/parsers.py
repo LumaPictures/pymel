@@ -3,7 +3,6 @@ from HTMLParser import HTMLParser
 import pymel.util as util
 from mayautils import mayaDocsLocation
 import plogging
-from pymel.mayahook.pwarnings import ExecutionWarning
 
 try:
     from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
@@ -435,11 +434,12 @@ class ApiDocParser(object):
                            
     def handleEnums( self, type ):
         missingTypes = ['MUint64']
-        otherTypes = ['void', 'char',
+        otherTypes = ['void', 'char', 'uchar',
                     'double', 'double2', 'double3', 'double4',
                     'float', 'float2', 'float3', 'float4',
                     'bool',
-                    'int', 'int2', 'int3', 'int4', 'uint',
+                    'int', 'int2', 'int3', 'int4',
+                    'uint', 'uint2', 'uint3', 'uint4',
                     'short', 'short2', 'short3', 'short4',
                     'long', 'long2', 'long3',
                     'MString', 'MStringArray']
@@ -592,7 +592,7 @@ class ApiDocParser(object):
                         try:
                             enumVal = getattr(self.apiClass, enumKey)
                         except:
-                            util.warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod), ExecutionWarning)
+                            _logger.warn( "%s.%s of enum %s does not exist" % ( self.apiClassName, enumKey, self.currentMethod))
                             enumVal = None
                         enumValues[ enumKey ] = enumVal
                         
@@ -658,8 +658,17 @@ class ApiDocParser(object):
                     i=0
                     for i, each in enumerate(buf):
                         if each not in [ '*', '&', 'const', 'unsigned']:
+                            argtype = buf.pop(i)
                             break
-                    argtype = buf.pop(i)
+                    else:
+                        # We didn't find any arg type - therefore everything
+                        # in buf is in the set('*', '&', 'const', 'unsigned')
+                        # ... so it's implicitly an unsigned int
+                        argtype = 'int'
+                    
+                    if 'unsigned' in buf and argtype in ('char','int', 'int2',
+                                                         'int3', 'int4'):
+                        argtype = 'u' + argtype
                     
                     argtype = self.handleEnums(argtype)
                     
@@ -699,7 +708,7 @@ class ApiDocParser(object):
                                     }[default]
                                 except KeyError:
                                     try:
-                                        if type in ['int', 'uint','long']:
+                                        if type in ['int', 'uint','long', 'uchar']:
                                             default = int(default)
                                         elif type in ['float', 'double']:
                                             # '1.0 / 24.0'
@@ -784,12 +793,12 @@ class ApiDocParser(object):
                             if dir == '[in]': 
                                 # attempt to correct bad in/out docs
                                 if re.search(r'\b([fF]ill|[sS]tor(age)|(ing))|([rR]esult)', doc ):
-                                    util.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
-                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, doc), ExecutionWarning)
+                                    _logger.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on doc '%s'" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, doc))
                                     dir = 'out'
-                                elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float']:
-                                    util.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
-                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc), ExecutionWarning)                                                                                        
+                                elif not re.match( 'set[A-Z]', self.currentMethod) and '&' in typeQualifiers[name] and types[name] in ['int', 'double', 'float', 'uint', 'uchar']:
+                                    _logger.warn( "%s.%s(%s): Correcting suspected output argument '%s' based on reference type '%s &' ('%s')'" % (
+                                                                        self.apiClassName,self.currentMethod,', '.join(names), name, types[name], doc))                                                                                        
                                     dir = 'out'
                                 else:
                                     dir = 'in'
@@ -854,8 +863,8 @@ class ApiDocParser(object):
                             inArgs.pop(idx)
                             outArgs.append(argname)
 
-                            util.warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (               
-                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc), ExecutionWarning) 
+                            _logger.warn( "%s.%s(%s): Correcting suspected output argument '%s' because there are no outputs and the method is prefixed with 'get' ('%s')" % (               
+                                                                           self.apiClassName,self.currentMethod, ', '.join(names), argname, doc)) 
                 
                 # now that the directions are correct, make the argList
                 for argname in names:
@@ -876,6 +885,7 @@ class ApiDocParser(object):
                               #'directions' : directions,
                               'types' : types,
                               'static' : static,
+                              #'typeQualifiers' : typeQualifiers,
                               'deprecated' : deprecated } 
                 self.methods[self.currentMethod].append(methodInfo)
                 
