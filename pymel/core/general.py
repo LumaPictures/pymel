@@ -1681,9 +1681,12 @@ def _deprecatePyNode():
         
 
     for method in ['__contains__',  '__len__', 
-                            #'__ge__', '__gt__', '__le__', '__lt__',  # still very useful for sorting a list by name
-                             '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__',
-                             'expandtabs', 'translate', 'decode', 'encode', 'splitlines' ]: #'__reduce__' '__radd__', 
+                    #'__ge__', '__gt__', '__le__', '__lt__',  # still very useful for sorting a list by name
+                     '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__', '__radd__', # reserved for higher levels
+                     'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
+                     'capitalize', 'swapcase', 'title',
+                     'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
+                     'zfill' ]:
         makeDeprecatedMethod( method )                   
 
 
