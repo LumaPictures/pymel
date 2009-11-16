@@ -3108,7 +3108,7 @@ class DependNode( general.PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if version.current >= version.v2009:
+    if version.CURRENT >= version.v2009:
         def __hash__(self):
             return self.__apihandle__().hashCode()
 
@@ -5116,7 +5116,7 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
-    if version.current >= version.v2009:
+    if version.CURRENT >= version.v2009:
         @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )

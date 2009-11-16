@@ -16,7 +16,7 @@ from util.arrays import *
 
 import core.datatypes as datatypes
 
-from pymel.mayahook import Version
+from pymel.mayahook.version import Version
 
 from core import nodetypes
 from core.nodetypes import *

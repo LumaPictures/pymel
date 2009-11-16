@@ -12,7 +12,6 @@ import pymel.api as _api
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import factories as _factories
-import pymel.mayahook as mayahook
 
 # in python2.6/maya2010 'as' becomes a keyword. 
 # TODO:  add a version check: 
@@ -2881,55 +2880,7 @@ def getPlugValue( plug ):
         raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
     
     raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _api.ApiEnumsToApiTypes().get( apiType, '' ))
-
-if mayahook.Version.current == mayahook.Version.v85sp1:
-    Vector.xAxis = Vector([1.0, 0.0, 0.0])
-    Vector.one = Vector([1.0, 1.0, 1.0])
-    Vector.zero = Vector([0.0, 0.0, 0.0])
-    Vector.yNegAxis = Vector([0.0, -1.0, 0.0])
-    Vector.zNegAxis = Vector([0.0, 0.0, -1.0])
-    Vector.xNegAxis = Vector([-1.0, 0.0, 0.0])
-    Vector.zAxis = Vector([0.0, 0.0, 1.0])
-    Vector.yAxis = Vector([0.0, 1.0, 0.0])
-    FloatVector.xAxis = FloatVector([1.0, 0.0, 0.0])
-    FloatVector.one = FloatVector([1.0, 1.0, 1.0])
-    FloatVector.zero = FloatVector([0.0, 0.0, 0.0])
-    FloatVector.yNegAxis = FloatVector([0.0, -1.0, 0.0])
-    FloatVector.zNegAxis = FloatVector([0.0, 0.0, -1.0])
-    FloatVector.xNegAxis = FloatVector([-1.0, 0.0, 0.0])
-    FloatVector.zAxis = FloatVector([0.0, 0.0, 1.0])
-    FloatVector.yAxis = FloatVector([0.0, 1.0, 0.0])
-    Point.origin = Point([0.0, 0.0, 0.0])
-    Point.xAxis = Point([1.0, 0.0, 0.0])
-    Point.yNegAxis = Point([0.0, -1.0, 0.0])
-    Point.zero = Point([0.0, 0.0, 0.0])
-    Point.zNegAxis = Point([0.0, 0.0, -1.0])
-    Point.yAxis = Point([0.0, 1.0, 0.0])
-    Point.zAxis = Point([0.0, 0.0, 1.0])
-    Point.one = Point([1.0, 1.0, 1.0])
-    Point.xNegAxis = Point([-1.0, 0.0, 0.0])
-    FloatPoint.origin = FloatPoint([0.0, 0.0, 0.0])
-    FloatPoint.yNegAxis = FloatPoint([0.0, -1.0, 0.0])
-    FloatPoint.yAxis = FloatPoint([0.0, 1.0, 0.0])
-    FloatPoint.zNegAxis = FloatPoint([0.0, 0.0, -1.0])
-    FloatPoint.xNegAxis = FloatPoint([-1.0, 0.0, 0.0])
-    FloatPoint.zAxis = FloatPoint([0.0, 0.0, 1.0])
-    FloatPoint.xAxis = FloatPoint([1.0, 0.0, 0.0])
-    FloatPoint.one = FloatPoint([1.0, 1.0, 1.0])
-    FloatPoint.zero = FloatPoint([0.0, 0.0, 0.0])
-    Color.xAxis = Color([1.0, 0.0, 0.0, 1.0])
-    Color.yNegAxis = Color([0.0, -1.0, 0.0, 1.0])
-    Color.zero = Color([0.0, 0.0, 0.0, 1.0])
-    Color.zNegAxis = Color([0.0, 0.0, -1.0, 1.0])
-    Color.yAxis = Color([0.0, 1.0, 0.0, 1.0])
-    Color.zAxis = Color([0.0, 0.0, 1.0, 1.0])
-    Color.one = Color([1.0, 1.0, 1.0, 1.0])
-    Color.xNegAxis = Color([-1.0, 0.0, 0.0, 1.0])
-    FloatMatrix.identity = FloatMatrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
-    TransformationMatrix.identity = TransformationMatrix([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
-    EulerRotation.identity = EulerRotation([0.0, 0.0, 0.0], unit='radians')
-    Quaternion.identity = Quaternion([0.0, 0.0, 0.0, 1.0]) 
-                       
+                     
 def _testMVector() :
     
     print "Vector class:", dir(Vector)
