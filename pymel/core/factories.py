@@ -1673,7 +1673,6 @@ class ApiTypeRegister(object):
     refCast = {}
     arrayItemTypes = {}
     doc = {}
-    su = _api.MScriptUtil()
 
     @staticmethod
     def _makeApiArraySetter( type, inCast ):
@@ -1730,6 +1729,18 @@ class ApiTypeRegister(object):
             except IndexError:
                 raise
 
+    @classmethod
+    def _makeRefFunc(cls, capitalizedApiType):
+        """
+        Returns a function which will make a reference to an api object
+        of the desired type.
+        
+        This ensures that each created ref stems from a unique MScriptUtil,
+        so no two refs point to the same storage!
+        """
+        def makeRef(): # initialize: MScriptUtil().asFloatPtr()
+            return getattr( _api.MScriptUtil(), 'as' + capitalizedApiType + 'Ptr')()
+        return makeRef
             
     @classmethod   
     def isRegistered(cls, apiTypeName):
@@ -1768,10 +1779,10 @@ class ApiTypeRegister(object):
             cls.inCast[apiTypeName] = pymelType
         
         if apiTypeName in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
-            initFunc = getattr( cls.su, 'as' + capType + 'Ptr')  # initialize: su.asFloatPtr()
-            getFunc = getattr( cls.su, 'get' + capType )  # su.getFloat()
-            setArrayFunc = getattr( cls.su, 'set' + capType + 'Array')  # su.setFloatArray()
-            getArrayFunc = getattr( cls.su, 'get' + capType + 'ArrayItem') # su.getFloatArrayItem()
+            initFunc = cls._makeRefFunc( capType )  # initialize: MScriptUtil().asFloatPtr()
+            getFunc = getattr( _api.MScriptUtil, 'get' + capType )  # MScriptUtil.getFloat()
+            setArrayFunc = getattr( _api.MScriptUtil, 'set' + capType + 'Array')  # MScriptUtil.setFloatArray()
+            getArrayFunc = getattr( _api.MScriptUtil, 'get' + capType + 'ArrayItem') # MScriptUtil.getFloatArrayItem()
             cls.refInit[apiTypeName] = initFunc
             cls.refCast[apiTypeName] = getFunc
             for i in [2,3,4]:
