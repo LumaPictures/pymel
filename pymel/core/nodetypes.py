@@ -2901,7 +2901,8 @@ class DependNode( general.PyNode ):
         if hasattr(general.PyNode, attr):
             super(general.PyNode, self).__setattr__( attr, val )
         else:
-            util.warn( 'Setting Maya attributes using an equal sign (ex. SCENE.persp.tx=3) is deprecated. Please use Attribute.set() (ex. SCENE.persp.tx.set(3) )' )
+            util.warn( 'Setting Maya attributes using an equal sign is deprecated. Please use Attribute.set()', 
+                        DeprecationWarning, stacklevel=2 )
             DependNode.attr(self,attr).set(val)
              
     @util.universalmethod
