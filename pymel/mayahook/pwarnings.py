@@ -9,9 +9,6 @@ import os.path
 import warnings
 from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
 # from warnings import simplefilter, warn
-from pymel.util.decoration import decorator
-import logging
-_logger = logging.getLogger(__name__)
 
 def formatwarning(message, category, filename, lineno, line=None):
     """Redefined format warning for maya."""
