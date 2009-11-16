@@ -1166,15 +1166,12 @@ class testCase_0_7_compatabilityMode(unittest.TestCase):
 
 class testCase_apiArgConversion(unittest.TestCase):
     def test_unsignedIntRef_out_args(self):
-        # the MFnFluid.getResolution uses
+        # the MFnLattice.getDivisions uses
         # multiple unsigned int & 'out' arguments ... make sure
         # that we can call them / they were translated correctly!
-        res = (3,3,3)
-        fluid = shadingNode('fluidShape', asShader=True)
-        fluid.resolutionW.set(res[0])
-        fluid.resolutionH.set(res[1])
-        fluid.resolutionD.set(res[2])
-        self.assertEqual(fluid.getResolution(), res)
+        res = (3,4,5)
+        latticeObj = lattice(cmds.polyCube()[0], divisions=res)[1]
+        self.assertEqual(latticeObj.getDivisions(), res)
         
     
 #def test_units():
