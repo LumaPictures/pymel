@@ -232,13 +232,15 @@ def guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail=2):
         maya.utils.guiExceptionCallback = myExceptCB
         
     """
-    # Note: exceptionObject should really be an instance of an Exception subclass and not a string
-    excLines = decodeStack( traceback.format_exception_only(exceptionType, exceptionObject) )
     # the primary except line will be the last in the formatted exception.  this is usually
     # only one line, but for syntax errors, may span muitple lines.
-    errorMsg = excLines[-1]
+    if hasattr(exceptionObject, 'args ') and len(exceptionObject.args):
+        exceptionMsg = exceptionObject.args[0]
+    else:
+        exceptionMsg = str(exceptionObject)
+    exceptionMsg = exceptionMsg.strip()
     if detail == 0:
-        result = errorMsg.strip()
+        result = u'%s: %s' % (exceptionType.__name__, exceptionMsg )
     else:
         tbStack = traceback.extract_tb(traceBack)
         tbStack = fixConsoleLineNumbers(tbStack)
@@ -247,14 +249,15 @@ def guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail=2):
         if detail == 1:
             # Put the line number message before the actual warning/error
             tb = tbLines[-1].strip() + ': ' if tbLines else ''
-            result = u'%s: %s%s' % (exceptionType.__name__, tb, exceptionObject)
+            result = u'%s: %s%s' % (exceptionType.__name__, tb, exceptionMsg)
         else: # detail == 2
+            excLines = decodeStack( traceback.format_exception_only(exceptionType, exceptionObject) )
             if len(tbStack) > 0:
                 tbLines.insert(0, u'Traceback (most recent call last):\n')
 
             # The stack trace is longer so the warning/error might
             # get lost so it needs to be first.
-            result = u''.join( prefixTraceStack( [str(exceptionObject)+'\n'] + tbLines + excLines) )
+            result = u''.join( prefixTraceStack( [exceptionMsg+'\n'] + tbLines + excLines) )
     return result
 
 _guiExceptionCallback = guiExceptionCallback
