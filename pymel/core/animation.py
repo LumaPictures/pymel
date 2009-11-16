@@ -1,13 +1,10 @@
 """functions related to animation"""
 
-import pymel.util as util
+import pymel.util as _util
 import factories as _factories
-import general
+import general as _general
 
 import pmcmds as cmds
-#import maya.cmds as cmds
-import maya.mel as mm
-
 
 def currentTime( *args, **kwargs ):
     """
@@ -34,7 +31,7 @@ Modifications:
     - returns an empty list when the result is None
     - returns wrapped classes
     """
-    return map( general.PyNode, util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
+    return map( _general.PyNode, _util.listForNone(cmds.listAnimatable( *args, **kwargs ) ) )
 
 def keyframe( *args, **kwargs ):
     """
@@ -42,14 +39,14 @@ Modifications:
     - returns an empty list when the result is None
     - if both valueChange and timeChange are queried, the result will be a list of (time,value) pairs
     """
-    res = util.listForNone( cmds.keyframe(*args, **kwargs) )
+    res = _util.listForNone( cmds.keyframe(*args, **kwargs) )
     if kwargs.get('query', kwargs.get('q', False) ) and \
             kwargs.get('valueChange', kwargs.get('vc', False) ) and kwargs.get('timeChange', kwargs.get('tc', False) ):
-        return list(util.pairIter(res))
+        return list(_util.pairIter(res))
     return res
 
 def deformer(*args, **kwargs):
-    return map( general.PyNode, cmds.deformer(*args, **kwargs) )
+    return map( _general.PyNode, cmds.deformer(*args, **kwargs) )
     
 def joint(*args, **kwargs):
     """
@@ -105,7 +102,7 @@ Modifications:
             
             for attr in attrs:
                 if attr in kwargs:
-                    return general.datatypes.Vector( general.getAttr(args[0] + "." + attr ) )
+                    return _general.datatypes.Vector( _general.getAttr(args[0] + "." + attr ) )
             
             # ...otherwise, try seeing if we can apply the new weight query syntax
             targetObjects =  kwargs.get( 'weight', kwargs.get('w', None) )
@@ -114,7 +111,7 @@ Modifications:
                 # targetObjects = kwargs.get( 'weight', kwargs['w'] )
                 constraint = args[0]
                 if 'constraint' in cmds.nodeType( constraint, inherited=1 ):
-                    if not util.isIterable( targetObjects ):
+                    if not _util.isIterable( targetObjects ):
                         targetObjects = [targetObjects]
                     elif not targetObjects:
                         targetObjects = func( constraint, q=1, targetList=1 )
@@ -137,6 +134,6 @@ orientConstraint = _constraint( cmds.orientConstraint )
 pointConstraint = _constraint( cmds.pointConstraint )
 scaleConstraint = _constraint( cmds.scaleConstraint )
 
-_factories.createFunctions( __name__, general.PyNode )
+_factories.createFunctions( __name__, _general.PyNode )
 
 

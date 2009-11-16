@@ -4,6 +4,8 @@ try:
 except:
     import pickle
 
+__all__ = ['dump', 'load']
+
 def dump(object, filename, protocol=-1):
     """
     Save an compressed pickle to disk.

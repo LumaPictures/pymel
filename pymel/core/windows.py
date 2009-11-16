@@ -289,13 +289,11 @@ Finally, just for fun, you can also reset, flip and reverse the layout:
 
 import re, sys
 import pmcmds as cmds
-import pymel.util as util
+import pymel.util as _util
 import factories as _factories
-from factories import MetaMayaUIWrapper
-from system import Path
 from language import mel, melGlobals
 import pymel.mayahook.plogging as plogging
-import uitypes
+import uitypes as _uitypes
 from pymel import version
 
 _logger = plogging.getLogger(__name__)
@@ -327,7 +325,7 @@ def _lsUI( **kwargs ):
     kwargs['long'] = long
     if head is not None: kwargs['head'] = head
     if tail is not None: kwargs['tail'] = tail
-    return util.listForNone(cmds.lsUI(**kwargs))
+    return _util.listForNone(cmds.lsUI(**kwargs))
 
 def lsUI( **kwargs ):
     """
@@ -335,7 +333,7 @@ Modified:
   - long defaults to True
   - if no type is passed, defaults to all known types
     """
-    return [ uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
+    return [ _uitypes.PyUI(x) for x in _lsUI( **kwargs ) ]
    
 scriptTableCmds = {}
 
@@ -391,10 +389,10 @@ Maya Bug Fix:
 
     if kwargs:
         cmds.scriptTable( uiName, e=1, **kwargs)    
-    return uitypes.ScriptTable(uiName)
+    return _uitypes.ScriptTable(uiName)
     
 def getPanel(*args, **kwargs):
-    return util.listForNone( cmds.getPanel(*args, **kwargs ) )
+    return _util.listForNone( cmds.getPanel(*args, **kwargs ) )
 
 
 def textScrollList( *args, **kwargs ):
@@ -625,17 +623,17 @@ def pathButtonGrp( name=None, *args, **kwargs ):
     else:
         create = False
         
-    return uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs ) 
+    return _uitypes.PathButtonGrp( name=name, create=create, *args, **kwargs ) 
  
 def vectorFieldGrp( *args, **kwargs ):
-    return uitypes.VectorFieldGrp( *args, **kwargs ) 
+    return _uitypes.VectorFieldGrp( *args, **kwargs ) 
  
 
 def uiTemplate(name=None, force=False, exists=None):
     if exists:
         return cmds.uiTemplate(name, exists)
     else:
-        return uitypes.UITemplate(name=name, force=force)
+        return _uitypes.UITemplate(name=name, force=force)
     
 def _createClassCommands():
     
@@ -643,13 +641,13 @@ def _createClassCommands():
     def createCallback( classname ):
         def callback(*args, **kwargs):
             #print "creating ui element", classname
-            return getattr(uitypes, classname)(*args, **kwargs)
+            return getattr(_uitypes, classname)(*args, **kwargs)
         return callback
      
     for funcName in _factories.uiClassList:
         # Create Class
-        classname = util.capitalize(funcName)
-        #cls = uitypes[classname]
+        classname = _util.capitalize(funcName)
+        #cls = _uitypes[classname]
     
         # Create Function
         func = _factories.functionFactory( funcName, createCallback(classname), _thisModule, uiWidget=True )
@@ -657,8 +655,8 @@ def _createClassCommands():
             func.__module__ = __name__
             # Since we're not using LazyLoading objects for funcs, add them
             # to both the dynamic module and this module, so we don't have
-            # preface them with 'uitypes.' when referencing from this module
-            setattr(uitypes, funcName, func)
+            # preface them with '_uitypes.' when referencing from this module
+            setattr(_uitypes, funcName, func)
             setattr(_thisModule, funcName, func)
     
                
@@ -680,7 +678,7 @@ _createOtherCommands()
 
     
 def autoLayout(*args, **kwargs):
-    return uitypes.AutoLayout(*args, **kwargs)
+    return _uitypes.AutoLayout(*args, **kwargs)
 
 autoLayout.__doc__ = formLayout.__doc__
 
@@ -712,19 +710,19 @@ autoLayout.__doc__ = formLayout.__doc__
 #
 #        #labelStr = kwargs.pop( 'label', kwargs.pop('l', str(dataType) ) )
 #        if dataType in ["bool"]:
-#            ctrl = uitypes.CheckBoxGrp
+#            ctrl = _uitypes.CheckBoxGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setValue1( int(default) )
 #            
 #        elif dataType in ["int"]:
-#            ctrl = uitypes.IntFieldGrp
+#            ctrl = _uitypes.IntFieldGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setValue1( int(default) )
 #                
 #        elif dataType in ["float"]:
-#            ctrl = uitypes.FloatFieldGrp
+#            ctrl = _uitypes.FloatFieldGrp
 #            getter = ctrl.getValue1
 #            setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setValue1( float(default) )
@@ -742,14 +740,14 @@ autoLayout.__doc__ = formLayout.__doc__
 #            #if hasDefault: ctrl.setText( default.__repr__() )
 #                                
 #        elif dataType in ["string", "unicode", "str"]:
-#            ctrl = uitypes.TextFieldGrp
+#            ctrl = _uitypes.TextFieldGrp
 #            getter = ctrl.getText
 #            setter = ctrl.setText
 #            #if hasDefault: ctrl.setText( str(default) )
 #        else:
 #             raise TypeError  
 ##        else:
-##            ctrl = uitypes.TextFieldGrp( l=labelStr )
+##            ctrl = _uitypes.TextFieldGrp( l=labelStr )
 ##            getter = makeEvalGetter( ctrl.getText )
 ##            #setter = ctrl.setValue1
 ##            #if hasDefault: ctrl.setText( default.__repr__() )
@@ -864,7 +862,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     floatFieldArgs = ['precision', 'pre']
     verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
     
-    if uitypes.UI._isBeingCreated(name, create, kwargs):
+    if _uitypes.UI._isBeingCreated(name, create, kwargs):
         assert dataType, "You must pass a dataType when creating a new control"
         if not isinstance(dataType, basestring):
             try:
@@ -908,13 +906,13 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         if label is not None:
             # allow label passing with additional sub-labels:
             #    ['mainLabel', ['subLabel1', 'subLabel2', 'subLabel3']]
-            if util.isIterable(label):
+            if _util.isIterable(label):
                 label, labelArray = label
                 kwargs.pop('l',None)
                 kwargs['label'] = label
                 kwargs['labelArray' + str(numberOfControls) ] = labelArray
                 
-        ctrl = uitypes.CheckBoxGrp( name, create, **kwargs )
+        ctrl = _uitypes.CheckBoxGrp( name, create, **kwargs )
         
         if numberOfControls > 1:
             getter = makeGetter(ctrl, 'getValue', numberOfControls)
@@ -938,14 +936,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
             
-            ctrl = uitypes.IntSliderGrp( name, create, **kwargs )
+            ctrl = _uitypes.IntSliderGrp( name, create, **kwargs )
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider and float kwargs
             for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
                 kwargs.pop(arg, None)
-            ctrl = uitypes.IntFieldGrp( name, create, **kwargs )
+            ctrl = _uitypes.IntFieldGrp( name, create, **kwargs )
             
             getter = ctrl.getValue1
             setter = ctrl.setValue1
@@ -964,14 +962,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
             # turn the field on by default
             if 'field' not in kwargs and 'f' not in kwargs:
                 kwargs['field'] = True
-            ctrl = uitypes.FloatSliderGrp( name, create, **kwargs )
+            ctrl = _uitypes.FloatSliderGrp( name, create, **kwargs )
             getter = ctrl.getValue
             setter = ctrl.setValue
         else:
             # remove field/slider kwargs
             for arg in fieldSliderArgs + verticalArgs: 
                 kwargs.pop(arg, None)
-            ctrl = uitypes.FloatFieldGrp( name, create, **kwargs )
+            ctrl = _uitypes.FloatFieldGrp( name, create, **kwargs )
             getter = ctrl.getValue1
             setter = ctrl.setValue1
         #if hasDefault: ctrl.setValue1( float(default) )
@@ -998,14 +996,14 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
         # remove field/slider kwargs
         for arg in fieldSliderArgs + floatFieldArgs + verticalArgs: 
             kwargs.pop(arg, None)
-        ctrl = uitypes.TextFieldGrp( name, create, **kwargs )
+        ctrl = _uitypes.TextFieldGrp( name, create, **kwargs )
         getter = ctrl.getText
         setter = ctrl.setText
         #if hasDefault: ctrl.setText( str(default) )
     else:
         raise TypeError, "Unsupported dataType: %s" % dataType
 #        else:
-#            ctrl = uitypes.TextFieldGrp( l=labelStr )
+#            ctrl = _uitypes.TextFieldGrp( l=labelStr )
 #            getter = makeEvalGetter( ctrl.getText )
 #            #setter = ctrl.setValue1
 #            #if hasDefault: ctrl.setText( default.__repr__() )
@@ -1023,6 +1021,6 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
 
     
 def getMainProgressBar():
-    return uitypes.ProgressBar(melGlobals['gMainProgressBar'])    
+    return _uitypes.ProgressBar(melGlobals['gMainProgressBar'])    
 
   

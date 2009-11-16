@@ -4,6 +4,8 @@ from operator import itemgetter as _itemgetter
 from keyword import iskeyword as _iskeyword
 import sys as _sys
 
+__all__ = ['namedtuple']
+
 def namedtuple(typename, field_names, docAppend="", verbose=False):
     """ Returns a new subclass of tuple with named fields.
 

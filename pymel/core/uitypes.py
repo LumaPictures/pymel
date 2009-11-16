@@ -1,9 +1,6 @@
-import sys
 import pmcmds as cmds
-import pymel.util as util
+import pymel.util as _util
 import factories as _factories
-from factories import MetaMayaUIWrapper
-from system import Path
 import pymel.mayahook.plogging as plogging
 _logger = plogging.getLogger(__name__)
 
@@ -149,7 +146,7 @@ class Layout(UI):
 # customized ui classes
 class Window(Layout):
     """pymel window class"""
-    __metaclass__ = MetaMayaUIWrapper
+    __metaclass__ = _factories.MetaMayaUIWrapper
 
     def __exit__(self, type, value, traceback):
         self.show()
@@ -182,7 +179,7 @@ class Window(Layout):
     getParent = parent
 
 class FormLayout(Layout):
-    __metaclass__ = MetaMayaUIWrapper
+    __metaclass__ = _factories.MetaMayaUIWrapper
     def attachForm(self, *args):
         kwargs = {'edit':True}
         kwargs['attachForm'] = [args]
@@ -204,10 +201,10 @@ class FormLayout(Layout):
         cmds.formLayout(self,**kwargs)
         
 class AutoLayout(FormLayout):
-    #enumOrientation = util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
+    #enumOrientation = _util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
     HORIZONTAL = 0
     VERTICAL = 1
-    Orientation = util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
+    Orientation = _util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
 
     def __new__(cls, name=None, **kwargs):
         if kwargs:
@@ -301,7 +298,7 @@ class AutoLayout(FormLayout):
 
     
 class TextScrollList(UI):
-    __metaclass__ = MetaMayaUIWrapper
+    __metaclass__ = _factories.MetaMayaUIWrapper
     def extend( self, appendList ):
         """ append a list of strings"""
         
@@ -324,7 +321,7 @@ class TextScrollList(UI):
         self.selectIndexedItems(range(1,numberOfItems+1))
 
 class OptionMenu(UI):
-    __metaclass__ = MetaMayaUIWrapper
+    __metaclass__ = _factories.MetaMayaUIWrapper
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """ 
         if title:
@@ -410,13 +407,13 @@ class UITemplate(object):
         return cmds.uiTemplate( name, exists=True )
 
 
-dynModule = util.LazyLoadModule(__name__, globals())
+dynModule = _util.LazyLoadModule(__name__, globals())
 
 def _createUIClasses():
 
     for funcName in _factories.uiClassList:
         # Create Class
-        classname = util.capitalize(funcName)
+        classname = _util.capitalize(funcName)
         try:
             cls = dynModule[classname]
         except KeyError:
@@ -424,7 +421,7 @@ def _createUIClasses():
                 bases = (Layout,)
             else:
                 bases = (UI,)
-            dynModule[classname] = (MetaMayaUIWrapper, (classname, bases, {}) )
+            dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )
 
 _createUIClasses()
       
@@ -475,7 +472,8 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         self.setText( path )
        
     def getPath(self):
-        return Path( self.getText() )
+        import system
+        return system.Path( self.getText() )
 
 _uiTypesToCommands = {
     'rowGroupLayout' : 'rowLayout',
@@ -500,7 +498,7 @@ def PyUI(strObj, uiType=None):
                 uiType = 'UI'
 
     try:
-        return getattr(dynModule, util.capitalize(uiType) )(strObj)
+        return getattr(dynModule, _util.capitalize(uiType) )(strObj)
     except AttributeError:
         return UI(strObj)
 
