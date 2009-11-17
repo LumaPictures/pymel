@@ -578,6 +578,27 @@ class testCase_components(unittest.TestCase):
                                                  [IndexData(0,1,0)],
                                                  [(0,2),(0,5),(0,2)])
         self.nodes['polySphere'] = cmds.polySphere()[0]
+
+        self.nodes['negUSurf'] = cmds.surface(name='periodicSurf', du=3, dv=1,
+                                              fu='periodic', fv='open',
+                                              ku=range(-13, 0, 1), kv=(0, 1),
+                                              pw=[(4, -4, 0, 1), (4, -4, -2.5, 1),
+                                                  (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
+                                                  (4, 4, 0, 1), (4, 4, -2.5, 1),
+                                                  (0, 5.5, 0, 1), (0, 5.5, -2.5, 1),
+                                                  (-4, 4, 0, 1), (-4, 4, -2.5, 1),
+                                                  (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1),
+                                                  (-4, -4, 0, 1), (-4, -4, -2.5, 1),
+                                                  (0, -5.5, 0, 1), (0, -5.5, -2.5, 1),
+                                                  (4, -4, 0, 1), (4, -4, -2.5, 1),
+                                                  (5.5, 0, 0, 1), (5.5, 0, -2.5, 1),
+                                                  (4, 4, 0, 1), (4, 4, -2.5, 1)] )
+        self.compData['negNurbsIso'] = ComponentData(NurbsSurfaceIsoparm,
+                                                     self.nodes['negUSurf'], "uv",
+                                                     [IndexData(-3.4, .5)],
+                                                     [(-11,-3),(0,1)],
+                                                     neverUnindexed=True)                                                     
+        
         # Done in effort to prevent crash which happens after making a subd,
         # then adding any subd edges to an MSelectionList
         # see http://groups.google.com/group/python_inside_maya/browse_thread/thread/9415d03bac9e712b/0b94edb468fbe6bd
@@ -602,8 +623,8 @@ class testCase_components(unittest.TestCase):
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
-                cmds.delete(node)
-                #pass
+                #cmds.delete(node)
+                pass
             
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
@@ -1320,7 +1341,7 @@ class testCase_components(unittest.TestCase):
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
             
-    def test_negativeIndices(self):
+    def test_negativeDiscreteIndices(self):
         failedComps = []
         def check(pynode, expectedStrings, compData):
             if not self.compsEqual(pynode, expectedStrings, compData):
@@ -1340,6 +1361,24 @@ class testCase_components(unittest.TestCase):
                'ffd1LatticeShape.pt[1][1][0]',
                'ffd1LatticeShape.pt[1][2][0]'),
               self.compData['lattice'])
+        if failedComps:
+            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
+
+    def test_negativeContinuousIndices(self):
+        # For continous comps, these should behave just like positive ones...
+        failedComps = []
+        def check(pynode, expectedStrings, compData):
+            if not self.compsEqual(pynode, expectedStrings, compData):
+                failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
+
+        surf = PyNode('surfaceShape1')
+        check(surf.uv[-3.3][.5],
+              'surfaceShape1.u[-3.3][.5]',
+              self.compData['negNurbsIso'])
+        check(surf.uv[-8:-5.1][0],
+              'surfaceShape1.u[-8:-5.1][0]',
+              self.compData['negNurbsIso'])
+        
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
 
