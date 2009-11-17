@@ -271,7 +271,7 @@ class ComponentData(object):
         return self.nodeName + "." + self.melCompName
     
     def _makeIndicesString(self, indexObj):
-        return ''.join(['[%s]' % x for x in indexObj.index])
+        return ''.join([('[%s]' % x) for x in indexObj.index])
 
     def pyIndexedComps(self):
         if not self.hasPyIndices():
@@ -281,7 +281,7 @@ class ComponentData(object):
             for index in itertools.chain(self.indices, self.pythonIndices):
                 if len(index.index):
                     for partialIndexLen in xrange(1, len(index.index)):
-                        yield self.pyUnindexedComp() + self._makeIndicesString(IndexData(index.index[:partialIndexLen]))
+                        yield self.pyUnindexedComp() + self._makeIndicesString(IndexData(*index.index[:partialIndexLen]))
                 yield self.pyUnindexedComp() + self._makeIndicesString(index)
     
     def melIndexedComps(self):
@@ -324,11 +324,8 @@ class ComponentData(object):
         return self._compObj.apiTypeStr()
     
 class IndexData(object):
-    def __init__(self, index):
-        if isinstance(index, (list, tuple)):
-            self.index = index
-        else:
-            self.index = (index,)
+    def __init__(self, *index):
+        self.index = index
 
 
 def makeComponentCreationTests(evalStringCreator):
@@ -487,7 +484,7 @@ class testCase_components(unittest.TestCase):
                                                 [(0,13)])
         self.compData['meshVtxFace'] = ComponentData(MeshVertexFace,
                                                      self.nodes['cube'], "vtxFace",
-                                                     [IndexData((3,0))],
+                                                     [IndexData(3,0)],
                                                      [(0,7),(0,5)])
         self.compData['rotatePivot'] = ComponentData(Pivot,
                                                      self.nodes['cube'],
@@ -497,13 +494,13 @@ class testCase_components(unittest.TestCase):
         self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
         self.compData['subdCV'] = ComponentData(SubdVertex,
                                                 self.nodes['subd'], "smp",
-                                                [IndexData((0,2))], [])
+                                                [IndexData(0,2)], [])
         self.compData['subdEdge'] = ComponentData(SubdEdge,
                                                   self.nodes['subd'], "sme",
-                                                  [IndexData((256,1))], [])
+                                                  [IndexData(256,1)], [])
         self.compData['subdFace'] = ComponentData(SubdFace,
                                                   self.nodes['subd'], "smf",
-                                                  [IndexData((256,0))], [])
+                                                  [IndexData(256,0)], [])
         self.compData['subdUV'] = ComponentData(SubdUV,
                                                 self.nodes['subd'], "smm",
                                                 [IndexData(10)], [])
@@ -532,8 +529,9 @@ class testCase_components(unittest.TestCase):
         self.nodes['sphere'] = cmds.sphere()[0]
         self.compData['nurbsCV'] = ComponentData(NurbsSurfaceCV,
                                                  self.nodes['sphere'], "cv",
-                                                 [IndexData((2,1))],
-                                                 [(0,6),(0,7)])
+                                                 [IndexData(2,1)],
+                                                 [(0,6),(0,7)],
+                                                 pythonIndices = [IndexData('0:5:2', '4:1:-3')])
         self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "u",
                                                    [IndexData(4),
@@ -554,20 +552,20 @@ class testCase_components(unittest.TestCase):
                                                    neverUnindexed=True)
         self.compData['nurbsIsoUV'] = ComponentData(NurbsSurfaceIsoparm,
                                                     self.nodes['sphere'], "uv",
-                                                    [IndexData((1, 4.8))],
+                                                    [IndexData(1, 4.8)],
                                                    [(0,4),(0,8)],
                                                     neverUnindexed=True)
         self.compData['nurbsPatch'] = ComponentData(NurbsSurfaceFace,
                                                     self.nodes['sphere'], "sf",
-                                                    [IndexData((1,1))],
+                                                    [IndexData(1,1)],
                                                     [(0,3),(0,7)])
         self.compData['nurbsEP'] = ComponentData(NurbsSurfaceEP,
                                                  self.nodes['sphere'], "ep",
-                                                 [IndexData((1,5))],
+                                                 [IndexData(1,5)],
                                                  [(0,4),(0,7)])
         self.compData['nurbsKnot'] = ComponentData(NurbsSurfaceKnot,
                                                    self.nodes['sphere'], "knot",
-                                                   [IndexData((1,5))],
+                                                   [IndexData(1,5)],
                                                    [(0,8),(0,12)])
         self.compData['nurbsRange'] = ComponentData(NurbsSurfaceRange,
                                                     self.nodes['sphere'], "u",
@@ -577,7 +575,7 @@ class testCase_components(unittest.TestCase):
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
         self.compData['lattice'] = ComponentData(LatticePoint,
                                                  self.nodes['lattice'], "pt",
-                                                 [IndexData((0,1,0))],
+                                                 [IndexData(0,1,0)],
                                                  [(0,2),(0,5),(0,2)])
         self.nodes['polySphere'] = cmds.polySphere()[0]
         # Done in effort to prevent crash which happens after making a subd,
