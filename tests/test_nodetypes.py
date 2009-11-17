@@ -6,7 +6,7 @@ from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.core.factories import ApiEnumsToPyComponents
 import pymel.mayahook as mayahook
-from testingutils import TestCaseExtended
+from testingutils import TestCaseExtended, setCompare
 
 
 VERBOSE = False
@@ -228,7 +228,7 @@ class ComponentData(object):
     """
     Stores data handy for creating / testing a component.
     """
-    def __init__(self, pymelType, nodeName, compName, indices,
+    def __init__(self, pymelType, nodeName, compName, indices, ranges,
                  melCompName=None,
                  pythonIndices=None, melIndices=None, neverUnindexed=False):
         self.pymelType = pymelType
@@ -238,6 +238,7 @@ class ComponentData(object):
             melCompName = compName
         self.melCompName = melCompName
         self.indices = indices
+        self.ranges = ranges
         if isinstance(self.indices, (int, float, basestring)):
             self.indices = (self.indices,)
         if pythonIndices is None:
@@ -469,92 +470,115 @@ class testCase_components(unittest.TestCase):
         self.compData['meshVtx'] = ComponentData(MeshVertex,
                                                  self.nodes['cube'], "vtx",
                                             [IndexData(2), IndexData('2:4')],
+                                            [(0,7)],
                                             pythonIndices = [IndexData(':-1')])
         self.compData['meshEdge'] = ComponentData(MeshEdge,
                                                   self.nodes['cube'], "e",
-                                                  [IndexData(1)])
+                                                  [IndexData(1)],
+                                                  [(0,11)])
         #self.compData['meshEdge'] = ComponentData(self.nodes['cube'], "edge", 1)   # This just gets the plug, not a kEdgeComponent
         self.compData['meshFace'] = ComponentData(MeshFace,
                                                   self.nodes['cube'], "f",
-                                                  [IndexData(4)])
+                                                  [IndexData(4)],
+                                                  [(0,5)])
         self.compData['meshUV'] = ComponentData(MeshUV,
                                                 self.nodes['cube'], "map",
-                                                [IndexData(3)])
+                                                [IndexData(3)],
+                                                [(0,13)])
         self.compData['meshVtxFace'] = ComponentData(MeshVertexFace,
                                                      self.nodes['cube'], "vtxFace",
-                                                     [IndexData((3,0))])
+                                                     [IndexData((3,0))],
+                                                     [(0,7),(0,5)])
         self.compData['rotatePivot'] = ComponentData(Pivot,
                                                      self.nodes['cube'],
-                                                     "rotatePivot", [])
+                                                     "rotatePivot", [], [])
 
         self.nodes['subdBase'] = cmds.polyCube()[0]
         self.nodes['subd'] = cmds.polyToSubdiv(self.nodes['subdBase'])[0]
         self.compData['subdCV'] = ComponentData(SubdVertex,
                                                 self.nodes['subd'], "smp",
-                                                [IndexData((0,2))])
+                                                [IndexData((0,2))], [])
         self.compData['subdEdge'] = ComponentData(SubdEdge,
                                                   self.nodes['subd'], "sme",
-                                                  [IndexData((256,1))])
+                                                  [IndexData((256,1))], [])
         self.compData['subdFace'] = ComponentData(SubdFace,
                                                   self.nodes['subd'], "smf",
-                                                  [IndexData((256,0))])
+                                                  [IndexData((256,0))], [])
         self.compData['subdUV'] = ComponentData(SubdUV,
                                                 self.nodes['subd'], "smm",
-                                                [IndexData(10)])
+                                                [IndexData(10)], [])
         self.compData['scalePivot'] = ComponentData(Pivot,
                                                     self.nodes['subd'],
-                                                    "scalePivot", [])
+                                                    "scalePivot", [], [])
         
         self.nodes['curve'] = cmds.circle()[0]
         self.compData['curveCV'] = ComponentData(NurbsCurveCV,
                                                  self.nodes['curve'], "cv",
-                                                 [IndexData(6)])
+                                                 [IndexData(6)],
+                                                 [(0,7)])
         self.compData['curvePt'] = ComponentData(NurbsCurveParameter,
                                                  self.nodes['curve'], "u", 
-                                                 [IndexData(7.26580365007639)])        
+                                                 [IndexData(7.26580365007639)],
+                                                 [(0,8)])        
         self.compData['curveEP'] = ComponentData(NurbsCurveEP,
                                                  self.nodes['curve'], "ep",
-                                                 [IndexData(7)])
+                                                 [IndexData(7)],
+                                                 [(0,7)])
         self.compData['curveKnot'] = ComponentData(NurbsCurveKnot,
                                                    self.nodes['curve'], "knot",
-                                                   [IndexData(1)])
+                                                   [IndexData(1)],
+                                                   [(0,12)])
 
         self.nodes['sphere'] = cmds.sphere()[0]
         self.compData['nurbsCV'] = ComponentData(NurbsSurfaceCV,
                                                  self.nodes['sphere'], "cv",
-                                                 [IndexData((2,1))])
+                                                 [IndexData((2,1))],
+                                                 [(0,6),(0,7)])
         self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "u",
                                                    [IndexData(4),
                                                     IndexData(2.1,1.8)],
+                                                   [(0,4),(0,8)],
                                                    neverUnindexed=True)
         self.compData['nurbsIsoV'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "vIsoparm",
                                                    [IndexData(5.27974050577565),
                                                     IndexData(3,1.3)],
+                                                   # Indice range given in u, v order,
+                                                   # because comparison func will
+                                                   # automatically flip indice
+                                                   # order before using range
+                                                   # info for 'v' isoparms
+                                                   [(0,4),(0,8)],
                                                    melCompName="v",
                                                    neverUnindexed=True)
         self.compData['nurbsIsoUV'] = ComponentData(NurbsSurfaceIsoparm,
                                                     self.nodes['sphere'], "uv",
                                                     [IndexData((1, 4.8))],
+                                                   [(0,4),(0,8)],
                                                     neverUnindexed=True)
         self.compData['nurbsPatch'] = ComponentData(NurbsSurfaceFace,
                                                     self.nodes['sphere'], "sf",
-                                                    [IndexData((1,1))])
+                                                    [IndexData((1,1))],
+                                                    [(0,3),(0,7)])
         self.compData['nurbsEP'] = ComponentData(NurbsSurfaceEP,
                                                  self.nodes['sphere'], "ep",
-                                                 [IndexData((1,5))])
+                                                 [IndexData((1,5))],
+                                                 [(0,4),(0,7)])
         self.compData['nurbsKnot'] = ComponentData(NurbsSurfaceKnot,
                                                    self.nodes['sphere'], "knot",
-                                                   [IndexData((1,5))])
+                                                   [IndexData((1,5))],
+                                                   [(0,8),(0,12)])
         self.compData['nurbsRange'] = ComponentData(NurbsSurfaceRange,
                                                     self.nodes['sphere'], "u",
-                                                    [IndexData('2:3')])
+                                                    [IndexData('2:3')],
+                                                    [(0,4),(0,8)])
 
         self.nodes['lattice'] = cmds.lattice(self.nodes['cube'])[1]
         self.compData['lattice'] = ComponentData(LatticePoint,
                                                  self.nodes['lattice'], "pt",
-                                                 [IndexData((0,1,0))])
+                                                 [IndexData((0,1,0))],
+                                                 [(0,2),(0,5),(0,2)])
         self.nodes['polySphere'] = cmds.polySphere()[0]
         # Done in effort to prevent crash which happens after making a subd,
         # then adding any subd edges to an MSelectionList
@@ -580,7 +604,8 @@ class testCase_components(unittest.TestCase):
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
-                cmds.delete(node)
+                #cmds.delete(node)
+                pass
             
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
@@ -606,7 +631,97 @@ class testCase_components(unittest.TestCase):
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
 
-    def compsEqual(self, comp1, comp2, failOnEmpty=True):
+    _indicesRe = re.compile( r'\[([^]]*)\]')
+    def _compStringsEqual(self, comp1, comp2, compData):
+        # We assume that these comps have a '.' in them,
+        # and that they've already been fed through
+        # filterExpand, so myCube.vtx / myCubeShape.vtx
+        # have been standardized 
+        if comp1==comp2:
+            return True
+        # only split the first - we may have a floating
+        # point indice with a '.'!
+        node1, comp1 = comp1.split('.', 1)
+        node2, comp2 = comp2.split('.', 1)
+        
+        if node1 != node2:
+            return False
+
+        if '[' not in comp1 or '[' not in comp2:
+            return False
+        comp1Name = comp1.split('[', 1)[0]
+        comp2Name = comp2.split('[', 1)[0]
+        
+        flipUv = False
+        if comp1Name != comp2Name:
+            uvNames = ('u', 'v', 'uv')
+            if (comp1Name not in uvNames or
+                comp2Name not in uvNames):
+                return False
+        
+        if comp1Name in ('vtxFace', 'smp', 'sme', 'smf'):
+            # these types (really, any discrete component)
+            # should be found
+            # equal before we get here, by
+            # filterExpand/setCompare -
+            # so just fail these, as
+            # the range information is hard to get
+            return False
+                
+        indices1 = self._indicesRe.findall(comp1)
+        indices2 = self._indicesRe.findall(comp2)
+        
+        # If one of them is v, we need to
+        # flip the indices...
+        if comp1Name == 'v':
+            if len(indices1) == 0:
+                pass
+            elif len(indices1) == 1:
+                indices1 = ['*', indices1[0]]
+            elif len(indices1) == 2:
+                indices1 = [indices1[1], indices1[0]]
+            else:
+                raise ValueError(comp1)
+        if comp2Name == 'v':
+            if len(indices2) == 0:
+                pass
+            elif len(indices2) == 1:
+                indices2 = ['*', indices2[0]]
+            elif len(indices2) == 2:
+                indices2 = [indices2[1], indices2[0]]
+            else:
+                return ValueError(comp2)
+            
+        if len(indices1) < len(indices2):
+            indices1 += (['*'] * (len(indices2) - len(indices1)))
+        elif len(indices1) > len(indices2):
+            indices2 += (['*'] * (len(indices1) - len(indices2)))
+            
+        if len(indices1) > len(compData.ranges):
+            return False
+        # it's ok if we have less indices than possible dimensions...
+            
+        for indice1, indice2, range in zip(indices1, indices2, compData.ranges):
+            if indice1 == indice2:
+                continue
+            if (not self._isCompleteIndiceString(indice1, range) or
+                not self._isCompleteIndiceString(indice2, range)):
+                return False
+        return True
+    
+    def _isCompleteIndiceString(self, indice, range):
+        """
+        Returns true if the given mel indice string would
+        represent a 'complete' dimension for the given range.
+        """
+        if indice == '*':
+            return True
+        if indice.count(':') != 1:
+            return False
+        start, stop = indice.split(':')
+        return float(start) == range[0] and float(stop) == range[1] 
+
+    def compsEqual(self, comp1, comp2, compData, failOnEmpty=True):
         """
         Compares two components for equality.
 
@@ -617,48 +732,39 @@ class testCase_components(unittest.TestCase):
         is True (default). 
         """
 #        Comps are compared through first converting to strings
-#        by selecting and using filterExpand, then by addition to an
-#        MSelectionList.
-#        This seems best way to get strings such as
-#        return myNurbShape.v[3][0:4] and one which gives myNurb.v[3],
-#        when the u range is 0-4, and myNurbShape is the first shape
-#        of myNurb.
-#        We compare by: adding all of comp1 to the selectionList,
-#        getting the selection strings, adding all of comp2 to the
-#        selection, and getting the strings again.  If the strings
-#        are the same, it follows that comp2 is a subset of comp1.
-#        Repeat in reverse to show that comp1 is a subset of comp2,
-#        and therefore that they are equal. 
+#        by selecting and using filterExpand, then by comparing the
+#        the strings through string parsing.
+#        This seems to be the only way to get comps such as
+#        myNurbShape.v[3][0:4] and myNurb.v[3] (when the u range is 0-4,
+#        and myNurbShape is the first shape of myNurb) to compare equal.
+
+        # First, filter the results through filterExpand...
         if failOnEmpty:
             if not comp1: return False
             if not comp2: return False
-        sel = api.MSelectionList()
-        def addToSel(comp, sel, allowIterable=True):
-            if allowIterable and isinstance(comp, (tuple, list)):
-                for subComp in comp:
-                    addToSel(subComp, sel, allowIterable=False)
-            elif isinstance(comp, Component):
-                addToSel(comp.__melobject__(), sel)
-            elif isinstance(comp, basestring):
-                sel.add(comp)
+        select(comp1)
+        comp1 = cmds.filterExpand(sm=tuple(x for x in xrange(74)))
+        select(comp2)
+        comp2 = cmds.filterExpand(sm=tuple(x for x in xrange(74)))
+        
+        # first, filter out components whose strings are identical
+        only1, both, only2 = setCompare(comp1, comp2)
+        # Then, do pairwise comparison...
+        # Make a copy of only1, as we'll be modifying it as we iterate
+        # through...
+        for comp1 in list(only1):
+            for comp2 in only2:
+                if self._compStringsEqual(comp1, comp2, compData):
+                    only1.remove(comp1)
+                    only2.remove(comp2)
+                    break
             else:
-                raise TypeError
-            
-        for first, second in [(comp1, comp2), (comp2, comp1)]:
-            sel.clear()
-            addToSel(first, sel)
-            firstStrings = []
-            sel.getSelectionStrings(firstStrings)
-            if failOnEmpty and not firstStrings:
+                # we couldn't find a match for comp1 - fail!
                 return False
-            addToSel(second, sel)
-            bothStrings = []
-            sel.getSelectionStrings(bothStrings)
-            if failOnEmpty and not bothStrings:
-                return False
-            if set(firstStrings) != set(bothStrings):
-                return False
-        return True
+        assert(not only1)
+        # If only2 is now empty as well, success!
+        return not only2
+
     
     # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
@@ -1109,8 +1215,9 @@ class testCase_components(unittest.TestCase):
                     if VERBOSE:
                         print "comparing...",                        
                     try:
-                        areEqual = self.compsEqual(melString, pymelObj)
+                        areEqual = self.compsEqual(melString, pymelObj, componentData)
                     except Exception:
+                        #raise
                         failedDuringCompare.append(str( (melString, pyString) ))
                     else:
                         if not areEqual:
@@ -1127,7 +1234,7 @@ class testCase_components(unittest.TestCase):
             if failedCreation:
                 failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
             if failedDuringCompare:
-                failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedDuringCompare))
+                failMsgs.append('Following components had error during compare:\n   ' + '\n   '.join(failedDuringCompare))
             if failedComparison:
                 failMsgs.append('Following components unequal:\n   ' + '\n   '.join(failedComparison))
             self.fail('\n\n'.join(failMsgs))
