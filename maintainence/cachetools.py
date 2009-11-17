@@ -2,6 +2,7 @@
 from pymel.all import mayahook
 import pprint
 import os.path
+import pymel.core.factories as factories
 
 def separateExampleCache():
     examples = {}
@@ -26,7 +27,45 @@ def separateExampleCache():
     mayahook.writeCache( examples, 
                           'mayaCmdsExamples', 'the list of Maya command examples',compressed=False )
 
-def upgradeCaches():
+def separateApiDocs():
+    data = list(mayahook.loadCache('mayaApi',compressed=True))
+    apiClassInfo = data[7]
+    newApiDocs = {}
+    for mfn, mfnInfo in apiClassInfo.iteritems():
+        #print mfn, type(mfnInfo)
+        if isinstance(mfnInfo, dict):
+            #print mfn
+            newAllMethodsInfo = {}
+            for method, methodInfoList in mfnInfo['methods'].iteritems():
+                newMethodInfoList = []
+                for i, methodInfo in enumerate(methodInfoList):
+                    newMethodInfo = {}
+                    if 'doc' in methodInfo:
+                        newMethodInfo['doc'] = methodInfo.pop('doc')
+                    newArgInfo = {}
+                    for arg, argInfo in methodInfo['argInfo'].iteritems():
+                        if 'doc' in argInfo:
+                            newArgInfo[arg] = {'doc': argInfo.pop('doc')}
+                    if newArgInfo:
+                        newMethodInfo['argInfo'] = newArgInfo
+                    newMethodInfoList.append(newMethodInfo)
+                if newMethodInfoList:
+                    newAllMethodsInfo[method] = newMethodInfoList
+            if newAllMethodsInfo:
+                newApiDocs[mfn] = {'methods': newAllMethodsInfo }
+        else:
+            pass
+            #print mfn, type(mfnInfo)
+    #pprint.pprint(newApiDocs['MFnTransform'])
+    data[7] = apiClassInfo
+    
+    mayahook.writeCache( tuple(data), 
+                          'mayaApi', compressed=True )
+    
+    mayahook.writeCache( newApiDocs, 
+                          'mayaApiDocs',compressed=True )
+    
+def upgradeCmdCaches():
     data = list(mayahook.loadCache('mayaCmdsList',compressed=False))
     cmdlist = data[0]
     nodeHierarchy = data[1]
@@ -34,6 +73,11 @@ def upgradeCaches():
     examples = {}
     succ = fail = 0
     for cmdName, cmdInfo in cmdlist.iteritems():
+        
+        flags = factories.getCallbackFlags(cmdInfo)
+        if flags:
+            cmdlist[cmdName]['callbackFlags'] = flags
+        
         try:
             examples[cmdName] = cmdInfo.pop('example')
         except KeyError:
@@ -83,20 +127,19 @@ def upgradeCaches():
 #        mayahook.writeCache(data, cache, useVersion=useVersion, compressed=True)
         
 def addCallbackFlags():
+    data = list(mayahook.loadCache('mayaCmdsList',compressed=True))
+    cmdlist = data[0]
     succ = 0
-    for cmdName, cmdInfo in factories.cmdlist.iteritems():
+    for cmdName, cmdInfo in cmdlist.iteritems():
         flags = factories.getCallbackFlags(cmdInfo)
         if flags:
-            factories.cmdlist[cmdName]['callbackFlags'] = flags
+            cmdlist[cmdName]['callbackFlags'] = flags
             succ += 1
-    print "added", succ
-    mayahook.writeCache( (factories.cmdlist,
-                          factories.nodeHierarchy,
-                          factories.uiClassList,
-                          factories.nodeCommandList,
-                          factories.moduleCmds), 
-                          'mayaCmdsList', 'the list of Maya commands' )
     
+    data[0] = cmdlist
+    mayahook.writeCache( tuple(data), 
+                          'mayaCmdsList', 'the list of Maya commands',compressed=True )
+      
 def reduceShortFlags():
     succ = 0
     for cmdName, cmdInfo in factories.cmdlist.iteritems():
@@ -119,15 +162,6 @@ def reduceShortFlags():
                           factories.nodeCommandList,
                           factories.moduleCmds), 
                           'mayaCmdsList', 'the list of Maya commands' )
-
-def simplifyArgs():
-    succ = 0
-    for cmdName, cmdInfo in factories.cmdlist.iteritems():
-        if 'flags' in cmdInfo:
-            cmdInfo['description'] = 0
-            for flag, flagInfo in cmdInfo['flags'].iteritems():
-                flagInfo['args'] = 0
-                flagInfo['docstring'] = 0
 
 def flattenNodeHier():
     

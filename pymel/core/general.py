@@ -1582,12 +1582,6 @@ class PyNode(util.ProxyUnicode):
         :rtype: `unicode`
         """
         return u"%s(%r)" % (self.__class__.__name__, self.name())
-               
-    def __radd__(self, other):
-        if isinstance(other, basestring):
-            return other.__add__( self.name() )
-        else:
-            raise TypeError, "cannot concatenate '%s' and '%s' objects" % ( other.__class__.__name__, self.__class__.__name__)
 
     def __reduce__(self):
         """allows PyNodes to be pickled"""
@@ -1763,27 +1757,6 @@ class PyNode(util.ProxyUnicode):
                 
     future = listFuture
 
-def _deprecatePyNode():
-    strDeprecateDecorator = mayahook.deprecated( 'Convert to string first using str() or PyNode.name().', 'PyNode' )
-    
-    def makeDeprecatedMethod(method):
-        def f(self, *args):
-            proxyMethod = getattr( util.ProxyUnicode, method )
-            return proxyMethod(self,*args)
-        
-        f.__doc__ = "deprecated\n"
-        f.__name__ = method
-        g = strDeprecateDecorator(f)
-        setattr( PyNode, method, g)
-        
-
-    for method in ['__contains__',  '__len__', 
-                            #'__ge__', '__gt__', '__le__', '__lt__',  # still very useful for sorting a list by name
-                             '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__',  ]: #'__reduce__' '__radd__', 
-        makeDeprecatedMethod( method )                   
-
-
-_deprecatePyNode()
                          
 _factories.PyNodeNamesToPyNodes()['PyNode'] = PyNode
 

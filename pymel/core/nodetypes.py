@@ -3190,7 +3190,7 @@ class DependNode( general.PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if version.current >= version.v2009:
+    if version.CURRENT >= version.v2009:
         def __hash__(self):
             return self.__apihandle__().hashCode()
 
@@ -3346,28 +3346,15 @@ class DependNode( general.PyNode ):
 #--------------------------
     def __getattr__(self, attr):
         try :
-            #print "DependNode.__getattr__(%r)" % attr
-            #return super(general.PyNode, self).__getattr__(attr) 
             return getattr(super(general.PyNode, self), attr)
         except AttributeError :
             try:
-                #print "DependNode.attr(%r)" % attr
                 return DependNode.attr(self,attr)
             except general.MayaAttributeError, e:
-                # since we're being called via __getattr__ we don't know whether the user was trying 
+                # since we're being called via __getattr__ we don't know whether the user was intending 
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
                 raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
             
-    def __setattr__(self, attr, val):
-        #print "DependNode.__setattr__", attr, val
-
-        # TODO: check all nodes in hierarchy
-        if hasattr(general.PyNode, attr):
-            super(general.PyNode, self).__setattr__( attr, val )
-        else:
-            util.warn( 'Setting Maya attributes using an equal sign (ex. SCENE.persp.tx=3) is deprecated. Please use Attribute.set() (ex. SCENE.persp.tx.set(3) )' )
-            DependNode.attr(self,attr).set(val)
-             
     @util.universalmethod
     def attrDefaults(obj,attr):
         """
@@ -5198,7 +5185,7 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
-    if version.current >= version.v2009:
+    if version.CURRENT >= version.v2009:
         @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )

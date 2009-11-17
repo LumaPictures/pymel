@@ -624,8 +624,7 @@ class Mel(object):
           ...
         MelUnknownProcedureError: Error during execution of MEL script: line 1: Cannot find procedure "poop".
 
-    .. note:: To remain backward compatible with maya.cmds and older versions of pymel, all MEL exceptions inherit from 
-    `MelError`, which in turn inherits from `RuntimeError`.
+    .. note:: To remain backward compatible with maya.cmds, all MEL exceptions inherit from `MelError`, which in turn inherits from `RuntimeError`.
     
     
     """
@@ -646,7 +645,6 @@ class Mel(object):
                 # keyword args trigger us to format as a command rather than a procedure
                 strFlags = [ '-%s %s' % ( key, pythonToMel(val) ) for key, val in kwargs.items() ]
                 cmd = '%s %s %s' % ( command, ' '.join( strFlags ), ' '.join( strArgs ) )
-                
             else:
                 # procedure
                 cmd = '%s(%s)' % ( command, ','.join( strArgs ) )
@@ -656,16 +654,6 @@ class Mel(object):
                 return self.eval(cmd)
             finally:
                 self.__class__.proc = None
-                
-            #print cmd
-#            try:
-#                return _mm.eval(cmd)
-#            except RuntimeError, msg:
-#                info = self.whatIs( command )
-#                if info.startswith( 'Presumed Mel procedure'):
-#                    raise NameError, 'Unknown Mel procedure'
-#                raise RuntimeError, "%s: %s" % ( msg, cmd )
-
         return _call
     
 
@@ -724,7 +712,7 @@ class Mel(object):
         lineNumbers = _mc.commandEcho(q=1,lineNumbers=1)
         _mc.commandEcho(lineNumbers=1)
         global errors
-        errors = []
+        errors = [] # a list to store each error line
         def errorCallback( nativeMsg, messageType, data ):
             global errors
             if messageType == api.MCommandMessage.kError:
@@ -748,13 +736,7 @@ class Mel(object):
             if hasattr(id, 'disown'):
                 id.disown()
             
-            try:
-                msg = '\n'.join( errors )
-            except TypeError, msg:
-                if mayahook.Version.current == mayahook.Version.v85:
-                    raise RuntimeError, 'Error occurred during execution of MEL script: advanced exceptions with line numbers are supported only on versions 8.5SP1 and greater'
-                else:
-                    raise msg
+            msg = '\n'.join( errors )
             
             if 'Cannot find procedure' in msg:
                 e = MelUnknownProcedureError

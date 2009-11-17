@@ -360,7 +360,7 @@ class UITemplate(object):
                         button( label='Red' )
                         button( label='Green' )
                         button( label='Blue' )
-"""
+    """
     def __init__(self, name=None, force=False):
         if name and force and cmds.uiTemplate( name, exists=True ):
             cmds.deleteUI( name, uiTemplate=True )

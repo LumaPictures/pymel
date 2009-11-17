@@ -15,7 +15,7 @@ sys.stdin = maya.app.baseUI.StandardInput()
 sys.stdout = maya.utils.Output()
 sys.stderr = maya.utils.Output( error=1 )
 
-maya.utils.guiLogger()
+maya.utils.guiLogHandler()
     
 # Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
 # All rights reserved.

@@ -5,9 +5,11 @@ import sys, inspect, time, os.path
 
 from allapi import *
 from pymel.util import Singleton, metaStatic, expandArgs
-import pymel.util as util
-import pymel.mayahook as mayahook
-_logger = mayahook.getLogger(__name__)
+import pymel.util as _util
+import pymel.mayahook.mayautils as _mayautils
+import pymel.mayahook.plogging as _plogging
+
+_logger = _plogging.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
 
@@ -21,7 +23,7 @@ class Enum(tuple):
         else:
             mfn = getattr( _thisModule, self[0] )
             mayaTypeDict = ApiEnumsToMayaTypes()[ mfn().type() ]
-            parts[0] = util.capitalize( mayaTypeDict.keys()[0] )
+            parts[0] = _util.capitalize( mayaTypeDict.keys()[0] )
 
         return '.'.join( [str(x) for x in parts] )
                           
@@ -482,12 +484,12 @@ def _buildApiTypeHierarchy(apiClassInfo=None) :
     #global apiTypeHierarchy, ApiTypesToApiClasses
     _buildMayaReservedTypes()
     
-    if not mayahook.mayaIsRunning():
-        mayahook.mayaInit()
+    if not _mayautils.mayaIsRunning():
+        _mayautils.mayaInit()
     import maya.cmds
     
     # load all maya plugins
-    mayaLoc = mayahook.getMayaLocation()
+    mayaLoc = _mayautils.getMayaLocation()
     # need to set to os.path.realpath to get a 'canonical' path for string comparison...
     pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
     for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
@@ -573,7 +575,7 @@ def _buildApiTypeHierarchy(apiClassInfo=None) :
     # make a Tree from that child:parent dictionnary
 
     # assign the hierarchy to the module-level variable
-    #from pymel.util.trees import IndexedFrozenTree, treeFromDict
+    #from pymel._util.trees import IndexedFrozenTree, treeFromDict
     #apiTypeHierarchy = IndexedFrozenTree(treeFromDict(MFnDict))
     apiTypeHierarchy = MFnDict
     return apiTypeHierarchy, apiTypesToApiClasses, apiClassInfo
@@ -592,7 +594,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
     # Need to initialize this to possibly pass into _buildApiTypeHierarchy, if rebuildAllButClassInfo
     apiClassInfo = None
     
-    data = mayahook.loadCache( 'mayaApi', 'the API cache', compressed=True )
+    data = _mayautils.loadCache( 'mayaApi', 'the API cache', compressed=True )
     if data is not None:
         
         ReservedMayaTypes(data[0])
@@ -624,9 +626,9 @@ def _buildApiCache(rebuildAllButClassInfo=False):
 
     # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
     _logger.info( 'merging in dictionary of manual api overrides')
-    util.mergeCascadingDicts( apiClassOverrides, apiClassInfo, allowDictToListMerging=True )
+    _util.mergeCascadingDicts( apiClassOverrides, apiClassInfo, allowDictToListMerging=True )
     
-    mayahook.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
+    _mayautils.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
                            dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), 
                            dict(MayaTypesToApiTypes()), 
                            apiTypesToApiClasses, apiTypeHierarchy, apiClassInfo 
@@ -638,7 +640,7 @@ def _buildApiCache(rebuildAllButClassInfo=False):
 # TODO : to represent plugin registered types we might want to create an updatable (dynamic, not static) MayaTypesHierarchy ?
 
 def saveApiCache():
-    mayahook.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
+    _mayautils.writeCache( ( dict(ReservedMayaTypes()), dict(ReservedApiTypes()), 
                            dict(ApiTypesToApiEnums()), dict(ApiEnumsToApiTypes()), 
                            dict(MayaTypesToApiTypes()), 
                            dict(ApiTypesToApiClasses()), apiTypeHierarchy, apiClassInfo 
@@ -647,15 +649,15 @@ def saveApiCache():
 
 def loadApiToMelBridge():
 
-    data = mayahook.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
+    data = _mayautils.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
     if data is not None:
         # maya 8.5 fix: convert dict to defaultdict
         bridge, overrides = data
-        bridge = util.defaultdict(dict, bridge)
+        bridge = _util.defaultdict(dict, bridge)
         return bridge, overrides
     
     # no bridge cache exists. create default
-    bridge = util.defaultdict(dict)
+    bridge = _util.defaultdict(dict)
     
     # no api overrides exist. create default
     overrides = {}
@@ -665,7 +667,7 @@ def loadApiToMelBridge():
 def saveApiToMelBridge():
     # maya 8.5 fix: convert defaultdict to dict
     bridge = dict(apiToMelData)
-    mayahook.writeCache( (bridge,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
+    _mayautils.writeCache( (bridge,apiClassOverrides ), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
 
 
 #-------------------------------------------------------------------------------------
