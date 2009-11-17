@@ -639,6 +639,7 @@ class testCase_components(unittest.TestCase):
         # have been standardized 
         if comp1==comp2:
             return True
+        
         # only split the first - we may have a floating
         # point indice with a '.'!
         node1, comp1 = comp1.split('.', 1)
@@ -731,6 +732,45 @@ class testCase_components(unittest.TestCase):
         It will also return False if either component is empty, if failOnEmpty
         is True (default). 
         """
+        # First, make sure comp1, comp2 are both lists
+        bothComps = [comp1, comp2]
+        for i, comp in enumerate(bothComps):
+            if isinstance(comp, (Component, basestring)):
+                bothComps[i] = [comp]
+            else:
+                # ensure it's a list, so we can modify it
+                bothComps[i] = list(comp) 
+        
+        # there's a bug where a comp such as:
+        #   myNurbSurf.u[2]
+        # will get converted to
+        #   myNurbSurf.u[2][0:1]
+        # when it should be
+        #   myNurbSurf.u[2][0:8]
+        # ...to get around it, use
+        #  myNurbSurf.u[2][*]
+        # See test_mayaBugs.TestSurfaceRangeDomain
+        # for complete info on what will go wrong...
+        if compData.pymelType in (NurbsSurfaceRange, NurbsSurfaceIsoparm):
+            for compIterable in bothComps:
+                for i, comp in enumerate(compIterable):
+                    # Just worry about strings - the PyNodes
+                    # are supposed to handle this bug themselves!
+                    if isinstance(comp, basestring):
+                        nodePart, compPart = comp.split('.', 1)
+                        if compPart.startswith('uv['):
+                            compPart = 'u[' + compPart[len('uv['):]
+                        if compPart[:2] in ('u[', 'v['):
+                            indices = self._indicesRe.findall(compPart)
+                            if len(indices) < 2:
+                                compPart += '[*]'
+                        comp = '.'.join( (nodePart, compPart) )
+                    compIterable[i] = comp
+                    
+        comp1, comp2 = bothComps
+            
+
+
 #        Comps are compared through first converting to strings
 #        by selecting and using filterExpand, then by comparing the
 #        the strings through string parsing.
@@ -738,6 +778,7 @@ class testCase_components(unittest.TestCase):
 #        myNurbShape.v[3][0:4] and myNurb.v[3] (when the u range is 0-4,
 #        and myNurbShape is the first shape of myNurb) to compare equal.
 
+        
         # First, filter the results through filterExpand...
         if failOnEmpty:
             if not comp1: return False
@@ -856,6 +897,9 @@ class testCase_components(unittest.TestCase):
         Otherwise, the eval string function returned by
         getEvalStringFunctions(self.__class__).itervalues()
         will be used.
+        
+        If returnCompData is True, the returned list will be of tuples
+            (evalString, compData)
         """
         if evalStringFuncs is None:
             evalStringFuncs = getEvalStringFunctions(self.__class__).values()
@@ -982,7 +1026,7 @@ class testCase_components(unittest.TestCase):
         failedSelections = []
         iterationUnequal = []
         
-        for compString in self.getComponentStrings():
+        for compString,compData in self.getComponentStrings(returnCompData=True):
             printedDone = False
             if VERBOSE:
                 print compString, "-", "creating...",
@@ -1026,7 +1070,7 @@ class testCase_components(unittest.TestCase):
                             failedSelections.append(compString)
                         else:
                             compSel = filterExpand(sm=(x for x in xrange(74)))
-                            if not self.compsEqual(iterSel, compSel):
+                            if not self.compsEqual(iterSel, compSel, compData):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
                                 print "done!"
@@ -1151,7 +1195,7 @@ class testCase_components(unittest.TestCase):
         # faces 0,1,4
         desiredFaceStrings = ['%s.f[%d]' % (self.nodes['cube'], x) for x in (0,1,4)] 
         connectedFaces = PyNode(self.nodes['cube']).vtx[3].connectedFaces()
-        self.assertTrue(self.compsEqual(desiredFaceStrings, connectedFaces))
+        self.assertTrue(self.compsEqual(desiredFaceStrings, connectedFaces, self.compData['meshFace']))
 
     def test_indiceChecking(self):
         # Check for a DiscreteComponent...
@@ -1183,7 +1227,7 @@ class testCase_components(unittest.TestCase):
 
     def test_melIndexing(self):
         melString = '%s.vtx[1:4]' % self.nodes['cube']
-        self.assertTrue(self.compsEqual(melString, PyNode(melString)))
+        self.assertTrue(self.compsEqual(melString, PyNode(melString), self.compData['meshVtx']))
         
 
     # cubeShape1.vtx[1] => PyNode('cubeShape1').vtx[1]
