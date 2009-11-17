@@ -602,8 +602,8 @@ class testCase_components(unittest.TestCase):
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
-                #cmds.delete(node)
-                pass
+                cmds.delete(node)
+                #pass
             
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
@@ -1280,6 +1280,22 @@ class testCase_components(unittest.TestCase):
             if failedComparison:
                 failMsgs.append('Following components unequal:\n   ' + '\n   '.join(failedComparison))
             self.fail('\n\n'.join(failMsgs))
+            
+    def test_extendedSlices(self):
+        failedComps = []
+        def check(pynode, expectedStrings, compData):
+            if not self.compsEqual(pynode, expectedStrings, compData):
+                failedComps.append(repr(pynode))
+
+        pySphere = PyNode('nurbsSphere1')
+        check(pySphere.cv[1:5:2][4:1:-3],
+              ('nurbsSphereShape1.cv[1][4]', 'nurbsSphereShape1.cv[1][1]',
+               'nurbsSphereShape1.cv[3][4]', 'nurbsSphereShape1.cv[3][1]',
+               'nurbsSphereShape1.cv[5][4]', 'nurbsSphereShape1.cv[5][1]'),
+              self.compData['nurbsCV'])
+        if failedComps:
+            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
+            
         
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():
