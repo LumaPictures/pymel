@@ -602,8 +602,8 @@ class testCase_components(unittest.TestCase):
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
-                cmds.delete(node)
-                #pass
+                #cmds.delete(node)
+                pass
             
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
@@ -1287,8 +1287,13 @@ class testCase_components(unittest.TestCase):
             if not self.compsEqual(pynode, expectedStrings, compData):
                 failedComps.append(repr(pynode))
 
+        pyCube = PyNode('pCube1')
+        check(pyCube.e[2:11:3],
+              ('pCubeShape1.e[11]', 'pCubeShape1.e[8]',
+               'pCubeShape1.e[5]', 'pCubeShape1.e[2]'),
+              self.compData['meshEdge'])
         pySphere = PyNode('nurbsSphere1')
-        check(pySphere.cv[1:5:2][4:1:-3],
+        check(pySphere.cv[1:5:2][1:4:3],
               ('nurbsSphereShape1.cv[1][4]', 'nurbsSphereShape1.cv[1][1]',
                'nurbsSphereShape1.cv[3][4]', 'nurbsSphereShape1.cv[3][1]',
                'nurbsSphereShape1.cv[5][4]', 'nurbsSphereShape1.cv[5][1]'),
