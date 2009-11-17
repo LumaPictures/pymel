@@ -651,8 +651,10 @@ class testCase_components(unittest.TestCase):
         comp1Name = comp1.split('[', 1)[0]
         comp2Name = comp2.split('[', 1)[0]
         
-        flipUv = False
         if comp1Name != comp2Name:
+            # If the component names are not equal,
+            # they're different components, unless
+            # they're u/v/uv variants of each other...
             uvNames = ('u', 'v', 'uv')
             if (comp1Name not in uvNames or
                 comp2Name not in uvNames):
@@ -1313,7 +1315,7 @@ class testCase_components(unittest.TestCase):
               self.compData['nurbsIsoUV'])
         pyCurve = PyNode('nurbsCircle1')
         check(pyCurve.u[2.8:6],
-              'nurbsCircleShape1.u[2.8:6.5]',
+              'nurbsCircleShape1.u[2.8:6]',
               self.compData['curvePt'])
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
@@ -1324,14 +1326,17 @@ class testCase_components(unittest.TestCase):
             if not self.compsEqual(pynode, expectedStrings, compData):
                 failedComps.append(repr(pynode))
 
-        pySphere = PyNode('nurbsSphere1')
-        check(pySphere.vIsoparm[5.54][1.1:3.4],
-              'nurbsSphereShape1.u[1.1:3.4][5.54]',
-              self.compData['nurbsIsoUV'])
         pyCurve = PyNode('nurbsCircle1')
-        check(pyCurve.u[2.8:6],
-              'nurbsCircleShape1.u[2.8:6.5]',
-              self.compData['curvePt'])
+        check(pyCurve.knot[-3],
+              'nurbsCircleShape1.knot[10]',
+              self.compData['curveKnot'])
+        pyLattice = PyNode('ffd1Lattice')
+        check(pyLattice.pt[-1][-5:-2][-2],
+              ('ffd1LatticeShape.pt[1][0][0]',
+               'ffd1LatticeShape.pt[1][1][0]',
+               'ffd1LatticeShape.pt[1][2][0]',
+               'ffd1LatticeShape.pt[1][3][0]'),
+              self.compData['lattice'])
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
         
