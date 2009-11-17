@@ -606,40 +606,59 @@ class testCase_components(unittest.TestCase):
                 failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
             self.fail(failMsg)
 
-    def compsEqual(self, comp1, comp2, failOnEmpty=True,
-                   alreadySelected=False):
+    def compsEqual(self, comp1, comp2, failOnEmpty=True):
         """
         Compares two components for equality.
-        
-        Comps are compared through selection - they are selected,
-        the selection is listed (with filterExpand), then the
-        resulting lengths are compared, then the results are put into
-        a set... the sets are then compared for equality.
+
+        The two args should either be pymel components objects, strings
+        which can be selected, or a tuple or list of such objects. 
         
         It will also return False if either component is empty, if failOnEmpty
         is True (default). 
         """
+#        Comps are compared through first converting to strings
+#        by selecting and using filterExpand, then by addition to an
+#        MSelectionList.
+#        This seems best way to get strings such as
+#        return myNurbShape.v[3][0:4] and one which gives myNurb.v[3],
+#        when the u range is 0-4, and myNurbShape is the first shape
+#        of myNurb.
+#        We compare by: adding all of comp1 to the selectionList,
+#        getting the selection strings, adding all of comp2 to the
+#        selection, and getting the strings again.  If the strings
+#        are the same, it follows that comp2 is a subset of comp1.
+#        Repeat in reverse to show that comp1 is a subset of comp2,
+#        and therefore that they are equal. 
         if failOnEmpty:
             if not comp1: return False
             if not comp2: return False
-        if alreadySelected:
-            comp1Sel = comp1
-            comp2Sel = comp2
-        else:
-            select(comp1)
-            comp1Sel = filterExpand(sm=(x for x in xrange(74)))
-            select(comp2)
-            comp2Sel = filterExpand(sm=(x for x in xrange(74)))
-        if failOnEmpty:
-            if not comp1Sel: return False
-            if not comp2Sel: return False
-        else:
-            # filterExpand may return None,
-            # in which case set(None) would raise an error
-            if not comp1Sel or not comp2Sel:
-                return comp1Sel == comp2Sel
-        if len(comp1Sel) != len(comp2Sel): return False
-        return set(comp1Sel) == set(comp2Sel)
+        sel = api.MSelectionList()
+        def addToSel(comp, sel, allowIterable=True):
+            if allowIterable and isinstance(comp, (tuple, list)):
+                for subComp in comp:
+                    addToSel(subComp, sel, allowIterable=False)
+            elif isinstance(comp, Component):
+                addToSel(comp.__melobject__(), sel)
+            elif isinstance(comp, basestring):
+                sel.add(comp)
+            else:
+                raise TypeError
+            
+        for first, second in [(comp1, comp2), (comp2, comp1)]:
+            sel.clear()
+            addToSel(first, sel)
+            firstStrings = []
+            sel.getSelectionStrings(firstStrings)
+            if failOnEmpty and not firstStrings:
+                return False
+            addToSel(second, sel)
+            bothStrings = []
+            sel.getSelectionStrings(bothStrings)
+            if failOnEmpty and not bothStrings:
+                return False
+            if set(firstStrings) != set(bothStrings):
+                return False
+        return True
     
     # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
@@ -901,7 +920,7 @@ class testCase_components(unittest.TestCase):
                             failedSelections.append(compString)
                         else:
                             compSel = filterExpand(sm=(x for x in xrange(74)))
-                            if not self.compsEqual(iterSel, compSel, alreadySelected=True):
+                            if not self.compsEqual(iterSel, compSel):
                                 iterationUnequal.append(compString)
                             if VERBOSE:
                                 print "done!"
@@ -1073,7 +1092,7 @@ class testCase_components(unittest.TestCase):
         unindexedPairedStrings = MakeEvalStringCreator('both', indexed=False)(pairedStrings)
         indexedPairedStrings = MakeEvalStringCreator('both', indexed=True)(pairedStrings)
         failedCreation  = []
-        failedSelection = []
+        failedDuringCompare = []
         failedComparison = []
         for componentData in self.compData.itervalues():
             evalStringPairs = itertools.chain(unindexedPairedStrings(self, componentData),
@@ -1092,7 +1111,7 @@ class testCase_components(unittest.TestCase):
                     try:
                         areEqual = self.compsEqual(melString, pymelObj)
                     except Exception:
-                        failedSelection.append(str( (melString, pyString) ))
+                        failedDuringCompare.append(str( (melString, pyString) ))
                     else:
                         if not areEqual:
                             failedComparison.append(str( (melString, pyString) ))
@@ -1103,12 +1122,12 @@ class testCase_components(unittest.TestCase):
                 if not printedDone and VERBOSE:
                     print "FAIL!!!"
                 
-        if any( (failedCreation, failedSelection, failedComparison) ):
+        if any( (failedCreation, failedDuringCompare, failedComparison) ):
             failMsgs = []
             if failedCreation:
                 failMsgs.append('Following components not created:\n   ' + '\n   '.join(failedCreation))
-            if failedSelection:
-                failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedSelection))
+            if failedDuringCompare:
+                failMsgs.append('Following components unselectable:\n   ' + '\n   '.join(failedDuringCompare))
             if failedComparison:
                 failMsgs.append('Following components unequal:\n   ' + '\n   '.join(failedComparison))
             self.fail('\n\n'.join(failMsgs))
