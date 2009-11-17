@@ -4,31 +4,25 @@ and define a UserWarning class that does only print it's message (no line or mod
 
     
 """
-#
-#import os.path
-#import warnings
-from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
-## from warnings import simplefilter, warn
-#from pymel.util.decoration import decorator
-#import logging
-#_logger = logging.getLogger(__name__)
-#
-#def formatwarning(message, category, filename, lineno, line=None):
-#    """Redefined format warning for maya."""
-#    if issubclass(category, ExecutionWarning) :
-#        s =  u"%s: %s" % (category.__name__, message)
-#    else :
-#        s =  u"%s: %s # at line: %s in %s" % (category.__name__, message, lineno, filename)
+import warnings
+from warnings import formatwarning, linecache
+
+def formatwarning(message, category, filename, lineno, line=None):
+    """Redefined format warning for maya."""
+    if issubclass(category, ExecutionWarning) :
+        s =  u"%s: %s\n" % (category.__name__, message)
+    else :
+        s =  u'%s: %s, at line %s, in "%s"\n' % (category.__name__, message, lineno, filename)
 #        name, ext = os.path.splitext(filename)
 #        line = ""
 #        if ext == ".py" :
 #            line = unicode(linecache.getline(filename, lineno)).strip()
 #            if line:
 #                s += (u"#\t %s" % line)
-#    return s
-#
-#warnings.formatwarning = formatwarning
-#
+    return s
+
+warnings.formatwarning = formatwarning
+
 #def showwarning(message, category, filename, lineno, file=None, line=None):
 #    msg = warnings.formatwarning(message, category, filename, lineno, line)
 #    if file:
@@ -36,16 +30,16 @@ from warnings import formatwarning, linecache, resetwarnings, simplefilter, warn
 #    _logger.warning(msg)
 #    
 #warnings.showwarning = showwarning
-#
-#class ExecutionWarning (UserWarning) :
-#    """ Simple Warning class that doesn't print any information besides warning message """
-#    
-#def warn(*args, **kwargs):
-#    """ Default Maya warn which uses ExecutionWarning as the default warning class. """
-#    if len(args) == 1 and not isinstance(args[0], Warning):
-#        args = args + (ExecutionWarning,)
-#    stacklevel = kwargs.pop("stacklevel",1) + 1 # add to the stack-level so that this wrapper func is skipped
-#    return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
+
+class ExecutionWarning (UserWarning) :
+    """ Simple Warning class that doesn't print any information besides warning message """
+    
+def warn(*args, **kwargs):
+    """ Default Maya warn which uses ExecutionWarning as the default warning class. """
+    if len(args) == 1 and not isinstance(args[0], Warning):
+        args = args + (ExecutionWarning,)
+    stacklevel = kwargs.pop("stacklevel",1) + 1 # add to the stack-level so that this wrapper func is skipped
+    return warnings.warn(stacklevel=stacklevel, *args, **kwargs)
 
 def deprecated(funcOrMessage, className=None):  
     """the decorator can either receive parameters or the function directly.
@@ -63,7 +57,7 @@ def deprecated(funcOrMessage, className=None):
             module = func.__module__)
         
         def deprecationLoggedFunc(*args, **kwargs):
-            warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
+            warnings.warn(message % info, DeprecationWarning, stacklevel=2)  # add to the stack-level so that this wrapper func is skipped
             return func(*args, **kwargs)
         
         deprecationLoggedFunc.__name__ = func.__name__
