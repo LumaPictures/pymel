@@ -1380,7 +1380,16 @@ class testCase_components(unittest.TestCase):
               self.compData['negNurbsIso'])
         
         if failedComps:
-            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
+            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
+            
+    def test_multipleIterations(self):
+        """
+        Make sure that, on repeated iterations through a component, we get the same result. 
+        """
+        comp = PyNode(self.nodes['cube']).e[3:10]
+        iter1 = [x for x in comp]
+        iter2 = [x for x in comp]
+        self.assertEqual(iter1, iter2)
 
         
 for propName, evalStringFunc in \
