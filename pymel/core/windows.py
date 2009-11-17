@@ -392,21 +392,48 @@ Maya Bug Fix:
     return _uitypes.ScriptTable(uiName)
     
 def getPanel(*args, **kwargs):
+    """
+Modifications:
+  - returns an empty list when the result is None
+    """
     return _util.listForNone( cmds.getPanel(*args, **kwargs ) )
 
 
 def textScrollList( *args, **kwargs ):
+    """
+Modifications:
+  - returns an empty list when the result is None for selectIndexedItem, allItems, selectItem queries
+    """
     res = cmds.textScrollList(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)] )
 
 def optionMenu( *args, **kwargs ):
+    """
+Modifications:
+  - returns an empty list when the result is None for itemListLong, itemListShort queries
+    """
     res = cmds.optionMenu(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
 
 def optionMenuGrp( *args, **kwargs ):
+    """
+Modifications:
+  - returns an empty list when the result is None for itemlistLong, itemListShort queries
+    """
     res = cmds.optionMenuGrp(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
 
+def modelEditor( *args, **kwargs ):
+    """
+Modifications:
+  - cast 'camera' query to PyNode
+    """
+    res = cmds.modelEditor(*args, **kwargs)
+    if kwargs.get('query', kwargs.get('q')) and kwargs.get( 'camera', kwargs.get('cam')):
+        import general
+        return general.PyNode(res)
+    return res
+ 
 #===============================================================================
 # Provides classes and functions to facilitate UI creation in Maya
 #===============================================================================
@@ -419,6 +446,10 @@ if version.CURRENT >= version.v2009:
         """
         Enables deferred function evaluation with 'baked' arguments.
         Useful where lambdas won't work...
+        
+        It also ensures that the entire callback will be be represented by one
+        undo entry.
+        
         Example: 
         
         .. python::
@@ -639,6 +670,9 @@ def _createClassCommands():
     
     
     def createCallback( classname ):
+        """
+        create a callback that will trigger lazyLoading
+        """
         def callback(*args, **kwargs):
             #print "creating ui element", classname
             return getattr(_uitypes, classname)(*args, **kwargs)
@@ -653,10 +687,6 @@ def _createClassCommands():
         func = _factories.functionFactory( funcName, createCallback(classname), _thisModule, uiWidget=True )
         if func:
             func.__module__ = __name__
-            # Since we're not using LazyLoading objects for funcs, add them
-            # to both the dynamic module and this module, so we don't have
-            # preface them with '_uitypes.' when referencing from this module
-            setattr(_uitypes, funcName, func)
             setattr(_thisModule, funcName, func)
     
                
