@@ -1315,6 +1315,25 @@ class testCase_components(unittest.TestCase):
         check(pyCurve.u[2.8:6],
               'nurbsCircleShape1.u[2.8:6.5]',
               self.compData['curvePt'])
+        if failedComps:
+            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))
+            
+    def test_negativeIndices(self):
+        failedComps = []
+        def check(pynode, expectedStrings, compData):
+            if not self.compsEqual(pynode, expectedStrings, compData):
+                failedComps.append(repr(pynode))
+
+        pySphere = PyNode('nurbsSphere1')
+        check(pySphere.vIsoparm[5.54][1.1:3.4],
+              'nurbsSphereShape1.u[1.1:3.4][5.54]',
+              self.compData['nurbsIsoUV'])
+        pyCurve = PyNode('nurbsCircle1')
+        check(pyCurve.u[2.8:6],
+              'nurbsCircleShape1.u[2.8:6.5]',
+              self.compData['curvePt'])
+        if failedComps:
+            self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
         
             
         
