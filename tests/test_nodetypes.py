@@ -1327,20 +1327,22 @@ class testCase_components(unittest.TestCase):
                 failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
 
         pyCurve = PyNode('nurbsCircle1')
-        check(pyCurve.knot[-3],
+        # Breaking into extra lines here just to make debugging easier
+        pyCurveShape = pyCurve.getShape()
+        knot = pyCurveShape.knot
+        knotNeg3 = knot[-3]
+        check(knotNeg3,
               'nurbsCircleShape1.knot[10]',
               self.compData['curveKnot'])
         pyLattice = PyNode('ffd1Lattice')
         check(pyLattice.pt[-1][-5:-2][-2],
               ('ffd1LatticeShape.pt[1][0][0]',
                'ffd1LatticeShape.pt[1][1][0]',
-               'ffd1LatticeShape.pt[1][2][0]',
-               'ffd1LatticeShape.pt[1][3][0]'),
+               'ffd1LatticeShape.pt[1][2][0]'),
               self.compData['lattice'])
         if failedComps:
             self.fail('Following components did not yield expected components:\n   ' + '\n   '.join(failedComps))        
-        
-            
+
         
 for propName, evalStringFunc in \
         getEvalStringFunctions(testCase_components).iteritems():

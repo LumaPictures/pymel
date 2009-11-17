@@ -138,7 +138,7 @@ ProxySlice = util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', source
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using
 # normal class syntax...
-class HashableSlice( ProxySlice):
+class HashableSlice(ProxySlice):
     def __init__(self, *args, **kwargs):
         if len(args) == 1 and not kwargs and isinstance(args[0], (slice, HashableSlice)):
             if isinstance(args[0], HashableSlice):
@@ -534,8 +534,7 @@ class DimensionedComponent( Component ):
                  ('[*]' * self.dimensions))
 
     def _makeComponentHandle(self):
-        indices = self.__apiobjects__.get('ComponentIndex', None)
-        indices = self._standardizeIndices(indices)
+        indices = self._standardizeIndices(self._indices)
         handle = self._makeIndexedComponentHandle(indices)
         return handle 
 
@@ -654,16 +653,27 @@ class DimensionedComponent( Component ):
                     newIndices.extend(self._sliceToIndices(dimIndex,
                                                            partialIndex=oldPartial))
                 indices = newIndices
-            elif allowIterable and util.isIterable(dimIndex):
-                newIndices = []
-                for oldPartial in indices:
-                    for indice in dimIndex:
-                        newIndices.extend(self._flattenIndex(oldPartial + (indice,),
-                                                             allowIterable=False))
-                return newIndices
+            elif util.isIterable(dimIndex):
+                if allowIterable: 
+                    newIndices = []
+                    for oldPartial in indices:
+                        for indice in dimIndex:
+                            newIndices.extend(self._flattenIndex(oldPartial + (indice,),
+                                                                 allowIterable=False))
+                    return newIndices
+                else:
+                    raise IndexError(index)
+            elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
+                indices = [x + (self._translateNegativeIndice(dimIndex,x),)
+                           for x in indices]
             else:
                 indices = [x + (dimIndex,) for x in indices]
-        return indices    
+        return indices
+    
+    def _translateNegativeIndice(self, negIndex, partialIndex):
+        raise NotImplementedError
+        assert negIndex < 0
+        self._dimLength
 
     def __getitem__(self, item):
         if self.currentDimension() is None:
@@ -780,6 +790,11 @@ class ComponentIndex( tuple ):
         else:
             label = self.label
         return ComponentIndex(itertools.chain(self, other), label=label)
+    
+    def __repr__(self):
+        return "%s(%s, label=%r)" % (self.__class__.__name__,
+                                     super(ComponentIndex, self).__repr__(),
+                                     self.label)
 
 def validComponentIndexType( argObj, allowDicts=True, componentIndexTypes=None):
     """
@@ -913,6 +928,10 @@ class DiscreteComponent( DimensionedComponent ):
     def _dimRange(self, partialIndex):
         dimLen = self._dimLength(partialIndex)
         return (-dimLen, dimLen - 1)
+
+    def _translateNegativeIndice(self, negIndex, partialIndex):
+        assert negIndex < 0
+        return self._dimLength(partialIndex) + negIndex
     
     def __iter__(self):
         # We proceed in two ways, depending on whether we're a
@@ -1083,6 +1102,9 @@ class ContinuousComponent( DimensionedComponent ):
         # In ContinuousComponent, the opposite is True - _dimLength
         # depends on _dimRange
         raise NotImplementedError
+    
+    def _translateNegativeIndice(self, negIndex, partialIndex):
+        return negIndex
             
 class Component1DFloat( ContinuousComponent ):
     dimensions = 1
