@@ -531,7 +531,7 @@ class testCase_components(unittest.TestCase):
                                                  self.nodes['sphere'], "cv",
                                                  [IndexData(2,1)],
                                                  [(0,6),(0,7)],
-                                                 pythonIndices = [IndexData('0:5:2', '4:1:-3')])
+                                                 pythonIndices = [IndexData('0:5:2', '1:4:3')])
         self.compData['nurbsIsoU'] = ComponentData(NurbsSurfaceIsoparm,
                                                    self.nodes['sphere'], "u",
                                                    [IndexData(4),
@@ -1287,7 +1287,7 @@ class testCase_components(unittest.TestCase):
         failedComps = []
         def check(pynode, expectedStrings, compData):
             if not self.compsEqual(pynode, expectedStrings, compData):
-                failedComps.append(repr(pynode))
+                failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
 
         pyCube = PyNode('pCube1')
         check(pyCube.e[2:11:3],
@@ -1307,7 +1307,7 @@ class testCase_components(unittest.TestCase):
         failedComps = []
         def check(pynode, expectedStrings, compData):
             if not self.compsEqual(pynode, expectedStrings, compData):
-                failedComps.append(repr(pynode))
+                failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
 
         pySphere = PyNode('nurbsSphere1')
         check(pySphere.vIsoparm[5.54][1.1:3.4],
@@ -1324,7 +1324,7 @@ class testCase_components(unittest.TestCase):
         failedComps = []
         def check(pynode, expectedStrings, compData):
             if not self.compsEqual(pynode, expectedStrings, compData):
-                failedComps.append(repr(pynode))
+                failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
 
         pyCurve = PyNode('nurbsCircle1')
         check(pyCurve.knot[-3],

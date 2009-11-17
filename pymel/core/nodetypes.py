@@ -687,7 +687,7 @@ class DimensionedComponent( Component ):
                              (self.__class__.__name__,
                               item.__class__.__name__) )
         if isinstance(item, (slice, HashableSlice)):
-            if item.stop and item.stop < 0:
+            if item.step and item.step < 0:
                 raise IndexError("Components do not support slices with negative steps")
             # 'None' compares as less than all numbers, so need
             # to check for it explicitly
