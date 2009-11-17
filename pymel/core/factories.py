@@ -895,7 +895,10 @@ def buildCachedData() :
                     #    cmdInfo = testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=True  )
                 
             cmdInfo['type'] = module
-             
+            flags = getCallbackFlags(cmdInfo)
+            if flags:
+                cmdInfo['callbackFlags'] = flags
+            
             cmdlist[funcName] = cmdInfo
             
             
@@ -1211,25 +1214,12 @@ def addFlagCmdDocsCallback(cmdName, flag, docstring):
 #    func.__doc__ = docstring
 #    return func
 
+
 def getCallbackFlags(cmdInfo):
     """used parsed data and naming convention to determine which flags are callbacks"""
     commandFlags = []
     try:
         flagDocs = cmdInfo['flags']
-    except KeyError:
-        pass
-    else:
-        for flag, data in flagDocs.items():
-            if data['args'] in ['script', callable] or 'command' in flag.lower():
-                commandFlags += [flag, data['shortname']]
-    return commandFlags
-
-
-def _getCallbackFlags(cmdName):
-    """used parsed data and naming convention to determine which flags are callbacks"""
-    commandFlags = []
-    try:
-        flagDocs = cmdlist[cmdName]['flags']
     except KeyError:
         pass
     else:
@@ -1273,9 +1263,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
     
     if funcName is None:
         funcName = inFunc.__name__
-      
-    #commandFlags = _getCallbackFlags(funcName)
-    
+        
     if not commandFlags:
         #commandFlags = []
         return inFunc
@@ -1283,13 +1271,13 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
     # wrap ui callback commands to ensure that the correct types are returned.
     # we don't have a list of which command-callback pairs return what type, but for many we can guess based on their name.
     if funcName.startswith('float'):
-        callbackReturnFunc = float
+        argCorrector = float
     elif funcName.startswith('int'):
-        callbackReturnFunc = int
+        argCorrector = int
     elif funcName.startswith('checkBox') or funcName.startswith('radioButton'):
-        callbackReturnFunc = lambda x: x == 'true'
+        argCorrector = lambda x: x == 'true'
     else:
-        callbackReturnFunc = None
+        argCorrector = None
         
     #_logger.debug(funcName, inFunc.__name__, commandFlags)
 
@@ -1303,16 +1291,18 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
         "pinned" down"""
         #print "fixing callback", key
         def callback(*cb_args):
-            newargs = []
-            for arg in cb_args:
-                if callbackReturnFunc:
-                    arg = callbackReturnFunc(arg)
-                newargs.append(arg)
+            if argCorrector:
+                newargs = [argCorrector(arg) for arg in cb_args]
+            else:
+                newargs = list(cb_args)
             
             if doPassSelf:
                 newargs = [ args[0] ] + newargs
             newargs = tuple(newargs)
-            return origCallback( *newargs )
+            res = origCallback( *newargs )
+            if isinstance(res, util.ProxyUnicode):
+                res = unicode(res)
+            return res
         return callback
 
     def newUiFunc( *args, **kwargs):
@@ -1481,10 +1471,9 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     # UI commands with callbacks
     #----------------------------
     
-    if uiWidget:
-        callbackFlags = cmdInfo.get('callbackFlags', None)
-        if callbackFlags:
-            newFunc = fixCallbacks( newFunc, callbackFlags, funcName )
+    callbackFlags = cmdInfo.get('callbackFlags', None)
+    if callbackFlags:
+        newFunc = fixCallbacks( newFunc, callbackFlags, funcName )
 
         
     # 3. Modify the function descriptors - ie, __doc__, __name__, etc

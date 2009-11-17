@@ -2,6 +2,7 @@
 from pymel.all import mayahook
 import pprint
 import os.path
+import pymel.core.factories as factories
 
 def separateExampleCache():
     examples = {}
@@ -72,6 +73,11 @@ def upgradeCmdCaches():
     examples = {}
     succ = fail = 0
     for cmdName, cmdInfo in cmdlist.iteritems():
+        
+        flags = factories.getCallbackFlags(cmdInfo)
+        if flags:
+            cmdlist[cmdName]['callbackFlags'] = flags
+        
         try:
             examples[cmdName] = cmdInfo.pop('example')
         except KeyError:
@@ -121,20 +127,19 @@ def upgradeCmdCaches():
 #        mayahook.writeCache(data, cache, useVersion=useVersion, compressed=True)
         
 def addCallbackFlags():
+    data = list(mayahook.loadCache('mayaCmdsList',compressed=True))
+    cmdlist = data[0]
     succ = 0
-    for cmdName, cmdInfo in factories.cmdlist.iteritems():
+    for cmdName, cmdInfo in cmdlist.iteritems():
         flags = factories.getCallbackFlags(cmdInfo)
         if flags:
-            factories.cmdlist[cmdName]['callbackFlags'] = flags
+            cmdlist[cmdName]['callbackFlags'] = flags
             succ += 1
-    print "added", succ
-    mayahook.writeCache( (factories.cmdlist,
-                          factories.nodeHierarchy,
-                          factories.uiClassList,
-                          factories.nodeCommandList,
-                          factories.moduleCmds), 
-                          'mayaCmdsList', 'the list of Maya commands' )
     
+    data[0] = cmdlist
+    mayahook.writeCache( tuple(data), 
+                          'mayaCmdsList', 'the list of Maya commands',compressed=True )
+      
 def reduceShortFlags():
     succ = 0
     for cmdName, cmdInfo in factories.cmdlist.iteritems():
