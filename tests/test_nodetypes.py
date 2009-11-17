@@ -324,12 +324,11 @@ class ComponentData(object):
         return self._compObj.apiTypeStr()
     
 class IndexData(object):
-    def __init__(self, index, size=None):
+    def __init__(self, index):
         if isinstance(index, (list, tuple)):
             self.index = index
         else:
             self.index = (index,)
-        self.size = size
 
 
 def makeComponentCreationTests(evalStringCreator):
@@ -465,6 +464,7 @@ class testCase_components(unittest.TestCase):
 
         self.nodes = {}
         self.compData= {}
+
 
         self.nodes['cube'] = cmds.polyCube()[0]
         self.compData['meshVtx'] = ComponentData(MeshVertex,
