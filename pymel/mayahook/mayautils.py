@@ -9,8 +9,8 @@ import plogging
 
 from pymel.util import path as _path, shellOutput, picklezip
 
-import pymel.version as version
-from pymel.version import parseVersionStr, shortName, installName
+import pymel.versions as versions
+from pymel.versions import parseVersionStr, shortName, installName
 import maya
 import maya.OpenMaya as om
 
@@ -41,7 +41,7 @@ sep = os.path.pathsep
 isInitializing = False
     
 # tells whether this maya package has been modified to work with pymel
-pymelMayaPackage = hasattr(maya, 'pymelCompatible') or version.CURRENT >= version.v2011
+pymelMayaPackage = hasattr(maya, 'pymelCompatible') or versions.current() >= versions.v2011
         
 
 def _moduleJoin(*args):
@@ -104,8 +104,8 @@ def getMayaLocation(version=None):
         # note that a recursive loop between getMayaLocation / getMayaVersion
         # is avoided because getMayaVersion always calls getMayaLocation with
         # version == None
-        actual_long_version = installName()
-        actual_short_version = shortName()
+        actual_long_version = versions.installName()
+        actual_short_version = versions.shortName()
         if version != actual_long_version:
             short_version = parseVersionStr(version, extension=False)
             if version == short_version :
@@ -203,7 +203,7 @@ def getMayaAppDir():
 
 def mayaDocsLocation(version=None):
     docLocation = None
-    if (version == None or version == installName() ) and mayaIsRunning():
+    if (version == None or version == versions.installName() ) and mayaIsRunning():
         # Return the doc location for the running version of maya
         from maya.cmds import showHelp
         docLocation = showHelp("", q=True, docs=True)
@@ -412,7 +412,7 @@ def mayaInit(forversion=None) :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            #if version.current < version.v2009:
+            #if versions.current < versions.v2009:
             #    refreshEnviron()
 
         except ImportError, e:

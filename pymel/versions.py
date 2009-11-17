@@ -2,8 +2,8 @@
 Contains functions for easily comparing versions of Maya with the current running version.
 Class for storing apiVersions, which are the best method for comparing versions. ::
 
-    >>> from pymel import version
-    >>> if version.CURRENT >= version.v2008:
+    >>> from pymel import versions
+    >>> if versions.current() >= versions.v2008:
     ...     print "The current version is later than Maya 2008"
     The current version is later than Maya 2008
 """
@@ -11,35 +11,22 @@ Class for storing apiVersions, which are the best method for comparing versions.
 import re
 from maya.OpenMaya import MGlobal  as _MGlobal
 
-
-def _getApiVersion():
-    """backward compatibility hack for api version in maya 8.5"""
-    try:
-        return _MGlobal.apiVersion()
-    except AttributeError:
-        versionStr = _MGlobal.mayaVersion()
-        if versionStr.startswith('8.5 Service Pack 1'):
-            return 200701
-        else:
-            return 200700
-
-
 def parseVersionStr(versionStr, extension=False):
     """
     >>> from pymel.all import *
-    >>> version.parseVersionStr('2008 Service Pack1 x64')
+    >>> versions.parseVersionStr('2008 Service Pack1 x64')
     '2008'
-    >>> version.parseVersionStr('2008 Service Pack1 x64', extension=True)
+    >>> versions.parseVersionStr('2008 Service Pack1 x64', extension=True)
     '2008-x64'
-    >>> version.parseVersionStr('2008x64', extension=True)
+    >>> versions.parseVersionStr('2008x64', extension=True)
     '2008-x64'
-    >>> version.parseVersionStr('8.5', extension=True)
+    >>> versions.parseVersionStr('8.5', extension=True)
     '8.5'
-    >>> version.parseVersionStr('2008 Extension 2')
+    >>> versions.parseVersionStr('2008 Extension 2')
     '2008'
-    >>> version.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
+    >>> versions.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
     '2009'
-    >>> version.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
+    >>> versions.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
     '2008'
 
     """
@@ -57,26 +44,11 @@ def parseVersionStr(versionStr, extension=False):
         version += "-"+ma.group('ext')
     return version
 
+_current = _MGlobal.apiVersion()
 _fullName = _MGlobal.mayaVersion()
 _installName = parseVersionStr(_fullName, extension=True)
 _shortName = parseVersionStr(_fullName, extension=False)
 
-
-
-current = _getApiVersion()
-
-v85      = 200700
-v85sp1   = 200701
-v2008    = 200800
-v2008sp1  = 200806
-v2008ext2 = 200806
-v2009     = 200900
-v2009sp1  = 200904
-v2009sp1a = 200906
-v2010     = 201000
-v2011     = 201100
-
-CURRENT = _getApiVersion()
 
 v85        = 200700
 v85_SP1    = 200701
@@ -88,6 +60,9 @@ v2009_EXT1 = 200904
 v2009_SP1A = 200906
 v2010      = 201000
 v2011      = 201100
+
+def current():
+    return _current
 
 def fullName():
     return _fullName

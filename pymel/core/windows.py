@@ -294,7 +294,7 @@ import factories as _factories
 from language import mel, melGlobals
 import pymel.mayahook.plogging as plogging
 import uitypes as _uitypes
-from pymel import version
+import pymel.versions as versions
 
 _logger = plogging.getLogger(__name__)
 
@@ -402,7 +402,7 @@ Modifications:
 def textScrollList( *args, **kwargs ):
     """
 Modifications:
-  - returns an empty list when the result is None for selectIndexedItem, allItems, selectItem queries
+  - returns an empty list when the result is None for queries: selectIndexedItem, allItems, selectItem queries
     """
     res = cmds.textScrollList(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)] )
@@ -410,7 +410,7 @@ Modifications:
 def optionMenu( *args, **kwargs ):
     """
 Modifications:
-  - returns an empty list when the result is None for itemListLong, itemListShort queries
+  - returns an empty list when the result is None for queries: itemListLong, itemListShort queries
     """
     res = cmds.optionMenu(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
@@ -418,7 +418,7 @@ Modifications:
 def optionMenuGrp( *args, **kwargs ):
     """
 Modifications:
-  - returns an empty list when the result is None for itemlistLong, itemListShort queries
+  - returns an empty list when the result is None for queries: itemlistLong, itemListShort queries
     """
     res = cmds.optionMenuGrp(*args, **kwargs)
     return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
@@ -426,7 +426,7 @@ Modifications:
 def modelEditor( *args, **kwargs ):
     """
 Modifications:
-  - cast 'camera' query to PyNode
+  - casts to PyNode for queries: camera
     """
     res = cmds.modelEditor(*args, **kwargs)
     if kwargs.get('query', kwargs.get('q')) and kwargs.get( 'camera', kwargs.get('cam')):
@@ -440,7 +440,7 @@ Modifications:
 
 class CallbackError(Exception): pass
 
-if version.CURRENT >= version.v2009:
+if versions.current() >= versions.v2009:
 
     class Callback(object):
         """
@@ -542,11 +542,11 @@ else:
 
 
 def verticalLayout(*args, **kwargs):
-    kwargs['orientation'] = 'VERTICAL'
+    kwargs['orientation'] = 'vertical'
     return autoLayout(*args, **kwargs)
 
 def horizontalLayout(*args, **kwargs):
-    kwargs['orientation'] = 'HORIZONTAL'
+    kwargs['orientation'] = 'horizontal'
     return autoLayout(*args, **kwargs)
 
 def promptBox(title, message, okText, cancelText, **kwargs):

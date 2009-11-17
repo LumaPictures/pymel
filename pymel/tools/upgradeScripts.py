@@ -2,8 +2,10 @@ import sys, os.path, re, shutil
 from collections import defaultdict
 import pymel.core # we don't use this, but it ensures that maya and sys.path are properly initialized
 
-IMPORT_RE = re.compile( '(\s*import\s+(?:[a-zA-Z0-9_.,\s]+,\s*)?)(pymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)((?:\s*,\s*[a-zA-Z][a-zA-Z0-9_.,\s]+)?(?:\s+as\s+([a-zA-Z][a-zA-Z0-9_]+))?(?:\s*))$' )
-FROM_RE = re.compile( '(\s*from\s+)(pymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)((?:\s+import\s+([*]|(?:[a-zA-Z0-9_.,\s]+)))(?:\s*))$' )
+#IMPORT_RE = re.compile( '(\s*import\s+(?:[a-zA-Z0-9_.,\s]+,\s*)?)(pymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)((?:\s*,\s*[a-zA-Z][a-zA-Z0-9_.,\s]+)?(?:\s+as\s+([a-zA-Z][a-zA-Z0-9_]+))?(?:\s*))$' )
+#IMPORT_RE = re.compile( r'(\s*import\s+(?:.*))(\bpymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)(?:\s+as\s+([a-zA-Z][a-zA-Z0-9_]+))?(.*)$' )
+IMPORT_RE = re.compile( r'(?P<start>\s*import\s+.*)(?P<pymel>\bpymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*\b)(?P<end>(?:\s+as\s+(?P<details>[a-zA-Z][a-zA-Z0-9_]+))?(?:.|\s)*)$' )
+FROM_RE = re.compile( r'(?P<start>\s*from\s+)(?P<pymel>pymel(?:[.][a-zA-Z][a-zA-Z0-9_]+)*)(?P<end>(?:\s+import\s+(?P<details>[*]|(?:[a-zA-Z0-9_.,\s]+)))(?:\s*))$' )
 #([a-zA-Z][a-zA-Z_.]+)([a-zA-Z][a-zA-Z_.]+)
 
 LOGNAME = 'pymel_upgrade.log'
@@ -30,8 +32,8 @@ objects = [
                          'pymel.version',
                          'pymel.mayahook', 
                          'pymel.mayahook.version' ),
-            'version',
-            { 'current' : 'CURRENT',
+            'versions',
+            { 'current' : 'current()',
              'v85sp1' : 'v85_SP1',
              'v2008sp1' : 'v2008_SP1',
              'v2008ext2' : 'v2008_EXT2',
@@ -45,6 +47,8 @@ PREFIX = 1
 OBJECT = 2
 SUFFIX = 3
 
+class LogError(ValueError):pass
+
 def _getLogfile(logfile, read=True):
     if logfile is None:
         global last_logfile
@@ -57,7 +61,7 @@ def _getLogfile(logfile, read=True):
             baseDir = os.curdir
         logfile = logfile = os.path.join(baseDir, LOGNAME)
         if read and not os.path.isfile( logfile ):
-            raise ValueError, "could not find an existing %s. please pass the path to this file, which was generated during when upgrading" % LOGNAME
+            raise LogError, "could not find an existing %s. please pass the path to this file, which was generated during upgrade" % LOGNAME
     return os.path.realpath(logfile)
 
 def upgradeFile(filepath, test=True):
@@ -85,10 +89,19 @@ def upgradeFile(filepath, test=True):
         else:
             mode = 'import'
         if m:
+            #start, pymel_module, end, details = m.groups()
+            d= m.groupdict()
+            start = d['start']
+            pymel_module = d['pymel']
+            end = d['end']
+            details = d['details']
+            
+            if pymel_module == 'pymel.all':
+                print "already uses 'pymel.all': skipping"
+                return False, True
+            
             uses_pymel = True
             
-            start, pymel_module, end, details = m.groups()
-
             if pymel_module == 'pymel':
                 # import pymel, foo  -->  import pymel.all as pymel, foo
                 # import pymel as pm, foo  -->  import pymel.all as pm, foo
@@ -321,10 +334,10 @@ def revertFile(filepath):
             print "error restoring file %s.pmbak to %s: %s" % ( filepath, filepath, err)
             return False
     else:
-        print "warning: backup file does not exist: %s" % backup
+        print "error restoring %s: backup file does not exist: %s. skipping" % ( filepath, backup)
     return True
      
-def revert(logfile=None):
+def revert(logfile=None, force=False):
     """
     revert converted files to their original state and remove backups
     
@@ -334,18 +347,48 @@ def revert(logfile=None):
             1. last used logfile (module must have remained loaded since running upgrade)
             2. MAYA_APP_DIR
             3. current working directory
+    :param force:
+        if you've lost the original logfile, setting force to True will cause the script
+        to recurse sys.path looking for backup files to restore instead of using the log.
+        if your sys.path is setup exactly as it was during upgrade, all files should
+        be restored, but without the log it is impossible to be certain.
     """
-    log = open(_getLogfile(logfile), 'r' )
     try:
-        for file in log:
-            file = file.rstrip()
-            if file:
-                revertFile(file)
+        log = open(_getLogfile(logfile), 'r' )
+    except LogError, e:
+        if force:
+            revertfiles = []
+            for path in sys.path + os.environ['MAYA_SCRIPT_PATH'].split(os.pathsep):
+                for root, dirs, files in os.walk(path):
+                    #print root
+                    for f in files:
+                        if f.endswith('.py' + BACKUPEXT) and not f.startswith('.'):
+                            fpath = os.path.realpath(os.path.join(root,f.rstrip(BACKUPEXT)))
+                            #print "adding", fpath
+                            revertfiles.append(fpath)
+                    i = 0
+                    tmpdirs = dirs[:]
+                    for dir in tmpdirs:
+                        #print '\t', `dir`
+                        if dir.startswith('.') or dir == 'pymel' \
+                                or not os.path.isfile(os.path.join(root, dir, '__init__.py')):
+                            del dirs[i]
+                        else:
+                            i += 1
+        else:
+            raise LogError, str(e) + '.\nif you lost your logfile, set force=True to search sys.path for *.pmbak files to restore instead.'
+    else:
+        revertfiles = [ x.rstrip() for x in log.readlines() if x]
+        log.close()
+    
+    try:
+        for file in revertfiles:
+            revertFile(file)
+        print 'done'
     except Exception, err:
         import traceback
         traceback.print_exc()
-    finally:
-        log.close()
+        
 
 
 def cleanup(logfile=None):

@@ -14,7 +14,7 @@ _logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.mayahook as mayahook
-from pymel import version
+import pymel.versions as versions
 
 from maya.cmds import about as _about
 import maya.mel as mm
@@ -3214,7 +3214,7 @@ class DependNode( general.PyNode ):
     def __unicode__(self):
         return u"%s" % self.name()
 
-    if version.CURRENT >= version.v2009:
+    if versions.current() >= versions.v2009:
         def __hash__(self):
             return self.__apihandle__().hashCode()
 
@@ -3609,7 +3609,7 @@ class DependNode( general.PyNode ):
 
 #}
 
-if version.CURRENT >= version.v2011:
+if versions.current() >= versions.v2011:
     class ContainerBase(DependNode):
         __metaclass__ = _factories.MetaMayaNodeWrapper
         pass
@@ -4666,7 +4666,7 @@ class Joint(Transform):
     disconnect = _factories.functionFactory( cmds.disconnectJoint, rename='disconnect')
     insert = _factories.functionFactory( cmds.insertJoint, rename='insert')
 
-if version.isUnlimited():
+if versions.isUnlimited():
     class FluidEmitter(Transform):
         __metaclass__ = _factories.MetaMayaNodeWrapper
         fluidVoxelInfo = _factories.functionFactory( cmds.fluidVoxelInfo, rename='fluidVoxelInfo')
@@ -5209,7 +5209,7 @@ class Mesh(SurfaceShape):
     area = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'area'  )
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
-    if version.CURRENT >= version.v2009:
+    if versions.current() >= versions.v2009:
         @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )
