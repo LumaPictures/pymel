@@ -45,19 +45,23 @@ __all__ = ['Version']
 
 
 
-
+class CallableInt(int):
+    "provides forward compatiblity with pymel 1.0"
+    def __call__(self):
+        return self
 
 
 def _getApiVersion():
     """backward compatibility hack for api version in maya 8.5"""
     try:
-        return _MGlobal.apiVersion()
+        res = _MGlobal.apiVersion()
     except AttributeError:
         versionStr = _MGlobal.mayaVersion()
         if versionStr.startswith('8.5 Service Pack 1'):
-            return 200701
+            res = 200701
         else:
-            return 200700
+            res = 200700
+    return CallableInt(res)
 
 
 def parseVersionStr(versionStr, extension=False):
@@ -122,17 +126,12 @@ class Version(object):
     v2009sp1a = 200906
     v2010     = 201000
     
-    CURRENT = _getApiVersion()
-    
-    v85        = 200700
+    # forward compatible with pymel 1.0
     v85_SP1    = 200701
-    v2008      = 200800
     v2008_SP1  = 200806
     v2008_EXT2 = 200806
-    v2009      = 200900
     v2009_SP1  = 200904
     v2009_SP1A = 200906
-    v2010      = 201000
     
     #: Unlimited or Complete
     
