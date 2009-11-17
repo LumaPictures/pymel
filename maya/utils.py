@@ -298,7 +298,7 @@ class MayaLogHandler(logging.Handler):
             # Debug (10) and Info (20) 
             OpenMaya.MGlobal.displayInfo(msg)
 
-def guiLogger():
+def guiLogHandler():
     """
     Adds an additional handler to the root logger to print to
     the script editor.  Sets the shell/outputWindow handler to
@@ -309,14 +309,14 @@ def guiLogger():
     if _guiLogHandler:
         return _guiLogHandler
     log = logging.getLogger('')
-    shellLogger().setLevel(logging.CRITICAL)
+    shellLogHandler().setLevel(logging.CRITICAL)
     _guiLogHandler = MayaLogHandler()
     format = os.environ.get('MAYA_GUI_LOGGER_FORMAT', '%(name)s : %(message)s')
     _guiLogHandler.setFormatter( logging.Formatter(format) )
     log.addHandler(_guiLogHandler)
     return _guiLogHandler
 
-def shellLogger():
+def shellLogHandler():
     global _shellLogHandler
     if _shellLogHandler:
         return _shellLogHandler

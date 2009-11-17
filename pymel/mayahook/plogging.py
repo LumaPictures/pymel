@@ -60,8 +60,12 @@ def getLogConfigFile():
         return configFile
     return getConfigFile()
 
-if hasattr(maya.utils, 'shellLogger'):
-    maya.utils.shellLogger()
+assert hasattr(maya.utils, 'shellLogHandler'), "If you manually installed pymel, ensure " \
+    "that pymel comes before Maya's site-packages directory on PYTHONPATH / sys.path.  " \
+    "See pymel docs for more info."
+    
+
+maya.utils.shellLogHandler()
 
 #configFile = getLogConfigFile()
 #if sys.version_info >= (2,6):

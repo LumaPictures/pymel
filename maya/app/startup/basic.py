@@ -66,7 +66,7 @@ maya.app.commands.processCommandList()
 
 # Set up the maya logger before userSetup.py runs, so that any custom scripts that
 # use the logger will have it available
-utils.shellLogger()
+utils.shellLogHandler()
 
 if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
     # Run the user's userSetup.py if it exists
