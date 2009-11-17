@@ -7,7 +7,7 @@ from operator import itemgetter
 import pymel.util as util
 import pymel.mayahook.mayautils as mayautils
 import pymel.mayahook.plogging as plogging
-import pymel.version as version
+import pymel.versions as versions
 import pymel.api as _api
 
 import maya.cmds as cmds
@@ -830,7 +830,7 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008/en_US/Nodes/index_hierarchy.html
     # and not
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
-    long_version = version.installName()
+    long_version = versions.installName()
     
     data = mayautils.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
     

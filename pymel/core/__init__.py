@@ -3,7 +3,7 @@
 #import pymel.mayahook as mayahook
 
 import sys, logging
-import pymel.version as _version
+import pymel.versions as _versions
 import pymel.mayahook as mayahook
 
 # will check for the presence of an initilized Maya / launch it
@@ -127,7 +127,7 @@ def _pluginLoaded( *args ):
                             setattr( sys.modules['pymel.all'], nodeName, getattr(nodetypes,nodeName) )
         
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
-        if api.MFileIO.isReadingFile() or ( _version.CURRENT >= _version.v2008 and api.MFileIO.isOpeningFile() ):
+        if api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and api.MFileIO.isOpeningFile() ):
             #__logger.debug("pymel: Installing temporary plugin-loaded callback")
             id = api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
@@ -195,7 +195,7 @@ def _installCallbacks():
         #_pluginLoadedCB = pluginLoadedCallback(module)
 
         
-        if _version.CURRENT >= _version.v2009:
+        if _versions.current() >= _versions.v2009:
             id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
             id.disown()
         else:
@@ -211,7 +211,7 @@ def _installCallbacks():
         # BUG: autodesk still has not add python callback support, and calling this as MEL is not getting the plugin name passed to it
         #mel.unloadPlugin( addCallback='''python("import pymel; pymel._pluginUnloaded('#1')")''' )
         
-        if _version.CURRENT >= _version.v2009:
+        if _versions.current() >= _versions.v2009:
             _logger.debug("Adding pluginUnloaded callback")
             id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
             id.disown()
