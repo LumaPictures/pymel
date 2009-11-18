@@ -484,7 +484,7 @@ if versions.current() >= versions.v2009:
             kwargsFinal.update(kwargs)
             cmds.undoInfo(openChunk=1)
             try:
-                return self.func(*self.args + args, **self.kwargsFinal)
+                return self.func(*self.args + args, **kwargsFinal)
             finally:
                 cmds.undoInfo(closeChunk=1)
 else:
