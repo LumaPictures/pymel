@@ -549,15 +549,13 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
     
     _castList = [float, int, bool]
     
-    def _listIsCastable(resultType):
-        "ensure that all elements are the same type and that the types are castable"
-        try:
-            typ = resultType[0]
-            trueCount = reduce( lambda x,y: x+y, [ int( x in _castList and x == typ ) for x in resultType ] )
-            
-            return len(resultType) == trueCount
-        except IndexError:
-            return False
+#    def _listIsCastable(resultType):
+#        "ensure that all elements are the same type and that the types are castable"
+#        try:
+#            typ = resultType[0]
+#            return typ in _castList and all([ x == typ for x in resultType ])
+#        except IndexError:
+#            return False
     
     module = cmds
     
