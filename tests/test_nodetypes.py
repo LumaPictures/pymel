@@ -1445,7 +1445,25 @@ class testCase_nurbsSurface(TestCaseExtended):
         delete(self.negUSurf)
     
     def test_knotDomain(self):
+        # Was a bug with this, due to automatic wrapping of api 'unsigned int &' args
         self.assertEqual(self.negUSurf.getKnotDomain(), (-11.0, -3.0, 0.0, 1.0))
+
+class testCase_joint(TestCaseExtended):
+    def setUp(self):
+        self.j = Joint(radius=3.3, a=1, p=(4,5,6))
+        
+    def tearDown(self):
+        delete(self.j)
+    
+    def test_getAboslute(self):
+        # Was a bug with this, due to handling of methods which needed casting AND unpacking
+        self.assertEqual(self.j.getAbsolute(), (4,5,6))
+        
+    def test_getRadius(self):
+        # Was a bug with this, due to handling of methods which needed unpacking (but not casting)
+        self.assertEqual(self.j.getRadius(), 3.3)
+
+
 
 class testCase_sets(TestCaseExtended):
     def setUp(self):
