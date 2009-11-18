@@ -25,43 +25,8 @@ def e6():
 import sys, traceback
 import maya.utils
 
-def formatException( exceptionType, exceptionObject, traceBack, detail=2 ):
-    """
-    Whenever Maya receives an error from the command engine it comes into here
-    to format the message for display. RuntimeError exceptions are treated
-    specially since they originate from TcommandEngine::displayError(). The
-    sequence of functions that triggers adds in the appropriate line/file or
-    stack information via a different mechanism so this code only adds the
-    exception data in that case, but adds requested traceback information
-    for all other exception types.
-        exceptionType   : Type of exception, RuntimeError is special
-        exceptionObject : Detailed exception information
-        traceBack       : Exception traceback stack information
-                          Only valid for non-RuntimeError exceptionType
-        detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
-                          Only valid for non-RuntimeError exceptionType
-    """  
-    try:
-        return maya.utils.guiExceptionCallback(exceptionType, exceptionObject, traceBack, detail)
-    except:
-        # get the stack and remove our current level
-        etype, value, tb = sys.exc_info()
-        tbStack = traceback.extract_tb(tb)
-        del tb # see warning in sys.exc_type docs for why this is deleted here
+formatException = maya.utils._guiExcepthook
 
-        tbLines = []
-        tbLines.append("Error in  maya.utils.exceptionCallback:\n")
-        tbLines += traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
-        
-        tbLines.append("\nOriginal exception was:\n")
-        tbLines += traceback.format_exception(exceptionType, exceptionObject, traceBack)
-        tbLines = maya.utils.prefixTraceStack(tbLines)
-        return ''.join(tbLines)
-
-def formatBatchException( exceptionType, exceptionObject, traceBack ):
-    # errors here are automatically handled by sys.excepthook
-    tbLines = maya.utils.batchExceptionCallback(exceptionType, exceptionObject, traceBack)
-    sys.stderr.writelines( tbLines )
 
 #
 #def formatOtherException( exceptionType, exceptionObject, traceBack, detail ):

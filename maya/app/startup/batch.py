@@ -6,9 +6,9 @@
 
 import sys
 import maya.app.startup.basic
-import maya.app.python
+import maya.utils
 # setup an exception callback
-sys.excepthook = maya.app.python.formatBatchException
+sys.excepthook = maya.utils._batchExcepthook
 
 # Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
