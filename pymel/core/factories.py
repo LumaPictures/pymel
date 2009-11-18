@@ -3000,11 +3000,16 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 
                                 if flagInfo.get( 'resultNeedsCasting', False):
                                     returnFunc = flagInfo['args']
-                                    if flagInfo.get( 'resultNeedsUnpacking', False):
-                                        returnFunc = lambda x: returnFunc(x[0])
-                                        
-                                elif flagInfo.get( 'resultNeedsUnpacking', False):
-                                    returnFunc = lambda x: returnFunc(x[0])
+                                    
+                                if flagInfo.get( 'resultNeedsUnpacking', False):
+                                    if returnFunc:
+                                        # can't do:
+                                        #   returnFunc = lambda x: returnFunc(x[0])
+                                        # ... as this would create a recursive function!
+                                        origReturnFunc = returnFunc
+                                        returnFunc = lambda x: origReturnFunc(x[0])
+                                    else:
+                                        returnFunc = lambda x: x[0]
                                 
                                 wrappedMelFunc = makeQueryFlagMethod( func, flag, methodName, 
                                      returnFunc=returnFunc )
