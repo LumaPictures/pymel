@@ -33,6 +33,8 @@ import pymel.mayahook as mayahook
 
 from maya.cmds import about as _about
 
+strDeprecateDecorator = mayahook.deprecated( 'Convert to string first using str() or PyNode.name()', 'PyNode' )
+
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
 
@@ -1485,8 +1487,10 @@ class PyNode(util.ProxyUnicode):
         :rtype: `unicode`
         """
         return u"%s(%r)" % (self.__class__.__name__, self.name())
-               
+
+    @strDeprecateDecorator
     def __radd__(self, other):
+        "deprecated"
         if isinstance(other, basestring):
             return other.__add__( self.name() )
         else:
@@ -1667,7 +1671,6 @@ class PyNode(util.ProxyUnicode):
     future = listFuture
 
 def _deprecatePyNode():
-    strDeprecateDecorator = mayahook.deprecated( 'Convert to string first using str() or PyNode.name()', 'PyNode' )
     
     def makeDeprecatedMethod(method):
         def f(self, *args):
@@ -1682,7 +1685,7 @@ def _deprecatePyNode():
 
     for method in ['__contains__',  '__len__', 
                     #'__ge__', '__gt__', '__le__', '__lt__',  # still very useful for sorting a list by name
-                     '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__', '__radd__', # reserved for higher levels
+                     '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__', # reserved for higher levels
                      'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
                      'capitalize', 'swapcase', 'title',
                      'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
