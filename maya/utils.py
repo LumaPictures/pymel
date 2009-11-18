@@ -204,7 +204,7 @@ def shellLogHandler():
 # Gui Exception Handling 
 #
 
-# no longer needed: reverted to normal python tracebacks ( i.e. traceback.format_list() )
+# no longer needed: 2011 reverted to standard python traceback formatting ( i.e. traceback.format_list() )
 #def formatTraceStack(tbStack):
 #    """
 #    Format a traceback stack for use in the Maya GUI. Designed to be compatible with traceback.format_list() 

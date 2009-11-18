@@ -632,11 +632,11 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = api.getComponentTypes()
+        compTypesDict = conversions.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
-        flatCompTypes = flatCompTypes - set([api.ApiTypesToApiEnums()[x] for x in unableToCreate])
+        flatCompTypes = flatCompTypes - set([conversions.apiTypesToApiEnums[x] for x in unableToCreate])
         
         notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.itervalues():
@@ -647,7 +647,7 @@ class testCase_components(unittest.TestCase):
         if notFoundCompTypes:
             failMsg = "component types not tested:\n"
             for x in notFoundCompTypes:
-                failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
+                failMsg += "    " + conversions.apiEnumsToApiTypes[x] + "\n"
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')

@@ -1835,7 +1835,7 @@ SCENE = Scene()
 
 
 def isValidMayaType (arg):
-    return api.MayaTypesToApiTypes().has_key(arg)
+    return conversions.mayaTypesToApiTypes.has_key(arg)
 
 def isValidPyNode (arg):
     return _factories.PyNodeTypesHierarchy().has_key(arg)
@@ -1853,33 +1853,33 @@ def mayaTypeToPyNode( arg, default=None ):
 
 def toPyNode( obj, default=None ):
     if isinstance( obj, int ):
-        mayaType = api.ApiEnumsToMayaTypes().get( obj, None )
+        mayaType = conversions.apiEnumsToMayaTypes.get( obj, None )
         return _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType), default )
     elif isinstance( obj, basestring ):
         try:
             return _factories.PyNodeNamesToPyNodes()[ util.capitalize(obj) ]
         except KeyError:
-            mayaType = api.ApiTypesToMayaTypes().get( obj, None )
+            mayaType = conversions.apiTypesToMayaTypes.get( obj, None )
             return _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType), default )
             
 def toApiTypeStr( obj, default=None ):
     if isinstance( obj, int ):
-        return api.ApiEnumsToApiTypes().get( obj, default )
+        return conversions.apiEnumsToApiTypes.get( obj, default )
     elif isinstance( obj, basestring ):
-        return api.MayaTypesToApiTypes().get( obj, default)
+        return conversions.mayaTypesToApiTypes.get( obj, default)
     elif isinstance( obj, PyNode ):
         mayaType = _factories.PyNodesToMayaTypes().get( obj, None )
-        return api.MayaTypesToApiTypes().get( mayaType, default)
+        return conversions.mayaTypesToApiTypes.get( mayaType, default)
     
 def toApiTypeEnum( obj, default=None ):
     if isinstance( obj, PyNode ):
         obj = _factories.PyNodesToMayaTypes().get( obj, None )
-    return api.toApiTypeEnum(obj)
+    return conversions.toApiTypeEnum(obj)
 
 def toMayaType( obj, default=None ):
     if issubclass( obj, PyNode ):
         return _factories.PyNodesToMayaTypes().get( obj, default )
-    return api.toMayaType(obj)
+    return conversions.toMayaType(obj)
 
 
 import nodetypes

@@ -3279,7 +3279,7 @@ def fixClassAnalysis( filename ):
 #        
 #def analyzeApiClass( apiTypeStr ):
 #    try:
-#        mayaType = _api.ApiTypesToMayaTypes()[ apiTypeStr ].keys()
+#        mayaType = conversions.apiTypesToMayaTypes[ apiTypeStr ].keys()
 #        if util.isIterable(mayaType) and len(mayaType) == 1:
 #            mayaType = mayaType[0]
 #            pymelType = PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
@@ -3291,7 +3291,7 @@ def fixClassAnalysis( filename ):
 #        #_logger.debug("no Fn", elem.key, pymelType)
 #
 #    try:
-#        apiClass = _api.ApiTypesToApiClasses()[ apiTypeStr ]
+#        apiClass = _api.apiTypesToApiClasses[ apiTypeStr ]
 #    except KeyError:
 #        
 #        _logger.info("no Fn %s", apiTypeStr)
@@ -3319,7 +3319,7 @@ def fixClassAnalysis( filename ):
 ##    else:
 ##        if apiTypeParentStr:
 ##            try:
-##                parentApiClass = api.ApiTypesToApiClasses()[elem.parent.key ]
+##                parentApiClass = api.apiTypesToApiClasses[elem.parent.key ]
 ##                parentMembers = [ x[0] for x in inspect.getmembers( parentApiClass, callable ) ]
 ##            except KeyError:
 ##                parentMembers = []

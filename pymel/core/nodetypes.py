@@ -224,11 +224,11 @@ class Component( general.PyNode ):
     
     # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
     # and there's also a kMeshVtxFaceComponent (which does)??
-        compTypes = api.getComponentTypes()
+        compTypes = conversions.getComponentTypes()
         for compType, compList in compTypes.iteritems():
-            print api.ApiEnumsToApiTypes()[compType], ":"
+            print conversions.apiEnumsToApiTypes[compType], ":"
             for exactComp in compList:
-                print "    ", api.ApiEnumsToApiTypes()[exactComp]
+                print "    ", conversions.apiEnumsToApiTypes[exactComp]
 
     @classmethod
     def _componentMObjEmpty(cls, mobj):

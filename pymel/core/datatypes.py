@@ -2879,7 +2879,7 @@ def getPlugValue( plug ):
         
         raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
     
-    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _api.ApiEnumsToApiTypes().get( apiType, '' ))
+    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), conversions.apiEnumsToApiTypes.get( apiType, '' ))
                      
 def _testMVector() :
     
