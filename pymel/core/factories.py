@@ -606,7 +606,7 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
             if isinstance(obj, list):
                 _logger.debug("Return %s", obj)
                 if len(obj) == 1:
-                    _logger.info("%s: args need unpacking" % funcName)
+                    _logger.info("%s: creation return values need unpacking" % funcName)
                     cmdInfo['resultNeedsUnpacking'] = True
                 elif not obj:
                     raise ValueError, "returned object is an empty list"
@@ -683,23 +683,20 @@ def testNodeCmd( funcName, cmdInfo, nodeCmd=False, verbose=False ):
                         # there are certain patterns of asymmetry which we can safely correct:
                         # [bool] --> bool
                         if isinstance( resultType, list) and len(resultType) ==1 and resultType[0] == argtype:
+                            _logger.info("%s, %s: query flag return values need unpacking" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             val = val[0]
                             
                         # [int] --> bool
                         elif argtype in _castList and isinstance( resultType, list) and len(resultType) ==1 and resultType[0] in _castList:
-                            flagInfo['resultNeedsUnpacking'] = True
-                            flagInfo['resultNeedsCasting'] = True
-                            val = argtype(val[0])
-                            
-                        # [int, int] --> bool
-                        elif argtype in _castList and isinstance( resultType, list) and _listIsCastable(resultType):
+                            _logger.info("%s, %s: query flag return values need unpacking and casting" % (funcName, flag))
                             flagInfo['resultNeedsUnpacking'] = True
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val[0])
                             
                         # int --> bool
                         elif argtype in _castList and resultType in _castList:
+                            _logger.info("%s, %s: query flag return values need casting" % (funcName, flag))
                             flagInfo['resultNeedsCasting'] = True
                             val = argtype(val)
                         else:
