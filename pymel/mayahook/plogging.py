@@ -6,6 +6,7 @@ import logging.config
 from logging import *
 # The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
 from logging import getLevelName, root, info, debug, warning, error, critical, getLogger
+import ConfigParser
 
 import maya
 import pymel.util as util
@@ -64,18 +65,89 @@ assert hasattr(maya.utils, 'shellLogHandler'), "If you manually installed pymel,
     "that pymel comes before Maya's site-packages directory on PYTHONPATH / sys.path.  " \
     "See pymel docs for more info."
     
+def pymelLogFileConfig(fname, defaults=None):):
+    """
+    Reads in a file to set up pymel's loggers.
+    
+    Like logging.config.fileConfig, but intended only for pymel's loggers,
+    and less heavy handed - fileConfig will, for instance, wipe out all
+    handlers from logging._handlers, remove all handlers from logging.root, etc
+    
+    For the root logger, the default behavior for pre-existing handlers is to
+    keep them - any handlers given in the config file will be 'prepended' to
+    the list of root logger handlers. (Maya will set up a 'default' root
+    logger, so adding extra root loggers should only be necessary if you have
+    specific needs).
+    If you wish to to make the setup REMOVE all pre-existing root handlers,
+    add a 'remove_existing_handlers' option to the logger_root section,
+    and set it's value to True.
+    
+    For loggers other than the root logger, the default behavior is the
+    opposite - remove all existing handlers; if you wish to keep them,
+    set 'remove_existing_handlers' to False.
+    
+    The format of the config file read in must meet the same requirements
+    as for logging.config.fileConfig - it must have the sections [loggers],
+    [handlers], and [fomatters], and it must have an entry for [logger_root]...
+    even if not options are set for it.
+    """
+    cp = ConfigParser.ConfigParser(defaults)
+    if hasattr(cp, 'readfp') and hasattr(fname, 'readline'):
+        cp.readfp(fname)
+    else:
+        cp.read(fname)
+
+    formatters = _create_formatters(cp)
+
+    # critical section
+    logging._acquireLock()
+    try:
+        # Handlers add themselves to logging._handlers
+        handlers = logging.config._install_handlers(cp, formatters)
+        # _install_loggers will remove all existing handlers for the
+        # root logger, and any other handlers specified... to override
+        # this, save the existing handlers first
+        root = logging.root
+        rootHandlers = rootHandlers
+        oldLogHandlers = {}
+        for loggerName, logger in root.manager.loggerDict.iteritems():
+            oldLogHandlers[loggerName] = logger.handlers
+        if sys.version_info >= (2,6):
+            logging.config._install_loggers(configFile, handlers,
+                                            disable_existing_loggers=0)
+        else:
+            logging.config._install_loggers(configFile, handlers)
+            # The _install_loggers function disables old-loggers, so we need to
+            # re-enable them
+            for k,v in logging.root.manager.loggerDict.iteritems():
+                if hasattr(v, 'disabled') and v.disabled:
+                    v.disabled = 0
+        # Now re-add any removed handlers, if needed
+        secNames = [cp.get('loggers', 'keys').split(',')]
+        secNames = ['logger_' + x.strip() for x in secNames if x != 'root']
+        _addOldHandlers(root, rootHandlers, 'logger_root', cp, False )
+        for secName in secNames:
+            logName = cp.get(secName, 'qualname')
+            _addOldHandlers(root.manager.loggerDict[logName],
+                            oldLogHandlers[logName], secName, cp, True)
+    finally:
+        logging._releaseLock()
+        
+def _addOldHandlers(logger, oldHandlers, secName, configParser,
+                    removeExistingDefault):
+    opts = cp.options(secName)
+    if 'remove_existing_handlers' not in opts:
+        removeExisting = removeExistingDefault
+    else:
+        removeExisting = eval(opts['remove_existing_handlers'])
+    if not removeExisting:
+        for handler in oldHandlers:
+            if handler not in logger.handlers:
+                logger.addhandler(handler)
 
 maya.utils.shellLogHandler()
 
-#configFile = getLogConfigFile()
-#if sys.version_info >= (2,6):
-#    logging.config.fileConfig(configFile, disable_existing_loggers=0)
-#else:
-#    logging.config.fileConfig(configFile)
-#    # The fileConfig function disables old-loggers, so we need to re-enable them
-#    for k,v in sorted(logging.root.manager.loggerDict.iteritems()):
-#        if hasattr(v, 'disabled') and v.disabled:
-#            v.disabled = 0
+pymelLogFileConfig(getLogConfigFile())
     
 rootLogger = logging.root
 
