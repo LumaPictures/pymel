@@ -71,7 +71,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
 
 def saveApiCache():
     _mayautils.writeCache( ( apiCache.reservedMayaTypes, apiCache.reservedApiTypes, 
-                           apiCache.apiTypesToApiEnums, apiCache.self.self.apiTypesToApiClasses, 
+                           apiCache.apiTypesToApiEnums, apiCache.apiEnumsToApiTypes, 
                            apiCache.mayaTypesToApiTypes, 
                            apiCache.apiTypesToApiClasses, apiCache.apiTypeHierarchy, apiCache.apiClassInfo ),
                         'mayaApi', 'the API cache' )
@@ -107,7 +107,7 @@ class ApiCache(object):
     # Initializes various static look-ups to speed up Maya types conversions
     apiClassInfo = {}
     apiTypesToApiEnums = {}
-    apiTypesToApiClasses = {}
+    apiEnumsToApiTypes = {}
     
     apiTypesToApiClasses = {}
     
@@ -342,11 +342,8 @@ class ApiCache(object):
         
     
         self.apiTypesToApiEnums = dict( inspect.getmembers(MFn, lambda x:type(x) is int)) 
-        self.apiTypesToApiClasses = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys()) 
-    
-        #self.apiTypesToApiEnums = dict( inspect.getmembers(MFn, lambda x:type(x) is int)) 
-        #self.apiTypesToApiClasses = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys()) 
-        #return self.apiTypesToApiEnums, self.apiTypesToApiClasses
+        self.apiEnumsToApiTypes = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys()) 
+
         
     ## Initialises MayaTypes for a faster later access
     #def _buildMayaTypesList() :
@@ -399,15 +396,13 @@ class ApiCache(object):
         """
         def _MFnType(x) :
             if x == MFnBase :
-                return self.apiTypesToApiClasses[ 1 ]  # 'kBase'
+                return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
             else :
                 try :
-                    return self.apiTypesToApiClasses[ x().type() ]
+                    return self.apiEnumsToApiTypes[ x().type() ]
                 except :
-                    return self.apiTypesToApiClasses[ 0 ] # 'kInvalid'
-        
-        #global self.apiTypeHierarchy, self.apiTypesToApiClasses
-        
+                    return self.apiEnumsToApiTypes[ 0 ] # 'kInvalid'
+                
         if not _mayautils.mayaIsRunning():
             _mayautils.mayaInit()
         import maya.cmds
@@ -438,7 +433,6 @@ class ApiCache(object):
                 parent = _MFnType(x[1][0])
                 if parent:
                     self.apiTypesToApiClasses[ current ] = MFnClass
-                    #self.apiTypesToApiClasses[ current ] = x[0]
                     self.apiTypeHierarchy[ current ] = parent
         
         if not self.apiClassInfo:
@@ -496,7 +490,7 @@ class ApiCache(object):
             self.reservedMayaTypes = data[0]
             self.reservedApiTypes = data[1]
             self.apiTypesToApiEnums = data[2]
-            self.apiTypesToApiClasses = data[3]
+            self.apiEnumsToApiTypes = data[3]
             self.mayaTypesToApiTypes = data[4]
             self.apiTypesToApiClasses = data[5]
             self.apiTypeHierarchy = data[6]
@@ -527,7 +521,7 @@ class ApiCache(object):
         _util.mergeCascadingDicts( apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
         
         _mayautils.writeCache( ( self.reservedMayaTypes, self.reservedApiTypes, 
-                               self.apiTypesToApiEnums, self.apiTypesToApiClasses, 
+                               self.apiTypesToApiEnums, self.apiEnumsToApiTypes, 
                                self.mayaTypesToApiTypes, 
                                self.apiTypesToApiClasses, self.apiTypeHierarchy, self.apiClassInfo ), 
                                'mayaApi', 'the API cache' )
@@ -550,7 +544,7 @@ _logger.debug( "Initialized API Cache in in %.2f sec" % _elapsed )
 
 def toApiTypeStr( obj ):
     if isinstance( obj, int ):
-        return apiCache.apiTypesToApiClasses.get( obj, None )
+        return apiCache.apiEnumsToApiTypes.get( obj, None )
     elif isinstance( obj, basestring ):
         return apiCache.mayaTypesToApiTypes.get( obj, None)
     
@@ -575,7 +569,7 @@ def toApiFunctionSet( obj ):
          
     elif isinstance( obj, int ):
         try:
-            return apiCache.apiTypesToApiClasses[ apiCache.self.self.apiTypesToApiClasses[ obj ] ]
+            return apiCache.apiTypesToApiClasses[ apiCache.apiEnumsToApiTypes[ obj ] ]
         except KeyError:
             return
 
@@ -621,7 +615,7 @@ def getComponentTypes():
     for compType in mfnCompTypes + (mfnCompBase,):
         componentTypes[compType.type()] = []
 
-    for apiEnum in apiCache.apiTypesToApiClasses:
+    for apiEnum in apiCache.apiEnumsToApiTypes:
         if mfnCompBase.hasObj(apiEnum):
             for compType in mfnCompTypes:
                 if compType.hasObj(apiEnum):
@@ -639,7 +633,7 @@ def addMayaType(mayaType, apiType=None):
         - apiCache.mayaTypesToApiTypes
         - apiCache.apiTypesToMayaTypes
         - apiCache.apiTypesToApiEnums
-        - apiCache.apiTypesToApiClasses
+        - apiCache.apiEnumsToApiTypes
         - apiCache.mayaTypesToApiEnums
         - apiCache.apiEnumsToMayaTypes
     """
@@ -675,7 +669,7 @@ def removeMayaType(mayaType):
         - apiCache.mayaTypesToApiTypes
         - apiCache.apiTypesToMayaTypes
         - apiCache.apiTypesToApiEnums
-        - apiCache.apiTypesToApiClasses
+        - apiCache.apiEnumsToApiTypes
         - apiCache.mayaTypesToApiEnums
         - apiCache.apiEnumsToMayaTypes
     """
@@ -687,7 +681,7 @@ def removeMayaType(mayaType):
         enums.pop( mayaType, None )
         if not enums:
             apiCache.apiEnumsToMayaTypes.pop(apiEnum)
-            apiCache.apiTypesToApiClasses.pop(apiEnum)
+            apiCache.apiEnumsToApiTypes.pop(apiEnum)
     try:
         apiType = apiCache.mayaTypesToApiTypes.pop( mayaType, None )
     except KeyError: pass
