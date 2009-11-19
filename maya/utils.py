@@ -196,7 +196,7 @@ def shellLogHandler():
     if log.handlers:
         for handler in log.handlers:
             if (isinstance(handler, logging.StreamHandler) and
-                handler in (sys.stdout, sys.stderr):
+                handler in (sys.stdout, sys.stderr)):
                 # If such a logger exists, it's probably unwanted, as it will
                 # lead to double output to the console... but since we can't be
                 # SURE they don't want it, just issue a warning
