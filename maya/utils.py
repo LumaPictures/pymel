@@ -192,6 +192,20 @@ def shellLogHandler():
     if _shellLogHandler:
         return _shellLogHandler
     log = logging.getLogger('')
+    # Check if there's already a root logger that's a 'default' handler -
+    # ie, one setup with basicConfig, outputting to stderr or stdout, with
+    # default options
+    if log.handlers:
+        for handler in log.handlers:
+            if _isDefaultHandler(handler):
+                # If such a handler exists, it's probably unwanted, as it will
+                # lead to double output to the console...
+                log.warning("Pre-existing 'default' root log handler detected on maya startup - overriding")
+                log.removeHandler(handler)
+                # only remove one... if they have more than one 'default' logger,
+                # they either deliberately wanted two console loggers, or they
+                # screwed up before maya started
+                break
     _shellLogHandler = logging.StreamHandler()
     format = os.environ.get('MAYA_SHELL_LOGGER_FORMAT', '%(name)s : %(levelname)s : %(message)s')
     _shellLogHandler.setFormatter( logging.Formatter(format) )
@@ -199,7 +213,14 @@ def shellLogHandler():
     log.setLevel(logging.INFO)
     return _shellLogHandler
 
-
+def _isDefaultHandler(handler):
+    # don't use isinstance(x,y) - if they're using
+    # a class DERIVED from StreamHandler, it's not a default handler!
+    return (handler.__class__ == logging.StreamHandler and
+            handler.stream in (sys.stdout, sys.stderr) and
+            handler.level == logging.NOTSET and not handler.filters and
+            handler.formatter._fmt == logging.BASIC_FORMAT and
+            not handler.formatter.datefmt)
 # ##############################################################################
 # Gui Exception Handling 
 #
