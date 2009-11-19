@@ -20,7 +20,7 @@ except ImportError:
 from pymel.util import unescape
 import pymel
 import pymel.util as util
-import pymel.core.factories as factories
+import pymel.mayahook.factories as factories
 import melscan
 
 try:

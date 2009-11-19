@@ -12,7 +12,7 @@ import pymel.api as _api
 import pymel.api.conversions as _conversions
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
-import factories as _factories
+import pymel.mayahook.factories as _factories
 
 # in python2.6/maya2010 'as' becomes a keyword. 
 # TODO:  add a version check: 

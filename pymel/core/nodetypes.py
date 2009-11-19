@@ -2,11 +2,10 @@
 Contains classes corresponding to the Maya type hierarchy, including `DependNode`, `Transform`, `Mesh`, and `Camera`.
 """
 import sys, os, re
-
-import pmcmds as cmds #@UnresolvedImport
 import inspect, itertools, math
 import pymel.util as util
-import factories as _factories
+import pymel.mayahook.pmcmds as cmds #@UnresolvedImport
+import pymel.mayahook.factories as _factories
 import pymel.api as api #@UnresolvedImport
 import pymel.api.conversions as conversions
 import datatypes

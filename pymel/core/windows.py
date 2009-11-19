@@ -288,9 +288,9 @@ Finally, just for fun, you can also reset, flip and reverse the layout:
 
 
 import re, sys
-import pmcmds as cmds
+import pymel.mayahook.pmcmds as cmds
 import pymel.util as _util
-import factories as _factories
+import pymel.mayahook.factories as _factories
 from language import mel, melGlobals
 import pymel.mayahook.plogging as plogging
 import uitypes as _uitypes

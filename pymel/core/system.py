@@ -35,12 +35,12 @@ the results::
 """
 
 import sys, os
-import pmcmds as cmds
+import pymel.mayahook.pmcmds as cmds
 #import maya.cmds as cmds
 import maya.OpenMaya as _OpenMaya
 from pymel.util.decoration import decorator
 import pymel.util as _util
-import factories as _factories
+import pymel.mayahook.factories as _factories
 import pymel.mayahook as mayahook
 from pymel.util.scanf import fscanf
 import logging

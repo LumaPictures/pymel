@@ -10,7 +10,7 @@ import pymel.mayahook as mayahook
 mayahook.mayaInit() 
 
 
-import factories
+import pymel.mayahook.factories as _factories
 
 from general import *
 from context import *
@@ -59,7 +59,7 @@ def _pluginLoaded( *args ):
     
     #print type(array)
     #pluginPath, pluginName = array
-    import pmcmds
+    import pymel.mayahook.pmcmds as pmcmds
     _logger.info("Plugin loaded: %s", pluginName)
     
     _pluginData[pluginName] = {}
@@ -77,9 +77,9 @@ def _pluginLoaded( *args ):
         _logger.debug( "adding new commands: %s" % ', '.join(commands) )
         for funcName in commands:
             #__logger.debug("adding new command:", funcName)
-            factories.cmdlist[funcName] = factories.getCmdInfoBasic( funcName )
+            _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
             pmcmds.addWrappedCmd(funcName)
-            func = factories.functionFactory( funcName )
+            func = _factories.functionFactory( funcName )
             try:
                 if func:
                     setattr( _module, funcName, func )
@@ -109,7 +109,7 @@ def _pluginLoaded( *args ):
             
             for mayaType in mayaTypes:
                 
-                inheritance = factories.getInheritance( mayaType )
+                inheritance = _factories.getInheritance( mayaType )
                 
                 if not util.isIterable(inheritance):
                     _logger.warn( "could not get inheritance for mayaType %s" % mayaType)
@@ -120,7 +120,7 @@ def _pluginLoaded( *args ):
                     parent = 'dependNode'
                     
                     for node in inheritance:
-                        nodeName = factories.addPyNode( nodetypes, node, parent )
+                        nodeName = _factories.addPyNode( nodetypes, node, parent )
                         parent = node
                         if 'pymel.all' in sys.modules:
                             # getattr forces loading of Lazy object
@@ -175,7 +175,7 @@ def _pluginUnloaded(*args):
         if nodes:
             _logger.debug("Removing nodes: %s" % ', '.join( nodes ))
             for node in nodes:
-                factories.removePyNode( nodetypes, node )
+                _factories.removePyNode( nodetypes, node )
 
 
 global _pluginLoadedCB

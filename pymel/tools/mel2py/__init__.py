@@ -190,7 +190,7 @@ except ImportError:
 
 import pymel.util as util
 import pymel.mayahook as mayahook
-import pymel.core.factories as _factories
+import pymel.mayahook.factories as _factories
 import pymel
 import os
 

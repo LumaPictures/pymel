@@ -1,8 +1,8 @@
 """functions related to modeling"""
 
-import factories as _factories
+import pymel.mayahook.factories as _factories
+import pymel.mayahook.pmcmds as cmds
 import general as _general
-import pmcmds as cmds
 
 def pointPosition( *args, **kwargs ):
     return _general.datatypes.Point( cmds.pointPosition(*args, **kwargs) )

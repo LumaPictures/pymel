@@ -4,7 +4,7 @@ import re
 
 from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
-from pymel.core.factories import ApiEnumsToPyComponents
+from pymel.mayahook.factories import ApiEnumsToPyComponents
 import pymel.mayahook as mayahook
 from testingutils import TestCaseExtended, setCompare
 
