@@ -2,6 +2,8 @@ import sys
 
 import mayahook
 import mayahook.plogging as plogging
+import mayahook.factories as factories
+
 #logger = plogging.getplogging.pymelLogger(__name__)
 plogging.pymelLogger.debug( 'imported mayahook' )
 

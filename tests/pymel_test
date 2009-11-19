@@ -3,6 +3,33 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys, os.path
+
+import os, shutil ,sys, os.path
+from pymel.mayahook.mayautils import getMayaAppDir
+
+app_dir = getMayaAppDir()
+backup_dir = app_dir + '.bak'
+
+def backup():
+	if os.path.exists(app_dir):
+		shutil.move(app_dir, backup_dir)
+	else:
+		print "maya app dir %s does not exist" % app_dir
+
+def restore():
+
+	if os.path.exists(backup_dir):
+		shutil.move(app_dir, app_dir + '.del')
+		shutil.move(backup_dir, app_dir)
+	else:
+		print "backup dir %s does not exist" % backup_dir
+	
+backup()
+
 thisDir = os.path.dirname(os.path.join(sys.path[0], os.path.basename(sys.argv[0])))
-execfile(os.path.join(thisDir, 'pymel_test.py'))
+try:
+	execfile(os.path.join(thisDir, 'pymel_test.py'))
+except:
+	pass
+	
+restore()

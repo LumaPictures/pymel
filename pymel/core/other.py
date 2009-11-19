@@ -3,10 +3,9 @@ Functions which are not listed in the maya documentation, such as commands creat
 as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `AttributeName`.
 """
 
-import pmcmds as cmds
 import re
-
-import factories as _factories
+import pymel.mayahook.pmcmds as cmds
+import pymel.mayahook.factories as _factories
 _factories.createFunctions( __name__ )
 
 

@@ -1,6 +1,6 @@
-import pmcmds as cmds
+import pymel.mayahook.pmcmds as cmds
 import pymel.util as _util
-import factories as _factories
+import pymel.mayahook.factories as _factories
 import pymel.mayahook.plogging as plogging
 _logger = plogging.getLogger(__name__)
 

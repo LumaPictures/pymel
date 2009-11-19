@@ -12,14 +12,14 @@ import sys, os, re
 from getpass import getuser
 from socket import gethostname
 
-import pmcmds as cmds
+import pymel.mayahook.pmcmds as cmds
 #import maya.cmds as cmds
 import maya.mel as mm
 
 import inspect, timeit, time
 
 import pymel.util as util
-import factories as _factories
+import pymel.mayahook.factories as _factories
 
 import pymel.api as api
 import pymel.api.conversions as conversions

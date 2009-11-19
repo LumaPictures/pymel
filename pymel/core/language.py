@@ -3,17 +3,13 @@ Functions and classes related to scripting, including `MelGlobals` and `Mel`
 """
 import sys, os, inspect
 from getpass import getuser as _getuser
-#from math import *
-#from pymel.util.mathutils import *
 import system
 import pymel.util as util
 import maya.mel as _mm
 import maya.cmds as _mc
-import pmcmds as cmds
-#import maya.cmds as cmds
-import pymel.mayahook as mayahook
-import factories as _factories
-import pymel.api as api
+import pymel.mayahook.pmcmds as cmds
+import pymel.mayahook.factories as _factories
+import pymel.api as _api
 import datatypes
 
 
@@ -715,22 +711,22 @@ class Mel(object):
         errors = [] # a list to store each error line
         def errorCallback( nativeMsg, messageType, data ):
             global errors
-            if messageType == api.MCommandMessage.kError:
+            if messageType == _api.MCommandMessage.kError:
                 if nativeMsg:
                     errors +=  [ nativeMsg ]
         
         # setup the callback:
         # assigning ids to a list avoids the swig memory leak warning, which would scare a lot of people even though 
         # it is harmless.  hoping we get a real solution to this so that we don't have to needlessly accumulate this data
-        id = api.MCommandMessage.addCommandOutputCallback( errorCallback, None ) 
+        id = _api.MCommandMessage.addCommandOutputCallback( errorCallback, None ) 
         
         
         try:
-            res = api.MCommandResult()
-            api.MGlobal.executeCommand( cmd, res, False, undoState )
+            res = _api.MCommandResult()
+            _api.MGlobal.executeCommand( cmd, res, False, undoState )
         except Exception:
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            api.MMessage.removeCallback( id )
+            _api.MMessage.removeCallback( id )
             _mc.commandEcho(lineNumbers=lineNumbers)
             # 8.5 fix
             if hasattr(id, 'disown'):
@@ -767,51 +763,51 @@ class Mel(object):
             raise e, message
         else:   
             # these two lines would go in a finally block, but we have to maintain python 2.4 compatibility for maya 8.5
-            api.MMessage.removeCallback( id )
+            _api.MMessage.removeCallback( id )
             _mc.commandEcho(lineNumbers=lineNumbers)
             # 8.5 fix
             if hasattr(id, 'disown'):
                 id.disown()            
             resType = res.resultType()
             
-            if resType == api.MCommandResult.kInvalid:
+            if resType == _api.MCommandResult.kInvalid:
                 return   
-            elif resType == api.MCommandResult.kInt:
-                result = api.MScriptUtil().asIntPtr()
+            elif resType == _api.MCommandResult.kInt:
+                result = _api.MScriptUtil().asIntPtr()
                 res.getResult(result)
-                return api.MScriptUtil.getInt(result)
-            elif resType == api.MCommandResult.kIntArray:
-                result = api.MIntArray()
-                res.getResult(result)
-                return [ result[i] for i in range( result.length() ) ]
-            elif resType == api.MCommandResult.kDouble:
-                result = api.MScriptUtil().asDoublePtr()
-                res.getResult(result)
-                return api.MScriptUtil.getDouble(result)
-            elif resType == api.MCommandResult.kDoubleArray:
-                result = api.MDoubleArray()
+                return _api.MScriptUtil.getInt(result)
+            elif resType == _api.MCommandResult.kIntArray:
+                result = _api.MIntArray()
                 res.getResult(result)
                 return [ result[i] for i in range( result.length() ) ]
-            elif resType == api.MCommandResult.kString:
+            elif resType == _api.MCommandResult.kDouble:
+                result = _api.MScriptUtil().asDoublePtr()
+                res.getResult(result)
+                return _api.MScriptUtil.getDouble(result)
+            elif resType == _api.MCommandResult.kDoubleArray:
+                result = _api.MDoubleArray()
+                res.getResult(result)
+                return [ result[i] for i in range( result.length() ) ]
+            elif resType == _api.MCommandResult.kString:
                 return res.stringResult()
-            elif resType == api.MCommandResult.kStringArray:
+            elif resType == _api.MCommandResult.kStringArray:
                 result = []
                 res.getResult(result)
                 return result
-            elif resType == api.MCommandResult.kVector:
-                result = api.MVector()
+            elif resType == _api.MCommandResult.kVector:
+                result = _api.MVector()
                 res.getResult(result)
                 return datatypes.Vector(result)    
-            elif resType == api.MCommandResult.kVectorArray:
-                result = api.MVectorArray()
+            elif resType == _api.MCommandResult.kVectorArray:
+                result = _api.MVectorArray()
                 res.getResult(result)
                 return [ datatypes.Vector(result[i]) for i in range( result.length() ) ]
-            elif resType == api.MCommandResult.kMatrix:
-                result = api.MMatrix()
+            elif resType == _api.MCommandResult.kMatrix:
+                result = _api.MMatrix()
                 res.getResult(result)
                 return datatypes.Matrix(result)   
-            elif resType == api.MCommandResult.kMatrixArray:
-                result = api.MMatrixArray()
+            elif resType == _api.MCommandResult.kMatrixArray:
+                result = _api.MMatrixArray()
                 res.getResult(result)
                 return [ datatypes.Matrix(result[i]) for i in range( result.length() ) ]
              

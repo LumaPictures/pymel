@@ -147,7 +147,8 @@ def removeBackupLoop(retryTime=.1, printFailure=False):
 
 if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
-        backupAndTest(sys.argv[1:])
+        #backupAndTest(sys.argv[1:])
+        nose_test()
     else:
         # Maya may take some time to shut down / finish writing to files - 
         # give it 2 seconds
