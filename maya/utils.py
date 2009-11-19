@@ -192,6 +192,16 @@ def shellLogHandler():
     if _shellLogHandler:
         return _shellLogHandler
     log = logging.getLogger('')
+    # Check if there's already a root logger that's emitting to sys.stdout or sys.stderr
+    if log.handlers:
+        for handler in log.handlers:
+            if (isinstance(handler, logging.StreamHandler) and
+                handler in (sys.stdout, sys.stderr):
+                # If such a logger exists, it's probably unwanted, as it will
+                # lead to double output to the console... but since we can't be
+                # SURE they don't want it, just issue a warning
+                log.warning('Pre-existing root logger handler detected on maya startup - may result in duplicate logger messages to console')
+                break
     _shellLogHandler = logging.StreamHandler()
     format = os.environ.get('MAYA_SHELL_LOGGER_FORMAT', '%(name)s : %(levelname)s : %(message)s')
     _shellLogHandler.setFormatter( logging.Formatter(format) )
