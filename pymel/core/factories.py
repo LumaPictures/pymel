@@ -8,7 +8,8 @@ import pymel.util as util
 import pymel.mayahook.mayautils as mayautils
 import pymel.mayahook.plogging as plogging
 import pymel.versions as versions
-import pymel.api as _api
+import pymel.api as api
+import pymel.api.conversions as conversions
 
 import maya.cmds as cmds
 import maya.mel as mm
@@ -960,9 +961,9 @@ apiToMelMap = {
                }
 
 def _getApiOverrideNameAndData(classname, pymelName):
-    if _api.apiToMelData.has_key( (classname,pymelName) ):
+    if conversions.apiToMelData.has_key( (classname,pymelName) ):
 
-        data = _api.apiToMelData[(classname,pymelName)]
+        data = conversions.apiToMelData[(classname,pymelName)]
         try:
             nameType = data['useName']
         except KeyError:
@@ -979,7 +980,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
         # set defaults
         _logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
         data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
-        _api.apiToMelData[(classname,pymelName)] = data
+        conversions.apiToMelData[(classname,pymelName)] = data
 
     
     #overloadIndex = data.get( 'overloadIndex', None )
@@ -999,12 +1000,12 @@ def getInheritance( mayaType ):
     To get the inheritance we use nodeType, which requires a real node.  To do get these without poluting the scene
     we use a dag/dg modifier, call the doIt method, get the lineage, then call undoIt."""
 
-    dagMod = _api.MDagModifier()
-    dgMod = _api.MDGModifier()
+    dagMod = api.MDagModifier()
+    dgMod = api.MDGModifier()
     
     # Regardless of whether we're making a DG or DAG node, make a parent first - 
     # for some reason, this ensures good cleanup (don't ask me why...??)
-    parent = dagMod.createNode ( 'transform', _api.MObject())
+    parent = dagMod.createNode ( 'transform', api.MObject())
 
     try :
         # Try making it with dgMod FIRST - this way, we can avoid making an
@@ -1013,7 +1014,7 @@ def getInheritance( mayaType ):
         dgMod.doIt()
         
         #_logger.debug( "Made ghost DG node of type '%s'" % mayaType )
-        name = _api.MFnDependencyNode(obj).name()
+        name = api.MFnDependencyNode(obj).name()
         mod = dgMod
         
     except RuntimeError:
@@ -1023,12 +1024,12 @@ def getInheritance( mayaType ):
             dagMod.doIt()
             
             #_logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
-            name = _api.MFnDagNode(obj).name()
+            name = api.MFnDagNode(obj).name()
             mod = dagMod
         except RuntimeError:
             return None
         
-    if not obj.isNull() and not obj.hasFn( _api.MFn.kManipulator3D ) and not obj.hasFn( _api.MFn.kManipulator2D ):
+    if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
         lineage = cmds.nodeType( name, inherited=1)
     else:
         lineage = []
@@ -1731,7 +1732,7 @@ class ApiTypeRegister(object):
         so no two refs point to the same storage!
         """
         def makeRef(): # initialize: MScriptUtil().asFloatPtr()
-            return getattr( _api.MScriptUtil(), 'as' + capitalizedApiType + 'Ptr')()
+            return getattr( api.MScriptUtil(), 'as' + capitalizedApiType + 'Ptr')()
         return makeRef
             
     @classmethod   
@@ -1772,9 +1773,9 @@ class ApiTypeRegister(object):
         
         if apiTypeName in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
             initFunc = cls._makeRefFunc( capType )  # initialize: MScriptUtil().asFloatPtr()
-            getFunc = getattr( _api.MScriptUtil, 'get' + capType )  # MScriptUtil.getFloat()
-            setArrayFunc = getattr( _api.MScriptUtil, 'set' + capType + 'Array')  # MScriptUtil.setFloatArray()
-            getArrayFunc = getattr( _api.MScriptUtil, 'get' + capType + 'ArrayItem') # MScriptUtil.getFloatArrayItem()
+            getFunc = getattr( api.MScriptUtil, 'get' + capType )  # MScriptUtil.getFloat()
+            setArrayFunc = getattr( api.MScriptUtil, 'set' + capType + 'Array')  # MScriptUtil.setFloatArray()
+            getArrayFunc = getattr( api.MScriptUtil, 'get' + capType + 'ArrayItem') # MScriptUtil.getFloatArrayItem()
             cls.refInit[apiTypeName] = initFunc
             cls.refCast[apiTypeName] = getFunc
             for i in [2,3,4]:
@@ -1785,7 +1786,7 @@ class ApiTypeRegister(object):
                 cls.types[iapiTypename] = tuple([pymelType.__name__]*i)
         else:
             try:      
-                apiType = getattr( _api, apiTypeName )
+                apiType = getattr( api, apiTypeName )
             except AttributeError:
                 if apiArrayItemType:
                     cls.refInit[apiTypeName] = list
@@ -1800,7 +1801,7 @@ class ApiTypeRegister(object):
                     cls.refInit[apiTypeName] = apiType
                     cls.inCast[apiTypeName] = cls._makeApiArraySetter( apiType, apiArrayItemType )
                     # this is double wrapped because of the crashes occuring with MDagPathArray. not sure if it's applicable to all arrays
-                    if apiType == _api.MDagPathArray:
+                    if apiType == api.MDagPathArray:
                         cls.refCast[apiTypeName] = lambda x:       [ pymelType( apiArrayItemType(x[i]) ) for i in range( x.length() ) ]
                         cls.outCast[apiTypeName] = lambda self, x: [ pymelType( apiArrayItemType(x[i]) ) for i in range( x.length() ) ]
                     else:
@@ -1814,7 +1815,7 @@ class ApiTypeRegister(object):
                     try:
                         # automatically handle array types that correspond to this api type (e.g.  MColor and MColorArray )
                         arrayTypename = apiTypeName + 'Array'
-                        apiArrayType = getattr( _api, arrayTypename )
+                        apiArrayType = getattr( api, arrayTypename )
                         # e.g.  'MColorArray', Color, api.MColor
                         ApiTypeRegister.register(arrayTypename, pymelType, apiArrayItemType=apiType)
                     except AttributeError:
@@ -1846,7 +1847,7 @@ class ApiArgUtil(object):
         
         if methodIndex is None:
             try:
-                methodInfoList = _api.apiClassInfo[apiClassName]['methods'][methodName]
+                methodInfoList = conversions.apiCache.apiClassInfo[apiClassName]['methods'][methodName]
             except KeyError:
                 raise TypeError, "method %s of %s cannot be found" % (methodName, apiClassName)  
             else:
@@ -1865,7 +1866,7 @@ class ApiArgUtil(object):
                 if methodIndex is None:
                     raise TypeError, "method %s of %s cannot be wrapped" % (methodName, apiClassName)  
         
-        self.methodInfo = _api.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
+        self.methodInfo = conversions.apiCache.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
         self.methodIndex = methodIndex
         
     def iterArgs(self, inputs=True, outputs=True, infoKeys=[]):
@@ -1905,15 +1906,15 @@ class ApiArgUtil(object):
         try:
             inverse, isgetter = self.methodInfo['inverse']
             if isgetter:
-                if hasattr( getattr(_api, self.apiClassName), inverse ):
+                if hasattr( getattr(api, self.apiClassName), inverse ):
                     return ApiArgUtil( self.apiClassName, inverse, self.methodIndex )
         except:
             pass
                   
     @staticmethod
     def isValidEnum( enumTuple ):
-        if _api.apiClassInfo.has_key(enumTuple[0]) and \
-            _api.apiClassInfo[enumTuple[0]]['enums'].has_key(enumTuple[1]):
+        if conversions.apiCache.apiClassInfo.has_key(enumTuple[0]) and \
+            conversions.apiCache.apiClassInfo[enumTuple[0]]['enums'].has_key(enumTuple[1]):
             return True
         return False
     
@@ -1974,7 +1975,7 @@ class ApiArgUtil(object):
 #        
 #        elif input[0] != 'k' or not input[1].isupper():
 #            input = 'k' + util.capitalize(input)
-#            return _api.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
+#            return conversions.apiCache.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
     
     def getInputTypes(self):
         inArgs = self.methodInfo['inArgs']
@@ -2055,10 +2056,10 @@ class ApiArgUtil(object):
             apiClassName, enumName = argtype
             
             try:
-                return _api.apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
+                return conversions.apiCache.apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
             except ValueError:
                 try:
-                    return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
+                    return conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
                 except ValueError:
                     raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
                 
@@ -2142,7 +2143,7 @@ class ApiArgUtil(object):
                     # TODO: return EnumValue type
                     
                     # convert int result into pymel string name.
-                    return _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
+                    return conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
                 except KeyError:
                     raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
     
@@ -2196,21 +2197,21 @@ class ApiArgUtil(object):
             # the next arg has a default ( i.e. kwargs must always come after args )
 #            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
 #                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-#                    default = _api.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
+#                    default = conversions.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
 
             else:
                 continue    
 
-            if isinstance(default, _api.Enum ):
+            if isinstance(default, conversions.Enum ):
                 # convert enums from apiName to pymelName. the default will be the readable string name
                 apiClassName, enumName, enumValue = default
                 try:
-                    enumList = _api.apiClassInfo[apiClassName]['enums'][enumName]['values']
+                    enumList = conversions.apiCache.apiClassInfo[apiClassName]['enums'][enumName]['values']
                 except KeyError:
                     _logger.warning("Could not find enumerator %s", default)
                 else:
                     index = enumList.getIndex(enumValue)
-                    default = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
+                    default = conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
             defaults.append( default )
             
         return defaults
@@ -2252,13 +2253,13 @@ class ApiUndo:
 
     def _attrChanged(self, msg, plug, otherPlug, data):
         if self.cb_enabled\
-           and (msg & _api.MNodeMessage.kAttributeSet != 0) \
+           and (msg & api.MNodeMessage.kAttributeSet != 0) \
            and (plug == self.cmdCountAttr):
             
             
 #            #count = cmds.getAttr(self.node_name + '.cmdCount')
 #            #print count
-            if _api.MGlobal.isUndoing():
+            if api.MGlobal.isUndoing():
                 #cmds.undoInfo(state=0)
                 self.cb_enabled = False
                 cmdObj = self.undo_queue.pop()
@@ -2267,7 +2268,7 @@ class ApiUndo:
                 #cmds.undoInfo(state=1)
                 self.cb_enabled = True
                 
-            elif _api.MGlobal.isRedoing():
+            elif api.MGlobal.isRedoing():
                 #cmds.undoInfo(state=0)
                 self.cb_enabled = False
                 cmdObj = self.redo_queue.pop()
@@ -2277,16 +2278,16 @@ class ApiUndo:
                 self.cb_enabled = True
                 
     def _attrChanged_85(self):
-        print "attr changed", self.cb_enabled, _api.MGlobal.isUndoing()
+        print "attr changed", self.cb_enabled, api.MGlobal.isUndoing()
         if self.cb_enabled:
             
-            if _api.MGlobal.isUndoing():
+            if api.MGlobal.isUndoing():
                 cmdObj = self.undo_queue.pop()
                 print "calling undoIt"
                 cmdObj.undoIt()
                 self.redo_queue.append(cmdObj)
 
-            elif _api.MGlobal.isRedoing():
+            elif api.MGlobal.isRedoing():
                 cmdObj = self.redo_queue.pop()
                 print "calling redoIt"
                 cmdObj.redoIt()
@@ -2306,18 +2307,18 @@ class ApiUndo:
         
         self.flushUndo()
 
-        dgmod = _api.MDGModifier()
+        dgmod = api.MDGModifier()
         self.undoNode = dgmod.createNode('facade')
         dgmod.renameNode(self.undoNode, self.node_name)
         dgmod.doIt()
 
         # Add an attribute to keep a count of the commands in the stack.
-        attrFn = _api.MFnNumericAttribute()
+        attrFn = api.MFnNumericAttribute()
         self.cmdCountAttr = attrFn.create( 'cmdCount', 'cc',
-                                           _api.MFnNumericData.kInt
+                                           api.MFnNumericData.kInt
                                            )
 
-        nodeFn = _api.MFnDependencyNode(self.undoNode)
+        nodeFn = api.MFnDependencyNode(self.undoNode)
         self.node_name = nodeFn.name()
         nodeFn.addAttribute(self.cmdCountAttr)
 
@@ -2325,11 +2326,11 @@ class ApiUndo:
         nodeFn.setLocked(True)
 
         try:
-            _api.MMessage.removeCallback( self.cbid )
+            api.MMessage.removeCallback( self.cbid )
             self.cbid.disown()
         except:
             pass
-        self.cbid = _api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
+        self.cbid = api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )
 
             
     def append(self, cmdObj ):
@@ -2454,7 +2455,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         
         """
     
-    #getattr( _api, apiClassName )
+    #getattr( api, apiClassName )
 
     apiClassName = apiClass.__name__
     try:
@@ -2694,9 +2695,9 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
             
             docstring += S + '%s : %s\n' % (name, typeStr )
             docstring += S*2 + '%s\n' % (info['doc'])
-            if isinstance( type, _api.Enum ):
+            if isinstance( type, conversions.Enum ):
                 apiClassName, enumName = type
-                enumValues = _api.apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
+                enumValues = conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
                 docstring += '\n' + S*2 + 'values: %s\n' % ', '.join( [ '%r' % x for x in enumValues if x not in ['invalid', 'last' ] ] )
             
 
@@ -2778,7 +2779,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 bases = bases + (classdict['apicls'],)
             try:
                 #_logger.debug((classname, apicls))
-                classInfo = _api.apiClassInfo[apicls.__name__]
+                classInfo = conversions.apiCache.apiClassInfo[apicls.__name__]
             except KeyError:
                 _logger.info("No api information for api class %s" % ( apicls.__name__ ))
             else:
@@ -2990,9 +2991,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here. 
-                            if not _api.apiToMelData.has_key((classname,methodName)) \
-                                or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
-                                or not _api.apiToMelData[(classname,methodName)].get('enabled',True):
+                            if not conversions.apiToMelData.has_key((classname,methodName)) \
+                                or conversions.apiToMelData[(classname,methodName)].get('melEnabled',False) \
+                                or not conversions.apiToMelData[(classname,methodName)].get('enabled',True):
                                 returnFunc = None
                                 
                                 if flagInfo.get( 'resultNeedsCasting', False):
@@ -3028,9 +3029,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                            
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
-                            if not _api.apiToMelData.has_key((classname,methodName)) \
-                                or _api.apiToMelData[(classname,methodName)].get('melEnabled',False) \
-                                or not _api.apiToMelData[(classname,methodName)].get('enabled', True):
+                            if not conversions.apiToMelData.has_key((classname,methodName)) \
+                                or conversions.apiToMelData[(classname,methodName)].get('melEnabled',False) \
+                                or not conversions.apiToMelData[(classname,methodName)].get('enabled', True):
                                 #FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
@@ -3087,8 +3088,8 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
         # the name of the PyNode, uncapitalized
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
-        _api.addMayaType( nodeType )
-        apicls = _api.toApiFunctionSet( nodeType )
+        conversions.addMayaType( nodeType )
+        apicls = conversions.toApiFunctionSet( nodeType )
 
         if apicls is not None:
             if apicls in MetaMayaNodeWrapper.completedClasses:
@@ -3184,7 +3185,7 @@ def getValidApiMethods( apiClassName, api, verbose=False ):
     validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
     
     try:
-        methods = api.apiClassInfo[apiClassName]
+        methods = conversions.apiCache.apiClassInfo[apiClassName]
     except KeyError:
         return []
     
@@ -3270,7 +3271,7 @@ def fixClassAnalysis( filename ):
 
 #
 #def analyzeApiClasses():
-#    for elem in _api.apiTypeHierarchy.preorder():
+#    for elem in api.apiTypeHierarchy.preorder():
 #        try:
 #            parent = elem.parent.key
 #        except:
@@ -3291,7 +3292,7 @@ def fixClassAnalysis( filename ):
 #        #_logger.debug("no Fn", elem.key, pymelType)
 #
 #    try:
-#        apiClass = _api.apiTypesToApiClasses[ apiTypeStr ]
+#        apiClass = api.apiTypesToApiClasses[ apiTypeStr ]
 #    except KeyError:
 #        
 #        _logger.info("no Fn %s", apiTypeStr)
@@ -3306,7 +3307,7 @@ def fixClassAnalysis( filename ):
 #    pymelMethodNames = {}
 #    for cls in inspect.getmro( apiClass ):
 #        try:
-#            pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
+#            pymelMethodNames.update( conversions.apiCache.apiClassInfo[cls.__name__]['pymelMethods'] )
 #        except KeyError: pass
 #    reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() ) 
 #    
@@ -3341,7 +3342,7 @@ def fixClassAnalysis( filename ):
 ##            # get all pymelName lookups for this class and its bases
 ##            for cls in inspect.getmro( apiClass ):
 ##                try:
-##                    pymelMethodNames.update( _api.apiClassInfo[cls.__name__]['pymelMethods'] )
+##                    pymelMethodNames.update( conversions.apiCache.apiClassInfo[cls.__name__]['pymelMethods'] )
 ##                except KeyError: pass
 ##                
 ##            allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
@@ -3419,7 +3420,7 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
                                    ( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName ) )
 #    else:
 #        if not pyNodeTypeName in dynModule.__dict__:
-#            _api.addMayaType( mayaType )
+#            api.addMayaType( mayaType )
 #            _logger.info( "%s(%s) exists" % ( pyNodeTypeName, parentPyNodeTypeName ) )
 #            
 #            
@@ -3445,7 +3446,7 @@ def removePyNode( dynModule, mayaType ):
     PyNodesToMayaTypes().pop(PyNodeType,None)
     dynModule.__dict__.pop(pyNodeTypeName,None)
     dynModule.__class__.__dict__.pop(pyNodeTypeName,None)
-    dynModule.api.removeMayaType( mayaType )
+    conversions.removeMayaType( mayaType )
 
 def registerVirtualClass( cls, nameRequired=False ):
     """

@@ -9,6 +9,7 @@ import warnings
 
 import pymel.util as util
 import pymel.api as _api
+import pymel.api.conversions as _conversions
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
 import factories as _factories
@@ -1921,7 +1922,7 @@ class EulerRotation(Array):
     shape = (3,)   
     cnames = ('x', 'y', 'z') 
     
-    RotationOrder = _api.apiClassInfo['MEulerRotation']['pymelEnums']['RotationOrder']
+    RotationOrder = _conversions.apiCache.apiClassInfo['MEulerRotation']['pymelEnums']['RotationOrder']
  
     @property
     def order(self):
@@ -2503,7 +2504,7 @@ class Unit(float):
 
 class Time(Unit):
     apicls = _api.MTime
-    Unit = _api.apiClassInfo['MTime']['pymelEnums']['Unit']
+    Unit = _conversions.apiCache.apiClassInfo['MTime']['pymelEnums']['Unit']
     
 
 
@@ -2578,7 +2579,7 @@ class Distance( Unit ) :
         'centimeters'
     """    
     apicls = _api.MDistance
-    Unit = _api.apiClassInfo['MDistance']['pymelEnums']['Unit']
+    Unit = _conversions.apiCache.apiClassInfo['MDistance']['pymelEnums']['Unit']
 
     def asMillimeter(self) :
         return self.asUnit('millimeter')
@@ -2601,7 +2602,7 @@ class Distance( Unit ) :
    
 class Angle( Unit ):
     apicls = _api.MAngle
-    Unit = _api.apiClassInfo['MAngle']['pymelEnums']['Unit']
+    Unit = _conversions.apiCache.apiClassInfo['MAngle']['pymelEnums']['Unit']
     
     def asRadians(self):
         return self.asUnit('radians')
@@ -2879,7 +2880,7 @@ def getPlugValue( plug ):
         
         raise TypeError, "%s: Unsupported typed attribute: %s" % (plug.partialName(True, True, True, False, True, True),dataType)
     
-    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), conversions.apiEnumsToApiTypes.get( apiType, '' ))
+    raise TypeError, "%s: Unsupported Type: %s" % (plug.partialName(True, True, True, False, True, True), _conversions.apiEnumsToApiTypes.get( apiType, '' ))
                      
 def _testMVector() :
     

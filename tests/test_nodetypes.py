@@ -12,7 +12,7 @@ from testingutils import TestCaseExtended, setCompare
 VERBOSE = False
 
 def getFundamentalTypes():
-    classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
+    classList = sorted( list( set( [ key[0] for key in conversions.apiToMelData.keys()] ) ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
@@ -125,12 +125,12 @@ def testInvertibles():
     
         for className, apiClassName in getClassHierarchy(pynodeName):
             
-            if apiClassName not in api.apiClassInfo:
+            if apiClassName not in conversions.apiCache.apiClassInfo:
                 continue
             
             #print className, apiClassName
             
-            classInfo = api.apiClassInfo[apiClassName]
+            classInfo = conversions.apiCache.apiClassInfo[apiClassName]
             invertibles = classInfo['invertibles']
             #print invertibles
     
