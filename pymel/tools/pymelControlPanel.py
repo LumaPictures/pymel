@@ -1,7 +1,7 @@
 """
 UI for controlling how api classes and mel commands are combined into pymel classes.
 
-This UI modifies api.apiToMelData which is pickled out to apiMelBridge.
+This UI modifies conversions.apiToMelData which is pickled out to apiMelBridge.
 
 It controls:
     which mel methods correspond to api methods
@@ -24,7 +24,7 @@ VERBOSE = True
 class PymelControlPanel(object):
     def __init__(self):
         # key is a tuple of (class, method)
-        self.classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
+        self.classList = sorted( list( set( [ key[0] for key in conversions.apiToMelData.keys()] ) ) )
         self.classFrames={}
         self.processClassFrames()
         self.buildUI()
@@ -129,8 +129,8 @@ class PymelControlPanel(object):
             clsname = csel[0]
             menu.removeItem(method)
             self.disabledMelMethodLister.append( method  )
-            #print clsname, method, api.apiToMelData[ (clsname, method) ]
-            api.apiToMelData[ (clsname, method) ]['melEnabled'] = False
+            #print clsname, method, conversions.apiToMelData[ (clsname, method) ]
+            conversions.apiToMelData[ (clsname, method) ]['melEnabled'] = False
        
     @staticmethod    
     def getMelMethods(className):
@@ -172,7 +172,7 @@ class PymelControlPanel(object):
             
     def processClassFrames(self):
         """
-        This triggers the generation of all the defaults for `api.apiToMelData`, but it does
+        This triggers the generation of all the defaults for `conversions.apiToMelData`, but it does
         not create any UI elements.  It creates `ClassFrame` instances, which in turn create
         `MethodRow` instances, but the creation of UI elements is delayed until a particular
         configuration is requested via `buildClassColumn`.
@@ -207,12 +207,12 @@ class PymelControlPanel(object):
         melMethods = self.getMelMethods(className) 
         for method in melMethods:
             # fix
-            if (className, method) in api.apiToMelData and api.apiToMelData[ (className, method) ] == {'enabled':False}:
-                d = api.apiToMelData.pop( (className, method) )
+            if (className, method) in conversions.apiToMelData and conversions.apiToMelData[ (className, method) ] == {'enabled':False}:
+                d = conversions.apiToMelData.pop( (className, method) )
                 d.pop('enabled')
                 d['melEnabled'] = False
             
-            if (className, method) in api.apiToMelData and api.apiToMelData[(className, method)].get('melEnabled',True) == False:  
+            if (className, method) in conversions.apiToMelData and conversions.apiToMelData[(className, method)].get('melEnabled',True) == False:  
                 self.disabledMelMethodLister.append( method )
             else:
                 self.unassignedMelMethodLister.append( method )
@@ -248,7 +248,7 @@ class ClassFrame(object):
         self.className = className
         self.apiClassName = apiClassName
         self.rows = {}
-        self.classInfo = api.apiClassInfo[apiClassName]['methods']
+        self.classInfo = conversions.apiCache.apiClassInfo[apiClassName]['methods']
         
         for method in self.classInfo.keys():
             row = MethodRow( self, self.className, self.apiClassName, method, self.classInfo[method] )
@@ -272,7 +272,7 @@ class ClassFrame(object):
         tab = tabLayout()
         
         
-        invertibles = api.apiClassInfo[self.apiClassName]['invertibles']
+        invertibles = conversions.apiCache.apiClassInfo[self.apiClassName]['invertibles']
         usedMethods = []
         
         pairedCol = columnLayout(visible=False )
@@ -329,8 +329,8 @@ class MethodRow(object):
         self.apiClassName = apiClassName
         self.apiMethodName = apiMethodName
         self.methodInfoList = methodInfoList
-        self.data = api.apiToMelData[ (self.className, self.methodName ) ]
-        self.classInfo = api.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName]
+        self.data = conversions.apiToMelData[ (self.className, self.methodName ) ]
+        self.classInfo = conversions.apiCache.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName]
         try:
             enabledArray = self.getEnabledArray()
         except:
@@ -400,10 +400,10 @@ class MethodRow(object):
     def crossReference(self, melName):
         """ create an entry for the melName which points to the data being tracked for the api name"""
         
-        api.apiToMelData[ (self.className, melName ) ] = self.data
+        conversions.apiToMelData[ (self.className, melName ) ] = self.data
         
     def uncrossReference(self, melName):
-        api.apiToMelData.pop( (self.className, melName ) )
+        conversions.apiToMelData.pop( (self.className, melName ) )
           
     def updateMelNames(self, melMethods): 
         # melName   
@@ -588,7 +588,7 @@ class MethodRow(object):
 #    def formatAnnotation(self, apiClassName, methodName ):
 #        defs = []
 #        try:
-#            for methodInfo in api.apiClassInfo[apiClassName]['methods'][methodName] :
+#            for methodInfo in conversions.apiCache.apiClassInfo[apiClassName]['methods'][methodName] :
 #                args = ', '.join( [ '%s %s' % (x[1],x[0]) for x in methodInfo['args'] ] )
 #                defs.append( '%s( %s )' % ( methodName, args ) )
 #            return '\n'.join( defs )
@@ -667,7 +667,7 @@ class MethodRow(object):
         setParent('..')
         
         try:
-            argList = api.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][i]['args']
+            argList = conversions.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][i]['args']
         except (KeyError, IndexError):
             argList = self.methodInfoList[i]['args']
             
@@ -686,7 +686,7 @@ class MethodRow(object):
         separator(w=800, h=14) 
                
         return enable      
-#            methodInfo = api.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName][overloadNum] 
+#            methodInfo = conversions.apiCache.apiClassInfo[self.apiClassName]['methods'][self.apiMethodName][overloadNum] 
 #            args = ', '.join( [ '%s %s' % (x[1],x[0]) for x in methodInfo['args'] ] )
 #            return  '( %s ) --> ' % ( args )
         #except:
@@ -695,10 +695,10 @@ class MethodRow(object):
         
     def setUnitType(self, methodIndex, argName, unitType ):
         
-        if self.apiClassName not in api.apiClassOverrides:
-            api.apiClassOverrides[self.apiClassName] = { 'methods' : {} }
+        if self.apiClassName not in conversions.apiClassOverrides:
+            conversions.apiClassOverrides[self.apiClassName] = { 'methods' : {} }
         
-        methodOverrides = api.apiClassOverrides[self.apiClassName]['methods']
+        methodOverrides = conversions.apiClassOverrides[self.apiClassName]['methods']
         
         if self.apiMethodName not in methodOverrides:
             methodOverrides[self.apiMethodName] = {}
@@ -720,10 +720,10 @@ class MethodRow(object):
             
     def setDirection(self, methodIndex, argName, direction ):
         
-        if self.apiClassName not in api.apiClassOverrides:
-            api.apiClassOverrides[self.apiClassName] = { 'methods' : {} }
+        if self.apiClassName not in conversions.apiClassOverrides:
+            conversions.apiClassOverrides[self.apiClassName] = { 'methods' : {} }
         
-        methodOverrides = api.apiClassOverrides[self.apiClassName]['methods']
+        methodOverrides = conversions.apiClassOverrides[self.apiClassName]['methods']
         
         if self.apiMethodName not in methodOverrides:
             methodOverrides[self.apiMethodName] = {}
@@ -782,12 +782,12 @@ class MethodRow(object):
                 menuItem(l=unit)
             if argName == 'return':
                 try:
-                    value = api.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['returnInfo']['unitType']
+                    value = conversions.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['returnInfo']['unitType']
                 except KeyError:
                     pass
             else:
                 try:
-                    value = api.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['argInfo'][argName]['unitType']
+                    value = conversions.apiClassOverrides[self.apiClassName]['methods'][self.apiMethodName][methodIndex]['argInfo'][argName]['unitType']
                 except KeyError:
                     pass
             try:
@@ -865,12 +865,12 @@ def getClassHierarchy( className ):
 def setManualDefaults():
     # set some defaults
     # TODO : allow these defaults to be controlled via the UI
-    util.setCascadingDictItem( api.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
-    util.setCascadingDictItem( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
-    util.setCascadingDictItem( api.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
-    util.setCascadingDictItem( api.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
-    util.setCascadingDictItem( api.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
-    util.setCascadingDictItem( api.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
+    util.setCascadingDictItem( conversions.apiClassOverrides, ('MFnTransform', 'methods', 'setScalePivot', 0, 'defaults', 'balance' ), True )
+    util.setCascadingDictItem( conversions.apiClassOverrides, ('MFnTransform', 'methods', 'setRotatePivot', 0, 'defaults', 'balance' ), True )
+    util.setCascadingDictItem( conversions.apiClassOverrides, ('MFnTransform', 'methods', 'setRotateOrientation', 0, 'defaults', 'balance' ), True )
+    util.setCascadingDictItem( conversions.apiClassOverrides, ('MFnSet', 'methods', 'getMembers', 0, 'defaults', 'flatten' ), False )
+    util.setCascadingDictItem( conversions.apiClassOverrides, ('MFnDagNode', 'methods', 'instanceCount', 0, 'defaults', 'total' ), True )
+    util.setCascadingDictItem( conversions.apiClassOverrides, ('MFnMesh', 'methods', 'createColorSetWithName', 1, 'defaults', 'modifier' ), None )
     
     # add some manual invertibles: THESE MUST BE THE API NAMES
     invertibles = [ ('MPlug', 0, 'setCaching', 'isCachingFlagSet') ,
@@ -882,28 +882,28 @@ def setManualDefaults():
                      ]
     for className, methodIndex, setter, getter in invertibles:
         # append to the class-level invertibles list
-        curr = util.getCascadingDictItem( api.apiClassInfo, (className, 'invertibles' ), [] )
+        curr = util.getCascadingDictItem( conversions.apiCache.apiClassInfo, (className, 'invertibles' ), [] )
         pair = (setter, getter)
         if pair not in curr:
             curr.append( pair )
             
-        util.setCascadingDictItem( api.apiClassOverrides, (className, 'invertibles'), curr )    
+        util.setCascadingDictItem( conversions.apiClassOverrides, (className, 'invertibles'), curr )    
         
         # add the individual method entries
-        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
-        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
+        util.setCascadingDictItem( conversions.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), (getter, True) )
+        util.setCascadingDictItem( conversions.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), (setter, False) )
     
     nonInvertibles = [ ( 'MFnMesh', 0, 'setFaceVertexNormals', 'getFaceVertexNormals' ),
                         ( 'MFnMesh', 0, 'setFaceVertexNormal', 'getFaceVertexNormal' ) ]
     for className, methodIndex, setter, getter in nonInvertibles:
-        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
-        util.setCascadingDictItem( api.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
+        util.setCascadingDictItem( conversions.apiClassOverrides, (className, 'methods', setter, methodIndex, 'inverse' ), None )
+        util.setCascadingDictItem( conversions.apiClassOverrides, (className, 'methods', getter, methodIndex, 'inverse' ), None )
     fixSpace()
 
 def fixSpace():
     "fix the Space enumerator"
     
-    enum = util.getCascadingDictItem( api.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
+    enum = util.getCascadingDictItem( conversions.apiCache.apiClassInfo, ('MSpace', 'pymelEnums', 'Space') )
     keys = enum._keys.copy()
     #print keys
     val = keys.pop('postTransform', None)
@@ -911,7 +911,7 @@ def fixSpace():
         keys['object'] = val
         newEnum = util.Enum( 'Space', keys )
         
-        util.setCascadingDictItem( api.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
+        util.setCascadingDictItem( conversions.apiClassOverrides, ('MSpace', 'pymelEnums', 'Space'), newEnum )
     else:
         logger.warning( "could not fix Space")
   
@@ -933,7 +933,7 @@ def doCacheResults():
     setManualDefaults()
     print "merging dictionaries"
     # update apiClasIfno with the sparse data stored in apiClassOverrides
-    util.mergeCascadingDicts( api.apiClassOverrides, api.apiClassInfo, allowDictToListMerging=True )
+    util.mergeCascadingDicts( conversions.apiClassOverrides, conversions.apiCache.apiClassInfo, allowDictToListMerging=True )
     print "saving api cache"
     api.saveApiCache()
     print "saving bridge"

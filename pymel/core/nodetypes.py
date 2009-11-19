@@ -8,6 +8,7 @@ import inspect, itertools, math
 import pymel.util as util
 import factories as _factories
 import pymel.api as api #@UnresolvedImport
+import pymel.api.conversions as conversions
 import datatypes
 import logging
 _logger = logging.getLogger(__name__)
@@ -187,48 +188,7 @@ class Component( general.PyNode ):
         _componentEnums.append(api.MFn.kUint64SingleIndexedComponent)
     else:
         _hasUint64 = False
-        
-    @classmethod
-    def printComponentTypes(cls):
-        # Output
-    #        kComponent :
-    #             kCurveParamComponent
-    #             kIsoparmComponent
-    #             kPivotComponent
-    #             kEdgeComponent
-    #             kSurfaceRangeComponent
-    #             kDecayRegionCapComponent
-    #             kSetGroupComponent
-    #        kSingleIndexedComponent :
-    #             kCurveCVComponent
-    #             kCurveEPComponent
-    #             kCurveKnotComponent
-    #             kMeshEdgeComponent
-    #             kMeshPolygonComponent
-    #             kMeshVertComponent
-    #             kDynParticleSetComponent
-    #             kMeshMapComponent
-    #             kSubdivMapComponent
-    #        kDoubleIndexedComponent :
-    #             kSurfaceCVComponent
-    #             kSurfaceEPComponent
-    #             kSurfaceKnotComponent
-    #             kMeshVtxFaceComponent
-    #             kSurfaceFaceComponent
-    #        kTripleIndexedComponent :
-    #             kLatticeComponent
-    #        kUint64SingleIndexedComponent :
-    #             kSubdivCVComponent
-    #             kSubdivEdgeComponent
-    #             kSubdivFaceComponent
-    
-    # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
-    # and there's also a kMeshVtxFaceComponent (which does)??
-        compTypes = api.getComponentTypes()
-        for compType, compList in compTypes.iteritems():
-            print api.ApiEnumsToApiTypes()[compType], ":"
-            for exactComp in compList:
-                print "    ", api.ApiEnumsToApiTypes()[exactComp]
+
 
     @classmethod
     def _componentMObjEmpty(cls, mobj):
@@ -3401,7 +3361,7 @@ class DependNode( general.PyNode ):
                 cls.__apiobjects__['dagMod'] = api.MDagModifier()
                 cls.__apiobjects__['dgMod'] = api.MDGModifier()
                 # TODO: make something more reliable than uncapitalize
-                obj = api.conversions._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
+                obj = conversions._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
                                                                 cls.__apiobjects__['dagMod'], 
                                                                 cls.__apiobjects__['dgMod'] )
                 nodeMfn = cls.__apicls__(obj)

@@ -22,6 +22,7 @@ import pymel.util as util
 import factories as _factories
 
 import pymel.api as api
+import pymel.api.conversions as conversions
 import datatypes
 import pymel.util.nameparse as nameparse
 import logging
@@ -1831,11 +1832,7 @@ class Scene(object):
 
 SCENE = Scene()
            
-        
 
-
-def isValidMayaType (arg):
-    return api.MayaTypesToApiTypes().has_key(arg)
 
 def isValidPyNode (arg):
     return _factories.PyNodeTypesHierarchy().has_key(arg)
@@ -1853,33 +1850,33 @@ def mayaTypeToPyNode( arg, default=None ):
 
 def toPyNode( obj, default=None ):
     if isinstance( obj, int ):
-        mayaType = api.ApiEnumsToMayaTypes().get( obj, None )
+        mayaType = conversions.apiCache.apiEnumsToMayaTypes.get( obj, None )
         return _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType), default )
     elif isinstance( obj, basestring ):
         try:
             return _factories.PyNodeNamesToPyNodes()[ util.capitalize(obj) ]
         except KeyError:
-            mayaType = api.ApiTypesToMayaTypes().get( obj, None )
+            mayaType = conversions.apiCache.apiTypesToMayaTypes.get( obj, None )
             return _factories.PyNodeNamesToPyNodes().get( util.capitalize(mayaType), default )
             
 def toApiTypeStr( obj, default=None ):
     if isinstance( obj, int ):
-        return api.ApiEnumsToApiTypes().get( obj, default )
+        return conversions.apiCache.apiEnumsToApiTypes.get( obj, default )
     elif isinstance( obj, basestring ):
-        return api.MayaTypesToApiTypes().get( obj, default)
+        return conversions.apiCache.mayaTypesToApiTypes.get( obj, default)
     elif isinstance( obj, PyNode ):
         mayaType = _factories.PyNodesToMayaTypes().get( obj, None )
-        return api.MayaTypesToApiTypes().get( mayaType, default)
+        return conversions.apiCache.mayaTypesToApiTypes.get( mayaType, default)
     
 def toApiTypeEnum( obj, default=None ):
     if isinstance( obj, PyNode ):
         obj = _factories.PyNodesToMayaTypes().get( obj, None )
-    return api.toApiTypeEnum(obj)
+    return conversions.toApiTypeEnum(obj)
 
 def toMayaType( obj, default=None ):
     if issubclass( obj, PyNode ):
         return _factories.PyNodesToMayaTypes().get( obj, default )
-    return api.toMayaType(obj)
+    return conversions.toMayaType(obj)
 
 
 import nodetypes
@@ -2258,11 +2255,11 @@ def iterNodes (  *args, **kwargs ):
         #print typeArgs
         for key, isInclusive in typeArgs.items() :
             apiType = extType = None
-            if isValidMayaType(key) :
+            if conversions.isValidMayaType(key) :
                 # is it a valid Maya type name
                 extType = key
                 # can we translate it to an API type string
-                apiType = api.mayaTypeToApiType(extType)
+                apiType = conversions.mayaTypeToApiType(extType)
             else :
                 # or a PyNode type or type name
                 if isValidPyNodeTypeName(key) :

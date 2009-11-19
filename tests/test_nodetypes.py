@@ -12,7 +12,7 @@ from testingutils import TestCaseExtended, setCompare
 VERBOSE = False
 
 def getFundamentalTypes():
-    classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
+    classList = sorted( list( set( [ key[0] for key in conversions.apiToMelData.keys()] ) ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
@@ -125,12 +125,12 @@ def testInvertibles():
     
         for className, apiClassName in getClassHierarchy(pynodeName):
             
-            if apiClassName not in api.apiClassInfo:
+            if apiClassName not in conversions.apiCache.apiClassInfo:
                 continue
             
             #print className, apiClassName
             
-            classInfo = api.apiClassInfo[apiClassName]
+            classInfo = conversions.apiCache.apiClassInfo[apiClassName]
             invertibles = classInfo['invertibles']
             #print invertibles
     
@@ -632,11 +632,11 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = api.getComponentTypes()
+        compTypesDict = conversions.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
-        flatCompTypes = flatCompTypes - set([api.ApiTypesToApiEnums()[x] for x in unableToCreate])
+        flatCompTypes = flatCompTypes - set([conversions.apiTypesToApiEnums[x] for x in unableToCreate])
         
         notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.itervalues():
@@ -647,7 +647,7 @@ class testCase_components(unittest.TestCase):
         if notFoundCompTypes:
             failMsg = "component types not tested:\n"
             for x in notFoundCompTypes:
-                failMsg += "    " + api.ApiEnumsToApiTypes()[x] + "\n"
+                failMsg += "    " + conversions.apiEnumsToApiTypes[x] + "\n"
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')

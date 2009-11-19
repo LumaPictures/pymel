@@ -18,19 +18,19 @@ class TestConversions(TestCaseExtended):
     # test that for all mayatypes, if we create a node of that type, MFnDependencyNode.typeName() agrees with
     # original value
     
-    #test that MayaTypesToApiEnums is one-to-one relation
+    #test that mayaTypesToApiEnums is one-to-one relation
     
-    # test that MayaTypesToApiEnums builds ApiEnumsToMayaTypes correctly on initialization
+    # test that mayaTypesToApiEnums builds apiEnumsToMayaTypes correctly on initialization
     pass
 
 
 def oldNewCacheCompare():
     import pymel.api as api
     
-    oldReserved = set(old.ReservedMayaTypes().iterkeys())
-    newReserved = set(api.conversions._MayaTypesBuilder()[api.ReservedMayaTypes])
-    oldAll = oldReserved.union(old.MayaTypesToApiEnums().iterkeys())
-    newAll = newReserved.union(api.conversions._MayaTypesBuilder()[api.MayaTypesToApiEnums].iterkeys())
+    oldReserved = set(old.reservedMayaTypes.iterkeys())
+    newReserved = set(api.conversions._MayaTypesBuilder()[api.reservedMayaTypes])
+    oldAll = oldReserved.union(old.mayaTypesToApiEnums.iterkeys())
+    newAll = newReserved.union(api.conversions._MayaTypesBuilder()[api.mayaTypesToApiEnums].iterkeys())
     oldAllNotNewAll = oldAll - newAll
     newAllNotOldAll = newAll - oldAll
     print("(all) In old but not in new:")
