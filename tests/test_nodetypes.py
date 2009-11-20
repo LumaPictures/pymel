@@ -1109,7 +1109,7 @@ class testCase_components(unittest.TestCase):
         if isinstance(comp, basestring):
             if (platform.system() == 'Darwin' or
                 api.MGlobal.mayaState in (api.MGlobal.kBatch,
-                                          api.MGlobal.kLibraryApp):
+                                          api.MGlobal.kLibraryApp)):
                 if ((comp.startswith('SubdEdge') or
                      comp.endswith("comp(u'sme')") or
                      comp.endswith('.sme'))
