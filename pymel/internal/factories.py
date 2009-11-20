@@ -28,7 +28,7 @@ DOC_WIDTH = 120
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
 #: examples are usually only included when creating documentation
-INCLUDE_DOC_EXAMPLES = bool( os.environ.get( 'PYMEL_INCLUDE_DOC_EXAMPLES', False ) )
+includeDocExamples = bool( os.environ.get( 'PYMEL_includeDocExamples', False ) )
 
 #Lookup from PyNode type name as a string to PyNode type as a class
 pyNodeNamesToPyNodes = {}
@@ -36,9 +36,8 @@ pyNodeNamesToPyNodes = {}
 #Lookup from PyNode class to maya type
 pyNodesToMayaTypes = {}
 
-#Lookup from PyNode class to maya type
+#Lookup from MFn to PyNode name
 apiClassNamesToPyNodeNames = {}
-
 
 #Lookup from Api Enums to Pymel Component Classes
 #
@@ -196,7 +195,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
 
         docstring += 'Flags:\n'
     
-        if INCLUDE_DOC_EXAMPLES:
+        if includeDocExamples:
             docstring += rowsep
             docstring += makerow( ['Long name (short name)', 'Argument Types', 'Properties'], altwidths )
             docstring += headersep
@@ -228,7 +227,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
             if 'query' in tmpmodes: modes.append('query')
             if 'edit' in tmpmodes: modes.append('edit')
                         
-            if INCLUDE_DOC_EXAMPLES:
+            if includeDocExamples:
                 for data in util.izip_longest( ['**%s (%s)**' % (flag, docs['shortname'])],
                                             textwrap.wrap( '*%s*' % typ, widths[2]-2 ),
                                             [ '.. image:: /images/%s.gif' % m for m in modes],
@@ -279,7 +278,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
     
     docstring += '\nDerived from mel command `maya.cmds.%s`\n' % (cmdName) 
     
-    if INCLUDE_DOC_EXAMPLES and cmdInfo.get('example',None):
+    if includeDocExamples and cmdInfo.get('example',None):
         #docstring = ".. |create| image:: /images/create.gif\n.. |edit| image:: /images/edit.gif\n.. |query| image:: /images/query.gif\n\n" + docstring
         docstring += '\nExample:\n' + cmdInfo['example']
     
