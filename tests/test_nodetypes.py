@@ -674,7 +674,7 @@ class testCase_components(unittest.TestCase):
             compName = ''
             indices = []
         else:
-            indices = self._indicesRe.findall(rest)
+            indices = cls._indicesRe.findall(rest)
             if not indices:
                 compName = rest
             else:
@@ -706,13 +706,13 @@ class testCase_components(unittest.TestCase):
         if comp1==comp2:
             return True
         
-        node1, compName1, indices1 = self._compStrSplit(comp1)
-        node2, compName2, indices2 = self._compStrSplit(comp2)
+        node1, comp1Name, indices1 = self._compStrSplit(comp1)
+        node2, comp2Name, indices2 = self._compStrSplit(comp2)
         
         if node1 != node2:
             return False
 
-        if not (compName1 and compName2 and
+        if not (comp1Name and comp2Name and
                 indices1 and indices2):
             return False
         
@@ -1149,7 +1149,7 @@ class testCase_components(unittest.TestCase):
     def _failIfWillMakeMayaCrash(self, comp):
         try:
             if isinstance(comp, basestring):
-                if versions.CURRENT >= versions.v2011:
+                if versions.current() >= versions.v2011:
                     # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
                     # meaning any surf.u/v/uv.__getindex__ will crash
                     nodeName, compName, indices = self._compStrSplit(comp)
