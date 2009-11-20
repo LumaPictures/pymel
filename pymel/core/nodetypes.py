@@ -135,7 +135,7 @@ def _formatSlice(sliceObj):
 # even though slice objects are essentially immutable, due to implementation
 # of proxyClass, need to set sourceIsImmutable to False
 # (not sure why proxyClass is implemented like this...?)
-ProxySlice = util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False, makeDefaultInit=True)
+ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False, makeDefaultInit=True)
 
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using
