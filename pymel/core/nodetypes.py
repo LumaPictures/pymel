@@ -7,7 +7,7 @@ import pymel.util as util
 import pymel.mayahook.pmcmds as cmds #@UnresolvedImport
 import pymel.mayahook.factories as _factories
 import pymel.api as api #@UnresolvedImport
-import pymel.api.conversions as conversions
+import pymel.mayahook.apicache as _apicache
 import datatypes
 import logging
 _logger = logging.getLogger(__name__)
@@ -3360,7 +3360,7 @@ class DependNode( general.PyNode ):
                 cls.__apiobjects__['dagMod'] = api.MDagModifier()
                 cls.__apiobjects__['dgMod'] = api.MDGModifier()
                 # TODO: make something more reliable than uncapitalize
-                obj = conversions._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
+                obj = _apicache._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
                                                                 cls.__apiobjects__['dagMod'], 
                                                                 cls.__apiobjects__['dgMod'] )
                 nodeMfn = cls.__apicls__(obj)
@@ -5870,8 +5870,8 @@ def _createPyNodes():
     dynModule = util.LazyLoadModule(__name__, globals())
     
     # reset cache
-    _factories.PyNodeTypesHierarchy().clear()
-    _factories.PyNodeNamesToPyNodes().clear()
+    _factories.pyNodeTypesHierarchy.clear()
+    _factories.pyNodeNamesToPyNodes.clear()
     
     for mayaType, parents, children in _factories.nodeHierarchy:
 

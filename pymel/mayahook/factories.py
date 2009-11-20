@@ -8,8 +8,10 @@ import pymel.mayahook.mayautils as mayautils
 import pymel.mayahook.plogging as plogging
 import pymel.versions as versions
 import pymel.api as api
-import pymel.api.conversions as conversions
 import cmdcache
+from cmdcache import *
+import apicache
+from apicache import *
 import pmcmds
 import maya.cmds as cmds
 import maya.mel as mm
@@ -28,31 +30,24 @@ EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 #: examples are usually only included when creating documentation
 INCLUDE_DOC_EXAMPLES = bool( os.environ.get( 'PYMEL_INCLUDE_DOC_EXAMPLES', False ) )
 
+#Lookup from PyNode type name as a string to PyNode type as a class
+pyNodeNamesToPyNodes = {}
 
-class PyNodeNamesToPyNodes(dict):
-    """ Lookup from PyNode type name as a string to PyNode type as a class"""
-    __metaclass__ = util.Singleton
+#Lookup from PyNode class to maya type
+pyNodesToMayaTypes = {}
 
-class PyNodesToMayaTypes(dict):
-    """Lookup from PyNode class to maya type"""
-    __metaclass__ = util.Singleton
+#Lookup from PyNode class to maya type
+apiClassNamesToPyNodeNames = {}
 
-class ApiClassNamesToPyNodeNames(dict):
-    """Lookup from PyNode class to maya type"""
-    __metaclass__ = util.Singleton
-    
-class ApiEnumsToPyComponents(dict):
-    """
-    Lookup from Api Enums to Pymel Component Classes
-    
-    A list of possible component classes is always returned (even if it's only
-    of length one).
-    """
-    __metaclass__ = util.Singleton
-   
-class PyNodeTypesHierarchy(dict):
-    """child:parent lookup of the pymel classes that derive from DependNode"""
-    __metaclass__ = util.Singleton
+
+#Lookup from Api Enums to Pymel Component Classes
+#
+#A list of possible component classes is always returned (even if it's only
+#of length one).
+apiEnumsToPyComponents = {}
+
+#child:parent lookup of the pymel classes that derive from DependNode
+pyNodeTypesHierarchy = {}
 
 
 #: for certain nodes, the best command on which to base the node class cannot create nodes, but can only provide information.
@@ -67,7 +62,7 @@ virtualClass = util.defaultdict(list)
                                
 #---------------------------------------------------------------
         
-cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
+#cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 
 # FIXME
 #: stores a dcitionary of pymel classnames and their methods.  i'm not sure if the 'api' portion is being used any longer
@@ -77,9 +72,9 @@ apiToMelMap = {
                }
 
 def _getApiOverrideNameAndData(classname, pymelName):
-    if conversions.apiToMelData.has_key( (classname,pymelName) ):
+    if apicache.apiToMelData.has_key( (classname,pymelName) ):
 
-        data = conversions.apiToMelData[(classname,pymelName)]
+        data = apicache.apiToMelData[(classname,pymelName)]
         try:
             nameType = data['useName']
         except KeyError:
@@ -96,7 +91,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
         # set defaults
         _logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
         data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
-        conversions.apiToMelData[(classname,pymelName)] = data
+        apicache.apiToMelData[(classname,pymelName)] = data
 
     
     #overloadIndex = data.get( 'overloadIndex', None )
@@ -349,7 +344,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
     to all commands with callbacks called 'passSelf'.  When set to True, an instance of the calling UI class will be passed
     as the first argument.
     
-    if inFunc has been renamed, pass a funcName to lookup command info in factories.cmdlist
+    if inFunc has been renamed, pass a funcName to lookup command info in apicache.cmdlist
     """
     
     if funcName is None:
@@ -940,7 +935,7 @@ class ApiArgUtil(object):
         
         if methodIndex is None:
             try:
-                methodInfoList = conversions.apiCache.apiClassInfo[apiClassName]['methods'][methodName]
+                methodInfoList = apicache.apiClassInfo[apiClassName]['methods'][methodName]
             except KeyError:
                 raise TypeError, "method %s of %s cannot be found" % (methodName, apiClassName)  
             else:
@@ -959,7 +954,7 @@ class ApiArgUtil(object):
                 if methodIndex is None:
                     raise TypeError, "method %s of %s cannot be wrapped" % (methodName, apiClassName)  
         
-        self.methodInfo = conversions.apiCache.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
+        self.methodInfo = apicache.apiClassInfo[apiClassName]['methods'][methodName][methodIndex]
         self.methodIndex = methodIndex
         
     def iterArgs(self, inputs=True, outputs=True, infoKeys=[]):
@@ -1006,8 +1001,8 @@ class ApiArgUtil(object):
                   
     @staticmethod
     def isValidEnum( enumTuple ):
-        if conversions.apiCache.apiClassInfo.has_key(enumTuple[0]) and \
-            conversions.apiCache.apiClassInfo[enumTuple[0]]['enums'].has_key(enumTuple[1]):
+        if apicache.apiClassInfo.has_key(enumTuple[0]) and \
+            apicache.apiClassInfo[enumTuple[0]]['enums'].has_key(enumTuple[1]):
             return True
         return False
     
@@ -1068,7 +1063,7 @@ class ApiArgUtil(object):
 #        
 #        elif input[0] != 'k' or not input[1].isupper():
 #            input = 'k' + util.capitalize(input)
-#            return conversions.apiCache.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
+#            return apicache.apiClassInfo[argtype[0]]['enums'][argtype[1]].index(input)
     
     def getInputTypes(self):
         inArgs = self.methodInfo['inArgs']
@@ -1092,7 +1087,7 @@ class ApiArgUtil(object):
     def getPymelName(self ):
         pymelName = self.methodInfo.get('pymelName',self.methodName)
         try:
-            pymelClassName = ApiClassNamesToPyNodeNames()[self.apiClassName]
+            pymelClassName = apiClassNamesToPyNodeNames[self.apiClassName]
             pymelName, data = _getApiOverrideNameAndData( pymelClassName, pymelName )
         except KeyError:
             pass
@@ -1149,10 +1144,10 @@ class ApiArgUtil(object):
             apiClassName, enumName = argtype
             
             try:
-                return conversions.apiCache.apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
+                return apicache.apiClassInfo[apiClassName]['enums'][enumName]['values'].getIndex(input)
             except ValueError:
                 try:
-                    return conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
+                    return apicache.apiClassInfo[apiClassName]['pymelEnums'][enumName].getIndex(input)
                 except ValueError:
                     raise ValueError, "expected an enum of type %s.%s: got %r" % ( apiClassName, enumName, input )
                 
@@ -1236,7 +1231,7 @@ class ApiArgUtil(object):
                     # TODO: return EnumValue type
                     
                     # convert int result into pymel string name.
-                    return conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
+                    return apicache.apiClassInfo[apiClassName]['pymelEnums'][enumName][result]
                 except KeyError:
                     raise ValueError, "expected an enum of type %s.%s" % ( apiClassName, enumName )
     
@@ -1290,21 +1285,21 @@ class ApiArgUtil(object):
             # the next arg has a default ( i.e. kwargs must always come after args )
 #            elif str(self.methodInfo['types'][arg]) == 'MSpace.Space' and \
 #                (   i==(nargs-1) or ( i<(nargs-1) and inArgs[i+1] in defaultInfo )  ):
-#                    default = conversions.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
+#                    default = apicache.Enum(['MSpace', 'Space', 'kWorld'])  # should be kPostTransform?  this is what xform defaults to...
 
             else:
                 continue    
 
-            if isinstance(default, conversions.Enum ):
+            if isinstance(default, apicache.Enum ):
                 # convert enums from apiName to pymelName. the default will be the readable string name
                 apiClassName, enumName, enumValue = default
                 try:
-                    enumList = conversions.apiCache.apiClassInfo[apiClassName]['enums'][enumName]['values']
+                    enumList = apicache.apiClassInfo[apiClassName]['enums'][enumName]['values']
                 except KeyError:
                     _logger.warning("Could not find enumerator %s", default)
                 else:
                     index = enumList.getIndex(enumValue)
-                    default = conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
+                    default = apicache.apiClassInfo[apiClassName]['pymelEnums'][enumName][index]
             defaults.append( default )
             
         return defaults
@@ -1788,9 +1783,9 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
             
             docstring += S + '%s : %s\n' % (name, typeStr )
             docstring += S*2 + '%s\n' % (info['doc'])
-            if isinstance( type, conversions.Enum ):
+            if isinstance( type, apicache.Enum ):
                 apiClassName, enumName = type
-                enumValues = conversions.apiCache.apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
+                enumValues = apicache.apiClassInfo[apiClassName]['pymelEnums'][enumName].keys()
                 docstring += '\n' + S*2 + 'values: %s\n' % ', '.join( [ '%r' % x for x in enumValues if x not in ['invalid', 'last' ] ] )
             
 
@@ -1865,14 +1860,14 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
 
         if apicls is not None:
             #_logger.debug("ADDING %s to %s" % (apicls.__name__, classname))
-            ApiClassNamesToPyNodeNames()[apicls.__name__] = classname
+            apiClassNamesToPyNodeNames[apicls.__name__] = classname
             
             if not proxy and apicls not in bases:
                 #_logger.debug("ADDING BASE",classdict['apicls'])
                 bases = bases + (classdict['apicls'],)
             try:
                 #_logger.debug((classname, apicls))
-                classInfo = conversions.apiCache.apiClassInfo[apicls.__name__]
+                classInfo = apicache.apiClassInfo[apicls.__name__]
             except KeyError:
                 _logger.info("No api information for api class %s" % ( apicls.__name__ ))
             else:
@@ -2084,9 +2079,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                             
                             # 'enabled' refers to whether the API version of this method will be used.
                             # if the method is enabled that means we skip it here. 
-                            if not conversions.apiToMelData.has_key((classname,methodName)) \
-                                or conversions.apiToMelData[(classname,methodName)].get('melEnabled',False) \
-                                or not conversions.apiToMelData[(classname,methodName)].get('enabled',True):
+                            if not apicache.apiToMelData.has_key((classname,methodName)) \
+                                or apicache.apiToMelData[(classname,methodName)].get('melEnabled',False) \
+                                or not apicache.apiToMelData[(classname,methodName)].get('enabled',True):
                                 returnFunc = None
                                 
                                 if flagInfo.get( 'resultNeedsCasting', False):
@@ -2122,9 +2117,9 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                            
                         if methodName not in filterAttrs and \
                                 ( not hasattr(newcls, methodName) or cls.isMelMethod(methodName, parentClasses) ):
-                            if not conversions.apiToMelData.has_key((classname,methodName)) \
-                                or conversions.apiToMelData[(classname,methodName)].get('melEnabled',False) \
-                                or not conversions.apiToMelData[(classname,methodName)].get('enabled', True):
+                            if not apicache.apiToMelData.has_key((classname,methodName)) \
+                                or apicache.apiToMelData[(classname,methodName)].get('melEnabled',False) \
+                                or not apicache.apiToMelData[(classname,methodName)].get('enabled', True):
                                 #FIXME: shouldn't we be able to use the wrapped pymel command, which is already fixed?
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
@@ -2181,8 +2176,8 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
         # the name of the PyNode, uncapitalized
         #_logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
-        conversions.addMayaType( nodeType )
-        apicls = conversions.toApiFunctionSet( nodeType )
+        apicache.addMayaType( nodeType )
+        apicls = apicache.toApiFunctionSet( nodeType )
 
         if apicls is not None:
             if apicls in MetaMayaNodeWrapper.completedClasses:
@@ -2255,10 +2250,10 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
         apienum = getattr(newcls, '_apienum__', None)
 #        print "addng new component %s - '%s' (%r):" % (newcls, classname, classdict),
         if apienum:
-            if apienum not in ApiEnumsToPyComponents():
-                ApiEnumsToPyComponents()[apienum] = [newcls]
+            if apienum not in apiEnumsToPyComponents:
+                apiEnumsToPyComponents[apienum] = [newcls]
             else:
-                oldEntries = ApiEnumsToPyComponents()[apienum]
+                oldEntries = apiEnumsToPyComponents[apienum]
 
                 # if the apienum is already present, check if this class is a
                 # subclass of an already present class
@@ -2270,97 +2265,97 @@ class MetaMayaComponentWrapper(MetaMayaTypeWrapper):
                     else:
                         newEntries.append(oldEntry)
                 newEntries.append(newcls)
-                ApiEnumsToPyComponents()[apienum] = newEntries
+                apiEnumsToPyComponents[apienum] = newEntries
         return newcls
-    
-def getValidApiMethods( apiClassName, api, verbose=False ):
-
-    validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
-    
-    try:
-        methods = conversions.apiCache.apiClassInfo[apiClassName]
-    except KeyError:
-        return []
-    
-    validMethods = []
-    for method, methodInfoList in methods.items():
-        for methodInfo in methodInfoList:
-            #_logger.debug(method, methodInfoList)
-            if not methodInfo['outArgs']:
-                returnType = methodInfo['returnType']
-                if returnType in validTypes:
-                    count = 0
-                    types = []
-                    for x in methodInfo['inArgs']:
-                        type = methodInfo['argInfo'][x]['type']
-                        #_logger.debug(x, type)
-                        types.append( type )
-                        if type in validTypes:
-                            count+=1
-                    if count == len( methodInfo['inArgs'] ):
-                        if verbose:
-                            _logger.info(('    %s %s(%s)' % ( returnType, method, ','.join( types ) )))
-                        validMethods.append(method)
-    return validMethods
-
-def readClassAnalysis( filename ):
-    f = open(filename)
-    info = {}
-    currentClass = None
-    currentSection = None
-    for line in f.readlines():
-        buf = line.split()
-        if buf[0] == 'CLASS':
-            currentClass = buf[1]
-            info[currentClass] = {}
-        elif buf[0].startswith('['):
-            if currentSection in ['shared_leaf', 'api', 'pymel']:
-                currentSection = buf.strip('[]')
-                info[currentClass][currentSection] = {}
-        else:
-            n = len(buf)
-            if n==2:
-                info[currentClass][currentSection][buf[0]] = buf[1]
-            elif n==1:
-                pass
-                #info[currentClass][currentSection][buf[0]] = None
-            else:
-                pass
-    f.close()
-    _logger.info(info)
-    return info
-
-def fixClassAnalysis( filename ):
-    f = open(filename)
-    info = {}
-    currentClass = None
-    currentSection = None
-    lines = f.readlines()
-    for i, line in enumerate(lines):
-        buf = line.split()
-        if buf[0] == 'CLASS':
-            currentClass = buf[1]
-            info[currentClass] = {}
-        elif buf[0].startswith('['):
-            if currentSection in ['shared_leaf', 'api', 'pymel']:
-                currentSection = buf.strip('[]')
-                info[currentClass][currentSection] = {}
-        else:
-            isAutoNamed, nativeName, pymelName, failedAutoName = re.match( '([+])?\s+([a-zA-Z0-9]+)(?:\s([a-zA-Z0-9]+))?(?:\s([a-zA-Z0-9]+))?', line ).groups()
-            if isAutoNamed and pymelName is None:
-                pymelName = nativeName
-            n = len(buf)
-            
-            if n==2:
-                info[currentClass][currentSection][buf[0]] = buf[1]
-            elif n==1:
-                pass
-                #info[currentClass][currentSection][buf[0]] = None
-            else:
-                pass
-    f.close()
-    _logger.info(info)
-    return info
+#    
+#def getValidApiMethods( apiClassName, api, verbose=False ):
+#
+#    validTypes = [ None, 'double', 'bool', 'int', 'MString', 'MObject' ]
+#    
+#    try:
+#        methods = apicache.apiClassInfo[apiClassName]
+#    except KeyError:
+#        return []
+#    
+#    validMethods = []
+#    for method, methodInfoList in methods.items():
+#        for methodInfo in methodInfoList:
+#            #_logger.debug(method, methodInfoList)
+#            if not methodInfo['outArgs']:
+#                returnType = methodInfo['returnType']
+#                if returnType in validTypes:
+#                    count = 0
+#                    types = []
+#                    for x in methodInfo['inArgs']:
+#                        type = methodInfo['argInfo'][x]['type']
+#                        #_logger.debug(x, type)
+#                        types.append( type )
+#                        if type in validTypes:
+#                            count+=1
+#                    if count == len( methodInfo['inArgs'] ):
+#                        if verbose:
+#                            _logger.info(('    %s %s(%s)' % ( returnType, method, ','.join( types ) )))
+#                        validMethods.append(method)
+#    return validMethods
+#
+#def readClassAnalysis( filename ):
+#    f = open(filename)
+#    info = {}
+#    currentClass = None
+#    currentSection = None
+#    for line in f.readlines():
+#        buf = line.split()
+#        if buf[0] == 'CLASS':
+#            currentClass = buf[1]
+#            info[currentClass] = {}
+#        elif buf[0].startswith('['):
+#            if currentSection in ['shared_leaf', 'api', 'pymel']:
+#                currentSection = buf.strip('[]')
+#                info[currentClass][currentSection] = {}
+#        else:
+#            n = len(buf)
+#            if n==2:
+#                info[currentClass][currentSection][buf[0]] = buf[1]
+#            elif n==1:
+#                pass
+#                #info[currentClass][currentSection][buf[0]] = None
+#            else:
+#                pass
+#    f.close()
+#    _logger.info(info)
+#    return info
+#
+#def fixClassAnalysis( filename ):
+#    f = open(filename)
+#    info = {}
+#    currentClass = None
+#    currentSection = None
+#    lines = f.readlines()
+#    for i, line in enumerate(lines):
+#        buf = line.split()
+#        if buf[0] == 'CLASS':
+#            currentClass = buf[1]
+#            info[currentClass] = {}
+#        elif buf[0].startswith('['):
+#            if currentSection in ['shared_leaf', 'api', 'pymel']:
+#                currentSection = buf.strip('[]')
+#                info[currentClass][currentSection] = {}
+#        else:
+#            isAutoNamed, nativeName, pymelName, failedAutoName = re.match( '([+])?\s+([a-zA-Z0-9]+)(?:\s([a-zA-Z0-9]+))?(?:\s([a-zA-Z0-9]+))?', line ).groups()
+#            if isAutoNamed and pymelName is None:
+#                pymelName = nativeName
+#            n = len(buf)
+#            
+#            if n==2:
+#                info[currentClass][currentSection][buf[0]] = buf[1]
+#            elif n==1:
+#                pass
+#                #info[currentClass][currentSection][buf[0]] = None
+#            else:
+#                pass
+#    f.close()
+#    _logger.info(info)
+#    return info
 
 #
 #def analyzeApiClasses():
@@ -2373,10 +2368,10 @@ def fixClassAnalysis( filename ):
 #        
 #def analyzeApiClass( apiTypeStr ):
 #    try:
-#        mayaType = conversions.apiTypesToMayaTypes[ apiTypeStr ].keys()
+#        mayaType = apicache.apiTypesToMayaTypes[ apiTypeStr ].keys()
 #        if util.isIterable(mayaType) and len(mayaType) == 1:
 #            mayaType = mayaType[0]
-#            pymelType = PyNodeNamesToPyNodes().get( util.capitalize(mayaType) , None )
+#            pymelType = pyNodeNamesToPyNodes.get( util.capitalize(mayaType) , None )
 #        else:
 #            pymelType = None
 #    except KeyError:
@@ -2400,7 +2395,7 @@ def fixClassAnalysis( filename ):
 #    pymelMethodNames = {}
 #    for cls in inspect.getmro( apiClass ):
 #        try:
-#            pymelMethodNames.update( conversions.apiCache.apiClassInfo[cls.__name__]['pymelMethods'] )
+#            pymelMethodNames.update( apicache.apiClassInfo[cls.__name__]['pymelMethods'] )
 #        except KeyError: pass
 #    reversePymelNames = dict( (v, k) for k,v in pymelMethodNames.items() ) 
 #    
@@ -2420,10 +2415,10 @@ def fixClassAnalysis( filename ):
 ##        else:
 ##            parentMembers = []
 ##        
-##        if pymelType is None: pymelType = PyNodeNamesToPyNodes().get( apiClass.__name__[3:] , None )
+##        if pymelType is None: pymelType = pyNodeNamesToPyNodes.get( apiClass.__name__[3:] , None )
 ##        
 ##        if pymelType:
-##            parentPymelType = PyNodeTypesHierarchy()[ pymelType ]
+##            parentPymelType = pyNodeTypesHierarchy[ pymelType ]
 ##            parentPyMembers = [ x[0] for x in inspect.getmembers( parentPymelType, callable ) ]
 ##            pyMembers = set([ x[0] for x in inspect.getmembers( pymelType, callable ) if x[0] not in parentPyMembers and not x[0].startswith('_') ])
 ##            
@@ -2435,7 +2430,7 @@ def fixClassAnalysis( filename ):
 ##            # get all pymelName lookups for this class and its bases
 ##            for cls in inspect.getmro( apiClass ):
 ##                try:
-##                    pymelMethodNames.update( conversions.apiCache.apiClassInfo[cls.__name__]['pymelMethods'] )
+##                    pymelMethodNames.update( apicache.apiClassInfo[cls.__name__]['pymelMethods'] )
 ##                except KeyError: pass
 ##                
 ##            allFnMembers = set([ pymelMethodNames.get(x[0],x[0]) for x in inspect.getmembers( apiClass, callable )  ])
@@ -2493,9 +2488,9 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
         #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
         PyNodeType.__module__ = dynModule.__name__
         setattr( dynModule, pyNodeTypeName, PyNodeType )
-    PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
-    PyNodesToMayaTypes()[PyNodeType] = mayaType
-    PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+    pyNodeTypesHierarchy[PyNodeType] = ParentPyNode
+    pyNodesToMayaTypes[PyNodeType] = mayaType
+    pyNodeNamesToPyNodes[pyNodeTypeName] = PyNodeType
     return PyNodeType
 
 def addPyNode( dynModule, mayaType, parentMayaType ):
@@ -2526,20 +2521,20 @@ def addPyNode( dynModule, mayaType, parentMayaType ):
 #            except :
 #                ParentPyNode = getattr( dynModule, parentPyNodeTypeName )
 #            #_logger.debug("already exists:", pyNodeTypeName, )
-#            PyNodeTypesHierarchy()[PyNodeType] = ParentPyNode
-#            PyNodesToMayaTypes()[PyNodeType] = mayaType
-#            PyNodeNamesToPyNodes()[pyNodeTypeName] = PyNodeType
+#            pyNodeTypesHierarchy[PyNodeType] = ParentPyNode
+#            pyNodesToMayaTypes[PyNodeType] = mayaType
+#            pyNodeNamesToPyNodes[pyNodeTypeName] = PyNodeType
 
     return pyNodeTypeName
 
 def removePyNode( dynModule, mayaType ):
     pyNodeTypeName = str( util.capitalize(mayaType) )
-    PyNodeType = PyNodeNamesToPyNodes().pop( pyNodeTypeName, None )
-    PyNodeParentType = PyNodeTypesHierarchy().pop( PyNodeType, None )
-    PyNodesToMayaTypes().pop(PyNodeType,None)
+    PyNodeType = pyNodeNamesToPyNodes.pop( pyNodeTypeName, None )
+    PyNodeParentType = pyNodeTypesHierarchy.pop( PyNodeType, None )
+    pyNodesToMayaTypes.pop(PyNodeType,None)
     dynModule.__dict__.pop(pyNodeTypeName,None)
     dynModule.__class__.__dict__.pop(pyNodeTypeName,None)
-    conversions.removeMayaType( mayaType )
+    apicache.removeMayaType( mayaType )
 
 def registerVirtualClass( cls, nameRequired=False ):
     """
@@ -2593,4 +2588,40 @@ def registerVirtualClass( cls, nameRequired=False ):
     # will override old definitions
     virtualClass[parentCls].insert( 0, (cls, nameRequired) )
 
+#-------------------------------------------------------------------------------
+
+def isValidPyNode (arg):
+    return pyNodeTypesHierarchy.has_key(arg)
+
+def isValidPyNodeName (arg):
+    return pyNodeNamesToPyNodes.has_key(arg)
+
+def toPyNode( obj, default=None ):
+    if isinstance( obj, int ):
+        mayaType = apicache.apiEnumsToMayaTypes.get( obj, None )
+        return pyNodeNamesToPyNodes.get( util.capitalize(mayaType), default )
+    elif isinstance( obj, basestring ):
+        try:
+            return pyNodeNamesToPyNodes[ util.capitalize(obj) ]
+        except KeyError:
+            mayaType = apicache.apiTypesToMayaTypes.get( obj, None )
+            return pyNodeNamesToPyNodes.get( util.capitalize(mayaType), default )
+            
+def toApiTypeStr( obj, default=None ):
+    if isinstance( obj, int ):
+        return apicache.apiEnumsToApiTypes.get( obj, default )
+    elif isinstance( obj, basestring ):
+        return apicache.mayaTypesToApiTypes.get( obj, default)
+    elif isinstance( obj, util.ProxyUnicode ):
+        mayaType = pyNodesToMayaTypes.get( obj, None )
+        return apicache.mayaTypesToApiTypes.get( mayaType, default)
     
+def toApiTypeEnum( obj, default=None ):
+    if isinstance( obj, util.ProxyUnicode ):
+        obj = pyNodesToMayaTypes.get( obj, None )
+    return apicache.toApiTypeEnum(obj)
+
+def toMayaType( obj, default=None ):
+    if issubclass( obj, util.ProxyUnicode ):
+        return pyNodesToMayaTypes.get( obj, default )
+    return apicache.toMayaType(obj)

@@ -7,6 +7,8 @@ import plogging
 import mayautils
 _logger = plogging.getLogger(__name__)
 
+__all__ = [ 'cmdlist', 'nodeHierarchy', 'uiClassList', 'nodeCommandList', 'moduleCmds' ]
+
 moduleNameShortToLong = {
     'modeling'   : 'Modeling',
     'rendering'  : 'Rendering',

@@ -1,5 +1,5 @@
 from testingutils import TestCaseExtended, isEquivalenceRelation
-from pymel.api.conversions import *
+import pymel.mayahook.apicache as apicache
 
 class TestConversions(TestCaseExtended):
     

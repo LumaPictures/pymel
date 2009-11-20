@@ -4,7 +4,7 @@ import re
 
 from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
-from pymel.mayahook.factories import ApiEnumsToPyComponents
+from pymel.mayahook.factories import apiEnumsToPyComponents
 import pymel.mayahook as mayahook
 from testingutils import TestCaseExtended, setCompare
 
@@ -12,7 +12,7 @@ from testingutils import TestCaseExtended, setCompare
 VERBOSE = False
 
 def getFundamentalTypes():
-    classList = sorted( list( set( [ key[0] for key in conversions.apiToMelData.keys()] ) ) )
+    classList = sorted( list( set( [ key[0] for key in factories..apiToMelData.keys()] ) ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
@@ -125,12 +125,12 @@ def testInvertibles():
     
         for className, apiClassName in getClassHierarchy(pynodeName):
             
-            if apiClassName not in conversions.apiCache.apiClassInfo:
+            if apiClassName not in factories.apiClassInfo:
                 continue
             
             #print className, apiClassName
             
-            classInfo = conversions.apiCache.apiClassInfo[apiClassName]
+            classInfo = factories.apiClassInfo[apiClassName]
             invertibles = classInfo['invertibles']
             #print invertibles
     
@@ -632,11 +632,11 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = conversions.getComponentTypes()
+        compTypesDict = factories..getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
-        flatCompTypes = flatCompTypes - set([conversions.apiTypesToApiEnums[x] for x in unableToCreate])
+        flatCompTypes = flatCompTypes - set([factories..apiTypesToApiEnums[x] for x in unableToCreate])
         
         notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.itervalues():
@@ -647,7 +647,7 @@ class testCase_components(unittest.TestCase):
         if notFoundCompTypes:
             failMsg = "component types not tested:\n"
             for x in notFoundCompTypes:
-                failMsg += "    " + conversions.apiEnumsToApiTypes[x] + "\n"
+                failMsg += "    " + factories..apiEnumsToApiTypes[x] + "\n"
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')
