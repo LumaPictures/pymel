@@ -11,25 +11,19 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 import sys, os, re
 from getpass import getuser
 from socket import gethostname
-
-import pymel.internal.pmcmds as cmds
-#import maya.cmds as cmds
-import maya.mel as mm
-
 import inspect, timeit, time
 
+import pymel.internal.pmcmds as cmds
 import pymel.util as util
 import pymel.internal.factories as _factories
 
-import pymel.api as api
+import pymel.api as _api
 import datatypes
 import logging
+from maya.cmds import about as _about
+
 _logger = logging.getLogger(__name__)
 
-# to make sure Maya is up
-import pymel.internal as internal
-
-from maya.cmds import about as _about
 
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
@@ -44,7 +38,7 @@ def _getPymelTypeFromObject(obj):
                 return _getExactCompType(obj, compTypes)
         else:
             try:  
-                fnDepend = api.MFnDependencyNode( obj )
+                fnDepend = _api.MFnDependencyNode( obj )
                 mayaType = fnDepend.typeName()
                 import nodetypes
                 pymelType = getattr( nodetypes, util.capitalize(mayaType), nodetypes.DependNode )
@@ -82,23 +76,23 @@ def _getPymelType(arg, name) :
     #--------------------------   
     # API object testing
     #--------------------------   
-    if isinstance(arg, api.MObject) :     
-        results['MObjectHandle'] = api.MObjectHandle( arg )
+    if isinstance(arg, _api.MObject) :     
+        results['MObjectHandle'] = _api.MObjectHandle( arg )
         obj = arg
                     
-    elif isinstance(arg, api.MObjectHandle) :      
+    elif isinstance(arg, _api.MObjectHandle) :      
         results['MObjectHandle'] = arg
         obj = arg.object()
            
-    elif isinstance(arg, api.MDagPath) :
+    elif isinstance(arg, _api.MDagPath) :
         results['MDagPath'] = arg
         obj = arg.node()
                               
-    elif isinstance(arg, api.MPlug) : 
+    elif isinstance(arg, _api.MPlug) : 
         isAttribute = True
         obj = arg
         results['MPlug'] = obj
-        if api.isValidMPlug(arg):
+        if _api.isValidMPlug(arg):
             pymelType = nodetypes.Attribute
         else :
             raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
@@ -130,11 +124,11 @@ def _getPymelType(arg, name) :
 def about(**kwargs):
     """
 Modifications:
-  - added apiVersion/api flag to about command for version 8.5 and 8.5sp1
+  - added apiVersion/_api flag to about command for version 8.5 and 8.5sp1
     """
-    if kwargs.get('apiVersion', kwargs.get('api',False)):
+    if kwargs.get('apiVersion', kwargs.get('_api',False)):
         try:
-            return _about(api=1)
+            return _about(_api=1)
         except TypeError:
             return { 
              '8.5 Service Pack 1': 200701,
@@ -490,7 +484,8 @@ Modifications:
 
     if datatype == 'matrix':
         cmd = 'setAttr -type "matrix" "%s" %s' % (attr, ' '.join( map( str, args ) ) )
-        mm.eval(cmd)
+        import maya.mel as _mm
+        _mm.eval(cmd)
         return 
     
     # stringify fix
@@ -828,7 +823,7 @@ def nodeType( node, **kwargs ):
     
     :rtype: `unicode`
     """
-    # still don't know how to do inherited via api
+    # still don't know how to do inherited via _api
     if kwargs.get( 'inherited', kwargs.get( 'i', False) ):
         return cmds.nodeType( unicode(node), **kwargs )
 
@@ -843,20 +838,20 @@ def nodeType( node, **kwargs ):
         #obj = node.__apimobject__()
     elif isinstance(node, nodetypes.Attribute) :
         node = node.plugNode()
-#    elif isinstance(node, api.MObject) :
+#    elif isinstance(node, _api.MObject) :
 #        # TODO : convert MObject attributes to DependNode
-#        if api.isValidMObjectHandle(api.MObjectHandle(node)) :
+#        if _api.isValidMObjectHandle(_api.MObjectHandle(node)) :
 #            obj = node
 #        else :
 #            obj = None
     else:
     #if isinstance(node,basestring) :
-        #obj = api.toMObject( node.split('.')[0] )
+        #obj = _api.toMObject( node.split('.')[0] )
         # don't spend the extra time converting to MObject
         return cmds.nodeType( unicode(node), **kwargs )
         #raise TypeError, "Invalid input %r." % node
         
-    if kwargs.get( 'apiType', kwargs.get( 'api', False) ):
+    if kwargs.get( 'apiType', kwargs.get( '_api', False) ):
         return node.__apimobject__().apiTypeStr()     
     # default
     try:
@@ -1254,9 +1249,9 @@ class PyNode(util.ProxyUnicode):
         
     _name = None              # unicode
     
-    # for DependNode : api.MObjectHandle
-    # for DagNode    : api.MDagPath
-    # for Attribute  : api.MPlug
+    # for DependNode : _api.MObjectHandle
+    # for DagNode    : _api.MDagPath
+    # for Attribute  : _api.MPlug
                               
     _node = None              # Attribute Only: stores the PyNode for the plug's node
     __apiobjects__ = {}
@@ -1304,9 +1299,9 @@ class PyNode(util.ProxyUnicode):
                     attrNode = PyNode( attrNode )
                 
 #                #-- Second Argument: Plug or Component
-#                # convert from string to api objects.
+#                # convert from string to _api objects.
 #                if isinstance(argObj,basestring) :
-#                    argObj = api.toApiObject( argObj, dagPlugs=False )
+#                    argObj = _api.toApiObject( argObj, dagPlugs=False )
 #                    
 #                # components
 #                elif isinstance( argObj, int ) or isinstance( argObj, slice ):
@@ -1339,13 +1334,13 @@ class PyNode(util.ProxyUnicode):
                 #elif isinstance(argObj,basestring) : # got rid of this check because of nameparse objects
                 else:
                     # didn't match any known types. treat as a string
-                    # convert to string then to api objects.
+                    # convert to string then to _api objects.
                     try:
                         name = unicode(argObj)
                     except:
                         raise MayaNodeError
                     else:
-                        res = api.toApiObject( name, dagPlugs=True )
+                        res = _api.toApiObject( name, dagPlugs=True )
                         # DagNode Plug
                         if isinstance(res, tuple):
                             # Plug or Component
@@ -1353,7 +1348,7 @@ class PyNode(util.ProxyUnicode):
                             attrNode = PyNode(res[0])
                             argObj = res[1]
                         # DependNode Plug
-                        elif isinstance(res,api.MPlug):
+                        elif isinstance(res,_api.MPlug):
                             attrNode = PyNode(res.node())
                             argObj = res
                         # Other Object
@@ -1387,25 +1382,11 @@ class PyNode(util.ProxyUnicode):
 #                                            return argObj
                             
                             # non-existent objects
-                            if internal.pymel_options.get( '0_7_compatibility_mode', False):
-                                import other
-                                
-                                if '.' in name:
-                                    newcls = other.AttributeName
-                                elif '|' in name:
-                                    newcls = other.DagNodeName
-                                else:
-                                    newcls = other.DependNodeName
-                                    
-                                self = unicode.__new__(newcls, name)
-                                
-                                return self  
+                            # the object doesn't exist: raise an error
+                            if '.' in name:
+                                raise MayaAttributeError( name )
                             else:
-                                # the object doesn't exist: raise an error
-                                if '.' in name:
-                                    raise MayaAttributeError( name )
-                                else:
-                                    raise MayaNodeError( name )
+                                raise MayaNodeError( name )
 
             #-- Components
             if nodetypes.validComponentIndexType(argObj):
@@ -1529,7 +1510,7 @@ class PyNode(util.ProxyUnicode):
             raise TypeError, "Cannot make a %s out of a %r object" % (cls.__name__, pymelType)   
 
     def __init__(self, *args, **kwargs):
-        # this  prevents the api class which is the second base, from being automatically instantiated. This __init__ should
+        # this  prevents the _api class which is the second base, from being automatically instantiated. This __init__ should
         # be overridden on subclasses of PyNode
         pass
  
@@ -1537,8 +1518,6 @@ class PyNode(util.ProxyUnicode):
                           
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. """
-        #if internal.Version.current >= internal.Version.v2009:
-        #    raise AttributeError
         return self.name()
     
     def __apimfn__(self):
@@ -1557,12 +1536,12 @@ class PyNode(util.ProxyUnicode):
                     except RuntimeError:
                         # when using PyNodes in strange places, like node creation callbacks, the proper MFn does not work yet, so we default to
                         # a super class and we don't save it, so that we can get the right one later
-                        if isinstance(obj, api.MDagPath):
-                            mfn = api.MFnDagNode( obj )
+                        if isinstance(obj, _api.MDagPath):
+                            mfn = _api.MFnDagNode( obj )
                             _logger.warning( "Could not create desired MFn. Defaulting to MFnDagNode." )
                             
-                        elif isinstance(obj, api.MObject):
-                            mfn = api.MFnDependencyNode( obj ) 
+                        elif isinstance(obj, _api.MObject):
+                            mfn = _api.MFnDependencyNode( obj ) 
                             _logger.warning( "Could not create desired MFn. Defaulting to MFnDependencyNode." )
                         else:
                             raise
