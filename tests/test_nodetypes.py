@@ -1512,25 +1512,25 @@ class testCase_sets(TestCaseExtended):
     def test_SelectionSet_mixedObjectsComponents(self):
         self.assertSetSelect(SelectionSet, self.cube.edges[4:6], self.sphere)
 
-class testCase_0_7_compatabilityMode(unittest.TestCase):
-    # Just used to define a value that we know won't be stored in
-    # 0_7_compatability mode...
-    class NOT_SET(object): pass
-    
-    def setUp(self):
-        self.stored_0_7_compatability_mode = internal.pymel_options.get( '0_7_compatibility_mode', False)
-        internal.pymel_options['0_7_compatibility_mode'] = True
-        
-    def tearDown(self):
-        if self.stored_0_7_compatability_mode == NOT_SET:
-            del internal.pymel_options['0_7_compatibility_mode']
-        else:
-            internal.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
-            
-    def test_nonexistantPyNode(self):
-        # Will raise an error if not in 0_7_compatability_mode
-        PyNode('I_Dont_Exist_3142341324')
-        
+#class testCase_0_7_compatabilityMode(unittest.TestCase):
+#    # Just used to define a value that we know won't be stored in
+#    # 0_7_compatability mode...
+#    class NOT_SET(object): pass
+#    
+#    def setUp(self):
+#        self.stored_0_7_compatability_mode = internal.pymel_options.get( '0_7_compatibility_mode', False)
+#        internal.pymel_options['0_7_compatibility_mode'] = True
+#        
+#    def tearDown(self):
+#        if self.stored_0_7_compatability_mode == NOT_SET:
+#            del internal.pymel_options['0_7_compatibility_mode']
+#        else:
+#            internal.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
+#            
+#    def test_nonexistantPyNode(self):
+#        # Will raise an error if not in 0_7_compatability_mode
+#        PyNode('I_Dont_Exist_3142341324')
+#        
 
 class testCase_apiArgConversion(unittest.TestCase):
     def test_unsignedIntRef_out_args(self):
