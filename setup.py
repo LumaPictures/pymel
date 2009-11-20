@@ -168,7 +168,7 @@ def main():
                 
     try:
         setup(name='pymel',
-              version='0.9.2',
+              version='1.0.0',
               description='Python in Maya Done Right',
               long_description = """
         PyMEL makes python scripting with Maya work the way it should. Maya's command module is a direct translation
