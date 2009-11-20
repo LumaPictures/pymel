@@ -1,4 +1,4 @@
-.. currentmodule:: pymel
+.. currentmodule:: pymel.core
 
 =======================================
 Getting Started
@@ -9,7 +9,7 @@ the differences in syntax between the two languages and how to translate between
 
 .. note:: The code in these tutorials is formatted as you would see it in Maya's script editor; however, the majority of the documentation outside of these tutorials is formatted as you would see it in a :doc:`python interpreter <standalone>`, which is standard for python documentation.
 
-	Maya's script editor::
+	Maya's script editor:: 
 	
 		ls(type='camera')
 		# Result: [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')] # 
@@ -33,7 +33,7 @@ Importing PyMEL
 
 To get started we need to import the pymel module.::
 
-	from pymel import *
+	from pymel.core import *
 	
 This brings everything in pymel into the main namespace, meaning that you won't have to prefix the maya commands with the module name. 
 
@@ -42,8 +42,8 @@ This brings everything in pymel into the main namespace, meaning that you won't 
 	One problem with ``maya.cmds`` is that importing it into the root namespace (e.g. ``from maya.cmds import *``)
 	is dangerous because it will override several of python's more important built-in methods. PyMEL is designed
 	to be safe to import into the root namespace so that scripts can be written much more concisely. However, if you are
-	a python novice, you might want to keep pymel in its own namespace, because, unlike in MEL, in python you can "overwrite" functions
-	if you are not careful::
+	a python novice, you might want to keep pymel in its own namespace, because, **unlike in MEL, in python you can "overwrite" functions
+	if you are not careful**::
 	
 		from pymel import *
 		s = sphere() # create a nurbsSphere
@@ -81,11 +81,12 @@ Just for comparison, let's do the same thing using ``maya.cmds``::
 	cmds.ls(type='camera')
 	# Result: [u'frontShape', u'perspShape', u'sideShape', u'topShape']
 
-Notice the difference in the returned results.	In the second example using ``maya.cmds`` the ``ls`` function returns a list of strings. For those of us coming from a MEL background, a list of names as strings is what we would expect out of `ls`. PyMEL returns something much better -- instances of `PyNode` classes -- which are like strings on steroids. In addition to :term:`methods` for operating on node *names* as strings, these classes have methods for operating on the type of node or UI element that the string represents. 
+Notice the difference in the returned results.	In the second example using ``maya.cmds``, the `ls` function returns a list of strings. For those of us coming from a MEL background, a list of names as strings is what we would expect out of ``ls``. PyMEL returns something much better -- instances of `PyNode` classes -- which are like strings on steroids. In addition to :term:`methods` for operating on node *names* as strings, these classes have methods for operating on the type of node or UI element that the string represents. 
 
-.. note:: object oriented programming introduces the concept of classes or "types", and each occurrence of a type is called an instance. For example, a string is a *type* of object that represents a series of characters. An *instance* of a string could be the word 'hello'.  You'll probably find that the concepts behind object oriented programming are fairly familiar, because Maya itself is designed in a very object-oriented way. Maya has many types of nodes, each with its own attributes, properties, and capabilities. Each unique occurrence of one of these node types in your scene is like an instance of a class in python. 
+.. note:: 
+    object oriented programming introduces the concept of classes or "types", and each occurrence of a type is called an instance. For example, a string is a *type* of object that represents a series of characters. An *instance* of a string could be the word 'hello'.  You'll probably find that the concepts behind object oriented programming are fairly familiar, because Maya itself is designed in a very object-oriented way. Maya has many types of nodes, each with its own attributes, properties, and capabilities. Each unique occurrence of one of these node types in your scene is like an instance of a class in python. 
 
-The great thing about python is, unlike MEL, we're not stuck with the default data types. We can make new types!  That's a big part of what PyMEL adds: new Maya-specific data types to represent nodes, attributes, UI elements, vectors, matrices, etc.
+    The great thing about python is, unlike MEL, we're not stuck with the default data types. We can make new types!  That's a big part of what PyMEL adds: new Maya-specific data types to represent nodes, attributes, UI elements, vectors, matrices, etc.
 
 Let's use one of these camera objects to get some information::
 		
@@ -109,7 +110,7 @@ The code above is using PyMEL. This illustrates an important point: you can cont
 Example 2: Transitioning from Procedural Programming
 ---------------------------------------------------------
 
-Let's look at another simple example in which we find a camera, get it's transform node, then get the z component of its translation:: 
+Let's look at another simple procedural example in which we find a camera, get it's transform node, then get the z component of its translation:: 
 
 	cam = ls(type='camera')[0]
 	parent = listRelatives(cam, p=1)[0]
@@ -119,8 +120,9 @@ Let's look at another simple example in which we find a camera, get it's transfo
 	trans[2]
 	# Result: 28.0
 
+Now let's convert this to an object-oriented style.
 
-Instead of `listRelatives`, we can use use methods available on `DagNode`, such as :meth:`getParent <DagNode.getParent>`, :meth:`getShape <DagNode.getShape>`, :meth:`getChildren <DagNode.getChildren>`.  In this case, we'll use ``getParent``::
+Instead of `listRelatives`, we can use use methods available on ``cam``, which is a `nodetypes.Camera` class. ``Camera`` inherits from `nodetypes.DagNode`, so it has methods such as :meth:`getParent <nodetypes.DagNode.getParent>`, :meth:`getShape <nodetypes.DagNode.getShape>`, :meth:`getChildren <nodetypes.DagNode.getChildren>`.  In this case, we'll use ``getParent``::
 
 	cam = ls(type='camera')[0]
 	parent = cam.getParent() # <---
@@ -130,7 +132,7 @@ Instead of `listRelatives`, we can use use methods available on `DagNode`, such 
 	trans[2]
 	# Result: 28.0
 		
-Or, instead of `xform`, we can use the :meth:`getTranslation <Transform.getTranslation>` method of the `Transform` node::
+Next, instead of `xform`, we can use the :meth:`getTranslation <Transform.getTranslation>` method of the `Transform` node::
 
 	cam = ls(type='camera')[0]
 	parent = cam.getParent()

@@ -5,146 +5,42 @@ What's New in Version 0.9
 =======================================
 
 ----------------------
-API Hybridization
+New Package Layout
 ----------------------
 
-PyMEL 0.9 is a dramatic leap forward in the evolution of python in Maya.  The node and attribute classes have been rewritten from the ground up to use the python API as their foundation, increasing the speed and fidelity of PyMEL's object-oriented design.  
+one of the tenets of pymel's design is that it should add object-oriented programming while still being easy for a novice to use.  one way that pymel attempts to keeps things simple is by providing access to all  of its sub-modules with a single top-level import. in the years since this design was first implemented, we've come to realize that this has certain ugly drawbacks.  The primary disadvantage is efficiency: importing all sub-modules means that parts of pymel that may not be explicitly required by the task at hand are still initialized, which takes time.  This problem is particularly pronounced in batch mode, where importing pymel triggers maya's full startup sequence, which, though often very useful, can be a nuisance if one only requires pymel.api or pymel.util, which need no initialization.  Between the untangling of the automatic imports and several additional optimizations -- including compressed caches, and lazy loading of classes and docstrings -- we've reduced pymel's import time from 4 to 2 seconds.
 
-PyMEL harnesses the API to create a name-independent representation of your object.  
-This means that the annoying inconsistencies of string comparisons are over: no more worrying about short names versus long names, DAG paths, unique paths, instance paths...  it's all handled intelligently for you.  And what's more, if *anything* causes the name of your object to change it will automatically be reflected in your python object.
+Sub-Packages
+============
 
-Below, we make a camera, rename it, and then group and instance it, to demonstrate how the name changes are constantly reflected. Keep in mind
-that the changes could have just as easily been performed by the user interacting with objects through the GUI.
-
-    >>> cam, shape = camera()
-    >>> print cam
-    camera1
-    >>> cam.rename('renderCam')
-    Transform(u'renderCam')
-    >>> print cam
-    renderCam
-    >>> grp = group(cam)
-    >>> instance(grp)
-    [Transform(u'group2')]
-    >>> print cam
-    group1|renderCam
-    >>> cam.getInstances()
-    [Transform(u'group1|renderCam'), Transform(u'group2|renderCam')]
-
-Comparing attributes is just as easy.  
-
-    >>> # long and short names retrieve the same attribute
-    >>> cam.t == cam.translate    
-    True
-    >>> cam.tx == cam.translate.translateX
-    True
-
-Like MEL, PyMEL will also look up shape attributes from a transform:
-
-    >>> cam  # confirm that cam is a transform
-    Transform(u'group1|renderCam')
-    >>> cam.focalLength  # get the focalLength of the shape
-    Attribute(u'group1|renderCam|renderCamShape.focalLength')
-    >>> cam.focalLength == cam.getShape().focalLength
-    True
+pymel 1.0 retains the same overall package layout, which provides a very clear dependency chain, but the user must now explicitly import the sub-package they wish to use.  The sub-packages are:
     
-Beyond this new purity of behavior, PyMEL node classes now include hundreds of new methods derived from the API, but with the same intuitive and unified design as before.
-With PyMEL you get the benefits of API speed and versatility without the advanced learning curve.
+    - pymel.util: independent of maya
+    - pymel.api: OpenMaya classes; requires maya, but does not require initialization of maya.standalone
+    - pymel.internal: (formally 'mayahook') the machinery required to fuse maya.OpenMaya and maya.cmds into pymel.core
+    - pymel.core: the primary pymel sub-package; importing this module initializes maya.standalone in batch mode
 
---------------------
-BSD License
---------------------
+
+Upgrading
+=========
+
+to keep things simple and to provide an easy upgrade path, pymel 1.0 adds a new module, pymel.all, which imports all modules in exactly the same way that the primary ``pymel`` module does in 0.9.  pymel also includes a new tool, ``pymel.tools.upgradeScripts``, which will find and upgrade existing pymel scripts, converting all imports of ``pymel`` into imports of ``pymel.all``.  Lastly, pymel 0.9.3 will be forward compatible with 1.0, meaning it will also provide a ``pymel.all`` module so that you can write code that is interoperable between versions, which should further ease your transition.
+
+We don't take breaking backward compatibility lightly, but we feel strongly that these changes need to be made to ensure the long-term health of the package, and now is the best time to make them, before pymel's rapidly growing user-base gets any larger.
+
     
-PyMEL is released under the BSD license, which is as open as open source gets.  Your studio can freely use, contribute to, and 
-modify this module with no strings attached.
+gui
+    Layout class
+    streamlined, indented gui creation
+
+Anyone who has coded GUIs in Maya using both MEL and python will tell you that if there is one thing they miss about MEL (and only one thing), it is the use of indentation to organize layout hierarchy. this is not possible in python because tabs are a syntactical element, indicating code blocks. In this release, pymel harnesses python's ``with`` statement, which will not only allow indentation, but will also streamline GUI creation.
 
 
-------------------------------
-Improved Standalone Support
-------------------------------
+all component types supported
 
-Unlike the maya module, PyMEL behaves the same in a standalone interpreter as it does in an GUI session.
-When PyMEL detects that it is being imported in a standalone
-interpreter it performs these operations:
+maya package
+    safe to use pymel inside userSetup.py in python standalone
+    fixes bug where certain commands don't return results on first call
+    shared root logger with error and warning colorization
 
-    #. initializes maya.standalone
-    #. parses your Maya.env and adds variables to your environment
-    #. sources Autodesk's initialization MEL scripts
-    #. sources user preferences
-    #. sources userSetup.mel
-
-This will save you a lot of time and headache when using Maya in a standalone environment.
-
---------------------------------
-Tighter MEL Integration
---------------------------------
-
-Calling MEL from python is still an unfortunate necessity, so PyMEL makes it as easy as possible.  
-
-MEL Tracebacks and Line Numbers
-===============================
-
-In the new release, when a MEL script called from PyMEL raises an error, you will get the specific MEL error message in the python traceback, along with line numbers!
-    
-For example, here's a procedure "myScript" with a line that will result in an error:
-
-    >>> mel.eval( '''global proc myScript( string $stringArg, float $floatArray[] ){ 
-    ...     float $donuts = `ls -type camera`;}''')
-    
-When we call it, we can quickly determine the problem:
-
-    >>> mel.myScript( 'foo', [] )
-    Traceback (most recent call last):
-        ...
-    MelConversionError: Error occurred during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
-
-Global Variables Dictionary
-===========================
-
-Also, getting and setting MEL global variables is accomplished via a special dictionary-like object:
-
-    >>> melGlobals['$gMainFileMenu'] #doctest: +SKIP
-    'mainFileMenu'
-    >>> melGlobals['$gGridDisplayGridLinesDefault'] = 2   #doctest: +SKIP 
-    
-    
---------------------------------
-Easily Compare Maya Versions
---------------------------------
-
-    >>> if Version.current > Version.v2008:
-    ...     print "The current version is later than Maya 2008"
-    The current version is later than Maya 2008
-       
---------------------------------
-Other Improvements
---------------------------------
-
-    - New and improved math classes
-    - Expanded documentation
-    - Loads of useful utilities
-    - Commands and classes created by plugins are now added to pymel namespace on load and removed on unload
-    - Name-independent dictionary hashing for nodes in maya 2009: see section :ref:`pynodes_in_dicts`
-    - Added `DagNode.addChild` as well an addChild operator  ``|`` for DAG objects: `DagNode.__or__`
-    - The `Version` class simplifies comparison of Maya versions
-    - New mesh component classes `MeshVertex`, `MeshEdge`, and `MeshFace` add many new methods, as well as extended slice syntax
- 
-   
----------------------------------------
-Non-Backward Compatible Changes
----------------------------------------
-    - Attribute disconnection operator has changed from ``<>`` to ``//``
-        ``<>`` operator corresponds to ``__ne__`` method, whose other operator is ``!=`` and we need that to mean 'not equal'.
-    - Node classes no longer inherit from unicode: see :ref:`pynodes_not_strings`
-        This allows node classes to reflect name changes such as parenting or renaming, a key aspect of the API integration
-    - Instantiation of non-existent PyNode objects (nodes and attributes) now results in an exception: see :doc:`non_existent_objs`
-        Also a side-effect of the API integration.  Prevents mistakes and produces more pythonic code with use of new exception classes
-    - ``_BaseObj`` has been replaced with `PyNode` class, which operates like the old PyNode function
-        Provides more intuitive relationship between ``PyNode()`` and node classes
-    - removed method-chaining between shapes and their history
-        Chaining transforms to shapes is used throughout Maya, but the additional chaining of shapes to their history can produce
-        unexpected results that are difficult to troubleshoot
-    - redesigned `ObjectSet` class
-    - completely rewrote `Vector` and `Matrix` classes
-    - data classes like `Vector` and `Matrix` are now found in the `datatypes <pymel.core.datatypes>` namespace to avoid conflicts with node types
 
