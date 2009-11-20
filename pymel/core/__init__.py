@@ -1,16 +1,16 @@
 "The primary module for maya commands and node classes"
 
-#import pymel.mayahook as mayahook
+#import pymel.internal as internal
 
 import sys, logging
 import pymel.versions as _versions
-import pymel.mayahook as mayahook
+import pymel.internal as internal
 
 # will check for the presence of an initilized Maya / launch it
-mayahook.mayaInit() 
+internal.mayaInit() 
 
 
-import pymel.mayahook.factories as _factories
+import pymel.internal.factories as _factories
 
 from general import *
 from context import *
@@ -35,7 +35,7 @@ import runtime
 import maya.cmds as cmds
 
 # initialize MEL 
-mayahook.finalize()
+internal.finalize()
 
 import maya.cmds as cmds
 
@@ -59,7 +59,7 @@ def _pluginLoaded( *args ):
     
     #print type(array)
     #pluginPath, pluginName = array
-    import pymel.mayahook.pmcmds as pmcmds
+    import pymel.internal.pmcmds as pmcmds
     _logger.info("Plugin loaded: %s", pluginName)
     
     _pluginData[pluginName] = {}

@@ -29,5 +29,5 @@ __authors__ = ['Chad Dombrova', 'Olivier Renouard', 'Ofer Koren', 'Paul Molodowi
 import sys
 assert sys.version_info > (2,5), "pymel versions 1.0 is compatible with Maya2008/python2.5 or later"
 
-#import mayahook.plogging as plogging
+#import internal.plogging as plogging
 

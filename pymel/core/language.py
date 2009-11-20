@@ -7,8 +7,8 @@ import system
 import pymel.util as util
 import maya.mel as _mm
 import maya.cmds as _mc
-import pymel.mayahook.pmcmds as cmds
-import pymel.mayahook.factories as _factories
+import pymel.internal.pmcmds as cmds
+import pymel.internal.factories as _factories
 import pymel.api as _api
 import datatypes
 

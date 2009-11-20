@@ -14,7 +14,7 @@ It controls:
  
 import inspect, re, os
 from pymel.core import *
-import pymel.mayahook.factories as factories
+import pymel.internal.factories as factories
 import logging
 logger = logging.getLogger(__name__)
 

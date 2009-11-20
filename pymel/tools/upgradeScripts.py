@@ -30,8 +30,8 @@ objects = [
              re.compile('([a-zA-Z_][a-zA-Z0-9_.]+[.])?(Version[.])([a-zA-Z_][a-zA-Z0-9_]*)'), 
                        ( 'pymel',
                          'pymel.version',
-                         'pymel.mayahook', 
-                         'pymel.mayahook.version' ),
+                         'pymel.internal', 
+                         'pymel.internal.version' ),
             'versions',
             { 'current' : 'current()',
              'v85sp1' : 'v85_SP1',
@@ -116,15 +116,15 @@ def upgradeFile(filepath, test=True):
             if mode == 'import':
                 if details:
                     pymel_namespaces[pymel_module].add(details)     # pymel.version -> version
-                    # import pymel.mayahook as mayahook
-                    # 'mayahook' -> 'pymel.mayahook'
+                    # import pymel.internal as internal
+                    # 'internal' -> 'pymel.internal'
                     rev_pymel_namespaces[details].add(pymel_module) 
                 else:
                     # 'import pymel'
                     pymel_namespaces[pymel_module].add(pymel_module)
                     
-                    # import pymel.mayahook
-                    # 'pymel.mayahook' -> 'pymel.mayahook'
+                    # import pymel.internal
+                    # 'pymel.internal' -> 'pymel.internal'
                     rev_pymel_namespaces[pymel_module].add(pymel_module)
             
             elif mode == 'from':
@@ -136,8 +136,8 @@ def upgradeFile(filepath, test=True):
                         module = pymel_module
                     pymel_namespaces[pymel_module].add(detail)
                     
-                    # from pymel import mayahook
-                    # 'mayahook' -> 'pymel.mayahook'
+                    # from pymel import internal
+                    # 'internal' -> 'pymel.internal'
                     
                     # from pymel import *
                     # '' -> 'pymel'

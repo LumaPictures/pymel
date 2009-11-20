@@ -6,8 +6,8 @@ import sys, inspect, time, os.path
 from pymel.api import *
 from pymel.util import expandArgs
 import pymel.util as _util
-import pymel.mayahook.mayautils as _mayautils
-import pymel.mayahook.plogging as _plogging
+import pymel.internal.mayautils as _mayautils
+import pymel.internal.plogging as _plogging
 
 _logger = _plogging.getLogger(__name__)
 
@@ -367,7 +367,7 @@ class ApiCache(object):
     #    print "Updated Maya types list in %.2f sec" % elapsed
     
     def _buildApiClassInfo(self):
-        from pymel.mayahook.parsers import ApiDocParser
+        from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
 #        try:
         parser = ApiDocParser(_thisModule)

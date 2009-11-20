@@ -632,7 +632,7 @@ def executeDeferred(func):
         def delayedStartup():
            print "executing a command"
            pymel.about(apiVersion=1)
-        pymel.mayahook.executeDeferred( delayedStartup )
+        pymel.internal.executeDeferred( delayedStartup )
        
     Takes a single parameter which should be a callable function.
     

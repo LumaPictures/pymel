@@ -179,7 +179,7 @@ def main():
               author='Chad Dombrova',
               author_email='chadrik@gmail.com',
               url='http://code.google.com/p/pymel/',
-              packages=['pymel','pymel.api', 'pymel.core', 'pymel.mayahook', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util' ],
+              packages=['pymel','pymel.api', 'pymel.core', 'pymel.internal', 'pymel.tools', 'pymel.tools.mel2py', 'pymel.util' ],
               entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
               package_data={'pymel': ['*.bin', '*.conf' ] },
               install_requires=['BeautifulSoup >3.0', 'ply==3.3', 'ipython'],

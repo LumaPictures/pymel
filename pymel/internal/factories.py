@@ -4,8 +4,8 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 import re, types, os, inspect, sys, textwrap
 from operator import itemgetter
 import pymel.util as util
-import pymel.mayahook.mayautils as mayautils
-import pymel.mayahook.plogging as plogging
+import pymel.internal.mayautils as mayautils
+import pymel.internal.plogging as plogging
 import pymel.versions as versions
 import pymel.api as api
 import cmdcache

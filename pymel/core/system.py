@@ -35,13 +35,13 @@ the results::
 """
 
 import sys, os
-import pymel.mayahook.pmcmds as cmds
+import pymel.internal.pmcmds as cmds
 #import maya.cmds as cmds
 import maya.OpenMaya as _OpenMaya
 from pymel.util.decoration import decorator
 import pymel.util as _util
-import pymel.mayahook.factories as _factories
-import pymel.mayahook as mayahook
+import pymel.internal.factories as _factories
+import pymel.internal as internal
 from pymel.util.scanf import fscanf
 import logging
 _logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ _logger = logging.getLogger(__name__)
 
 try:
     # attempt to import a custom path class to use as the base for pymel's Path class
-    basePathName = mayahook.pymel_options['path_class']
+    basePathName = internal.pymel_options['path_class']
     buf = basePathName.split('.')
     moduleName = '.'.join(buf[:-1])
     className = buf[-1]
@@ -820,7 +820,7 @@ class ReferenceCache(object):
         # there's no guarantee that:
         #  the namespace has not changed since the last cache refresh
         #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
-        if not cls.callbacksEnabled or namespace: # or ( refnode and mayahook.Version.current < mayahook.Version.v2009 ):
+        if not cls.callbacksEnabled or namespace: # or ( refnode and internal.Version.current < internal.Version.v2009 ):
             # force refresh (only need to try once)
             attempts=1
             cls.refresh()
@@ -976,7 +976,7 @@ class FileReference(object):
     @property
     def path(self):
         # TODO: check in cache to see if this has changed
-#        if not ReferenceCache.callbacksEnabled or mayahook.Version.current < mayahook.Version.v2009:
+#        if not ReferenceCache.callbacksEnabled or internal.Version.current < internal.Version.v2009:
 #            ReferenceCache.refresh()
 #            
 #        return ReferenceCache[ self.refNode ]._file

@@ -172,7 +172,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
         self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([11.0, 22.0, 33.0]) )
         
-        if mayahook.Version.current > mayahook.Version.v85sp1:
+        if internal.Version.current > internal.Version.v85sp1:
             undo()
             self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
 
@@ -185,7 +185,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
         self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
         
-#        if mayahook.Version.current > mayahook.Version.v85sp1:
+#        if internal.Version.current > internal.Version.v85sp1:
 #            undo()
 #            self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
 
@@ -197,7 +197,7 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
         self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 110.0, 0.0])) )
         
-        if mayahook.Version.current > mayahook.Version.v85sp1:
+        if internal.Version.current > internal.Version.v85sp1:
             undo()
             self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
         

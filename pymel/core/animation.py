@@ -1,10 +1,10 @@
 """functions related to animation"""
 
 import pymel.util as _util
-import pymel.mayahook.factories as _factories
+import pymel.internal.factories as _factories
 import general as _general
 
-import pymel.mayahook.pmcmds as cmds
+import pymel.internal.pmcmds as cmds
 
 def currentTime( *args, **kwargs ):
     """

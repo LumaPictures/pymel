@@ -11,7 +11,7 @@ import pymel.util as util
 import pymel.api as _api
 from pymel.util.arrays import *
 from pymel.util.arrays import _toCompOrArrayInstance
-import pymel.mayahook.factories as _factories
+import pymel.internal.factories as _factories
 
 # in python2.6/maya2010 'as' becomes a keyword. 
 # TODO:  add a version check: 

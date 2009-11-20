@@ -9,7 +9,7 @@ except ImportError:
 from pymel.util import unescape
 import pymel
 import pymel.util as util
-import pymel.mayahook.factories as factories
+import pymel.internal.factories as factories
 
 tokens = mellex.tokens
 def p_translation_unit(t):

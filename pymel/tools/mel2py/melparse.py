@@ -20,7 +20,7 @@ except ImportError:
 from pymel.util import unescape
 import pymel
 import pymel.util as util
-import pymel.mayahook.factories as factories
+import pymel.internal.factories as factories
 import melscan
 
 try:
@@ -185,7 +185,7 @@ proc_remap = {
         
         # TODO: check that new version of system works...
         # 'system'                : ( 'string' ,   lambda x, t: ( 'commands.getoutput( %s )'     % (x[0]), t.lexer.imported_modules.add('commands') )[0] ),  # commands.getoutput doesn't work in windows    
-        'system'                : ( 'string' ,   lambda x, t: '%smayahook.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),    
+        'system'                : ( 'string' ,   lambda x, t: '%sinternal.shellOutput(%s, convertNewlines=False, stripTrailingNewline=False)'     % (t.lexer.pymel_namespace,x[0]) ),    
         # TODO: create our own version of exec, as the return value of popen2 is NOT the same as exec
         'exec'                    : ( None ,   lambda x, t: ( 'os.popen2( %s )'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),    
         'getenv'                : ( 'string', lambda x, t: ( 'os.environ[ %s ]'     % (x[0]), t.lexer.imported_modules.add('os') )[0] ),    

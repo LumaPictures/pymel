@@ -12,14 +12,14 @@ import sys, os, re
 from getpass import getuser
 from socket import gethostname
 
-import pymel.mayahook.pmcmds as cmds
+import pymel.internal.pmcmds as cmds
 #import maya.cmds as cmds
 import maya.mel as mm
 
 import inspect, timeit, time
 
 import pymel.util as util
-import pymel.mayahook.factories as _factories
+import pymel.internal.factories as _factories
 
 import pymel.api as api
 import datatypes
@@ -27,7 +27,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 # to make sure Maya is up
-import pymel.mayahook as mayahook
+import pymel.internal as internal
 
 from maya.cmds import about as _about
 
@@ -1387,7 +1387,7 @@ class PyNode(util.ProxyUnicode):
 #                                            return argObj
                             
                             # non-existent objects
-                            if mayahook.pymel_options.get( '0_7_compatibility_mode', False):
+                            if internal.pymel_options.get( '0_7_compatibility_mode', False):
                                 import other
                                 
                                 if '.' in name:
@@ -1537,7 +1537,7 @@ class PyNode(util.ProxyUnicode):
                           
     def __melobject__(self):
         """Special method for returning a mel-friendly representation. """
-        #if mayahook.Version.current >= mayahook.Version.v2009:
+        #if internal.Version.current >= internal.Version.v2009:
         #    raise AttributeError
         return self.name()
     

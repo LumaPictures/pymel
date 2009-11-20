@@ -1,7 +1,7 @@
-import pymel.mayahook.pmcmds as cmds
+import pymel.internal.pmcmds as cmds
 import pymel.util as _util
-import pymel.mayahook.factories as _factories
-import pymel.mayahook.plogging as plogging
+import pymel.internal.factories as _factories
+import pymel.internal.plogging as plogging
 _logger = plogging.getLogger(__name__)
 
 def _resolveUIFunc(name):

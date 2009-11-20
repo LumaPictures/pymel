@@ -1,10 +1,10 @@
 """Functions related to rendering"""
 
 import pymel.util as _util
-import pymel.mayahook.factories as _factories
+import pymel.internal.factories as _factories
 import general as _general
 import language as _language
-import pymel.mayahook.pmcmds as cmds
+import pymel.internal.pmcmds as cmds
 
 
 

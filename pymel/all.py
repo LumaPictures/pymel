@@ -1,11 +1,11 @@
 import sys
 
-import mayahook
-import mayahook.plogging as plogging
-import mayahook.factories as factories
+import internal
+import internal.plogging as plogging
+import internal.factories as factories
 
 #logger = plogging.getplogging.pymelLogger(__name__)
-plogging.pymelLogger.debug( 'imported mayahook' )
+plogging.pymelLogger.debug( 'imported internal' )
 
 import api
 plogging.pymelLogger.debug( 'imported api' )
@@ -18,7 +18,7 @@ from util.arrays import *
 
 import core.datatypes as datatypes
 
-from pymel.mayahook.version import Version
+from pymel.internal.version import Version
 
 from core import nodetypes
 from core.nodetypes import *

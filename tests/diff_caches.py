@@ -12,23 +12,23 @@ def diff_cache( cacheName, useVersion ):
     import pymel.all as pymel
     
     if useVersion:
-        cacheName += pymel.mayahook.getMayaVersion(extension=False)
+        cacheName += pymel.internal.getMayaVersion(extension=False)
     # do a comparison of current caches with those from last release
     
     if not os.path.exists( cacheName + '_old.bin' ):
         last_release = commands.getoutput( 'svn ls https://pymel.googlecode.com/svn/tags' ).split('\n')[-1].strip('/')
-        #maya_ver = pymel.mayahook.getMayaVersion()
+        #maya_ver = pymel.internal.getMayaVersion()
         print "checking out %s cache from svn" % last_release
         print commands.getoutput( 'svn export https://pymel.googlecode.com/svn/tags/%s/pymel/%s.bin %s_old.bin' % (last_release, cacheName,cacheName) )
     
     print 'writing ' + cacheName + '.txt'
     f = file( cacheName + '.txt', 'w' )
-    pprint.pprint( pymel.mayahook.loadCache( cacheName, '', useVersion=False ), f )
+    pprint.pprint( pymel.internal.loadCache( cacheName, '', useVersion=False ), f )
     f.close()
 
     print 'writing ' + cacheName + '_old.txt'
     f = file( cacheName + '_old.txt', 'w' )
-    pprint.pprint( pymel.mayahook.loadCache( cacheName + '_old', '', useVersion=False ), f )
+    pprint.pprint( pymel.internal.loadCache( cacheName + '_old', '', useVersion=False ), f )
     f.close()
     
     print "diffing cache", cacheName

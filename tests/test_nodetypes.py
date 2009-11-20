@@ -4,8 +4,8 @@ import re
 
 from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
-from pymel.mayahook.factories import apiEnumsToPyComponents
-import pymel.mayahook as mayahook
+from pymel.internal.factories import apiEnumsToPyComponents
+import pymel.internal as internal
 from testingutils import TestCaseExtended, setCompare
 
 
@@ -1518,14 +1518,14 @@ class testCase_0_7_compatabilityMode(unittest.TestCase):
     class NOT_SET(object): pass
     
     def setUp(self):
-        self.stored_0_7_compatability_mode = mayahook.pymel_options.get( '0_7_compatibility_mode', False)
-        mayahook.pymel_options['0_7_compatibility_mode'] = True
+        self.stored_0_7_compatability_mode = internal.pymel_options.get( '0_7_compatibility_mode', False)
+        internal.pymel_options['0_7_compatibility_mode'] = True
         
     def tearDown(self):
         if self.stored_0_7_compatability_mode == NOT_SET:
-            del mayahook.pymel_options['0_7_compatibility_mode']
+            del internal.pymel_options['0_7_compatibility_mode']
         else:
-            mayahook.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
+            internal.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
             
     def test_nonexistantPyNode(self):
         # Will raise an error if not in 0_7_compatability_mode

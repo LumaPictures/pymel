@@ -189,8 +189,8 @@ except ImportError:
     from ply.lex import LexError
 
 import pymel.util as util
-import pymel.mayahook as mayahook
-import pymel.mayahook.factories as _factories
+import pymel.internal as internal
+import pymel.internal.factories as _factories
 import pymel
 import os
 

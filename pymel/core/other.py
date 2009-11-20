@@ -4,8 +4,8 @@ as well as the name parsing classes `DependNodeName`, `DagNodeName`, and `Attrib
 """
 
 import re
-import pymel.mayahook.pmcmds as cmds
-import pymel.mayahook.factories as _factories
+import pymel.internal.pmcmds as cmds
+import pymel.internal.factories as _factories
 _factories.createFunctions( __name__ )
 
 
