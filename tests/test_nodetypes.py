@@ -10,7 +10,7 @@ import pymel.mayahook as mayahook
 from testingutils import TestCaseExtended, setCompare
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -939,7 +939,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                _failIfWillMakeMayaCrash(pymelObj)
+                self._failIfWillMakeMayaCrash(compString)
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -947,7 +947,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "selecting...",
                 try:
-                    _failIfWillMakeMayaCrash(pymelObj)
+                    self._failIfWillMakeMayaCrash(pymelObj)
                     select(pymelObj, r=1)
                 except Exception:
 #                        import traceback
@@ -976,7 +976,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                _failIfWillMakeMayaCrash(pymelObj)
+                self._failIfWillMakeMayaCrash(compString)
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -984,7 +984,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "getting repr...",
                 try:
-                    _failIfWillMakeMayaCrash(pymelObj)
+                    self._failIfWillMakeMayaCrash(pymelObj)
                     str = repr(pymelObj)
                 except Exception:
                     failedRepr.append(compString)
@@ -1014,7 +1014,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                _failIfWillMakeMayaCrash(pymelObj)
+                self._failIfWillMakeMayaCrash(compString)
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -1026,7 +1026,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "iterating...",
                 try:
-                    _failIfWillMakeMayaCrash(pymelObj)
+                    self._failIfWillMakeMayaCrash(pymelObj)
                     iteration = [x for x in pymelObj]
                     iterationString = repr(iteration)
                 except Exception:
@@ -1104,7 +1104,7 @@ class testCase_components(unittest.TestCase):
     # in batch, just fail x.sme[*][*]...
     
     # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
-    def _failIfWillMakeMayaCrash(comp):
+    def _failIfWillMakeMayaCrash(self, comp):
         willCrash = False
         if isinstance(comp, basestring):
             if ((comp.startswith('SubdEdge') or
@@ -1113,6 +1113,10 @@ class testCase_components(unittest.TestCase):
                 and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
                                                 api.MGlobal.kLibraryApp)):
                 willCrash = True
+            elif platform.system() == 'Darwin':
+                crashRe = re.compile(r".sm[pef]('\))?\[[0-9]+\]$")
+                if crashRe.search(comp):
+                    willCrash = True
         elif isinstance(comp, Component):
             # Check if we're in batch - in gui, we processed idle events after subd
             # creation, which for some reason, prevents the crash
