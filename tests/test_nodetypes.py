@@ -1,6 +1,7 @@
 import unittest
 import itertools
 import re
+import platform
 
 from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
@@ -357,9 +358,6 @@ def makeComponentCreationTests(evalStringCreator):
             for evalString in evalStrings:
                 if VERBOSE:
                     print "trying to create:", evalString, "...",
-                # Currently, a bug with adding '___.sme[*]' to any
-                # MSelectionList - causes may to crash. thus, for now, just
-                # auto fail tests making .sme[*]
                 try:
                     eval(evalString)
                 except Exception:
@@ -941,13 +939,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                if ((compString.startswith('SubdEdge') or
-                     compString.endswith("comp(u'sme')") or
-                     compString.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    print "Auto-failing %r to avoid crash..." % compString
-                    raise Exception('selecting .sme[*][*] causes a crash...')   
+                _failIfWillMakeMayaCrash(pymelObj)
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -955,19 +947,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "selecting...",
                 try:
-                    # There's a bug - if you add x.sme[*][*] to an
-                    # MSelectionList immediately
-                    # after creating the component, without any idle events
-                    # run in between, Maya crashes...
-                    # In gui mode, we process idle events after creation,
-                    # but we can't do that in batch... so if we're
-                    # in batch, just fail x.sme[*][*]...
-                    if (isinstance(pymelObj, SubdEdge) and
-                        pymelObj.currentDimension() == 0 and
-                        api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                        print "Auto-failing %r to avoid crash..." % compString
-                        raise Exception('selecting .sme[*][*] causes a crash...')
+                    _failIfWillMakeMayaCrash(pymelObj)
                     select(pymelObj, r=1)
                 except Exception:
 #                        import traceback
@@ -996,13 +976,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                if ((compString.startswith('SubdEdge') or
-                     compString.endswith("comp(u'sme')") or
-                     compString.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    print "Auto-failing %r to avoid crash..." % compString
-                    raise Exception('selecting .sme[*][*] causes a crash...')                
+                _failIfWillMakeMayaCrash(pymelObj)
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -1010,19 +984,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "getting repr...",
                 try:
-                    # There's a bug - if you add x.sme[*][*] to an
-                    # MSelectionList immediately
-                    # after creating the component, without any idle events
-                    # run in between, Maya crashes...
-                    # In gui mode, we process idle events after creation,
-                    # but we can't do that in batch... so if we're
-                    # in batch, just fail x.sme[*][*]...
-                    if (isinstance(pymelObj, SubdEdge) and
-                        pymelObj.currentDimension() == 0 and
-                        api.MGlobal.mayaState in (api.MGlobal.kBatch,
-                                                  api.MGlobal.kLibraryApp)):
-                        print "Auto-failing %r to avoid crash..." % compString
-                        raise Exception('selecting .sme[*][*] causes a crash...')                    
+                    _failIfWillMakeMayaCrash(pymelObj)
                     str = repr(pymelObj)
                 except Exception:
                     failedRepr.append(compString)
@@ -1052,13 +1014,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                if ((compString.startswith('SubdEdge') or
-                     compString.endswith("comp(u'sme')") or
-                     compString.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    print "Auto-failing %r to avoid crash..." % compString
-                    raise Exception('selecting .sme[*][*] causes a crash...')   
+                _failIfWillMakeMayaCrash(pymelObj)
                 pymelObj = eval(compString)
             except Exception:
                 failedCreation.append(compString)
@@ -1070,6 +1026,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "iterating...",
                 try:
+                    _failIfWillMakeMayaCrash(pymelObj)
                     iteration = [x for x in pymelObj]
                     iterationString = repr(iteration)
                 except Exception:
@@ -1137,6 +1094,42 @@ class testCase_components(unittest.TestCase):
             if failedComparisons:
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
+            
+    # There's a bug - if you add x.sme[*][*] to an
+    # MSelectionList immediately
+    # after creating the component, without any idle events
+    # run in between, Maya crashes...
+    # In gui mode, we process idle events after creation,
+    # but we can't do that in batch... so if we're
+    # in batch, just fail x.sme[*][*]...
+    
+    # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
+    def _failIfWillMakeMayaCrash(comp):
+        willCrash = False
+        if isinstance(comp, basestring):
+            if ((comp.startswith('SubdEdge') or
+                 comp.endswith("comp(u'sme')") or
+                 comp.endswith('.sme'))
+                and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                api.MGlobal.kLibraryApp)):
+                willCrash = True
+        elif isinstance(comp, Component):
+            # Check if we're in batch - in gui, we processed idle events after subd
+            # creation, which for some reason, prevents the crash
+            if api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                          api.MGlobal.kLibraryApp):
+                # In windows + linux, just selections of type .sme[*][*] - on OSX,
+                # it seems any .sm*[256][*] will crash it...
+                if platform.system() == 'Darwin':
+                    if (isinstance(comp, (SubdEdge, SubdVertex, SubdFace)) and
+                        comp.currentDimension() in (0, 1)):
+                        willCrash = True
+                elif (isinstance(comp, SubdEdge) and
+                      comp.currentDimension() == 0):
+                    willCrash = True
+        if willCrash:
+            print "Auto-failing %r to avoid crash..." % comp
+            raise Exception('selecting .sme[*][*] causes a crash...')
             
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
