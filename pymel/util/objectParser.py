@@ -90,8 +90,6 @@ class Parsed(ProxyUni):
         self._name = getParts( self, newname )
         return self._name
     
-    #__name__ = compileName
-    
     @classmethod
     def getParserClass(cls, parsername ):
         pass
