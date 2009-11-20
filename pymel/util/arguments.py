@@ -436,7 +436,7 @@ def getCascadingDictItem( dict, keys, default={} ):
     
     currentDict = dict
     for key in keys[:-1]:
-        if key not in currentDict:
+        if isMapping(currentDict) and key not in currentDict:
             currentDict[key] = {}
         currentDict = currentDict[key]
     try:
