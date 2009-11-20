@@ -3391,7 +3391,7 @@ class DependNode( general.PyNode ):
             
                 # Option 2: nameparse.
                 # this avoids calling self.name(), which can be slow
-                import pymel._util.nameparse as nameparse
+                import pymel.util.nameparse as nameparse
                 nameTokens = nameparse.getBasicPartList( 'dummy.' + attr )
                 result = self.__apiobject__()
                 for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
