@@ -357,7 +357,7 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
                      '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
                      '__module__', '__init__', '__doc__']
 def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
-                remove=(), sourceIsImmutable=False ):
+                remove=(), makeDefaultInit = False, sourceIsImmutable=True ):
     """
     This function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
@@ -382,6 +382,11 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
         An iterable of name of attributes which should NOT be wrapped.
         Note that certain attributes will never be wrapped - the list of
         such items is found in the NOT_PROXY_WRAPPED constant.
+    makeDefaultInit : `bool`
+        If True and dataAttrName is True, then a 'default' __init__ function
+        will be created, which creates an instance of the wrapped class, and
+        assigns it to the dataAttr. Defaults to False
+        If dataAttrName is False, does nothing
     sourceIsImmutable : `bool`
         This parameter is included only for backwards compatibility - it is
         ignored.
@@ -440,7 +445,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
         # if __init__ is in remove, or dataFuncName given,
         # user must supply own __init__, and set the dataAttr/dataFunc
         # themselves
-        if '__init__' not in remove and dataAttrName:
+        if makeDefaultInit and dataAttrName:
             def __init__(self, *args, **kwargs):
                 # We may wrap __setattr__, so don't use 'our' __setattr__!
                 object.__setattr__(self, dataAttrName, cls(*args, **kwargs))

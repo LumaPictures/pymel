@@ -18,6 +18,12 @@ def getFundamentalTypes():
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
 
+class CrashError(Exception):
+    """
+    Raised to signal that doing something would have caused maya to crash.
+    """
+    pass
+
 EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
  
 class testCase_attribs(unittest.TestCase):
@@ -649,6 +655,49 @@ class testCase_components(unittest.TestCase):
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')
+    
+    @classmethod
+    def _compStrSplit(cls, compStr):
+        """
+        Returns a tuple (nodeName, compName, indices).
+        
+        Indices will itself be a list.
+        
+        Example:
+        >>> testCase_component._compStrSplit('mySurf.uv[4][*]')
+        ('mySurf', 'uv', ['4', '*'])
+        """
+        if '.' not in compStr:
+            raise ValueError("compStr must be in 'nodeName.comp' form")
+        nodeName, rest = compStr.split('.', 1)
+        if not rest:
+            compName = ''
+            indices = []
+        else:
+            indices = cls._indicesRe.findall(rest)
+            if not indices:
+                compName = rest
+            else:
+                compName = rest.split('[', 1)[0]
+        return nodeName, compName, indices
+    
+    @classmethod
+    def _compStrJoin(cls, nodeName, compName, indices):
+        """
+        Inverse of _compStrSplit
+        
+        Given three items, nodeName, compName, indices, will
+        return a component string representing that comp.
+        
+        Example:
+        >>> testCase_component._joinCompStr('mySurf', 'uv', ['4', '*'])
+        'mySurf.uv[4][*]'
+        """
+        indicesStr = ''
+        for indice in indices:
+            indicesStr += '[%s]' % indice
+        return '%s.%s%s' % (nodeName, compName, indicesStr)
+        
     def _compStringsEqual(self, comp1, comp2, compData):
         # We assume that these comps have a '.' in them,
         # and that they've already been fed through
@@ -657,18 +706,15 @@ class testCase_components(unittest.TestCase):
         if comp1==comp2:
             return True
         
-        # only split the first - we may have a floating
-        # point indice with a '.'!
-        node1, comp1 = comp1.split('.', 1)
-        node2, comp2 = comp2.split('.', 1)
+        node1, comp1Name, indices1 = self._compStrSplit(comp1)
+        node2, comp2Name, indices2 = self._compStrSplit(comp2)
         
         if node1 != node2:
             return False
 
-        if '[' not in comp1 or '[' not in comp2:
+        if not (comp1Name and comp2Name and
+                indices1 and indices2):
             return False
-        comp1Name = comp1.split('[', 1)[0]
-        comp2Name = comp2.split('[', 1)[0]
         
         if comp1Name != comp2Name:
             # If the component names are not equal,
@@ -688,9 +734,6 @@ class testCase_components(unittest.TestCase):
             # the range information is hard to get
             return False
                 
-        indices1 = self._indicesRe.findall(comp1)
-        indices2 = self._indicesRe.findall(comp2)
-        
         # If one of them is v, we need to
         # flip the indices...
         if comp1Name == 'v':
@@ -776,14 +819,13 @@ class testCase_components(unittest.TestCase):
                     # Just worry about strings - the PyNodes
                     # are supposed to handle this bug themselves!
                     if isinstance(comp, basestring):
-                        nodePart, compPart = comp.split('.', 1)
-                        if compPart.startswith('uv['):
-                            compPart = 'u[' + compPart[len('uv['):]
-                        if compPart[:2] in ('u[', 'v['):
-                            indices = self._indicesRe.findall(compPart)
+                        nodePart, compName, indices = self._compStrSplit(comp)
+                        if compName == 'uv':
+                            compPart = 'u'
+                        if compName in ('u', 'v'):
                             if len(indices) < 2:
-                                compPart += '[*]'
-                        comp = '.'.join( (nodePart, compPart) )
+                                indices.append('*')
+                        comp = self._compStrJoin(nodePart, compName, indices)
                     compIterable[i] = comp
                     
         comp1, comp2 = bothComps
@@ -1105,38 +1147,44 @@ class testCase_components(unittest.TestCase):
     
     # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
     def _failIfWillMakeMayaCrash(self, comp):
-        willCrash = False
-        if isinstance(comp, basestring):
-            if (platform.system() == 'Darwin' or
-                api.MGlobal.mayaState in (api.MGlobal.kBatch,
-                                          api.MGlobal.kLibraryApp)):
-                if ((comp.startswith('SubdEdge') or
-                     comp.endswith("comp(u'sme')") or
-                     comp.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    willCrash = True
-                elif platform.system() == 'Darwin':
-                    crashRe = re.compile(r".sm[pef]('\))?\[[0-9]+\]$")
-                    if crashRe.search(comp):
-                        willCrash = True
-        elif isinstance(comp, Component):
-            # Check if we're in batch - in gui, we processed idle events after subd
-            # creation, which for some reason, prevents the crash
-            if api.MGlobal.mayaState in (api.MGlobal.kBatch,
-                                          api.MGlobal.kLibraryApp):
-                # In windows + linux, just selections of type .sme[*][*] - on OSX,
-                # it seems any .sm*[256][*] will crash it...
-                if platform.system() == 'Darwin':
-                    if (isinstance(comp, (SubdEdge, SubdVertex, SubdFace)) and
-                        comp.currentDimension() in (0, 1)):
-                        willCrash = True
-                elif (isinstance(comp, SubdEdge) and
-                      comp.currentDimension() == 0):
-                    willCrash = True
-        if willCrash:
+        try:
+            if isinstance(comp, basestring):
+                if versions.current() >= versions.v2011:
+                    # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
+                    # meaning any surf.u/v/uv.__getindex__ will crash
+                    nodeName, compName, indices = self._compStrSplit(comp)
+                    if compName in ('u', 'v', 'uv', "comp('u')", "comp('v')", "comp('uv')"):
+                        raise CrashError
+                if (platform.system() == 'Darwin' or
+                    api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                              api.MGlobal.kLibraryApp)):
+                    if ((comp.startswith('SubdEdge') or
+                         comp.endswith("comp(u'sme')") or
+                         comp.endswith('.sme'))
+                        and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                        api.MGlobal.kLibraryApp)):
+                        raise CrashError
+                    elif platform.system() == 'Darwin':
+                        crashRe = re.compile(r".sm[pef]('\))?\[[0-9]+\]$")
+                        if crashRe.search(comp):
+                            raise CrashError
+            elif isinstance(comp, Component):
+                # Check if we're in batch - in gui, we processed idle events after subd
+                # creation, which for some reason, prevents the crash
+                if api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                              api.MGlobal.kLibraryApp):
+                    # In windows + linux, just selections of type .sme[*][*] - on OSX,
+                    # it seems any .sm*[256][*] will crash it...
+                    if platform.system() == 'Darwin':
+                        if (isinstance(comp, (SubdEdge, SubdVertex, SubdFace)) and
+                            comp.currentDimension() in (0, 1)):
+                            raise CrashError
+                    elif (isinstance(comp, SubdEdge) and
+                          comp.currentDimension() == 0):
+                        raise CrashError
+        except CrashError:
             print "Auto-failing %r to avoid crash..." % comp
-            raise Exception('selecting .sme[*][*] causes a crash...')
+            raise CrashError
             
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
