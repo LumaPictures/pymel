@@ -358,7 +358,7 @@ NOT_PROXY_WRAPPED = ['__new__', '__getattribute__', '__getattr__', '__setattr__'
                      '__reduce_ex__', '__reduce__', '__dict__', '__sizeof__',
                      '__module__', '__init__', '__doc__']
 def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
-                remove=(), makeDefaultInit = False, sourceIsImmutable=False ):
+                remove=(), makeDefaultInit = False, sourceIsImmutable=True ):
     """
     This function will generate a proxy class which keeps the internal data separate from the wrapped class. This 
     is useful for emulating immutable types such as str and tuple, while using mutable data.  Be aware that changing data
