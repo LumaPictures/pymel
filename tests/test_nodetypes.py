@@ -10,7 +10,7 @@ import pymel.mayahook as mayahook
 from testingutils import TestCaseExtended, setCompare
 
 
-VERBOSE = True
+VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in api.apiToMelData.keys()] ) ) )
@@ -621,8 +621,8 @@ class testCase_components(unittest.TestCase):
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
-                #cmds.delete(node)
-                pass
+                cmds.delete(node)
+                #pass
             
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
@@ -1107,16 +1107,19 @@ class testCase_components(unittest.TestCase):
     def _failIfWillMakeMayaCrash(self, comp):
         willCrash = False
         if isinstance(comp, basestring):
-            if ((comp.startswith('SubdEdge') or
-                 comp.endswith("comp(u'sme')") or
-                 comp.endswith('.sme'))
-                and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                api.MGlobal.kLibraryApp)):
-                willCrash = True
-            elif platform.system() == 'Darwin':
-                crashRe = re.compile(r".sm[pef]('\))?\[[0-9]+\]$")
-                if crashRe.search(comp):
+            if (platform.system() == 'Darwin' or
+                api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                          api.MGlobal.kLibraryApp):
+                if ((comp.startswith('SubdEdge') or
+                     comp.endswith("comp(u'sme')") or
+                     comp.endswith('.sme'))
+                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                    api.MGlobal.kLibraryApp)):
                     willCrash = True
+                elif platform.system() == 'Darwin':
+                    crashRe = re.compile(r".sm[pef]('\))?\[[0-9]+\]$")
+                    if crashRe.search(comp):
+                        willCrash = True
         elif isinstance(comp, Component):
             # Check if we're in batch - in gui, we processed idle events after subd
             # creation, which for some reason, prevents the crash
