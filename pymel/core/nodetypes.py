@@ -8,6 +8,7 @@ import pymel.internal.pmcmds as cmds #@UnresolvedImport
 import pymel.internal.factories as _factories
 import pymel.api as api #@UnresolvedImport
 import pymel.internal.apicache as _apicache
+import pymel.internal.pwarnings as _warnings
 import datatypes
 import logging
 _logger = logging.getLogger(__name__)
@@ -1267,7 +1268,7 @@ class MeshVertex( MItComponent1D ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedEdges' instead.") 
+    @_warnings.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
         """
         :rtype: `MeshEdge` list
@@ -1282,7 +1283,7 @@ class MeshVertex( MItComponent1D ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedFaces' instead.")
+    @_warnings.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
         """
         :rtype: `MeshFace` list
@@ -1339,7 +1340,7 @@ class MeshEdge( MItComponent1D ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedFaces' instead.")
+    @_warnings.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
         """
         :rtype: `MeshFace` list
@@ -1388,7 +1389,7 @@ class MeshFace( MItComponent1D ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedEdges' instead.") 
+    @_warnings.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
         """
         :rtype: `MeshEdge` list
@@ -1405,7 +1406,7 @@ class MeshFace( MItComponent1D ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedVertices' instead.")
+    @_warnings.deprecated("Use 'connectedVertices' instead.")
     def toVertices(self):
         """
         :rtype: `MeshVertex` list
@@ -2538,7 +2539,7 @@ class Attribute(general.PyNode):
         except RuntimeError:
             raise TypeError, "%s is not an array (multi) attribute" % self
 
-    @internal.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
+    @_warnings.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
     def size(self):
         """
         The number of elements in an array attribute. Returns None if not an array element.
@@ -4071,7 +4072,7 @@ class Shape(DagNode):
         
 class Camera(Shape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    @internal.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
+    @_warnings.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
@@ -4079,14 +4080,14 @@ class Camera(Shape):
         fov = 57.29578 * fov
         return fov
     
-    @internal.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
+    @_warnings.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
     def setFov(self, fov):
         aperture = self.horizontalFilmAperture.get()
         focal = math.tan (0.00872665 * fov);
         focal = (0.5 * aperture) / (focal * 0.03937);
         self.focalLength.set(focal)
     
-    @internal.deprecated('Use getAspectRatio instead', 'Camera' )  
+    @_warnings.deprecated('Use getAspectRatio instead', 'Camera' )  
     def getFilmAspect(self):
         return self.horizontalFilmAperture.get()/ self.verticalFilmAperture.get()
 
@@ -5153,11 +5154,11 @@ class Mesh(SurfaceShape):
                             'vtxFace'   : MeshVertexFace,
                             'faceVerts' : MeshVertexFace}
                         
-    vertexCount =  internal.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
-    edgeCount =    internal.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
-    faceCount =    internal.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
-    uvcoordCount = internal.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
-    triangleCount = internal.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
+    vertexCount =  _warnings.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
+    edgeCount =    _warnings.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
+    faceCount =    _warnings.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
+    uvcoordCount = _warnings.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
+    triangleCount = _warnings.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
@@ -5709,7 +5710,7 @@ class ObjectSet(Entity):
         """
         return list( self.asSelectionSet(flatten) )
 
-    @internal.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
+    @_warnings.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
     def elements(self, flatten=False):
         """return members as a list
         :rtype: `list`
@@ -5748,14 +5749,14 @@ class ObjectSet(Entity):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSubSet(other)
     
-    issubset = internal.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
+    issubset = _warnings.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
     
     
     def isSuperSet(self, other ):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSuperSet(other)
     
-    issuperset = internal.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
+    issuperset = _warnings.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
     
     def isEqual(self, other ):
         """
@@ -5818,7 +5819,7 @@ class ObjectSet(Entity):
     def union(self, other):
         self.addMembers(other)
      
-    update = internal.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
+    update = _warnings.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
 
 
 class GeometryFilter(DependNode): pass
