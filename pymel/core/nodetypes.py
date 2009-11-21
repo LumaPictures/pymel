@@ -131,10 +131,8 @@ def _formatSlice(sliceObj):
         sliceStr = '%s:%s' % (startIndex, stopIndex)
     return sliceStr 
 
-# even though slice objects are essentially immutable, due to implementation
-# of proxyClass, need to set sourceIsImmutable to False
-# (not sure why proxyClass is implemented like this...?)
-ProxySlice = util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False)
+
+ProxySlice = util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False, makeDefaultInit=True)
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using
 # normal class syntax...
@@ -959,7 +957,7 @@ class DiscreteComponent( DimensionedComponent ):
             
         for flatIndex in xrange(len(self)):
             mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
-            yield ComponentIndex(api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs)
+            yield ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
@@ -986,7 +984,7 @@ class DiscreteComponent( DimensionedComponent ):
             dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
 
         mfncomp.getElement(self._currentFlatIndex, *dimensionIndicePtrs)
-        curIndex = ComponentIndex(api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs)
+        curIndex = ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
             
     def next(self):

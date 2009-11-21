@@ -1,6 +1,7 @@
 import unittest
 import itertools
 import re
+import platform
 
 from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
@@ -9,13 +10,19 @@ import pymel.internal as internal
 from testingutils import TestCaseExtended, setCompare
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in factories..apiToMelData.keys()] ) ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
+
+class CrashError(Exception):
+    """
+    Raised to signal that doing something would have caused maya to crash.
+    """
+    pass
 
 EXCEPTIONS = ['MotionPath','OldBlindDataBase', 'TextureToGeom']
  
@@ -357,11 +364,8 @@ def makeComponentCreationTests(evalStringCreator):
             for evalString in evalStrings:
                 if VERBOSE:
                     print "trying to create:", evalString, "...",
-                # Currently, a bug with adding '___.sme[*]' to any
-                # MSelectionList - causes may to crash. thus, for now, just
-                # auto fail tests making .sme[*]
                 try:
-                    eval(evalString)
+                    self._pyCompFromString(evalString)
                 except Exception:
                     if VERBOSE:
                         print "FAILED"
@@ -623,8 +627,8 @@ class testCase_components(unittest.TestCase):
     def tearDown(self):
         for node in self.nodes.itervalues():
             if cmds.objExists(node):
-                #cmds.delete(node)
-                pass
+                cmds.delete(node)
+                #pass
             
     def test_allCompsRepresented(self):
         unableToCreate = ('kEdgeComponent',
@@ -651,6 +655,49 @@ class testCase_components(unittest.TestCase):
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')
+    
+    @classmethod
+    def _compStrSplit(cls, compStr):
+        """
+        Returns a tuple (nodeName, compName, indices).
+        
+        Indices will itself be a list.
+        
+        Example:
+        >>> testCase_component._compStrSplit('mySurf.uv[4][*]')
+        ('mySurf', 'uv', ['4', '*'])
+        """
+        if '.' not in compStr:
+            raise ValueError("compStr must be in 'nodeName.comp' form")
+        nodeName, rest = compStr.split('.', 1)
+        if not rest:
+            compName = ''
+            indices = []
+        else:
+            indices = cls._indicesRe.findall(rest)
+            if not indices:
+                compName = rest
+            else:
+                compName = rest.split('[', 1)[0]
+        return nodeName, compName, indices
+    
+    @classmethod
+    def _compStrJoin(cls, nodeName, compName, indices):
+        """
+        Inverse of _compStrSplit
+        
+        Given three items, nodeName, compName, indices, will
+        return a component string representing that comp.
+        
+        Example:
+        >>> testCase_component._joinCompStr('mySurf', 'uv', ['4', '*'])
+        'mySurf.uv[4][*]'
+        """
+        indicesStr = ''
+        for indice in indices:
+            indicesStr += '[%s]' % indice
+        return '%s.%s%s' % (nodeName, compName, indicesStr)
+        
     def _compStringsEqual(self, comp1, comp2, compData):
         # We assume that these comps have a '.' in them,
         # and that they've already been fed through
@@ -659,18 +706,15 @@ class testCase_components(unittest.TestCase):
         if comp1==comp2:
             return True
         
-        # only split the first - we may have a floating
-        # point indice with a '.'!
-        node1, comp1 = comp1.split('.', 1)
-        node2, comp2 = comp2.split('.', 1)
+        node1, comp1Name, indices1 = self._compStrSplit(comp1)
+        node2, comp2Name, indices2 = self._compStrSplit(comp2)
         
         if node1 != node2:
             return False
 
-        if '[' not in comp1 or '[' not in comp2:
+        if not (comp1Name and comp2Name and
+                indices1 and indices2):
             return False
-        comp1Name = comp1.split('[', 1)[0]
-        comp2Name = comp2.split('[', 1)[0]
         
         if comp1Name != comp2Name:
             # If the component names are not equal,
@@ -690,9 +734,6 @@ class testCase_components(unittest.TestCase):
             # the range information is hard to get
             return False
                 
-        indices1 = self._indicesRe.findall(comp1)
-        indices2 = self._indicesRe.findall(comp2)
-        
         # If one of them is v, we need to
         # flip the indices...
         if comp1Name == 'v':
@@ -778,14 +819,13 @@ class testCase_components(unittest.TestCase):
                     # Just worry about strings - the PyNodes
                     # are supposed to handle this bug themselves!
                     if isinstance(comp, basestring):
-                        nodePart, compPart = comp.split('.', 1)
-                        if compPart.startswith('uv['):
-                            compPart = 'u[' + compPart[len('uv['):]
-                        if compPart[:2] in ('u[', 'v['):
-                            indices = self._indicesRe.findall(compPart)
+                        nodePart, compName, indices = self._compStrSplit(comp)
+                        if compName == 'uv':
+                            compPart = 'u'
+                        if compName in ('u', 'v'):
                             if len(indices) < 2:
-                                compPart += '[*]'
-                        comp = '.'.join( (nodePart, compPart) )
+                                indices.append('*')
+                        comp = self._compStrJoin(nodePart, compName, indices)
                     compIterable[i] = comp
                     
         comp1, comp2 = bothComps
@@ -827,6 +867,9 @@ class testCase_components(unittest.TestCase):
         # If only2 is now empty as well, success!
         return not only2
 
+    def _pyCompFromString(self, compString):
+        self._failIfWillMakeMayaCrash(compString)
+        return eval(compString)
     
     # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
@@ -894,7 +937,7 @@ class testCase_components(unittest.TestCase):
         for componentData in self.compData.itervalues():
             for compString in self.object_evalStrings(componentData):
                 try:
-                    pymelObj = eval(compString)
+                    pymelObj = self._pyCompFromString(compString)
                 except Exception:
                     failedComps.append(compString)
                 else:
@@ -941,33 +984,14 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                if ((compString.startswith('SubdEdge') or
-                     compString.endswith("comp(u'sme')") or
-                     compString.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    print "Auto-failing %r to avoid crash..." % compString
-                    raise Exception('selecting .sme[*][*] causes a crash...')   
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
                 if VERBOSE:
                     print "selecting...",
                 try:
-                    # There's a bug - if you add x.sme[*][*] to an
-                    # MSelectionList immediately
-                    # after creating the component, without any idle events
-                    # run in between, Maya crashes...
-                    # In gui mode, we process idle events after creation,
-                    # but we can't do that in batch... so if we're
-                    # in batch, just fail x.sme[*][*]...
-                    if (isinstance(pymelObj, SubdEdge) and
-                        pymelObj.currentDimension() == 0 and
-                        api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                        print "Auto-failing %r to avoid crash..." % compString
-                        raise Exception('selecting .sme[*][*] causes a crash...')
+                    self._failIfWillMakeMayaCrash(pymelObj)
                     select(pymelObj, r=1)
                 except Exception:
 #                        import traceback
@@ -996,33 +1020,14 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                if ((compString.startswith('SubdEdge') or
-                     compString.endswith("comp(u'sme')") or
-                     compString.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    print "Auto-failing %r to avoid crash..." % compString
-                    raise Exception('selecting .sme[*][*] causes a crash...')                
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
                 if VERBOSE:
                     print "getting repr...",
                 try:
-                    # There's a bug - if you add x.sme[*][*] to an
-                    # MSelectionList immediately
-                    # after creating the component, without any idle events
-                    # run in between, Maya crashes...
-                    # In gui mode, we process idle events after creation,
-                    # but we can't do that in batch... so if we're
-                    # in batch, just fail x.sme[*][*]...
-                    if (isinstance(pymelObj, SubdEdge) and
-                        pymelObj.currentDimension() == 0 and
-                        api.MGlobal.mayaState in (api.MGlobal.kBatch,
-                                                  api.MGlobal.kLibraryApp)):
-                        print "Auto-failing %r to avoid crash..." % compString
-                        raise Exception('selecting .sme[*][*] causes a crash...')                    
+                    self._failIfWillMakeMayaCrash(pymelObj)
                     str = repr(pymelObj)
                 except Exception:
                     failedRepr.append(compString)
@@ -1052,14 +1057,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                if ((compString.startswith('SubdEdge') or
-                     compString.endswith("comp(u'sme')") or
-                     compString.endswith('.sme'))
-                    and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
-                                                    api.MGlobal.kLibraryApp)):
-                    print "Auto-failing %r to avoid crash..." % compString
-                    raise Exception('selecting .sme[*][*] causes a crash...')   
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
@@ -1070,6 +1068,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print "iterating...",
                 try:
+                    self._failIfWillMakeMayaCrash(pymelObj)
                     iteration = [x for x in pymelObj]
                     iterationString = repr(iteration)
                 except Exception:
@@ -1121,7 +1120,7 @@ class testCase_components(unittest.TestCase):
         failedComparisons = []
         for compString, compData in self.getComponentStrings(returnCompData=True):
             try:
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
@@ -1137,6 +1136,55 @@ class testCase_components(unittest.TestCase):
             if failedComparisons:
                 failMsgs.append('Following components type wrong:\n   ' + '\n   '.join(failedComparisons))
             self.fail('\n\n'.join(failMsgs))
+            
+    # There's a bug - if you add x.sme[*][*] to an
+    # MSelectionList immediately
+    # after creating the component, without any idle events
+    # run in between, Maya crashes...
+    # In gui mode, we process idle events after creation,
+    # but we can't do that in batch... so if we're
+    # in batch, just fail x.sme[*][*]...
+    
+    # Even more fun - on osx, any comp such as x.sm*[256][*] crashes as well...
+    def _failIfWillMakeMayaCrash(self, comp):
+        try:
+            if isinstance(comp, basestring):
+                if versions.current() >= versions.v2011:
+                    # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
+                    # meaning any surf.u/v/uv.__getindex__ will crash
+                    nodeName, compName, indices = self._compStrSplit(comp)
+                    if re.match(r'''(u|v|uv)(Isoparm)?|comp\(u?['"](u|v|uv)(Isoparm)?['"]\)''', compName):
+                        raise CrashError
+                if (platform.system() == 'Darwin' or
+                    api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                              api.MGlobal.kLibraryApp)):
+                    if ((comp.startswith('SubdEdge') or
+                         comp.endswith("comp(u'sme')") or
+                         comp.endswith('.sme'))
+                        and api.MGlobal.mayaState() in (api.MGlobal.kBatch,
+                                                        api.MGlobal.kLibraryApp)):
+                        raise CrashError
+                    elif platform.system() == 'Darwin':
+                        crashRe = re.compile(r".sm[pef]('\))?\[[0-9]+\]$")
+                        if crashRe.search(comp):
+                            raise CrashError
+            elif isinstance(comp, Component):
+                # Check if we're in batch - in gui, we processed idle events after subd
+                # creation, which for some reason, prevents the crash
+                if api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                                              api.MGlobal.kLibraryApp):
+                    # In windows + linux, just selections of type .sme[*][*] - on OSX,
+                    # it seems any .sm*[256][*] will crash it...
+                    if platform.system() == 'Darwin':
+                        if (isinstance(comp, (SubdEdge, SubdVertex, SubdFace)) and
+                            comp.currentDimension() in (0, 1)):
+                            raise CrashError
+                    elif (isinstance(comp, SubdEdge) and
+                          comp.currentDimension() == 0):
+                        raise CrashError
+        except CrashError:
+            print "Auto-failing %r to avoid crash..." % comp
+            raise CrashError
             
     def test_multiComponentName(self):
         compMobj = api.MFnSingleIndexedComponent().create(api.MFn.kMeshVertComponent)
@@ -1235,6 +1283,7 @@ class testCase_components(unittest.TestCase):
 
         # Check for a ContinuousComponent...
         sphere = PyNode(self.nodes['sphere'])
+        self._failIfWillMakeMayaCrash('%s.u[2]' % sphere.name())
         sphere.u[2]
         sphere.u[4]
         sphere.u[0]
@@ -1273,7 +1322,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print melString, "/", pyString, "-", "creating...",
                 try:
-                    pymelObj = eval(pyString)
+                    pymelObj = self._pyCompFromString(pyString)
                 except Exception:
                     failedCreation.append(pyString)
                 else:
@@ -1330,12 +1379,10 @@ class testCase_components(unittest.TestCase):
             if not self.compsEqual(pynode, expectedStrings, compData):
                 failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
 
-        pySphere = PyNode('nurbsSphere1')
-        check(pySphere.vIsoparm[5.54][1.1:3.4],
+        check(self._pyCompFromString("PyNode('nurbsSphere1').vIsoparm[5.54][1.1:3.4]"),
               'nurbsSphereShape1.u[1.1:3.4][5.54]',
               self.compData['nurbsIsoUV'])
-        pyCurve = PyNode('nurbsCircle1')
-        check(pyCurve.u[2.8:6],
+        check(self._pyCompFromString("PyNode('nurbsCircle1').u[2.8:6]"),
               'nurbsCircleShape1.u[2.8:6]',
               self.compData['curvePt'])
         if failedComps:

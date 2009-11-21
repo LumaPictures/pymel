@@ -51,7 +51,7 @@ class ParsingWarning(UserWarning):
 
 
         
-ProxyUni = proxyClass( unicode, 'ProxyUnicode', dataFuncName='__name__', remove=['__getitem__', '__doc__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
+ProxyUni = proxyClass( unicode, 'ProxyUni', dataFuncName='compileName', remove=['__getitem__', '__doc__']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 
 # For parsed objects, Token or upper level constructs
 class Parsed(ProxyUni):
@@ -76,7 +76,7 @@ class Parsed(ProxyUni):
         return False
     
     def compileName( self ):
-        newname = ''
+        newname = u''
         partList = []
         def getParts( obj, newname ):
             try:
@@ -89,8 +89,6 @@ class Parsed(ProxyUni):
             return newname
         self._name = getParts( self, newname )
         return self._name
-    
-    __name__ = compileName
     
     @classmethod
     def getParserClass(cls, parsername ):
@@ -339,7 +337,7 @@ class Parsed(ProxyUni):
                     else :
                         valid = False
                         break
-                value = u"".join(map(unicode, data))                  
+                value = u"".join(map(unicode, data))
                 if valid :
                     pos = sub[0].pos
                 else :
