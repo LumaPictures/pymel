@@ -35,21 +35,20 @@ the results::
 """
 
 import sys, os
-import pymel.internal.pmcmds as cmds
-#import maya.cmds as cmds
 import maya.OpenMaya as _OpenMaya
+from pymel.util.scanf import fscanf
 from pymel.util.decoration import decorator
 import pymel.util as _util
 import pymel.internal.factories as _factories
-import pymel.internal as internal
-from pymel.util.scanf import fscanf
-import logging
-_logger = logging.getLogger(__name__)
+import pymel.internal as _internal
+import pymel.internal.pmcmds as cmds
+
+_logger = _internal.getLogger(__name__)
 
 
 try:
     # attempt to import a custom path class to use as the base for pymel's Path class
-    basePathName = internal.pymel_options['path_class']
+    basePathName = _internal.pymel_options['path_class']
     buf = basePathName.split('.')
     moduleName = '.'.join(buf[:-1])
     className = buf[-1]
@@ -179,14 +178,14 @@ class Namespace(str):
             raise Exception("Node '%s' does not exist" % node)
         return node
     
-    def listNamespaces(self, recursive=False, internal=False):
+    def listNamespaces(self, recursive=False, _internal=False):
         curNS = Namespace.getCurrent()
         
         self.setCurrent()
         try:
             namespaces = map(self.__class__, cmds.namespaceInfo(listOnlyNamespaces=True) or [])
             
-            if not internal:
+            if not _internal:
                 for i in [":UI",":shared"]:
                     if i in namespaces:
                         namespaces.remove(i)
@@ -195,7 +194,7 @@ class Namespace(str):
                 childNamespaces = []
                 for ns in namespaces:
                     try:
-                        childNamespaces.extend(ns.listNamespaces(recursive, internal))
+                        childNamespaces.extend(ns.listNamespaces(recursive, _internal))
                     except: pass
                 namespaces.extend(childNamespaces)
         finally:
@@ -249,9 +248,9 @@ def listNamespaces():
     except:
         return []
 
-def listNamespaces_new(root=None, recursive=False, internal=False):
+def listNamespaces_new(root=None, recursive=False, _internal=False):
     """Returns a list of the namespaces in the scene"""
-    return Namespace(root or ":").listNamespaces(recursive, internal)
+    return Namespace(root or ":").listNamespaces(recursive, _internal)
 
 
 def namespaceInfo(*args, **kwargs):
@@ -821,7 +820,7 @@ class ReferenceCache(object):
         # there's no guarantee that:
         #  the namespace has not changed since the last cache refresh
         #  the refNode has not been renamed since the last cache refresh (doesn't matter if we're using > 2009, where node hashing is not based on name)
-        if not cls.callbacksEnabled or namespace: # or ( refnode and internal.Version.current < internal.Version.v2009 ):
+        if not cls.callbacksEnabled or namespace: 
             # force refresh (only need to try once)
             attempts=1
             cls.refresh()
@@ -857,7 +856,7 @@ class FileReference(object):
     Use listRefences command to return a list of references as instances of the FileReference class.
     
     It is important to note that instances of this class will have their copy number stripped off
-    and stored in an internal variable upon creation.  This is to maintain compatibility with the numerous methods
+    and stored in an _internal variable upon creation.  This is to maintain compatibility with the numerous methods
     inherited from the path class which requires a real file path. When calling built-in methods of FileReference, 
     the path will automatically be suffixed with the copy number before being passed to maya commands, thus ensuring 
     the proper results in maya as well. 
@@ -870,7 +869,7 @@ class FileReference(object):
 #    paths.  namespaces are still the one weak spot, for which we must first get a path with copy number.  the use of 
 #    a refNode precludes the need for the caching system, so long as a) using referenceQuery to get file paths from a refNode
 #    provides adequate performance, and b) using referenceQuery in __init__ to get a refNode from a path is os agnostic. 
-#    in general, since almost all the internal queries use the refNode, 
+#    in general, since almost all the _internal queries use the refNode, 
 #    there should be little need for the paths, except for displaying to the user.
     
     def __init__(self, pathOrRefNode=None, namespace=None, refnode=None, unresolvedPath=None):
@@ -977,7 +976,7 @@ class FileReference(object):
     @property
     def path(self):
         # TODO: check in cache to see if this has changed
-#        if not ReferenceCache.callbacksEnabled or internal.Version.current < internal.Version.v2009:
+#        if not ReferenceCache.callbacksEnabled or _internal.Version.current < _internal.Version.v2009:
 #            ReferenceCache.refresh()
 #            
 #        return ReferenceCache[ self.refNode ]._file

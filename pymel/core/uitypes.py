@@ -1,8 +1,8 @@
-import pymel.internal.pmcmds as cmds
 import pymel.util as _util
+import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
-import pymel.internal.plogging as plogging
-_logger = plogging.getLogger(__name__)
+import pymel.internal as _internal
+_logger = _internal.getLogger(__name__)
 
 def _resolveUIFunc(name):
     if isinstance(name, basestring):

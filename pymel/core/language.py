@@ -4,9 +4,11 @@ Functions and classes related to scripting, including `MelGlobals` and `Mel`
 import sys, os, inspect
 from getpass import getuser as _getuser
 import system
-import pymel.util as util
+
 import maya.mel as _mm
 import maya.cmds as _mc
+
+import pymel.util as util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.api as _api

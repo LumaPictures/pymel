@@ -286,17 +286,18 @@ Finally, just for fun, you can also reset, flip and reverse the layout:
 
 """
 
-
 import re, sys
-import pymel.internal.pmcmds as cmds
-import pymel.util as _util
-import pymel.internal.factories as _factories
-from language import mel, melGlobals
-import pymel.internal.plogging as plogging
-import uitypes as _uitypes
-import pymel.versions as versions
 
-_logger = plogging.getLogger(__name__)
+import pymel.util as _util
+import pymel.internal.pmcmds as cmds
+import pymel.internal.factories as _factories
+import pymel.internal as _internal
+import pymel.versions as _versions
+
+from language import mel, melGlobals
+import uitypes as _uitypes
+
+_logger = _internal.getLogger(__name__)
 
 _thisModule = sys.modules[__name__]
 # Note - don't do
@@ -440,7 +441,7 @@ Modifications:
 
 class CallbackError(Exception): pass
 
-if versions.current() >= versions.v2009:
+if _versions.current() >= _versions.v2009:
 
     class Callback(object):
         """

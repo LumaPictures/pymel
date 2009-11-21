@@ -1,7 +1,7 @@
 import re, os.path
 from HTMLParser import HTMLParser
 import pymel.util as util
-from mayautils import mayaDocsLocation
+from pymel.mayautils import mayaDocsLocation
 import pymel.versions as versions
 import plogging
 

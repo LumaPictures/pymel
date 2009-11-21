@@ -4,15 +4,13 @@ that maya is initialized in standalone mode.
 """
 from __future__ import with_statement
 import re, os.path, sys, platform, time
-
-import plogging
-
-from pymel.util import picklezip
-
-import pymel.versions as versions
-from pymel.versions import parseVersionStr, shortName, installName
 import maya
 import maya.OpenMaya as om
+
+from pymel.util import picklezip
+import pymel.versions as versions
+from pymel.versions import parseVersionStr, shortName, installName
+import plogging
 
 _logger = plogging.getLogger(__name__)
 try:
@@ -124,6 +122,7 @@ def mayaInit(forversion=None) :
             maya.standalone.initialize(name="python")
             
             if versions.current() < versions.v2009:
+                import pymel.mayautils as mayautils
                 mayautils.refreshEnviron()
 
         except ImportError, e:
@@ -144,8 +143,8 @@ def initMEL():
         return
     
     _logger.debug( "initMEL" )        
-    
-    mayaVersion = installName()
+    import pymel.mayautils as mayautils
+    mayaVersion = versions.installName()
     appDir = mayautils.getMayaAppDir()
     if appDir is None:
         _logger.error( "could not initialize user preferences: MAYA_APP_DIR not set" )

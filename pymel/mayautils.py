@@ -1,7 +1,7 @@
 import os, sys, re, platform
 import versions
-from internal import getLogger
-_logger = getLogger(__name__) 
+import internal as _internal
+_logger = _internal.getLogger(__name__) 
 from pymel.util import path as _path, shellOutput, picklezip
 
 

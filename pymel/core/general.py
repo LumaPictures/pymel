@@ -16,8 +16,8 @@ import inspect, timeit, time
 import pymel.internal.pmcmds as cmds
 import pymel.util as util
 import pymel.internal.factories as _factories
-
 import pymel.api as _api
+
 import datatypes
 import logging
 from maya.cmds import about as _about

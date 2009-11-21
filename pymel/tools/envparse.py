@@ -7,7 +7,7 @@ try:
 except ImportError:
     from ply import lex
     
-from pymel.internal.mayautils import getMayaAppDir
+from pymel.mayautils import getMayaAppDir
 
 _logger = logging.getLogger(__name__)
 
