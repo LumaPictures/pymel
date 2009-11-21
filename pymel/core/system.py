@@ -444,15 +444,13 @@ class Workspace(object):
         return cmds.workspace( update=1 )
     @classmethod
     def new(self, workspace):
-        return cmds.workspace( workspace, newWorkspace=1 )        
+        return cmds.workspace( workspace, newWorkspace=1 )
     @classmethod
     def getName(self):
         return cmds.workspace( q=1, act=1 )
-
     @classmethod
     def getPath(self):
         return Path(cmds.workspace( q=1, fullName=1 ))
-    
     @classmethod
     def chdir(self, newdir):
         return cmds.workspace( dir=newdir )
@@ -462,9 +460,12 @@ class Workspace(object):
     @classmethod
     def mkdir(self, newdir):
         return cmds.workspace( cr=newdir )
-
-    name = property( getName )        
-    path = property( getPath )
+    @property
+    def path(self):
+        return Path(cmds.workspace( q=1, fullName=1 ))
+    @property
+    def name(self):
+        return cmds.workspace( q=1, act=1 )
             
     def __call__(self, *args, **kwargs):
         """provides backward compatibility with cmds.workspace by allowing an instance
@@ -873,12 +874,12 @@ class FileReference(object):
 #    there should be little need for the paths, except for displaying to the user.
     
     def __init__(self, pathOrRefNode=None, namespace=None, refnode=None, unresolvedPath=None):
-        import general
+        import general, nodetypes
         self._refNode = None
         if pathOrRefNode:
             if isinstance(pathOrRefNode, (basestring,Path)) and '.' in pathOrRefNode:
                     self._refNode = general.PyNode( cmds.referenceQuery( str(pathOrRefNode), referenceNode=1 ) )
-            elif isinstance( pathOrRefNode, general.nodetypes.Reference ):
+            elif isinstance( pathOrRefNode, nodetypes.Reference ):
                 self._refNode = pathOrRefNode
             else:
                 self._refNode = general.PyNode( pathOrRefNode )
