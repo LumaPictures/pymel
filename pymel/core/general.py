@@ -47,9 +47,8 @@ def _getPymelTypeFromObject(obj, name):
             
             if pymelType in _factories.virtualClass:
                 data = _factories.virtualClass[pymelType]
-                # FIXME: name is not defined
                 nodeName = name
-                for virtualCls, callback, nameRequired in data:
+                for virtualCls, nameRequired in data:
                     if nameRequired and nodeName is None:
                         nodeName = fnDepend.name()
                     
