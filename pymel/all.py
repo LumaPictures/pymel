@@ -18,7 +18,7 @@ from util.arrays import *
 
 import core.datatypes as datatypes
 
-from pymel.internal.version import Version
+import versions
 
 from core import nodetypes
 from core.nodetypes import *
