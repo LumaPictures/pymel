@@ -161,23 +161,23 @@ class TestProxyClass(TestCase):
         
     def test_wrapData(self):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         self.assertEqual(Wrapped.data, self.MyClass.data)
         self.assertEqual(Wrapped('foo').data, self.MyClass('foo').data)
 
     def test_classMethod(self):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         self.assertEqual(Wrapped.clsMeth(), self.MyClass.clsMeth())
 
     def test_staticMethod(self):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         self.assertEqual(Wrapped.statMeth(), self.MyClass.statMeth())
         
     def test_instMethod(self):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         wrappedResult = Wrapped('bar').instMeth()
         myClassResult = self.MyClass('bar').instMeth()
         self.assertEqual(wrappedResult[0].__class__, myClassResult[0].__class__)
@@ -185,13 +185,13 @@ class TestProxyClass(TestCase):
 
     def test_docString(self):
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         self.assertEqual(Wrapped.__doc__, self.MyClass.__doc__)
         
     def test_immutable(self):
         
         Wrapped = utilitytypes.proxyClass(''.__class__, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         self.assertEqual(Wrapped('Fun times were had by all')[3:7],
                          'Fun times were had by all'[3:7])
         
@@ -201,7 +201,7 @@ class TestProxyClass(TestCase):
         We should be able to do MyProxyClass.wrappedMethod(myProxyClassInst)
         """
         Wrapped = utilitytypes.proxyClass(self.MyClass, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         wrapInst = Wrapped('bar')
         wrappedResult = Wrapped.instMeth(wrapInst)
         myClassResult = self.MyClass('bar').instMeth()
@@ -214,7 +214,7 @@ class TestProxyClass(TestCase):
         ...they're like methods, but not!
         """
         Wrapped = utilitytypes.proxyClass(''.__class__, 'Wrapped',
-                                          dataAttrName='_data')
+                                          dataAttrName='_data', makeDefaultInit=True)
         theString = 'Fun times were had by all!'
         wrapInst = Wrapped(theString)
         self.assertEqual(Wrapped.__len__(wrapInst), len(theString))

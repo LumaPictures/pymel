@@ -101,7 +101,6 @@ class testCase_attribs(unittest.TestCase):
      
 def testInvertibles():
     classList = getFundamentalTypes()
-    print classList
     for pynodeName in classList:
         try:
             pynode = getattr( core.nodetypes, pynodeName )
@@ -669,7 +668,7 @@ class testCase_components(unittest.TestCase):
         Indices will itself be a list.
         
         Example:
-        >>> testCase_component._compStrSplit('mySurf.uv[4][*]')
+        >>> testCase_components._compStrSplit('mySurf.uv[4][*]') # doctest: +SKIP
         ('mySurf', 'uv', ['4', '*'])
         """
         if '.' not in compStr:
@@ -695,7 +694,7 @@ class testCase_components(unittest.TestCase):
         return a component string representing that comp.
         
         Example:
-        >>> testCase_component._joinCompStr('mySurf', 'uv', ['4', '*'])
+        >>> testCase_components._joinCompStr('mySurf', 'uv', ['4', '*']) # doctest: +SKIP
         'mySurf.uv[4][*]'
         """
         indicesStr = ''

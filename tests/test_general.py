@@ -335,22 +335,20 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
         self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([11.0, 22.0, 33.0]) )
         
-        if internal.Version.current > internal.Version.v85sp1:
-            undo()
-            self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
+        undo()
+        self.assert_( SCENE.persp.getTranslation( 'world' ) == datatypes.Vector([10.0, 20.0, 30.0]) )
 
-#    def test_transform_scale(self):
-#
-#        SCENE.persp.setScale( [10,20,30] )
-#
-#        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
-#        SCENE.persp.setScale( [1,2,3], relative=1)
-#
-#        self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
+    def test_transform_scale(self):
+
+        SCENE.persp.setScale( [10,20,30] )
+
+        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+        SCENE.persp.setScale( [1,2,3], relative=1)
+
+        self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
         
-#        if internal.Version.current > internal.Version.v85sp1:
-#            undo()
-#            self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+#        undo()
+#        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
 
     def test_transform_rotation(self):
         SCENE.persp.setRotation( [10,20,0], 'world')
@@ -359,11 +357,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         SCENE.persp.setRotation( [0,90,0], 'world', relative=1)
 
         self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 110.0, 0.0])) )
-        
-        if internal.Version.current > internal.Version.v85sp1:
-            undo()
-            self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
-        
+
+        undo()
+        self.assert_( SCENE.persp.getRotation( 'world' ).isEquivalent( datatypes.EulerRotation([10.0, 20.0, 00.0])) )
+    
     def test_immutability(self):
 
         c1 = polyCube()[0]
@@ -402,16 +399,16 @@ class testCase_apiUndo(unittest.TestCase):
         cmds.undoInfo(state=1)
         
     def test_undo(self):
-        self.assert_( len(internal.apiUndo.undo_queue) == 0 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
         
         SCENE.top.setFocalLength(20)
-        self.assert_( len(internal.apiUndo.undo_queue) == 1 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
         
         
         undoInfo(stateWithoutFlush=0)#--------------------------------
         
         SCENE.persp.setFocalLength(20)
-        self.assert_( len(internal.apiUndo.undo_queue) == 1 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
         
         undoInfo(stateWithoutFlush=1)#--------------------------------
         
@@ -424,14 +421,14 @@ class testCase_apiUndo(unittest.TestCase):
         
         self.assert_( SCENE.top.getFocalLength() == 20.0 )
         self.assert_( SCENE.persp.getFocalLength() == 20.0 )
-        self.assert_( len(internal.apiUndo.undo_queue) == 1 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 1 )
         
         # clear maya's undo queue
         # we override undoInfo in system to flush the cache 
         undoInfo( state=0)
         undoInfo( state=1)  
 
-        self.assert_( len(internal.apiUndo.undo_queue) == 0 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
         
         SCENE.top.setFocalLength(200)
         undo()
@@ -439,7 +436,7 @@ class testCase_apiUndo(unittest.TestCase):
         self.assert_( SCENE.persp.getFocalLength() == 20.0 )
         self.assert_( SCENE.top.getFocalLength() == 20.0 )
         
-        self.assert_( len(internal.apiUndo.undo_queue) == 0 )
+        self.assert_( len(factories.apiUndo.undo_queue) == 0 )
 
 #    def tearDown(self):
 #        
@@ -447,7 +444,7 @@ class testCase_apiUndo(unittest.TestCase):
 #        cmds.undoInfo(state=0)
 #        setAttr( 'persp.focalLength', 35 )
 #        setAttr( 'top.focalLength', 35 )
-#        internal.apiUndo.flushUndo()
+#        factories.apiUndo.flushUndo()
 #        cmds.undoInfo(state=1)
 
     def tearDown(self):

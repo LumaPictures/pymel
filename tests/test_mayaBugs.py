@@ -62,7 +62,7 @@ class TestSurfaceRangeDomain(unittest.TestCase):
                           'nurbsSphere1.uv[0:4][2:3]',
                           'nurbsSphere1.uv[*][2:3]',
                           'nurbsSphere1.v[2:3][0:4]',
-                          'nurbsSphere1.v[2:3][*]')
+                          'nurbsSphere1.v[2:3][*]',
                           'nurbsSphere1.v[2:3]')
                 
         # Passes
