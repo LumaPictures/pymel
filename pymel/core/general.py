@@ -93,6 +93,7 @@ def _getPymelType(arg, name) :
         obj = arg
         results['MPlug'] = obj
         if _api.isValidMPlug(arg):
+            import nodetypes
             pymelType = nodetypes.Attribute
         else :
             raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
@@ -333,14 +334,24 @@ Modifications:
   - Added 'force' kwarg, which causes the attribute to be added if it does not exist. 
         - if no type flag is passed, the attribute type is based on type of value being set (if you want a float, be sure to format it as a float, e.g.  3.0 not 3)
         - currently does not support compound attributes
-        - currently supported python-to-maya mappings:        
-            - float     S{->} double
-            - int        S{->} long
-            - str        S{->} string
-            - bool        S{->} bool
-            - Vector    S{->} double3
-            - Matrix    S{->} matrix
-            - [str]        S{->} stringArray
+        - currently supported python-to-maya mappings:   
+        
+            python type  maya type
+            ============ ===========
+            float        double
+            ------------ -----------
+            int          long
+            ------------ -----------
+            str          string
+            ------------ -----------
+            bool         bool
+            ------------ -----------
+            Vector       double3
+            ------------ -----------
+            Matrix       matrix
+            ------------ -----------
+            [str]        stringArray
+            ============ ===========
      
            
     >>> addAttr( 'persp', longName= 'testDoubleArray', dataType='doubleArray') 
@@ -411,7 +422,6 @@ Modifications:
                     else:        
                         datatype = getAttr( attr, type=1)
                         if not datatype:
-                            #print "Getting datatype", attr
                             datatype = addAttr( attr, q=1, dataType=1) #[0] # this is returned as a single element list
                     
                         # set datatype for arrays
@@ -420,23 +430,24 @@ Modifications:
                         if datatype.endswith('Array'):
                             kwargs['type'] = datatype
             
-            # string arrays:
-            #    first arg must be the length of the array being set
-            # ex:
-            #     setAttr('loc.strArray',["first", "second", "third"] )    
-            # becomes:
-            #     cmds.setAttr('loc.strArray',3,"first", "second", "third",type='stringArray')
+
             if datatype == 'stringArray':
+                # string arrays:
+                #    first arg must be the length of the array being set
+                # ex:
+                #     setAttr('loc.strArray',["first", "second", "third"] )    
+                # becomes:
+                #     cmds.setAttr('loc.strArray',3,"first", "second", "third",type='stringArray')
                 args = tuple( [len(arg)] + arg )
             
-            # vector arrays:
-            #    first arg must be the length of the array being set
-            #    empty values are placed between vectors
-            # ex:
-            #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )    
-            # becomes:
-            #     cmds.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')
-            elif datatype == 'vectorArray':            
+            elif datatype in ['vectorArray', 'pointArray']:
+                # vector arrays:
+                #    first arg must be the length of the array being set
+                #    empty values are placed between vectors
+                # ex:
+                #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )    
+                # becomes:
+                #     cmds.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')
                 arg = list(arg)
                 size = len(arg)
                 try:
@@ -449,14 +460,23 @@ Modifications:
                             
                 args = tuple( [size] + tmpArgs )
                 #print args
-
-            # others: 
-            #    args must be expanded
-            # ex:
-            #     setAttr('loc.foo',[1,2,3] )    
-            # becomes:
-            #     cmds.setAttr('loc.foo',1,2,3 )    
-            else:
+            
+            elif datatype in ['int32Array', 'doubleArray']:
+                # int32 and double arrays: 
+                #   actually fairly sane
+                # ex:
+                #     setAttr('loc.doubleArray',[1,2,3] )    
+                # becomes:
+                #     cmds.setAttr('loc.doubleArray',[1,2,3],type='doubleArray')
+                args = (tuple(arg),)
+ 
+            else: 
+                # others: short2, short3, long2, long3, float2, etc...
+                #    args must be expanded
+                # ex:
+                #     setAttr('loc.foo',[1,2,3] )    
+                # becomes:
+                #     cmds.setAttr('loc.foo',1,2,3 )   
                 args = tuple(arg)
                 
         # non-iterable types

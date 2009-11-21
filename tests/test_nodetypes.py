@@ -6,14 +6,14 @@ import platform
 from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
-import pymel.internal as internal
+import pymel.internal.factories as factories
 from testingutils import TestCaseExtended, setCompare
 
 
 VERBOSE = False
 
 def getFundamentalTypes():
-    classList = sorted( list( set( [ key[0] for key in factories..apiToMelData.keys()] ) ) )
+    classList = sorted( list( set( [ key[0] for key in factories.apiToMelData.keys()] ) ) )
     #leaves = [ util.capitalize(x.key) for x in factories.nodeHierarchy.leaves() ]
     leaves = [ util.capitalize(node) for node, parents, children in factories.nodeHierarchy if not children ]
     return sorted( set(classList).intersection(leaves) )
@@ -636,11 +636,11 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = factories..getComponentTypes()
+        compTypesDict = factories.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
-        flatCompTypes = flatCompTypes - set([factories..apiTypesToApiEnums[x] for x in unableToCreate])
+        flatCompTypes = flatCompTypes - set([factories.apiTypesToApiEnums[x] for x in unableToCreate])
         
         notFoundCompTypes = set(flatCompTypes)
         for compDatum in self.compData.itervalues():
@@ -651,7 +651,7 @@ class testCase_components(unittest.TestCase):
         if notFoundCompTypes:
             failMsg = "component types not tested:\n"
             for x in notFoundCompTypes:
-                failMsg += "    " + factories..apiEnumsToApiTypes[x] + "\n"
+                failMsg += "    " + factories.apiEnumsToApiTypes[x] + "\n"
             self.fail(failMsg)
 
     _indicesRe = re.compile( r'\[([^]]*)\]')
@@ -1566,14 +1566,14 @@ class testCase_sets(TestCaseExtended):
 #    class NOT_SET(object): pass
 #    
 #    def setUp(self):
-#        self.stored_0_7_compatability_mode = internal.pymel_options.get( '0_7_compatibility_mode', False)
-#        internal.pymel_options['0_7_compatibility_mode'] = True
+#        self.stored_0_7_compatability_mode = factories.pymel_options.get( '0_7_compatibility_mode', False)
+#        factories.pymel_options['0_7_compatibility_mode'] = True
 #        
 #    def tearDown(self):
 #        if self.stored_0_7_compatability_mode == NOT_SET:
-#            del internal.pymel_options['0_7_compatibility_mode']
+#            del factories.pymel_options['0_7_compatibility_mode']
 #        else:
-#            internal.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
+#            factories.pymel_options['0_7_compatibility_mode'] = self.stored_0_7_compatability_mode
 #            
 #    def test_nonexistantPyNode(self):
 #        # Will raise an error if not in 0_7_compatability_mode
