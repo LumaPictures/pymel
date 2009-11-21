@@ -1697,7 +1697,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
             else:
                 defaults.append( default )
         
-        if defaults: #_logger.debug("defaults: %s" % defaults)
+        if defaults:
+            pass 
+            #_logger.debug("defaults: %s" % defaults)
         
         wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults=defaults )
         
@@ -1755,6 +1757,7 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
                 try:
                     pymelType = pymelType.pymelName( ApiTypeRegister.getPymelType( pymelType[0] ) )
                 except:
+                    pass
                     #_logger.debug("Could not determine pymel name for %r" % repr(pymelType))
 
         doc = repr(pymelType).replace("'", "`")
@@ -1948,7 +1951,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                 # return MetaMayaTypeWrapper.ClassConstant(newcls(attr))
                 return MetaMayaTypeWrapper.ClassConstant(attr)
             except Exception, e:
-                util.warn( "Failed creating %s class constant (%s): %s" % (classname, attr, e) )
+                _logger.warn( "Failed creating %s class constant (%s): %s" % (classname, attr, e) )
         #------------------------
         # Class Constants
         #------------------------
@@ -2031,6 +2034,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
+            pass
             #_logger.debug("No MEL command info available for %s" % melCmdName)
         else:
             try:    
@@ -2094,8 +2098,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
-                            else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
-                        else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            #else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
+                        #else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
                         # if there is a corresponding query we use the 'set' prefix. 
@@ -2118,8 +2122,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName)
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
-                            else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            #else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                        #else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
         
         for name, attr in classdict.iteritems() :
             type.__setattr__(newcls, name, attr) 
