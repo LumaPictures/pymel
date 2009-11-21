@@ -807,16 +807,31 @@ class ApiTypeRegister(object):
                 raise
 
     @classmethod
-    def _makeRefFunc(cls, capitalizedApiType):
+    def _makeRefFunc(cls, capitalizedApiType, size=1):
         """
         Returns a function which will make a reference to an api object
         of the desired type.
         
         This ensures that each created ref stems from a unique MScriptUtil,
         so no two refs point to the same storage!
+        
+        :Parameters:
+        size : `int`
+            If other then 1, the returned function will initialize storage for
+            an array of the given size.
         """
-        def makeRef(): # initialize: MScriptUtil().asFloatPtr()
-            return getattr( api.MScriptUtil(), 'as' + capitalizedApiType + 'Ptr')()
+        funcName = 'as' + capitalizedApiType + 'Ptr'
+        if size == 1:
+            def makeRef(): # initialize: MScriptUtil().asFloatPtr()
+                return getattr( api.MScriptUtil(), funcName )()
+        else:
+            def makeRef(): # initialize: MScriptUtil().asFloatPtr()
+                msu = api.MScriptUtil()
+                # Value stored here doesn't matter - just make sure
+                # it's large enough
+                msu.createFromList([0.0] * size, size)
+                return getattr( msu, funcName )()
+
         return makeRef
             
     @classmethod   
@@ -864,8 +879,9 @@ class ApiTypeRegister(object):
             cls.refCast[apiTypeName] = getFunc
             for i in [2,3,4]:
                 iapiTypename = apiTypeName + str(i)
-                cls.refInit[iapiTypename] = initFunc
-                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypeName, i, setArrayFunc, initFunc )
+                arrayInitFunc = cls._makeRefFunc( capType, size=i)
+                cls.refInit[iapiTypename] = arrayInitFunc
+                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypeName, i, setArrayFunc, arrayInitFunc )
                 cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypeName, i, getArrayFunc )
                 cls.types[iapiTypename] = tuple([pymelType.__name__]*i)
         else:
