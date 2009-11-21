@@ -1,3 +1,5 @@
+import weakref
+
 # import all available Maya API methods in this module (api)
 from maya.OpenMaya import *
 from maya.OpenMayaAnim import *
@@ -13,6 +15,77 @@ if not MGlobal.mayaState() == MGlobal.kBatch:
 try : from maya.OpenMayaRender import *
 except: pass
 
+# So, it seems that MScriptUtil().as*Ptr has a serious
+# problem... basically, it looks like the returned
+# ptrs don't have a reference to the MScriptUtil()
+# that provides the actual storage for them -
+# thus, it's possible for the MScriptUtil to get
+# garbage collected, but still have the pointer
+# to it in use - so it points to garbage (and
+# generally causes a crash).
+# To get around this, we essentially implement
+# our 'own' reference system (and garbage collection):
+# we maintain a dict of (weakrefs of) the ptr
+# objects, mapped to the MScriptUtil object
+# that provides the storage for it.
+# Then, every arbitary interval (in our case,
+# we just do it every 100 times we create a
+# ptr), we 'garbage collect' our dict, by
+# going through and deleting any weakref
+# entries that have themselves been garbage
+# collected...
+
+
+class SafeApiValue(object):
+    _ptrDict = {}
+    GARBAGE_COLLECTION_INTERVAL = 100
+    _garbageCollectionCountdown = GARBAGE_COLLECTION_INTERVAL
+    def __init__(self, valueType):
+        """
+        Returns an object like that returned by MScriptUtil().as*
+        (ie, asDouble, asInt, etc),  but does so in a safe way,
+        such that the underlying MScriptUtil that provides
+        the actual storage won't get garbage collected
+        prematurely.
+        
+        :Parameters:
+        valueType : 'string'
+            The name of the maya value type you would like
+        returned - ie, 'int', 'short', 'float'.
+        """
+        msu = MScriptUtil()
+        ptr = getattr(msu, 'as' + valueType.capitalize)
+        self._updatePtrDict(ptr, msu)
+    
+    def _updatePtrDict(self, ptr, scriptUtil):
+        self._ptrDict[weakref.ref(ptr)] = scriptUtil
+        self._garbageCollectionCountdown -= 1
+        if self._garbageCollectionCountdown <= 0:
+            self._garbageCollect()
+            
+    def _garbageCollect(self):
+        self._garbageCollectionCountdown = self.GARBAGE_COLLECTION_INTERVAL
+        for x in self._ptrDict:
+            if x() is None:
+                del self._ptrDict[x]
+
+def SafeApiPtr(SafeApiValue):
+    def __init__(self, valueType):
+        """
+        Returns an object like that returned by MScriptUtil().as*Ptr
+        (ie, asDoublePtr, asIntPtr, etc),  but does so in a safe way,
+        such that the underlying MScriptUtil that provides
+        the actual storage won't get garbage collected
+        prematurely.
+        
+        :Parameters:
+        valueType : 'string'
+            The name of the maya value type you would like a
+        pointer to - ie, 'int', 'short', 'float'.
+        """
+        msu = MScriptUtil()
+        ptr = getattr(msu, 'as' + valueType.capitalize + 'Ptr')
+        self._updatePtrDict(ptr, msu)    
 
 # fast convenience tests on API objects
 def isValidMObjectHandle(obj):
@@ -561,46 +634,72 @@ def getPlugValue( plug ):
                 return plug.asDouble()
             
             elif dataType == MFnNumericData.k2Short :
-                ptr1 = MScriptUtil().asShortPtr()
-                ptr2 = MScriptUtil().asShortPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asShortPtr()
+                ptr2 = msu2.asShortPtr()
                 
                 numFn.getData2Short(ptr1,ptr2)
                 return ( MScriptUtil.getShort(ptr1), MScriptUtil.getShort(ptr2) )
             
             elif dataType in [ MFnNumericData.k2Int, MFnNumericData.k2Long ]:
-                ptr1 = MScriptUtil().asIntPtr()
-                ptr2 = MScriptUtil().asIntPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asIntPtr()
+                ptr2 = msu2.asIntPtr()
                 
                 numFn.getData2Int(ptr1,ptr2)
                 return ( MScriptUtil.getInt(ptr1), MScriptUtil.getInt(ptr2) )
         
             elif dataType == MFnNumericData.k2Float :
-                ptr1 = MScriptUtil().asFloatPtr()
-                ptr2 = MScriptUtil().asFloatPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asFloatPtr()
+                ptr2 = msu2.asFloatPtr()
                 
                 numFn.getData2Float(ptr1,ptr2)
                 return ( MScriptUtil.getFloat(ptr1), MScriptUtil.getFloat(ptr2) )
              
             elif dataType == MFnNumericData.k2Double :
-                ptr1 = MScriptUtil().asDoublePtr()
-                ptr2 = MScriptUtil().asDoublePtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asDoublePtr()
+                ptr2 = msu2.asDoublePtr()
                 
                 numFn.getData2Double(ptr1,ptr2)
                 return ( MScriptUtil.getDouble(ptr1), MScriptUtil.getDouble(ptr2) )
         
             elif dataType == MFnNumericData.k3Float:
-                ptr1 = MScriptUtil().asFloatPtr()
-                ptr2 = MScriptUtil().asFloatPtr()
-                ptr3 = MScriptUtil().asFloatPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                msu3 = _api.MScriptUtil()
+                ptr1 = msu1.asFloatPtr()
+                ptr2 = msu2.asFloatPtr()
+                ptr3 = msu3.asFloatPtr()
                  
                 numFn.getData3Float(ptr1,ptr2,ptr3)
                 return ( MScriptUtil.getFloat(ptr1), MScriptUtil.getFloat(ptr2), MScriptUtil.getFloat(ptr3) )
             
             elif dataType ==  MFnNumericData.k3Double:
-                ptr1 = MScriptUtil().asDoublePtr()
-                ptr2 = MScriptUtil().asDoublePtr()
-                ptr3 = MScriptUtil().asDoublePtr()
-                  
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                msu3 = _api.MScriptUtil()
+                ptr1 = msu1.asDoublePtr()
+                ptr2 = msu2.asDoublePtr()
+                ptr3 = msu3.asDoublePtr()
+                
                 numFn.getData3Double(ptr1,ptr2,ptr3)
                 return ( MScriptUtil.getDouble(ptr1), MScriptUtil.getDouble(ptr2), MScriptUtil.getDouble(ptr3) )
             

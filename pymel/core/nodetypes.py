@@ -953,10 +953,14 @@ class DiscreteComponent( DimensionedComponent ):
         # for speed, as _flatIter may potentially have to plow through a lot of
         # components, so we don't want to make an extra function call...
 
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...
+        scriptUtils = []
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
+            scriptUtils.append(api.MScriptUtil())
+            dimensionIndicePtrs.append(scriptUtils[i].asIntPtr())
             
         for flatIndex in xrange(len(self)):
             mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
@@ -981,10 +985,15 @@ class DiscreteComponent( DimensionedComponent ):
         # This code duplicates much of _flatIter - keeping both
         # for speed, as _flatIter may potentially have to plow through a lot of
         # components, so we don't want to make an extra function call...
+        
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...        
+        scriptUtils = []        
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
+            scriptUtils.append(api.MScriptUtil())            
+            dimensionIndicePtrs.append(scriptUtils[i].asIntPtr())
 
         mfncomp.getElement(self._currentFlatIndex, *dimensionIndicePtrs)
         curIndex = ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
@@ -1433,6 +1442,10 @@ class MeshVertexFace( Component2D ):
     
             # get a MitMeshVertex ...
             mIt = api.MItMeshVertex(self._node.__apimdagpath__())
+            
+            # We don't actually need the value stored
+            # in the MScriptUtil here, so making a throwaway
+            # instance is okay here
             mIt.setIndex(partialIndex[0], api.MScriptUtil().asIntPtr())
             intArray = api.MIntArray()
             mIt.getConnectedFaces(intArray)
@@ -5754,7 +5767,10 @@ class SkinCluster(GeometryFilter):
             return iter(weights)
         else:
             weights = api.MDoubleArray()
-            index = api.MScriptUtil().asUintPtr()
+            # need to keep a ref to the MScriptUtil alive until
+            # all pointers aren't needed...
+            msu = api.MScriptUtil()
+            index = msu.asUintPtr()
             self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index )
             index = api.MScriptUtil.getInt(index)
             args = [iter(weights)] * index

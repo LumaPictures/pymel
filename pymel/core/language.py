@@ -775,7 +775,10 @@ class Mel(object):
             if resType == _api.MCommandResult.kInvalid:
                 return   
             elif resType == _api.MCommandResult.kInt:
-                result = _api.MScriptUtil().asIntPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu = _api.MScriptUtil()
+                result = msu.asIntPtr()
                 res.getResult(result)
                 return _api.MScriptUtil.getInt(result)
             elif resType == _api.MCommandResult.kIntArray:
@@ -783,7 +786,10 @@ class Mel(object):
                 res.getResult(result)
                 return [ result[i] for i in range( result.length() ) ]
             elif resType == _api.MCommandResult.kDouble:
-                result = _api.MScriptUtil().asDoublePtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu = _api.MScriptUtil()
+                result = msu.asDoublePtr()
                 res.getResult(result)
                 return _api.MScriptUtil.getDouble(result)
             elif resType == _api.MCommandResult.kDoubleArray:

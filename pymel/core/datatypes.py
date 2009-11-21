@@ -379,6 +379,8 @@ class Vector(VectorN) :
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
         """ Wrap the Vector api get method """
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         ms = _api.MScriptUtil()
         l = (0,)*self.size
         ms.createFromDouble ( *l )
@@ -1538,6 +1540,8 @@ class Matrix(MatrixN):
         self.assign(t.asMatrix())
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this Matrix, in transform space") 
     def _getScale(self):
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         t = TransformationMatrix(self)
         ms = _api.MScriptUtil()
         ms.createFromDouble ( 1.0, 1.0, 1.0 )
@@ -1546,6 +1550,8 @@ class Matrix(MatrixN):
         return Vector([ms.getDoubleArrayItem (p, i) for i in range(3)])        
     def _setScale(self, value):
         t = TransformationMatrix(self)
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         ms = _api.MScriptUtil()
         ms.createFromDouble (*Vector(value))
         p = ms.asDoublePtr ()
@@ -1866,12 +1872,16 @@ class TransformationMatrix(Matrix):
         self.setRotationQuaternion(q.x, q.y, q.z, q.w)
     rotate = property(_getRotate, _setRotate, None, "The rotation expressed in this TransformationMatrix, in transform space") 
     def _getScale(self):
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         ms = _api.MScriptUtil()
         ms.createFromDouble ( 1.0, 1.0, 1.0 )
         p = ms.asDoublePtr ()
         self.getScale (p, _api.MSpace.kTransform);
         return Vector([ms.getDoubleArrayItem (p, i) for i in range(3)])        
     def _setScale(self, value):
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         ms = _api.MScriptUtil()
         ms.createFromDouble (*Vector(value))
         p = ms.asDoublePtr ()
@@ -2065,6 +2075,8 @@ class EulerRotation(Array):
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
         """ Wrap the Quaternion api get method """
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         ms = _api.MScriptUtil()
         l = (0,)*self.size
         ms.createFromDouble ( *l )
@@ -2328,6 +2340,8 @@ class Quaternion(Matrix):
     # API get, actually not faster than pulling self[i] for such a short structure
     def get(self):
         """ Wrap the Quaternion api get method """
+        # need to keep a ref to the MScriptUtil alive until
+        # all pointers aren't needed...                
         ms = _api.MScriptUtil()
         l = (0,)*self.size
         ms.createFromDouble ( *l )
@@ -2767,45 +2781,71 @@ def getPlugValue( plug ):
                 return plug.asDouble()
             
             elif dataType == _api.MFnNumericData.k2Short :
-                ptr1 = _api.MScriptUtil().asShortPtr()
-                ptr2 = _api.MScriptUtil().asShortPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asShortPtr()
+                ptr2 = msu2.asShortPtr()
                 
                 numFn.getData2Short(ptr1,ptr2)
                 return ( _api.MScriptUtil.getShort(ptr1), _api.MScriptUtil.getShort(ptr2) )
             
             elif dataType in [ _api.MFnNumericData.k2Int, _api.MFnNumericData.k2Long ]:
-                ptr1 = _api.MScriptUtil().asIntPtr()
-                ptr2 = _api.MScriptUtil().asIntPtr()
-                
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asIntPtr()
+                ptr2 = msu2.asIntPtr()
+
                 numFn.getData2Int(ptr1,ptr2)
                 return ( _api.MScriptUtil.getInt(ptr1), _api.MScriptUtil.getInt(ptr2) )
         
             elif dataType == _api.MFnNumericData.k2Float :
-                ptr1 = _api.MScriptUtil().asFloatPtr()
-                ptr2 = _api.MScriptUtil().asFloatPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asFloatPtr()
+                ptr2 = msu2.asFloatPtr()
                 
                 numFn.getData2Float(ptr1,ptr2)
                 return ( _api.MScriptUtil.getFloat(ptr1), _api.MScriptUtil.getFloat(ptr2) )
              
             elif dataType == _api.MFnNumericData.k2Double :
-                ptr1 = _api.MScriptUtil().asDoublePtr()
-                ptr2 = _api.MScriptUtil().asDoublePtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                ptr1 = msu1.asDoublePtr()
+                ptr2 = msu2.asDoublePtr()
                 
                 numFn.getData2Double(ptr1,ptr2)
                 return ( _api.MScriptUtil.getDouble(ptr1), _api.MScriptUtil.getDouble(ptr2) )
         
             elif dataType == _api.MFnNumericData.k3Float:
-                ptr1 = _api.MScriptUtil().asFloatPtr()
-                ptr2 = _api.MScriptUtil().asFloatPtr()
-                ptr3 = _api.MScriptUtil().asFloatPtr()
-                 
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                msu3 = _api.MScriptUtil()
+                ptr1 = msu1.asFloatPtr()
+                ptr2 = msu2.asFloatPtr()
+                ptr3 = msu3.asFloatPtr()
+
                 numFn.getData3Float(ptr1,ptr2,ptr3)
                 return ( _api.MScriptUtil.getFloat(ptr1), _api.MScriptUtil.getFloat(ptr2), _api.MScriptUtil.getFloat(ptr3) )
             
             elif dataType ==  _api.MFnNumericData.k3Double:
-                ptr1 = _api.MScriptUtil().asDoublePtr()
-                ptr2 = _api.MScriptUtil().asDoublePtr()
-                ptr3 = _api.MScriptUtil().asFloatPtr()
+                # need to keep a ref to the MScriptUtil alive until
+                # all pointers aren't needed...                
+                msu1 = _api.MScriptUtil()
+                msu2 = _api.MScriptUtil()
+                msu3 = _api.MScriptUtil()
+                ptr1 = msu1.asDoublePtr()
+                ptr2 = msu2.asDoublePtr()
+                ptr3 = msu3.asDoublePtr()
                   
                 numFn.getData3Double(ptr1,ptr2,ptr3)
                 return ( _api.MScriptUtil.getDouble(ptr1), _api.MScriptUtil.getDouble(ptr2), _api.MScriptUtil.getDouble(ptr3) )

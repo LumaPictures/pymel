@@ -840,7 +840,6 @@ class ApiTypeRegister(object):
                 # it's large enough
                 msu.createFromList([0.0] * size, size)
                 return getattr( msu, funcName )()
-
         return makeRef
             
     @classmethod   
