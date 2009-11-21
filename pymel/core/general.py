@@ -1578,6 +1578,12 @@ class PyNode(util.ProxyUnicode):
         """
         return u"%s(%r)" % (self.__class__.__name__, self.name())
 
+    def __radd__(self, other):
+        if isinstance(other, basestring):
+            return other.__add__( self.name() )
+        else:
+            raise TypeError, "cannot concatenate '%s' and '%s' objects" % ( other.__class__.__name__, self.__class__.__name__)
+
     def __reduce__(self):
         """allows PyNodes to be pickled"""
         return (PyNode, (self.name(),) )

@@ -493,7 +493,7 @@ def proxyClass( cls, classname, dataAttrName = None, dataFuncName=None,
 #ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name', remove=['__getitem__', 'translate']) # 2009 Beta 2.1 has issues with passing classes with __getitem__
 ProxyUnicode = proxyClass( unicode, 'ProxyUnicode', dataFuncName='name',
             remove=[ '__doc__', '__getslice__', '__contains__',  '__len__', 
-            '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__', '__radd__', # reserved for higher levels
+            '__mod__', '__rmod__', '__mul__', '__rmod__', '__rmul__', # reserved for higher levels
             'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
             'capitalize', 'swapcase', 'title',
             'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
