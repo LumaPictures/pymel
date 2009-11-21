@@ -9,8 +9,10 @@ import pymel.internal as internal
 # will check for the presence of an initilized Maya / launch it
 internal.mayaInit() 
 
-
 import pymel.internal.factories as _factories
+import pymel.internal.pmcmds as _pmcmds
+_pmcmds.addAllWrappedCmds()
+
 import pymel.api as _api
 from general import *
 from context import *
@@ -37,7 +39,7 @@ import runtime
 internal.finalize()
 
 import maya.cmds as cmds
-import pymel.internal.pmcmds as _pmcmds
+
 
 _logger = logging.getLogger('pymel.core')
 
