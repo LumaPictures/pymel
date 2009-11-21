@@ -286,9 +286,15 @@ Modifications:
         
         if isinstance(res, list) and len(res):
             if isinstance(res[0], tuple):
+                typ = cmds.getAttr( attr, type=1)
+                if typ == 'pointArray':
+                    return [ datatypes.Point(x) for x in res ]
+                
                 res = res[0]
-                if cmds.getAttr( attr, type=1) == 'double3':
+                if typ == 'double3':
+                    
                     return datatypes.Vector(list(res))
+
             #elif cmds.getAttr( attr, type=1) == 'matrix':
             #    return listToMat(res)
             else:
@@ -385,6 +391,8 @@ Modifications:
                             datatype = 'stringArray'
                         elif isinstance( arg[0], (list,datatypes.Vector) ):
                             datatype = 'vectorArray'
+                        elif isinstance( arg[0], (list,datatypes.Point) ):
+                            datatype = 'pointArray'
                         elif isinstance( arg, datatypes.Vector):
                             datatype = 'double3'
                         elif isinstance( arg,  datatypes.Matrix ):
@@ -430,7 +438,6 @@ Modifications:
                         if datatype.endswith('Array'):
                             kwargs['type'] = datatype
             
-
             if datatype == 'stringArray':
                 # string arrays:
                 #    first arg must be the length of the array being set
@@ -461,7 +468,7 @@ Modifications:
                 args = tuple( [size] + tmpArgs )
                 #print args
             
-            elif datatype in ['int32Array', 'doubleArray']:
+            elif datatype in ['Int32Array', 'doubleArray']:
                 # int32 and double arrays: 
                 #   actually fairly sane
                 # ex:
