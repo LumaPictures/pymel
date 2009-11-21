@@ -1,13 +1,13 @@
 "The primary module for maya commands and node classes"
 
-#import pymel.internal as internal
+#import pymel._internal as _internal
 
-import sys, logging
+import sys
 import pymel.versions as _versions
-import pymel.internal as internal
+import pymel.internal as _internal
 
 # will check for the presence of an initilized Maya / launch it
-internal.mayaInit() 
+_internal.mayaInit() 
 
 import pymel.internal.factories as _factories
 import pymel.internal.pmcmds as _pmcmds
@@ -36,12 +36,12 @@ import uitypes as ui
 import runtime
 
 # initialize MEL 
-internal.finalize()
+_internal.finalize()
 
 import maya.cmds as cmds
 
 
-_logger = logging.getLogger('pymel.core')
+_logger = _internal.getLogger(__name__)
 
 #: dictionary of plugins and the nodes and commands they register   
 _pluginData = {}

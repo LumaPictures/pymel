@@ -5,7 +5,7 @@ import logging
 import logging.config
 from logging import *
 # The python 2.6 version of 'logging' hides these functions, so we need to import explcitly
-from logging import getLevelName, root, info, debug, warning, error, critical, getLogger
+from logging import getLevelName, root, info, debug, warning, error, critical
 import ConfigParser
 
 import maya
@@ -169,6 +169,16 @@ pymelLogFileConfig(getLogConfigFile())
 rootLogger = logging.root
 
 pymelLogger = logging.getLogger("pymel")
+
+def getLogger(name):
+    """
+    a convenience function that allows any module to setup a logger by simply
+    calling `getLogger(__name__)`.  If the module is a package, "__init__" will
+    be stripped from the logger name
+    """
+    if name.endswith('.__init__'):
+        name = name[:-9]
+    return logging.getLogger(name)
 
 # keep as an enumerator so that we can keep the order
 logLevels = util.Enum( 'logLevels', dict([(getLevelName(n),n) for n in range(0,CRITICAL+1,10)]) )

@@ -4,10 +4,10 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 import re, types, os, inspect, sys, textwrap
 from operator import itemgetter
 import pymel.util as util
-import pymel.internal.mayautils as mayautils
-import pymel.internal.plogging as plogging
 import pymel.versions as versions
 import pymel.api as api
+from startup import loadCache
+import plogging as plogging
 import cmdcache
 from cmdcache import *
 import apicache
@@ -155,7 +155,7 @@ def loadCmdDocCache():
     global docCacheLoaded
     if docCacheLoaded:
         return
-    data = mayautils.loadCache( 'mayaCmdsDocs', 'the Maya command documentation' )
+    data = loadCache( 'mayaCmdsDocs', 'the Maya command documentation' )
     util.mergeCascadingDicts(data, cmdlist)
     docCacheLoaded = True
     

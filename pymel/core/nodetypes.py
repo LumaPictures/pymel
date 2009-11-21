@@ -3,15 +3,16 @@ Contains classes corresponding to the Maya type hierarchy, including `DependNode
 """
 import sys, os, re
 import inspect, itertools, math
+
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds #@UnresolvedImport
 import pymel.internal.factories as _factories
 import pymel.api as api #@UnresolvedImport
 import pymel.internal.apicache as _apicache
 import pymel.internal.pwarnings as _warnings
+from pymel.internal import getLogger as _getLogger
 import datatypes
-import logging
-_logger = logging.getLogger(__name__)
+_logger = _getLogger(__name__)
 
 # to make sure Maya is up
 import pymel.internal as internal

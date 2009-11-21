@@ -6,8 +6,8 @@ import sys, inspect, time, os.path
 from pymel.api import *
 from pymel.util import expandArgs
 import pymel.util as _util
-import pymel.internal.mayautils as _mayautils
-import pymel.internal.plogging as _plogging
+import startup
+import plogging as _plogging
 
 _logger = _plogging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
 
 
 def saveApiCache():
-    _mayautils.writeCache( ( apiCache.reservedMayaTypes, apiCache.reservedApiTypes, 
+    startup.writeCache( ( apiCache.reservedMayaTypes, apiCache.reservedApiTypes, 
                            apiCache.apiTypesToApiEnums, apiCache.apiEnumsToApiTypes, 
                            apiCache.mayaTypesToApiTypes, 
                            apiCache.apiTypesToApiClasses, apiCache.apiTypeHierarchy, apiCache.apiClassInfo ),
@@ -81,7 +81,7 @@ def saveApiCache():
 
 def loadApiToMelBridge():
 
-    data = _mayautils.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
+    data = startup.loadCache( 'mayaApiMelBridge', 'the API-MEL bridge', useVersion=False, compressed=True )
     if data is not None:
         # maya 8.5 fix: convert dict to defaultdict
         bridge, overrides = data
@@ -99,7 +99,7 @@ def loadApiToMelBridge():
 def saveApiToMelBridge():
     # maya 8.5 fix: convert defaultdict to dict
     bridge = dict(apiToMelData)
-    _mayautils.writeCache( (bridge,apiClassOverrides), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
+    startup.writeCache( (bridge,apiClassOverrides), 'mayaApiMelBridge', 'the api-mel bridge', useVersion=False )
 
 
 apiToMelData, apiClassOverrides = loadApiToMelBridge()
@@ -406,12 +406,12 @@ class ApiCache(object):
                 except :
                     return self.apiEnumsToApiTypes[ 0 ] # 'kInvalid'
                 
-        if not _mayautils.mayaIsRunning():
-            _mayautils.mayaInit()
+        if not startup.mayaIsRunning():
+            startup.mayaInit()
         import maya.cmds
         
         # load all maya plugins
-        mayaLoc = _mayautils.getMayaLocation()
+        mayaLoc = startup.getMayaLocation()
         # need to set to os.path.realpath to get a 'canonical' path for string comparison...
         pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
         for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
@@ -550,7 +550,7 @@ class ApiCache(object):
         # Need to initialize this to possibly pass into _buildself.apiTypeHierarchy, if rebuildAllButClassInfo
         self.apiClassInfo = None
         
-        data = _mayautils.loadCache( 'mayaApi', 'the API cache', compressed=True )
+        data = startup.loadCache( 'mayaApi', 'the API cache', compressed=True )
         if data is not None:
             
             self.reservedMayaTypes = data[0]
@@ -586,7 +586,7 @@ class ApiCache(object):
         _logger.info( 'merging in dictionary of manual api overrides')
         _util.mergeCascadingDicts( apiClassOverrides, self.apiClassInfo, allowDictToListMerging=True )
         
-        _mayautils.writeCache( ( self.reservedMayaTypes, self.reservedApiTypes, 
+        startup.writeCache( ( self.reservedMayaTypes, self.reservedApiTypes, 
                                self.apiTypesToApiEnums, self.apiEnumsToApiTypes, 
                                self.mayaTypesToApiTypes, 
                                self.apiTypesToApiClasses, self.apiTypeHierarchy, self.apiClassInfo ), 

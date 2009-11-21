@@ -4,7 +4,8 @@ import maya.mel as mm
 import pymel.util as util
 import pymel.versions as versions
 import plogging
-import mayautils
+import pymel.mayautils as mayautils
+import startup
 _logger = plogging.getLogger(__name__)
 
 __all__ = [ 'cmdlist', 'nodeHierarchy', 'uiClassList', 'nodeCommandList', 'moduleCmds' ]
@@ -451,7 +452,7 @@ def fixCodeExamples():
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
    
-    mayautils.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
+    startup.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
 
 
 def getModuleCommandList( category, version=None ):
@@ -773,7 +774,7 @@ def buildCachedData() :
     # /usr/autodesk/maya2008-x64/docs/Maya2008-x64/en_US/Nodes/index_hierarchy.html
     long_version = versions.installName()
     
-    data = mayautils.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
+    data = startup.loadCache( 'mayaCmdsList', 'the list of Maya commands' )
     
     if data is not None:
         cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds = data
@@ -878,13 +879,13 @@ def buildCachedData() :
             if newCmdInfo:
                 cmdDocList[cmdName] = newCmdInfo
          
-        mayautils.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 
+        startup.writeCache( (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 
                               'mayaCmdsList', 'the list of Maya commands',compressed=True )
         
-        mayautils.writeCache( cmdDocList, 
+        startup.writeCache( cmdDocList, 
                               'mayaCmdsDocs', 'the Maya command documentation',compressed=True )
     
-        mayautils.writeCache( examples, 
+        startup.writeCache( examples, 
                               'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
     
     util.mergeCascadingDicts( cmdlistOverrides, cmdlist )

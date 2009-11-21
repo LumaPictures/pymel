@@ -63,19 +63,19 @@ def _getApiVersion():
 def parseVersionStr(versionStr, extension=False):
     """
     >>> from pymel.all import *
-    >>> internal.parseVersionStr('2008 Service Pack1 x64')
+    >>> versions.parseVersionStr('2008 Service Pack1 x64')
     '2008'
-    >>> internal.parseVersionStr('2008 Service Pack1 x64', extension=True)
+    >>> versions.parseVersionStr('2008 Service Pack1 x64', extension=True)
     '2008-x64'
-    >>> internal.parseVersionStr('2008x64', extension=True)
+    >>> versions.parseVersionStr('2008x64', extension=True)
     '2008-x64'
-    >>> internal.parseVersionStr('8.5', extension=True)
+    >>> versions.parseVersionStr('8.5', extension=True)
     '8.5'
-    >>> internal.parseVersionStr('2008 Extension 2')
+    >>> versions.parseVersionStr('2008 Extension 2')
     '2008'
-    >>> internal.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
+    >>> versions.parseVersionStr('/Applications/Autodesk/maya2009/Maya.app/Contents', extension=True)
     '2009'
-    >>> internal.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
+    >>> versions.parseVersionStr('C:\Program Files (x86)\Autodesk\Maya2008', extension=True)
     '2008'
 
     """

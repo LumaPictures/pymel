@@ -26,8 +26,8 @@ from core.uitypes import *
 
 # These two were imported into 'old' pymel top level module,
 # so make sure they're imported here as well
-import core as core
-import tools as tools
+import core
+import tools
 
 ## some submodules do 'import pymel.core.pmcmds as cmds' -
 ## this ensures that when the user does 'from pymel import *',

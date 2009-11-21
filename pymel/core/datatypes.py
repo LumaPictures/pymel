@@ -2,10 +2,9 @@
 A wrap of Maya's Vector, Point, Color, Matrix, TransformationMatrix, Quaternion, EulerRotation types
 """
 
-import inspect, sys
+import sys
 import math, copy
-import itertools, operator, colorsys
-import warnings
+import operator, colorsys
 
 import pymel.util as util
 import pymel.api as _api
