@@ -10,7 +10,7 @@ import pymel.internal.factories as factories
 from testingutils import TestCaseExtended, setCompare
 
 
-VERBOSE = False
+VERBOSE = True
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in factories.apiToMelData.keys()] ) ) )
@@ -365,7 +365,7 @@ def makeComponentCreationTests(evalStringCreator):
                 if VERBOSE:
                     print "trying to create:", evalString, "...",
                 try:
-                    eval(evalString)
+                    self._pyCompFromString(evalString)
                 except Exception:
                     if VERBOSE:
                         print "FAILED"
@@ -867,6 +867,9 @@ class testCase_components(unittest.TestCase):
         # If only2 is now empty as well, success!
         return not only2
 
+    def _pyCompFromString(self, compString):
+        self._failIfWillMakeMayaCrash(compString)
+        return eval(compString)
     
     # Need separate tests for PyNode / Component, b/c was bug where
     # Component('pCube1.vtx[3]') would actually return a Component
@@ -934,7 +937,7 @@ class testCase_components(unittest.TestCase):
         for componentData in self.compData.itervalues():
             for compString in self.object_evalStrings(componentData):
                 try:
-                    pymelObj = eval(compString)
+                    pymelObj = self._pyCompFromString(compString)
                 except Exception:
                     failedComps.append(compString)
                 else:
@@ -981,8 +984,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                self._failIfWillMakeMayaCrash(compString)
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
@@ -1018,8 +1020,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                self._failIfWillMakeMayaCrash(compString)
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
@@ -1056,8 +1057,7 @@ class testCase_components(unittest.TestCase):
             if VERBOSE:
                 print compString, "-", "creating...",
             try:
-                self._failIfWillMakeMayaCrash(compString)
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
@@ -1120,7 +1120,7 @@ class testCase_components(unittest.TestCase):
         failedComparisons = []
         for compString, compData in self.getComponentStrings(returnCompData=True):
             try:
-                pymelObj = eval(compString)
+                pymelObj = self._pyCompFromString(compString)
             except Exception:
                 failedCreation.append(compString)
             else:
@@ -1153,7 +1153,7 @@ class testCase_components(unittest.TestCase):
                     # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
                     # meaning any surf.u/v/uv.__getindex__ will crash
                     nodeName, compName, indices = self._compStrSplit(comp)
-                    if compName in ('u', 'v', 'uv', "comp('u')", "comp('v')", "comp('uv')"):
+                    if re.match(r'''(u|v|uv)(Isoparm)?|comp\(u?['"](u|v|uv)(Isoparm)?['"]\)''', compName):
                         raise CrashError
                 if (platform.system() == 'Darwin' or
                     api.MGlobal.mayaState in (api.MGlobal.kBatch,
@@ -1283,6 +1283,7 @@ class testCase_components(unittest.TestCase):
 
         # Check for a ContinuousComponent...
         sphere = PyNode(self.nodes['sphere'])
+        self._failIfWillMakeMayaCrash('%s.u[2]' % sphere.name())
         sphere.u[2]
         sphere.u[4]
         sphere.u[0]
@@ -1321,7 +1322,7 @@ class testCase_components(unittest.TestCase):
                 if VERBOSE:
                     print melString, "/", pyString, "-", "creating...",
                 try:
-                    pymelObj = eval(pyString)
+                    pymelObj = self._pyCompFromString(pyString)
                 except Exception:
                     failedCreation.append(pyString)
                 else:
@@ -1378,12 +1379,10 @@ class testCase_components(unittest.TestCase):
             if not self.compsEqual(pynode, expectedStrings, compData):
                 failedComps.append(repr(pynode) + '\n      not equal to:\n   ' + str(expectedStrings))
 
-        pySphere = PyNode('nurbsSphere1')
-        check(pySphere.vIsoparm[5.54][1.1:3.4],
+        check(self._pyCompFromString("PyNode('nurbsSphere1').vIsoparm[5.54][1.1:3.4]"),
               'nurbsSphereShape1.u[1.1:3.4][5.54]',
               self.compData['nurbsIsoUV'])
-        pyCurve = PyNode('nurbsCircle1')
-        check(pyCurve.u[2.8:6],
+        check(self._pyCompFromString("PyNode('nurbsCircle1').u[2.8:6]"),
               'nurbsCircleShape1.u[2.8:6]',
               self.compData['curvePt'])
         if failedComps:

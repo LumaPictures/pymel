@@ -961,7 +961,7 @@ class DiscreteComponent( DimensionedComponent ):
             
         for flatIndex in xrange(len(self)):
             mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
-            yield ComponentIndex(api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs)
+            yield ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
@@ -988,7 +988,7 @@ class DiscreteComponent( DimensionedComponent ):
             dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
 
         mfncomp.getElement(self._currentFlatIndex, *dimensionIndicePtrs)
-        curIndex = ComponentIndex(api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs)
+        curIndex = ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
             
     def next(self):
