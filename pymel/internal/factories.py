@@ -88,7 +88,7 @@ def _getApiOverrideNameAndData(classname, pymelName):
             pymelName = nameType
     else:
         # set defaults
-        _logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
+        #_logger.debug( "creating default api-to-MEL data for %s.%s" % ( classname, pymelName ) )
         data = { 'enabled' : pymelName not in EXCLUDE_METHODS }
         apicache.apiToMelData[(classname,pymelName)] = data
 
@@ -363,8 +363,7 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
         argCorrector = lambda x: x == 'true'
     else:
         argCorrector = None
-        
-    #_logger.debug(funcName, inFunc.__name__, commandFlags)
+    
 
     # need to define a seperate var here to hold
     # the old value of newFunc, b/c 'return newFunc'
@@ -432,15 +431,15 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             try:       
                 inFunc = getattr(module, funcName)
             except AttributeError:
-                #if funcName == 'lsThroughFilter': _logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
+                #if funcName == 'lsThroughFilter': #_logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
         
         if not inFunc:
             try:
                 inFunc = getattr(pmcmds,funcName)
-                #if funcName == 'lsThroughFilter': _logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
+                #if funcName == 'lsThroughFilter': #_logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
-                _logger.debug('Cannot find function %s' % funcNameOrObject)
+                #_logger.debug('Cannot find function %s' % funcNameOrObject)
                 return
     else:
         funcName = funcNameOrObject.__name__
@@ -770,13 +769,12 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArraySetter( apiTypeName, length, setFunc, initFunc ):
         def setArray( array ):
-            #_logger.debug("set %s", array)
             if len(array) != length:
                 raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypeName )
             arrayPtr = initFunc()
             for i, val in enumerate( array ):
                 setFunc( arrayPtr, i, val )
-            _logger.debug("result %s", arrayPtr)
+            #_logger.debug("result %s" % arrayPtr)
             return arrayPtr
         setArray.__name__ = 'set_' + apiTypeName + str(length) + 'Array'
         return setArray
@@ -784,7 +782,6 @@ class ApiTypeRegister(object):
     @staticmethod
     def _makeArrayGetter( apiTypeName, length, getFunc ):
         def getArray( array ):
-            #_logger.debug("get %s", array)
             return [ getFunc(array,i) for i in range(length) ]
         getArray.__name__ = 'get_' + apiTypeName + str(length) + 'Array'
         return getArray
@@ -801,7 +798,7 @@ class ApiTypeRegister(object):
         except KeyError:
             try:
                 # convert to pymel naming convetion  MTime -> Time,  MVector -> Vector
-                #_logger.debug("getting pymelName %s", apiType)
+                #_logger.debug("getting pymelName %s" % apiType)
                 buf = re.split( '(?:MIt)|(?:MFn)|(?:M)', apiType)
                 #_logger.debug(buf)
                 assert buf[1]
@@ -1050,7 +1047,7 @@ class ApiArgUtil(object):
                     #except AttributeError:
                     #    assert argtype in refInit, '%s.%s(): cannot cast referece arg %s of type %s' % (apiClassName, methodName, argname, argtype)
         except AssertionError, msg:
-            _logger.debug( str(msg) )
+            #_logger.debug( str(msg) )
             return False
         
         #_logger.debug("%s: valid" % self.getPrototype())
@@ -1257,7 +1254,7 @@ class ApiArgUtil(object):
     def castReferenceResult(self,argtype,outArg):
         f = ApiTypeRegister.refCast[ argtype ]
         #_logger.debug("castReferenceResult")
-        #_logger.debug( "%s %s %s", f, argtype, outArg)
+        #_logger.debug( "%s %s %s" % (f, argtype, outArg) )
         if f is None:
             return outArg
         
@@ -1580,7 +1577,7 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
         else:
             # edit method ( setter )
             if getterArgHelper is None:
-                _logger.debug( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
+                #_logger.debug( "%s.%s has no inverse: undo will not be supported" % ( apiClassName, methodName ) )
                 getterInArgs = []
                 undoable = False
             else:
@@ -1699,9 +1696,8 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 defaults.append( str(default) )
             else:
                 defaults.append( default )
-                     
-        #_logger.debug(inArgs, defaults)
-        if defaults: _logger.debug("defaults: %s" % defaults)
+        
+        if defaults: #_logger.debug("defaults: %s" % defaults)
         
         wrappedApiFunc = util.interface_wrapper( wrappedApiFunc, ['self'] + inArgs, defaults=defaults )
         
@@ -1759,7 +1755,7 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
                 try:
                     pymelType = pymelType.pymelName( ApiTypeRegister.getPymelType( pymelType[0] ) )
                 except:
-                    _logger.debug("Could not determine pymel name for %r" % repr(pymelType))
+                    #_logger.debug("Could not determine pymel name for %r" % repr(pymelType))
 
         doc = repr(pymelType).replace("'", "`")
         if type in ApiTypeRegister.arrayItemTypes.keys():
@@ -1842,7 +1838,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
     def __new__(cls, classname, bases, classdict):
         """ Create a new class of metaClassConstants type """
         
-        #_logger.debug( 'MetaMayaTypeWrapper: %s' % classdict ) 
+        #_logger.debug( 'MetaMayaTypeWrapper: %s' % classname ) 
         removeAttrs = []
         # define __slots__ if not defined
         if '__slots__' not in classdict :
@@ -1862,10 +1858,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
             apiClassNamesToPyNodeNames[apicls.__name__] = classname
             
             if not proxy and apicls not in bases:
-                #_logger.debug("ADDING BASE",classdict['apicls'])
+                #_logger.debug("ADDING BASE %s" % classdict['apicls'])
                 bases = bases + (classdict['apicls'],)
             try:
-                #_logger.debug((classname, apicls))
                 classInfo = apicache.apiClassInfo[apicls.__name__]
             except KeyError:
                 _logger.info("No api information for api class %s" % ( apicls.__name__ ))
@@ -1884,7 +1879,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                             if attr not in herited :
                                 herited[attr] = base                                
                 
-                #_logger.debug("Methods info: %(methods)s" % classInfo)
+                ##_logger.debug("Methods info: %(methods)s" % classInfo)
                 # Class Methods
                 for methodName, info in classInfo['methods'].items(): 
                     # don't rewrap if already herited from a base class that is not the apicls
@@ -1909,19 +1904,19 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                     #_logger.debug("%s.%s autowrapping %s.%s usng proxy %r" % (classname, pymelName, apicls.__name__, methodName, proxy))
                                     method = wrapApiMethod( apicls, methodName, newName=pymelName, proxy=proxy, overloadIndex=overloadIndex )
                                     if method:
-                                        _logger.debug("%s.%s successfully created" % (classname, pymelName ))
+                                        #_logger.debug("%s.%s successfully created" % (classname, pymelName ))
                                         classdict[pymelName] = method
-                                    #else: _logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
-                                #else: _logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
-                            #else: _logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
-                        #else: _logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
-                    #else: _logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
+                                    #else: #_logger.debug("%s.%s: wrapApiMethod failed to create method" % (apicls.__name__, methodName ))
+                                #else: #_logger.debug("%s.%s: skipping" % (apicls.__name__, methodName ))
+                            #else: #_logger.debug("%s.%s has been manually disabled, skipping" % (apicls.__name__, methodName))
+                        #else: #_logger.debug("%s.%s has no wrappable methods, skipping" % (apicls.__name__, methodName))
+                    #else: #_logger.debug("%s.%s already herited from %s, skipping" % (apicls.__name__, methodName, herited[pymelName]))
                 
                 if 'pymelEnums' in classInfo:
                     # Enumerators
                     
                     for enumName, enumList in classInfo['pymelEnums'].items():
-                        _logger.debug("adding enum %s to class %s" % ( enumName, classname ))
+                        #_logger.debug("adding enum %s to class %s" % ( enumName, classname ))
 #                        #enum = util.namedtuple( enumName, enumList )
 #                        #classdict[enumName] = enum( *range(len(enumList)) )
 #                        # group into (key, doc) pairs
@@ -1933,13 +1928,13 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         
             if not proxy:
                 #if removeAttrs:
-                #    _logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
+                #    #_logger.debug( "%s: removing attributes %s" % (classname, removeAttrs) )
                 def __getattribute__(self, name): 
                     #_logger.debug(name )
                     if name in removeAttrs and name not in EXCLUDE_METHODS: # tmp fix
                         #_logger.debug("raising error")
                         raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
-                    #_logger.debug("getting from", bases[0])
+                    #_logger.debug("getting from %s" % bases[0])
                     return bases[0].__getattribute__(self, name)
                     
                 classdict['__getattribute__'] = __getattribute__
@@ -2022,7 +2017,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     _classDictKeyForMelCmd = None
     
     def __new__(cls, classname, bases, classdict):
-        #_logger.debug( '_MetaMayaCommandWrapper: %s' % classdict )
+        #_logger.debug( '_MetaMayaCommandWrapper: %s' % classname )
 
         newcls = super(_MetaMayaCommandWrapper, cls).__new__(cls, classname, bases, classdict)
         
@@ -2036,7 +2031,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
-            _logger.debug("No MEL command info available for %s" % melCmdName)
+            #_logger.debug("No MEL command info available for %s" % melCmdName)
         else:
             try:    
                 cmdModule = __import__( 'pymel.core.' + cmdInfo['type'] , globals(), locals(), [''])
@@ -2055,7 +2050,6 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
             
             parentClasses = [ x.__name__ for x in inspect.getmro( newcls )[1:] ]
             for flag, flagInfo in cmdInfo['flags'].items():
-                ##_logger.debug(nodeType, flag)
                 # don't create methods for query or edit, or for flags which only serve to modify other flags
                 if flag in ['query', 'edit'] or 'modified' in flagInfo:
                     continue
@@ -2064,7 +2058,6 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                 if flagInfo.has_key('modes'):
                     # flags which are not in maya docs will have not have a modes list unless they 
                     # have passed through testNodeCmds
-                    ##_logger.debug(classname, nodeType, flag)
                     #continue
                     modes = flagInfo['modes']
     
@@ -2101,8 +2094,8 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 
                                 #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
-                            #else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
-                        #else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled or overridden by API" % (classname, methodName)))
+                        else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
                     # edit command: 
                     if 'edit' in modes or ( infoCmd and 'create' in modes ):
                         # if there is a corresponding query we use the 'set' prefix. 
@@ -2123,10 +2116,10 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
                                 fixedFunc = fixCallbacks( func, melCmdName )
                                 
                                 wrappedMelFunc = makeEditFlagMethod( fixedFunc, flag, methodName)
-                                _logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
+                                #_logger.debug("Adding mel derived method %s.%s()" % (classname, methodName))
                                 classdict[methodName] = wrappedMelFunc
-                            #else: _logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
-                        #else: _logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
+                            else: #_logger.debug(("skipping mel derived method %s.%s(): manually disabled" % (classname, methodName)))
+                        else: #_logger.debug(("skipping mel derived method %s.%s(): already exists" % (classname, methodName)))
         
         for name, attr in classdict.iteritems() :
             type.__setattr__(newcls, name, attr) 
@@ -2157,7 +2150,7 @@ class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
         try:
             cmdInfo = cmdlist[melCmdName]
         except KeyError:
-            _logger.debug("No MEL command info available for %s" % melCmdName)
+            #_logger.debug("No MEL command info available for %s" % melCmdName)
             classdoc = ''
         else:
             loadCmdDocCache()
@@ -2173,7 +2166,7 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
     def __new__(cls, classname, bases, classdict):
         # If the class explicitly gives it's mel node name, use that - otherwise, assume it's
         # the name of the PyNode, uncapitalized
-        #_logger.debug( 'MetaMayaNodeWrapper: %s' % classdict )
+        #_logger.debug( 'MetaMayaNodeWrapper: %s' % classname )
         nodeType = classdict.setdefault('__melnode__', util.uncapitalize(classname))
         apicache.addMayaType( nodeType )
         apicls = apicache.toApiFunctionSet( nodeType )
@@ -2186,7 +2179,6 @@ class MetaMayaNodeWrapper(_MetaMayaCommandWrapper) :
                 #_logger.debug( "%s: adding __apicls__ %s" % (classname, apicls) )
                 MetaMayaNodeWrapper.completedClasses[ apicls ] = classname
                 classdict['__apicls__'] = apicls
-        #_logger.debug("="*40, classname, apicls, "="*40)
         
         return super(MetaMayaNodeWrapper, cls).__new__(cls, classname, bases, classdict)
 
@@ -2478,13 +2470,13 @@ def addPyNodeCallback( dynModule, mayaType, pyNodeTypeName, parentPyNodeTypeName
         PyNodeType = MetaMayaNodeWrapper(pyNodeTypeName, (ParentPyNode,), {'__melnode__':mayaType})
     except TypeError, msg:
         # for the error: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
-        _logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
+        #_logger.debug("Could not create new PyNode: %s(%s): %s" % (pyNodeTypeName, ParentPyNode.__name__, msg ))
         import new
         PyNodeType = new.classobj(pyNodeTypeName, (ParentPyNode,), {})
         PyNodeType.__module__ = dynModule.__name__
         setattr( dynModule, pyNodeTypeName, PyNodeType )
     else:
-        #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentMayaType)))
+        #_logger.debug(("Created new PyNode: %s(%s)" % (pyNodeTypeName, parentPyNodeTypeName)))
         PyNodeType.__module__ = dynModule.__name__
         setattr( dynModule, pyNodeTypeName, PyNodeType )
     pyNodeTypesHierarchy[PyNodeType] = ParentPyNode
