@@ -13,7 +13,7 @@ It controls:
 """
  
 import inspect, re, os
-from pymel.core import *
+from pymel.all import *
 import pymel.internal.factories as factories
 import logging
 logger = logging.getLogger(__name__)
