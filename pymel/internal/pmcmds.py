@@ -125,10 +125,9 @@ def removeWrappedCmd(cmdname):
     except NameError:
         warnings.warn("%s not found in %s" % (cmdname, __name__))
     
-def _addAllWrappedCmds():
+def addAllWrappedCmds():
     for cmdname, cmd in inspect.getmembers(maya.cmds, callable):
         addWrappedCmd(cmdname, cmd)
 
-_addAllWrappedCmds()
 
     

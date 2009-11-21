@@ -3,11 +3,12 @@ Contains classes corresponding to the Maya type hierarchy, including `DependNode
 """
 import sys, os, re
 import inspect, itertools, math
-import pymel.util as util
+import pymel.util as _util
 import pymel.internal.pmcmds as cmds #@UnresolvedImport
 import pymel.internal.factories as _factories
 import pymel.api as api #@UnresolvedImport
 import pymel.internal.apicache as _apicache
+import pymel.internal.pwarnings as _warnings
 import datatypes
 import logging
 _logger = logging.getLogger(__name__)
@@ -119,7 +120,7 @@ def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
 def _sequenceToComponentSlice( array ):
     """given an array, convert to a maya-formatted slice"""
     
-    return [ HashableSlice( x.start, x.stop-1, x.step) for x in util.sequenceToSlices( array ) ]
+    return [ HashableSlice( x.start, x.stop-1, x.step) for x in _util.sequenceToSlices( array ) ]
 
 def _formatSlice(sliceObj):
     startIndex, stopIndex, step = sliceObj.start, sliceObj.stop, sliceObj.step
@@ -131,8 +132,8 @@ def _formatSlice(sliceObj):
         sliceStr = '%s:%s' % (startIndex, stopIndex)
     return sliceStr 
 
+ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', makeDefaultInit=True)
 
-ProxySlice = util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False, makeDefaultInit=True)
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using
 # normal class syntax...
@@ -256,7 +257,7 @@ class Component( general.PyNode ):
         self._indices = self.__apiobjects__.get('ComponentIndex', None)
         
         if self._indices:
-            if util.isIterable(self._ComponentLabel__):
+            if _util.isIterable(self._ComponentLabel__):
                 oldCompLabel = set(self._ComponentLabel__)
             else:
                 oldCompLabel = set( (self._ComponentLabel__,) )
@@ -574,7 +575,7 @@ class DimensionedComponent( Component ):
                     raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
                                      % (label, dictLabel))
                 indices.update(self._standardizeIndices(dictIndices, label=dictLabel))
-        elif allowIterable and util.isIterable(indexObjs):
+        elif allowIterable and _util.isIterable(indexObjs):
             for index in indexObjs:
                 indices.update(self._standardizeIndices(index,
                                                         allowIterable=False,
@@ -610,7 +611,7 @@ class DimensionedComponent( Component ):
                     newIndices.extend(self._sliceToIndices(dimIndex,
                                                            partialIndex=oldPartial))
                 indices = newIndices
-            elif util.isIterable(dimIndex):
+            elif _util.isIterable(dimIndex):
                 if allowIterable: 
                     newIndices = []
                     for oldPartial in indices:
@@ -645,7 +646,7 @@ class DimensionedComponent( Component ):
         Will raise an appropriate IndexError if the given item
         is not suitable as a __getitem__ indice.
         """
-        if allowIterables and util.isIterable(item):
+        if allowIterables and _util.isIterable(item):
             for x in item:
                 self._validateGetItemIndice(item, allowIterables=False)
             return
@@ -1191,7 +1192,7 @@ class Component1D64( DiscreteComponent ):
                 # subd MIt*'s have no .count(), and there is no appropriate
                 # MFn, so count it using strings...
                 melStrings = self.__melobject__()
-                if util.isIterable(melStrings):
+                if _util.isIterable(melStrings):
                     count = Component.numComponentsFromStrings(*melStrings)
                 else:
                     count = Component.numComponentsFromStrings(melStrings)
@@ -1265,7 +1266,7 @@ class MeshVertex( MItComponent1D ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedEdges' instead.") 
+    @_warnings.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
         """
         :rtype: `MeshEdge` list
@@ -1280,7 +1281,7 @@ class MeshVertex( MItComponent1D ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedFaces' instead.")
+    @_warnings.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
         """
         :rtype: `MeshFace` list
@@ -1337,7 +1338,7 @@ class MeshEdge( MItComponent1D ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedFaces' instead.")
+    @_warnings.deprecated("Use 'connectedFaces' instead.")
     def toFaces(self):
         """
         :rtype: `MeshFace` list
@@ -1386,7 +1387,7 @@ class MeshFace( MItComponent1D ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedEdges' instead.") 
+    @_warnings.deprecated("Use 'connectedEdges' instead.") 
     def toEdges(self):
         """
         :rtype: `MeshEdge` list
@@ -1403,7 +1404,7 @@ class MeshFace( MItComponent1D ):
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @internal.deprecated("Use 'connectedVertices' instead.")
+    @_warnings.deprecated("Use 'connectedVertices' instead.")
     def toVertices(self):
         """
         :rtype: `MeshVertex` list
@@ -1482,7 +1483,7 @@ class MeshVertexFace( Component2D ):
         """
         if len(self._partialIndex) == 0:
             return super(MeshVertexFace, self)._validateGetItemIndice(item)
-        if allowIterables and util.isIterable(item):
+        if allowIterables and _util.isIterable(item):
             for x in item:
                 self._validateGetItemIndice(item, allowIterables=False)
             return
@@ -2536,7 +2537,7 @@ class Attribute(general.PyNode):
         except RuntimeError:
             raise TypeError, "%s is not an array (multi) attribute" % self
 
-    @internal.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
+    @_warnings.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
     def size(self):
         """
         The number of elements in an array attribute. Returns None if not an array element.
@@ -3018,7 +3019,7 @@ class Attribute(general.PyNode):
 #        """attributeQuery -listChildren"""
 #        return map( 
 #            lambda x: Attribute( self.node() + '.' + x ), 
-#            util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
+#            _util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
 #                )
 #}
 #-------------------------- 
@@ -3336,7 +3337,7 @@ class DependNode( general.PyNode ):
                 # to get a class method or a maya attribute, so we raise a more generic AttributeError
                 raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
             
-    @util.universalmethod
+    @_util.universalmethod
     def attrDefaults(obj,attr):
         """
         Access to an attribute of a node.  This does not require an instance:
@@ -3358,7 +3359,7 @@ class DependNode( general.PyNode ):
                 cls.__apiobjects__['dagMod'] = api.MDagModifier()
                 cls.__apiobjects__['dgMod'] = api.MDGModifier()
                 # TODO: make something more reliable than uncapitalize
-                obj = _apicache._makeDgModGhostObject( util.uncapitalize(cls.__name__), 
+                obj = _apicache._makeDgModGhostObject( _util.uncapitalize(cls.__name__), 
                                                                 cls.__apiobjects__['dagMod'], 
                                                                 cls.__apiobjects__['dgMod'] )
                 nodeMfn = cls.__apicls__(obj)
@@ -3418,10 +3419,6 @@ class DependNode( general.PyNode ):
                 return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) ) 
             
         except RuntimeError:
-            if internal.pymel_options.get( '0_7_compatibility_mode', True):
-                import other
-                return other.AttributeName( '%s.%s' % (self, attr) )
-                
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
             raise general.MayaAttributeError( '%s.%s' % (self, attr) )
                
@@ -3484,7 +3481,7 @@ class DependNode( general.PyNode ):
         
         """
         # stringify fix
-        return map( lambda x: self.attr(x), util.listForNone(cmds.listAttr(self.name(), **kwargs)))
+        return map( lambda x: self.attr(x), _util.listForNone(cmds.listAttr(self.name(), **kwargs)))
 
     def attrInfo( self, **kwargs):
         """attributeInfo
@@ -3492,7 +3489,7 @@ class DependNode( general.PyNode ):
         :rtype: `Attribute` list
         """
         # stringify fix
-        return map( lambda x: self.attr(x) , util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
+        return map( lambda x: self.attr(x) , _util.listForNone(cmds.attributeInfo(self.name(), **kwargs)))
  
  
 #}
@@ -4069,7 +4066,7 @@ class Shape(DagNode):
         
 class Camera(Shape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    @internal.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
+    @_warnings.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
     def getFov(self):
         aperture = self.horizontalFilmAperture.get()
         fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
@@ -4077,14 +4074,14 @@ class Camera(Shape):
         fov = 57.29578 * fov
         return fov
     
-    @internal.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
+    @_warnings.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
     def setFov(self, fov):
         aperture = self.horizontalFilmAperture.get()
         focal = math.tan (0.00872665 * fov);
         focal = (0.5 * aperture) / (focal * 0.03937);
         self.focalLength.set(focal)
     
-    @internal.deprecated('Use getAspectRatio instead', 'Camera' )  
+    @_warnings.deprecated('Use getAspectRatio instead', 'Camera' )  
     def getFilmAspect(self):
         return self.horizontalFilmAperture.get()/ self.verticalFilmAperture.get()
 
@@ -4196,19 +4193,7 @@ class Transform(DagNode):
                 try:
                     return getattr(shape,attr)
                 except AttributeError: pass
-            raise e
-        
-        # if compatibility mode is on then we would get an AttributeName if the attribute did not exist
-        if internal.pymel_options.get( '0_7_compatibility_mode', True):
-            import other
-            if isinstance(res, other.AttributeName):
-                # we didn't get a real attribute, so lets' try to get a real one on the shape
-                shape = self.getShape()
-                if shape:
-                    shapeRes = shape.attr(attr)
-                    if isinstance(shapeRes, Attribute):
-                        return shapeRes
-                
+            raise e             
         return res
     
     def __setattr__(self, attr, val):
@@ -4249,18 +4234,7 @@ class Transform(DagNode):
                     return self.getShape().attr(attr)
                 except AttributeError:
                     raise e
-            raise e
-        
-        # if compatibility mode is on then we would get an AttributeName if the attribute did not exist
-        if checkShape and internal.pymel_options.get( '0_7_compatibility_mode', True):
-            import other
-            if isinstance(res, other.AttributeName):
-                # we didn't get a real attribute, so lets' try to get a real one on the shape
-                shape = self.getShape()
-                if shape:
-                    shapeRes = shape.attr(attr)
-                    if isinstance(shapeRes, Attribute):
-                        return shapeRes                
+            raise e       
         return res
     
 #    def __getattr__(self, attr):
@@ -4636,9 +4610,9 @@ if versions.isUnlimited():
 class RenderLayer(DependNode):
     def listMembers(self, fullNames=True):
         if fullNames:
-            return map( general.PyNode, util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=True) ) )
+            return map( general.PyNode, _util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=True) ) )
         else:
-            return util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=False) )
+            return _util.listForNone( cmds.editRenderLayerMembers( self, q=1, fullNames=False) )
         
     def addMembers(self, members, noRecurse=True):
         cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
@@ -4647,7 +4621,7 @@ class RenderLayer(DependNode):
         cmds.editRenderLayerMembers( self, members, remove=True )
  
     def listAdjustments(self):
-        return map( general.PyNode, util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
+        return map( general.PyNode, _util.listForNone( cmds.editRenderLayerAdjustment( layer=self, q=1) ) )
       
     def addAdjustments(self, members, noRecurse):
         return cmds.editRenderLayerMembers( self, members, noRecurse=noRecurse )
@@ -4661,9 +4635,9 @@ class RenderLayer(DependNode):
 class DisplayLayer(DependNode):
     def listMembers(self, fullNames=True):
         if fullNames:
-            return map( general.PyNode, util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=True) ) )
+            return map( general.PyNode, _util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=True) ) )
         else:
-            return util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=False) )
+            return _util.listForNone( cmds.editDisplayLayerMembers( self, q=1, fullNames=False) )
         
     def addMembers(self, members, noRecurse=True):
         cmds.editDisplayLayerMembers( self, members, noRecurse=noRecurse )
@@ -5151,11 +5125,11 @@ class Mesh(SurfaceShape):
                             'vtxFace'   : MeshVertexFace,
                             'faceVerts' : MeshVertexFace}
                         
-    vertexCount =  internal.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
-    edgeCount =    internal.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
-    faceCount =    internal.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
-    uvcoordCount = internal.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
-    triangleCount = internal.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
+    vertexCount =  _warnings.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
+    edgeCount =    _warnings.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
+    faceCount =    _warnings.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
+    uvcoordCount = _warnings.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
+    triangleCount = _warnings.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
@@ -5282,7 +5256,7 @@ class SelectionSet( api.MSelectionList):
         melList = []
         for selItem in self:
             selItem = selItem.__melobject__()
-            if util.isIterable(selItem):
+            if _util.isIterable(selItem):
                 melList.extend(selItem)
             else:
                 melList.append(selItem)
@@ -5707,7 +5681,7 @@ class ObjectSet(Entity):
         """
         return list( self.asSelectionSet(flatten) )
 
-    @internal.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
+    @_warnings.deprecated( 'Use ObjectSet.members instead', 'ObjectSet' )
     def elements(self, flatten=False):
         """return members as a list
         :rtype: `list`
@@ -5746,14 +5720,14 @@ class ObjectSet(Entity):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSubSet(other)
     
-    issubset = internal.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
+    issubset = _warnings.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
     
     
     def isSuperSet(self, other ):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSuperSet(other)
     
-    issuperset = internal.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
+    issuperset = _warnings.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
     
     def isEqual(self, other ):
         """
@@ -5816,7 +5790,7 @@ class ObjectSet(Entity):
     def union(self, other):
         self.addMembers(other)
      
-    update = internal.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
+    update = _warnings.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
 
 
 class GeometryFilter(DependNode): pass
@@ -5865,7 +5839,7 @@ _factories.ApiTypeRegister.register( 'MSelectionList', SelectionSet )
 
 def _createPyNodes():
 
-    dynModule = util.LazyLoadModule(__name__, globals())
+    dynModule = _util.LazyLoadModule(__name__, globals())
     
     # reset cache
     _factories.pyNodeTypesHierarchy.clear()
@@ -5881,7 +5855,7 @@ def _createPyNodes():
             _logger.warning("could not find parent node: %s", mayaType)
             continue
         
-        #className = util.capitalize(mayaType)
+        #className = _util.capitalize(mayaType)
         #if className not in __all__: __all__.append( className )
         
         _factories.addPyNode( dynModule, mayaType, parentMayaType )

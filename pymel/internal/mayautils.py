@@ -230,7 +230,7 @@ def mayaDocsLocation(version=None):
             
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
 
-    return docLocation
+    return os.path.realpath(docLocation)
 
 def refreshEnviron():
     """
@@ -412,8 +412,8 @@ def mayaInit(forversion=None) :
             import maya.standalone #@UnresolvedImport
             maya.standalone.initialize(name="python")
             
-            #if versions.current < versions.v2009:
-            #    refreshEnviron()
+            if versions.current() < versions.v2009:
+                refreshEnviron()
 
         except ImportError, e:
             raise e, str(e) + ": pymel was unable to intialize maya.standalone"
@@ -600,11 +600,8 @@ def getConfigFile():
 def parsePymelConfig():
     import ConfigParser
 
-    types = { '0_7_compatibility_mode' : 'boolean',
-              'skip_mel_init' : 'boolean' }
-    
-    defaults = { '0_7_compatibility_mode' : 'off',
-                 'skip_mel_init' : 'off' }
+    types = { 'skip_mel_init' : 'boolean' }
+    defaults = {'skip_mel_init' : 'off' }
     
     config = ConfigParser.ConfigParser(defaults)
     config.read( getConfigFile() )

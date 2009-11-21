@@ -3,7 +3,7 @@ from StringIO import StringIO
 from unittest import *
 
 import pymel.util
-from pymel.util import warn
+from warnings import warn
 
 TEST_MAIN_FUNC_NAME = "test_main"
 SUITE_FUNC_NAME = "suite"

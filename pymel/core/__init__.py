@@ -9,9 +9,11 @@ import pymel.internal as internal
 # will check for the presence of an initilized Maya / launch it
 internal.mayaInit() 
 
-
 import pymel.internal.factories as _factories
+import pymel.internal.pmcmds as _pmcmds
+_pmcmds.addAllWrappedCmds()
 
+import pymel.api as _api
 from general import *
 from context import *
 from system import *
@@ -32,12 +34,12 @@ import uitypes
 import uitypes as ui
 
 import runtime
-import maya.cmds as cmds
 
 # initialize MEL 
 internal.finalize()
 
 import maya.cmds as cmds
+
 
 _logger = logging.getLogger('pymel.core')
 
@@ -57,15 +59,12 @@ def _pluginLoaded( *args ):
     if not pluginName:
         return
     
-    #print type(array)
-    #pluginPath, pluginName = array
-    import pymel.internal.pmcmds as pmcmds
     _logger.info("Plugin loaded: %s", pluginName)
     
     _pluginData[pluginName] = {}
     
     try:
-        commands = pmcmds.pluginInfo(pluginName, query=1, command=1)
+        commands = _pmcmds.pluginInfo(pluginName, query=1, command=1)
     except:
         _logger.error("Failed to get command list from %s", pluginName)
         commands = None
@@ -78,7 +77,7 @@ def _pluginLoaded( *args ):
         for funcName in commands:
             #__logger.debug("adding new command:", funcName)
             _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
-            pmcmds.addWrappedCmd(funcName)
+            _pmcmds.addWrappedCmd(funcName)
             func = _factories.functionFactory( funcName )
             try:
                 if func:
@@ -99,7 +98,7 @@ def _pluginLoaded( *args ):
             try:
                 id = _pluginData[pluginName]['callbackId']
                 if id is not None:
-                    api.MEventMessage.removeCallback( id )
+                    _api.MEventMessage.removeCallback( id )
                     id.disown()
             except KeyError:
                 _logger.warning("could not find callback id!")
@@ -127,11 +126,11 @@ def _pluginLoaded( *args ):
                             setattr( sys.modules['pymel.all'], nodeName, getattr(nodetypes,nodeName) )
         
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
-        if api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and api.MFileIO.isOpeningFile() ):
+        if _api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and _api.MFileIO.isOpeningFile() ):
             #__logger.debug("pymel: Installing temporary plugin-loaded callback")
-            id = api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
+            id = _api.MEventMessage.addEventCallback( 'SceneOpened', addPluginPyNodes )
             _pluginData[pluginName]['callbackId'] = id
-            # scriptJob not respected in batch mode, had to use api
+            # scriptJob not respected in batch mode, had to use _api
             #cmds.scriptJob( event=('SceneOpened',doSomethingElse), runOnce=1 ) 
         else:
             # add the callback id as None so that if we fail to get an id in addPluginPyNodes we know something is wrong
@@ -153,7 +152,6 @@ def _pluginUnloaded(*args):
         pluginName = args[0]
     
     _logger.info("Plugin unloaded: %s" % pluginName)
-    import pmcmds
     try:
         data = _pluginData.pop(pluginName)
     except KeyError: 
@@ -165,7 +163,7 @@ def _pluginUnloaded(*args):
             _logger.info("Removing commands: %s", ', '.join( commands ))
             for command in commands:
                 try:
-                    pmcmds.removeWrappedCmd(command)
+                    _pmcmds.removeWrappedCmd(command)
                     _module.__dict__.pop(command)
                 except KeyError:
                     _logger.warn( "Failed to remove %s from module %s" % (command, _module.__name__) )
@@ -196,7 +194,7 @@ def _installCallbacks():
 
         
         if _versions.current() >= _versions.v2009:
-            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
+            id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
             id.disown()
         else:
             # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
@@ -213,7 +211,7 @@ def _installCallbacks():
         
         if _versions.current() >= _versions.v2009:
             _logger.debug("Adding pluginUnloaded callback")
-            id = api.MSceneMessage.addStringArrayCallback( api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
+            id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
             id.disown()
         
 

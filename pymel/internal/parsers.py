@@ -2,6 +2,7 @@ import re, os.path
 from HTMLParser import HTMLParser
 import pymel.util as util
 from mayautils import mayaDocsLocation
+import pymel.versions as versions
 import plogging
 
 try:
@@ -197,8 +198,6 @@ class NodeHierarchyDocParser(HTMLParser):
         docloc = mayaDocsLocation(self.version)
         if not os.path.isdir( docloc ):
             raise IOError, "Cannot find maya documentation. Expected to find it at %s" % docloc
-#            _logger.warn( "could not find documentation for maya version %s. defaulting to 2009" )
-#            docloc = mayaDocsLocation('2009')
 
         f = open( os.path.join( docloc , 'Nodes/index_hierarchy.html' ) )    
         self.feed( f.read() )
@@ -295,9 +294,7 @@ class CommandModuleDocParser(HTMLParser):
         self.category = category
         self.version = version
         
-        docloc = mayaDocsLocation(self.version)
-        if not os.path.isdir(docloc):
-            docloc = mayaDocsLocation('2009')
+        docloc = mayaDocsLocation( '2009' if self.version=='2008' else self.version)
         self.docloc = docloc
         HTMLParser.__init__(self)
         
@@ -315,16 +312,13 @@ class ApiDocParser(object):
     OBSOLETE_MSG = ['NO SCRIPT SUPPORT.', 'This method is not available in Python.']
     DEPRECATED_MSG = ['This method is obsolete.', 'Deprecated:']
     def __init__(self, apiModule, version=None, verbose=False):
+        version = versions.installName() if version is None else version
         self.apiModule = apiModule
         self.verbose = verbose
-        self.docloc = mayaDocsLocation(version)
+        self.docloc = mayaDocsLocation('2009' if version=='2008' else version)
         if not os.path.isdir(self.docloc):
-            docloc09 = mayaDocsLocation('2009')
-            if not os.path.isdir(self.docloc):
-                raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
+            raise IOError, "Cannot find maya documentation. Expected to find it at %s" % self.docloc
 
-            _logger.warn( "could not find maya documentation for this version of Maya. Using 2009 documentation" )
-            self.docloc = docloc09
         
     def xprint(self, *args): 
         if self.verbose:
