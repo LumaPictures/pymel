@@ -516,7 +516,8 @@ def format_command(command, args, t):
                 try:
                     flagInfo = cmdInfo['flags'][token]
                 except:
-                    flagInfo = cmdInfo['shortFlags'][token]
+                    longname = cmdInfo['shortFlags'][token]
+                    flagInfo = cmdInfo['flags'][longname]
                 numArgs = flagInfo['numArgs']
                 commandFlag = 'command' in flagInfo['longname'].lower()
                 
