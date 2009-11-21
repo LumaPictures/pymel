@@ -212,10 +212,15 @@ def testInvertibles():
                             args = [obj] + args
                             def checkSetter( setter, args ):
                                 setter( *args )
-                                if Version.current > Version.v85sp1:
-                                    mel.undo()
+                                
+                            def checkUndo(*args): 
+                                mel.undo()
+
                             checkSetter.description = descr
                             yield checkSetter, setter, args
+                            checkUndo.description = descr + ' undo'
+                            yield checkUndo
+                            
                         except KeyError, msg:
                             print str(msg)
         try: 
