@@ -63,7 +63,8 @@ secondaryFlags = {
                ( 'postSaveScript', None, ['save'] ),
                ( 'type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 
                                       'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ), 
-             )
+             ),
+    'joint' : ( ( 'absolute',     True, ['position'] ), )
 }
 
 
