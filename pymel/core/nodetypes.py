@@ -132,10 +132,8 @@ def _formatSlice(sliceObj):
         sliceStr = '%s:%s' % (startIndex, stopIndex)
     return sliceStr 
 
-# even though slice objects are essentially immutable, due to implementation
-# of proxyClass, need to set sourceIsImmutable to False
-# (not sure why proxyClass is implemented like this...?)
-ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', sourceIsImmutable=False, makeDefaultInit=True)
+
+ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', makeDefaultInit=True)
 
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using
