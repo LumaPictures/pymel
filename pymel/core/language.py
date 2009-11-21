@@ -606,7 +606,7 @@ class Mel(object):
     Here's an example showing a `MelArgumentError`, which also demonstrates the additional traceback
     information that is provided for you, including the file of the calling script.
     
-        >>> mel.startsWith('bar')
+        >>> mel.startsWith('bar') # doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
         MelArgumentError: Error during execution of MEL script: Line 1.18: Wrong number of arguments on call to startsWith.
