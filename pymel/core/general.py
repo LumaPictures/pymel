@@ -34,14 +34,13 @@ from maya.cmds import about as _about
 # TODO: factories.functionFactory should automatically handle conversion of output to PyNodes...
 #       ...so we shouldn't always have to do it here as well?
 
-def _getPymelTypeFromObject(obj):
+def _getPymelTypeFromObject(obj, name):
         compTypes = _factories.apiEnumsToPyComponents.get(obj.apiType(), None)
         if compTypes is not None:
             if len(compTypes) == 1:
                 return compTypes[0]
             else:
-                # FIXME: _getExactCompType is not defined
-                return _getExactCompType(obj, compTypes)
+                raise RuntimeError('Got an instance of a component with more than one possible PyNode type: %s' % obj.apiTypeStr())
         else:
             try:  
                 fnDepend = api.MFnDependencyNode( obj )
@@ -116,7 +115,7 @@ def _getPymelType(arg, name) :
         raise ValueError, "Unable to determine Pymel type for %r" % arg         
     
     if not isAttribute:
-        pymelType = _getPymelTypeFromObject( obj ) 
+        pymelType = _getPymelTypeFromObject( obj, name ) 
     
     return pymelType, results
 #-----------------------------------------------
