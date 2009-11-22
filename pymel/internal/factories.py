@@ -4,7 +4,6 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 import re, types, os, inspect, sys, textwrap
 from operator import itemgetter
 import pymel.util as util
-import pymel.versions as versions
 import pymel.api as api
 from startup import loadCache
 import plogging as plogging
@@ -28,7 +27,7 @@ DOC_WIDTH = 120
 EXCLUDE_METHODS = ['type', 'className', 'create', 'name' ]
 
 #: examples are usually only included when creating documentation
-includeDocExamples = bool( os.environ.get( 'PYMEL_includeDocExamples', False ) )
+includeDocExamples = bool( os.environ.get( 'PYMEL_INCLUDE_EXAMPLES', False ) )
 
 #Lookup from PyNode type name as a string to PyNode type as a class
 pyNodeNamesToPyNodes = {}
@@ -60,7 +59,12 @@ virtualClass = util.defaultdict(list)
 
                                
 #---------------------------------------------------------------
-        
+   
+if includeDocExamples:
+    examples = loadCache('mayaCmdsExamples', 'maya Command examples',version=False )
+    for cmd, example in examples.iteritems():
+        cmdlist[cmd]['example'] = example
+
 #cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = cmdcache.buildCachedData()
 
 # FIXME
@@ -176,11 +180,15 @@ def addCmdDocsCallback(cmdName, docstring=''):
     
     cmdInfo = cmdlist[cmdName]
     
-    docstring = cmdInfo['description'] + '\n\n' + '\n'.join(textwrap.wrap(docstring, DOC_WIDTH))
+    #docstring = cmdInfo['description'] + '\n\n' + '\n'.join(textwrap.wrap(docstring.strip(), DOC_WIDTH))
+    
+    docstring = '\n'.join(textwrap.wrap(cmdInfo['description'], DOC_WIDTH)) + '\n\n' + docstring.strip()
 
 #    if func.__doc__: 
 #        docstring += func.__doc__ + '\n\n'
-      
+    
+    docstring = docstring.rstrip() + '\n\n'
+     
     flagDocs = cmdInfo['flags']
     
     if flagDocs and sorted(flagDocs.keys()) != ['edit', 'query']:
@@ -193,6 +201,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
         def makerow( items, widths ):
             return '    |' + '|'.join( ' ' + i.ljust(w-2) for i, w in zip( items, widths ) ) + '|\n'
 
+        
         docstring += 'Flags:\n'
     
         if includeDocExamples:
@@ -280,7 +289,7 @@ def addCmdDocsCallback(cmdName, docstring=''):
     
     if includeDocExamples and cmdInfo.get('example',None):
         #docstring = ".. |create| image:: /images/create.gif\n.. |edit| image:: /images/edit.gif\n.. |query| image:: /images/query.gif\n\n" + docstring
-        docstring += '\nExample:\n' + cmdInfo['example']
+        docstring += '\n\nExample::\n\n' + cmdInfo['example']
     
     return docstring
     
