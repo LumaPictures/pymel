@@ -3,7 +3,7 @@
 # They will be imported / redefined later in Pymel, but we temporarily need them here
 import sys, inspect, time, os.path
 
-from pymel.api import *
+import pymel.api as api
 from pymel.util import expandArgs
 import pymel.util as _util
 import startup
@@ -11,9 +11,7 @@ import plogging as _plogging
 
 _logger = _plogging.getLogger(__name__)
 
-_thisModule = sys.modules[__name__]
-
-__all__ = ['reservedMayaTypes', 'reservedApiTypes', 'apiTypesToApiEnums', 'apiEnumsToApiTypes', 
+__all__ = ['reservedMayaTypes', 'reservedApiTypes', 'apiTypesToApiEnums', 'apiEnumsToApiTypes',  
 'mayaTypesToApiTypes', 'apiTypesToApiClasses', 'apiTypeHierarchy', 'apiClassInfo',
 'apiToMelData', 'apiClassOverrides']
 
@@ -25,7 +23,7 @@ class Enum(tuple):
         if forceType:
             parts[0] = forceType
         else:
-            mfn = getattr( _thisModule, self[0] )
+            mfn = getattr( api, self[0] )
             mayaTypeDict = apiCache.apiEnumsToMayaTypes[ mfn().type() ]
             parts[0] = _util.capitalize( mayaTypeDict.keys()[0] )
 
@@ -40,12 +38,12 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # and we call this function while loading a scene (for instance, if the scene requires
     # a plugin that isn't loaded, and defines custom node types), then the nodes are still
     # somehow created, despite never explicitly calling doIt()
-    if type(dagMod) is not MDagModifier or type(dgMod) is not MDGModifier :
+    if type(dagMod) is not api.MDagModifier or type(dgMod) is not api.MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
 
     # Regardless of whether we're making a DG or DAG node, make a parent first - 
     # for some reason, this ensures good cleanup (don't ask me why...??)
-    parent = dagMod.createNode ( 'transform', MObject())
+    parent = dagMod.createNode ( 'transform', api.MObject())
     
     try:
         try :
@@ -61,11 +59,11 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
             _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
             dgMod.deleteNode(obj)
     except:
-        obj = MObject()
+        obj = api.MObject()
 
     dagMod.deleteNode(parent)
 
-    if isValidMObject(obj) :
+    if api.isValidMObject(obj) :
         return obj
     else :
         _logger.debug("Error trying to create ghost node for '%s'" %  mayaType)
@@ -233,7 +231,7 @@ class ApiCache(object):
             return False
         # print "need creation for %s" % apiType
         obj = self._getMObject(apiType, dagMod, dgMod, parentType) 
-        if isValidMObject(obj) :
+        if api.isValidMObject(obj) :
             return obj.hasFn(typeInt)
         else :
             return False
@@ -264,10 +262,10 @@ class ApiCache(object):
     
         result = None           
         obj = kwargs.get(apiType, None)        
-        if not isValidMObject(obj) :
+        if not api.isValidMObject(obj) :
             # print "need creation for %s" % apiType
             obj = self._getMObject(apiType, dagMod, dgMod)
-        if isValidMObject(obj) :
+        if api.isValidMObject(obj) :
             if not kwargs.get(apiType, None) :
                 kwargs[apiType] = obj          # update it if we had to create
             parents = []
@@ -344,7 +342,7 @@ class ApiCache(object):
         an existing api type"""
         
     
-        self.apiTypesToApiEnums = dict( inspect.getmembers(MFn, lambda x:type(x) is int)) 
+        self.apiTypesToApiEnums = dict( inspect.getmembers(api.MFn, lambda x:type(x) is int)) 
         self.apiEnumsToApiTypes = dict( (self.apiTypesToApiEnums[k], k) for k in self.apiTypesToApiEnums.keys()) 
 
         
@@ -370,11 +368,11 @@ class ApiCache(object):
         from pymel.internal.parsers import ApiDocParser
         self.apiClassInfo = {}
 #        try:
-        parser = ApiDocParser(_thisModule)
+        parser = ApiDocParser(api)
 #        except IOError, msg: 
 #            _logger.warn( "failed to find docs for current version: %s", name )
             
-        for name, obj in inspect.getmembers( _thisModule, lambda x: type(x) == type and x.__name__.startswith('M') ):
+        for name, obj in inspect.getmembers( api, lambda x: type(x) == type and x.__name__.startswith('M') ):
             if not name.startswith( 'MPx' ):
                 
                 try:
@@ -398,7 +396,7 @@ class ApiCache(object):
         of 'None', then it will be rebuilt using the apiDocParser.
         """
         def _MFnType(x) :
-            if x == MFnBase :
+            if x == api.MFnBase :
                 return self.apiEnumsToApiTypes[ 1 ]  # 'kBase'
             else :
                 try :
@@ -406,12 +404,13 @@ class ApiCache(object):
                 except :
                     return self.apiEnumsToApiTypes[ 0 ] # 'kInvalid'
                 
-        if not startup.mayaIsRunning():
+        if not startup.mayaStartupHasRun():
             startup.mayaInit()
         import maya.cmds
         
+        import pymel.mayautils as mayautils
         # load all maya plugins
-        mayaLoc = startup.getMayaLocation()
+        mayaLoc = mayautils.getMayaLocation()
         # need to set to os.path.realpath to get a 'canonical' path for string comparison...
         pluginPaths = [os.path.realpath(x) for x in os.environ['MAYA_PLUG_IN_PATH'].split(os.path.pathsep)]
         for pluginPath in [x for x in pluginPaths if x.startswith( mayaLoc ) and os.path.isdir(x) ]:
@@ -424,7 +423,7 @@ class ApiCache(object):
         allMayaTypes = self.reservedMayaTypes.keys() + maya.cmds.ls(nodeTypes=True)
             
         # all of maya OpenMaya api is now imported in module api's namespace
-        MFnClasses = inspect.getmembers(_thisModule, lambda x: inspect.isclass(x) and issubclass(x, MFnBase))
+        MFnClasses = inspect.getmembers(api, lambda x: inspect.isclass(x) and issubclass(x, api.MFnBase))
         MFnTree = inspect.getclasstree( [x[1] for x in MFnClasses] )
         self.apiTypeHierarchy = {}
         
@@ -444,8 +443,8 @@ class ApiCache(object):
         # print self.apiTypeHierarchy.keys()
         # Fixes for types that don't have a MFn by faking a node creation and testing it
         # Make it faster by pre-creating the nodes used to test
-        dagMod = MDagModifier()
-        dgMod = MDGModifier()      
+        dagMod = api.MDagModifier()
+        dgMod = api.MDGModifier()      
         #nodeDict = self._createNodes(dagMod, dgMod, *self.apiTypesToApiEnums.keys())
         nodeDict, mayaDict, unableToCreate = self._createNodes( dagMod, dgMod, *allMayaTypes )
         if len(unableToCreate) > 0:
@@ -489,7 +488,7 @@ class ApiCache(object):
       
         if apiType is not 'kInvalid' :
             
-            apiEnum = getattr( MFn, apiType )
+            apiEnum = getattr( api.MFn, apiType )
             
             defType = self.reservedMayaTypes.has_key(mayaType)
             
@@ -650,25 +649,25 @@ def mayaTypeToApiType(mayaType) :
             # we create a dummy object of this type in a dgModifier
             # as the dgModifier.doIt() method is never called, the object
             # is never actually created in the scene
-            obj = MObject() 
-            dagMod = MDagModifier()
-            dgMod = MDGModifier()
+            obj = api.MObject() 
+            dagMod = api.MDagModifier()
+            dgMod = api.MDGModifier()
             #if mayaType == 'directionalLight': print "self.mayaTypesToApiTypes", "directionalLight" in self.mayaTypesToApiTypes.keys(), len(self.mayaTypesToApiTypes.keys())
             obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
-            if isValidMObject(obj):
+            if api.isValidMObject(obj):
                 apiType = obj.apiTypeStr()
         return apiType
         
 def getComponentTypes():
     # WTF is kMeshFaceVertComponent?? it doesn't inherit from MFnComponent,
     # and there's also a kMeshVtxFaceComponent (which does)??
-    mfnCompBase = MFnComponent()
-    mfnCompTypes = (MFnSingleIndexedComponent(),
-                    MFnDoubleIndexedComponent(),
-                    MFnTripleIndexedComponent())
+    mfnCompBase = api.MFnComponent()
+    mfnCompTypes = (api.MFnSingleIndexedComponent(),
+                    api.MFnDoubleIndexedComponent(),
+                    api.MFnTripleIndexedComponent())
     # Maya 2008 and before didn't haveMFnUint64SingleIndexedComponent
-    if hasattr(MFn, 'kUint64SingleIndexedComponent'):
-        mfnCompTypes += (MFnUint64SingleIndexedComponent(),)
+    if hasattr(api.MFn, 'kUint64SingleIndexedComponent'):
+        mfnCompTypes += (api.MFnUint64SingleIndexedComponent(),)
     
     componentTypes = {}
     for compType in mfnCompTypes + (mfnCompBase,):
