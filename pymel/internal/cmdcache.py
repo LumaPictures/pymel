@@ -257,12 +257,12 @@ def getCmdInfo( command, version='8.5', python=True ):
     """Since many maya Python commands are builtins we can't get use getargspec on them.
     besides most use keyword args that we need the precise meaning of ( if they can be be used with 
     edit or query flags, the shortnames of flags, etc) so we have to parse the maya docs"""
-    from parsers import CommandDocParser
+    from parsers import CommandDocParser, mayaDocsLocation
     
     basicInfo = getCmdInfoBasic(command)
     
     try:
-        docloc = mayautils.mayaDocsLocation(version)
+        docloc = mayaDocsLocation(version)
         if python:
             docloc = os.path.join( docloc , 'CommandsPython/%s.html' % (command) )
         else:
@@ -329,7 +329,7 @@ def getCmdInfo( command, version='8.5', python=True ):
         
         #raise IOError, "cannot find maya documentation directory"
 
-def fixCodeExamples():
+def fixCodeExamples(style='maya', force=False):
     """cycle through all examples from the maya docs, replacing maya.cmds with pymel and inserting pymel output.
     
     NOTE: this can only be run from gui mode
@@ -345,86 +345,93 @@ def fixCodeExamples():
     animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
     
     openWindows = cmds.lsUI(windows=True)
-    for command in sorted(cmdlist.keys()):
-        info = cmdlist[command]
-        try:
-            example = info['example']
-        except KeyError:
-            pass
-        else:
-            if 'import pymel' in example:
-                _logger.warning("examples have already been fixed. to re-fix, first delete and recreate the commands cache")
-                return
-            
-            _logger.info("Starting command %s", command)
-            
-            # change from cmds to pymel
-            reg = re.compile(r'\bcmds\.')
-            example = reg.sub( 'pm.', example )
-            #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
-            
-            lines = example.split('\n')
-            if len(lines)==1:
-                _logger.info("removing empty example for command %s", command)
-                info['example'] = None
-                continue
-            
+    examples = startup.loadCache('mayaCmdsExamples')
+    processedExamples = startup.loadCache('mayaCmdsExamples', version=False)
+    sortedCmds = sorted(examples.keys())
+    # put commands that require manual interaction first
+    manualCmds = []
+    sortedCmds = manualCmds + [ sortedCmds.pop(x) for x in manualCmds ]
+    
+    for command in sortedCmds:
+        example = examples[command]
+
+        if not force and command in processedExamples:
+            _logger.info("%s: already completed. skipping." % command)
+            continue
+        
+        _logger.info("Starting command %s", command)
+        
+        # change from cmds to pymel
+        reg = re.compile(r'\bcmds\.')
+        example = reg.sub( 'pm.', example )
+        #example = example.replace( 'import maya.cmds as cmds', 'import pymel as pm\npm.newFile(f=1) #fresh scene' )
+        
+        lines = example.split('\n')
+        if len(lines)==1:
+            _logger.info("removing empty example for command %s", command)
+            examples.pop(command)
+            continue
+        
+        if style == 'doctest' :
             DOC_TEST_SKIP = ' #doctest: +SKIP'
-            lines[0] = 'import pymel as pm' + DOC_TEST_SKIP 
-            #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
-            # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
-            cmds.file(new=1,f=1)
-            
-            newlines = []
-            statement = []
-            
-            # narrowed down the commands that cause maya to crash to these prefixes
-            if re.match( '(dis)|(dyn)|(poly)', command) :
-                evaluate = False
-            elif command in []:
-                evaluate = False
-            else:
-                evaluate = True
-            
-            # gives a little leniency for where spaces are placed in the result line
-            resultReg = re.compile('# Result:\s*(.*) #$')
-            try: # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
-                for i, line in enumerate(lines):
-                    res = None
-                    # replace with pymel results  '# Result: 1 #'
-                    m = resultReg.match(line)
-                    if m:
-                        if evaluate is False:
-                            line = m.group(1)
-                            newlines.append('    ' + line)
-                    else:
-                        if evaluate:
-                            if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):
-                                statement.append(line)
-                            else:
-                                # evaluate the compiled statement using exec, which can do multi-line if statements and so on
-                                if statement:
-                                    try:
-                                        #_logger.debug("executing %s", statement)
-                                        exec( '\n'.join(statement) )
-                                        # reset statement
-                                        statement = []
-                                    except Exception, e:
-                                        _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
-                                        evaluate = False
+        else:
+            DOC_TEST_SKIP = ''
+        
+        lines[0] = 'import pymel.core as pm' + DOC_TEST_SKIP 
+        #lines.insert(1, 'pm.newFile(f=1) #fresh scene')
+        # create a fresh scene. this does not need to be in the docstring unless we plan on using it in doctests, which is probably unrealistic
+        cmds.file(new=1,f=1)
+        
+        newlines = []
+        statement = []
+        
+        # narrowed down the commands that cause maya to crash to these prefixes
+        if re.match( '(dis)|(dyn)|(poly)', command) :
+            evaluate = False
+        elif command in ['emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor']:
+            evaluate = False
+        else:
+            evaluate = True
+        
+        # gives a little leniency for where spaces are placed in the result line
+        resultReg = re.compile('# Result:\s*(.*) #$')
+        try: # funky things can happen when executing maya code: some exceptions somehow occur outside the eval/exec
+            for i, line in enumerate(lines):
+                res = None
+                # replace with pymel results  '# Result: 1 #'
+                m = resultReg.match(line)
+                if m:
+                    if evaluate is False:
+                        line = m.group(1)
+                        newlines.append('    ' + line)
+                else:
+                    if evaluate:
+                        if line.strip().endswith(':') or line.startswith(' ') or line.startswith('\t'):
+                            statement.append(line)
+                        else:
+                            # evaluate the compiled statement using exec, which can do multi-line if statements and so on
+                            if statement:
                                 try:
-                                    _logger.debug("evaluating: %r" % line)
-                                    res = eval( line )
-                                    #if res is not None: _logger.info("result", repr(repr(res)))
-                                    #else: _logger.info("no result")
-                                except:
-                                    #_logger.debug("failed evaluating:", str(e))
-                                    try:
-                                        exec( line )
-                                    except (Exception, TypeError), e:
-                                        _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
-                                        evaluate = False
-                                                
+                                    #_logger.debug("executing %s", statement)
+                                    exec( '\n'.join(statement) )
+                                    # reset statement
+                                    statement = []
+                                except Exception, e:
+                                    _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
+                                    evaluate = False
+                            try:
+                                _logger.debug("evaluating: %r" % line)
+                                res = eval( line )
+                                #if res is not None: _logger.info("result", repr(repr(res)))
+                                #else: _logger.info("no result")
+                            except:
+                                #_logger.debug("failed evaluating:", str(e))
+                                try:
+                                    exec( line )
+                                except (Exception, TypeError), e:
+                                    _logger.info("stopping evaluation %s", str(e))# of %s on line %r" % (command, line)
+                                    evaluate = False
+                    if style == 'doctest':                     
                         if line.startswith(' ') or line.startswith('\t'):       
                             newlines.append('    ... ' + line  )
                         else:
@@ -432,27 +439,34 @@ def fixCodeExamples():
                 
                         if res is not None:
                             newlines.append( '    ' + repr(res) )
-                        
-                if evaluate:
-                    _logger.info("successful evaluation! %s", command)
-                              
-                example = '\n'.join( newlines )
-                info['example'] = example
-            except:
-                _logger.info("COMPLETE AND UTTER FAILURE: %s", command)
-            
-            # cleanup opened windows
-            for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
-                try: cmds.deleteUI(ui, window=True)
-                except:pass
+                    else:
+                        newlines.append('    ' + line )
+                        if res is not None:
+                            newlines.append( '    # Result: %r #' % (res,) )
+                    
+            if evaluate:
+                _logger.info("successful evaluation! %s", command)
+                          
+            example = '\n'.join( newlines )
+            processedExamples[command] = example
+        except:
+            _logger.info("COMPLETE AND UTTER FAILURE: %s", command)
+        else:
+            # write out after each success so that if we crash we don't have to start from scratch
+            startup.writeCache(processedExamples, 'mayaCmdsExamples', 'the Maya commands examples', version=False)
+        
+        # cleanup opened windows
+        for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
+            try: cmds.deleteUI(ui, window=True)
+            except:pass
 
-    _logger.info("Done Fixing Examples. Writing out fixed commands cache...")
+    _logger.info("Done Fixing Examples")
     
     # restore manipulators and anim options
     cmds.manipOptions( handleSize=manipOptions[0], scale=manipOptions[1] )
     cmds.animDisplay( e=1, timeCode=animOptions[0], timeCodeOffset=animOptions[1], modelUpdate=animOptions[2])
    
-    startup.writeCache('mayaCmdsList', (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds), 'the list of Maya commands')
+    #startup.writeCache('mayaCmdsExamples', examples, 'the Maya commands examples')
 
 
 def getModuleCommandList( category, version=None ):
