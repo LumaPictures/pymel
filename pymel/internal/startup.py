@@ -7,7 +7,7 @@ import re, os.path, sys, platform, time
 import maya
 import maya.OpenMaya as om
 
-from pymel.util import picklezip
+from pymel.util import picklezip, shellOutput
 import pymel.versions as versions
 from pymel.versions import parseVersionStr, shortName, installName
 import plogging
@@ -20,7 +20,6 @@ except:
     import pickle
 
 #from maya.cmds import encodeString
-
 
 isInitializing = False
     
@@ -42,8 +41,55 @@ def mayaStartupHasRun():
     Returns True if maya.app.startup has run, False otherwise.
     """
     return 'maya.app.startup.gui' in sys.modules or 'maya.app.startup.batch' in sys.modules
+
+def refreshEnviron():
+    """
+    copy the shell environment into python's environment, as stored in os.environ
+    """ 
+    exclude = ['SHLVL'] 
+    
+    if os.name == 'posix':
+        cmd = '/usr/bin/env'
+    else:
+        cmd = 'set'
+        
+    cmdOutput = shellOutput(cmd)
+    #print "ENV", cmdOutput
+    # use splitlines rather than split('\n') for better handling of different
+    # newline characters on various os's
+    for line in cmdOutput.splitlines():
+        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
+        if '=' in line:
+            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
+            if not var.startswith('_') and var not in exclude:
+                    os.environ[var] = val
+
     
 
+def getMayaAppDir():
+    app_dir = os.environ.get('MAYA_APP_DIR',None)
+    if app_dir is None :
+        if os.name == 'nt':
+            app_dir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
+            if app_dir is None:
+                return
+            
+            # Vista or newer... version() returns "6.x.x"
+            if int(platform.version().split('.')[0]) > 5:
+                app_dir = os.path.join( app_dir, 'Documents')
+            else:
+                app_dir = os.path.join( app_dir, 'My Documents')
+        else:
+            app_dir = os.environ.get('HOME',None)
+            if app_dir is None:
+                return
+            
+        if platform.system() == 'Darwin':
+            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
+        else:
+            app_dir = os.path.join( app_dir, 'maya' )
+            
+    return app_dir
 
 
 #def loadDynamicLibs():
@@ -122,8 +168,7 @@ def mayaInit(forversion=None) :
             maya.standalone.initialize(name="python")
             
             if versions.current() < versions.v2009:
-                import pymel.mayautils as mayautils
-                mayautils.refreshEnviron()
+                refreshEnviron()
 
         except ImportError, e:
             raise e, str(e) + ": pymel was unable to intialize maya.standalone"
@@ -143,9 +188,8 @@ def initMEL():
         return
     
     _logger.debug( "initMEL" )        
-    import pymel.mayautils as mayautils
     mayaVersion = versions.installName()
-    appDir = mayautils.getMayaAppDir()
+    appDir = getMayaAppDir()
     if appDir is None:
         _logger.error( "could not initialize user preferences: MAYA_APP_DIR not set" )
         prefsDir = None
