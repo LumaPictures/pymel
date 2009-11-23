@@ -59,7 +59,7 @@ def _pluginLoaded( *args ):
     if not pluginName:
         return
     
-    _logger.info("Plugin loaded: %s", pluginName)
+    _logger.debug("Plugin loaded: %s", pluginName)
     
     _pluginData[pluginName] = {}
     
@@ -151,7 +151,7 @@ def _pluginUnloaded(*args):
     else:
         pluginName = args[0]
     
-    _logger.info("Plugin unloaded: %s" % pluginName)
+    _logger.debug("Plugin unloaded: %s" % pluginName)
     try:
         data = _pluginData.pop(pluginName)
     except KeyError: 
@@ -222,11 +222,8 @@ def _installCallbacks():
     preLoadedPlugins = cmds.pluginInfo( q=1, listPlugins=1 ) 
     if preLoadedPlugins:
         _logger.info("Updating pymel with pre-loaded plugins: %s" % ', '.join( preLoadedPlugins ))
-        level = _logger.getEffectiveLevel()
-        _logger.setLevel(logging.WARNING)
         for plugin in preLoadedPlugins:
             _pluginLoaded( plugin )
-        _logger.setLevel(level)
             
 _installCallbacks()
 
