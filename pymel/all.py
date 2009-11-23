@@ -3,6 +3,7 @@ import sys
 import internal
 import internal.plogging as plogging
 import internal.factories as factories
+import mayautils
 
 #logger = plogging.getplogging.pymelLogger(__name__)
 plogging.pymelLogger.debug( 'imported internal' )
