@@ -10,7 +10,7 @@ import pymel.internal.factories as factories
 from testingutils import TestCaseExtended, setCompare
 
 
-VERBOSE = True
+VERBOSE = False
 
 def getFundamentalTypes():
     classList = sorted( list( set( [ key[0] for key in factories.apiToMelData.keys()] ) ) )
@@ -1161,7 +1161,7 @@ class testCase_components(unittest.TestCase):
                     if re.match(r'''(u|v|uv)(Isoparm)?|comp\(u?['"](u|v|uv)(Isoparm)?['"]\)''', compName):
                         raise CrashError
                 if (platform.system() == 'Darwin' or
-                    api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                    api.MGlobal.mayaState() in (api.MGlobal.kBatch,
                                               api.MGlobal.kLibraryApp)):
                     if ((comp.startswith('SubdEdge') or
                          comp.endswith("comp(u'sme')") or
@@ -1176,7 +1176,7 @@ class testCase_components(unittest.TestCase):
             elif isinstance(comp, Component):
                 # Check if we're in batch - in gui, we processed idle events after subd
                 # creation, which for some reason, prevents the crash
-                if api.MGlobal.mayaState in (api.MGlobal.kBatch,
+                if api.MGlobal.mayaState() in (api.MGlobal.kBatch,
                                               api.MGlobal.kLibraryApp):
                     # In windows + linux, just selections of type .sme[*][*] - on OSX,
                     # it seems any .sm*[256][*] will crash it...
