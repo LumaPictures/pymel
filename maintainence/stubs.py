@@ -459,6 +459,8 @@ def pymelstubs():
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
     outputdir = os.path.join(pymeldir, 'extras', 'completion' )
     print outputdir
+    if not os.path.exists(outputdir):
+        os.makedirs(outputdir)
     import pymel.all
     packagestubs( pymel, outputdir=outputdir, exclude='(pymel\.util\.scanf)|(pymel\.util\.objectParser)')
 
@@ -466,4 +468,8 @@ def pymelstubs():
     f = open( os.path.join(outputdir,'pymel','internal','pmcmds.py'), 'w' )
     f.write( 'from maya.cmds import *\n' )
     f.close()
+    
+    import maya
+    packagestubs( maya, outputdir=outputdir )
+
     
