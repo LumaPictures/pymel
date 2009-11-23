@@ -1467,6 +1467,7 @@ import sys
 
 import mayahook
 import mayahook.plogging as plogging
+import mayahook.mayautils as mayautils
 #logger = plogging.getplogging.pymelLogger(__name__)
 plogging.pymelLogger.debug( 'imported mayahook' )
 
