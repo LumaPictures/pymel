@@ -1,9 +1,9 @@
 import re, os.path
 from HTMLParser import HTMLParser
 import pymel.util as util
-from pymel.mayautils import mayaDocsLocation
 import pymel.versions as versions
 import plogging
+from pymel.mayautils import getMayaLocation
 
 try:
     from pymel.util.external.BeautifulSoup import BeautifulSoup, NavigableString
@@ -12,6 +12,56 @@ except ImportError:
 from keyword import iskeyword as _iskeyword
 
 _logger = plogging.getLogger(__name__)
+
+def mayaIsRunning():
+    """
+    Returns True if maya.cmds have  False otherwise.
+    
+    Early in interactive startup it is possible for commands to exist but for Maya to not yet be initialized.
+    
+    :rtype: bool
+    """
+    
+    # Implementation is essentially just a wrapper for getRunningMayaVersionString -
+    # this function was included for clearer / more readable code
+    
+    try :
+        from maya.cmds import about
+        about(version=True)
+        return True
+    except :
+        return False
+
+def mayaDocsLocation(version=None):
+    docLocation = None
+    if (version == None or version == versions.installName() ) and mayaIsRunning():
+        # Return the doc location for the running version of maya
+        from maya.cmds import showHelp
+        docLocation = showHelp("", q=True, docs=True)
+        
+        # Older implementations had no trailing slash, but the result returned by
+        # showHelp has a trailing slash... so eliminate any trailing slashes for
+        # consistency
+        while docLocation != "" and os.path.basename(docLocation) == "":
+            docLocation = os.path.dirname(docLocation)
+                
+    # Want the docs for a different version, or maya isn't initialized yet
+    if not docLocation or not os.path.isdir(docLocation):
+        docLocation = getMayaLocation(version) # use original version
+        if docLocation is None :
+            docLocation = getMayaLocation(None)
+            _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation) )
+
+        if version:
+            short_version = versions.parseVersionStr(version, extension=False)
+        else:
+            short_version = versions.shortName()
+        if system == 'Darwin':
+            docLocation = os.path.dirname(os.path.dirname(docLocation))
+            
+        docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
+
+    return os.path.realpath(docLocation)
 
 #---------------------------------------------------------------
 #        Doc Parser

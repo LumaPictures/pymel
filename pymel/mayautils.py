@@ -1,65 +1,11 @@
-import os, sys, re, platform
+import os, sys, re
 import versions
 import internal as _internal
 _logger = _internal.getLogger(__name__) 
-from pymel.util import path as _path, shellOutput, picklezip
+from pymel.util import path as _path
 
-
-if os.name == 'nt' :
-    # There are also cases where platform.system fails completely on Vista
-    mayabin = 'maya.exe'
-    libdir = 'bin'
-    system = 'Windows'
-else :
-    mayabin = 'maya.bin'
-    system = platform.system()
-    if system == 'Darwin':
-        libdir = 'MacOS'
-    else:
-        libdir = 'lib'
     
 sep = os.path.pathsep
-
-def mayaIsRunning():
-    """
-    Returns True if maya.cmds have  False otherwise.
-    
-    Early in interactive startup it is possible for commands to exist but for Maya to not yet be initialized.
-    
-    :rtype: bool
-    """
-    
-    # Implementation is essentially just a wrapper for getRunningMayaVersionString -
-    # this function was included for clearer / more readable code
-    
-    try :
-        from maya.cmds import about
-        about(version=True)
-        return True
-    except :
-        return False
-
-def refreshEnviron():
-    """
-    copy the shell environment into python's environment, as stored in os.environ
-    """ 
-    exclude = ['SHLVL'] 
-    
-    if system in ('Darwin', 'Linux'):
-        cmd = '/usr/bin/env'
-    else:
-        cmd = 'set'
-        
-    cmdOutput = shellOutput(cmd)
-    #print "ENV", cmdOutput
-    # use splitlines rather than split('\n') for better handling of different
-    # newline characters on various os's
-    for line in cmdOutput.splitlines():
-        # need the check for '=' in line b/c on windows (and perhaps on other systems? orenouard?), an extra empty line may be appended
-        if '=' in line:
-            var, val = line.split('=', 1)  # split at most once, so that lines such as 'smiley==)' will work
-            if not var.startswith('_') and var not in exclude:
-                    os.environ[var] = val
 
 # A source command that will search for the Python script "file" in the specified path
 # (using the system path if none is provided) path and tries to call execfile() on it
@@ -158,91 +104,6 @@ def executeDeferred(func):
         maya.utils.executeDeferred(func)
     else:
         func()
-
-def getMayaExecutable(version=None, commandLine=True):
-    """Returns the path string to the maya executable for the given version; if version is None, then returns the path
-    string for the current maya version.
-    
-    If commandLine is True and we are running on windows, will return the path to mayabatch.exe, instead of maya.exe"""
-    
-    
-    filename = "maya"
-    
-    if commandLine and os.name == "nt":
-        filename += "batch"    
-        
-    if os.name == "nt":
-        filename += ".exe"
-        
-    fullPath = os.path.join(getMayaLocation(version), 'bin', filename )
-    
-    if os.path.isfile(fullPath):
-        return fullPath
-    else:
-        # if all else fails... check sys.executable
-        binaryRoot, binaryExtension = os.path.splitext(os.path.basename(sys.executable))
-        if binaryRoot == "python":
-            # sys.executable was the python binary
-            raise RuntimeError("Unable to locate maya executable - try setting 'MAYA_LOCATION' environment variable")
-        return sys.executable
-    
-
-def getMayaAppDir():
-    app_dir = os.environ.get('MAYA_APP_DIR',None)
-    if app_dir is None :
-        if system == 'Window':
-            app_dir = os.environ.get('USERPROFILE',os.environ.get('HOME',None))
-            if app_dir is None:
-                return
-            
-            # Vista or newer... version() returns "6.x.x"
-            if int(platform.version().split('.')[0]) > 5:
-                app_dir = os.path.join( app_dir, 'Documents')
-            else:
-                app_dir = os.path.join( app_dir, 'My Documents')
-        else:
-            app_dir = os.environ.get('HOME',None)
-            if app_dir is None:
-                return
-            
-        if system == 'Darwin':
-            app_dir = os.path.join( app_dir, 'Library/Preferences/Autodesk/maya' )    
-        else:
-            app_dir = os.path.join( app_dir, 'maya' )
-            
-    return app_dir
-
-
-def mayaDocsLocation(version=None):
-    docLocation = None
-    if (version == None or version == versions.installName() ) and mayaIsRunning():
-        # Return the doc location for the running version of maya
-        from maya.cmds import showHelp
-        docLocation = showHelp("", q=True, docs=True)
-        
-        # Older implementations had no trailing slash, but the result returned by
-        # showHelp has a trailing slash... so eliminate any trailing slashes for
-        # consistency
-        while docLocation != "" and os.path.basename(docLocation) == "":
-            docLocation = os.path.dirname(docLocation)
-                
-    # Want the docs for a different version, or maya isn't initialized yet
-    if not docLocation or not os.path.isdir(docLocation):
-        docLocation = getMayaLocation(version) # use original version
-        if docLocation is None :
-            docLocation = getMayaLocation(None)
-            _logger.warning("Could not find an installed Maya for exact version %s, using first installed Maya location found in %s" % (version, docLocation) )
-
-        if version:
-            short_version = versions.parseVersionStr(version, extension=False)
-        else:
-            short_version = versions.shortName()
-        if system == 'Darwin':
-            docLocation = os.path.dirname(os.path.dirname(docLocation))
-            
-        docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
-
-    return os.path.realpath(docLocation)
 
 def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='warn'):
     """

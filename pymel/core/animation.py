@@ -84,9 +84,10 @@ def _constraint( func ):
     def constraint(*args, **kwargs):
         """
 Maya Bug Fix:
-    - when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
+  - when queried, upVector, worldUpVector, and aimVector returned the name of the constraint instead of the desired values
+
 Modifications:
-    - added new syntax for querying the weight of a target object, by passing the constraint first::
+  - added new syntax for querying the weight of a target object, by passing the constraint first::
     
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight ='pSphere1' )
         aimConstraint( 'pCube1_aimConstraint1', q=1, weight =['pSphere1', 'pCylinder1'] )

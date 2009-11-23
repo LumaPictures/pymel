@@ -1,3 +1,4 @@
+from __future__ import with_statement
 from pymel.all import *
 
 """
@@ -483,93 +484,73 @@ class pipeGenWin(object):
 		except: pass
 	
 		win = window('PipeGenWin')
-		columnLayout()
-	
-		frameLayout( l='Creation', labelVisible=False)
-		columnLayout()
-	
-		
-		rowLayout( nc=3, cw3=[80, 80, 240], cal=([1,'center'], [2,'right']))
-		button( l='Create', w=80, c= lambda *args: self.newPipeCB())	
-		text( l='Name' )
-		self.createGrp = textField( text='pipe', w=90)
-			
-
-		setParent('..')
-		
-		separator(w=400)
-		
-		rowLayout( nc=2, cw2=[80, 320], cal=[1,'center'])
-		#text( l='Segments' )
-		button( l='Extend', w=80, c = lambda *args: self.extendPipeCB() )
-		self.numSegments = intSliderGrp(
-			cw3=[80,40,50],
-			l='Segments',
-			value=1,
-			field=1,
-			min=1, max=20 )
-
-		
-		setParent('..')	
-		setParent('..')
-		setParent('..')
-		
-		frameLayout( l='Pipe Properties', labelVisible=True)
-		columnLayout()
-		self.pipeRadius = floatSliderGrp( l='Radius', 
-			value=.22,
-			field=True,
-			precision = 3,
-			min=.0001, max=10 )
-		self.subdivAxis = intSliderGrp( l='Axis Segments', 
-			value=16,
-			field=True,
-			min=3, max=80 )	
-		setParent('..')	
-		setParent('..')
+		with win:
+			with columnLayout():	
+				with frameLayout( l='Creation', labelVisible=False):
+					with columnLayout():		
+						with rowLayout( nc=3, cw3=[80, 80, 240], cal=([1,'center'], [2,'right'])):
+							button( l='Create', w=80, c= lambda *args: self.newPipeCB())	
+							text( l='Name' )
+							self.createGrp = textField( text='pipe', w=90)
+						separator(w=400)
 				
-		frameLayout( l='Connector Properties', labelVisible=True)
-		columnLayout()
-		self.connectorRadius = floatSliderGrp( l='Connector Radius', 
-			value=.1,
-			field=True,
-			precision = 3,
-			min=0, max=10 )		
-		self.connectorThickness = floatSliderGrp( l='Connector Height', 
-			value=.2,
-			field=True,
-			precision = 3,
-			min=.001, max=10 )
-		self.connectorOffset = floatSliderGrp( l='Connector Offset', 
-			value=.001,
-			field=True,
-			precision = 3,
-			min=0, max=4 )
-		setParent('..')	
-		setParent('..')
+						with rowLayout( nc=2, cw2=[80, 320], cal=[1,'center']):
+							#text( l='Segments' )
+							button( l='Extend', w=80, c = lambda *args: self.extendPipeCB() )
+							self.numSegments = intSliderGrp(
+								cw3=[80,40,50],
+								l='Segments',
+								value=1,
+								field=1,
+								min=1, max=20 )
+				
+				with frameLayout( l='Pipe Properties', labelVisible=True):
+					with columnLayout():
+						self.pipeRadius = floatSliderGrp( l='Radius', 
+							value=.22,
+							field=True,
+							precision = 3,
+							min=.0001, max=10 )
+						self.subdivAxis = intSliderGrp( l='Axis Segments', 
+							value=16,
+							field=True,
+							min=3, max=80 )	
+						
+				with frameLayout( l='Connector Properties', labelVisible=True):
+					with columnLayout():
+						self.connectorRadius = floatSliderGrp( l='Connector Radius', 
+							value=.1,
+							field=True,
+							precision = 3,
+							min=0, max=10 )		
+						self.connectorThickness = floatSliderGrp( l='Connector Height', 
+							value=.2,
+							field=True,
+							precision = 3,
+							min=.001, max=10 )
+						self.connectorOffset = floatSliderGrp( l='Connector Offset', 
+							value=.001,
+							field=True,
+							precision = 3,
+							min=0, max=4 )
+		
+				with frameLayout( l='Joint Properties', labelVisible=True):
+					with columnLayout():	
+						self.jointRadius = floatSliderGrp( l='Radius', 
+							value=0,
+							field=True,
+							precision = 3,
+							min=0, max=10 )
+						self.subdivJoint = intSliderGrp( l='Joint Segments', 
+							value=8,
+							field=True,
+							min=1, max=80 )	
+						self.jointLength = floatSliderGrp( l='Joint Length', 
+							value=1.2,
+							field=True,
+							precision = 3,
+							min=0.0001, max=10 )
 
-		frameLayout( l='Joint Properties', labelVisible=True)
-		columnLayout()	
-		self.jointRadius = floatSliderGrp( l='Radius', 
-			value=0,
-			field=True,
-			precision = 3,
-			min=0, max=10 )
-		self.subdivJoint = intSliderGrp( l='Joint Segments', 
-			value=8,
-			field=True,
-			min=1, max=80 )	
-		self.jointLength = floatSliderGrp( l='Joint Length', 
-			value=1.2,
-			field=True,
-			precision = 3,
-			min=0.0001, max=10 )
-		setParent('..')	
-		setParent('..')
-		
-		
-		
-		win.show()
 		
 	def newPipeCB(self):
 		

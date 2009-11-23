@@ -622,7 +622,7 @@ class Vector(VectorN) :
         if type(self) is Vector :
             Vector.apicls.normalize(self)
         else :
-            self.assign(v.normal())
+            self.assign(self.normal())
         
     # additional api methods that work on Vector only, and don't have an equivalent on VectorN
 
@@ -1880,9 +1880,6 @@ class TransformationMatrix(Matrix):
         
     def rotation(self) :
         return self.apicls.rotation(self)
- 
-    def rotation(self) :
-        return self.apicls.rotation(self) 
 
 
 class EulerRotation(Array):

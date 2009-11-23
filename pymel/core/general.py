@@ -668,7 +668,7 @@ def listHistory( *args, **kwargs ):
 Modifications:
   - returns an empty list when the result is None
   - added a much needed 'type' filter
-  - ...and an 'exactType' filter (if both are present, 'type' is ignored)
+  - added an 'exactType' filter (if both 'exactType' and 'type' are present, 'type' is ignored)
     
     :rtype: `DependNode` list
     
@@ -695,7 +695,7 @@ def listFuture( *args, **kwargs ):
 Modifications:
   - returns an empty list when the result is None
   - added a much needed 'type' filter
-  - ...and an 'exactType' filter (if both are present, 'type' is ignored)
+  - added an 'exactType' filter (if both 'exactType' and 'type' are present, 'type' is ignored)
     
     :rtype: `DependNode` list
     
@@ -707,7 +707,7 @@ Modifications:
         
 def listRelatives( *args, **kwargs ):
     """
-Maya Bug Fix
+Maya Bug Fix:
   - allDescendents and shapes flags did not work in combination
     
 Modifications:
@@ -963,7 +963,7 @@ Modifications:
 
             # 2) instance the shape we want under the new transform
             #    (result: dupeTransform1|instancedShape)
-            parent(origShape, dupeTransform1, shape=True, addObject=True,
+            cmds.parent(origShape, dupeTransform1, shape=True, addObject=True,
                         relative=True)
             
             # 3) duplicate the new transform
@@ -975,7 +975,7 @@ Modifications:
 
             # 5) place an instance of the duplicated shape under the original
             #    transform (result: originalTransform|duplicatedShape)
-            newShape = PyNode(parent(dupeTransform2.getShape(),
+            newShape = PyNode(cmds.parent(dupeTransform2.getShape(),
                                      origShape.getParent(),
                                      shape=True, addObject=True,
                                      relative=True)[0])

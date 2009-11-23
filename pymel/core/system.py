@@ -730,7 +730,7 @@ class ReferenceCache(object):
             msg = "SUSPENDING "
         else:
             msg = "Enabling"
-        logging.debug("%s Reference Updates" % (msg))
+        _logger.debug("%s Reference Updates" % (msg))
         cls._deferReferenceUpdates = state
     
     
@@ -954,7 +954,7 @@ class FileReference(object):
             try:
                 res[namespace + cmds.file( x, q=1, namespace=1)] = FileReference(x)
             except Exception, e:
-                mel.warning("Could not get namespace for '%s': %s" % (x,e))  
+                _logger.warn("Could not get namespace for '%s': %s" % (x,e))  
         return res  
         
     @_factories.addMelDocs('namespace', 'exists')    
@@ -1008,8 +1008,8 @@ class FileReference(object):
         ns = self.namespace
         return cmds.file( rfn=self.refNode, importReference=1 )
         if removeNamespace:
-            namespace( mv=(ns, ':'), f=1 )
-            namespace( rm=ns )
+            cmds.namespace( mv=(ns, ':'), f=1 )
+            cmds.namespace( rm=ns )
       
 #    @_factories.createflag('file', 'removeReference')
 #    def remove(self, **kwargs):
@@ -1139,7 +1139,7 @@ def referenceQuery(*args, **kwargs):
             else:
                 fr = target.referenceFile()
         except MayaNodeError:
-            target = path(target)
+            target = Path(target)
             if target.isfile():
                 fr = FileReference(path=target)
                 

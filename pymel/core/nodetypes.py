@@ -294,7 +294,7 @@ class Component( general.PyNode ):
         if api.isValidMObjectHandle( handle ) :
             return handle.object()
         # Can't use self.name(), as that references this!
-        raise MayaObjectError( self._completeNameString() )        
+        raise general.MayaObjectError( self._completeNameString() )        
 
     def __apiobject__(self) :
         return self.__apimobject__()
@@ -303,7 +303,7 @@ class Component( general.PyNode ):
         if 'MObjectHandle' not in self.__apiobjects__:
             handle = self._makeComponentHandle()
             if not handle or not api.isValidMObjectHandle(handle):
-                raise MayaObjectError( self._completeNameString() )
+                raise general.MayaObjectError( self._completeNameString() )
             self.__apiobjects__['MObjectHandle'] = handle            
         return self.__apiobjects__['MObjectHandle']
 
@@ -1035,7 +1035,7 @@ class ContinuousComponent( DimensionedComponent ):
         # indices... the only caveat is we need to convert it to a
         # HashableSlice, as we will be sticking it into a set...        
         if sliceObj.step != None:
-            raise ComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s" %
+            raise general.MayaComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s" %
                                  (self.__class__.__name__, sliceObj))
         if partialIndex is None:
             partialIndex = ComponentIndex()
@@ -5442,6 +5442,7 @@ class SelectionSet( api.MSelectionList):
     def symmetricDifference(self, other):
         if not isinstance( other, api.MSelectionList ):
             other = SelectionSet( other )
+        # FIXME: does kXOR exist?  completion says only kXORWithList exists
         self.apicls.merge( self, other, api.MSelectionList.kXOR )
 
     def asObjectSet(self):
