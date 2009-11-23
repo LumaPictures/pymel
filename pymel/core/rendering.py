@@ -23,11 +23,12 @@ def createSurfaceShader( shadertype, name=None ):
     #print classification
     
     newShader = None
+    import nodetypes
     #if 'shader/surface' in classification:        
     if 'rendernode/mentalray/material' in classification:
-        newShader = _general.nodetypes.DependNode(_language.mel.mrCreateCustomNode( "-asShader", "", shadertype))
+        newShader = nodetypes.DependNode(_language.mel.mrCreateCustomNode( "-asShader", "", shadertype))
     else:
-        newShader = _general.nodetypes.DependNode(_language.mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
+        newShader = nodetypes.DependNode(_language.mel.renderCreateNode( "-asShader", "surfaceShader", shadertype, "", 0, 0, 0, 1, 0, ""))
     #else:
     #    raise TypeError, "%s is not a valid surface shader type. shader must be classified as 'shader/surface'" % shadertype
     sg = newShader.shadingGroups()[0]
