@@ -5092,23 +5092,23 @@ class Mesh(SurfaceShape):
     >>> from pymel.all import *
     >>> obj = polyTorus()[0]
     >>> colors = []
-    >>> for i, vtx in enumerate(obj.vtx):
-    ...     edgs=vtx.toEdges()
-    ...     totalLen=0
-    ...     edgCnt=0
-    ...     for edg in edgs:
-    ...         edgCnt += 1
-    ...         l = edg.getLength()
-    ...         totalLen += l
-    ...     avgLen=totalLen / edgCnt
-    ...     #print avgLen
-    ...     currColor = vtx.getColor(0)
-    ...     color = datatypes.Color.black
+    >>> for i, vtx in enumerate(obj.vtx):   # doctest: +SKIP
+    ...     edgs=vtx.toEdges()              # doctest: +SKIP
+    ...     totalLen=0                      # doctest: +SKIP
+    ...     edgCnt=0                        # doctest: +SKIP
+    ...     for edg in edgs:                # doctest: +SKIP
+    ...         edgCnt += 1                 # doctest: +SKIP
+    ...         l = edg.getLength()         # doctest: +SKIP
+    ...         totalLen += l               # doctest: +SKIP
+    ...     avgLen=totalLen / edgCnt        # doctest: +SKIP
+    ...     #print avgLen                   # doctest: +SKIP
+    ...     currColor = vtx.getColor(0)     # doctest: +SKIP
+    ...     color = datatypes.Color.black   # doctest: +SKIP
     ...     # only set blue if it has not been set before
-    ...     if currColor.b<=0.0:
-    ...         color.b = avgLen
-    ...     color.r = avgLen
-    ...     colors.append(color)
+    ...     if currColor.b<=0.0:            # doctest: +SKIP
+    ...         color.b = avgLen            # doctest: +SKIP
+    ...     color.r = avgLen                # doctest: +SKIP
+    ...     colors.append(color)            # doctest: +SKIP
     
     
     """
