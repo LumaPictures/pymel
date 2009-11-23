@@ -339,7 +339,7 @@ class IndexData(object):
         self.index = index
 
 
-def makeComponentCreationTests(evalStringCreator):
+def makeComponentCreationTests(evalStringCreator, funcName=None):
     """
     Outputs a function suitable for use as a unittest test that tests creation of components.
     
@@ -380,7 +380,8 @@ def makeComponentCreationTests(evalStringCreator):
                     successfulComps.append(evalString)
         if failedComps:
             self.fail('Could not create following components:\n   ' + '\n   '.join(failedComps))
-            
+    if funcName:
+        test_makeComponents.__name__ = funcName
     return test_makeComponents
 
 class MakeEvalStringCreator(object):
@@ -668,7 +669,7 @@ class testCase_components(unittest.TestCase):
         Indices will itself be a list.
         
         Example:
-        >>> testCase_components._compStrSplit('mySurf.uv[4][*]') # doctest: +SKIP
+        >> testCase_components._compStrSplit('mySurf.uv[4][*]') # doctest: +SKIP
         ('mySurf', 'uv', ['4', '*'])
         """
         if '.' not in compStr:
@@ -694,7 +695,7 @@ class testCase_components(unittest.TestCase):
         return a component string representing that comp.
         
         Example:
-        >>> testCase_components._joinCompStr('mySurf', 'uv', ['4', '*']) # doctest: +SKIP
+        >> testCase_components._joinCompStr('mySurf', 'uv', ['4', '*']) # doctest: +SKIP
         'mySurf.uv[4][*]'
         """
         indicesStr = ''
@@ -1473,7 +1474,7 @@ for propName, evalStringFunc in \
         baseName = propName[:-len(evalStringId)].capitalize()
         newFuncName = 'test_' + baseName + '_ComponentCreation'
         setattr(testCase_components, newFuncName,
-            makeComponentCreationTests(evalStringFunc))
+            makeComponentCreationTests(evalStringFunc, funcName=newFuncName))
         
 class testCase_nurbsSurface(TestCaseExtended):
     def setUp(self):
