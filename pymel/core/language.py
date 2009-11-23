@@ -489,7 +489,7 @@ class Env(object):
     def sceneName(self):
         return system.Path(cmds.file( q=1, sn=1))
 
-    def setUpAxis( axis, rotateView=False ):
+    def setUpAxis( self, axis, rotateView=False ):
         """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
         cmds.upAxis( axis=axis, rotateView=rotateView )
     
