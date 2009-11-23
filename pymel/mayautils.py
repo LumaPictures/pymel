@@ -132,26 +132,9 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
     
     includeRegex =  "(?!(" + regex + "))" # add a negative lookahead assertion
         
-#    try:
-#        excludeRegex = re.compile(  regex  ) 
-#        
-#    except Exception, e:
-#        _logger.error(e)
     
-    #print "------------starting--------------"
-    #for x in os.environ.get(envVariableName, '').split(':'): print x
-    
-    try :
-        from maya.cmds import about
-        if about(batch=1):
-            refreshEnviron() 
-    except ImportError:
-        pass
 
-    #print "---------"
-    #for x in os.environ.get(envVariableName, '').split(':'): print x
 
-    ## if passed an rootsument  then only expand the rootsument string 
 
     if roots:
         if isinstance( roots, list) or isinstance( roots, tuple):
@@ -160,7 +143,8 @@ def recurseMayaScriptPath(roots=[], verbose=False, excludeRegex=None, errors='wa
             rootVars = [roots]
     ##  else expand the whole  environment  currently set 
     else:
-        rootVars = os.environ["MAYA_SCRIPT_PATH"].split(os.path.pathsep)
+        scriptPath = os.environ["MAYA_SCRIPT_PATH"]
+        rootVars = scriptPath.split(os.path.pathsep)
         
     varList = rootVars[:]
     
