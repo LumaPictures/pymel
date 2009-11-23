@@ -1268,13 +1268,6 @@ class MeshVertex( MItComponent1D ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @_warnings.deprecated("Use 'connectedEdges' instead.") 
-    def toEdges(self):
-        """
-        :rtype: `MeshEdge` list
-        """
-        return self.connectedEdges()
-
     def connectedFaces(self):
         """
         :rtype: `MeshFace` list
@@ -1282,13 +1275,6 @@ class MeshVertex( MItComponent1D ):
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-    
-    @_warnings.deprecated("Use 'connectedFaces' instead.")
-    def toFaces(self):
-        """
-        :rtype: `MeshFace` list
-        """
-        return self.connectedFaces()
     
     def connectedVertices(self):
         """
@@ -1339,13 +1325,6 @@ class MeshEdge( MItComponent1D ):
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-    
-    @_warnings.deprecated("Use 'connectedFaces' instead.")
-    def toFaces(self):
-        """
-        :rtype: `MeshFace` list
-        """
-        return self.connectedFaces()
 
     def connectedVertices(self):
         """
@@ -1389,15 +1368,6 @@ class MeshFace( MItComponent1D ):
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
-    @_warnings.deprecated("Use 'connectedEdges' instead.") 
-    def toEdges(self):
-        """
-        :rtype: `MeshEdge` list
-        """
-        array = api.MIntArray()
-        self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-
     def connectedFaces(self):
         """
         :rtype: `MeshFace` list
@@ -1405,16 +1375,7 @@ class MeshFace( MItComponent1D ):
         array = api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-    
-    @_warnings.deprecated("Use 'connectedVertices' instead.")
-    def toVertices(self):
-        """
-        :rtype: `MeshVertex` list
-        """
-        array = api.MIntArray()
-        self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
-    
+      
     def connectedVertices(self):
         """
         :rtype: `MeshVertex` list
@@ -4068,24 +4029,6 @@ class Shape(DagNode):
         
 class Camera(Shape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    @_warnings.deprecated('Use getHorizontalFieldOfView instead', 'Camera' )
-    def getFov(self):
-        aperture = self.horizontalFilmAperture.get()
-        fov = (0.5 * aperture) / (self.focalLength.get() * 0.03937)
-        fov = 2.0 * math.atan (fov)
-        fov = 57.29578 * fov
-        return fov
-    
-    @_warnings.deprecated('Use setHorizontalFieldOfView instead', 'Camera' )   
-    def setFov(self, fov):
-        aperture = self.horizontalFilmAperture.get()
-        focal = math.tan (0.00872665 * fov);
-        focal = (0.5 * aperture) / (focal * 0.03937);
-        self.focalLength.set(focal)
-    
-    @_warnings.deprecated('Use getAspectRatio instead', 'Camera' )  
-    def getFilmAspect(self):
-        return self.horizontalFilmAperture.get()/ self.verticalFilmAperture.get()
 
     def applyBookmark(self, bookmark):
         kwargs = {}
@@ -5126,12 +5069,6 @@ class Mesh(SurfaceShape):
                             'uvs'   : MeshUV,
                             'vtxFace'   : MeshVertexFace,
                             'faceVerts' : MeshVertexFace}
-                        
-    vertexCount =  _warnings.deprecated( "Use 'numVertices' instead.")( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'vertex', 'vertexCount' ))
-    edgeCount =    _warnings.deprecated( "Use 'numEdges' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'edge', 'edgeCount' ))
-    faceCount =    _warnings.deprecated( "Use 'numFaces' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate,  'face', 'faceCount' ))
-    uvcoordCount = _warnings.deprecated( "Use 'numUVs' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'uvcoord', 'uvcoordCount' ))
-    triangleCount = _warnings.deprecated( "Use 'numTriangles' instead." )( _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangle', 'triangleCount' ))
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
@@ -5721,17 +5658,12 @@ class ObjectSet(Entity):
           
     def isSubSet(self, other):
         """:rtype: `bool`"""
-        return self.asSelectionSet().isSubSet(other)
-    
-    issubset = _warnings.deprecated( 'Use ObjectSet.isSubSet instead', 'ObjectSet' )( members ) 
-    
+        return self.asSelectionSet().isSubSet(other)  
     
     def isSuperSet(self, other ):
         """:rtype: `bool`"""
         return self.asSelectionSet().isSuperSet(other)
-    
-    issuperset = _warnings.deprecated( 'Use ObjectSet.isSuperSet instead', 'ObjectSet' )( members ) 
-    
+ 
     def isEqual(self, other ):
         """
         do not use __eq__ to test equality of set contents. __eq__ will only tell you if 
@@ -5793,8 +5725,6 @@ class ObjectSet(Entity):
     def union(self, other):
         self.addMembers(other)
      
-    update = _warnings.deprecated( 'Use ObjectSet.union instead', 'ObjectSet' )( members ) 
-
 
 class GeometryFilter(DependNode): pass
 class SkinCluster(GeometryFilter):

@@ -1,3 +1,38 @@
+"""
+This module provides functions for upgrading scripts from pymel 0.9 to 1.0.  It
+fixes two types non-compatible code:
+    - pymel.all is now the main entry-point for loading all pymel modules
+        - import pymel         --> import pymel.all as pymel
+        - import pymel as pm   --> import pymel.all as pm
+        - from pymel import *  --> from pymel.all import *
+    - pymel.mayahook.versions.Version is now pymel.versions
+
+To use, run this in a script editor tab::
+
+    import pymel.tools.upgradeScripts
+    pymel.tools.upgradeScripts.upgrade()
+    
+This will print out all the modules that will be upgraded.  If everything looks good
+run the following to perform the upgrade::
+
+    pymel.tools.upgradeScripts.upgrade(test=False)
+    
+Once you're sure that the upgrade went smoothly, run::
+
+    pymel.tools.upgradeScripts.cleanup()
+
+This will delete the backup files.
+
+If you need to undo the changes, run::
+
+    pymel.tools.upgradeScripts.undo()
+    
+Keep in mind that this will restore files to their state at the time that you ran
+``upgrade``.  If you made edits to the files after running ``upgrade`` they will
+be lost.
+"""
+
+
 import sys, os.path, re, shutil
 from collections import defaultdict
 import pymel.core # we don't use this, but it ensures that maya and sys.path are properly initialized
@@ -28,10 +63,10 @@ def _getMayaAppDir():
 objects = [ 
            ( 'Version',
              re.compile('([a-zA-Z_][a-zA-Z0-9_.]+[.])?(Version[.])([a-zA-Z_][a-zA-Z0-9_]*)'), 
-                       ( 'pymel',
-                         'pymel.version',
-                         'pymel.internal', 
-                         'pymel.internal.version' ),
+            ('pymel',
+             'pymel.version',
+             'pymel.internal', 
+             'pymel.internal.version' ),
             'versions',
             { 'current' : 'current()',
              'v85sp1' : 'v85_SP1',
@@ -97,7 +132,7 @@ def upgradeFile(filepath, test=True):
             details = d['details']
             
             if pymel_module == 'pymel.all':
-                print "already uses 'pymel.all': skipping"
+                print "skipping. already uses 'pymel.all':",  filepath
                 return False, True
             
             uses_pymel = True
@@ -148,13 +183,14 @@ def upgradeFile(filepath, test=True):
                 parts = reg.split(line)
                 if len(parts) > 1:
                     #print parts
-                    for j in range(0, len(parts)-1, 3):
+                    for j in range(0, len(parts)-1, 4):
                         try:
                             ns = parts[j+PREFIX]
                         except IndexError, err:
                             pass
                         else:
                             ns = ns if ns else ''
+                            #print '\t', `ns`
                             parts[j+PREFIX] = ns
                             #print "checking namespace", `ns`, 'against', dict(rev_pymel_namespaces)
                             for namespace, orig_namespaces in rev_pymel_namespaces.iteritems():
@@ -276,7 +312,7 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
                                 if os.path.exists(fpath+BACKUPEXT) and not force:
                                     print "file has already been converted. skipping: %s  (use force=True to force conversion)" % fpath
                                     if not test:
-                                        # keep as part of the log so that revert will work
+                                        # keep as part of the log so that undo will work
                                         log.write( fpath + '\n' )
                                 else:
                                     modified, stat = upgradeFile( fpath, test )                                
@@ -319,11 +355,11 @@ def upgrade(logdir=None, test=True, excludeFolderRegex=None, excludeFileRegex=No
     else:
         print "upgrade complete. the original files have been renamed with a %s extension\n" % BACKUPEXT
         print "to remove the backed-up original files run:\ncleanup(%r)\n" % logfile
-        print "to restore the original files run:\nrevert(%r)" % logfile
+        print "to restore the original files run:\nundo(%r)" % logfile
         
-def revertFile(filepath):
+def undoFile(filepath):
     """
-    revert a single file
+    undo a single file
     """
     backup = filepath + BACKUPEXT
     if os.path.isfile(backup):
@@ -336,10 +372,44 @@ def revertFile(filepath):
     else:
         print "error restoring %s: backup file does not exist: %s. skipping" % ( filepath, backup)
     return True
-     
-def revert(logfile=None, force=False):
+
+def _findbackups():
+    undofiles = []
+    for path in sys.path + os.environ['MAYA_SCRIPT_PATH'].split(os.pathsep):
+        for root, dirs, files in os.walk(path):
+            #print root
+            for f in files:
+                if f.endswith('.py' + BACKUPEXT) and not f.startswith('.'):
+                    fpath = os.path.realpath(os.path.join(root,f.rstrip(BACKUPEXT)))
+                    #print "adding", fpath
+                    undofiles.append(fpath)
+            i = 0
+            tmpdirs = dirs[:]
+            for dir in tmpdirs:
+                #print '\t', `dir`
+                if dir.startswith('.') or dir == 'pymel' \
+                        or not os.path.isfile(os.path.join(root, dir, '__init__.py')):
+                    del dirs[i]
+                else:
+                    i += 1
+    return undofiles
+
+def _getbackups(logfile, force):
+    try:
+        log = open(_getLogfile(logfile), 'r' )
+    except LogError, e:
+        if force:
+            undofiles = _findbackups()
+        else:
+            raise LogError, str(e) + '.\nif you lost your logfile, set force=True to search sys.path for *.pmbak files to restore instead.'
+    else:
+        undofiles = [ x.rstrip() for x in log.readlines() if x]
+        log.close()
+    return undofiles
+                    
+def undo(logfile=None, force=False):
     """
-    revert converted files to their original state and remove backups
+    undo converted files to their original state and remove backups
     
     :param logfile:
         the logfile containing the list of files to restore.  if None, the logfile
@@ -348,42 +418,16 @@ def revert(logfile=None, force=False):
             2. MAYA_APP_DIR
             3. current working directory
     :param force:
-        if you've lost the original logfile, setting force to True will cause the script
+        if you've lost the original logfile, setting force to True will cause the function
         to recurse sys.path looking for backup files to restore instead of using the log.
         if your sys.path is setup exactly as it was during upgrade, all files should
         be restored, but without the log it is impossible to be certain.
     """
-    try:
-        log = open(_getLogfile(logfile), 'r' )
-    except LogError, e:
-        if force:
-            revertfiles = []
-            for path in sys.path + os.environ['MAYA_SCRIPT_PATH'].split(os.pathsep):
-                for root, dirs, files in os.walk(path):
-                    #print root
-                    for f in files:
-                        if f.endswith('.py' + BACKUPEXT) and not f.startswith('.'):
-                            fpath = os.path.realpath(os.path.join(root,f.rstrip(BACKUPEXT)))
-                            #print "adding", fpath
-                            revertfiles.append(fpath)
-                    i = 0
-                    tmpdirs = dirs[:]
-                    for dir in tmpdirs:
-                        #print '\t', `dir`
-                        if dir.startswith('.') or dir == 'pymel' \
-                                or not os.path.isfile(os.path.join(root, dir, '__init__.py')):
-                            del dirs[i]
-                        else:
-                            i += 1
-        else:
-            raise LogError, str(e) + '.\nif you lost your logfile, set force=True to search sys.path for *.pmbak files to restore instead.'
-    else:
-        revertfiles = [ x.rstrip() for x in log.readlines() if x]
-        log.close()
+    undofiles = _getbackups(logfile, force)
     
     try:
-        for file in revertfiles:
-            revertFile(file)
+        for file in undofiles:
+            undoFile(file)
         print 'done'
     except Exception, err:
         import traceback
@@ -391,9 +435,9 @@ def revert(logfile=None, force=False):
         
 
 
-def cleanup(logfile=None):
+def cleanup(logfile=None, force=False):
     """
-    cleanup original files.  run this when you are certain that the upgrade went
+    remove backed-up files.  run this when you are certain that the upgrade went
     smoothly and you no longer need the original backups.
     
     :param logfile:
@@ -402,20 +446,25 @@ def cleanup(logfile=None):
         1. last used logfile (module must have remained loaded since running upgrade)
         2. MAYA_APP_DIR
         3. current working directory
+    :param force:
+        if you've lost the original logfile, setting force to True will cause the function
+        to recurse sys.path looking for backup files to cleanup instead of using the log.
+        if your sys.path is setup exactly as it was during upgrade, all files should
+        be restored, but without the log it is impossible to be certain.
     """
-    log = open(_getLogfile(logfile), 'r' )
+    undofiles = _getbackups(logfile, force)
+    
     try:
-        for file in log:
-            file = file.rstrip()
-            if file:
-                try:
-                    os.remove(file + BACKUPEXT)
-                except (IOError, OSError), err:
-                    print "error removing file %s.pmbak: %s" % ( file, err)
-
+        for file in undofiles:
+            bkup = file + BACKUPEXT
+            try:
+                print "removing", bkup
+                os.remove(bkup)
+            except (IOError, OSError), err:
+                print "error removing file %s: %s" % ( bkup, err)
+        print 'done'
     except Exception, err:
         import traceback
         traceback.print_exc()
-    finally:
-        log.close()
+
 
