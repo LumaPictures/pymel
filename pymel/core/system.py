@@ -407,7 +407,7 @@ class Workspace(object):
         >>> workspace(dir=proj) # change back to original dir
         
     new way    
-        >>> proj = workspace.getcwd() # doctest: +ELLIPSIS
+        >>> proj = workspace.getcwd()
         >>> proj  # doctest: +ELLIPSIS
         Path('...')
         >>> workspace.mkdir('mydir')

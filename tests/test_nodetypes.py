@@ -7,6 +7,7 @@ from pymel.all import *
 from pymel.tools.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories
+import pymel.internal.apicache as apicache
 from testingutils import TestCaseExtended, setCompare
 
 
@@ -641,7 +642,7 @@ class testCase_components(unittest.TestCase):
                           'kSetGroupComponent',
                           'kDynParticleSetComponent',
                           )
-        compTypesDict = factories.getComponentTypes()
+        compTypesDict = apicache.getComponentTypes()
         flatCompTypes = set()
         for typesList in compTypesDict.itervalues():
             flatCompTypes.update(typesList)
