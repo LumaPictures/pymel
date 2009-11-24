@@ -956,11 +956,11 @@ class DiscreteComponent( DimensionedComponent ):
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
+            dimensionIndicePtrs.append(api.SafeApiPtr('int'))
             
         for flatIndex in xrange(len(self)):
-            mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
-            yield ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
+            mfncomp.getElement(flatIndex, *[x() for x in dimensionIndicePtrs])
+            yield ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
@@ -981,13 +981,14 @@ class DiscreteComponent( DimensionedComponent ):
         # This code duplicates much of _flatIter - keeping both
         # for speed, as _flatIter may potentially have to plow through a lot of
         # components, so we don't want to make an extra function call...
+        
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(api.MScriptUtil().asIntPtr())
+            dimensionIndicePtrs.append(api.SafeApiPtr('int'))
 
-        mfncomp.getElement(self._currentFlatIndex, *dimensionIndicePtrs)
-        curIndex = ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
+        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
             
     def next(self):
@@ -1433,6 +1434,10 @@ class MeshVertexFace( Component2D ):
     
             # get a MitMeshVertex ...
             mIt = api.MItMeshVertex(self._node.__apimdagpath__())
+            
+            # We don't actually need the value stored
+            # in the MScriptUtil here, so making a throwaway
+            # instance is okay here
             mIt.setIndex(partialIndex[0], api.MScriptUtil().asIntPtr())
             intArray = api.MIntArray()
             mIt.getConnectedFaces(intArray)
@@ -5043,23 +5048,23 @@ class Mesh(SurfaceShape):
     >>> from pymel.all import *
     >>> obj = polyTorus()[0]
     >>> colors = []
-    >>> for i, vtx in enumerate(obj.vtx):
-    ...     edgs=vtx.connectedEdges()
-    ...     totalLen=0
-    ...     edgCnt=0
-    ...     for edg in edgs:
-    ...         edgCnt += 1
-    ...         l = edg.getLength()
-    ...         totalLen += l
-    ...     avgLen=totalLen / edgCnt
-    ...     #print avgLen
-    ...     currColor = vtx.getColor(0)
-    ...     color = datatypes.Color.black
+    >>> for i, vtx in enumerate(obj.vtx):   # doctest: +SKIP
+    ...     edgs=vtx.toEdges()              # doctest: +SKIP
+    ...     totalLen=0                      # doctest: +SKIP
+    ...     edgCnt=0                        # doctest: +SKIP
+    ...     for edg in edgs:                # doctest: +SKIP
+    ...         edgCnt += 1                 # doctest: +SKIP
+    ...         l = edg.getLength()         # doctest: +SKIP
+    ...         totalLen += l               # doctest: +SKIP
+    ...     avgLen=totalLen / edgCnt        # doctest: +SKIP
+    ...     #print avgLen                   # doctest: +SKIP
+    ...     currColor = vtx.getColor(0)     # doctest: +SKIP
+    ...     color = datatypes.Color.black   # doctest: +SKIP
     ...     # only set blue if it has not been set before
-    ...     if currColor.b<=0.0:
-    ...         color.b = avgLen
-    ...     color.r = avgLen
-    ...     colors.append(color)
+    ...     if currColor.b<=0.0:            # doctest: +SKIP
+    ...         color.b = avgLen            # doctest: +SKIP
+    ...     color.r = avgLen                # doctest: +SKIP
+    ...     colors.append(color)            # doctest: +SKIP
     
     
     """
@@ -5762,9 +5767,9 @@ class SkinCluster(GeometryFilter):
             return iter(weights)
         else:
             weights = api.MDoubleArray()
-            index = api.MScriptUtil().asUintPtr()
-            self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index )
-            index = api.MScriptUtil.getInt(index)
+            index = api.SafeApiPtr('uint')
+            self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index() )
+            index = index.get()
             args = [iter(weights)] * index
             return itertools.izip(*args)
         

@@ -775,17 +775,17 @@ class Mel(object):
             if resType == _api.MCommandResult.kInvalid:
                 return   
             elif resType == _api.MCommandResult.kInt:
-                result = _api.MScriptUtil().asIntPtr()
-                res.getResult(result)
-                return _api.MScriptUtil.getInt(result)
+                result = _api.SafeApiPtr('int')
+                res.getResult(result())
+                return result.get()
             elif resType == _api.MCommandResult.kIntArray:
                 result = _api.MIntArray()
                 res.getResult(result)
                 return [ result[i] for i in range( result.length() ) ]
             elif resType == _api.MCommandResult.kDouble:
-                result = _api.MScriptUtil().asDoublePtr()
-                res.getResult(result)
-                return _api.MScriptUtil.getDouble(result)
+                result = _api.SafeApiPtr('double')
+                res.getResult(result())
+                return result.get()
             elif resType == _api.MCommandResult.kDoubleArray:
                 result = _api.MDoubleArray()
                 res.getResult(result)

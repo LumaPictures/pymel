@@ -1,3 +1,5 @@
+import weakref
+
 # import all available Maya API methods in this module (api)
 from maya.OpenMaya import *
 from maya.OpenMayaAnim import *
@@ -12,6 +14,115 @@ if not MGlobal.mayaState() == MGlobal.kBatch:
     except: pass
 try : from maya.OpenMayaRender import *
 except: pass
+
+# So, it seems that MScriptUtil().as*Ptr has a serious
+# problem... basically, it looks like the returned
+# ptrs don't have a reference to the MScriptUtil()
+# that provides the actual storage for them -
+# thus, it's possible for the MScriptUtil to get
+# garbage collected, but still have the pointer
+# to it in use - so it points to garbage (and
+# generally causes a crash).
+# To get around this, we create a wrapper for
+# ptrs which also contains a reference to the
+# MScriptUtil which contains the storage. Pass
+# it around in place of the pointer - then, when
+# the 'actual' pointer is needed (ie, immediately
+# before feeding it into an api function), 'call'
+# the SafeApiValue/Ptr object to return the 'true'
+# pointer.
+
+# Note - I would have liked to have implemented this
+# by simply attaching the MScriptUtil to the ptr -
+# but you can't add attributes to the pointer object.
+# My next idea was to use weakrefs to create a dictionary
+# which maps ptrs to MScriptUtils - and clean it
+# periodically as the ptrs are garbage collected. Alas,
+# the pointer objects are also not compatible with
+# weakref.  So, we have to use a 'non-transparent' wrapper...
+# ie, we have to 'call' the object before feeding to
+# the api function... 
+
+class SafeApiPtr(object):
+    """
+    A wrapper for api pointers which also contains a reference
+    to the MScriptUtil which contains the storage. This helps
+    ensure that the 'storage' for the pointer doesn't get
+    wiped out before the pointer does. Pass the SafeApiPtr
+    around in place of the 'true' pointer - then, when
+    the 'true' pointer is needed (ie, immediately
+    before feeding it into an api function), 'call'
+    the SafeApiPtr object to return the 'true'
+    pointer.
+    """
+        
+    def __init__(self, valueType, scriptUtil=None, size=1):
+        """
+        :Parameters:
+        valueType : `string`
+            The name of the maya pointer type you would like
+            returned - ie, 'int', 'short', 'float'.
+        scriptUtil : `MScriptUtil`
+            If you wish to use an existing MScriptUtil as
+            the 'storage' for the value returned, specify it
+            here - otherwise, a new MScriptUtil object is
+            created.
+        size : `int`
+            If we want a pointer to an array, size indicates
+            the number of items the array holds.  If we are
+            creating an MScriptUtil, it will be initialized
+            to hold this many items - if we are fed an
+            MScriptUtil, then it is your responsibility to
+            make sure it can hold the necessary number of items,
+            or else maya will crash!
+        """
+        if not scriptUtil:
+            self.scriptUtil = MScriptUtil()
+            if size < 1:
+                raise ValueError('size must be >= 1')
+            elif size > 1:
+                # Value stored here doesn't matter - just make sure
+                # it's large enough!
+                self.scriptUtil.createFromList([0.0] * size, size)
+        else:
+            self.scriptUtil = scriptUtil
+        self.size = size
+        self.ptr = getattr(self.scriptUtil,
+                           'as' + valueType.capitalize() + 'Ptr')()
+        self._getter = getattr(MScriptUtil, 'get' + valueType.capitalize())
+        self._setter = getattr(MScriptUtil, 'set' + valueType.capitalize())
+        self._indexGetter = getattr(MScriptUtil,
+                                    'get' + valueType.capitalize() + 'ArrayItem')
+        self._indexSetter = getattr(MScriptUtil,
+                                    'set' + valueType.capitalize() + 'Array')
+                           
+    def __call__(self):
+        return self.ptr
+    
+    def get(self):
+        """
+        Dereference the pointer - ie, get the actual value we're pointing to.
+        """
+        return self._getter(self.ptr)
+
+    def set(self, value):
+        """
+        Dereference the pointer - ie, get the actual value we're pointing to.
+        """
+        return self._setter(self.ptr, value)
+    
+    def __getitem__(self, index):
+        if index < 0 or index > (self.size - 1):
+            raise IndexError(index)
+        return self._indexGetter(self.ptr, index)
+
+    def __setitem__(self, index, value):
+        if index < 0 or index > (self.size - 1):
+            raise IndexError(index)
+        return self._indexSetter(self.ptr, index, value)
+    
+    def __len__(self):
+        return self.size
 
 
 # fast convenience tests on API objects
@@ -561,50 +672,48 @@ def getPlugValue( plug ):
                 return plug.asDouble()
             
             elif dataType == MFnNumericData.k2Short :
-                ptr1 = MScriptUtil().asShortPtr()
-                ptr2 = MScriptUtil().asShortPtr()
+                ptr1 = SafeApiPtr('short')
+                ptr2 = SafeApiPtr('short')
                 
-                numFn.getData2Short(ptr1,ptr2)
-                return ( MScriptUtil.getShort(ptr1), MScriptUtil.getShort(ptr2) )
+                numFn.getData2Short(ptr1(),ptr2())
+                return ( ptr1.get(), ptr2.get() )
             
             elif dataType in [ MFnNumericData.k2Int, MFnNumericData.k2Long ]:
-                ptr1 = MScriptUtil().asIntPtr()
-                ptr2 = MScriptUtil().asIntPtr()
+                ptr1 = SafeApiPtr('int')
+                ptr2 = SafeApiPtr('int')
                 
-                numFn.getData2Int(ptr1,ptr2)
-                return ( MScriptUtil.getInt(ptr1), MScriptUtil.getInt(ptr2) )
+                numFn.getData2Int(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
         
             elif dataType == MFnNumericData.k2Float :
-                ptr1 = MScriptUtil().asFloatPtr()
-                ptr2 = MScriptUtil().asFloatPtr()
+                ptr1 = SafeApiPtr('float')
+                ptr2 = SafeApiPtr('float')
                 
-                numFn.getData2Float(ptr1,ptr2)
-                return ( MScriptUtil.getFloat(ptr1), MScriptUtil.getFloat(ptr2) )
+                numFn.getData2Float(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
              
             elif dataType == MFnNumericData.k2Double :
-                ptr1 = MScriptUtil().asDoublePtr()
-                ptr2 = MScriptUtil().asDoublePtr()
+                ptr1 = SafeApiPtr('double')
+                ptr2 = SafeApiPtr('double')
                 
-                numFn.getData2Double(ptr1,ptr2)
-                return ( MScriptUtil.getDouble(ptr1), MScriptUtil.getDouble(ptr2) )
+                numFn.getData2Double(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
         
             elif dataType == MFnNumericData.k3Float:
-                ptr1 = MScriptUtil().asFloatPtr()
-                ptr2 = MScriptUtil().asFloatPtr()
-                ptr3 = MScriptUtil().asFloatPtr()
+                ptr1 = SafeApiPtr('float')
+                ptr2 = SafeApiPtr('float')
+                ptr3 = SafeApiPtr('float')
                  
-                numFn.getData3Float(ptr1,ptr2,ptr3)
-                return ( MScriptUtil.getFloat(ptr1), MScriptUtil.getFloat(ptr2), MScriptUtil.getFloat(ptr3) )
+                numFn.getData3Float(ptr1(), ptr2(), ptr3())
+                return ( ptr1.get(), ptr2.get(), ptr3.get() )
             
             elif dataType ==  MFnNumericData.k3Double:
-                ptr1 = MScriptUtil().asDoublePtr()
-                ptr2 = MScriptUtil().asDoublePtr()
-                ptr3 = MScriptUtil().asDoublePtr()
-                  
-                numFn.getData3Double(ptr1,ptr2,ptr3)
-                return ( MScriptUtil.getDouble(ptr1), MScriptUtil.getDouble(ptr2), MScriptUtil.getDouble(ptr3) )
-            
-        
+                ptr1 = SafeApiPtr('double')
+                ptr2 = SafeApiPtr('double')
+                ptr3 = SafeApiPtr('double')
+                
+                numFn.getData3Double(ptr1(), ptr2(), ptr3())
+                return ( ptr1.get(), ptr2.get(), ptr3.get() )
             
             elif dataType == MFnNumericData.kChar :
                 return plug.asChar()

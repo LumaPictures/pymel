@@ -41,21 +41,24 @@ Appendices:
 .. autosummary::
 	:nosignatures:
 	:toctree: generated/
-
+	
+	pymel.versions
+	pymel.mayautils
+	pymel.internal
 	pymel.core.animation
-	pymel.core.datatypes
 	pymel.core.effects
 	pymel.core.general
 	pymel.core.language
 	pymel.core.modeling
-	pymel.core.nodetypes
 	pymel.core.other
 	pymel.core.rendering
 	pymel.core.runtime
 	pymel.core.system
 	pymel.core.windows
 	pymel.core.context
-	pymel.mayahook.version
+	pymel.core.datatypes
+	pymel.core.nodetypes
+	pymel.core.uitypes
 	pymel.util
 	pymel.util.arguments
 	pymel.util.arrays
@@ -67,7 +70,7 @@ Appendices:
 	pymel.util.path
 	pymel.util.trees
 	pymel.util.utilitytypes
-	pymel.mayahook
+
 
 =======================================
     Special Thanks
