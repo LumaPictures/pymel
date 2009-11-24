@@ -38,17 +38,19 @@ def nose_test(module=None, extraArgs=None):
     """
     Run pymel unittests / doctests
     """
-
+    os.environ['MAYA_PSEUDOTRANS_MODE']='5'
+    os.environ['MAYA_PSEUDOTRANS_VALUE']=','
+    
     noseKwArgs={}
     noseArgv = "dummyArg0 --with-doctest --noexe ".split()
     if module is None:
-        module = 'pymel'
+        #module = 'pymel' # if you don't set a module, nose will search the cwd
         exclusion = 'windows tools example1 .*testingutils pmcmds testPa'
         noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
            
     if inspect.ismodule(module):
         noseKwArgs['module']=module
-    else:
+    elif module:
         noseArgv.append(module)
     if extraArgs is not None:
         noseArgv.extend(extraArgs)
@@ -148,6 +150,8 @@ def removeBackupLoop(retryTime=.1, printFailure=False):
 if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
         #backupAndTest(sys.argv[1:])
+        # make sure our cwd is the pymel project working directory
+        os.chdir( os.path.dirname( os.path.dirname(sys.argv[0]) ) )
         nose_test()
     else:
         # Maya may take some time to shut down / finish writing to files - 
