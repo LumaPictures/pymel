@@ -4845,7 +4845,7 @@ NurbsSurface.numCVsInU = \
             >>> mySurf.numCVsInU()
             11
             >>> mySurf.numCVsInU(editableOnly=False)
-            11        
+            11
 
         :rtype: `int`
         """)
@@ -4899,7 +4899,7 @@ NurbsSurface.numCVsInV = \
             >>> mySurf.numCVsInV()
             11
             >>> mySurf.numCVsInV(editableOnly=False)
-            11        
+            11
             
         :rtype: `int`
         """)
