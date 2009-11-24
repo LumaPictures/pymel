@@ -20,7 +20,8 @@ from arguments import isNumeric, clsname
 from utilitytypes import readonly, metaReadOnlyAttr
 from math import pi, exp
 import math, mathutils, sys
-eps = 1.0/sys.maxint
+# 1.0/sys.maxint on 64-bit systems is too precise for maya to manage...
+eps = 1.0/(2**30)
 from __builtin__ import sum as _sum, min as _min, max as _max, abs as _abs
 # 2.5 only for any and all
 try :
