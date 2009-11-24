@@ -953,18 +953,14 @@ class DiscreteComponent( DimensionedComponent ):
         # for speed, as _flatIter may potentially have to plow through a lot of
         # components, so we don't want to make an extra function call...
 
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...
-        scriptUtils = []
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            scriptUtils.append(api.MScriptUtil())
-            dimensionIndicePtrs.append(scriptUtils[i].asIntPtr())
+            dimensionIndicePtrs.append(api.SafeApiPtr('int'))
             
         for flatIndex in xrange(len(self)):
-            mfncomp.getElement(flatIndex, *dimensionIndicePtrs)
-            yield ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
+            mfncomp.getElement(flatIndex, *[x() for x in dimensionIndicePtrs])
+            yield ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
 
     def __len__(self):
         return self.__apicomponent__().elementCount()
@@ -986,17 +982,13 @@ class DiscreteComponent( DimensionedComponent ):
         # for speed, as _flatIter may potentially have to plow through a lot of
         # components, so we don't want to make an extra function call...
         
-        # need to keep a ref to the MScriptUtil alive until
-        # all pointers aren't needed...        
-        scriptUtils = []        
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            scriptUtils.append(api.MScriptUtil())            
-            dimensionIndicePtrs.append(scriptUtils[i].asIntPtr())
+            dimensionIndicePtrs.append(api.SafeApiPtr('int'))
 
-        mfncomp.getElement(self._currentFlatIndex, *dimensionIndicePtrs)
-        curIndex = ComponentIndex( [api.MScriptUtil.getInt(x) for x in dimensionIndicePtrs] )
+        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
         return self.__class__(self._node, curIndex)
             
     def next(self):
@@ -5767,12 +5759,9 @@ class SkinCluster(GeometryFilter):
             return iter(weights)
         else:
             weights = api.MDoubleArray()
-            # need to keep a ref to the MScriptUtil alive until
-            # all pointers aren't needed...
-            msu = api.MScriptUtil()
-            index = msu.asUintPtr()
-            self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index )
-            index = api.MScriptUtil.getInt(index)
+            index = api.SafeApiPtr('uint')
+            self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index() )
+            index = index.get()
             args = [iter(weights)] * index
             return itertools.izip(*args)
         

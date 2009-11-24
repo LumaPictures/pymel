@@ -2781,76 +2781,48 @@ def getPlugValue( plug ):
                 return plug.asDouble()
             
             elif dataType == _api.MFnNumericData.k2Short :
-                # need to keep a ref to the MScriptUtil alive until
-                # all pointers aren't needed...                
-                msu1 = _api.MScriptUtil()
-                msu2 = _api.MScriptUtil()
-                ptr1 = msu1.asShortPtr()
-                ptr2 = msu2.asShortPtr()
+                ptr1 = _api.SafeApiPtr('short')
+                ptr2 = _api.SafeApiPtr('short')
                 
-                numFn.getData2Short(ptr1,ptr2)
-                return ( _api.MScriptUtil.getShort(ptr1), _api.MScriptUtil.getShort(ptr2) )
+                numFn.getData2Short(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
             
             elif dataType in [ _api.MFnNumericData.k2Int, _api.MFnNumericData.k2Long ]:
-                # need to keep a ref to the MScriptUtil alive until
-                # all pointers aren't needed...                
-                msu1 = _api.MScriptUtil()
-                msu2 = _api.MScriptUtil()
-                ptr1 = msu1.asIntPtr()
-                ptr2 = msu2.asIntPtr()
+                ptr1 = _api.SafeApiPtr('int')
+                ptr2 = _api.SafeApiPtr('int')
 
-                numFn.getData2Int(ptr1,ptr2)
-                return ( _api.MScriptUtil.getInt(ptr1), _api.MScriptUtil.getInt(ptr2) )
+                numFn.getData2Int(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
         
             elif dataType == _api.MFnNumericData.k2Float :
-                # need to keep a ref to the MScriptUtil alive until
-                # all pointers aren't needed...                
-                msu1 = _api.MScriptUtil()
-                msu2 = _api.MScriptUtil()
-                ptr1 = msu1.asFloatPtr()
-                ptr2 = msu2.asFloatPtr()
+                ptr1 = _api.SafeApiPtr('float')
+                ptr2 = _api.SafeApiPtr('float')
                 
-                numFn.getData2Float(ptr1,ptr2)
-                return ( _api.MScriptUtil.getFloat(ptr1), _api.MScriptUtil.getFloat(ptr2) )
+                numFn.getData2Float(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
              
             elif dataType == _api.MFnNumericData.k2Double :
-                # need to keep a ref to the MScriptUtil alive until
-                # all pointers aren't needed...                
-                msu1 = _api.MScriptUtil()
-                msu2 = _api.MScriptUtil()
-                ptr1 = msu1.asDoublePtr()
-                ptr2 = msu2.asDoublePtr()
+                ptr1 = _api.SafeApiPtr('double')
+                ptr2 = _api.SafeApiPtr('double')
                 
-                numFn.getData2Double(ptr1,ptr2)
-                return ( _api.MScriptUtil.getDouble(ptr1), _api.MScriptUtil.getDouble(ptr2) )
+                numFn.getData2Double(ptr1(), ptr2())
+                return ( ptr1.get(), ptr2.get() )
         
             elif dataType == _api.MFnNumericData.k3Float:
-                # need to keep a ref to the MScriptUtil alive until
-                # all pointers aren't needed...                
-                msu1 = _api.MScriptUtil()
-                msu2 = _api.MScriptUtil()
-                msu3 = _api.MScriptUtil()
-                ptr1 = msu1.asFloatPtr()
-                ptr2 = msu2.asFloatPtr()
-                ptr3 = msu3.asFloatPtr()
+                ptr1 = _api.SafeApiPtr('float')
+                ptr2 = _api.SafeApiPtr('float')
+                ptr3 = _api.SafeApiPtr('float')
 
-                numFn.getData3Float(ptr1,ptr2,ptr3)
-                return ( _api.MScriptUtil.getFloat(ptr1), _api.MScriptUtil.getFloat(ptr2), _api.MScriptUtil.getFloat(ptr3) )
+                numFn.getData3Float(ptr1(), ptr2(), ptr3())
+                return ( ptr1.get(), ptr2.get(), ptr3.get() )
             
             elif dataType ==  _api.MFnNumericData.k3Double:
-                # need to keep a ref to the MScriptUtil alive until
-                # all pointers aren't needed...                
-                msu1 = _api.MScriptUtil()
-                msu2 = _api.MScriptUtil()
-                msu3 = _api.MScriptUtil()
-                ptr1 = msu1.asDoublePtr()
-                ptr2 = msu2.asDoublePtr()
-                ptr3 = msu3.asDoublePtr()
+                ptr1 = _api.SafeApiPtr('double')
+                ptr2 = _api.SafeApiPtr('double')
+                ptr3 = _api.SafeApiPtr('double')
                   
-                numFn.getData3Double(ptr1,ptr2,ptr3)
-                return ( _api.MScriptUtil.getDouble(ptr1), _api.MScriptUtil.getDouble(ptr2), _api.MScriptUtil.getDouble(ptr3) )
-            
-        
+                numFn.getData3Double(ptr1(), ptr2(), ptr3())
+                return ( ptr1.get(), ptr2.get(), ptr3.get() )
             
             elif dataType == _api.MFnNumericData.kChar :
                 return plug.asChar()
