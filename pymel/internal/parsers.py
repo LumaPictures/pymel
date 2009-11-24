@@ -56,7 +56,7 @@ def mayaDocsLocation(version=None):
             short_version = versions.parseVersionStr(version, extension=False)
         else:
             short_version = versions.shortName()
-        if platfrom.system() == 'Darwin':
+        if platform.system() == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
             
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
