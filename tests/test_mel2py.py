@@ -38,8 +38,8 @@ class TestStrings(unittest.TestCase):
                    r'''"\"\\"''',       # "\"\\" - mel string for: "\
                    r'''"\\\\\""''',     # "\\\\\"" - mel string for: \\"
                    r'''"\\\\\\\""''']   # "\\\\\\\"" - mel string for: \\\"
-        for str in melStrs:
-            self.assertMelAndPyStringsEqual(str)
+        for melStr in melStrs:
+            self.assertMelAndPyStringsEqual(melStr)
 
 #testingutils.setupUnittestModule(__name__)
 

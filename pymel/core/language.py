@@ -109,7 +109,7 @@ def getMelType( pyObj, exactOnly=True, allowBool=False, allowMatrix=False ):
         allowMatrix : bool
             if True and a `Matrix` type is passed, 'matrix' will be returned. otherwise 'int[]'.
     
-    :rtype: str
+    :rtype: `str`
 
     
     """

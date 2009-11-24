@@ -316,23 +316,23 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
     invalid syntax.
     
     :Parameters:
-        data : str
+        data : `str`
             string representing coe to convert
 
-        currentModule : str
+        currentModule : `str`
             the name of the module that the hypothetical code is executing in. In most cases you will
             leave it at its default, the __main__ namespace.
             
-        pymelNamespace : str
+        pymelNamespace : `str`
             the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
             
-        forceCompatibility : bool
+        forceCompatibility : `bool`
             If True, the translator will attempt to use non-standard python types in order to produce
             python code which more exactly reproduces the behavior of the original mel file, but which
             will produce "uglier" code.  Use this option if you wish to produce the most reliable code
             without any manual cleanup.
             
-        verbosity : int
+        verbosity : `int`
             Set to non-zero for a *lot* of feedback
     
     """
@@ -356,22 +356,22 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
             If only the name of the mel file is passed, mel2py will attempt to determine the location 
             of the file using the 'whatIs' mel command, which relies on the script already being sourced by maya.
 
-        outputDir : str
+        outputDir : `str`
             Directory where resulting python files will be written to
 
-        pymelNamespace : str
+        pymelNamespace : `str`
             the namespace into which pymel will be imported.  the default is '', which means ``from pymel.all import *``
             
-        forceCompatibility : bool
+        forceCompatibility : `bool`
             If True, the translator will attempt to use non-standard python types in order to produce
             python code which more exactly reproduces the behavior of the original mel file, but which
             will produce "uglier" code.  Use this option if you wish to produce the most reliable code
             without any manual cleanup.
             
-        verbosity : int
+        verbosity : `int`
             Set to non-zero for a *lot* of feedback
         
-        test : bool
+        test : `bool`
             After translation, attempt to import the modules to test for errors
             
     

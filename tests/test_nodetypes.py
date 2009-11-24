@@ -1034,7 +1034,7 @@ class testCase_components(unittest.TestCase):
                     print "getting repr...",
                 try:
                     self._failIfWillMakeMayaCrash(pymelObj)
-                    str = repr(pymelObj)
+                    repr(pymelObj)
                 except Exception:
                     failedRepr.append(compString)
                 else:
