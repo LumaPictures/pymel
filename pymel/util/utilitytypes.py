@@ -626,8 +626,11 @@ def LazyLoadModule(name, contents):
         def __init__(self, name, contents):
             types.ModuleType.__init__(self, name)
             self.__dict__.update(contents)
-            self._lazyGlobals = contents
+            self._lazyGlobals = contents # globals of original module
+            # add ourselves to sys.modules, overwriting the original module
             sys.modules[name] = self
+            # the above line assigns a None value to all entries in the original globals.
+            # luckily, we have a copy on this module we can use to restore it.
             self._lazyGlobals.update( self.__dict__ )
         @property
         def __all__(self):
