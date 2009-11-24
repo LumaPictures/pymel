@@ -1957,7 +1957,8 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                         #_logger.debug("raising error")
                         raise AttributeError, "'"+classname+"' object has no attribute '"+name+"'" 
                     #_logger.debug("getting from %s" % bases[0])
-                    return bases[0].__getattribute__(self, name)
+                    # newcls will be defined by the time this is called...
+                    return super(newcls, self).__getattribute__(name)
                     
                 classdict['__getattribute__'] = __getattribute__
         
