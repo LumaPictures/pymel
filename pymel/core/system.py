@@ -616,9 +616,11 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
     import general
   
     if parentReference is None:
-        refs = zip( cmds.file( q=1, reference=1), cmds.file( q=1, reference=1, unresolvedName=1) )
+        refs = zip( cmds.file( q=1, reference=1), 
+                    cmds.file( q=1, reference=1, unresolvedName=1) )
     else:
-        refs = zip( cmds.file( parentReference, q=1, reference=1), cmds.file( parentReference, q=1, reference=1, unresolvedName=1) )
+        refs = zip( cmds.file( parentReference, q=1, reference=1), 
+                    cmds.file( parentReference, q=1, reference=1, unresolvedName=1) )
     #print "reference", parentReference
     for ref, unresolvedRef in refs:
         row = []
@@ -638,7 +640,11 @@ def iterReferences( parentReference=None, recursive=False, namespaces=False, ref
             row = tuple(row)
         yield row
         if recursive:
-            for x in iterReferences(parentReference=ref, recursive=True, namespaces=namespaces, refNodes=refNodes, references=references):
+            for x in iterReferences(parentReference=ref, 
+                                    recursive=True, 
+                                    namespaces=namespaces, 
+                                    refNodes=refNodes, 
+                                    references=references):
                 #print "yield sub"
                 yield x
         #print "for done"
@@ -649,7 +655,11 @@ def listReferences( parentReference=None, recursive=False, namespaces=False, ref
     Like iterReferences, except returns a list instead of an iterator.
     
     """
-    return list(iterReferences( parentReference=parentReference, recursive=recursive, namespaces=namespaces, refNodes=refNodes, references=references ))
+    return list(iterReferences( parentReference=parentReference, 
+                                recursive=recursive, 
+                                namespaces=namespaces, 
+                                refNodes=refNodes, 
+                                references=references ))
 listReferences.__doc__ += iterReferences.__doc__
 
 #def getReferences( reference=None, recursive=False, namespaces=True, refNodes=False, asDict=True ):
@@ -946,6 +956,22 @@ class FileReference(object):
     
     def __repr__(self):
         return u'%s(%r, %r)' % ( self.__class__.__name__, unicode(self.refNode), self.withCopyNumber() )
+    
+    def __str__(self):
+        return self.withCopyNumber()
+    
+    def __gt__(self, other):
+        return self.withCopyNumber().__gt__(unicode(other))
+    def __ge__(self, other):
+        return self.withCopyNumber().__ge__(unicode(other))
+    def __lt__(self, other):
+        return self.withCopyNumber().__lt__(unicode(other))
+    def __le__(self, other):
+        return self.withCopyNumber().__le__(unicode(other))
+    def __eq__(self, other):
+        return self.withCopyNumber().__eq__(unicode(other))
+    def __ne__(self, other):
+        return self.withCopyNumber().__ne__(unicode(other))
     
     def subReferences(self):
         namespace = self.namespace + ':'

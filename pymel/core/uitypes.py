@@ -27,10 +27,11 @@ def _resolveUIFunc(name):
 class UI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
-        Provides the ability to create the UI Element when creating a class
+        Provides the ability to create the UI Element when creating a class::
         
-            >>> n = pm.Window("myWindow",create=True)
-            >>> n.__repr__()
+            import pymel.core as pm
+            n = pm.Window("myWindow",create=True)
+            n.__repr__()
             # Result: Window('myWindow')
         """
         if not cls is UI:

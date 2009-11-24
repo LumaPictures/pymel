@@ -489,7 +489,7 @@ class Env(object):
     def sceneName(self):
         return system.Path(cmds.file( q=1, sn=1))
 
-    def setUpAxis( axis, rotateView=False ):
+    def setUpAxis( self, axis, rotateView=False ):
         """This flag specifies the axis as the world up direction. The valid axis are either 'y' or 'z'."""
         cmds.upAxis( axis=axis, rotateView=rotateView )
     
@@ -598,7 +598,7 @@ class Mel(object):
         >>> mel.myScript( 'foo', [] )
         Traceback (most recent call last):
             ...
-        MelConversionError: Error during execution of MEL script: line 2: Cannot convert data of type string[] to type float.
+        MelConversionError: Error during execution of MEL script: line 2: ,Cannot convert data of type string[] to type float.,
         Calling Procedure: myScript, in Mel procedure entered interactively.
           myScript("foo",{})
     
@@ -611,7 +611,7 @@ class Mel(object):
         >>> mel.startsWith('bar') # doctest: +ELLIPSIS
         Traceback (most recent call last):
           ...
-        MelArgumentError: Error during execution of MEL script: Line 1.18: Wrong number of arguments on call to startsWith.
+        MelArgumentError: Error during execution of MEL script: Line 1.18: ,Wrong number of arguments on call to startsWith.,
         Calling Procedure: startsWith, in file ".../scripts/others/startsWith.mel"
           startsWith("bar")
 
@@ -620,7 +620,7 @@ class Mel(object):
         >>> mel.poop()
         Traceback (most recent call last):
           ...
-        MelUnknownProcedureError: Error during execution of MEL script: line 1: Cannot find procedure "poop".
+        MelUnknownProcedureError: Error during execution of MEL script: line 1: ,Cannot find procedure "poop".,
 
     .. note:: To remain backward compatible with maya.cmds, all MEL exceptions inherit from `MelError`, which in turn inherits from `RuntimeError`.
     
