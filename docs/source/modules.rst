@@ -1,12 +1,17 @@
 =======================================
-   Module Namespace Index
+   Package Namespace Index
 =======================================
 
 ---------------------------------------
-  :mod:`pymel`
+  :mod:`pymel.core`
 ---------------------------------------
 
-The primary namespace where all wrapped MEL commands can be found.
+The primary sub-package.
+
+Commands
+========
+
+The following submodules are brought directly into the `pymel.core` namespace.  They contain all of the wrapped ``maya.cmds`` functions.
 
   - :mod:`pymel.core.general`
   - :mod:`pymel.core.animation`
@@ -15,35 +20,43 @@ The primary namespace where all wrapped MEL commands can be found.
   - :mod:`pymel.core.general`
   - :mod:`pymel.core.language`
   - :mod:`pymel.core.modeling`
-  - :mod:`pymel.core.nodetypes`
   - :mod:`pymel.core.other`
   - :mod:`pymel.core.rendering`
   - :mod:`pymel.core.system`
   - :mod:`pymel.core.windows`
-  - :mod:`pymel.mayahook.version`
 
 
----------------------------------------
-  :mod:`pymel.datatypes`
----------------------------------------
+Types
+=====
 
-  - :mod:`pymel.core.datatypes`
+These submodules contain various classes that are returned by functions within `pymel.core`.
 
----------------------------------------
-  :mod:`pymel.runtime`
----------------------------------------
+  - :mod:`pymel.core.datatypes` ( also accessible at ``pymel.core.dt`` )
+  - :mod:`pymel.core.nodetypes` ( also accessible at ``pymel.core.nt`` )
+  - :mod:`pymel.core.uitypes` ( also accessible at ``pymel.core.ui`` )
+  
+
+Runtime Commands
+================
+
+Runtime commands are kept in their own namespace to avoid conflicts with other functions and classes.
 
   - :mod:`pymel.core.runtime`
 
 ---------------------------------------
-  :mod:`pymel.mayahook`
+  :mod:`pymel.internal`
 ---------------------------------------
 
-  - :mod:`pymel.mayahook`
+The PyMEL internals.  This sub-package is for PyMEL developers only.
+
+  - :mod:`pymel.internal`
 
 ---------------------------------------
   :mod:`pymel.util`
 ---------------------------------------
+
+Utilities that are independent of Maya.
+
   - :mod:`pymel.util`
 
 ..
@@ -61,8 +74,11 @@ The primary namespace where all wrapped MEL commands can be found.
 ---------------------------------------
   :mod:`pymel.api`
 ---------------------------------------
+  - :mod:`pymel.api`
 
-External API Documenation:
+--------------------------------------- 
+External API Documenation
+---------------------------------------
 
   - `Maya 2009 <http://download.autodesk.com/us/maya/2009help/API/index.html>`_
   - `Maya 2008 <http://download.autodesk.com/us/maya/2008help/API/index.html>`_ 

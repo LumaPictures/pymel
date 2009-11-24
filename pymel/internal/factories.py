@@ -61,7 +61,7 @@ virtualClass = util.defaultdict(list)
 #---------------------------------------------------------------
    
 if includeDocExamples:
-    examples = loadCache('mayaCmdsExamples', 'maya Command examples',version=False )
+    examples = loadCache('mayaCmdsExamples', 'maya Command examples',useVersion=False )
     for cmd, example in examples.iteritems():
         cmdlist[cmd]['example'] = example
 
@@ -2558,13 +2558,8 @@ def registerVirtualClass( cls, nameRequired=False ):
     The process is fairly simple:
         1.  Subclass a pymel node class.  Be sure that it is a leaf class, meaning that it represents an actual Maya node type
             and not an abstract type higher up in the hierarchy. 
-        2.  Register your subclass by calling the registerVirtualSubClass method of your new class.  This is a class method, 
-            meaning that it **must** be called from an uninstantiated class.
+        2.  Register your subclass by calling this function
     
-    :type  callback: function
-    :param callback: must be a function that accepts two arguments, an MObject instance for the current object, 
-        and its name. The callback function should return True if the current object meets the requirements to become the
-        virtual subclass, or else False.
     :type  nameRequired: bool
     :param nameRequired: True if the _isVirtual callback requires the string name to operate on. The object's name is not always immediately
         avaiable and may take an extra calculation to retrieve.
