@@ -1,4 +1,4 @@
-import re, os.path
+import re, os.path, platform
 from HTMLParser import HTMLParser
 import pymel.util as util
 import pymel.versions as versions
@@ -56,7 +56,7 @@ def mayaDocsLocation(version=None):
             short_version = versions.parseVersionStr(version, extension=False)
         else:
             short_version = versions.shortName()
-        if system == 'Darwin':
+        if platfrom.system() == 'Darwin':
             docLocation = os.path.dirname(os.path.dirname(docLocation))
             
         docLocation = os.path.join(docLocation , 'docs/Maya%s/en_US' % short_version)
