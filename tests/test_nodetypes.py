@@ -1507,9 +1507,9 @@ class testCase_joint(TestCaseExtended):
     def tearDown(self):
         delete(self.j)
     
-    def test_getAboslute(self):
-        # Was a bug with this, due to handling of methods which needed casting AND unpacking
-        self.assertEqual(self.j.getAbsolute(), (4,5,6))
+#    def test_getAbsolute(self):
+#        # Was a bug with this, due to handling of methods which needed casting AND unpacking
+#        self.assertEqual(self.j.getAbsolute(), (4,5,6))
         
     def test_getRadius(self):
         # Was a bug with this, due to handling of methods which needed unpacking (but not casting)

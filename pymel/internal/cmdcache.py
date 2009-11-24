@@ -65,7 +65,8 @@ secondaryFlags = {
                ( 'type', None, ['open', 'newFile', 'save', 'exportAll', 'exportSelected', 'exportAnim', 
                                       'exportSelectedAnim', 'exportAnimFromReference', 'exportSelectedAnimFromReference' ] ), 
              ),
-    'joint' : ( ( 'absolute',     True, ['position'] ), )
+    'joint' : ( ( 'absolute',     True, ['position'] ),
+                ( 'relative',     True, ['position'] ) )
 }
 
 

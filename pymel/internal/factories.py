@@ -763,6 +763,24 @@ class ApiTypeRegister(object):
     doc = {}
 
     @staticmethod
+    def _makeRefFunc(capitalizedApiType, size=1):
+        """
+        Returns a function which will return a SafeApiPtr object of the given
+        type.
+        
+        This ensures that each created ref stems from a unique MScriptUtil,
+        so no two refs point to the same storage!
+        
+        :Parameters:
+        size : `int`
+            If other then 1, the returned function will initialize storage for
+            an array of the given size.
+        """
+        def makeRef():
+            return api.SafeApiPtr(capitalizedApiType, size=size)
+        return makeRef
+
+    @staticmethod
     def _makeApiArraySetter( type, inCast ):
         iterable = hasattr(inCast, '__iter__')
         def setArray( array ):
@@ -776,22 +794,22 @@ class ApiTypeRegister(object):
         return setArray
         
     @staticmethod
-    def _makeArraySetter( apiTypeName, length, setFunc, initFunc ):
+    def _makeArraySetter( apiTypeName, length, initFunc ):
         def setArray( array ):
             if len(array) != length:
                 raise ValueError, 'Input list must contain exactly %s %ss' % ( length, apiTypeName )
-            arrayPtr = initFunc()
+            safeArrayPtr = initFunc()
             for i, val in enumerate( array ):
-                setFunc( arrayPtr, i, val )
-            #_logger.debug("result %s" % arrayPtr)
-            return arrayPtr
+                safeArrayPtr[i] = val
+            #_logger.debug("result %s" % safeArrayPtr)
+            return safeArrayPtr
         setArray.__name__ = 'set_' + apiTypeName + str(length) + 'Array'
         return setArray
 
     @staticmethod
-    def _makeArrayGetter( apiTypeName, length, getFunc ):
-        def getArray( array ):
-            return [ getFunc(array,i) for i in range(length) ]
+    def _makeArrayGetter( apiTypeName, length ):
+        def getArray( safeArrayPtr ):
+            return [ x for x in safeArrayPtr]
         getArray.__name__ = 'get_' + apiTypeName + str(length) + 'Array'
         return getArray
     
@@ -815,34 +833,6 @@ class ApiTypeRegister(object):
             except IndexError:
                 raise
 
-    @classmethod
-    def _makeRefFunc(cls, capitalizedApiType, size=1):
-        """
-        Returns a function which will make a reference to an api object
-        of the desired type.
-        
-        This ensures that each created ref stems from a unique MScriptUtil,
-        so no two refs point to the same storage!
-        
-        :Parameters:
-        size : `int`
-            If other then 1, the returned function will initialize storage for
-            an array of the given size.
-        """
-        funcName = 'as' + capitalizedApiType + 'Ptr'
-        if size == 1:
-            def makeRef(): # initialize: MScriptUtil().asFloatPtr()
-                return getattr( api.MScriptUtil(), funcName )()
-        else:
-            def makeRef(): # initialize: MScriptUtil().asFloatPtr()
-                msu = api.MScriptUtil()
-                # Value stored here doesn't matter - just make sure
-                # it's large enough
-                msu.createFromList([0.0] * size, size)
-                return getattr( msu, funcName )()
-
-        return makeRef
-            
     @classmethod   
     def isRegistered(cls, apiTypeName):
         return apiTypeName in cls.types
@@ -880,18 +870,16 @@ class ApiTypeRegister(object):
             cls.inCast[apiTypeName] = pymelType
         
         if apiTypeName in ['float', 'double', 'bool', 'int', 'short', 'long', 'uint']:
-            initFunc = cls._makeRefFunc( capType )  # initialize: MScriptUtil().asFloatPtr()
-            getFunc = getattr( api.MScriptUtil, 'get' + capType )  # MScriptUtil.getFloat()
-            setArrayFunc = getattr( api.MScriptUtil, 'set' + capType + 'Array')  # MScriptUtil.setFloatArray()
-            getArrayFunc = getattr( api.MScriptUtil, 'get' + capType + 'ArrayItem') # MScriptUtil.getFloatArrayItem()
+            initFunc = cls._makeRefFunc( capType )
+            getFunc = api.SafeApiPtr.get
             cls.refInit[apiTypeName] = initFunc
             cls.refCast[apiTypeName] = getFunc
             for i in [2,3,4]:
                 iapiTypename = apiTypeName + str(i)
                 arrayInitFunc = cls._makeRefFunc( capType, size=i)
                 cls.refInit[iapiTypename] = arrayInitFunc
-                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypeName, i, setArrayFunc, arrayInitFunc )
-                cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypeName, i, getArrayFunc )
+                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypeName, i, arrayInitFunc )
+                cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypeName, i )
                 cls.types[iapiTypename] = tuple([pymelType.__name__]*i)
         else:
             try:      
@@ -1678,9 +1666,15 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                 undoItem = ApiUndoItem(setter, do_args, undo_args)
                 apiUndo.append( undoItem )
                 
-                
+            # Do final SafeApiPtr => 'true' ptr conversion
+            final_do_args = []
+            for arg in do_args:
+                if isinstance(arg, api.SafeApiPtr):
+                    final_do_args.append(arg())
+                else:
+                    final_do_args.append(arg)
             if argHelper.isStatic():
-                result = method( *do_args )
+                result = method( *final_do_args )
             else:
                 if proxy:
                     # due to the discrepancies between the API and Maya node hierarchies, our __apimfn__ might not be a 
@@ -1688,9 +1682,9 @@ def wrapApiMethod( apiClass, methodName, newName=None, proxy=True, overloadIndex
                     mfn = self.__apimfn__()
                     if not isinstance(mfn, apiClass):
                         mfn = apiClass( self.__apiobject__() )
-                    result = method( mfn, *do_args )
+                    result = method( mfn, *final_do_args )
                 else:
-                    result = method( self, *do_args )    
+                    result = method( self, *final_do_args )
             result = argHelper.castResult( self, result ) 
         
             if len(outArgs):
