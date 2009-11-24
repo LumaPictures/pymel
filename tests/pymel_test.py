@@ -3,7 +3,7 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys, platform, os, os.path, shutil, subprocess, time, inspect, tempfile
+import sys, platform, os, os.path, shutil, subprocess, time, inspect, tempfile, doctest
 
 try:
     import nose
@@ -146,6 +146,29 @@ def removeBackupLoop(retryTime=.1, printFailure=False):
     else:  
         shutil.move( backup_dir, app_dir )
         print "done"
+
+#class DocTestPatcher(object):
+#    """
+#    When finding docstrings from a module, DocTestFinder does a test to ensure that objects
+#    in the namespace are actually from that module. Unfortunately, our LazyLoadModule causes
+#    some problems with this.  Eventually, we may experiment with setting the LazyLoadModule
+#    and original module's dict's to be the same... for now, we use this class to override
+#    hijack DocTestFinder._from_module to return the results we want.
+#    """
+#    def __init__(self):
+#        self.orig_from_module = doctest.DocTestFinder.__dict__['_from_module']
+#        
+#            def _from_module(self, module, object):
+#                """
+#                Return true if the given object is defined in the given
+#                module.
+#                """
+#                # We only have problems with functions...
+#                if inspect.isfunction(object):
+#                    if 'LazyLoad' in module.__class__.__name__:
+#                        if module.__name__ == 
+#                
+#    doctest.DocTestFinder
 
 if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
