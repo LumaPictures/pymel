@@ -1,0 +1,5 @@
+import sys; sys.__plen = len(sys.path)
+# INSTRUCTIONS: 1. copy the path to the top-level pymel directory (the folder with both 'pymel' and 'maya' dirs directly below it )
+# INSTRUCTIONS: 2. paste the path below these instructions, and above the `import sys: new=sys.path...` line
+# INSTRUCTIONS: 3. save this file and then copy it into Maya's site-packages directory
+import sys; new=sys.path[sys.__plen:]; del sys.path[sys.__plen:]; p=getattr(sys,'__egginsert',0); sys.path[p:p]=new; sys.__egginsert = p+len(new)
