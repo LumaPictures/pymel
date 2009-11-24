@@ -4256,7 +4256,15 @@ class Transform(DagNode):
             return self.getChildren( **kwargs )[0]            
         except IndexError:
             pass
-                
+
+    def getShapes( self, **kwargs ):
+        """
+        :rtype: `DagNode`
+        """
+        kwargs['shapes'] = True
+        return self.getChildren( **kwargs )          
+
+           
     def ungroup( self, **kwargs ):
         return cmds.ungroup( self, **kwargs )
     
