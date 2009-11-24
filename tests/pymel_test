@@ -5,7 +5,7 @@
 #import doctest
 
 import os, shutil ,sys, os.path
-from pymel.mayahook.mayautils import getMayaAppDir
+from pymel.internal.mayautils import getMayaAppDir
 
 app_dir = getMayaAppDir()
 backup_dir = app_dir + '.bak'
