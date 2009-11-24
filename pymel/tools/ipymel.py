@@ -43,6 +43,7 @@ readline.set_completer_delims(delim)
 
 import inspect, re, glob,os,shlex,sys
 from pymel import core
+import maya.cmds as cmds
 
 import IPython.Extensions.ipy_completers
 
@@ -53,7 +54,7 @@ def finalPipe(obj):
     completion of directories, which always places a final slash (/) after a directory.
     """
     
-    if core.cmds.listRelatives( obj ):
+    if cmds.listRelatives( obj ):
         return obj + "|" 
     return obj
 
@@ -76,7 +77,7 @@ def expand( obj ):
     return (obj + '*', obj + '*:*', obj + '*:*:*')
 
 def complete_node_with_no_path( node ):
-    tmpres = core.cmds.ls( expand(node) )
+    tmpres = cmds.ls( expand(node) )
     #print "node_with_no_path", tmpres, node, expand(node)
     res = []
     for x in tmpres:
@@ -89,8 +90,8 @@ def complete_node_with_no_path( node ):
 
 def complete_node_with_attr( node, attr ):
     #print "noe_with_attr", node, attr
-    long_attrs = core.cmds.listAttr( node )
-    short_attrs = core.cmds.listAttr( node , shortNames=1)
+    long_attrs = cmds.listAttr( node )
+    short_attrs = cmds.listAttr( node , shortNames=1)
     # if node is a plug  ( 'persp.t' ), the first result will be the passed plug
     if '.' in node:
         attrs = long_attrs[1:] + short_attrs[1:]
@@ -105,9 +106,9 @@ def pymel_name_completer(self, event):
         #print "getting children", repr(path), repr(partialObj)
         
         try:
-            fullpath = core.cmds.ls( path, l=1 )[0]
+            fullpath = cmds.ls( path, l=1 )[0]
             if not fullpath: return []
-            children = core.cmds.listRelatives( fullpath , f=1, c=1)
+            children = cmds.listRelatives( fullpath , f=1, c=1)
             if not children: return []
         except:
             return []
@@ -132,7 +133,7 @@ def pymel_name_completer(self, event):
     if m:
         node, attr = m.groups()
         if node == 'SCENE':
-            res = core.cmds.ls( attr + '*' )
+            res = cmds.ls( attr + '*' )
             if res:
                 matches = ['SCENE.' + x for x in res if '|' not in x ]
         elif node.startswith('SCENE.'):
@@ -152,7 +153,7 @@ def pymel_name_completer(self, event):
             kwargs = {}
             if line.startswith('|'):
                 kwargs['l'] = True
-            matches = core.cmds.ls( expand(line), **kwargs )
+            matches = cmds.ls( expand(line), **kwargs )
         
         # we have a full node, get it's children
         else:
@@ -171,7 +172,6 @@ def pymel_name_completer(self, event):
 def pymel_python_completer(self,event):
     """Match attributes or global python names"""
     #print "python_matches"
-    import re
     text = event.symbol
     #print repr(text)
     # Another option, seems to work great. Catches things like ''.<tab>
@@ -195,8 +195,8 @@ def pymel_python_completer(self,event):
     if isinstance(obj, (core.DependNode, core.Attribute) ):
         
         node = unicode(obj)
-        long_attrs = core.cmds.listAttr( node )
-        short_attrs = core.cmds.listAttr( node , shortNames=1)
+        long_attrs = cmds.listAttr( node )
+        short_attrs = cmds.listAttr( node , shortNames=1)
         
         matches = self.Completer.python_matches(text)
         
