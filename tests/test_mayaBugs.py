@@ -3,7 +3,7 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.OpenMayaFX as fx
 
-# Bug report 344037
+# Bug report 345382
 class TestFluidMFnCreation(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -16,7 +16,7 @@ class TestFluidMFnCreation(unittest.TestCase):
         selList.getDagPath(0, dag)
         fx.MFnFluid(dag)
         
-# Bug report 
+# Bug report 344037
 class TestSurfaceRangeDomain(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -80,5 +80,6 @@ class TestSurfaceRangeDomain(unittest.TestCase):
         # Fails! - returns 'nurbsSphereShape1.u[0:4][0:1]'
         cmds.select('nurbsSphere1.uv[*][2:3]')
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
+
 
         
