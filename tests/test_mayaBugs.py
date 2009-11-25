@@ -82,7 +82,7 @@ class TestSurfaceRangeDomain(unittest.TestCase):
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
 
 
-# Bug report 
+# Bug report 345384 
 
 # This bug only seems to affect windows (or at least, Win x64 -
 # haven't tried on 32-bit).
