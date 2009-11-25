@@ -150,9 +150,11 @@ def removeBackupLoop(retryTime=.1, printFailure=False):
 if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
         #backupAndTest(sys.argv[1:])
+        oldPath = os.getcwd()
         # make sure our cwd is the pymel project working directory
-        os.chdir( os.path.dirname( os.path.dirname(sys.argv[0]) ) )
-        nose_test()
+        os.chdir( os.path.dirname( os.path.dirname(os.path.abspath(sys.argv[0]) ) ) )
+        nose_test(extraArgs=sys.argv[1:])
+        os.chdir(oldPath)
     else:
         # Maya may take some time to shut down / finish writing to files - 
         # give it 2 seconds
