@@ -1488,7 +1488,6 @@ class PyNode(util.ProxyUnicode):
         """
         return u"%s(%r)" % (self.__class__.__name__, self.name())
 
-    @strDeprecateDecorator
     def __radd__(self, other):
         "deprecated"
         if isinstance(other, basestring):
@@ -1685,7 +1684,7 @@ def _deprecatePyNode():
 
     for method in ['__contains__',  '__len__', 
                     #'__ge__', '__gt__', '__le__', '__lt__',  # still very useful for sorting a list by name
-                     '__mod__', '__mul__', '__add__', '__rmod__', '__rmul__', # reserved for higher levels
+                     '__mod__', '__mul__', '__rmod__', '__rmul__', # reserved for higher levels
                      'expandtabs', 'translate', 'decode', 'encode', 'splitlines',
                      'capitalize', 'swapcase', 'title',
                      'isalnum', 'isalpha', 'isdigit', 'isspace', 'istitle',
