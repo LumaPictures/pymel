@@ -40,7 +40,8 @@ class UI(unicode):
                 _logger.debug("UI: created... %s" % name)
             else:
                 if '|' not in name and not issubclass(cls,Window):
-                    res = [ x for x in cmds.lsUI( long=1, type=cls.__melcmd__.__name__) if x.endswith( '|' + name) ]
+                    uiObjs = _util.listForNone(cmds.lsUI( long=1, type=cls.__melcmd__.__name__))
+                    res = [ x for x in uiObjs if x.endswith( '|' + name) ]
                     print name, res
                     if len(res) > 1:
                         raise ValueError, "found more than one UI element matching the name %s" % name
@@ -201,15 +202,15 @@ class FormLayout(Layout):
         kwargs['attachPosition'] = [args]
         cmds.formLayout(self,**kwargs)
         
-class AutoLayout(FormLayout):
-    #enumOrientation = _util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
+#class AutoLayout(FormLayout):
+#    #enumOrientation = _util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
     HORIZONTAL = 0
     VERTICAL = 1
     Orientation = _util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
 
     def __new__(cls, name=None, **kwargs):
         if kwargs:
-            [kwargs.pop(k) for k in ['orientation', 'ratios', 'reversed', 'spacing']]
+            [kwargs.pop(k, None) for k in ['orientation', 'ratios', 'reversed', 'spacing']]
 
         self = Layout.__new__(cls, name, **kwargs)
         return self
@@ -297,6 +298,8 @@ class AutoLayout(FormLayout):
         self._orientation = int(self.Orientation.horizontal)
         self.redistribute(*ratios)
 
+# For backwards compatibility
+AutoLayout = FormLayout
     
 class TextScrollList(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
