@@ -3,7 +3,7 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.OpenMayaFX as fx
 
-# Bug report 344037
+# Bug report 345382
 class TestFluidMFnCreation(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -16,7 +16,7 @@ class TestFluidMFnCreation(unittest.TestCase):
         selList.getDagPath(0, dag)
         fx.MFnFluid(dag)
         
-# Bug report 
+# Bug report 344037
 class TestSurfaceRangeDomain(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
@@ -81,4 +81,55 @@ class TestSurfaceRangeDomain(unittest.TestCase):
         cmds.select('nurbsSphere1.uv[*][2:3]')
         self.assertTrue(cmds.ls(sl=1)[0] in desiredResults)
 
+
+# Bug report 345384 
+
+# This bug only seems to affect windows (or at least, Win x64 -
+# haven't tried on 32-bit).
+class TestMMatrixSetAttr(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        
+    def runTest(self):
+        class MyClass1(object):
+            def __init__(self):
+                self._bar = 'not set'
+            
+            def _setBar(self, val):
+                print "setting bar to:", val
+                self._bar = val
+            def _getBar(self):
+                print "getting bar..."
+                return self._bar
+            bar = property(_getBar, _setBar)
+        
+            # These two are just so we can trace what's going on...
+            def __getattribute__(self, name): 
+                # don't just use 'normal' repr, as that will
+                # call __getattribute__!
+                print "__getattribute__(%s, %r)" % (object.__repr__(self), name)
+                return super(MyClass1, self).__getattribute__(name)
+            def __setattr__(self, name, val):
+                print "__setattr__(%r, %r, %r)" % (self, name, val)
+                return super(MyClass1, self).__setattr__(name, val)
+        
+        foo1 = MyClass1()
+        # works like we expect...
+        foo1.bar = 7
+        print "foo1.bar:", foo1.bar
+        self.assertTrue(foo1.bar == 7)
+        
+        
+        class MyClass2(MyClass1, om.MMatrix): pass
+        
+        foo2 = MyClass2()
+        foo2.bar = 7
+        # Here, on windows, MMatrix's __setattr__ takes over, and
+        # (after presumabably determining it didn't need to do
+        # whatever special case thing it was designed to do)
+        # instead of calling the super's __setattr__, which would
+        # use the property, inserts it into the object's __dict__
+        # manually 
+        print "foo2.bar:", foo2.bar
+        self.assertTrue(foo2.bar == 7)
         
