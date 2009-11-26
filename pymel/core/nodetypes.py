@@ -3584,11 +3584,16 @@ class DagNode(Entity):
         # for 'getShape', which in turn call comp to check if it's a comp,
         # which will call __getattr__, etc
         # ..soo... check if we have a 'getShape'!
-        elif hasattr(self, 'getShape'):
+        # ...also, don't use 'hasattr', as this will also call __getattr__!
+        try:
+            object.__getattribute__(self, 'getShape')
+        except AttributeError:
+            raise general.MayaComponentError( '%s.%s' % (self, compName) )
+        else:
             shape = self.getShape()
             if shape:
                 return shape.comp(compName)
-        raise general.MayaComponentError( '%s.%s' % (self, compName) )
+        
                 
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
