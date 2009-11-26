@@ -638,10 +638,10 @@ class DimensionedComponent( Component ):
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component (ie, 'cube.vtx')")         
+                             "specified component (ie, 'cube.vtx')")
         self._validateGetItemIndice(item)
         return self.__class__(self._node,
-            ComponentIndex(self._partialIndex + (item,)))        
+            ComponentIndex(self._partialIndex + (item,)))
 
     def _validateGetItemIndice(self, item, allowIterables=True):
         """
@@ -1435,10 +1435,13 @@ class MeshVertexFace( Component2D ):
             # get a MitMeshVertex ...
             mIt = api.MItMeshVertex(self._node.__apimdagpath__())
             
-            # We don't actually need the value stored
-            # in the MScriptUtil here, so making a throwaway
-            # instance is okay here
-            mIt.setIndex(partialIndex[0], api.MScriptUtil().asIntPtr())
+            # Even though we're not using the result stored in the int,
+            # STILL need to store a ref to the MScriptUtil - otherwise,
+            # there's a chance it gets garbage collected before the
+            # api function call is made, and it writes the value into
+            # the pointer...
+            intPtr = api.SafeApiPtr('int')
+            mIt.setIndex(partialIndex[0], intPtr())
             intArray = api.MIntArray()
             mIt.getConnectedFaces(intArray)
             for i in xrange(intArray.length()):
