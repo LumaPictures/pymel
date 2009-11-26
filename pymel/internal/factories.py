@@ -1977,7 +1977,7 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                                 # we've got a data descriptor with a __set__...
                                 # don't use the apicls's __setattr__
                                 return super(apicls, self).__setattr__(name, value)
-                        return origSetAttr[apicls](self, name, value)
+                        return origSetAttr(self, name, value)
                     apicls.__setattr__ = apiSetAttrWrap
                      
         
