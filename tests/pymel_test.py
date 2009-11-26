@@ -42,7 +42,7 @@ def nose_test(module=None, extraArgs=None):
     os.environ['MAYA_PSEUDOTRANS_VALUE']=','
     
     noseKwArgs={}
-    noseArgv = "dummyArg0 --with-doctest --noexe ".split()
+    noseArgv = "dummyArg0 --with-doctest -v".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
         exclusion = 'windows tools example1 testingutils pmcmds testPa maya maintainence pymel_test TestPymel'
