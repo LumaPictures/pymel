@@ -45,8 +45,9 @@ def nose_test(module=None, extraArgs=None):
     noseArgv = "dummyArg0 --with-doctest -v".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
-        exclusion = 'windows tools example1 testingutils pmcmds testPa maya maintainence pymel_test TestPymel'
-        noseArgv += ['--exclude', '|'.join( [ '(^%s$)' % x for x in exclusion.split() ] )  ]
+                    
+        exclusion = '^windows ^tools ^example1 ^testingutils ^pmcmds ^testPa ^maya ^maintainence ^pymel_test ^TestPymel ^testPassContribution$'
+        noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
            
     if inspect.ismodule(module):
         noseKwArgs['module']=module
