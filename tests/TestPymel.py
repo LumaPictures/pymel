@@ -29,7 +29,7 @@ def nose_test(module=None, extraArgs=None,pymelDir=None):
     noseKwArgs={}
     noseArgv = "dummyArg0 --with-doctest -v --noexe ".split()
     if module is None:
-        exclusion = 'windows tools example1 .*testingutils pmcmds testPa maya maintainence'
+        exclusion = '^windows ^tools ^example1 ^testingutils ^pmcmds ^testPa ^maya ^maintainence ^pymel_test ^TestPymel'
         noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
            
     if inspect.ismodule(module):

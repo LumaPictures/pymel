@@ -1,3 +1,4 @@
+import sys
 import unittest
 import maya.cmds as cmds
 import maya.OpenMaya as om
@@ -88,6 +89,16 @@ class TestSurfaceRangeDomain(unittest.TestCase):
 # haven't tried on 32-bit).
 class TestMMatrixSetAttr(unittest.TestCase):
     def setUp(self):
+        # pymel essentially fixes this bug by wrapping
+        # the api's __setattr__... so undo this before testing
+        if 'pymel.internal.factories' in sys.modules:
+            factories = sys.modules['pymel.internal.factories']
+            self.origSetAttr = factories.MetaMayaTypeWrapper._originalApiSetAttrs.get(om.MMatrix, None)
+        else:
+            self.origSetAttr = None
+        if self.origSetAttr:
+            self.fixedSetAttr = om.MMatrix.__setattr__
+            om.MMatrix.__setattr__ = self.origSetAttr
         cmds.file(new=1, f=1)
         
     def runTest(self):
@@ -132,4 +143,10 @@ class TestMMatrixSetAttr(unittest.TestCase):
         # manually 
         print "foo2.bar:", foo2.bar
         self.assertTrue(foo2.bar == 7)
+        
+    def tearDown(self):
+        # Restore the 'fixed' __setattr__'s
+        if self.origSetAttr:
+            om.MMatrix.__setattr__ = self.fixedSetAttr
+        
         
