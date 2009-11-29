@@ -1,15 +1,16 @@
 
-import maya.mel as _mm
-import inspect
+import inspect, re, types
 from pymel.util.arrays import VectorN, MatrixN
-from pymel.core.language import getMelType
-import re
-import types
+from pymel.util.arguments import isMapping, isIterable
+from pymel.core.language import getMelType, isValidMelType, MELTYPES
 import pymel.api.plugins as plugins
+import maya.mel as _mm
 import maya.OpenMayaMPx as mpx
 import maya.OpenMaya as om
 
 MAX_VAR_ARGS=10
+
+_functionStore = {}
 
 def _getFunction( function ):
     # function is a string, so we must import its module and get the function object
@@ -54,7 +55,9 @@ def getMelArgs( function, exactMelType=True ):
     moduleName = function.__module__    
 
     args, varargs, kwargs, defaults  = inspect.getargspec( function )
-    
+    if inspect.ismethod(function):
+        # remove self/cls
+        args = args[1:]
 #    # epydoc docstring parsing
 #    try:
 #        import epydoc.docbuilder
@@ -118,7 +121,7 @@ def getMelArgs( function, exactMelType=True ):
     
     return tuple(melArgs), melArgDefaults, parsedDescr
 
-def py2melProc( function, returnType='', procName=None, evaluateInputs=True ):
+def py2melProc( function, returnType=None, procName=None, evaluateInputs=True, argTypes=None ):
     """This is a work in progress.  It generates and sources a mel procedure which wraps the passed 
     python function.  Theoretically useful for calling your python scripts in scenarios where Maya
     does not yet support python callbacks.
@@ -171,14 +174,29 @@ def py2melProc( function, returnType='', procName=None, evaluateInputs=True ):
     function = _getFunction( function )
     
     funcName = function.__name__
-    moduleName = function.__module__ 
-
-        
+   
     melCompile = []
     melArgs = []
     argList, defaults, description = getMelArgs(function)
+    
+    if argTypes:
+        if isMapping(argTypes):
+            pass
+        elif isIterable(argTypes):
+            tmp = argTypes
+            argTypes = {}
+            for i, argType in enumerate(tmp):
+                argTypes[argList[i][0]] = argType
+        else:
+            raise ValueError, "argTypes must be iterable or mapping type"
+        for argType in argTypes.values():
+            if not isValidMelType(argType):
+                raise TypeError, "%r is not a valid mel type: %s" % (argType, ', '.join(MELTYPES))
+    else:
+        argTypes = {} 
+               
     for arg, melType in argList:
-        
+        melType = argTypes.get(arg, melType)
         if melType == 'string':
             compilePart = "'\" + $%s + \"'" %  arg
             melCompile.append( compilePart )
@@ -193,14 +211,16 @@ def py2melProc( function, returnType='', procName=None, evaluateInputs=True ):
          
     if procName is None:
         procName = funcName 
-        
-    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % ( returnType, 
-                                                                        procName,
-                                                                        ', '.join(melArgs), 
-                                                                        moduleName, 
-                                                                        moduleName, 
-                                                                        funcName, 
-                                                                        ','.join(melCompile) )
+      
+    procDef = """global proc %s %s( %s ){ 
+    python("import %s; %s._functionStore[%r](%s)");}""" % ( returnType if returnType else '', 
+                                                            procName,
+                                                            ', '.join(melArgs), 
+                                                            __name__, 
+                                                            __name__, 
+                                                            repr(function), 
+                                                            ','.join(melCompile) )
+    _functionStore[repr(function)] = function
 #    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % ( returnType, 
 #                                                                                          procName, 
 #                                                                                          ', '.join(melArgs), 
