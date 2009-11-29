@@ -354,7 +354,7 @@ def _melProc_to_pyModule( t, procedure ):
     # if root_module is set to None that means we are doing a string conversion, and not a file conversion
     # we don't need to find out the current or future python module.  just use pymel.mel
     if t.lexer.root_module in [ None, '__main__']:
-        return
+        return None, None
     
     global batchData
     
