@@ -638,10 +638,10 @@ class DimensionedComponent( Component ):
     def __getitem__(self, item):
         if self.currentDimension() is None:
             raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component (ie, 'cube.vtx')")         
+                             "specified component (ie, 'cube.vtx')")
         self._validateGetItemIndice(item)
         return self.__class__(self._node,
-            ComponentIndex(self._partialIndex + (item,)))        
+            ComponentIndex(self._partialIndex + (item,)))
 
     def _validateGetItemIndice(self, item, allowIterables=True):
         """
@@ -1435,10 +1435,13 @@ class MeshVertexFace( Component2D ):
             # get a MitMeshVertex ...
             mIt = api.MItMeshVertex(self._node.__apimdagpath__())
             
-            # We don't actually need the value stored
-            # in the MScriptUtil here, so making a throwaway
-            # instance is okay here
-            mIt.setIndex(partialIndex[0], api.MScriptUtil().asIntPtr())
+            # Even though we're not using the result stored in the int,
+            # STILL need to store a ref to the MScriptUtil - otherwise,
+            # there's a chance it gets garbage collected before the
+            # api function call is made, and it writes the value into
+            # the pointer...
+            intPtr = api.SafeApiPtr('int')
+            mIt.setIndex(partialIndex[0], intPtr())
             intArray = api.MIntArray()
             mIt.getConnectedFaces(intArray)
             for i in xrange(intArray.length()):
@@ -3581,11 +3584,16 @@ class DagNode(Entity):
         # for 'getShape', which in turn call comp to check if it's a comp,
         # which will call __getattr__, etc
         # ..soo... check if we have a 'getShape'!
-        elif hasattr(self, 'getShape'):
+        # ...also, don't use 'hasattr', as this will also call __getattr__!
+        try:
+            object.__getattribute__(self, 'getShape')
+        except AttributeError:
+            raise general.MayaComponentError( '%s.%s' % (self, compName) )
+        else:
             shape = self.getShape()
             if shape:
                 return shape.comp(compName)
-        raise general.MayaComponentError( '%s.%s' % (self, compName) )
+        
                 
     def _updateName(self, long=False) :
         #if api.isValidMObjectHandle(self._apiobject) :
@@ -4738,7 +4746,7 @@ NurbsCurve.numCVs = \
             11
             >>>
             >>> # an open curve
-            >>> myCurve = curve(name='openCurve1', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
+            >>> myCurve = curve(name='openCurve1', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
             >>> myCurve.cv
             NurbsCurveCV(u'openCurveShape1.cv[0:10]')
             >>> myCurve.numCVs()
@@ -4767,7 +4775,7 @@ NurbsCurve.numEPs = \
             8
             >>> 
             >>> # an open curve
-            >>> myCurve = curve(name='openCurve2', d=3, periodic=True, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
+            >>> myCurve = curve(name='openCurve2', d=3, periodic=False, k=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1)] )
             >>> myCurve.ep
             NurbsCurveEP(u'openCurveShape2.ep[0:8]')
             >>> myCurve.numEPs()
@@ -4918,14 +4926,14 @@ NurbsSurface.numEPsInU = \
             >>> mySurf = surface(name='periodicSurf3', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
             >>> mySurf.ep[:][0]
             NurbsCurveEP(u'periodicSurfShape3.ep[0:7][0]')
-            >>> mySurf.numEPsInV()
+            >>> mySurf.numEPsInU()
             8
             >>> 
             >>> # an open surface
             >>> mySurf = surface(name='openSurf3', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
             >>> mySurf.ep[:][0]
             NurbsCurveEP(u'openSurfShape3.ep[0:8][0]')
-            >>> mySurf.numEPsInV()
+            >>> mySurf.numEPsInU()
             9
                     
         :rtype: `int`

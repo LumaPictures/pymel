@@ -1834,7 +1834,9 @@ def addApiDocsCallback( apiClass, methodName, overloadIndex=None, undoable=True,
     return docstring
     
 class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
-    """ A metaclass to wrap Maya api types, with support for class constants """ 
+    """ A metaclass to wrap Maya api types, with support for class constants """
+    
+    _originalApiSetAttrs = {}
 
     class ClassConstant(object):
         """Class constant"""
@@ -1961,6 +1963,23 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                     return super(newcls, self).__getattribute__(name)
                     
                 classdict['__getattribute__'] = __getattribute__
+                
+                if cls._hasApiSetAttrBug(apicls):
+                    # correct the setAttr bug by wrapping the api's
+                    # __setattr__ to handle data descriptors...
+                    origSetAttr = apicls.__setattr__
+                    # in case we need to restore the original setattr later...
+                    # ... as we do in a test for this bug!
+                    cls._originalApiSetAttrs[apicls] = origSetAttr
+                    def apiSetAttrWrap(self, name, value):
+                        if hasattr(self.__class__, name):
+                            if hasattr(getattr(self.__class__, name), '__set__'):
+                                # we've got a data descriptor with a __set__...
+                                # don't use the apicls's __setattr__
+                                return super(apicls, self).__setattr__(name, value)
+                        return origSetAttr(self, name, value)
+                    apicls.__setattr__ = apiSetAttrWrap
+                     
         
         # create the new class   
         newcls = super(MetaMayaTypeWrapper, cls).__new__(cls, classname, bases, classdict)
@@ -2000,9 +2019,9 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
                             constant[name] = makeClassConstant(attr)
                 # update the constant dict with herited constants
                 mro = inspect.getmro(newcls)            
-                for cls in mro :
-                    if isinstance(cls, MetaMayaTypeWrapper) :
-                        for name, attr in cls.__dict__.iteritems() :
+                for parentCls in mro :
+                    if isinstance(parentCls, MetaMayaTypeWrapper) :
+                        for name, attr in parentCls.__dict__.iteritems() :
                             if isinstance(attr, MetaMayaTypeWrapper.ClassConstant) :
                                 if not name in constant :
                                     constant[name] = makeClassConstant(attr.value)
@@ -2028,7 +2047,36 @@ class MetaMayaTypeWrapper(util.metaReadOnlyAttr) :
         if hasattr(newcls, 'apicls') and not ApiTypeRegister.isRegistered(newcls.apicls.__name__):
             ApiTypeRegister.register( newcls.apicls.__name__, newcls )
   
-        return newcls 
+        return newcls
+    
+    @classmethod
+    def _hasApiSetAttrBug(cls, apiClass):
+        """
+        Maya has a bug on windows where some api objects have a __setattr__
+        that bypasses properties (and other data descriptors).
+        
+        This tests if the given apiClass has such a bug.
+        """
+        class MyClass1(object):
+            def __init__(self):
+                self._bar = 'not set'
+            def _setBar(self, val):
+                self._bar = val
+            def _getBar(self):
+                return self._bar
+            bar = property(_getBar, _setBar)
+        
+        class MyClass2(MyClass1, apiClass): pass
+        
+        foo2 = MyClass2()
+        foo2.bar = 7
+        # Here, on windows, MMatrix's __setattr__ takes over, and
+        # (after presumabably determining it didn't need to do
+        # whatever special case thing it was designed to do)
+        # instead of calling the super's __setattr__, which would
+        # use the property, inserts it into the object's __dict__
+        # manually
+        return bool(foo2.bar != 7)
 
 class _MetaMayaCommandWrapper(MetaMayaTypeWrapper):
     """

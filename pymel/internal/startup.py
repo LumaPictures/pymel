@@ -222,6 +222,7 @@ def initMEL():
     ]
     try:
         for f in startup:
+            _logger.debug("running: %s" % f)
             if f is not None:
                 if os.path.isabs(f) and not os.path.exists(f):
                     _logger.warning( "Maya startup file %s does not exist" % f )
@@ -245,6 +246,8 @@ def initMEL():
         if res != 'Unknown':
             maya.mel.eval( 'source "userSetup.mel"')
     except RuntimeError: pass
+    
+    _logger.debug("done running mel files")
 
 
 def _makeAEProc(modname, classname, procname):

@@ -1155,12 +1155,12 @@ class testCase_components(unittest.TestCase):
     def _failIfWillMakeMayaCrash(self, comp):
         try:
             if isinstance(comp, basestring):
-                if versions.current() >= versions.v2011:
-                    # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
-                    # meaning any surf.u/v/uv.__getindex__ will crash
-                    nodeName, compName, indices = self._compStrSplit(comp)
-                    if re.match(r'''(u|v|uv)(Isoparm)?|comp\(u?['"](u|v|uv)(Isoparm)?['"]\)''', compName):
-                        raise CrashError
+#                if versions.current() >= versions.v2011:
+#                    # In 2011, MFnNurbsSurface.getKnotDomain will make maya crash,
+#                    # meaning any surf.u/v/uv.__getindex__ will crash
+#                    nodeName, compName, indices = self._compStrSplit(comp)
+#                    if re.match(r'''(?:(u|v|uv)(Isoparm)?|comp\(u?['"](u|v|uv)(Isoparm)?['"]\))$''', compName):
+#                        raise CrashError
                 if (platform.system() == 'Darwin' or
                     api.MGlobal.mayaState() in (api.MGlobal.kBatch,
                                               api.MGlobal.kLibraryApp)):

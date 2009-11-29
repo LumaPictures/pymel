@@ -31,6 +31,13 @@ except: pass
 # before feeding it into an api function), 'call'
 # the SafeApiValue/Ptr object to return the 'true'
 # pointer.
+# Also, even SafeApiPtr is not completely safe -
+# for instance, you cannot create 'throwaway' instances,
+# like:
+#   theApiFunc(SafeApiPtr('double')())
+# ...as there is a chance that the MScriptUtil will be
+# garbage collected before the api function tries to
+# write into it's pointer... 
 
 # Note - I would have liked to have implemented this
 # by simply attaching the MScriptUtil to the ptr -

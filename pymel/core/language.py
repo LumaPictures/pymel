@@ -612,7 +612,7 @@ class Mel(object):
         Traceback (most recent call last):
           ...
         MelArgumentError: Error during execution of MEL script: Line 1.18: ,Wrong number of arguments on call to startsWith.,
-        Calling Procedure: startsWith, in file ".../scripts/others/startsWith.mel"
+        Calling Procedure: startsWith, in file "..."
           startsWith("bar")
 
     Lastly, an example of `MelUnknownProcedureError`

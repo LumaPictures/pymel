@@ -3,7 +3,7 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys, platform, os, os.path, shutil, subprocess, time, inspect, tempfile
+import sys, platform, os, os.path, shutil, subprocess, time, inspect, tempfile, doctest
 
 try:
     import nose
@@ -42,10 +42,11 @@ def nose_test(module=None, extraArgs=None):
     os.environ['MAYA_PSEUDOTRANS_VALUE']=','
     
     noseKwArgs={}
-    noseArgv = "dummyArg0 --with-doctest --noexe ".split()
+    noseArgv = "dummyArg0 --with-doctest -v".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
-        exclusion = 'windows tools example1 .*testingutils pmcmds testPa'
+                    
+        exclusion = '^windows ^tools ^example1 ^testingutils ^pmcmds ^testPa ^maya ^maintainence ^pymel_test ^TestPymel ^testPassContribution$'
         noseArgv += ['--exclude', '|'.join( [ '(%s)' % x for x in exclusion.split() ] )  ]
            
     if inspect.ismodule(module):
@@ -55,8 +56,12 @@ def nose_test(module=None, extraArgs=None):
     if extraArgs is not None:
         noseArgv.extend(extraArgs)
     noseKwArgs['argv'] = noseArgv
-    nose.main( **noseKwArgs)
-
+    
+    patcher = DocTestPatcher()
+    try:
+        nose.main( **noseKwArgs)
+    finally:
+        patcher.reset()
 
 def backupAndTest(extraNoseArgs):
     if os.path.isdir(backup_dir):
@@ -146,6 +151,33 @@ def removeBackupLoop(retryTime=.1, printFailure=False):
     else:  
         shutil.move( backup_dir, app_dir )
         print "done"
+
+class DocTestPatcher(object):
+    """
+    When finding docstrings from a module, DocTestFinder does a test to ensure that objects
+    in the namespace are actually from that module. Unfortunately, our LazyLoadModule causes
+    some problems with this.  Eventually, we may experiment with setting the LazyLoadModule
+    and original module's dict's to be the same... for now, we use this class to override
+    DocTestFinder._from_module to return the results we want.
+    """
+    def __init__(self):
+        self.orig_from_module = doctest.DocTestFinder.__dict__['_from_module']
+        
+        def _from_module(docTestFinder_self, module, object):
+            """
+            Return true if the given object is defined in the given
+            module.
+            """
+            # We only have problems with functions...
+            if inspect.isfunction(object):
+                if 'LazyLoad' in module.__class__.__name__:
+                    if module.__name__ == object.__module__:
+                        return True
+            return self.orig_from_module(docTestFinder_self, module, object)
+        doctest.DocTestFinder.__dict__['_from_module'] = _from_module
+        
+    def reset(self):
+        doctest.DocTestFinder.__dict__['_from_module'] = self.orig_from_module
 
 if __name__ == '__main__':
     if DELETE_BACKUP_ARG not in sys.argv:
