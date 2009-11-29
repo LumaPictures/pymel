@@ -321,7 +321,7 @@ def _lsUI( **kwargs ):
         kwargs = {
             'windows': 1, 'panels' : 1, 'editors' : 1, 'controls' : 1, 'controlLayouts' : 1,
             'collection' : 1, 'radioMenuItemCollections' : 1, 'menus' : 1, 'menuItems' : 1, 
-            'contexts' : 1, 'cmdTemplates' : 1 
+            'contexts' : 0, 'cmdTemplates' : 1 
             }
     kwargs['long'] = long
     if head is not None: kwargs['head'] = head

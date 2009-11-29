@@ -3,7 +3,7 @@ Maya-related functions, which are useful to both `api` and `core`, including `ma
 that maya is initialized in standalone mode.
 """
 from __future__ import with_statement
-import re, os.path, sys, platform, time
+import re, os.path, sys, platform, glob, inspect
 import maya
 import maya.OpenMaya as om
 
@@ -247,8 +247,48 @@ def initMEL():
     except RuntimeError: pass
 
 
+def _makeAEProc(modname, classname, procname):
+    contents = '''global proc %(procname)s( string $nodeName ){
+    python("import %(__name__)s;%(__name__)s._aeLoader('%(modname)s','%(classname)s','" + $nodeName + "')");}'''
+    d = locals().copy()
+    d['__name__'] = __name__
+    import maya.mel as mm
+    mm.eval( contents % d )
+      
+def _aeLoader(modname, classname, nodename):
+    mod = __import__(modname, globals(), locals(), [classname], -1)
+    try:
+        f = getattr(mod,classname)
+        f(nodename)
+    except Exception:
+        print "failed to load python attribute editor template '%s.%s'" % (modname, classname)
+        import traceback
+        traceback.print_exc()
+        
+def initAE():
+    from pymel.core.uitypes import AETemplate
+    pkg = __import__('AETemplates')
+    if hasattr(pkg, '__path__'):
+        completed = []
+        for pth in pkg.__path__:
+            realpath = os.path.realpath(pth)
+            if realpath not in completed:
+                files = glob.glob( os.path.join(realpath,'AE*Template.py'))
+                for fname in files:
+                    name = os.path.basename(fname)[:-3]
+                    _makeAEProc( 'AETemplates.'+name, name, name)
+                completed.append(realpath)
+    for name, obj in inspect.getmembers(pkg, lambda x: inspect.isclass(x) and issubclass(x,AETemplate) ):
+        try:
+            nodeType = obj.nodeType()
+        except:
+            continue 
+        else:
+            _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')
+
 def finalize():
-    if om.MGlobal.mayaState() == om.MGlobal.kLibraryApp: # mayapy only
+    state = om.MGlobal.mayaState()
+    if state == om.MGlobal.kLibraryApp: # mayapy only
         global isInitializing
         if pymelMayaPackage and isInitializing:
             # this module is not encapsulated into functions, but it should already
@@ -258,7 +298,8 @@ def finalize():
             import maya.app.startup.basic
             maya.app.startup.basic.executeUserSetup()
         initMEL()
-        
+    elif state == om.MGlobal.kInteractive:
+        initAE()
                        
 # Fix for non US encodings in Maya
 def encodeFix():
@@ -345,8 +386,7 @@ def writeCache( data, filePrefix, description='', useVersion=True, compressed=Tr
         func( data, newPath, 2)
     except Exception, e:
         _logger.error("Unable to write%s to '%s': %s" % (description, newPath, e))
-
-              
+             
 
 def getConfigFile():
     return plogging.getConfigFile()

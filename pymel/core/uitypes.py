@@ -1,7 +1,9 @@
+import sys, re
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
+import maya.mel as _mm
 _logger = _internal.getLogger(__name__)
 
 def _resolveUIFunc(name):
@@ -410,6 +412,114 @@ class UITemplate(object):
     def exists(name):
         return cmds.uiTemplate( name, exists=True )
 
+class AETemplate(object):
+    _nodeType = None
+    def __init__(self, nodeName):
+        self._nodeName = nodeName
+    
+    @property
+    def nodeName(self):
+        return self._nodeName
+    
+    @staticmethod
+    def nodeType(cls):
+        if cls._nodeType:
+            return cls._nodeType
+        else:
+            m = re.match('AE(.*)Template$', cls.__name__)
+            if m:
+                return m.groups()[0]
+            else:
+                raise ValueError, "You must either name your AETemplate subclass of the form 'AE<nodeType>Template' or set the '_nodeType' class attribute"
+    @classmethod
+    def controlValue(cls, nodeName, control):
+        return cmds.editorTemplate(queryControl=(nodeName,control))
+    @classmethod
+    def controlLabel(cls, nodeName, control):
+        return cmds.editorTemplate(queryLabel=(nodeName,control))
+    @classmethod
+    def reload(cls):
+        nodeType = cls.nodeType()
+        form = "AttrEd" + nodeType + "FormLayout"
+        exists = cmds.control(form, exists=1) and cmds.formLayout(form, q=1, ca=1)
+        
+        if exists:
+            sel = cmds.ls(sl=1)
+            cmds.select(cl=True)
+            cmds.deleteUI(form)            
+        aeScript = "AE" + nodeType + "Template.mel"
+        _mm.eval("source \"" + aeScript + "\"")
+    
+        if exists:
+            cmds.select(sel)
+        reload(sys.modules[cls.__module__])
+
+    def addControl(self, control, label=None, changeCommand=None, annotation=None, preventOverride=False, dynamic=False):
+        args = [control]
+        kwargs = {'preventOverride':preventOverride}
+        if dynamic:
+            kwargs['addDynamicControl'] = True
+        else:
+            kwargs['addControl'] = True
+        if changeCommand:
+            if hasattr(changeCommand, '__call__'):
+                import pymel.tools.py2mel
+                name = self.__class__.__name__ + '_callCustom_changeCommand_' + control
+                changeCommand = pymel.tools.py2mel.py2melProc(changeCommand, procName=name, argTypes=['string'])
+            args.append(changeCommand)
+        if label:
+            kwargs['label'] = label
+        if annotation:
+            kwargs['annotation'] = annotation
+        cmds.editorTemplate(*args, **kwargs)
+    def callCustom(self, newFunc, replaceFunc, *attrs):
+        #cmds.editorTemplate(callCustom=( (newFunc, replaceFunc) + attrs))
+        import pymel.tools.py2mel
+        if hasattr(newFunc, '__call__'):
+            name = self.__class__.__name__ + '_callCustom_newFunc_' + '_'.join(attrs)
+            newFunc = pymel.tools.py2mel.py2melProc(newFunc, procName=name, argTypes=['string']*len(attrs))
+        if hasattr(replaceFunc, '__call__'):
+            name = self.__class__.__name__ + '_callCustom_replaceFunc_' + '_'.join(attrs)
+            replaceFunc = pymel.tools.py2mel.py2melProc(replaceFunc, procName=name, argTypes=['string']*len(attrs))
+        args = (newFunc, replaceFunc) + attrs
+        cmds.editorTemplate(callCustom=1, *args)
+
+    def suppress(self, control):
+        cmds.editorTemplate(suppress=control)
+    def dimControl(self, nodeName, control, state):
+        #nodeName = nodeName if nodeName else self.nodeName
+        #print "dim", nodeName
+        cmds.editorTemplate(dimControl=(nodeName, control, state))
+        
+    def beginLayout(self, name, collapse=True):
+        cmds.editorTemplate(beginLayout=name, collapse=collapse)
+    def endLayout(self):
+        cmds.editorTemplate(endLayout=True)
+    
+    def beginScrollLayout(self):
+        cmds.editorTemplate(beginScrollLayout=True)
+    def endScrollLayout(self):
+        cmds.editorTemplate(endScrollLayout=True)
+    
+    def beginNoOptimize(self):
+        cmds.editorTemplate(beginNoOptimize=True)
+    def endNoOptimize(self):
+        cmds.editorTemplate(endNoOptimize=True)
+    
+    def interruptOptimize(self):
+        cmds.editorTemplate(interruptOptimize=True)
+    def addSeparator(self):
+        cmds.editorTemplate(addSeparator=True)
+    def addComponents(self):
+        cmds.editorTemplate(addComponents=True)
+    def addExtraControls(self, label=None):
+        kwargs = {}
+        if label:
+            kwargs['extraControlsLabel'] = label
+        cmds.editorTemplate(addExtraControls=True, **kwargs)
+
+    #TODO: listExtraAttributes
+  
 
 dynModule = _util.LazyLoadModule(__name__, globals())
 
@@ -478,8 +588,9 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
     def getPath(self):
         import system
         return system.Path( self.getText() )
-
+      
 _uiTypesToCommands = {
+    'radioCluster':'radioCollection',
     'rowGroupLayout' : 'rowLayout',
     'TcolorIndexSlider' : 'rowLayout',
     'TcolorSlider' : 'rowLayout'
@@ -492,14 +603,19 @@ def PyUI(strObj, uiType=None):
             uiType = cmds.objectTypeUI(strObj)
             uiType = _uiTypesToCommands.get(uiType, uiType)
         except RuntimeError:
-            # we cannot query the type of rowGroupLayout children: check common types for these
-            for control in 'checkBox floatField button floatSlider intSlider ' \
-                    'floatField textField intField optionMenu radioButton'.split():
-                if getattr(cmds, control)( strObj, ex=1, q=1):
-                    uiType = control
-                    break
-            if not uiType:
-                uiType = 'UI'
+            try:
+                # some ui types (radioCollections) can only be identified with their shortname
+                uiType = cmds.objectTypeUI(strObj.split('|')[-1])
+                uiType = _uiTypesToCommands.get(uiType, uiType)
+            except RuntimeError:
+                # we cannot query the type of rowGroupLayout children: check common types for these
+                for control in 'checkBox floatField button floatSlider intSlider ' \
+                        'floatField textField intField optionMenu radioButton'.split():
+                    if getattr(cmds, control)( strObj, ex=1, q=1):
+                        uiType = control
+                        break
+                if not uiType:
+                    uiType = 'UI'
 
     try:
         return getattr(dynModule, _util.capitalize(uiType) )(strObj)
