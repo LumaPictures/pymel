@@ -7,6 +7,7 @@ all 'version' information moved to own module - pymel.version
 	to compare versions, instead of Version class, use, ie, pymel.version.CURRENT >= pymel.version.v2008
 	pymel.mayahook.mayautils.getMayaVersion()/getMayaVersion(extension=True) replaced with pymel.version._installName
 	pymel.mayahook.mayautils.getMayaVersion(extension=True) replaced with pymel.version._shortName
+AutoLayout and FormLayout have been separated into two separate classes - if you were using a FormLayout with auto-layout features, change it to an AutoLayout
 
 Version 0.9.2
 
