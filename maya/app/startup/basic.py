@@ -68,7 +68,7 @@ def executeSiteSetup():
     """
     try:
         for path in sys.path:
-            scriptPath = os.path.join( path, 'userSetup.py' )
+            scriptPath = os.path.join( path, 'siteSetup.py' )
             if os.path.isfile( scriptPath ):
                 import __main__
                 execfile( scriptPath, __main__.__dict__ )
