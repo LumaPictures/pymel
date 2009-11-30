@@ -54,6 +54,38 @@ def executeUserSetup():
         sys.stderr.write("Traceback (most recent call last):\n")
         result = traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
         sys.stderr.write(''.join(result))
+        
+def executeSiteSetup():
+    """
+    Behaves just like executeUserSetup/userSetup.py but is intended for studio/site
+    usage. Trying to mimic the python sitecustomize/usercustomize functionality at
+    the maya level.
+    
+    Looks for siteSetup.py in the search path and execute it in the "__main__"
+    namespace
+    
+    This is run before executeUserSetup/userSetup.py.
+    """
+    try:
+        for path in sys.path:
+            scriptPath = os.path.join( path, 'userSetup.py' )
+            if os.path.isfile( scriptPath ):
+                import __main__
+                execfile( scriptPath, __main__.__dict__ )
+    except Exception, err:
+        # err contains the stack of everything leading to execfile,
+        # while sys.exc_info returns the stack of everything after execfile
+        try:
+            # get the stack and remove our current level
+            etype, value, tb = sys.exc_info()
+            tbStack = traceback.extract_tb(tb)
+        finally:
+            del tb # see warning in sys.exc_type docs for why this is deleted here
+        
+        sys.stderr.write("Failed to execute siteSetup.py\n")
+        sys.stderr.write("Traceback (most recent call last):\n")
+        result = traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
+        sys.stderr.write(''.join(result))
  
 # Set up sys.path to include Maya-specific user script directories.
 setupScriptPaths()
@@ -70,6 +102,7 @@ utils.shellLogHandler()
 
 if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
     # Run the user's userSetup.py if it exists
+    executeSiteSetup()
     executeUserSetup()
 
 # Register code to be run on exit
