@@ -270,24 +270,27 @@ def _aeLoader(modname, classname, nodename):
         
 def initAE():
     from pymel.core.uitypes import AETemplate
-    pkg = __import__('AETemplates')
-    if hasattr(pkg, '__path__'):
-        completed = []
-        for pth in pkg.__path__:
-            realpath = os.path.realpath(pth)
-            if realpath not in completed:
-                files = glob.glob( os.path.join(realpath,'AE*Template.py'))
-                for fname in files:
-                    name = os.path.basename(fname)[:-3]
-                    _makeAEProc( 'AETemplates.'+name, name, name)
-                completed.append(realpath)
-    for name, obj in inspect.getmembers(pkg, lambda x: inspect.isclass(x) and issubclass(x,AETemplate) ):
-        try:
-            nodeType = obj.nodeType()
-        except:
-            continue 
-        else:
-            _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')
+    try:
+        pkg = __import__('AETemplates')
+        if hasattr(pkg, '__path__'):
+            completed = []
+            for pth in pkg.__path__:
+                realpath = os.path.realpath(pth)
+                if realpath not in completed:
+                    files = glob.glob( os.path.join(realpath,'AE*Template.py'))
+                    for fname in files:
+                        name = os.path.basename(fname)[:-3]
+                        _makeAEProc( 'AETemplates.'+name, name, name)
+                    completed.append(realpath)
+        for name, obj in inspect.getmembers(pkg, lambda x: inspect.isclass(x) and issubclass(x,AETemplate) ):
+            try:
+                nodeType = obj.nodeType()
+            except:
+                continue 
+            else:
+                _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')
+    except ImportError:
+        _logger.debug('No AETemplates module to load')
 
 def finalize():
     state = om.MGlobal.mayaState()
