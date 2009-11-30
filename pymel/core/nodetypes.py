@@ -564,8 +564,7 @@ class DimensionedComponent( Component ):
                     indices.add(ComponentIndex((indexObjs,), label=label))
             else:
                 raise IndexError("Single Index given for a multi-dimensional component")
-        elif (isinstance(indexObjs, ComponentIndex) and
-              all([isinstance(dimIndex, self.VALID_SINGLE_INDEX_TYPES) for dimIndex in indexObjs])):
+        elif isinstance(indexObjs, ComponentIndex):
             if label and indexObjs.label and label != indexObjs.label:
                 raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
                                  % (label, indexObjs.label))
@@ -618,9 +617,8 @@ class DimensionedComponent( Component ):
                     newIndices = []
                     for oldPartial in indices:
                         for indice in dimIndex:
-                            newIndices.extend(self._flattenIndex(oldPartial + (indice,),
-                                                                 allowIterable=False))
-                    return newIndices
+                            newIndices.append(oldPartial + (indice,))
+                    indices = newIndices
                 else:
                     raise IndexError(index)
             elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
@@ -650,7 +648,7 @@ class DimensionedComponent( Component ):
         """
         if allowIterables and _util.isIterable(item):
             for x in item:
-                self._validateGetItemIndice(item, allowIterables=False)
+                self._validateGetItemIndice(x, allowIterables=False)
             return
         if not isinstance(item, self.VALID_SINGLE_INDEX_TYPES):
             raise IndexError("Invalid indice type for %s: %r" %
