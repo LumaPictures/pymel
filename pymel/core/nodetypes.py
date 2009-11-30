@@ -5833,19 +5833,23 @@ class SkinCluster(GeometryFilter):
         else:
             raise TypeError
        
-        api_influnces = api.MIntArray()
-        for influnce in influnces:
-            api_influnces.append(influnce)
-       
-        api_weights = api.MDoubleArray()
-        for weight in weights:
-            api_weights.append(weight)
-       
+        if not isinstance(influnces,api.MIntArray):
+            api_influnces = api.MIntArray()
+            for influnce in influnces:
+                api_influnces.append(influnce)
+            influnces = api_influnces
+            
+        if not isinstance(weights,api.MDoubleArray):
+            api_weights = api.MDoubleArray()
+            for weight in weights:
+                api_weights.append(weight)
+            weights = api_weights
+
         old_weights = api.MDoubleArray()
         su = api.MScriptUtil()
         index = su.asUintPtr()
         self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, old_weights, index )
-        return self.__apimfn__().setWeights( geometry.__apimdagpath__(), components, api_influnces, api_weights, normalize, old_weights )
+        return self.__apimfn__().setWeights( geometry.__apimdagpath__(), components, influnces, weights, normalize, old_weights )
         
     @_factories.addApiDocs( api.MFnSkinCluster, 'influenceObjects' )        
     def influenceObjects(self):
