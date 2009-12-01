@@ -2802,7 +2802,7 @@ class Attribute(general.PyNode):
             
             # If the array exists, now check the array indices...
             indices = self.array().getArrayIndices()
-            return (indices and self.index() in indices)
+            return bool(indices and self.index() in indices)
         else:
             try:
                 return bool( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True) ) 
