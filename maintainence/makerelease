@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd `dirname $0`
+cd `dirname $0`/release
+
 VER=$1
 RELEASE=pymel-$1
 echo $RELEASE

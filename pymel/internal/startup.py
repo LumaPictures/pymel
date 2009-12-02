@@ -269,8 +269,17 @@ def _aeLoader(modname, classname, nodename):
         traceback.print_exc()
         
 def initAE():
+    try:
+        pkg = __import__('AETemplates')
+    except ImportError:
+        return
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        return
+    
     from pymel.core.uitypes import AETemplate
-    pkg = __import__('AETemplates')
+    
     if hasattr(pkg, '__path__'):
         completed = []
         for pth in pkg.__path__:

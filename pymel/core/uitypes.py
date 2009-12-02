@@ -204,8 +204,8 @@ class FormLayout(Layout):
         kwargs['attachPosition'] = [args]
         cmds.formLayout(self,**kwargs)
         
-#class AutoLayout(FormLayout):
-#    #enumOrientation = _util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
+class AutoLayout(FormLayout):
+    #enumOrientation = _util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
     HORIZONTAL = 0
     VERTICAL = 1
     Orientation = _util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
@@ -299,9 +299,6 @@ class FormLayout(Layout):
     def hDistribute(self,*ratios):
         self._orientation = int(self.Orientation.horizontal)
         self.redistribute(*ratios)
-
-# For backwards compatibility
-AutoLayout = FormLayout
     
 class TextScrollList(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
