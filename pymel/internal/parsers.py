@@ -325,19 +325,13 @@ def printTree( tree, depth=0 ):
 
 
 class CommandModuleDocParser(HTMLParser):
-    #: these are commands which need to be manually added to the list parsed from the docs
-    moduleCommandAdditions = {
-        'Windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
-        'General' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
-                     'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
-    }
-    
+
     def parse(self):
         
         f = open( os.path.join( self.docloc , 'Commands/cat_' + self.category + '.html' ) )
         self.feed( f.read() )
         f.close()
-        return self.cmdList + self.moduleCommandAdditions.get(self.category, [] )
+        return self.cmdList
               
     def __init__(self, category, version=None ):
         self.cmdList = []
