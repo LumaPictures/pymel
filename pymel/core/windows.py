@@ -295,6 +295,7 @@ import pymel.internal as _internal
 import pymel.versions as _versions
 
 from language import mel, melGlobals
+from system import Path
 import uitypes as _uitypes
 
 _logger = _internal.getLogger(__name__)
