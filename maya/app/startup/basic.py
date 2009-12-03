@@ -29,14 +29,14 @@ def setupScriptPaths():
     appDir = cmds.internalVar( userAppDir=True )
     sys.path.append( os.path.join( appDir, 'scripts' ) )
     
-def executeUserSetup():
+def executeSetup(filename):
     """
-    Look for userSetup.py in the search path and execute it in the "__main__"
+    Look for the given file name in the search path and execute it in the "__main__"
     namespace
     """
     try:
         for path in sys.path:
-            scriptPath = os.path.join( path, 'userSetup.py' )
+            scriptPath = os.path.join( path, filename )
             if os.path.isfile( scriptPath ):
                 import __main__
                 execfile( scriptPath, __main__.__dict__ )
@@ -50,11 +50,17 @@ def executeUserSetup():
         finally:
             del tb # see warning in sys.exc_type docs for why this is deleted here
         
-        sys.stderr.write("Failed to execute userSetup.py\n")
+        sys.stderr.write("Failed to execute %s\n" % filename)
         sys.stderr.write("Traceback (most recent call last):\n")
         result = traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
         sys.stderr.write(''.join(result))
- 
+
+def executeUserSetup():
+    executeSetup('userSetup.py')
+
+def executeSiteSetup():
+    executeSetup('siteSetup.py')
+    
 # Set up sys.path to include Maya-specific user script directories.
 setupScriptPaths()
 
@@ -70,6 +76,7 @@ utils.shellLogHandler()
 
 if not os.environ.has_key('MAYA_SKIP_USERSETUP_PY'):
     # Run the user's userSetup.py if it exists
+    executeSiteSetup()
     executeUserSetup()
 
 # Register code to be run on exit
