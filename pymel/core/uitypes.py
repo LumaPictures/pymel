@@ -410,6 +410,22 @@ class UITemplate(object):
         return cmds.uiTemplate( name, exists=True )
 
 class AETemplate(object):
+    """
+    To use python attribute editor templates, first create a python package named
+    'AETemplates'. To do this:
+      1. create a directory 'AETemplates'
+      2. inside, create an empty file '__init__.py' 
+      3. ensure that the directory above 'AETemplates' is on the ``PYTHONPATH``
+    
+    Python `AETemplate` sub-classes will be found and paired with node types if they match one of the
+    three following conventions:
+      1. there is a sub-module of ``AETemplates`` which contains a class with the same name, both of which match
+        the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate.AElambertTemplate )
+      2. the ``AETemplates`` module contains an `AETemplate` subclass whose name matches the format ``AE<nodeType>Template`` ( ex. AETemplates.AElambertTemplate )
+      3. the ``AETemplates`` module contains an `AETemplate` subclass which has its _nodeName class attribute set to the name of a valid node type. 
+    """
+    
+    
     _nodeType = None
     def __init__(self, nodeName):
         self._nodeName = nodeName
