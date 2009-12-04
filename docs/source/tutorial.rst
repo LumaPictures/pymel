@@ -12,12 +12,12 @@ the differences in syntax between the two languages and how to translate between
 	Maya's script editor:: 
 	
 		ls(type='camera')
-		# Result: [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')] # 
+		# Result: [nt.Camera(u'frontShape'), nt.Camera(u'perspShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')] # 
 
 	In an external interpreter::
 	
 		>>> ls(type='camera')
-		[Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
+		[nt.Camera(u'frontShape'), nt.Camera(u'perspShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')]
 .. 
 	Another great way to learn how to translate 
 	mel into python is to install the new `Script Editor`_. With it you can execute some mel code and watch the 
@@ -73,7 +73,7 @@ Next, we need some nodes to work with.	In general, we can get nodes in 3 ways:
 Let's start by listing the cameras in the scene.  We do this in the same way that we would with ``maya.cmds``::
 
 	ls(type='camera')
-	# Result: [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
+	# Result: [nt.Camera(u'frontShape'), nt.Camera(u'perspShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')]
 
 Just for comparison, let's do the same thing using ``maya.cmds``::
 
@@ -96,7 +96,7 @@ Let's use one of these camera objects to get some information::
 	cam.getFocalLength()
 	# Result: 35.0
 
-So, there you can see some examples of object-oriented programming using PyMEL.  Not so hard, is it?  For reference, here's the same thing done in  a procedural way::
+So, there you can see some examples of object-oriented programming using PyMEL.  Not so hard, is it?  For reference, here's the same thing done in a procedural way::
 
 	cam = ls(type='camera')[0]
 	camera( cam, q=True, aspectRatio=True)
@@ -104,7 +104,7 @@ So, there you can see some examples of object-oriented programming using PyMEL. 
 	camera( cam, q=True, focalLength=True)
 	# Result: 35.0
 	
-The code above is using PyMEL. This illustrates an important point: you can continue to code in a procedural way using PyMEL, because PyMEL provides the same set of :ref:`MEL-derived <why_wrappers>` commands as ``maya.cmds``, but because PyMEL wraps all of these commands to return powerful PyMEL node classes, you can begin mixing in object-oriented code as you become more comfortable with it.
+Both examples above are using PyMEL. This illustrates an important point: you can continue to code in a procedural way using PyMEL, because PyMEL provides the same set of :ref:`MEL-derived <why_wrappers>` commands as ``maya.cmds``, but because PyMEL wraps all of these commands to return powerful PyMEL node classes, you can begin mixing in object-oriented code as you become more comfortable with it.
 
 ---------------------------------------------------------
 Example 2: Transitioning from Procedural Programming
@@ -122,7 +122,7 @@ Let's look at another simple procedural example in which we find a camera, get i
 
 Now let's convert this to an object-oriented style.
 
-Instead of `listRelatives`, we can use use methods available on ``cam``, which is a `nodetypes.Camera` class. ``Camera`` inherits from `nodetypes.DagNode`, so it has methods such as :meth:`getParent <nodetypes.DagNode.getParent>`, :meth:`getShape <nodetypes.DagNode.getShape>`, :meth:`getChildren <nodetypes.DagNode.getChildren>`.  In this case, we'll use ``getParent``::
+Instead of `listRelatives`, we can use use methods available on ``cam``, which is a `nodetypes.Camera` class ( which can also be referred to by the shorthand ``nt.Camera``). ``nodetypes.Camera`` inherits from `nodetypes.DagNode`, so it has methods such as :meth:`getParent <nodetypes.DagNode.getParent>`, :meth:`getShape <nodetypes.DagNode.getShape>`, :meth:`getChildren <nodetypes.DagNode.getChildren>`.  In this case, we'll use ``getParent``::
 
 	cam = ls(type='camera')[0]
 	parent = cam.getParent() # <---
@@ -138,16 +138,18 @@ Next, instead of `xform`, we can use the :meth:`getTranslation <Transform.getTra
 	parent = cam.getParent()
 	trans = parent.getTranslation() # <---
 	trans
-	# Result: datatypes.Vector([28.0, 21.0, 28.0])
+	# Result: dt.Vector([28.0, 21.0, 28.0])
 	trans.z
 	# Result: 28.0
 
-Now, let's chain these commands together to compare procedural versus object-oriented::
+Now, let's chain these commands together to compare procedural versus object-oriented.
+
+procedural::
 
 	xform( listRelatives( ls(type='camera')[0], p=1)[0],q=1,t=1)[2]
 	# Result: 28.0
 
-::
+object-oriented::
 
 	ls(type='camera')[0].getParent().getTranslation().z
 	# Result: 28.0
@@ -160,7 +162,7 @@ Getting Help
 
 If you are ever unsure of what method to use, just use the builtin python help command on the node class (the capitalized node type)::
 
-	help(Camera)
+	help(nt.Camera)
 
 You can do the same thing for any function as well.::
 
@@ -175,7 +177,7 @@ Now let's create a node::
 
 	objs = polyPlane()
 	objs
-	# Result: [Transform(u'pPlane1'), PolyPlane(u'polyPlane1')]
+	# Result: [nt.Transform(u'pPlane1'), nt.PolyPlane(u'polyPlane1')]
 
 You can see that, like the `ls` command, the `polyPlane` command also returns `PyNode` classes.	 As in MEL, it returns a list: the
 first object is the tranform of the plane, and the second is the construction history. Now let's get the shape of the transform::
@@ -184,7 +186,7 @@ first object is the tranform of the plane, and the second is the construction hi
 	plane = objs[0]
 	shape = plane.getShape()
 	shape
-	# Result: Mesh(u'pPlaneShape1')
+	# Result: nt.Mesh(u'pPlaneShape1')
 	
 So, we can clearly see that the shape is a Mesh. Let's explore the `Mesh` object a little. We can get the name as a string, 
 formatted in different ways (the ``u`` in front of the string denotes that it is a unicode string, meaning it can represent international characters).::

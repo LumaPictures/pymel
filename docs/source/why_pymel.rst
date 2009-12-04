@@ -45,7 +45,7 @@ The Paradigm Shift
 
 MEL is a procedural language, meaning it provides the ability to encapsulate code into reusable "procedures" ( aka "functions" ).  (This is probably old news to you, but bear with me, there's a mildly entertaining analogy coming up ). The term "procedural programming" is used primarily in the context of distinguishing a language from the newer, object-oriented paradigm. 
 
-Object-oriented programming adds organization by creating logical groupings of functions which are accessed from a common "object".  If you have used MEL extensively you know you can get pretty far with procedural programming alone, but there is often an exponential relationship between the complexity of a task and the amount of code it will take to complete in MEL.  In other word, progress breaks down once the task at hand becomes too complicated. Object-oriented code tends to be easier to read and write, provides the ability to create entirely new data types, and ultimately scales better to complex tasks. 
+Object-oriented programming adds organization by creating logical groupings of functions which are accessed from a common "object".  If you have used MEL extensively you know you can get pretty far with procedural programming alone, but there is often an exponential relationship between the complexity of a task and the amount of code it will take to complete in MEL.  In other words, progress breaks down once the task at hand becomes too complicated. Object-oriented code tends to be easier to read and write, provides the ability to easily create new data types and reuse code, and ultimately scales better to complex tasks. 
 
 To prove my point, here's a quick example that we'll cover in more depth later.
 

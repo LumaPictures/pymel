@@ -110,7 +110,7 @@ Why?! The `button` UI widget, like many others, automatically passes arguments t
 
 		radioButton -changeCommand "myRadButtCB #1";
 		
-	When the callback is executed, the ``#1`` gets replaced with the current state of the radioButton -- 0 or 1.  Unfortunately, when using python callbacks, you can't request which arguments you want, you get them all.
+	When the callback is executed, the ``#1`` gets replaced with the current state of the radioButton: ``0`` or ``1``.  Unfortunately, when using python callbacks, you can't request which arguments you want, you get them all.
 
 So, to make our callback work, we need to modify it to accept the argument that the button ``command`` callback is passing us::
 
@@ -120,7 +120,7 @@ So, to make our callback work, we need to modify it to accept the argument that 
 The tricky part is that different UI elements pass differing numbers of arguments to their callbacks, and some pass none at all.  This is why it is best for your command to use the ``*args`` syntax, like so::
 
     def buttonPressed(*args):
-        print "pressed! here are my arguments %s" % ( args )
+        print "pressed! here are my arguments %s" % ( args, )
         
 The asterisk in front of ``args`` allows the function to accept any quantity of passed arguments. All of the positional arguments to the function are stored in the variable ``args`` (without the ``*``) as a read-only list, known as a tuple. Making it a habit to use this syntax for your callbacks can save you a lot of headache.
 
@@ -147,7 +147,7 @@ The next technique builds on the last by simplifying the following situations:
 	- You want to pass arguments to your callback function other than those automatically sent by the UI element
 	- You're using a function that someone else wrote and can't add the ``*args`` to it 
 	
-For example, I want to pass our ``buttonPressed`` callback function a name argument.  Here's how we do this using a lambda function::
+For example, I want to pass our ``buttonPressed`` function a name argument.  Here's how we do this using a lambda function::
 
     from pymel import *
     
@@ -187,7 +187,7 @@ The lambda function serves as a mediator between the UI element and our real cal
 
 In the example above we're using the first of the arguments passed by the button (remember, ``args`` is a tuple, which is like a list) and passing it on to our callback in addition to the name string.  Keep in mind that for this to work our ``buttonPressed`` callback would need to be modified to accept two arguments.
 
-Whew! That was a lot to learn, but unfortunately, this method has a drawback, too. It fails when used in a 'for' loop. 
+Whew! That was a lot to learn, but unfortunately, this method has a drawback, too. It does not work properly when used in a 'for' loop. 
 
 In the following example, we're going to make several buttons. Our intention is that each one will print a different name, but as you will soon see, we won't succeed. ::
 
