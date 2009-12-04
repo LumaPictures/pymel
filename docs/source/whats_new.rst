@@ -8,25 +8,43 @@ What's New in Version 1.0.0
 New Package Layout
 ----------------------
 
-One of the tenets of PyMEL's design is that it should add object-oriented programming while still being easy for a novice to use.  One way that PyMEL attempts to keeps things simple is by providing access to all  of its sub-modules with a single top-level import. in the years since this design was first implemented, we've come to realize that this has certain ugly drawbacks.  The primary disadvantage is efficiency: importing all sub-modules means that parts of PyMEL that may not be explicitly required by the task at hand are still initialized, which takes time.  This problem is particularly pronounced in batch mode, where importing ``pymel`` triggers maya's full startup sequence, which, though often very useful, can be a nuisance if one only requires ``pymel.api`` or ``pymel.util``, which need no initialization.  Between the untangling of the automatic imports and several additional optimizations -- including compressed caches, and lazy loading of classes and docstrings -- we've reduced PyMEL's import time from 4 to 2 seconds.
+PyMEL 1.0 introduces a very big backward incompatibility: importing ``pymel`` no longer imports sub-packages, meaning ``pymel`` is strictly an entry point for its sub-modules.  The user must now explicitly import the sub-modules they wish to use. ``pymel.core`` remains the primary module and importing it in batch mode triggers Maya's full startup sequence, just as importing the top-level ``pymel`` module did in previous versions.
 
-Sub-Packages
+Sub-Modules
 ============
-
-PyMEL 1.0 retains the same overall package layout of 0.9, which provides a very clear dependency chain, however, in the current version, the user must explicitly import the sub-package they wish to use.  The sub-packages are:
     
     - `pymel.util`: independent of Maya
     - `pymel.api`: OpenMaya classes; requires maya, but does not require initialization of ``maya.standalone``
     - `pymel.internal`: (formally ``mayahook``) the machinery required to fuse ``maya.OpenMaya`` and ``maya.cmds`` into `pymel.core`
     - `pymel.core`: the primary sub-package; importing this module initializes maya.standalone in batch mode
 
+    - `pymel.versions`
+    - `pymel.mayautils`
+
+
+But Why?!
+=========
+
+
+One of the tenets of PyMEL's design is that it should add object-oriented programming while still being easy for a novice to use.  One way that we tried to accomplish this was by providing access to all of its sub-modules with a single top-level import. However, in the years since this design was first implemented, we've come to realize that this has certain ugly drawbacks.  The new layout has several advantages:
+
+1. load time:  our new layout uses lazy loading for `pymel.core.uitypes` and `pymel.core.nodetypes`, which delays the creation of classes and methods until they are accessed.  This lazy loading dramatically speeds up PyMEL's load time, but it only works if the classes that are being lazily loaded stay in their own namespace.  For example, if you do a ``from pymel.core.nodetypes import *``, this forces every class within that module to be loaded.
+
+2. API segregation: `pymel.api` will grow into a robust set of utilities for API development. under the new design, importing `pymel.api` has very little overhead and will not import any core commands, which could be dangerous to use in the context of a plugin.
+
+3. util accessibility:  `pymel.util` contains functions and classes that are not Maya-dependent or even Maya-related so they are useful in many contexts, such as within Nuke. However, in the old layout you could not import ``pymel.util`` from a command-line script without initializing all of Maya, which an application like Nuke obviously does not like. 
+
+4. there are two new modules -- `pymel.versions` and `pymel.mayautils` -- which can be used in batch mode without initializing Maya to do things like find user directories, determine what version of Maya the current mayapy corresponds to, etc, then make some decisions based on this info *before* `pymel.core` is imported and all of Maya is initialized.
+
 
 Upgrading
 =========
 
-To keep things simple and to provide an easy upgrade path, PyMEL 1.0 adds a new module, ``pymel.all``, which imports all sub-modules in exactly the same way that the primary ``pymel`` module does in previous versions.  PyMEL also includes a new tool, `pymel.tools.upgradeScripts`, which will find and upgrade existing pymel scripts, converting all imports of ``pymel`` into imports of ``pymel.all``.  Additionally, PyMEL 0.9.3 will be forward compatible with 1.0, meaning it will also provide a ``pymel.all`` module so that "upgraded" code is interoperable between versions.
+To keep things simple and to provide an easy upgrade path, PyMEL 1.0 adds a new module, ``pymel.all``, which imports all sub-modules in exactly the same way that the primary ``pymel`` module does in previous versions.  PyMEL also includes a new tool, `pymel.tools.upgradeScripts`, which will find and upgrade existing PyMEL scripts, converting all imports of ``pymel`` into imports of ``pymel.all``.  Additionally, PyMEL 0.9.3 is forward compatible with 1.0, meaning it will also provide a ``pymel.all`` module so that "upgraded" code is interoperable between versions.
 
 We don't take breaking backward compatibility lightly, but we feel strongly that these changes need to be made to ensure the long-term health of the package, and now is the best time to make them, before PyMEL's rapidly growing user-base gets any larger.
+
+.. note:: keep in mind that importing ``pymel.all`` negates all of the load time improvements that have been made with 1.0.  Importing ``pymel.core`` is now the preferred method.
 
 ----------------------
 MEL GUI Creation

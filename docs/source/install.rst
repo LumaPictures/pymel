@@ -101,7 +101,7 @@ allows easy execution of ``maya`` and ``mayapy`` in a shell  NO                 
 ============================================================ ========================================== ==========================================
 
 
-.. warning:: If you set your ``PYTHONPATH`` at the system level it will override any values for ``PYTHONPATH`` set in Maya.env, except on OSX when launching Maya from it's application bundle (an application bundle is the icon you click on to launch Maya).
+.. note:: If you set your ``PYTHONPATH`` at the system level it will override any values for ``PYTHONPATH`` set in Maya.env, except on OSX when launching Maya from it's application bundle (an application bundle is the icon you click on to launch Maya).
 
 
 .. _install_maya_env:
@@ -112,6 +112,8 @@ Setting Up Your Environment Using Maya.env
 The instructions below on setting up your python environment are essential to learning how to properly deploy any python module, not just PyMEL, and mastering them is also key to using the :doc:`standalone`.
 
 .. warning:: installation instructions have changed since version 0.9, so pay attention. PyMEL now includes a partial override of the maya package.  This means that both the ``pymel`` and ``maya`` sub-directories must be on the python path, and they must come **before** the standard maya package in the search path. To keep things simple, we are now recommending that the top-level ``pymel-1.0.x`` directory be added to the ``PYTHONPATH`` instead of copying the ``pymel`` sub-directory. 
+
+..
 
   1. extract the pymel zip file that you downloaded.  The directory structure should look something like this::
      
@@ -136,7 +138,7 @@ The instructions below on setting up your python environment are essential to le
         |           `-- ply
         `-- tests
      
-      The folders marked with an asterisk are the required pymel packages, which must be on the PYTHONPATH.  **If you wish to relocate PyMEL, be sure to move both the ``pymel`` and ``maya`` folders.**
+    The folders marked with an asterisk are the required pymel packages, which must be on the PYTHONPATH.  **If you wish to relocate PyMEL, be sure to move both the pymel and maya folders.**
 
   2. Locate the Maya.env for the desired version of Maya and open it in your favorite text editor. Maya.env can be found in your ``MAYA_APP_DIR`` under a sub-directory for each version of Maya.
 
@@ -147,7 +149,7 @@ The instructions below on setting up your python environment are essential to le
     ----------------- -------------------------------------------------
     OSX               ~/Library/Preferences/Autodesk/maya
     ----------------- -------------------------------------------------
-    Windows           drive:\My Documents\maya
+    Windows           drive:\\My Documents\\maya
     ================= =================================================
 
   3. Once open, add a line to set ``PYTHONPATH`` to the top-level directory where you extracted pymel (the directory that contains both pymel and maya folders).  The ``PYTHONPATH`` variable is a list of paths separated by semi-colons (on windows) or colons (on osx and linux).  For example:
@@ -325,14 +327,9 @@ userSetup files
 ---------------------------------------
 
 
-Next, to avoid having to import pymel every time you startup, you can create a userSetup.mel
-file, place it in your Maya scipts directory and add this line::
+Next, to avoid having to import pymel every time you startup, you can create a userSetup.py file and add the line::
 
-    python("from pymel import *");
-
-Alternately, you can create a userSetup.py file and add the line::
-
-    from pymel import *
+    from pymel.core import *
 
 ---------------------------------------
 Script Editor
