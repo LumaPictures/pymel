@@ -21,6 +21,13 @@ moduleNameShortToLong = {
     'language'   : 'Language'
 }
 
+#: these are commands which need to be manually added to the list parsed from the docs
+moduleCommandAdditions = {
+    'windows' : ['connectControl', 'deleteUI','uiTemplate','setUITemplate','renameUI','setParent','objectTypeUI','lsUI', 'disable', 'dimWhen'],
+    'general' : ['encodeString', 'format', 'assignCommand', 'commandEcho', 'condition', 'evalDeferred', 'isTrue', 'itemFilter', 'itemFilterAttr', 
+                 'itemFilterRender', 'itemFilterType', 'pause', 'refresh', 'stringArrayIntersector', 'selectionConnection']
+}
+    
 #: secondary flags can only be used in conjunction with other flags so we must exclude them when creating classes from commands.
 #: because the maya docs do not specify in any parsable way which flags are secondary modifiers, we must maintain this dictionary.
 #: once this list is reliable enough and includes default values, we can use them as keyword arguments in the class methods that they modify.
@@ -163,7 +170,8 @@ nodeTypeToNodeCommand = {
     'makeNurbsSquare'   : 'nurbsSquare',
     'makeNurbCube'      : 'nurbsCube',
     'skinPercent'       : 'skinCluster',
-    'file'              : None # prevent File node from using cmds.file
+    'file'              : None, # prevent File node from using cmds.file
+    'nurbsSurface'      : 'surface'
 }
 
 
@@ -826,7 +834,7 @@ def buildCachedData() :
             #elif funcName in nodeHierarchyTree or funcName in nodeTypeToNodeCommand.values():
             #    module = 'node'
             else:
-                for moduleName, commands in moduleNameShortToLong.items():
+                for moduleName, commands in moduleNameShortToLong.iteritems():
                     if funcName in commands:
                         module = moduleName
                         break
@@ -902,9 +910,23 @@ def buildCachedData() :
     
         startup.writeCache( examples, 
                               'mayaCmdsExamples', 'the list of Maya command examples',compressed=True )
+
+    # corrections that are always made, to both loaded and freshly built caches
     
     util.mergeCascadingDicts( cmdlistOverrides, cmdlist )
-            
+    # add in any nodeCommands added after cache rebuild
+    nodeCommandList = set(nodeCommandList).union(nodeTypeToNodeCommand.values())
+    nodeCommandList = sorted( nodeCommandList )
+    
+    
+    for module, funcNames in moduleCommandAdditions.iteritems():
+        for funcName in funcNames:
+            currModule = cmdlist[funcName]['type']
+            if currModule != module:
+                cmdlist[funcName]['type'] = module
+                id = moduleCmds[currModule].index(funcName)
+                moduleCmds[currModule].pop(id)
+                moduleCmds[module].append(funcName)
     return (cmdlist,nodeHierarchy,uiClassList,nodeCommandList,moduleCmds)
 
 cmdlist, nodeHierarchy, uiClassList, nodeCommandList, moduleCmds = buildCachedData()

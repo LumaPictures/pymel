@@ -28,7 +28,9 @@ class Enum(tuple):
             parts[0] = _util.capitalize( mayaTypeDict.keys()[0] )
 
         return '.'.join( [str(x) for x in parts] )
-    
+
+api.Enum = Enum
+
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
     # as the dgModifier.doIt() method is never called, the object
