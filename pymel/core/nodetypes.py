@@ -3622,12 +3622,27 @@ class DagNode(Entity):
                 _logger.warn( "object %s no longer exists" % self._name ) 
         return self._name  
     
-    def longName(self):
+    def longName(self,stripNamespace=False,levels=0):
         """
         The full dag path to the object, including leading pipe ( | )
         
         :rtype: `unicode`
         """
+        if stripNamespace:
+            name = self.name(long=True)
+            nodes = []
+            for x in name.split('|'):
+                y = x.split('.')
+                z = y[0].split(':')
+                if levels:
+                    y[0] = ':'.join( z[min(len(z)-1,levels):] )
+       
+                else:
+                    y[0] = z[-1]
+                nodes.append( '.'.join( y ) )
+            stripped_name = '|'.join( nodes)
+            return stripped_name
+       
         return self.name(long=True)
     fullPath = longName
             
@@ -5752,6 +5767,19 @@ class ObjectSet(Entity):
     def union(self, other):
         self.addMembers(other)
      
+class AnimCurve(DependNode):
+    __metaclass__ = _factories.MetaMayaNodeWrapper
+
+    def addKeys(self,time,values,tangentInType='linear',tangentOutType='linear',unit=None):
+        if not unit:
+            unit = api.MTime.uiUnit()
+        times = api.MTimeArray()
+        for frame in time: times.append(api.MTime(frame,unit))
+        keys = api.MDoubleArray()
+        for value in values: keys.append(value)
+        return self.__apimfn__().addKeys( times, keys,
+                                          api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
+                                          api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
 
 class GeometryFilter(DependNode): pass
 class SkinCluster(GeometryFilter):
@@ -5786,6 +5814,42 @@ class SkinCluster(GeometryFilter):
             index = index.get()
             args = [iter(weights)] * index
             return itertools.izip(*args)
+        
+    def setWeights(self, geometry, influnces, weights, normalize=True):
+        if not isinstance(geometry, general.PyNode):
+            geometry = general.PyNode(geometry)
+           
+        if isinstance( geometry, Transform ):
+            try:
+                geometry = geometry.getShape()
+            except:
+                raise TypeError, "%s is a transform with no shape" % geometry
+             
+        if isinstance(geometry, GeometryShape):
+            components = api.toComponentMObject( geometry.__apimdagpath__() )
+        elif isinstance(geometry, Component):
+            components = geometry.__apiobject__()
+           
+        else:
+            raise TypeError
+       
+        if not isinstance(influnces,api.MIntArray):
+            api_influnces = api.MIntArray()
+            for influnce in influnces:
+                api_influnces.append(influnce)
+            influnces = api_influnces
+            
+        if not isinstance(weights,api.MDoubleArray):
+            api_weights = api.MDoubleArray()
+            for weight in weights:
+                api_weights.append(weight)
+            weights = api_weights
+
+        old_weights = api.MDoubleArray()
+        su = api.MScriptUtil()
+        index = su.asUintPtr()
+        self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, old_weights, index )
+        return self.__apimfn__().setWeights( geometry.__apimdagpath__(), components, influnces, weights, normalize, old_weights )
         
     @_factories.addApiDocs( api.MFnSkinCluster, 'influenceObjects' )        
     def influenceObjects(self):
