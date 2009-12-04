@@ -7,7 +7,7 @@ import inspect, itertools, math
 import pymel.util as _util
 import pymel.internal.pmcmds as cmds #@UnresolvedImport
 import pymel.internal.factories as _factories
-import pymel.api as api #@UnresolvedImport
+import pymel.api as _api #@UnresolvedImport
 import pymel.internal.apicache as _apicache
 import pymel.internal.pwarnings as _warnings
 from pymel.internal import getLogger as _getLogger
@@ -30,79 +30,6 @@ from system import namespaceInfo as _namespaceInfo, FileReference as _FileRefere
 _thisModule = sys.modules[__name__]
 
 #__all__ = ['Component', 'MeshEdge', 'MeshVertex', 'MeshFace', 'Attribute', 'DependNode' ]
-
-def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
-    """
-    Generator function which makes 2 new 'parent' functions, given a baseParentFunc.
-    
-    The first function returns an array of all parents, starting from the parent immediately above, going up.
-    The second returns baseParentFunc, but adds an optional keyword arg, generations, used to control
-    the number of levels up to find the parent.
-
-    It is assumed that the first arg to baseParentFunc is the object whose parent we wish to find.
-    
-    The optional 'generations' keyword arg will be added as though it were the very FIRST
-    optional keyword arg given - ie, if we have:
-    
-    def baseParentFunc(mandatory1, mandatory2, optional1=None, optional2="foo", *args, **kwargs)
-    
-    then the function returned will be like a function declared like:
-    
-    parentFuncWithGenerations(mandatory1, mandatory2, generations=1, optional1=None, optional2="foo", *args, **kwargs)
-    """
-    namedArgs, varargs, varkwargs, defaults = inspect.getargspec(baseParentFunc)
-    if defaults is None:
-        mandatoryArgs = namedArgs
-        defaultArgs = {}
-    else:
-        mandatoryArgs = namedArgs[:-len(defaults)]
-        defaultArgs = dict(zip(namedArgs[-len(defaults):], defaults)) 
-    
-    def getAllParents(*args, **kwargs):
-        """Return a list of all parents above this.
-        
-        Starts from the parent immediately above, going up."""
-        
-        x = baseParentFunc(*args, **kwargs)
-        res = []
-        while x:
-            res.append(x)
-            x = baseParentFunc(x, *args[1:], **kwargs)
-        return res
-    
-    def parentFuncWithGenerations(*args, **kwargs):
-        if 'generations' in kwargs:
-            generations = kwargs.pop('generations')
-        elif len(args) > len(mandatoryArgs):
-            args = list(args)
-            generations = args.pop(len(mandatoryArgs))
-        else:
-            generations = 1
-
-        if generations == 0:
-            return args[0]
-        elif generations >= 1:
-            firstParent = baseParentFunc(*args, **kwargs)
-            
-            if generations == 1 or firstParent is None:
-                return firstParent
-            else:
-                kwargs['generations'] = generations - 1
-                return parentFuncWithGenerations(firstParent, *args[1:], **kwargs)
-        elif generations < 0:
-            allParents = getAllParents(*args, **kwargs)
-            
-            if -generations > (len(allParents) + 1):
-                return None
-            # Assures we can return self
-            elif -generations == (len(allParents) + 1):
-                return args[0]
-            else:
-                return allParents[generations]
-                        
-    parentFuncWithGenerations.__doc__ = baseParentFunc.__doc__
-    
-    return getAllParents, parentFuncWithGenerations
 
 # TODO:
 # -----
@@ -172,20 +99,20 @@ class Component( general.PyNode ):
     """
     
     __metaclass__ = _factories.MetaMayaComponentWrapper
-    _mfncompclass = api.MFnComponent
-    _apienum__ = api.MFn.kComponent
+    _mfncompclass = _api.MFnComponent
+    _apienum__ = _api.MFn.kComponent
     _ComponentLabel__ = None
 
     # Maya 2008 and earlier have no kUint64SingleIndexedComponent /
     # MFnUint64SingleIndexedComponent...
-    _componentEnums = [api.MFn.kComponent,
-                       api.MFn.kSingleIndexedComponent,
-                       api.MFn.kDoubleIndexedComponent,
-                       api.MFn.kTripleIndexedComponent]
+    _componentEnums = [_api.MFn.kComponent,
+                       _api.MFn.kSingleIndexedComponent,
+                       _api.MFn.kDoubleIndexedComponent,
+                       _api.MFn.kTripleIndexedComponent]
 
-    if hasattr(api.MFn, 'kUint64SingleIndexedComponent'):
+    if hasattr(_api.MFn, 'kUint64SingleIndexedComponent'):
         _hasUint64 = True
-        _componentEnums.append(api.MFn.kUint64SingleIndexedComponent)
+        _componentEnums.append(_api.MFn.kUint64SingleIndexedComponent)
     else:
         _hasUint64 = False
 
@@ -207,12 +134,12 @@ class Component( general.PyNode ):
 #        import maya.cmds as cmds
 #        
 #        melSphere = cmds.sphere()[0]
-#        selList = api.MSelectionList()
+#        selList = _api.MSelectionList()
 #        selList.add(melSphere + '.cv[*][*]')
-#        compObj = api.MObject()
-#        dagPath = api.MDagPath()
+#        compObj = _api.MObject()
+#        dagPath = _api.MDagPath()
 #        selList.getDagPath(0, dagPath, compObj)
-#        mfnComp = api.MFnDoubleIndexedComponent(compObj)
+#        mfnComp = _api.MFnDoubleIndexedComponent(compObj)
 #        print "is empty:", mfnComp.isEmpty()
 #        print "is complete:", mfnComp.isComplete()
 #        print "elementCount:", mfnComp.elementCount()
@@ -228,7 +155,7 @@ class Component( general.PyNode ):
 #        print "elementCount:", mfnComp.elementCount()
 #        print
         
-        mfnComp = api.MFnComponent(mobj)
+        mfnComp = _api.MFnComponent(mobj)
         completeStatus = mfnComp.isComplete()
         if completeStatus:
             mfnComp.setComplete(False)
@@ -291,7 +218,7 @@ class Component( general.PyNode ):
     def __apimobject__(self) :
         "get the MObject for this component if it is valid"
         handle = self.__apihandle__()
-        if api.isValidMObjectHandle( handle ) :
+        if _api.isValidMObjectHandle( handle ) :
             return handle.object()
         # Can't use self.name(), as that references this!
         raise general.MayaObjectError( self._completeNameString() )        
@@ -302,7 +229,7 @@ class Component( general.PyNode ):
     def __apihandle__(self) :
         if 'MObjectHandle' not in self.__apiobjects__:
             handle = self._makeComponentHandle()
-            if not handle or not api.isValidMObjectHandle(handle):
+            if not handle or not _api.isValidMObjectHandle(handle):
                 raise general.MayaObjectError( self._completeNameString() )
             self.__apiobjects__['MObjectHandle'] = handle            
         return self.__apiobjects__['MObjectHandle']
@@ -342,27 +269,27 @@ class Component( general.PyNode ):
             except RuntimeError:
                 pass
             else:
-                if not api.isValidMObject(component):
+                if not _api.isValidMObject(component):
                     component = None        
         
         # that didn't work - try checking if we have a valid plugAttr  
         if not component and self.plugAttr():
             try:
-                component = api.toApiObject(self._completeNameString())[1]
+                component = _api.toApiObject(self._completeNameString())[1]
             except:
                 pass
             else:
-                if not api.isValidMObject(component):
+                if not _api.isValidMObject(component):
                     component = None
 
         # component objects we create always start out 'complete'
         mfnComp = self._mfncompclass(component)
         mfnComp.setComplete(True)
 
-        return api.MObjectHandle(component)
+        return _api.MObjectHandle(component)
 
     def __melobject__(self):
-        selList = api.MSelectionList()
+        selList = _api.MSelectionList()
         selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
         strings = []
         selList.getSelectionStrings(0, strings)
@@ -503,7 +430,7 @@ class DimensionedComponent( Component ):
         Returns an MObjectHandle that points to a maya component object with
         the given indices.
         """
-        selList = api.MSelectionList()
+        selList = _api.MSelectionList()
         for index in indices:
             compName = Component._completeNameString(self)
             for dimNum, dimIndex in enumerate(index):
@@ -536,10 +463,10 @@ class DimensionedComponent( Component ):
                 selList.add(compName)
             except RuntimeError:
                 raise general.MayaComponentError(compName)
-        compMobj = api.MObject()
-        dagPath = api.MDagPath()
+        compMobj = _api.MObject()
+        dagPath = _api.MDagPath()
         selList.getDagPath(0, dagPath, compMobj)
-        return api.MObjectHandle(compMobj)
+        return _api.MObjectHandle(compMobj)
 
     VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
 
@@ -881,8 +808,8 @@ class DiscreteComponent( DimensionedComponent ):
 
     @classmethod
     def _pyArrayToMayaArray(cls, pythonArray):
-        mayaArray = api.MIntArray()
-        api.MScriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
+        mayaArray = _api.MIntArray()
+        _api.MScriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
         return mayaArray
     
     def _dimRange(self, partialIndex):
@@ -956,7 +883,7 @@ class DiscreteComponent( DimensionedComponent ):
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(api.SafeApiPtr('int'))
+            dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
             
         for flatIndex in xrange(len(self)):
             mfncomp.getElement(flatIndex, *[x() for x in dimensionIndicePtrs])
@@ -985,7 +912,7 @@ class DiscreteComponent( DimensionedComponent ):
         dimensionIndicePtrs = []
         mfncomp = self.__apicomponent__()
         for i in xrange(self.dimensions):
-            dimensionIndicePtrs.append(api.SafeApiPtr('int'))
+            dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
 
         mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
         curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
@@ -1074,8 +1001,8 @@ class Component2DFloat( ContinuousComponent ):
     dimensions = 2
 
 class Component1D( DiscreteComponent ):
-    _mfncompclass = api.MFnSingleIndexedComponent
-    _apienum__ = api.MFn.kSingleIndexedComponent
+    _mfncompclass = _api.MFnSingleIndexedComponent
+    _apienum__ = _api.MFn.kSingleIndexedComponent
     dimensions = 1
     
     def name(self):
@@ -1110,13 +1037,13 @@ class Component1D( DiscreteComponent ):
             yield compIndex[0]
             
 class Component2D( DiscreteComponent ):
-    _mfncompclass = api.MFnDoubleIndexedComponent
-    _apienum__ = api.MFn.kDoubleIndexedComponent
+    _mfncompclass = _api.MFnDoubleIndexedComponent
+    _apienum__ = _api.MFn.kDoubleIndexedComponent
     dimensions = 2
     
 class Component3D( DiscreteComponent ):
-    _mfncompclass = api.MFnTripleIndexedComponent
-    _apienum__ = api.MFn.kTripleIndexedComponent
+    _mfncompclass = _api.MFnTripleIndexedComponent
+    _apienum__ = _api.MFn.kTripleIndexedComponent
     dimensions = 3
 
 # Mixin class for components which use MIt* objects for some functionality
@@ -1128,7 +1055,7 @@ class MItComponent( Component ):
     MItMeshEdge, etc)
     
     If deriving from this class, you should set __apicls__ to an appropriate
-    MIt* type - ie, for MeshEdge, you would set __apicls__ = api.MItMeshEdge
+    MIt* type - ie, for MeshEdge, you would set __apicls__ = _api.MItMeshEdge
     """
 #
     def __init__(self, *args, **kwargs ):
@@ -1153,19 +1080,19 @@ class MItComponent1D( MItComponent, Component1D ): pass
 
 class Component1D64( DiscreteComponent ):
     if Component._hasUint64:
-        _mfncompclass = api.MFnUint64SingleIndexedComponent
-        _apienum__ = api.MFn.kUint64SingleIndexedComponent
+        _mfncompclass = _api.MFnUint64SingleIndexedComponent
+        _apienum__ = _api.MFn.kUint64SingleIndexedComponent
         
     else:
-        _mfncompclass = api.MFnComponent
-        _apienum__ = api.MFn.kComponent
+        _mfncompclass = _api.MFnComponent
+        _apienum__ = _api.MFn.kComponent
 
-    if Component._hasUint64 and hasattr(api, 'MUint64'):
+    if Component._hasUint64 and hasattr(_api, 'MUint64'):
         # Note that currently the python api has zero support for MUint64's
         # This code is just here because I'm an optimist...
         @classmethod
         def _pyArrayToMayaArray(cls, pythonArray):
-            mayaArray = api.MUint64Array(len(pythonArray))
+            mayaArray = _api.MUint64Array(len(pythonArray))
             for i, value in enumerate(pythonArray):
                 mayaArray.set(value, i)
             return mayaArray
@@ -1245,15 +1172,15 @@ class Component1D64( DiscreteComponent ):
 ## Pivot Components
 
 class Pivot( Component ):
-    _apienum__ = api.MFn.kPivotComponent
+    _apienum__ = _api.MFn.kPivotComponent
     _ComponentLabel__ = ("rotatePivot", "scalePivot") 
     
 ## Mesh Components
 
 class MeshVertex( MItComponent1D ):
-    __apicls__ = api.MItMeshVertex
+    __apicls__ = _api.MItMeshVertex
     _ComponentLabel__ = "vtx"
-    _apienum__ = api.MFn.kMeshVertComponent
+    _apienum__ = _api.MFn.kMeshVertComponent
 
     def _dimLength(self, partialIndex):
         return self.node().numVertices()
@@ -1265,7 +1192,7 @@ class MeshVertex( MItComponent1D ):
         """
         :rtype: `MeshEdge` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
@@ -1273,7 +1200,7 @@ class MeshVertex( MItComponent1D ):
         """
         :rtype: `MeshFace` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
@@ -1281,7 +1208,7 @@ class MeshVertex( MItComponent1D ):
         """
         :rtype: `MeshVertex` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
         return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
  
@@ -1296,16 +1223,16 @@ class MeshVertex( MItComponent1D ):
         if isinstance(component,MeshEdge):
             return self.isConnectedToEdge( component.getIndex() )
         if isinstance(component,MeshVertex):
-            array = api.MIntArray()
+            array = _api.MIntArray()
             self.__apimfn__().getConnectedVertices(array)
             return component.getIndex() in [ array[i] for i in range( array.length() ) ]
 
         raise TypeError, 'type %s is not supported' % type(component)
 
 class MeshEdge( MItComponent1D ):
-    __apicls__ = api.MItMeshEdge
+    __apicls__ = _api.MItMeshEdge
     _ComponentLabel__ = "e"
-    _apienum__ = api.MFn.kMeshEdgeComponent
+    _apienum__ = _api.MFn.kMeshEdgeComponent
     
     def _dimLength(self, partialIndex):
         return self.node().numEdges()
@@ -1315,7 +1242,7 @@ class MeshEdge( MItComponent1D ):
         """
         :rtype: `MeshEdge` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 
@@ -1323,7 +1250,7 @@ class MeshEdge( MItComponent1D ):
         """
         :rtype: `MeshFace` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
 
@@ -1352,9 +1279,9 @@ class MeshEdge( MItComponent1D ):
         raise TypeError, 'type %s is not supported' % type(component)
   
 class MeshFace( MItComponent1D ):
-    __apicls__ = api.MItMeshPolygon
+    __apicls__ = _api.MItMeshPolygon
     _ComponentLabel__ = "f"
-    _apienum__ = api.MFn.kMeshPolygonComponent
+    _apienum__ = _api.MFn.kMeshPolygonComponent
 
     def _dimLength(self, partialIndex):
         return self.node().numFaces()
@@ -1365,7 +1292,7 @@ class MeshFace( MItComponent1D ):
         """
         :rtype: `MeshEdge` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedEdges(array)
         return MeshEdge( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
     
@@ -1373,7 +1300,7 @@ class MeshFace( MItComponent1D ):
         """
         :rtype: `MeshFace` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedFaces(array)
         return MeshFace( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
       
@@ -1381,7 +1308,7 @@ class MeshFace( MItComponent1D ):
         """
         :rtype: `MeshVertex` list
         """
-        array = api.MIntArray()
+        array = _api.MIntArray()
         self.__apimfn__().getConnectedVertices(array)
         return MeshVertex( self, _sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
 
@@ -1400,14 +1327,14 @@ class MeshFace( MItComponent1D ):
 
 class MeshUV( Component1D ):
     _ComponentLabel__ = "map"
-    _apienum__ = api.MFn.kMeshMapComponent
+    _apienum__ = _api.MFn.kMeshMapComponent
 
     def _dimLength(self, partialIndex):
         return self._node.numUVs()
     
 class MeshVertexFace( Component2D ):
     _ComponentLabel__ = "vtxFace"
-    _apienum__ = api.MFn.kMeshVtxFaceComponent
+    _apienum__ = _api.MFn.kMeshVtxFaceComponent
     
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
@@ -1433,16 +1360,16 @@ class MeshVertexFace( Component2D ):
                                  self.__class__.__name__)
     
             # get a MitMeshVertex ...
-            mIt = api.MItMeshVertex(self._node.__apimdagpath__())
+            mIt = _api.MItMeshVertex(self._node.__apimdagpath__())
             
             # Even though we're not using the result stored in the int,
             # STILL need to store a ref to the MScriptUtil - otherwise,
             # there's a chance it gets garbage collected before the
             # api function call is made, and it writes the value into
             # the pointer...
-            intPtr = api.SafeApiPtr('int')
+            intPtr = _api.SafeApiPtr('int')
             mIt.setIndex(partialIndex[0], intPtr())
-            intArray = api.MIntArray()
+            intArray = _api.MIntArray()
             mIt.getConnectedFaces(intArray)
             for i in xrange(intArray.length()):
                 yield partialIndex + (intArray[i],)
@@ -1480,19 +1407,19 @@ class MeshVertexFace( Component2D ):
 
 class SubdVertex( Component1D64 ):
     _ComponentLabel__ = "smp"
-    _apienum__ = api.MFn.kSubdivCVComponent
+    _apienum__ = _api.MFn.kSubdivCVComponent
 
 class SubdEdge( Component1D64 ):
     _ComponentLabel__ = "sme"
-    _apienum__ = api.MFn.kSubdivEdgeComponent
+    _apienum__ = _api.MFn.kSubdivEdgeComponent
     
 class SubdFace( Component1D64 ):
     _ComponentLabel__ = "smf"
-    _apienum__ = api.MFn.kSubdivFaceComponent
+    _apienum__ = _api.MFn.kSubdivFaceComponent
 
 class SubdUV( Component1D ):
     _ComponentLabel__ = "smm"
-    _apienum__ = api.MFn.kSubdivMapComponent
+    _apienum__ = _api.MFn.kSubdivMapComponent
     
     # This implementation failed because
     # it appears that you can have a subd shape
@@ -1542,7 +1469,7 @@ class SubdUV( Component1D ):
 #    subdBase = polyCube()[0]
 #    subdTrans = polyToSubdiv(subdBase)[0]
 #    subd = subdTrans.getShape()
-#    selList = api.MSelectionList()
+#    selList = _api.MSelectionList()
 #    try:
 #        selList.add("%s.smm[0:%d]" % (subd.name(), sys.maxint))
 #    except:
@@ -1600,7 +1527,7 @@ class SubdUV( Component1D ):
     # So, given the inconsistencies here, just going to use
     # 2**31 -1... hopefully nobody needs more uv's than that
     _MAX_INDEX = 2 ** 31 - 1
-    _tempSel = api.MSelectionList()
+    _tempSel = _api.MSelectionList()
     _maxIndexRe = re.compile(r'\[0:([0-9]+)\]$')
     def _dimLength(self, partialIndex):
         # Fall back on good ol' string processing...
@@ -1636,29 +1563,29 @@ class SubdUV( Component1D ):
 
 class NurbsCurveParameter( Component1DFloat ):
     _ComponentLabel__ = "u"
-    _apienum__ = api.MFn.kCurveParamComponent
+    _apienum__ = _api.MFn.kCurveParamComponent
     
     def _dimRange(self, partialIndex):
         return self._node.getKnotDomain()
 
 class NurbsCurveCV( MItComponent1D ):
-    __apicls__ = api.MItCurveCV
+    __apicls__ = _api.MItCurveCV
     _ComponentLabel__ = "cv"
-    _apienum__ = api.MFn.kCurveCVComponent
+    _apienum__ = _api.MFn.kCurveCVComponent
     
     def _dimLength(self, partialIndex):
         return self.node().numCVs()
     
 class NurbsCurveEP( Component1D ):
     _ComponentLabel__ = "ep"
-    _apienum__ = api.MFn.kCurveEPComponent
+    _apienum__ = _api.MFn.kCurveEPComponent
 
     def _dimLength(self, partialIndex):
         return self.node().numEPs()
         
 class NurbsCurveKnot( Component1D ):
     _ComponentLabel__ = "knot"
-    _apienum__ = api.MFn.kCurveKnotComponent
+    _apienum__ = _api.MFn.kCurveKnotComponent
 
     def _dimLength(self, partialIndex):
         return self.node().numKnots()
@@ -1666,7 +1593,7 @@ class NurbsCurveKnot( Component1D ):
 ## NurbsSurface Components
 
 class NurbsSurfaceIsoparm( Component2DFloat ):
-    _apienum__ = api.MFn.kIsoparmComponent
+    _apienum__ = _api.MFn.kIsoparmComponent
     _ComponentLabel__ = ("u", "v", "uv")
     
     def __init__(self, *args, **kwargs):
@@ -1751,7 +1678,7 @@ class NurbsSurfaceIsoparm( Component2DFloat ):
     
 class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
     _ComponentLabel__ = ("u", "v", "uv")
-    _apienum__ = api.MFn.kSurfaceRangeComponent
+    _apienum__ = _api.MFn.kSurfaceRangeComponent
     
     def __getitem__(self, item):
         if self.currentDimension() is None:
@@ -1769,7 +1696,7 @@ class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
 
 class NurbsSurfaceCV( Component2D ):
     _ComponentLabel__ = "cv"
-    _apienum__ = api.MFn.kSurfaceCVComponent
+    _apienum__ = _api.MFn.kSurfaceCVComponent
 
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
@@ -1782,7 +1709,7 @@ class NurbsSurfaceCV( Component2D ):
         
 class NurbsSurfaceEP( Component2D ):
     _ComponentLabel__ = "ep"
-    _apienum__ = api.MFn.kSurfaceEPComponent
+    _apienum__ = _api.MFn.kSurfaceEPComponent
 
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
@@ -1795,7 +1722,7 @@ class NurbsSurfaceEP( Component2D ):
             
 class NurbsSurfaceKnot( Component2D ):
     _ComponentLabel__ = "knot"
-    _apienum__ = api.MFn.kSurfaceKnotComponent
+    _apienum__ = _api.MFn.kSurfaceKnotComponent
 
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
@@ -1808,7 +1735,7 @@ class NurbsSurfaceKnot( Component2D ):
             
 class NurbsSurfaceFace( Component2D ):
     _ComponentLabel__ = "sf"
-    _apienum__ = api.MFn.kSurfaceFaceComponent
+    _apienum__ = _api.MFn.kSurfaceFaceComponent
 
     def _dimLength(self, partialIndex):
         if len(partialIndex) == 0:
@@ -1823,7 +1750,7 @@ class NurbsSurfaceFace( Component2D ):
 
 class LatticePoint( Component3D ):
     _ComponentLabel__ = "pt"
-    _apienum__ = api.MFn.kLatticeComponent
+    _apienum__ = _api.MFn.kLatticeComponent
     
     def _dimLength(self, partialIndex):
         if len(partialIndex) > 2:
@@ -1937,7 +1864,7 @@ class _Component(object):
 
 class AttributeDefaults(general.PyNode):
     __metaclass__ = _factories.MetaMayaTypeWrapper
-    __apicls__ = api.MFnAttribute
+    __apicls__ = _api.MFnAttribute
     
     def __apiobject__(self) :
         "Return the default API object for this attribute, if it is valid"
@@ -1950,7 +1877,7 @@ class AttributeDefaults(general.PyNode):
         except:
             handle = self.__apiobjects__['MPlug'].attribute()
             self.__apiobjects__['MObjectHandle'] = handle
-        if api.isValidMObjectHandle( handle ):
+        if _api.isValidMObjectHandle( handle ):
             return handle.object()
 
         raise general.MayaAttributeError
@@ -1966,1088 +1893,10 @@ class AttributeDefaults(general.PyNode):
         try:
             return self.node().__apimdagpath__()
         except AttributeError: pass
-                 
-class Attribute(general.PyNode):
-    """
-    
-    """
-    
-    #
-    
-    
-    """
-    Attributes
-    ==========
-    
-    The Attribute class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
-    have become familiar with all the many commands for operating on attributes.  This class gathers them all into one
-    place. If you forget or are unsure of the right method name, just ask for help by typing `help(Attribute)`.  
-    
-    For the most part, the names of the class equivalents to the maya.cmds functions follow a fairly simple pattern:
-    `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
-    Here's a simple example showing how the Attribute class is used in context.
-    
-        >>> from pymel.all import *
-        >>> cam = general.PyNode('persp')
-        >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
-        ...     cam.visibility.set( True )
-        ...     cam.visibility.lock()
-        ... 
-        >>> print cam.v.type()      # shortnames also work    
-        bool
-    
-    Accessing Attributes
-    --------------------
-    
-    You can access an attribute class in three ways.  The first two require that you already have a `general.PyNode` object.
-    
-    Shorthand
-    ~~~~~~~~~
-    
-    The shorthand method is the most visually appealing and readable -- you simply access the maya attribute as a normal python attribute --
-    but it has one major drawback: **if the attribute that you wish to acess has the same name as one of the attributes or methods of the 
-    python class then it will fail**. 
-
-        >>> cam  # continue from where we left off above
-        Transform(u'persp')
-        >>> cam.visibility # long name access
-        Attribute(u'persp.visibility')
-        >>> cam.v # short name access
-        Attribute(u'persp.visibility')
-        
-    Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
-    If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`,
-    `Attribute.plugAttr`, or `Attribute.lastPlugAttr`.
-
-    
-    attr Method
-    ~~~~~~~~~~~
-    The attr method is the safest way to access an attribute, and can even be used to access attributes that conflict with 
-    python methods, which would fail using shorthand syntax. This method is passed a string which
-    is the name of the attribute to be accessed. 
-        
-        >>> cam.attr('visibility')
-        Attribute(u'persp.visibility')
-    
-    Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
-        
-        >>> for axis in ['scaleX', 'scaleY', 'scaleZ']: 
-        ...     cam.attr( axis ).lock()          
-    
-    Direct Instantiation
-    ~~~~~~~~~~~~~~~~~~~~
-    The last way of getting an attribute is by directly instantiating the class. You can pass the attribute name as a string, or if you have one handy,
-    pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `general.PyNode`
-    class, which will determine the appropriate class automaticallly.
-    
-    explicitly request an Attribute:
-    
-        >>> Attribute( 'persp.visibility' ) 
-        Attribute(u'persp.visibility')
-        
-    let general.PyNode figure it out for you:
-    
-        >>> general.PyNode( 'persp.translate' ) 
-        Attribute(u'persp.translate')
-    
-
-    Setting Attributes Values
-    -------------------------
-    
-    To set the value of an attribute, you use the `Attribute.set` method.
-    
-        >>> cam.translateX.set(0)
-        
-    to set an attribute that expects a double3, you can use any iterable with 3 elements:
-    
-        >>> cam.translate.set([4,5,6])
-        >>> cam.translate.set(datatypes.Vector([4,5,6]))
-
-    Getting Attribute Values
-    ------------------------
-    To get the value of an attribute, you use the `Attribute.get` method. Keep in mind that, where applicable, the values returned will 
-    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
-    
-        >>> t = cam.translate.get()
-        >>> print t
-        [4.0, 5.0, 6.0]
-        >>> # translation is returned as a vector class
-        >>> print type(t) 
-        <class 'pymel.core.datatypes.Vector'>
-        
-    `set` is flexible in the types that it will accept, but `get` will always return the same type 
-    for a given attribute. This can be a potential source of confusion:
-        
-        >>> value = [4,5,6]
-        >>> cam.translate.set(value)
-        >>> result = cam.translate.get()
-        >>> value == result
-        False
-        >>> # why is this? because result is a Vector and value is a list
-        >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
-        >>> result == datatypes.Vector(value)
-        True
-        >>> result.isEquivalent(value)
-        True
-    
-    Connecting Attributes
-    ---------------------
-    As you might expect, connecting and disconnecting attributes is pretty straightforward.
-                
-        >>> cam.rotateX.connect( cam.rotateY )
-        >>> cam.rotateX.disconnect( cam.rotateY )
-    
-    there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
-
-        >>> c = polyCube(name='testCube')[0]        
-        >>> cam.tx >> c.tx    # connect
-        >>> cam.tx.outputs()
-        [Transform(u'testCube')]
-        >>> cam.tx // c.tx    # disconnect
-        >>> cam.tx.outputs()
-        []
-            
-
-    """
-    __metaclass__ = _factories.MetaMayaTypeWrapper
-    __apicls__ = api.MPlug
-    attrItemReg = re.compile( '\[(\d+)\]$')
-    
-#    def __init__(self, *args, **kwargs ):
-#        self.apicls.__init__(self, self._apiobject )
-    
-    def __apiobject__(self) :
-        "Return the default API object (MPlug) for this attribute, if it is valid"
-        return self.__apimplug__()
-    
-    def __apimobject__(self):
-        "Return the MObject for this attribute, if it is valid"
-        try:
-            handle = self.__apiobjects__['MObjectHandle']
-        except:
-            handle = api.MObjectHandle( self.__apiobjects__['MPlug'].attribute() )
-            self.__apiobjects__['MObjectHandle'] = handle
-        if api.isValidMObjectHandle( handle ):
-            return handle.object()
-
-        raise general.MayaAttributeError
-    
-    def __apimplug__(self) :
-        "Return the MPlug for this attribute, if it is valid"
-        # check validity
-        #self.__apimobject__()
-        return self.__apiobjects__['MPlug']
-
-    def __apimdagpath__(self) :
-        "Return the MDagPath for the node of this attribute, if it is valid"
-        try:
-            return self.node().__apimdagpath__()
-        except AttributeError: pass
-    
-                               
-#    def __init__(self, attrName):
-#        assert isinstance( api.__apiobject__(), api.MPlug )
-        
-#        if '.' not in attrName:
-#            raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
-#        self._name = attrName
-#        # TODO : MObject support
-#        self.__dict__['_multiattrIndex'] = 0
-#        
-
-    __getitem__ = _factories.wrapApiMethod( api.MPlug, 'elementByLogicalIndex', '__getitem__' )
-    #elementByPhysicalIndex = _factories.wrapApiMethod( api.MPlug, 'elementByPhysicalIndex' )
-    
-    def attr(self, attr):
-        """
-        :rtype: `Attribute`
-        """
-        node = self.node()
-        try:
-            plug = self.__apimplug__()
-            # if this plug is an array we can't properly get the child plug
-            if plug.isArray():
-                return node.attr(attr)
-            else:
-                attrObj = node.__apimfn__().attribute(attr)
-                return Attribute( node, plug.child( attrObj ) )
-        except RuntimeError:
-            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
-            raise general.MayaAttributeError( '%s.%s' % (self, attr) )
-    
-    
-    def __getattr__(self, attr):
-        try:
-            return self.attr(attr)
-        except general.MayaAttributeError, e:
-            raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
-    # Added the __call__ so to generate a more appropriate exception when a class method is not found 
-    def __call__(self, *args, **kwargs):
-        raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
-    
-    
-    def __iter__(self):
-        """
-        iterator for multi-attributes
-        
-            >>> from pymel.all import *
-            >>> f=newFile(f=1) #start clean
-            >>> 
-            >>> at = general.PyNode( 'defaultLightSet.dagSetMembers' )
-            >>> SpotLight()
-            SpotLight(u'spotLightShape1')
-            >>> SpotLight()
-            SpotLight(u'spotLightShape2')
-            >>> SpotLight()
-            SpotLight(u'spotLightShape3')
-            >>> for x in at: print x
-            ... 
-            defaultLightSet.dagSetMembers[0]
-            defaultLightSet.dagSetMembers[1]
-            defaultLightSet.dagSetMembers[2]
-        """
-        if self.isMulti():
-            return self
-            #return self[0]
-        else:
-            raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
-            
-    def next(self):
-        """
-        iterator for multi-attributes.  Iterates over the sparse array, so if an idex has not been set
-        or connected, it will be skipped.
-        """
-#        index = self.index()
-#        size = self.size()
-        try:
-            index = self.__dict__['_iterIndex']
-            size, indices = self.__dict__['_iterIndices']
-            
-        except KeyError:
-            #size = self.size()
-            try:
-                size, indices = self._getArrayIndices()
-            except RuntimeError:
-                raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
-            index = 0
-            self.__dict__['_iterIndices'] = size, indices
-
-        if index >= size:
-            self.__dict__.pop('_iterIndex', None)
-            self.__dict__.pop('_iterIndices', None)
-            raise StopIteration
-
-        else:
-            self.__dict__['_iterIndex'] = index+1
-            return self[indices[index]]
-        
-    def __str__(self):
-        """
-        :rtype: `str`
-        """
-        return str(self.name())
-
-    def __unicode__(self):
-        """
-        :rtype: `unicode`
-        """
-        return self.name()
-
-    def __eq__(self, other):
-        """
-        :rtype: `bool`
-        """
-        thisPlug = self.__apimplug__()
-        try:
-            thisIndex = thisPlug.logicalIndex()
-        except RuntimeError:
-            thisIndex = None
-            
-        if not isinstance(other,Attribute):
-            try:
-                other = general.PyNode(other)
-                if not hasattr(other, '__apimplug__'):
-                    return False
-            except (ValueError,TypeError): # could not cast to general.PyNode
-                return False
-            
-        otherPlug = other.__apimplug__()
-        # foo.bar[10] and foo.bar[20] and foo.bar eval to the same object in api.  i don't think this is very intuitive.
-        try:
-            otherIndex = otherPlug.logicalIndex()
-        except RuntimeError:
-            otherIndex = None  
-        return thisPlug == otherPlug and thisIndex == otherIndex
-
-    def __hash__(self):
-        """
-        :rtype: `int`
-        """
-        return (self.plugNode(), self.name(includeNode=False) ).__hash__()
-        
-    def __ne__(self, other):
-        """
-        :rtype: `bool`
-        """
-        return not self.__eq__(other)
-           
-    def name(self, includeNode=True, longName=True, fullAttrPath=False, fullDagPath=False):
-        """ Returns the name of the attribute (plug)
-        
-        :rtype: `unicode`
-        """
-        obj = self.__apimplug__()
-        if obj:
-            name = ''
-            node = self.plugNode()
-            if includeNode:
-                if isinstance(node, DagNode):
-                    name = node.name(fullDagPath)
-                else:
-                    name = node.name()
-                name += '.'
-         
-            
-            return name + obj.partialName(    False, #includeNodeName
-                                              True, #includeNonMandatoryIndices
-                                              True, #includeInstancedIndices
-                                              False, #useAlias
-                                              fullAttrPath, #useFullAttributePath
-                                              longName #useLongNames 
-                                            )
-        raise general.MayaObjectError(self._name)
-    
-    
-#    def attributeName(self):
-#        pass
-#    
-#    def attributeNames(self):
-#        pass
-      
-    
-    def plugNode(self):
-        """plugNode
-        
-        :rtype: `DependNode`
-        """
-        return self._node
-    
-    node = plugNode
-                
-    def plugAttr(self, longName=False, fullPath=False):
-        """
-            >>> from pymel.all import *
-            >>> at = SCENE.persp.t.tx
-            >>> at.plugAttr(longName=False, fullPath=False)
-            u'tx'
-            >>> at.plugAttr(longName=False, fullPath=True)
-            u't.tx'
-            >>> at.plugAttr(longName=True, fullPath=True)
-            u'translate.translateX'
-        
-        :rtype: `unicode`
-        """
-        return self.name(includeNode=False,
-                         longName=longName,
-                         fullAttrPath=fullPath)
-        
-    
-    def lastPlugAttr(self, longName=False):
-        """
-            >>> from pymel.all import *
-            >>> at = SCENE.persp.t.tx
-            >>> at.lastPlugAttr(longName=False)
-            u'tx'
-            >>> at.lastPlugAttr(longName=True)
-            u'translateX'
-        
-        :rtype: `unicode`
-        """
-        return self.name(includeNode=False,
-                         longName=longName,
-                         fullAttrPath=False)
-
-    
-    def longName(self, fullPath=False ):
-        """
-            >>> from pymel.all import *
-            >>> at = SCENE.persp.t.tx
-            >>> at.longName(fullPath=False)
-            u'translateX'
-            >>> at.longName(fullPath=True)
-            u'translate.translateX'
-        
-        :rtype: `unicode`
-        """
-        return self.name(includeNode=False,
-                         longName=True,
-                         fullAttrPath=fullPath)
-        
-    def shortName(self, fullPath=False):
-        """
-            >>> from pymel.all import *
-            >>> at = SCENE.persp.t.tx
-            >>> at.shortName(fullPath=False)
-            u'tx'
-            >>> at.shortName(fullPath=True)
-            u't.tx'
-        
-        :rtype: `unicode`
-        """
-        return self.name(includeNode=False,
-                         longName=False,
-                         fullAttrPath=fullPath)
-        
-    def nodeName( self ):
-        """The node part of this plug as a string
-        
-        :rtype: `unicode`
-        """
-        return self.plugNode().name()
-
-       
-    def array(self):
-        """
-        Returns the array (multi) attribute of the current element:
-        
-            >>> n = Attribute(u'initialShadingGroup.groupNodes[0]')
-            >>> n.isElement()
-            True
-            >>> n.array()
-            Attribute(u'initialShadingGroup.groupNodes')
-
-        This method will raise an error for attributes which are not elements of
-        an array:
-            
-            >>> m = Attribute(u'initialShadingGroup.groupNodes')
-            >>> m.isElement()
-            False
-            >>> m.array()
-            Traceback (most recent call last):
-            ...
-            TypeError: initialShadingGroup.groupNodes is not an array (multi) attribute
-            
-        :rtype: `Attribute`
-        """
-        try:
-            return Attribute( self._node, self.__apimplug__().array() )
-            #att = Attribute(Attribute.attrItemReg.split( self )[0])
-            #if att.isMulti() :
-            #    return att
-            #else :
-            #    raise TypeError, "%s is not a multi attribute" % self
-        except:
-            raise TypeError, "%s is not an array (multi) attribute" % self
-
-
-    # TODO : do not list all children elements by default, allow to do 
-    #        skinCluster1.weightList.elements() for first level elements weightList[x]
-    #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
-
-    def elements(self):
-        """
-        ``listAttr -multi``
-        
-        Return a list of strings representing all the attributes in the array.
-        
-        If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
-        See `Attribute.__iter__`.
-        """
-        
-        return cmds.listAttr(self.array(), multi=True)
-    
-#    def item(self):
-#        try: 
-#            return int(Attribute.attrItemReg.search(self).group(1))
-#        except: return None
-
-    def getArrayIndices(self):
-        """
-        Get all set or connected array indices. Raises an error if this is not an array Attribute
-        
-        :rtype: `int` list
-        """
-        try:
-            return self._getArrayIndices()[1]
-        except RuntimeError:
-            raise TypeError, "%s is not an array (multi) attribute" % self
-    
-    def numElements(self):
-        """
-        The number of elements in an array attribute. Raises an error if this is not an array Attribute
-        
-        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
-        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
-        
-            >>> from pymel.all import *
-            >>> f=newFile(f=1) #start clean
-            >>> 
-            >>> dls = SCENE.defaultLightSet
-            >>> dls.dagSetMembers.numElements()
-            0
-            >>> dls.dagSetMembers.size()
-            0
-            >>> SpotLight() # create a light, which adds to the lightSet
-            SpotLight(u'spotLightShape1')
-            >>> dls.dagSetMembers.numElements()
-            1
-            >>> dls.dagSetMembers.size()  # should be 1
-            0
-            >>> SpotLight() # create another light, which adds to the lightSet
-            SpotLight(u'spotLightShape2')
-            >>> dls.dagSetMembers.numElements()
-            2
-            >>> dls.dagSetMembers.size() # should be 2
-            1
-        
-        :rtype: `int`
-        """
-        
-        try:
-            return self._getArrayIndices()[0]
-        except RuntimeError:
-            raise TypeError, "%s is not an array (multi) attribute" % self
-
-    @_warnings.deprecated('This method does not always produce the expected result. Use Attribute.numElements instead.', 'Attribute')
-    def size(self):
-        """
-        The number of elements in an array attribute. Returns None if not an array element.
-        
-        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
-        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
-        
-            >>> from pymel.all import *
-            >>> f=newFile(f=1) #start clean
-            >>>
-            >>> dls = SCENE.defaultLightSet
-            >>> dls.dagSetMembers.numElements()
-            0
-            >>> dls.dagSetMembers.size()
-            0
-            >>> SpotLight() # create a light, which adds to the lightSet
-            SpotLight(u'spotLightShape1')
-            >>> dls.dagSetMembers.numElements()
-            1
-            >>> dls.dagSetMembers.size()  # should be 1
-            0
-            >>> SpotLight() # create another light, which adds to the lightSet
-            SpotLight(u'spotLightShape2')
-            >>> dls.dagSetMembers.numElements()
-            2
-            >>> dls.dagSetMembers.size() # should be 2
-            1
-            
-        :rtype: `int`
-        """
-        #return cmds.getAttr(self, size=True)    
-        try:
-            return self.__apiobject__().numElements()
-        except RuntimeError:
-            pass
-                
-    item = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'item' )
-    index = _factories.wrapApiMethod( api.MPlug, 'logicalIndex', 'index' )
-    
-    def setEnums(self, enumList):
-        cmds.addAttr( self, e=1, en=":".join(enumList) )
-    
-    def getEnums(self):
-        """
-        :rtype: `unicode` list
-        """
-        return cmds.addAttr( self, q=1, en=1 ).split(':')    
-            
-    # getting and setting                    
-    set = general.setAttr            
-    get = general.getAttr
-    setKey = _factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
-    
-    
-#----------------------
-#xxx{ Connections
-#----------------------    
-          
-    def isConnectedTo(self, other, ignoreUnitConversion=False, checkLocalArray=False, checkOtherArray=False ):
-        """
-        Determine if the attribute is connected to the passed attribute.
-        
-        If checkLocalArray is True and the current attribute is a multi/array, the current attribute's elements will also be tested.
-        
-        If checkOtherArray is True and the passed attribute is a multi/array, the passed attribute's elements will also be tested.
-        
-        If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
-         
-        """
-
-        if cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion):
-            return True
-        
-        if checkLocalArray and self.isMulti():
-            for elem in self:
-                if elem.isConnectedTo(other, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=checkOtherArray):
-                    return True
-                
-        if checkOtherArray:
-            other = Attribute(other)
-            if other.isMulti():
-                for elem in other:
-                    if self.isConnectedTo(elem, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=False):
-                        return True
-
-        
-        return False
-    
-    ## does not work because this method cannot return a value, it is akin to +=       
-    #def __irshift__(self, other):
-    #    """operator for 'isConnected'
-    #        sphere.tx >>= box.tx
-    #    """ 
-    #    return cmds.isConnected(self, other)
-    
-
-    connect = general.connectAttr
-        
-    def __rshift__(self, other):
-        """
-        operator for 'connectAttr'
-        
-            >>> from pymel.all import *
-            >>> SCENE.persp.tx >> SCENE.top.tx  # connect
-            >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
-        """ 
-        return general.connectAttr( self, other, force=True )
-                
-    disconnect = general.disconnectAttr
-    
-    def __floordiv__(self, other):
-        """
-        operator for 'disconnectAttr'
-        
-            >>> from pymel.all import *
-            >>> SCENE.persp.tx >> SCENE.top.tx  # connect
-            >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
-        """ 
-        # no return
-        cmds.disconnectAttr( self, other )
-                
-    def inputs(self, **kwargs):
-        """
-        ``listConnections -source 1 -destination 0``
-        
-        see `Attribute.connections` for the full ist of flags.
-        
-        :rtype: `general.PyNode` list
-        """
-        
-        kwargs['source'] = True
-        kwargs.pop('s', None )
-        kwargs['destination'] = False
-        kwargs.pop('d', None )
-        
-        return general.listConnections(self, **kwargs)
-    
-    def outputs(self, **kwargs):
-        """
-        ``listConnections -source 0 -destination 1``
-        
-        see `Attribute.connections` for the full ist of flags.
-        
-        :rtype: `general.PyNode` list
-        """
-        
-        kwargs['source'] = False
-        kwargs.pop('s', None )
-        kwargs['destination'] = True
-        kwargs.pop('d', None )
-        
-        return general.listConnections(self, **kwargs)
-    
-    def insertInput(self, node, nodeOutAttr, nodeInAttr ):
-        """connect the passed node.outAttr to this attribute and reconnect
-        any pre-existing connection into node.inAttr.  if there is no
-        pre-existing connection, this method works just like connectAttr. 
-        
-        for example, for two nodes with the connection::
-                
-            a.out-->b.in
-            
-        running this command::
-        
-            b.insertInput( 'c', 'out', 'in' )
-            
-        causes the new connection order (assuming 'c' is a node with 'in' and 'out' attributes)::
-                
-            a.out-->c.in
-            c.out-->b.in
-        """
-        inputs = self.inputs(plugs=1)
-        self.connect( node + '.' + nodeOutAttr, force=1 )
-        if inputs:
-            inputs[0].connect( node + '.' + nodeInAttr )
-    
-    @_factories.addMelDocs( 'setKeyframe' )    
-    def setKey(self, **kwargs):
-        kwargs.pop( 'attribute', None )
-        kwargs.pop( 'at', None )
-        return cmds.setKeyframe( self, **kwargs )
-#}
-#----------------------
-#xxx{ Info and Modification
-#----------------------
-    
-#    def alias(self, **kwargs):
-#        """aliasAttr"""
-#        return cmds.aliasAttr( self, **kwargs )    
-                            
-#    def add( self, **kwargs):    
-#        kwargs['longName'] = self.plugAttr()
-#        kwargs.pop('ln', None )
-#        return addAttr( self.node(), **kwargs )    
-                    
-    def delete(self):
-        """deleteAttr"""
-        return cmds.deleteAttr( self )
-    
-    def remove( self, **kwargs):
-        'removeMultiInstance'
-        #kwargs['break'] = True
-        return cmds.removeMultiInstance( self, **kwargs )
-        
-    # Edge, Vertex, CV Methods
-#    def getTranslation( self, **kwargs ):
-#        """xform -translation"""
-#        kwargs['translation'] = True
-#        kwargs['query'] = True
-#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
-        
-    #----------------------
-    # Info Methods
-    #----------------------
-    
-    def isDirty(self, **kwargs):
-        """
-        :rtype: `bool`
-        """
-        return cmds.isDirty(self, **kwargs)
-        
-    def affects( self, **kwargs ):
-        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-            cmds.affects( self.plugAttr(), self.node()  ) )
-
-    def affected( self, **kwargs ):
-        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
-            cmds.affects( self.plugAttr(), self.node(), by=True  ))
-                
-    # getAttr info methods
-    def type(self):
-        """
-        getAttr -type
-        
-        :rtype: `unicode`
-        """
-        return cmds.getAttr(self, type=True)
-    
-   
-    def lock(self):
-        "setAttr -locked 1"
-        return self.setLocked(True)
-        
-    def unlock(self):
-        "setAttr -locked 0"
-        return self.setLocked(False)
-    
-              
-    def isSettable(self):
-        """getAttr -settable
-        
-        :rtype: `bool`
-        """
-        return cmds.getAttr(self, settable=True)
-    
-    # attributeQuery info methods
-    def isHidden(self):
-        """
-        attributeQuery -hidden
-        
-        :rtype: `bool`
-        """
-        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), hidden=True)
-        
-    def isConnectable(self):
-        """
-        attributeQuery -connectable
-        
-        :rtype: `bool`
-        """
-        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)    
-
-    
-    isMulti = _factories.wrapApiMethod( api.MPlug, 'isArray', 'isMulti' )
-
-    
-    def exists(self):
-        """
-        Whether the attribute actually exists.
-        
-        In spirit, similar to 'attributeQuery -exists'...
-        ...however, also handles multi (array) attribute elements, such as plusMinusAverage.input1D[2] 
-        
-        :rtype: `bool`
-        """
-        
-        if self.isElement():
-            arrayExists = self.array().exists()
-            if not arrayExists:
-                return False
-            
-            # If the array exists, now check the array indices...
-            indices = self.array().getArrayIndices()
-            return bool(indices and self.index() in indices)
-        else:
-            try:
-                return bool( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True) ) 
-            except TypeError:
-                return False
-        
-#}
-#-------------------------- 
-#xxx{ Ranges
-#-------------------------- 
-        
-    def getSoftMin(self):
-        """attributeQuery -softMin
-            Returns None if softMin does not exist.
-        
-        :rtype: `float`  
-        """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMinExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMin=True)[0]    
-            
-    def getSoftMax(self):
-        """attributeQuery -softMax
-            Returns None if softMax does not exist.
-            
-        :rtype: `float`      
-        """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMaxExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMax=True)[0]
-    
-    def getMin(self):
-        """attributeQuery -min
-            Returns None if min does not exist.
-        
-        :rtype: `float`  
-        """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), minExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), min=True)[0]
-            
-    def getMax(self):
-        """attributeQuery -max
-            Returns None if max does not exist.
-            
-        :rtype: `float`  
-        """
-        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), maxExists=True):
-            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), max=True)[0]
-    
-    def getSoftRange(self):
-        """attributeQuery -softRange
-            returns a two-element list containing softMin and softMax. if the attribute does not have
-            a softMin or softMax the corresponding element in the list will be set to None.
-         
-        :rtype: [`float`, `float`]     
-        """
-        softRange = []
-        softRange.append( self.getSoftMin() )
-        softRange.append( self.getSoftMax() )
-        return softRange
-    
-            
-    def getRange(self):
-        """attributeQuery -range
-            returns a two-element list containing min and max. if the attribute does not have
-            a softMin or softMax the corresponding element will be set to None.
-        
-        :rtype: `float`      
-        """
-        range = []
-        range.append( self.getMin() )
-        range.append( self.getMax() )
-        return range
-    
-    def setMin(self, newMin):
-        self.setRange(newMin, 'default')
-        
-    def setMax(self, newMax):
-        self.setRange('default', newMax)
-
-    def setSoftMin(self, newMin):
-        self.setSoftRange(newMin, 'default')
-        
-    def setSoftMax(self, newMax):
-        self.setSoftRange('default', newMax)
-                
-    def setRange(self, *args):
-        """provide a min and max value as a two-element tuple or list, or as two arguments to the
-        method. To remove a limit, provide a None value.  for example:
-        
-            >>> from pymel.all import *
-            >>> s = polyCube()[0]
-            >>> s.addAttr( 'new' )
-            >>> s.new.setRange( -2, None ) #sets just the min to -2 and removes the max limit
-            >>> s.new.setMax( 3 ) # sets just the max value and leaves the min at its previous default 
-            >>> s.new.getRange()
-            [-2.0, 3.0]
-            
-        """
-        
-        self._setRange('hard', *args)
-        
-    def setSoftRange(self, *args):
-        self._setRange('soft', *args)    
-        
-    def _setRange(self, limitType, *args):
-        
-        if len(args)==2:
-            newMin = args[0]
-            newMax = args[1]
-        
-        if len(args)==1:
-            try:
-                newMin = args[0][0]
-                newMax = args[0][1]
-            except:    
-                raise TypeError, "Please provide a min and max value as a two-element tuple or list, or as two arguments to the method. To ignore a limit, provide a None value."
-
-                
-        # first find out what connections are going into and out of the object
-        ins = self.inputs(p=1)
-        outs = self.outputs(p=1)
-
-        # get the current value of the attr
-        val = self.get()
-
-        # break the connections if they exist
-        self.disconnect()
-
-        #now tokenize $objectAttr in order to get it's individual parts
-        obj = self.node()
-        attr = self.plugAttr()
-
-        # re-create the attribute with the new min/max
-        kwargs = {}
-        kwargs['at'] = self.type()
-        kwargs['ln'] = attr
-        
-        # MIN
-        # if 'default' is passed a value, we retain the current value
-        if newMin == 'default':
-            currMin = self.getMin()
-            currSoftMin = self.getSoftMin()
-            if currMin is not None:
-                kwargs['min'] = currMin
-            elif currSoftMin is not None:
-                kwargs['smn'] = currSoftMin    
-                
-        elif newMin is not None:
-            if limitType == 'hard':
-                kwargs['min'] = newMin
-            else:
-                kwargs['smn'] = newMin
-                
-        # MAX    
-        # if 'default' is passed a value, we retain the current value
-        if newMax == 'default':
-            currMax = self.getMax()
-            currSoftMax = self.getSoftMin()
-            if currMax is not None:
-                kwargs['max'] = currMax
-            elif currSoftMax is not None:
-                kwargs['smx'] = currSoftMax    
-                
-        elif newMax is not None:
-            if limitType == 'hard':
-                kwargs['max'] = newMax
-            else:
-                kwargs['smx'] = newMax
-        
-        # delete the attribute
-        self.delete()                
-        cmds.addAttr( obj, **kwargs )
-
-        # set the value to be what it used to be
-        self.set(val);
-
-        # remake the connections
-        for conn in ins:
-            conn >> self
-            
-        for conn in outs:
-            self >> outs
-
-
-#    def getChildren(self):
-#        """attributeQuery -listChildren"""
-#        return map( 
-#            lambda x: Attribute( self.node() + '.' + x ), 
-#            _util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
-#                )
-#}
-#-------------------------- 
-#xxx{ Relatives
-#-------------------------- 
-
-    def getChildren(self):
-        """attributeQuery -listChildren
-        
-        :rtype: `Attribute` list  
-        """
-        res = []
-        for i in range(self.numChildren() ):
-            res.append( Attribute( self.node(), self.__apimfn__().child(i) ) )
-        return res
-    children = getChildren
-    
-    def getSiblings(self):
-        """attributeQuery -listSiblings
-        
-        :rtype: `Attribute` list  
-        """
-        try:
-            return self.getParent().getChildren()
-        except:
-            pass
-    siblings = getSiblings
-    
-    def firstParent(self):
-        """
-        Modifications:
-            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
-
-              
-              Negative values will traverse from the top.
-
-              A value of 0 will return the same node.
-              The default value is 1.
-              
-              Since the original command returned None if there is no parent, to sync with this behavior, None will
-              be returned if generations is out of bounds (no IndexError will be thrown). 
-        
-        :rtype: `Attribute`  
-        """
-        try:
-            return Attribute( self.node(), self.__apimfn__().parent() )
-        except:
-            pass
-
-    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
-    parent = getParent
-        
-#}      
 
 
 class DependNode( general.PyNode ):
-    __apicls__ = api.MFnDependencyNode
+    __apicls__ = _api.MFnDependencyNode
     __metaclass__ = _factories.MetaMayaNodeWrapper
     #-------------------------------
     #    Name Info and Manipulation
@@ -3067,7 +1916,12 @@ class DependNode( general.PyNode ):
 
 #    def __init__(self, *args, **kwargs ):
 #        self.apicls.__init__(self, self._apiobject.object() )
-        
+    def __repr__(self):
+        """
+        :rtype: `unicode`
+        """
+        return u"nt.%s(%r)" % (self.__class__.__name__, self.name())
+    
     def _updateName(self) :
         # test validity
         self.__apimobject__()
@@ -3129,7 +1983,7 @@ class DependNode( general.PyNode ):
     def __apimobject__(self) :
         "get the MObject for this node if it is valid"
         handle = self.__apihandle__()
-        if api.isValidMObjectHandle( handle ) :
+        if _api.isValidMObjectHandle( handle ) :
             return handle.object()
         raise general.MayaNodeError( self._name )
         
@@ -3228,7 +2082,7 @@ class DependNode( general.PyNode ):
         except RuntimeError:
             None
 
-    isReadOnly = _factories.wrapApiMethod( api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly' )
+    isReadOnly = _factories.wrapApiMethod( _api.MFnDependencyNode, 'isFromReferencedFile', 'isReadOnly' )
             
     def classification(self):
         'getClassification'
@@ -3327,8 +2181,8 @@ class DependNode( general.PyNode ):
             try:
                 nodeMfn = cls.__apiobjects__['MFn']
             except KeyError:          
-                cls.__apiobjects__['dagMod'] = api.MDagModifier()
-                cls.__apiobjects__['dgMod'] = api.MDGModifier()
+                cls.__apiobjects__['dagMod'] = _api.MDagModifier()
+                cls.__apiobjects__['dgMod'] = _api.MDGModifier()
                 # TODO: make something more reliable than uncapitalize
                 obj = _apicache._makeDgModGhostObject( _util.uncapitalize(cls.__name__), 
                                                                 cls.__apiobjects__['dagMod'], 
@@ -3341,7 +2195,7 @@ class DependNode( general.PyNode ):
             nodeMfn = self.__apimfn__()
         
         # TODO: create a wrapped class for MFnAttribute
-        return api.MFnAttribute( nodeMfn.attribute(attr) )
+        return _api.MFnAttribute( nodeMfn.attribute(attr) )
         
     def attr(self, attr):
         """
@@ -3355,7 +2209,7 @@ class DependNode( general.PyNode ):
             if '.' in attr or '[' in attr:
                 # Compound or Multi Attribute
                 # there are a couple of different ways we can proceed: 
-                # Option 1: back out to api.toApiObject (via general.PyNode)
+                # Option 1: back out to _api.toApiObject (via general.PyNode)
                 # return Attribute( self.__apiobject__(), self.name() + '.' + attr )
             
                 # Option 2: nameparse.
@@ -3365,7 +2219,7 @@ class DependNode( general.PyNode ):
                 result = self.__apiobject__()
                 for token in nameTokens[1:]: # skip the first, bc it's the node, which we already have
                     if isinstance( token, nameparse.MayaName ):
-                        if isinstance( result, api.MPlug ):
+                        if isinstance( result, _api.MPlug ):
                             # you can't get a child plug from a multi/array plug.
                             # if result is currently 'defaultLightList1.lightDataArray' (an array)
                             # and we're trying to get the next plug, 'lightDirection', then we need a dummy index.
@@ -3379,7 +2233,7 @@ class DependNode( general.PyNode ):
 #                                # search children for the attribute to simulate  cam.focalLength --> perspShape.focalLength
 #                                except TypeError:
 #                                    for i in range(fn.childCount()):
-#                                        try: result = api.MFnDagNode( fn.child(i) ).findPlug( unicode(token) )
+#                                        try: result = _api.MFnDagNode( fn.child(i) ).findPlug( unicode(token) )
 #                                        except TypeError: pass
 #                                        else:break
                     if isinstance( token, nameparse.NameIndex ):
@@ -3554,7 +2408,7 @@ class DagNode(Entity):
     """
     """
     
-    __apicls__ = api.MFnDagNode
+    __apicls__ = _api.MFnDagNode
     __metaclass__ = _factories.MetaMayaNodeWrapper
     
 #    def __init__(self, *args, **kwargs ):
@@ -3596,10 +2450,10 @@ class DagNode(Entity):
         
                 
     def _updateName(self, long=False) :
-        #if api.isValidMObjectHandle(self._apiobject) :
+        #if _api.isValidMObjectHandle(self._apiobject) :
             #obj = self._apiobject.object()
-            #dagFn = api.MFnDagNode(obj)
-            #dagPath = api.MDagPath()
+            #dagFn = _api.MFnDagNode(obj)
+            #dagPath = _api.MDagPath()
             #dagFn.getPath(dagPath)
         dag = self.__apimdagpath__()
         if dag:
@@ -3678,11 +2532,11 @@ class DagNode(Entity):
         except KeyError:
             # class was instantiated from an MObject, but we can still retrieve the first MDagPath
             
-            #assert argObj.hasFn( api.MFn.kDagNode ) 
-            dag = api.MDagPath()
+            #assert argObj.hasFn( _api.MFn.kDagNode ) 
+            dag = _api.MDagPath()
             # we can't use self.__apimfn__() becaue the mfn is instantiated from an MDagPath 
             # which we are in the process of finding out
-            mfn = api.MFnDagNode( self.__apimobject__() )
+            mfn = _api.MFnDagNode( self.__apimobject__() )
             mfn.getPath(dag)
             self.__apiobjects__['MDagPath'] = dag
             return dag
@@ -3691,14 +2545,14 @@ class DagNode(Entity):
 #                if dag.fullPathName():
 #                    argObj = dag
 #                else:
-#                    print 'produced valid MDagPath with no name: %s(%s)' % ( argObj.apiTypeStr(), api.MFnDependencyNode(argObj).name() )
+#                    print 'produced valid MDagPath with no name: %s(%s)' % ( argObj.apiTypeStr(), _api.MFnDependencyNode(argObj).name() )
 
     def __apihandle__(self) :
         try:
             handle = self.__apiobjects__['MObjectHandle']
         except:
             try:
-                handle = api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
+                handle = _api.MObjectHandle( self.__apiobjects__['MDagPath'].node() )
             except RuntimeError:
                 raise general.MayaNodeError( self._name )
             self.__apiobjects__['MObjectHandle'] = handle
@@ -3709,7 +2563,7 @@ class DagNode(Entity):
 #            return self._apimfn
 #        elif self.__apicls__:
 #            obj = self._apiobject
-#            if api.isValidMDagPath(obj):
+#            if _api.isValidMDagPath(obj):
 #                try:
 #                    self._apimfn = self.__apicls__(obj)
 #                    return self._apimfn
@@ -3718,12 +2572,12 @@ class DagNode(Entity):
                         
 #    def __init__(self, *args, **kwargs):
 #        if self._apiobject:
-#            if isinstance(self._apiobject, api.MObjectHandle):
-#                dagPath = api.MDagPath()
-#                api.MDagPath.getAPathTo( self._apiobject.object(), dagPath )
+#            if isinstance(self._apiobject, _api.MObjectHandle):
+#                dagPath = _api.MDagPath()
+#                _api.MDagPath.getAPathTo( self._apiobject.object(), dagPath )
 #                self._apiobject = dagPath
 #        
-#            assert api.isValidMDagPath( self._apiobject )
+#            assert _api.isValidMDagPath( self._apiobject )
             
     """
     def __init__(self, *args, **kwargs) :
@@ -3733,21 +2587,21 @@ class DagNode(Entity):
                 comp = args[1]
             if isinstance(arg, DagNode) :
                 self._name = unicode(arg.name())
-                self._apiobject = api.MObjectHandle(arg.object())
-            elif api.isValidMObject(arg) or api.isValidMObjectHandle(arg) :
-                objHandle = api.MObjectHandle(arg)
+                self._apiobject = _api.MObjectHandle(arg.object())
+            elif _api.isValidMObject(arg) or _api.isValidMObjectHandle(arg) :
+                objHandle = _api.MObjectHandle(arg)
                 obj = objHandle.object() 
-                if api.isValidMDagNode(obj) :
+                if _api.isValidMDagNode(obj) :
                     self._apiobject = objHandle
                     self._updateName()
                 else :
                     raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg              
             elif isinstance(arg, basestring) :
-                obj = api.toMObject (arg)
+                obj = _api.toMObject (arg)
                 if obj :
                     # creation for existing object
-                    if api.isValidMDagNode (obj):
-                        self._apiobject = api.MObjectHandle(obj)
+                    if _api.isValidMDagNode (obj):
+                        self._apiobject = _api.MObjectHandle(obj)
                         self._updateName()
                     else :
                         raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg 
@@ -3773,7 +2627,7 @@ class DagNode(Entity):
 #        try:
 #            return self.__apimfn__().hasParent( parent.__apiobject__() )
 #        except AttributeError:
-#            obj = api.toMObject(parent)
+#            obj = _api.toMObject(parent)
 #            if obj:
 #               return self.__apimfn__().hasParent( obj )
 #          
@@ -3781,7 +2635,7 @@ class DagNode(Entity):
 #        try:
 #            return self.__apimfn__().hasChild( child.__apiobject__() )
 #        except AttributeError:
-#            obj = api.toMObject(child)
+#            obj = _api.toMObject(child)
 #            if obj:
 #               return self.__apimfn__().hasChild( obj )
 #    
@@ -3789,7 +2643,7 @@ class DagNode(Entity):
 #        try:
 #            return self.__apimfn__().isParentOf( parent.__apiobject__() )
 #        except AttributeError:
-#            obj = api.toMObject(parent)
+#            obj = _api.toMObject(parent)
 #            if obj:
 #               return self.__apimfn__().isParentOf( obj )
 #    
@@ -3797,7 +2651,7 @@ class DagNode(Entity):
 #        try:
 #            return self.__apimfn__().isChildOf( child.__apiobject__() )
 #        except AttributeError:
-#            obj = api.toMObject(child)
+#            obj = _api.toMObject(child)
 #            if obj:
 #               return self.__apimfn__().isChildOf( obj )
 
@@ -3841,10 +2695,10 @@ class DagNode(Entity):
         [Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
         
         """
-        d = api.MDagPathArray()
+        d = _api.MDagPathArray()
         self.__apimfn__().getAllPaths(d)
         thisDagPath = self.__apimdagpath__()
-        result = [ general.PyNode( api.MDagPath(d[i])) for i in range(d.length()) if includeSelf or not d[i] == thisDagPath ]
+        result = [ general.PyNode( _api.MDagPath(d[i])) for i in range(d.length()) if includeSelf or not d[i] == thisDagPath ]
         
         return result
 
@@ -3876,7 +2730,7 @@ class DagNode(Entity):
     
 #    def getParent(self, **kwargs):
 #        # TODO : print warning regarding removal of kwargs, test speed difference
-#        parent = api.MDagPath( self.__apiobject__() )
+#        parent = _api.MDagPath( self.__apiobject__() )
 #        try:
 #            parent.pop()
 #            return general.PyNode(parent)
@@ -3888,7 +2742,7 @@ class DagNode(Entity):
 #        children = []
 #        thisDag = self.__apiobject__()
 #        for i in range( thisDag.childCount() ):
-#            child = api.MDagPath( thisDag )
+#            child = _api.MDagPath( thisDag )
 #            child.push( thisDag.child(i) )
 #            children.append( general.PyNode(child) )
 #        return children
@@ -3943,7 +2797,7 @@ class DagNode(Entity):
         res = general.PyNode( res )
         return res
         
-    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent2)
+    getAllParents, getParent = general._makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent2)
                      
     def getChildren(self, **kwargs ):
         """
@@ -4362,19 +3216,19 @@ class Transform(DagNode):
 #    def getTranslationOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @_factories.addApiDocs( api.MFnTransform, 'setTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setTranslation' )
     def setTranslation(self, vector, space='object', **kwargs):
         if self._isRelativeArg(kwargs):
             return self.translateBy(vector, space, **kwargs)
         space = self._getSpaceArg(space, kwargs )
         return self._setTranslation(vector, space=space)
     
-    @_factories.addApiDocs( api.MFnTransform, 'getTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'getTranslation' )
     def getTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getTranslation(space=space)
 
-    @_factories.addApiDocs( api.MFnTransform, 'translateBy' )
+    @_factories.addApiDocs( _api.MFnTransform, 'translateBy' )
     def translateBy(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         curr = self._getTranslation(space)
@@ -4383,13 +3237,13 @@ class Transform(DagNode):
         undoItem = _factories.ApiUndoItem(Transform.setTranslation, (self, new, space), (self, curr, space) )
         _factories.apiUndo.append( undoItem )
 
-    @_factories.addApiDocs( api.MFnTransform, 'setScale' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setScale' )
     def setScale(self, scale, **kwargs):
         if self._isRelativeArg(kwargs):
             return self.scaleBy(scale, **kwargs)
         return self._setScale(scale)
     
-    @_factories.addApiDocs( api.MFnTransform, 'scaleBy' )
+    @_factories.addApiDocs( _api.MFnTransform, 'scaleBy' )
     def scaleBy(self, scale, **kwargs):
         curr = self.getScale()
         self._scaleBy(scale)
@@ -4397,13 +3251,13 @@ class Transform(DagNode):
         undoItem = _factories.ApiUndoItem(Transform.setScale, (self, new), (self, curr) )
         _factories.apiUndo.append( undoItem )
 
-    @_factories.addApiDocs( api.MFnTransform, 'setShear' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setShear' )
     def setShear(self, shear, **kwargs):
         if self._isRelativeArg(kwargs):
             return self.shearBy(shear, **kwargs)
         return self._setShear(shear)
     
-    @_factories.addApiDocs( api.MFnTransform, 'shearBy' )
+    @_factories.addApiDocs( _api.MFnTransform, 'shearBy' )
     def shearBy(self, shear, **kwargs):
         curr = self.getShear()
         self._shearBy(shear)
@@ -4416,22 +3270,22 @@ class Transform(DagNode):
 #    def getRotatePivotOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @_factories.addApiDocs( api.MFnTransform, 'setRotatePivot' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setRotatePivot' )
     def setRotatePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setRotatePivot(point, space=space, balance=balance) 
     
-    @_factories.addApiDocs( api.MFnTransform, 'rotatePivot' )
+    @_factories.addApiDocs( _api.MFnTransform, 'rotatePivot' )
     def getRotatePivot(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getRotatePivot(space=space)
 
-    @_factories.addApiDocs( api.MFnTransform, 'setRotatePivotTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setRotatePivotTranslation' )
     def setRotatePivotTranslation(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setRotatePivotTranslation(vector, space=space)
     
-    @_factories.addApiDocs( api.MFnTransform, 'rotatePivotTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'rotatePivotTranslation' )
     def getRotatePivotTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getRotatePivotTranslation(space=space)
@@ -4441,7 +3295,7 @@ class Transform(DagNode):
 #    def getRotationOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @_factories.addApiDocs( api.MFnTransform, 'setRotation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setRotation' )
     def setRotation(self, rotation, space='object', **kwargs):
         # quaternions are the only method that support a space parameter
         if self._isRelativeArg(kwargs):
@@ -4451,18 +3305,18 @@ class Transform(DagNode):
 
         rotation = [ datatypes.Angle( x ).asRadians() for x in rotation ]
 
-        quat = api.MEulerRotation( *rotation ).asQuaternion()
-        api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
+        quat = _api.MEulerRotation( *rotation ).asQuaternion()
+        _api.MFnTransform(self.__apiobject__()).setRotation(quat, datatypes.Spaces.getIndex(space) )
       
-#    @_factories.addApiDocs( api.MFnTransform, 'getRotation' )
+#    @_factories.addApiDocs( _api.MFnTransform, 'getRotation' )
 #    def getRotation(self, space='object', **kwargs):
 #        # quaternions are the only method that support a space parameter
 #        space = self._getSpaceArg(space, kwargs )
-#        quat = api.MQuaternion()
-#        api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
+#        quat = _api.MQuaternion()
+#        _api.MFnTransform(self.__apimfn__()).getRotation(quat, datatypes.Spaces.getIndex(space) )
 #        return datatypes.EulerRotation( quat.asEulerRotation() )
 
-    @_factories.addApiDocs( api.MFnTransform, 'getRotation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'getRotation' )
     def getRotation(self, space='object', **kwargs):
         # quaternions are the only method that support a space parameter
         space = self._getSpaceArg(space, kwargs )
@@ -4472,7 +3326,7 @@ class Transform(DagNode):
         return e
 
     
-    @_factories.addApiDocs( api.MFnTransform, 'rotateBy' )
+    @_factories.addApiDocs( _api.MFnTransform, 'rotateBy' )
     def rotateBy(self, rotation, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         curr = self.getRotation(space)
@@ -4486,22 +3340,22 @@ class Transform(DagNode):
 #    def getScalePivotOld( self, **kwargs ):
 #        return datatypes.Vector( cmds.xform( self, **kwargs ) )
 
-    @_factories.addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setScalePivotTranslation' )
     def setScalePivot(self, point, space='object', balance=True, **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setScalePivotTranslation(point, space=space, balance=balance)
     
-    @_factories.addApiDocs( api.MFnTransform, 'scalePivot' )
+    @_factories.addApiDocs( _api.MFnTransform, 'scalePivot' )
     def getScalePivot(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getScalePivot(space=space)
 
-    @_factories.addApiDocs( api.MFnTransform, 'setScalePivotTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'setScalePivotTranslation' )
     def setScalePivotTranslation(self, vector, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._setScalePivotTranslation(vector, space=space)
           
-    @_factories.addApiDocs( api.MFnTransform, 'scalePivotTranslation' )
+    @_factories.addApiDocs( _api.MFnTransform, 'scalePivotTranslation' )
     def getScalePivotTranslation(self, space='object', **kwargs):
         space = self._getSpaceArg(space, kwargs )
         return self._getScalePivotTranslation(space=space)
@@ -4523,7 +3377,7 @@ class Transform(DagNode):
     def getMatrix( self, **kwargs ): 
         return datatypes.Matrix( cmds.xform( self, **kwargs ) )
       
-    #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with api.
+    #TODO: create API equivalent of `xform -boundingBoxInvisible` so we can replace this with _api.
     def getBoundingBox(self, invisible=False, space='object'):
         """xform -boundingBox and xform -boundingBoxInvisible
         
@@ -5122,24 +3976,24 @@ class Mesh(SurfaceShape):
     worldArea = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'worldArea' )
     
     if versions.current() >= versions.v2009:
-        @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
+        @_factories.addApiDocs( _api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName( self.instanceNumber() )
         
-        @_factories.addApiDocs( api.MFnMesh, 'currentColorSetName' )
+        @_factories.addApiDocs( _api.MFnMesh, 'currentColorSetName' )
         def getCurrentColorSetName(self):
             return self.__apimfn__().currentColorSetName( self.instanceNumber() )
         
     else:
-        @_factories.addApiDocs( api.MFnMesh, 'currentUVSetName' )  
+        @_factories.addApiDocs( _api.MFnMesh, 'currentUVSetName' )  
         def getCurrentUVSetName(self):
             return self.__apimfn__().currentUVSetName()
     
-        @_factories.addApiDocs( api.MFnMesh, 'currentColorSetName' )
+        @_factories.addApiDocs( _api.MFnMesh, 'currentColorSetName' )
         def getCurrentColorSetName(self):
             return self.__apimfn__().currentColorSetName()
         
-    @_factories.addApiDocs( api.MFnMesh, 'numColors' )
+    @_factories.addApiDocs( _api.MFnMesh, 'numColors' )
     def numColors(self, colorSet=None):
         args = []
         if colorSet:
@@ -5205,24 +4059,24 @@ class Particle(DeformableShape):
         return cmds.particle( self, q=1,count=1)
     num = pointCount
 
-class SelectionSet( api.MSelectionList):
-    apicls = api.MSelectionList
+class SelectionSet( _api.MSelectionList):
+    apicls = _api.MSelectionList
     __metaclass__ = _factories.MetaMayaTypeWrapper
 
     def __init__(self, objs):
         """ can be initialized from a list of objects, another SelectionSet, an MSelectionList, or an ObjectSet"""
-        if isinstance(objs, api.MSelectionList ):
-            api.MSelectionList.__init__(self, objs)
+        if isinstance(objs, _api.MSelectionList ):
+            _api.MSelectionList.__init__(self, objs)
             
         elif isinstance(objs, ObjectSet ):
-            api.MSelectionList.__init__(self, objs.asSelectionSet() )
+            _api.MSelectionList.__init__(self, objs.asSelectionSet() )
             
         else:
-            api.MSelectionList.__init__(self)
+            _api.MSelectionList.__init__(self)
             for obj in objs:
                 if isinstance(obj, (DependNode, DagNode) ):
                     self.apicls.add( self, obj.__apiobject__() )
-                elif isinstance(obj, Attribute):
+                elif isinstance(obj, general.Attribute):
                     self.apicls.add( self, obj.__apiobject__(), True )
     #            elif isinstance(obj, Component):
     #                sel.add( obj.__apiobject__(), True )
@@ -5249,7 +4103,7 @@ class SelectionSet( api.MSelectionList):
     
     def __contains__(self, item):
         """:rtype: `bool` """
-        if isinstance(item, (DependNode, DagNode, Attribute) ):
+        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
             return self.apicls.hasItem(self, item.__apiobject__())
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
@@ -5268,10 +4122,10 @@ class SelectionSet( api.MSelectionList):
         if index >= len(self):
             raise IndexError, "index out of range"
         
-        plug = api.MPlug()
-        obj = api.MObject()
-        dag = api.MDagPath()
-        comp = api.MObject()
+        plug = _api.MPlug()
+        obj = _api.MObject()
+        dag = _api.MDagPath()
+        comp = _api.MObject()
         
         # Go from most specific to least - plug, dagPath, dependNode
         try:
@@ -5296,7 +4150,7 @@ class SelectionSet( api.MSelectionList):
                 
     def __setitem__(self, index, item):
         
-        if isinstance(item, (DependNode, DagNode, Attribute) ):
+        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
             return self.apicls.replace(self, index, item.__apiobject__())
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
@@ -5345,7 +4199,7 @@ class SelectionSet( api.MSelectionList):
      
     def add(self, item):
         
-        if isinstance(item, (DependNode, DagNode, Attribute) ):
+        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
             return self.apicls.add(self, item.__apiobject__())
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
@@ -5391,9 +4245,9 @@ class SelectionSet( api.MSelectionList):
         return newSet
     
     def difference(self, other):
-        if not isinstance( other, api.MSelectionList ):
+        if not isinstance( other, _api.MSelectionList ):
             other = SelectionSet( other )
-        self.apicls.merge( self, other, api.MSelectionList.kRemoveFromList )
+        self.apicls.merge( self, other, _api.MSelectionList.kRemoveFromList )
     
     def getUnion(self, other):
         """:rtype: `SelectionSet`"""
@@ -5402,9 +4256,9 @@ class SelectionSet( api.MSelectionList):
         return newSet
     
     def union(self, other):
-        if not isinstance( other, api.MSelectionList ):
+        if not isinstance( other, _api.MSelectionList ):
             other = SelectionSet( other )
-        self.apicls.merge( self, other, api.MSelectionList.kMergeNormal )
+        self.apicls.merge( self, other, _api.MSelectionList.kMergeNormal )
         
         
     def getSymmetricDifference(self, other):
@@ -5419,15 +4273,15 @@ class SelectionSet( api.MSelectionList):
         return newSet
     
     def symmetricDifference(self, other):
-        if not isinstance( other, api.MSelectionList ):
+        if not isinstance( other, _api.MSelectionList ):
             other = SelectionSet( other )
         # FIXME: does kXOR exist?  completion says only kXORWithList exists
-        self.apicls.merge( self, other, api.MSelectionList.kXOR )
+        self.apicls.merge( self, other, _api.MSelectionList.kXOR )
 
     def asObjectSet(self):
         return general.sets( self )
 #    def intersect(self, other):
-#        self.apicls.merge( other, api.MSelectionList.kXORWithList )
+#        self.apicls.merge( other, _api.MSelectionList.kXORWithList )
     
 
        
@@ -5534,7 +4388,7 @@ class ObjectSet(Entity):
                     
     def __contains__(self, item):
         """:rtype: `bool` """
-        if isinstance(item, (DependNode, DagNode, Attribute) ):
+        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
             return self.__apimfn__().isMember(item.__apiobject__())
         elif isinstance(item, Component):
             raise NotImplementedError, 'Components not yet supported'
@@ -5683,7 +4537,7 @@ class ObjectSet(Entity):
     
 
     def add(self, item):
-        if isinstance(item, (DependNode, DagNode, Attribute) ):
+        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
             return self.__apimfn__().addMember(item.__apiobject__())
         elif isinstance(item, Component):
             raise NotImplementedError
@@ -5691,7 +4545,7 @@ class ObjectSet(Entity):
             return self.__apimfn__().addMember(general.PyNode(item).__apiobject__())
 
     def remove(self, item):
-        if isinstance(item, (DependNode, DagNode, Attribute) ):
+        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
             return self.__apimfn__().removeMember(item.__apiobject__())
         elif isinstance(item, Component):
             raise NotImplementedError
@@ -5772,14 +4626,14 @@ class AnimCurve(DependNode):
 
     def addKeys(self,time,values,tangentInType='linear',tangentOutType='linear',unit=None):
         if not unit:
-            unit = api.MTime.uiUnit()
-        times = api.MTimeArray()
-        for frame in time: times.append(api.MTime(frame,unit))
-        keys = api.MDoubleArray()
+            unit = _api.MTime.uiUnit()
+        times = _api.MTimeArray()
+        for frame in time: times.append(_api.MTime(frame,unit))
+        keys = _api.MDoubleArray()
         for value in values: keys.append(value)
         return self.__apimfn__().addKeys( times, keys,
-                                          api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
-                                          api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
+                                          _api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentInType.capitalize()),
+                                          _api.apiClassInfo['MFnAnimCurve']['enums']['TangentType']['values'].getIndex('kTangent'+tangentOutType.capitalize()))
 
 class GeometryFilter(DependNode): pass
 class SkinCluster(GeometryFilter):
@@ -5796,7 +4650,7 @@ class SkinCluster(GeometryFilter):
                 raise TypeError, "%s is a transform with no shape" % geometry
               
         if isinstance(geometry, GeometryShape):
-            components = api.toComponentMObject( geometry.__apimdagpath__() )
+            components = _api.toComponentMObject( geometry.__apimdagpath__() )
         elif isinstance(geometry, Component):
             components = geometry.__apiobject__()
             
@@ -5804,12 +4658,12 @@ class SkinCluster(GeometryFilter):
             raise TypeError
         
         if influenceIndex is not None:
-            weights = api.MDoubleArray()
+            weights = _api.MDoubleArray()
             self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, influenceIndex, weights )
             return iter(weights)
         else:
-            weights = api.MDoubleArray()
-            index = api.SafeApiPtr('uint')
+            weights = _api.MDoubleArray()
+            index = _api.SafeApiPtr('uint')
             self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, weights, index() )
             index = index.get()
             args = [iter(weights)] * index
@@ -5826,32 +4680,32 @@ class SkinCluster(GeometryFilter):
                 raise TypeError, "%s is a transform with no shape" % geometry
              
         if isinstance(geometry, GeometryShape):
-            components = api.toComponentMObject( geometry.__apimdagpath__() )
+            components = _api.toComponentMObject( geometry.__apimdagpath__() )
         elif isinstance(geometry, Component):
             components = geometry.__apiobject__()
            
         else:
             raise TypeError
        
-        if not isinstance(influnces,api.MIntArray):
-            api_influnces = api.MIntArray()
+        if not isinstance(influnces,_api.MIntArray):
+            api_influnces = _api.MIntArray()
             for influnce in influnces:
                 api_influnces.append(influnce)
             influnces = api_influnces
             
-        if not isinstance(weights,api.MDoubleArray):
-            api_weights = api.MDoubleArray()
+        if not isinstance(weights,_api.MDoubleArray):
+            api_weights = _api.MDoubleArray()
             for weight in weights:
                 api_weights.append(weight)
             weights = api_weights
 
-        old_weights = api.MDoubleArray()
-        su = api.MScriptUtil()
+        old_weights = _api.MDoubleArray()
+        su = _api.MScriptUtil()
         index = su.asUintPtr()
         self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, old_weights, index )
         return self.__apimfn__().setWeights( geometry.__apimdagpath__(), components, influnces, weights, normalize, old_weights )
         
-    @_factories.addApiDocs( api.MFnSkinCluster, 'influenceObjects' )        
+    @_factories.addApiDocs( _api.MFnSkinCluster, 'influenceObjects' )        
     def influenceObjects(self):
         return self._influenceObjects()[1]
     
@@ -5894,7 +4748,7 @@ _createPyNodes()
 
 dynModule = sys.modules[__name__]
 #def listToMSelection( objs ):
-#    sel = api.MSelectionList()
+#    sel = _api.MSelectionList()
 #    for obj in objs:
 #        if isinstance(obj, DependNode):
 #            sel.add( obj.__apiobject__() )

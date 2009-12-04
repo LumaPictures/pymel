@@ -58,12 +58,12 @@ def _getPymelTypeFromObject(obj, name):
             return pymelType
 
 def _getPymelType(arg, name) :
-    """ Get the correct Pymel Type for an object that can be a MObject, general.PyNode or name of an existing Maya object,
+    """ Get the correct Pymel Type for an object that can be a MObject, PyNode or name of an existing Maya object,
         if no correct type is found returns DependNode by default.
         
         If the name of an existing object is passed, the name and MObject will be returned
         If a valid MObject is passed, the name will be returned as None
-        If a general.PyNode instance is passed, its name and MObject will be returned
+        If a PyNode instance is passed, its name and MObject will be returned
         """
 
     obj = None
@@ -91,13 +91,12 @@ def _getPymelType(arg, name) :
         obj = arg
         results['MPlug'] = obj
         if _api.isValidMPlug(arg):
-            import nodetypes
-            pymelType = nodetypes.Attribute
+            pymelType = Attribute
         else :
             raise MayaAttributeError, "Unable to determine Pymel type: the passed MPlug is not valid" 
 
 #    #---------------------------------
-#    # No Api Object : Virtual general.PyNode 
+#    # No Api Object : Virtual PyNode 
 #    #---------------------------------   
 #    elif objName :
 #        # non existing node
@@ -307,8 +306,7 @@ Modifications:
     # perhaps it errored because it's a mixed compound, or a multi attribute
     except RuntimeError, e:
         try:
-            import nodetypes
-            attr = nodetypes.Attribute(attr)
+            attr = Attribute(attr)
             # mixed compound takes precedence, because by default, compound attributes are returned by getAttr, but
             # mixed compounds cannot be expressed in a mel array.
             if attr.isCompound():
@@ -861,7 +859,7 @@ def nodeType( node, **kwargs ):
     if isinstance(node, nodetypes.DependNode) :
         pass
         #obj = node.__apimobject__()
-    elif isinstance(node, nodetypes.Attribute) :
+    elif isinstance(node, Attribute) :
         node = node.plugNode()
 #    elif isinstance(node, _api.MObject) :
 #        # TODO : convert MObject attributes to DependNode
@@ -1338,7 +1336,7 @@ class PyNode(util.ProxyUnicode):
                 
                 # the order of the following 3 checks is important, as it is in increasing generality
                 
-                if isinstance( argObj, nodetypes.Attribute ):
+                if isinstance( argObj, Attribute ):
                     attrNode = argObj._node
                     argObj = argObj.__apiobjects__['MPlug']
                 elif isinstance( argObj, nodetypes.Component ):
@@ -1776,6 +1774,1122 @@ _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 #_factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn )
 #_factories.ApiTypeRegister.register('MDagPath', DagNode, inCast=_MDagPathIn )
 #_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
+
+
+def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
+    """
+    Generator function which makes 2 new 'parent' functions, given a baseParentFunc.
+    
+    The first function returns an array of all parents, starting from the parent immediately above, going up.
+    The second returns baseParentFunc, but adds an optional keyword arg, generations, used to control
+    the number of levels up to find the parent.
+
+    It is assumed that the first arg to baseParentFunc is the object whose parent we wish to find.
+    
+    The optional 'generations' keyword arg will be added as though it were the very FIRST
+    optional keyword arg given - ie, if we have:
+    
+    def baseParentFunc(mandatory1, mandatory2, optional1=None, optional2="foo", *args, **kwargs)
+    
+    then the function returned will be like a function declared like:
+    
+    parentFuncWithGenerations(mandatory1, mandatory2, generations=1, optional1=None, optional2="foo", *args, **kwargs)
+    """
+    namedArgs, varargs, varkwargs, defaults = inspect.getargspec(baseParentFunc)
+    if defaults is None:
+        mandatoryArgs = namedArgs
+        defaultArgs = {}
+    else:
+        mandatoryArgs = namedArgs[:-len(defaults)]
+        defaultArgs = dict(zip(namedArgs[-len(defaults):], defaults)) 
+    
+    def getAllParents(*args, **kwargs):
+        """Return a list of all parents above this.
+        
+        Starts from the parent immediately above, going up."""
+        
+        x = baseParentFunc(*args, **kwargs)
+        res = []
+        while x:
+            res.append(x)
+            x = baseParentFunc(x, *args[1:], **kwargs)
+        return res
+    
+    def parentFuncWithGenerations(*args, **kwargs):
+        if 'generations' in kwargs:
+            generations = kwargs.pop('generations')
+        elif len(args) > len(mandatoryArgs):
+            args = list(args)
+            generations = args.pop(len(mandatoryArgs))
+        else:
+            generations = 1
+
+        if generations == 0:
+            return args[0]
+        elif generations >= 1:
+            firstParent = baseParentFunc(*args, **kwargs)
+            
+            if generations == 1 or firstParent is None:
+                return firstParent
+            else:
+                kwargs['generations'] = generations - 1
+                return parentFuncWithGenerations(firstParent, *args[1:], **kwargs)
+        elif generations < 0:
+            allParents = getAllParents(*args, **kwargs)
+            
+            if -generations > (len(allParents) + 1):
+                return None
+            # Assures we can return self
+            elif -generations == (len(allParents) + 1):
+                return args[0]
+            else:
+                return allParents[generations]
+                        
+    parentFuncWithGenerations.__doc__ = baseParentFunc.__doc__
+    
+    return getAllParents, parentFuncWithGenerations
+              
+class Attribute(PyNode):
+    """
+    
+    """
+    
+    #
+    
+    
+    """
+    Attributes
+    ==========
+    
+    The Attribute class is your one-stop shop for all attribute related functions. Those of us who have spent time using MEL
+    have become familiar with all the many commands for operating on attributes.  This class gathers them all into one
+    place. If you forget or are unsure of the right method name, just ask for help by typing `help(Attribute)`.  
+    
+    For the most part, the names of the class equivalents to the maya.cmds functions follow a fairly simple pattern:
+    `setAttr` becomes `Attribute.set`, `getAttr` becomes `Attribute.get`, `connectAttr` becomes `Attribute.connect` and so on.  
+    Here's a simple example showing how the Attribute class is used in context.
+    
+        >>> from pymel.all import *
+        >>> cam = PyNode('persp')
+        >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
+        ...     cam.visibility.set( True )
+        ...     cam.visibility.lock()
+        ... 
+        >>> print cam.v.type()      # shortnames also work    
+        bool
+    
+    Accessing Attributes
+    --------------------
+    
+    You can access an attribute class in three ways.  The first two require that you already have a `PyNode` object.
+    
+    Shorthand
+    ~~~~~~~~~
+    
+    The shorthand method is the most visually appealing and readable -- you simply access the maya attribute as a normal python attribute --
+    but it has one major drawback: **if the attribute that you wish to acess has the same name as one of the attributes or methods of the 
+    python class then it will fail**. 
+
+        >>> cam  # continue from where we left off above
+        Transform(u'persp')
+        >>> cam.visibility # long name access
+        Attribute(u'persp.visibility')
+        >>> cam.v # short name access
+        Attribute(u'persp.visibility')
+        
+    Keep in mind, that regardless of whether you use the long or short name of the attribute, you are accessing the same underlying API object.
+    If you need the attribute formatted as a string in a particular way, use `Attribute.name`, `Attribute.longName`, `Attribute.shortName`,
+    `Attribute.plugAttr`, or `Attribute.lastPlugAttr`.
+
+    
+    attr Method
+    ~~~~~~~~~~~
+    The attr method is the safest way to access an attribute, and can even be used to access attributes that conflict with 
+    python methods, which would fail using shorthand syntax. This method is passed a string which
+    is the name of the attribute to be accessed. 
+        
+        >>> cam.attr('visibility')
+        Attribute(u'persp.visibility')
+    
+    Unlike the shorthand syntax, this method is capable of being passed attributes which are passed in as variables:        
+        
+        >>> for axis in ['scaleX', 'scaleY', 'scaleZ']: 
+        ...     cam.attr( axis ).lock()          
+    
+    Direct Instantiation
+    ~~~~~~~~~~~~~~~~~~~~
+    The last way of getting an attribute is by directly instantiating the class. You can pass the attribute name as a string, or if you have one handy,
+    pass in an api MPlug object.  If you don't know whether the string name represents a node or an attribute, you can always instantiate via the `PyNode`
+    class, which will determine the appropriate class automaticallly.
+    
+    explicitly request an Attribute:
+    
+        >>> Attribute( 'persp.visibility' ) 
+        Attribute(u'persp.visibility')
+        
+    let PyNode figure it out for you:
+    
+        >>> PyNode( 'persp.translate' ) 
+        Attribute(u'persp.translate')
+    
+
+    Setting Attributes Values
+    -------------------------
+    
+    To set the value of an attribute, you use the `Attribute.set` method.
+    
+        >>> cam.translateX.set(0)
+        
+    to set an attribute that expects a double3, you can use any iterable with 3 elements:
+    
+        >>> cam.translate.set([4,5,6])
+        >>> cam.translate.set(datatypes.Vector([4,5,6]))
+
+    Getting Attribute Values
+    ------------------------
+    To get the value of an attribute, you use the `Attribute.get` method. Keep in mind that, where applicable, the values returned will 
+    be cast to pymel classes. This example shows that rotation (along with translation and scale) will be returned as a `Vector`.
+    
+        >>> t = cam.translate.get()
+        >>> print t
+        [4.0, 5.0, 6.0]
+        >>> # translation is returned as a vector class
+        >>> print type(t) 
+        <class 'pymel.core.datatypes.Vector'>
+        
+    `set` is flexible in the types that it will accept, but `get` will always return the same type 
+    for a given attribute. This can be a potential source of confusion:
+        
+        >>> value = [4,5,6]
+        >>> cam.translate.set(value)
+        >>> result = cam.translate.get()
+        >>> value == result
+        False
+        >>> # why is this? because result is a Vector and value is a list
+        >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
+        >>> result == datatypes.Vector(value)
+        True
+        >>> result.isEquivalent(value)
+        True
+    
+    Connecting Attributes
+    ---------------------
+    As you might expect, connecting and disconnecting attributes is pretty straightforward.
+                
+        >>> cam.rotateX.connect( cam.rotateY )
+        >>> cam.rotateX.disconnect( cam.rotateY )
+    
+    there are also handy operators for connection (`Attribute.__rshift__`) and disconnection (`Attribute.__floordiv__`)
+
+        >>> c = polyCube(name='testCube')[0]        
+        >>> cam.tx >> c.tx    # connect
+        >>> cam.tx.outputs()
+        [Transform(u'testCube')]
+        >>> cam.tx // c.tx    # disconnect
+        >>> cam.tx.outputs()
+        []
+            
+
+    """
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __apicls__ = _api.MPlug
+    attrItemReg = re.compile( '\[(\d+)\]$')
+    
+#    def __init__(self, *args, **kwargs ):
+#        self.apicls.__init__(self, self._apiobject )
+    
+    def __apiobject__(self) :
+        "Return the default API object (MPlug) for this attribute, if it is valid"
+        return self.__apimplug__()
+    
+    def __apimobject__(self):
+        "Return the MObject for this attribute, if it is valid"
+        try:
+            handle = self.__apiobjects__['MObjectHandle']
+        except:
+            handle = _api.MObjectHandle( self.__apiobjects__['MPlug'].attribute() )
+            self.__apiobjects__['MObjectHandle'] = handle
+        if _api.isValidMObjectHandle( handle ):
+            return handle.object()
+
+        raise MayaAttributeError
+    
+    def __apimplug__(self) :
+        "Return the MPlug for this attribute, if it is valid"
+        # check validity
+        #self.__apimobject__()
+        return self.__apiobjects__['MPlug']
+
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this attribute, if it is valid"
+        try:
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+    
+                               
+#    def __init__(self, attrName):
+#        assert isinstance( _api.__apiobject__(), _api.MPlug )
+        
+#        if '.' not in attrName:
+#            raise TypeError, "%s: Attributes must include the node and the attribute. e.g. 'nodeName.attributeName' " % self
+#        self._name = attrName
+#        # TODO : MObject support
+#        self.__dict__['_multiattrIndex'] = 0
+#        
+
+    __getitem__ = _factories.wrapApiMethod( _api.MPlug, 'elementByLogicalIndex', '__getitem__' )
+    #elementByPhysicalIndex = _factories.wrapApiMethod( _api.MPlug, 'elementByPhysicalIndex' )
+    
+    def attr(self, attr):
+        """
+        :rtype: `Attribute`
+        """
+        node = self.node()
+        try:
+            plug = self.__apimplug__()
+            # if this plug is an array we can't properly get the child plug
+            if plug.isArray():
+                return node.attr(attr)
+            else:
+                attrObj = node.__apimfn__().attribute(attr)
+                return Attribute( node, plug.child( attrObj ) )
+        except RuntimeError:
+            # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
+            raise MayaAttributeError( '%s.%s' % (self, attr) )
+    
+    
+    def __getattr__(self, attr):
+        try:
+            return self.attr(attr)
+        except MayaAttributeError, e:
+            raise AttributeError,"%r has no attribute or method named '%s'" % (self, attr)
+    # Added the __call__ so to generate a more appropriate exception when a class method is not found 
+    def __call__(self, *args, **kwargs):
+        raise TypeError("The object <%s> does not support the '%s' method" % (repr(self.node()), self.plugAttr()))
+    
+    
+    def __iter__(self):
+        """
+        iterator for multi-attributes
+        
+            >>> from pymel.all import *
+            >>> f=newFile(f=1) #start clean
+            >>> 
+            >>> at = PyNode( 'defaultLightSet.dagSetMembers' )
+            >>> SpotLight()
+            SpotLight(u'spotLightShape1')
+            >>> SpotLight()
+            SpotLight(u'spotLightShape2')
+            >>> SpotLight()
+            SpotLight(u'spotLightShape3')
+            >>> for x in at: print x
+            ... 
+            defaultLightSet.dagSetMembers[0]
+            defaultLightSet.dagSetMembers[1]
+            defaultLightSet.dagSetMembers[2]
+        """
+        if self.isMulti():
+            return self
+            #return self[0]
+        else:
+            raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
+            
+    def next(self):
+        """
+        iterator for multi-attributes.  Iterates over the sparse array, so if an idex has not been set
+        or connected, it will be skipped.
+        """
+#        index = self.index()
+#        size = self.size()
+        try:
+            index = self.__dict__['_iterIndex']
+            size, indices = self.__dict__['_iterIndices']
+            
+        except KeyError:
+            #size = self.size()
+            try:
+                size, indices = self._getArrayIndices()
+            except RuntimeError:
+                raise TypeError, "%s is not a multi-attribute and cannot be iterated over" % self
+            index = 0
+            self.__dict__['_iterIndices'] = size, indices
+
+        if index >= size:
+            self.__dict__.pop('_iterIndex', None)
+            self.__dict__.pop('_iterIndices', None)
+            raise StopIteration
+
+        else:
+            self.__dict__['_iterIndex'] = index+1
+            return self[indices[index]]
+        
+    def __str__(self):
+        """
+        :rtype: `str`
+        """
+        return str(self.name())
+
+    def __unicode__(self):
+        """
+        :rtype: `unicode`
+        """
+        return self.name()
+
+    def __eq__(self, other):
+        """
+        :rtype: `bool`
+        """
+        thisPlug = self.__apimplug__()
+        try:
+            thisIndex = thisPlug.logicalIndex()
+        except RuntimeError:
+            thisIndex = None
+            
+        if not isinstance(other,Attribute):
+            try:
+                other = PyNode(other)
+                if not hasattr(other, '__apimplug__'):
+                    return False
+            except (ValueError,TypeError): # could not cast to PyNode
+                return False
+            
+        otherPlug = other.__apimplug__()
+        # foo.bar[10] and foo.bar[20] and foo.bar eval to the same object in _api.  i don't think this is very intuitive.
+        try:
+            otherIndex = otherPlug.logicalIndex()
+        except RuntimeError:
+            otherIndex = None  
+        return thisPlug == otherPlug and thisIndex == otherIndex
+
+    def __hash__(self):
+        """
+        :rtype: `int`
+        """
+        return (self.plugNode(), self.name(includeNode=False) ).__hash__()
+        
+    def __ne__(self, other):
+        """
+        :rtype: `bool`
+        """
+        return not self.__eq__(other)
+           
+    def name(self, includeNode=True, longName=True, fullAttrPath=False, fullDagPath=False):
+        """ Returns the name of the attribute (plug)
+        
+        :rtype: `unicode`
+        """
+        obj = self.__apimplug__()
+        if obj:
+            name = ''
+            node = self.plugNode()
+            if includeNode:
+                import nodetypes
+                if isinstance(node, nodetypes.DagNode):
+                    name = node.name(fullDagPath)
+                else:
+                    name = node.name()
+                name += '.'
+         
+            
+            return name + obj.partialName(    False, #includeNodeName
+                                              True, #includeNonMandatoryIndices
+                                              True, #includeInstancedIndices
+                                              False, #useAlias
+                                              fullAttrPath, #useFullAttributePath
+                                              longName #useLongNames 
+                                            )
+        raise MayaObjectError(self._name)
+    
+    
+#    def attributeName(self):
+#        pass
+#    
+#    def attributeNames(self):
+#        pass
+      
+    
+    def plugNode(self):
+        """plugNode
+        
+        :rtype: `DependNode`
+        """
+        return self._node
+    
+    node = plugNode
+                
+    def plugAttr(self, longName=False, fullPath=False):
+        """
+            >>> from pymel.all import *
+            >>> at = SCENE.persp.t.tx
+            >>> at.plugAttr(longName=False, fullPath=False)
+            u'tx'
+            >>> at.plugAttr(longName=False, fullPath=True)
+            u't.tx'
+            >>> at.plugAttr(longName=True, fullPath=True)
+            u'translate.translateX'
+        
+        :rtype: `unicode`
+        """
+        return self.name(includeNode=False,
+                         longName=longName,
+                         fullAttrPath=fullPath)
+        
+    
+    def lastPlugAttr(self, longName=False):
+        """
+            >>> from pymel.all import *
+            >>> at = SCENE.persp.t.tx
+            >>> at.lastPlugAttr(longName=False)
+            u'tx'
+            >>> at.lastPlugAttr(longName=True)
+            u'translateX'
+        
+        :rtype: `unicode`
+        """
+        return self.name(includeNode=False,
+                         longName=longName,
+                         fullAttrPath=False)
+
+    
+    def longName(self, fullPath=False ):
+        """
+            >>> from pymel.all import *
+            >>> at = SCENE.persp.t.tx
+            >>> at.longName(fullPath=False)
+            u'translateX'
+            >>> at.longName(fullPath=True)
+            u'translate.translateX'
+        
+        :rtype: `unicode`
+        """
+        return self.name(includeNode=False,
+                         longName=True,
+                         fullAttrPath=fullPath)
+        
+    def shortName(self, fullPath=False):
+        """
+            >>> from pymel.all import *
+            >>> at = SCENE.persp.t.tx
+            >>> at.shortName(fullPath=False)
+            u'tx'
+            >>> at.shortName(fullPath=True)
+            u't.tx'
+        
+        :rtype: `unicode`
+        """
+        return self.name(includeNode=False,
+                         longName=False,
+                         fullAttrPath=fullPath)
+        
+    def nodeName( self ):
+        """The node part of this plug as a string
+        
+        :rtype: `unicode`
+        """
+        return self.plugNode().name()
+
+       
+    def array(self):
+        """
+        Returns the array (multi) attribute of the current element:
+        
+            >>> n = Attribute(u'initialShadingGroup.groupNodes[0]')
+            >>> n.isElement()
+            True
+            >>> n.array()
+            Attribute(u'initialShadingGroup.groupNodes')
+
+        This method will raise an error for attributes which are not elements of
+        an array:
+            
+            >>> m = Attribute(u'initialShadingGroup.groupNodes')
+            >>> m.isElement()
+            False
+            >>> m.array()
+            Traceback (most recent call last):
+            ...
+            TypeError: initialShadingGroup.groupNodes is not an array (multi) attribute
+            
+        :rtype: `Attribute`
+        """
+        try:
+            return Attribute( self._node, self.__apimplug__().array() )
+            #att = Attribute(Attribute.attrItemReg.split( self )[0])
+            #if att.isMulti() :
+            #    return att
+            #else :
+            #    raise TypeError, "%s is not a multi attribute" % self
+        except:
+            raise TypeError, "%s is not an array (multi) attribute" % self
+
+
+    # TODO : do not list all children elements by default, allow to do 
+    #        skinCluster1.weightList.elements() for first level elements weightList[x]
+    #        or skinCluster1.weightList.weights.elements() for all weightList[x].weights[y]
+
+    def elements(self):
+        """
+        ``listAttr -multi``
+        
+        Return a list of strings representing all the attributes in the array.
+        
+        If you don't need actual strings, it is recommended that you simply iterate through the elements in the array.
+        See `Attribute.__iter__`.
+        """
+        
+        return cmds.listAttr(self.array(), multi=True)
+    
+#    def item(self):
+#        try: 
+#            return int(Attribute.attrItemReg.search(self).group(1))
+#        except: return None
+
+    def getArrayIndices(self):
+        """
+        Get all set or connected array indices. Raises an error if this is not an array Attribute
+        
+        :rtype: `int` list
+        """
+        try:
+            return self._getArrayIndices()[1]
+        except RuntimeError:
+            raise TypeError, "%s is not an array (multi) attribute" % self
+    
+    def numElements(self):
+        """
+        The number of elements in an array attribute. Raises an error if this is not an array Attribute
+        
+        Be aware that `Attribute.size`, which derives from ``getAttr -size``, does not always produce the expected
+        value. It is recommend that you use `Attribute.numElements` instead.  This is a maya bug, *not* a pymel bug.
+        
+            >>> from pymel.all import *
+            >>> f=newFile(f=1) #start clean
+            >>> 
+            >>> dls = SCENE.defaultLightSet
+            >>> dls.dagSetMembers.numElements()
+            0
+            >>> dls.dagSetMembers.size()
+            0
+            >>> SpotLight() # create a light, which adds to the lightSet
+            SpotLight(u'spotLightShape1')
+            >>> dls.dagSetMembers.numElements()
+            1
+            >>> dls.dagSetMembers.size()  # should be 1
+            0
+            >>> SpotLight() # create another light, which adds to the lightSet
+            SpotLight(u'spotLightShape2')
+            >>> dls.dagSetMembers.numElements()
+            2
+            >>> dls.dagSetMembers.size() # should be 2
+            1
+        
+        :rtype: `int`
+        """
+        
+        try:
+            return self._getArrayIndices()[0]
+        except RuntimeError:
+            raise TypeError, "%s is not an array (multi) attribute" % self
+                
+    item = _factories.wrapApiMethod( _api.MPlug, 'logicalIndex', 'item' )
+    index = _factories.wrapApiMethod( _api.MPlug, 'logicalIndex', 'index' )
+    
+    def setEnums(self, enumList):
+        cmds.addAttr( self, e=1, en=":".join(enumList) )
+    
+    def getEnums(self):
+        """
+        :rtype: `unicode` list
+        """
+        return cmds.addAttr( self, q=1, en=1 ).split(':')    
+            
+    # getting and setting                    
+    set = setAttr            
+    get = getAttr
+    setKey = _factories.functionFactory( cmds.setKeyframe, rename='setKey' )       
+    
+    
+#----------------------
+#xxx{ Connections
+#----------------------    
+          
+    def isConnectedTo(self, other, ignoreUnitConversion=False, checkLocalArray=False, checkOtherArray=False ):
+        """
+        Determine if the attribute is connected to the passed attribute.
+        
+        If checkLocalArray is True and the current attribute is a multi/array, the current attribute's elements will also be tested.
+        
+        If checkOtherArray is True and the passed attribute is a multi/array, the passed attribute's elements will also be tested.
+        
+        If checkLocalArray and checkOtherArray are used together then all element combinations will be tested.
+         
+        """
+
+        if cmds.isConnected( self, other, ignoreUnitConversion=ignoreUnitConversion):
+            return True
+        
+        if checkLocalArray and self.isMulti():
+            for elem in self:
+                if elem.isConnectedTo(other, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=checkOtherArray):
+                    return True
+                
+        if checkOtherArray:
+            other = Attribute(other)
+            if other.isMulti():
+                for elem in other:
+                    if self.isConnectedTo(elem, ignoreUnitConversion=ignoreUnitConversion, checkLocalArray=False, checkOtherArray=False):
+                        return True
+
+        
+        return False
+    
+    ## does not work because this method cannot return a value, it is akin to +=       
+    #def __irshift__(self, other):
+    #    """operator for 'isConnected'
+    #        sphere.tx >>= box.tx
+    #    """ 
+    #    return cmds.isConnected(self, other)
+    
+
+    connect = connectAttr
+        
+    def __rshift__(self, other):
+        """
+        operator for 'connectAttr'
+        
+            >>> from pymel.all import *
+            >>> SCENE.persp.tx >> SCENE.top.tx  # connect
+            >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
+        """ 
+        return connectAttr( self, other, force=True )
+                
+    disconnect = disconnectAttr
+    
+    def __floordiv__(self, other):
+        """
+        operator for 'disconnectAttr'
+        
+            >>> from pymel.all import *
+            >>> SCENE.persp.tx >> SCENE.top.tx  # connect
+            >>> SCENE.persp.tx // SCENE.top.tx  # disconnect
+        """ 
+        # no return
+        cmds.disconnectAttr( self, other )
+                
+    def inputs(self, **kwargs):
+        """
+        ``listConnections -source 1 -destination 0``
+        
+        see `Attribute.connections` for the full ist of flags.
+        
+        :rtype: `PyNode` list
+        """
+        
+        kwargs['source'] = True
+        kwargs.pop('s', None )
+        kwargs['destination'] = False
+        kwargs.pop('d', None )
+        
+        return listConnections(self, **kwargs)
+    
+    def outputs(self, **kwargs):
+        """
+        ``listConnections -source 0 -destination 1``
+        
+        see `Attribute.connections` for the full ist of flags.
+        
+        :rtype: `PyNode` list
+        """
+        
+        kwargs['source'] = False
+        kwargs.pop('s', None )
+        kwargs['destination'] = True
+        kwargs.pop('d', None )
+        
+        return listConnections(self, **kwargs)
+    
+    def insertInput(self, node, nodeOutAttr, nodeInAttr ):
+        """connect the passed node.outAttr to this attribute and reconnect
+        any pre-existing connection into node.inAttr.  if there is no
+        pre-existing connection, this method works just like connectAttr. 
+        
+        for example, for two nodes with the connection::
+                
+            a.out-->b.in
+            
+        running this command::
+        
+            b.insertInput( 'c', 'out', 'in' )
+            
+        causes the new connection order (assuming 'c' is a node with 'in' and 'out' attributes)::
+                
+            a.out-->c.in
+            c.out-->b.in
+        """
+        inputs = self.inputs(plugs=1)
+        self.connect( node + '.' + nodeOutAttr, force=1 )
+        if inputs:
+            inputs[0].connect( node + '.' + nodeInAttr )
+    
+    @_factories.addMelDocs( 'setKeyframe' )    
+    def setKey(self, **kwargs):
+        kwargs.pop( 'attribute', None )
+        kwargs.pop( 'at', None )
+        return cmds.setKeyframe( self, **kwargs )
+#}
+#----------------------
+#xxx{ Info and Modification
+#----------------------
+    
+#    def alias(self, **kwargs):
+#        """aliasAttr"""
+#        return cmds.aliasAttr( self, **kwargs )    
+                            
+#    def add( self, **kwargs):    
+#        kwargs['longName'] = self.plugAttr()
+#        kwargs.pop('ln', None )
+#        return addAttr( self.node(), **kwargs )    
+                    
+    def delete(self):
+        """deleteAttr"""
+        return cmds.deleteAttr( self )
+    
+    def remove( self, **kwargs):
+        'removeMultiInstance'
+        #kwargs['break'] = True
+        return cmds.removeMultiInstance( self, **kwargs )
+        
+    # Edge, Vertex, CV Methods
+#    def getTranslation( self, **kwargs ):
+#        """xform -translation"""
+#        kwargs['translation'] = True
+#        kwargs['query'] = True
+#        return datatypes.Vector( cmds.xform( self, **kwargs ) )
+        
+    #----------------------
+    # Info Methods
+    #----------------------
+    
+    def isDirty(self, **kwargs):
+        """
+        :rtype: `bool`
+        """
+        return cmds.isDirty(self, **kwargs)
+        
+    def affects( self, **kwargs ):
+        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
+            cmds.affects( self.plugAttr(), self.node()  ) )
+
+    def affected( self, **kwargs ):
+        return map( lambda x: Attribute( '%s.%s' % ( self.node(), x )),
+            cmds.affects( self.plugAttr(), self.node(), by=True  ))
+                
+    # getAttr info methods
+    def type(self):
+        """
+        getAttr -type
+        
+        :rtype: `unicode`
+        """
+        return cmds.getAttr(self, type=True)
+    
+   
+    def lock(self):
+        "setAttr -locked 1"
+        return self.setLocked(True)
+        
+    def unlock(self):
+        "setAttr -locked 0"
+        return self.setLocked(False)
+    
+              
+    def isSettable(self):
+        """getAttr -settable
+        
+        :rtype: `bool`
+        """
+        return cmds.getAttr(self, settable=True)
+    
+    # attributeQuery info methods
+    def isHidden(self):
+        """
+        attributeQuery -hidden
+        
+        :rtype: `bool`
+        """
+        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), hidden=True)
+        
+    def isConnectable(self):
+        """
+        attributeQuery -connectable
+        
+        :rtype: `bool`
+        """
+        return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), connectable=True)    
+
+    
+    isMulti = _factories.wrapApiMethod( _api.MPlug, 'isArray', 'isMulti' )
+
+    
+    def exists(self):
+        """
+        Whether the attribute actually exists.
+        
+        In spirit, similar to 'attributeQuery -exists'...
+        ...however, also handles multi (array) attribute elements, such as plusMinusAverage.input1D[2] 
+        
+        :rtype: `bool`
+        """
+        
+        if self.isElement():
+            arrayExists = self.array().exists()
+            if not arrayExists:
+                return False
+            
+            # If the array exists, now check the array indices...
+            indices = self.array().getArrayIndices()
+            return bool(indices and self.index() in indices)
+        else:
+            try:
+                return bool( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), exists=True) ) 
+            except TypeError:
+                return False
+        
+#}
+#-------------------------- 
+#xxx{ Ranges
+#-------------------------- 
+        
+    def getSoftMin(self):
+        """attributeQuery -softMin
+            Returns None if softMin does not exist.
+        
+        :rtype: `float`  
+        """
+        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMinExists=True):
+            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMin=True)[0]    
+            
+    def getSoftMax(self):
+        """attributeQuery -softMax
+            Returns None if softMax does not exist.
+            
+        :rtype: `float`      
+        """
+        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMaxExists=True):
+            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), softMax=True)[0]
+    
+    def getMin(self):
+        """attributeQuery -min
+            Returns None if min does not exist.
+        
+        :rtype: `float`  
+        """
+        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), minExists=True):
+            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), min=True)[0]
+            
+    def getMax(self):
+        """attributeQuery -max
+            Returns None if max does not exist.
+            
+        :rtype: `float`  
+        """
+        if cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), maxExists=True):
+            return cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), max=True)[0]
+    
+    def getSoftRange(self):
+        """attributeQuery -softRange
+            returns a two-element list containing softMin and softMax. if the attribute does not have
+            a softMin or softMax the corresponding element in the list will be set to None.
+         
+        :rtype: [`float`, `float`]     
+        """
+        softRange = []
+        softRange.append( self.getSoftMin() )
+        softRange.append( self.getSoftMax() )
+        return softRange
+    
+            
+    def getRange(self):
+        """attributeQuery -range
+            returns a two-element list containing min and max. if the attribute does not have
+            a softMin or softMax the corresponding element will be set to None.
+        
+        :rtype: `float`      
+        """
+        range = []
+        range.append( self.getMin() )
+        range.append( self.getMax() )
+        return range
+    
+    def setMin(self, newMin):
+        self.setRange(newMin, 'default')
+        
+    def setMax(self, newMax):
+        self.setRange('default', newMax)
+
+    def setSoftMin(self, newMin):
+        self.setSoftRange(newMin, 'default')
+        
+    def setSoftMax(self, newMax):
+        self.setSoftRange('default', newMax)
+                
+    def setRange(self, *args):
+        """provide a min and max value as a two-element tuple or list, or as two arguments to the
+        method. To remove a limit, provide a None value.  for example:
+        
+            >>> from pymel.all import *
+            >>> s = polyCube()[0]
+            >>> s.addAttr( 'new' )
+            >>> s.new.setRange( -2, None ) #sets just the min to -2 and removes the max limit
+            >>> s.new.setMax( 3 ) # sets just the max value and leaves the min at its previous default 
+            >>> s.new.getRange()
+            [-2.0, 3.0]
+            
+        """
+        
+        self._setRange('hard', *args)
+        
+    def setSoftRange(self, *args):
+        self._setRange('soft', *args)    
+        
+    def _setRange(self, limitType, *args):
+        
+        if len(args)==2:
+            newMin = args[0]
+            newMax = args[1]
+        
+        if len(args)==1:
+            try:
+                newMin = args[0][0]
+                newMax = args[0][1]
+            except:    
+                raise TypeError, "Please provide a min and max value as a two-element tuple or list, or as two arguments to the method. To ignore a limit, provide a None value."
+
+                
+        # first find out what connections are going into and out of the object
+        ins = self.inputs(p=1)
+        outs = self.outputs(p=1)
+
+        # get the current value of the attr
+        val = self.get()
+
+        # break the connections if they exist
+        self.disconnect()
+
+        #now tokenize $objectAttr in order to get it's individual parts
+        obj = self.node()
+        attr = self.plugAttr()
+
+        # re-create the attribute with the new min/max
+        kwargs = {}
+        kwargs['at'] = self.type()
+        kwargs['ln'] = attr
+        
+        # MIN
+        # if 'default' is passed a value, we retain the current value
+        if newMin == 'default':
+            currMin = self.getMin()
+            currSoftMin = self.getSoftMin()
+            if currMin is not None:
+                kwargs['min'] = currMin
+            elif currSoftMin is not None:
+                kwargs['smn'] = currSoftMin    
+                
+        elif newMin is not None:
+            if limitType == 'hard':
+                kwargs['min'] = newMin
+            else:
+                kwargs['smn'] = newMin
+                
+        # MAX    
+        # if 'default' is passed a value, we retain the current value
+        if newMax == 'default':
+            currMax = self.getMax()
+            currSoftMax = self.getSoftMin()
+            if currMax is not None:
+                kwargs['max'] = currMax
+            elif currSoftMax is not None:
+                kwargs['smx'] = currSoftMax    
+                
+        elif newMax is not None:
+            if limitType == 'hard':
+                kwargs['max'] = newMax
+            else:
+                kwargs['smx'] = newMax
+        
+        # delete the attribute
+        self.delete()                
+        cmds.addAttr( obj, **kwargs )
+
+        # set the value to be what it used to be
+        self.set(val);
+
+        # remake the connections
+        for conn in ins:
+            conn >> self
+            
+        for conn in outs:
+            self >> outs
+
+
+#    def getChildren(self):
+#        """attributeQuery -listChildren"""
+#        return map( 
+#            lambda x: Attribute( self.node() + '.' + x ), 
+#            _util.listForNone( cmds.attributeQuery(self.lastPlugAttr(), node=self.node(), listChildren=True) )
+#                )
+#}
+#-------------------------- 
+#xxx{ Relatives
+#-------------------------- 
+
+    def getChildren(self):
+        """attributeQuery -listChildren
+        
+        :rtype: `Attribute` list  
+        """
+        res = []
+        for i in range(self.numChildren() ):
+            res.append( Attribute( self.node(), self.__apimfn__().child(i) ) )
+        return res
+    children = getChildren
+    
+    def getSiblings(self):
+        """attributeQuery -listSiblings
+        
+        :rtype: `Attribute` list  
+        """
+        try:
+            return self.getParent().getChildren()
+        except:
+            pass
+    siblings = getSiblings
+    
+    def firstParent(self):
+        """
+        Modifications:
+            - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
+
+              
+              Negative values will traverse from the top.
+
+              A value of 0 will return the same node.
+              The default value is 1.
+              
+              Since the original command returned None if there is no parent, to sync with this behavior, None will
+              be returned if generations is out of bounds (no IndexError will be thrown). 
+        
+        :rtype: `Attribute`  
+        """
+        try:
+            return Attribute( self.node(), self.__apimfn__().parent() )
+        except:
+            pass
+
+    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
+    parent = getParent
+        
+#}      
 
 def _MObjectIn(x):
     if isinstance(x,PyNode): return x.__apimobject__()
