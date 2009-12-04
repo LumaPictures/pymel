@@ -68,7 +68,7 @@ class UI(unicode):
 #        except: pass
         
     def __repr__(self):
-        return u"%s('%s')" % (self.__class__.__name__, self)
+        return u"ui.%s('%s')" % (self.__class__.__name__, self)
     def parent(self):
         return PyUI( '|'.join( unicode(self).split('|')[:-1] ) )
     getParent = parent

@@ -342,9 +342,9 @@ class Vector(VectorN) :
     
     def __repr__(self):
         if hasattr( self, 'unit' ) and self.unit:
-            return "%s(%s, unit='%s')" % (self.__class__.__name__, str(self), self.unit)
+            return "dt.%s(%s, unit='%s')" % (self.__class__.__name__, str(self), self.unit)
         else:
-            return "%s(%s)" % (self.__class__.__name__, str(self)) 
+            return "dt.%s(%s)" % (self.__class__.__name__, str(self)) 
     
            
     # for compatibility with base classes Array that actually hold a nested list in their _data attribute
@@ -2018,9 +2018,9 @@ class EulerRotation(Array):
     def __repr__(self):
         #return "%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
         if self.unit != Angle.getUIUnit():
-            return "%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
+            return "dt.%s(%s, unit=%r)" % (self.__class__.__name__, str(self), self.unit)
         else:
-            return "%s(%s)" % (self.__class__.__name__, str(self)) 
+            return "dt.%s(%s)" % (self.__class__.__name__, str(self)) 
             
     def __iter__(self):
         for i in range(self.size):
@@ -2496,7 +2496,7 @@ class Unit(float):
         self._data.assign(*args)
 
     def __repr__(self) :
-        return '%s(%s, unit=%r)' % ( self.__class__.__name__, self, self.unit ) 
+        return 'dt.%s(%s, unit=%r)' % ( self.__class__.__name__, self, self.unit ) 
      
     def asUnit(self, unit) :
         # in python2.6/maya2010 'as' becomes a keyword.
@@ -2635,7 +2635,7 @@ class BoundingBox( _api.MBoundingBox):
                 args[1] = Point( args[1] )    
         _api.MBoundingBox.__init__(self, *args)
     def __str__(self):
-        return '%s(%s,%s)' % (self.__class__.__name__, self.min(), self.max())
+        return 'dt.%s(%s,%s)' % (self.__class__.__name__, self.min(), self.max())
     def __repr__(self):
         return str(self)
     def __getitem__(self,item):
