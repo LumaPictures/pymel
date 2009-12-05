@@ -2238,10 +2238,10 @@ class DependNode( general.PyNode ):
 #                                        else:break
                     if isinstance( token, nameparse.NameIndex ):
                         result = result.elementByLogicalIndex( token.value )
-                return Attribute( self.__apiobject__(), result )
+                return general.Attribute( self.__apiobject__(), result )
             else:
                 # NOTE: not sure if this should be True or False
-                return Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) ) 
+                return general.Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) ) 
             
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
