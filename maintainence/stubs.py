@@ -1,6 +1,7 @@
 from pydoc import *
 import pydoc, pkgutil, sys, pprint
 import __builtin__
+import os
 
 class StubDoc(Doc):
     """Formatter class for text documentation."""
@@ -439,37 +440,44 @@ def _subpackages(packagemod):
                 mod = sys.modules[modname]
                 yield modname, mod, ispkg
 
-def packagestubs(packagemod, outputdir='', exclude=None):
+def packagestubs(packagemod, outputdir='', extension='py', exclude=None):
     for modname, mod, ispkg in _subpackages(packagemod):
         curpath = os.path.join(outputdir, *modname.split('.') )
         
         if ispkg:
             if not os.path.exists(curpath):
                 os.mkdir(curpath)
-            curfile = os.path.join(curpath, '__init__.py' )
+            curfile = os.path.join(curpath, '__init__'+os.extsep+extension )
         else:
-            curfile = curpath + '.py'
+            curfile = curpath + os.extsep + extension
         print modname, curfile
         f = open( curfile, 'w' )
         if not exclude or not re.match( exclude, modname ):
             f.write( stubs.docmodule(mod) )
         f.close()
 
-def pymelstubs():
+def pymelstubs(extension='py'):
+    """ Builds pymel stub files for autocompletion.
+    
+    Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
+    
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
     outputdir = os.path.join(pymeldir, 'extras', 'completion' )
     print outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
     import pymel.all
-    packagestubs( pymel, outputdir=outputdir, exclude='(pymel\.util\.scanf)|(pymel\.util\.objectParser)')
+    packagestubs( pymel, 
+                  outputdir=outputdir, 
+                  extension=extension,
+                  exclude='(pymel\.util\.scanf)|(pymel\.util\.objectParser)')
 
     # fix pmcmds:
-    f = open( os.path.join(outputdir,'pymel','internal','pmcmds.py'), 'w' )
+    f = open( os.path.join(outputdir,'pymel','internal','pmcmds'+os.extsep+extension), 'w' )
     f.write( 'from maya.cmds import *\n' )
     f.close()
     
     import maya
-    packagestubs( maya, outputdir=outputdir )
+    packagestubs( maya, outputdir=outputdir,extension=extension )
 
     
