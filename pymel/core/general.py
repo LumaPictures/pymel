@@ -829,8 +829,10 @@ Modifications:
     if not res:
         return res
     res = cmds.listRelatives(  res, p=1, path=1 )
+    if res is None:
+        return []
     #res = list(set(res)) # ruins the order, but prevents dupes, which can happend when a transform has more than one shape
-    return map( PyNode, res ) #, ['transform']*len(res) )
+    return [PyNode(x) for x in res] #, ['transform']*len(res) )
 
 
     
