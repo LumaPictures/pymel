@@ -184,31 +184,6 @@ class Window(Layout):
 
 class FormLayout(Layout):
     __metaclass__ = _factories.MetaMayaUIWrapper
-    def attachForm(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachForm'] = [args]
-        cmds.formLayout(self,**kwargs)
-        
-    def attachControl(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachControl'] = [args]
-        cmds.formLayout(self,**kwargs)        
-        
-    def attachNone(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachNone'] = [args]
-        cmds.formLayout(self,**kwargs)    
-        
-    def attachPosition(self, *args):
-        kwargs = {'edit':True}
-        kwargs['attachPosition'] = [args]
-        cmds.formLayout(self,**kwargs)
-        
-class AutoLayout(FormLayout):
-    #enumOrientation = _util.enum.Enum( 'Orientation', ['HORIZONTAL', 'VERTICAL'] )
-    HORIZONTAL = 0
-    VERTICAL = 1
-    Orientation = _util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
 
     def __new__(cls, name=None, **kwargs):
         if kwargs:
@@ -229,9 +204,29 @@ class AutoLayout(FormLayout):
         self._reversed = reversed
         self._ratios = ratios and list(ratios) or []
     
-    def __exit__(self, type, value, traceback):
-        self.redistribute()
-        self.pop()
+    def attachForm(self, *args):
+        kwargs = {'edit':True}
+        kwargs['attachForm'] = [args]
+        cmds.formLayout(self,**kwargs)
+        
+    def attachControl(self, *args):
+        kwargs = {'edit':True}
+        kwargs['attachControl'] = [args]
+        cmds.formLayout(self,**kwargs)        
+        
+    def attachNone(self, *args):
+        kwargs = {'edit':True}
+        kwargs['attachNone'] = [args]
+        cmds.formLayout(self,**kwargs)    
+        
+    def attachPosition(self, *args):
+        kwargs = {'edit':True}
+        kwargs['attachPosition'] = [args]
+        cmds.formLayout(self,**kwargs)
+    
+    HORIZONTAL = 0
+    VERTICAL = 1
+    Orientation = _util.enum.Enum( 'Orientation', ['horizontal', 'vertical'] )
         
     def flip(self):
         """Flip the orientation of the layout """
@@ -299,7 +294,16 @@ class AutoLayout(FormLayout):
     def hDistribute(self,*ratios):
         self._orientation = int(self.Orientation.horizontal)
         self.redistribute(*ratios)
-    
+
+class AutoLayout(FormLayout):
+    """
+    AutoLayout behaves exactly like `FormLayout`, but will call redistribute automatically
+    at the end of a 'with' statement block
+    """
+    def __exit__(self, type, value, traceback):
+        self.redistribute()
+        self.pop()
+         
 class TextScrollList(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def extend( self, appendList ):
