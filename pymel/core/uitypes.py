@@ -349,7 +349,11 @@ class Menu(UI):
         cmds.setParent(p)
         return p
 
-class MenuItem(Menu):
+class MenuItem(UI):
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        
     def __exit__(self, type, value, traceback):
         p = self.parent()
         cmds.setParent(p,menu=True)
