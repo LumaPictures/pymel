@@ -329,6 +329,15 @@ class TextScrollList(UI):
 
 class OptionMenu(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        return self
+                
+    def __exit__(self, type, value, traceback):
+        p = self.parent()
+        cmds.setParent(p)
+        return p
+    
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """ 
         if title:
