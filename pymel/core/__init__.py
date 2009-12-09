@@ -40,6 +40,9 @@ _internal.finalize()
 
 import maya.cmds as cmds
 
+# these modules are imported anyway so they should not be a performance hit
+import pymel.util as util
+import pymel.api as api
 
 _logger = _internal.getLogger(__name__)
 
