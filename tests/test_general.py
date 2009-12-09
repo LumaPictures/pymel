@@ -227,6 +227,10 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         shape = self.sphere1.getShape()
         self.assertEqual( self.sphere1.primaryVisibility, shape.primaryVisibility )
         
+    def test_pmcmds_objectErrors(self):
+        self.assertRaises( MayaSubObjectError, setAttr, 'foo.bar', 0 )
+        self.assertRaises( MayaSubObjectError, getAttr, 'foo.bar' )
+        self.assertRaises( MayaNodeError, listConnections, 'foobar' )
         
     def test05_dagNode_addParent(self):
         sphere = polySphere()[0]
