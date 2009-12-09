@@ -351,16 +351,34 @@ class OptionMenu(UI):
             cmds.deleteUI(t)
     addItems = addMenuItems
 
-    
 class Menu(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
         cmds.setParent(self,menu=True)
         return self
-                
+
     def __exit__(self, type, value, traceback):
         p = self.parent()
         cmds.setParent(p)
+        return p
+
+    def getItemArray(self):
+        """ Modified to return pymel instances """
+        children = cmds.menu(self,query=True,itemArray=True)
+        if children:
+            return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
+        else:
+            return []
+
+class SubMenuItem(Menu):
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        p = self.parent()
+        cmds.setParent(p,menu=True)
         return p
 
 class MenuItem(UI):
@@ -373,25 +391,6 @@ class MenuItem(UI):
         p = self.parent()
         cmds.setParent(p,menu=True)
         return p
-
-    def deleteAllItems(self):
-        if self.getSubMenu():
-            return cmds.menu(self,edit=True,deleteAllItems=True)
-        raise NotImplementedError,'Not avaliable on menuItems that are not subMenus'
-    
-    def getItemArray(self):
-        if self.getSubMenu():
-            children = cmds.menu(self,query=True,itemArray=True)
-            if children:
-                return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
-            else:
-                return []
-        raise NotImplementedError,'Not avaliable on menuItems that are not subMenus'
-
-    def getNumberOfItems(self):
-        if self.getSubMenu():
-            return cmds.menu(self,query=True,numberOfItems=True)
-        raise NotImplementedError,'Not avaliable on menuItems that are not subMenus'
 
 class UITemplate(object):
     """
