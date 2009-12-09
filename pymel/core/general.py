@@ -303,22 +303,24 @@ Modifications:
                 except KeyError: pass
         return res
     
-    # perhaps it errored because it's a mixed compound, or a multi attribute
+    # perhaps it error'd because it's a mixed compound, or a multi attribute
     except RuntimeError, e:
         try:
-            attr = Attribute(attr)
+            pyattr = Attribute(attr)
             # mixed compound takes precedence, because by default, compound attributes are returned by getAttr, but
             # mixed compounds cannot be expressed in a mel array.
-            if attr.isCompound():
-                return [child.get() for child in attr.getChildren() ]
-            elif attr.isMulti():
-                return [attr[i].get() for i in range(attr.size())]
-            raise e
-        except AttributeError, e:
+            if pyattr.isCompound():
+                return [child.get() for child in pyattr.getChildren() ]
+            elif pyattr.isMulti():
+                return [attr[i].get() for i in range(pyattr.size())]
+            # re-raise error
+            raise
+        except AttributeError:
             if default is not None:
                 return default
-            else:
-                raise e
+            # raise original RuntimeError
+            raise e
+
 
 class AmbiguityWarning(Warning):
     pass
@@ -528,6 +530,13 @@ Modifications:
             cmds.setAttr( attr, *args, **kwargs)
         else:
             raise TypeError, msg
+    except RuntimeError, msg:
+        # normally this is handled in pmcmds, but setAttr error is different for some reason
+        if str(msg).startswith('No object matches name: '):
+            raise _objectError(attr)
+        else:
+            # re-raise
+            raise
             
 def addAttr( *args, **kwargs ):
     """
@@ -1231,28 +1240,34 @@ Maya Bug Fix:
 #--------------------------
 # PyNode Exceptions
 #--------------------------
-class MayaObjectError(ValueError):
+class MayaObjectError(TypeError):
+    _objectDescription = 'Object'
     def __init__(self, node=None):
         self.node = unicode(node)
     def __str__(self):
+        msg = "Maya %s does not exist" % (self._objectDescription)
         if self.node:
-            return "Maya Object does not exist: %r" % self.node
-        return "Maya Object does not exist"
+            msg += ": %r" % (self.node)
+        return msg
+
 class MayaNodeError(MayaObjectError):
-    def __str__(self):
-        if self.node is not None:
-            return "Maya Node does not exist: %r" % self.node
-        return "Maya Node does not exist"
-class MayaAttributeError(MayaObjectError, AttributeError):
-    def __str__(self):
-        if self.node is not None:
-            return "Maya Attribute does not exist: %r" % self.node
-        return "Maya Attribute does not exist"
-class MayaComponentError(MayaObjectError, AttributeError):
-    def __str__(self):
-        if self.node is not None:
-            return "Maya Component does not exist: %r" % self.node
-        return "Maya Component does not exist"
+    _objectDescription = 'Node'
+
+class MayaSubObjectError(MayaObjectError, AttributeError):
+    _objectDescription = 'Attribute or Component'
+    
+class MayaAttributeError(MayaSubObjectError):
+    _objectDescription = 'Attribute'
+    
+class MayaComponentError(MayaSubObjectError):
+    _objectDescription = 'Component'
+
+def _objectError(objectName):
+    # TODO: better name parsing
+    if '.' in objectName:
+        return MayaSubObjectError(objectName)
+    return MayaNodeError(objectName)
+
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
@@ -1408,10 +1423,8 @@ class PyNode(util.ProxyUnicode):
                             
                             # non-existent objects
                             # the object doesn't exist: raise an error
-                            if '.' in name:
-                                raise MayaAttributeError( name )
-                            else:
-                                raise MayaNodeError( name )
+                            raise _objectError( name )
+
 
             #-- Components
             if nodetypes.validComponentIndexType(argObj):
