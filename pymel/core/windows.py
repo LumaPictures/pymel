@@ -677,7 +677,10 @@ def _createClassCommands():
         """
         def callback(*args, **kwargs):
             #print "creating ui element", classname
-            return getattr(_uitypes, classname)(*args, **kwargs)
+            if classname == 'MenuItem': # This is because MenuItems can also be SubMenuItems depending on flags at creation
+                return _uitypes.PyUI(getattr(_uitypes, classname)(*args, **kwargs))
+            else:
+                return getattr(_uitypes, classname)(*args, **kwargs)
         return callback
      
     for funcName in _factories.uiClassList:

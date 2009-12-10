@@ -380,6 +380,12 @@ class SubMenuItem(Menu):
         p = self.parent()
         cmds.setParent(p,menu=True)
         return p
+    
+    def getBoldFont(self):
+        return pm.menuItem(sub_menu,query=True,boldFont=True)
+    
+    def getItalicized(self):
+        return pm.menuItem(sub_menu,query=True,italicized=True)
 
 class MenuItem(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
@@ -657,6 +663,7 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         return system.Path( self.getText() )
       
 _uiTypesToCommands = {
+    'commandMenuItem':'menuItem',
     'radioCluster':'radioCollection',
     'rowGroupLayout' : 'rowLayout',
     'TcolorIndexSlider' : 'rowLayout',
