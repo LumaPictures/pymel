@@ -347,8 +347,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
 
         self.assert_( SCENE.persp.getScale() == [10.0, 40.0, 90.0] )
         
-#        undo()
-#        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
+        undo()
+        self.assert_( SCENE.persp.getScale() == [10.0, 20.0, 30.0] )
 
     def test_transform_rotation(self):
         SCENE.persp.setRotation( [10,20,0], 'world')
