@@ -295,7 +295,7 @@ import pymel.internal as _internal
 import pymel.versions as _versions
 
 from language import mel, melGlobals
-from system import Path
+from system import Path as _Path
 import uitypes as _uitypes
 
 _logger = _internal.getLogger(__name__)
@@ -601,7 +601,7 @@ def promptForFolder():
     def getfolder(*args):
         folder[0] = args[0]
     ret = cmds.fileBrowserDialog(m=4, fc=getfolder, an="Get Folder")
-    folder = Path(folder[0])
+    folder = _Path(folder[0])
     if folder.exists():
         return folder
 
@@ -610,7 +610,7 @@ def promptForPath(**kwargs):
     """ Prompt the user for a folder path """
     
     if cmds.about(linux=1):
-        return Path(fileDialog(**kwargs))
+        return _Path(fileDialog(**kwargs))
     
     else:
         # a little trick that allows us to change the top-level 'folder' variable from 
@@ -625,7 +625,7 @@ def promptForPath(**kwargs):
         
         kwargs['an'] = kwargs.pop('an', kwargs.pop('actionName', "Select File"))
         ret = cmds.fileBrowserDialog(**kwargs)
-        folder = Path(folder[0])
+        folder = _Path(folder[0])
         if folder.exists():
             return folder        
         
