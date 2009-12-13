@@ -633,7 +633,7 @@ def promptForPath(**kwargs):
 def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs )
     if ret:
-        return Path( ret )
+        return _Path( ret )
 
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
