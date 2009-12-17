@@ -192,7 +192,7 @@ def pymel_python_completer(self,event):
         except:
             raise IPython.ipapi.TryNext 
         
-    if isinstance(obj, (core.DependNode, core.Attribute) ):
+    if isinstance(obj, (core.nt.DependNode, core.Attribute) ):
         
         node = unicode(obj)
         long_attrs = cmds.listAttr( node )

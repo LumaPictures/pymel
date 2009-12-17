@@ -303,22 +303,24 @@ Modifications:
                 except KeyError: pass
         return res
     
-    # perhaps it errored because it's a mixed compound, or a multi attribute
+    # perhaps it error'd because it's a mixed compound, or a multi attribute
     except RuntimeError, e:
         try:
-            attr = Attribute(attr)
+            pyattr = Attribute(attr)
             # mixed compound takes precedence, because by default, compound attributes are returned by getAttr, but
             # mixed compounds cannot be expressed in a mel array.
-            if attr.isCompound():
-                return [child.get() for child in attr.getChildren() ]
-            elif attr.isMulti():
-                return [attr[i].get() for i in range(attr.size())]
-            raise e
-        except AttributeError, e:
+            if pyattr.isCompound():
+                return [child.get() for child in pyattr.getChildren() ]
+            elif pyattr.isMulti():
+                return [attr[i].get() for i in range(pyattr.size())]
+            # re-raise error
+            raise
+        except AttributeError:
             if default is not None:
                 return default
-            else:
-                raise e
+            # raise original RuntimeError
+            raise e
+
 
 class AmbiguityWarning(Warning):
     pass
@@ -528,6 +530,13 @@ Modifications:
             cmds.setAttr( attr, *args, **kwargs)
         else:
             raise TypeError, msg
+    except RuntimeError, msg:
+        # normally this is handled in pmcmds, but setAttr error is different for some reason
+        if str(msg).startswith('No object matches name: '):
+            raise _objectError(attr)
+        else:
+            # re-raise
+            raise
             
 def addAttr( *args, **kwargs ):
     """
@@ -735,43 +744,94 @@ def ls( *args, **kwargs ):
     """
 Modifications:
   - Added new keyword: 'editable' - this will return the inverse set of the readOnly flag. i.e. non-read-only nodes
-    
+  - Added new keyword: 'regex' - pass a valid regular expression string, compiled regex pattern, or list thereof. 
+   
+        >>> group('top')
+        nt.Transform(u'group1')
+        >>> duplicate('group1')
+        [nt.Transform(u'group2')]
+        >>> ls(regex='group\d+\|top') # don't forget to escape pipes `|` 
+        [nt.Transform(u'group1|top'), nt.Transform(u'group2|top')]
+        >>> ls(regex='group\d+\|top.*')
+        [nt.Transform(u'group1|top'), nt.Camera(u'group1|top|topShape'), nt.Transform(u'group2|top'), nt.Camera(u'group2|top|topShape')]
+        >>> ls(regex='group\d+\|top.*', cameras=1)
+        [nt.Camera(u'group2|top|topShape'), nt.Camera(u'group1|top|topShape')]
+        >>> ls(regex='\|group\d+\|top.*', cameras=1) # add a leading pipe
+        [nt.Camera(u'group1|top|topShape')]
+        
+    The regular expression will be used to search the full DAG path, starting from the right, in a similar fashion to how globs currently work.
+    Technically speaking, your regular expression string is used like this::
+        
+        re.search( '(\||^)' + yourRegexStr + '$', fullNodePath )
+        
     :rtype: `PyNode` list
     """
-
     kwargs['long'] = True
     kwargs.pop('l', None)
+
+#    # TODO: make this safe for international unicode characters
+#    validGlobChars = re.compile('[a-zA-Z0-9_|.*?\[\]]+$')
+#    newArgs = []
+#    regexArgs = []
+#    for arg in args:
+#        if isinstance(arg, (list, tuple)):
+#            # maya only goes one deep, and only checks for lists or tuples
+#            for subarg in arg:
+#                if isinstance(subarg, basestring) and not validGlobChars.match(subarg):
+#                    regexArgs.append(subarg)
+#                else:
+#                    newArgs.append(subarg)
+#        elif isinstance(arg, basestring) and not validGlobChars.match(arg):
+#            regexArgs.append(arg)
+#        else:
+#            newArgs.append(arg)
+    
+    regexArgs = kwargs.pop('regex', [])
+    if not isinstance(regexArgs, (tuple,list)):
+        regexArgs = [regexArgs]
+    
+    for i,val in enumerate(regexArgs):
+        # add a prefix which allows the regex to match against a dag path, mounted at the right
+        if isinstance(val,basestring):
+            if not val.endswith('$'):
+                val = val + '$'
+            val = re.compile('(\||^)' + val)
+        elif not isinstance(val,re._pattern_type):
+            raise TypeError( 'regex flag must be passed a valid regex string, a compiled regex object, or a list of these types. got %s' % type(val).__name__ )
+        regexArgs[i] = val
+    
+    res = util.listForNone(cmds.ls(*args, **kwargs))
+    if regexArgs:
+        tmp = res
+        res = []
+        for x in tmp:
+            for reg in regexArgs:
+                if reg.search(x):
+                    res.append(x)
+                    break
     
     if kwargs.pop('editable', False):
-        allNodes = util.listForNone(cmds.ls(*args, **kwargs))
         kwargs['readOnly'] = True
         kwargs.pop('ro',True)
         roNodes = util.listForNone(cmds.ls(*args, **kwargs))
-        
         # faster way?
-        return map( PyNode, filter( lambda x: x not in roNodes, allNodes ) )
-    
-    # this has been removed because the method below
-    # is 3x faster because it gets the pymel.core.node type along with the pymel.core.node list
-    # unfortunately, it's still about 2x slower than cmds.ls
-    #return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+        return map( PyNode, filter( lambda x: x not in roNodes, res ) )
+
     
     if kwargs.get( 'readOnly', kwargs.get('ro', False) ):
         # when readOnly is provided showType is ignored
-        return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+        return map(PyNode, res)
         
     if kwargs.get( 'showType', kwargs.get('st', False) ):
-        tmp = util.listForNone(cmds.ls(*args, **kwargs))
+        tmp = res
         res = []
         for i in range(0,len(tmp),2):
-            # res.append( PyNode( tmp[i], tmp[i+1] ) )
             res.append( PyNode( tmp[i] ) )
             res.append( tmp[i+1] )
         return res    
     
     if kwargs.get( 'nodeTypes', kwargs.get('nt', False) ):
-        # when readOnly is provided showType is ignored
-        return cmds.ls(*args, **kwargs)   
+        return res
     
 #    kwargs['showType'] = True
 #    tmp = util.listForNone(cmds.ls(*args, **kwargs))
@@ -780,7 +840,7 @@ Modifications:
 #        res.append( PyNode( tmp[i], tmp[i+1] ) )
 #    
 #    return res
-    return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+    return map(PyNode, res)
     
  
 #    showType = kwargs.get( 'showType', kwargs.get('st', False) )
@@ -1231,28 +1291,34 @@ Maya Bug Fix:
 #--------------------------
 # PyNode Exceptions
 #--------------------------
-class MayaObjectError(ValueError):
+class MayaObjectError(TypeError):
+    _objectDescription = 'Object'
     def __init__(self, node=None):
         self.node = unicode(node)
     def __str__(self):
+        msg = "Maya %s does not exist" % (self._objectDescription)
         if self.node:
-            return "Maya Object does not exist: %r" % self.node
-        return "Maya Object does not exist"
+            msg += ": %r" % (self.node)
+        return msg
+
 class MayaNodeError(MayaObjectError):
-    def __str__(self):
-        if self.node is not None:
-            return "Maya Node does not exist: %r" % self.node
-        return "Maya Node does not exist"
-class MayaAttributeError(MayaObjectError, AttributeError):
-    def __str__(self):
-        if self.node is not None:
-            return "Maya Attribute does not exist: %r" % self.node
-        return "Maya Attribute does not exist"
-class MayaComponentError(MayaObjectError, AttributeError):
-    def __str__(self):
-        if self.node is not None:
-            return "Maya Component does not exist: %r" % self.node
-        return "Maya Component does not exist"
+    _objectDescription = 'Node'
+
+class MayaSubObjectError(MayaObjectError, AttributeError):
+    _objectDescription = 'Attribute or Component'
+    
+class MayaAttributeError(MayaSubObjectError):
+    _objectDescription = 'Attribute'
+    
+class MayaComponentError(MayaSubObjectError):
+    _objectDescription = 'Component'
+
+def _objectError(objectName):
+    # TODO: better name parsing
+    if '.' in objectName:
+        return MayaSubObjectError(objectName)
+    return MayaNodeError(objectName)
+
 #--------------------------
 # Object Wrapper Classes
 #--------------------------
@@ -1408,10 +1474,8 @@ class PyNode(util.ProxyUnicode):
                             
                             # non-existent objects
                             # the object doesn't exist: raise an error
-                            if '.' in name:
-                                raise MayaAttributeError( name )
-                            else:
-                                raise MayaNodeError( name )
+                            raise _objectError( name )
+
 
             #-- Components
             if nodetypes.validComponentIndexType(argObj):

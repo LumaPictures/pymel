@@ -14,7 +14,7 @@ The wrapped commands in this module are the starting point for any other pymel c
 
 '''
 
-import inspect, sys
+import inspect, sys, re
 
 import pymel.util as util
 #import mayautils
@@ -24,6 +24,7 @@ import warnings
 __all__ = ['getMelRepresentation']
 _thisModule = sys.modules[__name__]
 
+objectErrorReg = re.compile('Object (.*) is invalid$')
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
@@ -93,8 +94,19 @@ def addWrappedCmd(cmdname, cmd=None):
         
         new_kwargs = getMelRepresentation(kwargs)
         #print new_args, new_kwargs
-        res = new_cmd(*new_args, **new_kwargs)
-        
+        try:
+            res = new_cmd(*new_args, **new_kwargs)
+        except TypeError, e:
+            m = objectErrorReg.match(str(e))
+            if m:
+                import pymel.core.general
+                obj = m.group(1)
+                raise pymel.core.general._objectError(obj)
+
+            else:
+                # re-raise error
+                raise
+            
         # when editing, some of maya.cmds functions return empty strings and some return idiotic statements like 'Values Edited'.
         # however, for UI's in particular, people use the edit command to get a pymel class for existing objects. 
         # return None when we get an empty string
