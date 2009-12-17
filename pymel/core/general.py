@@ -2543,9 +2543,24 @@ class Attribute(PyNode):
 #xxx{ Info and Modification
 #----------------------
     
-#    def alias(self, **kwargs):
-#        """aliasAttr"""
-#        return cmds.aliasAttr( self, **kwargs )    
+    def getAlias(self, **kwargs):
+        """
+        Returns the alias for this attribute, or None.
+        
+        The alias of the attribute is set through
+        Attribute.setAlias, or the aliasAttr command. 
+        """
+        alias = self.node().__apimfn__().plugsAlias(self.__apimplug__())
+        if alias:
+            return alias
+        else:
+            return None
+        
+    def setAlias(self, alias):
+        """
+        Sets the alias for this attribute (similar to aliasAttr).
+        """
+        cmds.aliasAttr(alias, self.name())
                             
 #    def add( self, **kwargs):    
 #        kwargs['longName'] = self.plugAttr()
