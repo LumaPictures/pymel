@@ -329,6 +329,15 @@ class TextScrollList(UI):
 
 class OptionMenu(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        return self
+                
+    def __exit__(self, type, value, traceback):
+        p = self.parent()
+        cmds.setParent(p)
+        return p
+    
     def addMenuItems( self, items, title=None):
         """ Add the specified item list to the OptionMenu, with an optional 'title' item """ 
         if title:
@@ -342,22 +351,48 @@ class OptionMenu(UI):
             cmds.deleteUI(t)
     addItems = addMenuItems
 
-    
 class Menu(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
         cmds.setParent(self,menu=True)
-                
+        return self
+
     def __exit__(self, type, value, traceback):
         p = self.parent()
         cmds.setParent(p)
         return p
 
+    def getItemArray(self):
+        """ Modified to return pymel instances """
+        children = cmds.menu(self,query=True,itemArray=True)
+        if children:
+            return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
+        else:
+            return []
+
+class SubMenuItem(Menu):
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        p = self.parent()
+        cmds.setParent(p,menu=True)
+        return p
+    
+    def getBoldFont(self):
+        return pm.menuItem(sub_menu,query=True,boldFont=True)
+    
+    def getItalicized(self):
+        return pm.menuItem(sub_menu,query=True,italicized=True)
+
 class MenuItem(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
         cmds.setParent(self,menu=True)
-        
+        return self
+    
     def __exit__(self, type, value, traceback):
         p = self.parent()
         cmds.setParent(p,menu=True)
@@ -628,6 +663,7 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         return system.Path( self.getText() )
       
 _uiTypesToCommands = {
+    'commandMenuItem':'menuItem',
     'radioCluster':'radioCollection',
     'rowGroupLayout' : 'rowLayout',
     'TcolorIndexSlider' : 'rowLayout',

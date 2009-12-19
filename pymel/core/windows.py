@@ -633,7 +633,7 @@ def promptForPath(**kwargs):
 def fileDialog(*args, **kwargs):
     ret = cmds.fileDialog(*args, **kwargs )
     if ret:
-        return Path( ret )
+        return _Path( ret )
 
 def showsHourglass(func):
     """ Decorator - shows the hourglass cursor until the function returns """
@@ -677,7 +677,10 @@ def _createClassCommands():
         """
         def callback(*args, **kwargs):
             #print "creating ui element", classname
-            return getattr(_uitypes, classname)(*args, **kwargs)
+            if classname == 'MenuItem': # This is because MenuItems can also be SubMenuItems depending on flags at creation
+                return _uitypes.PyUI(getattr(_uitypes, classname)(*args, **kwargs))
+            else:
+                return getattr(_uitypes, classname)(*args, **kwargs)
         return callback
      
     for funcName in _factories.uiClassList:

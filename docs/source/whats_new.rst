@@ -12,7 +12,7 @@ PyMEL 1.0 introduces a very big backward incompatibility: importing ``pymel`` no
 
 Sub-Modules
 ============
-    
+
     - `pymel.util`: independent of Maya
     - `pymel.api`: OpenMaya classes; requires maya, but does not require initialization of ``maya.standalone``
     - `pymel.internal`: (formally ``mayahook``) the machinery required to fuse ``maya.OpenMaya`` and ``maya.cmds`` into `pymel.core`
@@ -49,7 +49,7 @@ We don't take breaking backward compatibility lightly, but we feel strongly that
 ----------------------
 MEL GUI Creation
 ----------------------
- 
+
 Layout Class
 ============
 
@@ -66,7 +66,7 @@ First, the original::
     import maya.cmds as cmds
 
     if cmds.uiTemplate( 'ExampleTemplate', exists=True ):
-    	cmds.deleteUI( 'ExampleTemplate', uiTemplate=True )
+        cmds.deleteUI( 'ExampleTemplate', uiTemplate=True )
 
     cmds.uiTemplate( 'ExampleTemplate' )
 
@@ -101,13 +101,19 @@ First, the original::
 Now, with PyMEL::
 
     from pymel.core import *
-    
+
     template = uiTemplate( 'ExampleTemplate', force=True )
-    
+
     template.define( button, width=100, height=40, align='left' )
     template.define( frameLayout, borderVisible=True, labelVisible=False )
-    
-    with window():
+
+    with window(menuBar=True,menuBarVisible=True):
+        with menu():
+            menuItem(label='One')
+            menuItem(label='Two')
+            with menuItem(label='Sub',subMenu=True):
+                menuItem(label='A')
+            menuItem(label='Three')
         with template:
             with columnLayout( rowSpacing=5 ):
                 with frameLayout():
@@ -115,12 +121,11 @@ Now, with PyMEL::
                         button( label='One' )
                         button( label='Two' )
                         button( label='Three' )
-                
                 with frameLayout():
-                    with columnLayout():
-                        button( label='Red' )
-                        button( label='Green' )
-                        button( label='Blue' )
+                    with optionMenu():
+                        menuItem( label='Red' )
+                        menuItem( label='Green' )
+                        menuItem( label='Blue' )
 
 
 Python's ``with`` statement was added in version 2.5.  It's purpose is to provide automatic "enter" and "exit" functions for class instances that are designed to support it.  This is perfect for MEL GUI creation: when we "enter" the ``with`` block using a PyMEL layout class, the layout sets itself to the active default parent, and when the code block ends, it restores the default parent to it's own parent. There is now almost never the need to call `setParent`.  As you can see in the example, the ``with`` statement also works with windows and templates:  windows call ``setParent`` and ``showWindow``, and templates are automatically "pushed" and "popped".
@@ -137,9 +142,9 @@ all component types supported
 Tighter Maya Integration
 ---------------------------
 
- - safe to use pymel inside userSetup.py in python standalone
- - fixes bug where certain commands don't return a result the first time they are called
- - shared root logger with status-line error and warning colorization
+    - safe to use pymel inside userSetup.py in python standalone
+    - fixes bug where certain commands don't return a result the first time they are called
+    - shared root logger with status-line error and warning colorization
 
 ---------------------------
 IDE Autocompletion
