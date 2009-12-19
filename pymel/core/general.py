@@ -102,7 +102,7 @@ def _getPymelType(arg, name) :
 #            # TODO : some better checking / parsing
 #            pymelType = Attribute 
     else :
-        raise ValueError, "Unable to determine Pymel type for %r" % arg         
+        raise ValueError( "Unable to determine Pymel type for %r" % (arg,) )         
     
     if not isAttribute:
         pymelType = _getPymelTypeFromObject( obj, name ) 
@@ -601,7 +601,7 @@ Modifications:
   - returns an empty list when the result is None
     """
     return _util.listForNone(cmds.listAttr(*args, **kwargs))
-      
+
 def listConnections(*args, **kwargs):
     """
 Modifications:
@@ -1487,6 +1487,8 @@ class PyNode(_util.ProxyUnicode):
             #-- All Others
             else:
                 pymelType, obj = _getPymelType( argObj, name )
+                if issubclass(pymelType, Attribute):
+                    attrNode = PyNode(obj['MPlug'].name().split('.')[0])
             #print pymelType, obj, name, attrNode
             
             # Virtual (non-existent) objects will be cast to their own virtual type.
@@ -1588,9 +1590,8 @@ class PyNode(_util.ProxyUnicode):
             self = super(PyNode, cls).__new__(newcls)
             self._name = name
             if attrNode:
-                #print 'ATTR', attr, obj, pymelType
                 self._node = attrNode
-            
+                
             self.__apiobjects__ = obj
             return self
         else :
