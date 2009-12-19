@@ -797,7 +797,7 @@ Modifications:
             raise TypeError( 'regex flag must be passed a valid regex string, a compiled regex object, or a list of these types. got %s' % type(val).__name__ )
         regexArgs[i] = val
     
-    res = util.listForNone(cmds.ls(*args, **kwargs))
+    res = _util.listForNone(cmds.ls(*args, **kwargs))
     if regexArgs:
         tmp = res
         res = []
