@@ -8,9 +8,9 @@ _logger = _internal.getLogger(__name__)
 
 def _resolveUIFunc(name):
     if isinstance(name, basestring):
-        import window
+        import windows
         try:
-            return getattr(window,name)
+            return getattr(windows,name)
         except AttributeError:
             try:
                 cls = getattr(dynModule,name)
