@@ -25,7 +25,7 @@ def e6():
 import sys, traceback
 import maya.utils
 
-formatException = maya.utils._guiExcepthook
+formatException = maya.utils._guiExceptHook
 
 
 #

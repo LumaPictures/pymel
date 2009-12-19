@@ -1,21 +1,27 @@
-
 """
-General utility functions that are not specific to the Maya Command or the 
+General utility functions that are not specific to Maya Commands or the 
 OpenMaya API.
+
+Note:
+env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to 
+override the default formatting of logging messages sent to the GUI and 
+shell respectively.
+
 """
 
 # Note that several of the functions in this module are implemented in C++
 # code, such as executeDeferred and executeInMainThreadWithResult
 
-import os, warnings, sys, logging, traceback
+import logging
+import os
+import re
+import sys
+import traceback
+import types
 from maya import cmds
 
 _shellLogHandler = None
 _guiLogHandler = None
-
-def mayaEncoding():
-    import maya.cmds as cmds
-    return cmds.about(codeset=True)
 
 def loadStringResourcesForModule( moduleName ):
     """
@@ -146,12 +152,11 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
 
     return result
 
-
 # ##############################################################################
 # Logging 
 #
 
-class MayaLogHandler(logging.Handler):
+class MayaGuiLogHandler(logging.Handler):
     """
     A python logging handler that displays error and warning
     records with the appropriate color labels within the Maya GUI
@@ -175,142 +180,51 @@ def guiLogHandler():
     the script editor.  Sets the shell/outputWindow handler to
     only print 'Critical' records, so that the logger's primary
     output is the script editor.
+    Returns the handler.
     """
     global _guiLogHandler
-    if _guiLogHandler:
+    if _guiLogHandler is not None:
         return _guiLogHandler
-    log = logging.getLogger('')
-    shellLogHandler().setLevel(logging.CRITICAL)
-    _guiLogHandler = MayaLogHandler()
+    if _shellLogHandler is None:
+        shellLogHandler()
+    _shellLogHandler.setLevel(logging.CRITICAL)
+    _guiLogHandler = MayaGuiLogHandler()
     format = os.environ.get('MAYA_GUI_LOGGER_FORMAT', '%(name)s : %(message)s')
     _guiLogHandler.setFormatter( logging.Formatter(format) )
+    log = logging.getLogger('')
     log.addHandler(_guiLogHandler)
     return _guiLogHandler
 
 def shellLogHandler():
+    """
+    Adds an additional handler to the root logger to print to sys.stdout
+    Returns the handler.
+    """
     global _shellLogHandler
-    if _shellLogHandler:
+    if _shellLogHandler is not None:
         return _shellLogHandler
-    log = logging.getLogger('')
-    # Check if there's already a root logger that's a 'default' handler -
-    # ie, one setup with basicConfig, outputting to stderr or stdout, with
-    # default options
-    if log.handlers:
-        for handler in log.handlers:
-            if _isDefaultHandler(handler):
-                # If such a handler exists, it's probably unwanted, as it will
-                # lead to double output to the console...
-                log.warning("Pre-existing 'default' root log handler detected on maya startup - overriding")
-                log.removeHandler(handler)
-                # only remove one... if they have more than one 'default' logger,
-                # they either deliberately wanted two console loggers, or they
-                # screwed up before maya started
-                break
     _shellLogHandler = logging.StreamHandler()
     format = os.environ.get('MAYA_SHELL_LOGGER_FORMAT', '%(name)s : %(levelname)s : %(message)s')
     _shellLogHandler.setFormatter( logging.Formatter(format) )
+    log = logging.getLogger('')
     log.addHandler(_shellLogHandler)
     log.setLevel(logging.INFO)
     return _shellLogHandler
 
-def _isDefaultHandler(handler):
-    # don't use isinstance(x,y) - if they're using
-    # a class DERIVED from StreamHandler, it's not a default handler!
-    return (handler.__class__ == logging.StreamHandler and
-            handler.stream in (sys.stdout, sys.stderr) and
-            handler.level == logging.NOTSET and not handler.filters and
-            handler.formatter._fmt == logging.BASIC_FORMAT and
-            not handler.formatter.datefmt)
 # ##############################################################################
 # Gui Exception Handling 
 #
 
-# no longer needed: 2011 reverted to standard python traceback formatting ( i.e. traceback.format_list() )
-#def formatTraceStack(tbStack):
-#    """
-#    Format a traceback stack for use in the Maya GUI. Designed to be compatible with traceback.format_list() 
-#    to allow users to easily override this function to regain default formatting::
-#    
-#        import traceback
-#        import maya.utils
-#        maya.utils.formatTraceStack = traceback.format_list
-#    
-#    Given a list of tuples as returned by traceback.extract_tb() or traceback.extract_stack(), 
-#    return a list of strings ready for printing. Each string in the resulting list corresponds to 
-#    the item with the same index in the argument list. Each string ends in a newline; the strings may
-#    contain internal newlines as well, for those items whose source text line is not None.
-#    """
-#    lines = []
-#    for file, line, func, text in tbStack:
-#        if file == "<maya console>":
-#            result = u"  line %d of %s" % (line, file)
-#        else:
-#            result = u"  line %s of file '%s'" % (line, file)
-#        if func != "<module>":
-#            result += " in function %s" % func
-#        result += '\n'
-#        if text is not None:
-#            result += '    ' + text + '\n'
-#        lines.append(result)
-#    return lines
-#
-#_formatTraceStack = formatTraceStack     
-
-# for versions < 2011
-def formatTraceback(verbose, baseMsg):
-    """
-    Extract the current traceback information and send it back in string form.
-        verbose : If true then format the entire stack, else just the top level
-    """
-    return baseMsg
-# for versions >= 2011
-_formatTraceback = formatTraceback
-
-
-def prefixTraceStack(tbStack, prefix = '# '):
-    """
-    prefix with '#', being sure to get internal newlines. do not prefix first line
-    as that will be added automatically
-    """
-    result = ''.join(tbStack).rstrip().split('\n')
-    size = len(result)-1
-    for i, line in enumerate(result):
-        if i < size:
-            line += '\n'
-        if i != 0:
-            line = prefix + line
-        result[i] = line
-    return result
-
-def fixConsoleLineNumbers( tbStack ):
-    result = []
-    for file, line, func, text in tbStack:
-        if file == '<maya console>':
-            # In the Maya console the numbering is off by one so adjust
-            line -= 1
-        result.append( (file, line, func, text) )
-    return result
-
-def decodeStack( tbStack ):
-    encoding = mayaEncoding()
-    return [ s.decode(encoding) for s in tbStack ]
-
-def _guiExcepthook( exceptionType, exceptionObject, traceBack, detail=2 ):
+def _guiExceptHook( exceptionType, exceptionObject, traceBack, detail=2 ):
     """
     Whenever Maya receives an error from the command engine it comes into here
-    to format the message for display. RuntimeError exceptions are treated
-    specially since they originate from TcommandEngine::displayError(). The
-    sequence of functions that triggers adds in the appropriate line/file or
-    stack information via a different mechanism so this code only adds the
-    exception data in that case, but adds requested traceback information
-    for all other exception types.
-        exceptionType   : Type of exception, RuntimeError is special
+    to format the message for display. 
+    Formatting is performed by formatGuiException.
+        exceptionType   : Type of exception
         exceptionObject : Detailed exception information
         traceBack       : Exception traceback stack information
-                          Only valid for non-RuntimeError exceptionType
         detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
-                          Only valid for non-RuntimeError exceptionType
-    """  
+    """
     try:
         return formatGuiException(exceptionType, exceptionObject, traceBack, detail)
     except:
@@ -320,30 +234,25 @@ def _guiExcepthook( exceptionType, exceptionObject, traceBack, detail=2 ):
         del tb # see warning in sys.exc_type docs for why this is deleted here
 
         tbLines = []
-        tbLines.append("Error in  maya.utils.exceptionCallback:\n")
+        tbLines.append("Error in  maya.utils._guiExceptHook:\n")
         tbLines += traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
         
         tbLines.append("\nOriginal exception was:\n")
         tbLines += traceback.format_exception(exceptionType, exceptionObject, traceBack)
-        tbLines = prefixTraceStack(tbLines)
+        tbLines = _prefixTraceStack(tbLines)
         return ''.join(tbLines)
-
-# for 2011 beta2 compatibility
-formatGuiException = _guiExcepthook
 
 def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     """
-    format a trace stack into a list of strings.
+    Format a trace stack into a string.
 
-        exceptionType   : Type of exception, RuntimeError is special
+        exceptionType   : Type of exception
         exceptionObject : Detailed exception information
         traceBack       : Exception traceback stack information
-                          Only valid for non-RuntimeError exceptionType
         detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
-                          Only valid for non-RuntimeError exceptionType
                           
-    To perform an action when an exception occurs without modifying Maya's default printing
-    of exceptions, do the following::
+    To perform an action when an exception occurs without modifying Maya's 
+    default printing of exceptions, do the following::
     
         import maya.utils
         def myExceptCB(etype, value, tb):
@@ -364,7 +273,7 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     else:
         # extract a process stack from the tracekback object
         tbStack = traceback.extract_tb(traceBack)
-        tbStack = fixConsoleLineNumbers(tbStack)
+        tbStack = _fixConsoleLineNumbers(tbStack)
         if detail == 1:
             # format like MEL error with line number
             if tbStack:
@@ -374,52 +283,86 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
                 result = exceptionMsg
         else: # detail == 2
             # format the exception
-            excLines = decodeStack( traceback.format_exception_only(exceptionType, exceptionObject) )
+            excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
+            # traceback may have failed to decode a unicode exception value
+            # if so, we will swap the unicode back in
+            if len(excLines) > 0:
+                excLines[-1] = re.sub(r'<unprintable.*object>', exceptionMsg, excLines[-1])
             # format the traceback stack
-            tbLines = decodeStack( traceback.format_list(tbStack) )
+            tbLines = _decodeStack( traceback.format_list(tbStack) )
             if len(tbStack) > 0:
                 tbLines.insert(0, u'Traceback (most recent call last):\n')
             
-            # The stack trace is longer so the warning/error might
-            # get lost so it needs to be first.
-            result = ''.join( prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
+            # prefix the message to the stack trace so that it will be visible in
+            # the command line
+            result = ''.join( _prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
     return result
 
 # store a local unmodified copy
 _formatGuiException = formatGuiException
 
- 
-################################################################################
-# Batch Exception Handling
-#
+# ###############################################################################
+# Formatting helpers
 
-def formatBatchException(exceptionType, exceptionObject, traceBack):
+def _prefixTraceStack(tbStack, prefix = '# '):
     """
-    format a trace stack into a list of strings.
-    
-    To perform an action when an exception occurs without modifying Maya's default printing
-    of exceptions, do the following::
+    prefix with '#', being sure to get internal newlines. do not prefix first line
+    as that will be added automatically.
+    """
+    result = ''.join(tbStack).rstrip().split('\n')
+    size = len(result)-1
+    for i, line in enumerate(result):
+        if i < size:
+            line += '\n'
+        if i != 0:
+            line = prefix + line
+        result[i] = line
+    return result
+
+def _fixConsoleLineNumbers( tbStack ):
+    result = []
+    for file, line, func, text in tbStack:
+        if file == '<maya console>':
+            # In the Maya console the numbering is off by one so adjust
+            line -= 1
+        result.append( (file, line, func, text) )
+    return result
+
+def _decodeStack( tbStack ):
+    encoding = cmds.about(codeset=True)
+    return [ s.decode(encoding) for s in tbStack ]
+
+# ###############################################################################
+# Gui Results Formatting
+#
+def _guiResultHook(obj):
+    """
+    In GUI mode, called by the command engine to stringify a result for display.
+    """
+    return formatGuiResult(obj)
+
+def formatGuiResult(obj):
+    """
+    Gets a string representation of a result object.
+
+    To perform an action when a result is about to returned to the script editor
+    without modifying Maya's default printing of results, do the following:
     
         import maya.utils
-        def myExceptCB(etype, value, tb):
+        def myResultCallback(obj):
             # do something here...
-            return maya.utils._batchExceptionCallback(etype, value, tb)
-        maya.utils.batchExceptionCallback = myExceptCB
+            return maya.utils._formatGuiResult(obj)
+        maya.utils.formatGuiResult = myResultCallback
     """
-    return traceback.format_exception(exceptionType, exceptionObject, traceBack)
+    if isinstance(obj, types.StringTypes):
+        return obj
+    else:
+        return repr(obj)
 
 # store a local unmodified copy
-_formatBatchException = formatBatchException
+_formatGuiResult = formatGuiResult
 
-def _batchExcepthook( exceptionType, exceptionObject, traceBack ):
-    """
-    In batch mode, called by the interpreter when an exception is raised and uncaught.
-    """
-    # errors here are automatically handled by sys.excepthook
-    tbLines = formatBatchException(exceptionType, exceptionObject, traceBack)
-    sys.stderr.writelines( tbLines )
-
-# Copyright (C) 1997-2006 Autodesk, Inc., and/or its licensors.
+# Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
 # All rights reserved.
 #
 # The coded instructions, statements, computer programs, and/or related

@@ -91,6 +91,12 @@ def getMayaAppDir():
             
     return app_dir
 
+def setupFormatting():
+    import pprint
+    import maya.utils
+    def myResultCallback(obj):
+        return pprint.pformat(obj)
+    maya.utils.formatGuiResult = myResultCallback
 
 #def loadDynamicLibs():
 #    """
@@ -144,6 +150,8 @@ def mayaInit(forversion=None) :
     :return: returns True if maya.cmds required initializing ( in other words, we are in a standalone python interpreter )
     
     """
+    setupFormatting()
+    
     global isInitializing
     
     # test that Maya actually is loaded and that commands have been initialized,for the requested version
