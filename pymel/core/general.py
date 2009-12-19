@@ -8,13 +8,10 @@ and `Attribute <pymel.core.nodetypes.Attribute>`, see :mod:`pymel.core.nodetypes
 """
 
 
-import sys, os, re
-from getpass import getuser
-from socket import gethostname
-import inspect, timeit, time
+import sys, os, re, itertools, inspect
 
 import pymel.internal.pmcmds as cmds
-import pymel.util as util
+import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.api as _api
 
@@ -40,7 +37,7 @@ def _getPymelTypeFromObject(obj, name):
                 fnDepend = _api.MFnDependencyNode( obj )
                 mayaType = fnDepend.typeName()
                 import nodetypes
-                pymelType = getattr( nodetypes, util.capitalize(mayaType), nodetypes.DependNode )
+                pymelType = getattr( nodetypes, _util.capitalize(mayaType), nodetypes.DependNode )
 
             except RuntimeError:
                 raise MayaNodeError
@@ -168,7 +165,7 @@ Modifications:
         
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
     """
-    if len(args) == 1 and util.isIterable(args[0]):
+    if len(args) == 1 and _util.isIterable(args[0]):
         args = tuple(args[0])
     args = args + (obj,)
     return cmds.move(*args, **kwargs)
@@ -182,7 +179,7 @@ Modifications:
         
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
     """
-    if len(args) == 1 and util.isIterable(args[0]):
+    if len(args) == 1 and _util.isIterable(args[0]):
         args = tuple(args[0])
     args = args + (obj,)
     return cmds.scale(*args, **kwargs)
@@ -196,7 +193,7 @@ Modifications:
         
 NOTE: this command also reorders the argument order to be more intuitive, with the object first
     """
-    if len(args) == 1 and util.isIterable(args[0]):
+    if len(args) == 1 and _util.isIterable(args[0]):
         args = tuple(args[0])
     args = args + (obj,)
     return cmds.rotate(*args, **kwargs)
@@ -247,7 +244,7 @@ Modifications:
             if disconnectingInputs:
                 connections.reverse()
             
-            for src, dest in util.pairIter(connections):
+            for src, dest in _util.pairIter(connections):
                 cmds.disconnectAttr( src, dest, **kwargs )  
         
 def getAttr( attr, default=None, **kwargs ):
@@ -375,7 +372,7 @@ Modifications:
         
         
         # vector, matrix, and arrays
-        if util.isIterable(arg):
+        if _util.isIterable(arg):
             if datatype is None:
                 # if we're using force flag and the attribute does not exist
                 # we can infer the type from the passed value
@@ -385,7 +382,7 @@ Modifications:
                     attrName = nameparse.parse( attr )
                     assert attrName.isAttributeName(), "passed object is not an attribute"
                     try:
-                        if isinstance( arg[0], (basestring, util.ProxyUnicode ) ):
+                        if isinstance( arg[0], (basestring, _util.ProxyUnicode ) ):
                             datatype = 'stringArray'
                         elif isinstance( arg[0], (list,datatypes.Vector) ):
                             datatype = 'vectorArray'
@@ -504,7 +501,7 @@ Modifications:
                     else:
                         raise TypeError, "%s.setAttr: %s is not a supported type for use with the force flag" % ( __name__, type(arg) )
                                         
-                elif isinstance(arg,basestring) or isinstance(arg, util.ProxyUnicode):
+                elif isinstance(arg,basestring) or isinstance(arg, _util.ProxyUnicode):
                     kwargs['type'] = 'string'
 
     if datatype == 'matrix':
@@ -603,7 +600,7 @@ def listAttr(*args, **kwargs):
 Modifications:
   - returns an empty list when the result is None
     """
-    return util.listForNone(cmds.listAttr(*args, **kwargs))
+    return _util.listForNone(cmds.listAttr(*args, **kwargs))
       
 def listConnections(*args, **kwargs):
     """
@@ -623,7 +620,7 @@ Modifications:
     def makePairs(l):
         if l is None:
             return []
-        return [(PyNode(a), PyNode(b)) for (a, b) in util.pairIter(l)]
+        return [(PyNode(a), PyNode(b)) for (a, b) in _util.pairIter(l)]
             
     # group the core functionality into a funcion, so we can call in a loop when passed a list of types    
     def doIt(**kwargs):
@@ -652,12 +649,12 @@ Modifications:
             return makePairs( cmds.listConnections( *args,  **kwargs ) )
     
         else:
-            return map(PyNode, util.listForNone(cmds.listConnections( *args,  **kwargs )) )
+            return map(PyNode, _util.listForNone(cmds.listConnections( *args,  **kwargs )) )
     
     # if passed a list of types, concatenate the resutls
     # NOTE: there may be duplicate results if a leaf type and it's parent are both passed: ex.  animCurve and animCurveTL
     types = kwargs.get('type', kwargs.get('t',None))
-    if util.isIterable(types):
+    if _util.isIterable(types):
         types = list(set(types)) # remove dupes from types list
         kwargs.pop('type',None)
         kwargs.pop('t',None)
@@ -687,7 +684,7 @@ Modifications:
     if 'exactType' in kwargs:
         exactType = kwargs.pop('exactType')
 
-    results = [PyNode(x) for x in util.listForNone(cmds.listHistory( *args,  **kwargs ))]
+    results = [PyNode(x) for x in _util.listForNone(cmds.listHistory( *args,  **kwargs ))]
 
     if exactType:
         results = [x for x in results if x.nodeType() == exactType]
@@ -737,7 +734,7 @@ Modifications:
             return []
         return ls( res, shapes=1)
                 
-    return map(PyNode, util.listForNone(cmds.listRelatives(*args, **kwargs)))
+    return map(PyNode, _util.listForNone(cmds.listRelatives(*args, **kwargs)))
 
 
 def ls( *args, **kwargs ):
@@ -752,10 +749,10 @@ Modifications:
     kwargs.pop('l', None)
     
     if kwargs.pop('editable', False):
-        allNodes = util.listForNone(cmds.ls(*args, **kwargs))
+        allNodes = _util.listForNone(cmds.ls(*args, **kwargs))
         kwargs['readOnly'] = True
         kwargs.pop('ro',True)
-        roNodes = util.listForNone(cmds.ls(*args, **kwargs))
+        roNodes = _util.listForNone(cmds.ls(*args, **kwargs))
         
         # faster way?
         return map( PyNode, filter( lambda x: x not in roNodes, allNodes ) )
@@ -763,14 +760,14 @@ Modifications:
     # this has been removed because the method below
     # is 3x faster because it gets the pymel.core.node type along with the pymel.core.node list
     # unfortunately, it's still about 2x slower than cmds.ls
-    #return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+    #return map(PyNode, _util.listForNone(cmds.ls(*args, **kwargs)))
     
     if kwargs.get( 'readOnly', kwargs.get('ro', False) ):
         # when readOnly is provided showType is ignored
-        return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+        return map(PyNode, _util.listForNone(cmds.ls(*args, **kwargs)))
         
     if kwargs.get( 'showType', kwargs.get('st', False) ):
-        tmp = util.listForNone(cmds.ls(*args, **kwargs))
+        tmp = _util.listForNone(cmds.ls(*args, **kwargs))
         res = []
         for i in range(0,len(tmp),2):
             # res.append( PyNode( tmp[i], tmp[i+1] ) )
@@ -783,13 +780,13 @@ Modifications:
         return cmds.ls(*args, **kwargs)   
     
 #    kwargs['showType'] = True
-#    tmp = util.listForNone(cmds.ls(*args, **kwargs))
+#    tmp = _util.listForNone(cmds.ls(*args, **kwargs))
 #    res = []
 #    for i in range(0,len(tmp),2):
 #        res.append( PyNode( tmp[i], tmp[i+1] ) )
 #    
 #    return res
-    return map(PyNode, util.listForNone(cmds.ls(*args, **kwargs)))
+    return map(PyNode, _util.listForNone(cmds.ls(*args, **kwargs)))
     
  
 #    showType = kwargs.get( 'showType', kwargs.get('st', False) )
@@ -816,7 +813,7 @@ Modifications:
 #            except ValueError: pass
 #        return res
 #    else:
-#        tmp = util.listForNone(cmds.ls(*args, **kwargs))
+#        tmp = _util.listForNone(cmds.ls(*args, **kwargs))
 #        for i in range(0,len(tmp),2):
 #            typ = tmp[i+1]
 #            res.append( PyNode( tmp[i],  ) )    
@@ -1015,7 +1012,7 @@ Modifications:
   - returns wrapped classes
     """
     
-    return map(PyNode, util.listForNone(cmds.attributeInfo(*args, **kwargs)))
+    return map(PyNode, _util.listForNone(cmds.attributeInfo(*args, **kwargs)))
 '''
 
 def rename( obj, newname, **kwargs):
@@ -1099,7 +1096,7 @@ Modifications
             kwargs[flag] = args[0]
             
             # move arg over to kwarg
-            if util.isIterable(value):
+            if _util.isIterable(value):
                 args = tuple(value)
             elif isinstance( value, (basestring,PyNode) ):
                 args = (value,)
@@ -1116,15 +1113,15 @@ Modifications
 #    if kwargs.get( 'query', kwargs.get('q',False) ):
 #        size = len(kwargs)
 #        if size == 1 or (size==2 and kwargs.get( 'nodesOnly', kwargs.get('no',False) )  ) :
-#            return map( PyNode, util.listForNone(cmds.sets( *args, **kwargs )) )
+#            return map( PyNode, _util.listForNone(cmds.sets( *args, **kwargs )) )
 
     # Just get the result, then check if it's a list, rather than trying to
     # parse the kwargs...
     result = cmds.sets( *args, **kwargs )
     if isinstance(result, (bool, int, long, float)):
         return result
-    if util.isIterable(result):
-        return map( PyNode, util.listForNone(result) )
+    if _util.isIterable(result):
+        return map( PyNode, _util.listForNone(result) )
     elif result is None:
         return []
     else:
@@ -1178,7 +1175,7 @@ Modifications:
     """
     #if kwargs.pop('safe',False):
         # empty list
-    if len(args) ==1 and util.isIterable(args[0]) and not args[0]:
+    if len(args) ==1 and _util.isIterable(args[0]) and not args[0]:
         return
     
     cmds.delete(*args, **kwargs)
@@ -1272,7 +1269,7 @@ def _objectError(objectName):
 # Object Wrapper Classes
 #--------------------------
 
-class PyNode(util.ProxyUnicode):
+class PyNode(_util.ProxyUnicode):
     """
     Abstract class that is base for all pymel nodes classes.
  
@@ -1356,7 +1353,7 @@ class PyNode(util.ProxyUnicode):
                 if isinstance( argObj, Attribute ):
                     attrNode = argObj._node
                     argObj = argObj.__apiobjects__['MPlug']
-                elif isinstance( argObj, nodetypes.Component ):
+                elif isinstance( argObj, Component ):
                     try:
                         argObj = argObj._node.__apiobjects__[ 'MDagPath']
                     except KeyError:
@@ -1427,13 +1424,13 @@ class PyNode(util.ProxyUnicode):
 
 
             #-- Components
-            if nodetypes.validComponentIndexType(argObj):
+            if validComponentIndexType(argObj):
                 #pymelType, obj, name = _getPymelType( attrNode._apiobject )
                 obj = {'ComponentIndex' : argObj }
                 # if we are creating a component class using an int or slice, then we must specify a class type:
                 #    valid:    MeshEdge( myNode, 2 )
                 #    invalid:  PyNode( myNode, 2 )
-                assert issubclass(cls,nodetypes.Component), "%s is not a Component class" % cls.__name__
+                assert issubclass(cls,Component), "%s is not a Component class" % cls.__name__
                 
             #-- All Others
             else:
@@ -1526,7 +1523,7 @@ class PyNode(util.ProxyUnicode):
             # TODO : can add object creation option in the __init__ if desired
             
             if not pymelType or not issubclass( pymelType, cls ):
-                if issubclass( cls, nodetypes.Component ):
+                if issubclass( cls, Component ):
                     newcls = cls
                 else:
                     raise TypeError, "Determined type is %s, which is not a subclass of desired type %s" % ( pymelType.__name__, cls.__name__ )
@@ -1790,80 +1787,33 @@ _factories.pyNodeNamesToPyNodes['PyNode'] = PyNode
 #_factories.ApiTypeRegister.register('MDagPath', DagNode, inCast=_MDagPathIn )
 #_factories.ApiTypeRegister.register('MPlug', Attribute, inCast=_MPlugIn, outCast=_MPlugOut )
 
-
-def _makeAllParentFunc_and_ParentFuncWithGenerationArgument(baseParentFunc):
-    """
-    Generator function which makes 2 new 'parent' functions, given a baseParentFunc.
-    
-    The first function returns an array of all parents, starting from the parent immediately above, going up.
-    The second returns baseParentFunc, but adds an optional keyword arg, generations, used to control
-    the number of levels up to find the parent.
-
-    It is assumed that the first arg to baseParentFunc is the object whose parent we wish to find.
-    
-    The optional 'generations' keyword arg will be added as though it were the very FIRST
-    optional keyword arg given - ie, if we have:
-    
-    def baseParentFunc(mandatory1, mandatory2, optional1=None, optional2="foo", *args, **kwargs)
-    
-    then the function returned will be like a function declared like:
-    
-    parentFuncWithGenerations(mandatory1, mandatory2, generations=1, optional1=None, optional2="foo", *args, **kwargs)
-    """
-    namedArgs, varargs, varkwargs, defaults = inspect.getargspec(baseParentFunc)
-    if defaults is None:
-        mandatoryArgs = namedArgs
-        defaultArgs = {}
-    else:
-        mandatoryArgs = namedArgs[:-len(defaults)]
-        defaultArgs = dict(zip(namedArgs[-len(defaults):], defaults)) 
-    
-    def getAllParents(*args, **kwargs):
-        """Return a list of all parents above this.
+def _getParent( getter, obj, generations):    
+    if generations == 0:
+        return obj
+    elif generations >= 1:
+        try:
+            firstParent = getter(obj)
+        except:
+            return
         
-        Starts from the parent immediately above, going up."""
-        
-        x = baseParentFunc(*args, **kwargs)
-        res = []
-        while x:
-            res.append(x)
-            x = baseParentFunc(x, *args[1:], **kwargs)
-        return res
-    
-    def parentFuncWithGenerations(*args, **kwargs):
-        if 'generations' in kwargs:
-            generations = kwargs.pop('generations')
-        elif len(args) > len(mandatoryArgs):
-            args = list(args)
-            generations = args.pop(len(mandatoryArgs))
+        if generations == 1:
+            return firstParent
         else:
-            generations = 1
-
-        if generations == 0:
-            return args[0]
-        elif generations >= 1:
-            firstParent = baseParentFunc(*args, **kwargs)
-            
-            if generations == 1 or firstParent is None:
-                return firstParent
-            else:
-                kwargs['generations'] = generations - 1
-                return parentFuncWithGenerations(firstParent, *args[1:], **kwargs)
-        elif generations < 0:
-            allParents = getAllParents(*args, **kwargs)
-            
-            if -generations > (len(allParents) + 1):
-                return None
-            # Assures we can return self
-            elif -generations == (len(allParents) + 1):
-                return args[0]
-            else:
-                return allParents[generations]
-                        
-    parentFuncWithGenerations.__doc__ = baseParentFunc.__doc__
-    
-    return getAllParents, parentFuncWithGenerations
-              
+            return _getParent( firstParent, generations=generations-1 )
+    elif generations < 0:                
+        x = getter(obj)
+        allParents = []
+        while x:
+            allParents.append(x)
+            x = getter( x )
+        if -generations > (len(allParents) + 1):
+            return None
+        # Assures we can return self
+        elif -generations == (len(allParents) + 1):
+            return obj
+        else:
+            return allParents[generations]
+             
 class Attribute(PyNode):
     """
     
@@ -2870,9 +2820,10 @@ class Attribute(PyNode):
     children = getChildren
     
     def getSiblings(self):
-        """attributeQuery -listSiblings
+        """
+        attributeQuery -listSiblings
         
-        :rtype: `Attribute` list  
+        :rtype: `Attribute` list
         """
         try:
             return self.getParent().getChildren()
@@ -2881,6 +2832,14 @@ class Attribute(PyNode):
     siblings = getSiblings
     
     def firstParent(self):
+        "deprecated: use getParent instead"
+
+        try:
+            return Attribute( self.node(), self.__apimfn__().parent() )
+        except:
+            pass
+
+    def getParent(self, generations=1):
         """
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
@@ -2896,15 +2855,33 @@ class Attribute(PyNode):
         
         :rtype: `Attribute`  
         """
-        try:
-            return Attribute( self.node(), self.__apimfn__().parent() )
-        except:
-            pass
 
-    getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
-    parent = getParent
+        def getAttrParent(plug):
+            try:
+                return plug.parent()
+            except:
+                return None
         
-#}      
+        return Attribute( self.node(), _getParent(getAttrParent, self.__apimfn__(), generations) )
+
+    def getAllParents(self):
+        """
+        Return a list of all parents above this.
+        
+        Starts from the parent immediately above, going up.
+        
+        :rtype: `Attribute` list
+        """
+        
+        x = self.getParent()
+        res = []
+        while x:
+            res.append(x)
+            x = x.getParent()
+        return res
+
+    #getAllParents, getParent = _makeAllParentFunc_and_ParentFuncWithGenerationArgument(firstParent)
+    parent = getParent
 
 def _MObjectIn(x):
     if isinstance(x,PyNode): return x.__apimobject__()
@@ -2923,9 +2900,1290 @@ def _MPlugOut(self,x):
 _factories.ApiTypeRegister.register('MObject', PyNode, inCast=_MObjectIn )
 _factories.ApiTypeRegister.register('MDagPath', PyNode, inCast=_MDagPathIn )
 _factories.ApiTypeRegister.register('MPlug', PyNode, inCast=_MPlugIn, outCast=_MPlugOut )
-                   
-#from animation import listAnimatable as _listAnimatable
+   
+   
 
+# TODO:
+# -----
+# Seperate out _makeComponentHandle and _setComponentHandle - ie, order should be:
+#    1. _makeComponentHandle
+#    2. _makeMFnComponent
+#    3. _setComponentHandle
+# Implement makeComponentFromIndex - have it return an MObject handle
+# Implement multiple component labels! (ie, surface iso can be 'u' or 'v')
+# Add 'setCompleteData' when we can find how many components (instead of just 'setComplete')
+# Handle multiple _ComponentLabel__'s that refer to different flavors of same component type -
+#    ie, NurbsSurface.u/.v/.uv, transform.rotatePivot/scalePivot
+# NurbsSurfaceRange
+# Make it work with multiple component types in single component(?) 
+
+def _formatSlice(sliceObj):
+    startIndex, stopIndex, step = sliceObj.start, sliceObj.stop, sliceObj.step
+    if startIndex == stopIndex:
+        sliceStr = '%s' % startIndex
+    elif step is not None and step != 1:
+        sliceStr = '%s:%s:%s' % (startIndex, stopIndex, step)
+    else:
+        sliceStr = '%s:%s' % (startIndex, stopIndex)
+    return sliceStr 
+
+
+ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', makeDefaultInit=True)
+
+# Really, don't need to have another class inheriting from
+# the proxy class, but do this so I can define a method using
+# normal class syntax...
+class HashableSlice(ProxySlice):
+    def __init__(self, *args, **kwargs):
+        if len(args) == 1 and not kwargs and isinstance(args[0], (slice, HashableSlice)):
+            if isinstance(args[0], HashableSlice):
+                self._slice = args[0]._slice
+            else:
+                self._slice = args[0]
+        else:
+            self._slice = slice(*args, **kwargs)
+            
+    def __hash__(self):
+        if not hasattr(self, '_hash'):
+            self._hash = (self.start, self.stop, self.step).__hash__()
+        return self._hash
+    
+    @property
+    def start(self):
+        return self._slice.start
+      
+    @property
+    def stop(self):
+        return self._slice.stop
+
+    @property
+    def step(self):
+        return self._slice.step
+
+class Component( PyNode ):
+    """
+    Abstract base class for pymel components.
+    """
+    
+    __metaclass__ = _factories.MetaMayaComponentWrapper
+    _mfncompclass = _api.MFnComponent
+    _apienum__ = _api.MFn.kComponent
+    _ComponentLabel__ = None
+
+    # Maya 2008 and earlier have no kUint64SingleIndexedComponent /
+    # MFnUint64SingleIndexedComponent...
+    _componentEnums = [_api.MFn.kComponent,
+                       _api.MFn.kSingleIndexedComponent,
+                       _api.MFn.kDoubleIndexedComponent,
+                       _api.MFn.kTripleIndexedComponent]
+
+    if hasattr(_api.MFn, 'kUint64SingleIndexedComponent'):
+        _hasUint64 = True
+        _componentEnums.append(_api.MFn.kUint64SingleIndexedComponent)
+    else:
+        _hasUint64 = False
+
+
+    @classmethod
+    def _componentMObjEmpty(cls, mobj):
+        """
+        Returns true if the given component mobj is empty (has no elements).
+        """
+        
+#        Note that a component marked as complete will return elementCount == 0,
+#        even if it is not truly empty.
+#        
+#        Even MFnComponent.isEmpty will sometimes "lie" if component is complete.
+#        
+#        Try this:
+#        
+#        import maya.OpenMaya as api
+#        import maya.cmds as cmds
+#        
+#        melSphere = cmds.sphere()[0]
+#        selList = _api.MSelectionList()
+#        selList.add(melSphere + '.cv[*][*]')
+#        compObj = _api.MObject()
+#        dagPath = _api.MDagPath()
+#        selList.getDagPath(0, dagPath, compObj)
+#        mfnComp = _api.MFnDoubleIndexedComponent(compObj)
+#        print "is empty:", mfnComp.isEmpty()
+#        print "is complete:", mfnComp.isComplete()
+#        print "elementCount:", mfnComp.elementCount()
+#        print
+#        mfnComp.setComplete(True)
+#        print "is empty:", mfnComp.isEmpty()
+#        print "is complete:", mfnComp.isComplete()
+#        print "elementCount:", mfnComp.elementCount()
+#        print
+#        mfnComp.setComplete(False)
+#        print "is empty:", mfnComp.isEmpty()
+#        print "is complete:", mfnComp.isComplete()
+#        print "elementCount:", mfnComp.elementCount()
+#        print
+        
+        mfnComp = _api.MFnComponent(mobj)
+        completeStatus = mfnComp.isComplete()
+        if completeStatus:
+            mfnComp.setComplete(False)
+        isEmpty = mfnComp.isEmpty()
+        if completeStatus:
+            mfnComp.setComplete(True)
+        return isEmpty
+        
+    def __init__(self, *args, **kwargs ):
+        # the Component class can be instantiated several ways:
+        # Component(dagPath, component):
+        #    args get stored on self._node and
+        #    self.__apiobjects__['MObjectHandle'] respectively
+        # Component(dagPath):
+        #    in this case, stored on self.__apiobjects__['MDagPath']
+        #    (self._node will be None)
+        
+        # First, ensure that we have a self._node...
+        if not self._node :
+            dag = self.__apiobjects__['MDagPath']
+            self._node = PyNode(dag)
+        assert(self._node)
+
+        # Need to do indices checking even for non-dimensional
+        # components, because the ComponentIndex might be used to
+        # specify the 'flavor' of the component - ie, 'scalePivot' or
+        # 'rotatePivot' for Pivot components
+        self._indices = self.__apiobjects__.get('ComponentIndex', None)
+        
+        if self._indices:
+            if _util.isIterable(self._ComponentLabel__):
+                oldCompLabel = set(self._ComponentLabel__)
+            else:
+                oldCompLabel = set( (self._ComponentLabel__,) )
+            if isinstance(self._indices, dict):
+                if len(self._indices) > 1:
+                    isComplete = False
+                    assert set(self._indices.iterkeys()).issubset(oldCompLabel)
+                    self._ComponentLabel__ = self._indices.keys()
+                else:
+                    # dict only has length 1..
+                    self._ComponentLabel__ = self._indices.keys()[0]
+                    self._indices = self._indices.values()[0]
+            if isinstance(self._indices, ComponentIndex) and self._indices.label:
+                assert self._indices.label in oldCompLabel
+                self._ComponentLabel__ = self._indices.label
+        elif 'MObjectHandle' not in self.__apiobjects__:
+            # We're making a component by ComponentClass(shapeNode)...
+            # set a default label if one is specified
+            if self._defaultLabel():
+                self._ComponentLabel__ = self._defaultLabel()
+        
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this component, if it is valid"
+        try:
+            #print "NODE", self.node()
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+        
+    def __apimobject__(self) :
+        "get the MObject for this component if it is valid"
+        handle = self.__apihandle__()
+        if _api.isValidMObjectHandle( handle ) :
+            return handle.object()
+        # Can't use self.name(), as that references this!
+        raise MayaObjectError( self._completeNameString() )        
+
+    def __apiobject__(self) :
+        return self.__apimobject__()
+
+    def __apihandle__(self) :
+        if 'MObjectHandle' not in self.__apiobjects__:
+            handle = self._makeComponentHandle()
+            if not handle or not _api.isValidMObjectHandle(handle):
+                raise MayaObjectError( self._completeNameString() )
+            self.__apiobjects__['MObjectHandle'] = handle            
+        return self.__apiobjects__['MObjectHandle']
+
+    def __apicomponent__(self):
+        mfnComp = self.__apiobjects__.get('MFnComponent', None)
+        if mfnComp is None:
+            mfnComp = self._mfncompclass(self.__apimobject__())
+            self.__apiobjects__['MFnComponent'] = mfnComp
+        return mfnComp
+    
+    def __apimfn__(self):
+        return self.__apicomponent__()
+
+    def __eq__(self, other):
+        if not hasattr(other, '__apicomponent__'):
+            return False
+        return self.__apicomponent__().isEqual( other.__apicomponent__().object() )
+               
+    def __str__(self): 
+        return str(self.name())
+    
+    def __unicode__(self): 
+        return self.name()
+                
+    def _completeNameString(self):
+        return u'%s.%s' % ( self.node(), self.plugAttr())
+
+    def _makeComponentHandle(self):
+        component = None
+        # try making from MFnComponent.create, if _mfncompclass has it defined
+        if ('create' in dir(self._mfncompclass) and
+            self._apienum__ not in self._componentEnums + [None]):
+            try:
+                component = self._mfncompclass().create(self._apienum__)
+            # Note - there's a bug with kSurfaceFaceComponent - can't use create
+            except RuntimeError:
+                pass
+            else:
+                if not _api.isValidMObject(component):
+                    component = None        
+        
+        # that didn't work - try checking if we have a valid plugAttr  
+        if not component and self.plugAttr():
+            try:
+                component = _api.toApiObject(self._completeNameString())[1]
+            except:
+                pass
+            else:
+                if not _api.isValidMObject(component):
+                    component = None
+
+        # component objects we create always start out 'complete'
+        mfnComp = self._mfncompclass(component)
+        mfnComp.setComplete(True)
+
+        return _api.MObjectHandle(component)
+
+    def __melobject__(self):
+        selList = _api.MSelectionList()
+        selList.add(self.__apimdagpath__(), self.__apimobject__(), False)
+        strings = []
+        selList.getSelectionStrings(0, strings)
+        nodeName = self.node().name() + '.'
+        strings = [ nodeName + x.split('.',1)[-1] for x in strings ]
+        if not strings:
+            return self._completeNameString()
+        elif len(strings) == 1:
+            return strings[0]
+        else:
+            return strings
+            
+    def name(self):
+        melObj = self.__melobject__()
+        if isinstance(melObj, basestring):
+            return melObj
+        return repr(melObj)
+                
+    def node(self):
+        return self._node
+    
+    def plugAttr(self):
+        return self._ComponentLabel__
+    
+    def isComplete(self, *args, **kwargs):
+        return self.__apicomponent__().isComplete()
+    
+    @staticmethod
+    def numComponentsFromStrings(*componentStrings):
+        """
+        Does basic string processing to count the number of components
+        given a number of strings, which are assumed to be the valid mel names
+        of components. 
+        """
+        numComps = 0
+        for compString in componentStrings:
+            indices = re.findall(r'\[[^\]]*\]', compString)
+            newComps = 1
+            if indices:
+                for index in indices:
+                    if ':' in index:
+                        indexSplit = index.split(':')
+                        # + 1 is b/c mel indices are inclusive
+                        newComps *= int(indexSplit[1]) - int(indexSplit[0]) + 1
+            numComps += newComps
+        return numComps
+                    
+class DimensionedComponent( Component ):
+    """
+    Components for which having a __getitem__ of some sort makes sense
+    
+    ie, myComponent[X] would be reasonable.
+    """
+    # All components except for the pivot component and the unknown ones are
+    # indexable in some manner
+    
+    dimensions = 0
+
+    def __init__(self, *args, **kwargs ):
+        # the Component class can be instantiated several ways:
+        # Component(dagPath, component):
+        #    args get stored on self._node and
+        #    self.__apiobjects__['MObjectHandle'] respectively
+        # Component(dagPath):
+        #    in this case, stored on self.__apiobjects__['MDagPath']
+        #    (self._node will be None)
+        super(DimensionedComponent, self).__init__(*args, **kwargs)
+                        
+        isComplete = True
+
+        # If we're fed an MObjectHandle already, we don't allow
+        # __getitem__ indexing... unless it's complete
+        handle = self.__apiobjects__.get('MObjectHandle', None)
+        if handle is not None:
+            mfncomp = self._mfncompclass(handle.object())
+            if not mfncomp.isComplete():
+                isComplete = False
+
+        if isinstance(self._indices, dict) and len(self._indices) > 1:
+            isComplete = False
+                        
+        # If the component is complete, we allow further indexing of it using
+        # __getitem__
+        # Whether or not __getitem__ indexing is allowed, and what dimension
+        # we are currently indexing, is stored in _partialIndex
+        # If _partialIndex is None, __getitem__ indexing is NOT allowed
+        # Otherwise, _partialIndex should be a ComponentIndex object,
+        # and it's length indicates how many dimensions have already been
+        # specified. 
+        if isComplete:
+            # Do this test before doing 'if self._indices',
+            # because an empty ComponentIndex will be 'False',
+            # but could still have useful info (like 'label')!
+            if isinstance(self._indices, ComponentIndex):
+                if len(self._indices) < self.dimensions:
+                    self._partialIndex = self._indices
+                else:
+                    self._partialIndex = None
+            elif self._indices:
+                self._partialIndex = None
+            else:
+                self._partialIndex = ComponentIndex(label=self._ComponentLabel__)
+        else:
+            self._partialIndex = None
+            
+    def _defaultLabel(self):
+        """
+        Intended for classes such as NurbsSurfaceRange which have multiple possible
+        component labels (ie, u, v, uv), and we want to specify a 'default' one
+        so that we can do NurbsSurfaceRange(myNurbsSurface).
+
+        This should be None if either the component only has one label, or picking
+        a default doesn't make sense (ie, in the case of Pivot, we have no
+        idea whether the user would want the scale or rotate pivot, so
+        doing Pivot(myObject) makes no sense...
+        """
+        return None
+
+    def _completeNameString(self):
+        # Note - most multi-dimensional components allow selection of all
+        # components with only a single index - ie,
+        #    myNurbsSurface.cv[*]
+        # will work, even though nurbs cvs are double-indexed
+        # However, some multi-indexed components WON'T work like this, ie
+        #    myNurbsSurface.sf[*]
+        # FAILS, and you MUST do:
+        #    myNurbsSurface.sf[*][*]
+        return (super(DimensionedComponent, self)._completeNameString() +
+                 ('[*]' * self.dimensions))
+
+    def _makeComponentHandle(self):
+        indices = self._standardizeIndices(self._indices)
+        handle = self._makeIndexedComponentHandle(indices)
+        return handle 
+
+    def _makeIndexedComponentHandle(self, indices):
+        """
+        Returns an MObjectHandle that points to a maya component object with
+        the given indices.
+        """
+        selList = _api.MSelectionList()
+        for index in indices:
+            compName = Component._completeNameString(self)
+            for dimNum, dimIndex in enumerate(index):
+                if isinstance(dimIndex, (slice, HashableSlice)):
+                    # by the time we're gotten here, standardizedIndices
+                    # should have either flattened out slice-indices
+                    # (DiscreteComponents) or disallowed slices with
+                    # step values (ContinuousComponents)
+                    if dimIndex.start == dimIndex.stop == None:
+                        dimIndex = '*'
+                    else:
+                        if dimIndex.start is None:
+                            if isinstance(self, DiscreteComponent):
+                                start = 0
+                            else:
+                                partialIndex = ComponentIndex(('*',)*dimNum,
+                                                              index.label) 
+                                start = self._dimRange(partialIndex)[0]
+                        else:
+                            start = dimIndex.start
+                        if dimIndex.stop is None:
+                            partialIndex = ComponentIndex(('*',)*dimNum,
+                                                          index.label) 
+                            stop= self._dimRange(partialIndex)[1]
+                        else:
+                            stop = dimIndex.stop
+                        dimIndex = "%s:%s" % (start, stop)
+                compName += '[%s]' % dimIndex
+            try:
+                selList.add(compName)
+            except RuntimeError:
+                raise MayaComponentError(compName)
+        compMobj = _api.MObject()
+        dagPath = _api.MDagPath()
+        selList.getDagPath(0, dagPath, compMobj)
+        return _api.MObjectHandle(compMobj)
+
+    VALID_SINGLE_INDEX_TYPES = []  # re-define in derived!
+
+    def _standardizeIndices(self, indexObjs, allowIterable=True, label=None):
+        """
+        Convert indexObjs to an iterable of ComponentIndex objects.
+        
+        indexObjs may be a member of VALID_SINGLE_INDEX_TYPES, a
+        ComponentIndex object, or an iterable of such items (if allowIterable),
+        or 'None'
+        """
+        if indexObjs is None:
+            indexObjs = ComponentIndex(label=label)
+
+        indices = set()
+        # Convert single objects to a list
+        if isinstance(indexObjs, self.VALID_SINGLE_INDEX_TYPES):
+            if self.dimensions == 1:
+                if isinstance(indexObjs, (slice, HashableSlice)):
+                    return self._standardizeIndices(self._sliceToIndices(indexObjs), label=label)
+                else:
+                    indices.add(ComponentIndex((indexObjs,), label=label))
+            else:
+                raise IndexError("Single Index given for a multi-dimensional component")
+        elif isinstance(indexObjs, ComponentIndex):
+            if label and indexObjs.label and label != indexObjs.label:
+                raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
+                                 % (label, indexObjs.label))
+            indices.update(self._flattenIndex(indexObjs))
+        elif isinstance(indexObjs, dict):
+            # Dicts are used to specify component labels for a group of indices at once...
+            for dictLabel, dictIndices in indexObjs.iteritems():
+                if label and label != dictLabel:
+                    raise IndexError('ComponentIndex object had a different label than desired (wanted %s, found %s)'
+                                     % (label, dictLabel))
+                indices.update(self._standardizeIndices(dictIndices, label=dictLabel))
+        elif allowIterable and _util.isIterable(indexObjs):
+            for index in indexObjs:
+                indices.update(self._standardizeIndices(index,
+                                                        allowIterable=False,
+                                                        label=label))
+        else:
+            raise IndexError("Invalid indices for component: %r" % (indexObjs,) )
+        return tuple(indices)
+
+    def _sliceToIndices(self, sliceObj):
+        raise NotImplementedError
+    
+    def _flattenIndex(self, index, allowIterable=True):
+        """
+        Given a ComponentIndex object, which may be either a partial index (ie,
+        len(index) < self.dimensions), or whose individual-dimension indices
+        might be slices or iterables, return an flat list of ComponentIndex
+        objects. 
+        """
+        # Some components - such as face-vertices - need to know the previous
+        # indices to be able to fully expand the remaining indices... ie,
+        # faceVertex[1][2][:] may result in a different expansion than for
+        # faceVertex[3][8][:]...
+        # for this reason, we need to supply the previous indices to 
+        # _sliceToIndices, and expand on a per-partial-index basis
+        while len(index) < self.dimensions:
+            index = ComponentIndex(index + (HashableSlice(None),))
+        
+        indices = [ComponentIndex(label=index.label)]
+        for dimIndex in index:
+            if isinstance(dimIndex, (slice, HashableSlice)):
+                newIndices = []
+                for oldPartial in indices:
+                    newIndices.extend(self._sliceToIndices(dimIndex,
+                                                           partialIndex=oldPartial))
+                indices = newIndices
+            elif _util.isIterable(dimIndex):
+                if allowIterable: 
+                    newIndices = []
+                    for oldPartial in indices:
+                        for indice in dimIndex:
+                            newIndices.append(oldPartial + (indice,))
+                    indices = newIndices
+                else:
+                    raise IndexError(index)
+            elif isinstance(dimIndex, (float, int, long)) and dimIndex < 0:
+                indices = [x + (self._translateNegativeIndice(dimIndex,x),)
+                           for x in indices]
+            else:
+                indices = [x + (dimIndex,) for x in indices]
+        return indices
+    
+    def _translateNegativeIndice(self, negIndex, partialIndex):
+        raise NotImplementedError
+        assert negIndex < 0
+        self._dimLength
+
+    def __getitem__(self, item):
+        if self.currentDimension() is None:
+            raise IndexError("Indexing only allowed on an incompletely "
+                             "specified component (ie, 'cube.vtx')")
+        self._validateGetItemIndice(item)
+        return self.__class__(self._node,
+            ComponentIndex(self._partialIndex + (item,)))
+
+    def _validateGetItemIndice(self, item, allowIterables=True):
+        """
+        Will raise an appropriate IndexError if the given item
+        is not suitable as a __getitem__ indice.
+        """
+        if allowIterables and _util.isIterable(item):
+            for x in item:
+                self._validateGetItemIndice(x, allowIterables=False)
+            return
+        if not isinstance(item, self.VALID_SINGLE_INDEX_TYPES):
+            raise IndexError("Invalid indice type for %s: %r" %
+                             (self.__class__.__name__,
+                              item.__class__.__name__) )
+        if isinstance(item, (slice, HashableSlice)):
+            if item.step and item.step < 0:
+                raise IndexError("Components do not support slices with negative steps")
+            # 'None' compares as less than all numbers, so need
+            # to check for it explicitly
+            if item.start is None and item.stop is None:
+                # If it's an open range, [:], and slices are allowed,
+                # it's valid
+                return
+            elif item.start is None:
+                minIndex = maxIndex = item.stop
+            elif item.stop is None:
+                minIndex = maxIndex = item.start
+            else:
+                maxIndex = max(item.start, item.stop)
+                minIndex = min(item.start, item.stop)
+            if (not isinstance(maxIndex, self.VALID_SINGLE_INDEX_TYPES) or
+                not isinstance(minIndex, self.VALID_SINGLE_INDEX_TYPES)):
+                raise IndexError("Invalid slice start or stop value")
+        else:
+            maxIndex = minIndex = item
+        allowedRange = self._dimRange(self._partialIndex)
+        if minIndex < allowedRange[0] or maxIndex > allowedRange[1]:
+            raise IndexError("Indice %s out of range %s" % (item, allowedRange))        
+
+    def _dimRange(self, partialIndex):
+        """
+        Returns (minIndex, maxIndex) for the next dimension index after
+        the given partialIndex.
+        The range is inclusive.
+        """
+        raise NotImplemented
+
+    def _dimLength(self, partialIndex):
+        """
+        Given a partialIndex, returns the maximum value for the first
+         unspecified dimension.
+        """
+        # Implement in derived classes - no general way to determine the length
+        # of components!
+        raise NotImplementedError
+
+    def currentDimension(self):
+        """
+        Returns the dimension index that an index operation - ie, self[...] /
+        self.__getitem__(...) - will operate on.
+        
+        If the component is completely specified (ie, all dimensions are
+        already indexed), then None is returned.
+        """
+        if not hasattr(self, '_currentDimension'):
+            indices = self._partialIndex
+            if (indices is not None and
+                len(indices) < self.dimensions):
+                self._currentDimension = len(indices)
+            else:
+                self._currentDimension = None
+        return self._currentDimension
+
+class ComponentIndex( tuple ):
+    """
+    Class used to specify a multi-dimensional component index.
+    
+    If the length of a ComponentIndex object < the number of dimensions,
+    then the remaining dimensions are taken to be 'complete' (ie, have not yet
+    had indices specified).
+    """
+    def __new__(cls, *args, **kwargs):
+        """
+        :Parameters:
+        label : `string`
+            Component label for this index.
+            Useful for components whose 'mel name' may vary - ie, an isoparm
+            may be specified as u, v, or uv.
+        """
+        label = kwargs.pop('label', None)
+        self = tuple.__new__(cls, *args, **kwargs)
+        if not label and args and isinstance(args[0], ComponentIndex) and args[0].label:
+            self.label = args[0].label
+        else:
+            self.label = label
+        return self
+    
+    def __add__(self, other):
+        if isinstance(other, ComponentIndex) and other.label:
+            if not self.label:
+                label = other.label
+            else:
+                if other.label != self.label:
+                    raise ValueError('cannot add two ComponentIndex objects with different labels')
+                label = self.label
+        else:
+            label = self.label
+        return ComponentIndex(itertools.chain(self, other), label=label)
+    
+    def __repr__(self):
+        return "%s(%s, label=%r)" % (self.__class__.__name__,
+                                     super(ComponentIndex, self).__repr__(),
+                                     self.label)
+
+def validComponentIndexType( argObj, allowDicts=True, componentIndexTypes=None):
+    """
+    True if argObj is of a suitable type for specifying a component's index.
+    False otherwise.
+    
+    Dicts allow for components whose 'mel name' may vary - ie, a single
+    isoparm component may have, u, v, or uv elements; or, a single pivot
+    component may have scalePivot and rotatePivot elements.  The key of the
+    dict would indicate the 'mel component name', and the value the actual
+    indices.
+    
+    Thus:
+       {'u':3, 'v':(4,5), 'uv':ComponentIndex((1,4)) }
+    would represent single component that contained:
+       .u[3]
+       .v[4]
+       .v[5]
+       .uv[1][4]
+       
+    Derived classes should implement:
+    _dimLength           
+    """
+    if not componentIndexTypes:
+        componentIndexTypes = (int, long, float, slice, HashableSlice, ComponentIndex)
+    
+    if allowDicts and isinstance(argObj, dict):
+        for key, value in argObj.iteritems():
+            if not validComponentIndexType(value, allowDicts=False):
+                return False
+        return True
+    else:
+        if isinstance(argObj, componentIndexTypes):
+            return True
+        elif isinstance( argObj, (list,tuple) ) and len(argObj):
+            for indice in argObj:
+                if not isinstance(indice, componentIndexTypes):
+                    return False
+            else:
+                return True
+    return False
+
+class DiscreteComponent( DimensionedComponent ):
+    """
+    Components whose dimensions are discretely indexed.
+    
+    Ie, there are a finite number of possible components, referenced by integer
+    indices.
+    
+    Example: polyCube.vtx[38], f.cv[3][2]
+    
+    Derived classes should implement:
+    _dimLength    
+    """
+
+    VALID_SINGLE_INDEX_TYPES = (int, long, slice, HashableSlice)
+    
+    def __init__(self, *args, **kwargs):
+        self.reset()
+        super(DiscreteComponent, self).__init__(*args, **kwargs)
+
+    def _sliceToIndices(self, sliceObj, partialIndex=None):
+        """
+        Converts a slice object to an iterable of the indices it represents.
+        
+        If a partialIndex is supplied, then sliceObj is taken to be a slice
+        at the next dimension not specified by partialIndex - ie,
+        
+        myFaceVertex._sliceToIndices(slice(1,-1), partialIndex=ComponentIndex((3,)))
+        
+        might be used to get a component such as
+        
+        faceVertices[3][1:-1]
+        """
+        
+        if partialIndex is None:
+            partialIndex = ComponentIndex()
+
+        # store these in local variables, to avoid constantly making
+        # new slice objects, since slice objects are immutable
+        start = sliceObj.start
+        stop = sliceObj.stop
+        step = sliceObj.step
+        
+        if start is None:
+            start = 0
+            
+        if step is None:
+            step = 1
+
+        # convert 'maya slices' to 'python slices'...
+        # ie, in maya, someObj.vtx[2:3] would mean:
+        #  (vertices[2], vertices[3])
+        # in python, it would mean:
+        #  (vertices[2],)        
+        if stop is not None and stop >= 0:
+            stop += 1
+        
+        if stop is None or start < 0 or stop < 0 or step < 0:
+            start, stop, step = slice(start, stop, step).indices(self._dimLength(partialIndex))
+
+        # Made this return a normal list for easier debugging...
+        # ... can always make it back to a generator if need it for speed
+        for rawIndex in xrange(start, stop, step):
+            yield ComponentIndex(partialIndex + (rawIndex,))
+#        return [ComponentIndex(partialIndex + (rawIndex,))
+#                for rawIndex in xrange(start, stop, step)]
+    
+    def _makeIndexedComponentHandle(self, indices):
+        # We could always create our component using the selection list
+        # method; but since this has to do string processing, it is slower...
+        # so use MFnComponent.addElements method if possible.
+        handle = Component._makeComponentHandle(self)
+        if self._componentMObjEmpty(handle.object()):
+            mayaArrays = [] 
+            for dimIndices in zip(*indices):
+                mayaArrays.append(self._pyArrayToMayaArray(dimIndices))
+            mfnComp = self._mfncompclass(handle.object())
+            mfnComp.setComplete(False)
+            mfnComp.addElements(*mayaArrays)
+            return handle
+        else:
+            return super(DiscreteComponent, self)._makeIndexedComponentHandle(indices)
+
+    @classmethod
+    def _pyArrayToMayaArray(cls, pythonArray):
+        mayaArray = _api.MIntArray()
+        _api.MScriptUtil.createIntArrayFromList( list(pythonArray), mayaArray)
+        return mayaArray
+    
+    def _dimRange(self, partialIndex):
+        dimLen = self._dimLength(partialIndex)
+        return (-dimLen, dimLen - 1)
+
+    def _translateNegativeIndice(self, negIndex, partialIndex):
+        assert negIndex < 0
+        return self._dimLength(partialIndex) + negIndex
+    
+    def __iter__(self):
+        # We proceed in two ways, depending on whether we're a
+        # completely-specified component (ie, no longer indexable),
+        # or partially-specified (ie, still indexable).
+        for compIndex in self._compIndexObjIter():
+            yield self.__class__(self._node, compIndex)
+            
+    def _compIndexObjIter(self):
+        """
+        An iterator over all the indices contained by this component,
+        as ComponentIndex objects (which are a subclass of tuple).
+        """
+        if self.currentDimension() is None:
+            # we're completely specified, do flat iteration
+            return self._flatIter()
+        else:
+            # we're incompletely specified, iterate across the dimensions!
+            return self._dimensionIter()
+
+    # Essentially identical to _compIndexObjIter, except that while
+    # _compIndexObjIter, this is intended for use by end-user,
+    # and so if it's more 'intuitive' to return some other object,
+    # it will be overriden in derived classes to do so.
+    # ie, for Component1D, this will return ints
+    indicesIter = _compIndexObjIter
+
+    def indices(self):
+        """
+        A list of all the indices contained by this component.
+        """
+        return list(self.indicesIter())
+
+    def _dimensionIter(self):
+        # If we're incompletely specified, then if, for instance, we're
+        # iterating through all the vertices of a poly with 500,000 verts,
+        # then it's a huge waste of time / space to create a list of
+        # 500,000 indices in memory, then iterate through it, when we could
+        # just as easily generate the indices as we go with an xrange
+        # Since an MFnComponent is essentially a flat list of such indices
+        # - only it's stored in maya's private memory space - we AVOID
+        # calling __apicomponent__ in this case!
+        
+        # self._partialIndex may have slices...
+        for index in self._flattenIndex(self._partialIndex):
+            yield index
+        
+    def _flatIter(self):
+        #If we're completely specified, we assume that we NEED
+        # to have some sort of list of indicies just in order to know
+        # what this component obejct holds (ie, we might have
+        # [1][4], [3][80], [3][100], [4][10], etc)
+        # ...so we assume that we're not losing any speed / memory
+        # by iterating through a 'list of indices' stored in memory
+        # in our case, this list of indices is the MFnComponent object
+        # itself, and is stored in maya's memory, but the idea is the same... 
+
+        # This code duplicates much of currentItem - keeping both
+        # for speed, as _flatIter may potentially have to plow through a lot of
+        # components, so we don't want to make an extra function call...
+
+        dimensionIndicePtrs = []
+        mfncomp = self.__apicomponent__()
+        for i in xrange(self.dimensions):
+            dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
+            
+        for flatIndex in xrange(len(self)):
+            mfncomp.getElement(flatIndex, *[x() for x in dimensionIndicePtrs])
+            yield ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
+
+    def __len__(self):
+        return self.__apicomponent__().elementCount()
+
+    def count(self):
+        return len(self)
+
+    def setIndex(self, index):
+        if not 0 <= index < len(self):
+            raise IndexError
+        self._currentFlatIndex = index
+        return self
+    
+    def getIndex(self):
+        return self._currentFlatIndex            
+            
+    def currentItem(self):
+        # This code duplicates much of _flatIter - keeping both
+        # for speed, as _flatIter may potentially have to plow through a lot of
+        # components, so we don't want to make an extra function call...
+        
+        dimensionIndicePtrs = []
+        mfncomp = self.__apicomponent__()
+        for i in xrange(self.dimensions):
+            dimensionIndicePtrs.append(_api.SafeApiPtr('int'))
+
+        mfncomp.getElement(self._currentFlatIndex, *[x() for x in dimensionIndicePtrs])
+        curIndex = ComponentIndex( [x.get() for x in dimensionIndicePtrs] )
+        return self.__class__(self._node, curIndex)
+            
+    def next(self):
+        if self._stopIteration:
+            raise StopIteration
+        elif not self:
+            self._stopIteration = True
+            raise StopIteration
+        else:
+            toReturn = self.currentItem()
+            try:
+                self.setIndex(self.getIndex() + 1)
+            except IndexError:
+                self._stopIteration = True
+            return toReturn
+    
+    def reset(self):
+        self._stopIteration = False
+        self._currentFlatIndex = 0
+        
+
+class ContinuousComponent( DimensionedComponent ):
+    """
+    Components whose dimensions are continuous.
+    
+    Ie, there are an infinite number of possible components, referenced by
+    floating point parameters.
+    
+    Example: nurbsCurve.u[7.48], nurbsSurface.uv[3.85][2.1]
+    
+    Derived classes should implement:
+    _dimRange      
+    """
+    VALID_SINGLE_INDEX_TYPES = (int, long, float, slice, HashableSlice)
+    
+    def _standardizeIndices(self, indexObjs, **kwargs):
+        return super(ContinuousComponent, self)._standardizeIndices(indexObjs,
+                                                           allowIterable=False,
+                                                           **kwargs)
+
+    def _sliceToIndices(self, sliceObj, partialIndex=None):
+        # Note that as opposed to a DiscreteComponent, where we
+        # always want to flatten a slice into it's discrete elements,
+        # with a ContinuousComponent a slice is a perfectly valid
+        # indices... the only caveat is we need to convert it to a
+        # HashableSlice, as we will be sticking it into a set...        
+        if sliceObj.step != None:
+            raise MayaComponentError("%ss may not use slice-indices with a 'step' -  bad slice: %s" %
+                                 (self.__class__.__name__, sliceObj))
+        if partialIndex is None:
+            partialIndex = ComponentIndex()
+        if sliceObj.start == sliceObj.stop == None:
+            return (partialIndex + (HashableSlice(None), ), )
+        else:
+            return (partialIndex +
+                    (HashableSlice(sliceObj.start, sliceObj.stop),), )
+
+    def __iter__(self):
+        raise TypeError("%r object is not iterable" % self.__class__.__name__)
+
+    def _dimLength(self, partialIndex):
+        # Note that in the default implementation, used
+        # by DiscreteComponent, _dimRange depends on _dimLength.
+        # In ContinuousComponent, the opposite is True - _dimLength
+        # depends on _dimRange
+        range = self._dimRange(partialIndex)
+        return range[1] - range[0]
+    
+    def _dimRange(self, partialIndex):
+        # Note that in the default implementation, used
+        # by DiscreteComponent, _dimRange depends on _dimLength.
+        # In ContinuousComponent, the opposite is True - _dimLength
+        # depends on _dimRange
+        raise NotImplementedError
+    
+    def _translateNegativeIndice(self, negIndex, partialIndex):
+        return negIndex
+            
+class Component1DFloat( ContinuousComponent ):
+    dimensions = 1
+
+class Component2DFloat( ContinuousComponent ):
+    dimensions = 2
+
+class Component1D( DiscreteComponent ):
+    _mfncompclass = _api.MFnSingleIndexedComponent
+    _apienum__ = _api.MFn.kSingleIndexedComponent
+    dimensions = 1
+
+    @staticmethod
+    def _sequenceToComponentSlice( array ):
+        """given an array, convert to a maya-formatted slice"""
+        
+        return [ HashableSlice( x.start, x.stop-1, x.step) for x in _util.sequenceToSlices( array ) ]
+
+
+    def name(self):
+        # this function produces a name that uses extended slice notation, such as vtx[10:40:2]
+        melobj = self.__melobject__()
+        if isinstance(melobj, basestring):
+            return melobj
+        else:
+            compSlice = self._sequenceToComponentSlice( self.indicesIter() )
+            sliceStr = ','.join( [ _formatSlice(x) for x in compSlice ] )
+            return self._completeNameString().replace( '*', sliceStr )
+
+    def _flatIter(self):
+        # for some reason, the command to get an element is 'element' for
+        # 1D components, and 'getElement' for 2D/3D... so parent class's
+        # _flatIter won't work!
+        # Just as well, we get a more efficient iterator for 1D comps...
+        mfncomp = self.__apicomponent__()
+        for flatIndex in xrange(len(self)):
+            yield ComponentIndex( (mfncomp.element(flatIndex),) )
+            
+    def currentItem(self):
+        mfncomp = self.__apicomponent__()
+        return self.__class__(self._node, mfncomp.element(self._currentFlatIndex))
+    
+    def indicesIter(self):
+        """
+        An iterator over all the indices contained by this component,
+        as integers.
+        """
+        for compIndex in self._compIndexObjIter():
+            yield compIndex[0]
+            
+class Component2D( DiscreteComponent ):
+    _mfncompclass = _api.MFnDoubleIndexedComponent
+    _apienum__ = _api.MFn.kDoubleIndexedComponent
+    dimensions = 2
+    
+class Component3D( DiscreteComponent ):
+    _mfncompclass = _api.MFnTripleIndexedComponent
+    _apienum__ = _api.MFn.kTripleIndexedComponent
+    dimensions = 3
+
+# Mixin class for components which use MIt* objects for some functionality
+class MItComponent( Component ):
+    """
+    Abstract base class for pymel components that can be accessed via iterators.
+    
+    (ie, `MeshEdge`, `MeshVertex`, and `MeshFace` can be wrapped around
+    MItMeshEdge, etc)
+    
+    If deriving from this class, you should set __apicls__ to an appropriate
+    MIt* type - ie, for MeshEdge, you would set __apicls__ = _api.MItMeshEdge
+    """
+#
+    def __init__(self, *args, **kwargs ):
+        super(MItComponent, self).__init__(*args, **kwargs)
+    
+    def __apimit__(self, alwaysUnindexed=False):
+        # Note - the iterator should NOT be stored, as if it gets out of date,
+        # it can cause crashes - see, for instance, MItMeshEdge.geomChanged
+        # Since we don't know how the user might end up using the components
+        # we feed out, and it seems like asking for trouble to have them
+        # keep track of when things such as geomChanged need to be called,
+        # we simply never retain the MIt for long..
+        if self._currentFlatIndex == 0 or alwaysUnindexed:
+            return self.__apicls__( self.__apimdagpath__(), self.__apimobject__() )
+        else:
+            return self.__apicls__( self.__apimdagpath__(), self.currentItem().__apimobject__() )
+    
+    def __apimfn__(self):
+        return self.__apimit__()
+    
+class MItComponent1D( MItComponent, Component1D ): pass
+
+class Component1D64( DiscreteComponent ):
+    if Component._hasUint64:
+        _mfncompclass = _api.MFnUint64SingleIndexedComponent
+        _apienum__ = _api.MFn.kUint64SingleIndexedComponent
+        
+    else:
+        _mfncompclass = _api.MFnComponent
+        _apienum__ = _api.MFn.kComponent
+
+    if Component._hasUint64 and hasattr(_api, 'MUint64'):
+        # Note that currently the python api has zero support for MUint64's
+        # This code is just here because I'm an optimist...
+        @classmethod
+        def _pyArrayToMayaArray(cls, pythonArray):
+            mayaArray = _api.MUint64Array(len(pythonArray))
+            for i, value in enumerate(pythonArray):
+                mayaArray.set(value, i)
+            return mayaArray
+    else:
+        # Component indices aren't sequential, and without MUint64, the only
+        # way to check if a given indice is valid is by trying to insert it
+        # into an MSelectionList... since this is both potentially fairly
+        # slow, for now just going to 'open up the gates' as far as
+        # validation is concerned...
+        _max32 = 2**32
+        def _dimLength(self, partialIndex):
+            return self._max32
+
+        # The ContinuousComponent version works fine for us - just
+        # make sure we grab the original function object, not the method
+        # object, since we don't inherit from ContinuousComponent
+        _sliceToIndices = ContinuousComponent._sliceToIndices.im_func
+
+        # We're basically having to fall back on strings here, so revert 'back'
+        # to the string implementation of various methods...
+        _makeIndexedComponentHandle = DimensionedComponent._makeIndexedComponentHandle
+
+        def __len__(self):
+            if hasattr(self, '_storedLen'):
+                return self._storedLen
+            else:
+                # subd MIt*'s have no .count(), and there is no appropriate
+                # MFn, so count it using strings...
+                melStrings = self.__melobject__()
+                if _util.isIterable(melStrings):
+                    count = Component.numComponentsFromStrings(*melStrings)
+                else:
+                    count = Component.numComponentsFromStrings(melStrings)
+                self._storedLen = count
+                return count
+            
+        # The standard _flatIter relies on being able to use element/getElement
+        # Since we can't use these, due to lack of MUint64, fall back on
+        # string processing...
+        _indicesRe = re.compile( r'\[((?:\d+(?::\d+)?)|\*)\]'*2 + '$' )
+        def _flatIter(self):
+            if not hasattr(self, '_fullIndices'):
+                melobj = self.__melobject__()
+                if isinstance(melobj, basestring):
+                    melobj = [melobj]
+                indices = [ self._indicesRe.search(x).groups() for x in melobj ]
+                for i, indicePair in enumerate(indices):
+                    processedPair = []
+                    for dimIndice in indicePair:
+                        if dimIndice == '*':
+                            processedPair.append(HashableSlice(None))
+                        elif ':' in dimIndice:
+                            start, stop = dimIndice.split(':')
+                            processedPair.append(HashableSlice(int(start),
+                                                               int(stop)))
+                        else:
+                            processedPair.append(int(dimIndice))
+                    indices[i] = ComponentIndex(processedPair)
+                self._fullIndices = indices
+            for fullIndex in self._fullIndices:
+                for index in self._flattenIndex(fullIndex):
+                    yield index
+        
+    # kUint64SingleIndexedComponent components have a bit of a dual-personality
+    # - though internally represented as a single-indexed long-int, in almost
+    # all of the "interface", they are displayed as double-indexed-ints:
+    # ie, if you select a subd vertex, it might be displayed as
+    #    mySubd.smp[256][4388]
+    # Since the end user will mostly "see" the component as double-indexed,
+    # the default pymel indexing will be double-indexed, so we set dimensions
+    # to 2, and then hand correct cases where self.dimensions affects how
+    # we're interacting with the kUint64SingleIndexedComponent
+    dimensions = 2
+
+## Specific Components...
+
+## Pivot Components
+
+class Pivot( Component ):
+    _apienum__ = _api.MFn.kPivotComponent
+    _ComponentLabel__ = ("rotatePivot", "scalePivot") 
+
+class ComponentArray(object):
+    def __init__(self, name):
+        self._name = name
+        self._iterIndex = 0
+        self._node = self.node()
+        
+    def __str__(self):
+        return self._name
+        
+    def __repr__(self):
+        return "ComponentArray(u'%s')" % self
+    
+    #def __len__(self):
+    #    return 0
+        
+    def __iter__(self):
+#        """iterator for multi-attributes
+#        
+#            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]: 
+#            ...     print attr
+#            
+#        """
+        return self
+                
+    def next(self):
+#        """iterator for multi-attributes
+#        
+#            >>> for attr in SCENE.persp.attrInfo(multi=1)[0]: 
+#            ...    print attr
+#            
+#        """
+        if self._iterIndex >= len(self):
+            raise StopIteration
+        else:                        
+            new = self[ self._iterIndex ]
+            self._iterIndex += 1
+            return new
+            
+    def __getitem__(self, item):
+        
+        def formatSlice(item):
+            step = item.step
+            if step is not None:
+                return '%s:%s:%s' % ( item.start, item.stop, step) 
+            else:
+                return '%s:%s' % ( item.start, item.stop ) 
+        
+ 
+#        if isinstance( item, tuple ):            
+#            return [ Component(u'%s[%s]' % (self, formatSlice(x)) ) for x in  item ]
+#            
+#        elif isinstance( item, slice ):
+#            return Component(u'%s[%s]' % (self, formatSlice(item) ) )
+#
+#        else:
+#            return Component(u'%s[%s]' % (self, item) )
+
+        if isinstance( item, tuple ):            
+            return [ self.returnClass( self._node, formatSlice(x) ) for x in  item ]
+            
+        elif isinstance( item, (slice, HashableSlice) ):
+            return self.returnClass( self._node, formatSlice(item) )
+
+        else:
+            return self.returnClass( self._node, item )
+
+
+    def plugNode(self):
+        'plugNode'
+        return PyNode( str(self).split('.')[0])
+                
+    def plugAttr(self):
+        """plugAttr"""
+        return '.'.join(str(self).split('.')[1:])
+
+    node = plugNode
+                
+class _Component(object):
+    """
+    Abstract base class for component types like vertices, edges, and faces.
+    
+    This class is deprecated.
+    """
+    def __init__(self, node, item):
+        self._item = item
+        self._node = node
+                
+    def __repr__(self):
+        return "%s('%s')" % (self.__class__.__name__, self)
+        
+    def node(self):
+        'plugNode'
+        return self._node
+    
+    def item(self):
+        return self._item    
+        
+    def move( self, *args, **kwargs ):
+        return move( self, *args, **kwargs )
+    def scale( self, *args, **kwargs ):
+        return scale( self, *args, **kwargs )    
+    def rotate( self, *args, **kwargs ):
+        return rotate( self, *args, **kwargs )
+
+class AttributeDefaults(PyNode):
+    __metaclass__ = _factories.MetaMayaTypeWrapper
+    __apicls__ = _api.MFnAttribute
+    
+    def __apiobject__(self) :
+        "Return the default API object for this attribute, if it is valid"
+        return self.__apimobject__()
+    
+    def __apimobject__(self):
+        "Return the MObject for this attribute, if it is valid"
+        try:
+            handle = self.__apiobjects__['MObjectHandle']
+        except:
+            handle = self.__apiobjects__['MPlug'].attribute()
+            self.__apiobjects__['MObjectHandle'] = handle
+        if _api.isValidMObjectHandle( handle ):
+            return handle.object()
+
+        raise MayaAttributeError
+    
+    def __apimplug__(self) :
+        "Return the MPlug for this attribute, if it is valid"
+        # check validity
+        #self.__apimobject__()
+        return self.__apiobjects__['MPlug']
+
+    def __apimdagpath__(self) :
+        "Return the MDagPath for the node of this attribute, if it is valid"
+        try:
+            return self.node().__apimdagpath__()
+        except AttributeError: pass
+
+                
 #-----------------------------------------------
 #  Global Settings
 #-----------------------------------------------
@@ -2948,7 +4206,7 @@ class Scene(object):
     
     An instance of this class is provided for you with the name `SCENE`. 
     """
-    __metaclass__ = util.Singleton
+    __metaclass__ = _util.Singleton
     def __getattr__(self, obj):
         if obj.startswith('__') and obj.endswith('__'):
             try:
