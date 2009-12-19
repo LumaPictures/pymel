@@ -959,8 +959,19 @@ class DependNode( general.PyNode ):
                         result = result.elementByLogicalIndex( token.value )
                 return general.Attribute( self.__apiobject__(), result )
             else:
-                # NOTE: not sure if this should be True or False
-                return general.Attribute( self.__apiobject__(), self.__apimfn__().findPlug( attr, False ) ) 
+                try:
+                    plug = self.__apimfn__().findPlug( attr, False )
+                except RuntimeError:
+                    # aliases
+                    obj = _api.MObject()
+                    self.__apimfn__().findAlias( attr, obj )
+                    plug = self.__apimfn__().findPlug( obj, False )
+                    # the following technique gets aliased attributes as well. turning dagPlugs to off saves time because we already
+                    # know the dagNode. however, certain attributes, such as rotatePivot, are detected as components,
+                    # despite the fact that findPlug finds them as MPlugs. need to look into this
+                    # TODO: test speed versus above method
+                    # _api.toApiObject(self.name() + '.' + attr, dagPlugs=False) 
+                return general.Attribute( self.__apiobject__(), plug )
             
         except RuntimeError:
             # raise our own MayaAttributeError, which subclasses AttributeError and MayaObjectError
@@ -1019,13 +1030,51 @@ class DependNode( general.PyNode ):
     listAnimatable = _listAnimatable
 
     def listAttr( self, **kwargs):
-        """listAttr
+        """
+        listAttr
         
+        Modifications:
+          - returns an empty list when the result is None
+          - added 'alias' keyword to list attributes that have aliases
         :rtype: `Attribute` list
         
         """
+        alias = kwargs.pop('alias', False)
         # stringify fix
-        return map( lambda x: self.attr(x), _util.listForNone(cmds.listAttr(self.name(), **kwargs)))
+        res = map( lambda x: self.attr(x), _util.listForNone(cmds.listAttr(self.name(), **kwargs)))
+        if alias:
+            res = [ x[1] for x in self.listAliases() if x[1] in res] 
+            
+#            aliases = dict( (x[1], x[0]) for x in general.aliasAttr(self.name()) )
+#            tmp = res
+#            res = []
+#            for at in tmp:
+#                try:
+#                    res.append( aliases[at], at )
+#                except KeyError:
+#                    pass
+        return res
+    
+    def listAliases( self ):
+        """
+        aliasAttr
+
+        Modifications:
+          - returns an empty list when the result is None
+          - when queried, returns a list of (alias, `Attribute`) pairs.
+        
+        :rtype: (`str`, `Attribute`) list
+        
+        """
+    
+        #tmp = _util.listForNone(cmds.aliasAttr(self.name(),query=True))
+        tmp = []
+        self.__apimfn__().getAliasList(tmp)
+        res = []
+        for i in range(0,len(tmp),2):
+            res.append((tmp[i], general.Attribute(self.node() + '.' + tmp[i+1])))
+        return res
+
 
     def attrInfo( self, **kwargs):
         """attributeInfo
