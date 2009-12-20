@@ -57,7 +57,39 @@ nodeTypeToInfoCommand = {
 
 virtualClass = util.defaultdict(list)
 
-                               
+def toPyNode(res):
+    "returns a PyNode"
+    import pymel.core.general
+    return pymel.core.general.PyNode(res)
+
+def toPyNodeList(res):
+    "returns a list of PyNodes"
+    import pymel.core.general
+    return [ pymel.core.general.PyNode(x) for x in res ]
+
+simpleCommandWraps = {
+    'createRenderLayer' : [ (None, [toPyNode]) ],
+    'createDisplayLayer': [ (None, [toPyNode]) ],
+    'distanceDimension' : [ (None, [toPyNode]) ], 
+    'listAttr'          : [ (None, [util.listForNone]) ], 
+    'instance'          : [ (None, [toPyNodeList]) ], 
+    'getPanel'          : [ (None, [util.listForNone]) ], 
+    'textScrollList'    : [ ([('query', 'q'), ('selectIndexedItem', 'sii')],  [util.listForNone]),
+                            ([('query', 'q'), ('allItems', 'ai')],            [util.listForNone]),
+                            ([('query', 'q'), ('selectItem', 'si',)],         [util.listForNone])],
+
+    #'textScrollList'    : ( [('query', 'q'), ('selectIndexedItem', 'sii', 'allItems', 'ai', 'selectItem', 'si' )],  [util.listForNone] ),
+                            
+    #'textScrollList'    : [ 'query', [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)],  [util.listForNone]],
+                                               
+    'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
+                            ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
+
+    'optionMenuGrp'     : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
+                            ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
+
+    'modelEditor'       : [ ([('query', 'q'), ('camera', 'cam')],             [toPyNode]) ],
+}                             
 #---------------------------------------------------------------
    
 if includeDocExamples:
@@ -418,7 +450,9 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
         newUiFunc.__name__ = funcName
     else:
         newUiFunc.__name__ = inFunc.__name__
-    newUiFunc.__module__ = inFunc.__module__   
+    newUiFunc.__module__ = inFunc.__module__
+    newUiFunc.__doc__ = inFunc.__doc__
+     
     return  newUiFunc
 
 def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None, uiWidget=False ):
@@ -439,6 +473,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         if module and module!=cmds:
             try:       
                 inFunc = getattr(module, funcName)
+                customFunc = True
             except AttributeError:
                 #if funcName == 'lsThroughFilter': #_logger.debug("function %s not found in module %s" % ( funcName, module.__name__))
                 pass
@@ -446,6 +481,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         if not inFunc:
             try:
                 inFunc = getattr(pmcmds,funcName)
+                customFunc = False
                 #if funcName == 'lsThroughFilter': #_logger.debug("function %s found in module %s: %s" % ( funcName, cmds.__name__, inFunc.__name__))
             except AttributeError:
                 #_logger.debug('Cannot find function %s' % funcNameOrObject)
@@ -453,7 +489,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     else:
         funcName = funcNameOrObject.__name__
         inFunc = funcNameOrObject
-
+        customFunc = True
+    
     # Do some sanity checks...
     if not callable(inFunc):
         _logger.warn('%s not callable' % funcNameOrObject)
@@ -477,29 +514,13 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     
     # some refactoring done here - to avoid code duplication (and make things clearer),
     # we now ALWAYS do things in the following order:
-        # 1. Check if we need a newFunction, or can modify existing one, and set our newFunc appropriately
-        # 2. Perform operations which modify the execution of the function (ie, adding return funcs)
-        # 3. Modify the function descriptors - ie, __doc__, __name__, etc
+        # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
+        # 2. Modify the function descriptors - ie, __doc__, __name__, etc
         
-    # 1. Check if we need a newFunction, or can modify existing one, and set our newFunc appropriately
-    if returnFunc or timeRangeFlags or not (funcType == types.BuiltinFunctionType or rename):
-        # if it's a non-builtin function and we're not renaming we don't need to create a
-        # new function - just tack docs onto existing one
-        # alternately, if there's a return function or timeRange flags it will cause us to do a wrap below anyway, 
-        # so it's safe to use a builtin as a starting point 
-        newFunc = inFunc
-    else:
-        # otherwise, we'll need a new function: we don't want to touch built-ins, or
-        # rename an existing function, as that can screw things up... just modifying docs
-        # of non-builtin should be fine, though
-        def newFunc(*args, **kwargs):
-            return inFunc(*args, **kwargs)
         
-        # TODO: since adding returnFuncs is so common, move the code for that here, to avoid
-        # an extra level of function wrapping
-        
-    # 2. Perform operations which modify the execution of the function (ie, adding return funcs)
+    # 1. Perform operations which modify the execution of the function (ie, adding return funcs)
 
+    newFunc = inFunc
     
     if returnFunc or timeRangeFlags:
         # need to define a seperate var here to hold
@@ -559,6 +580,30 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                     except: pass
             return res
         newFunc = newFuncWithReturnFunc
+    
+    if not customFunc and funcName in simpleCommandWraps:
+        # simple wraps: we only do these for functions which have not been manually customized
+        #'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
+        #                        ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
+        wraps = simpleCommandWraps[funcName]
+        beforeSimpleWrap = newFunc
+        def simpleWrapFunc(*args, **kwargs):
+            res = beforeSimpleWrap(*args, **kwargs)
+            for wrappedFlags, returnFuncs in wraps:
+                if wrappedFlags is None or all( [kwargs.get(flag[0],False) or kwargs.get(flag[1],False) for flag in wrappedFlags] ):
+                    for returnFunc in returnFuncs:
+                        res = returnFunc(res)
+            return res
+        newFunc = simpleWrapFunc
+        doc = 'Modifications:\n'
+        for wrappedFlags, returnFuncs in wraps: 
+            if wrappedFlags:
+                flags = ' for flags ' + ', '.join([ x[0] for x in wrappedFlags ])
+            else:
+                flags = ''
+            for returnFunc in returnFuncs:
+                doc += '  - ' + returnFunc.__doc__.strip() + flags + '\n'
+        newFunc.__doc__  = doc
         
     #----------------------------        
     # UI commands with callbacks
@@ -568,10 +613,18 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     if callbackFlags:
         newFunc = fixCallbacks( newFunc, callbackFlags, funcName )
 
-        
-    # 3. Modify the function descriptors - ie, __doc__, __name__, etc
-    
-    newFunc.__doc__ = inFunc.__doc__
+    # Check if we have not been wrapped yet. if we haven't and our function is still a builtin or we're renaming
+    # then we need a wrap. otherwise we can just change the __doc__ and __name__ and move on
+    if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
+        # we'll need a new function: we don't want to touch built-ins, or
+        # rename an existing function, as that can screw things up... just modifying docs
+        # of non-builtin should be fine, though
+        def newFunc(*args, **kwargs):
+            return inFunc(*args, **kwargs)
+          
+    # 2. Modify the function descriptors - ie, __doc__, __name__, etc
+    if customFunc:
+        newFunc.__doc__ = inFunc.__doc__
     _addCmdDocs( newFunc, funcName )
 
     if rename: 
@@ -2288,15 +2341,6 @@ class MetaMayaUIWrapper(_MetaMayaCommandWrapper):
         
         # TODO: implement a option at the cmdlist level that triggers listForNone 
         # TODO: create labelArray for *Grp ui elements, which passes to the correct arg ( labelArray3, labelArray4, etc ) based on length of passed array
-        
-        
-        if 'Layout' in classname:
-            def clear(self):
-                children = self.getChildArray()
-                if children:
-                    for child in self.getChildArray():
-                        pmcmds.deleteUI(child)
-            classdict['clear'] = clear
             
         return super(MetaMayaUIWrapper, cls).__new__(cls, classname, bases, classdict)
     
