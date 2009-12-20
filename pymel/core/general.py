@@ -595,12 +595,12 @@ def hasAttr( pyObj, attr, checkShape=True ):
 #  List Functions
 #-----------------------
 
-def listAttr(*args, **kwargs):
-    """
-Modifications:
-  - returns an empty list when the result is None
-    """
-    return _util.listForNone(cmds.listAttr(*args, **kwargs))
+#def listAttr(*args, **kwargs):
+#    """
+#Modifications:
+#  - returns an empty list when the result is None
+#    """
+#    return _util.listForNone(cmds.listAttr(*args, **kwargs))
 
 def listConnections(*args, **kwargs):
     """
@@ -753,7 +753,7 @@ Modifications:
         [nt.Transform(u'group1|top'), nt.Camera(u'group1|top|topShape'), nt.Transform(u'group2|top'), nt.Camera(u'group2|top|topShape')]
         >>> ls(regex='group\d+\|top.*', cameras=1)
         [nt.Camera(u'group2|top|topShape'), nt.Camera(u'group1|top|topShape')]
-        >>> ls(regex='\|group\d+\|top.*', cameras=1) # add a leading pipe
+        >>> ls(regex='\|group\d+\|top.*', cameras=1) # add a leading pipe to search for full path
         [nt.Camera(u'group1|top|topShape')]
         
     The regular expression will be used to search the full DAG path, starting from the right, in a similar fashion to how globs currently work.
@@ -1049,12 +1049,12 @@ Modifications:
         select(newShapes, r=1)
         return newShapes
     
-def instance( *args, **kwargs ):
-    """
-Modifications:
-  - returns wrapped classes
-    """
-    return map(PyNode, cmds.instance( *args, **kwargs ) )    
+#def instance( *args, **kwargs ):
+#    """
+#Modifications:
+#  - returns wrapped classes
+#    """
+#    return map(PyNode, cmds.instance( *args, **kwargs ) )    
 
 '''        
 def attributeInfo( *args, **kwargs ):

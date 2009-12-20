@@ -393,48 +393,48 @@ Maya Bug Fix:
         cmds.scriptTable( uiName, e=1, **kwargs)    
     return _uitypes.ScriptTable(uiName)
     
-def getPanel(*args, **kwargs):
-    """
-Modifications:
-  - returns an empty list when the result is None
-    """
-    return _util.listForNone( cmds.getPanel(*args, **kwargs ) )
-
-
-def textScrollList( *args, **kwargs ):
-    """
-Modifications:
-  - returns an empty list when the result is None for queries: selectIndexedItem, allItems, selectItem queries
-    """
-    res = cmds.textScrollList(*args, **kwargs)
-    return _factories.listForNoneQuery( res, kwargs, [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)] )
-
-def optionMenu( *args, **kwargs ):
-    """
-Modifications:
-  - returns an empty list when the result is None for queries: itemListLong, itemListShort queries
-    """
-    res = cmds.optionMenu(*args, **kwargs)
-    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
-
-def optionMenuGrp( *args, **kwargs ):
-    """
-Modifications:
-  - returns an empty list when the result is None for queries: itemlistLong, itemListShort queries
-    """
-    res = cmds.optionMenuGrp(*args, **kwargs)
-    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
-
-def modelEditor( *args, **kwargs ):
-    """
-Modifications:
-  - casts to PyNode for queries: camera
-    """
-    res = cmds.modelEditor(*args, **kwargs)
-    if kwargs.get('query', kwargs.get('q')) and kwargs.get( 'camera', kwargs.get('cam')):
-        import general
-        return general.PyNode(res)
-    return res
+#def getPanel(*args, **kwargs):
+#    """
+#Modifications:
+#  - returns an empty list when the result is None
+#    """
+#    return _util.listForNone( cmds.getPanel(*args, **kwargs ) )
+#
+#
+#def textScrollList( *args, **kwargs ):
+#    """
+#Modifications:
+#  - returns an empty list when the result is None for queries: selectIndexedItem, allItems, selectItem queries
+#    """
+#    res = cmds.textScrollList(*args, **kwargs)
+#    return _factories.listForNoneQuery( res, kwargs, [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)] )
+#
+#def optionMenu( *args, **kwargs ):
+#    """
+#Modifications:
+#  - returns an empty list when the result is None for queries: itemListLong, itemListShort queries
+#    """
+#    res = cmds.optionMenu(*args, **kwargs)
+#    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
+#
+#def optionMenuGrp( *args, **kwargs ):
+#    """
+#Modifications:
+#  - returns an empty list when the result is None for queries: itemlistLong, itemListShort queries
+#    """
+#    res = cmds.optionMenuGrp(*args, **kwargs)
+#    return _factories.listForNoneQuery( res, kwargs, [('itemListLong', 'ill'), ('itemListShort', 'ils')] )
+#
+#def modelEditor( *args, **kwargs ):
+#    """
+#Modifications:
+#  - casts to PyNode for queries: camera
+#    """
+#    res = cmds.modelEditor(*args, **kwargs)
+#    if kwargs.get('query', kwargs.get('q')) and kwargs.get( 'camera', kwargs.get('cam')):
+#        import general
+#        return general.PyNode(res)
+#    return res
  
 #===============================================================================
 # Provides classes and functions to facilitate UI creation in Maya
@@ -676,11 +676,7 @@ def _createClassCommands():
         create a callback that will trigger lazyLoading
         """
         def callback(*args, **kwargs):
-            #print "creating ui element", classname
-            if classname == 'MenuItem': # This is because MenuItems can also be SubMenuItems depending on flags at creation
-                return _uitypes.PyUI(getattr(_uitypes, classname)(*args, **kwargs))
-            else:
-                return getattr(_uitypes, classname)(*args, **kwargs)
+            return getattr(_uitypes, classname)(*args, **kwargs)
         return callback
      
     for funcName in _factories.uiClassList:

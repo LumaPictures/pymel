@@ -114,10 +114,10 @@ Maya Bug Fix:
     
     return _general.PyNode( cmds.ambientLight(*args, **kwargs)  )
 
-def createRenderLayer(*args, **kwargs):
-    return _general.PyNode( cmds.createRenderLayer(*args, **kwargs) )
-
-def createDisplayLayer(*args, **kwargs):
-    return _general.PyNode( cmds.createDisplayLayer(*args, **kwargs) )
+#def createRenderLayer(*args, **kwargs):
+#    return _general.PyNode( cmds.createRenderLayer(*args, **kwargs) )
+#
+#def createDisplayLayer(*args, **kwargs):
+#    return _general.PyNode( cmds.createDisplayLayer(*args, **kwargs) )
 
 _factories.createFunctions( __name__, _general.PyNode )
