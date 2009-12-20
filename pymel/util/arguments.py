@@ -342,6 +342,7 @@ def breadth( iterable, testFn=isIterable, limit=sys.getrecursionlimit()):
             yield arg
                    
 def listForNone( res ):
+    "returns an empty list when the result is None"
     if res is None:
         return []
     return res
