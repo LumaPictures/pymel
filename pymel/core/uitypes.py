@@ -3,6 +3,7 @@ import pymel.util as _util
 import pymel.internal.pmcmds as cmds
 import pymel.internal.factories as _factories
 import pymel.internal as _internal
+import pymel.versions as versions
 import maya.mel as _mm
 _logger = _internal.getLogger(__name__)
 
@@ -42,14 +43,20 @@ class UI(unicode):
                 _logger.debug("UI: created... %s" % name)
             else:
                 if '|' not in name and not issubclass(cls,Window):
-                    uiObjs = _util.listForNone(cmds.lsUI( long=1, type=cls.__melcmd__.__name__))
-                    res = [ x for x in uiObjs if x.endswith( '|' + name) ]
-                    print name, res
-                    if len(res) > 1:
-                        raise ValueError, "found more than one UI element matching the name %s" % name
-                    elif len(res) == 0:
-                        raise ValueError, "could not find a UI element matching the name %s" % name
-                    name = res[0]
+                    try:
+                        uiObjs = _util.listForNone(cmds.lsUI( long=True, type=cls.__melcmd__.__name__))
+                    except RuntimeError:
+                        # editors don't have a long name, so we keep the short name
+                        if name not in cmds.lsUI( long=True,editors=True):
+                            raise
+                    else:
+                        res = [ x for x in uiObjs if x.endswith( '|' + name) ]
+                        print name, res
+                        if len(res) > 1:
+                            raise ValueError, "found more than one UI element matching the name %s" % name
+                        elif len(res) == 0:
+                            raise ValueError, "could not find a UI element matching the name %s" % name
+                        name = res[0]
         
         return unicode.__new__(cls,name)
 
@@ -62,15 +69,16 @@ class UI(unicode):
            parent flag is set
         """
         return not name or create or ( 'q' not in kwargs and kwargs.get('parent', kwargs.get('p', None)) )
-            
-#    def exists():
-#        try: return cls.__melcmd__(name, ex=1)
-#        except: pass
         
     def __repr__(self):
         return u"ui.%s('%s')" % (self.__class__.__name__, self)
     def parent(self):
-        return PyUI( '|'.join( unicode(self).split('|')[:-1] ) )
+        buf = unicode(self).split('|')[:-1]
+        if len(buf)==2 and buf[0] == buf[1] and versions.current() < versions.v2011:
+            # pre-2011, windows with menus can have a strange name:
+            # ex.  window1|window1|menu1
+            buf = buf[:1]
+        return PyUI( '|'.join( buf ) )
     getParent = parent
     
     def type(self):
@@ -90,9 +98,9 @@ class UI(unicode):
     rename = _factories.functionFactory( 'renameUI', rename='rename' )
     type = _factories.functionFactory( 'objectTypeUI', rename='type' )
 
-    @staticmethod
-    def exists(name):
-        return cmds.__melcmd__( name, exists=True )
+    @classmethod
+    def exists(cls, name):
+        return cls.__melcmd__( name, exists=True )
     
 class Layout(UI):
     def __enter__(self):
@@ -147,11 +155,21 @@ class Layout(UI):
         cmds.setParent(p)
         return p
     
+    def clear(self):
+        children = self.getChildArray()
+        if children:
+            for child in self.getChildArray():
+                cmds.deleteUI(child)
+                        
 # customized ui classes
 class Window(Layout):
     """pymel window class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
 
+    if versions.current() < versions.v2011:
+        def __enter__(self):
+            return self
+    
     def __exit__(self, type, value, traceback):
         self.show()
         
@@ -369,9 +387,8 @@ class Menu(UI):
             return [MenuItem(item) for item in cmds.menu(self,query=True,itemArray=True)]
         else:
             return []
-
+    
 class SubMenuItem(Menu):
-    __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
         cmds.setParent(self,menu=True)
         return self
@@ -382,13 +399,14 @@ class SubMenuItem(Menu):
         return p
     
     def getBoldFont(self):
-        return pm.menuItem(sub_menu,query=True,boldFont=True)
+        return cmds.menuItem(self,query=True,boldFont=True)
     
     def getItalicized(self):
-        return pm.menuItem(sub_menu,query=True,italicized=True)
+        return cmds.menuItem(self,query=True,italicized=True)
 
-class MenuItem(UI):
+class CommandMenuItem(UI):
     __metaclass__ = _factories.MetaMayaUIWrapper
+    __melui__ = cmds.menuItem
     def __enter__(self):
         cmds.setParent(self,menu=True)
         return self
@@ -397,6 +415,21 @@ class MenuItem(UI):
         p = self.parent()
         cmds.setParent(p,menu=True)
         return p
+
+def MenuItem(name=None, create=False, **kwargs):
+    if UI._isBeingCreated(name, create, kwargs):
+        cls = CommandMenuItem
+    else:
+        try:
+            uiType = cmds.objectTypeUI(name)
+        except RuntimeError:
+            cls = SubMenuItem
+        else:
+            if uiType == 'subMenuItem':
+                cls = SubMenuItem
+            else:
+                cls = CommandMenuItem
+    return cls(name, create, **kwargs)
 
 class UITemplate(object):
     """
@@ -663,11 +696,11 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         return system.Path( self.getText() )
       
 _uiTypesToCommands = {
-    'commandMenuItem':'menuItem',
     'radioCluster':'radioCollection',
     'rowGroupLayout' : 'rowLayout',
     'TcolorIndexSlider' : 'rowLayout',
-    'TcolorSlider' : 'rowLayout'
+    'TcolorSlider' : 'rowLayout',
+    'floatingWindow' : 'window'
     }
 
 def PyUI(strObj, uiType=None):
