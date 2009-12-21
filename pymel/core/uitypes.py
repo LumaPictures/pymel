@@ -22,43 +22,76 @@ def _resolveUIFunc(name):
         import inspect
         if inspect.isfunction(name):
             return name 
-        elif inspect.isclass(name) and issubclass(name, UI):
+        elif inspect.isclass(name) and issubclass(name, PyUI):
             name.__melcmd__()
                     
     raise ValueError, "%r is not a known ui type" % name
 
-class UI(unicode):
+class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
-        Provides the ability to create the UI Element when creating a class::
+        Provides the ability to create the PyUI Element when creating a class::
         
             import pymel.core as pm
             n = pm.Window("myWindow",create=True)
             n.__repr__()
             # Result: Window('myWindow')
         """
-        if not cls is UI:
+
+        if cls is PyUI:
+            try:
+                uiType = cmds.objectTypeUI(name)
+                uiType = _uiTypesToCommands.get(uiType, uiType)
+            except RuntimeError:
+                try:
+                    # some ui types (radioCollections) can only be identified with their shortname
+                    uiType = cmds.objectTypeUI(name.split('|')[-1])
+                    uiType = _uiTypesToCommands.get(uiType, uiType)
+                except RuntimeError:
+                    # we cannot query the type of rowGroupLayout children: check common types for these
+                    uiType = None
+                    for control in 'checkBox floatField button floatSlider intSlider ' \
+                            'floatField textField intField optionMenu radioButton'.split():
+                        if getattr(cmds, control)( name, ex=1, q=1):
+                            uiType = control
+                            break
+                    if not uiType:
+                        uiType = 'PyUI'
+            try:
+                newcls = getattr(dynModule, _util.capitalize(uiType) )
+            except AttributeError:
+                newcls = PyUI
+        else:
+            newcls = cls
+    
+        if not newcls is PyUI:
             if cls._isBeingCreated(name, create, kwargs):
-                name = cls.__melcmd__(name, **kwargs)
-                _logger.debug("UI: created... %s" % name)
+                name = newcls.__melcmd__(name, **kwargs)
+                _logger.debug("PyUI: created... %s" % name)
             else:
-                if '|' not in name and not issubclass(cls,Window):
+                # find the long name
+                if '|' not in name and not issubclass(newcls,Window):
                     try:
-                        uiObjs = _util.listForNone(cmds.lsUI( long=True, type=cls.__melcmd__.__name__))
+                        default = newcls.__melcmd__.__name__
+                        # this remap is currently for OptionMenu, but the fix only works in 2011
+                        # lsUI won't list popupMenus or optionMenus
+                        uiObjs = _util.listForNone(cmds.lsUI( long=True, type=_commandsToUITypes.get(default, default)))
                     except RuntimeError:
                         # editors don't have a long name, so we keep the short name
                         if name not in cmds.lsUI( long=True,editors=True):
                             raise
                     else:
                         res = [ x for x in uiObjs if x.endswith( '|' + name) ]
-                        print name, res
                         if len(res) > 1:
                             raise ValueError, "found more than one UI element matching the name %s" % name
                         elif len(res) == 0:
                             raise ValueError, "could not find a UI element matching the name %s" % name
                         name = res[0]
         
-        return unicode.__new__(cls,name)
+        # correct for optionMenu
+        if newcls == PopupMenu and cmds.optionMenu( name, ex=1 ):
+            newcls = OptionMenu
+        return unicode.__new__(newcls,name)
 
     @staticmethod
     def _isBeingCreated( name, create, kwargs):
@@ -102,7 +135,7 @@ class UI(unicode):
     def exists(cls, name):
         return cls.__melcmd__( name, exists=True )
     
-class Layout(UI):
+class Layout(PyUI):
     def __enter__(self):
         self.makeDefault()
         return self
@@ -137,7 +170,7 @@ class Layout(UI):
                 kwargs.pop('p', None) 
         kwargs['parent'] = self
         res = uiType(*args, **kwargs)
-        if not isinstance(res, UI):
+        if not isinstance(res, PyUI):
             res = PyUI(res)
         return res
     
@@ -166,9 +199,10 @@ class Window(Layout):
     """pymel window class"""
     __metaclass__ = _factories.MetaMayaUIWrapper
 
-    if versions.current() < versions.v2011:
-        def __enter__(self):
-            return self
+#    if versions.current() < versions.v2011:
+#        # don't set 
+#        def __enter__(self):
+#            return self
     
     def __exit__(self, type, value, traceback):
         self.show()
@@ -322,7 +356,7 @@ class AutoLayout(FormLayout):
         self.redistribute()
         self.pop()
          
-class TextScrollList(UI):
+class TextScrollList(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def extend( self, appendList ):
         """ append a list of strings"""
@@ -345,7 +379,18 @@ class TextScrollList(UI):
         numberOfItems = self.getNumberOfItems()
         self.selectIndexedItems(range(1,numberOfItems+1))
 
-class OptionMenu(UI):
+class PopupMenu(PyUI):
+    __metaclass__ = _factories.MetaMayaUIWrapper
+    def __enter__(self):
+        cmds.setParent(self,menu=True)
+        return self
+                
+    def __exit__(self, type, value, traceback):
+        p = self.parent()
+        cmds.setParent(p)
+        return p
+    
+class OptionMenu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
         cmds.setParent(self,menu=True)
@@ -369,7 +414,7 @@ class OptionMenu(UI):
             cmds.deleteUI(t)
     addItems = addMenuItems
 
-class Menu(UI):
+class Menu(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     def __enter__(self):
         cmds.setParent(self,menu=True)
@@ -404,7 +449,7 @@ class SubMenuItem(Menu):
     def getItalicized(self):
         return cmds.menuItem(self,query=True,italicized=True)
 
-class CommandMenuItem(UI):
+class CommandMenuItem(PyUI):
     __metaclass__ = _factories.MetaMayaUIWrapper
     __melui__ = cmds.menuItem
     def __enter__(self):
@@ -417,7 +462,7 @@ class CommandMenuItem(UI):
         return p
 
 def MenuItem(name=None, create=False, **kwargs):
-    if UI._isBeingCreated(name, create, kwargs):
+    if PyUI._isBeingCreated(name, create, kwargs):
         cls = CommandMenuItem
     else:
         try:
@@ -640,7 +685,7 @@ def _createUIClasses():
             if classname.endswith('Layout'):
                 bases = (Layout,)
             else:
-                bases = (UI,)
+                bases = (PyUI,)
             dynModule[classname] = (_factories.MetaMayaUIWrapper, (classname, bases, {}) )
 
 _createUIClasses()
@@ -694,7 +739,13 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
     def getPath(self):
         import system
         return system.Path( self.getText() )
-      
+
+# all optionMenus are popupMenus, but not all popupMenus are optionMenus
+_commandsToUITypes = {
+    'optionMenu':'popupMenu',
+    }
+
+# most of the keys here are names that are only used in certain circumstances 
 _uiTypesToCommands = {
     'radioCluster':'radioCollection',
     'rowGroupLayout' : 'rowLayout',
@@ -702,32 +753,6 @@ _uiTypesToCommands = {
     'TcolorSlider' : 'rowLayout',
     'floatingWindow' : 'window'
     }
-
-def PyUI(strObj, uiType=None):
-
-    if not uiType:
-        try:
-            uiType = cmds.objectTypeUI(strObj)
-            uiType = _uiTypesToCommands.get(uiType, uiType)
-        except RuntimeError:
-            try:
-                # some ui types (radioCollections) can only be identified with their shortname
-                uiType = cmds.objectTypeUI(strObj.split('|')[-1])
-                uiType = _uiTypesToCommands.get(uiType, uiType)
-            except RuntimeError:
-                # we cannot query the type of rowGroupLayout children: check common types for these
-                for control in 'checkBox floatField button floatSlider intSlider ' \
-                        'floatField textField intField optionMenu radioButton'.split():
-                    if getattr(cmds, control)( strObj, ex=1, q=1):
-                        uiType = control
-                        break
-                if not uiType:
-                    uiType = 'UI'
-
-    try:
-        return getattr(dynModule, _util.capitalize(uiType) )(strObj)
-    except AttributeError:
-        return UI(strObj)
 
 dynModule._lazyModule_update()
 

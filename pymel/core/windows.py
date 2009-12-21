@@ -631,7 +631,7 @@ def valueControlGrp(name=None, create=False, dataType=None, slider=True, value=N
     floatFieldArgs = ['precision', 'pre']
     verticalArgs = ['vertical', 'vr'] #checkBoxGrp and radioButtonGrp only
     
-    if _uitypes.UI._isBeingCreated(name, create, kwargs):
+    if _uitypes.PyUI._isBeingCreated(name, create, kwargs):
         assert dataType, "You must pass a dataType when creating a new control"
         if not isinstance(dataType, basestring):
             try:
