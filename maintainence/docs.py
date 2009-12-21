@@ -3,6 +3,9 @@ import sys
 import os, glob
 os.environ['PYMEL_INCLUDE_EXAMPLES'] = 'True'
 import pymel
+# make sure dynamic modules are fully loaded
+from pymel.core.uitypes import *
+from pymel.core.nodetypes import *
 
 docsdir = os.path.join( os.path.dirname(os.path.dirname( pymel.__file__)), 'docs') 
               
