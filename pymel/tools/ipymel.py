@@ -33,6 +33,9 @@ except ImportError, e:
 import IPython.ipapi
 ip = IPython.ipapi.get()
 
+from IPython.ColorANSI import TermColors, ColorScheme, ColorSchemeTable
+from IPython.genutils import page
+
 import readline
 delim = readline.get_completer_delims()
 delim = delim.replace('|', '') # remove pipes
@@ -46,6 +49,55 @@ from pymel import core
 import maya.cmds as cmds
 
 import IPython.Extensions.ipy_completers
+
+_scheme_default = 'Linux'
+
+Colors = TermColors  # just a shorthand
+
+# Build a few color schemes
+NoColor = ColorScheme(
+    'NoColor',{
+    'instance'              : Colors.NoColor,
+    'collapsed'             : Colors.NoColor,
+    'tree'                  : Colors.NoColor,
+    'transform'             : Colors.NoColor,
+    'shape'                 : Colors.NoColor,
+    'nonunique'             : Colors.NoColor,
+    'nonunique_transform'   : Colors.NoColor,
+
+    'normal'                : Colors.NoColor  # color off (usu. Colors.Normal)
+    } )
+
+LinuxColors = ColorScheme(
+    'Linux',{
+    'instance'              : Colors.LightCyan,
+    'collapsed'             : Colors.Yellow,
+    'tree'                  : Colors.Green,
+    'transform'             : Colors.White,
+    'shape'                 : Colors.LightGray,
+    'nonunique'             : Colors.Red,
+    'nonunique_transform'   : Colors.LightRed,
+
+    'normal'                : Colors.Normal  # color off (usu. Colors.Normal)
+    } )
+
+LightBGColors = ColorScheme(
+    'LightBG',{
+    'instance'              : Colors.Cyan,
+    'collapsed'             : Colors.LightGreen,
+    'tree'                  : Colors.Blue,
+    'transform'             : Colors.DarkGray,
+    'shape'                 : Colors.Black,
+    'nonunique'             : Colors.Red,
+    'nonunique_transform'   : Colors.LightRed,
+
+    'normal'                : Colors.Normal  # color off (usu. Colors.Normal)
+    } )
+
+# Build table of color schemes (needed by the dag_parser)
+color_table = ColorSchemeTable([NoColor,LinuxColors,LightBGColors],
+                                  _scheme_default)
+
 
 def finalPipe(obj):
     """
@@ -185,27 +237,34 @@ def pymel_python_completer(self,event):
     #print self.Completer.namespace
     #print self.Completer.global_namespace
     try:
+        #print "first"
         obj = eval(expr, self.Completer.namespace)
     except:
         try:
+            #print "second"
             obj = eval(expr, self.Completer.global_namespace)
         except:
             raise IPython.ipapi.TryNext 
-        
+    #print "complete"    
     if isinstance(obj, (core.nt.DependNode, core.Attribute) ):
-        
+        #print "isinstance"
         node = unicode(obj)
         long_attrs = cmds.listAttr( node )
         short_attrs = cmds.listAttr( node , shortNames=1)
         
+        matches = []
         matches = self.Completer.python_matches(text)
-        
+        #print "here"
         # if node is a plug  ( 'persp.t' ), the first result will be the passed plug
         if '.' in node:
             attrs = long_attrs[1:] + short_attrs[1:]
         else:
             attrs = long_attrs + short_attrs
-        return matches + [ expr + '.' + at for at in attrs ]    
+        #print "returning"
+        matches += [ expr + '.' + at for at in attrs ]
+        #import colorize
+        #matches = [ colorize.colorize(x,'magenta') for x in matches ]  
+        return matches
 
     raise IPython.ipapi.TryNext 
 
@@ -269,70 +328,140 @@ def open_completer(self, event):
 
     raise IPython.ipapi.TryNext 
 
-parser = OptionParser()
-parser.add_option("-d", type="int", dest="depth")
-parser.add_option("-t", action="store_false", dest="shapes", default=True)
-parser.add_option("-s", action="store_true", dest="shapes" )
+class TreePager(object):
+    def __init__(self, colors, options):
+        self.colors = colors
+        self.options = options
+        
+    #print options.depth
+    def do_level(self, obj, depth, isLast ):
+        if isLast[-1]:
+            sep = '`-- '
+        else:
+            sep = '|-- '
+        #sep = '|__ '
+        depth += 1
+        branch = ''
+        for x in isLast[:-1]:
+            if x:
+                branch += '    '
+            else:
+                branch += '|   '
+        branch = self.colors['tree'] + branch + sep + self.colors['normal']
+            
+        children = self.getChildren(obj)
+        name = self.getName(obj)
+
+        num = len(children)-1
+                
+        if children:
+            if self.options.maxdepth and depth >= self.options.maxdepth:
+                state = '+'
+            else:
+                state = '-' 
+            pre = self.colors['collapsed'] + state + ' '
+        else:
+            pre = '  '
+
+        yield  pre + branch + name + self.colors['normal'] + '\n'
+        #yield  Colors.Yellow + branch + sep + Colors.Normal+ name + '\n'
+
+        if not self.options.maxdepth or depth < self.options.maxdepth:  
+            for i, x in enumerate(children):
+                for line in self.do_level(x, depth, isLast+[i==num]):
+                    yield line
+    
+    def make_tree(self, roots):
+        num = len(roots)-1
+        tree = ''
+        for i, x in enumerate(roots):
+            for line in self.do_level(x, 0, [i==num]):
+                tree += line
+        return tree
+
+class DagTree(TreePager):
+    def getChildren(self, obj):
+        if self.options.shapes:
+            return obj.getChildren()
+        else:
+            return obj.getChildren(type='transform')
+        
+    def getName(self, obj):
+        name = obj.nodeName()
+
+        if obj.isInstanced():
+            if isinstance(obj, core.nt.Transform):
+                # keep transforms bolded
+                color = self.colors['nonunique_transform']
+            else:
+                color = self.colors['nonunique']
+            id = obj.instanceNumber()
+            if id != 0:
+                source = ' -> %s' % obj.getOtherInstances()[0]
+            else:
+                source = ''
+            name = color + name + self.colors['instance'] + ' [' + str(id) + ']' + source
+        elif not obj.isUniquelyNamed():
+            if isinstance(obj, core.nt.Transform):
+                # keep transforms bolded
+                color = self.colors['nonunique_transform']
+            else:
+                color = self.colors['nonunique']
+            name = color + name
+        elif isinstance(obj, core.nt.Transform):
+            # bold
+            name = self.colors['transform'] + name
+        else:
+            name = self.colors['shape'] + name
+        
+        return name
+    
+dag_parser = OptionParser()
+dag_parser.add_option("-d", type="int", dest="maxdepth")
+dag_parser.add_option("-t", action="store_false", dest="shapes", default=True)
+dag_parser.add_option("-s", action="store_true", dest="shapes" )
 def magic_dag(self, parameter_s=''):
     """
     
     """
-    options, args = parser.parse_args(parameter_s.split())
-    #print options.depth
-    def doLevel(obj, depth, isLast ):
-        if isLast[-1]:
-            sep = '\__ '
-        else:
-            sep = '|__ '
-        #sep = '|__ '
-        depth += 1
-        pre = ''
-        for x in isLast[:-1]:
-            if x:
-                pre += '   '
-            else:
-                pre += '|  '
-        
-        if options.shapes:
-            children = obj.getChildren()
-        else:
-            children = obj.getChildren(type='transform')
-        num = len(children)-1
-        
-        name = obj.nodeName()
-        if obj.isInstanced():
-            name += ' [%d]' % obj.instanceNumber()
-        elif not obj.isUniquelyNamed():
-            name += '*'
-        
-        if options.depth:
-            if children:
-                if depth >= options.depth:
-                    pre = '[+]' + ' '*3 + pre
-                else:
-                    pre = '[-]' + ' '*3 + pre
-            else:
-                pre = ' '*6 + pre
-                     
-            print pre + sep + name
-            if depth >= options.depth:
-                return
-            
-        else: 
-            print pre + sep + name
-            
-        for i, x in enumerate(children):
-            doLevel(x, depth, isLast+[i==num])
-
-    depth = 0
+    options, args = dag_parser.parse_args(parameter_s.split())
+    colors = color_table[self.rc.colors].colors
+    dagtree = DagTree(colors, options)
     if args:
-        root = [core.PyNode(args[0])]
+        roots = [core.PyNode(args[0])]
     else:
-        root = core.ls(assemblies=1)
-    num = len(root)-1
-    for i, x in enumerate(root):
-        doLevel(x, depth, [i==num])
+        roots = core.ls(assemblies=1)
+    page(dagtree.make_tree(roots))
 
+class DGHistoryTree(TreePager):
+    def getChildren(self, obj):
+        source, dest = obj
+        return source.node().listConnections(plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
+        
+    def getName(self, obj):
+        source, dest = obj
+        name = "%s -> %s" % (source, dest)
+        return name
+    
+    def make_tree(self, root):
+        roots = core.listConnections(root, plugs=True, connections=True, source=True, destination=False, sourceFirst=True)
+        return TreePager.make_tree(self,roots)
+    
+dg_parser = OptionParser()
+dg_parser.add_option("-d", type="int", dest="maxdepth")
+dg_parser.add_option("-t", action="store_false", dest="shapes", default=True)
+dg_parser.add_option("-s", action="store_true", dest="shapes" )
+def magic_dghist(self, parameter_s=''):
+    """
+    
+    """
+    options, args = dg_parser.parse_args(parameter_s.split())
+    colors = color_table[self.rc.colors].colors
+    dgtree = DGHistoryTree(colors, options)
+
+    roots = [core.PyNode(args[0])]
+
+    page(dgtree.make_tree(roots))
 
 def magic_open(self, parameter_s=''):
     """Change the current working directory.
@@ -475,6 +604,7 @@ def setup():
     
     ip.expose_magic('openf', magic_open)
     ip.expose_magic('dag', magic_dag)
+    ip.expose_magic('dghist', magic_dghist)
     
     # add projects
     ip.ex("""
