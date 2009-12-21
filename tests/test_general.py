@@ -213,19 +213,28 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         
         self.newobjs = []
         
-    def test01_attribute_parent_equality(self):
+        cmds.aliasAttr( 'myalias', self.sphere1.name() + '.scaleX' )
+        
+    def test_attribute_parent_equality(self):
         self.assertEqual( self.sphere2.t.tx.parent(), self.sphere2.t )
         
-    def test02_attribute_duplicate_inequality(self):
+    def test_attribute_duplicate_inequality(self):
         self.assert_( self.sphere1.t != self.sphere2.t )
         
-    def test03_attribute_instance_equality(self):
+    def test_attribute_instance_equality(self):
         self.assertEqual( self.sphere1.t, self.sphere3.t )
     
-    def test04_attribute_cascading(self):
+    def test_attribute_cascading(self):
         self.sphere1.primaryVisibility.set(1)
         shape = self.sphere1.getShape()
         self.assertEqual( self.sphere1.primaryVisibility, shape.primaryVisibility )
+     
+    def test_attribute_aliases(self):
+        self.assert_( isinstance(PyNode(self.sphere1.name() + '.myalias'), Attribute ) )
+        self.assert_( isinstance(self.sphere1.attr('myalias'), Attribute) )
+        res1 = self.sphere1.listAttr(alias=1)
+        res2 = self.sphere1.listAliases()
+        self.assertEqual( res1[0], res2[0][1] )
         
     def test_pmcmds_objectErrors(self):
         self.assertRaises( MayaSubObjectError, setAttr, 'foo.bar', 0 )
@@ -387,7 +396,15 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assert_( attrHash1 == c1.translate.__hash__() )
         self.assert_( attrHash2 == c2.translate.__hash__() )
         
-            
+    def test_pynode_instantiation(self):
+        plug = SCENE.persp.__apimfn__().findPlug('translateX')
+        obj = SCENE.persp.__apimobject__()
+        dag = SCENE.persp.__apimdagpath__()
+        PyNode(obj).name()
+        PyNode(plug).name()
+        PyNode(dag).name()
+        
+              
     def tearDown(self):
         newFile(f=1)
         

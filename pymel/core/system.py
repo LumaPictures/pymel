@@ -490,7 +490,7 @@ class FileInfo( object ):
         >>> fileInfo['cameras'] = str( ls( cameras=1) )
         >>> camList = eval(fileInfo['cameras'])
         >>> camList[0]
-        Camera(u'frontShape')
+        nt.Camera(u'frontShape')
     
     for backward compatibility it retains it's original syntax as well:
         

@@ -33,587 +33,6 @@ _thisModule = sys.modules[__name__]
 
 ## Mesh Components
 
-class MeshVertex( general.MItComponent1D ):
-    __apicls__ = _api.MItMeshVertex
-    _ComponentLabel__ = "vtx"
-    _apienum__ = _api.MFn.kMeshVertComponent
-
-    def _dimLength(self, partialIndex):
-        return self.node().numVertices()
-   
-    def setColor(self,color):
-        self.node().setVertexColor( color, self.getIndex() )
-
-    def connectedEdges(self):
-        """
-        :rtype: `MeshEdge` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-    
-    def connectedFaces(self):
-        """
-        :rtype: `MeshFace` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-    
-    def connectedVertices(self):
-        """
-        :rtype: `MeshVertex` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
- 
-    def isConnectedTo(self, component):
-        """
-        pass a component of type `MeshVertex`, `MeshEdge`, `MeshFace`, with a single element
-        
-        :rtype: bool
-        """
-        if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
-        if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
-        if isinstance(component,MeshVertex):
-            array = _api.MIntArray()
-            self.__apimfn__().getConnectedVertices(array)
-            return component.getIndex() in [ array[i] for i in range( array.length() ) ]
-
-        raise TypeError, 'type %s is not supported' % type(component)
-
-class MeshEdge( general.MItComponent1D ):
-    __apicls__ = _api.MItMeshEdge
-    _ComponentLabel__ = "e"
-    _apienum__ = _api.MFn.kMeshEdgeComponent
-    
-    def _dimLength(self, partialIndex):
-        return self.node().numEdges()
-
-
-    def connectedEdges(self):
-        """
-        :rtype: `MeshEdge` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-
-    def connectedFaces(self):
-        """
-        :rtype: `MeshFace` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-
-    def connectedVertices(self):
-        """
-        :rtype: `MeshVertex` list
-        """
-        
-        index0 = self.__apimfn__().index(0)
-        index1 = self.__apimfn__().index(1)
-        return ( MeshVertex(self,index0), MeshVertex(self,index1) )
-
-    def isConnectedTo(self, component):
-        """
-        :rtype: bool
-        """
-        if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
-        if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
-        if isinstance(component,MeshVertex):
-            index0 = self.__apimfn__().index(0)
-            index1 = self.__apimfn__().index(1)
-            return component.getIndex() in [index0, index1]
-
-        raise TypeError, 'type %s is not supported' % type(component)
-  
-class MeshFace( general.MItComponent1D ):
-    __apicls__ = _api.MItMeshPolygon
-    _ComponentLabel__ = "f"
-    _apienum__ = _api.MFn.kMeshPolygonComponent
-
-    def _dimLength(self, partialIndex):
-        return self.node().numFaces()
-
-       
-
-    def connectedEdges(self):
-        """
-        :rtype: `MeshEdge` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedEdges(array)
-        return MeshEdge( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-    
-    def connectedFaces(self):
-        """
-        :rtype: `MeshFace` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedFaces(array)
-        return MeshFace( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) )
-      
-    def connectedVertices(self):
-        """
-        :rtype: `MeshVertex` list
-        """
-        array = _api.MIntArray()
-        self.__apimfn__().getConnectedVertices(array)
-        return MeshVertex( self, self._sequenceToComponentSlice( [ array[i] for i in range( array.length() ) ] ) ) 
-
-    def isConnectedTo(self, component):
-        """
-        :rtype: bool
-        """
-        if isinstance(component,MeshFace):
-            return self.isConnectedToFace( component.getIndex() )
-        if isinstance(component,MeshEdge):
-            return self.isConnectedToEdge( component.getIndex() )
-        if isinstance(component,MeshVertex):
-            return self.isConnectedToVertex( component.getIndex() )
-
-        raise TypeError, 'type %s is not supported' % type(component)
-
-class MeshUV( general.Component1D ):
-    _ComponentLabel__ = "map"
-    _apienum__ = _api.MFn.kMeshMapComponent
-
-    def _dimLength(self, partialIndex):
-        return self._node.numUVs()
-    
-class MeshVertexFace( general.Component2D ):
-    _ComponentLabel__ = "vtxFace"
-    _apienum__ = _api.MFn.kMeshVtxFaceComponent
-    
-    def _dimLength(self, partialIndex):
-        if len(partialIndex) == 0:
-            return self._node.numVertices()
-        elif len(partialIndex) == 1:
-            return self._node.vtx[partialIndex[0]].numConnectedFaces()
-        
-    def _sliceToIndices(self, sliceObj, partialIndex=None):
-        if not partialIndex:
-            # If we're just grabbing a slice of the first index,
-            # the verts, we can proceed as normal...
-            for x in super(MeshVertexFace, self)._sliceToIndices(sliceObj, partialIndex):
-                yield x
-                
-        # If we're iterating over the FACES attached to a given vertex,
-        # which may be a random set - say, (3,6,187) - not clear how to
-        # interpret an index 'range'
-        else:
-            if (sliceObj.start not in (0, None) or
-                sliceObj.stop is not None or
-                sliceObj.step is not None):
-                raise ValueError('%s objects may not be indexed with slices, execpt for [:]' %
-                                 self.__class__.__name__)
-    
-            # get a MitMeshVertex ...
-            mIt = _api.MItMeshVertex(self._node.__apimdagpath__())
-            
-            # Even though we're not using the result stored in the int,
-            # STILL need to store a ref to the MScriptUtil - otherwise,
-            # there's a chance it gets garbage collected before the
-            # api function call is made, and it writes the value into
-            # the pointer...
-            intPtr = _api.SafeApiPtr('int')
-            mIt.setIndex(partialIndex[0], intPtr())
-            intArray = _api.MIntArray()
-            mIt.getConnectedFaces(intArray)
-            for i in xrange(intArray.length()):
-                yield partialIndex + (intArray[i],)
-                
-    def _validateGetItemIndice(self, item, allowIterables=True):
-        """
-        Will raise an appropriate IndexError if the given item
-        is not suitable as a __getitem__ indice.
-        """
-        if len(self._partialIndex) == 0:
-            return super(MeshVertexFace, self)._validateGetItemIndice(item)
-        if allowIterables and _util.isIterable(item):
-            for x in item:
-                self._validateGetItemIndice(item, allowIterables=False)
-            return
-        if isinstance(item, (slice, general.HashableSlice)):
-            if slice.start == slice.stop == slice.step == None:
-                return
-            raise IndexError("only completely open-ended slices are allowable"\
-                             " for the second indice of %s objects" %
-                             self.__class__.__name__)
-        if not isinstance(item, self.VALID_SINGLE_INDEX_TYPES):
-            raise IndexError("Invalid indice type for %s: %r" %
-                             (self.__class__.__name__,
-                              item.__class__.__name__) )
-        
-        for fullIndice in self._sliceToIndices(slice(None),
-                                               partialIndex=self._partialIndex):
-            if item == fullIndice[1]:
-                return
-        raise IndexError("vertex-face %s-%s does not exist" %
-                         (self._partialIndex[0], item))
-    
-## Subd Components    
-
-class SubdVertex( general.Component1D64 ):
-    _ComponentLabel__ = "smp"
-    _apienum__ = _api.MFn.kSubdivCVComponent
-
-class SubdEdge( general.Component1D64 ):
-    _ComponentLabel__ = "sme"
-    _apienum__ = _api.MFn.kSubdivEdgeComponent
-    
-class SubdFace( general.Component1D64 ):
-    _ComponentLabel__ = "smf"
-    _apienum__ = _api.MFn.kSubdivFaceComponent
-
-class SubdUV( general.Component1D ):
-    _ComponentLabel__ = "smm"
-    _apienum__ = _api.MFn.kSubdivMapComponent
-    
-    # This implementation failed because
-    # it appears that you can have a subd shape
-    # with no uvSet elements
-    # (shape.uvSet.evaluateNumElements() == 0)
-    # but with valid .smm's
-#    def _dimLength(self, partialIndex):
-#        # My limited tests reveal that
-#        # subds with multiple uv sets
-#        # mostly just crash a lot
-#        # However, when not crashing, it
-#        # SEEMS that you can select
-#        # a .smm[x] up to the size
-#        # of the largest possible uv
-#        # set, regardless of which uv
-#        # set is current...
-#        max = 0
-#        for elemPlug in self._node.attr('uvSet'):
-#            numElements = elemPlug.evaluateNumElements()
-#            if numElements > max:
-#                max = numElements
-#        # For some reason, if there are 206 elements
-#        # in the uvSet, the max indexable smm's go from
-#        # .smm[0] to .smm[206] - ie, num elements + 1...?
-#        return max + 1
-
-
-    # ok - some weirdness in trying to find what the maximum
-    # allowable smm index is...
-    # To see what I mean, uncomment this and try it in maya:
-#from pymel.all import *
-#import sys
-#import platform
-#
-#def testMaxIndex():
-#
-#
-#    def interpreterBits():
-#        """
-#        Returns the number of bits of the architecture the interpreter was compiled on
-#        (ie, 32 or 64).
-#        
-#        :rtype: `int`
-#        """
-#        return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
-#    
-#    subdBase = polyCube()[0]
-#    subdTrans = polyToSubdiv(subdBase)[0]
-#    subd = subdTrans.getShape()
-#    selList = _api.MSelectionList()
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), sys.maxint))
-#    except:
-#        print "sys.maxint (%d) failed..." % sys.maxint
-#    else:
-#        print "sys.maxint (%d) SUCCESS" % sys.maxint
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** interpreterBits() - 1))
-#    except:
-#        print "2 ** %d - 1 (%d) failed..." % (interpreterBits(), 2 ** interpreterBits() - 1)
-#    else:
-#        print "2 ** %d - 1 (%d) SUCCESS" % (interpreterBits(), 2 ** interpreterBits() - 1)
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** interpreterBits()))
-#    except:
-#        print "2 ** %d (%d) failed..." % (interpreterBits(), 2 ** interpreterBits())
-#    else:
-#        print "2 ** %d (%d) SUCCESS" % (interpreterBits(), 2 ** interpreterBits())        
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 31 - 1))
-#    except:
-#        print "2 ** 31 - 1 (%d) failed..." % (2 ** 31 - 1)
-#    else:
-#        print "2 ** 31 - 1 (%d) SUCCESS" % (2 ** 31 - 1)
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 31))
-#    except:
-#        print "2 ** 31 (%d) failed..." % (2 ** 31)
-#    else:
-#        print "2 ** 31 (%d) SUCCESS" % (2 ** 31)
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 32 - 1))
-#    except:
-#        print "2 ** 32 - 1 (%d) failed..." % (2 ** 32 - 1)
-#    else:
-#        print "2 ** 32 - 1 (%d) SUCCESS" % (2 ** 32 - 1)
-#    try:
-#        selList.add("%s.smm[0:%d]" % (subd.name(), 2 ** 32))
-#    except:
-#        print "2 ** 32 (%d) failed..." % (2 ** 32)
-#    else:
-#        print "2 ** 32 (%d) SUCCESS" % (2 ** 32)
-#
-
-    # On Windows XP x64, Maya2009x64, 2**64 -1 works (didn't try others at the time)
-    # ...but on Linux Maya2009x64, and OSX Maya2011x64, I get this weirdness:
-#sys.maxint (9223372036854775807) failed...
-#2 ** 64 - 1 (18446744073709551615) failed...
-#2 ** 64 (18446744073709551616) failed...
-#2 ** 31 - 1 (2147483647) SUCCESS
-#2 ** 31 (2147483648) failed...
-#2 ** 32 - 1 (4294967295) failed...
-#2 ** 32 (4294967296) SUCCESS
-
-    # So, given the inconsistencies here, just going to use
-    # 2**31 -1... hopefully nobody needs more uv's than that
-    _MAX_INDEX = 2 ** 31 - 1
-    _tempSel = _api.MSelectionList()
-    _maxIndexRe = re.compile(r'\[0:([0-9]+)\]$')
-    def _dimLength(self, partialIndex):
-        # Fall back on good ol' string processing...
-        # unfortunately, .smm[*] is not allowed -
-        # so we have to provide a 'maximum' value...
-        self._tempSel.clear()
-        self._tempSel.add(general.Component._completeNameString(self) +
-                          '[0:%d]' % self._MAX_INDEX)
-        selStrings = []
-        self._tempSel.getSelectionStrings(0, selStrings)
-        try:
-            # remember the + 1 for the 0'th index
-            return int(self._maxIndexRe.search(selStrings[0]).group(1)) + 1
-        except AttributeError:
-            raise RuntimeError("Couldn't determine max index for %s" %
-                               general.Component._completeNameString(self))
-
-    # SubdUV's don't work with .smm[*] - so need to use
-    # explicit range instead - ie, .smm[0:206]
-    def _completeNameString(self):
-        # Note - most multi-dimensional components allow selection of all
-        # components with only a single index - ie,
-        #    myNurbsSurface.cv[*]
-        # will work, even though nurbs cvs are double-indexed
-        # However, some multi-indexed components WON'T work like this, ie
-        #    myNurbsSurface.sf[*]
-        # FAILS, and you MUST do:
-        #    myNurbsSurface.sf[*][*]
-        return (super(general.DimensionedComponent, self)._completeNameString() +
-                 ('[:%d]' % self._dimLength(None) ))
-
-## Nurbs Curve Components
-
-class NurbsCurveParameter( general.Component1DFloat ):
-    _ComponentLabel__ = "u"
-    _apienum__ = _api.MFn.kCurveParamComponent
-    
-    def _dimRange(self, partialIndex):
-        return self._node.getKnotDomain()
-
-class NurbsCurveCV( general.MItComponent1D ):
-    __apicls__ = _api.MItCurveCV
-    _ComponentLabel__ = "cv"
-    _apienum__ = _api.MFn.kCurveCVComponent
-    
-    def _dimLength(self, partialIndex):
-        return self.node().numCVs()
-    
-class NurbsCurveEP( general.Component1D ):
-    _ComponentLabel__ = "ep"
-    _apienum__ = _api.MFn.kCurveEPComponent
-
-    def _dimLength(self, partialIndex):
-        return self.node().numEPs()
-        
-class NurbsCurveKnot( general.Component1D ):
-    _ComponentLabel__ = "knot"
-    _apienum__ = _api.MFn.kCurveKnotComponent
-
-    def _dimLength(self, partialIndex):
-        return self.node().numKnots()
-    
-## NurbsSurface Components
-
-class NurbsSurfaceIsoparm( general.Component2DFloat ):
-    _apienum__ = _api.MFn.kIsoparmComponent
-    _ComponentLabel__ = ("u", "v", "uv")
-    
-    def __init__(self, *args, **kwargs):
-        super(NurbsSurfaceIsoparm, self).__init__(*args, **kwargs)
-        # Fix the bug where running:
-        # 
-        # import maya.cmds as cmds
-        # cmds.sphere()
-        # cmds.select('nurbsSphere1.uv[*][*]')
-        # print cmds.ls(sl=1)
-        # cmds.select('nurbsSphere1.u[*][*]')
-        # print cmds.ls(sl=1)
-        # 
-        # Gives two different results:
-        # [u'nurbsSphere1.u[0:4][0:1]']
-        # [u'nurbsSphere1.u[0:4][0:8]']
-        
-        # to fix this, change 'uv' comps to 'u' comps
-        if hasattr(self, '_partialIndex'):
-            self._partialIndex = self._convertUVtoU(self._partialIndex)
-        if 'ComponentIndex' in self.__apiobjects__:
-            self.__apiobjects__['ComponentIndex'] = self._convertUVtoU(self.__apiobjects__['ComponentIndex'])
-        if hasattr(self, '_indices'):
-            self._indices = self._convertUVtoU(self._indices)
-        self._ComponentLabel__ = self._convertUVtoU(self._ComponentLabel__)
-
-    @classmethod
-    def _convertUVtoU(cls, index):
-        if isinstance(index, dict):
-            if 'uv' in index:
-                # convert over index['uv']
-                oldUvIndex = cls._convertUVtoU(index['uv'])
-                if 'u' in index:
-                    # First, make sure index['u'] is a list
-                    if (isinstance(index['u'], general.ComponentIndex) or
-                        not isinstance(index['u'], (list, tuple))):
-                        index['u'] = [index['u']]
-                    elif isinstance(index['u'], tuple):
-                        index['u'] = list(index['u'])
-                    
-                    # then add on 'uv' contents
-                    if (isinstance(oldUvIndex, general.ComponentIndex) or
-                        not isinstance(oldUvIndex, (list, tuple))):
-                        index['u'].append(oldUvIndex)
-                    else:
-                        index['u'].extend(oldUvIndex)
-                else:
-                    index['u'] = oldUvIndex
-                del index['uv']
-        elif isinstance(index, general.ComponentIndex):
-            # do this check INSIDE here, because, since a ComponentIndex is a tuple,
-            # we don't want to change a ComponentIndex object with a 'v' index
-            # into a list in the next elif clause!
-            if index.label == 'uv':
-                index.label = 'u'
-        elif isinstance(index, (list, tuple)) and not isinstance(index, general.ComponentIndex):
-            index = [cls._convertUVtoU(x) for x in index]
-        elif isinstance(index, basestring):
-            if index == 'uv':
-                index = 'u'
-        return index
-    
-    def _defaultLabel(self):
-        return 'u'
-
-    def _dimRange(self, partialIndex):
-        minU, maxU, minV, maxV = self._node.getKnotDomain()
-        if len(partialIndex) == 0:
-            if partialIndex.label == 'v':
-                param = 'v'
-            else:
-                param = 'u'
-        else:
-            if partialIndex.label == 'v':
-                param = 'u'
-            else:
-                param = 'v'
-        if param == 'u':
-            return minU, maxU
-        else:
-            return minV, maxV
-    
-class NurbsSurfaceRange( NurbsSurfaceIsoparm ):
-    _ComponentLabel__ = ("u", "v", "uv")
-    _apienum__ = _api.MFn.kSurfaceRangeComponent
-    
-    def __getitem__(self, item):
-        if self.currentDimension() is None:
-            raise IndexError("Indexing only allowed on an incompletely "
-                             "specified component")
-        self._validateGetItemIndice(item)            
-        # You only get a NurbsSurfaceRange if BOTH indices are slices - if
-        # either is a single value, you get an isoparm
-        if (not isinstance(item, (slice, general.HashableSlice)) or
-              (self.currentDimension() == 1 and
-               not isinstance(self._partialIndex[0], (slice, general.HashableSlice)))):
-            return NurbsSurfaceIsoparm(self._node, self._partialIndex + (item,))
-        else:
-            return super(NurbsSurfaceRange, self).__getitem__(item)    
-
-class NurbsSurfaceCV( general.Component2D ):
-    _ComponentLabel__ = "cv"
-    _apienum__ = _api.MFn.kSurfaceCVComponent
-
-    def _dimLength(self, partialIndex):
-        if len(partialIndex) == 0:
-            return self.node().numCVsInU()
-        elif len(partialIndex) == 1:
-            return self.node().numCVsInV()
-        else:
-            raise ValueError('partialIndex %r too long for %s._dimLength' %
-                             (partialIndex, self.__class__.__name__))
-        
-class NurbsSurfaceEP( general.Component2D ):
-    _ComponentLabel__ = "ep"
-    _apienum__ = _api.MFn.kSurfaceEPComponent
-
-    def _dimLength(self, partialIndex):
-        if len(partialIndex) == 0:
-            return self.node().numEPsInU()
-        elif len(partialIndex) == 1:
-            return self.node().numEPsInV()
-        else:
-            raise ValueError('partialIndex %r too long for %s._dimLength' %
-                             (partialIndex, self.__class__.__name__))
-            
-class NurbsSurfaceKnot( general.Component2D ):
-    _ComponentLabel__ = "knot"
-    _apienum__ = _api.MFn.kSurfaceKnotComponent
-
-    def _dimLength(self, partialIndex):
-        if len(partialIndex) == 0:
-            return self.node().numKnotsInU()
-        elif len(partialIndex) == 1:
-            return self.node().numKnotsInV()
-        else:
-            raise ValueError('partialIndex %r too long for %s._dimLength' %
-                             (partialIndex, self.__class__.__name__))
-            
-class NurbsSurfaceFace( general.Component2D ):
-    _ComponentLabel__ = "sf"
-    _apienum__ = _api.MFn.kSurfaceFaceComponent
-
-    def _dimLength(self, partialIndex):
-        if len(partialIndex) == 0:
-            return self.node().numSpansInU()
-        elif len(partialIndex) == 1:
-            return self.node().numSpansInV()
-        else:
-            raise IndexError("partialIndex %r for %s must have length <= 1" %
-                             (partialIndex, self.__class__.__name__))
-        
-## Lattice Components
-
-class LatticePoint( general.Component3D ):
-    _ComponentLabel__ = "pt"
-    _apienum__ = _api.MFn.kLatticeComponent
-    
-    def _dimLength(self, partialIndex):
-        if len(partialIndex) > 2:
-            raise ValueError('partialIndex %r too long for %s._dimLength' %
-                             (partialIndex, self.__class__.__name__))    
-        return self.node().getDivisions()[len(partialIndex)]
-
 class DependNode( general.PyNode ):
     __apicls__ = _api.MFnDependencyNode
     __metaclass__ = _factories.MetaMayaNodeWrapper
@@ -626,7 +45,7 @@ class DependNode( general.PyNode ):
 #        
 #            >>> n = pm.Transform("persp",create=True)
 #            >>> n.__repr__()
-#            # Result: Transform(u'persp1')
+#            # Result: nt.Transform(u'persp1')
 #        """
 #        if create:
 #            ntype = cls.__melnode__
@@ -816,7 +235,7 @@ class DependNode( general.PyNode ):
     def inputs(self, **kwargs):
         """listConnections -source 1 -destination 0
         
-        :rtype: `general.PyNode` list
+        :rtype: `PyNode` list
         """
         kwargs['source'] = True
         kwargs.pop('s', None )
@@ -827,7 +246,7 @@ class DependNode( general.PyNode ):
     def outputs(self, **kwargs):
         """listConnections -source 0 -destination 1
         
-        :rtype: `general.PyNode` list
+        :rtype: `PyNode` list
         """
         kwargs['source'] = False
         kwargs.pop('s', None )
@@ -839,7 +258,7 @@ class DependNode( general.PyNode ):
     def sources(self, **kwargs):
         """listConnections -source 1 -destination 0
         
-        :rtype: `general.PyNode` list
+        :rtype: `PyNode` list
         """
         kwargs['source'] = True
         kwargs.pop('s', None )
@@ -850,7 +269,7 @@ class DependNode( general.PyNode ):
     def destinations(self, **kwargs):
         """listConnections -source 0 -destination 1
         
-        :rtype: `general.PyNode` list
+        :rtype: `PyNode` list
         """
         kwargs['source'] = False
         kwargs.pop('s', None )
@@ -886,12 +305,12 @@ class DependNode( general.PyNode ):
         """
         Access to an attribute of a node.  This does not require an instance:
             
-            >>> Transform.attrDefaults('tx').isKeyable()
+            >>> nt.Transform.attrDefaults('tx').isKeyable()
             True
             
         but it can use one if needed ( for example, for dynamically created attributes )
             
-            >>> Transform(u'persp').attrDefaults('tx').isKeyable()
+            >>> nt.Transform(u'persp').attrDefaults('tx').isKeyable()
             
         Note: this is still experimental.   
         """
@@ -1096,7 +515,7 @@ class DependNode( general.PyNode ):
         """Return the name of the node with trailing numbers stripped off. If no trailing numbers are found
         the name will be returned unchanged.
         
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> SCENE.lambert1.stripNum()
         u'lambert'
         
@@ -1108,7 +527,7 @@ class DependNode( general.PyNode ):
         """Return the trailing numbers of the node name. If no trailing numbers are found
         an error will be raised.
 
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> SCENE.lambert1.extractNum()
         u'1'
         
@@ -1130,7 +549,7 @@ class DependNode( general.PyNode ):
 
         Raises an error if the name has no trailing number.
         
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> SCENE.lambert1.nextName()
         DependNodeName('lambert2')
         
@@ -1347,38 +766,38 @@ class DagNode(Entity):
 #        
 #            assert _api.isValidMDagPath( self._apiobject )
             
-    """
-    def __init__(self, *args, **kwargs) :
-        if args :
-            arg = args[0]
-            if len(args) > 1 :
-                comp = args[1]
-            if isinstance(arg, DagNode) :
-                self._name = unicode(arg.name())
-                self._apiobject = _api.MObjectHandle(arg.object())
-            elif _api.isValidMObject(arg) or _api.isValidMObjectHandle(arg) :
-                objHandle = _api.MObjectHandle(arg)
-                obj = objHandle.object() 
-                if _api.isValidMDagNode(obj) :
-                    self._apiobject = objHandle
-                    self._updateName()
-                else :
-                    raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg              
-            elif isinstance(arg, basestring) :
-                obj = _api.toMObject (arg)
-                if obj :
-                    # creation for existing object
-                    if _api.isValidMDagNode (obj):
-                        self._apiobject = _api.MObjectHandle(obj)
-                        self._updateName()
-                    else :
-                        raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg 
-                else :
-                    # creation for inexistent object 
-                    self._name = arg
-            else :
-                raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(arg), arg)  
-       """   
+
+#    def __init__(self, *args, **kwargs) :
+#        if args :
+#            arg = args[0]
+#            if len(args) > 1 :
+#                comp = args[1]
+#            if isinstance(arg, DagNode) :
+#                self._name = unicode(arg.name())
+#                self._apiobject = _api.MObjectHandle(arg.object())
+#            elif _api.isValidMObject(arg) or _api.isValidMObjectHandle(arg) :
+#                objHandle = _api.MObjectHandle(arg)
+#                obj = objHandle.object() 
+#                if _api.isValidMDagNode(obj) :
+#                    self._apiobject = objHandle
+#                    self._updateName()
+#                else :
+#                    raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg              
+#            elif isinstance(arg, basestring) :
+#                obj = _api.toMObject (arg)
+#                if obj :
+#                    # creation for existing object
+#                    if _api.isValidMDagNode (obj):
+#                        self._apiobject = _api.MObjectHandle(obj)
+#                        self._updateName()
+#                    else :
+#                        raise TypeError, "%r might be a dependencyNode, but not a dagNode" % arg 
+#                else :
+#                    # creation for inexistent object 
+#                    self._name = arg
+#            else :
+#                raise TypeError, "don't know how to make a DagNode out of a %s : %r" % (type(arg), arg)  
+  
 
             
 #--------------------------------
@@ -1449,18 +868,18 @@ class DagNode(Entity):
         """
         :rtype: `DagNode` list
         
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> f=newFile(f=1) #start clean
         >>>
         >>> s = polyPlane()[0]
         >>> instance(s)
-        [Transform(u'pPlane2')]
+        [nt.Transform(u'pPlane2')]
         >>> instance(s)
-        [Transform(u'pPlane3')]
+        [nt.Transform(u'pPlane3')]
         >>> s.getShape().getInstances()
-        [Mesh(u'pPlane1|pPlaneShape1'), Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
+        [nt.Mesh(u'pPlane1|pPlaneShape1'), nt.Mesh(u'pPlane2|pPlaneShape1'), nt.Mesh(u'pPlane3|pPlaneShape1')]
         >>> s.getShape().getInstances(includeSelf=False)
-        [Mesh(u'pPlane2|pPlaneShape1'), Mesh(u'pPlane3|pPlaneShape1')]
+        [nt.Mesh(u'pPlane2|pPlaneShape1'), nt.Mesh(u'pPlane3|pPlaneShape1')]
         
         """
         d = _api.MDagPathArray()
@@ -1540,24 +959,24 @@ class DagNode(Entity):
         Modifications:
             - added optional generations flag, which gives the number of levels up that you wish to go for the parent;
               ie:
-                  >>> from pymel.all import *
+                  >>> from pymel.core import *
                   >>> select(cl=1)
                   >>> bottom = group(n='bottom')
                   >>> group(n='almostThere')
-                  Transform(u'almostThere')
+                  nt.Transform(u'almostThere')
                   >>> group(n='nextLevel')
-                  Transform(u'nextLevel')
+                  nt.Transform(u'nextLevel')
                   >>> group(n='topLevel')
-                  Transform(u'topLevel')
+                  nt.Transform(u'topLevel')
                   >>> bottom.longName()
                   u'|topLevel|nextLevel|almostThere|bottom'
                   >>> bottom.getParent(2)
-                  Transform(u'nextLevel')
+                  nt.Transform(u'nextLevel')
               
               Negative values will traverse from the top:
               
                   >>> bottom.getParent(generations=-3)
-                  Transform(u'almostThere')
+                  nt.Transform(u'almostThere')
               
               A value of 0 will return the same node.
               The default value is 1.
@@ -1573,8 +992,9 @@ class DagNode(Entity):
                 return cmds.listRelatives( obj, parent=True, fullPath=True)[0]
             except TypeError:
                 return None
-             
-        return general.PyNode( general._getParent(getDagParent, self, generations) )
+        res = general._getParent(getDagParent, self, generations)
+        if res:
+            return general.PyNode( res )
 
     def getAllParents(self):
         """
@@ -1617,7 +1037,7 @@ class DagNode(Entity):
                 
     def listRelatives(self, **kwargs ):
         """
-        :rtype: `general.PyNode` list
+        :rtype: `PyNode` list
         """
         return general.listRelatives( self, **kwargs)
         
@@ -1648,12 +1068,12 @@ class DagNode(Entity):
         operator for `addChild`. Use to easily daisy-chain together parenting operations.
         The operation order visually mimics the resulting dag path:
         
-            >>> from pymel.all import *
+            >>> from pymel.core import *
             >>> s = polySphere(name='sphere')[0]
             >>> c = polyCube(name='cube')[0]
             >>> t = polyTorus(name='torus')[0]
             >>> s | c | t
-            Transform(u'torus')
+            nt.Transform(u'torus')
             >>> print t.fullPath()
             |sphere|cube|torus
             
@@ -1755,7 +1175,6 @@ class Camera(Shape):
 
     @_factories.addMelDocs('roll')
     def roll(self, degree, relative=True):
-        Camera(u'frontShape')
         kwargs = {}
         kwargs['degree'] = degree
         if relative:
@@ -2209,17 +1628,17 @@ class Transform(DagNode):
         """
         return self.getBoundingBox(invisible, space)[1]   
         #return self.getBoundingBox(invisible).max()
-    '''        
-    def centerPivots(self, **kwargs):
-        """xform -centerPivots"""
-        kwargs['centerPivots'] = True
-        cmds.xform( self, **kwargs )
-        
-    def zeroTransformPivots(self, **kwargs):
-        """xform -zeroTransformPivots"""
-        kwargs['zeroTransformPivots'] = True
-        cmds.xform( self, **kwargs )        
-    '''
+      
+#    def centerPivots(self, **kwargs):
+#        """xform -centerPivots"""
+#        kwargs['centerPivots'] = True
+#        cmds.xform( self, **kwargs )
+#        
+#    def zeroTransformPivots(self, **kwargs):
+#        """xform -zeroTransformPivots"""
+#        kwargs['zeroTransformPivots'] = True
+#        cmds.xform( self, **kwargs )        
+
 
 class Joint(Transform):
     __metaclass__ = _factories.MetaMayaNodeWrapper
@@ -2359,13 +1778,13 @@ class ControlPoint(DeformableShape): pass
 class CurveShape(DeformableShape): pass
 class NurbsCurve(CurveShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'u'           : NurbsCurveParameter,
-                            'cv'          : NurbsCurveCV,
-                            'conrolVerts' : NurbsCurveCV,
-                            'ep'          : NurbsCurveEP,
-                            'editPoints'  : NurbsCurveEP,
-                            'knot'        : NurbsCurveKnot,    
-                            'knots'       : NurbsCurveKnot}
+    _componentAttributes = {'u'           : general.NurbsCurveParameter,
+                            'cv'          : general.NurbsCurveCV,
+                            'conrolVerts' : general.NurbsCurveCV,
+                            'ep'          : general.NurbsCurveEP,
+                            'editPoints'  : general.NurbsCurveEP,
+                            'knot'        : general.NurbsCurveKnot,    
+                            'knots'       : general.NurbsCurveKnot}
 # hard coding the mapping of numCVs => _numCVs for now,
 # instead of using apiToMelBridge, as caches are in a state of flux
 # for now
@@ -2454,19 +1873,19 @@ class SurfaceShape(ControlPoint): pass
 
 class NurbsSurface(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'u'           : (NurbsSurfaceRange, 'u'),
-                            'uIsoparm'    : (NurbsSurfaceRange, 'u'),
-                            'v'           : (NurbsSurfaceRange, 'v'),
-                            'vIsoparm'    : (NurbsSurfaceRange, 'v'),
-                            'uv'          : (NurbsSurfaceRange, 'uv'),
-                            'cv'          : NurbsSurfaceCV,
-                            'conrolVerts' : NurbsSurfaceCV,
-                            'ep'          : NurbsSurfaceEP,
-                            'editPoints'  : NurbsSurfaceEP,
-                            'knot'        : NurbsSurfaceKnot,
-                            'knots'       : NurbsSurfaceKnot,
-                            'sf'          : NurbsSurfaceFace,
-                            'faces'       : NurbsSurfaceFace}
+    _componentAttributes = {'u'           : (general.NurbsSurfaceRange, 'u'),
+                            'uIsoparm'    : (general.NurbsSurfaceRange, 'u'),
+                            'v'           : (general.NurbsSurfaceRange, 'v'),
+                            'vIsoparm'    : (general.NurbsSurfaceRange, 'v'),
+                            'uv'          : (general.NurbsSurfaceRange, 'uv'),
+                            'cv'          : general.NurbsSurfaceCV,
+                            'conrolVerts' : general.NurbsSurfaceCV,
+                            'ep'          : general.NurbsSurfaceEP,
+                            'editPoints'  : general.NurbsSurfaceEP,
+                            'knot'        : general.NurbsSurfaceKnot,
+                            'knots'       : general.NurbsSurfaceKnot,
+                            'sf'          : general.NurbsSurfaceFace,
+                            'faces'       : general.NurbsSurfaceFace}
 # hard coding the mapping of numCVs => _numCVs for now,
 # instead of using apiToMelBridge, as caches are in a state of flux
 # for now
@@ -2641,7 +2060,7 @@ class Mesh(SurfaceShape):
     The component types can be accessed from the `Mesh` type (or it's transform) using the names you are
     familiar with from MEL:
 
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> p = polySphere( name='theMoon', sa=7, sh=7 )[0]
         >>> p.vtx
         MeshVertex(u'theMoonShape.vtx[0:43]')
@@ -2723,7 +2142,7 @@ class Mesh(SurfaceShape):
         theMoonShape.f[7]
         theMoonShape.f[8]
 
-    >>> from pymel.all import *
+    >>> from pymel.core import *
     >>> obj = polyTorus()[0]
     >>> colors = []
     >>> for i, vtx in enumerate(obj.vtx):   # doctest: +SKIP
@@ -2750,16 +2169,16 @@ class Mesh(SurfaceShape):
 #    def __init__(self, *args, **kwargs ):      
 #        SurfaceShape.__init__(self, self._apiobject )
 #        self.vtx = MeshEdge(self.__apimobject__() )
-    _componentAttributes = {'vtx'   : MeshVertex,
-                            'verts' : MeshVertex,
-                            'e'     : MeshEdge,
-                            'edges' : MeshEdge,
-                            'f'     : MeshFace,
-                            'faces' : MeshFace,
-                            'map'   : MeshUV,
-                            'uvs'   : MeshUV,
-                            'vtxFace'   : MeshVertexFace,
-                            'faceVerts' : MeshVertexFace}
+    _componentAttributes = {'vtx'   : general.MeshVertex,
+                            'verts' : general.MeshVertex,
+                            'e'     : general.MeshEdge,
+                            'edges' : general.MeshEdge,
+                            'f'     : general.MeshFace,
+                            'faces' : general.MeshFace,
+                            'map'   : general.MeshUV,
+                            'uvs'   : general.MeshUV,
+                            'vtxFace'   : general.MeshVertexFace,
+                            'faceVerts' : general.MeshVertexFace}
     
     numTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangles', 'numTriangles' )
     numSelectedTriangles = _factories.makeCreateFlagMethod( cmds.polyEvaluate, 'triangleComponent', 'numSelectedTriangles' )
@@ -2798,14 +2217,14 @@ class Mesh(SurfaceShape):
 class Subdiv(SurfaceShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
     
-    _componentAttributes = {'smp'   : SubdVertex,
-                            'verts' : SubdVertex,
-                            'sme'   : SubdEdge,
-                            'edges' : SubdEdge,
-                            'smf'   : SubdFace,
-                            'faces' : SubdFace,
-                            'smm'   : SubdUV,
-                            'uvs'   : SubdUV}
+    _componentAttributes = {'smp'   : general.SubdVertex,
+                            'verts' : general.SubdVertex,
+                            'sme'   : general.SubdEdge,
+                            'edges' : general.SubdEdge,
+                            'smf'   : general.SubdFace,
+                            'faces' : general.SubdFace,
+                            'smm'   : general.SubdUV,
+                            'uvs'   : general.SubdUV}
         
     def getTweakedVerts(self, **kwargs):
         return cmds.querySubdiv( action=1, **kwargs )
@@ -2824,8 +2243,8 @@ class Subdiv(SurfaceShape):
 
 class Lattice(ControlPoint):
     __metaclass__ = _factories.MetaMayaNodeWrapper
-    _componentAttributes = {'pt'    : LatticePoint,
-                            'points': LatticePoint}
+    _componentAttributes = {'pt'    : general.LatticePoint,
+                            'points': general.LatticePoint}
         
 class Particle(DeformableShape):
     __metaclass__ = _factories.MetaMayaNodeWrapper
@@ -2909,11 +2328,11 @@ class SelectionSet( _api.MSelectionList):
         """:rtype: `str` """
         names = []
         self.apicls.getSelectionStrings( self, names )
-        return '%s(%s)' % ( self.__class__.__name__, names )
+        return 'nt.%s(%s)' % ( self.__class__.__name__, names )
 
         
     def __getitem__(self, index):
-        """:rtype: `general.PyNode` """
+        """:rtype: `PyNode` """
         if index >= len(self):
             raise IndexError, "index out of range"
         
@@ -3003,7 +2422,7 @@ class SelectionSet( _api.MSelectionList):
         
      
     def pop(self, index):
-        """:rtype: `general.PyNode` """
+        """:rtype: `PyNode` """
         if index >= len(self):
             raise IndexError, "index out of range"
         return self.apicls.remove(self, index )
@@ -3089,30 +2508,30 @@ class ObjectSet(Entity):
     
     create some sets:
     
-        >>> from pymel.all import *
+        >>> from pymel.core import *
         >>> f=newFile(f=1) #start clean
         >>> 
         >>> s = sets()  # create an empty set
         >>> s.union( ls( type='camera') )  # add some cameras to it
         >>> s.members()  # doctest: +SKIP
-        [Camera(u'sideShape'), Camera(u'frontShape'), Camera(u'topShape'), Camera(u'perspShape')]
+        [nt.Camera(u'sideShape'), nt.Camera(u'frontShape'), nt.Camera(u'topShape'), nt.Camera(u'perspShape')]
         >>> sel = s.asSelectionSet() # or as a SelectionSet
         >>> sel # doctest: +SKIP
-        SelectionSet([u'sideShape', u'frontShape', u'topShape', u'perspShape'])
+        nt.SelectionSet([u'sideShape', u'frontShape', u'topShape', u'perspShape'])
         >>> sorted(sel) # as a sorted list
-        [Camera(u'frontShape'), Camera(u'perspShape'), Camera(u'sideShape'), Camera(u'topShape')]
+        [nt.Camera(u'frontShape'), nt.Camera(u'perspShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')]
         
     Operations between sets result in `SelectionSet` objects:
     
         >>> t = sets()  # create another set
         >>> t.add( 'perspShape' )  # add the persp camera shape to it
         >>> s.getIntersection(t)
-        SelectionSet([u'perspShape'])
+        nt.SelectionSet([u'perspShape'])
         >>> diff = s.getDifference(t)
         >>> diff #doctest: +SKIP
-        SelectionSet([u'sideShape', u'frontShape', u'topShape'])
+        nt.SelectionSet([u'sideShape', u'frontShape', u'topShape'])
         >>> sorted(diff)
-        [Camera(u'frontShape'), Camera(u'sideShape'), Camera(u'topShape')]
+        [nt.Camera(u'frontShape'), nt.Camera(u'sideShape'), nt.Camera(u'topShape')]
         >>> s.isSuperSet(t)
         True
         

@@ -811,7 +811,7 @@ class Point(Vector):
         # if isinstance(other, Point) :
         #    other = Vector(other)   
         try :
-             other = Vector(other) 
+            other = Vector(other) 
         except :
             pass   
         try :
@@ -1902,10 +1902,10 @@ class EulerRotation(Array):
     u'degree'
     >>> e = dt.EulerRotation([math.pi,0,0], unit='radians')
     >>> e
-    EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
+    dt.EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
     >>> e2 = dt.EulerRotation([180,0,0], unit='degrees')
     >>> e2
-    EulerRotation([180.0, 0.0, 0.0])
+    dt.EulerRotation([180.0, 0.0, 0.0])
     >>> e.isEquivalent( e2 )
     True
     >>> e == e2
@@ -1915,10 +1915,10 @@ class EulerRotation(Array):
     >>> dt.Angle.getUIUnit() # check current angular unit
     'degrees'
     >>> e
-    EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
+    dt.EulerRotation([3.14159265359, 0.0, 0.0], unit='radians')
     >>> dt.Angle.setUIUnit('radians')  # change to radians
     >>> e
-    EulerRotation([3.14159265359, 0.0, 0.0])
+    dt.EulerRotation([3.14159265359, 0.0, 0.0])
     
     
     """
@@ -2534,7 +2534,7 @@ class Distance( Unit ) :
         >>> print d
         12.0
         >>> print repr(d)
-        Distance(12.0, unit='meters')
+        dt.Distance(12.0, unit='meters')
         >>> print d.asUIUnit()
         12.0
         >>> print d.asInternalUnit()
@@ -2551,7 +2551,7 @@ class Distance( Unit ) :
         >>> str(e)
         '12.0'
         >>> print repr(e)
-        Distance(12.0, unit='centimeters')
+        dt.Distance(12.0, unit='centimeters')
         >>> print e.asUIUnit()
         12.0
         >>> print e.asInternalUnit()
@@ -2561,7 +2561,7 @@ class Distance( Unit ) :
         >>> print f
         12.0
         >>> print repr(f)
-        Distance(12.0, unit='feet')
+        dt.Distance(12.0, unit='feet')
         >>> f.unit
         'feet'
         >>> print f.asUIUnit()

@@ -24,7 +24,7 @@ import warnings
 __all__ = ['getMelRepresentation']
 _thisModule = sys.modules[__name__]
 
-objectErrorReg = re.compile('Object (.*) is invalid$')
+objectErrorReg = re.compile(',?Object (.*) is invalid,?$')
 def _testDecorator(function):
     def newFunc(*args, **kwargs):
         print "wrapped function for %s" % function.__name__
