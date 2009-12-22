@@ -1,10 +1,12 @@
 #!/bin/bash
 
+# maintainence/release
 cd `dirname $0`/release
 
 VER=$1
 RELEASE=pymel-$1
 echo $RELEASE
+SOURCE=../..
 
 if [ -d $RELEASE ];
 then
@@ -18,26 +20,27 @@ echo "removing existing zip"
 rm -f $RELEASE.zip
 fi
 
-git clone --shared ../ $RELEASE
+git clone --shared $SOURCE $RELEASE
 
 #svn export https://pymel.googlecode.com/svn/trunk pymel
 #svn export https://pymel.googlecode.com/svn/docs pymel/docs
 
-# clean out 2010 stuff til it's released
-#rm $RELEASE/pymel/*2010.bin
+# clean out 2011 stuff til it's released
+rm $RELEASE/pymel/cache/*2011.*
 
 # clean out git stuff
-rm -rfd $RELEASE/.git
-rm $RELEASE/.gitignore
+rm -rfd $RELEASE/.git*
+rm -rfd $RELEASE/.hg*
 rm -rfd $RELEASE/maintainence
 
 echo "copying docs"
 rm -rfd $RELEASE/docs
-cp -r ../docs/build/html $RELEASE/docs
-cp ../CHANGELOG $RELEASE/
+cp -r $SOURCE/docs/build/html $RELEASE/docs
+
+echo "copying stubs"
+cp -r $SOURCE/extras/completion $RELEASE/extras/completion
 
 echo "zipping"
 zip -rq $RELEASE.zip $RELEASE
 #rm -rfd pymel
 
-#git log --reverse --pretty=format:%s 0.9.1..0.9.2 > CHANGELOG
