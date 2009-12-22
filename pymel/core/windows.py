@@ -28,7 +28,7 @@ thisModuleCmd = "import %s; import sys; sys.modules[%r]" % (__name__, __name__)
 #-----------------------------------------------
 #  Enhanced UI Commands
 #-----------------------------------------------
-
+        
 def _lsUI( **kwargs ):
     long = kwargs.pop( 'long', kwargs.pop( 'l', True ) )
     head = kwargs.pop( 'head', kwargs.pop( 'hd', None ) )
@@ -44,6 +44,26 @@ def _lsUI( **kwargs ):
     if head is not None: kwargs['head'] = head
     if tail is not None: kwargs['tail'] = tail
     return _util.listForNone(cmds.lsUI(**kwargs))
+
+# all optionMenus are popupMenus, but not all popupMenus are optionMenus
+_commandsToUITypes = {
+    'optionMenu':'popupMenu',
+    }
+
+def _findLongName(name, type=None):
+    # this remap is currently for OptionMenu, but the fix only works in 2011
+    # lsUI won't list popupMenus or optionMenus
+    kwargs = { 'long' : True}
+    if type:
+        kwargs['type'] = _commandsToUITypes.get(type, type)
+    
+    uiObjs = _util.listForNone(_lsUI( **kwargs ))
+    res = [ x for x in uiObjs if x.endswith( '|' + name) ]
+    if len(res) > 1:
+        raise ValueError, "found more than one UI element matching the name %s" % name
+    elif len(res) == 0:
+        raise ValueError, "could not find a UI element matching the name %s" % name
+    return res[0]
 
 def lsUI( **kwargs ):
     """
@@ -388,15 +408,27 @@ def currentParent():
     "shortcut for ``ui.PyUI(setParent(q=1))`` "
     return _uitypes.PyUI(cmds.setParent(q=1))
 
-if _versions.current() < _versions.v2011:
-    # fix a bug it becomes impossible to create a menu after setParent has been called
-    def menu(*args, **kwargs):
+# fix a bug it becomes impossible to create a menu after setParent has been called
+def menu(*args, **kwargs):
+    """
+Modifications
+  - added ability to query parent
+    """
+    if _versions.current() < _versions.v2011:
         # on create only
         if not ( kwargs.get('query', False) or kwargs.get('q', False) ) \
             and not ( kwargs.get('edit', False) or kwargs.get('e', False) ) \
             and not ( kwargs.get('parent', False) or kwargs.get('p', False) ):
             kwargs['parent'] = cmds.setParent(q=1)
-        return cmds.menu(*args, **kwargs)
+    
+    if ( kwargs.get('query', False) or kwargs.get('q', False) ) \
+            and ( kwargs.get('parent', False) or kwargs.get('p', False) ):
+        name = unicode(args[0])
+        if '|' not in name:
+            name = _findLongName(name, 'menu')
+        return name.rsplit('|',1)[0]
+    
+    return cmds.menu(*args, **kwargs)
     
 def _createClassCommands():
     
