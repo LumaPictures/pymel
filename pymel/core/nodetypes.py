@@ -987,12 +987,16 @@ class DagNode(Entity):
         :rtype: `DagNode`  
         """
 
-        def getDagParent(obj):
-            try:
-                return cmds.listRelatives( obj, parent=True, fullPath=True)[0]
-            except TypeError:
+        # Get the parent through the api - listRelatives doesn't handle instances correctly,
+        # and string processing seems unreliable...
+        def getDagParent(dag):
+            if dag.length() <= 1:
                 return None
-        res = general._getParent(getDagParent, self, generations)
+            # Need a copy as we'll be modifying it...
+            dag = _api.MDagPath(dag)
+            dag.pop()
+            return dag
+        res = general._getParent(getDagParent, self.__apimdagpath__(), generations)
         if res:
             return general.PyNode( res )
 
