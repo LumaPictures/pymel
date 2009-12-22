@@ -6,7 +6,7 @@ import pymel.internal as _internal
 import pymel.versions as versions
 import maya.mel as _mm
 _logger = _internal.getLogger(__name__)
-
+        
 def _resolveUIFunc(name):
     if isinstance(name, basestring):
         import windows
@@ -26,7 +26,7 @@ def _resolveUIFunc(name):
             name.__melcmd__()
                     
     raise ValueError, "%r is not a known ui type" % name
-
+    
 class PyUI(unicode):
     def __new__(cls, name=None, create=False, **kwargs):
         """
@@ -71,22 +71,21 @@ class PyUI(unicode):
             else:
                 # find the long name
                 if '|' not in name and not issubclass(newcls,Window):
+                    import windows
                     try:
-                        default = newcls.__melcmd__.__name__
-                        # this remap is currently for OptionMenu, but the fix only works in 2011
-                        # lsUI won't list popupMenus or optionMenus
-                        uiObjs = _util.listForNone(cmds.lsUI( long=True, type=_commandsToUITypes.get(default, default)))
+                        if issubclass(newcls,Layout):
+                            parent = windows.layout(name, q=1, p=1)
+                        elif issubclass(newcls,Menu):
+                            parent = windows.menu(name, q=1, p=1)
+                        else:
+                            parent = windows.control(name, q=1, p=1)
+                        name = parent + '|' + name
+
                     except RuntimeError:
                         # editors don't have a long name, so we keep the short name
                         if name not in cmds.lsUI( long=True,editors=True):
                             raise
-                    else:
-                        res = [ x for x in uiObjs if x.endswith( '|' + name) ]
-                        if len(res) > 1:
-                            raise ValueError, "found more than one UI element matching the name %s" % name
-                        elif len(res) == 0:
-                            raise ValueError, "could not find a UI element matching the name %s" % name
-                        name = res[0]
+
         
         # correct for optionMenu
         if newcls == PopupMenu and cmds.optionMenu( name, ex=1 ):
@@ -111,7 +110,7 @@ class PyUI(unicode):
             # pre-2011, windows with menus can have a strange name:
             # ex.  window1|window1|menu1
             buf = buf[:1]
-        return PyUI( '|'.join( buf ) )
+        return PyUI( '|'.join(buf) )
     getParent = parent
     
     def type(self):
@@ -214,12 +213,17 @@ class Window(Layout):
         cmds.deleteUI(self, window=True)
 
     def layout(self):
-        # will always be one it
-        if self.name() in cmds.lsUI(long=True, controlLayouts=True):
-            res = self.addChild(cmds.columnLayout)
-            layout = res.parent()
-            res.delete()
-            return layout
+        name = self.name()
+        for layout in sorted(cmds.lsUI(long=True, controlLayouts=True)):
+            # since we are sorted, shorter will be first, and the first layout we come across will be the base layout
+            if layout.startswith(name):
+                return PyUI(layout)
+
+#            # create a child and then delete it to get the layout
+#            res = self.addChild(cmds.columnLayout)
+#            layout = res.parent()
+#            res.delete()
+#            return layout
     
     def children(self):
         res = self.layout()
@@ -740,10 +744,6 @@ class PathButtonGrp( dynModule.TextFieldButtonGrp ):
         import system
         return system.Path( self.getText() )
 
-# all optionMenus are popupMenus, but not all popupMenus are optionMenus
-_commandsToUITypes = {
-    'optionMenu':'popupMenu',
-    }
 
 # most of the keys here are names that are only used in certain circumstances 
 _uiTypesToCommands = {
