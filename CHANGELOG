@@ -19,7 +19,7 @@ removed deprecated methods:
 removed deprecated and inapplicable string methods from ProxiUnicode, base of all PyNodes: 
 	__contains__,  __len__, __mod__, __rmod__, __mul__, __rmod__, __rmul__, expandtabs, translate, decode, encode, splitlines, capitalize, swapcase, title, isalnum, isalpha, isdigit, isspace, istitle, zfill
 removed Smart Layout Creator in favor of 'with' statement support
-
+DagNode.getParent() no longer accepts keyword arguments
 
 FEATURES
 
@@ -88,7 +88,6 @@ fixed bug where wrap of function which took multiple refs all pointed to same MS
 fixes for handling wrapping of unsigned ptr api types
 fixes for negative comp indices
 mel2py: bugfix with mel2pyStr
-
 
 
 Version 0.9.2
