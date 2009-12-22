@@ -1,13 +1,95 @@
+
 Version 1.0.0
 
 NON-BACKWARD COMPATIBLE CHANGES
 
 pymel no longer has 'everything' in namespace - use pymel.all for this
-all 'version' information moved to own module - pymel.version
-	to compare versions, instead of Version class, use, ie, pymel.version.CURRENT >= pymel.version.v2008
-	pymel.mayahook.mayautils.getMayaVersion()/getMayaVersion(extension=True) replaced with pymel.version._installName
-	pymel.mayahook.mayautils.getMayaVersion(extension=True) replaced with pymel.version._shortName
-AutoLayout and FormLayout have been separated into two separate classes - if you were using a FormLayout with auto-layout features, change it to an AutoLayout
+pymel.core.nodetypes now moved to it's own namespace
+pymel.mayahook.Version functionality moved to pymel.versions module
+	to compare versions, instead of Version class, use, for example, pymel.versions.current() >= pymel.versions.v2008
+	pymel.mayahook.mayautils.getMayaVersion()/getMayaVersion(extension=True) replaced with pymel.versions.installName()
+	pymel.mayahook.mayautils.getMayaVersion(extension=True) replaced with pymel.versions.shortName()
+removed 0_7_compatibility_mode
+removed deprecated methods: 
+	Attribute: __setattr__, size
+	Camera: getFov, setFov, getFilmAspect
+	Mesh: vertexCount, edgeCount, faceCount, uvcoordCount, triangleCount
+	SelectSet: issubset, issuperset, update
+	Mesh components: toEdges, toFaces, toVertices
+removed deprecated and inapplicable string methods from ProxiUnicode, base of all PyNodes: 
+	__contains__,  __len__, __mod__, __rmod__, __mul__, __rmod__, __rmul__, expandtabs, translate, decode, encode, splitlines, capitalize, swapcase, title, isalnum, isalpha, isdigit, isspace, istitle, zfill
+removed Smart Layout Creator in favor of 'with' statement support
+
+
+FEATURES
+
+added support for creation of class-based python Attribute Editor templates, using ui.AETemplate.
+better support for attribute aliases:
+	DependNode.attr() now casts aliases to Attributes properly (PyNode already does)
+	added DependNode.listAliases()
+	added 'alias' keyword to DependNode.listAttr()
+	added Attribute.setAlias(), Attribute.getAlias()
+added 'with statement' compatibility to UI Layout and Menu classes
+added the ability to generate completion files for IDEs like Wing, Eclipse, and Komodo
+added regex flag to ls command
+
+
+TOOLS
+
+ipymel: added colorization to dag command
+py2mel: now works with lambdas and methods.  new option to provide a list or dictionary of mel types.
+re-added missing scriptEditor files
+
+
+INSTALLATION
+
+added a pre-made .pth file for users to use during install
+added upgradeScripts, a tool for converting 0.9 scripts to be 1.0 compatible
+
+
+CHANGES AND ADDITIONS
+
+added TwoWayDict/EquivalencePair to utilityTypes
+added preorder, postorder, and breadth functions in util.arguments, which have more intuitive arguments
+moved functions for working with the shell into util.shell
+split out ui classes from core.windows into core.uitypes for lazy loading
+for versions >= 2009, use open/close undo chunks instead of mel hack to ensure that an entire callback can be undone in one go
+added new Layout class that all layouts inherit from
+improved lsUI
+added UITemplate class
+cast modelEditor camera query to PyNode
+cast dimensionShape
+moved component types out of nodetypes and into general
+__repr__ for nodetypes, uitypes, and datatypes reflect their location so as not to cause confusion.  using short module names nt, ui, and dt.
+caches are now compressed for speed
+allow setting pymel.conf location via environment variable PYMEL_CONF
+DagNode.getBoundingBox() now allows you to specify space
+added usable __iter__ to workspace dict / file dict objects
+added two tier setup scripts for maya (user/site) just like with python. This new siteSetup.py is intended for studio setup of maya and reserved userSetup.py for user level scripts.
+add a partial replacement maya package with a logger with a shell and gui handler qne changed plogging to use the new default maya logger
+added setAttr/getAttr support for all numeric datatypes, along with tests
+added Transform.getShapes() for returning a list of shapes
+added FileReference comparison operators
+core.modeling: ensure that the 'name' flag for surface and curve operates on shape as well
+added DependNode.longName(stripNamespace=False,level=0)
+added SkinCluster.setWeights()
+added AnimCurve.addKeys()
+changes to allow myCube.vtx[1,3,5]
+internal: any command wrapped by pmcmds that raises a standard TypeError for a non-existent object will now raise a MayaObjectError
+core.general: added an Error class above MayaAttributeError and MayaComponentError called MayaSubObjectError
+simplified getParent code on Attribute and DagNode to improve function signatures.
+fixed instantiation of PyNode from MPlug instance
+
+
+BUGFIXES
+
+fixed a bug where Maya version was incorrectly detected when Maya was installed to a custom location 
+fixed bug where wrap of function which took multiple refs all pointed to same MScriptUtil
+fixes for handling wrapping of unsigned ptr api types
+fixes for negative comp indices
+mel2py: bugfix with mel2pyStr
+
+
 
 Version 0.9.2
 
@@ -45,6 +127,7 @@ setup now copies over a readline library for 2010 OSX using readline.so from tox
 changed ipymel to be part of the default install instead of an extra package
 fixed interpreter path of ipymel and other executable scripts on OSX
 setup now detects and fixes invalid python installations on Linux which previously caused distutils and thus setup.py to fail
+
 
 
 Version 0.9.1
@@ -98,3 +181,5 @@ fixed a bug with sets() when it returns lists
 fixed issue 76, where non-unique joint names were returned by pymel.joint and thus were unsuccessfully cast to nodetypes.Joint
 fixed issue 80, regading incorrect association of nodetypes.File with cmds.file. 
 fixed a bug in connectAttr that was preventing connection errors from being raised when the force flag was used
+
+
