@@ -55,7 +55,7 @@ MEL GUI Creation
 Streamlined GUI Creation
 ========================
 
-Anyone who has coded GUIs in Maya using both MEL and python will tell you that if there is one thing they miss about MEL (and only one thing), it is the use of indentation to organize layout hierarchy. this is not possible in python because tabs are a syntactical element, indicating code blocks. In this release, PyMEL harnesses python's ``with`` statement, which not only allows indentation during GUI creation, it also streamlines the process.
+Anyone who has coded GUIs in Maya using both MEL and python will tell you that if there is one thing they miss about MEL (and only one thing), it is the use of indentation to organize layout hierarchy. this is not possible in python because tabs are a syntactical element, indicating code blocks. In this release, PyMEL harnesses python's ``with`` statement to use indentation to streamlines the process of GUI creation.
 
 Here is a comparison of the `uiTemplate` example from the Maya docs.
 
@@ -143,7 +143,7 @@ Python's ``with`` statement was added in version 2.5 (Maya 2008 and 2009).  It's
 Layout Class
 ============
 
-Support for python's 'with' statement is made possible by the `Layout` class. Layout's now provides a number of other methods for walking UI hierarchies. Continuing from our previous example::
+Support for python's 'with' statement is made possible by the new `Layout` class. Layouts also provide a number of methods for walking UI hierarchies. Continuing from our previous example::
 
     # hide all children of the window
     for ctrl in win.walkChildren():
@@ -155,7 +155,7 @@ Components
 
 all component types supported
 
----------------------------
+--------------------------- 
 Tighter Maya Integration
 ---------------------------
 
