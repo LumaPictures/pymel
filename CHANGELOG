@@ -1,3 +1,22 @@
+
+Version 0.9.3
+
+CHANGES AND ADDITIONS
+
+added pymel.all module for version 1.0 forward compatibility 
+added tools.upgradeScripts to convert to 1.0 compatible code
+added TwoWayDict/EquivalencePair to utilityTypes
+added usable __iter__ to workspace dict / file dict objects
+
+
+BUGFIXES
+
+fixed a bug where Maya version was incorrectly detected when Maya was installed to a custom location 
+fixed a bug where Maya version was incorrectly detected when Maya was installed to a custom location 
+fixed a bug in maya.app.commands where certain commands do not return a result on the first call
+
+
+
 Version 0.9.2
 
 CHANGES AND ADDITIONS
