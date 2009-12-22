@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# maintainence/release
+cd `dirname $0`/release
+
+VER=$1
+RELEASE=pymel-$1
+echo $RELEASE
+SOURCE=../..
+
+if [ -d $RELEASE ];
+then
+echo "removing existing folder"
+rm -rfd $RELEASE
+fi
+
+if [ -f $RELEASE.zip ];
+then
+echo "removing existing zip"
+rm -f $RELEASE.zip
+fi
+
+git clone --shared $SOURCE $RELEASE
+
+#svn export https://pymel.googlecode.com/svn/trunk pymel
+#svn export https://pymel.googlecode.com/svn/docs pymel/docs
+
+# clean out 2011 stuff til it's released
+rm $RELEASE/pymel/cache/*2011.*
+
+# clean out git stuff
+rm -rfd $RELEASE/.git*
+rm -rfd $RELEASE/.hg*
+rm -rfd $RELEASE/maintainence
+
+echo "copying docs"
+rm -rfd $RELEASE/docs
+cp -r $SOURCE/docs/build/html $RELEASE/docs
+
+echo "zipping"
+zip -rq $RELEASE.zip $RELEASE
+#rm -rfd pymel
+
