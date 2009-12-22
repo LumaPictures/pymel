@@ -20,11 +20,12 @@ removed deprecated and inapplicable string methods from ProxiUnicode, base of al
 	__contains__,  __len__, __mod__, __rmod__, __mul__, __rmod__, __rmul__, expandtabs, translate, decode, encode, splitlines, capitalize, swapcase, title, isalnum, isalpha, isdigit, isspace, istitle, zfill
 removed Smart Layout Creator in favor of 'with' statement support
 DagNode.getParent() no longer accepts keyword arguments
+Renamed UI base class to PyUI
 
 FEATURES
 
 added support for creation of class-based python Attribute Editor templates, using ui.AETemplate.
-better support for attribute aliases:
+added support for attribute aliases:
 	DependNode.attr() now casts aliases to Attributes properly (PyNode already does)
 	added DependNode.listAliases()
 	added 'alias' keyword to DependNode.listAttr()
