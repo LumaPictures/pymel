@@ -526,7 +526,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         # need to define a seperate var here to hold
         # the old value of newFunc, b/c 'return newFunc'
         # would be recursive
-        
         beforeReturnFunc = newFunc
         def newFuncWithReturnFunc( *args, **kwargs):
             for flag in timeRangeFlags:
@@ -562,7 +561,6 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                             val.append( cmds.findKeyframe(which='last') )
                         kwargs[flag] = tuple(val)
 
-            
             res = beforeReturnFunc(*args, **kwargs)
             if not kwargs.get('query', kwargs.get('q',False)): # and 'edit' not in kwargs and 'e' not in kwargs:
                 if isinstance(res, list):
@@ -577,12 +575,14 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                 elif res:
                     try:
                         res = returnFunc( res )
-                    except: pass
+                    except Exception, e:
+                        pass
             return res
         newFunc = newFuncWithReturnFunc
     
     if not customFunc and funcName in simpleCommandWraps:
         # simple wraps: we only do these for functions which have not been manually customized
+        # data structure looks like:
         #'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
         #                        ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
         wraps = simpleCommandWraps[funcName]
@@ -591,8 +591,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             res = beforeSimpleWrap(*args, **kwargs)
             for wrappedFlags, returnFuncs in wraps:
                 if wrappedFlags is None or all( [kwargs.get(flag[0],False) or kwargs.get(flag[1],False) for flag in wrappedFlags] ):
-                    for returnFunc in returnFuncs:
-                        res = returnFunc(res)
+                    for func in returnFuncs:
+                        res = func(res)
             return res
         newFunc = simpleWrapFunc
         doc = 'Modifications:\n'
@@ -601,8 +601,8 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
                 flags = ' for flags ' + ', '.join([ x[0] for x in wrappedFlags ])
             else:
                 flags = ''
-            for returnFunc in returnFuncs:
-                doc += '  - ' + returnFunc.__doc__.strip() + flags + '\n'
+            for func in returnFuncs:
+                doc += '  - ' + func.__doc__.strip() + flags + '\n'
         newFunc.__doc__  = doc
         
     #----------------------------        
