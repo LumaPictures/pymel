@@ -45,7 +45,7 @@ This brings everything in pymel into the main namespace, meaning that you won't 
 	a python novice, you might want to keep pymel in its own namespace, because, **unlike in MEL, in python you can "overwrite" functions
 	if you are not careful**::
 	
-		from pymel import *
+		from pymel.core import *
 		s = sphere() # create a nurbsSphere
 		sphere = 'mySphere'	 # oops, we've overwritten the sphere command with a string
 		sphere()
