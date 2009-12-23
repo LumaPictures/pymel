@@ -188,3 +188,5 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+#doctest_test_doctest_blocks = 'default'

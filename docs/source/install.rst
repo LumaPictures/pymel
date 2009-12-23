@@ -41,16 +41,13 @@ As of version 0.9.1 PyMEL supports installation via setuptools, which makes it a
     
 If you fall short on either of these you can always perform a `Manual Install`_ of PyMEL.
 
-To Install:
+Installation on OSX
+-------------------
 
-    #.  Open a shell:
-
-        * on osx you'll find the Terminal app in ``/Applications/Utilities``
-        * on Windows, open the Start menu then go to "Run...", then put in ``cmd`` and press "OK"
-
-       
+    #.  Open a shell: you'll find the Terminal app in ``/Applications/Utilities``
+        
     #.  ``cd`` to the directory where you extracted the pymel zip file. A file called "setup.py" should exist directly below this directory.
-        For example, I downloaded and extracted mine to my "Downloads" folder on OSX::
+        For example, I downloaded and extracted mine to my "Downloads" folder::
     
             cd ~/Downloads/pymel-1.0.0
        
@@ -58,26 +55,36 @@ To Install:
             example of escaping a space in a folder name (notice the backslash after ``Image``)::
        
                 cd /Applications/Image\ Capture.app
-           
-            On Windows you can copy the path from Explorer and paste into the shell by right clicking.  You don't need to escape spaces.
-
-    #.  Now run the installation for each version of Maya that you have installed using Maya's own python interpreter -- aka mayapy. 
-        This ensures that PyMEL is installed to the site-packages directory of each, and that it will always be on your ``PYTHONPATH`` when using Maya.
-        
-        On OSX::
+    
+    #.  Next, from the shell, run the installation for each version of Maya that you have installed::
 
             sudo /Applications/Autodesk/maya2008/Maya.app/Contents/bin/mayapy setup.py install
             sudo /Applications/Autodesk/maya2009/Maya.app/Contents/bin/mayapy setup.py install
+            sudo /Applications/Autodesk/maya2010/Maya.app/Contents/bin/mayapy setup.py install
 
-        On Windows wrap the path in double quotes::
+        You should be able to drag and drop the mayapy executable from the finder into the shell to get the path.
+
+
+Installation on Windows
+-----------------------
+
+    #.  Open a shell: from the Start menu go to "Run...", then type in ``cmd`` and press "OK"
+     
+    #.  ``cd`` to the directory where you extracted the pymel zip file. A file called "setup.py" should exist directly below this directory.
+        For example, I downloaded and extracted mine to my desktop::
+    
+            cd "C:\Desktop\pymel-1.0.0"
+
+    #.  Next, from the shell, run the installation for each version of Maya that you have installed::
 
             "C:\Program Files\Autodesk\Maya2008\bin\mayapy.exe" setup.py install
             "C:\Program Files\Autodesk\Maya2009\bin\mayapy.exe" setup.py install
+            "C:\Program Files\Autodesk\Maya2010\bin\mayapy.exe" setup.py install
 
-        On both platforms you should be able to drag and drop the mayapy file from finder/explorer into the shell to get the path.
+        You should be able to drag and drop the mayapy.exe executable from windows explorer into the shell to get the path. Don't forget to wrap it in quotes.
         
         .. note:: Be sure to use the proper path to *your* mayapy.exe.  For example, if you have 32-bit maya installed on 64-bit windows, it will be installed to ``C:\Program Files (x86)`` instead of ``C:\Program Files``
-            
+                    
 .. _install_manual:
 
 Manual Install
