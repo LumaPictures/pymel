@@ -3001,6 +3001,8 @@ def _formatSlice(sliceObj):
 
 
 ProxySlice = _util.proxyClass( slice, 'ProxySlice', dataAttrName='_slice', makeDefaultInit=True)
+# prevent auto-completion generator from getting confused
+ProxySlice.__module__ = __name__
 
 # Really, don't need to have another class inheriting from
 # the proxy class, but do this so I can define a method using

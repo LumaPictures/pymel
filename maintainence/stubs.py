@@ -51,6 +51,8 @@ class StubDoc(Doc):
 
     def docmodule(self, object, name=None, mod=None):
         """Produce text documentation for a given module object."""
+        debugmodule = 'pymel.api'
+        
         name = object.__name__ # ignore the passed-in name
         synop, desc = splitdoc(getdoc(object))
         result = ''
@@ -98,10 +100,12 @@ class StubDoc(Doc):
         for key, value in inspect.getmembers(object, inspect.ismodule):
             modules.append((key, value))
         
-        allmodules = set([])
+        fromall_modules = set([])
         for key, value in inspect.getmembers(object, lambda x: not inspect.ismodule(x) ):
             if hasattr(value, '__module__') and value.__module__ not in [None, object.__name__] and not value.__module__.startswith('_'):
-                allmodules.add( value.__module__ )
+                if object.__name__ == debugmodule and value.__module__ == 'pymel.internal.apicache':
+                    print "import* %r" % value
+                fromall_modules.add( value.__module__ )
             
 #        modpkgs = []
 #        modpkgs_names = set()
@@ -126,6 +130,7 @@ class StubDoc(Doc):
 #            submodules.sort()
 #            result = result + self.section(
 #                'SUBMODULES', join(submodules, '\n'))
+
         if modules:
             contents = []
             #print "modules", object
@@ -138,20 +143,20 @@ class StubDoc(Doc):
                 importname = realname
                 if len(realparts) == len(currparts): #test for siblings
                     if realparts[:-1] == currparts[:-1] and not ispkg:
-                        if object.__name__ == 'pymel.internal': print "sibling"
+                        if object.__name__ == debugmodule: print "sibling"
                         importname = realparts[-1]
                 elif len(realparts) > len(currparts): #test if current is parent
                     if realparts[:len(currparts)] == currparts:
-                        if object.__name__ == 'pymel.internal': print "parent"
+                        if object.__name__ == debugmodule: print "parent"
                         importname = '.'.join(realparts[len(currparts):])
                 self.module_map[realname] = key if importname != key else importname
-                if object.__name__ == 'pymel.internal':
+                if object.__name__ == debugmodule:
                     print '\t %-30s %-30s %s' % ( realname, importname, key )
                 contents.append( 'import ' + importname + ( ( ' as ' + key ) if importname != key else '') )
             result = result + join(contents, '\n') + '\n\n'
-        if allmodules:
+        if fromall_modules:
             contents = []
-            for modname in allmodules:
+            for modname in fromall_modules:
                 contents.append( 'from ' + modname + ' import *' )
                 self.module_map[modname] = ''
             result = result + join(contents, '\n') + '\n\n'

@@ -30,6 +30,8 @@ class Enum(tuple):
         return '.'.join( [str(x) for x in parts] )
 
 api.Enum = Enum
+# prevent auto-completion generator from getting confused
+api.Enum.__module__ = 'pymel.api'
 
 def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # we create a dummy object of this type in a dgModifier (or dagModifier)
