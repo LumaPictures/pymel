@@ -129,12 +129,12 @@ Maya Bug Fix:
         cmds.scriptTable( uiName, e=1, **kwargs)    
     return _uitypes.ScriptTable(uiName)
     
-#def getPanel(*args, **kwargs):
-#    """
-#Modifications:
-#  - returns an empty list when the result is None
-#    """
-#    return _util.listForNone( cmds.getPanel(*args, **kwargs ) )
+def getPanel(*args, **kwargs):
+    typeOf = kwargs.pop('typeOf', kwargs.pop('to', None) )
+    if typeOf:
+        # typeOf flag only allows short names
+        kwargs['typeOf'] = typeOf.rsplit('|',1)[-1]
+    return cmds.getPanel(*args, **kwargs )
 #
 #
 #def textScrollList( *args, **kwargs ):
