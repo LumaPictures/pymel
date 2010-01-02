@@ -6,6 +6,7 @@ from __future__ import with_statement
 import re, os.path, sys, platform, glob, inspect
 import maya
 import maya.OpenMaya as om
+import maya.utils
 
 from pymel.util import picklezip, shellOutput
 import pymel.versions as versions
@@ -24,7 +25,7 @@ except:
 isInitializing = False
     
 # tells whether this maya package has been modified to work with pymel
-pymelMayaPackage = hasattr(maya, 'pymelCompatible') or versions.current() >= versions.v2011
+pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
 
                     
 def _moduleJoin(*args):
@@ -97,6 +98,8 @@ def setupFormatting():
     def myResultCallback(obj):
         return pprint.pformat(obj)
     maya.utils.formatGuiResult = myResultCallback
+    # prevent auto-completion generator from getting confused
+    maya.utils.formatGuiResult.__module__ = 'maya.utils'
 
 #def loadDynamicLibs():
 #    """
