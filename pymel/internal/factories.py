@@ -58,37 +58,73 @@ nodeTypeToInfoCommand = {
 virtualClass = util.defaultdict(list)
 
 def toPyNode(res):
-    "returns a PyNode"
-    import pymel.core.general
-    return pymel.core.general.PyNode(res)
+    "returns a PyNode object"
+    if res is not None:
+        import pymel.core.general
+        return pymel.core.general.PyNode(res)
+
+def toPyUI(res):
+    "returns a PyUI object"
+    if res is not None:
+        import pymel.core.uitypes
+        return pymel.core.uitypes.PyUI(res)
 
 def toPyNodeList(res):
-    "returns a list of PyNodes"
+    "returns a list of PyNode objects"
+    if res is None:
+        return []
     import pymel.core.general
     return [ pymel.core.general.PyNode(x) for x in res ]
 
+def toPyUIList(res):
+    "returns a list of PyUI objects"
+    if res is None:
+        return []
+    import pymel.core.uitypes
+    return [ pymel.core.uitypes.PyUI(x) for x in res ]
+
 simpleCommandWraps = {
-    'createRenderLayer' : [ (None, [toPyNode]) ],
-    'createDisplayLayer': [ (None, [toPyNode]) ],
-    'distanceDimension' : [ (None, [toPyNode]) ], 
-    'listAttr'          : [ (None, [util.listForNone]) ], 
-    'instance'          : [ (None, [toPyNodeList]) ], 
-    'getPanel'          : [ (None, [util.listForNone]) ], 
-    'textScrollList'    : [ ([('query', 'q'), ('selectIndexedItem', 'sii')],  [util.listForNone]),
-                            ([('query', 'q'), ('allItems', 'ai')],            [util.listForNone]),
-                            ([('query', 'q'), ('selectItem', 'si',)],         [util.listForNone])],
+    'createRenderLayer' : [ (toPyNode, None) ],
+    'createDisplayLayer': [ (toPyNode, None) ],
+    'distanceDimension' : [ (toPyNode, None) ], 
+    'listAttr'          : [ (util.listForNone, None) ], 
+    'instance'          : [ (toPyNodeList, None) ], 
+    
+    'getPanel'          : [ ( toPyUI,
+                              [ [('containing', 'c')],
+                                [('underPointer', 'up')],
+                                [('withFocus', 'wf')] ] ),
+                            ( lambda x: x,  
+                              [ [('typeOf', 'to')] ] ),
+                            ( toPyUIList, None )
+                          ],
+                            
+    'textScrollList'    : [ ( util.listForNone, 
+                              [ [('query', 'q'), ('selectIndexedItem', 'sii')], 
+                                [('query', 'q'), ('allItems', 'ai')],
+                                [('query', 'q'), ('selectItem', 'si')] ] )
+                          ],
 
     #'textScrollList'    : ( [('query', 'q'), ('selectIndexedItem', 'sii', 'allItems', 'ai', 'selectItem', 'si' )],  [util.listForNone] ),
                             
     #'textScrollList'    : [ 'query', [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)],  [util.listForNone]],
-                                               
-    'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
-                            ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
 
-    'optionMenuGrp'     : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
-                            ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
+    'optionMenu'        : [ ( util.listForNone,
+                              [ [('query', 'q'), ('itemListLong', 'ill')],
+                                [('query', 'q'), ('itemListShort', 'ils')] ] )
+                          ], 
+                                                                         
+#    'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
+#                            ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
 
-    'modelEditor'       : [ ([('query', 'q'), ('camera', 'cam')],             [toPyNode]) ],
+    'optionMenuGrp'     : [ ( util.listForNone,
+                              [ [('query', 'q'), ('itemListLong', 'ill')],
+                                [('query', 'q'), ('itemListShort', 'ils')] ] )
+                          ], 
+
+    'modelEditor'       : [ ( toPyNode,
+                              [ [('query', 'q'), ('camera', 'cam')] ] )
+                          ]
 }                             
 #---------------------------------------------------------------
    
@@ -580,28 +616,43 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
             return res
         newFunc = newFuncWithReturnFunc
     
-    if not customFunc and funcName in simpleCommandWraps:
+    if funcName in simpleCommandWraps:
         # simple wraps: we only do these for functions which have not been manually customized
         # data structure looks like:
         #'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
         #                        ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
+        
+        #'getPanel'          : [ ( toPyUI,
+        #                          ( [('containing', 'c')],
+        #                            [('underPointer', 'up')]
+        #                            [('withFocus', 'wf')] ) ),
+        #                        ( util.listForNone,
+        #                          ( [('typeOf', 'to')] ) ),
+        #                        ( toPyUIList, None )
+        #                      ],
         wraps = simpleCommandWraps[funcName]
         beforeSimpleWrap = newFunc
         def simpleWrapFunc(*args, **kwargs):
             res = beforeSimpleWrap(*args, **kwargs)
-            for wrappedFlags, returnFuncs in wraps:
-                if wrappedFlags is None or all( [kwargs.get(flag[0],False) or kwargs.get(flag[1],False) for flag in wrappedFlags] ):
-                    for func in returnFuncs:
+            for func, flagGrps in wraps:
+                if not flagGrps or \
+                    any( all( flag[0] in kwargs or flag[1] in kwargs for flag in wrappedFlags ) \
+                         for wrappedFlags in flagGrps):
                         res = func(res)
+                        break
             return res
         newFunc = simpleWrapFunc
         doc = 'Modifications:\n'
-        for wrappedFlags, returnFuncs in wraps: 
-            if wrappedFlags:
-                flags = ' for flags ' + ', '.join([ x[0] for x in wrappedFlags ])
+        for func, flagGrps in wraps: 
+            if flagGrps:
+                # use only the long flag name
+                desc = [ ' and '.join([ x[0] for x in wrappedFlags ]) for wrappedFlags in flagGrps ]
+                flags = ' for flags ' + ', '.join(desc)
+            elif len(wraps)>1:
+                flags = ' for all other flags'
             else:
                 flags = ''
-            for func in returnFuncs:
+            if func.__doc__:
                 doc += '  - ' + func.__doc__.strip() + flags + '\n'
         newFunc.__doc__  = doc
         
@@ -613,7 +664,7 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
     if callbackFlags:
         newFunc = fixCallbacks( newFunc, callbackFlags, funcName )
 
-    # Check if we have not been wrapped yet. if we haven't and our function is still a builtin or we're renaming
+    # Check if we have not been wrapped yet. if we haven't and our input function is a builtin or we're renaming
     # then we need a wrap. otherwise we can just change the __doc__ and __name__ and move on
     if newFunc == inFunc and (type(newFunc) == types.BuiltinFunctionType or rename):
         # we'll need a new function: we don't want to touch built-ins, or
@@ -624,8 +675,12 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
           
     # 2. Modify the function descriptors - ie, __doc__, __name__, etc
     if customFunc:
-        newFunc.__doc__ = inFunc.__doc__
-    _addCmdDocs( newFunc, funcName )
+        # copy over the exisitng docs
+        if not newFunc.__doc__:
+            newFunc.__doc__ = inFunc.__doc__
+        elif inFunc.__doc__:
+            newFunc.__doc__ = inFunc.__doc__
+    _addCmdDocs(newFunc, funcName)
 
     if rename: 
         newFunc.__name__ = rename
