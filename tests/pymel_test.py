@@ -3,7 +3,7 @@
 #nosetests --with-doctest -v pymel --exclude '(windows)|(tools)|(arrays)|(example1)'
 
 #import doctest
-import sys, platform, os, os.path, shutil, subprocess, time, inspect, tempfile, doctest
+import sys, platform, os, shutil, time, inspect, tempfile, doctest
 
 try:
     import nose
@@ -34,10 +34,13 @@ DELETE_BACKUP_ARG = '--delete-maya-user-backup'
 
 class RemoveBackupError(Exception): pass
 
-def nose_test(module=None, extraArgs=None):
+def nose_test(module=None, extraArgs=None, pymelDir=None):
     """
     Run pymel unittests / doctests
     """
+    if pymelDir:
+        os.chdir(pymelDir)
+            
     os.environ['MAYA_PSEUDOTRANS_MODE']='5'
     os.environ['MAYA_PSEUDOTRANS_VALUE']=','
     
