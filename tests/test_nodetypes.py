@@ -1614,6 +1614,13 @@ class testCase_apiArgConversion(unittest.TestCase):
         latticeObj = lattice(cmds.polyCube()[0], divisions=res)[1]
         self.assertEqual(latticeObj.getDivisions(), res)
         
+    def test_float2Ref_out_arg(self):
+        """
+        Test api functions that have an output arg of type float2 &
+        MFnMesh.getUvAtPoint's uvPoint arg is one such arg.
+        """
+        mesh = polyCube()[0].getShape()
+        mesh.getUVAtPoint([0,0,0], space='world')
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)
