@@ -732,7 +732,12 @@ class ApiDocParser(object):
                             if brackets:                         
                                 numbuf = re.split( r'\[|\]', brackets)
                                 if len(numbuf) > 1:
-                                    type = type + numbuf[1]
+                                    # Note that these two args need to be cast differently:
+                                    #   int2 foo;
+                                    #   int bar[2];
+                                    # ... so, instead of storing the type of both as
+                                    # 'int2', we make the second one 'int__array2'
+                                    type = type + '__array' + numbuf[1]
                                 else:
                                     print "this is not a bracketed number", repr(brackets), joined
                             
@@ -923,7 +928,7 @@ class ApiDocParser(object):
                               #'directions' : directions,
                               'types' : types,
                               'static' : static,
-                              #'typeQualifiers' : typeQualifiers,
+                              'typeQualifiers' : typeQualifiers,
                               'deprecated' : deprecated } 
                 self.methods[self.currentMethod].append(methodInfo)
                 

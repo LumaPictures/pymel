@@ -1620,7 +1620,16 @@ class testCase_apiArgConversion(unittest.TestCase):
         MFnMesh.getUvAtPoint's uvPoint arg is one such arg.
         """
         mesh = polyCube()[0].getShape()
-        mesh.getUVAtPoint([0,0,0], space='world')
+        self.assertEqual(mesh.getUVAtPoint([0,0,0], space='world'),
+                         [0.49666666984558105, 0.125])
+        
+    def test_int2Ref_out_arg(self):
+        """
+        Test api functions that have an output arg of type int2 &
+        MFnMesh.getEdgeVertices's vertexList arg is one such arg.
+        """
+        mesh = polyCube()[0].getShape()
+        self.assertEqual(mesh.getEdgeVertices(2), [4,5])
     
 #def test_units():
 #    startLinear = currentUnit( q=1, linear=1)

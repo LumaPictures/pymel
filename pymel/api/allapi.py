@@ -1,5 +1,7 @@
 import weakref
 
+import pymel.util as util
+
 # import all available Maya API methods in this module (api)
 from maya.OpenMaya import *
 from maya.OpenMayaAnim import *
@@ -63,7 +65,7 @@ class SafeApiPtr(object):
     pointer.
     """
         
-    def __init__(self, valueType, scriptUtil=None, size=1):
+    def __init__(self, valueType, scriptUtil=None, size=1, asTypeNPtr=False):
         """
         :Parameters:
         valueType : `string`
@@ -82,6 +84,15 @@ class SafeApiPtr(object):
             MScriptUtil, then it is your responsibility to
             make sure it can hold the necessary number of items,
             or else maya will crash!
+        asTypeNPtr : `bool`
+            If we want a call to this SafeApiPtr to return a pointer
+            for an argument such as:
+               int2 &myArg;
+            then we need to set asTypeNPtr to True:
+               SafeApiPtr('int', size=2, asTypeNPtr=True)
+            Otherwise, it is assumed that calling the object returns array
+            ptrs:
+               int myArg[2];
         """
         if not scriptUtil:
             self.scriptUtil = MScriptUtil()
@@ -94,39 +105,52 @@ class SafeApiPtr(object):
         else:
             self.scriptUtil = scriptUtil
         self.size = size
-        self.ptr = getattr(self.scriptUtil,
-                           'as' + valueType.capitalize() + 'Ptr')()
-        self._getter = getattr(MScriptUtil, 'get' + valueType.capitalize())
-        self._setter = getattr(MScriptUtil, 'set' + valueType.capitalize())
+        capValue = util.capitalize(valueType)
+        self._normPtr = getattr(self.scriptUtil, 'as' + capValue + 'Ptr')()
+        # Unforunately, arguments such as:
+        #    float2 &foo;
+        # need to be handled differently - calling it, we need
+        # to return asFloat2Ptr()... but when indexing, use the same old
+        # asFloatPtr() result to feed into getFloatArrayValue.
+        # Also, note that asFloatPtr() must be called BEFORE asFloat2Ptr() -
+        # if it is called after, the float2 ptr seems to get reset!
+        if asTypeNPtr:
+            self._nPtr = getattr(self.scriptUtil, 'as' + capValue +
+                                 str(size) + 'Ptr')()
+            self._ptr = self._nPtr
+        else:
+            self._ptr = self._normPtr
+        self._getter = getattr(MScriptUtil, 'get' + capValue, None)
+        self._setter = getattr(MScriptUtil, 'set' + capValue, None)
         self._indexGetter = getattr(MScriptUtil,
-                                    'get' + valueType.capitalize() + 'ArrayItem')
+                                    'get' + capValue + 'ArrayItem', None)
         self._indexSetter = getattr(MScriptUtil,
-                                    'set' + valueType.capitalize() + 'Array')
+                                    'set' + capValue + 'Array', None)
                            
     def __call__(self):
-        return self.ptr
+        return self._ptr
     
     def get(self):
         """
         Dereference the pointer - ie, get the actual value we're pointing to.
         """
-        return self._getter(self.ptr)
+        return self._getter(self._normPtr)
 
     def set(self, value):
         """
-        Dereference the pointer - ie, get the actual value we're pointing to.
+        Store the actual value we're pointing to.
         """
-        return self._setter(self.ptr, value)
+        return self._setter(self._normPtr, value)
     
     def __getitem__(self, index):
         if index < 0 or index > (self.size - 1):
             raise IndexError(index)
-        return self._indexGetter(self.ptr, index)
+        return self._indexGetter(self._normPtr, index)
 
     def __setitem__(self, index, value):
         if index < 0 or index > (self.size - 1):
             raise IndexError(index)
-        return self._indexSetter(self.ptr, index, value)
+        return self._indexSetter(self._normPtr, index, value)
     
     def __len__(self):
         return self.size

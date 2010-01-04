@@ -871,7 +871,7 @@ class ApiTypeRegister(object):
     doc = {}
 
     @staticmethod
-    def _makeRefFunc(capitalizedApiType, size=1):
+    def _makeRefFunc(capitalizedApiType, size=1, **kwargs):
         """
         Returns a function which will return a SafeApiPtr object of the given
         type.
@@ -885,7 +885,7 @@ class ApiTypeRegister(object):
             an array of the given size.
         """
         def makeRef():
-            return api.SafeApiPtr(capitalizedApiType, size=size)
+            return api.SafeApiPtr(capitalizedApiType, size=size, **kwargs)
         return makeRef
 
     @staticmethod
@@ -983,12 +983,24 @@ class ApiTypeRegister(object):
             cls.refInit[apiTypeName] = initFunc
             cls.refCast[apiTypeName] = getFunc
             for i in [2,3,4]:
-                iapiTypename = apiTypeName + str(i)
+                # Register arrays for this up to size for - ie,
+                #   int myVar[2];
+                iapiArrayTypename = apiTypeName + '__array' + str(i)
                 arrayInitFunc = cls._makeRefFunc( capType, size=i)
-                cls.refInit[iapiTypename] = arrayInitFunc
-                cls.inCast[iapiTypename]  = cls._makeArraySetter( apiTypeName, i, arrayInitFunc )
-                cls.refCast[iapiTypename] = cls._makeArrayGetter( apiTypeName, i )
-                cls.types[iapiTypename] = tuple([pymelType.__name__]*i)
+                cls.refInit[iapiArrayTypename] = arrayInitFunc
+                cls.inCast[iapiArrayTypename]  = cls._makeArraySetter( apiTypeName, i, arrayInitFunc )
+                cls.refCast[iapiArrayTypename] = cls._makeArrayGetter( apiTypeName, i )
+                cls.types[iapiArrayTypename] = tuple([pymelType.__name__]*i)
+                # Check if there is an explicit maya type for n of these - ie,
+                #   int2 myVar;
+                apiTypeNameN = apiTypeName + str(i)
+                castNFuncName = 'as' + capType + str(i) + 'Ptr'
+                if hasattr(api.MScriptUtil, castNFuncName):
+                    nInitFunc = cls._makeRefFunc(apiTypeName, size=i, asTypeNPtr=True)
+                    cls.refInit[apiTypeNameN] = nInitFunc
+                    cls.inCast[apiTypeNameN]  = cls._makeArraySetter( apiTypeName, i, nInitFunc )
+                    cls.refCast[apiTypeNameN] = cls._makeArrayGetter( apiTypeName, i )
+                    cls.types[apiTypeNameN] = tuple([pymelType.__name__]*i)
         else:
             try:      
                 apiType = getattr( api, apiTypeName )
