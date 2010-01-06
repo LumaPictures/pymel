@@ -211,7 +211,7 @@ Windows XP
         
         If it is not set, make a new variable for either your user or the system (if you have permission).  Use ``PYTHONPATH`` for the name and for the the value use the directory *above* the ``pymel`` directory.  So, for example, if the pymel directory is ``C:\My Documents\pymel-1.0.0\pymel`` copy and paste in the value ``C:\My Documents\pymel-1.0.0`` from an explorer window.
         
-        If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to the end of the value and add a semi-colon ( ; ) and after this add the directory *above* the pymel directory to the end of the existing path. For example, let's say the starting value is::
+        If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to the end of the value and add a semi-colon ``;`` and after this add the directory *above* the pymel directory to the end of the existing path. For example, let's say the starting value is::
             
             C:\Python25\lib
         
@@ -227,7 +227,7 @@ Windows XP
     
             %MAYA_LOCATION%\bin
         
-        Don't forget to put a semi-colon (;) between the existing paths and the new ones that you are adding.
+        Don't forget to put a semi-colon ``;`` between the existing paths and the new ones that you are adding.
         
         *If installing ipymel* include the path to your ipymel bin directory. For example, if you manually installed PyMEL, the line should look like the following::
 
@@ -287,7 +287,7 @@ To Run: In a new shell, run the following command::
 
 .. note:: The "easy" installation method produces an invalid ``ipymel.exe`` on 64-bit windows systems.  As of this writing I'm still looking into this.
 
-.. note:: Though not a requirement for ipymel to work, it's best to read up on `Setting Up Your System Environment`_
+.. note:: Though not a requirement for ipymel to work, it's best to read up on :ref:`install_system_env`
    
           
 ipymel Manual Install
@@ -296,7 +296,7 @@ ipymel Manual Install
 OSX and Linux
 -------------
 
-    #. Follow the installation instructions above for `Setting Up Your System Environment`_
+    #. Follow the installation instructions above for :ref:`install_system_env`
     #. Install IPython.  For a manual install, I recommend downloading the tarball, not the egg file. 
        Unzip the tar.gz and put the sub-directory named IPython somewhere on your ``PYTHONPATH``,
        or just put it directly into your python site-packages directory
@@ -312,7 +312,7 @@ OSX and Linux
 Windows
 -------
 
-    #. Follow the installation instructions above for `Setting Up Your System Environment`_
+    #. Follow the installation instructions above for :ref:`install_system_env`
     #. Install python for windows, if you have not already.
     #. Install `IPython <http://ipython.scipy.org/dist>`_ using their windows installer.  The installer will most likely not find the maya python install, 
        so install IPython to your system Python instead (from step 1).

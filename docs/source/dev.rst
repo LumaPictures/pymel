@@ -1,3 +1,5 @@
+.. currentmodule:: pymel
+
 =============================================
 For Developers: How PyMEL Works
 =============================================
@@ -9,7 +11,7 @@ An Overview of PyMEL's Wrapping Mechanisms
 Parsed Caches and Maintained Constants
 ======================================
 
-In order to fuse the many disparate parts of maya's python package into a cohesive whole PyMEL requires a great deal of data describing how each MEL command and API class within Maya works: the arguments they require, the results they return, and their relationships to each other.  Some of this data is parsed and cached, while other bits are manually maintained.
+In order to fuse the many disparate parts of maya's python package into a cohesive whole PyMEL requires a great deal of data describing how each MEL command and API class works: the arguments they require, the results they return, and their relationships to each other.  Some of this data is parsed and cached, while other bits are manually maintained.
 
 Below is a description of how each major cache is created.
 
@@ -17,8 +19,8 @@ MEL Commands
 ------------
 
 1. gather MEL function data
-	* parse data from MEL documentation
-	* merge this with info from MEL ``help`` command
+    * parse data from MEL documentation
+    * merge this with info from MEL ``help`` command
 2. create a dictionary of MEL-commands to the maya nodes they create, query, and edit
 3. create a dictionary of MEL-commands to the ui elements they create, query, and edit
 4. run tests on node commands to gather additional information required to ensure values returned by queries are compatible with values required for edits
@@ -29,12 +31,12 @@ Nodes and API Classes
 ---------------------
 
 1. gather API class data
-	* parse API docs
-	* correct erroneous docs based on documentation
+    * parse API docs
+    * correct erroneous docs based on documentation
 2. gather node hierarchy data
-	* parse maya node hierarchy docs
-	* determine MFn-to-maya-node mappings
-	* determine apiType-to-maya-node mappings
+    * parse maya node hierarchy docs
+    * determine MFn-to-maya-node mappings
+    * determine apiType-to-maya-node mappings
 3. pickle this info into two separate caches: one for auto-wraps and the other for doc strings
 
 Bridge
@@ -56,6 +58,7 @@ Functions
 ---------
 
 for each function:
+
 1. add open-ended time ranges to appropriate flags:  (1,None), (1,), slice(1,None), "1:", etc
 2. cast results to PyNode or PyUI if it is a node or UI command, correcting where determined necessary in tests
 3. fix UI callbacks to return proper python objects instead of 'true', 'false', '1', '0', etc
@@ -70,7 +73,8 @@ Classes
 2. add the appropriate ``__metaclass__`` attribute:  `internal.factories.MetaMayaNodeWrapper` or `internal.factories.MetaMayaUIWrapper`
 
 for each node and UI type:
+
 1. choose the appropriate metaclass
 2. add methods:
-	* use bridge to determine whether to use MEL or API
-	* skip if it has already been manually added
+    * use bridge to determine whether to use MEL or API
+    * skip if it has already been manually added
