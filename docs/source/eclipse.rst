@@ -28,8 +28,8 @@ These instructions are updated for Pydev 1.4.6, and should work on either Eclips
 		1. be sure that pymel is on the path by following the :ref:`install_manual` method.
 		2. open a Maya GUI and run the following in a python tab of the script editor::
 	
-			import maintainence.stubs
-			maintainence.stubs.pymelstubs()
+			import maintenance.stubs
+			maintenance.stubs.pymelstubs()
 	
 
 --------------------------------------------------
