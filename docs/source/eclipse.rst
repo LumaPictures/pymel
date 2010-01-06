@@ -102,14 +102,16 @@ Adding The Maya Python Interpreter
     |win_105|                                              |osx_105|
     ====================================================== ==================================================================
     
-    - uncheck the path to the ``maya`` package
+    - if you're using mayapy, uncheck the path where the "maya" package is - the path ending with "site-packages". BUT either write this path down, or remember it: you'll want it later 
     - on windows: add a check beside ``python25.zip``
     - if you installed PyMEL using the :ref:`install_setuptools` method: you'll see the pymel "egg" in the list of automatically detected site packages. **Remove the pymel egg** 
     
     
     then press "OK"
     
-6.  Click on the "New Folder" button.  In the browser that pops, up navigate to the directory where you extracted the pymel zip file.  Under it, there is a folder called "extras", and under that a folder called "completion".  Choose this folder and press "OK".  
+6.  Click on the "New Folder" button.  In the browser that pops, up navigate to the directory where you extracted the pymel zip file.  Under it, there is a folder called "extras", and under that a folder called "completion".  Choose this folder and press "OK".
+
+7.  If you're using mayapy, click the "New Folder" button again, and add back in the "site-packages" directory you unchecked earlier.  When you're done, the site-packages directory should be somewhere BELOW the extras/completion folder you just added.
     
 
 --------------------------------------------------
