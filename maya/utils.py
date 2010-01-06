@@ -265,6 +265,8 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
     # element in its 'args' attribute
     if hasattr(exceptionObject, 'args') and len(exceptionObject.args):
         exceptionMsg = exceptionObject.args[0]
+    else:
+        exceptionMsg = ''
     exceptionMsg = unicode(exceptionMsg).strip()
     # format the exception
     excLines = _decodeStack(traceback.format_exception_only(exceptionType, exceptionObject))
