@@ -540,11 +540,11 @@ def addAttr( *args, **kwargs ):
     """
 Modifications:
   - allow python types to be passed to set -at type
-            str        S{->} string
-            float     S{->} double
-            int        S{->} long
-            bool    S{->} bool
-            Vector    S{->} double3
+            str         string
+            float       double
+            int         long
+            bool        bool
+            Vector      double3
   - when querying dataType, the dataType is no longer returned as a list
     """
     at = kwargs.pop('attributeType', kwargs.pop('at', None ))
@@ -564,9 +564,30 @@ Modifications:
     # MObject stringify Fix
     #args = map(unicode, args) 
     res = cmds.addAttr( *args, **kwargs )
-    if kwargs.get( 'q', kwargs.get('query',False) ) and kwargs.get( 'dt', kwargs.get('dataType',False) ):
-        res = res[0]
-    
+    if kwargs.get( 'q', kwargs.get('query',False) ):
+        if kwargs.get( 'dt', kwargs.get('dataType',False) ):
+            res = res[0]
+#    else:
+#        # attempt to gather Attributes we just made
+#        # this is slightly problematic because compound attributes are invalid 
+#        # until all of their children are created, as in these example from the docs
+#        
+#        #addAttr( longName='sampson', numberOfChildren=5, attributeType='compound' )
+#        #addAttr( longName='homeboy', attributeType='matrix', parent='sampson' )
+#        #addAttr( longName='midge', attributeType='message', parent='sampson' )
+#        #addAttr( longName='damien', attributeType='double', parent='sampson' )
+#        #addAttr( longName='elizabeth', attributeType='double', parent='sampson' )
+#        #addAttr( longName='sweetpea', attributeType='double', parent='sampson' )
+#
+#
+#        if not args:
+#            args=cmds.ls(sl=1,l=1)
+#        longName = kwargs.pop( 'longName', kwargs.get('ln',None) )
+#        shortName = kwargs.pop( 'shortName', kwargs.get('sn',None) )
+#        name = longName if longName else shortName
+#        assert name, "could not determine name of attribute"
+#        res = [ Attribute(x + '.' + name) for x in args]
+
     return res
 
 def hasAttr( pyObj, attr, checkShape=True ):
@@ -947,7 +968,9 @@ def nodeType( node, **kwargs ):
 def group( *args, **kwargs ):
     """
 Modifications
-  - if no objects are provided for grouping, the empty flag is automatically set
+  - if no objects are passed or selected, the empty flag is automatically set
+Maya Bug Fix:
+  - corrected to return a unique name
     """
     if not args and not cmds.ls(sl=1):
         kwargs['empty'] = True
@@ -1275,7 +1298,7 @@ _thisModule = sys.modules[__name__]
 def instancer(*args, **kwargs):
     """
 Maya Bug Fix:
-    - name of newly created instancer was not returned
+  - name of newly created instancer was not returned
     """ 
     # instancer does not like PyNode objects
     args = map( unicode, args )   
