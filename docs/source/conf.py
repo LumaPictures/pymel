@@ -192,6 +192,7 @@ latex_documents = [
 
 #doctest_test_doctest_blocks = 'default'
 
-inheritance_graph_attrs = dict(rankdir="TB", nodesep=0.04, ranksep=0.15, fontsize=11)
+inheritance_graph_attrs = dict(rankdir="TB", nodesep=0.15, ranksep=0.15)
                             #, size='"6.0, 8.0"',
                             #   fontsize=14, ratio='compress')
+inheritance_node_attrs = dict(fontsize=8)

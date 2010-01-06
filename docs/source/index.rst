@@ -35,6 +35,7 @@ Appendices:
 	:maxdepth: 1
 
 	eclipse
+	dev
 	mel_to_python
 	
 

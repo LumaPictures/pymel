@@ -12,7 +12,7 @@ For the most part, the names of the methods follow a fairly simple pattern: `set
 
 Here's a simple example showing how the Attribute class is used in context.
 
-    >>> from pymel import *
+    >>> from pymel.core import *
     >>> cam = general.PyNode('persp')
     >>> if cam.visibility.isKeyable() and not cam.visibility.isLocked():
     ...     cam.visibility.set( True )
@@ -29,7 +29,7 @@ You can access an attribute class in three ways.  The first two require that you
 attr Method
 ~~~~~~~~~~~
 The attr method is the safest way to access an attribute, and can be used to access attributes that conflict with 
-python methods, which would fail using shorthand syntax. This method is passed a string which
+python methods and would therefore fail using shorthand syntax. This method is passed a string which
 is the name of the attribute to be accessed. 
     
     >>> cam.attr('visibility')
@@ -107,7 +107,7 @@ for a given attribute. This can be a potential source of confusion:
     False
     >>> # why is this? because result is a Vector and value is a list
     >>> result
-    datatypes.Vector([4,5,6])
+    dt.Vector([4,5,6])
     >>> # use `Vector.isEquivalent` or cast the list to a `Vector`
     >>> list(result) == value
     True
@@ -126,7 +126,7 @@ there are also handy operators for `connection <Attribute.__rshift__>` and `disc
     >>> c = polyCube(name='testCube')[0]        
     >>> cam.tx >> c.tx    # connect
     >>> cam.tx.outputs()
-    [Transform(u'testCube')]
+    [nt.Transform(u'testCube')]
     >>> cam.tx // c.tx    # disconnect
     >>> cam.tx.outputs()
     []
