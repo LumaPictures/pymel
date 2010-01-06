@@ -252,54 +252,52 @@ The `Callback` class ignores any arguments passed in from the UI element, so you
 Layouts
 ----------------------------------
 
-One major pain in designing GUIs is the placing controls in layouts. 
-Maya provides the formLayout command which lets controls resize and keep their relationship with other controls, however
-the use of this command is somewhat combersome and unintuitive.
-Pymel provides an extended FormLayout class, which handles the details of attaching controls to one another automatically:
+One major pain in designing GUIs is the placing of controls in layouts. 
+Maya provides the formLayout command which lets controls resize and keep their relationship with other controls, however the use of this command is somewhat cumbersome and unintuitive.
+Pymel provides an extended FormLayout class, which handles the details of attaching controls to one another automatically::
 
 
-    >>> win = window(title="My Window")
-    >>> layout = formLayout()
-    >>> for i in range(5):
-    ...     button(label="button %s" % i)
-    >>> win.show()
+    win = window(title="My Window")
+    layout = formLayout()
+    for i in range(5):
+        button(label="button %s" % i)
+    win.show()
 
 
-The 'redistribute' method should now be used to redistributes the children (buttons in this case) evenly in their layout    
-    >>> layout.redistribute()
+The 'redistribute' method should now be used to redistributes the children (buttons in this case) evenly in their layout::    
+    
+    layout.redistribute()
 
 
-A formLayout will align its controls vertically by default. By using the 'verticalLayout' or 'horizontalLayout' commands
-you can explicitly override this (note that both commands still return a FormLayout object):
+A formLayout will align its controls vertically by default. By using the 'verticalLayout' or 'horizontalLayout' commands you can explicitly override this (note that both commands still return a FormLayout object)::
 
-    >>> win = window(title="My Window")
-    >>> layout = horizontalLayout()
-    >>> for i in range(5):
-    ...     button(label="button %s" % i)
-    >>> layout.redistribute()    # now will redistribute horizontally
-    >>> win.show()
-
-
-By default, the control are redistributed evenly but this can be overridden:
-
-    >>> layout.redistribute(1,3,2)    # (For 5 elements, the ratios will then be 1:3:2:1:1)
+    win = window(title="My Window")
+    layout = horizontalLayout()
+    for i in range(5):
+        button(label="button %s" % i)
+    layout.redistribute()    # now will redistribute horizontally
+    win.show()
 
 
-You can also specify the ratios at creation time, as well as the spacing between the controls:
-(A ratio of 0 (zero) means that the control will not be resized, and will keep a fixed size:)
+By default, the control are redistributed evenly but this can be overridden::
 
-    >>> win = window(title="My Window")
-    >>> layout = horizontalLayout(ratios=[1,0,2], spacing=10)
-    >>> for i in range(5):
-    ...     button(label="button %s" % i)
-    >>> layout.redistribute()    # now will redistribute horizontally
-    >>> win.show()
+    layout.redistribute(1,3,2)    # (For 5 elements, the ratios will then be 1:3:2:1:1)
+
+
+You can also specify the ratios at creation time, as well as the spacing between the controls. A ratio of 0 means that the control will not be resized, and will keep a fixed size::
+
+    win = window(title="My Window")
+    layout = horizontalLayout(ratios=[1,0,2], spacing=10)
+    for i in range(5):
+        button(label="button %s" % i)
+    layout.redistribute()    # now will redistribute horizontally
+    win.show()
     
 
 
-Finally, just for fun, you can also reset, flip and reverse the layout:
+Finally, just for fun, you can also reset, flip and reverse the layout::
 
-    >>> layout.flip()     # flip the orientation
-    >>> layout.reverse()  # reverse the order of the controls
-    >>> layout.reset()    # reset the ratios
+    layout.flip()     # flip the orientation
+    layout.reverse()  # reverse the order of the controls
+    layout.reset()    # reset the ratios
 

@@ -61,6 +61,16 @@ class PyUI(unicode):
                 newcls = getattr(dynModule, _util.capitalize(uiType) )
             except AttributeError:
                 newcls = PyUI
+                # objectTypeUI for panels seems to return weird results -
+                # ie, TmodelPane ... check for them this way.
+                # Other types should be detected correctly by objectTypeUI,
+                # but this just provides a failsafe...
+                for testType in 'panel scriptedPanel window control layout menu'.split():
+                    if getattr(cmds, testType)( name, ex=1, q=1):
+                        newcls = getattr(dynModule, _util.capitalize(testType),
+                                         PyUI )
+                        if newcls != PyUI:
+                            break
         else:
             newcls = cls
     
@@ -70,7 +80,10 @@ class PyUI(unicode):
                 _logger.debug("PyUI: created... %s" % name)
             else:
                 # find the long name
-                if '|' not in name and not issubclass(newcls,Window):
+                if '|' not in name and not issubclass(newcls,
+                                                (Window,
+                                                 dynModule.Panel,
+                                                 dynModule.ScriptedPanel)):
                     import windows
                     try:
                         if issubclass(newcls,Layout):

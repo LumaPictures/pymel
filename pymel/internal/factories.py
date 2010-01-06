@@ -83,49 +83,141 @@ def toPyUIList(res):
     import pymel.core.uitypes
     return [ pymel.core.uitypes.PyUI(x) for x in res ]
 
+class Condition(object):
+    """
+    Used to chain together objects for conditional testing.
+    """
+    class NO_DATA(Exception): pass
+    
+    def __init__(self, value=None):
+        self.value = value
+        
+    def eval(self, data=NO_DATA):
+        return bool(self.value)
+    
+    def __or__(self, other):
+        return Or(self, other)
+    def __ror(self, other):
+        return Or(other, self)
+    
+    def __and__(self, other):
+        return And(self, other)
+    def __rand__(self, other):
+        return And(other, self)
+    
+    def __invert__(self):
+        return Inverse(self)
+    
+    def __nonzero__(self):
+        return self.eval()
+
+Always = Condition(True)
+
+Never = Condition(False)
+    
+class Inverse(Condition):
+    def __init__(self, toInvert):
+        self.toInvert = toInvert
+        
+    def eval(self, data=Condition.NO_DATA):
+        return not self.toInvert.eval(data)
+
+    def __str__(self):
+        return "not %s" % self.toInvert
+
+class AndOrAbstract(Condition):
+    def __init__(self, *args):
+        self.args = []
+        for arg in args:
+            if isinstance(arg, self.__class__):
+                self.args.extend(arg.args)
+            else:
+                self.args.append(arg)
+
+    def eval(self, data=Condition.NO_DATA):
+        for arg in self.args:
+            if isinstance(arg, Condition):
+                val = arg.eval(data)
+            else:
+                val = bool(arg)
+            if val == self._breakEarly:
+                return self._breakEarly
+        return not self._breakEarly
+
+    def __str__(self):
+        return "(%s)" % self._strJoiner.join([str(x) for x in self.args])
+        
+class And(AndOrAbstract):
+    _breakEarly = False
+    _strJoiner = ' and '
+
+class Or(AndOrAbstract):
+    _breakEarly = True
+    _strJoiner = ' or '
+    
+class Flag(Condition):
+    def __init__(self, longName, shortName, truthValue=True):
+        """
+        Conditional for evaluating if a given flag is present.
+        
+        Will also check that the given flag has the required
+        truthValue (True, by default). If you don't care
+        about the truthValue (ie, you want to have the condition
+        evaluate to true as long as the flag is present),
+        set truthValue to None.
+        """
+        self.shortName = shortName
+        self.longName = longName
+        self.truthValue = truthValue
+        
+    def eval(self, kwargs):
+        for arg in (self.shortName, self.longName):
+            if arg in kwargs:
+                if self.truthValue is None or \
+                    bool(kwargs[arg]) == self.truthValue:
+                    return True
+        return False
+    
+    def __str__(self):
+        return self.longName
+
 simpleCommandWraps = {
-    'createRenderLayer' : [ (toPyNode, None) ],
-    'createDisplayLayer': [ (toPyNode, None) ],
-    'distanceDimension' : [ (toPyNode, None) ], 
-    'listAttr'          : [ (util.listForNone, None) ], 
-    'instance'          : [ (toPyNodeList, None) ], 
+    'createRenderLayer' : [ (toPyNode, Always) ],
+    'createDisplayLayer': [ (toPyNode, Always) ],
+    'distanceDimension' : [ (toPyNode, Always) ], 
+    'listAttr'          : [ (util.listForNone, Always) ], 
+    'instance'          : [ (toPyNodeList, Always) ], 
     
     'getPanel'          : [ ( toPyUI,
-                              [ [('containing', 'c')],
-                                [('underPointer', 'up')],
-                                [('withFocus', 'wf')] ] ),
-                            ( lambda x: x,  
-                              [ [('typeOf', 'to')] ] ),
-                            ( toPyUIList, None )
+                              Flag('containing', 'c', None) |
+                              Flag('underPointer', 'up') |
+                              Flag('withFocus', 'wf')),
+                            ( toPyUIList, ~Flag('typeOf', 'to', None) )
                           ],
                             
     'textScrollList'    : [ ( util.listForNone, 
-                              [ [('query', 'q'), ('selectIndexedItem', 'sii')], 
-                                [('query', 'q'), ('allItems', 'ai')],
-                                [('query', 'q'), ('selectItem', 'si')] ] )
+                              Flag('query', 'q') &
+                               (Flag('selectIndexedItem', 'sii') | 
+                                Flag('allItems', 'ai') |
+                                Flag('selectItem', 'si')) )
                           ],
 
-    #'textScrollList'    : ( [('query', 'q'), ('selectIndexedItem', 'sii', 'allItems', 'ai', 'selectItem', 'si' )],  [util.listForNone] ),
-                            
-    #'textScrollList'    : [ 'query', [('selectIndexedItem', 'sii'), ('allItems', 'ai'), ('selectItem', 'si',)],  [util.listForNone]],
-
     'optionMenu'        : [ ( util.listForNone,
-                              [ [('query', 'q'), ('itemListLong', 'ill')],
-                                [('query', 'q'), ('itemListShort', 'ils')] ] )
+                              Flag('query', 'q') &
+                               (Flag('itemListLong', 'ill') | 
+                                Flag('itemListShort', 'ils')) )
                           ], 
-                                                                         
-#    'optionMenu'        : [ ([('query', 'q'), ('itemListLong', 'ill')],       [util.listForNone]),
-#                            ([('query', 'q'), ('itemListShort', 'ils')],      [util.listForNone])],
 
     'optionMenuGrp'     : [ ( util.listForNone,
-                              [ [('query', 'q'), ('itemListLong', 'ill')],
-                                [('query', 'q'), ('itemListShort', 'ils')] ] )
+                              Flag('query', 'q') &
+                               (Flag('itemListLong', 'ill') | 
+                                Flag('itemListShort', 'ils')) )
                           ], 
 
     'modelEditor'       : [ ( toPyNode,
-                              [ [('query', 'q'), ('camera', 'cam')] ] )
+                              Flag('query', 'q') & Flag('camera', 'cam') )
                           ]
-}                             
+}   
 #---------------------------------------------------------------
    
 if includeDocExamples:
@@ -634,26 +726,27 @@ def functionFactory( funcNameOrObject, returnFunc=None, module=None, rename=None
         beforeSimpleWrap = newFunc
         def simpleWrapFunc(*args, **kwargs):
             res = beforeSimpleWrap(*args, **kwargs)
-            for func, flagGrps in wraps:
-                if not flagGrps or \
-                    any( all( flag[0] in kwargs or flag[1] in kwargs for flag in wrappedFlags ) \
-                         for wrappedFlags in flagGrps):
-                        res = func(res)
-                        break
+            for func, wrapCondition in wraps:
+                if wrapCondition.eval(kwargs):
+                    res = func(res)
+                    break
             return res
         newFunc = simpleWrapFunc
         doc = 'Modifications:\n'
-        for func, flagGrps in wraps: 
-            if flagGrps:
+        for func, wrapCondition in wraps: 
+            if wrapCondition != Always:
                 # use only the long flag name
-                desc = [ ' and '.join([ x[0] for x in wrappedFlags ]) for wrappedFlags in flagGrps ]
-                flags = ' for flags ' + ', '.join(desc)
+                flags = ' for flags: ' + str(wrapCondition)
             elif len(wraps)>1:
                 flags = ' for all other flags'
             else:
                 flags = ''
             if func.__doc__:
-                doc += '  - ' + func.__doc__.strip() + flags + '\n'
+                funcString = func.__doc__.strip()
+            else:
+                funcString = func.__name__ + '(result)'
+            doc += '  - ' + funcString + flags + '\n'
+            
         newFunc.__doc__  = doc
         
     #----------------------------        
