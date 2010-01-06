@@ -23,7 +23,7 @@ These instructions are updated for Pydev 1.4.6, and should work on either Eclips
 
 .. note:: If you checked out PyMEL from our git repo then you will need to generate the stubs first.
 
-	To generate stubs::
+	To generate stubs:
 
 		1. be sure that pymel is on the path by following the :ref:`install_manual` method.
 		2. open a Maya GUI and run the following in a python tab of the script editor::

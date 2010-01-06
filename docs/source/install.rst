@@ -113,8 +113,8 @@ allows easy execution of ``maya`` and ``mayapy`` in a shell  NO                 
 
 .. _install_maya_env:
 
-Setting Up Your Environment Using Maya.env
-------------------------------------------
+Manual Method 1: Setting Up Your Environment Using Maya.env
+------------------------------------------------------------
 
 The instructions below on setting up your python environment are essential to learning how to properly deploy any python module, not just PyMEL, and mastering them is also key to using the :doc:`standalone`.
 
@@ -172,8 +172,8 @@ The instructions below on setting up your python environment are essential to le
 .. _install_system_env:
 
 
-Setting Up Your System Environment
-----------------------------------
+Manual Method 2: Setting Up Your System Environment
+---------------------------------------------------
 
 OSX and Linux
 ~~~~~~~~~~~~~
@@ -191,13 +191,13 @@ To set up python at the system level using bash, first create a new file called 
 Here's a line-by-line breakdown of what you just did:
 
     1.  set ``MAYA_LOCATION``, a special Maya environment variable that helps Maya determine which version to use when working via the command line ( be sure to point it to the correct Maya version).  
-    2.  the ``PATH`` environment variable is a list of paths that will be searched for executables. By adding ``$MAYA_LOCATION/bin`` you to access all the executables in the Maya bin directory from a shell without using the full path. For example, you can launch Maya by typing ``maya``, or open a Maya python interpreter by typing ``mayapy``. 
+    2.  the ``PATH`` environment variable is a list of paths that will be searched for executables. Each path is separated by a colon ``:``.By adding ``$MAYA_LOCATION/bin`` you can access all the executables in the Maya bin directory from a shell without using the full path. For example, you can launch Maya by typing ``maya``, or open a Maya python interpreter by typing ``mayapy``. 
         
-        If you manually installed pymel and `ipymel`_, include the path to the directory where the ipymel script resides. For example, the line might look like the following::
+        If you manually installed pymel and `ipymel`_, include the path to the directory where the ipymel script resides. For example, if the path to the ipymel script is ``/path/to/pymel-1.0.0/pymel/tools/bin/ipymel``, the line might look like the following::
 
             export PATH=$MAYA_LOCATION/bin:/path/to/pymel-1.0.0/pymel/tools/bin:$PATH
 
-    3.  set the ``PYTHONPATH`` to ensure that python will see the ``pymel`` and ``maya`` packages.
+    3.  finally, set the ``PYTHONPATH`` to ensure that python will see the ``pymel`` and ``maya`` packages.  Like the ``PATH`` environment variable, ``PYTHONPATH`` is a list of paths separated by colons ``:``.
 
 
 
@@ -209,13 +209,9 @@ Windows XP
     3.  In the new window that pops up, search through your "User Varaibles" on top and your "System Variables" on 
         the bottom, looking to see if the ``PYTHONPATH`` variable is set anywhere.
         
-        If it is not set, make a new variable for either your user or the system (if you have permission).  Use ``PYTHONPATH`` for 
-        the name and for the the value use the directory *above* the ``pymel`` directory.  So, for example, if the pymel directory is 
-        ``C:\My Documents\pymel-1.0.0\pymel`` copy and paste in the value ``C:\My Documents\pymel-1.0.0`` from an explorer window.
+        If it is not set, make a new variable for either your user or the system (if you have permission).  Use ``PYTHONPATH`` for the name and for the the value use the directory *above* the ``pymel`` directory.  So, for example, if the pymel directory is ``C:\My Documents\pymel-1.0.0\pymel`` copy and paste in the value ``C:\My Documents\pymel-1.0.0`` from an explorer window.
         
-        If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to 
-        the end of the value and add a semi-colon ( ; ) and after this add the 
-        directory *above* the pymel directory to the end of the existing path. For example, let's say the starting value is::
+        If ``PYTHONPATH`` is already set, select it and click "Edit".  This value is a list of paths separated by semi-colons.  Scroll to the end of the value and add a semi-colon ( ; ) and after this add the directory *above* the pymel directory to the end of the existing path. For example, let's say the starting value is::
             
             C:\Python25\lib
         
@@ -233,11 +229,41 @@ Windows XP
         
         Don't forget to put a semi-colon (;) between the existing paths and the new ones that you are adding.
         
-        *If installing ipymel* include the path to your ipymel bin directory. For example, if you manually installed PyMEL, the line should look like
-        the following::
+        *If installing ipymel* include the path to your ipymel bin directory. For example, if you manually installed PyMEL, the line should look like the following::
 
             %MAYA_LOCATION%\bin;C:\My Documents\pymel-1.0.0\pymel\tools\bin  
-            
+
+Manual Method 3: pymel.pth
+--------------------------
+
+Yes, there is yet another way to install PyMEL.  If you have write permission to your Maya installation directory and you don't want to bother learning about essential things like Maya.env and ``PYTHONPATH`` then you've come to the right place.
+
+1. open your favorite text editor
+2. paste in the text below::
+
+    import sys; sys.__plen = len(sys.path)
+    /path/to/top-pymel-dir
+    import sys; new=sys.path[sys.__plen:]; del sys.path[sys.__plen:]; p=getattr(sys,'__egginsert',0); sys.path[p:p]=new; sys.__egginsert = p+len(new)
+
+3. replace the ``/path/to/top-pymel-dir`` line with the path to the folder where you extracted PyMEL.  The folder you want should contain both 'pymel' and 'maya' folders directly below it
+4. save this file to Maya's site-packages directory as ``pymel.pth``.  Don't know where your Maya site-packages directory is?  Run this from a Python tab in the script editor and prepare to be amazed::
+
+    import maya
+    import os
+    print os.path.dirname(maya.__file__)
+
+    
+Manual Method 4: Adding to sys.path
+-----------------------------------
+
+This method is generally frowned upon, but if you need to manually add paths to ``sys.path``, be sure to do it from ``userSetup.mel`` as it is too late to do it by the time ``userSetup.py`` is called.  Also, the path to pymel must be inserted at the beginning of ``sys.path``.  For example, this mel code could be run from ``userSetup.mel``::
+
+    python( "import sys; sys.path.insert(0,'/path/to/pymel')" );
+    
+Again, the ``/path/to/pymel`` should be the top-level directory where you extracted pymel, which contains both the 'pymel' and 'maya' directories.
+
+Be sure to do add this line prior to the calling of any other python code from within ``userSetup.mel``.
+
 ---------------------------------------
 ipymel
 ---------------------------------------
