@@ -56,3 +56,18 @@ class testCase_references(unittest.TestCase):
         
     def tearDown(self):
         newFile(f=1)
+        
+class testCase_fileInfo(unittest.TestCase):
+    def setUp(self):
+        newFile(f=1)
+        cmds.fileInfo('testKey', 'testValue')
+        
+    def test_get(self):
+        default = "the default value!"
+        self.assertEqual(fileInfo.get('NoWayDoIExist', default), default)
+        self.assertEqual(fileInfo.get('NoWayDoIExist'), None)
+        self.assertEqual(fileInfo.get('testKey'), cmds.fileInfo('testKey', q=1)[0])
+        
+    def test_getitem(self):
+        self.assertRaises(KeyError, lambda: fileInfo['NoWayDoIExist'])
+        self.assertEqual(fileInfo['testKey'], cmds.fileInfo('testKey', q=1)[0])

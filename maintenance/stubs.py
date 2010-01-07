@@ -346,7 +346,10 @@ class StubDoc(Doc):
 
     def formatvalue(self, object):
         """Format an argument default value as text."""
-        return '=' + self.repr(object)
+        objRepr = self.repr(object)
+        if objRepr[0] == '<' and objRepr[-1] == '>':
+            objRepr = repr(objRepr)
+        return '=' + objRepr
 
     def docroutine(self, object, name=None, mod=None, cl=None):
         """Produce text documentation for a function or method object."""
@@ -379,12 +382,10 @@ class StubDoc(Doc):
             args, varargs, varkw, defaults = inspect.getargspec(object)
             argspec = inspect.formatargspec(
                 args, varargs, varkw, defaults, formatvalue=self.formatvalue)
-            argspec = argspec.replace('<', '"')
-            argspec = argspec.replace('>', '"')
 #            if realname == '<lambda>':
 #                title = name
         else:
-            argspec = '(*ags, **kwargs)'
+            argspec = '(*args, **kwargs)'
         decl = 'def ' + title + argspec + ':'
 
         if skipdocs:
@@ -445,7 +446,8 @@ def _subpackages(packagemod):
                 mod = sys.modules[modname]
                 yield modname, mod, ispkg
 
-def packagestubs(packagemod, outputdir='', extension='py', exclude=None):
+def packagestubs(packagename, outputdir='', extension='py', exclude=None):
+    packagemod = __import__(packagename, globals(), locals(), [], -1)
     for modname, mod, ispkg in _subpackages(packagemod):
         curpath = os.path.join(outputdir, *modname.split('.') )
         
@@ -471,8 +473,7 @@ def pymelstubs(extension='py'):
     print outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
-    import pymel.all
-    packagestubs( pymel, 
+    packagestubs( 'pymel', 
                   outputdir=outputdir, 
                   extension=extension,
                   exclude='(pymel\.util\.scanf)|(pymel\.util\.objectParser)')
@@ -482,7 +483,6 @@ def pymelstubs(extension='py'):
     f.write( 'from maya.cmds import *\n' )
     f.close()
     
-    import maya
-    packagestubs( maya, outputdir=outputdir,extension=extension )
+    packagestubs( 'maya', outputdir=outputdir,extension=extension )
 
     

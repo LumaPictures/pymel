@@ -503,7 +503,13 @@ class FileInfo( object ):
         return item in self.keys()
         
     def __getitem__(self, item):
-        return dict(self.items())[item]
+        result = cmds.fileInfo(item, q=1)
+        if not result:
+            raise KeyError(item)
+        elif len(result) > 1:
+            raise RuntimeError("error getting fileInfo for key %r - more than one value returned" % item)
+        else:
+            return result[0]
         
     def __setitem__(self, item, value):
         cmds.fileInfo( item, value )
@@ -551,6 +557,13 @@ class FileInfo( object ):
     def __iter__(self):
         return iter(self.keys())
     has_key = __contains__    
+    
+    def get(self, key, default=None):
+        if key in self:
+            return self[key]
+        else:
+            return default
+    
 fileInfo = FileInfo()
 
 
