@@ -655,8 +655,8 @@ class Mel(object):
         return _call
     
 
-    @staticmethod
-    def mprint(self, *args):
+    @classmethod
+    def mprint( cls, *args):
         """mel print command in case the python print command doesn't cut it. i have noticed that python print does not appear
         in certain output, such as the rush render-queue manager."""
         #print r"""print (%s\\n);""" % pythonToMel( ' '.join( map( str, args))) 
