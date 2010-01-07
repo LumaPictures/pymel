@@ -3,6 +3,8 @@ import pydoc, pkgutil, sys, pprint
 import __builtin__
 import os
 
+import pymel.util as util
+
 class StubDoc(Doc):
     """Formatter class for text documentation."""
 
@@ -430,25 +432,9 @@ class StubDoc(Doc):
 
 stubs = StubDoc()
 
-def _subpackages(packagemod):
-    modpkgs = []
-    modpkgs_names = set()
-    if hasattr(packagemod, '__path__'):
-        yield packagemod.__name__, packagemod, True
-        for importer, modname, ispkg in pkgutil.walk_packages(packagemod.__path__, packagemod.__name__+'.'):
-            if modname not in sys.modules:  
-                try:
-                    mod = importer.find_module(modname).load_module(modname)
-                    yield modname, mod, ispkg
-                except Exception, e:
-                    print "error importing %s: %s" %  ( modname, e)
-            else:
-                mod = sys.modules[modname]
-                yield modname, mod, ispkg
-
 def packagestubs(packagename, outputdir='', extension='py', exclude=None):
     packagemod = __import__(packagename, globals(), locals(), [], -1)
-    for modname, mod, ispkg in _subpackages(packagemod):
+    for modname, mod, ispkg in util.subpackages(packagemod):
         curpath = os.path.join(outputdir, *modname.split('.') )
         
         if ispkg:

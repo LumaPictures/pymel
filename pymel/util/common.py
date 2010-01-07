@@ -2,7 +2,7 @@
 Commonly used utilities
 """
 
-import os, re, platform
+import os, re, platform, pkgutil
 from re import escape
 from path import path
 #-----------------------------------------------
@@ -112,3 +112,24 @@ def interpreterBits():
     :rtype: `int`
     """
     return int(re.match(r"([0-9]+)(bit)?", platform.architecture()[0]).group(1))
+
+def subpackages(packagemod):
+    """
+    Given a module object, returns an iterator which yields a tuple (modulename, moduleobject, ispkg)
+    for the given module and all it's submodules/subpackages.
+    """
+    modpkgs = []
+    modpkgs_names = set()
+    if hasattr(packagemod, '__path__'):
+        yield packagemod.__name__, packagemod, True
+        for importer, modname, ispkg in pkgutil.walk_packages(packagemod.__path__, packagemod.__name__+'.'):
+            if modname not in sys.modules:
+                try:
+                    mod = importer.find_module(modname).load_module(modname)
+                except Exception, e:
+                    print "error importing %s: %s" %  ( modname, e)
+            else:
+                mod = sys.modules[modname]
+            yield modname, mod, ispkg
+    else:
+        yield packagemod.__name__, packagemod, False
