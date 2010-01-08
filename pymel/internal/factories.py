@@ -152,7 +152,10 @@ simpleCommandWraps = {
                               Flag('query', 'q') & Flag('endEffector', 'ee') ),
                             ( toPyNodeList,
                               Flag('query', 'q') & Flag('jointList', 'jl') ),
-                          ]
+                          ],
+    'skinCluster'       : [ ( toPyNodeList,
+                              Flag('query', 'q') & Flag('geometry', 'g') )
+                          ],
 }   
 #---------------------------------------------------------------
    
