@@ -2,7 +2,7 @@
 Commonly used utilities
 """
 
-import os, re, platform, pkgutil
+import os, re, sys, platform, pkgutil
 from re import escape
 from path import path
 #-----------------------------------------------
