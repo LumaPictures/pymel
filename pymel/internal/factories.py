@@ -156,6 +156,7 @@ simpleCommandWraps = {
     'skinCluster'       : [ ( toPyNodeList,
                               Flag('query', 'q') & Flag('geometry', 'g') )
                           ],
+    'addDynamic'        : [ ( toPyNodeList, Always ) ],
 }   
 #---------------------------------------------------------------
    

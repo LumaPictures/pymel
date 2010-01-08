@@ -650,14 +650,40 @@ class test_PyNodeWraps(unittest.TestCase):
         cmds.addAttr( longName='elizabeth', attributeType='double', parent='sampson' )
         cmds.addAttr( longName='sweetpea', attributeType='double', parent='sampson' )
         node = cmds.ls(sl=1)[0]
-        self.assert_(isinstance(addAttr(node + '.sweetpea', q=1, parent=1), Attribute))
+        self.assertPyNode(addAttr(node + '.sweetpea', q=1, parent=1), Attribute)
         
     def test_skinCluster_QGeometry(self):
         cube = cmds.polyCube()[0]
         j1 = cmds.joint(p=(0,0,-1))
         cmds.joint(p=(0,0,1))
         skin = skinCluster(cube, j1)[0]
-        self.assert_(isinstance(skin.getGeometry()[0], DependNode))
+        self.assertPyNodes(skin.getGeometry(), DependNode)
+        
+    def test_addDynamic(self):
+        # Create an emitter
+        cmds.emitter( pos=(0, 0, 0), type='omni', r=100, sro=0, nuv=0, cye='none', cyi=1, spd=1, srn=0, nsp=1, tsp=0, mxd=0, mnd=0, dx=1, dy=0, dz=0, sp=0 )
+        # Result: emitter1 #
+        
+        # Get the emitter to emit particles
+        cmds.particle()
+        # Result: particle2
+        cmds.connectDynamic( 'particle1', em='emitter1' )
+        
+        # Create a particle to use as the source of the emitter
+        cmds.particle( p=((6.0, 0, 7.0), (6.0, 0, 2.0)), c=1 )
+        # Result: particle2
+        
+        # Use particle2 as a source of the emitter
+        self.assertPyNodes(addDynamic( 'emitter1', 'particle2' ), PyNode)
+                     
+    def assertPyNode(self, obj, nodeType=PyNode):
+        self.assert_(isinstance(obj, nodeType),
+                     '%r was not a %s object' % (obj, nodeType.__name__))
+        
+    def assertPyNodes(self, objs, nodeType=PyNode):
+        for obj in objs:
+            self.assertPyNode(obj, nodeType)
+        
         
         
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
