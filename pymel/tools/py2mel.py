@@ -2,6 +2,7 @@
 import inspect, re, types
 from pymel.util.arrays import VectorN, MatrixN
 from pymel.util.arguments import isMapping, isIterable
+from pymel.util.utilitytypes import defaultdict
 from pymel.core.language import getMelType, isValidMelType, MELTYPES
 import pymel.api.plugins as plugins
 import maya.mel as _mm
@@ -177,8 +178,9 @@ def py2melProc( function, returnType=None, procName=None, evaluateInputs=True, a
    
     melCompile = []
     melArgs = []
+    melArrayToStrDecls = []
     argList, defaults, description = getMelArgs(function)
-    
+
     if argTypes:
         if isMapping(argTypes):
             pass
@@ -194,9 +196,8 @@ def py2melProc( function, returnType=None, procName=None, evaluateInputs=True, a
                 raise TypeError, "%r is not a valid mel type: %s" % (argType, ', '.join(MELTYPES))
     else:
         argTypes = {} 
-               
+
     for arg, melType in argList:
-        melType = argTypes.get(arg, melType)
         if melType == 'string':
             compilePart = "'\" + $%s + \"'" %  arg
             melCompile.append( compilePart )
@@ -205,34 +206,35 @@ def py2melProc( function, returnType=None, procName=None, evaluateInputs=True, a
             compilePart = "'\" + $%s + \"'" %  arg
             compilePart = r'eval(\"\"\"%s\"\"\")' % compilePart
             melCompile.append( compilePart )
+        elif melType.count('[]'):
+            melArrayToStrDecls.append( 'string $_%s ="("; int $i=0;for($i; $i<size($%s); $i++) { $_%s += ($%s[$i] + ",");  } $_%s += ")";' % (arg, arg, arg, arg, arg))
+            melCompile.append( "'\" + $_%s + \"'" % arg )
         else:
             melCompile.append( "\" + $%s + \"" %  arg )
-        melArgs.append( melType + ' $' + arg )
+
+        if melType.count('[]'):
+            melType = melType.replace('[]','')
+            melArgs.append( '%s $%s[]' % (melType, arg) ) 
+        else:
+            melArgs.append( '%s $%s' % (melType, arg) )
          
     if procName is None:
         procName = funcName 
       
-    procDef = """global proc %s %s( %s ){ 
+    procDef = """global proc %s %s( %s ){ %s
     python("import %s; %s._functionStore[%r](%s)");}""" % ( returnType if returnType else '', 
                                                             procName,
                                                             ', '.join(melArgs), 
+                                                            ''.join(melArrayToStrDecls),
                                                             __name__, 
                                                             __name__, 
                                                             repr(function), 
                                                             ','.join(melCompile) )
     _functionStore[repr(function)] = function
-#    procDef = 'global proc %s %s( %s ){ python("import %s; %s.%s(%s)");}' % ( returnType, 
-#                                                                                          procName, 
-#                                                                                          ', '.join(melArgs), 
-#                                                                                          procName, moduleName, 
-#                                                                                          moduleName, 
-#                                                                                          funcName,
-#                                                                                          ','.join(melCompile) )
 
     print procDef
     _mm.eval( procDef )
     return procName
-
 #--------------------------------------------------------
 #  Scripted Command Wrapper
 #--------------------------------------------------------
@@ -297,52 +299,64 @@ def _shortnameByDoc(method):
         if m:
             return m.group(1)
             
-def _getShortNames( names ):
-    """uses several different methods to generate a shortname flag from the long name"""
-
-    shortNames = []
-    
-    for name in names:
-        name = name.encode()
-        shortname = _shortnameByConvention(name)
-        if shortname in shortNames:                
-            shortname=name[0]
-            count = 1
-            for each in name[1:]:
-                shortname+=each.lower()
-                count+=1
-                if shortname not in shortNames:
-                    break
-                elif count==3:
-                    raise ValueError, 'could not find a unique shortname for all args'
-
-        shortNames.append(shortname)
+def _nonUniqueName( longname, shortname, shortNames, operation ):
+    if operation in ['skip', 'warn', 'error'] and shortname in shortNames:
+        message = "default short name %r for flag %r is taken" % (shortname, longname)
+        if operation == 'warn':
+            print 'warning: ' + message
+            return False
+        elif operation == 'skip':
+            print 'skipping: ' + message
+            return True
+        else:
+            raise TypeError(message)
         
-    return tuple(shortNames)
-
-def _getMethodShortNames( methods ):
+def _invalidName( commandName, longname, operation ):
+    if len(longname) < 4 and operation in ['skip', 'warn', 'error']:
+        message = 'long flag names must be at least 4 characters long: %s -%r' % (commandName,longname.lower())
+        if operation == 'warn':
+            print 'warning: ' + message
+            return False
+        elif operation == 'skip':
+            print 'skipping: ' + message
+            return True
+        else:
+            raise TypeError(message)
+    
+               
+def _getShortNames( objects, nonUniqueName ):
     """uses several different methods to generate a shortname flag from the long name"""
     shortNames = []
-    nonunique = 0
-    for methodName, method in methods:
+    nonunique = defaultdict(int)
+    for obj in objects:
+        if isinstance(obj, (list,tuple)):
+            longname = obj[0]
+            shortname = _shortnameByDoc(obj[1])
+        else:
+            longname = obj
+            shortname = None
         # try _shortnameByDoc first        
-        shortname = _shortnameByDoc(method)
+        
         if not shortname or shortname in shortNames:
-            shortname = _shortnameByConvention(methodName)
-            if shortname in shortNames:                
-                shortname=methodName[0]
+            if _nonUniqueName(longname, shortname, shortNames, nonUniqueName):
+                continue
+                
+            shortname = _shortnameByConvention(longname)
+            if shortname in shortNames:   
+                if _nonUniqueName(longname, shortname, shortNames, nonUniqueName):
+                    continue           
+                shortname=longname[0]
                 count = 1
-                for each in methodName[1:]:
+                for each in longname[1:]:
                     shortname+=each.lower()
                     count+=1
                     if shortname not in shortNames:
                         break
                     elif count==3:
-                        shortname = 's%02d' % nonunique
-                        nonunique += 1
+                        shortname = shortname[:2] + str(nonunique[shortname[:2]]+1)
+                        nonunique[shortname[:2]] += 1
                         #print 'could not find a unique shortname for %s: using %s'% ( methodName, shortname )
                         break
-                    
         shortNames.append(shortname)
     return tuple(shortNames)
 
@@ -427,7 +441,7 @@ class WrapperCommand(plugins.Command):
                 argValues.append( (flag, flagArgs) )
         return argValues
 
-def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFlags=[], ignoreInvalidFlags=False):
+def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFlags=[], nonUniqueName='warn', invalidName='warn'):
     """
     Create a MEL command from a python function or class.  
 
@@ -442,25 +456,59 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFl
         
         import pymel as pm
         from pymel.tools.py2mel import py2melCmd
-        cmd = py2melCmd( makeName, 'makeNameeCmd' )
-        pm.makeNameeCmd( 'Homer', 'Simpson')
+        cmd = py2melCmd( makeName, 'makeNameCmd' )
+        pm.makeNameCmd( 'Homer', 'Simpson')
         # Result: Homer Simpson #
-        pm.makeNameeCmd( 'Homer', 'Simpson', middle='J.')
+        pm.makeNameCmd( 'Homer', 'Simpson', middle='J.')
         # Result: Homer J. Simpson #
         
     Of course, the real advantage of this tool is that now your python function is available from within MEL as a command::
                 
-        makeNameeCmd "Homer" "Simpson";
+        makeNameCmd "Homer" "Simpson";
         // Result: Homer Simpson //
-        makeNameeCmd "Homer" "Simpson" -middle "J.";
+        makeNameCmd "Homer" "Simpson" -middle "J.";
         // Result: Homer J. Simpson //
     
     To remove the command, call the deregister method of the class returned by py2melCmd::
     
         cmd.deregister()
+    
+    This function attempts to automatically create short names (3 character max) based on the long names of the methods or arguments of the pass python object.
+    It does this by looping through long names in alphabetical order and trying the following techniques until a unique short name is found:
         
+            1. by docstring (methods only): check the method docstring looking for something of the form ``shortname: xyz``::
+                class Foo():
+                    def bar():
+                        'shortname: b'
+                        # do some things
+                        return
+            2. by convention:  if the name uses under_scores or camelCase, use the first letter of each "word" to generate a short name up to 3 letters long
+            3. first letter
+            4. first two letters
+            5. first three letters
+            6. first two letters plus a unique digit
+    
+    .. warning:: if you edit the python object that is passed to this function it may result in short names changing!  for example, if you have a class like the following::
+    
+                class Foo():
+                    def bar():
+                        pass
+            
+            ``Foo.bar`` will be assigned the short flag name 'b'. but if you later add the method ``Foo.baa``, it will be assigned the short flag name 'b' and 'bar' will be given 'ba'.
+            **The only way to be completely sure which short name is assigned is to use the docstring method described above.**
+      
+    :param commandName: name given to the generated MEL command
+    :param register: whether or not to automatically register the generated command.  If False, you will have to manually call the `register` method
+        of the returned `WrapperCommand` instance
+    :param includeFlags: list of flags to include. other flags will be ignored
+    :param exludeFlags: list of flags to exclude. other flags will be included
+    :param nonUniqueName: 'force', 'warn', 'skip', or 'error'
+    :param invalidName: 'force', 'warn', 'skip', or 'error'
     
     """
+    if not commandName:
+        commandName = pyObj.__name__
+        
     syntax=om.MSyntax()
     if inspect.isfunction(pyObj):
         # args         --> command args
@@ -486,13 +534,11 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFl
         
         # flag args
         flagInfo = {}
-        for shortname, longname in zip( _getShortNames(flagArgs), flagArgs ):
-            
+        for shortname, longname in zip( _getShortNames(flagArgs), flagArgs, nonUniqueName ):
+            if _invalidName( commandName, longname, invalidName ):
+                continue
             if len(longname) < 4:
-                if ignoreInvalidFlags:
-                    continue
-                else:
-                    raise TypeError, 'long flag names must be at least 4 characters long: %r' % longname
+                longname = longname.ljust(4,'x')
             
             # currently keyword args only support one item per flag. eventually we may
             # detect when a keyword expects a list as an argument
@@ -536,13 +582,12 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFl
         flagInfo = {}
         attrData = [ x for x in inspect.getmembers( pyObj, lambda x: inspect.ismethod(x) or type(x) is property ) if not x[0].startswith('_') and ( not includeFlags or x[0] in includeFlags) and x[0] not in excludeFlags ]
         names, methods = zip(*attrData)
-        for shortname, longname, method in zip( _getMethodShortNames(attrData), names, methods ):
+        for shortname, longname, method in zip( _getShortNames(attrData, nonUniqueName), names, methods ):
 
+            if _invalidName( commandName, longname, invalidName ):
+                continue
             if len(longname) < 4:
-                if ignoreInvalidFlags:
-                    continue
-                else:
-                    raise TypeError, 'long flag names must be at least 4 characters long: %r' % longname
+                longname = longname.ljust(4,'x')
             
             # per flag query and edit settings
             canQuery = False
@@ -604,8 +649,6 @@ def py2melCmd(pyObj, commandName=None, register=True, includeFlags=[], excludeFl
     else:
         raise TypeError, 'only functions and classes can be wrapped'
     
-    if not commandName:
-        commandName = pyObj.__name__
     
     dummyCommand.__name__ = commandName
     if register:
