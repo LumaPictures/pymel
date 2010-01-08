@@ -4,6 +4,7 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 import re, types, os, inspect, sys, textwrap
 from operator import itemgetter
 import pymel.util as util
+from pymel.util import Always
 import pymel.api as api
 from startup import loadCache
 import plogging as plogging
@@ -83,79 +84,8 @@ def toPyUIList(res):
     import pymel.core.uitypes
     return [ pymel.core.uitypes.PyUI(x) for x in res ]
 
-class Condition(object):
-    """
-    Used to chain together objects for conditional testing.
-    """
-    class NO_DATA(Exception): pass
-    
-    def __init__(self, value=None):
-        self.value = value
-        
-    def eval(self, data=NO_DATA):
-        return bool(self.value)
-    
-    def __or__(self, other):
-        return Or(self, other)
-    def __ror(self, other):
-        return Or(other, self)
-    
-    def __and__(self, other):
-        return And(self, other)
-    def __rand__(self, other):
-        return And(other, self)
-    
-    def __invert__(self):
-        return Inverse(self)
-    
-    def __nonzero__(self):
-        return self.eval()
-
-Always = Condition(True)
-
-Never = Condition(False)
-    
-class Inverse(Condition):
-    def __init__(self, toInvert):
-        self.toInvert = toInvert
-        
-    def eval(self, data=Condition.NO_DATA):
-        return not self.toInvert.eval(data)
-
-    def __str__(self):
-        return "not %s" % self.toInvert
-
-class AndOrAbstract(Condition):
-    def __init__(self, *args):
-        self.args = []
-        for arg in args:
-            if isinstance(arg, self.__class__):
-                self.args.extend(arg.args)
-            else:
-                self.args.append(arg)
-
-    def eval(self, data=Condition.NO_DATA):
-        for arg in self.args:
-            if isinstance(arg, Condition):
-                val = arg.eval(data)
-            else:
-                val = bool(arg)
-            if val == self._breakEarly:
-                return self._breakEarly
-        return not self._breakEarly
-
-    def __str__(self):
-        return "(%s)" % self._strJoiner.join([str(x) for x in self.args])
-        
-class And(AndOrAbstract):
-    _breakEarly = False
-    _strJoiner = ' and '
-
-class Or(AndOrAbstract):
-    _breakEarly = True
-    _strJoiner = ' or '
-    
-class Flag(Condition):
+   
+class Flag(util.Condition):
     def __init__(self, longName, shortName, truthValue=True):
         """
         Conditional for evaluating if a given flag is present.
