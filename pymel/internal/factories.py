@@ -216,6 +216,12 @@ simpleCommandWraps = {
 
     'modelEditor'       : [ ( toPyNode,
                               Flag('query', 'q') & Flag('camera', 'cam') )
+                          ],
+    
+    'ikHandle'          : [ ( toPyNode,
+                              Flag('query', 'q') & Flag('endEffector', 'ee') ),
+                            ( toPyNodeList,
+                              Flag('query', 'q') & Flag('jointList', 'jl') ),
                           ]
 }   
 #---------------------------------------------------------------
@@ -425,11 +431,14 @@ def addCmdDocsCallback(cmdName, docstring=''):
                 docstring += rowsep
                 
             else:
-                docstring += '  - %s %s [%s]\n%s\n\n' % ( 
+                descr = '\n'.join([ '      '+x for x in textwrap.wrap(descr, DOC_WIDTH)])
+                # add trailing newline
+                descr = descr + '\n' if descr else ''
+                docstring += '  - %s %s [%s]\n%s\n' % ( 
                                             (flag + ' : ' + docs['shortname']).ljust(30), 
                                             ('('+typ+')').ljust(15),
                                             ','.join( modes ),
-                                            '\n'.join([ '      '+x for x in textwrap.wrap(descr, DOC_WIDTH)]) )
+                                             descr )
 #            #modified
 #            try:
 #                modified = docs['modified']
