@@ -111,6 +111,9 @@ class Flag(util.Condition):
     def __str__(self):
         return self.longName
 
+# TODO: commands that don't return anything, but perhaps should?
+# affectedNet (PyNodes created)
+
 simpleCommandWraps = {
     'createRenderLayer' : [ (toPyNode, Always) ],
     'createDisplayLayer': [ (toPyNode, Always) ],
@@ -157,6 +160,7 @@ simpleCommandWraps = {
                               Flag('query', 'q') & Flag('geometry', 'g') )
                           ],
     'addDynamic'        : [ ( toPyNodeList, Always ) ],
+    'addPP'             : [ ( toPyNodeList, Always ) ],
 }   
 #---------------------------------------------------------------
    

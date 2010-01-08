@@ -640,7 +640,15 @@ class testCase_duplicateShape(unittest.TestCase):
 class test_PyNodeWraps(unittest.TestCase):
     def setUp(self):
         cmds.file(new=1, f=1)
-            
+
+    def assertPyNode(self, obj, nodeType=PyNode):
+        self.assert_(isinstance(obj, nodeType),
+                     '%r was not a %s object' % (obj, nodeType.__name__))
+        
+    def assertPyNodes(self, objs, nodeType=PyNode):
+        for obj in objs:
+            self.assertPyNode(obj, nodeType)
+                        
     def test_addAttr_QParent(self):
         cmds.polyCube()
         cmds.addAttr( longName='sampson', numberOfChildren=5, attributeType='compound' )
@@ -675,16 +683,17 @@ class test_PyNodeWraps(unittest.TestCase):
         
         # Use particle2 as a source of the emitter
         self.assertPyNodes(addDynamic( 'emitter1', 'particle2' ), PyNode)
-                     
-    def assertPyNode(self, obj, nodeType=PyNode):
-        self.assert_(isinstance(obj, nodeType),
-                     '%r was not a %s object' % (obj, nodeType.__name__))
+
+    def test_addPP(self):
+        cmds.emitter( n='myEmitter1' )
+        cmds.particle( n='myParticle1' )
+        cmds.connectDynamic( 'myParticle1', em='myEmitter1' )
+        cmds.select( 'myParticle1' )
+        cmds.emitter( n='myEmitter2' )
+        cmds.particle( n='myParticle2' )
+        cmds.connectDynamic( 'myParticle2', em='myEmitter2' )
         
-    def assertPyNodes(self, objs, nodeType=PyNode):
-        for obj in objs:
-            self.assertPyNode(obj, nodeType)
-        
-        
+        self.assertPyNodes(addPP( 'myEmitter2', atr='rate' ))
         
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
