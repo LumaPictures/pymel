@@ -637,7 +637,29 @@ class testCase_duplicateShape(unittest.TestCase):
                               (origShape, shapeDup))
             self.assertFalse(origShape.isInstanceOf(shapeDup))
 
+class test_PyNodeWraps(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
             
+    def test_addAttr_QParent(self):
+        cmds.polyCube()
+        cmds.addAttr( longName='sampson', numberOfChildren=5, attributeType='compound' )
+        cmds.addAttr( longName='homeboy', attributeType='matrix', parent='sampson' )
+        cmds.addAttr( longName='midge', attributeType='message', parent='sampson' )
+        cmds.addAttr( longName='damien', attributeType='double', parent='sampson' )
+        cmds.addAttr( longName='elizabeth', attributeType='double', parent='sampson' )
+        cmds.addAttr( longName='sweetpea', attributeType='double', parent='sampson' )
+        node = cmds.ls(sl=1)[0]
+        self.assert_(isinstance(addAttr(node + '.sweetpea', q=1, parent=1), Attribute))
+        
+    def test_skinCluster_QGeometry(self):
+        cube = cmds.polyCube()[0]
+        j1 = cmds.joint(p=(0,0,-1))
+        cmds.joint(p=(0,0,1))
+        skin = skinCluster(cube, j1)[0]
+        self.assert_(isinstance(skin.getGeometry()[0], DependNode))
+        
+        
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)

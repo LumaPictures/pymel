@@ -565,8 +565,24 @@ Modifications:
     #args = map(unicode, args) 
     res = cmds.addAttr( *args, **kwargs )
     if kwargs.get( 'q', kwargs.get('query',False) ):
-        if kwargs.get( 'dt', kwargs.get('dataType',False) ):
+        # When addAttr is queried, and has multiple other query flags - ie,
+        #   addAttr('joint1.sweetpea', q=1, parent=1, dataType=1)
+        # ... it seems to ignore every kwarg but the 'first'
+        for queriedArg, value in kwargs.iteritems():
+            if queriedArg not in ('q', 'query') and value:
+                break
+        if queriedArg in ('dt', 'dataType'):
             res = res[0]
+        elif queriedArg in ('p', 'parent'):
+            node = None
+            if args:
+                node = PyNode(args[0])
+            else:
+                node = ls(sl=1)[0]
+            if isinstance(node, Attribute):
+                node = node.node()
+            res = node.attr(res)
+            
 #    else:
 #        # attempt to gather Attributes we just made
 #        # this is slightly problematic because compound attributes are invalid 
