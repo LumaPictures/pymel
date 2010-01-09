@@ -2577,7 +2577,8 @@ class MelParser(object):
         self.lexer.expression_only = expressionsOnly
         
     def parse(self, data):
-        data = data.encode( 'utf-8', 'ignore')
+        data = data.decode( 'utf-8', 'ignore')
+        #data = data.encode( 'utf-8', 'ignore')
         data = data.replace( '\r', '\n' )
         
         if self.lexer.verbose == 2:    
@@ -2656,7 +2657,8 @@ class MelScanner(object):
 
         
     def parse(self, data):
-        data = data.encode( 'utf-8', 'ignore')
+        data = data.decode('utf-8', 'ignore')
+        #data = data.encode( 'utf-8', 'ignore')
         data = data.replace( '\r', '\n' )
                 
         scanner.parse(data, lexer=self.lexer)
