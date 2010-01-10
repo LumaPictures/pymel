@@ -3,7 +3,7 @@ import sys, os, inspect, unittest
 from pymel.all import *
 import pymel.core.nodetypes as nodetypes
 #import pymel
-#import pymel.core.factories as _factories
+import pymel.internal.factories as _factories
 #import maya.cmds as cmds
 #
 #
@@ -694,6 +694,30 @@ class test_PyNodeWraps(unittest.TestCase):
         cmds.connectDynamic( 'myParticle2', em='myEmitter2' )
         
         self.assertPyNodes(addPP( 'myEmitter2', atr='rate' ))
+
+        
+for cmdName in ('''aimConstraint geometryConstraint normalConstraint
+                   orientConstraint parentConstraint pointConstraint
+                   pointOnPolyConstraint poleVectorConstraint
+                   scaleConstraint tangentConstraint''').split():
+    melCmd = getattr(cmds, cmdName, None)
+    if not melCmd: continue
+    pyCmd = globals()[cmdName]
+    def testConstraint(self):
+        cmds.polyCube(name='cube1')
+        cmds.circle(name='circle1')
+        constr = melCmd( 'circle1', 'cube1')[0]
+        self.assertPyNodes(pyCmd(constr, q=1, targetList=1))
+        self.assertPyNodes(pyCmd(constr, q=1, weightAliasList=1), Attribute)
+        if 'worldUpObject' in _factories.cmdlist[cmdName]['flags']:
+            self.assertEqual(pyCmd(constr, q=1, worldUpObject=1), None)
+            cmds.polySphere(name='sphere1')
+            melCmd(constr, e=1, worldUpType='object', worldUpObject='sphere1')
+            self.assertPyNode(pyCmd(constr, q=1, worldUpObject=1))
+    testName = "test_" + cmdName
+    testConstraint.__name__ = testName
+    setattr(test_PyNodeWraps, testName, testConstraint)
+        
         
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))

@@ -60,9 +60,15 @@ virtualClass = util.defaultdict(list)
 
 def toPyNode(res):
     "returns a PyNode object"
-    if res is not None:
+    if res is not None and res != '':
         import pymel.core.general
         return pymel.core.general.PyNode(res)
+    
+def unwrapToPyNode(res):
+    "unwraps a 1-item list, and returns a Pynode object"
+    if res is not None and res[0]:
+        import pymel.core.general
+        return pymel.core.general.PyNode(res[0])
 
 def toPyUI(res):
     "returns a PyUI object"
@@ -2805,7 +2811,7 @@ def isValidPyNode (arg):
 def isValidPyNodeName (arg):
     return pyNodeNamesToPyNodes.has_key(arg)
 
-def toPyNode( obj, default=None ):
+def toPyNodeClass( obj, default=None ):
     if isinstance( obj, int ):
         mayaType = apicache.apiEnumsToMayaTypes.get( obj, None )
         return pyNodeNamesToPyNodes.get( util.capitalize(mayaType), default )
