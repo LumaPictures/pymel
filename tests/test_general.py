@@ -726,7 +726,38 @@ class test_PyNodeWraps(unittest.TestCase):
     def test_annotate(self):
         cmds.sphere( name='mySphere' )
         self.assertPyNode(annotate( 'mySphere', tx='my annotation text', p=(5, 6, 5) ))
+        
+    def test_arclen(self):
+        circle(name='curve1')
+        self.assertPyNode(arclen('curve1', ch=True))
+        self.assertPyNode(arclen('curve1'), float)
+        
+    def test_arcLengthDimension(self):
+        cmds.curve( d=3, p=((-9.3, 0, 3.2), (-4.2, 0, 5.0), (6.0, 0, 8.6), (2.1, 0, -1.9)), k=(0, 0, 0, 1, 2, 2));
+        self.assertPyNode(arcLengthDimension( 'curveShape1.u[0.5]' ))
+        
+    def test_arrayMapper(self):
+        particle( p=[(0, 0, 0), (3, 5, 6), (5, 6, 7), (9, 9, 9)] )
+        self.assertPyNode(arrayMapper( target='particle1', destAttr='rampPosition', inputV='ageNormalized', type='ramp' ))
+        
+    def test_art3dPaintCtx(self):
+        polyCube()
+        polyCube()
+        select('pCube1', 'pCube2')
+        from maya.mel import eval as mel
+        mel("Art3dPaintTool")
+        mel("art3dPaintAssignFileTextures color")
+        self.assertPyNodes(art3dPaintCtx('art3dPaintContext', q=1, shn=1))
+        self.assertPyNodes(art3dPaintCtx('art3dPaintContext', q=1, hnm=1))
 
+    def test_artAttrCtx(self):
+        polyCube()
+        polyCube()
+        select('pCube1', 'pCube2')
+        if not cmds.artAttrCtx('artAttrCtx1', exists=1):
+            cmds.artAttrCtx('artAttrCtx1')
+        cmds.setToolTo('artAttrCtx1')
+        self.assertPyNodes(artAttrCtx('artAttrCtx1', q=1, paintNodeArray=1))
         
 for cmdName in ('''aimConstraint geometryConstraint normalConstraint
                    orientConstraint parentConstraint pointConstraint

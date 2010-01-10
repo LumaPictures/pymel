@@ -65,7 +65,7 @@ def toPyNode(res):
         return pymel.core.general.PyNode(res)
     
 def unwrapToPyNode(res):
-    "unwraps a 1-item list, and returns a Pynode object"
+    "unwraps a 1-item list, and returns a PyNode object"
     if res is not None and res[0]:
         import pymel.core.general
         return pymel.core.general.PyNode(res[0])
@@ -82,6 +82,10 @@ def toPyNodeList(res):
         return []
     import pymel.core.general
     return [ pymel.core.general.PyNode(x) for x in res ]
+
+def splitToPyNodeList(res):
+    "converts a whitespace-separated string of names to a list of PyNode objects"
+    return toPyNodeList(res.split())
 
 def toPyUIList(res):
     "returns a list of PyUI objects"
@@ -183,7 +187,17 @@ simpleCommandWraps = {
                                 Flag('affectedLayers', 'afl') |
                                 Flag('parent', 'p')) )
                           ],
-    'annotate'          : [ ( lambda x: toPyNode(x.strip()), Always ) ]
+    'annotate'          : [ ( lambda x: toPyNode(x.strip()), Always ) ],
+    'arclen'            : [ ( toPyNode, Flag(' constructionHistory', 'ch') ) ],
+    'art3dPaintCtx'     : [ ( splitToPyNodeList,
+                              Flag('query', 'q') &
+                               (Flag('shapenames', 'shn') | 
+                                Flag('shadernames', 'hnm')) )
+                          ],
+    'artAttrCtx'        : [ ( splitToPyNodeList,
+                              Flag('query', 'q') &
+                                Flag('paintNodeArray', 'pna') )
+                          ], 
 }   
 #---------------------------------------------------------------
    
