@@ -182,7 +182,8 @@ simpleCommandWraps = {
                                 Flag('blendNodes', 'bld') |
                                 Flag('affectedLayers', 'afl') |
                                 Flag('parent', 'p')) )
-                          ], 
+                          ],
+    'annotate'          : [ ( lambda x: toPyNode(x.strip()), Always ) ]
 }   
 #---------------------------------------------------------------
    

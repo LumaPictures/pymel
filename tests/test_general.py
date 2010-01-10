@@ -723,6 +723,11 @@ class test_PyNodeWraps(unittest.TestCase):
         cmds.select('persp')
         self.assertPyNodes(animLayer(q=1,  affectedLayers=1))
         
+    def test_annotate(self):
+        cmds.sphere( name='mySphere' )
+        self.assertPyNode(annotate( 'mySphere', tx='my annotation text', p=(5, 6, 5) ))
+
+        
 for cmdName in ('''aimConstraint geometryConstraint normalConstraint
                    orientConstraint parentConstraint pointConstraint
                    pointOnPolyConstraint poleVectorConstraint
