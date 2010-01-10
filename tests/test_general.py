@@ -692,9 +692,36 @@ class test_PyNodeWraps(unittest.TestCase):
         cmds.emitter( n='myEmitter2' )
         cmds.particle( n='myParticle2' )
         cmds.connectDynamic( 'myParticle2', em='myEmitter2' )
-        
         self.assertPyNodes(addPP( 'myEmitter2', atr='rate' ))
-
+    
+    def test_animLayer(self):
+        self.assertEqual(animLayer(q=1, root=1), None)
+        cmds.animLayer("layer1")
+        rootLayer = animLayer(q=1, root=1)
+        self.assertPyNode(rootLayer)
+        self.assertEqual(animLayer(rootLayer, q=1, parent=1), None)
+        self.assertPyNode(animLayer("layer1", q=1, parent=1))
+        self.assertEqual(animLayer("layer1", q=1, children=1), [])
+        self.assertPyNodes(animLayer(rootLayer, q=1, children=1))
+        self.assertEqual(animLayer("layer1", q=1, attribute=1), [])
+        self.assertEqual(animLayer("layer1", q=1,  blendNodes=1), [])
+        cmds.animLayer("layer1", e=1, attribute=('persp.tx', 'persp.ry'))
+        self.assertPyNodes(animLayer("layer1", q=1, attribute=1), Attribute)
+        cmds.select('persp')
+        self.assertPyNodes(animLayer(q=1, bestAnimLayer=1))
+        self.assertEqual(animLayer("layer1", q=1,  animCurves=1), [])
+        cmds.setKeyframe('persp', animLayer='layer1')
+        self.assertPyNodes(animLayer("layer1", q=1,  animCurves=1))
+        self.assertEqual(animLayer('layer1', q=1, bac=1), [])
+        cmds.setKeyframe('persp', animLayer='BaseAnimation')
+        self.assertPyNodes(animLayer('layer1', q=1, bac=1))
+        self.assertPyNodes(animLayer("layer1", q=1,  blendNodes=1))
+        self.assertEqual(animLayer("persp.tz", q=1,  bestLayer=1), None)
+        self.assertPyNode(animLayer("persp.tx", q=1,  bestLayer=1))
+        cmds.select('side')
+        self.assertEqual(animLayer(q=1,  affectedLayers=1), [])
+        cmds.select('persp')
+        self.assertPyNodes(animLayer(q=1,  affectedLayers=1))
         
 for cmdName in ('''aimConstraint geometryConstraint normalConstraint
                    orientConstraint parentConstraint pointConstraint

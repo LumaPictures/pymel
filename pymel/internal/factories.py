@@ -167,6 +167,22 @@ simpleCommandWraps = {
                           ],
     'addDynamic'        : [ ( toPyNodeList, Always ) ],
     'addPP'             : [ ( toPyNodeList, Always ) ],
+    'animLayer'         : [ ( toPyNode,
+                              Flag('query', 'q') &
+                               (Flag('root', 'r') |
+                                Flag('bestLayer', 'bl') |
+                                Flag('parent', 'p')) ),
+                            ( toPyNodeList,
+                              Flag('query', 'q') &
+                               (Flag('children', 'c') |
+                                Flag('attribute', 'at') |
+                                Flag('bestAnimLayer', 'blr') |
+                                Flag('animCurves', 'anc') |
+                                Flag('baseAnimCurves', 'bac') |
+                                Flag('blendNodes', 'bld') |
+                                Flag('affectedLayers', 'afl') |
+                                Flag('parent', 'p')) )
+                          ], 
 }   
 #---------------------------------------------------------------
    
