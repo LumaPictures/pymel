@@ -83,7 +83,9 @@ class PyUI(unicode):
                 if '|' not in name and not issubclass(newcls,
                                                 (Window,
                                                  dynModule.Panel,
-                                                 dynModule.ScriptedPanel)):
+                                                 dynModule.ScriptedPanel,
+                                                 dynModule.RadioCollection,
+                                                 dynModule.ToolCollection)):
                     import windows
                     try:
                         if issubclass(newcls,Layout):
