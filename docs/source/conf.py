@@ -30,7 +30,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest', 'sphinx.ext.autosummar
               'sphinx.ext.inheritance_diagram', 'sphinx.ext.graphviz']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['../templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
