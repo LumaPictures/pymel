@@ -171,7 +171,8 @@ nodeTypeToNodeCommand = {
     'makeNurbCube'      : 'nurbsCube',
     'skinPercent'       : 'skinCluster',
     'file'              : None, # prevent File node from using cmds.file
-    'nurbsSurface'      : 'surface'
+    'nurbsSurface'      : 'surface',
+    'annotationShape'   : 'annotate'
 }
 
 

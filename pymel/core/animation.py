@@ -121,19 +121,26 @@ Modifications:
                     args = targetObjects + [constraintObj]
                     kwargs.pop('w',None)
                     kwargs['weight'] = True
-                
         res = func(*args, **kwargs)
+        if kwargs.get( 'query', kwargs.get('q', False) and len(args)==1) :
+            if kwargs.get( 'weightAliasList', kwargs.get('wal', None) ):
+                res = [_general.Attribute(args[0] + '.' + attr) for attr in res]
+            elif kwargs.get( 'worldUpObject', kwargs.get('wuo', None) ):
+                res = _factories.unwrapToPyNode(res)
+            elif kwargs.get( 'targetList', kwargs.get('tl', None) ):
+                res = _factories.toPyNodeList(res)
         return res
     
     constraint.__name__ = func.__name__
     return constraint
 
-aimConstraint = _constraint( cmds.aimConstraint )
-geometryConstraint = _constraint( cmds.geometryConstraint )
-normalConstraint = _constraint( cmds.normalConstraint )
-orientConstraint = _constraint( cmds.orientConstraint )
-pointConstraint = _constraint( cmds.pointConstraint )
-scaleConstraint = _constraint( cmds.scaleConstraint )
+for contstraintCmdName in ('''aimConstraint geometryConstraint normalConstraint
+                              orientConstraint parentConstraint pointConstraint
+                              pointOnPolyConstraint poleVectorConstraint
+                              scaleConstraint tangentConstraint''').split():
+    cmd = getattr(cmds, contstraintCmdName, None)
+    if cmd:
+        globals()[contstraintCmdName] = _constraint(cmd)
 
 _factories.createFunctions( __name__, _general.PyNode )
 

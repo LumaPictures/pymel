@@ -60,9 +60,15 @@ virtualClass = util.defaultdict(list)
 
 def toPyNode(res):
     "returns a PyNode object"
-    if res is not None:
+    if res is not None and res != '':
         import pymel.core.general
         return pymel.core.general.PyNode(res)
+    
+def unwrapToPyNode(res):
+    "unwraps a 1-item list, and returns a PyNode object"
+    if res is not None and res[0]:
+        import pymel.core.general
+        return pymel.core.general.PyNode(res[0])
 
 def toPyUI(res):
     "returns a PyUI object"
@@ -76,6 +82,10 @@ def toPyNodeList(res):
         return []
     import pymel.core.general
     return [ pymel.core.general.PyNode(x) for x in res ]
+
+def splitToPyNodeList(res):
+    "converts a whitespace-separated string of names to a list of PyNode objects"
+    return toPyNodeList(res.split())
 
 def toPyUIList(res):
     "returns a list of PyUI objects"
@@ -110,6 +120,9 @@ class Flag(util.Condition):
     
     def __str__(self):
         return self.longName
+
+# TODO: commands that don't return anything, but perhaps should?
+# affectedNet (PyNodes created)
 
 simpleCommandWraps = {
     'createRenderLayer' : [ (toPyNode, Always) ],
@@ -152,7 +165,39 @@ simpleCommandWraps = {
                               Flag('query', 'q') & Flag('endEffector', 'ee') ),
                             ( toPyNodeList,
                               Flag('query', 'q') & Flag('jointList', 'jl') ),
-                          ]
+                          ],
+    'skinCluster'       : [ ( toPyNodeList,
+                              Flag('query', 'q') & Flag('geometry', 'g') )
+                          ],
+    'addDynamic'        : [ ( toPyNodeList, Always ) ],
+    'addPP'             : [ ( toPyNodeList, Always ) ],
+    'animLayer'         : [ ( toPyNode,
+                              Flag('query', 'q') &
+                               (Flag('root', 'r') |
+                                Flag('bestLayer', 'bl') |
+                                Flag('parent', 'p')) ),
+                            ( toPyNodeList,
+                              Flag('query', 'q') &
+                               (Flag('children', 'c') |
+                                Flag('attribute', 'at') |
+                                Flag('bestAnimLayer', 'blr') |
+                                Flag('animCurves', 'anc') |
+                                Flag('baseAnimCurves', 'bac') |
+                                Flag('blendNodes', 'bld') |
+                                Flag('affectedLayers', 'afl') |
+                                Flag('parent', 'p')) )
+                          ],
+    'annotate'          : [ ( lambda x: toPyNode(x.strip()), Always ) ],
+    'arclen'            : [ ( toPyNode, Flag(' constructionHistory', 'ch') ) ],
+    'art3dPaintCtx'     : [ ( splitToPyNodeList,
+                              Flag('query', 'q') &
+                               (Flag('shapenames', 'shn') | 
+                                Flag('shadernames', 'hnm')) )
+                          ],
+    'artAttrCtx'        : [ ( splitToPyNodeList,
+                              Flag('query', 'q') &
+                                Flag('paintNodeArray', 'pna') )
+                          ], 
 }   
 #---------------------------------------------------------------
    
@@ -2797,7 +2842,7 @@ def isValidPyNode (arg):
 def isValidPyNodeName (arg):
     return pyNodeNamesToPyNodes.has_key(arg)
 
-def toPyNode( obj, default=None ):
+def toPyNodeClass( obj, default=None ):
     if isinstance( obj, int ):
         mayaType = apicache.apiEnumsToMayaTypes.get( obj, None )
         return pyNodeNamesToPyNodes.get( util.capitalize(mayaType), default )

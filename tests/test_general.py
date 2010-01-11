@@ -3,7 +3,7 @@ import sys, os, inspect, unittest
 from pymel.all import *
 import pymel.core.nodetypes as nodetypes
 #import pymel
-#import pymel.core.factories as _factories
+import pymel.internal.factories as _factories
 #import maya.cmds as cmds
 #
 #
@@ -637,7 +637,151 @@ class testCase_duplicateShape(unittest.TestCase):
                               (origShape, shapeDup))
             self.assertFalse(origShape.isInstanceOf(shapeDup))
 
-            
+class test_PyNodeWraps(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+
+    def assertPyNode(self, obj, nodeType=PyNode):
+        self.assert_(isinstance(obj, nodeType),
+                     '%r was not a %s object' % (obj, nodeType.__name__))
+        
+    def assertPyNodes(self, objs, nodeType=PyNode):
+        for obj in objs:
+            self.assertPyNode(obj, nodeType)
+                        
+    def test_addAttr_QParent(self):
+        cmds.polyCube()
+        cmds.addAttr( longName='sampson', numberOfChildren=5, attributeType='compound' )
+        cmds.addAttr( longName='homeboy', attributeType='matrix', parent='sampson' )
+        cmds.addAttr( longName='midge', attributeType='message', parent='sampson' )
+        cmds.addAttr( longName='damien', attributeType='double', parent='sampson' )
+        cmds.addAttr( longName='elizabeth', attributeType='double', parent='sampson' )
+        cmds.addAttr( longName='sweetpea', attributeType='double', parent='sampson' )
+        node = cmds.ls(sl=1)[0]
+        self.assertPyNode(addAttr(node + '.sweetpea', q=1, parent=1), Attribute)
+        
+    def test_skinCluster_QGeometry(self):
+        cube = cmds.polyCube()[0]
+        j1 = cmds.joint(p=(0,0,-1))
+        cmds.joint(p=(0,0,1))
+        skin = skinCluster(cube, j1)[0]
+        self.assertPyNodes(skin.getGeometry(), DependNode)
+        
+    def test_addDynamic(self):
+        # Create an emitter
+        cmds.emitter( pos=(0, 0, 0), type='omni', r=100, sro=0, nuv=0, cye='none', cyi=1, spd=1, srn=0, nsp=1, tsp=0, mxd=0, mnd=0, dx=1, dy=0, dz=0, sp=0 )
+        # Result: emitter1 #
+        
+        # Get the emitter to emit particles
+        cmds.particle()
+        # Result: particle2
+        cmds.connectDynamic( 'particle1', em='emitter1' )
+        
+        # Create a particle to use as the source of the emitter
+        cmds.particle( p=((6.0, 0, 7.0), (6.0, 0, 2.0)), c=1 )
+        # Result: particle2
+        
+        # Use particle2 as a source of the emitter
+        self.assertPyNodes(addDynamic( 'emitter1', 'particle2' ), PyNode)
+
+    def test_addPP(self):
+        cmds.emitter( n='myEmitter1' )
+        cmds.particle( n='myParticle1' )
+        cmds.connectDynamic( 'myParticle1', em='myEmitter1' )
+        cmds.select( 'myParticle1' )
+        cmds.emitter( n='myEmitter2' )
+        cmds.particle( n='myParticle2' )
+        cmds.connectDynamic( 'myParticle2', em='myEmitter2' )
+        self.assertPyNodes(addPP( 'myEmitter2', atr='rate' ))
+    
+    def test_animLayer(self):
+        self.assertEqual(animLayer(q=1, root=1), None)
+        cmds.animLayer("layer1")
+        rootLayer = animLayer(q=1, root=1)
+        self.assertPyNode(rootLayer)
+        self.assertEqual(animLayer(rootLayer, q=1, parent=1), None)
+        self.assertPyNode(animLayer("layer1", q=1, parent=1))
+        self.assertEqual(animLayer("layer1", q=1, children=1), [])
+        self.assertPyNodes(animLayer(rootLayer, q=1, children=1))
+        self.assertEqual(animLayer("layer1", q=1, attribute=1), [])
+        self.assertEqual(animLayer("layer1", q=1,  blendNodes=1), [])
+        cmds.animLayer("layer1", e=1, attribute=('persp.tx', 'persp.ry'))
+        self.assertPyNodes(animLayer("layer1", q=1, attribute=1), Attribute)
+        cmds.select('persp')
+        self.assertPyNodes(animLayer(q=1, bestAnimLayer=1))
+        self.assertEqual(animLayer("layer1", q=1,  animCurves=1), [])
+        cmds.setKeyframe('persp', animLayer='layer1')
+        self.assertPyNodes(animLayer("layer1", q=1,  animCurves=1))
+        self.assertEqual(animLayer('layer1', q=1, bac=1), [])
+        cmds.setKeyframe('persp', animLayer='BaseAnimation')
+        self.assertPyNodes(animLayer('layer1', q=1, bac=1))
+        self.assertPyNodes(animLayer("layer1", q=1,  blendNodes=1))
+        self.assertEqual(animLayer("persp.tz", q=1,  bestLayer=1), None)
+        self.assertPyNode(animLayer("persp.tx", q=1,  bestLayer=1))
+        cmds.select('side')
+        self.assertEqual(animLayer(q=1,  affectedLayers=1), [])
+        cmds.select('persp')
+        self.assertPyNodes(animLayer(q=1,  affectedLayers=1))
+        
+    def test_annotate(self):
+        cmds.sphere( name='mySphere' )
+        self.assertPyNode(annotate( 'mySphere', tx='my annotation text', p=(5, 6, 5) ))
+        
+    def test_arclen(self):
+        circle(name='curve1')
+        self.assertPyNode(arclen('curve1', ch=True))
+        self.assertPyNode(arclen('curve1'), float)
+        
+    def test_arcLengthDimension(self):
+        cmds.curve( d=3, p=((-9.3, 0, 3.2), (-4.2, 0, 5.0), (6.0, 0, 8.6), (2.1, 0, -1.9)), k=(0, 0, 0, 1, 2, 2));
+        self.assertPyNode(arcLengthDimension( 'curveShape1.u[0.5]' ))
+        
+    def test_arrayMapper(self):
+        particle( p=[(0, 0, 0), (3, 5, 6), (5, 6, 7), (9, 9, 9)] )
+        self.assertPyNode(arrayMapper( target='particle1', destAttr='rampPosition', inputV='ageNormalized', type='ramp' ))
+        
+    def test_art3dPaintCtx(self):
+        polyCube()
+        polyCube()
+        select('pCube1', 'pCube2')
+        from maya.mel import eval as mel
+        mel("Art3dPaintTool")
+        mel("art3dPaintAssignFileTextures color")
+        self.assertPyNodes(art3dPaintCtx('art3dPaintContext', q=1, shn=1))
+        self.assertPyNodes(art3dPaintCtx('art3dPaintContext', q=1, hnm=1))
+
+    def test_artAttrCtx(self):
+        polyCube()
+        polyCube()
+        select('pCube1', 'pCube2')
+        if not cmds.artAttrCtx('artAttrCtx1', exists=1):
+            cmds.artAttrCtx('artAttrCtx1')
+        cmds.setToolTo('artAttrCtx1')
+        self.assertPyNodes(artAttrCtx('artAttrCtx1', q=1, paintNodeArray=1))
+        
+for cmdName in ('''aimConstraint geometryConstraint normalConstraint
+                   orientConstraint parentConstraint pointConstraint
+                   pointOnPolyConstraint poleVectorConstraint
+                   scaleConstraint tangentConstraint''').split():
+    melCmd = getattr(cmds, cmdName, None)
+    if not melCmd: continue
+    pyCmd = globals()[cmdName]
+    def testConstraint(self):
+        cmds.polyCube(name='cube1')
+        cmds.circle(name='circle1')
+        constr = melCmd( 'circle1', 'cube1')[0]
+        self.assertPyNodes(pyCmd(constr, q=1, targetList=1))
+        self.assertPyNodes(pyCmd(constr, q=1, weightAliasList=1), Attribute)
+        if 'worldUpObject' in _factories.cmdlist[cmdName]['flags']:
+            self.assertEqual(pyCmd(constr, q=1, worldUpObject=1), None)
+            cmds.polySphere(name='sphere1')
+            melCmd(constr, e=1, worldUpType='object', worldUpObject='sphere1')
+            self.assertPyNode(pyCmd(constr, q=1, worldUpObject=1))
+    testName = "test_" + cmdName
+    testConstraint.__name__ = testName
+    setattr(test_PyNodeWraps, testName, testConstraint)
+        
+        
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
