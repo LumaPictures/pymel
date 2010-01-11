@@ -4,7 +4,7 @@ Contains the wrapping mechanisms that allows pymel to integrate the api and maya
 import re, types, os, inspect, sys, textwrap
 from operator import itemgetter
 import pymel.util as util
-from pymel.util import Always
+from pymel.util.conditions import Always, Condition
 import pymel.api as api
 from startup import loadCache
 import plogging as plogging
@@ -95,7 +95,7 @@ def toPyUIList(res):
     return [ pymel.core.uitypes.PyUI(x) for x in res ]
 
    
-class Flag(util.Condition):
+class Flag(Condition):
     def __init__(self, longName, shortName, truthValue=True):
         """
         Conditional for evaluating if a given flag is present.
