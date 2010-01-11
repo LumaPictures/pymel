@@ -1,7 +1,7 @@
 from pydoc import *
 import pydoc, pkgutil, sys, pprint
 import __builtin__
-import os
+import os, shutil
 
 import pymel.util as util
 
@@ -455,10 +455,11 @@ def pymelstubs(extension='py'):
     Can build Python Interface files (pi) with extension='pi' for IDEs like wing."""
     
     pymeldir = os.path.dirname( os.path.dirname( sys.modules[__name__].__file__) )
-    outputdir = os.path.join(pymeldir, 'extras', 'completion' )
+    outputdir = os.path.join(pymeldir, 'extras', 'completion', extension)
     print outputdir
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
+    
     packagestubs( 'pymel', 
                   outputdir=outputdir, 
                   extension=extension,
@@ -469,6 +470,7 @@ def pymelstubs(extension='py'):
     f.write( 'from maya.cmds import *\n' )
     f.close()
     
+    shutil
     packagestubs( 'maya', outputdir=outputdir,extension=extension )
+    return outputdir
 
-    

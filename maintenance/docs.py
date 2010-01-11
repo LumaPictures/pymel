@@ -33,7 +33,9 @@ def build(**kwargs):
     from sphinx import main
     os.chdir( docsdir )
     #mkdir -p build/html build/doctrees
-
+    
+    #import pymel.internal.cmdcache as cmdcache
+    #cmdcache.fixCodeExamples()
     opts = ['']
     opts += '-b html -d build/doctrees'.split()
     for key, value in kwargs.iteritems():
