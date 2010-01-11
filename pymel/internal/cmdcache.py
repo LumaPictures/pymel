@@ -354,13 +354,16 @@ def fixCodeExamples(style='maya', force=False):
     animOptions.append( cmds.animDisplay( q=1, modelUpdate=True ) )
     
     openWindows = cmds.lsUI(windows=True)
-    examples = startup.loadCache('mayaCmdsExamples')
-    processedExamples = startup.loadCache('mayaCmdsExamples', version=False)
-    sortedCmds = sorted(examples.keys())
+    examples = startup.loadCache('mayaCmdsExamples', useVersion=True)
+    processedExamples = startup.loadCache('mayaCmdsExamples', useVersion=False)
+    processedExamples = {} if processedExamples is None else processedExamples
+    allCmds = set(examples.keys())
     # put commands that require manual interaction first
-    manualCmds = []
-    sortedCmds = manualCmds + [ sortedCmds.pop(x) for x in manualCmds ]
-    
+    manualCmds = ['fileBrowserDialog', 'fileDialog', 'fileDialog2', 'fontDialog']
+    skipCmds = ['colorEditor', 'emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor', 'ogsRender', 'webBrowser']
+    allCmds.difference_update(manualCmds)
+    allCmds.difference_update(skipCmds)
+    sortedCmds = manualCmds + sorted(allCmds)
     for command in sortedCmds:
         example = examples[command]
 
@@ -397,7 +400,7 @@ def fixCodeExamples(style='maya', force=False):
         # narrowed down the commands that cause maya to crash to these prefixes
         if re.match( '(dis)|(dyn)|(poly)', command) :
             evaluate = False
-        elif command in ['emit', 'finder', 'doBlur', 'messageLine', 'renderWindowEditor']:
+        elif command in skipCmds:
             evaluate = False
         else:
             evaluate = True
@@ -458,11 +461,12 @@ def fixCodeExamples(style='maya', force=False):
                           
             example = '\n'.join( newlines )
             processedExamples[command] = example
-        except:
-            _logger.info("COMPLETE AND UTTER FAILURE: %s", command)
+        except Exception, e:
+            raise
+            #_logger.info("FAILED: %s: %s" % (command, e) )
         else:
             # write out after each success so that if we crash we don't have to start from scratch
-            startup.writeCache(processedExamples, 'mayaCmdsExamples', 'the Maya commands examples', version=False)
+            startup.writeCache(processedExamples, 'mayaCmdsExamples', 'the Maya commands examples', useVersion=False)
         
         # cleanup opened windows
         for ui in set(cmds.lsUI(windows=True)).difference(openWindows):
