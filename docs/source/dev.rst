@@ -25,7 +25,6 @@ MEL Commands
 3. create a dictionary of MEL-commands to the ui elements they create, query, and edit
 4. run tests on node commands to gather additional information required to ensure values returned by queries are compatible with values required for edits
 5. pickle this info into two separate caches: one used for auto-wraps and the other for doc strings.  the latter data can be lazily loaded on request since it is not required for the wrap itself.
-6. create a dictionary of commands and flags that should be altered in known ways.  these "simple" wraps cannot be determined automatically, but need not be written by hand.  for example, a command that should return PyNodes on a particular query is a wrap that can be handled easily through this mechanism
 
 Nodes and API Classes
 ---------------------
@@ -42,7 +41,7 @@ Nodes and API Classes
 Bridge
 ------
 
-A special control-panel GUI is used to create a dictionary controlling how MEL and API interact to produce PyNode classes. It is known as the bridge. The control panel allows us to edit the bridge to:
+A special control-panel GUI is used to manage a dictionary controlling how MEL and API interact to produce PyNode classes. It is known as the bridge. The bridge allows us to:
 
 1. create manual overrides to correct input and output types
 2. create mappings between MEL commands and API commands that perform the same task
@@ -57,13 +56,30 @@ When PyMEL is imported it uses the cached data to generate the wrapped functions
 Functions
 ---------
 
-for each function:
+Every command is wrapped in up to 3 stages.
+
+1. Data Compatibility Wrap
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``pymel.internal.pmcmds`` wraps every function in ``maya.cmds`` such that any arguments that are passed to it are first converted into datatypes that ``maya.cmds`` will accept (string, int, float, or list/tuple thereof).  The way we do this is simple yet powerful:  if the argument has a ``__melobject__`` method, we evaluate it and use the result in place of the original value.  It is the responsibility of this method to return a "MEL-friendly" representation of the object's data.  For example, `core.PyNode.__melobject__` returns its object's name as a string, and `datatypes.Matrix.__melobject__` returns itself converted into a flat 16-item list.
+
+2. Manual Wrap
+~~~~~~~~~~~~~~
+
+Optional manual wraps are created for cases that cannot be handled automatically or semi-automatically (below).  They can use the auto-wrapped function in ``pmcmds`` as a starting point
+
+3. Automatic Wrap
+~~~~~~~~~~~~~~~~~
+
+Certain wraps are applied automatically based on information attained during parsing. If a manual wrap of the function is found, it is used as the starting point, otherwise the lower-level ``pmcmds`` wrap is used.
+
+For each function:
 
 1. add open-ended time ranges to appropriate flags:  (1,None), (1,), slice(1,None), "1:", etc
-2. cast results to PyNode or PyUI if it is a node or UI command, correcting where determined necessary in tests
+2. cast results to ``PyNode`` or ``PyUI`` if it is a node or UI command, correcting where determined necessary in tests
 3. fix UI callbacks to return proper python objects instead of 'true', 'false', '1', '0', etc
-4. perform simple wraps (described above)
-5. add docstrings
+4. perform simple wraps:  these are manually maintained, semi-automatic wraps of commands that are altered in standard and straightforward ways. For example, a command that should return a ``PyNode`` on a particular query is a wrap that can be handled easily through this mechanism.
+5. add docstrings based on cached data
 
 
 Classes

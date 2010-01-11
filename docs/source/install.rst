@@ -252,18 +252,6 @@ Yes, there is yet another way to install PyMEL.  If you have write permission to
     import os
     print os.path.dirname(maya.__file__)
 
-    
-Manual Method 4: Adding to sys.path
------------------------------------
-
-This method is generally frowned upon, but if you need to manually add paths to ``sys.path``, be sure to do it from ``userSetup.mel`` as it is too late to do it by the time ``userSetup.py`` is called.  Also, the path to pymel must be inserted at the beginning of ``sys.path``.  For example, this mel code could be run from ``userSetup.mel``::
-
-    python( "import sys; sys.path.insert(0,'/path/to/pymel')" );
-    
-Again, the ``/path/to/pymel`` should be the top-level directory where you extracted pymel, which contains both the 'pymel' and 'maya' directories.
-
-Be sure to do add this line prior to the calling of any other python code from within ``userSetup.mel``.
-
 ---------------------------------------
 ipymel
 ---------------------------------------
