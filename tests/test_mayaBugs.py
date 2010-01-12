@@ -4,6 +4,7 @@ import maya.cmds as cmds
 import maya.OpenMaya as om
 import maya.OpenMayaFX as fx
 
+
 # Bug report 345382
 class TestFluidMFnCreation(unittest.TestCase):
     def setUp(self):
@@ -149,4 +150,17 @@ class TestMMatrixSetAttr(unittest.TestCase):
         if self.origSetAttr:
             om.MMatrix.__setattr__ = self.fixedSetAttr
         
+class TestGroupUniqueness(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
         
+    def runTest(self):
+        cmds.select(cl=1)
+        cmds.group(n='foo', empty=1)
+        cmds.group(n='bar')
+        cmds.select(cl=1)
+        res = cmds.group(n='foo', empty=1)
+        cmds.select(res)
+
+
+      
