@@ -1,10 +1,10 @@
 """
-General utility functions that are not specific to Maya Commands or the
+General utility functions that are not specific to Maya Commands or the 
 OpenMaya API.
 
 Note:
-env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to
-override the default formatting of logging messages sent to the GUI and
+env vars MAYA_GUI_LOGGER_FORMAT and MAYA_SHELL_LOGGER_FORMAT can be used to 
+override the default formatting of logging messages sent to the GUI and 
 shell respectively.
 
 """
@@ -26,40 +26,40 @@ _guiLogHandler = None
 def loadStringResourcesForModule( moduleName ):
     """
     Load the string resources associated with the given module
-
-    Note that the argument must be a string containing the full name of the
-    module (eg "maya.app.utils").  The module of that name must have been
+    
+    Note that the argument must be a string containing the full name of the 
+    module (eg "maya.app.utils").  The module of that name must have been 
     previously imported.
-
+    
     The base resource file is assumed to be in the same location as the file
     defining the module and will have the same name as the module except with
     _res.py appended to it.  So, for the module foo, the resource file should
-    be foo_res.py.
-
-    If Maya is running in localized mode, then the standard location for
-    localized scripts will also be searched (the location given by the
+    be foo_res.py.  
+    
+    If Maya is running in localized mode, then the standard location for 
+    localized scripts will also be searched (the location given by the 
     command cmds.about( localizedResourceLocation=True ))
-
-    Failure to find the base resources for the given module will trigger an
+    
+    Failure to find the base resources for the given module will trigger an 
     exception. Failure to find localized resources is not an error.
     """
     try:
         module = sys.modules[moduleName]
     except:
         raise RuntimeError( 'Failed to load base string resources for module %s because it has not been imported' % moduleName )
-
+        
     modulePath, moduleFileName = os.path.split( module.__file__ )
     moduleName, extension = os.path.splitext( moduleFileName )
-
+    
     resourceFileName = moduleName + '_res.py'
-
+    
     # Try to find the base version of the file next to the module
     try:
         baseVersionPath = os.path.join( modulePath, resourceFileName )
         execfile( baseVersionPath, {} )
     except:
         raise RuntimeError( 'Failed to load base string resources for module %s' % moduleName )
-
+    
     if cmds.about( uiLanguageIsLocalized=True ):
         scriptPath = cmds.about( localizedResourceLocation=True )
         if scriptPath != '':
@@ -80,7 +80,7 @@ def getPossibleCompletions(input):
     Returns in a list all of the possible completions that apply
     to the input string
     """
-
+    
     import sys
     import rlcompleter
     completer = rlcompleter.Completer()
@@ -94,7 +94,7 @@ def getPossibleCompletions(input):
             listOfMatches.append(term)
     except:
         pass
-
+    
     return listOfMatches
 
 def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0):
@@ -103,7 +103,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
     (based on the code in pydoc.py)
     Note: only a string (including unicode) should be passed in for "thing"
     """
-
+    
     import pydoc as pydocs
     import inspect
     import string
@@ -142,7 +142,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
             desc += ' object'
         text = pydocs.TextDoc()
         result=pydocs.plain(title % desc + '\n\n' + text.document(object, name))
-
+        
         # Remove multiple empty lines
         result = [ line for line in result.splitlines() if line.strip() ]
         result = string.join(result,"\n")
@@ -153,7 +153,7 @@ def helpNonVerbose(thing, title='Python Library Documentation: %s', forceload=0)
     return result
 
 # ##############################################################################
-# Logging
+# Logging 
 #
 
 class MayaGuiLogHandler(logging.Handler):
@@ -171,7 +171,7 @@ class MayaGuiLogHandler(logging.Handler):
             # Warning (30)
             OpenMaya.MGlobal.displayWarning(msg)
         else:
-            # Debug (10) and Info (20)
+            # Debug (10) and Info (20) 
             OpenMaya.MGlobal.displayInfo(msg)
 
 def guiLogHandler():
@@ -212,13 +212,13 @@ def shellLogHandler():
     return _shellLogHandler
 
 # ##############################################################################
-# Gui Exception Handling
+# Gui Exception Handling 
 #
 
 def _guiExceptHook( exceptionType, exceptionObject, traceBack, detail=2 ):
     """
     Whenever Maya receives an error from the command engine it comes into here
-    to format the message for display.
+    to format the message for display. 
     Formatting is performed by formatGuiException.
         exceptionType   : Type of exception
         exceptionObject : Detailed exception information
@@ -236,7 +236,7 @@ def _guiExceptHook( exceptionType, exceptionObject, traceBack, detail=2 ):
         tbLines = []
         tbLines.append("Error in  maya.utils._guiExceptHook:\n")
         tbLines += traceback.format_list( tbStack[1:] ) + traceback.format_exception_only(etype, value)
-
+        
         tbLines.append("\nOriginal exception was:\n")
         tbLines += traceback.format_exception(exceptionType, exceptionObject, traceBack)
         tbLines = _prefixTraceStack(tbLines)
@@ -250,16 +250,16 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
         exceptionObject : Detailed exception information
         traceBack       : Exception traceback stack information
         detail          : 0 = no trace info, 1 = line/file only, 2 = full trace
-
-    To perform an action when an exception occurs without modifying Maya's
+                          
+    To perform an action when an exception occurs without modifying Maya's 
     default printing of exceptions, do the following::
-
+    
         import maya.utils
         def myExceptCB(etype, value, tb):
             # do something here...
             return maya.utils._formatGuiException(etype, value, tb, detail)
         maya.utils.formatGuiException = myExceptCB
-
+        
     """
     # if we are passed a valid exception, the primary message will be the first
     # element in its 'args' attribute
@@ -293,7 +293,7 @@ def formatGuiException(exceptionType, exceptionObject, traceBack, detail=2):
             tbLines = _decodeStack( traceback.format_list(tbStack) )
             if len(tbStack) > 0:
                 tbLines.insert(0, u'Traceback (most recent call last):\n')
-
+            
             # prefix the message to the stack trace so that it will be visible in
             # the command line
             result = ''.join( _prefixTraceStack([exceptionMsg+'\n'] + tbLines + excLines) )
@@ -348,7 +348,7 @@ def formatGuiResult(obj):
 
     To perform an action when a result is about to returned to the script editor
     without modifying Maya's default printing of results, do the following:
-
+    
         import maya.utils
         def myResultCallback(obj):
             # do something here...
@@ -373,12 +373,12 @@ _formatGuiResult = formatGuiResult
 # international treaties.
 #
 # The Data is provided for use exclusively by You. You have the right to use,
-# modify, and incorporate this Data into other products for purposes authorized
+# modify, and incorporate this Data into other products for purposes authorized 
 # by the Autodesk software license agreement, without fee.
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
 # DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
 # INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
-# MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE
+# MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
 # OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
 # LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
 # DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
