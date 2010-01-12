@@ -240,15 +240,17 @@ class Namespace(str):
         cmds.namespace(removeNamespace=self)        
 
 
-def listNamespaces():
-    """Returns a list of the namespaces of referenced files.
+def listNamespaces_old():
+    """
+    Deprecated
+    Returns a list of the namespaces of referenced files.
     REMOVE In Favor of listReferences('dict') ?""" 
     try:
         return [ cmds.file( x, q=1, namespace=1) for x in cmds.file( q=1, reference=1)  ]
     except:
         return []
 
-def listNamespaces_new(root=None, recursive=False, _internal=False):
+def listNamespaces(root=None, recursive=False, _internal=False):
     """Returns a list of the namespaces in the scene"""
     return Namespace(root or ":").listNamespaces(recursive, _internal)
 
