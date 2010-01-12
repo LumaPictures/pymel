@@ -1625,7 +1625,8 @@ class ApiUndo:
 
         try:
             api.MMessage.removeCallback( self.cbid )
-            self.cbid.disown()
+            if hasattr(self.cbid, 'disown'):
+                self.cbid.disown()
         except:
             pass
         self.cbid = api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )

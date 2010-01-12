@@ -836,7 +836,8 @@ class ReferenceCache(object):
         for msg in messages:
             _logger.debug("Setting up File-Reference Callback: %s" % msg)
             cb = _OpenMaya.MSceneMessage.addCallback(getattr(_OpenMaya.MSceneMessage,msg), refererencesUpdated, None)
-            cb.disown()     # suppresses those swig 'memory leak' warnings
+            if hasattr(cb, 'disown'):
+                cb.disown()     # suppresses those swig 'memory leak' warnings
             cls._callbacks.append(cb)
 
     @classmethod
