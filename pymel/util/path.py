@@ -793,6 +793,34 @@ class path(_base):
 
     if hasattr(os.path, 'samefile'):
         samefile = os.path.samefile
+        
+    def samepath(self, otherpath):
+        """
+        Whether the other path represents the same path as this one.
+        
+        This will account for symbolic links, absolute/relative paths,
+        case differences (if on a case-insensitive file system), and '..'
+        usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
+        
+        This will NOT account for hard links - use 'samefile' for this, if
+        available on your os.
+        
+        Essentially just compares the self.canonicalpath() to other.canonicalpath()
+        """
+        return self.canonicalpath() == self.__class__(otherpath).canonicalpath()
+    
+    def canonicalpath(self):
+        """
+        Attempt to return a 'canonical' version of the path
+        
+        This will standardize for symbolic links, absolute/relative paths,
+        case differences (if on a case-insensitive file system), and '..'
+        usage (so paths such as A//B, A/./B and A/foo/../B will all compare equal).
+        
+        The intention is that string comparison of canonical paths will yield
+        a reasonable guess as to whether two paths represent the same file.
+        """
+        return self.__class__(self.abspath().realpath().normpath().normcase())
 
     getatime = os.path.getatime
     atime = property(
