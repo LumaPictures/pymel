@@ -1,4 +1,6 @@
 import sys
+import pymel
+pymel.all = sys.modules[__name__]
 
 import internal
 import internal.plogging as plogging

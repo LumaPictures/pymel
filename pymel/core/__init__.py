@@ -3,6 +3,8 @@
 #import pymel._internal as _internal
 
 import sys
+import pymel
+pymel.core = sys.modules[__name__]
 import pymel.versions as _versions
 import pymel.internal as _internal
 
