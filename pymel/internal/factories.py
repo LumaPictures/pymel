@@ -355,7 +355,11 @@ def addCmdDocsCallback(cmdName, docstring=''):
             docs = flagDocs[flag]
 
             # type
-            typ = docs['args']
+            try:
+                typ = docs['args']
+            except KeyError, e:
+                raise KeyError("Error retrieving doc information for: %s, %s\n%s" % (cmdName, flag, e))
+                raise
             if isinstance(typ, list):
                 try:
                     typ = [ x.__name__ for x in typ ]
@@ -1621,7 +1625,8 @@ class ApiUndo:
 
         try:
             api.MMessage.removeCallback( self.cbid )
-            self.cbid.disown()
+            if hasattr(self.cbid, 'disown'):
+                self.cbid.disown()
         except:
             pass
         self.cbid = api.MNodeMessage.addAttributeChangedCallback( self.undoNode, self._attrChanged )

@@ -1926,8 +1926,8 @@ NurbsSurface.numCVsInU = \
             >>> from pymel.core import *
             >>> # a periodic surface
             >>> mySurf = surface(name='periodicSurf1', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.cv[:][0]
-            NurbsCurveCV(u'periodicSurfShape1.cv[0:7][0]')
+            >>> sorted(mySurf.cv[:][0].indices())        # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((7, 0), label=None)]
             >>> mySurf.numCVsInU()
             8
             >>> mySurf.numCVsInU(editableOnly=False)
@@ -1935,8 +1935,8 @@ NurbsSurface.numCVsInU = \
             >>> 
             >>> # an open surface
             >>> mySurf = surface(name='openSurf1', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=((4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)) )
-            >>> mySurf.cv[:][0]
-            NurbsCurveCV(u'openSurfShape1.cv[0:10][0]')
+            >>> sorted(mySurf.cv[:][0].indices())        # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((10, 0), label=None)]
             >>> mySurf.numCVsInU()
             11
             >>> mySurf.numCVsInU(editableOnly=False)
@@ -1980,8 +1980,8 @@ NurbsSurface.numCVsInV = \
             >>> from pymel.core import *
             >>> # a periodic surface
             >>> mySurf = surface(name='periodicSurf2', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.cv[0][:]
-            NurbsCurveCV(u'periodicSurfShape2.cv[0][0:7]')
+            >>> sorted(mySurf.cv[0].indices())         # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((0, 7), label='cv')]
             >>> mySurf.numCVsInV()
             8
             >>> mySurf.numCVsInV(editableOnly=False)
@@ -1989,8 +1989,8 @@ NurbsSurface.numCVsInV = \
             >>> 
             >>> # an open surface
             >>> mySurf = surface(name='openSurf2', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.cv[0][:]
-            NurbsCurveCV(u'openSurfShape2.cv[0][0:10]')
+            >>> sorted(mySurf.cv[0].indices())          # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((0, 10), label='cv')]
             >>> mySurf.numCVsInV()
             11
             >>> mySurf.numCVsInV(editableOnly=False)
@@ -2011,15 +2011,15 @@ NurbsSurface.numEPsInU = \
             >>> from pymel.core import *
             >>> # a periodic surface
             >>> mySurf = surface(name='periodicSurf3', du=3, dv=1, fu='periodic', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.ep[:][0]
-            NurbsCurveEP(u'periodicSurfShape3.ep[0:7][0]')
+            >>> sorted(mySurf.ep[:][0].indices())      # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((7, 0), label=None)]
             >>> mySurf.numEPsInU()
             8
             >>> 
             >>> # an open surface
             >>> mySurf = surface(name='openSurf3', du=3, dv=1, fu='open', fv='open', ku=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), kv=(0, 1), pw=[(4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1), (0, 5.5, 0, 1), (0, 5.5, -2.5, 1), (-4, 4, 0, 1), (-4, 4, -2.5, 1), (-5.5, 0, 0, 1), (-5.5, 0, -2.5, 1), (-4, -4, 0, 1), (-4, -4, -2.5, 1), (0, -5.5, 0, 1), (0, -5.5, -2.5, 1), (4, -4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, 0, 1), (5.5, 0, -2.5, 1), (4, 4, 0, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.ep[:][0]
-            NurbsCurveEP(u'openSurfShape3.ep[0:8][0]')
+            >>> sorted(mySurf.ep[:][0].indices())      # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((8, 0), label=None)]
             >>> mySurf.numEPsInU()
             9
                     
@@ -2038,15 +2038,15 @@ NurbsSurface.numEPsInV = \
             >>> from pymel.core import *
             >>> # a periodic surface
             >>> mySurf = surface(name='periodicSurf4', du=1, dv=3, fu='open', fv='periodic', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.ep[0][:]
-            NurbsCurveEP(u'periodicSurfShape4.ep[0][0:7]')
+            >>> sorted(mySurf.ep[0][:].indices())      # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((0, 7), label=None)]
             >>> mySurf.numEPsInV()
             8
             >>> 
             >>> # an open surface
             >>> mySurf = surface(name='openSurf4', du=1, dv=3, fu='open', fv='open', ku=(0, 1), kv=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), pw=[(4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (0, 5.5, 0, 1), (-4, 4, 0, 1), (-5.5, 0, 0, 1), (-4, -4, 0, 1), (0, -5.5, 0, 1), (4, -4, 0, 1), (5.5, 0, 0, 1), (4, 4, 0, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1), (0, 5.5, -2.5, 1), (-4, 4, -2.5, 1), (-5.5, 0, -2.5, 1), (-4, -4, -2.5, 1), (0, -5.5, -2.5, 1), (4, -4, -2.5, 1), (5.5, 0, -2.5, 1), (4, 4, -2.5, 1)] )
-            >>> mySurf.ep[0][:]
-            NurbsCurveEP(u'openSurfShape4.ep[0][0:8]')
+            >>> sorted(mySurf.ep[0][:].indices())      # doctest: +ELLIPSIS
+            [ComponentIndex((0, 0), ... ComponentIndex((0, 8), label=None)]
             >>> mySurf.numEPsInV()
             9
                     

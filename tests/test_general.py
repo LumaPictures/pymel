@@ -768,7 +768,7 @@ for cmdName in ('''aimConstraint geometryConstraint normalConstraint
     melCmd = getattr(cmds, cmdName, None)
     if not melCmd: continue
     pyCmd = globals()[cmdName]
-    def testConstraint(self):
+    def constraintTest(self):
         cmds.polyCube(name='cube1')
         cmds.circle(name='circle1')
         constr = melCmd( 'circle1', 'cube1')[0]
@@ -780,8 +780,13 @@ for cmdName in ('''aimConstraint geometryConstraint normalConstraint
             melCmd(constr, e=1, worldUpType='object', worldUpObject='sphere1')
             self.assertPyNode(pyCmd(constr, q=1, worldUpObject=1))
     testName = "test_" + cmdName
-    testConstraint.__name__ = testName
-    setattr(test_PyNodeWraps, testName, testConstraint)
+    constraintTest.__name__ = testName
+    setattr(test_PyNodeWraps, testName, constraintTest)
+    
+    # Delete the function from the module level after we're done, so
+    # nosetests won't find the "original" non-method function, and
+    # try to run it as a test!
+    del globals()['constraintTest']
         
         
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)

@@ -1,7 +1,15 @@
 #!/bin/bash
 
 # maintenance/release
-cd `dirname $0`/release
+cd `dirname $0`
+if [ -d release ];
+then
+	echo ""
+else
+	mkdir release
+fi
+
+cd release
 
 VER=$1
 RELEASE=pymel-$1
@@ -35,7 +43,7 @@ rm -rfd $RELEASE/maintenance
 
 echo "copying docs"
 rm -rfd $RELEASE/docs
-cp -r $SOURCE/docs/build/html $RELEASE/docs
+cp -r $SOURCE/docs/build/1.0 $RELEASE/docs
 
 echo "copying stubs"
 cp -r $SOURCE/extras/completion $RELEASE/extras/completion

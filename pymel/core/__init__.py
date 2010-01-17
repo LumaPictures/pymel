@@ -102,7 +102,8 @@ def _pluginLoaded( *args ):
                 id = _pluginData[pluginName]['callbackId']
                 if id is not None:
                     _api.MEventMessage.removeCallback( id )
-                    id.disown()
+                    if hasattr(id, 'disown'):
+                        id.disown()
             except KeyError:
                 _logger.warning("could not find callback id!")
             
@@ -198,7 +199,8 @@ def _installCallbacks():
         
         if _versions.current() >= _versions.v2009:
             id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginLoad, _pluginLoaded  )
-            id.disown()
+            if hasattr(id, 'disown'):
+                id.disown()
         else:
             # BUG: this line has to be a string, because using a function causes a 'pure virtual' error every time maya shuts down 
             cmds.loadPlugin( addCallback='import pymel.core; pymel.core._pluginLoaded("%s")' )
@@ -215,7 +217,8 @@ def _installCallbacks():
         if _versions.current() >= _versions.v2009:
             _logger.debug("Adding pluginUnloaded callback")
             id = _api.MSceneMessage.addStringArrayCallback( _api.MSceneMessage.kAfterPluginUnload, _pluginUnloaded )
-            id.disown()
+            if hasattr(id, 'disown'):
+                id.disown()
         
 
     else:

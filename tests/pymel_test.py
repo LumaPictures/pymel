@@ -45,7 +45,7 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
     os.environ['MAYA_PSEUDOTRANS_VALUE']=','
     
     noseKwArgs={}
-    noseArgv = "dummyArg0 --with-doctest -v".split()
+    noseArgv = "dummyArg0 --with-doctest -vv".split()
     if module is None:
         #module = 'pymel' # if you don't set a module, nose will search the cwd
                     
@@ -62,6 +62,7 @@ def nose_test(module=None, extraArgs=None, pymelDir=None):
     
     patcher = DocTestPatcher()
     try:
+        print noseKwArgs
         nose.main( **noseKwArgs)
     finally:
         patcher.reset()
