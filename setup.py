@@ -5,7 +5,8 @@ import os
 import glob
 import platform
 from zipfile import ZipFile
-from distutils.sysconfig import get_makefile_filename, get_python_lib
+from distutils.sysconfig import get_makefile_filename, get_python_lib, EXEC_PREFIX
+from os.path import dirname
 try:
     system = platform.system()
 except:
@@ -22,7 +23,7 @@ def get_mayapy_executable():
     return os.path.normpath( sys.executable )
 
 mayapy_executable = get_mayapy_executable()
-maya_bin_dir = os.path.dirname( mayapy_executable )
+maya_bin_dir = dirname( mayapy_executable )
 
 
     
@@ -30,7 +31,7 @@ def test_dynload_modules():
     # start with a bit of a hack.  not sure the most reliable way to get the dynload directory
     # so we can import one of the most fundamental and use it's path
     import math
-    dynload_dir = os.path.dirname( os.path.normpath( math.__file__ ) )
+    dynload_dir = dirname( os.path.normpath( math.__file__ ) )
     print dynload_dir
     bad_modules = []
     print "testing Maya python installation for missing system libraries"
@@ -46,41 +47,77 @@ def test_dynload_modules():
             bad_modules.append( module_name )
     return bad_modules
 
+def fix_makefile_prefix(data):
+    if system == 'Darwin':
+        reg = re.compile( '\nPYTHONFRAMEWORKPREFIX\s*=\s*([^\n]+)')
+        real_prefix = dirname(dirname(dirname(EXEC_PREFIX)))
+    else:
+        reg = re.compile( '\nprefix\s*=\s*([^\n]+)')
+        real_prefix = dirname(dirname(EXEC_PREFIX))
+        
+    prefix = reg.search(data).groups()[0]
+    return data.replace(prefix, real_prefix)
+    
+
 def fix_makefile():
-    # ensure python Makefile exists where expected    
-    makefile = get_makefile_filename()
-    if not os.path.exists(makefile):
-        print "PyMEL setup: Makefile not found: %s. Attempting to correct" % makefile
-        libdir = get_python_lib(plat_specific=1, standard_lib=1)
-        zipinstall = os.path.join( os.path.dirname( maya_bin_dir ),'lib', 'python%s%s.zip' % sys.version_info[0:2] )
-        if os.path.exists(zipinstall):
-            try:
-                # extract the Makefile
-                zip = ZipFile( zipinstall, 'r')
-                # remove libdir
-                zipmakefile = makefile.replace( libdir+os.sep, '')
-                data = zip.read(zipmakefile)
-                os.makedirs( os.path.dirname(makefile))
-                f = open(makefile, 'w')
-                f.write(data)
-                f.close()
-                print "PyMEL setup: successfully extracted Makefile from zip install into proper location"
-                return
-            except Exception, e:
-                print "PyMEL setup: an error occurred while trying to fix the Makefile: %s" % e
+    # fix paths in Makefile
+    if os.name == 'posix':
+        # ensure python Makefile exists where expected    
+        makefile = get_makefile_filename()
+        if not os.path.exists(makefile):
+            print "PyMEL setup: Makefile not found: %s. Attempting to correct" % makefile
+            libdir = get_python_lib(plat_specific=1, standard_lib=1)
+            zipinstall = os.path.join( dirname( maya_bin_dir ),'lib', 'python%s%s.zip' % sys.version_info[0:2] )
+            if os.path.exists(zipinstall):
+                try:
+                    # extract the Makefile
+                    zip = ZipFile( zipinstall, 'r')
+                    # remove libdir
+                    zipmakefile = makefile.replace( libdir+os.sep, '')
+                    data = zip.read(zipmakefile)
+                    os.makedirs( dirname(makefile))
+                    f = open(makefile, 'w')
+                    f.write(fix_makefile_prefix(data))
+                    f.close()
+                    print "PyMEL setup: successfully extracted Makefile from zip install into proper location"
+                    return
+                except Exception, e:
+                    import traceback
+                    print "PyMEL setup: an error occurred while trying to fix the Makefile"
+                    traceback.print_exc(e)
+            else:
+                print "PyMEL setup: cannot fix Makefile. zip install was not found: %s" % zipinstall
+            print ("distutils will most likely fail, complaining that this is an invalid python install. PyMEL setup\n" +
+                    "was unable to properly correct the problem. The root problem is that your python Makefile is missing")
         else:
-            print "PyMEL setup: cannot fix Makefile. zip install was not found: %s" % zipinstall
-        print ("distutils will most likely fail, complaining that this is an invalid python install. PyMEL setup\n" +
-                "was unable to properly correct the problem. The root problem is that your python Makefile is missing")
+            f = open(makefile, 'r') 
+            data = f.read()
+            f.close()
+            try:
+                f = open(makefile, 'w') 
+                f.write(fix_makefile_prefix(data))
+            except Exception, e:
+                import traceback
+                print "PyMEL setup: an error occurred while trying to fix the Makefile"
+                traceback.print_exc(e)
+            finally:
+                f.close()
 
-
+def fix_python_lib():
+    if system=='Darwin':
+        lib = os.path.join( dirname(get_makefile_filename()), 'libpython%s.%s.a' % sys.version_info[0:2] )
+        if os.path.islink(lib):
+            os.remove(lib)
+        os.symlink('../../../Python', lib)
+        assert os.path.exists( os.path.realpath(lib)), "symbolic link is invalid"
+        
 def get_maya_version():
 
     # problem with service packs addition, must be able to match things such as :
     # '2008 Service Pack 1 x64', '2008x64', '2008', '8.5'
 
     try:
-        versionStr = os.path.dirname( os.path.dirname( sys.executable ) )
+        versionStr = dirname( dirname( sys.executable ) )
         m = re.search( "((?:maya)?(?P<base>[\d.]{3,})(?:(?:[ ].*[ ])|(?:-))?(?P<ext>x[\d.]+)?)", versionStr)
         version = m.group('base')
         return version
@@ -112,8 +149,9 @@ def set_default_script_location():
             args.append( '--install-scripts=' + maya_bin_dir )
             sys.argv = args
 
+def isdev():
+    return os.path.isdir( os.path.join( dirname(os.path.abspath(__file__)), '.git' ) ) 
 
-    
 def main():
     if system == 'Linux':
         # do this first because ez_setup won't import if md5 can't be imported
@@ -137,7 +175,11 @@ def main():
 
     orig_script_args = setuptools.command.easy_install.get_script_args
     orig_nt_quote_arg = setuptools.command.easy_install.nt_quote_arg
-         
+    
+    reqirements = ['ply==3.3', 'ipython']
+    if isdev():
+        requirements.append('BeautifulSoup >3.0')
+    
     # overwrite setuptools.command.easy_install.get_script_args
     # it's the only way to change the executable for ipymel
     if system == 'Darwin':
@@ -183,7 +225,7 @@ def main():
                         'maya', 'maya.app', 'maya.app.startup', 'pymel.cache' ],
               entry_points = {'console_scripts' : 'ipymel = pymel.tools.ipymel:main' },
               package_data={'pymel': ['*.conf' ], 'pymel.cache' : ['*.zip'] },
-              install_requires=['BeautifulSoup >3.0', 'ply==3.3', 'ipython'],
+              install_requires=requirements,
               tests_require=['nose'],
               test_suite = 'nose.collector',
               data_files = get_data_files()
