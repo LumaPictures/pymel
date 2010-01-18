@@ -23,6 +23,9 @@ except:
 #from maya.cmds import encodeString
 
 isInitializing = False
+# Setting this to False will make finalize() do nothing
+finalizeEnabled = True
+_finalizeFinished = False
     
 # tells whether this maya package has been modified to work with pymel
 pymelMayaPackage = hasattr(maya.utils, 'shellLogHandler') or versions.current() >= versions.v2011
@@ -310,6 +313,10 @@ def initAE():
             _makeAEProc( 'AETemplates', name, 'AE'+nodeType+'Template')
 
 def finalize():
+    global finalizeEnabled
+    global _finalizeFinished
+    if not finalizeEnabled or _finalizeFinished:
+        return
     state = om.MGlobal.mayaState()
     if state == om.MGlobal.kLibraryApp: # mayapy only
         global isInitializing
@@ -323,6 +330,7 @@ def finalize():
         initMEL()
     elif state == om.MGlobal.kInteractive:
         initAE()
+    _finalizeFinished = True
                        
 # Fix for non US encodings in Maya
 def encodeFix():

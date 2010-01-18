@@ -3,6 +3,8 @@ import pymel
 pymel.all = sys.modules[__name__]
 
 import internal
+import internal.startup
+internal.startup.finalizeEnabled = False
 import internal.plogging as plogging
 import internal.factories as factories
 import mayautils
@@ -36,3 +38,8 @@ import tools
 ## this ensures that when the user does 'from pymel import *',
 ## cmds is always maya.cmds
 import maya.cmds as cmds
+
+# Run delayed finalize now, so that if userSetup imports all,
+# it has access to everything it should
+internal.startup.finalizeEnabled = True
+internal.startup.finalize()
