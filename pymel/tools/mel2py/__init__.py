@@ -181,7 +181,6 @@ quickly as i can.
 
 """
 
-
 from melparse import *
 try:
     from pymel.util.external.ply.lex import LexError
@@ -193,6 +192,8 @@ import pymel.internal as internal
 import pymel.internal.factories as _factories
 import pymel
 import os
+
+log = internal.getLogger(__name__)
 
 """
 This is a dictionary for custom remappings of mel procedures into python functions, classes, etc. If you are like me you probably have a
@@ -229,21 +230,26 @@ custom_proc_remap = {
 # do not change the following line !!!
 proc_remap.update(custom_proc_remap)
 
-def resolvePath( melobj ):
+def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False ):
     """
     if passed a directory, get all mel files in the directory
     if passed a file, ensure it is a mel file
     if passed a procedure name, find its file
     """
+    files = []
     filepath = util.path( melobj )
     if filepath.isfile():
         if filepath.ext == '.mel':
-            return [ filepath.realpath() ]
+            files = [ filepath.canonicalpath() ]
         else:
-            util.warn( "File is not a mel script: %s" % (filepath) )
-            return []
+            log.warning( "File is not a mel script: %s" % (filepath) )
+            files = []
     elif filepath.isdir():
-        return [ f.realpath() for f in filepath.files( '[a-zA-Z]*.mel') ]
+        if recurse:
+            iterator = filepath.walkfiles
+        else:
+            iterator = filepath.files
+        files = [ f.canonicalpath() for f in iterator( '[a-zA-Z]*.mel') ]
     #elif not filepath.exists():
     else:
         # see if it's a procedure that we can derive a path from
@@ -251,20 +257,54 @@ def resolvePath( melobj ):
             info = mel.whatIs( melobj ).split(': ')[-1]
             assert info != 'Unknown', "If providing a procedure or a short file name, ensure the appropriate script is sourced"
             melfile = util.path( info )
-            return [ melfile.realpath() ]
+            files = [ melfile.canonicalpath() ]
         except Exception, msg:
-            util.warn( "Could not determine mel script from input '%s': %s." % (filepath, msg) )
-    return []
+            log.warning( "Could not determine mel script from input '%s': %s." % (filepath, msg) )
+    if exclude:
+        for i, badFile in enumerate(exclude):
+            badFile = util.path(badFile).canonicalpath()
+            if badFile.isdir():
+                badFile = badFile + os.sep
+            exclude[i] = badFile
+        filteredFiles = []
+        for f in files:
+            fileGood = True
+            for badFile in exclude:
+                if f.samepath(badFile) \
+                   or (badFile.isdir() 
+                       and f.startswith(badFile)):
+                    fileGood = False
+            if fileGood:
+                filteredFiles.append(f)
+        files = filteredFiles
+    if melPathOnly:
+        files = [x for x in files if fileOnMelPath(x)]
+    return files
+
+def fileOnMelPath( file ):
+    """
+    Return True if this file is on the mel path.
+    """
+    file = util.path(file)
+    info = mel.whatIs( file.basename() ).split(': ', 1)
+    if len(info) < 2:
+        # If there wasn't a ':' character, the result was probably 'Unknown, or something similar -
+        # anyway, not what we're looking for
+        return False
+    if info[0] not in ('Mel procedure found in', 'Script found in'):
+        return False
+    path = util.path(info[1])
+    return path.samepath(file)
     
-def _getInputFiles( input ):
+def _getInputFiles( input, recurse=False, exclude=(), melPathOnly=False ):
     
     results = []
     if util.isIterable( input ):
         for f in input:
-            results += resolvePath(f)
+            results += resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
             
     else:
-        results = resolvePath(input)
+        results = resolvePath(input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
     
     return results
 
@@ -346,7 +386,10 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
 
 
 
-def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, verbosity=0 , test=False):
+def mel2py( input, outputDir=None,
+            pymelNamespace='', forceCompatibility=False,
+            verbosity=0 , test=False,
+            recurse=False, exclude=(), melPathOnly=False):
     """
     Batch convert an entire directory
     
@@ -374,29 +417,32 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
         test : `bool`
             After translation, attempt to import the modules to test for errors
             
-    
+        recurse : `bool`
+            If the input is a directory, whether or not to recursively search subdirectories as well.
+        
+        exclude : `str`
+            A comma-separated list of files/directories to exclude from processing, if input is a directory.
+            
+        melPathOnly : `bool`
+            If true, will only translate mel files found on the mel script path.
     """
-
-
     
     global batchData
     batchData = BatchData()
          
-    batchData.currentFiles = _getInputFiles( input )
+    currentFiles = _getInputFiles( input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
     
-    if not batchData.currentFiles:
+    if not currentFiles:
         raise ValueError, "Could not find any scripts to operate on. Please pass a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure"
 
-    for file in batchData.currentFiles:
+    for file in currentFiles:
         module = getModuleBasename(file)
         assert module not in batchData.currentModules, "modules %s is already in currentModules list %s" % ( module, batchData.currentModules )
-        batchData.currentModules.append(module)
-        
-    print batchData.currentFiles
+        batchData.currentModules[module] = file
     
     importCnt = 0
     succeeded = []
-    for melfile, moduleName in zip(batchData.currentFiles, batchData.currentModules):
+    for moduleName, melfile in batchData.currentModules.iteritems():
         print melfile, moduleName
         #try:
             #moduleName = getModuleBasename(melfile)
@@ -408,18 +454,22 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
         else:
             data = melfile.bytes()
             print "Converting mel script", melfile
-            converted = mel2pyStr( data, moduleName, pymelNamespace=pymelNamespace, verbosity=verbosity )
-            
+            try:
+                converted = mel2pyStr( data, moduleName, pymelNamespace=pymelNamespace, verbosity=verbosity )
+            except MelParseError, e:
+                if e.file is None:
+                    e.file = melfile
+                raise
         
         header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
         
         converted = header + converted
         
         if outputDir is None:
-        	currOutDir = melfile.parent
+            currOutDir = melfile.parent
         else:
-        	currOutDir = outputDir
-        	
+            currOutDir = outputDir
+            
         pyfile = util.path(currOutDir + os.sep + moduleName + '.py')    
         print "Writing converted python script: %s" % pyfile
         pyfile.write_bytes(converted)
@@ -448,9 +498,9 @@ def mel2py( input, outputDir=None, pymelNamespace='', forceCompatibility=False, 
                 importCnt += 1
     
     succCnt = len(succeeded)
-    print "%d total processed for conversion" % len(batchData.currentFiles)
+    print "%d total processed for conversion" % len(batchData.currentModules)
     print "%d files succeeded" % succCnt
-    print "%d files failed" % (len(batchData.currentFiles)-succCnt)
+    print "%d files failed" % (len(batchData.currentModules)-succCnt)
     if test:        
         print "%d files imported without error" % (importCnt)
     
@@ -480,10 +530,7 @@ def findMelOnlyCommands():
                 info = proc_remap.has_key( cmd )
         result.append( (cmd, typ, info ) )
     return result
-    
+
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) == 2:
-        mel2py(sys.argv[1], verbosity=1)
-    elif len(sys.argv) == 3:
-        mel2py(sys.argv[1], sys.argv[2], verbosity=1)
+    import pymel.tools.mel2pyCommand
+    pymel.tools.mel2pyCommand.main()

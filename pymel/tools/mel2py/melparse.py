@@ -8,14 +8,15 @@ Created from the ansi c example included with ply, which is based on the grammar
 
 
 
-
 import sys, os, re, os.path, tempfile
 import mellex
 
 try:
     from pymel.util.external.ply import *
+    import pymel.util.external.ply.lex
 except ImportError:
     from ply import *
+    import ply.lex
 
 from pymel.util import unescape
 import pymel
@@ -24,7 +25,7 @@ import pymel.internal.factories as factories
 import melscan
 
 try:
-    from pymel.all import *
+    from pymel.core import *
 except ImportError:
     print "maya.cmds module cannot be found. be sure to run this script through maya and not from the command line. Continuing, but without command support"
 
@@ -375,7 +376,7 @@ def _melProc_to_pyModule( t, procedure ):
             
             melfile = util.path( buf[1].lstrip() )
             melfile = melfile.realpath()
-            translating = melfile in batchData.currentFiles
+            translating = melfile in batchData.currentModules.values()
             
             moduleName = getModuleBasename( melfile )
             
@@ -410,12 +411,17 @@ def _melProc_to_pyModule( t, procedure ):
             #print "%s not seen yet: scanning %s" % ( procedure, melfile )
             cbParser = MelScanner()
             cbParser.build()
-            proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
+            try:
+                proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
+            except lex.LexError:
+                print "Error parsing mel file:", melfile
+                global_procs = {}
             #print "global procs", global_procs
             for proc, procInfo in global_procs.items():
                 #print proc, procInfo
                 batchData.proc_to_module[proc] = (moduleName, procInfo['returnType'])
-            return batchData.proc_to_module[procedure]
+            if procedure in batchData.proc_to_module:
+                return batchData.proc_to_module[procedure]
             
         #print "could not find script for procedure: %s" % procedure
         batchData.proc_to_module[procedure] = (None, None)
@@ -426,7 +432,6 @@ def _melProc_to_pyModule( t, procedure ):
         
     
 def format_command(command, args, t):
-            
     if len(args) == 1 and args[0].startswith('(') and args[0].endswith(')'):
         args[0] = args[0][1:-1]
         
@@ -694,8 +699,7 @@ class BatchData(object):
     __metaclass__ = util.Singleton
     
     def __init__(self):
-        self.currentFiles = []
-        self.currentModules = []
+        self.currentModules = {}
         self.proc_to_module = {}
         self.scriptPath_to_parser = {}
         self.scriptPath_to_moduleText = {}
@@ -2544,6 +2548,17 @@ lexer = lex.lex(module=mellex)
 _outputdir = tempfile.gettempdir()
 parser = yacc.yacc(method='''LALR''', debug=0, outputdir=_outputdir )
 
+class MelParseError(Exception):
+    def __init__(self, *args, **kwargs):
+        self.data = kwargs.pop('data', None)
+        self.file = kwargs.pop('file', None)
+        super(MelParseError, self).__init__(*args, **kwargs)
+        
+    def __str__(self):
+        base = super(MelParseError, self).__str__()
+        if self.file:
+            base += " - Error parsing %s - check for syntax errors" % self.file
+        return base
 
 class MelParser(object):
     """The MelParser class around which all other mel2py functions are based."""
@@ -2595,7 +2610,8 @@ class MelParser(object):
         
         translatedStr = ''
         try:
-            translatedStr = parser.parse(data, lexer=self.lexer)
+            debug = (self.lexer.verbose >= 3)
+            translatedStr = parser.parse(data, lexer=self.lexer, debug=debug)
             #translatedStr = simpleParser.parse(data, lexer=self.lexer)
             
         except ValueError, msg:
@@ -2603,7 +2619,9 @@ class MelParser(object):
                 translatedStr = '\n'.join(self.lexer.comment_queue)                
             else:
                 raise ValueError, msg
-            
+        
+        if translatedStr is None:
+            raise MelParseError(data=data)
         #except IndexError, msg:
         #    raise ValueError, '%s: %s' % (melfile, msg)
         #except AttributeError:
@@ -2629,7 +2647,6 @@ class MelParser(object):
             if len( new_modules ):
                 header += "import %s" % ','.join(list(new_modules))
                 header += '\n'
-                
             translatedStr = header + translatedStr
     
             
