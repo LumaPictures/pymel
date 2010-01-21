@@ -80,6 +80,7 @@ def _pluginLoaded( *args ):
         _pluginData[pluginName]['commands'] = commands
         _logger.debug( "adding new commands: %s" % ', '.join(commands) )
         for funcName in commands:
+            _logger.debug("Adding command: %s..." % funcName)
             #__logger.debug("adding new command:", funcName)
             _factories.cmdlist[funcName] = _factories.cmdcache.getCmdInfoBasic( funcName )
             _pmcmds.addWrappedCmd(funcName)
@@ -93,10 +94,11 @@ def _pluginLoaded( *args ):
                     _logger.warning( "failed to create function" )
             except Exception, msg:
                 _logger.warning("exception: %s" % str(msg) )
+            _logger.debug("Done adding command %s" % funcName)
     
     # Nodes          
     mayaTypes = cmds.pluginInfo(pluginName, query=1, dependNode=1)
-    #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1) 
+    #apiEnums = cmds.pluginInfo(pluginName, query=1, dependNodeId=1)
     if mayaTypes :
         
         def addPluginPyNodes(*args):
@@ -113,7 +115,7 @@ def _pluginLoaded( *args ):
             _logger.debug("adding new nodes: %s", ', '.join( mayaTypes ))
             
             for mayaType in mayaTypes:
-                
+                _logger.debug("Adding node: %s..." % mayaType)
                 inheritance = _factories.getInheritance( mayaType )
                 
                 if not util.isIterable(inheritance):
@@ -130,6 +132,7 @@ def _pluginLoaded( *args ):
                         if 'pymel.all' in sys.modules:
                             # getattr forces loading of Lazy object
                             setattr( sys.modules['pymel.all'], nodeName, getattr(nodetypes,nodeName) )
+                _logger.debug("Done adding node %s" % mayaType)
         
         # evidently isOpeningFile is not avaiable in maya 8.5 sp1.  this could definitely cause problems
         if _api.MFileIO.isReadingFile() or ( _versions.current() >= _versions.v2008 and _api.MFileIO.isOpeningFile() ):
