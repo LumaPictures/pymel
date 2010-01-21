@@ -1079,6 +1079,38 @@ class EquivalencePairs(TwoWayDict):
         return (dict.__contains__(self, key) or
                 key in self._reverse)
 
+def alias(origAttrName):
+    """
+    Returns a property which is simply an alias for another property.
+    
+    Acts simply to provide another name to reference the same
+    underlying attribute; useful when subclassing, where a subclass
+    might have a more descriptive name for an attribute that has the
+    same function.
+    
+    The only purpose of this function is to produce more readable code.
+    
+    Example:
+    
+    >>> class GenericExporter(object):
+    ...     def __init__(self, outFile):
+    ...         self.outFile = outFile
+    ...
+    >>> class CowExporter(GenericExporter):
+    ...     cowFile = alias('outFile')
+    ...
+    >>> CowExporter('bessie.cow').cowFile
+    'bessie.cow'
+    """
+    def getter(self):
+        return getattr(self, origAttrName)
+    getter.__name__ = "get_" + origAttrName
+    
+    def setter(self, value):
+        setattr(self, origAttrName, value)
+        
+    setter.__name__ = "seet_" + origAttrName
+    return property(getter, setter)
     
 # unit test with doctest
 if __name__ == '__main__' :
