@@ -836,7 +836,9 @@ Modifications:
         elif not isinstance(val,re._pattern_type):
             raise TypeError( 'regex flag must be passed a valid regex string, a compiled regex object, or a list of these types. got %s' % type(val).__name__ )
         regexArgs[i] = val
-    
+
+    editable = kwargs.pop('editable', False)
+          
     res = _util.listForNone(cmds.ls(*args, **kwargs))
     if regexArgs:
         tmp = res
@@ -847,8 +849,7 @@ Modifications:
                     res.append(x)
                     break
     
-    if kwargs.pop('editable', False):
-
+    if editable:
         kwargs['readOnly'] = True
         kwargs.pop('ro',True)
         roNodes = _util.listForNone(cmds.ls(*args, **kwargs))
