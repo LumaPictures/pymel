@@ -2603,15 +2603,27 @@ class ObjectSet(Entity):
     #-----------------------
     # Python ObjectSet Methods
     #-----------------------
+
+    @classmethod
+    def _getApiObjs(cls, item, tryCast=True):
+        """
+        Returns a tuple of api objects suitable (after unpacking) for
+        feeding to most of the MFnSet methods (ie, remove, isMember, etc)
+        """
+        if isinstance(item, DagNode):
+            return ( item.__apimdagpath__(), _api.MObject() )
+        elif isinstance(item, (DependNode, general.Attribute) ):
+            return ( item.__apiobject__(), )
+        elif isinstance(item, general.Component):
+            return ( item.__apimdagpath__(), item.__apimobject__() )
+        elif tryCast:
+            return cls._getApiObjs(self.general.PyNode(item), tryCast=False)
+        else:
+            raise TypeError(item)
                     
     def __contains__(self, item):
         """:rtype: `bool` """
-        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
-            return self.__apimfn__().isMember(item.__apiobject__())
-        elif isinstance(item, general.Component):
-            raise NotImplementedError, 'Components not yet supported'
-        else:
-            return self.__apimfn__().isMember(general.PyNode(item).__apiobject__())
+        return self.__apimfn__().isMember(*self._getApiObjs(item))
 
     def __getitem__(self, index):
         return self.asSelectionSet()[index]
@@ -2755,24 +2767,25 @@ class ObjectSet(Entity):
     
 
     def add(self, item):
-        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
-            return self.__apimfn__().addMember(item.__apiobject__())
-        elif isinstance(item, general.Component):
-            raise NotImplementedError
-        else:
-            return self.__apimfn__().addMember(general.PyNode(item).__apiobject__())
+        return self.__apimfn__().addMember(*self._getApiObjs(item))
 
     def remove(self, item):
-        if isinstance(item, (DependNode, DagNode, general.Attribute) ):
-            return self.__apimfn__().removeMember(item.__apiobject__())
-        elif isinstance(item, general.Component):
-            raise NotImplementedError
-        else:
-            return self.__apimfn__().removeMember(general.PyNode(item).__apiobject__())
+        try:
+            return self.__apimfn__().removeMember(*self._getApiObjs(item))
+        except RuntimeError:
+            # Provide a more informative error if object is not in set
+            if item not in self:
+                try:
+                    itemStr = repr(item)
+                except Exception:
+                    itemStr = 'item'
+                raise ValueError("%s not in set %r" % (itemStr, self))
+            else:
+                raise
           
     def isSubSet(self, other):
         """:rtype: `bool`"""
-        return self.asSelectionSet().isSubSet(other)  
+        return self.asSelectionSet().isSubSet(other)
     
     def isSuperSet(self, other ):
         """:rtype: `bool`"""
@@ -2838,6 +2851,24 @@ class ObjectSet(Entity):
 
     def union(self, other):
         self.addMembers(other)
+        
+class ShadingEngine(ObjectSet):
+    @classmethod
+    def _getApiObjs(cls, item, tryCast=True):
+        # Since shading groups can't contain transforms, as a convenience,
+        # use getShape on any transforms
+        if isinstance(item, Transform):
+            shape = item.getShape()
+            if shape:
+                return cls._getApiObjs(shape)
+            else:
+                try:
+                    itemStr = repr(item)
+                except Exception:
+                    itemStr = 'item'
+                raise TypeError("%s has no shape, and %s objects cannot contain Transforms" % (itemStr, cls.__name__))
+        else:
+            return super(ShadingEngine, cls)._getApiObjs(item, tryCast=tryCast)
      
 class AnimCurve(DependNode):
     __metaclass__ = _factories.MetaMayaNodeWrapper
