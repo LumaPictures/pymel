@@ -108,8 +108,8 @@ def fix_python_lib():
         lib = os.path.join( dirname(get_makefile_filename()), 'libpython%s.%s.a' % sys.version_info[0:2] )
         if os.path.islink(lib):
             os.remove(lib)
-        os.symlink('../../../Python', lib)
-        assert os.path.exists( os.path.realpath(lib)), "symbolic link is invalid"
+            os.symlink('../../../Python', lib)
+            assert os.path.exists( os.path.realpath(lib)), "symbolic link is invalid"
         
 def get_maya_version():
 
@@ -176,7 +176,7 @@ def main():
     orig_script_args = setuptools.command.easy_install.get_script_args
     orig_nt_quote_arg = setuptools.command.easy_install.nt_quote_arg
     
-    reqirements = ['ply==3.3', 'ipython']
+    requirements = ['ply==3.3', 'ipython']
     if isdev():
         requirements.append('BeautifulSoup >3.0')
     
