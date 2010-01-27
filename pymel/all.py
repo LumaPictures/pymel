@@ -1,6 +1,6 @@
 import sys
-import pymel
-pymel.all = sys.modules[__name__]
+import pymel as _pymel
+_pymel.all = sys.modules[__name__]
 
 import internal
 import internal.startup
