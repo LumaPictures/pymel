@@ -126,19 +126,31 @@ def test_maya_setAttr():
     cmds.setAttr( 'node.doubleArrayAttr', (1, 2, 3, 4), type='doubleArray' )
     assert cmds.getAttr( 'node.doubleArrayAttr' )   == [1.0, 2.0, 3.0, 4.0]
     
-    # complex array
-    cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), "", (1,2,3,4), type='pointArray' )
-    assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
-    
-    cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), "", (1,2,3), type='vectorArray' )
-    assert cmds.getAttr( 'node.vectorArrayAttr' )   == [1.0, 2.0, 3.0, 1.0, 2.0, 3.0]
-    
+    if versions.current() < versions.v2011:
+        # complex array
+        cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), "", (1,2,3,4), type='pointArray' )
+        assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+        
+        cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), "", (1,2,3), type='vectorArray' )
+        assert cmds.getAttr( 'node.vectorArrayAttr' )   == [1.0, 2.0, 3.0, 1.0, 2.0, 3.0]
+    else:
+        cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), (1,2,3,4), type='pointArray' )
+        assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+        
+        cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), (1,2,3), type='vectorArray' )
+        assert cmds.getAttr( 'node.vectorArrayAttr' )   == [(1.0, 2.0, 3.0), (1.0, 2.0, 3.0)]
+         
     # string array
     cmds.setAttr( 'node.stringArrayAttr', 3, 'one', 'two', 'three', type='stringArray' )
     assert cmds.getAttr( 'node.stringArrayAttr' )   == [u'one', u'two', u'three'] 
     
     cmds.setAttr( 'node.stringAttr', 'one', type='string' )
     assert cmds.getAttr( 'node.stringAttr' )        == u'one'
+    
+    # matrix
+    # Fails in versions < 2011
+    #cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+    #assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
     
     # non-numeric: can't get
     cmds.setAttr( 'node.sphereAttr', 1.0, type='sphere' )
@@ -151,7 +163,7 @@ def test_maya_setAttr():
     #assert cmds.getAttr( 'node.reflectanceRGBAttr' )        == 1.0
     # TODO : finish non-numeric
     
-def test_setAttr():
+def test_pymel_setAttr():
 
     _makeAllAttrTypes('node2')
     for typ, val in [
@@ -171,7 +183,8 @@ def test_setAttr():
         ('pointArray', [datatypes.Point([1,2,3]), datatypes.Point([1,2,3])] ),
         
         ('stringArray', ['one', 'two', 'three']),
-        ('string', 'one') ]:
+        ('string', 'one'),
+        ('matrix', datatypes.Matrix()) ]:
         
         def testSetAttr(*args):
             at = 'node2.' + typ + 'Attr'
@@ -183,7 +196,7 @@ def test_setAttr():
         testSetAttr.description = 'test_setAttr_' + typ
         #print typ
         #testSetAttr()
-        yield testSetAttr
+        yield testSetAttr,
             
 class testCase_nodesAndAttributes(unittest.TestCase):
 

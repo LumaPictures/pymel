@@ -162,5 +162,13 @@ class TestGroupUniqueness(unittest.TestCase):
         res = cmds.group(n='foo', empty=1)
         cmds.select(res)
 
+class TestMatrixSetAttr(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        res = cmds.sphere(n='node')
+        cmds.addAttr(ln='matrixAttr',dt="matrix")
+
+    def runTest(self):
+        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
 
       

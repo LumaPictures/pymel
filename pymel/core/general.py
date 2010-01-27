@@ -14,6 +14,7 @@ import pymel.internal.pmcmds as cmds
 import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.api as _api
+import pymel.versions as _versions
 
 import datatypes
 import logging
@@ -283,7 +284,8 @@ Modifications:
                 typ = cmds.getAttr( attr, type=1)
                 if typ == 'pointArray':
                     return [ datatypes.Point(x) for x in res ]
-                
+                elif typ == 'vectorArray':
+                    return [ datatypes.Vector(x) for x in res ]
                 res = res[0]
                 if typ == 'double3':
                     
@@ -374,7 +376,7 @@ Modifications:
         # vector, matrix, and arrays
         if _util.isIterable(arg):
             if datatype is None:
-                # if we're using force flag and the attribute does not exist
+                # if using force flag and the attribute does not exist
                 # we can infer the type from the passed value
                 #attr = Attribute(attr)
                 if force and not cmds.objExists(attr): #attr.exists():
@@ -403,10 +405,9 @@ Modifications:
                         else:
                             raise ValueError, "pymel.core.setAttr: %s is not a supported type for use with the force flag" % type(arg[0])
 
-                        _logger.debug("adding %r as %r", attr, datatype)
+                        #_logger.debug("adding %r as %r", attr, datatype)
                         addAttr( attrName.nodePath, ln=attrName.attribute, dt=datatype ) 
-                        kwargs['type'] = datatype
-                        
+                                            
                     # empty array is being passed
                     # if the attribute exists, this is ok
                     except IndexError:
@@ -414,9 +415,7 @@ Modifications:
                     
                     except TypeError:
                         raise ValueError, "pymel.core.setAttr: %s is not a supported type" % type(args)
-                    
-                    kwargs['type'] = datatype
-                
+                                
                 else:
                     if isinstance( arg, datatypes.Vector):
                         datatype = 'double3'
@@ -426,13 +425,13 @@ Modifications:
                         datatype = getAttr( attr, type=1)
                         if not datatype:
                             datatype = addAttr( attr, q=1, dataType=1) #[0] # this is returned as a single element list
-                    
-                        # set datatype for arrays
-                        # we could do this for all, but i'm uncertain that it needs to be 
-                        # done and it might cause more problems
-                        if datatype.endswith('Array'):
-                            kwargs['type'] = datatype
-            
+                if datatype:
+                    kwargs['type'] = datatype
+
+            try:
+                arg = arg.__melobject__()
+            except AttributeError:
+                pass
             if datatype == 'stringArray':
                 # string arrays:
                 #    first arg must be the length of the array being set
@@ -443,24 +442,37 @@ Modifications:
                 args = tuple( [len(arg)] + arg )
             
             elif datatype in ['vectorArray', 'pointArray']:
-                # vector arrays:
-                #    first arg must be the length of the array being set
-                #    empty values are placed between vectors
-                # ex:
-                #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )    
-                # becomes:
-                #     cmds.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')
-                arg = list(arg)
-                size = len(arg)
-                try:
-                    tmpArgs = [arg.pop(0)]
-                    for filler, real in zip( [""]*(size-1), arg ):
-                        tmpArgs.append( filler )
-                        tmpArgs.append( real )
-                except IndexError:
-                    tmpArgs = []
-                            
-                args = tuple( [size] + tmpArgs )
+                if _versions.current() < _versions.v2011:
+                    # vector arrays:
+                    #    first arg must be the length of the array being set
+                    #    empty values are placed between vectors
+                    # ex:
+                    #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )    
+                    # becomes:
+                    #     cmds.setAttr('loc.vecArray',3,[1,2,3],"",[4,5,6],"",[7,8,9],type='vectorArray')
+                    arg = list(arg)
+                    size = len(arg)
+                    try:
+                        tmpArgs = [arg.pop(0)]
+                        for filler, real in zip( [""]*(size-1), arg ):
+                            tmpArgs.append( filler )
+                            tmpArgs.append( real )
+                    except IndexError:
+                        tmpArgs = []
+                                
+                    args = tuple( [size] + tmpArgs )
+                else:
+                    # vector arrays:
+                    #    first arg must be the length of the array being set
+                    #    empty values are placed between vectors
+                    # ex:
+                    #     setAttr('loc.vecArray',[1,2,3],[4,5,6],[7,8,9] )    
+                    # becomes:
+                    #     cmds.setAttr('loc.vecArray',3,[1,2,3],[4,5,6],[7,8,9],type='vectorArray')
+                    arg = list(arg)
+                    size = len(arg)
+                    args = tuple( [size] + arg )
+                    
                 #print args
             
             elif datatype in ['Int32Array', 'doubleArray']:
@@ -471,7 +483,6 @@ Modifications:
                 # becomes:
                 #     cmds.setAttr('loc.doubleArray',[1,2,3],type='doubleArray')
                 args = (tuple(arg),)
- 
             else: 
                 # others: short2, short3, long2, long3, float2, etc...
                 #    args must be expanded
@@ -504,9 +515,13 @@ Modifications:
                 elif isinstance(arg,basestring) or isinstance(arg, _util.ProxyUnicode):
                     kwargs['type'] = 'string'
 
-    if datatype == 'matrix':
-        cmd = 'setAttr -type "matrix" "%s" %s' % (attr, ' '.join( map( str, args ) ) )
+    if datatype == 'matrix' and _versions.current() < _versions.v2011:
+        import language
+        #language.mel.setAttr( attr, *args, **kwargs )
+        strFlags = [ '-%s %s' % ( key, language.pythonToMel(val) ) for key, val in kwargs.items() ]
+        cmd = 'setAttr %s %s %s' % ( attr, ' '.join( strFlags ), ' '.join( [str(x) for x in args] ) )
         import maya.mel as _mm
+        print cmd
         _mm.eval(cmd)
         return 
     
@@ -515,7 +530,6 @@ Modifications:
 
     try:
         #print args, kwargs
-        # NOTE: changed *args to args to get array types to work. this may be a change between 8.5 and 2008, because i swear i've tested this before
         cmds.setAttr( attr, *args, **kwargs)
     except TypeError, msg:
         val = kwargs.pop( 'type', kwargs.pop('typ', False) )
