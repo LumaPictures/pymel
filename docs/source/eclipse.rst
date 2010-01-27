@@ -102,16 +102,18 @@ Adding The Maya Python Interpreter
     |win_105|                                              |osx_105|
     ====================================================== ==================================================================
     
-    - if you're using mayapy, uncheck the path where the "maya" package is - the path ending with "site-packages". BUT either write this path down, or remember it: you'll want it later 
-    - on windows: add a check beside ``python25.zip``
-    - if you installed PyMEL using the :ref:`install_setuptools` method: you'll see the pymel "egg" in the list of automatically detected site packages. **Remove the pymel egg** 
     
+    On windows: add a check beside ``python25.zip``
     
     then press "OK"
     
-6.  Click on the "New Folder" button.  In the browser that pops, up navigate to the directory where you extracted the pymel zip file.  Under it, there is a folder called "extras", and under that a folder called "completion".  Choose this folder and press "OK".
+5.  From the list, select the one path that ends with ``site-packages`` and click the "remove" button. Remember this path because we are going to re-add it later.
 
-7.  If you're using mayapy, click the "New Folder" button again, and add back in the "site-packages" directory you unchecked earlier.  When you're done, the site-packages directory should be somewhere BELOW the extras/completion folder you just added.
+6.  If you installed PyMEL using the :ref:`install_setuptools` method: you'll see the pymel "egg" in the list of automatically detected site packages. **Remove the pymel egg** 
+    
+7.  Click on the "New Folder" button.  In the browser that pops up, navigate to the directory where you extracted the pymel zip file.  Under it, there is a folder called ``extras``, under that a folder called ``completion``, and then finally one called ``py``.  Choose the ``py`` folder and press "OK".
+
+8.  Click the "New Folder" button again, and add the ``site-packages`` directory you removed earlier. We did this in order to ensure that the stub maya package is found before the real maya package. When you're done, the main ``site-packages`` directory should be somewhere *below* the ``extras/completion/py`` folder you just added.
     
 
 --------------------------------------------------
@@ -124,7 +126,8 @@ Testing That It Worked
     
         import pymel.core as pm
 
-4.  Now type::
+4.  Save the file. Sometimes this helps force pydev to begin performing completion
+5.  Now type::
 
         pm.bin
         
@@ -145,7 +148,7 @@ Troubleshooting
 If you're still not getting completion:
 
     * Go to Eclipse preferences under **Pydev > Editor > Code Completion** and increase **Timeout to connect to shell** to 30 seconds or more.
-    * Restart Eclipse and retry steps 3 and 4 above
+    * Restart Eclipse and retry steps 3-5 above
     * Open a log view (**Window / Show View / Error Log**) and if you see any suspicious errors, post for help at the `Pydev suport forum <https://sourceforge.net/forum/forum.php?forum_id=293649>`_
 
 
