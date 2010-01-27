@@ -39,7 +39,7 @@ Since PyMEL uses the underlying API objects, these operations are simple and API
 
 In this example, we'll make a sphere, group it, then instance the group, so that we have a tricky situation with instances and non-unique names. 
 
-        >>> from pymel import *
+        >>> from pymel.core import *
         >>> # Make two instanced spheres in different groups
         >>> sphere1, hist = polySphere(name='mySphere')
         >>> grp = group(sphere1)

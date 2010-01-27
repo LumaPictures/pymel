@@ -12,7 +12,7 @@ the procedural commands you already know and love are retrofitted to return PyUI
 the way you code ::
 
 
-    from pymel import *
+    from pymel.core import *
     win = window(title="My Window")
     layout = columnLayout()
     chkBox = checkBox(label = "My Checkbox", value=True, parent=layout)
@@ -42,7 +42,7 @@ Function Name as String
 The simplest method of setting up a callback is to pass the name of the callback function as a string. Maya will try to execute this as python code. Here's a simple example::
 
 
-	from pymel import *
+	from pymel.core import *
 
 	def buttonPressed():
 	    print "pressed!"
@@ -81,7 +81,7 @@ Function Object
 
 When using this technique, you pass an actual function object instead of a string. ::
 
-    from pymel import *
+    from pymel.core import *
     
     def buttonPressed():
         print "pressed!"
@@ -126,7 +126,7 @@ The asterisk in front of ``args`` allows the function to accept any quantity of 
 
 Putting it all together::
 
-    from pymel import *
+    from pymel.core import *
     
     def buttonPressed(*args):
         print "pressed!"
@@ -149,7 +149,7 @@ The next technique builds on the last by simplifying the following situations:
 	
 For example, I want to pass our ``buttonPressed`` function a name argument.  Here's how we do this using a lambda function::
 
-    from pymel import *
+    from pymel.core import *
     
     def buttonPressed(name):
         print "pressed %s!" % name
@@ -191,7 +191,7 @@ Whew! That was a lot to learn, but unfortunately, this method has a drawback, to
 
 In the following example, we're going to make several buttons. Our intention is that each one will print a different name, but as you will soon see, we won't succeed. ::
 
-	from pymel import *
+	from pymel.core import *
 
 	def buttonPressed(name):
 	    print "pressed %s!" % name
@@ -218,7 +218,7 @@ The Callback object 'wraps' another function, and also stores the parameters to 
 
 Here's an example::
 
-	from pymel import *
+	from pymel.core import *
 
 	def buttonPressed(name):
 	    print "pressed %s!" % name
