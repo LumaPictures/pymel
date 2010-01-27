@@ -210,7 +210,10 @@ if _versions.current() >= _versions.v2009:
         def __call__(self,*args):
             cmds.undoInfo(openChunk=1)
             try:
-                return self.func(*self.args, **self.kwargs)
+                try:
+                    return self.func(*self.args, **self.kwargs)
+                except Exception, e:
+                    raise _factories.CallbackError(self.func, e)
             finally:
                 cmds.undoInfo(closeChunk=1)
                 
