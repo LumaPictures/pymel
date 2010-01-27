@@ -1,7 +1,7 @@
 .. currentmodule:: pymel
 
 =============================================
-For Developers: How PyMEL Works
+For Developers
 =============================================
 
 ---------------------------------------------
@@ -94,3 +94,35 @@ for each node and UI type:
 2. add methods:
     * use bridge to determine whether to use MEL or API
     * skip if it has already been manually added
+
+---------------------------------------------
+Contributing
+---------------------------------------------
+
+Getting Started with Git
+========================
+
+The PyMEL project hosts its issues and wiki on `googlecode <http://code.google.com/p/pymel/>`_, but we found Git + Github to be a better solution for managing our code.
+
+ 1. Sign up for a `Github <http://github.com>`_ account
+ 2. Check out the `Github Guides <http://github.com/guides/home>`_ for instructions on how to setup git for your OS
+ 3. Download a GUI front-end: `SmartGit <http://www.syntevo.com/smartgit/index.html>`_ and `TortoiseGit <http://code.google.com/p/tortoisegit/>`_ are by far my favorites
+ 4. Make a fork of the main `PyMEL repository <http://github.com/LumaPictures/pymel>`_, and start hacking
+ 
+When you "push" your changes up to Github, we'll be able to track them, give you feedback, and cherry-pick what we like. You, in turn, will be able to easily pull new changes from our repo into yours.
+
+Running the Tests
+=================
+
+PyMEL has a suite of unit tests. You should write a test for every major addition or change that you make. To run the tests, you need 'nose', which is a discovery-based test runner, that builds on python's ``unittest`` module and makes writing running a lot of tests a lot easier.  Here's the easiest way to get nose.
+
+On linux/osx::
+
+    sudo mayapy setup.py easy_install nose
+
+On windows::
+
+    mayapy.exe setup.py easy_install nose
+
+This assumes that you've properly setup your environment, which you should definitely know how to do before contributing to PyMEL.
+
