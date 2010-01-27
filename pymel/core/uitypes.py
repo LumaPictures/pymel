@@ -94,7 +94,8 @@ class PyUI(unicode):
                             parent = windows.menu(name, q=1, p=1)
                         else:
                             parent = windows.control(name, q=1, p=1)
-                        name = parent + '|' + name
+                        if parent:
+                            name = parent + '|' + name
 
                     except RuntimeError:
                         # editors don't have a long name, so we keep the short name
