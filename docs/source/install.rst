@@ -238,11 +238,11 @@ Manual Method 3: sitecustomize
 
 If you have don't write permission to your Maya installation directory and you can't change your ``PYTHONPATH`` then you've come to the right place. This method relies on a special module in python called ``sitecustomize`` to dynamically insert PyMEL into the path when python starts.
 
-An advantage of this approach is that it allows for a block of code to add pymel to python's search path, which means you can use whatever logic you like to determine whether to add pymel, what version to use, etc.
+An advantage of this approach is that it allows for an arbitrary block of code to execute, which means you can use whatever logic you like to determine in what cases to add PyMEL, what version to use, etc.
 
-A potential disadvantage of this approach is that it adds PyMEL to the python path system-wide, instead of just inside Maya. On the other hand, there are a number of utilities in ``pymel.util`` that are useful outside of Maya as well, so this could be an advantage as well.
+A potential disadvantage of this approach is that it adds PyMEL to the python path system-wide, instead of just inside Maya. However, there are a number of utilities in ``pymel.util`` that are useful outside of Maya as well, so this could be an advantage as well.
 
-Here's how to setup pymel using sitecustomize:
+Here's how to setup PyMEL using sitecustomize:
 
  1. open your favorite text editor
 
@@ -258,7 +258,7 @@ Here's how to setup pymel using sitecustomize:
         import sys
         for i in sys.path: print i
 
-Note: If your studio is already using ``sitecustomize.py`` and you can't edit it, you can use the same instructions with the filename ``usercustomize.py`` instead. usercustomize is loaded immediately after sitecustomize and is intended for this situation.
+.. note:: If your studio is already using ``sitecustomize.py`` and you can't edit it, you can use the same instructions with the filename ``usercustomize.py`` instead. usercustomize is loaded immediately after sitecustomize and is intended for this situation.
 
 
 ---------------------------------------
