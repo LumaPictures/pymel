@@ -492,6 +492,28 @@ def _getTimeRangeFlags(cmdName):
     return commandFlags
 
 
+class CallbackError(RuntimeError):
+    def __init__(self, callback, origException=None):
+        import traceback
+        self.callback = callback
+        self.origException = origException
+        # Should be called withing an except clause, so
+        # this will give us what we want
+        self.origMsg = traceback.format_exc()
+        try:
+            callbackStr = " %r" % self.callback
+        except Exception:
+            callbackStr = ''
+        if hasattr(callback, '__name__'):
+            callbackStr += ' - %s' % callback.__name__
+        if hasattr(callback, '__module__'):
+            callbackStr += ' - module %s' % callback.__module__
+        if hasattr(callback, 'func_code'):
+            callbackStr += ' - %s, line %d' % (callback.func_code.co_filename, callback.func_code.co_firstlineno) 
+         
+        newmsg = "Error executing callback%s - original message:\n%s\n" % (callbackStr, self.origMsg)
+        super(CallbackError, self).__init__(newmsg)
+
 def fixCallbacks(inFunc, commandFlags, funcName=None ):
     """
     When a user provides a custom callback functions for a UI elements, such as a checkBox, when the callback is trigger it is passed
@@ -540,7 +562,10 @@ def fixCallbacks(inFunc, commandFlags, funcName=None ):
             if doPassSelf:
                 newargs = [ args[0] ] + newargs
             newargs = tuple(newargs)
-            res = origCallback( *newargs )
+            try:
+                res = origCallback( *newargs )
+            except Exception, e:
+                raise CallbackError(origCallback, e)
             if isinstance(res, util.ProxyUnicode):
                 res = unicode(res)
             return res
