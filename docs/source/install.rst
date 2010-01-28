@@ -233,24 +233,33 @@ Windows XP
 
             %MAYA_LOCATION%\bin;C:\My Documents\pymel-1.0.0\pymel\tools\bin  
 
-Manual Method 3: pymel.pth
---------------------------
+Manual Method 3: sitecustomize
+------------------------------
 
-Yes, there is yet another way to install PyMEL.  If you have write permission to your Maya installation directory and you don't want to bother learning about essential things like Maya.env and ``PYTHONPATH`` then you've come to the right place.
+If you have don't write permission to your Maya installation directory and you can't change your ``PYTHONPATH`` then you've come to the right place. This method relies on a special module in python called ``sitecustomize`` to dynamically insert PyMEL into the path when python starts.
 
-1. open your favorite text editor
-2. paste in the text below::
+An advantage of this approach is that it allows for a block of code to add pymel to python's search path, which means you can use whatever logic you like to determine whether to add pymel, what version to use, etc.
 
-    import sys; sys.__plen = len(sys.path)
-    /path/to/top-pymel-dir
-    import sys; new=sys.path[sys.__plen:]; del sys.path[sys.__plen:]; p=getattr(sys,'__egginsert',0); sys.path[p:p]=new; sys.__egginsert = p+len(new)
+A potential disadvantage of this approach is that it adds PyMEL to the python path system-wide, instead of just inside Maya. On the other hand, there are a number of utilities in ``pymel.util`` that are useful outside of Maya as well, so this could be an advantage as well.
 
-3. replace the ``/path/to/top-pymel-dir`` line with the path to the folder where you extracted PyMEL.  The folder you want should contain both 'pymel' and 'maya' folders directly below it
-4. save this file to Maya's site-packages directory as ``pymel.pth``.  Don't know where your Maya site-packages directory is?  Run this from a Python tab in the script editor and prepare to be amazed::
+Here's how to setup pymel using sitecustomize:
 
-    import maya
-    import os
-    print os.path.dirname(maya.__file__)
+ 1. open your favorite text editor
+
+ 2. paste in the text below::
+
+        import sys
+        sys.path.insert(0,'/path/to/top-pymel-dir')
+
+ 3. Replace the ``/path/to/top-pymel-dir`` line with the path to the folder where you extracted PyMEL. The folder you want should contain both 'pymel' and 'maya' folders directly below it
+
+ 4. save this file as ``sitecustomize.py`` somewhere in your system python path. If you are unsure what your python path is, you can run this from the python tab in the script editor to find out. ::
+
+        import sys
+        for i in sys.path: print i
+
+Note: If your studio is already using ``sitecustomize.py`` and you can't edit it, you can use the same instructions with the filename ``usercustomize.py`` instead. usercustomize is loaded immediately after sitecustomize and is intended for this situation.
+
 
 ---------------------------------------
 ipymel
