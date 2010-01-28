@@ -1359,19 +1359,16 @@ class MayaObjectError(TypeError):
 class MayaNodeError(MayaObjectError):
     _objectDescription = 'Node'
 
-class MayaSubObjectError(MayaObjectError, AttributeError):
-    _objectDescription = 'Attribute or Component'
-    
-class MayaAttributeError(MayaSubObjectError):
+class MayaAttributeError(MayaObjectError, AttributeError):
     _objectDescription = 'Attribute'
     
-class MayaComponentError(MayaSubObjectError):
+class MayaComponentError(MayaAttributeError):
     _objectDescription = 'Component'
 
 def _objectError(objectName):
     # TODO: better name parsing
     if '.' in objectName:
-        return MayaSubObjectError(objectName)
+        return MayaAttributeError(objectName)
     return MayaNodeError(objectName)
 
 #--------------------------
