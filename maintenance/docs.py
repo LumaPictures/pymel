@@ -38,6 +38,17 @@ def build(**kwargs):
     #cmdcache.fixCodeExamples()
     opts = ['']
     opts += '-b html -d build/doctrees'.split()
+    
+    # set some defaults
+    if 'graphviz_dot' not in kwargs:
+        if os.name == 'posix':
+            dot = '/usr/local/bin/dot'
+        else:
+            dot = 'C:\\graphviz\\bin\\dot.exe'
+        if not os.path.exists(dot):
+            raise TypeError( 'cannot find graphiz dot executable' )
+        kwargs['graphviz_dot'] = dot   
+    
     for key, value in kwargs.iteritems():
         opts.append('-D')
         opts.append( key.strip() + '=' + value.strip() )
