@@ -336,7 +336,7 @@ class path(_base):
 
     # --- Listing, searching, walking, and matching
 
-    def listdir(self, pattern=None):
+    def listdir(self, pattern=None, regex=None):
         """ D.listdir() -> List of items in this directory.
 
         Use D.files() or D.dirs() instead if you want a listing
@@ -345,14 +345,22 @@ class path(_base):
         The elements of the list are path objects.
 
         With the optional 'pattern' argument, this only lists
-        items whose names match the given pattern.
+        items whose names match the given glob pattern.
+
+        With the optional 'regex' argument, this only lists
+        items whose names match the given regular expression.
+        
+        (Note that both 'pattern' and 'regex' may be used, in
+        which case it must match BOTH the glob and regexp.) 
         """
         names = os.listdir(self)
         if pattern is not None:
             names = fnmatch.filter(names, pattern)
+        if regex is not None:
+            names = [x for x in names if re.match(regex, x)]
         return [self / child for child in names]
 
-    def dirs(self, pattern=None, realpath=False):
+    def dirs(self, pattern=None, realpath=False, regex=None):
         """ D.dirs() -> List of this directory's subdirectories.
 
         The elements of the list are path objects.
@@ -362,13 +370,19 @@ class path(_base):
         With the optional 'pattern' argument, this only lists
         directories whose names match the given pattern.  For
         example, d.dirs('build-*').
+        
+        With the optional 'regex' argument, this only lists
+        items whose names match the given regular expression.
+        
+        (Note that both 'pattern' and 'regex' may be used, in
+        which case it must match BOTH the glob and regexp.)        
         """
         if realpath:
-            return [p.realpath() for p in self.listdir(pattern) if p.isdir()]
+            return [p.realpath() for p in self.listdir(pattern, regex=regex) if p.isdir()]
         else:
-            return [p for p in self.listdir(pattern) if p.isdir()]
+            return [p for p in self.listdir(pattern, regex=regex) if p.isdir()]
 
-    def files(self, pattern=None):
+    def files(self, pattern=None, regex=None):
         """ D.files() -> List of the files in this directory.
 
         The elements of the list are path objects.
@@ -377,11 +391,17 @@ class path(_base):
         With the optional 'pattern' argument, this only lists files
         whose names match the given pattern.  For example,
         d.files('*.pyc').
+        
+        With the optional 'regex' argument, this only lists
+        items whose names match the given regular expression.
+        
+        (Note that both 'pattern' and 'regex' may be used, in
+        which case it must match BOTH the glob and regexp.         
         """
         
-        return [p for p in self.listdir(pattern) if p.isfile()]
+        return [p for p in self.listdir(pattern, regex=regex) if p.isfile()]
 
-    def walk(self, pattern=None, errors='strict', regex=None ):
+    def walk(self, pattern=None, errors='strict', regex=None):
         """ D.walk() -> iterator over files and subdirs, recursively.
 
         The iterator yields path objects naming each child item of
@@ -395,6 +415,16 @@ class path(_base):
         error occurs.  The default is 'strict', which causes an
         exception.  The other allowed values are 'warn', which
         reports the error via warnings.warn(), and 'ignore'.
+        
+        With the optional 'pattern' argument, this only lists files
+        whose names match the given pattern.  For example,
+        d.files('*.pyc').
+        
+        With the optional 'regex' argument, this only lists
+        items whose names match the given regular expression.
+        
+        (Note that both 'pattern' and 'regex' may be used, in
+        which case it must match BOTH the glob and regexp.            
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -429,6 +459,16 @@ class path(_base):
         error occurs.  The default is 'strict', which causes an
         exception.  The other allowed values are 'warn', which
         reports the error via warnings.warn(), and 'ignore'.
+        
+        With the optional 'pattern' argument, this only lists files
+        whose names match the given pattern.  For example,
+        d.files('*.pyc').
+        
+        With the optional 'regex' argument, this only lists
+        items whose names match the given regular expression.
+        
+        (Note that both 'pattern' and 'regex' may be used, in
+        which case it must match BOTH the glob and regexp.            
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
@@ -467,6 +507,16 @@ class path(_base):
         with names that match the pattern.  For example,
         mydir.walkfiles('*.tmp') yields only files with the .tmp
         extension.
+        
+        With the optional 'pattern' argument, this only lists files
+        whose names match the given pattern.  For example,
+        d.files('*.pyc').
+        
+        With the optional 'regex' argument, this only lists
+        items whose names match the given regular expression.
+        
+        (Note that both 'pattern' and 'regex' may be used, in
+        which case it must match BOTH the glob and regexp.            
         """
         if errors not in ('strict', 'warn', 'ignore'):
             raise ValueError("invalid errors parameter")
