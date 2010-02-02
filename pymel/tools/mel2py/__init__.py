@@ -429,7 +429,10 @@ def mel2py( input, outputDir=None,
     
     global batchData
     batchData = BatchData()
-         
+    
+    if outputDir and not os.path.exists(outputDir):
+        os.makedirs(outputDir)
+    
     currentFiles = _getInputFiles( input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
     
     if not currentFiles:
