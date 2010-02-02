@@ -137,6 +137,8 @@ def format_fopen(x, t):
 
 
 def format_source(x, t):
+    import pdb
+    pdb.set_trace()
     script = eval(x[0])
     name = os.path.splitext( os.path.basename(script) )[0]
     #print "formatting source", name
@@ -286,7 +288,7 @@ mel_type_to_python_type = {
     'vector'    : 'Vector'
     }
 
-tag = '# script created by pymel.melparse.mel2py'
+tag = '# script created by pymel.tools.mel2py'
 
 
 
@@ -348,9 +350,53 @@ def fileInlist( file, fileList ):
                 return True
         except OSError: pass
     return False
+
+def _melScript_to_pyModuleName( t, script ):
+    """
+    Given a path to a mel script, returns the python module name that this would be
+    translated to.
+    
+    It does no checks on whether this mel script is being translated or not.
+    """
+    
+    
+
+def _melScript_to_pyModule( t, script ):
+    """
+    Return the module name this mel script will be converted to.
+    
+    If the mel script is not being translated, returns None.
+    """
+    
+    # if root_module is set to None that means we are doing a string conversion, and not a file conversion
+    # we don't need to find out the current or future python module.  just use pymel.mel
+    if t.lexer.root_module in [ None, '__main__']:
+        return None
+    
+    global batchData
+    
+    try:
+        return batchData.proc_to_module[procedure]
+        
+    except KeyError:
+        # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
+        # no need to recursively parse any further
+        if t.lexer.root_module not in batchData.currentModules:
+            #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
+            batchData.proc_to_module[procedure] = (None, None)
+            return None, None
+        
+        result = mel.whatIs( procedure )
+        buf = result.split( ': ' )
+        if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
+            translating = melfile in batchData.currentModules.values()
+            if not translating:
+                return None, None
                         
 def _melProc_to_pyModule( t, procedure ):
-    """ determine if this procedure has been or will be converted into python, and if so, what module it belongs to """
+    """
+    determine if this procedure has been or will be converted into python, and if so, what module it belongs to
+    """
     
     # if root_module is set to None that means we are doing a string conversion, and not a file conversion
     # we don't need to find out the current or future python module.  just use pymel.mel
@@ -363,7 +409,8 @@ def _melProc_to_pyModule( t, procedure ):
         return batchData.proc_to_module[procedure]
         
     except KeyError:
-        # if the file currently being parsed is not being translated, this this parsing is just for information gathering. no need to recursively parse any further
+        # if the file currently being parsed is not being translated, then this parsing is just for information gathering.
+        # no need to recursively parse any further
         if t.lexer.root_module not in batchData.currentModules:
             #print 'No recursive parsing for procedure %s in module %s' % (procedure, t.lexer.root_module)
             batchData.proc_to_module[procedure] = (None, None)
@@ -372,11 +419,12 @@ def _melProc_to_pyModule( t, procedure ):
         result = mel.whatIs( procedure )
         buf = result.split( ': ' )
         if buf[0] in [ 'Mel procedure found in', 'Script found in' ]:
-            
-            
+            translating = melfile in batchData.currentModules.values()
+            if not translating:
+                return None, None
+                
             melfile = util.path( buf[1].lstrip() )
             melfile = melfile.realpath()
-            translating = melfile in batchData.currentModules.values()
             
             moduleName = getModuleBasename( melfile )
             
