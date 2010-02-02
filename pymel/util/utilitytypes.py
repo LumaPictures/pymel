@@ -944,11 +944,16 @@ class TwoWayDict(dict):
         raise NotImplementedError()
 
     def update(self, *args, **kwargs):
+        if not (args or kwargs):
+            return
         if len(args) > 1:
             raise TypeError('update expected at most 1 arguments, got %d' % len(args))
         # since args may be a couple different things, cast it to a dict to
         # simplify things...
-        tempDict = dict(args[0])
+        if args:
+            tempDict = dict(args[0])
+        else:
+            tempDict = {}
         tempDict.update(kwargs)
         for key, val in tempDict.iteritems():
             self[key] = val

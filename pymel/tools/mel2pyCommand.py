@@ -28,8 +28,8 @@ def main():
 Arguments:
   input
     May be a directory, a list of directories,
-    the name of a mel file, a list of mel files,
-    or the name of a sourced procedure.
+    the name of a mel file, a comma-separated list
+    of mel files, or the name of a sourced procedure.
     If only the name of the mel file is passed,
     mel2py will attempt to determine the location 
     of the file using the 'whatIs' mel command, which relies
@@ -75,6 +75,8 @@ without any manual cleanup.""")
     if exclude:
         options['exclude'] = exclude.split(',')
     from pymel.tools.mel2py import mel2py
+    if args and ',' in args[0]:
+        args[0] = args[0].split(',')
     mel2py(*args, **options)
     
 if __name__ == '__main__':
