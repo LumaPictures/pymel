@@ -1402,12 +1402,9 @@ class Transform(DagNode):
 #        cmds.xform( self, **kwargs )
 
     
-    @_factories.editflag('xform','rotateAxis')                                
+    @_factories.addMelDocs('xform','rotateAxis')                                
     def setMatrix( self, val, **kwargs ):
-        """xform -scale"""
-        if isinstance(val, datatypes.Matrix):
-            val = val.toList()
-    
+        """xform -scale"""    
         kwargs['matrix'] = val
         cmds.xform( self, **kwargs )
 
