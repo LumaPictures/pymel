@@ -27,11 +27,13 @@ class StubDoc(Doc):
 
     def section(self, title, contents):
         """Format a section with a given heading."""
-        return rstrip(self.indent( '"""\n' + contents + '\n"""')) + '\n\n'
+        quotes = "'''" if '"""' in contents else '"""'
+        return rstrip(self.indent( quotes +'\n' + contents + '\n' + quotes)) + '\n\n'
 
     def docstring(self, contents):
         """Format a section with a given heading."""
-        return '"""\n' + contents + '\n"""' + '\n\n'
+        quotes = "'''" if '"""' in contents else '"""'
+        return quotes + '\n' + contents + '\n' + quotes + '\n\n'
     
     # ---------------------------------------------- type-specific routines
 

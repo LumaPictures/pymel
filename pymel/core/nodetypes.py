@@ -2617,7 +2617,7 @@ class ObjectSet(Entity):
         elif isinstance(item, general.Component):
             return ( item.__apimdagpath__(), item.__apimobject__() )
         elif tryCast:
-            return cls._getApiObjs(self.general.PyNode(item), tryCast=False)
+            return cls._getApiObjs(general.PyNode(item), tryCast=False)
         else:
             raise TypeError(item)
                     

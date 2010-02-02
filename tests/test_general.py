@@ -84,89 +84,109 @@ def _makeAllAttrTypes(nodeName):
     cmds.addAttr(ln='trimFaceAttr',dt='nurbsTrimface')
     cmds.addAttr(ln='polyFaceAttr',dt='polyFaces')
     
-def test_maya_setAttr():
+class testCase_mayaSetAttr(unittest.TestCase):
     """
     sanity check: make sure we know how to set and get attributes via maya's 
     setAttr.  this serves mostly to document all the inconsistencies in setAttr
     so that we can sort them out in our own wrap.  it will also alert us to
     any changes that Autodesk makes.
     """
+    
+    def setUp(self):
+        _makeAllAttrTypes('node')
+    
+    def test_short2(self):
+        # compound
+        cmds.setAttr( 'node.short2Attr', 1, 2 )
+        assert cmds.getAttr( 'node.short2Attr' )        == [(1, 2)]
+        
+    def test_short3(self):
+        cmds.setAttr( 'node.short3Attr', 1, 2, 3 )
+        assert cmds.getAttr( 'node.short3Attr' )        == [(1, 2,3)]
+    
+    def test_long2(self):
+        cmds.setAttr( 'node.long2Attr', 1, 2 )
+        assert cmds.getAttr( 'node.long2Attr' )         == [(1, 2)]
+    
+    def test_long3(self):
+        cmds.setAttr( 'node.long3Attr', 1, 2, 3 )
+        assert cmds.getAttr( 'node.long3Attr' )         == [(1, 2,3)]
+        
+    def test_float2(self):
+        cmds.setAttr( 'node.float2Attr', 1, 2 )
+        assert cmds.getAttr( 'node.float2Attr' )        == [(1.0, 2.0)]
+    
+    def test_float(self):
+        cmds.setAttr( 'node.float3Attr', 1, 2, 3 )
+        assert cmds.getAttr( 'node.float3Attr' )        == [(1.0, 2.0, 3.0)]
+        
+    def test_double2(self):
+        cmds.setAttr( 'node.double2Attr', 1, 2 )
+        assert cmds.getAttr( 'node.double2Attr' )       == [(1.0, 2.0)]
+        
+    def test_double3(self):
+        cmds.setAttr( 'node.double3Attr', 1, 2, 3 )
+        assert cmds.getAttr( 'node.double3Attr' )       == [(1.0, 2.0, 3.0)]
 
-    _makeAllAttrTypes('node')
-    
-    # compound
-    cmds.setAttr( 'node.short2Attr', 1, 2 )
-    assert cmds.getAttr( 'node.short2Attr' )        == [(1, 2)]
-    
-    cmds.setAttr( 'node.short3Attr', 1, 2, 3 )
-    assert cmds.getAttr( 'node.short3Attr' )        == [(1, 2,3)]
-    
-    cmds.setAttr( 'node.long2Attr', 1, 2 )
-    assert cmds.getAttr( 'node.long2Attr' )         == [(1, 2)]
-    
-    cmds.setAttr( 'node.long3Attr', 1, 2, 3 )
-    assert cmds.getAttr( 'node.long3Attr' )         == [(1, 2,3)]
-    
-    cmds.setAttr( 'node.float2Attr', 1, 2 )
-    assert cmds.getAttr( 'node.float2Attr' )        == [(1.0, 2.0)]
-    
-    cmds.setAttr( 'node.float3Attr', 1, 2, 3 )
-    assert cmds.getAttr( 'node.float3Attr' )        == [(1.0, 2.0, 3.0)]
-    
-    cmds.setAttr( 'node.double2Attr', 1, 2 )
-    assert cmds.getAttr( 'node.double2Attr' )       == [(1.0, 2.0)]
-    
-    cmds.setAttr( 'node.double3Attr', 1, 2, 3 )
-    assert cmds.getAttr( 'node.double3Attr' )       == [(1.0, 2.0, 3.0)]
-    
-    # array
-    cmds.setAttr( 'node.Int32ArrayAttr', (1, 2, 3, 4), type='Int32Array' )
-    assert cmds.getAttr( 'node.Int32ArrayAttr' ) == [1, 2, 3, 4]
-    
-    cmds.setAttr( 'node.doubleArrayAttr', (1, 2, 3, 4), type='doubleArray' )
-    assert cmds.getAttr( 'node.doubleArrayAttr' )   == [1.0, 2.0, 3.0, 4.0]
-    
-    if versions.current() < versions.v2011:
-        # complex array
-        cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), "", (1,2,3,4), type='pointArray' )
-        assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+    def test_int32Array(self):
+        # array
+        cmds.setAttr( 'node.Int32ArrayAttr', (1, 2, 3, 4), type='Int32Array' )
+        assert cmds.getAttr( 'node.Int32ArrayAttr' ) == [1, 2, 3, 4]
         
-        cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), "", (1,2,3), type='vectorArray' )
-        assert cmds.getAttr( 'node.vectorArrayAttr' )   == [1.0, 2.0, 3.0, 1.0, 2.0, 3.0]
-    else:
-        cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), (1,2,3,4), type='pointArray' )
-        assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+    def test_doubleArray(self):
+        cmds.setAttr( 'node.doubleArrayAttr', (1, 2, 3, 4), type='doubleArray' )
+        assert cmds.getAttr( 'node.doubleArrayAttr' )   == [1.0, 2.0, 3.0, 4.0]
+    
+    def test_pointArray(self):
+        if versions.current() < versions.v2011:
+            # complex array
+            cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), "", (1,2,3,4), type='pointArray' )
+            assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+        else:
+            cmds.setAttr( 'node.pointArrayAttr', 2, (1,2,3,4), (1,2,3,4), type='pointArray' )
+            assert cmds.getAttr( 'node.pointArrayAttr' )    == [(1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 4.0)]
+            
+    def test_vectorArray(self):
+        if versions.current() < versions.v2011:
+            cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), "", (1,2,3), type='vectorArray' )
+            assert cmds.getAttr( 'node.vectorArrayAttr' )   == [1.0, 2.0, 3.0, 1.0, 2.0, 3.0]
+        else:
+            cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), (1,2,3), type='vectorArray' )
+            assert cmds.getAttr( 'node.vectorArrayAttr' )   == [(1.0, 2.0, 3.0), (1.0, 2.0, 3.0)]
+    
+    def test_stringArray(self):
+        # string array
+        cmds.setAttr( 'node.stringArrayAttr', 3, 'one', 'two', 'three', type='stringArray' )
+        assert cmds.getAttr( 'node.stringArrayAttr' )   == [u'one', u'two', u'three'] 
+    
+    def test_string(self):
+        cmds.setAttr( 'node.stringAttr', 'one', type='string' )
+        assert cmds.getAttr( 'node.stringAttr' )        == u'one'
+    
+    def test_matrix(self):
+        # matrix
+        # Fails in versions < 2011
+        cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
+        assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
+    
+    def test_sphere(self):
+        # non-numeric: can't get
+        cmds.setAttr( 'node.sphereAttr', 1.0, type='sphere' )
+        #assert cmds.getAttr( 'node.sphereAttr' )        == 1.0
         
-        cmds.setAttr( 'node.vectorArrayAttr', 2, (1,2,3), (1,2,3), type='vectorArray' )
-        assert cmds.getAttr( 'node.vectorArrayAttr' )   == [(1.0, 2.0, 3.0), (1.0, 2.0, 3.0)]
-         
-    # string array
-    cmds.setAttr( 'node.stringArrayAttr', 3, 'one', 'two', 'three', type='stringArray' )
-    assert cmds.getAttr( 'node.stringArrayAttr' )   == [u'one', u'two', u'three'] 
-    
-    cmds.setAttr( 'node.stringAttr', 'one', type='string' )
-    assert cmds.getAttr( 'node.stringAttr' )        == u'one'
-    
-    # matrix
-    # Fails in versions < 2011
-    #cmds.setAttr( 'node.matrixAttr', 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, type='matrix' )
-    #assert cmds.getAttr( 'node.matrixAttr' )   == [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] 
-    
-    # non-numeric: can't get
-    cmds.setAttr( 'node.sphereAttr', 1.0, type='sphere' )
-    #assert cmds.getAttr( 'node.sphereAttr' )        == 1.0
-    
-    cmds.setAttr( 'node.coneAttr', 45, 45, type='cone' )
-    #assert cmds.getAttr( 'node.coneAttr' )        == 1.0
-    
-    cmds.setAttr( 'node.reflectanceRGBAttr', 1,1,1, type='reflectanceRGB' )
-    #assert cmds.getAttr( 'node.reflectanceRGBAttr' )        == 1.0
-    # TODO : finish non-numeric
+    def test_cone(self):
+        cmds.setAttr( 'node.coneAttr', 45, 45, type='cone' )
+        #assert cmds.getAttr( 'node.coneAttr' )        == 1.0
+        
+    def test_reflectanceRGB(self):
+        cmds.setAttr( 'node.reflectanceRGBAttr', 1,1,1, type='reflectanceRGB' )
+        #assert cmds.getAttr( 'node.reflectanceRGBAttr' )        == 1.0
+        # TODO : finish non-numeric
     
 def test_pymel_setAttr():
 
     _makeAllAttrTypes('node2')
-    for typ, val in [
+    for data in [
         ('short2',  (1,2)),
         ('short3',  (1,2,3)),
         ('long2',   (1,2)),
@@ -174,29 +194,35 @@ def test_pymel_setAttr():
         ('float2',  (1.0,2.0)),
         ('float3',  (1.0,2.0,3.0)),
         ('double2', (1.0,2.0)),
-        ('double3', datatypes.Vector(1.0,2.0,3.0)),
+        ('double3', datatypes.Vector(1.0,2.0,3.0), [1,2,3] ),
         
         ('Int32Array', [1,2,3,4]),
         ('doubleArray', [1,2,3,4]),
         
-        ('vectorArray', [datatypes.Vector([1,2,3]), datatypes.Vector([1,2,3])] ),
-        ('pointArray', [datatypes.Point([1,2,3]), datatypes.Point([1,2,3])] ),
+        ('vectorArray', [datatypes.Vector([1,2,3]), datatypes.Vector([1,0,0])],
+                        [[1,2,3], [1,0,0]] ),
+        ('pointArray', [datatypes.Point([1,2,3]), datatypes.Point([2,4,6])],
+                        [[1,2,3,1], [2,4,6,1]] ),
         
         ('stringArray', ['one', 'two', 'three']),
         ('string', 'one'),
-        ('matrix', datatypes.Matrix()) ]:
+        ('matrix', datatypes.Matrix(),
+                        [1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0] )]:
+        typ = data[0]
+        mainVal = data[1]
         
-        def testSetAttr(*args):
-            at = 'node2.' + typ + 'Attr'
-            setAttr(at, val)
-            newval = getAttr(at)
-            assert newval == val, "setAttr %s: returned value %r is not equal to input value %r" % (typ, newval, val)
-        
-        testSetAttr.__name__ = 'test_setAttr_' + typ
-        testSetAttr.description = 'test_setAttr_' + typ
-        #print typ
-        #testSetAttr()
-        yield testSetAttr,
+        for i, val in enumerate(data[1:]):
+            def testSetAttr(*args):
+                at = 'node2.' + typ + 'Attr'
+                setAttr(at, val)
+                newval = getAttr(at)
+                assert newval == mainVal, "setAttr %s: returned value %r is not equal to input value %r" % (typ, newval, mainVal)
+            
+            testSetAttr.__name__ = 'test_setAttr_' + typ + '_' + str(i) 
+            testSetAttr.description = testSetAttr.__name__
+            #print typ
+            #testSetAttr()
+            yield testSetAttr,
             
 class testCase_nodesAndAttributes(unittest.TestCase):
 
@@ -250,8 +276,8 @@ class testCase_nodesAndAttributes(unittest.TestCase):
         self.assertEqual( res1[0], res2[0][1] )
         
     def test_pmcmds_objectErrors(self):
-        self.assertRaises( MayaSubObjectError, setAttr, 'foo.bar', 0 )
-        self.assertRaises( MayaSubObjectError, getAttr, 'foo.bar' )
+        self.assertRaises( MayaAttributeError, setAttr, 'foo.bar', 0 )
+        self.assertRaises( MayaAttributeError, getAttr, 'foo.bar' )
         self.assertRaises( MayaNodeError, listConnections, 'foobar' )
         
     def test05_dagNode_addParent(self):

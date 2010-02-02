@@ -4,7 +4,7 @@ import re
 import platform
 
 from pymel.all import *
-from pymel.tools.pymelControlPanel import getClassHierarchy
+from maintenance.pymelControlPanel import getClassHierarchy
 from pymel.internal.factories import apiEnumsToPyComponents
 import pymel.internal.factories as factories
 import pymel.internal.apicache as apicache
