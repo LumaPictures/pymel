@@ -98,7 +98,7 @@ class SafeApiPtr(object):
             self.scriptUtil = MScriptUtil()
             if size < 1:
                 raise ValueError('size must be >= 1')
-            elif size > 1:
+            else:
                 # Value stored here doesn't matter - just make sure
                 # it's large enough!
                 self.scriptUtil.createFromList([0.0] * size, size)

@@ -297,12 +297,10 @@ def fileOnMelPath( file ):
     return path.samepath(file)
     
 def _getInputFiles( input, recurse=False, exclude=(), melPathOnly=False ):
-    
-    results = []
     if util.isIterable( input ):
+        results = []
         for f in input:
             results += resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
-            
     else:
         results = resolvePath(input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
     
@@ -427,9 +425,12 @@ def mel2py( input, outputDir=None,
             If true, will only translate mel files found on the mel script path.
     """
     
-    global batchData
-    batchData = BatchData()
-         
+    melparse.batchData = BatchData()
+    batchData = melparse.batchData
+    
+    if outputDir and not os.path.exists(outputDir):
+        os.makedirs(outputDir)
+    
     currentFiles = _getInputFiles( input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
     
     if not currentFiles:
@@ -461,7 +462,10 @@ def mel2py( input, outputDir=None,
                     e.file = melfile
                 raise
         
-        header = "%s from mel file:\n# %s\n\n" % (tag, melfile) 
+        header = """%s from mel file:
+# %s
+
+""" % (tag, melfile) 
         
         converted = header + converted
         

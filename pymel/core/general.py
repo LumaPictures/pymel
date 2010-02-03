@@ -2850,70 +2850,57 @@ class Attribute(PyNode):
                 raise TypeError, "Please provide a min and max value as a two-element tuple or list, or as two arguments to the method. To ignore a limit, provide a None value."
 
                 
-        # first find out what connections are going into and out of the object
-        ins = self.inputs(p=1)
-        outs = self.outputs(p=1)
+#        # first find out what connections are going into and out of the object
+#        ins = self.inputs(p=1)
+#        outs = self.outputs(p=1)
+#
+#        # get the current value of the attr
+#        val = self.get()
+#
+#        # break the connections if they exist
+#        self.disconnect()
 
-        # get the current value of the attr
-        val = self.get()
-
-        # break the connections if they exist
-        self.disconnect()
-
-        #now tokenize $objectAttr in order to get it's individual parts
-        obj = self.node()
-        attr = self.plugAttr()
-
-        # re-create the attribute with the new min/max
-        kwargs = {}
-        kwargs['at'] = self.type()
-        kwargs['ln'] = attr
-        
         # MIN
-        # if 'default' is passed a value, we retain the current value
+        # if 'default' is passed, we retain the current value
         if newMin == 'default':
-            currMin = self.getMin()
-            currSoftMin = self.getSoftMin()
-            if currMin is not None:
-                kwargs['min'] = currMin
-            elif currSoftMin is not None:
-                kwargs['smn'] = currSoftMin    
-                
-        elif newMin is not None:
+            pass         
+        elif newMin is None:
             if limitType == 'hard':
-                kwargs['min'] = newMin
+                cmds.addAttr(self, edit=1, hasMinValue=False)
             else:
-                kwargs['smn'] = newMin
-                
+                cmds.addAttr(self, edit=1, hasSoftMinValue=False)
+        else:
+            if limitType == 'hard':
+                cmds.addAttr(self, edit=1, minValue=newMin)
+            else:
+                cmds.addAttr(self, edit=1, softMinValue=newMin)
+
+                       
         # MAX    
-        # if 'default' is passed a value, we retain the current value
+        # if 'default' is passed, we retain the current value
         if newMax == 'default':
-            currMax = self.getMax()
-            currSoftMax = self.getSoftMin()
-            if currMax is not None:
-                kwargs['max'] = currMax
-            elif currSoftMax is not None:
-                kwargs['smx'] = currSoftMax    
-                
-        elif newMax is not None:
+            pass         
+        elif newMax is None:
             if limitType == 'hard':
-                kwargs['max'] = newMax
+                cmds.addAttr(self, edit=1, hasMaxValue=False)
             else:
-                kwargs['smx'] = newMax
+                cmds.addAttr(self, edit=1, hasSoftMaxValue=False)
+        else:
+            if limitType == 'hard':
+                cmds.addAttr(self, edit=1, maxValue=newMax)
+            else:
+                cmds.addAttr(self, edit=1, softMaxValue=newMax)
         
-        # delete the attribute
-        self.delete()                
-        cmds.addAttr( obj, **kwargs )
 
-        # set the value to be what it used to be
-        self.set(val);
-
-        # remake the connections
-        for conn in ins:
-            conn >> self
-            
-        for conn in outs:
-            self >> outs
+#        # set the value to be what it used to be
+#        self.set(val)
+#
+#        # remake the connections
+#        for conn in ins:
+#            conn >> self
+#            
+#        for conn in outs:
+#            self >> outs
 
 
 #    def getChildren(self):
