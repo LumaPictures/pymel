@@ -15,11 +15,10 @@ import pymel.util as _util
 import pymel.internal.factories as _factories
 import pymel.api as _api
 import pymel.versions as _versions
-
 import datatypes
 import logging
 from maya.cmds import about as _about
-
+import maya.cmds as _mc
 _logger = logging.getLogger(__name__)
 
 
@@ -1028,13 +1027,12 @@ Modifications:
         The following arguments are incompatible with addShape, and will raise a ValueError if enabled along with addShape:
             renameChildren (rc), instanceLeaf (ilf), parentOnly (po), smartTransform (st)
   - returns wrapped classes
-  - returnRootsOnly is forced on. This is because the duplicate command does not use full paths when returning
-    the names of duplicated objects and will fail if the name is not unique. Rather than return a mixed list of PyNodes and
-    strings, I thought it best to give more predictable results.
+  - returnRootsOnly is forced on for dag objects. This is because the duplicate command does not use full paths when returning
+    the names of duplicated objects and will fail if the name is not unique.
     """
     addShape = kwargs.pop('addShape', False)
-    kwargs['returnRootsOnly'] = True
     kwargs.pop('rr', None)
+    kwargs['returnRootsOnly'] = bool(_mc.ls(dag=1,*args))
     
     if not addShape:
         return map(PyNode, cmds.duplicate( *args, **kwargs ) )

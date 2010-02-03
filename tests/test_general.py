@@ -827,7 +827,20 @@ for cmdName in ('''aimConstraint geometryConstraint normalConstraint
     # try to run it as a test!
     del globals()['constraintTest']
         
+class test_commands(unittest.TestCase):
+    def setUp(self):
+        cmds.file(new=1, f=1)
+        self.dependNode = cmds.createNode('displayLayer')
+        self.group = cmds.group('persp')
         
+    def test_duplicate(self):
+        # make sure that we get proper dag nodes, even when the result will contain non-unique names
+        self.assert_( duplicate(self.group) )
+        
+        # ensure it works with depend nodes too
+        self.assert_( duplicate(self.dependNode) )
+        
+           
 #suite = unittest.TestLoader().loadTestsFromTestCase(testCase_nodesAndAttributes)
 #suite.addTest(unittest.TestLoader().loadTestsFromTestCase(testCase_listHistory))
 #unittest.TextTestRunner(verbosity=2).run(suite)
