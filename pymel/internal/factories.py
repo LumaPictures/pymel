@@ -255,40 +255,22 @@ def getInheritance( mayaType ):
     dagMod = api.MDagModifier()
     dgMod = api.MDGModifier()
     
-    # Regardless of whether we're making a DG or DAG node, make a parent first - 
-    # for some reason, this ensures good cleanup (don't ask me why...??)
-    parent = dagMod.createNode ( 'transform', api.MObject())
-
-    try :
-        # Try making it with dgMod FIRST - this way, we can avoid making an
-        # unneccessary transform if it is a DG node
-        obj = dgMod.createNode ( mayaType )
-        dgMod.doIt()
-        
-        #_logger.debug( "Made ghost DG node of type '%s'" % mayaType )
-        name = api.MFnDependencyNode(obj).name()
+    obj = apicache._makeDgModGhostObject(mayaType, dagMod, dgMod)
+    if obj.hasFn( api.MFn.kDagNode ):
+        mod = dagMod
+        mod.doIt()
+        name = api.MFnDagNode(obj).partialPathName()
+    else:
         mod = dgMod
-        
-    except RuntimeError:
-        try:
-            # DagNode
-            obj = dagMod.createNode ( mayaType, parent )
-            dagMod.doIt()
-            
-            #_logger.debug( "Made ghost DAG node of type '%s'" % mayaType )
-            name = api.MFnDagNode(obj).name()
-            mod = dagMod
-        except RuntimeError:
-            return None
-        
+        mod.doIt()
+        name = api.MFnDependencyNode(obj).name()
+    
     if not obj.isNull() and not obj.hasFn( api.MFn.kManipulator3D ) and not obj.hasFn( api.MFn.kManipulator2D ):
         lineage = cmds.nodeType( name, inherited=1)
     else:
         lineage = []
-        
     mod.undoIt()
     return lineage
-            
 
 
     
