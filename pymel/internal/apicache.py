@@ -38,10 +38,12 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
     # as the dgModifier.doIt() method is never called, the object
     # is never actually created in the scene
     
-    # Note that you need to call the dgMod/dagMod.deleteNode method as well - if we don't,
+    # Note: at one point, if we didn't call the dgMod/dagMod.deleteNode method,
     # and we call this function while loading a scene (for instance, if the scene requires
-    # a plugin that isn't loaded, and defines custom node types), then the nodes are still
-    # somehow created, despite never explicitly calling doIt()
+    # a plugin that isn't loaded, and defines custom node types), then the nodes were still
+    # somehow created, despite never explicitly calling doIt()...
+    # ... however, this seems to no longer be the case, and the deleteNode calls are apparently
+    # harmful
     if type(dagMod) is not api.MDagModifier or type(dgMod) is not api.MDGModifier :
         raise ValueError, "Need a valid MDagModifier and MDGModifier or cannot return a valid MObject"
 
@@ -61,11 +63,11 @@ def _makeDgModGhostObject(mayaType, dagMod, dgMod):
         else:
             # DependNode
             _logger.debug( "Made ghost DG node of type '%s'" % mayaType )
-            dgMod.deleteNode(obj)
+#            dgMod.deleteNode(obj)
     except:
         obj = api.MObject()
 
-    dagMod.deleteNode(parent)
+#    dagMod.deleteNode(parent)
 
     if api.isValidMObject(obj) :
         return obj
