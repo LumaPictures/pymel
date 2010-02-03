@@ -2950,6 +2950,7 @@ class SkinCluster(GeometryFilter):
 
         old_weights = _api.MDoubleArray()
         su = _api.MScriptUtil()
+        su.createFromInt(0)
         index = su.asUintPtr()
         self.__apimfn__().getWeights( geometry.__apimdagpath__(), components, old_weights, index )
         return self.__apimfn__().setWeights( geometry.__apimdagpath__(), components, influnces, weights, normalize, old_weights )
