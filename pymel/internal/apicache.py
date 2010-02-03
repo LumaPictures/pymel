@@ -172,8 +172,10 @@ class ApiCache(object):
     apiTypeHierarchy = {}
     
     def _buildMayaReservedTypes(self):
-        """ Build a list of Maya reserved types.
-            These cannot be created directly from the API, thus the dgMod trick to find the corresonding Maya type won't work """
+        """ 
+        Build a list of Maya reserved types.
+        These cannot be created directly from the API, thus the dgMod trick to find the corresponding Maya type won't work
+        """
             
         reservedTypes = { 'invalid':'kInvalid', 'base':'kBase', 'object':'kNamedObject', 'dependNode':'kDependencyNode', 'dagNode':'kDagNode', \
                     'entity':'kDependencyNode', \
@@ -192,11 +194,17 @@ class ApiCache(object):
                     'plugin':'kPlugin', 'THdependNode':'kPluginDependNode', 'THlocatorShape':'kPluginLocatorNode', 'pluginData':'kPluginData', \
                     'THdeformer':'kPluginDeformerNode', 'pluginConstraint':'kPluginConstraintNode', \
                     'unknown':'kUnknown', 'unknownDag':'kUnknownDag', 'unknownTransform':'kUnknownTransform',\
-                    'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip', # creating these 2 crash Maya 
-                    'dynBase': 'kDynBase', 'polyPrimitive': 'kPolyPrimitive','nParticle': 'kNParticle', 'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry', } # Reserved types that crash when            
-    
+                    # creating these 2 crash Maya 
+                    'xformManip':'kXformManip', 'moveVertexManip':'kMoveVertexManip', 
+                    
+                    'dynBase': 'kDynBase', 'polyPrimitive': 'kPolyPrimitive','nParticle': 'kNParticle', 'birailSrf': 'kBirailSrf', 'pfxGeometry': 'kPfxGeometry',
+        }
+        # no known api types: these do not have valid api types, so we add them in to avoid querying them on each load
+        invalidReservedTypes = {'deformableShape' : 'kInvalid', 'controlPoint' : 'kInvalid'}
+        
         # filter to make sure all these types exist in current version (some are Maya2008 only)
         self.reservedMayaTypes = dict( (item[0], item[1]) for item in filter(lambda i:i[1] in self.apiTypesToApiEnums, reservedTypes.iteritems()) )
+        self.reservedMayaTypes.update(invalidReservedTypes)
         # build reverse dict
         self.reservedApiTypes = dict( (item[1], item[0]) for item in self.reservedMayaTypes.iteritems() )
  
@@ -554,10 +562,13 @@ class ApiCache(object):
         self.apiClassInfo = None
         
         data = startup.loadCache( 'mayaApi', 'the API cache', compressed=True )
+        
+        self._buildMayaReservedTypes()
+        
         if data is not None:
             
-            self.reservedMayaTypes = data[0]
-            self.reservedApiTypes = data[1]
+            #self.reservedMayaTypes = data[0]
+            #self.reservedApiTypes = data[1]
             self.apiTypesToApiEnums = data[2]
             self.apiEnumsToApiTypes = data[3]
             self.mayaTypesToApiTypes = data[4]
@@ -581,8 +592,7 @@ class ApiCache(object):
         
         if not rebuildAllButClassInfo:
             self.apiClassInfo = None
-            
-        self._buildMayaReservedTypes()
+        
         self._buildApiTypeHierarchy()
     
         # merge in the manual overrides: we only do this when we're rebuilding or in the pymelControlPanel
@@ -656,7 +666,6 @@ def mayaTypeToApiType(mayaType) :
             obj = api.MObject() 
             dagMod = api.MDagModifier()
             dgMod = api.MDGModifier()
-            #if mayaType == 'directionalLight': print "self.mayaTypesToApiTypes", "directionalLight" in self.mayaTypesToApiTypes.keys(), len(self.mayaTypesToApiTypes.keys())
             obj = _makeDgModGhostObject(mayaType, dagMod, dgMod)
             if api.isValidMObject(obj):
                 apiType = obj.apiTypeStr()
