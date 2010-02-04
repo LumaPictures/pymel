@@ -57,7 +57,9 @@ without any manual cleanup.""")
                       help="""A comma-separated list of files/directories to exclude from processing, if input is a directory.""")
     parser.add_option("-p", "--melPathOnly", action="store_true",
                       help="""If true, will only translate mel files found on the mel script path.""")
-    
+    parser.add_option("-b", "--basePackage",
+                      help="""Gives the package that all translated modules will be a part of; if None or an empty string, all translated modules are assumed to have no base package.""")
+                
     parser.set_defaults(outputDir=None,
             pymelNamespace='', forceCompatibility=False,
             verbosity=0 , test=False,

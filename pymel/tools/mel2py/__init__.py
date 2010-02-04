@@ -230,13 +230,18 @@ custom_proc_remap = {
 # do not change the following line !!!
 proc_remap.update(custom_proc_remap)
 
-def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False ):
+def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False, basePackage='' ):
     """
     if passed a directory, get all mel files in the directory
     if passed a file, ensure it is a mel file
     if passed a procedure name, find its file
+    
+    Returns tuples of the form (moduleName, melfile).
     """
+    if basePackage is None:
+        basePackage = ''
     files = []
+    recursedResults = []
     filepath = util.path( melobj )
     if filepath.isfile():
         if filepath.ext == '.mel':
@@ -245,11 +250,12 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False ):
             log.warning( "File is not a mel script: %s" % (filepath) )
             files = []
     elif filepath.isdir():
+        files = [ f.canonicalpath() for f in filepath.files( '[a-zA-Z]*.mel') ]
         if recurse:
-            iterator = filepath.walkfiles
-        else:
-            iterator = filepath.files
-        files = [ f.canonicalpath() for f in iterator( '[a-zA-Z]*.mel') ]
+            for dir in filepath.dirs():
+                recursedResults.extend(resolvePath(dir, recurse=recurse,
+                                         exclude=exclude, melPathOnly=melPathOnly,
+                                         basePackage = basePackage + '.' + pythonizeName(dir.basename())))
     #elif not filepath.exists():
     else:
         # see if it's a procedure that we can derive a path from
@@ -279,7 +285,9 @@ def resolvePath( melobj, recurse=False, exclude=(), melPathOnly=False ):
         files = filteredFiles
     if melPathOnly:
         files = [x for x in files if fileOnMelPath(x)]
-    return files
+    if basePackage and basePackage[-1] != '.':
+        basePackage = basePackage + '.' 
+    return [ (basePackage + getModuleBasename(x), x) for x in files] + recursedResults
 
 def fileOnMelPath( file ):
     """
@@ -295,17 +303,59 @@ def fileOnMelPath( file ):
         return False
     path = util.path(info[1])
     return path.samepath(file)
-    
-def _getInputFiles( input, recurse=False, exclude=(), melPathOnly=False ):
-    if util.isIterable( input ):
-        results = []
-        for f in input:
-            results += resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
-    else:
-        results = resolvePath(input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
-    
-    return results
 
+def _updateCurrentModules( newResults ):
+    currentModules = melparse.batchData.currentModules
+    for moduleName, melfile in newResults:
+        if not isinstance(melfile, Path):
+            melfile = util.path(melfile)
+        if melfile in currentModules.values():
+            oldModule = currentModules.get_key(melfile)
+            if oldModule == moduleName:
+                continue
+            if moduleName.count('.') >= oldModule.count('.'):
+                continue
+        elif moduleName in currentModules:
+            raise RuntimeError('two mel files result in same python module name: %s, %s => %s' % (currentModules[moduleName], melfile, moduleName))
+        currentModules[moduleName] = melfile
+
+def _makePackages():
+    # Maps from a package (in tuple form) to base directory
+    packages = {}
+    
+    for moduleName, melfile in melparse.batchData.currentModules.iteritems():
+        if moduleName.count('.') < 1:
+            continue
+        package = tuple(moduleName.split('.')[:-1])
+        if melparse.batchData.outputDir:
+            packages[package] = melparse.batchData.outputDir
+        else:
+            assert package == tuple(melfile.splitall()[-(len(package)+1):-1]), \
+                "package %s did not match melfile %s directory structure" % ('.'.join(package), melfile)
+            packages[package] = util.path.joinpath( *(melfile.splitall()[:-(len(package)+1)]) )
+    
+    for packageTuple, baseDir in packages.iteritems():
+        if not baseDir.isdir():
+            baseDir.makedirs()
+        curDir = baseDir
+        for nextDir in packageTuple:
+            curDir = curDir / nextDir
+            if not curDir.isdir():
+                curDir.mkdir()
+            initFile = curDir / '__init__.py'
+            if not initFile.isfile():
+                initFile.touch()
+        
+def _getInputFiles( input, recurse=False, exclude=(), melPathOnly=False, basePackage='' ):
+    """
+    Returns tuples of the form (packageName, melfile)
+    """
+    results = []
+    if not util.isIterable( input ):
+        input = [input]
+    for f in input:
+        results.extend(resolvePath(f, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage))
+    return results
 
 def melInfo( input ):
     """
@@ -340,7 +390,7 @@ def melInfo( input ):
     cbParser.build()
     return cbParser.parse( f.bytes() )
 
-def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0 ):
+def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=False, verbosity=0, basePackage=None ):
     """
     convert a string representing mel code into a string representing python code
     
@@ -372,7 +422,6 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
             
         verbosity : `int`
             Set to non-zero for a *lot* of feedback
-    
     """
     
     mparser = MelParser()
@@ -387,7 +436,8 @@ def mel2pyStr( data, currentModule=None, pymelNamespace='', forceCompatibility=F
 def mel2py( input, outputDir=None,
             pymelNamespace='', forceCompatibility=False,
             verbosity=0 , test=False,
-            recurse=False, exclude=(), melPathOnly=False):
+            recurse=False, exclude=(), melPathOnly=False,
+            basePackage=None):
     """
     Batch convert an entire directory
     
@@ -417,36 +467,42 @@ def mel2py( input, outputDir=None,
             
         recurse : `bool`
             If the input is a directory, whether or not to recursively search subdirectories as well.
+            Subdirectories will be converted into packages, and any mel files within those subdirectories
+            will be submodules of that package.
         
         exclude : `str`
             A comma-separated list of files/directories to exclude from processing, if input is a directory.
             
         melPathOnly : `bool`
             If true, will only translate mel files found on the mel script path.
+            
+        basePackage : `str`
+            Gives the package that all translated modules will be a part of; if None or an empty string, all
+            translated modules are assumed to have no base package.
     """
-    
+    if basePackage is None:
+        basePackage = ''
     melparse.batchData = BatchData()
     batchData = melparse.batchData
+    batchData.basePackage = basePackage
+    if outputDir is not None:
+        outputDir = util.path(outputDir)
+    batchData.outputDir = outputDir
     
     if outputDir and not os.path.exists(outputDir):
         os.makedirs(outputDir)
     
-    currentFiles = _getInputFiles( input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly )
-    
+    currentFiles = _getInputFiles( input, recurse=recurse, exclude=exclude, melPathOnly=melPathOnly, basePackage=basePackage )
     if not currentFiles:
         raise ValueError, "Could not find any scripts to operate on. Please pass a directory, a list of directories, the name of a mel file, a list of mel files, or the name of a sourced procedure"
-
-    for file in currentFiles:
-        module = getModuleBasename(file)
-        assert module not in batchData.currentModules, "modules %s is already in currentModules list %s" % ( module, batchData.currentModules )
-        batchData.currentModules[module] = file
+    _updateCurrentModules(currentFiles)
+    
+    _makePackages()
     
     importCnt = 0
     succeeded = []
     for moduleName, melfile in batchData.currentModules.iteritems():
         print melfile, moduleName
-        #try:
-            #moduleName = getModuleBasename(melfile)
         
         if melfile in batchData.scriptPath_to_moduleText:
             print "Using pre-converted mel script", melfile
@@ -468,13 +524,16 @@ def mel2py( input, outputDir=None,
 """ % (tag, melfile) 
         
         converted = header + converted
-        
+
+        splitModule = moduleName.split('.')
         if outputDir is None:
             currOutDir = melfile.parent
         else:
-            currOutDir = outputDir
+            currOutDir = outputDir 
+            if len(splitModule) > 1:
+                currOutDir = currOutDir.joinpath(*splitModule[:-1])
             
-        pyfile = util.path(currOutDir + os.sep + moduleName + '.py')    
+        pyfile = currOutDir.joinpath(splitModule[-1] + '.py')    
         print "Writing converted python script: %s" % pyfile
         pyfile.write_bytes(converted)
         succeeded.append( pyfile )

@@ -8,7 +8,7 @@ Created from the ansi c example included with ply, which is based on the grammar
 
 
 
-import sys, os, re, os.path, tempfile
+import sys, os, re, os.path, tempfile, string
 import mellex
 
 try:
@@ -292,12 +292,23 @@ mel_type_to_python_type = {
 tag = '# script created by pymel.tools.mel2py'
 
 
+def pythonizeName(name):
+    alphaNumeric = string.ascii_letters + string.digits
+    chars = []
+    for char in name:
+        if char not in alphaNumeric:
+            chars.append('_')
+        else:
+            chars.append(char)
+    if chars[0] in string.digits:
+        # Since python treats names starting with '_' as
+        # somewhat special, use another character...
+        chars.insert(0, 'n')
+    return ''.join(chars)
 
 def getModuleBasename( script ):
     name = os.path.splitext( os.path.basename(script) )[0]
-    name = name.replace( '.', '_')
-    name = name.replace( '-', '_')
-    return name
+    return pythonizeName(name)
 
 def findModule( moduleName ):
     for f in sys.path:
@@ -394,6 +405,7 @@ def _melProc_to_pyModule( t, procedure ):
             #print "%s not seen yet: scanning %s" % ( procedure, melfile )
             cbParser = MelScanner()
             cbParser.build()
+            melfile = batchData.currentModules[moduleName]
             try:
                 proc_list, global_procs, local_procs = cbParser.parse( melfile.bytes() )
             except lex.LexError:
@@ -677,11 +689,15 @@ class BatchData(object):
     """ """
     __metaclass__ = util.Singleton
     
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.currentModules = TwoWayDict()
         self.proc_to_module = {}
         self.scriptPath_to_parser = {}
         self.scriptPath_to_moduleText = {}
+        self.basePackage = None
+        self.outputDir = None
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
 
 global batchData
 batchData = BatchData()
